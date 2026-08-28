@@ -14,6 +14,8 @@
     "lifecycle_state",
     "budget",
     "product_labels",
+    "product_label_provenance",
+    "product_label_validation_status",
     "is_rental_project"
   ],
   "properties": {
@@ -51,8 +53,10 @@
       "uniqueItems": true
     },
     "product_label_provenance": {
-      "type": ["string", "null"],
-      "enum": ["DETERMINISTIC", "CONTROLLED_MODEL_CLASSIFICATION", "HUMAN_CONFIRMED", null]
+      "enum": ["DETERMINISTIC", "CONTROLLED_MODEL_CLASSIFICATION", "HUMAN_CONFIRMED"]
+    },
+    "product_label_validation_status": {
+      "enum": ["VALIDATED", "BENCHMARK_PENDING", "UNVERIFIED"]
     },
     "is_rental_project": {"type": ["boolean", "null"]}
   }
