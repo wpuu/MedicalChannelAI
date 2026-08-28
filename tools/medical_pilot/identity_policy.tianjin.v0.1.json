@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "as_of": "2026-08-28T18:35:00+08:00",
+  "as_of": "2026-08-28T19:05:00+08:00",
   "goal": "Prefer under-linking over over-deduplication so one real commercial opportunity is never silently swallowed by a same-name record.",
   "canonical_identity_priority": [
     {
@@ -37,14 +37,25 @@
     "same product category alone"
   ],
   "cross_stage_bridge_policy": {
-    "status": "NOT_IMPLEMENTED",
+    "status": "CANDIDATE_LAYER_IMPLEMENTED_CANONICAL_MERGE_NOT_IMPLEMENTED",
+    "candidate_module": "tools/medical_pilot/cross_stage_link.py",
+    "candidate_status": "CANDIDATE_REQUIRES_EVIDENCE",
+    "auto_merge_allowed": false,
+    "current_candidate_requirements": [
+      "both records VERIFIED",
+      "allowed stage pair",
+      "exact normalized buyer",
+      "exact normalized project title",
+      "forward publication chronology",
+      "no conflicting explicit project numbers"
+    ],
     "examples": [
       "PROCUREMENT_INTENT -> TENDER",
       "MARKET_RESEARCH -> TENDER",
-      "INTERNAL_SELECTION -> FORMAL_PROCUREMENT"
+      "INTERNAL_SELECTION -> TENDER"
     ],
-    "minimum_principle": "A bridge may associate separate source-local identities only when deterministic public evidence supports the relationship. Until then, keep them separate and expose link candidates rather than silently merging.",
-    "llm_role": "An LLM may suggest link candidates but may never perform the canonical merge without deterministic evidence."
+    "minimum_principle": "A candidate is only a review hint. Canonical merge remains prohibited until deterministic public bridge evidence is implemented and validated.",
+    "llm_role": "An LLM may suggest additional link candidates but may never perform the canonical merge without deterministic evidence."
   },
   "regression_case": {
     "buyer_name": "天津医科大学",
