@@ -143,4 +143,5 @@ def apply_product_classification(
     result["product_labels"] = list(classification.labels)
     result["product_label_provenance"] = "DETERMINISTIC"
     result["product_label_validation_status"] = classification.validation_status
+    result["product_classifier_id"] = CLASSIFIER_ID
     return result
