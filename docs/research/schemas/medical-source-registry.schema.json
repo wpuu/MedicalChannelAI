@@ -11,6 +11,7 @@
     "canonical_base_url",
     "authority_type",
     "source_type",
+    "provenance_role",
     "geographic_scope",
     "collector_mode",
     "enabled",
