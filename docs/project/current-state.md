@@ -6,164 +6,148 @@
 生产就绪：**false**  
 Draft PR：**#1**
 
-## 1. 当前产品目标
+## 1. 当前目标
 
-首个 Pilot 只证明：能否持续、可追溯地发现天津区域公开医疗商业信号，并在模型不能创造事实的前提下，结合客户真实经营条件生成可执行的销售行动建议。
+首个天津 Pilot 只证明一件事：能否持续、可追溯地发现公开医疗商业信号，并在模型不能创造采购事实的前提下，结合客户真实经营条件形成可执行的渠道/销售建议。
 
-产品不是医疗诊断系统；当前聚焦医疗器械、IVD、耗材的渠道经营与厂家销售场景。
+当前聚焦医疗器械、IVD、耗材；不是诊断或临床决策系统。
 
 ## 2. 当前事实底座
 
 - 5 个 JSON Schema：SourceRegistry / Opportunity / ProcurementEvent / EvidenceFact / CustomerProfile
-- 6 个已登记运行时 P0 Source，其中 4 个完整实现、2 个部分实现
-- 9 条 VERIFIED 天津商机 regression fixture（8 条主 fixture + 1 条 attachment-backed fixture）
-- 5 条真实官方附件声明 fixture；当前只证明公告声明存在附件，不冒充已取得附件二进制
-- bounded collector + Snapshot SHA-256
-- Evidence Fact 生成
-- Procurement Intent 解析
-- CCGP lifecycle 解析
-- deterministic LifecycleLinker
-- 中标供应商/金额与官方产品/品牌/型号/数量/单价解析
-- 天津医科大学总医院早期市场调研解析
-- 天津第一中心医院院内比选/测试企业征集解析
-- 天津公共资源政府采购结果官方镜像解析（部分实现）
-- 天津市政府采购网原始详情页解析（部分实现）
-- PRIMARY_SOURCE / OFFICIAL_MIRROR / DISCOVERY_ONLY 来源角色，已在所有 Runtime Source 中显式配置并由 Schema 强制
-- DAY / MINUTE 发布时间精度
-- 同项目跨源去重与精度感知生命周期聚合
-- 附件白名单、host/MIME/size/hash 安全链
-- DOCX / XLSX bounded stdlib parser；输出段落或单元格 Evidence locator
-- PDF / DOC / XLS 当前只允许安全下载并保留快照，`parser_eligible=false`
-- XLSX 公式缓存值当前不采信、不进入确定性文本层
-- SourceHealth / Coverage 聚合
-- CLI 单 URL evidence-backed 输出，并暴露解析后的 `provenance_role`
-- 13 组 deterministic unittest 模块
+- 6 个运行时 P0 Source：4 个完整实现、2 个部分实现
+- **21 条 VERIFIED 天津商机 regression fixture**
+  - 主 fixture：8
+  - attachment-backed：1
+  - procurement-intent identity：2
+  - expanded official corpus：10
+- 5 条真实官方附件声明 fixture；真实附件二进制捕获仍为 0
+- bounded collector + Snapshot SHA-256 + Evidence Fact
+- CCGP TENDER / AMENDMENT / TERMINATION / AWARD 生命周期解析
+- Procurement Intent 月份精度与官方 `projId` 身份
+- 天津医科大学总医院、天津第一中心医院早期信号
+- 天津公共资源政府采购结果官方镜像（PARTIAL）
+- 天津市政府采购网原始详情页（PARTIAL）
+- `PRIMARY_SOURCE / OFFICIAL_MIRROR / DISCOVERY_ONLY`
+- `DAY / MINUTE` 发布时间精度
+- 精度感知 LifecycleLinker
+- 中标供应商、金额及官方产品/品牌/型号/数量/单价解析
+- DOCX/XLSX bounded stdlib parser
+- 可选 Docling PDF backend 代码，要求页码+bbox provenance；尚未真实 PDF 验证，生产开关仍关闭
+- 本地附件验证 CLI；PDF 需要显式 `--enable-docling-pdf`
+- SourceHealth / Coverage / Source Topology
+- **16 组 deterministic unittest 模块**
+- Agnes 2.5 Flash benchmark manifest + opt-in harness，尚未执行
 
-## 3. 当前 VERIFIED 商机 fixture
+## 3. Canonical Identity 规则
 
-主 fixture：
+本轮修复了一个高风险 over-dedup BUG：天津医科大学存在两条独立政府采购意向，采购单位和项目名称都为“天津医科大学 / PCR仪等设备采购项目”，发布时间和预计采购月也相同，但官方 `projId` 不同，预算分别 300万元与70万元。它们必须是两个独立 Opportunity。
 
-1. 天津市胸科医院检验科设备租赁 — 573万元 / TENDER
-2. 天津医院 SPECT/CT — TERMINATED
-3. 天津市泰达医院 DR — 250万元 / TENDER
-4. 天津中医药大学第一附属医院光电同步脑活动检测仪 — 390万元 / PROCUREMENT_INTENT / `2026-05` 月精度
-5. 天津医科大学 GMP 实验室核心设备 — 873.27万元 / AWARD / 供应商 + 东富龙品牌型号表
-6. 天津市第一中心医院手术无影灯 — INTERNAL_SELECTION / 1.98万元
-7. 天津市第一中心医院医疗器械精细化管理 — MARKET_RESEARCH / 测试企业征集
-8. 天津市疾病预防控制中心性病艾滋病检测试剂、耗材 — AWARD / 天津公共资源官方镜像 / DAY 精度 / 供应商与官方产品品牌型号
+当前身份优先级：
 
-Attachment-backed fixture：
+1. 有官方 `project_number`：按项目编号建立 canonical identity，可跨官方来源去重。
+2. 政府采购意向等有官方 native record id：按 `source_id + native_record_id` 建立独立 identity。
+3. 没有项目编号/native id：按 `source_id + source_url` 保持 source-local identity。
 
-9. 天津医科大学总医院肾内科临床重点专科建设试剂购置 — AWARD / 109.2806万元 / 两个中标包；第2包正文直接公开天津斯德谱 CD45/CD3/CD16/CD56 试剂，第1包完整分项明确保持 `PENDING_ATTACHMENT_BYTES`，不得从“等，详见附件”猜完整清单。
+**禁止**再使用 `buyer_name + project_name` 自动合并。
 
-## 4. Source Topology
+跨阶段关联（如采购意向 → 正式招标、市场调研 → 正式招标）目前单独保持 `NOT_IMPLEMENTED`：以后只能由 deterministic public evidence 建 bridge；LLM 最多提供候选，不能执行 canonical merge。
 
-政府采购主链路已经固定为：
+机器规则：`tools/medical_pilot/identity_policy.tianjin.v0.1.json`。
 
-1. `tj_government_procurement` — `PRIMARY_SOURCE`
-2. `ccgp_local_notices` — `OFFICIAL_MIRROR`
-3. `tj_public_resource_exchange` — `OFFICIAL_MIRROR`
+## 4. Source Topology / Coverage
 
-采购意向当前由 `ccgp_procurement_intent` 提供，暂按 `OFFICIAL_MIRROR` 使用，直到天津原始采购意向入口完成验证。
+政府采购：
 
-医院官网早期信号：
+1. `tj_government_procurement` — PRIMARY_SOURCE — PARTIAL
+2. `ccgp_local_notices` — OFFICIAL_MIRROR — IMPLEMENTED
+3. `tj_public_resource_exchange` — OFFICIAL_MIRROR — PARTIAL
 
-- `tjmugh_procurement` — `PRIMARY_SOURCE`
-- `tj_first_central_hospital_procurement` — `PRIMARY_SOURCE`
+采购意向当前由 `ccgp_procurement_intent` 提供；医院早期信号由 `tjmugh_procurement`、`tj_first_central_hospital_procurement` 作为 PRIMARY。
 
-机器可读拓扑：`tools/medical_pilot/source_topology.tianjin.v0.1.json`。
-
-### 去重规则
-
-- 官方存在项目编号时，以 exact normalized `project_number` 形成 canonical project identity。
-- 同项目出现在 PRIMARY、CCGP、公共资源时保留多个 Evidence Event，但只能形成一个 Opportunity。
-- URL 不是项目身份。
-- 同一生命周期、同一天且不能证明精确先后时，主证据优先 PRIMARY_SOURCE。
-- 同一天出现矛盾生命周期且任一来源只有 DAY 精度时，必须 `CONFLICTED / UNKNOWN`，禁止用规范化 `00:00` 猜测先后。
-
-### 时效差规则
-
-只有同时满足以下条件才能计算来源间分钟级时延：
-
-- 同一 canonical project / lifecycle event；
-- 两端都是来源自身发布的时间；
-- 两端都是 `MINUTE` 精度。
-
-否则必须记 `LATENCY_UNKNOWN`。抓取时间不能伪装成发布时间。
-
-## 5. 当前 Coverage
-
-完整实现：
-
-- `ccgp_local_notices`
-- `ccgp_procurement_intent`
-- `tjmugh_procurement`
-- `tj_first_central_hospital_procurement`
-
-部分实现：
-
-- `tj_public_resource_exchange`：当前只验证 `/jyxxcgjg/` 政府采购结果详情页。
-- `tj_government_procurement`：当前确认 2026 使用 `tjgp.cz.tj.gov.cn`，并实现 `/portal/documentView.do?method=view&id=<digits>&ver=2` 直接详情页解析；尚未验证 2026 原生列表/搜索、分页及全部生命周期栏目。
-
-因此当前状态必须保持：
+当前 Coverage 必须保持：
 
 - `coverage_status = PARTIAL`
 - `exhaustiveness_claim = NOT_EXHAUSTIVE`
 
 不能宣称“天津已查全”。
 
-## 6. Attachment Parser 状态
+## 5. Attachment / PDF 状态
 
-当前下载允许：`.pdf / .doc / .docx / .xls / .xlsx`；`.zip / .rar / .7z` 只发现，不自动下载解包。
+### 已实现
 
-当前真正可确定性解析：
+- DOCX：`DOCX_PARAGRAPH` + paragraph locator
+- XLSX：`XLSX_RANGE` + sheet/range locator
+- Snapshot SHA-256 校验
+- ZIP成员数/解压大小/路径逃逸/加密OOXML/最大文本量/最大单元格边界
+- XLSX公式缓存值不采信
 
-- `.docx`：读取 `word/document.xml`，输出 `DOCX_PARAGRAPH` + paragraph locator。
-- `.xlsx`：读取 workbook / relationships / shared strings / worksheet XML，输出 `XLSX_RANGE` + sheet/range locator。
+### PDF
 
-当前安全限制：
+新增可选 `pdf-docling-v0.1` 后端：
 
-- Snapshot SHA-256 必须与 bytes 一致。
-- OOXML 加密成员拒绝。
-- 路径逃逸成员拒绝。
-- 最大 ZIP member 数、总解压大小、最大文本量、最大 XLSX 单元格数受限。
-- XLSX 公式单元格不计算，也不采信缓存值。
-- `.pdf / .doc / .xls` 当前 `DOWNLOAD_ONLY_PARSER_PENDING`，不能标成已解析。
+- 只接受 SHA 已验证的本地 PDF bytes
+- 最大 32MB / 200页 / 50,000 grounded blocks
+- `enable_remote_services=false`
+- 只有带 Docling `page_no + bbox` provenance 的文本/表格才输出 Evidence block
+- 无 provenance 文本直接丢弃
 
-当前真实附件声明 fixture：5 条。包括泰达医院 DR 项目需求书 DOCX、天津医科大学总医院肾内科项目采购文件/第1包分项 DOCX、天津政府采购 XLSX 格式样本、医疗 PDF 样本。当前检索通道尚未取得这些附件的真实二进制，因此统一保持：
+但当前真实官方 PDF bytes 尚未跑通，因此基础下载层仍保持 `.pdf parser_eligible=false`，不能宣称 PDF 已生产可用。
+
+真实附件 fixture 统一保持：
 
 - `binary_capture_status = PENDING_DIRECT_ATTACHMENT_BYTES`
 - `sha256 = null`
 - `parser_validation_status = NOT_RUN_ON_REAL_BYTES`
 
-不能把“官方公告声明有附件”写成“附件已真实解析成功”。
+## 6. VERIFIED 样本进度
+
+当前总数：**21**。
+
+新增 corpus 已覆盖：
+
+- 同名不同 `projId` 的天津医科大学 PCR 采购意向（300万 / 70万）
+- 天津中医药大学第一附属医院全自动神经细胞筛选鉴定系统意向（600万）
+- 天津大学多通道采集系统意向（161.3万）
+- 血液病医院分析型流式细胞仪意向（360万）
+- 天津县域医共体 DR 等设备中标（1358.35万）
+- 天津县域医共体血管造影X射线机/CT 中标（4256万）
+- 血液病医院试剂耗材第一批/第六批
+- 滨海新区疾控病原微生物能力提升设备（270万）
+- 天津医科大学一体化荧光显微成像系统等设备（230万）
+- 天津医科大学细胞药物GMP实验室质量检测设备（453万）
+
+所有 benchmark/fixture 都要求：官方正文没写的品牌、产品、供应商、科室、关系等不得补全。
 
 ## 7. Agnes 2.5 Flash
 
-状态：`GO_FOR_BENCHMARK`
+当前状态：`GO_FOR_BENCHMARK`，**不是 production validated**。
 
-尚未完成真实 API 医疗准确率生产验收。
+已建立：
 
-允许承担候选任务：医疗产品分类、辅助结构化、客户能力/商机匹配、缺失条件追问、确定性评分解释、销售行动建议。
+- `docs/research/benchmarks/agnes-2.5-flash-v0.1.json`
+- `tools/medical_pilot/benchmark_agnes.py`
+- 12 个首轮 benchmark case
+- 默认 dry-run；只有显式 `--execute` 且环境存在 `AGNES_API_KEY` 才调用
+- 仓库不保存 API Key
+- 第一轮只测：渠道粗分类、附件是否不足、是否需要更多来源、风险枚举；不允许自由文本或生成采购事实
 
-不得成为采购事实权威：采购人/医院、项目名、预算、日期/截止时间、生命周期状态、中标供应商/金额、官方产品品牌型号数量价格、来源 URL。
+首轮 Gate：segment ≥90%；item detail / missing-source ≥95%；required risk recall ≥95%；invalid enum=0；API/JSON failure ≤2%。
 
-## 8. CI / 自动测试真实状态
+## 8. CI 真实状态
 
-GitHub Actions 仍为：`BLOCKED_RUNNER_NOT_ASSIGNED`。
+仍为：`BLOCKED_RUNNER_NOT_ASSIGNED`，Issue #2 跟踪。
 
-已记录 Issue #2。已知证据：Job `runner_id=0`、`runner_name=""`、`steps=[]`，日志对象 `BlobNotFound`。因此 GitHub Runner 没有执行 Python；不能标 PASS，也不能把红色 CI 解释为 assertion failure。
+最新检查仍出现 GitHub Job `runner_id=0 / runner_name="" / steps=[]`，数秒结束。Python compile/unittest 没有执行，所以不能标 PASS，也不能解释为 assertion failure。
 
-当前 13 组测试代码属于“已写入、等待可执行证据”，不得宣称已经跑绿。
+当前 16 组测试均属于“测试代码已写入，等待真实执行证据”。
 
 ## 9. 下一步
 
-1. 获取第一份真实天津医疗采购 DOCX/XLSX 附件二进制，记录 source URL、redirect、MIME、size、SHA-256，并用 `ooxml-stdlib-v0.1` 实际解析。
-2. 为 PDF 选定 bounded parser 并建立页码级 Evidence locator；在真实 PDF 验证前保持 parser pending。
-3. 找到并验证天津市政府采购网 2026 原生列表/搜索入口、分页与栏目路由，才能把 PRIMARY 从 PARTIAL 升到 IMPLEMENTED。
-4. 增加至少一条真实 2026 天津医疗项目的原始站详情快照 fixture，与 CCGP 镜像做双源字段/发布时间对照。
-5. 继续验证天津公共资源招标/更正/终止栏目，决定是否值得升级完整实现，或只作为结果补证源。
-6. 先扩到 >=20 VERIFIED 天津样本，再扩到 >=50。
-7. GitHub Runner 恢复后第一时间执行全部 deterministic tests 并修真实失败。
-8. 事实层稳定后跑 Agnes 2.5 Flash benchmark。
-9. 最后再进入首批客户 H5/Web 演示端。
+1. 继续扩到 >=50 VERIFIED 天津商机，同时保持类型/生命周期多样性。
+2. 获取第一份真实天津医疗采购 DOCX/XLSX/PDF 附件 bytes，记录 redirect/MIME/size/SHA 并实际跑 parser。
+3. 验证天津政府采购网 2026 原生列表/搜索、分页和全生命周期栏目。
+4. 建立 evidence-backed cross-stage bridge（意向→招标等），在此之前禁止同名自动链接。
+5. Runner 恢复后执行全部 deterministic tests，真实失败优先修复。
+6. 确定性测试有执行证据后，再用环境变量运行 Agnes 2.5 Flash benchmark。
+7. Fact API 字段稳定后才进入老杨 H5/Web 演示端。
