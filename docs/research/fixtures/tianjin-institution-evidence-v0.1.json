@@ -1,0 +1,114 @@
+{
+  "schema_version": "0.1",
+  "as_of_date": "2026-08-28",
+  "purpose": "Evidence-backed institution classification for customer-type matching. Exact names/aliases only; no fuzzy or LLM-only promotion from UNKNOWN.",
+  "institutions": [
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tjmugh",
+      "canonical_name": "天津医科大学总医院",
+      "aliases": [],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": "和平区"},
+      "evidence": [
+        {
+          "source_url": "https://www.tjmugh.com.cn/yygk/index.shtml",
+          "source_authority": "OFFICIAL_HOSPITAL",
+          "claim_type": "HOSPITAL_GRADE",
+          "claim_value": "医院官网医院概况明确其为综合性三级甲等医院。",
+          "verification_status": "VERIFIED"
+        }
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tj_first_central_hospital",
+      "canonical_name": "天津市第一中心医院",
+      "aliases": [],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": null},
+      "evidence": [
+        {
+          "source_url": "https://www.tj-fch.com/doc/003/000/645/00300064511_3d956e2d.pdf",
+          "source_authority": "OFFICIAL_HOSPITAL",
+          "claim_type": "HOSPITAL_GRADE",
+          "claim_value": "医院官方材料明确其为综合性三级甲等医院。",
+          "verification_status": "VERIFIED"
+        }
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_chest_hospital",
+      "canonical_name": "天津市胸科医院",
+      "aliases": ["天津市胸科医院（和平院区）"],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": "和平区"},
+      "evidence": [
+        {
+          "source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/ylws/yy/202409/t20240906_6719626.html",
+          "source_authority": "OFFICIAL_GOVERNMENT",
+          "claim_type": "HOSPITAL_GRADE",
+          "claim_value": "天津政务网机构简介明确其为现代化三级甲等专科医院。",
+          "verification_status": "VERIFIED"
+        }
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tjtcm_first_affiliated",
+      "canonical_name": "天津中医药大学第一附属医院",
+      "aliases": ["天津中医药大学第一附属医院（北院区）"],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": null},
+      "evidence": [
+        {
+          "source_url": "https://www.tjtcm.cn/yygkx/yyjj/index.shtml",
+          "source_authority": "OFFICIAL_HOSPITAL",
+          "claim_type": "HOSPITAL_GRADE",
+          "claim_value": "医院官网医院简介明确其属于全国首批三级甲等医院。",
+          "verification_status": "VERIFIED"
+        }
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_cdc",
+      "canonical_name": "天津市疾病预防控制中心",
+      "aliases": ["天津市疾病预防控制中心（天津市预防医学科学院）"],
+      "institution_type": "CDC",
+      "hospital_grade": null,
+      "match_customer_type": "CDC",
+      "region": {"province": "天津市", "city": "天津市", "district": "河东区"},
+      "evidence": [
+        {
+          "source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/",
+          "source_authority": "OFFICIAL_GOVERNMENT",
+          "claim_type": "INSTITUTION_TYPE",
+          "claim_value": "天津政务网公共企事业单位公开信息将天津市疾病预防控制中心列为专业公共卫生机构。",
+          "verification_status": "VERIFIED"
+        },
+        {
+          "source_url": "https://www.cdctj.com.cn/zpgs/",
+          "source_authority": "OFFICIAL_INSTITUTION",
+          "claim_type": "INSTITUTION_TYPE",
+          "claim_value": "中心官方网站以天津市疾病预防控制中心（天津市预防医学科学院）名义发布机构信息。",
+          "verification_status": "VERIFIED"
+        }
+      ],
+      "verification_status": "VERIFIED"
+    }
+  ]
+}
