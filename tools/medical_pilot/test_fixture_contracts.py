@@ -13,6 +13,7 @@ OPPORTUNITY_FIXTURE_FILES = (
     FIXTURE_DIR / "tianjin-opportunity-attachment-backed-cases-v0.1.json",
     FIXTURE_DIR / "tianjin-procurement-intent-identity-cases-v0.1.json",
     FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.1.json",
+    FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.2.json",
 )
 
 
@@ -20,23 +21,27 @@ def load_cases(path: Path) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))["cases"]
 
 
+def all_opportunity_cases() -> list[dict]:
+    cases: list[dict] = []
+    for path in OPPORTUNITY_FIXTURE_FILES:
+        cases.extend(load_cases(path))
+    return cases
+
+
 class ResearchFixtureContractTests(unittest.TestCase):
-    def test_opportunity_fixture_ids_are_unique_across_all_files_and_verified_cases_have_source_urls(self) -> None:
-        cases: list[dict] = []
-        for path in OPPORTUNITY_FIXTURE_FILES:
-            cases.extend(load_cases(path))
+    def test_opportunity_fixture_ids_are_unique_and_all_cases_are_verified_official_records(self) -> None:
+        cases = all_opportunity_cases()
         ids = [case["case_id"] for case in cases]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertGreaterEqual(len(cases), 20)
+        self.assertGreaterEqual(len(cases), 37)
         for case in cases:
             self.assertTrue(case["source_url"].startswith("https://"), case["case_id"])
             expected = case.get("expected", {})
             self.assertEqual(expected.get("verification_status"), "VERIFIED", case["case_id"])
+            self.assertTrue(case.get("forbidden_inference"), case["case_id"])
 
     def test_procurement_intent_fixtures_with_native_record_id_use_valid_uuid_shape(self) -> None:
-        cases: list[dict] = []
-        for path in OPPORTUNITY_FIXTURE_FILES:
-            cases.extend(load_cases(path))
+        cases = all_opportunity_cases()
         native_ids = [case["native_record_id"] for case in cases if case.get("native_record_id")]
         self.assertGreaterEqual(len(native_ids), 5)
         for native_record_id in native_ids:
@@ -58,6 +63,33 @@ class ResearchFixtureContractTests(unittest.TestCase):
         )
         self.assertTrue(payload["pair_regression"]["must_have_distinct_canonical_project_id"])
         self.assertTrue(payload["pair_regression"]["must_have_distinct_opportunity_id"])
+
+    def test_multi_item_market_research_pages_are_not_split_into_fake_fixture_counts(self) -> None:
+        path = FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.2.json"
+        cases = {case["case_id"]: case for case in load_cases(path)}
+        ids = {
+            "tjmugh_imaging_ultrasound_maintenance_market_research_20260508",
+            "tjmugh_repair_services_market_research_20260205",
+            "tjmugh_rehab_neuro_devices_market_research_20260529",
+        }
+        for case_id in ids:
+            case = cases[case_id]
+            self.assertEqual(case["expected"]["notice_type"], "MARKET_RESEARCH")
+            self.assertEqual(case["expected"]["lifecycle_state"], "MARKET_RESEARCH")
+            self.assertNotIn("sub_opportunities", case)
+
+    def test_maintenance_market_research_never_claims_equipment_purchase_award(self) -> None:
+        path = FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.2.json"
+        cases = {case["case_id"]: case for case in load_cases(path)}
+        for case_id in {
+            "tjmugh_imaging_ultrasound_maintenance_market_research_20260508",
+            "tjmugh_repair_services_market_research_20260205",
+        }:
+            case = cases[case_id]
+            expected = case["expected"]
+            self.assertEqual(expected["notice_type"], "MARKET_RESEARCH")
+            self.assertNotIn("award_total_cny", expected)
+            self.assertNotIn("budget_amount_cny", expected)
 
     def test_attachment_declarations_never_claim_real_parser_success_without_binary(self) -> None:
         cases = load_cases(ATTACHMENT_FIXTURES)
