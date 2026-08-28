@@ -3,6 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
+from .source_precedence import (
+    event_source_rank,
+    event_time,
+    latest_temporal_bucket,
+    preferred_event,
+)
+
 
 EVENT_TO_STATE = {
     "MARKET_RESEARCH": "MARKET_RESEARCH",
@@ -56,7 +63,7 @@ class LifecycleAggregate:
 
 
 def _event_time(event: dict) -> str:
-    return event.get("effective_at") or event.get("published_at") or ""
+    return event_time(event)
 
 
 def _state(event: dict) -> str:
@@ -70,6 +77,18 @@ def _validate_event(event: dict) -> None:
         raise ValueError(f"event missing required fields: {', '.join(missing)}")
     if not _event_time(event):
         raise ValueError("event missing effective_at/published_at")
+
+
+def _sorted_events(events: Iterable[dict]) -> list[dict]:
+    return sorted(
+        events,
+        key=lambda event: (
+            _event_time(event),
+            SAME_TIME_PRECEDENCE.get(_state(event), 0),
+            event_source_rank(event),
+            event["event_id"],
+        ),
+    )
 
 
 def resolve_project_lifecycle(events: Iterable[dict]) -> LifecycleAggregate:
@@ -87,20 +106,20 @@ def resolve_project_lifecycle(events: Iterable[dict]) -> LifecycleAggregate:
     verified = [event for event in items if event["verification_status"] == "VERIFIED"]
     ignored = tuple(event["event_id"] for event in items if event["verification_status"] != "VERIFIED")
     if not verified:
-        latest = max(items, key=lambda event: (_event_time(event), event["event_id"]))
+        latest_bucket = latest_temporal_bucket(items)
+        latest = preferred_event(latest_bucket)
         return LifecycleAggregate(
             canonical_project_id=canonical_project_id,
             lifecycle_state="UNKNOWN",
             current_event_id=latest["event_id"],
-            source_event_ids=tuple(event["event_id"] for event in sorted(items, key=_event_time)),
+            source_event_ids=tuple(event["event_id"] for event in _sorted_events(items)),
             verification_status="UNVERIFIED",
             latest_effective_at=_event_time(latest),
             ignored_unverified_event_ids=ignored,
             conflict_event_ids=(),
         )
 
-    latest_time = max(_event_time(event) for event in verified)
-    latest_events = [event for event in verified if _event_time(event) == latest_time]
+    latest_events = latest_temporal_bucket(verified)
     latest_states = {_state(event) for event in latest_events}
 
     conflict_ids: tuple[str, ...] = ()
@@ -109,27 +128,23 @@ def resolve_project_lifecycle(events: Iterable[dict]) -> LifecycleAggregate:
         conflict_ids = tuple(sorted(event["event_id"] for event in latest_events))
         verification_status = "CONFLICTED"
 
-    current = max(
-        latest_events,
-        key=lambda event: (SAME_TIME_PRECEDENCE.get(_state(event), 0), event["event_id"]),
-    )
-    lifecycle_state = _state(current) if verification_status == "VERIFIED" else "UNKNOWN"
+    if verification_status == "VERIFIED":
+        current = preferred_event(latest_events)
+        lifecycle_state = _state(current)
+    else:
+        # Do not resolve a contradictory low-precision same-day lifecycle by guessing
+        # chronology. Keep a deterministic evidence pointer while exposing UNKNOWN.
+        current = preferred_event(latest_events)
+        lifecycle_state = "UNKNOWN"
 
-    sorted_verified = sorted(
-        verified,
-        key=lambda event: (
-            _event_time(event),
-            SAME_TIME_PRECEDENCE.get(_state(event), 0),
-            event["event_id"],
-        ),
-    )
+    latest_effective_at = max(_event_time(event) for event in latest_events)
     return LifecycleAggregate(
         canonical_project_id=canonical_project_id,
         lifecycle_state=lifecycle_state,
         current_event_id=current["event_id"],
-        source_event_ids=tuple(event["event_id"] for event in sorted_verified),
+        source_event_ids=tuple(event["event_id"] for event in _sorted_events(verified)),
         verification_status=verification_status,
-        latest_effective_at=latest_time,
+        latest_effective_at=latest_effective_at,
         ignored_unverified_event_ids=ignored,
         conflict_event_ids=conflict_ids,
     )
