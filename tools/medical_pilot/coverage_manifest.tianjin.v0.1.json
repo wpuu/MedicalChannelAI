@@ -22,7 +22,8 @@
     {
       "source_id": "tj_public_resource_exchange",
       "priority": "P0",
-      "implementation_status": "NOT_IMPLEMENTED"
+      "implementation_status": "PARTIAL_IMPLEMENTATION",
+      "implementation_note": "Pilot v0.1 currently verifies only government-procurement result detail pages under /jyxxcgjg/. Tender, amendment, termination and other columns must be independently verified before this source can be marked IMPLEMENTED."
     },
     {
       "source_id": "tj_government_procurement",
