@@ -49,6 +49,10 @@
       "enum": ["MARKET_RESEARCH", "PROCUREMENT_INTENT", "PREPARING", "TENDERING", "AMENDED", "BID_CLOSED", "SUSPENDED", "TERMINATED", "AWARDED", "CONTRACTED", "CLOSED", "UNKNOWN"]
     },
     "published_at": {"type": ["string", "null"], "format": "date-time"},
+    "published_at_precision": {
+      "type": ["string", "null"],
+      "enum": ["DAY", "MINUTE", "SECOND", "UNKNOWN", null]
+    },
     "registration_deadline": {"type": ["string", "null"], "format": "date-time"},
     "bid_deadline": {"type": ["string", "null"], "format": "date-time"},
     "expected_procurement_at": {
