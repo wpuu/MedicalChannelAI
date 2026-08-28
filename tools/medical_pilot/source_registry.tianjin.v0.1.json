@@ -90,5 +90,29 @@
     "last_success_at": null,
     "last_error_code": null,
     "verification_policy": {"may_be_final_fact_authority": true, "official_source_required_for_upgrade": false}
+  },
+  {
+    "schema_version": "0.1",
+    "source_id": "tj_public_resource_exchange",
+    "source_name": "天津市公共资源交易平台-政府采购结果官方镜像",
+    "canonical_base_url": "https://ggzy.zwfwb.tj.gov.cn/",
+    "authority_type": "OFFICIAL_GOVERNMENT",
+    "source_type": "PUBLIC_RESOURCE_EXCHANGE",
+    "provenance_role": "OFFICIAL_MIRROR",
+    "geographic_scope": {"country": "CN", "province": "天津市", "city": "天津市", "district": null},
+    "allowed_url_patterns": ["^https://ggzy\\.zwfwb\\.tj\\.gov\\.cn/jyxxcgjg/[^/]+\\.jhtml$"],
+    "notice_types": ["AWARD"],
+    "collector_mode": "HTTP_STATIC",
+    "requires_javascript": false,
+    "attachment_policy": "DOWNLOAD_APPROVED_TYPES",
+    "rate_limit": {"requests_per_minute": 6, "max_concurrency": 1},
+    "freshness_sla_minutes": 60,
+    "parser_version": "tj-public-resource-v0.1",
+    "priority": "P0",
+    "enabled": true,
+    "health_status": "UNKNOWN",
+    "last_success_at": null,
+    "last_error_code": null,
+    "verification_policy": {"may_be_final_fact_authority": true, "official_source_required_for_upgrade": false}
   }
 ]
