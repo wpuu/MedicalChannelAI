@@ -24,6 +24,9 @@
   "properties": {
     "schema_version": {"const": "0.1"},
     "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "buyer_name": {"type": ["string", "null"], "maxLength": 300},
+    "hospital_name": {"type": ["string", "null"], "maxLength": 300},
+    "project_name": {"type": ["string", "null"], "maxLength": 500},
     "verification_status": {"enum": ["UNVERIFIED", "VERIFIED", "CONFLICTED", "SUPERSEDED", "SOURCE_UNAVAILABLE"]},
     "coverage_status": {"enum": ["CURRENT", "PARTIAL", "DEGRADED", "UNKNOWN"]},
     "region": {
@@ -57,7 +60,7 @@
     },
     "product_labels": {
       "type": "array",
-      "items": {"type": "string", "minLength": 1, "maxLength": 200},
+      "items": {"type": "string", "pattern": "^[A-Z0-9_]{3,100}$"},
       "uniqueItems": true
     },
     "product_label_provenance": {
