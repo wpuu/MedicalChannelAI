@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-import copy
 import unittest
 
 from tools.medical_pilot.opportunity_match_gate import evaluate_opportunity_match
+
+
+TAXONOMY_ID = "LAB_CHEMILUMINESCENCE_ANALYZER"
 
 
 def complete_profile(*, confirmed: bool = True, rental: bool = False) -> dict:
@@ -25,7 +27,8 @@ def complete_profile(*, confirmed: bool = True, rental: bool = False) -> dict:
         "product_capabilities": [
             {
                 "category": "IVD",
-                "subcategory": "化学发光",
+                "subcategory": TAXONOMY_ID,
+                "taxonomy_ids": [TAXONOMY_ID],
                 "brands": [],
                 "capability_type": "DIRECT_UNCONFIRMED",
                 "notes": None,
@@ -62,6 +65,9 @@ def opportunity() -> dict:
     return {
         "schema_version": "0.1",
         "opportunity_id": "opp_22222222-2222-2222-2222-222222222222",
+        "buyer_name": "天津医科大学总医院",
+        "hospital_name": "天津医科大学总医院",
+        "project_name": "化学发光设备采购项目",
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL",
         "region": {"province": "天津市", "city": "天津市", "district": "和平区"},
@@ -71,7 +77,7 @@ def opportunity() -> dict:
         "institution_evidence_id": "inst_tjmugh",
         "lifecycle_state": "TENDERING",
         "budget": {"amount": "5730000.00", "currency": "CNY"},
-        "product_labels": ["化学发光"],
+        "product_labels": [TAXONOMY_ID],
         "product_label_provenance": "HUMAN_CONFIRMED",
         "product_label_validation_status": "VALIDATED",
         "is_rental_project": False,
@@ -144,7 +150,7 @@ class OpportunityMatchGateTests(unittest.TestCase):
     def test_explicit_exclusion_wins_before_model(self) -> None:
         profile = complete_profile()
         profile["exclusion_rules"] = [
-            {"kind": "PRODUCT_CATEGORY", "value": "化学发光", "reason": "当前不做"}
+            {"kind": "PRODUCT_CATEGORY", "value": TAXONOMY_ID, "reason": "当前不做"}
         ]
         result = evaluate_opportunity_match(profile, opportunity())
         self.assertEqual(result.status, "REJECTED")
