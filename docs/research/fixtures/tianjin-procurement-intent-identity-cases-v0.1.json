@@ -1,0 +1,63 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-28T18:05:00+08:00",
+  "purpose": "Regression fixtures proving that procurement-intent native record identity must prevent over-dedup when buyer and project title are identical.",
+  "cases": [
+    {
+      "case_id": "tmu_pcr_intent_300w_20260310",
+      "source_url": "https://cgyx.ccgp.gov.cn/cgyx/pub/proJ/details?projId=26775f67-61e3-4d28-b0b6-9f01bb5a2b41",
+      "native_record_id": "26775f67-61e3-4d28-b0b6-9f01bb5a2b41",
+      "expected": {
+        "buyer_name": "天津医科大学",
+        "project_name": "PCR仪等设备采购项目",
+        "notice_type": "PROCUREMENT_INTENT",
+        "lifecycle_state": "PROCUREMENT_INTENT",
+        "published_at": "2026-03-10T23:51:00+08:00",
+        "published_at_precision": "MINUTE",
+        "budget_amount_cny": "3000000.00",
+        "expected_procurement_at": "2026-08",
+        "expected_procurement_precision": "MONTH",
+        "verification_status": "VERIFIED"
+      },
+      "identity_rule": "canonical identity is based on the exact official CCGP procurement-intent projId, not buyer_name + project_name",
+      "forbidden_inference": [
+        "Do not merge this record with another same-title Tianjin Medical University procurement intent that has a different projId.",
+        "Do not automatically link this procurement intent to a later formal tender by title similarity alone.",
+        "Do not invent a bid deadline, supplier, brand or awarded state."
+      ]
+    },
+    {
+      "case_id": "tmu_pcr_intent_70w_20260310",
+      "source_url": "https://cgyx.ccgp.gov.cn/cgyx/pub/proJ/details?projId=81532253-adfb-47a1-8969-65469113d541",
+      "native_record_id": "81532253-adfb-47a1-8969-65469113d541",
+      "expected": {
+        "buyer_name": "天津医科大学",
+        "project_name": "PCR仪等设备采购项目",
+        "notice_type": "PROCUREMENT_INTENT",
+        "lifecycle_state": "PROCUREMENT_INTENT",
+        "published_at": "2026-03-10T23:51:00+08:00",
+        "published_at_precision": "MINUTE",
+        "budget_amount_cny": "700000.00",
+        "expected_procurement_at": "2026-08",
+        "expected_procurement_precision": "MONTH",
+        "verification_status": "VERIFIED"
+      },
+      "identity_rule": "canonical identity is based on the exact official CCGP procurement-intent projId, not buyer_name + project_name",
+      "forbidden_inference": [
+        "Do not merge this record with the 3000000 CNY same-title intent because the official projId is different.",
+        "Do not infer that the budget difference is an amendment unless an official lifecycle/link record proves it.",
+        "Do not automatically link this procurement intent to a later tender by title similarity alone."
+      ]
+    }
+  ],
+  "pair_regression": {
+    "same_buyer": true,
+    "same_project_name": true,
+    "same_published_at": true,
+    "same_expected_procurement_month": true,
+    "different_native_record_id": true,
+    "different_budget": true,
+    "must_have_distinct_canonical_project_id": true,
+    "must_have_distinct_opportunity_id": true
+  }
+}
