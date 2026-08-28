@@ -84,6 +84,14 @@ def _extension(filename: str) -> str:
     return PurePosixPath(filename).suffix.lower()
 
 
+def _handling_policy(extension: str) -> str:
+    if extension in ARCHIVE_DISCOVERY_ONLY_EXTENSIONS:
+        return "DISCOVER_ONLY_ARCHIVE"
+    if extension in LOCAL_PARSER_EXTENSIONS:
+        return "DOWNLOAD_AND_PARSE_APPROVED"
+    return "DOWNLOAD_ONLY_PARSER_PENDING"
+
+
 def discover_attachments(raw_html: str, base_url: str) -> list[AttachmentCandidate]:
     result: list[AttachmentCandidate] = []
     seen: set[str] = set()
@@ -106,11 +114,7 @@ def discover_attachments(raw_html: str, base_url: str) -> list[AttachmentCandida
                 filename=filename,
                 extension=extension,
                 title=link.title,
-                handling_policy=(
-                    "DISCOVER_ONLY_ARCHIVE"
-                    if extension in ARCHIVE_DISCOVERY_ONLY_EXTENSIONS
-                    else "DOWNLOAD_APPROVED"
-                ),
+                handling_policy=_handling_policy(extension),
             )
         )
     return result
