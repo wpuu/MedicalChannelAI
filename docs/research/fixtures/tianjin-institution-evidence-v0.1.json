@@ -13,13 +13,7 @@
       "match_customer_type": "TERTIARY_HOSPITAL",
       "region": {"province": "天津市", "city": "天津市", "district": "和平区"},
       "evidence": [
-        {
-          "source_url": "https://www.tjmugh.com.cn/yygk/index.shtml",
-          "source_authority": "OFFICIAL_HOSPITAL",
-          "claim_type": "HOSPITAL_GRADE",
-          "claim_value": "医院官网医院概况明确其为综合性三级甲等医院。",
-          "verification_status": "VERIFIED"
-        }
+        {"source_url": "https://www.tjmugh.com.cn/yygk/index.shtml", "source_authority": "OFFICIAL_HOSPITAL", "claim_type": "HOSPITAL_GRADE", "claim_value": "医院官网医院概况明确其为综合性三级甲等医院。", "verification_status": "VERIFIED"}
       ],
       "verification_status": "VERIFIED"
     },
@@ -27,19 +21,13 @@
       "schema_version": "0.1",
       "institution_id": "inst_tj_first_central_hospital",
       "canonical_name": "天津市第一中心医院",
-      "aliases": [],
+      "aliases": ["天津市第一中心医院（水西院区）"],
       "institution_type": "HOSPITAL",
       "hospital_grade": "TERTIARY_A",
       "match_customer_type": "TERTIARY_HOSPITAL",
       "region": {"province": "天津市", "city": "天津市", "district": null},
       "evidence": [
-        {
-          "source_url": "https://www.tj-fch.com/doc/003/000/645/00300064511_3d956e2d.pdf",
-          "source_authority": "OFFICIAL_HOSPITAL",
-          "claim_type": "HOSPITAL_GRADE",
-          "claim_value": "医院官方材料明确其为综合性三级甲等医院。",
-          "verification_status": "VERIFIED"
-        }
+        {"source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/ylws/yy/202409/t20240906_6719765.html", "source_authority": "OFFICIAL_GOVERNMENT", "claim_type": "HOSPITAL_GRADE", "claim_value": "天津政务网机构简介明确天津市第一中心医院为现代化三级甲等综合医院。", "verification_status": "VERIFIED"}
       ],
       "verification_status": "VERIFIED"
     },
@@ -53,13 +41,7 @@
       "match_customer_type": "TERTIARY_HOSPITAL",
       "region": {"province": "天津市", "city": "天津市", "district": "和平区"},
       "evidence": [
-        {
-          "source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/ylws/yy/202409/t20240906_6719626.html",
-          "source_authority": "OFFICIAL_GOVERNMENT",
-          "claim_type": "HOSPITAL_GRADE",
-          "claim_value": "天津政务网机构简介明确其为现代化三级甲等专科医院。",
-          "verification_status": "VERIFIED"
-        }
+        {"source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/ylws/yy/202409/t20240906_6719626.html", "source_authority": "OFFICIAL_GOVERNMENT", "claim_type": "HOSPITAL_GRADE", "claim_value": "天津政务网机构简介明确其为现代化三级甲等专科医院。", "verification_status": "VERIFIED"}
       ],
       "verification_status": "VERIFIED"
     },
@@ -67,19 +49,13 @@
       "schema_version": "0.1",
       "institution_id": "inst_tjtcm_first_affiliated",
       "canonical_name": "天津中医药大学第一附属医院",
-      "aliases": ["天津中医药大学第一附属医院（北院区）"],
+      "aliases": ["天津中医药大学第一附属医院（北院区）", "天津中医药大学第一附属医院（南开院区）"],
       "institution_type": "HOSPITAL",
       "hospital_grade": "TERTIARY_A",
       "match_customer_type": "TERTIARY_HOSPITAL",
       "region": {"province": "天津市", "city": "天津市", "district": null},
       "evidence": [
-        {
-          "source_url": "https://www.tjtcm.cn/yygkx/yyjj/index.shtml",
-          "source_authority": "OFFICIAL_HOSPITAL",
-          "claim_type": "HOSPITAL_GRADE",
-          "claim_value": "医院官网医院简介明确其属于全国首批三级甲等医院。",
-          "verification_status": "VERIFIED"
-        }
+        {"source_url": "https://www.tjtcm.cn/yygkx/yyjj/index.shtml", "source_authority": "OFFICIAL_HOSPITAL", "claim_type": "HOSPITAL_GRADE", "claim_value": "医院官网医院简介明确其属于全国首批三级甲等医院。", "verification_status": "VERIFIED"}
       ],
       "verification_status": "VERIFIED"
     },
@@ -93,20 +69,148 @@
       "match_customer_type": "CDC",
       "region": {"province": "天津市", "city": "天津市", "district": "河东区"},
       "evidence": [
-        {
-          "source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/",
-          "source_authority": "OFFICIAL_GOVERNMENT",
-          "claim_type": "INSTITUTION_TYPE",
-          "claim_value": "天津政务网公共企事业单位公开信息将天津市疾病预防控制中心列为专业公共卫生机构。",
-          "verification_status": "VERIFIED"
-        },
-        {
-          "source_url": "https://www.cdctj.com.cn/zpgs/",
-          "source_authority": "OFFICIAL_INSTITUTION",
-          "claim_type": "INSTITUTION_TYPE",
-          "claim_value": "中心官方网站以天津市疾病预防控制中心（天津市预防医学科学院）名义发布机构信息。",
-          "verification_status": "VERIFIED"
-        }
+        {"source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/", "source_authority": "OFFICIAL_GOVERNMENT", "claim_type": "INSTITUTION_TYPE", "claim_value": "天津政务网公共企事业单位公开信息将天津市疾病预防控制中心列为专业公共卫生机构。", "verification_status": "VERIFIED"},
+        {"source_url": "https://www.cdctj.com.cn/zpgs/", "source_authority": "OFFICIAL_INSTITUTION", "claim_type": "INSTITUTION_TYPE", "claim_value": "中心官方网站以天津市疾病预防控制中心（天津市预防医学科学院）名义发布机构信息。", "verification_status": "VERIFIED"}
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_third_central_hospital",
+      "canonical_name": "天津市第三中心医院",
+      "aliases": ["天津大学中心医院", "天津大学中心医院 天津市第三中心医院"],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": "河东区"},
+      "evidence": [
+        {"source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/ylws/yy/202409/t20240906_6719759.html", "source_authority": "OFFICIAL_GOVERNMENT", "claim_type": "HOSPITAL_GRADE", "claim_value": "天津政务网机构简介明确天津大学中心医院/天津市第三中心医院为三级甲等综合性医院。", "verification_status": "VERIFIED"}
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_fifth_central_hospital",
+      "canonical_name": "天津市第五中心医院",
+      "aliases": [],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": "滨海新区"},
+      "evidence": [
+        {"source_url": "https://sthj.tj.gov.cn/YWGZ7406/HJGL7886/HYFSGL1020/HJSYYXMSPHYSGS3262/202404/W020240410631883815852.pdf", "source_authority": "OFFICIAL_GOVERNMENT", "claim_type": "HOSPITAL_GRADE", "claim_value": "天津市生态环境部门公开的医院项目材料在建设单位概况中明确天津市第五中心医院为大型三级甲等综合医院。", "verification_status": "VERIFIED"}
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_nankai_hospital",
+      "canonical_name": "天津市中西医结合医院（天津市南开医院）",
+      "aliases": ["天津市中西医结合医院", "天津市南开医院"],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": "南开区"},
+      "evidence": [
+        {"source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/ylws/yy/202409/t20240906_6719571.html", "source_authority": "OFFICIAL_GOVERNMENT", "claim_type": "HOSPITAL_GRADE", "claim_value": "天津政务网机构简介明确天津市中西医结合医院（天津市南开医院）为三级甲等医院。", "verification_status": "VERIFIED"}
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_tcm_research_affiliated_hospital",
+      "canonical_name": "天津市中医药研究院附属医院",
+      "aliases": ["天津市中研附院", "市中研附院"],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": "红桥区"},
+      "evidence": [
+        {"source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/ylws/yy/202409/t20240906_6719714.html", "source_authority": "OFFICIAL_GOVERNMENT", "claim_type": "HOSPITAL_GRADE", "claim_value": "天津政务网机构简介明确其为综合性三级甲等中医医疗机构。", "verification_status": "VERIFIED"}
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_cancer_hospital",
+      "canonical_name": "天津市肿瘤医院",
+      "aliases": ["天津市肿瘤医院（天津医科大学肿瘤医院）", "天津医科大学肿瘤医院"],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": "河西区"},
+      "evidence": [
+        {"source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/ylws/yy/202409/t20240905_6718405.html", "source_authority": "OFFICIAL_GOVERNMENT", "claim_type": "HOSPITAL_GRADE", "claim_value": "天津政务网机构简介明确天津市肿瘤医院（天津医科大学肿瘤医院）为三级甲等肿瘤专科医院。", "verification_status": "VERIFIED"}
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_cams_blood_hospital",
+      "canonical_name": "中国医学科学院血液病医院（中国医学科学院血液学研究所）",
+      "aliases": ["中国医学科学院血液病医院(中国医学科学院血液学研究所）", "中国医学科学院血液病医院(中国医学科学院血液学研究所)", "中国医学科学院血液病医院", "中国医学科学院血液学研究所"],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": null},
+      "evidence": [
+        {"source_url": "https://www.chinablood.com.cn/zyb/talent/notice/12285.html", "source_authority": "OFFICIAL_HOSPITAL", "claim_type": "HOSPITAL_GRADE", "claim_value": "医院2026年官方招聘公告明确其为隶属国家卫生健康委员会管理的三级甲等专科医院。", "verification_status": "VERIFIED"}
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_hospital",
+      "canonical_name": "天津市天津医院",
+      "aliases": ["天津医院", "天津市天津医院（河西院区）", "天津市天津医院（和平院区）"],
+      "institution_type": "HOSPITAL",
+      "hospital_grade": "TERTIARY_A",
+      "match_customer_type": "TERTIARY_HOSPITAL",
+      "region": {"province": "天津市", "city": "天津市", "district": null},
+      "evidence": [
+        {"source_url": "https://www.tj.gov.cn/zwgk/ggqsydwxxgk/ylws/yy/202409/t20240906_6719666.html", "source_authority": "OFFICIAL_GOVERNMENT", "claim_type": "HOSPITAL_GRADE", "claim_value": "天津政务网机构简介明确天津市天津医院为大型现代化三级甲等综合性医院。", "verification_status": "VERIFIED"}
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_university",
+      "canonical_name": "天津大学",
+      "aliases": [],
+      "institution_type": "UNIVERSITY",
+      "hospital_grade": null,
+      "match_customer_type": "UNIVERSITY",
+      "region": {"province": "天津市", "city": "天津市", "district": "南开区"},
+      "evidence": [
+        {"source_url": "https://www.tju.edu.cn/tdgk/xxjj.htm", "source_authority": "OFFICIAL_INSTITUTION", "claim_type": "INSTITUTION_TYPE", "claim_value": "天津大学官方网站学校简介明确其为大学/高水平研究型大学。", "verification_status": "VERIFIED"}
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_medical_university",
+      "canonical_name": "天津医科大学",
+      "aliases": [],
+      "institution_type": "UNIVERSITY",
+      "hospital_grade": null,
+      "match_customer_type": "UNIVERSITY",
+      "region": {"province": "天津市", "city": "天津市", "district": "和平区"},
+      "evidence": [
+        {"source_url": "https://www.tmu.edu.cn/_t101/5/list.htm", "source_authority": "OFFICIAL_INSTITUTION", "claim_type": "INSTITUTION_TYPE", "claim_value": "天津医科大学官方网站医大简介明确其为高等医学院校、研究型医科大学。", "verification_status": "VERIFIED"}
+      ],
+      "verification_status": "VERIFIED"
+    },
+    {
+      "schema_version": "0.1",
+      "institution_id": "inst_tianjin_university_of_science_and_technology",
+      "canonical_name": "天津科技大学",
+      "aliases": [],
+      "institution_type": "UNIVERSITY",
+      "hospital_grade": null,
+      "match_customer_type": "UNIVERSITY",
+      "region": {"province": "天津市", "city": "天津市", "district": null},
+      "evidence": [
+        {"source_url": "https://www.tust.edu.cn/xxgk/xxgk_1.html", "source_authority": "OFFICIAL_INSTITUTION", "claim_type": "INSTITUTION_TYPE", "claim_value": "天津科技大学官方网站学校概况明确其为天津市重点建设高校、多科性大学。", "verification_status": "VERIFIED"}
       ],
       "verification_status": "VERIFIED"
     }
