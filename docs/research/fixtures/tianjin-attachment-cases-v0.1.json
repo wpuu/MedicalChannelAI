@@ -1,0 +1,118 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-28T14:45:00+08:00",
+  "purpose": "Verified attachment-discovery fixtures from official procurement notice pages. Presence/name/type are evidence-backed by the notice page. Binary SHA-256 and parser output must remain null until the actual attachment bytes are captured and parsed.",
+  "cases": [
+    {
+      "case_id": "teda_dr_requirement_docx_20260827",
+      "medical_opportunity": true,
+      "notice_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219685.htm",
+      "buyer_name": "天津市泰达医院",
+      "project_number": "ZYGP20260851",
+      "project_name": "天津市泰达医院数字X光机（DR）采购项目",
+      "notice_published_at": "2026-08-27T18:50:00+08:00",
+      "attachment": {
+        "filename": "（数字X光机DR）项目需求书.docx",
+        "extension": ".docx",
+        "declared_role": "OTHER_ATTACHMENT",
+        "local_parser_status": "IMPLEMENTED",
+        "expected_parser": "ooxml-stdlib-v0.1",
+        "expected_evidence_locator": "DOCX_PARAGRAPH",
+        "binary_capture_status": "PENDING_DIRECT_ATTACHMENT_BYTES",
+        "sha256": null,
+        "parser_validation_status": "NOT_RUN_ON_REAL_BYTES"
+      },
+      "verification_status": "VERIFIED_ATTACHMENT_DECLARATION",
+      "forbidden_claims": [
+        "Do not claim the DOCX parser has successfully parsed this real file until the binary bytes are captured.",
+        "Do not invent technical DR requirements from the project summary when the attachment bytes are unavailable."
+      ]
+    },
+    {
+      "case_id": "tjmugh_nephrology_procurement_docx_20260608",
+      "medical_opportunity": true,
+      "notice_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202606/t20260608_26710378.htm",
+      "buyer_name": "天津医科大学总医院",
+      "project_number": "XCSD-2026-A-247",
+      "project_name": "天津医科大学总医院肾内科临床重点专科建设试剂购置项目",
+      "notice_published_at": "2026-06-08T18:50:00+08:00",
+      "attachment": {
+        "filename": "5.15招标文件-天津医科大学总医院肾内科临床重点专科建设试剂购置项目.docx",
+        "extension": ".docx",
+        "declared_role": "PROCUREMENT_FILE",
+        "local_parser_status": "IMPLEMENTED",
+        "expected_parser": "ooxml-stdlib-v0.1",
+        "expected_evidence_locator": "DOCX_PARAGRAPH",
+        "binary_capture_status": "PENDING_DIRECT_ATTACHMENT_BYTES",
+        "sha256": null,
+        "parser_validation_status": "NOT_RUN_ON_REAL_BYTES"
+      },
+      "verification_status": "VERIFIED_ATTACHMENT_DECLARATION"
+    },
+    {
+      "case_id": "tjmugh_nephrology_package1_bid_items_docx_20260608",
+      "medical_opportunity": true,
+      "notice_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202606/t20260608_26710378.htm",
+      "buyer_name": "天津医科大学总医院",
+      "project_number": "XCSD-2026-A-247",
+      "project_name": "天津医科大学总医院肾内科临床重点专科建设试剂购置项目",
+      "notice_published_at": "2026-06-08T18:50:00+08:00",
+      "attachment": {
+        "filename": "第1包开标分项一览表.docx",
+        "extension": ".docx",
+        "declared_role": "BID_ITEM_BREAKDOWN",
+        "local_parser_status": "IMPLEMENTED",
+        "expected_parser": "ooxml-stdlib-v0.1",
+        "expected_evidence_locator": "DOCX_PARAGRAPH",
+        "binary_capture_status": "PENDING_DIRECT_ATTACHMENT_BYTES",
+        "sha256": null,
+        "parser_validation_status": "NOT_RUN_ON_REAL_BYTES"
+      },
+      "verification_status": "VERIFIED_ATTACHMENT_DECLARATION",
+      "priority_reason": "The official notice says package-1 product/brand/model details are partly deferred to the attachment, making this a high-value real parser validation target."
+    },
+    {
+      "case_id": "tianjin_database_framework_award_xlsx_20260313",
+      "medical_opportunity": false,
+      "notice_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202603/t20260313_26270369.htm",
+      "buyer_name": "天津市政府采购中心",
+      "project_number": "TGPC-2026-KA-0002",
+      "project_name": "天津市2026-2027年度数据库管理系统框架协议采购项目",
+      "notice_published_at": "2026-03-13T00:00:00+08:00",
+      "notice_published_at_precision": "DAY",
+      "attachment": {
+        "filename": "入围明细表（数据库）.xlsx",
+        "extension": ".xlsx",
+        "declared_role": "AWARD_DETAIL",
+        "local_parser_status": "IMPLEMENTED",
+        "expected_parser": "ooxml-stdlib-v0.1",
+        "expected_evidence_locator": "XLSX_RANGE",
+        "binary_capture_status": "PENDING_DIRECT_ATTACHMENT_BYTES",
+        "sha256": null,
+        "parser_validation_status": "NOT_RUN_ON_REAL_BYTES"
+      },
+      "verification_status": "VERIFIED_ATTACHMENT_DECLARATION",
+      "scope_note": "Format-validation fixture only; it is not counted as a medical opportunity fixture."
+    },
+    {
+      "case_id": "blood_hospital_single_dose_dispenser_pdf_20260727",
+      "medical_opportunity": true,
+      "notice_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202607/t20260727_27010554.htm",
+      "buyer_name": "中国医学科学院血液病医院（中国医学科学院血液学研究所）",
+      "project_number": "BH-XYS2026596",
+      "project_name": "单剂量分包机采购项目",
+      "notice_published_at": "2026-07-27T11:10:00+08:00",
+      "attachment": {
+        "filename": "BH-XYS2026596项目需求书.pdf",
+        "extension": ".pdf",
+        "declared_role": "PROJECT_REQUIREMENT",
+        "local_parser_status": "PARSER_PENDING",
+        "binary_capture_status": "PENDING_DIRECT_ATTACHMENT_BYTES",
+        "sha256": null,
+        "parser_validation_status": "NOT_RUN_ON_REAL_BYTES"
+      },
+      "verification_status": "VERIFIED_ATTACHMENT_DECLARATION",
+      "priority_reason": "Real medical PDF requirement document; candidate for page-level Evidence locator validation once a bounded PDF parser is selected."
+    }
+  ]
+}
