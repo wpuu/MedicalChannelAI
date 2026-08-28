@@ -55,6 +55,7 @@ class ParsedNotice:
     project_name: str
     buyer_name: str
     published_at: str
+    published_at_precision: str = "MINUTE"
     project_number: str | None = None
     budget_cny: str | None = None
     registration_deadline: str | None = None
@@ -79,12 +80,7 @@ class ParsedNotice:
 
 
 class HostBoundFetcher:
-    """Small fail-closed fetcher for the pilot.
-
-    This is deliberately not a general browser. It accepts only exact hosts supplied
-    by a registered source definition, limits response size, does not follow a
-    cross-host redirect, and never attempts challenge bypass.
-    """
+    """Small fail-closed fetcher for the pilot."""
 
     def __init__(
         self,
@@ -92,7 +88,7 @@ class HostBoundFetcher:
         *,
         timeout_seconds: int = 15,
         max_bytes: int = 8 * 1024 * 1024,
-        user_agent: str = "HermesMedicalPilot/0.1 (+public-data-research)",
+        user_agent: str = "MedicalChannelAI/0.1 (+public-data-research)",
     ) -> None:
         self.allowed_hosts = {host.lower().strip(".") for host in allowed_hosts}
         self.timeout_seconds = timeout_seconds
@@ -283,6 +279,7 @@ def parse_cn_datetime(value: str | None) -> str | None:
         (r"(20\d{2})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{2})", True),
         (r"(20\d{2})年(\d{1,2})月(\d{1,2})日", False),
         (r"(20\d{2})-(\d{1,2})-(\d{1,2})", False),
+        (r"(20\d{2})\.(\d{1,2})\.(\d{1,2})", False),
     )
     for pattern, has_time in patterns:
         match = re.search(pattern, value)
@@ -296,6 +293,17 @@ def parse_cn_datetime(value: str | None) -> str | None:
             hour = minute = 0
         return f"{year:04d}-{month:02d}-{day:02d}T{hour:02d}:{minute:02d}:00+08:00"
     return None
+
+
+def infer_datetime_precision(value: str | None) -> str:
+    if not value:
+        return "UNKNOWN"
+    normalized = normalize_space(value)
+    if re.search(r"\d{1,2}[:：]\d{2}", normalized):
+        return "MINUTE"
+    if re.search(r"20\d{2}(?:年|-|\.)\d{1,2}(?:月|-|\.)\d{1,2}", normalized):
+        return "DAY"
+    return "UNKNOWN"
 
 
 def parse_money_to_cny(value: str | None) -> str | None:
@@ -340,6 +348,7 @@ def build_event_and_facts(notice: ParsedNotice, snapshot: Snapshot) -> tuple[dic
         "source_authority": notice.source_authority,
         "project_number": notice.project_number,
         "published_at": notice.published_at,
+        "published_at_precision": notice.published_at_precision,
         "fetched_at": snapshot.fetched_at,
         "effective_at": notice.published_at,
         "raw_snapshot_id": snapshot.snapshot_id,
