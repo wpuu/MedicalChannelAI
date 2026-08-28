@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Iterable
 
-from .collector_core import ID_NAMESPACE, normalize_space
+from .collector_core import ID_NAMESPACE, SCHEMA_VERSION, normalize_space
 
 
 ALLOWED_STAGE_PAIRS = {
@@ -45,6 +45,7 @@ class CrossStageLinkCandidate:
 
     def as_dict(self) -> dict:
         return {
+            "schema_version": SCHEMA_VERSION,
             "candidate_id": self.candidate_id,
             "earlier_canonical_project_id": self.earlier_canonical_project_id,
             "later_canonical_project_id": self.later_canonical_project_id,
