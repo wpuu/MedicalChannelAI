@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 from .classifier_admission import classifier_can_drive_matching
-from .customer_profile_gate import evaluate_customer_profile
+from .matching_profile_gate import evaluate_matching_profile
 from .opportunity_match_gate import MatchReason, OpportunityMatchResult, evaluate_opportunity_match
 from .product_classifier import taxonomy_ids
-from .profile_product_taxonomy import normalized_profile_for_taxonomy_match, validate_profile_product_taxonomy
+from .profile_product_taxonomy import normalized_profile_for_taxonomy_match
 
 
 VALIDATED_PRODUCT_LABEL_PROVENANCE = {
@@ -22,6 +22,30 @@ VALIDATED_CUSTOMER_TYPE_PROVENANCE = {
 }
 
 
+def _profile_block_result(profile: dict[str, Any]) -> OpportunityMatchResult | None:
+    profile_gate = evaluate_matching_profile(profile)
+    if profile_gate.candidate_opportunity_allowed:
+        return None
+
+    first_missing = profile_gate.missing_conditions[0] if profile_gate.missing_conditions else None
+    reason = MatchReason(
+        first_missing.code if first_missing is not None else "PROFILE_NOT_READY_FOR_MATCHING",
+        f"profile.{first_missing.field_path}" if first_missing is not None else "profile",
+        "BLOCK",
+        first_missing.reason if first_missing is not None else "客户画像尚未达到商机匹配要求。",
+    )
+    return OpportunityMatchResult(
+        status="PROFILE_BLOCKED",
+        recommendation_mode="PROFILE_INTERVIEW_REQUIRED",
+        personalized_recommendation_allowed=False,
+        candidate_opportunity_allowed=False,
+        model_explanation_allowed=False,
+        reasons=(reason,),
+        required_next_facts=(),
+        profile_gate=profile_gate,
+    )
+
+
 def _needs_fact_result(
     *,
     profile: dict[str, Any],
@@ -29,7 +53,7 @@ def _needs_fact_result(
     field_path: str,
     message: str,
 ) -> OpportunityMatchResult:
-    profile_gate = evaluate_customer_profile(profile)
+    profile_gate = evaluate_matching_profile(profile)
     return OpportunityMatchResult(
         status="NEEDS_MORE_FACTS",
         recommendation_mode="FACT_ENRICHMENT_REQUIRED",
@@ -42,29 +66,7 @@ def _needs_fact_result(
     )
 
 
-def _profile_taxonomy_block(profile: dict[str, Any]) -> OpportunityMatchResult | None:
-    issues = validate_profile_product_taxonomy(profile)
-    if not issues:
-        return None
-    profile_gate = evaluate_customer_profile(profile)
-    issue = issues[0]
-    return OpportunityMatchResult(
-        status="PROFILE_BLOCKED",
-        recommendation_mode="PROFILE_INTERVIEW_REQUIRED",
-        personalized_recommendation_allowed=False,
-        candidate_opportunity_allowed=False,
-        model_explanation_allowed=False,
-        reasons=(MatchReason(issue.code, f"profile.{issue.field_path}", "BLOCK", issue.message),),
-        required_next_facts=(),
-        profile_gate=profile_gate,
-    )
-
-
 def _customer_type_gate(profile: dict[str, Any], opportunity: dict[str, Any]) -> OpportunityMatchResult | None:
-    profile_gate = evaluate_customer_profile(profile)
-    if not profile_gate.candidate_opportunity_allowed:
-        return None
-
     customer_type = opportunity.get("customer_type")
     if customer_type in {None, "", "UNKNOWN"}:
         return None
@@ -96,10 +98,6 @@ def _customer_type_gate(profile: dict[str, Any], opportunity: dict[str, Any]) ->
 
 
 def _classification_gate(profile: dict[str, Any], opportunity: dict[str, Any]) -> OpportunityMatchResult | None:
-    profile_gate = evaluate_customer_profile(profile)
-    if not profile_gate.candidate_opportunity_allowed:
-        return None
-
     labels = opportunity.get("product_labels")
     if not isinstance(labels, list) or not labels:
         return None
@@ -160,19 +158,21 @@ def _classification_gate(profile: dict[str, Any], opportunity: dict[str, Any]) -
 def evaluate_match_pipeline(profile: dict[str, Any], opportunity: dict[str, Any]) -> OpportunityMatchResult:
     """Public v0.1 matching entrypoint.
 
-    Institution/customer type and product taxonomy are derived inputs. They may
-    only influence matching after provenance validation and classifier admission.
-    Customer product capabilities are normalized to stable taxonomy IDs before
-    the lower deterministic matcher runs; free-form display text no longer drives
-    match.
+    Customer interview readiness and product-taxonomy readiness are evaluated by
+    one public matching-profile gate. Institution/customer type and opportunity
+    product taxonomy are derived inputs and can influence matching only after
+    provenance validation and classifier admission. The lower opportunity gate
+    remains deterministic and model-free.
     """
 
-    profile_taxonomy_block = _profile_taxonomy_block(profile)
-    if profile_taxonomy_block is not None:
-        return profile_taxonomy_block
+    profile_block = _profile_block_result(profile)
+    if profile_block is not None:
+        return profile_block
+
     customer_type_block = _customer_type_gate(profile, opportunity)
     if customer_type_block is not None:
         return customer_type_block
+
     classification_block = _classification_gate(profile, opportunity)
     if classification_block is not None:
         return classification_block
