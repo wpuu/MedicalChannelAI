@@ -25,6 +25,7 @@ class RegisteredSource:
     enabled: bool
     authority_type: str
     source_type: str
+    provenance_role: str
     parser_version: str | None
     raw: dict[str, Any]
 
@@ -55,6 +56,7 @@ def load_registry(path: Path = REGISTRY_PATH) -> list[RegisteredSource]:
                 enabled=bool(item["enabled"]),
                 authority_type=item["authority_type"],
                 source_type=item["source_type"],
+                provenance_role=item["provenance_role"],
                 parser_version=item.get("parser_version"),
                 raw=item,
             )
