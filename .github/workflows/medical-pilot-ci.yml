@@ -44,7 +44,12 @@ jobs:
           paths.extend(Path("docs/research/fixtures").glob("tianjin-*.json"))
           paths.extend(Path("docs/research/benchmarks").glob("*.json"))
           paths.extend(Path("tools/medical_pilot").glob("*.tianjin.v0.1.json"))
+          paths.extend(Path("tools/medical_pilot").glob("product_*.v0.1.json"))
+          seen = set()
           for path in paths:
+              if path in seen:
+                  continue
+              seen.add(path)
               with path.open("r", encoding="utf-8") as handle:
                   json.load(handle)
               print(f"valid json: {path}")
