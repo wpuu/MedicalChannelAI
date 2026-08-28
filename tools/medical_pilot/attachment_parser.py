@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import io
 import posixpath
-import re
 import zipfile
 from dataclasses import dataclass
 from xml.etree import ElementTree as ET
@@ -200,6 +199,11 @@ def _xlsx_sheet_targets(archive: zipfile.ZipFile) -> list[tuple[str, str]]:
 
 
 def _xlsx_cell_text(cell: ET.Element, shared: list[str], ns: dict[str, str]) -> str:
+    # Formula cached values can be stale. Pilot v0.1 does not evaluate formulas and
+    # does not promote their cached values as deterministic procurement text.
+    if cell.find("x:f", ns) is not None:
+        return ""
+
     cell_type = cell.attrib.get("t")
     if cell_type == "inlineStr":
         parts = [node.text or "" for node in cell.findall(".//x:is/x:t", ns)]
