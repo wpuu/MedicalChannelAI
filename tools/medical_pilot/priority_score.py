@@ -83,10 +83,6 @@ def _text(value: Any) -> str:
     return normalize_space(value) if isinstance(value, str) else ""
 
 
-def _norm(value: Any) -> str:
-    return _text(value).lower().replace(" ", "")
-
-
 def _money(value: Any) -> Decimal | None:
     if isinstance(value, dict):
         value = value.get("amount")
@@ -129,18 +125,21 @@ def _relationship_component(profile: dict[str, Any], opportunity: dict[str, Any]
 
 
 def _capability_component(profile: dict[str, Any], opportunity: dict[str, Any]) -> ScoreComponent:
-    labels = {_norm(item) for item in opportunity.get("product_labels") or [] if _text(item)}
+    labels = {item for item in opportunity.get("product_labels") or [] if isinstance(item, str) and item}
     best_type = None
     best_points = -1
     best_index = None
+    best_labels: set[str] = set()
     partnering = profile.get("partnering_policy") if isinstance(profile.get("partnering_policy"), dict) else {}
 
     for index, capability in enumerate(profile.get("product_capabilities") or []):
         if not isinstance(capability, dict):
             continue
-        keys = {_norm(capability.get("category")), _norm(capability.get("subcategory"))}
-        keys.discard("")
-        if not keys.intersection(labels):
+        capability_labels = {
+            item for item in capability.get("taxonomy_ids") or [] if isinstance(item, str) and item
+        }
+        overlap = capability_labels.intersection(labels)
+        if not overlap:
             continue
         capability_type = capability.get("capability_type")
         if capability_type == "CAN_SOURCE_PARTNER" and partnering.get("can_seek_temporary_manufacturer") is not True:
@@ -150,15 +149,16 @@ def _capability_component(profile: dict[str, Any], opportunity: dict[str, Any]) 
             best_type = capability_type
             best_points = points
             best_index = index
+            best_labels = overlap
 
     if best_type is None:
-        raise PriorityScoreError("MATCHED_WITHOUT_PRODUCT_CAPABILITY", "matched opportunity has no scoreable product capability")
+        raise PriorityScoreError("MATCHED_WITHOUT_PRODUCT_CAPABILITY", "matched opportunity has no scoreable taxonomy capability")
     return ScoreComponent(
         "PRODUCT_EXECUTION_CAPABILITY",
         best_points,
         30,
-        f"已确认产品参与能力：{best_type}。",
-        profile_paths=(f"product_capabilities[{best_index}]",),
+        f"已确认产品参与能力：{best_type}；匹配 taxonomy：{', '.join(sorted(best_labels))}。",
+        profile_paths=(f"product_capabilities[{best_index}].taxonomy_ids", f"product_capabilities[{best_index}].capability_type"),
         opportunity_paths=("product_labels",),
     )
 
