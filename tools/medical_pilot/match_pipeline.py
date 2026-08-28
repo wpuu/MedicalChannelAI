@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .classifier_admission import classifier_can_drive_matching
 from .customer_profile_gate import evaluate_customer_profile
 from .opportunity_match_gate import MatchReason, OpportunityMatchResult, evaluate_opportunity_match
 from .product_classifier import taxonomy_ids
@@ -53,14 +54,7 @@ def _profile_taxonomy_block(profile: dict[str, Any]) -> OpportunityMatchResult |
         personalized_recommendation_allowed=False,
         candidate_opportunity_allowed=False,
         model_explanation_allowed=False,
-        reasons=(
-            MatchReason(
-                issue.code,
-                f"profile.{issue.field_path}",
-                "BLOCK",
-                issue.message,
-            ),
-        ),
+        reasons=(MatchReason(issue.code, f"profile.{issue.field_path}", "BLOCK", issue.message),),
         required_next_facts=(),
         profile_gate=profile_gate,
     )
@@ -122,6 +116,7 @@ def _classification_gate(profile: dict[str, Any], opportunity: dict[str, Any]) -
 
     provenance = opportunity.get("product_label_provenance")
     validation = opportunity.get("product_label_validation_status")
+    classifier_id = opportunity.get("product_classifier_id")
 
     if provenance not in VALIDATED_PRODUCT_LABEL_PROVENANCE:
         return _needs_fact_result(
@@ -130,18 +125,34 @@ def _classification_gate(profile: dict[str, Any], opportunity: dict[str, Any]) -
             field_path="opportunity.product_label_provenance",
             message="产品分类没有可接受的来源标记，不能用于客户匹配。",
         )
+    if not isinstance(classifier_id, str) or not classifier_id:
+        return _needs_fact_result(
+            profile=profile,
+            code="PRODUCT_CLASSIFIER_ID_MISSING",
+            field_path="opportunity.product_classifier_id",
+            message="产品分类缺少分类器身份，无法验证该分类是否有资格驱动正式匹配。",
+        )
+
+    admitted, admission_reason = classifier_can_drive_matching(classifier_id, provenance)
+    if not admitted:
+        message = (
+            "Agnes 产品 taxonomy 分类器仍处于 benchmark pending；即使单条结果自报 VALIDATED，也不能进入正式匹配。"
+            if provenance == "CONTROLLED_MODEL_CLASSIFICATION"
+            else f"产品分类器未通过全局准入：{admission_reason}。"
+        )
+        return _needs_fact_result(
+            profile=profile,
+            code="PRODUCT_CLASSIFIER_NOT_ADMITTED",
+            field_path="opportunity.product_classifier_id",
+            message=message,
+        )
 
     if validation != "VALIDATED":
-        message = (
-            "受控模型产品分类仍处于 benchmark pending，不能直接用于正式匹配。"
-            if provenance == "CONTROLLED_MODEL_CLASSIFICATION" and validation == "BENCHMARK_PENDING"
-            else "产品分类尚未完成验证，不能直接用于正式匹配。"
-        )
         return _needs_fact_result(
             profile=profile,
             code="PRODUCT_CLASSIFICATION_NOT_VALIDATED",
             field_path="opportunity.product_label_validation_status",
-            message=message,
+            message="产品分类本条结果尚未完成验证，不能直接用于正式匹配。",
         )
     return None
 
@@ -150,9 +161,10 @@ def evaluate_match_pipeline(profile: dict[str, Any], opportunity: dict[str, Any]
     """Public v0.1 matching entrypoint.
 
     Institution/customer type and product taxonomy are derived inputs. They may
-    only influence matching after provenance validation. Customer product
-    capabilities are normalized to stable taxonomy IDs before the lower
-    deterministic matcher runs; free-form display text no longer drives match.
+    only influence matching after provenance validation and classifier admission.
+    Customer product capabilities are normalized to stable taxonomy IDs before
+    the lower deterministic matcher runs; free-form display text no longer drives
+    match.
     """
 
     profile_taxonomy_block = _profile_taxonomy_block(profile)
