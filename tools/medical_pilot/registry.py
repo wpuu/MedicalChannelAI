@@ -10,6 +10,7 @@ from .adapters import TjmughAdapter
 from .ccgp_lifecycle_adapter import CcgpLifecycleAdapter
 from .first_central_adapter import FirstCentralHospitalAdapter
 from .intent_adapter import CcgpIntentAdapter
+from .tianjin_public_resource_adapter import TianjinPublicResourceAdapter
 
 
 REGISTRY_PATH = Path(__file__).with_name("source_registry.tianjin.v0.1.json")
@@ -36,6 +37,7 @@ ADAPTER_FACTORIES = {
     "ccgp_procurement_intent": CcgpIntentAdapter,
     "tjmugh_procurement": TjmughAdapter,
     "tj_first_central_hospital_procurement": FirstCentralHospitalAdapter,
+    "tj_public_resource_exchange": TianjinPublicResourceAdapter,
 }
 
 
