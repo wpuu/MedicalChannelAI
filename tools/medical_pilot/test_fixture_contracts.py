@@ -14,6 +14,7 @@ OPPORTUNITY_FIXTURE_FILES = (
     FIXTURE_DIR / "tianjin-procurement-intent-identity-cases-v0.1.json",
     FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.1.json",
     FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.2.json",
+    FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.3.json",
 )
 
 
@@ -33,7 +34,7 @@ class ResearchFixtureContractTests(unittest.TestCase):
         cases = all_opportunity_cases()
         ids = [case["case_id"] for case in cases]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertGreaterEqual(len(cases), 37)
+        self.assertGreaterEqual(len(cases), 50)
         for case in cases:
             self.assertTrue(case["source_url"].startswith("https://"), case["case_id"])
             expected = case.get("expected", {})
@@ -57,39 +58,63 @@ class ResearchFixtureContractTests(unittest.TestCase):
         self.assertEqual(cases[0]["expected"]["buyer_name"], cases[1]["expected"]["buyer_name"])
         self.assertEqual(cases[0]["expected"]["project_name"], cases[1]["expected"]["project_name"])
         self.assertNotEqual(cases[0]["native_record_id"], cases[1]["native_record_id"])
-        self.assertNotEqual(
-            cases[0]["expected"]["budget_amount_cny"],
-            cases[1]["expected"]["budget_amount_cny"],
-        )
+        self.assertNotEqual(cases[0]["expected"]["budget_amount_cny"], cases[1]["expected"]["budget_amount_cny"])
         self.assertTrue(payload["pair_regression"]["must_have_distinct_canonical_project_id"])
         self.assertTrue(payload["pair_regression"]["must_have_distinct_opportunity_id"])
 
     def test_multi_item_market_research_pages_are_not_split_into_fake_fixture_counts(self) -> None:
-        path = FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.2.json"
-        cases = {case["case_id"]: case for case in load_cases(path)}
-        ids = {
-            "tjmugh_imaging_ultrasound_maintenance_market_research_20260508",
-            "tjmugh_repair_services_market_research_20260205",
-            "tjmugh_rehab_neuro_devices_market_research_20260529",
-        }
-        for case_id in ids:
-            case = cases[case_id]
-            self.assertEqual(case["expected"]["notice_type"], "MARKET_RESEARCH")
-            self.assertEqual(case["expected"]["lifecycle_state"], "MARKET_RESEARCH")
-            self.assertNotIn("sub_opportunities", case)
+        for filename, case_ids in {
+            "tianjin-expanded-opportunity-cases-v0.2.json": {
+                "tjmugh_imaging_ultrasound_maintenance_market_research_20260508",
+                "tjmugh_repair_services_market_research_20260205",
+                "tjmugh_rehab_neuro_devices_market_research_20260529",
+            },
+            "tianjin-expanded-opportunity-cases-v0.3.json": {
+                "tjmugh_aug5_medical_equipment_market_research_20260805",
+            },
+        }.items():
+            cases = {case["case_id"]: case for case in load_cases(FIXTURE_DIR / filename)}
+            for case_id in case_ids:
+                case = cases[case_id]
+                self.assertEqual(case["expected"]["notice_type"], "MARKET_RESEARCH")
+                self.assertEqual(case["expected"]["lifecycle_state"], "MARKET_RESEARCH")
+                self.assertNotIn("sub_opportunities", case)
 
     def test_maintenance_market_research_never_claims_equipment_purchase_award(self) -> None:
-        path = FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.2.json"
-        cases = {case["case_id"]: case for case in load_cases(path)}
-        for case_id in {
-            "tjmugh_imaging_ultrasound_maintenance_market_research_20260508",
-            "tjmugh_repair_services_market_research_20260205",
-        }:
-            case = cases[case_id]
+        maintenance_cases: list[dict] = []
+        for filename, case_ids in {
+            "tianjin-expanded-opportunity-cases-v0.2.json": {
+                "tjmugh_imaging_ultrasound_maintenance_market_research_20260508",
+                "tjmugh_repair_services_market_research_20260205",
+            },
+            "tianjin-expanded-opportunity-cases-v0.3.json": {
+                "tjmugh_jan23_repair_market_research_20260123",
+            },
+        }.items():
+            cases = {case["case_id"]: case for case in load_cases(FIXTURE_DIR / filename)}
+            maintenance_cases.extend(cases[case_id] for case_id in case_ids)
+        for case in maintenance_cases:
             expected = case["expected"]
             self.assertEqual(expected["notice_type"], "MARKET_RESEARCH")
             self.assertNotIn("award_total_cny", expected)
             self.assertNotIn("budget_amount_cny", expected)
+
+    def test_index_only_result_evidence_does_not_lock_unavailable_amount_or_supplier(self) -> None:
+        cases = {
+            case["case_id"]: case
+            for case in load_cases(FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.3.json")
+        }
+        for case_id in {
+            "first_central_endoscope_cleaner_award_20260420",
+            "first_central_microscope_camera_award_20260615",
+        }:
+            case = cases[case_id]
+            expected = case["expected"]
+            self.assertEqual(expected["notice_type"], "AWARD")
+            self.assertEqual(expected["lifecycle_state"], "AWARDED")
+            self.assertNotIn("award_total_cny", expected)
+            self.assertNotIn("official_supplier", case)
+            self.assertIn("unavailable", case["source_evidence_note"].lower())
 
     def test_attachment_declarations_never_claim_real_parser_success_without_binary(self) -> None:
         cases = load_cases(ATTACHMENT_FIXTURES)
@@ -101,11 +126,7 @@ class ResearchFixtureContractTests(unittest.TestCase):
             self.assertTrue(case["notice_url"].startswith("https://"), case["case_id"])
             if attachment["binary_capture_status"] == "PENDING_DIRECT_ATTACHMENT_BYTES":
                 self.assertIsNone(attachment["sha256"], case["case_id"])
-                self.assertEqual(
-                    attachment["parser_validation_status"],
-                    "NOT_RUN_ON_REAL_BYTES",
-                    case["case_id"],
-                )
+                self.assertEqual(attachment["parser_validation_status"], "NOT_RUN_ON_REAL_BYTES", case["case_id"])
 
     def test_parser_status_matches_current_extension_support(self) -> None:
         cases = load_cases(ATTACHMENT_FIXTURES)
