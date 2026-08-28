@@ -14,6 +14,11 @@ from .tianjin_public_resource_adapter import TianjinPublicResourceAdapter
 
 
 REGISTRY_PATH = Path(__file__).with_name("source_registry.tianjin.v0.1.json")
+KNOWN_OFFICIAL_MIRRORS = {
+    "ccgp_local_notices",
+    "ccgp_procurement_intent",
+    "tj_public_resource_exchange",
+}
 
 
 @dataclass(frozen=True)
@@ -42,21 +47,26 @@ ADAPTER_FACTORIES = {
 }
 
 
+def _default_provenance_role(source_id: str) -> str:
+    return "OFFICIAL_MIRROR" if source_id in KNOWN_OFFICIAL_MIRRORS else "PRIMARY_SOURCE"
+
+
 def load_registry(path: Path = REGISTRY_PATH) -> list[RegisteredSource]:
     with path.open("r", encoding="utf-8") as handle:
         items = json.load(handle)
     result: list[RegisteredSource] = []
     for item in items:
+        source_id = item["source_id"]
         result.append(
             RegisteredSource(
-                source_id=item["source_id"],
+                source_id=source_id,
                 source_name=item["source_name"],
                 canonical_base_url=item["canonical_base_url"],
                 allowed_url_patterns=tuple(item.get("allowed_url_patterns", [])),
                 enabled=bool(item["enabled"]),
                 authority_type=item["authority_type"],
                 source_type=item["source_type"],
-                provenance_role=item.get("provenance_role", "PRIMARY_SOURCE"),
+                provenance_role=item.get("provenance_role", _default_provenance_role(source_id)),
                 parser_version=item.get("parser_version"),
                 raw=item,
             )
