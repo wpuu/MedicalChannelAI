@@ -12,6 +12,7 @@ OPPORTUNITY_FIXTURE_FILES = (
     FIXTURE_DIR / "tianjin-opportunity-cases-v0.1.json",
     FIXTURE_DIR / "tianjin-opportunity-attachment-backed-cases-v0.1.json",
     FIXTURE_DIR / "tianjin-procurement-intent-identity-cases-v0.1.json",
+    FIXTURE_DIR / "tianjin-expanded-opportunity-cases-v0.1.json",
 )
 
 
@@ -26,10 +27,22 @@ class ResearchFixtureContractTests(unittest.TestCase):
             cases.extend(load_cases(path))
         ids = [case["case_id"] for case in cases]
         self.assertEqual(len(ids), len(set(ids)))
+        self.assertGreaterEqual(len(cases), 20)
         for case in cases:
             self.assertTrue(case["source_url"].startswith("https://"), case["case_id"])
             expected = case.get("expected", {})
             self.assertEqual(expected.get("verification_status"), "VERIFIED", case["case_id"])
+
+    def test_procurement_intent_fixtures_with_native_record_id_use_valid_uuid_shape(self) -> None:
+        cases: list[dict] = []
+        for path in OPPORTUNITY_FIXTURE_FILES:
+            cases.extend(load_cases(path))
+        native_ids = [case["native_record_id"] for case in cases if case.get("native_record_id")]
+        self.assertGreaterEqual(len(native_ids), 5)
+        for native_record_id in native_ids:
+            parts = native_record_id.split("-")
+            self.assertEqual([len(part) for part in parts], [8, 4, 4, 4, 12], native_record_id)
+            int(native_record_id.replace("-", ""), 16)
 
     def test_same_name_procurement_intent_fixture_pair_requires_distinct_native_identity(self) -> None:
         path = FIXTURE_DIR / "tianjin-procurement-intent-identity-cases-v0.1.json"
