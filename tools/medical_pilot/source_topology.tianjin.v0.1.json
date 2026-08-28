@@ -1,0 +1,76 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-28T13:58:00+08:00",
+  "scope": "Tianjin government-procurement and hospital early-signal public sources",
+  "sources": [
+    {
+      "source_id": "tj_government_procurement",
+      "provenance_role": "PRIMARY_SOURCE",
+      "canonical_host": "tjgp.cz.tj.gov.cn",
+      "implementation_status": "DOMAIN_CONFIRMED_PARSER_PENDING",
+      "authority_basis": "天津市财政局指定的天津市政府采购信息发布媒体/中国政府采购网地方分网",
+      "evidence_urls": [
+        "https://cz.tj.gov.cn/zwgk_53713/zcwjx/zcwjst/202307/t20230728_6364181.html",
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219615.htm"
+      ],
+      "timing_policy": "PRIMARY_WHEN_NATIVE_NOTICE_CAN_BE_FETCHED",
+      "latency_status": "UNKNOWN_UNTIL_NATIVE_DETAIL_TIMESTAMPS_ARE_CAPTURED"
+    },
+    {
+      "source_id": "ccgp_local_notices",
+      "provenance_role": "OFFICIAL_MIRROR",
+      "canonical_host": "www.ccgp.gov.cn",
+      "implementation_status": "IMPLEMENTED",
+      "timing_policy": "PARALLEL_FALLBACK_AND_CROSS_CHECK",
+      "latency_status": "DO_NOT_INFER_FROM_CCGP_CLOCK_ALONE"
+    },
+    {
+      "source_id": "ccgp_procurement_intent",
+      "provenance_role": "OFFICIAL_MIRROR",
+      "canonical_host": "cgyx.ccgp.gov.cn",
+      "implementation_status": "IMPLEMENTED",
+      "timing_policy": "EARLY_SIGNAL_MIRROR_UNTIL_TIANJIN_NATIVE_INTENT_ADAPTER_EXISTS",
+      "latency_status": "UNKNOWN"
+    },
+    {
+      "source_id": "tj_public_resource_exchange",
+      "provenance_role": "OFFICIAL_MIRROR",
+      "canonical_host": "ggzy.zwfwb.tj.gov.cn",
+      "implementation_status": "PARTIAL_IMPLEMENTATION",
+      "implemented_scope": "government procurement result detail pages under /jyxxcgjg/",
+      "timing_policy": "PARALLEL_AWARD_EVIDENCE_AND_FALLBACK",
+      "latency_status": "DAY_PRECISION_ONLY_FOR_VERIFIED_FIXTURE"
+    },
+    {
+      "source_id": "tjmugh_procurement",
+      "provenance_role": "PRIMARY_SOURCE",
+      "canonical_host": "www.tjmugh.com.cn",
+      "implementation_status": "IMPLEMENTED",
+      "timing_policy": "PRIMARY_FOR_HOSPITAL_PRE_PROCUREMENT_SIGNALS"
+    },
+    {
+      "source_id": "tj_first_central_hospital_procurement",
+      "provenance_role": "PRIMARY_SOURCE",
+      "canonical_host": "www.tj-fch.com",
+      "implementation_status": "IMPLEMENTED",
+      "timing_policy": "PRIMARY_FOR_HOSPITAL_INTERNAL_SELECTION_AND_MARKET_RESEARCH"
+    }
+  ],
+  "identity_policy": {
+    "canonical_project_primary_key": "exact normalized project_number when officially present",
+    "different_urls_same_project": "retain separate evidence events but map to one canonical_project_id",
+    "mirror_urls_must_not_create_duplicate_opportunities": true,
+    "same_project_same_lifecycle_same_day": "retain all evidence; prefer PRIMARY_SOURCE when chronology cannot be proven",
+    "same_day_conflicting_states_with_day_precision": "CONFLICTED; do not invent chronology",
+    "unverified_newer_event_overrides_verified": false
+  },
+  "latency_policy": {
+    "minute_latency_requires": [
+      "same canonical project/event identity",
+      "source-native timestamps from both compared sources",
+      "MINUTE precision on both timestamps"
+    ],
+    "otherwise": "LATENCY_UNKNOWN",
+    "crawler_fetch_time_must_not_be_used_as_publication_time": true
+  }
+}
