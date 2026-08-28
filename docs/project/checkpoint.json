@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-28T14:35:00+08:00",
+  "as_of": "2026-08-28T17:46:00+08:00",
   "phase": "M1_FACT_PIPELINE",
   "production_ready": false,
   "merge_approved": false,
@@ -28,13 +28,20 @@
     "tj_public_resource_exchange"
   ],
   "required_p0_not_implemented": [],
-  "verified_regression_fixture_count": 8,
+  "verified_opportunity_regression_fixture_count": 9,
+  "verified_opportunity_fixture_breakdown": {
+    "primary_fixture_file": 8,
+    "attachment_backed_fixture_file": 1
+  },
+  "verified_attachment_declaration_fixture_count": 5,
+  "real_attachment_binary_capture_count": 0,
   "deterministic_test_modules": [
     "test_adapters",
     "test_attachments",
     "test_attachment_parser",
     "test_award_items",
     "test_first_central_adapter",
+    "test_fixture_contracts",
     "test_intent_adapter",
     "test_lifecycle",
     "test_registry",
@@ -65,7 +72,9 @@
     "legacy_office_status": "DOWNLOAD_ONLY_PARSER_PENDING",
     "archives": "DISCOVERY_ONLY_NO_AUTO_EXTRACT",
     "xlsx_formula_policy": "SKIP_FORMULA_CACHED_VALUES",
-    "evidence_locators": ["DOCX_PARAGRAPH", "XLSX_RANGE"]
+    "evidence_locators": ["DOCX_PARAGRAPH", "XLSX_RANGE"],
+    "real_attachment_declarations": 5,
+    "real_binary_parser_validation_status": "NOT_RUN_ON_REAL_BYTES"
   },
   "migration": {
     "source_repository": "wpuu/Upan",
@@ -86,6 +95,7 @@
     "Same-state same-day evidence prefers PRIMARY_SOURCE when exact chronology is unavailable.",
     "Every runtime source must explicitly declare provenance_role.",
     "Attachment bytes must match snapshot SHA-256 before parsing.",
+    "Attachment declaration is not evidence that binary parsing succeeded.",
     "XLSX formula cached values are not deterministic facts in v0.1.",
     "Award item facts require original official evidence section.",
     "Customer profile missing conditions block high-confidence personalized recommendation.",
@@ -112,12 +122,12 @@
     "interpretation": "GitHub Actions did not allocate a runner and no test step executed. This is neither a deterministic test PASS nor an assertion FAIL."
   },
   "next": [
+    "capture the first real Tianjin medical DOCX/XLSX attachment bytes and run ooxml-stdlib-v0.1 with SHA-256 evidence",
+    "select and implement a bounded PDF parser with page-level evidence locators before enabling PDF parsing",
     "verify the 2026 native Tianjin government-procurement listing/search route, pagination and lifecycle category coverage",
     "capture at least one real 2026 medical native-detail fixture from tjgp.cz.tj.gov.cn and compare it to CCGP mirror evidence",
-    "capture real DOCX/XLSX procurement attachments and validate ooxml-stdlib-v0.1 against them",
-    "select a bounded PDF parser and add page-level evidence locators before setting PDF parser_eligible=true",
     "decide whether Tianjin public-resource tender/amendment/termination columns warrant full implementation or result-only fallback",
-    "expand to at least 20 VERIFIED Tianjin fixtures, then 50",
+    "expand to at least 20 VERIFIED Tianjin opportunity fixtures, then 50",
     "execute all deterministic tests once GitHub runner infrastructure is restored",
     "run Agnes 2.5 Flash benchmark after deterministic execution evidence is available",
     "build H5/Web demo only after fact API fields stabilize"
