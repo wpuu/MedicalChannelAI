@@ -108,19 +108,26 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
 
     @staticmethod
     def _extract_native_buyer(text: str) -> str:
-        patterns = (
-            r"采购人信息\s*.*?名称\s*[:：]\s*([^\n]+)",
+        # Fail closed to the purchaser subsection. Do not let a missing purchaser name
+        # drift across the page and accidentally capture the procurement-agent name.
+        section_match = re.search(
+            r"采购人信息\s*(.*?)(?=采购代理机构信息|代理机构信息|项目联系方式|$)",
+            text,
+            re.S,
+        )
+        if section_match:
+            section = section_match.group(1)[:1200]
+            match = re.search(r"(?:^|\n)\s*名称\s*[:：]\s*([^\n]+)", section)
+            if match:
+                return normalize_space(match.group(1))
+
+        for pattern in (
             r"采购人名称\s*[:：]\s*([^\n]+)",
             r"采购人\s*[:：]\s*([^\n]+)",
-        )
-        for pattern in patterns:
-            match = re.search(pattern, text, re.S)
-            if not match:
-                continue
-            value = normalize_space(match.group(1))
-            value = re.split(r"\s+(?:地址|联系方式|联系人|采购代理机构)\s*[:：]", value)[0]
-            if value:
-                return value
+        ):
+            match = re.search(pattern, text)
+            if match:
+                return normalize_space(match.group(1))
         return ""
 
     @staticmethod
