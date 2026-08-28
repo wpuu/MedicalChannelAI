@@ -44,39 +44,58 @@ def _fact(case_id: str, index: int, value: str, source_url: str) -> dict[str, An
     }
 
 
+def _append_text(values: list[str], value: Any) -> None:
+    if isinstance(value, str) and value.strip():
+        values.append(value.strip())
+
+
+def _append_string_list(values: list[str], items: Any) -> None:
+    if isinstance(items, list):
+        for item in items:
+            _append_text(values, item)
+
+
+def _append_item_names(values: list[str], items: Any) -> None:
+    if not isinstance(items, list):
+        return
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        for key in ("raw_name", "name", "equipment"):
+            value = item.get(key)
+            if isinstance(value, str) and value.strip():
+                values.append(value.strip())
+                break
+
+
 def _official_product_texts(case: dict[str, Any]) -> list[str]:
+    """Collect only product-bearing text already locked as official fixture evidence.
+
+    Brand, supplier and free-form analyst notes are intentionally excluded. The
+    audit is measuring whether deterministic product phrases cover the existing
+    VERIFIED facts, not whether brand names can be abused as category hints.
+    """
+
     values: list[str] = []
     expected = case.get("expected") if isinstance(case.get("expected"), dict) else {}
-    project_name = expected.get("project_name")
-    if isinstance(project_name, str) and project_name.strip():
-        values.append(project_name.strip())
 
-    need_summary = case.get("official_need_summary")
-    if isinstance(need_summary, str) and need_summary.strip():
-        values.append(need_summary.strip())
+    _append_text(values, expected.get("project_name"))
+    _append_text(values, case.get("official_need_summary"))
+    _append_string_list(values, case.get("official_scope"))
+    _append_string_list(values, case.get("official_items"))
 
-    for key in ("official_scope",):
-        items = case.get(key)
-        if isinstance(items, list):
-            values.extend(item.strip() for item in items if isinstance(item, str) and item.strip())
+    # Later expansion fixtures keep official product examples at top level.
+    _append_item_names(values, case.get("official_award_item_samples"))
+    _append_item_names(values, case.get("official_installed_base_samples"))
 
-    award_items = case.get("official_award_item_samples")
-    if isinstance(award_items, list):
-        for item in award_items:
-            if isinstance(item, dict):
-                name = item.get("raw_name")
-                if isinstance(name, str) and name.strip():
-                    values.append(name.strip())
+    # Early fixtures used expected.award_items / award_items_sample.
+    _append_item_names(values, expected.get("award_items"))
+    _append_item_names(values, expected.get("award_items_sample"))
 
-    installed = case.get("official_installed_base_samples")
-    if isinstance(installed, list):
-        for item in installed:
-            if isinstance(item, dict):
-                equipment = item.get("equipment")
-                if isinstance(equipment, str) and equipment.strip():
-                    values.append(equipment.strip())
+    # Some fixtures may preserve a generic list of official main items inside expected.
+    _append_string_list(values, expected.get("official_items"))
 
-    # De-duplicate exact text only. Do not semantically rewrite official text.
+    # De-duplicate exact official text only. Do not semantically rewrite or merge it.
     return list(dict.fromkeys(values))
 
 
