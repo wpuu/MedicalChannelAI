@@ -9,158 +9,44 @@
   "draft_pr": 1,
   "coverage_status": "PARTIAL",
   "exhaustiveness_claim": "NOT_EXHAUSTIVE",
-  "runtime_p0_sources": [
-    "tj_government_procurement",
-    "ccgp_local_notices",
-    "ccgp_procurement_intent",
-    "tjmugh_procurement",
-    "tj_first_central_hospital_procurement",
-    "tj_public_resource_exchange"
-  ],
-  "required_p0_implemented": [
-    "ccgp_local_notices",
-    "ccgp_procurement_intent",
-    "tjmugh_procurement",
-    "tj_first_central_hospital_procurement"
-  ],
+  "runtime_p0_sources": ["tj_government_procurement", "ccgp_local_notices", "ccgp_procurement_intent", "tjmugh_procurement", "tj_first_central_hospital_procurement", "tj_public_resource_exchange"],
+  "required_p0_implemented": ["ccgp_local_notices", "ccgp_procurement_intent", "tjmugh_procurement", "tj_first_central_hospital_procurement"],
   "required_p0_partial_implementation": ["tj_government_procurement", "tj_public_resource_exchange"],
   "verified_opportunity_regression_fixture_count": 50,
-  "verified_opportunity_fixture_breakdown": {
-    "primary_fixture_file": 8,
-    "attachment_backed_fixture_file": 1,
-    "procurement_intent_identity_fixture_file": 2,
-    "expanded_official_fixture_v0_1": 10,
-    "expanded_official_fixture_v0_2": 16,
-    "expanded_official_fixture_v0_3": 13
-  },
-  "corpus_policy": {
-    "multi_item_market_research_source_record_counted_once": true,
-    "multiple_lifecycle_events_count_as_one_opportunity": true,
-    "index_only_result_evidence_may_lock_amount_or_supplier": false,
-    "official_unknown_fields_remain_unknown": true
-  },
+  "verified_opportunity_fixture_breakdown": {"primary_fixture_file": 8, "attachment_backed_fixture_file": 1, "procurement_intent_identity_fixture_file": 2, "expanded_official_fixture_v0_1": 10, "expanded_official_fixture_v0_2": 16, "expanded_official_fixture_v0_3": 13},
+  "corpus_policy": {"multi_item_market_research_source_record_counted_once": true, "multiple_lifecycle_events_count_as_one_opportunity": true, "index_only_result_evidence_may_lock_amount_or_supplier": false, "official_unknown_fields_remain_unknown": true},
   "verified_attachment_declaration_fixture_count": 5,
   "real_attachment_binary_capture_count": 0,
   "verified_institution_evidence_fixture_count": 5,
   "schema_contract_count": 13,
-  "deterministic_test_module_count": 28,
-  "identity_policy": {
-    "machine_readable_file": "tools/medical_pilot/identity_policy.tianjin.v0.1.json",
-    "priority": ["OFFICIAL_PROJECT_NUMBER", "OFFICIAL_NATIVE_RECORD_ID", "SOURCE_LOCAL_RECORD_URL"],
-    "forbidden_automatic_key": "buyer_name + project_name",
-    "cross_stage_candidate_status": "IMPLEMENTED",
-    "cross_stage_candidate_result": "CANDIDATE_REQUIRES_EVIDENCE",
-    "cross_stage_auto_merge_allowed": false,
-    "canonical_bridge_merge_status": "NOT_IMPLEMENTED",
-    "llm_may_merge_canonical_projects": false
+  "deterministic_test_module_count": 29,
+  "taxonomy_corpus_audit": {
+    "module": "tools/medical_pilot/taxonomy_corpus_audit.py",
+    "test_module": "tools/medical_pilot/test_taxonomy_corpus_audit.py",
+    "corpus_case_count": 50,
+    "execution_status": "NOT_EXECUTED_RUNNER_BLOCKED",
+    "coverage_rate": null,
+    "interpretation": "COVERAGE_RATE_IS_NOT_MODEL_ACCURACY",
+    "rule": "Only official product-bearing text already locked in VERIFIED fixtures is used; brand/supplier names are excluded as category hints."
   },
-  "matching_profile_gate": {
-    "base_interview_gate": "tools/medical_pilot/customer_profile_gate.py",
-    "public_matching_readiness_gate": "tools/medical_pilot/matching_profile_gate.py",
-    "status": "IMPLEMENTED_V0_1",
-    "taxonomy_required_for_candidate_matching": true,
-    "frontend_declared_completeness_trusted": false,
-    "missing_conditions_require_followup_question": true,
-    "human_readable_product_fields_retained": true,
-    "formal_match_key": "taxonomy_ids"
-  },
-  "opportunity_matching": {
-    "public_entrypoint": "tools/medical_pilot/match_pipeline.py",
-    "deterministic_gate": "tools/medical_pilot/opportunity_match_gate.py",
-    "status": "IMPLEMENTED_V0_1",
-    "model_before_match_allowed": false,
-    "requires_verified_opportunity": true,
-    "blocks_degraded_or_unknown_coverage": true,
-    "institution_type_requires_provenance": true,
-    "product_taxonomy_requires_provenance": true,
-    "classifier_global_admission_required": true,
-    "agnes_model_classification_current_status": "BENCHMARK_PENDING_NOT_ALLOWED_TO_DRIVE_MATCH"
-  },
-  "institution_evidence": {
-    "schema": "docs/research/schemas/medical-institution-evidence.schema.json",
-    "module": "tools/medical_pilot/institution_enrichment.py",
-    "fixture": "docs/research/fixtures/tianjin-institution-evidence-v0.1.json",
-    "status": "IMPLEMENTED_INITIAL_CORPUS",
-    "verified_fixture_count": 5,
-    "name_only_guessing_allowed": false
-  },
-  "product_taxonomy": {
-    "taxonomy": "tools/medical_pilot/product_taxonomy.v0.1.json",
-    "classification_schema": "docs/research/schemas/medical-product-classification.schema.json",
-    "deterministic_classifier": "tools/medical_pilot/product_classifier.py",
-    "classifier_registry": "tools/medical_pilot/product_classifier_registry.v0.1.json",
-    "profile_taxonomy_module": "tools/medical_pilot/profile_product_taxonomy.py",
-    "status": "IMPLEMENTED_V0_1",
-    "formal_match_key": "taxonomy_ids",
-    "free_text_product_match_allowed": false,
-    "deterministic_classifier_can_drive_matching": true,
-    "human_confirmed_classifier_can_drive_matching": true,
-    "agnes_classifier_can_drive_matching": false,
-    "next_measurement": "RUN_DETERMINISTIC_TAXONOMY_COVERAGE_AUDIT_ON_50_CORPUS"
-  },
-  "model_decision_contract": {
-    "module": "tools/medical_pilot/model_decision_contract.py",
-    "schema": "docs/research/schemas/medical-model-decision.schema.json",
-    "status": "IMPLEMENTED_V0_1",
-    "free_procurement_fact_text_allowed": false,
-    "requires_verified_non_model_fact_refs": true,
-    "unknown_fact_ids_rejected": true
-  },
-  "priority_score": {
-    "module": "tools/medical_pilot/priority_score.py",
-    "schema": "docs/research/schemas/medical-opportunity-priority-score.schema.json",
-    "status": "IMPLEMENTED_V0_1",
-    "formal_product_match_key": "taxonomy_ids",
-    "max_score": 100,
-    "components": {"product_execution_capability": 30, "confirmed_hospital_relationship": 25, "intervention_stage": 25, "project_amount": 20},
-    "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
-  },
-  "attachment_parsing": {
-    "downloadable_extensions": [".pdf", ".doc", ".docx", ".xls", ".xlsx"],
-    "locally_parseable_extensions": [".docx", ".xlsx"],
-    "ooxml_parser_version": "ooxml-stdlib-v0.1",
-    "pdf_optional_backend": "pdf-docling-v0.1",
-    "pdf_backend_code_status": "IMPLEMENTED_NOT_REAL_BYTES_VALIDATED",
-    "real_binary_parser_validation_status": "NOT_RUN_ON_REAL_BYTES"
-  },
-  "agnes_2_5_flash": {
-    "status": "GO_FOR_BENCHMARK",
-    "production_accuracy_validated": false,
-    "benchmark_case_count": 28,
-    "execution_status": "NOT_EXECUTED",
-    "default_mode": "DRY_RUN_NO_NETWORK",
-    "secret_policy": "AGNES_API_KEY only from environment; never committed"
-  },
-  "critical_rules": [
-    "OFFICIAL_PUBLIC_FACT must never be model-generated.",
-    "Missing or unconfirmed customer conditions must trigger follow-up questions instead of high-confidence recommendations.",
-    "Human-readable product text is display/interview data; formal match and score use controlled taxonomy_ids.",
-    "Unknown or non-admitted taxonomy classifications cannot drive matching.",
-    "Agnes taxonomy classification cannot drive matching while classifier registry remains BENCHMARK_PENDING.",
-    "Institution grade/type must not be guessed from organization name.",
-    "No-project-number records default to source-local identity; buyer/title similarity cannot auto-merge them.",
-    "Cross-stage candidates are hints only; auto_merge_allowed remains false.",
-    "Opportunity matching requires VERIFIED facts.",
-    "Priority score is business priority, never win probability.",
-    "Coverage remains PARTIAL while required P0 sources are partial.",
-    "Attachment declaration is not proof that binary parsing succeeded.",
-    "Do not copy tender budget or supplier guesses into an award when the award body is unavailable."
-  ],
+  "identity_policy": {"machine_readable_file": "tools/medical_pilot/identity_policy.tianjin.v0.1.json", "priority": ["OFFICIAL_PROJECT_NUMBER", "OFFICIAL_NATIVE_RECORD_ID", "SOURCE_LOCAL_RECORD_URL"], "forbidden_automatic_key": "buyer_name + project_name", "cross_stage_candidate_status": "IMPLEMENTED", "cross_stage_candidate_result": "CANDIDATE_REQUIRES_EVIDENCE", "cross_stage_auto_merge_allowed": false, "canonical_bridge_merge_status": "NOT_IMPLEMENTED", "llm_may_merge_canonical_projects": false},
+  "matching_profile_gate": {"public_matching_readiness_gate": "tools/medical_pilot/matching_profile_gate.py", "status": "IMPLEMENTED_V0_1", "taxonomy_required_for_candidate_matching": true, "frontend_declared_completeness_trusted": false, "missing_conditions_require_followup_question": true, "human_readable_product_fields_retained": true, "formal_match_key": "taxonomy_ids"},
+  "opportunity_matching": {"public_entrypoint": "tools/medical_pilot/match_pipeline.py", "status": "IMPLEMENTED_V0_1", "model_before_match_allowed": false, "requires_verified_opportunity": true, "institution_type_requires_provenance": true, "product_taxonomy_requires_provenance": true, "classifier_global_admission_required": true, "agnes_model_classification_current_status": "BENCHMARK_PENDING_NOT_ALLOWED_TO_DRIVE_MATCH"},
+  "institution_evidence": {"fixture": "docs/research/fixtures/tianjin-institution-evidence-v0.1.json", "status": "IMPLEMENTED_INITIAL_CORPUS", "verified_fixture_count": 5, "name_only_guessing_allowed": false},
+  "product_taxonomy": {"taxonomy": "tools/medical_pilot/product_taxonomy.v0.1.json", "deterministic_classifier": "tools/medical_pilot/product_classifier.py", "classifier_registry": "tools/medical_pilot/product_classifier_registry.v0.1.json", "formal_match_key": "taxonomy_ids", "free_text_product_match_allowed": false, "deterministic_classifier_can_drive_matching": true, "human_confirmed_classifier_can_drive_matching": true, "agnes_classifier_can_drive_matching": false},
+  "model_decision_contract": {"module": "tools/medical_pilot/model_decision_contract.py", "status": "IMPLEMENTED_V0_1", "free_procurement_fact_text_allowed": false, "requires_verified_non_model_fact_refs": true, "unknown_fact_ids_rejected": true},
+  "priority_score": {"module": "tools/medical_pilot/priority_score.py", "status": "IMPLEMENTED_V0_1", "formal_product_match_key": "taxonomy_ids", "max_score": 100, "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
+  "attachment_parsing": {"downloadable_extensions": [".pdf", ".doc", ".docx", ".xls", ".xlsx"], "locally_parseable_extensions": [".docx", ".xlsx"], "pdf_optional_backend": "pdf-docling-v0.1", "pdf_backend_code_status": "IMPLEMENTED_NOT_REAL_BYTES_VALIDATED", "real_binary_parser_validation_status": "NOT_RUN_ON_REAL_BYTES"},
+  "agnes_2_5_flash": {"status": "GO_FOR_BENCHMARK", "production_accuracy_validated": false, "benchmark_case_count": 28, "execution_status": "NOT_EXECUTED", "default_mode": "DRY_RUN_NO_NETWORK", "secret_policy": "AGNES_API_KEY only from environment; never committed"},
+  "critical_rules": ["OFFICIAL_PUBLIC_FACT must never be model-generated.", "Missing or unconfirmed customer conditions must trigger follow-up questions.", "Formal match and score use controlled taxonomy_ids, not free-text product labels.", "Unknown or non-admitted taxonomy classifications cannot drive matching.", "Agnes taxonomy classification cannot drive matching while classifier registry remains BENCHMARK_PENDING.", "Institution grade/type must not be guessed from name.", "Buyer/title similarity cannot auto-merge projects.", "Cross-stage candidate auto_merge_allowed remains false.", "Priority score is business priority, never win probability.", "Coverage remains PARTIAL while required P0 sources are partial.", "Unknown award fields remain unknown; do not copy tender values into unavailable result bodies."],
   "ci_status": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
     "tracking_issue": 2,
-    "latest_checked_run_id": 33176009681,
-    "latest_checked_job_id": 98864682367,
-    "evidence": {"steps_count": 0, "conclusion": "failure"},
+    "latest_checked_head_sha": "98ce0d3f1a2c957418e12bcdacfbc79c72cd7aa3",
+    "latest_checked_run_id": 33177263586,
+    "latest_checked_job_id": 98869007612,
+    "evidence": {"steps": null, "conclusion": "failure"},
     "interpretation": "No Python compile or unittest step executed; this is neither PASS nor assertion FAIL."
   },
-  "next": [
-    "run deterministic taxonomy coverage audit across all 50 verified opportunity fixtures",
-    "capture first real Tianjin medical DOCX/XLSX/PDF bytes and run parser validation",
-    "verify Tianjin government-procurement native listing/search/pagination and lifecycle coverage",
-    "expand institution evidence and deterministic taxonomy coverage based on corpus audit",
-    "execute all deterministic tests once GitHub runner infrastructure is restored",
-    "run both Agnes benchmarks only after deterministic execution evidence exists",
-    "stabilize Fact/Profile/Match/Priority API fields before H5/Web demo"
-  ]
+  "next": ["execute 29 deterministic tests and generate taxonomy corpus audit when runner is restored", "expand deterministic taxonomy using unresolved audit cases before using Agnes", "capture first real Tianjin medical DOCX/XLSX/PDF bytes and run parser validation", "verify Tianjin government-procurement native listing/search/pagination and lifecycle coverage", "expand institution evidence", "run both Agnes benchmarks only after deterministic execution evidence exists", "stabilize Fact/Profile/Match/Priority API before H5/Web demo"]
 }
