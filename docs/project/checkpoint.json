@@ -23,73 +23,32 @@
     "tjmugh_procurement",
     "tj_first_central_hospital_procurement"
   ],
-  "required_p0_partial_implementation": [
-    "tj_government_procurement",
-    "tj_public_resource_exchange"
-  ],
-  "verified_opportunity_regression_fixture_count": 21,
+  "required_p0_partial_implementation": ["tj_government_procurement", "tj_public_resource_exchange"],
+  "verified_opportunity_regression_fixture_count": 50,
   "verified_opportunity_fixture_breakdown": {
     "primary_fixture_file": 8,
     "attachment_backed_fixture_file": 1,
     "procurement_intent_identity_fixture_file": 2,
-    "expanded_official_fixture_file": 10
+    "expanded_official_fixture_v0_1": 10,
+    "expanded_official_fixture_v0_2": 16,
+    "expanded_official_fixture_v0_3": 13
+  },
+  "corpus_policy": {
+    "multi_item_market_research_source_record_counted_once": true,
+    "multiple_lifecycle_events_count_as_one_opportunity": true,
+    "index_only_result_evidence_may_lock_amount_or_supplier": false,
+    "official_unknown_fields_remain_unknown": true
   },
   "verified_attachment_declaration_fixture_count": 5,
   "real_attachment_binary_capture_count": 0,
   "verified_institution_evidence_fixture_count": 5,
   "schema_contract_count": 13,
-  "schema_contracts": [
-    "medical-cross-stage-link-candidate",
-    "medical-customer-profile-readiness",
-    "medical-customer-profile",
-    "medical-evidence-fact",
-    "medical-institution-evidence",
-    "medical-model-decision",
-    "medical-opportunity-match-input",
-    "medical-opportunity-match-result",
-    "medical-opportunity-priority-score",
-    "medical-opportunity",
-    "medical-procurement-event",
-    "medical-product-classification",
-    "medical-source-registry"
-  ],
   "deterministic_test_module_count": 28,
-  "deterministic_test_modules": [
-    "test_adapters",
-    "test_attachment_parser",
-    "test_attachments",
-    "test_award_items",
-    "test_benchmark_agnes",
-    "test_benchmark_agnes_taxonomy",
-    "test_classifier_admission",
-    "test_cross_stage_link",
-    "test_cross_stage_timezone",
-    "test_customer_profile_gate",
-    "test_first_central_adapter",
-    "test_fixture_contracts",
-    "test_identity",
-    "test_institution_enrichment",
-    "test_intent_adapter",
-    "test_lifecycle",
-    "test_match_pipeline",
-    "test_matching_profile_gate",
-    "test_model_decision_contract",
-    "test_opportunity_match_gate",
-    "test_pdf_parser_docling",
-    "test_priority_score",
-    "test_product_classifier",
-    "test_registry",
-    "test_source_health",
-    "test_source_precedence",
-    "test_tianjin_government_procurement_adapter",
-    "test_tianjin_public_resource_adapter"
-  ],
   "identity_policy": {
     "machine_readable_file": "tools/medical_pilot/identity_policy.tianjin.v0.1.json",
     "priority": ["OFFICIAL_PROJECT_NUMBER", "OFFICIAL_NATIVE_RECORD_ID", "SOURCE_LOCAL_RECORD_URL"],
     "forbidden_automatic_key": "buyer_name + project_name",
     "cross_stage_candidate_status": "IMPLEMENTED",
-    "cross_stage_candidate_schema": "docs/research/schemas/medical-cross-stage-link-candidate.schema.json",
     "cross_stage_candidate_result": "CANDIDATE_REQUIRES_EVIDENCE",
     "cross_stage_auto_merge_allowed": false,
     "canonical_bridge_merge_status": "NOT_IMPLEMENTED",
@@ -136,7 +95,8 @@
     "free_text_product_match_allowed": false,
     "deterministic_classifier_can_drive_matching": true,
     "human_confirmed_classifier_can_drive_matching": true,
-    "agnes_classifier_can_drive_matching": false
+    "agnes_classifier_can_drive_matching": false,
+    "next_measurement": "RUN_DETERMINISTIC_TAXONOMY_COVERAGE_AUDIT_ON_50_CORPUS"
   },
   "model_decision_contract": {
     "module": "tools/medical_pilot/model_decision_contract.py",
@@ -152,20 +112,8 @@
     "status": "IMPLEMENTED_V0_1",
     "formal_product_match_key": "taxonomy_ids",
     "max_score": 100,
-    "components": {
-      "product_execution_capability": 30,
-      "confirmed_hospital_relationship": 25,
-      "intervention_stage": 25,
-      "project_amount": 20
-    },
+    "components": {"product_execution_capability": 30, "confirmed_hospital_relationship": 25, "intervention_stage": 25, "project_amount": 20},
     "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
-  },
-  "source_topology": {
-    "machine_readable_file": "tools/medical_pilot/source_topology.tianjin.v0.1.json",
-    "government_procurement_primary_source": "tj_government_procurement",
-    "government_procurement_official_mirrors": ["ccgp_local_notices", "tj_public_resource_exchange"],
-    "hospital_primary_sources": ["tjmugh_procurement", "tj_first_central_hospital_procurement"],
-    "latency_policy": "Only compare source publication latency when both source-native timestamps are MINUTE precision; otherwise LATENCY_UNKNOWN."
   },
   "attachment_parsing": {
     "downloadable_extensions": [".pdf", ".doc", ".docx", ".xls", ".xlsx"],
@@ -173,20 +121,11 @@
     "ooxml_parser_version": "ooxml-stdlib-v0.1",
     "pdf_optional_backend": "pdf-docling-v0.1",
     "pdf_backend_code_status": "IMPLEMENTED_NOT_REAL_BYTES_VALIDATED",
-    "pdf_download_parser_eligible": false,
     "real_binary_parser_validation_status": "NOT_RUN_ON_REAL_BYTES"
   },
   "agnes_2_5_flash": {
     "status": "GO_FOR_BENCHMARK",
     "production_accuracy_validated": false,
-    "benchmark_manifests": [
-      "docs/research/benchmarks/agnes-2.5-flash-v0.1.json",
-      "docs/research/benchmarks/agnes-2.5-flash-product-taxonomy-v0.1.json"
-    ],
-    "benchmark_harnesses": [
-      "tools/medical_pilot/benchmark_agnes.py",
-      "tools/medical_pilot/benchmark_agnes_taxonomy.py"
-    ],
     "benchmark_case_count": 28,
     "execution_status": "NOT_EXECUTED",
     "default_mode": "DRY_RUN_NO_NETWORK",
@@ -195,17 +134,17 @@
   "critical_rules": [
     "OFFICIAL_PUBLIC_FACT must never be model-generated.",
     "Missing or unconfirmed customer conditions must trigger follow-up questions instead of high-confidence recommendations.",
-    "Human-readable product category/subcategory is display/interview data; formal match and score use controlled taxonomy_ids.",
+    "Human-readable product text is display/interview data; formal match and score use controlled taxonomy_ids.",
     "Unknown or non-admitted taxonomy classifications cannot drive matching.",
     "Agnes taxonomy classification cannot drive matching while classifier registry remains BENCHMARK_PENDING.",
     "Institution grade/type must not be guessed from organization name.",
     "No-project-number records default to source-local identity; buyer/title similarity cannot auto-merge them.",
     "Cross-stage candidates are hints only; auto_merge_allowed remains false.",
     "Opportunity matching requires VERIFIED facts.",
-    "Model decision output may reference only supplied VERIFIED fact_ids and confirmed profile paths.",
     "Priority score is business priority, never win probability.",
     "Coverage remains PARTIAL while required P0 sources are partial.",
-    "Attachment declaration is not proof that binary parsing succeeded."
+    "Attachment declaration is not proof that binary parsing succeeded.",
+    "Do not copy tender budget or supplier guesses into an award when the award body is unavailable."
   ],
   "ci_status": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
@@ -216,10 +155,10 @@
     "interpretation": "No Python compile or unittest step executed; this is neither PASS nor assertion FAIL."
   },
   "next": [
-    "expand official-source corpus from 21 to at least 50 VERIFIED opportunities without double-counting lifecycle events",
+    "run deterministic taxonomy coverage audit across all 50 verified opportunity fixtures",
     "capture first real Tianjin medical DOCX/XLSX/PDF bytes and run parser validation",
     "verify Tianjin government-procurement native listing/search/pagination and lifecycle coverage",
-    "expand institution evidence and deterministic taxonomy coverage",
+    "expand institution evidence and deterministic taxonomy coverage based on corpus audit",
     "execute all deterministic tests once GitHub runner infrastructure is restored",
     "run both Agnes benchmarks only after deterministic execution evidence exists",
     "stabilize Fact/Profile/Match/Priority API fields before H5/Web demo"
