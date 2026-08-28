@@ -11,6 +11,7 @@ class MatchPipelineTests(unittest.TestCase):
         item = opportunity()
         item["product_label_provenance"] = "DETERMINISTIC"
         item["product_label_validation_status"] = "VALIDATED"
+        item["product_classifier_id"] = "deterministic-product-taxonomy-v0.1"
         result = evaluate_match_pipeline(complete_profile(), item)
         self.assertEqual(result.status, "MATCHED_PERSONALIZED")
         self.assertTrue(result.model_explanation_allowed)
@@ -19,24 +20,36 @@ class MatchPipelineTests(unittest.TestCase):
         item = opportunity()
         item["product_label_provenance"] = "HUMAN_CONFIRMED"
         item["product_label_validation_status"] = "VALIDATED"
+        item["product_classifier_id"] = "human-confirmed-product-taxonomy-v0.1"
         result = evaluate_match_pipeline(complete_profile(), item)
         self.assertEqual(result.status, "MATCHED_PERSONALIZED")
 
-    def test_controlled_model_classification_benchmark_pending_cannot_drive_match(self) -> None:
+    def test_controlled_model_benchmark_pending_cannot_drive_match(self) -> None:
         item = opportunity()
         item["product_label_provenance"] = "CONTROLLED_MODEL_CLASSIFICATION"
         item["product_label_validation_status"] = "BENCHMARK_PENDING"
+        item["product_classifier_id"] = "agnes-2.5-flash-product-taxonomy-v0.1"
         result = evaluate_match_pipeline(complete_profile(), item)
         self.assertEqual(result.status, "NEEDS_MORE_FACTS")
         self.assertFalse(result.model_explanation_allowed)
-        self.assertIn("opportunity.product_label_validation_status", result.required_next_facts)
+        self.assertIn("opportunity.product_classifier_id", result.required_next_facts)
 
-    def test_controlled_model_classification_only_works_after_explicit_validation(self) -> None:
+    def test_controlled_model_cannot_bypass_global_pending_by_self_declaring_validated(self) -> None:
         item = opportunity()
         item["product_label_provenance"] = "CONTROLLED_MODEL_CLASSIFICATION"
         item["product_label_validation_status"] = "VALIDATED"
+        item["product_classifier_id"] = "agnes-2.5-flash-product-taxonomy-v0.1"
         result = evaluate_match_pipeline(complete_profile(), item)
-        self.assertEqual(result.status, "MATCHED_PERSONALIZED")
+        self.assertEqual(result.status, "NEEDS_MORE_FACTS")
+        self.assertFalse(result.model_explanation_allowed)
+        self.assertTrue(any(reason.code == "PRODUCT_CLASSIFIER_NOT_ADMITTED" for reason in result.reasons))
+
+    def test_missing_classifier_id_is_not_silently_assumed(self) -> None:
+        item = opportunity()
+        item.pop("product_classifier_id", None)
+        result = evaluate_match_pipeline(complete_profile(), item)
+        self.assertEqual(result.status, "NEEDS_MORE_FACTS")
+        self.assertIn("opportunity.product_classifier_id", result.required_next_facts)
 
     def test_missing_product_provenance_is_not_silently_assumed(self) -> None:
         item = opportunity()
@@ -95,10 +108,7 @@ class MatchPipelineTests(unittest.TestCase):
     def test_incomplete_profile_still_blocks_before_model(self) -> None:
         profile = complete_profile()
         profile["product_capabilities"] = []
-        item = opportunity()
-        item["product_label_provenance"] = "DETERMINISTIC"
-        item["product_label_validation_status"] = "VALIDATED"
-        result = evaluate_match_pipeline(profile, item)
+        result = evaluate_match_pipeline(profile, opportunity())
         self.assertEqual(result.status, "PROFILE_BLOCKED")
         self.assertFalse(result.model_explanation_allowed)
 
