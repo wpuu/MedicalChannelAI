@@ -51,7 +51,7 @@ class MatchingProfileGateTests(unittest.TestCase):
         item = copy.deepcopy(profile["product_capabilities"][0])
         self.assertEqual(item["taxonomy_ids"], [TAXONOMY_ID])
         self.assertEqual(item["category"], "IVD")
-        self.assertEqual(item["subcategory"], TAXONOMY_ID)
+        self.assertEqual(item["subcategory"], "化学发光分析仪")
 
 
 if __name__ == "__main__":
