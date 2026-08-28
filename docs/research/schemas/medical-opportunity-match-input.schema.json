@@ -11,6 +11,9 @@
     "coverage_status",
     "region",
     "customer_type",
+    "customer_type_provenance",
+    "customer_type_validation_status",
+    "institution_evidence_id",
     "lifecycle_state",
     "budget",
     "product_labels",
@@ -37,6 +40,11 @@
       "type": ["string", "null"],
       "enum": ["TERTIARY_HOSPITAL", "SECONDARY_HOSPITAL", "PRIMARY_CARE", "PRIVATE_HOSPITAL", "CDC", "BLOOD_CENTER", "UNIVERSITY", "RESEARCH_INSTITUTE", "THIRD_PARTY_LAB", "OTHER", "UNKNOWN", null]
     },
+    "customer_type_provenance": {
+      "enum": ["OFFICIAL_INSTITUTION_EVIDENCE", "OFFICIAL_ORGANIZATION_TYPE", "HUMAN_CONFIRMED", "UNRESOLVED"]
+    },
+    "customer_type_validation_status": {"enum": ["VALIDATED", "UNVERIFIED"]},
+    "institution_evidence_id": {"type": ["string", "null"], "pattern": "^inst_[a-z0-9_]{3,100}$"},
     "lifecycle_state": {"type": ["string", "null"]},
     "budget": {
       "type": ["object", "null"],
