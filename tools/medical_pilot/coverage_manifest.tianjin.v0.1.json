@@ -28,7 +28,8 @@
     {
       "source_id": "tj_government_procurement",
       "priority": "P0",
-      "implementation_status": "NOT_IMPLEMENTED"
+      "implementation_status": "PARTIAL_IMPLEMENTATION",
+      "implementation_note": "Canonical 2026 host and long-lived /portal/documentView.do?method=view&id=<digits>&ver=2 detail route are verified. Direct detail parsing is implemented, but native listing/search discovery and 2026 category coverage are not yet independently verified."
     },
     {
       "source_id": "tj_first_central_hospital_procurement",
