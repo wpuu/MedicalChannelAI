@@ -1,0 +1,184 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-28T18:25:00+08:00",
+  "purpose": "Additional official-source Tianjin medical opportunity fixtures for deterministic parser/lifecycle regression and later model classification benchmarks. Only fields explicitly present on the cited official page are locked as official facts.",
+  "cases": [
+    {
+      "case_id": "tj_tcm_first_hospital_neural_cell_screening_intent_20260310",
+      "source_url": "https://cgyx.ccgp.gov.cn/cgyx/pub/proJ/details?projId=a62420f6-af20-41ad-99a7-3409cc34671c",
+      "native_record_id": "a62420f6-af20-41ad-99a7-3409cc34671c",
+      "expected": {
+        "buyer_name": "天津中医药大学第一附属医院",
+        "project_name": "全自动神经细胞筛选鉴定系统",
+        "notice_type": "PROCUREMENT_INTENT",
+        "lifecycle_state": "PROCUREMENT_INTENT",
+        "published_at": "2026-03-10T23:51:00+08:00",
+        "budget_amount_cny": "6000000.00",
+        "expected_procurement_at": "2026-05",
+        "expected_procurement_precision": "MONTH",
+        "verification_status": "VERIFIED"
+      },
+      "official_need_summary": "多通道流式与qPCR联动技术体系及配套设备，用于中医神经领域研究与临床转化",
+      "forbidden_inference": ["Do not invent brand/model/supplier.", "Do not fabricate a formal tender deadline from a procurement intent."]
+    },
+    {
+      "case_id": "tianjin_university_multichannel_acquisition_intent_20260804",
+      "source_url": "https://cgyx.ccgp.gov.cn/cgyx/pub/proJ/details?projId=f58b02d8-7bf3-48d8-990c-bff91fb6dec1",
+      "native_record_id": "f58b02d8-7bf3-48d8-990c-bff91fb6dec1",
+      "expected": {
+        "buyer_name": "天津大学",
+        "project_name": "多通道采集系统",
+        "notice_type": "PROCUREMENT_INTENT",
+        "lifecycle_state": "PROCUREMENT_INTENT",
+        "published_at": "2026-08-04T17:35:00+08:00",
+        "budget_amount_cny": "1613000.00",
+        "expected_procurement_at": "2026-09",
+        "expected_procurement_precision": "MONTH",
+        "verification_status": "VERIFIED"
+      },
+      "official_need_summary": "1套多通道生理信号采集分析系统，支持脑电、肌电、心电、皮电等多模态采集与同步分析",
+      "forbidden_inference": ["Do not infer a medical diagnostic use beyond the official research/teaching description.", "Do not invent supplier or brand."]
+    },
+    {
+      "case_id": "blood_hospital_analytical_flow_cytometer_intent_20260625",
+      "source_url": "https://cgyx.ccgp.gov.cn/cgyx/pub/proJ/details?projId=5f849ec8-a5dd-43e4-b1d2-cffa66bb0153",
+      "native_record_id": "5f849ec8-a5dd-43e4-b1d2-cffa66bb0153",
+      "expected": {
+        "buyer_name": "中国医学科学院血液病医院(中国医学科学院血液学研究所）",
+        "project_name": "分析型流式细胞仪",
+        "notice_type": "PROCUREMENT_INTENT",
+        "lifecycle_state": "PROCUREMENT_INTENT",
+        "published_at": "2026-06-25T11:02:00+08:00",
+        "budget_amount_cny": "3600000.00",
+        "expected_procurement_at": "2026-09",
+        "expected_procurement_precision": "MONTH",
+        "verification_status": "VERIFIED"
+      },
+      "official_need_summary": "1台分析型流式细胞仪，用于多参数高维流式检测与复杂细胞群体精细分群分析",
+      "forbidden_inference": ["Do not turn technical requirements into an incumbent-brand claim.", "Do not invent a bid or award state."]
+    },
+    {
+      "case_id": "tianjin_county_medical_consortium_dr_award_20260616",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202606/t20260616_26761792.htm",
+      "expected": {
+        "buyer_name": "天津市卫生健康委员会综合服务中心",
+        "project_number": "YTZB2026ZC023",
+        "project_name": "2026年天津市县域医共体医疗设备更新数字化摄影X射线机等设备采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-06-16T18:50:00+08:00",
+        "award_total_cny": "13583500.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_award_item_samples": [
+        {"package_name": "第1包", "raw_name": "乳腺X线摄影机", "brand": "圣诺", "model": "Navigator Star Care", "quantity": "1", "unit_price_cny": "2550000.00"},
+        {"package_name": "第4包", "raw_name": "数字化摄影X射线机", "brand": "山东新华", "model": "XFuture3000A", "quantity": "1", "unit_price_cny": "670000.00"},
+        {"package_name": "第5包", "raw_name": "数字化摄影X射线机", "brand": "迈瑞", "model": "DigiEye 360T", "quantity": "1", "unit_price_cny": "520000.00"},
+        {"package_name": "第8包", "raw_name": "数字化摄影X射线机", "brand": "万东", "model": "新东方1000NA", "quantity": "1", "unit_price_cny": "201000.00"}
+      ],
+      "forbidden_inference": ["Do not treat evaluation quotations as awarded prices.", "Do not expand package 6/7 '详见附件' into unlisted product details."]
+    },
+    {
+      "case_id": "tianjin_county_medical_consortium_angio_ct_award_20260626",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202606/t20260626_26826491.htm",
+      "expected": {
+        "buyer_name": "天津市卫生健康委员会综合服务中心",
+        "project_number": "BH-XYYGT2026522",
+        "project_name": "2026年天津市县域医共体医疗设备更新血管造影X射线机和X射线计算机体层摄影设备（CT）采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-06-26T18:51:00+08:00",
+        "award_total_cny": "42560000.00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not invent package-level brand/model facts unless the official main-item table is parsed and evidenced.", "Do not infer which hospitals ultimately receive each device without official allocation evidence."]
+    },
+    {
+      "case_id": "blood_hospital_reagents_batch6_award_20260728",
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202607/t20260728_27024754.htm",
+      "expected": {
+        "buyer_name": "中国医学科学院血液病医院(中国医学科学院血液学研究所）",
+        "project_number": "BH-XYS2026652",
+        "project_name": "中国医学科学院血液病医院（中国医学科学院血液学研究所）2026年试剂耗材采购项目第六批",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-07-28T18:23:00+08:00",
+        "award_total_cny": "1123412.50",
+        "verification_status": "VERIFIED"
+      },
+      "lifecycle_reference": {
+        "earlier_tender_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202607/t20260706_26880312.htm",
+        "earlier_tender_budget_cny": "1290000.00",
+        "earlier_bid_deadline": "2026-07-28T14:30:00+08:00"
+      },
+      "forbidden_inference": ["Do not count the tender and award as two opportunities; they are lifecycle events for project BH-XYS2026652.", "Do not substitute tender budget for final award amount."]
+    },
+    {
+      "case_id": "blood_hospital_reagents_batch1_award_20260529",
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202605/t20260529_26655542.htm",
+      "expected": {
+        "buyer_name": "中国医学科学院血液病医院(中国医学科学院血液学研究所）",
+        "project_number": "TJBD-2026-A-063",
+        "project_name": "中国医学科学院血液病医院（中国医学科学院血液学研究所）2026年试剂耗材采购项目第一批",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-05-29T16:34:00+08:00",
+        "award_total_cny": "4455000.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_supplier": "天津市鑫汇医疗器械有限公司",
+      "attachment_boundary": "主要标的信息正文明确为详见附件；附件字节未验证前不得生成产品清单",
+      "forbidden_inference": ["Do not fabricate product/brand/model details from the supplier name.", "Do not claim attachment details until bytes and SHA-256 are captured."]
+    },
+    {
+      "case_id": "binhai_cdc_pathogen_equipment_tender_20260824",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194426.htm",
+      "expected": {
+        "buyer_name": "天津市滨海新区疾病预防控制中心（天津市滨海新区卫生监督所）",
+        "project_number": "XCSD-2026-C-181",
+        "project_name": "病原微生物能力提升相关设备购置",
+        "notice_type": "TENDER",
+        "lifecycle_state": "TENDERING",
+        "published_at": "2026-08-24T18:50:00+08:00",
+        "budget_amount_cny": "2700000.00",
+        "bid_deadline": "2026-09-14T09:30:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "official_package_budget_sample": {"package_name": "第1包", "budget_amount_cny": "1900000.00"},
+      "attachment_declaration": "XCSD-2026-C-181项目需求书.docx",
+      "forbidden_inference": ["Do not invent equipment names hidden in the project-needs attachment.", "Do not claim the DOCX was parsed before real bytes are captured."]
+    },
+    {
+      "case_id": "tmu_integrated_fluorescence_imaging_tender_20260817",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260817_27150642.htm",
+      "expected": {
+        "buyer_name": "天津医科大学",
+        "project_number": "BNZB-2026-C-0602",
+        "project_name": "天津医科大学一体化荧光显微成像系统等设备采购项目",
+        "notice_type": "TENDER",
+        "lifecycle_state": "TENDERING",
+        "published_at": "2026-08-17T23:50:00+08:00",
+        "budget_amount_cny": "2300000.00",
+        "bid_deadline": "2026-09-07T09:30:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not expand the title's '等设备' into an unevidenced item list.", "Do not infer brand or supplier before award evidence exists."]
+    },
+    {
+      "case_id": "tmu_gmp_quality_testing_equipment_tender_20260817",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260817_27150651.htm",
+      "expected": {
+        "buyer_name": "天津医科大学",
+        "project_number": "TJHY-2026-0006",
+        "project_name": "天津医科大学细胞药物GMP实验室质量检测设备采购项目",
+        "notice_type": "TENDER",
+        "lifecycle_state": "TENDERING",
+        "published_at": "2026-08-17T23:50:00+08:00",
+        "budget_amount_cny": "4530000.00",
+        "bid_deadline": "2026-09-07T09:30:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not invent exact quality-testing instruments until the official demand/attachment is parsed.", "Do not infer a supplier or award outcome from the tender notice."]
+    }
+  ]
+}
