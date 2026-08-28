@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import uuid
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Iterable
 
 from .collector_core import ID_NAMESPACE, normalize_space
@@ -69,6 +70,19 @@ def _normalize_buyer(value: str) -> str:
     return re.sub(r"\s+", "", normalize_space(value)).lower()
 
 
+def _parse_instant(value: str) -> datetime | None:
+    if not value:
+        return None
+    normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed
+
+
 def suggest_cross_stage_link(
     earlier: LinkableRecord,
     later: LinkableRecord,
@@ -80,7 +94,9 @@ def suggest_cross_stage_link(
     stage_pair = (earlier.event_type, later.event_type)
     if stage_pair not in ALLOWED_STAGE_PAIRS:
         return None
-    if not earlier.published_at or not later.published_at or earlier.published_at > later.published_at:
+    earlier_time = _parse_instant(earlier.published_at)
+    later_time = _parse_instant(later.published_at)
+    if earlier_time is None or later_time is None or earlier_time > later_time:
         return None
     if _normalize_buyer(earlier.buyer_name) != _normalize_buyer(later.buyer_name):
         return None
@@ -121,7 +137,13 @@ def suggest_cross_stage_link(
 
 
 def suggest_cross_stage_links(records: Iterable[LinkableRecord]) -> list[CrossStageLinkCandidate]:
-    items = sorted(records, key=lambda item: (item.published_at, item.event_id))
+    # Order by parsed instant rather than raw ISO text so Z/+08:00 representations
+    # cannot invert chronology. Invalid/naive timestamps sort last and fail closed.
+    def sort_key(item: LinkableRecord):
+        instant = _parse_instant(item.published_at)
+        return (instant is None, instant or datetime.max.astimezone(), item.event_id)
+
+    items = sorted(records, key=sort_key)
     result: list[CrossStageLinkCandidate] = []
     for left_index, earlier in enumerate(items):
         for later in items[left_index + 1 :]:
