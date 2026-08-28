@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from .classifier_admission import classifier_can_drive_matching
+from .institution_enrichment import enrich_opportunity_customer_type
 from .matching_profile_gate import evaluate_matching_profile
 from .opportunity_match_gate import MatchReason, OpportunityMatchResult, evaluate_opportunity_match
 from .product_classifier import taxonomy_ids
@@ -159,23 +160,27 @@ def evaluate_match_pipeline(profile: dict[str, Any], opportunity: dict[str, Any]
     """Public v0.1 matching entrypoint.
 
     Customer interview readiness and product-taxonomy readiness are evaluated by
-    one public matching-profile gate. Institution/customer type and opportunity
-    product taxonomy are derived inputs and can influence matching only after
-    provenance validation and classifier admission. The lower opportunity gate
-    remains deterministic and model-free.
+    one public matching-profile gate. Institution/customer type is automatically
+    enriched from the exact VERIFIED institution registry before type validation;
+    fuzzy matching is not used and existing validated human values are preserved.
+    Opportunity product taxonomy can influence matching only after provenance
+    validation and classifier admission. The lower opportunity gate remains
+    deterministic and model-free.
     """
 
     profile_block = _profile_block_result(profile)
     if profile_block is not None:
         return profile_block
 
-    customer_type_block = _customer_type_gate(profile, opportunity)
+    enriched_opportunity = enrich_opportunity_customer_type(opportunity)
+
+    customer_type_block = _customer_type_gate(profile, enriched_opportunity)
     if customer_type_block is not None:
         return customer_type_block
 
-    classification_block = _classification_gate(profile, opportunity)
+    classification_block = _classification_gate(profile, enriched_opportunity)
     if classification_block is not None:
         return classification_block
 
     normalized_profile = normalized_profile_for_taxonomy_match(profile)
-    return evaluate_opportunity_match(normalized_profile, opportunity)
+    return evaluate_opportunity_match(normalized_profile, enriched_opportunity)
