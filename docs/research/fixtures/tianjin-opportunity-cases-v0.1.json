@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "as_of": "2026-08-28T11:55:00+08:00",
+  "as_of": "2026-08-28T12:50:00+08:00",
   "purpose": "Regression fixtures for deterministic parsing, lifecycle resolution and later Agnes classification tests. Source facts must be revalidated before production use.",
   "cases": [
     {
@@ -171,6 +171,59 @@
         "Do not invent a procurement budget when the enterprise-testing notice does not publish one.",
         "Do not turn the seven-day testing registration period into a fabricated formal bid deadline.",
         "Do not describe the enterprise-testing notice as a procurement award or formal tender."
+      ]
+    },
+    {
+      "case_id": "tj_cdc_hiv_reagents_public_resource_award_20250605",
+      "source_url": "https://ggzy.zwfwb.tj.gov.cn/jyxxcgjg/I0BgS5K5kAp2ToTVxelNlQ.jhtml",
+      "source_role": "OFFICIAL_MIRROR",
+      "expected": {
+        "buyer_name": "天津市疾病预防控制中心",
+        "buyer_type": "CDC",
+        "project_number": "GY-2025-058",
+        "project_name": "天津市疾病预防控制中心性病艾滋病检测试剂、耗材招标采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_date": "2025-06-05",
+        "published_at_precision": "DAY",
+        "award_packages": [
+          {
+            "package_name": "第3包",
+            "supplier_name": "天津市卫防科技有限公司",
+            "award_amount_cny": "16500.00"
+          },
+          {
+            "package_name": "第4包",
+            "supplier_name": "天津脉络医学检验有限公司",
+            "award_amount_cny": "260000.00"
+          }
+        ],
+        "award_items_sample": [
+          {
+            "package_name": "第3包",
+            "raw_name": "采血管",
+            "brand": "瑞埼",
+            "model": "EDTA-K2",
+            "quantity": "10000",
+            "unit_price_cny": "1.25"
+          },
+          {
+            "package_name": "第4包",
+            "raw_name": "HIV分子生物学检测试剂--核酸提取或纯化试剂盒",
+            "brand": "知因生物",
+            "model": "64测试/盒、20测试/盒",
+            "quantity": "500",
+            "unit_price_cny": "15.00"
+          }
+        ],
+        "verification_status": "VERIFIED",
+        "dedupe_key": "project_number:GY-2025-058"
+      },
+      "regression_rule": "The official Tianjin public-resource mirror and CCGP records for project GY-2025-058 must produce distinct evidence events but the same canonical project id; they must not be counted as separate commercial opportunities.",
+      "forbidden_inference": [
+        "Do not treat 2025-06-05T00:00:00+08:00 as an actually published midnight timestamp; precision is DAY only.",
+        "Do not duplicate the opportunity when another official source carries the same exact project number.",
+        "Do not infer additional brands, models, suppliers or package totals beyond the official notice."
       ]
     }
   ]
