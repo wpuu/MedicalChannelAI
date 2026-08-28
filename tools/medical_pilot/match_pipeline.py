@@ -4,6 +4,8 @@ from typing import Any
 
 from .customer_profile_gate import evaluate_customer_profile
 from .opportunity_match_gate import MatchReason, OpportunityMatchResult, evaluate_opportunity_match
+from .product_classifier import taxonomy_ids
+from .profile_product_taxonomy import normalized_profile_for_taxonomy_match, validate_profile_product_taxonomy
 
 
 VALIDATED_PRODUCT_LABEL_PROVENANCE = {
@@ -35,6 +37,31 @@ def _needs_fact_result(
         model_explanation_allowed=False,
         reasons=(MatchReason(code, field_path, "NEEDS_MORE_FACTS", message),),
         required_next_facts=(field_path,),
+        profile_gate=profile_gate,
+    )
+
+
+def _profile_taxonomy_block(profile: dict[str, Any]) -> OpportunityMatchResult | None:
+    issues = validate_profile_product_taxonomy(profile)
+    if not issues:
+        return None
+    profile_gate = evaluate_customer_profile(profile)
+    issue = issues[0]
+    return OpportunityMatchResult(
+        status="PROFILE_BLOCKED",
+        recommendation_mode="PROFILE_INTERVIEW_REQUIRED",
+        personalized_recommendation_allowed=False,
+        candidate_opportunity_allowed=False,
+        model_explanation_allowed=False,
+        reasons=(
+            MatchReason(
+                issue.code,
+                f"profile.{issue.field_path}",
+                "BLOCK",
+                issue.message,
+            ),
+        ),
+        required_next_facts=(),
         profile_gate=profile_gate,
     )
 
@@ -83,6 +110,16 @@ def _classification_gate(profile: dict[str, Any], opportunity: dict[str, Any]) -
     if not isinstance(labels, list) or not labels:
         return None
 
+    allowed_taxonomy = taxonomy_ids()
+    unknown_labels = [label for label in labels if not isinstance(label, str) or label not in allowed_taxonomy]
+    if unknown_labels:
+        return _needs_fact_result(
+            profile=profile,
+            code="PRODUCT_TAXONOMY_ID_UNKNOWN",
+            field_path="opportunity.product_labels",
+            message=f"项目产品分类包含未登记 taxonomy ID：{', '.join(map(str, unknown_labels))}。不能用于正式匹配。",
+        )
+
     provenance = opportunity.get("product_label_provenance")
     validation = opportunity.get("product_label_validation_status")
 
@@ -113,14 +150,20 @@ def evaluate_match_pipeline(profile: dict[str, Any], opportunity: dict[str, Any]
     """Public v0.1 matching entrypoint.
 
     Institution/customer type and product taxonomy are derived inputs. They may
-    only influence matching after their provenance has been explicitly validated.
-    The lower-level opportunity gate remains deterministic and model-free.
+    only influence matching after provenance validation. Customer product
+    capabilities are normalized to stable taxonomy IDs before the lower
+    deterministic matcher runs; free-form display text no longer drives match.
     """
 
+    profile_taxonomy_block = _profile_taxonomy_block(profile)
+    if profile_taxonomy_block is not None:
+        return profile_taxonomy_block
     customer_type_block = _customer_type_gate(profile, opportunity)
     if customer_type_block is not None:
         return customer_type_block
     classification_block = _classification_gate(profile, opportunity)
     if classification_block is not None:
         return classification_block
-    return evaluate_opportunity_match(profile, opportunity)
+
+    normalized_profile = normalized_profile_for_taxonomy_match(profile)
+    return evaluate_opportunity_match(normalized_profile, opportunity)
