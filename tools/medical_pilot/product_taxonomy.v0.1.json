@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1",
+  "purpose": "Controlled product taxonomy for deterministic and Agnes-assisted classification. Taxonomy IDs, not free-form labels, are the stable matching keys.",
+  "labels": [
+    {"id": "LAB_BIOCHEMISTRY_ANALYZER", "display_name": "生化分析设备", "parent": "IVD_EQUIPMENT", "deterministic_phrases": ["全自动生化分析仪", "生化分析仪"]},
+    {"id": "LAB_CHEMILUMINESCENCE_ANALYZER", "display_name": "化学发光免疫分析设备", "parent": "IVD_EQUIPMENT", "deterministic_phrases": ["全自动化学发光免疫分析仪", "化学发光免疫分析仪"]},
+    {"id": "LAB_COAGULATION_ANALYZER", "display_name": "凝血分析设备", "parent": "IVD_EQUIPMENT", "deterministic_phrases": ["全自动凝血分析仪", "凝血分析仪"]},
+    {"id": "LAB_HEMATOLOGY_ANALYZER", "display_name": "血细胞分析设备", "parent": "IVD_EQUIPMENT", "deterministic_phrases": ["全自动血细胞分析仪", "血细胞分析仪", "血球分析仪"]},
+    {"id": "LAB_URINALYSIS_ANALYZER", "display_name": "尿液分析设备", "parent": "IVD_EQUIPMENT", "deterministic_phrases": ["尿液分析仪", "尿沉渣分析仪"]},
+    {"id": "LAB_PCR_QPCR", "display_name": "PCR/qPCR分子检测设备", "parent": "IVD_EQUIPMENT", "deterministic_phrases": ["实时荧光定量PCR", "荧光定量PCR", "qPCR仪", "PCR仪"]},
+    {"id": "LAB_FLOW_CYTOMETER", "display_name": "流式细胞仪", "parent": "IVD_EQUIPMENT", "deterministic_phrases": ["流式细胞仪", "流式细胞分析仪"]},
+    {"id": "LAB_AUTOMATION_LINE", "display_name": "检验自动化/生化免疫流水线", "parent": "IVD_EQUIPMENT", "deterministic_phrases": ["生化免疫流水线", "检验流水线", "全自动实验室流水线"]},
+    {"id": "LAB_SAMPLE_PREPROCESSING", "display_name": "样本前处理设备", "parent": "IVD_EQUIPMENT", "deterministic_phrases": ["全自动样本前处理系统", "样本前处理系统"]},
+    {"id": "LAB_REAGENT_IMMUNOASSAY", "display_name": "免疫/化学发光检测试剂", "parent": "IVD_REAGENT", "deterministic_phrases": ["化学发光检测试剂", "免疫检测试剂"]},
+    {"id": "LAB_REAGENT_MOLECULAR", "display_name": "分子/核酸检测试剂", "parent": "IVD_REAGENT", "deterministic_phrases": ["核酸检测试剂", "核酸提取或纯化试剂", "PCR检测试剂"]},
+    {"id": "LAB_REAGENT_FLOW_CYTOMETRY", "display_name": "流式细胞检测试剂", "parent": "IVD_REAGENT", "deterministic_phrases": ["CD45检测试剂", "CD3检测试剂", "CD16检测试剂", "CD56检测试剂", "流式细胞检测试剂"]},
+    {"id": "LAB_REAGENT_GENERAL", "display_name": "检验试剂通用", "parent": "IVD_REAGENT", "deterministic_phrases": ["检验试剂"]},
+    {"id": "MEDICAL_IMAGING_DR", "display_name": "数字X线摄影DR", "parent": "MEDICAL_IMAGING", "deterministic_phrases": ["数字X光机（DR）", "数字X光机(DR)", "数字X光机DR", "数字化X射线摄影系统"]},
+    {"id": "MEDICAL_IMAGING_CT", "display_name": "CT/X射线计算机断层成像", "parent": "MEDICAL_IMAGING", "deterministic_phrases": ["X射线计算机断层成像", "计算机断层成像系统"]},
+    {"id": "MEDICAL_IMAGING_SPECT_CT", "display_name": "SPECT/CT", "parent": "MEDICAL_IMAGING", "deterministic_phrases": ["SPECT/CT", "单光子发射及X射线计算机断层成像"]},
+    {"id": "MEDICAL_IMAGING_MRI", "display_name": "磁共振MRI", "parent": "MEDICAL_IMAGING", "deterministic_phrases": ["磁共振成像系统", "磁共振成像设备"]},
+    {"id": "MEDICAL_IMAGING_ANGIOGRAPHY", "display_name": "血管造影设备", "parent": "MEDICAL_IMAGING", "deterministic_phrases": ["数字减影血管造影", "血管造影系统"]},
+    {"id": "MEDICAL_IMAGING_ULTRASOUND", "display_name": "超声设备", "parent": "MEDICAL_IMAGING", "deterministic_phrases": ["彩色多普勒超声", "超声诊断仪"]},
+    {"id": "SURGICAL_LIGHT", "display_name": "手术无影灯", "parent": "GENERAL_MEDICAL_DEVICE", "deterministic_phrases": ["手术无影灯"]},
+    {"id": "RESEARCH_MICROSCOPY_IMAGING", "display_name": "显微/荧光成像设备", "parent": "LAB_RESEARCH_EQUIPMENT", "deterministic_phrases": ["荧光显微成像", "荧光显微镜", "共聚焦显微镜"]},
+    {"id": "LAB_RESEARCH_INSTRUMENT", "display_name": "实验室科研仪器", "parent": "LAB_RESEARCH_EQUIPMENT", "deterministic_phrases": ["实验室科研设备", "科研仪器"]},
+    {"id": "MEDICAL_DEVICE_DIGITAL_MANAGEMENT", "display_name": "医疗器械/设备数字化管理系统", "parent": "MEDICAL_IT_DIGITAL", "deterministic_phrases": ["医疗器械精细化管理系统", "医疗器械精细化管理项目", "医疗设备管理系统"]},
+    {"id": "MEDICAL_CONSUMABLE_GENERAL", "display_name": "医疗耗材通用", "parent": "MEDICAL_CONSUMABLE", "deterministic_phrases": ["医用耗材", "医疗耗材"]}
+  ]
+}
