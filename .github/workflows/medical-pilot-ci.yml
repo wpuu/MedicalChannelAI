@@ -44,6 +44,7 @@ jobs:
                   Path("docs/research/fixtures/tianjin-opportunity-cases-v0.1.json"),
                   Path("tools/medical_pilot/source_registry.tianjin.v0.1.json"),
                   Path("tools/medical_pilot/coverage_manifest.tianjin.v0.1.json"),
+                  Path("tools/medical_pilot/source_topology.tianjin.v0.1.json"),
               ]
           )
           for path in paths:
