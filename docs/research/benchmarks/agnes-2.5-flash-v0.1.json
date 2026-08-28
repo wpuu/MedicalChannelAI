@@ -1,0 +1,105 @@
+{
+  "schema_version": "0.1",
+  "benchmark_id": "agnes-2.5-flash-medical-channel-classification-v0.1",
+  "as_of": "2026-08-28T18:50:00+08:00",
+  "model_target": "agnes-2.5-flash",
+  "purpose": "Measure whether a low-cost/free-default model can safely perform coarse medical-channel classification and evidence-sufficiency decisions without being allowed to create procurement facts.",
+  "segments": [
+    "IVD_REAGENT_CONSUMABLE",
+    "IVD_LAB_INSTRUMENT",
+    "MEDICAL_IMAGING",
+    "MEDICAL_DEVICE_GENERAL",
+    "MEDICAL_DIGITAL",
+    "BIOMEDICAL_RESEARCH",
+    "UNKNOWN"
+  ],
+  "item_detail_status_values": [
+    "SUPPORTED_BY_INPUT",
+    "ATTACHMENT_REQUIRED",
+    "INSUFFICIENT_PUBLIC_DETAIL"
+  ],
+  "risk_flags": [
+    "TERMINATED_PROJECT",
+    "PROCUREMENT_INTENT_NOT_TENDER",
+    "ATTACHMENT_NOT_PARSED",
+    "TITLE_CONTAINS_ETCETERA",
+    "NO_BRAND_EVIDENCE",
+    "NO_SUPPLIER_EVIDENCE"
+  ],
+  "output_contract": {
+    "required": ["case_id", "segment", "item_detail_status", "needs_more_source_data", "risk_flags"],
+    "no_free_text": true,
+    "rule": "The model must choose only from the declared enums and must not add procurement facts, brands, suppliers, budgets or dates."
+  },
+  "cases": [
+    {
+      "case_id": "chest_lab_rental",
+      "locked_input": {"project_name": "天津市胸科医院检验科设备租赁服务项目", "lifecycle_state": "TENDERING", "procurement_category": "医疗设备租赁服务", "attachment_status": "NOT_PARSED"},
+      "expected": {"acceptable_segments": ["IVD_LAB_INSTRUMENT"], "item_detail_status": "ATTACHMENT_REQUIRED", "needs_more_source_data": true, "required_risk_flags": ["ATTACHMENT_NOT_PARSED", "NO_BRAND_EVIDENCE", "NO_SUPPLIER_EVIDENCE"]}
+    },
+    {
+      "case_id": "spect_ct_terminated",
+      "locked_input": {"project_name": "天津医院单光子发射及X射线计算机断层成像系统（SPECT/CT）采购项目", "lifecycle_state": "TERMINATED", "termination_reason": "本项目项目需求发生重大变更"},
+      "expected": {"acceptable_segments": ["MEDICAL_IMAGING"], "item_detail_status": "INSUFFICIENT_PUBLIC_DETAIL", "needs_more_source_data": false, "required_risk_flags": ["TERMINATED_PROJECT", "NO_BRAND_EVIDENCE", "NO_SUPPLIER_EVIDENCE"]}
+    },
+    {
+      "case_id": "teda_dr",
+      "locked_input": {"project_name": "天津市泰达医院数字X光机（DR）采购项目", "lifecycle_state": "TENDERING", "attachment_status": "NOT_PARSED"},
+      "expected": {"acceptable_segments": ["MEDICAL_IMAGING"], "item_detail_status": "ATTACHMENT_REQUIRED", "needs_more_source_data": true, "required_risk_flags": ["ATTACHMENT_NOT_PARSED", "NO_BRAND_EVIDENCE", "NO_SUPPLIER_EVIDENCE"]}
+    },
+    {
+      "case_id": "optical_brain_intent",
+      "locked_input": {"project_name": "光电同步脑活动检测仪", "lifecycle_state": "PROCUREMENT_INTENT", "need_summary": "神经电活动与血液动力学响应同步观测"},
+      "expected": {"acceptable_segments": ["BIOMEDICAL_RESEARCH"], "item_detail_status": "INSUFFICIENT_PUBLIC_DETAIL", "needs_more_source_data": true, "required_risk_flags": ["PROCUREMENT_INTENT_NOT_TENDER", "NO_BRAND_EVIDENCE", "NO_SUPPLIER_EVIDENCE"]}
+    },
+    {
+      "case_id": "first_central_shadowless_lamp",
+      "locked_input": {"project_name": "天津市第一中心医院手术无影灯采购项目", "lifecycle_state": "PREPARING"},
+      "expected": {"acceptable_segments": ["MEDICAL_DEVICE_GENERAL"], "item_detail_status": "INSUFFICIENT_PUBLIC_DETAIL", "needs_more_source_data": true, "required_risk_flags": ["NO_BRAND_EVIDENCE", "NO_SUPPLIER_EVIDENCE"]}
+    },
+    {
+      "case_id": "medical_device_management",
+      "locked_input": {"project_name": "天津市第一中心医院医疗器械精细化管理项目", "lifecycle_state": "MARKET_RESEARCH", "need_summary": "医疗器械精细化管理系统测试企业征集"},
+      "expected": {"acceptable_segments": ["MEDICAL_DIGITAL"], "item_detail_status": "INSUFFICIENT_PUBLIC_DETAIL", "needs_more_source_data": true, "required_risk_flags": ["NO_BRAND_EVIDENCE", "NO_SUPPLIER_EVIDENCE"]}
+    },
+    {
+      "case_id": "cdc_hiv_reagents",
+      "locked_input": {"project_name": "性病艾滋病检测试剂、耗材招标采购项目", "lifecycle_state": "AWARDED", "official_items": ["采血管", "HIV分子生物学检测试剂--核酸提取或纯化试剂盒"], "official_brand_examples": ["瑞埼", "知因生物"]},
+      "expected": {"acceptable_segments": ["IVD_REAGENT_CONSUMABLE"], "item_detail_status": "SUPPORTED_BY_INPUT", "needs_more_source_data": false, "required_risk_flags": []}
+    },
+    {
+      "case_id": "neural_cell_screening_intent",
+      "locked_input": {"project_name": "全自动神经细胞筛选鉴定系统", "lifecycle_state": "PROCUREMENT_INTENT", "need_summary": "多通道流式与qPCR联动技术体系及配套设备"},
+      "expected": {"acceptable_segments": ["IVD_LAB_INSTRUMENT", "BIOMEDICAL_RESEARCH"], "item_detail_status": "INSUFFICIENT_PUBLIC_DETAIL", "needs_more_source_data": true, "required_risk_flags": ["PROCUREMENT_INTENT_NOT_TENDER", "NO_BRAND_EVIDENCE", "NO_SUPPLIER_EVIDENCE"]}
+    },
+    {
+      "case_id": "analytical_flow_cytometer_intent",
+      "locked_input": {"project_name": "分析型流式细胞仪", "lifecycle_state": "PROCUREMENT_INTENT", "need_summary": "多参数高维流式检测，支撑复杂细胞群体精细分群分析"},
+      "expected": {"acceptable_segments": ["IVD_LAB_INSTRUMENT", "BIOMEDICAL_RESEARCH"], "item_detail_status": "INSUFFICIENT_PUBLIC_DETAIL", "needs_more_source_data": true, "required_risk_flags": ["PROCUREMENT_INTENT_NOT_TENDER", "NO_BRAND_EVIDENCE", "NO_SUPPLIER_EVIDENCE"]}
+    },
+    {
+      "case_id": "blood_reagents_batch1",
+      "locked_input": {"project_name": "2026年试剂耗材采购项目第一批", "lifecycle_state": "AWARDED", "supplier_known": true, "main_item_text": "详见附件", "attachment_status": "NOT_PARSED"},
+      "expected": {"acceptable_segments": ["IVD_REAGENT_CONSUMABLE"], "item_detail_status": "ATTACHMENT_REQUIRED", "needs_more_source_data": true, "required_risk_flags": ["ATTACHMENT_NOT_PARSED"]}
+    },
+    {
+      "case_id": "binhai_pathogen_equipment",
+      "locked_input": {"project_name": "病原微生物能力提升相关设备购置", "lifecycle_state": "TENDERING", "buyer_type": "CDC", "attachment_status": "NOT_PARSED"},
+      "expected": {"acceptable_segments": ["IVD_LAB_INSTRUMENT", "MEDICAL_DEVICE_GENERAL"], "item_detail_status": "ATTACHMENT_REQUIRED", "needs_more_source_data": true, "required_risk_flags": ["ATTACHMENT_NOT_PARSED", "NO_BRAND_EVIDENCE", "NO_SUPPLIER_EVIDENCE"]}
+    },
+    {
+      "case_id": "county_dr_award",
+      "locked_input": {"project_name": "2026年天津市县域医共体医疗设备更新数字化摄影X射线机等设备采购项目", "lifecycle_state": "AWARDED", "official_items": ["乳腺X线摄影机", "数字化摄影X射线机"], "official_brand_examples": ["圣诺", "山东新华", "迈瑞", "万东"]},
+      "expected": {"acceptable_segments": ["MEDICAL_IMAGING"], "item_detail_status": "SUPPORTED_BY_INPUT", "needs_more_source_data": false, "required_risk_flags": []}
+    }
+  ],
+  "gates": {
+    "segment_accuracy_min": 0.9,
+    "item_detail_status_accuracy_min": 0.95,
+    "needs_more_source_data_accuracy_min": 0.95,
+    "required_risk_flag_recall_min": 0.95,
+    "invalid_enum_rate_max": 0.0,
+    "api_or_json_failure_rate_max": 0.02
+  },
+  "status": "READY_FOR_HARNESS_NOT_EXECUTED"
+}
