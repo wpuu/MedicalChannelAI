@@ -1,0 +1,50 @@
+{
+  "schema_version": "0.1",
+  "scope_id": "tianjin_medical_pilot_v0.1",
+  "scope_label": "天津医疗公开商机 Pilot v0.1",
+  "exhaustiveness_claim": "NOT_EXHAUSTIVE",
+  "required_sources": [
+    {
+      "source_id": "ccgp_local_notices",
+      "priority": "P0",
+      "implementation_status": "IMPLEMENTED"
+    },
+    {
+      "source_id": "ccgp_procurement_intent",
+      "priority": "P0",
+      "implementation_status": "IMPLEMENTED"
+    },
+    {
+      "source_id": "tjmugh_procurement",
+      "priority": "P0",
+      "implementation_status": "IMPLEMENTED"
+    },
+    {
+      "source_id": "tj_public_resource_exchange",
+      "priority": "P0",
+      "implementation_status": "NOT_IMPLEMENTED"
+    },
+    {
+      "source_id": "tj_government_procurement",
+      "priority": "P0",
+      "implementation_status": "NOT_IMPLEMENTED"
+    },
+    {
+      "source_id": "tj_first_central_hospital_procurement",
+      "priority": "P0",
+      "implementation_status": "IMPLEMENTED"
+    }
+  ],
+  "optional_sources": [
+    {
+      "source_id": "tj_medical_procurement_center",
+      "priority": "P1",
+      "implementation_status": "NOT_IMPLEMENTED"
+    },
+    {
+      "source_id": "other_tianjin_hospital_sources",
+      "priority": "P1",
+      "implementation_status": "DISCOVERY_IN_PROGRESS"
+    }
+  ]
+}
