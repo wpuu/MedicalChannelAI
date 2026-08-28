@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import unittest
 
 from tools.medical_pilot.match_pipeline import evaluate_match_pipeline
@@ -42,11 +41,33 @@ class MatchPipelineTests(unittest.TestCase):
     def test_missing_product_provenance_is_not_silently_assumed(self) -> None:
         item = opportunity()
         item.pop("product_label_provenance", None)
-        item["product_label_validation_status"] = "VALIDATED"
         result = evaluate_match_pipeline(complete_profile(), item)
         self.assertEqual(result.status, "NEEDS_MORE_FACTS")
         self.assertFalse(result.model_explanation_allowed)
         self.assertIn("opportunity.product_label_provenance", result.required_next_facts)
+
+    def test_customer_type_without_provenance_cannot_drive_match(self) -> None:
+        item = opportunity()
+        item.pop("customer_type_provenance", None)
+        result = evaluate_match_pipeline(complete_profile(), item)
+        self.assertEqual(result.status, "NEEDS_MORE_FACTS")
+        self.assertFalse(result.model_explanation_allowed)
+        self.assertIn("opportunity.customer_type_provenance", result.required_next_facts)
+
+    def test_official_customer_type_requires_institution_evidence_id(self) -> None:
+        item = opportunity()
+        item["institution_evidence_id"] = None
+        result = evaluate_match_pipeline(complete_profile(), item)
+        self.assertEqual(result.status, "NEEDS_MORE_FACTS")
+        self.assertIn("opportunity.institution_evidence_id", result.required_next_facts)
+
+    def test_human_confirmed_customer_type_can_match_without_institution_registry_id(self) -> None:
+        item = opportunity()
+        item["customer_type_provenance"] = "HUMAN_CONFIRMED"
+        item["customer_type_validation_status"] = "VALIDATED"
+        item["institution_evidence_id"] = None
+        result = evaluate_match_pipeline(complete_profile(), item)
+        self.assertEqual(result.status, "MATCHED_PERSONALIZED")
 
     def test_incomplete_profile_still_blocks_before_model(self) -> None:
         profile = complete_profile()
