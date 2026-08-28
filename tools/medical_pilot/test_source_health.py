@@ -13,6 +13,7 @@ IMPLEMENTED = (
     "tjmugh_procurement",
     "tj_first_central_hospital_procurement",
 )
+PARTIAL_RUNTIME = ("tj_public_resource_exchange",)
 
 
 def healthy(source_id: str, minutes_ago: int = 5) -> SourceObservation:
@@ -28,8 +29,9 @@ def healthy(source_id: str, minutes_ago: int = 5) -> SourceObservation:
 
 
 class SourceHealthTests(unittest.TestCase):
-    def test_current_implemented_sources_still_report_partial_while_required_sources_missing(self) -> None:
-        report = build_coverage_report([healthy(source_id) for source_id in IMPLEMENTED], now=NOW)
+    def test_current_and_partial_runtime_sources_still_report_partial_coverage(self) -> None:
+        observations = [healthy(source_id) for source_id in IMPLEMENTED + PARTIAL_RUNTIME]
+        report = build_coverage_report(observations, now=NOW)
         self.assertEqual(report.coverage_status, "PARTIAL")
         self.assertEqual(report.exhaustiveness_claim, "NOT_EXHAUSTIVE")
         self.assertIn("tj_public_resource_exchange", report.missing_implementation_source_ids)
