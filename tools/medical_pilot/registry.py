@@ -10,6 +10,7 @@ from .adapters import TjmughAdapter
 from .ccgp_lifecycle_adapter import CcgpLifecycleAdapter
 from .first_central_adapter import FirstCentralHospitalAdapter
 from .intent_adapter import CcgpIntentAdapter
+from .tianjin_government_procurement_adapter import TianjinGovernmentProcurementAdapter
 from .tianjin_public_resource_adapter import TianjinPublicResourceAdapter
 
 
@@ -39,6 +40,7 @@ class RegisteredSource:
 
 
 ADAPTER_FACTORIES = {
+    "tj_government_procurement": TianjinGovernmentProcurementAdapter,
     "ccgp_local_notices": CcgpLifecycleAdapter,
     "ccgp_procurement_intent": CcgpIntentAdapter,
     "tjmugh_procurement": TjmughAdapter,
