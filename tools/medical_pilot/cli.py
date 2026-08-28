@@ -109,7 +109,7 @@ def main() -> int:
             "source_name": source.source_name,
             "authority_type": source.authority_type,
             "source_type": source.source_type,
-            "provenance_role": source.raw.get("provenance_role", "PRIMARY_SOURCE"),
+            "provenance_role": source.provenance_role,
             "parser_version": source.parser_version,
         },
         "snapshot": {
