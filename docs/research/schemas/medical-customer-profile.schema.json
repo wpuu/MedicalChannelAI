@@ -67,10 +67,16 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["category", "capability_type"],
+        "required": ["category", "taxonomy_ids", "capability_type"],
         "properties": {
           "category": {"type": "string", "minLength": 1, "maxLength": 200},
           "subcategory": {"type": ["string", "null"], "maxLength": 200},
+          "taxonomy_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "pattern": "^[A-Z0-9_]{3,100}$"},
+            "uniqueItems": true
+          },
           "brands": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true, "default": []},
           "capability_type": {"enum": ["DIRECT_AUTHORIZED", "DIRECT_UNCONFIRMED", "CAN_SOURCE_PARTNER", "SERVICE_ONLY", "RENTAL_CAPABLE", "UNKNOWN"]},
           "notes": {"type": ["string", "null"], "maxLength": 1000}
