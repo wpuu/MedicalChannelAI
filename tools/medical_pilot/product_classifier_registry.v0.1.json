@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1",
+  "taxonomy_version": "0.1",
+  "classifiers": [
+    {
+      "classifier_id": "deterministic-product-taxonomy-v0.1",
+      "kind": "DETERMINISTIC",
+      "model_id": null,
+      "admission_status": "VALIDATED",
+      "can_drive_matching": true,
+      "validation_basis": "Deterministic phrase rules over VERIFIED non-model official facts; output retains supporting fact ids."
+    },
+    {
+      "classifier_id": "human-confirmed-product-taxonomy-v0.1",
+      "kind": "HUMAN_CONFIRMED",
+      "model_id": null,
+      "admission_status": "VALIDATED",
+      "can_drive_matching": true,
+      "validation_basis": "Explicit customer/operator confirmation mapped to controlled taxonomy ids."
+    },
+    {
+      "classifier_id": "agnes-2.5-flash-product-taxonomy-v0.1",
+      "kind": "CONTROLLED_MODEL_CLASSIFICATION",
+      "model_id": "agnes-2.5-flash",
+      "admission_status": "BENCHMARK_PENDING",
+      "can_drive_matching": false,
+      "validation_basis": "Taxonomy benchmark harness exists but has not yet produced accepted execution evidence."
+    }
+  ]
+}
