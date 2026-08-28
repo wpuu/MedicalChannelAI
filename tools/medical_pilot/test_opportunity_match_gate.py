@@ -66,10 +66,14 @@ def opportunity() -> dict:
         "coverage_status": "PARTIAL",
         "region": {"province": "天津市", "city": "天津市", "district": "和平区"},
         "customer_type": "TERTIARY_HOSPITAL",
+        "customer_type_provenance": "OFFICIAL_INSTITUTION_EVIDENCE",
+        "customer_type_validation_status": "VALIDATED",
+        "institution_evidence_id": "inst_tjmugh",
         "lifecycle_state": "TENDERING",
         "budget": {"amount": "5730000.00", "currency": "CNY"},
         "product_labels": ["化学发光"],
         "product_label_provenance": "HUMAN_CONFIRMED",
+        "product_label_validation_status": "VALIDATED",
         "is_rental_project": False,
     }
 
@@ -150,6 +154,9 @@ class OpportunityMatchGateTests(unittest.TestCase):
     def test_unknown_customer_grade_does_not_guess_from_hospital_name(self) -> None:
         item = opportunity()
         item["customer_type"] = "UNKNOWN"
+        item["customer_type_provenance"] = "UNRESOLVED"
+        item["customer_type_validation_status"] = "UNVERIFIED"
+        item["institution_evidence_id"] = None
         result = evaluate_opportunity_match(complete_profile(), item)
         self.assertEqual(result.status, "NEEDS_MORE_FACTS")
         self.assertIn("opportunity.customer_type", result.required_next_facts)
