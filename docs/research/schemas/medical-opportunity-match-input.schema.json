@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-opportunity-match-input.schema.json",
+  "title": "Medical Opportunity Match Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "opportunity_id",
+    "verification_status",
+    "coverage_status",
+    "region",
+    "customer_type",
+    "lifecycle_state",
+    "budget",
+    "product_labels",
+    "is_rental_project"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "verification_status": {"enum": ["UNVERIFIED", "VERIFIED", "CONFLICTED", "SUPERSEDED", "SOURCE_UNAVAILABLE"]},
+    "coverage_status": {"enum": ["CURRENT", "PARTIAL", "DEGRADED", "UNKNOWN"]},
+    "region": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["province", "city", "district"],
+      "properties": {
+        "province": {"type": ["string", "null"]},
+        "city": {"type": ["string", "null"]},
+        "district": {"type": ["string", "null"]}
+      }
+    },
+    "customer_type": {
+      "type": ["string", "null"],
+      "enum": ["TERTIARY_HOSPITAL", "SECONDARY_HOSPITAL", "PRIMARY_CARE", "PRIVATE_HOSPITAL", "CDC", "BLOOD_CENTER", "UNIVERSITY", "RESEARCH_INSTITUTE", "THIRD_PARTY_LAB", "OTHER", "UNKNOWN", null]
+    },
+    "lifecycle_state": {"type": ["string", "null"]},
+    "budget": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["amount", "currency"],
+      "properties": {
+        "amount": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"},
+        "currency": {"const": "CNY"}
+      }
+    },
+    "product_labels": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 200},
+      "uniqueItems": true
+    },
+    "product_label_provenance": {
+      "type": ["string", "null"],
+      "enum": ["DETERMINISTIC", "CONTROLLED_MODEL_CLASSIFICATION", "HUMAN_CONFIRMED", null]
+    },
+    "is_rental_project": {"type": ["boolean", "null"]}
+  }
+}
