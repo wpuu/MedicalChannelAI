@@ -27,7 +27,7 @@ def complete_profile(*, confirmed: bool = True, rental: bool = False) -> dict:
         "product_capabilities": [
             {
                 "category": "IVD",
-                "subcategory": TAXONOMY_ID,
+                "subcategory": "化学发光分析仪",
                 "taxonomy_ids": [TAXONOMY_ID],
                 "brands": [],
                 "capability_type": "DIRECT_UNCONFIRMED",
