@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Iterable
 
 from .collector_core import ID_NAMESPACE, normalize_space
@@ -139,9 +139,11 @@ def suggest_cross_stage_link(
 def suggest_cross_stage_links(records: Iterable[LinkableRecord]) -> list[CrossStageLinkCandidate]:
     # Order by parsed instant rather than raw ISO text so Z/+08:00 representations
     # cannot invert chronology. Invalid/naive timestamps sort last and fail closed.
+    max_utc = datetime.max.replace(tzinfo=timezone.utc)
+
     def sort_key(item: LinkableRecord):
         instant = _parse_instant(item.published_at)
-        return (instant is None, instant or datetime.max.astimezone(), item.event_id)
+        return (instant is None, instant or max_utc, item.event_id)
 
     items = sorted(records, key=sort_key)
     result: list[CrossStageLinkCandidate] = []
