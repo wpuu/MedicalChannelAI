@@ -80,6 +80,7 @@ def opportunity() -> dict:
         "product_labels": [TAXONOMY_ID],
         "product_label_provenance": "HUMAN_CONFIRMED",
         "product_label_validation_status": "VALIDATED",
+        "product_classifier_id": "human-confirmed-product-taxonomy-v0.1",
         "is_rental_project": False,
     }
 
