@@ -128,16 +128,13 @@ def resolve_project_lifecycle(events: Iterable[dict]) -> LifecycleAggregate:
         conflict_ids = tuple(sorted(event["event_id"] for event in latest_events))
         verification_status = "CONFLICTED"
 
-    if verification_status == "VERIFIED":
-        current = preferred_event(latest_events)
-        lifecycle_state = _state(current)
-    else:
-        # Do not resolve a contradictory low-precision same-day lifecycle by guessing
-        # chronology. Keep a deterministic evidence pointer while exposing UNKNOWN.
-        current = preferred_event(latest_events)
-        lifecycle_state = "UNKNOWN"
+    current = preferred_event(latest_events)
+    lifecycle_state = _state(current) if verification_status == "VERIFIED" else "UNKNOWN"
 
-    latest_effective_at = max(_event_time(event) for event in latest_events)
+    # The aggregate timestamp is tied to the selected evidence event. When a latest-day
+    # bucket contains DAY precision, choosing the mirror's later HH:MM would falsely
+    # imply chronology that the primary source did not publish.
+    latest_effective_at = _event_time(current)
     return LifecycleAggregate(
         canonical_project_id=canonical_project_id,
         lifecycle_state=lifecycle_state,
