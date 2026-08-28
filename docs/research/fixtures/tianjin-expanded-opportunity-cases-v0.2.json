@@ -1,0 +1,266 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-28T21:32:00+08:00",
+  "purpose": "Second official-source expansion set. Each case counts one source-record opportunity fixture; multi-item hospital market-research invitations are not split into fake opportunity counts until deterministic item-level identity exists.",
+  "cases": [
+    {
+      "case_id": "blood_hospital_blood_culture_analyzer_award_20260820",
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202608/t20260820_27176111.htm",
+      "expected": {
+        "buyer_name": "中国医学科学院血液病医院(中国医学科学院血液学研究所）",
+        "project_number": "TJBD-2026-A-105",
+        "project_name": "中国医学科学院血液病医院（中国医学科学院血液学研究所）全自动血培养仪采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-08-20T18:48:00+08:00",
+        "award_total_cny": "2160000.00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not invent brand/model unless present in official main-item evidence.", "Do not infer incumbent relationship from award supplier alone."]
+    },
+    {
+      "case_id": "blood_hospital_reagents_batch19_award_20260818",
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202608/t20260818_27150709.htm",
+      "expected": {
+        "buyer_name": "中国医学科学院血液病医院(中国医学科学院血液学研究所）",
+        "project_number": "BH-XYS2026619",
+        "project_name": "中国医学科学院血液病医院（中国医学科学院血液学研究所）2026年试剂耗材采购项目第十九批",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-08-18T08:29:00+08:00",
+        "award_total_cny": "1221400.00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not fabricate reagent item details not visible in the official evidence section.", "Do not merge with other numbered reagent batches."]
+    },
+    {
+      "case_id": "tmu_analytical_flow_cytometer_award_20260623",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202606/t20260623_26799230.htm",
+      "expected": {
+        "buyer_name": "天津医科大学",
+        "project_number": "SHGP-2026-A249",
+        "project_name": "天津医科大学分析型流式细胞仪采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-06-23T18:50:00+08:00",
+        "award_total_cny": "3100000.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_supplier": "天津启物科技有限责任公司",
+      "official_award_item_samples": [
+        {"raw_name": "分析型流式细胞仪", "brand": "贝克曼", "model": "CytoFLEX LX", "quantity": "1台", "unit_price_cny": "3100000.00"}
+      ],
+      "forbidden_inference": ["Do not use evaluation quotations as final awarded price.", "Do not equate this project with a separate procurement-intent record without bridge evidence."]
+    },
+    {
+      "case_id": "tianjin_university_medical_flow_sorter_award_20260602",
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202606/t20260602_26673950.htm",
+      "expected": {
+        "buyer_name": "天津大学",
+        "project_number": "TDZC2026N0032",
+        "project_name": "天津大学医学院流式细胞分选仪采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-06-02T19:44:00+08:00",
+        "award_total_cny": "2695000.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_supplier": "天津启物科技有限责任公司",
+      "official_award_item_samples": [
+        {"raw_name": "流式细胞分选仪", "brand": "贝克曼", "model": "CytoFLEXSRT", "quantity": "1", "unit_price_cny": "2695000.00"}
+      ],
+      "forbidden_inference": ["Do not infer hospital clinical use from the university buyer alone.", "Do not merge with Tianjin Medical University flow cytometer records."]
+    },
+    {
+      "case_id": "tmu_biopharma_flow_cytometer_tender_20260817",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260817_27150653.htm",
+      "expected": {
+        "buyer_name": "天津医科大学",
+        "project_number": "TJRD-2026-A-0124",
+        "project_name": "天津医科大学流式细胞仪采购项目（2026生物医药产业链）",
+        "notice_type": "TENDER",
+        "lifecycle_state": "TENDERING",
+        "published_at": "2026-08-17T23:50:00+08:00",
+        "budget_amount_cny": "1800000.00",
+        "bid_deadline": "2026-09-09T14:00:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "official_need_summary": "流式细胞仪1台；项目允许经批准的进口产品参与，同时接受满足需求的国内产品。",
+      "attachment_declaration": "TJRD-2026-A-0124项目需求书.docx",
+      "forbidden_inference": ["Do not invent the brand or exact configuration before attachment evidence is captured.", "Do not merge with SHGP-2026-A249 solely because both are flow cytometers."]
+    },
+    {
+      "case_id": "third_central_hospital_mri_award_20260206",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202602/t20260206_26158262.htm",
+      "expected": {
+        "buyer_name": "天津市第三中心医院",
+        "project_number": "BH-SZX2026070",
+        "project_name": "天津市第三中心医院1.5T磁共振成像系统采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-02-06T18:51:00+08:00",
+        "award_total_cny": "10900000.00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not infer brand/model from project title.", "Do not infer installed-base history beyond this award without separate evidence."]
+    },
+    {
+      "case_id": "tcm_research_hospital_ct_award_20260805",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202608/t20260805_27079579.htm",
+      "expected": {
+        "buyer_name": "天津市中医药研究院附属医院",
+        "project_number": "KPZB-202606ZCGK-0049",
+        "project_name": "天津市中医药研究院附属医院X射线计算机体层摄影设备(CT)采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-08-05T18:50:00+08:00",
+        "award_total_cny": "21900000.00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not invent CT brand/model unless the official main-item table is evidenced.", "Do not infer the incumbent supplier before supplier evidence is parsed."]
+    },
+    {
+      "case_id": "tcm_first_hospital_endoscope2_award_20260731",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202607/t20260731_27053324.htm",
+      "expected": {
+        "buyer_name": "天津中医药大学第一附属医院",
+        "project_number": "XCSD-2026-A-534",
+        "project_name": "天津中医药大学第一附属医院医用内窥镜（二）医疗设备采购项目（二次）",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-07-31T23:50:00+08:00",
+        "award_total_cny": "7890000.00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not merge a second-tender notice with unrelated endoscope projects based on generic product words.", "Do not invent brand/model without official item evidence."]
+    },
+    {
+      "case_id": "xiqing_hospital_xray_award_20260803",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202608/t20260803_27061937.htm",
+      "expected": {
+        "buyer_name": "天津市西青医院",
+        "project_number": "XQYY-a-2026-009",
+        "project_name": "西青区紧密型县域医共体建设项目医疗设备——医用X线诊断设备",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-08-03T18:50:00+08:00",
+        "award_total_cny": "6598000.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_suppliers": ["天津知因生物科技有限公司", "华润联通（天津）医药有限公司"],
+      "forbidden_inference": ["Do not infer which exact X-ray device each supplier won without package-level item evidence.", "Do not merge with the citywide county medical-consortium X-ray procurement project."]
+    },
+    {
+      "case_id": "tjmugh_ge_equipment_maintenance_award_20260803",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202608/t20260803_27061972.htm",
+      "expected": {
+        "buyer_name": "天津医科大学总医院",
+        "project_number": "ZCZBZC-GK-2026060360",
+        "project_name": "天津医科大学总医院两台GE设备维保服务项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-08-03T18:50:00+08:00",
+        "award_total_cny": "2060000.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_supplier": "通用电气医疗系统贸易发展（上海）有限公司",
+      "official_service_term": "合同签订之日起1年（具体以签订合同为准）",
+      "forbidden_inference": ["Do not turn a maintenance award into evidence that GE is the only installed imaging brand at the hospital.", "Do not substitute evaluation quotations for the award amount."]
+    },
+    {
+      "case_id": "blood_hospital_imaging_maintenance_award_20260820",
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202608/t20260820_27176112.htm",
+      "expected": {
+        "buyer_name": "中国医学科学院血液病医院(中国医学科学院血液学研究所）",
+        "project_number": "TJBD-2026-C-337",
+        "project_name": "中国医学科学院血液病医院（中国医学科学院血液学研究所）磁共振成像系统、口腔颌面锥形束计算机体层摄影设备、数字化透视摄影X射线机维修保养服务项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-08-20T18:48:00+08:00",
+        "award_total_cny": "4200000.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_scope": ["磁共振成像系统", "口腔颌面锥形束计算机体层摄影设备", "数字化透视摄影X射线机维修保养服务"],
+      "forbidden_inference": ["Do not infer equipment brands from service scope unless official service-item evidence gives them.", "Do not treat service award amount as equipment purchase price."]
+    },
+    {
+      "case_id": "third_central_hospital_256ct_workstation_award_20260206",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202602/t20260206_26158280.htm",
+      "expected": {
+        "buyer_name": "天津市第三中心医院",
+        "project_number": "XCSD-2026-A-020",
+        "project_name": "天津市第三中心医院256排及以上X射线计算机断层摄影设备及高级图像后处理工作站采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-02-06T18:51:00+08:00",
+        "award_total_cny": "24850000.00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not invent CT or workstation brand/model without official item evidence.", "Do not merge with the hospital's separate 1.5T MRI project."]
+    },
+    {
+      "case_id": "first_central_shared_device_dispatch_market_research_20260611",
+      "source_url": "https://www.tj-fch.com/system/2026/06/09/030192069.shtml",
+      "expected": {
+        "buyer_name": "天津市第一中心医院",
+        "project_name": "天津市第一中心医院共享设备调度系统项目",
+        "notice_type": "MARKET_RESEARCH",
+        "lifecycle_state": "MARKET_RESEARCH",
+        "published_at": "2026-06-11T09:12:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "official_scope": ["监护仪", "输液泵", "注射泵", "高流量氧疗仪", "呼吸机", "共享设备无人值守借调/归还调度"],
+      "forbidden_inference": ["This is enterprise test recruitment, not a formal tender.", "Do not fabricate a procurement budget or deadline that the page does not state."]
+    },
+    {
+      "case_id": "tjmugh_imaging_ultrasound_maintenance_market_research_20260508",
+      "source_url": "https://www.tjmugh.com.cn/system/2026/05/08/030285841.shtml",
+      "expected": {
+        "buyer_name": "天津医科大学总医院",
+        "project_name": "仪器设备维保服务中心市场调研方案论证邀请函",
+        "notice_type": "MARKET_RESEARCH",
+        "lifecycle_state": "MARKET_RESEARCH",
+        "published_at": "2026-05-08T10:56:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "official_installed_base_samples": [
+        {"department": "医学影像科", "equipment": "螺旋CT机", "model": "64排 Revolution EVO", "brand": "GE 通用", "purchase_date": "2020-05-27"},
+        {"department": "医学影像科", "equipment": "能谱CT", "model": "HDCT750", "brand": "GE 通用", "purchase_date": "2013-04-10"},
+        {"department": "超声科", "equipment": "超声波诊断仪", "model": "EPIQ 5", "brand": "飞利浦 PHILIPS", "purchase_date": "2018-05-16"}
+      ],
+      "forbidden_inference": ["Installed-base evidence is limited to the equipment explicitly listed in this official market-research page.", "Do not convert maintenance-market research into a formal award or replacement purchase."]
+    },
+    {
+      "case_id": "tjmugh_repair_services_market_research_20260205",
+      "source_url": "https://www.tjmugh.com.cn/system/2026/02/05/030247549.shtml",
+      "expected": {
+        "buyer_name": "天津医科大学总医院",
+        "project_name": "仪器设备维保服务中心市场调研方案论证邀请函",
+        "notice_type": "MARKET_RESEARCH",
+        "lifecycle_state": "MARKET_RESEARCH",
+        "published_at": "2026-02-05T11:10:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "official_installed_base_samples": [
+        {"department": "急诊EICU", "equipment": "纤维支气管镜", "brand": "奥林巴斯OLYMPUS", "purchase_date": "2014-06"},
+        {"department": "眼科", "equipment": "眼前节分析系统", "model": "PENTACAM70700", "brand": "欧科路OCULUS", "purchase_date": "2018-05"}
+      ],
+      "forbidden_inference": ["Do not infer that every device at the department has the listed brand.", "A repair-market-research request is not a replacement-equipment tender."]
+    },
+    {
+      "case_id": "tjmugh_rehab_neuro_devices_market_research_20260529",
+      "source_url": "https://www.tjmugh.com.cn/system/2026/05/29/030295720.shtml",
+      "expected": {
+        "buyer_name": "天津医科大学总医院",
+        "project_name": "天津医科大学总医院医疗设备项目市场调研论证邀请函",
+        "notice_type": "MARKET_RESEARCH",
+        "lifecycle_state": "MARKET_RESEARCH",
+        "published_at": "2026-05-29T05:10:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "official_scope": ["泌尿科探针", "经颅聚焦超声刺激仪", "脑电图", "电动起立床", "下肢机器人", "冲击波治疗仪", "中频脊柱治疗仪"],
+      "official_registration_deadline": "2026-06-02T17:00:00+08:00",
+      "forbidden_inference": ["The invitation contains multiple subprojects; count this source record once until deterministic item-level identity exists.", "Do not invent budget, brand, supplier or formal tender status."]
+    }
+  ]
+}
