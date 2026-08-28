@@ -5,7 +5,7 @@ on:
     paths:
       - "tools/medical_pilot/**"
       - "docs/research/schemas/medical-*.schema.json"
-      - "docs/research/fixtures/tianjin-opportunity-cases-v0.1.json"
+      - "docs/research/fixtures/tianjin-*.json"
       - ".github/workflows/medical-pilot-ci.yml"
   push:
     branches:
@@ -13,7 +13,7 @@ on:
     paths:
       - "tools/medical_pilot/**"
       - "docs/research/schemas/medical-*.schema.json"
-      - "docs/research/fixtures/tianjin-opportunity-cases-v0.1.json"
+      - "docs/research/fixtures/tianjin-*.json"
       - ".github/workflows/medical-pilot-ci.yml"
 
 permissions:
@@ -39,9 +39,9 @@ jobs:
           from pathlib import Path
 
           paths = list(Path("docs/research/schemas").glob("medical-*.schema.json"))
+          paths.extend(Path("docs/research/fixtures").glob("tianjin-*.json"))
           paths.extend(
               [
-                  Path("docs/research/fixtures/tianjin-opportunity-cases-v0.1.json"),
                   Path("tools/medical_pilot/source_registry.tianjin.v0.1.json"),
                   Path("tools/medical_pilot/coverage_manifest.tianjin.v0.1.json"),
                   Path("tools/medical_pilot/source_topology.tianjin.v0.1.json"),
