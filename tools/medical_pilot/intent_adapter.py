@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from .adapters import MEDICAL_HINTS
 from .collector_core import (
@@ -22,10 +22,33 @@ from .collector_core import (
 )
 
 
+PROJ_ID_PATTERN = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+)
+
+
+def _intent_proj_id(source_url: str) -> str | None:
+    parsed = urlparse(source_url)
+    if parsed.hostname != "cgyx.ccgp.gov.cn" or parsed.path != "/cgyx/pub/proJ/details":
+        return None
+    values = parse_qs(parsed.query).get("projId", [])
+    if len(values) != 1:
+        return None
+    value = values[0].strip()
+    return value.lower() if PROJ_ID_PATTERN.fullmatch(value) else None
+
+
 @dataclass(frozen=True)
 class ParsedIntentNotice(ParsedNotice):
     expected_procurement_at: str | None = None
     procurement_need: str | None = None
+    native_record_id: str | None = None
+
+    @property
+    def eligible_for_verified(self) -> bool:
+        # Procurement-intent titles are not unique. An exact official projId is
+        # required before the record may participate in deterministic identity.
+        return bool(self.native_record_id) and super().eligible_for_verified
 
 
 @dataclass(frozen=True)
@@ -43,7 +66,7 @@ class CcgpIntentAdapter:
             parsed = urlparse(link.url)
             if parsed.hostname not in self.allowed_hosts:
                 continue
-            if parsed.path != "/cgyx/pub/proJ/details" or "projId=" not in parsed.query:
+            if _intent_proj_id(link.url) is None:
                 continue
             if not any(hint in link.title for hint in MEDICAL_HINTS):
                 continue
@@ -53,6 +76,7 @@ class CcgpIntentAdapter:
     def parse_notice(self, snapshot: Snapshot) -> ParsedIntentNotice:
         text = strip_tags(snapshot.text)
         pairs = table_pairs(extract_table_rows(snapshot.text))
+        native_record_id = _intent_proj_id(snapshot.source_url)
 
         project_name = self._first(pairs, "采购项目名称")
         buyer_name = self._first(pairs, "采购单位")
@@ -98,18 +122,17 @@ class CcgpIntentAdapter:
             if raw and normalize_space(raw) in normalized_text:
                 evidence[key] = normalize_space(raw)
 
-        reason = None
-        if not project_name or not buyer_name or not published_at:
-            missing = [
-                name
-                for name, value in (
-                    ("project_name", project_name),
-                    ("buyer_name", buyer_name),
-                    ("published_at", published_at),
-                )
-                if not value
-            ]
-            reason = "missing required procurement-intent fields: " + ", ".join(missing)
+        missing = [
+            name
+            for name, value in (
+                ("native_record_id", native_record_id),
+                ("project_name", project_name),
+                ("buyer_name", buyer_name),
+                ("published_at", published_at),
+            )
+            if not value
+        ]
+        reason = "missing required procurement-intent fields: " + ", ".join(missing) if missing else None
 
         return ParsedIntentNotice(
             source_id=self.source_id,
@@ -129,6 +152,7 @@ class CcgpIntentAdapter:
             verification_reason=reason,
             expected_procurement_at=expected_procurement_at,
             procurement_need=need_raw,
+            native_record_id=native_record_id,
         )
 
     @staticmethod
@@ -158,11 +182,34 @@ class CcgpIntentAdapter:
         return f"{year:04d}-{month:02d}"
 
 
+def _rekey_intent_identity(event: dict, facts: list[dict], notice: ParsedIntentNotice) -> str:
+    """Use exact official projId to avoid over-merging same-name intentions.
+
+    This intentionally does not auto-link a procurement intent to a later tender.
+    Cross-stage linking requires a separate evidence-backed bridge because the
+    tender may receive a different project number or scope.
+    """
+
+    if not notice.native_record_id:
+        return deterministic_id("opp", f"opportunity|{event['canonical_project_id']}")
+
+    canonical_project_id = deterministic_id(
+        "mprj",
+        f"project|native_record|{notice.source_id}|{notice.native_record_id}",
+    )
+    opportunity_id = deterministic_id("opp", f"opportunity|{canonical_project_id}")
+    event["canonical_project_id"] = canonical_project_id
+    event["link_confidence"] = 1.0
+    for fact in facts:
+        fact["opportunity_id"] = opportunity_id
+    return opportunity_id
+
+
 def build_intent_event_and_facts(
     notice: ParsedIntentNotice, snapshot: Snapshot
 ) -> tuple[dict, list[dict]]:
     event, facts = build_event_and_facts(notice, snapshot)
-    opportunity_id = deterministic_id("opp", f"opportunity|{event['canonical_project_id']}")
+    opportunity_id = _rekey_intent_identity(event, facts, notice)
 
     for field_name, field_value in (
         ("expected_procurement_at", notice.expected_procurement_at),
