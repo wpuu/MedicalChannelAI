@@ -13,9 +13,10 @@ from typing import Iterable
 from .collector_core import FetchError, ID_NAMESPACE, extract_anchors, utc_now_iso
 
 
-DIRECT_PARSE_EXTENSIONS = {".pdf", ".doc", ".docx", ".xls", ".xlsx"}
+DOWNLOADABLE_DOCUMENT_EXTENSIONS = {".pdf", ".doc", ".docx", ".xls", ".xlsx"}
+LOCAL_PARSER_EXTENSIONS = {".docx", ".xlsx"}
 ARCHIVE_DISCOVERY_ONLY_EXTENSIONS = {".zip", ".rar", ".7z"}
-APPROVED_EXTENSIONS = DIRECT_PARSE_EXTENSIONS | ARCHIVE_DISCOVERY_ONLY_EXTENSIONS
+APPROVED_EXTENSIONS = DOWNLOADABLE_DOCUMENT_EXTENSIONS | ARCHIVE_DISCOVERY_ONLY_EXTENSIONS
 
 EXPECTED_MIME_PREFIXES = {
     ".pdf": ("application/pdf",),
@@ -108,7 +109,7 @@ def discover_attachments(raw_html: str, base_url: str) -> list[AttachmentCandida
                 handling_policy=(
                     "DISCOVER_ONLY_ARCHIVE"
                     if extension in ARCHIVE_DISCOVERY_ONLY_EXTENSIONS
-                    else "DOWNLOAD_AND_PARSE_APPROVED"
+                    else "DOWNLOAD_APPROVED"
                 ),
             )
         )
@@ -122,7 +123,7 @@ class BoundedAttachmentFetcher:
         *,
         timeout_seconds: int = 20,
         max_bytes: int = 32 * 1024 * 1024,
-        user_agent: str = "HermesMedicalPilot/0.1 (+public-data-research)",
+        user_agent: str = "MedicalChannelAI/0.1 (+public-data-research)",
     ) -> None:
         self.allowed_hosts = {host.lower().strip(".") for host in allowed_hosts}
         self.timeout_seconds = timeout_seconds
@@ -141,7 +142,7 @@ class BoundedAttachmentFetcher:
     def fetch(self, candidate: AttachmentCandidate) -> AttachmentSnapshot:
         if candidate.extension in ARCHIVE_DISCOVERY_ONLY_EXTENSIONS:
             raise FetchError("ARCHIVE_DOWNLOAD_DISABLED", "archive attachments are discovery-only in Pilot v0.1")
-        if candidate.extension not in DIRECT_PARSE_EXTENSIONS:
+        if candidate.extension not in DOWNLOADABLE_DOCUMENT_EXTENSIONS:
             raise FetchError("ATTACHMENT_TYPE_NOT_ALLOWED", candidate.extension)
         self._validate_url(candidate.source_url)
 
@@ -189,5 +190,5 @@ class BoundedAttachmentFetcher:
             size_bytes=len(body),
             sha256=digest,
             body=body,
-            parser_eligible=True,
+            parser_eligible=candidate.extension in LOCAL_PARSER_EXTENSIONS,
         )
