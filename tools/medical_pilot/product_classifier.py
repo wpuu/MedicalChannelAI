@@ -48,6 +48,18 @@ def _load_taxonomy(path: Path = TAXONOMY_PATH) -> list[dict[str, Any]]:
     return [item for item in labels if isinstance(item, dict)]
 
 
+def taxonomy_ids(path: Path = TAXONOMY_PATH) -> frozenset[str]:
+    return frozenset(
+        item["id"]
+        for item in _load_taxonomy(path)
+        if isinstance(item.get("id"), str) and item["id"]
+    )
+
+
+def taxonomy_label_exists(label: str, path: Path = TAXONOMY_PATH) -> bool:
+    return isinstance(label, str) and label in taxonomy_ids(path)
+
+
 def _norm(value: str) -> str:
     return (
         normalize_space(value)
