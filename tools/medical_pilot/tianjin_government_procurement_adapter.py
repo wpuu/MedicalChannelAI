@@ -23,7 +23,7 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
     """
 
     source_id: str = "tj_government_procurement"
-    base_url: str = "http://tjgp.cz.tj.gov.cn/"
+    base_url: str = "https://tjgp.cz.tj.gov.cn/"
 
     @property
     def allowed_hosts(self) -> set[str]:
@@ -32,6 +32,8 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
     @staticmethod
     def is_verified_detail_url(url: str) -> bool:
         parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"}:
+            return False
         if parsed.hostname != "tjgp.cz.tj.gov.cn":
             return False
         if parsed.path != "/portal/documentView.do":
@@ -60,25 +62,32 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
             raise ValueError("URL is outside the verified Tianjin government-procurement detail route")
 
         parsed = super().parse_notice(snapshot)
-        if parsed.published_at:
-            return replace(parsed, published_at_precision="MINUTE")
-
         text = strip_tags(snapshot.text)
-        match = re.search(r"发布日期\s*[:：]\s*(20\d{2}年\d{1,2}月\d{1,2}日)", text)
-        if not match:
-            return parsed
-
-        published_raw = normalize_space(match.group(1))
-        published_at = parse_cn_datetime(published_raw)
+        normalized_text = normalize_space(text)
         evidence = dict(parsed.evidence_fragments)
-        if published_at and published_raw in normalize_space(text):
-            evidence["published_at"] = published_raw
+
+        buyer_name = parsed.buyer_name or self._extract_native_buyer(text)
+        if buyer_name and buyer_name in normalized_text:
+            evidence["buyer_name"] = buyer_name
+
+        published_at = parsed.published_at
+        published_precision = parsed.published_at_precision if published_at else "UNKNOWN"
+        if not published_at:
+            published_raw = self._extract_native_published(text)
+            published_at = parse_cn_datetime(published_raw)
+            published_precision = "DAY" if published_at else "UNKNOWN"
+            if published_raw and published_raw in normalized_text:
+                evidence["published_at"] = published_raw
+        else:
+            # The inherited CCGP parser only recognizes source-native timestamps with
+            # an explicit HH:MM clock, so a non-empty inherited value is minute-precise.
+            published_precision = "MINUTE"
 
         missing = [
             name
             for name, value in (
                 ("project_name", parsed.project_name),
-                ("buyer_name", parsed.buyer_name),
+                ("buyer_name", buyer_name),
                 ("published_at", published_at),
             )
             if not value
@@ -90,8 +99,38 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
         )
         return replace(
             parsed,
+            buyer_name=buyer_name,
             published_at=published_at or "",
-            published_at_precision="DAY",
+            published_at_precision=published_precision,
             evidence_fragments=evidence,
             verification_reason=reason,
         )
+
+    @staticmethod
+    def _extract_native_buyer(text: str) -> str:
+        patterns = (
+            r"采购人信息\s*.*?名称\s*[:：]\s*([^\n]+)",
+            r"采购人名称\s*[:：]\s*([^\n]+)",
+            r"采购人\s*[:：]\s*([^\n]+)",
+        )
+        for pattern in patterns:
+            match = re.search(pattern, text, re.S)
+            if not match:
+                continue
+            value = normalize_space(match.group(1))
+            value = re.split(r"\s+(?:地址|联系方式|联系人|采购代理机构)\s*[:：]", value)[0]
+            if value:
+                return value
+        return ""
+
+    @staticmethod
+    def _extract_native_published(text: str) -> str | None:
+        patterns = (
+            r"发布日期\s*[:：]\s*(20\d{2}年\d{1,2}月\d{1,2}日)",
+            r"公告发布日期\s*[:：]\s*(20\d{2}年\d{1,2}月\d{1,2}日)",
+        )
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                return normalize_space(match.group(1))
+        return None
