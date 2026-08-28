@@ -1,0 +1,63 @@
+{
+  "schema_version": "0.1",
+  "repository": "wpuu/MedicalChannelAI",
+  "branch": "dev/tianjin-pilot-v0.1",
+  "as_of": "2026-08-28T12:25:00+08:00",
+  "phase": "M1_FACT_PIPELINE",
+  "production_ready": false,
+  "merge_approved": false,
+  "coverage_status": "PARTIAL",
+  "exhaustiveness_claim": "NOT_EXHAUSTIVE",
+  "runtime_p0_sources": [
+    "ccgp_local_notices",
+    "ccgp_procurement_intent",
+    "tjmugh_procurement",
+    "tj_first_central_hospital_procurement"
+  ],
+  "required_p0_not_implemented": [
+    "tj_public_resource_exchange",
+    "tj_government_procurement"
+  ],
+  "verified_regression_fixture_count": 7,
+  "deterministic_test_modules": [
+    "test_adapters",
+    "test_attachments",
+    "test_award_items",
+    "test_first_central_adapter",
+    "test_intent_adapter",
+    "test_lifecycle",
+    "test_registry",
+    "test_source_health"
+  ],
+  "migration": {
+    "source_repository": "wpuu/Upan",
+    "source_branch": "research/medical-tianjin-pilot-v0.1",
+    "status": "BASELINE_MIGRATED_TO_STANDALONE_REPOSITORY",
+    "policy": "Medical product development continues here; Hermes keeps integration architecture only."
+  },
+  "critical_rules": [
+    "OFFICIAL_PUBLIC_FACT must never be model-generated.",
+    "Lifecycle type comes from official notice title, not project name.",
+    "Verified termination supersedes older verified tender for the same canonical project.",
+    "Unverified newer events cannot override verified lifecycle state.",
+    "Month-only procurement intent dates must preserve month precision.",
+    "Award item facts require original official evidence section.",
+    "Customer profile missing conditions block high-confidence personalized recommendation.",
+    "Coverage must remain PARTIAL while required P0 sources are not implemented."
+  ],
+  "agnes_2_5_flash": {
+    "status": "GO_FOR_BENCHMARK",
+    "production_accuracy_validated": false
+  },
+  "ci_status": "PENDING_NEW_REPOSITORY_EXECUTION_EVIDENCE",
+  "next": [
+    "open draft PR dev/tianjin-pilot-v0.1 -> main",
+    "inspect new repository Medical Pilot CI and fix deterministic regressions until executable",
+    "implement tj_public_resource_exchange adapter",
+    "study tj_government_procurement vs CCGP duplicate/timing differences",
+    "add real attachment fixtures and document parsers",
+    "expand to at least 50 VERIFIED Tianjin fixtures",
+    "run Agnes 2.5 Flash benchmark",
+    "build H5/Web demo only after fact API fields stabilize"
+  ]
+}
