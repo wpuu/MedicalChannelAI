@@ -16,7 +16,8 @@ Draft PR：**#1**
 
 - 5 个 JSON Schema：SourceRegistry / Opportunity / ProcurementEvent / EvidenceFact / CustomerProfile
 - 6 个已登记运行时 P0 Source，其中 4 个完整实现、2 个部分实现
-- 8 条真实天津 regression fixtures
+- 9 条 VERIFIED 天津商机 regression fixture（8 条主 fixture + 1 条 attachment-backed fixture）
+- 5 条真实官方附件声明 fixture；当前只证明公告声明存在附件，不冒充已取得附件二进制
 - bounded collector + Snapshot SHA-256
 - Evidence Fact 生成
 - Procurement Intent 解析
@@ -36,9 +37,11 @@ Draft PR：**#1**
 - XLSX 公式缓存值当前不采信、不进入确定性文本层
 - SourceHealth / Coverage 聚合
 - CLI 单 URL evidence-backed 输出，并暴露解析后的 `provenance_role`
-- 12 组 deterministic unittest 模块
+- 13 组 deterministic unittest 模块
 
-## 3. 当前真实 fixture
+## 3. 当前 VERIFIED 商机 fixture
+
+主 fixture：
 
 1. 天津市胸科医院检验科设备租赁 — 573万元 / TENDER
 2. 天津医院 SPECT/CT — TERMINATED
@@ -48,6 +51,10 @@ Draft PR：**#1**
 6. 天津市第一中心医院手术无影灯 — INTERNAL_SELECTION / 1.98万元
 7. 天津市第一中心医院医疗器械精细化管理 — MARKET_RESEARCH / 测试企业征集
 8. 天津市疾病预防控制中心性病艾滋病检测试剂、耗材 — AWARD / 天津公共资源官方镜像 / DAY 精度 / 供应商与官方产品品牌型号
+
+Attachment-backed fixture：
+
+9. 天津医科大学总医院肾内科临床重点专科建设试剂购置 — AWARD / 109.2806万元 / 两个中标包；第2包正文直接公开天津斯德谱 CD45/CD3/CD16/CD56 试剂，第1包完整分项明确保持 `PENDING_ATTACHMENT_BYTES`，不得从“等，详见附件”猜完整清单。
 
 ## 4. Source Topology
 
@@ -123,6 +130,14 @@ Draft PR：**#1**
 - XLSX 公式单元格不计算，也不采信缓存值。
 - `.pdf / .doc / .xls` 当前 `DOWNLOAD_ONLY_PARSER_PENDING`，不能标成已解析。
 
+当前真实附件声明 fixture：5 条。包括泰达医院 DR 项目需求书 DOCX、天津医科大学总医院肾内科项目采购文件/第1包分项 DOCX、天津政府采购 XLSX 格式样本、医疗 PDF 样本。当前检索通道尚未取得这些附件的真实二进制，因此统一保持：
+
+- `binary_capture_status = PENDING_DIRECT_ATTACHMENT_BYTES`
+- `sha256 = null`
+- `parser_validation_status = NOT_RUN_ON_REAL_BYTES`
+
+不能把“官方公告声明有附件”写成“附件已真实解析成功”。
+
 ## 7. Agnes 2.5 Flash
 
 状态：`GO_FOR_BENCHMARK`
@@ -139,14 +154,14 @@ GitHub Actions 仍为：`BLOCKED_RUNNER_NOT_ASSIGNED`。
 
 已记录 Issue #2。已知证据：Job `runner_id=0`、`runner_name=""`、`steps=[]`，日志对象 `BlobNotFound`。因此 GitHub Runner 没有执行 Python；不能标 PASS，也不能把红色 CI 解释为 assertion failure。
 
-本轮新增测试代码仍属于“已写入、等待可执行证据”，不得宣称已经跑绿。
+当前 13 组测试代码属于“已写入、等待可执行证据”，不得宣称已经跑绿。
 
 ## 9. 下一步
 
-1. 找到并验证天津市政府采购网 2026 原生列表/搜索入口、分页与栏目路由，才能把 PRIMARY 从 PARTIAL 升到 IMPLEMENTED。
-2. 增加至少一条真实 2026 天津医疗项目的原始站详情快照 fixture，与 CCGP 镜像做双源字段/发布时间对照。
-3. 获取真实采购附件 fixture，先验证 DOCX/XLSX parser 对实际招标文件/设备清单的表现。
-4. 为 PDF 选定可控解析方案并建立真实 PDF 页码 Evidence locator；未完成前保持 parser pending。
+1. 获取第一份真实天津医疗采购 DOCX/XLSX 附件二进制，记录 source URL、redirect、MIME、size、SHA-256，并用 `ooxml-stdlib-v0.1` 实际解析。
+2. 为 PDF 选定 bounded parser 并建立页码级 Evidence locator；在真实 PDF 验证前保持 parser pending。
+3. 找到并验证天津市政府采购网 2026 原生列表/搜索入口、分页与栏目路由，才能把 PRIMARY 从 PARTIAL 升到 IMPLEMENTED。
+4. 增加至少一条真实 2026 天津医疗项目的原始站详情快照 fixture，与 CCGP 镜像做双源字段/发布时间对照。
 5. 继续验证天津公共资源招标/更正/终止栏目，决定是否值得升级完整实现，或只作为结果补证源。
 6. 先扩到 >=20 VERIFIED 天津样本，再扩到 >=50。
 7. GitHub Runner 恢复后第一时间执行全部 deterministic tests 并修真实失败。
