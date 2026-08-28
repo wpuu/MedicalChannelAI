@@ -40,13 +40,7 @@ jobs:
 
           paths = list(Path("docs/research/schemas").glob("medical-*.schema.json"))
           paths.extend(Path("docs/research/fixtures").glob("tianjin-*.json"))
-          paths.extend(
-              [
-                  Path("tools/medical_pilot/source_registry.tianjin.v0.1.json"),
-                  Path("tools/medical_pilot/coverage_manifest.tianjin.v0.1.json"),
-                  Path("tools/medical_pilot/source_topology.tianjin.v0.1.json"),
-              ]
-          )
+          paths.extend(Path("tools/medical_pilot").glob("*.tianjin.v0.1.json"))
           for path in paths:
               with path.open("r", encoding="utf-8") as handle:
                   json.load(handle)
