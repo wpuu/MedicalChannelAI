@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-customer-profile-readiness.schema.json",
+  "title": "Medical Customer Profile Readiness v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "computed_status",
+    "profile_completeness",
+    "recommendation_mode",
+    "personalized_recommendation_allowed",
+    "candidate_opportunity_allowed",
+    "missing_required_conditions",
+    "next_question",
+    "warnings"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "computed_status": {
+      "enum": ["INCOMPLETE", "SUFFICIENT_FOR_CANDIDATES", "SUFFICIENT_FOR_PERSONALIZED_RECOMMENDATION"]
+    },
+    "profile_completeness": {"type": "integer", "minimum": 0, "maximum": 100},
+    "recommendation_mode": {
+      "enum": ["PROFILE_INTERVIEW_REQUIRED", "CANDIDATE_ONLY", "PERSONALIZED_RECOMMENDATION"]
+    },
+    "personalized_recommendation_allowed": {"type": "boolean"},
+    "candidate_opportunity_allowed": {"type": "boolean"},
+    "missing_required_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "field_path", "severity", "question", "reason"],
+        "properties": {
+          "code": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+          "field_path": {"type": "string", "minLength": 1, "maxLength": 300},
+          "severity": {"enum": ["BLOCK_CANDIDATES", "BLOCK_PERSONALIZED"]},
+          "question": {"type": "string", "minLength": 1, "maxLength": 800},
+          "reason": {"type": "string", "minLength": 1, "maxLength": 1000}
+        }
+      }
+    },
+    "next_question": {"type": ["string", "null"], "maxLength": 800},
+    "warnings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "SUPPLIED_PROFILE_STATUS_IGNORED_AND_RECOMPUTED",
+          "SUPPLIED_PROFILE_COMPLETENESS_IGNORED_AND_RECOMPUTED",
+          "SUPPLIED_MISSING_CONDITIONS_IGNORED_AND_RECOMPUTED"
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"recommendation_mode": {"const": "PERSONALIZED_RECOMMENDATION"}}},
+      "then": {
+        "properties": {
+          "personalized_recommendation_allowed": {"const": true},
+          "candidate_opportunity_allowed": {"const": true},
+          "missing_required_conditions": {"maxItems": 0},
+          "next_question": {"type": "null"},
+          "profile_completeness": {"const": 100}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"recommendation_mode": {"const": "PROFILE_INTERVIEW_REQUIRED"}}},
+      "then": {"properties": {"personalized_recommendation_allowed": {"const": false}}}
+    }
+  ]
+}
