@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-opportunity-priority-score.schema.json",
+  "title": "Medical Opportunity Priority Score v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "score", "score_type", "components", "warnings", "interpretation"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+    "score_type": {"enum": ["CANDIDATE_PRIORITY", "PERSONALIZED_PRIORITY"]},
+    "components": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "points", "max_points", "basis", "profile_paths", "opportunity_paths"],
+        "properties": {
+          "code": {"enum": ["PRODUCT_EXECUTION_CAPABILITY", "RELATIONSHIP", "INTERVENTION_STAGE", "PROJECT_AMOUNT"]},
+          "points": {"type": "integer", "minimum": 0},
+          "max_points": {"type": "integer", "minimum": 1},
+          "basis": {"type": "string", "minLength": 1, "maxLength": 1000},
+          "profile_paths": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "opportunity_paths": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+        }
+      }
+    },
+    "warnings": {"type": "array", "items": {"enum": ["RELATIONSHIP_UNKNOWN"]}, "uniqueItems": true},
+    "interpretation": {"const": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"}
+  }
+}
