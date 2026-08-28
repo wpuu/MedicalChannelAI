@@ -27,13 +27,16 @@ Draft PR：**#1**
 - 天津第一中心医院院内比选/测试企业征集解析
 - 天津公共资源政府采购结果官方镜像解析（部分实现）
 - 天津市政府采购网原始详情页解析（部分实现）
-- PRIMARY_SOURCE / OFFICIAL_MIRROR / DISCOVERY_ONLY 来源角色
+- PRIMARY_SOURCE / OFFICIAL_MIRROR / DISCOVERY_ONLY 来源角色，已在所有 Runtime Source 中显式配置并由 Schema 强制
 - DAY / MINUTE 发布时间精度
 - 同项目跨源去重与精度感知生命周期聚合
 - 附件白名单、host/MIME/size/hash 安全链
+- DOCX / XLSX bounded stdlib parser；输出段落或单元格 Evidence locator
+- PDF / DOC / XLS 当前只允许安全下载并保留快照，`parser_eligible=false`
+- XLSX 公式缓存值当前不采信、不进入确定性文本层
 - SourceHealth / Coverage 聚合
-- CLI 单 URL evidence-backed 输出
-- 11 组 deterministic unittest 模块
+- CLI 单 URL evidence-backed 输出，并暴露解析后的 `provenance_role`
+- 12 组 deterministic unittest 模块
 
 ## 3. 当前真实 fixture
 
@@ -102,7 +105,25 @@ Draft PR：**#1**
 
 不能宣称“天津已查全”。
 
-## 6. Agnes 2.5 Flash
+## 6. Attachment Parser 状态
+
+当前下载允许：`.pdf / .doc / .docx / .xls / .xlsx`；`.zip / .rar / .7z` 只发现，不自动下载解包。
+
+当前真正可确定性解析：
+
+- `.docx`：读取 `word/document.xml`，输出 `DOCX_PARAGRAPH` + paragraph locator。
+- `.xlsx`：读取 workbook / relationships / shared strings / worksheet XML，输出 `XLSX_RANGE` + sheet/range locator。
+
+当前安全限制：
+
+- Snapshot SHA-256 必须与 bytes 一致。
+- OOXML 加密成员拒绝。
+- 路径逃逸成员拒绝。
+- 最大 ZIP member 数、总解压大小、最大文本量、最大 XLSX 单元格数受限。
+- XLSX 公式单元格不计算，也不采信缓存值。
+- `.pdf / .doc / .xls` 当前 `DOWNLOAD_ONLY_PARSER_PENDING`，不能标成已解析。
+
+## 7. Agnes 2.5 Flash
 
 状态：`GO_FOR_BENCHMARK`
 
@@ -112,7 +133,7 @@ Draft PR：**#1**
 
 不得成为采购事实权威：采购人/医院、项目名、预算、日期/截止时间、生命周期状态、中标供应商/金额、官方产品品牌型号数量价格、来源 URL。
 
-## 7. CI / 自动测试真实状态
+## 8. CI / 自动测试真实状态
 
 GitHub Actions 仍为：`BLOCKED_RUNNER_NOT_ASSIGNED`。
 
@@ -120,13 +141,14 @@ GitHub Actions 仍为：`BLOCKED_RUNNER_NOT_ASSIGNED`。
 
 本轮新增测试代码仍属于“已写入、等待可执行证据”，不得宣称已经跑绿。
 
-## 8. 下一步
+## 9. 下一步
 
 1. 找到并验证天津市政府采购网 2026 原生列表/搜索入口、分页与栏目路由，才能把 PRIMARY 从 PARTIAL 升到 IMPLEMENTED。
 2. 增加至少一条真实 2026 天津医疗项目的原始站详情快照 fixture，与 CCGP 镜像做双源字段/发布时间对照。
-3. 继续验证天津公共资源招标/更正/终止栏目，决定是否值得升级完整实现，或只作为结果补证源。
-4. 加真实附件样本与 PDF/DOCX/XLSX 解析。
-5. 先扩到 >=20 VERIFIED 天津样本，再扩到 >=50。
-6. GitHub Runner 恢复后第一时间执行全部 deterministic tests 并修真实失败。
-7. 事实层稳定后跑 Agnes 2.5 Flash benchmark。
-8. 最后再进入首批客户 H5/Web 演示端。
+3. 获取真实采购附件 fixture，先验证 DOCX/XLSX parser 对实际招标文件/设备清单的表现。
+4. 为 PDF 选定可控解析方案并建立真实 PDF 页码 Evidence locator；未完成前保持 parser pending。
+5. 继续验证天津公共资源招标/更正/终止栏目，决定是否值得升级完整实现，或只作为结果补证源。
+6. 先扩到 >=20 VERIFIED 天津样本，再扩到 >=50。
+7. GitHub Runner 恢复后第一时间执行全部 deterministic tests 并修真实失败。
+8. 事实层稳定后跑 Agnes 2.5 Flash benchmark。
+9. 最后再进入首批客户 H5/Web 演示端。
