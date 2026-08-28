@@ -109,7 +109,20 @@ class TianjinGovernmentProcurementAdapterTests(unittest.TestCase):
         self.assertEqual(aggregate.lifecycle_state, "AWARDED")
         self.assertEqual(aggregate.verification_status, "VERIFIED")
         self.assertEqual(aggregate.current_event_id, native_event["event_id"])
+        self.assertEqual(aggregate.latest_effective_at, native_event["effective_at"])
         self.assertEqual(len(aggregate.source_event_ids), 2)
+
+    def test_missing_purchaser_name_does_not_drift_into_agent_name(self) -> None:
+        url = "https://tjgp.cz.tj.gov.cn/portal/documentView.do?method=view&id=999999998&ver=2"
+        html = NATIVE_STRUCTURE_HTML.replace(
+            "<p>名称：天津市胸科医院</p>\n<p>地址：天津市</p>",
+            "<p>地址：天津市</p><p>2.采购代理机构信息</p><p>名称：天津某采购代理有限公司</p>",
+        )
+        parsed = TianjinGovernmentProcurementAdapter().parse_notice(snapshot(url, html))
+        self.assertEqual(parsed.buyer_name, "")
+        self.assertNotIn("buyer_name", parsed.evidence_fragments)
+        self.assertFalse(parsed.eligible_for_verified)
+        self.assertIn("buyer_name", parsed.verification_reason or "")
 
     def test_unverified_route_variants_fail_closed(self) -> None:
         adapter = TianjinGovernmentProcurementAdapter()
