@@ -2,10 +2,11 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-28T12:25:00+08:00",
+  "as_of": "2026-08-28T12:35:00+08:00",
   "phase": "M1_FACT_PIPELINE",
   "production_ready": false,
   "merge_approved": false,
+  "draft_pr": 1,
   "coverage_status": "PARTIAL",
   "exhaustiveness_claim": "NOT_EXHAUSTIVE",
   "runtime_p0_sources": [
@@ -33,6 +34,7 @@
     "source_repository": "wpuu/Upan",
     "source_branch": "research/medical-tianjin-pilot-v0.1",
     "status": "BASELINE_MIGRATED_TO_STANDALONE_REPOSITORY",
+    "migrated_changed_file_count": 32,
     "policy": "Medical product development continues here; Hermes keeps integration architecture only."
   },
   "critical_rules": [
@@ -49,15 +51,28 @@
     "status": "GO_FOR_BENCHMARK",
     "production_accuracy_validated": false
   },
-  "ci_status": "PENDING_NEW_REPOSITORY_EXECUTION_EVIDENCE",
+  "ci_status": {
+    "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
+    "repository": "wpuu/MedicalChannelAI",
+    "run_id": 33141661653,
+    "job_id": 98753623817,
+    "head_sha": "0a75079047355f68a41799a999f3f5ffe72ff9a9",
+    "evidence": {
+      "runner_id": 0,
+      "runner_name": "",
+      "steps_count": 0,
+      "conclusion": "failure",
+      "logs": "BlobNotFound"
+    },
+    "interpretation": "GitHub Actions did not allocate a runner and no test step executed. This is neither a deterministic test PASS nor an assertion FAIL."
+  },
   "next": [
-    "open draft PR dev/tianjin-pilot-v0.1 -> main",
-    "inspect new repository Medical Pilot CI and fix deterministic regressions until executable",
+    "diagnose GitHub Actions runner/account infrastructure separately from code correctness",
     "implement tj_public_resource_exchange adapter",
     "study tj_government_procurement vs CCGP duplicate/timing differences",
     "add real attachment fixtures and document parsers",
     "expand to at least 50 VERIFIED Tianjin fixtures",
-    "run Agnes 2.5 Flash benchmark",
+    "run Agnes 2.5 Flash benchmark after deterministic execution evidence is available",
     "build H5/Web demo only after fact API fields stabilize"
   ]
 }
