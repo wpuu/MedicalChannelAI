@@ -1,17 +1,26 @@
 {
   "schema_version": "0.1",
-  "as_of": "2026-08-28T13:58:00+08:00",
+  "as_of": "2026-08-28T14:10:00+08:00",
   "scope": "Tianjin government-procurement and hospital early-signal public sources",
   "sources": [
     {
       "source_id": "tj_government_procurement",
       "provenance_role": "PRIMARY_SOURCE",
       "canonical_host": "tjgp.cz.tj.gov.cn",
-      "implementation_status": "DOMAIN_CONFIRMED_PARSER_PENDING",
+      "implementation_status": "PARTIAL_IMPLEMENTATION",
+      "implemented_scope": "direct detail route /portal/documentView.do?method=view&id=<digits>&ver=2 and evidence-backed parsing of supplied detail pages",
+      "not_yet_verified": [
+        "2026 native listing/search route",
+        "pagination/discovery completeness",
+        "all current lifecycle category routes",
+        "source-native publication timestamps for latency measurement"
+      ],
       "authority_basis": "天津市财政局指定的天津市政府采购信息发布媒体/中国政府采购网地方分网",
       "evidence_urls": [
         "https://cz.tj.gov.cn/zwgk_53713/zcwjx/zcwjst/202307/t20230728_6364181.html",
-        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219615.htm"
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219615.htm",
+        "https://www.tjftz.gov.cn/contents/6259/370826.html",
+        "https://www.tjbpi.com/xxgk/gg__cgzb/content_31346"
       ],
       "timing_policy": "PRIMARY_WHEN_NATIVE_NOTICE_CAN_BE_FETCHED",
       "latency_status": "UNKNOWN_UNTIL_NATIVE_DETAIL_TIMESTAMPS_ARE_CAPTURED"
