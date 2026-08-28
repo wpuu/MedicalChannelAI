@@ -28,6 +28,9 @@
     "source_type": {
       "enum": ["GOVERNMENT_PROCUREMENT", "PROCUREMENT_INTENT", "PUBLIC_RESOURCE_EXCHANGE", "HOSPITAL_PROCUREMENT", "MEDICAL_PROCUREMENT_CENTER", "OTHER_PUBLIC"]
     },
+    "provenance_role": {
+      "enum": ["PRIMARY_SOURCE", "OFFICIAL_MIRROR", "DISCOVERY_ONLY"]
+    },
     "geographic_scope": {
       "type": "object",
       "additionalProperties": false,
