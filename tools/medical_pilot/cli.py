@@ -50,6 +50,7 @@ def main() -> int:
         "buyer_name": parsed.buyer_name,
         "project_number": parsed.project_number,
         "published_at": parsed.published_at,
+        "published_at_precision": parsed.published_at_precision,
         "budget_cny": parsed.budget_cny,
         "registration_deadline": parsed.registration_deadline,
         "bid_deadline": parsed.bid_deadline,
@@ -108,6 +109,7 @@ def main() -> int:
             "source_name": source.source_name,
             "authority_type": source.authority_type,
             "source_type": source.source_type,
+            "provenance_role": source.raw.get("provenance_role", "PRIMARY_SOURCE"),
             "parser_version": source.parser_version,
         },
         "snapshot": {
