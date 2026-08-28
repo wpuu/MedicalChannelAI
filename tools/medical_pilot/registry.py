@@ -56,7 +56,7 @@ def load_registry(path: Path = REGISTRY_PATH) -> list[RegisteredSource]:
                 enabled=bool(item["enabled"]),
                 authority_type=item["authority_type"],
                 source_type=item["source_type"],
-                provenance_role=item["provenance_role"],
+                provenance_role=item.get("provenance_role", "PRIMARY_SOURCE"),
                 parser_version=item.get("parser_version"),
                 raw=item,
             )
