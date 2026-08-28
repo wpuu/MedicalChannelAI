@@ -46,6 +46,29 @@ class MatchPipelineTests(unittest.TestCase):
         self.assertFalse(result.model_explanation_allowed)
         self.assertIn("opportunity.product_label_provenance", result.required_next_facts)
 
+    def test_unknown_opportunity_taxonomy_id_requires_enrichment(self) -> None:
+        item = opportunity()
+        item["product_labels"] = ["NOT_A_REAL_TAXONOMY_ID"]
+        result = evaluate_match_pipeline(complete_profile(), item)
+        self.assertEqual(result.status, "NEEDS_MORE_FACTS")
+        self.assertFalse(result.model_explanation_allowed)
+        self.assertIn("opportunity.product_labels", result.required_next_facts)
+
+    def test_profile_missing_taxonomy_id_blocks_candidates(self) -> None:
+        profile = complete_profile()
+        profile["product_capabilities"][0]["taxonomy_ids"] = []
+        result = evaluate_match_pipeline(profile, opportunity())
+        self.assertEqual(result.status, "PROFILE_BLOCKED")
+        self.assertFalse(result.candidate_opportunity_allowed)
+        self.assertFalse(result.model_explanation_allowed)
+
+    def test_profile_unknown_taxonomy_id_blocks_candidates(self) -> None:
+        profile = complete_profile()
+        profile["product_capabilities"][0]["taxonomy_ids"] = ["UNKNOWN_TAXONOMY_ID"]
+        result = evaluate_match_pipeline(profile, opportunity())
+        self.assertEqual(result.status, "PROFILE_BLOCKED")
+        self.assertTrue(any(reason.code == "PRODUCT_TAXONOMY_ID_UNKNOWN" for reason in result.reasons))
+
     def test_customer_type_without_provenance_cannot_drive_match(self) -> None:
         item = opportunity()
         item.pop("customer_type_provenance", None)
