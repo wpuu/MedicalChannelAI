@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/medical-source-registry.schema.json",
+  "title": "Medical Source Registry Entry v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "source_name",
+    "canonical_base_url",
+    "authority_type",
+    "source_type",
+    "geographic_scope",
+    "collector_mode",
+    "enabled",
+    "priority",
+    "verification_policy"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "source_id": {"type": "string", "pattern": "^[a-z0-9_]{3,80}$"},
+    "source_name": {"type": "string", "minLength": 1, "maxLength": 200},
+    "canonical_base_url": {"type": "string", "format": "uri", "pattern": "^https?://"},
+    "authority_type": {
+      "enum": ["OFFICIAL_GOVERNMENT", "OFFICIAL_HOSPITAL", "OFFICIAL_INSTITUTION", "DISCOVERY_ONLY_THIRD_PARTY"]
+    },
+    "source_type": {
+      "enum": ["GOVERNMENT_PROCUREMENT", "PROCUREMENT_INTENT", "PUBLIC_RESOURCE_EXCHANGE", "HOSPITAL_PROCUREMENT", "MEDICAL_PROCUREMENT_CENTER", "OTHER_PUBLIC"]
+    },
+    "geographic_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["country"],
+      "properties": {
+        "country": {"type": "string", "minLength": 2},
+        "province": {"type": ["string", "null"]},
+        "city": {"type": ["string", "null"]},
+        "district": {"type": ["string", "null"]}
+      }
+    },
+    "allowed_url_patterns": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true,
+      "default": []
+    },
+    "notice_types": {
+      "type": "array",
+      "items": {
+        "enum": ["MARKET_RESEARCH", "PROCUREMENT_INTENT", "TENDER", "AMENDMENT", "SUSPENSION", "TERMINATION", "AWARD", "CONTRACT", "INTERNAL_SELECTION", "OTHER"]
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "collector_mode": {
+      "enum": ["HTTP_STATIC", "SCRAPY", "PLAYWRIGHT_REQUIRED", "HYBRID"]
+    },
+    "requires_javascript": {"type": "boolean", "default": false},
+    "attachment_policy": {
+      "enum": ["NONE", "DISCOVER_ONLY", "DOWNLOAD_APPROVED_TYPES", "REQUIRED"]
+    },
+    "rate_limit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requests_per_minute": {"type": "integer", "minimum": 1, "maximum": 600},
+        "max_concurrency": {"type": "integer", "minimum": 1, "maximum": 32}
+      }
+    },
+    "freshness_sla_minutes": {"type": "integer", "minimum": 5, "maximum": 10080},
+    "parser_version": {"type": ["string", "null"]},
+    "priority": {"enum": ["P0", "P1", "P2"]},
+    "enabled": {"type": "boolean"},
+    "health_status": {"enum": ["UNKNOWN", "HEALTHY", "DEGRADED", "FAILED", "DISABLED"], "default": "UNKNOWN"},
+    "last_success_at": {"type": ["string", "null"], "format": "date-time"},
+    "last_error_code": {"type": ["string", "null"]},
+    "verification_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["may_be_final_fact_authority"],
+      "properties": {
+        "may_be_final_fact_authority": {"type": "boolean"},
+        "official_source_required_for_upgrade": {"type": "boolean", "default": false}
+      }
+    }
+  }
+}
