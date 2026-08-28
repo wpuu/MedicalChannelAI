@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-28T17:46:00+08:00",
+  "as_of": "2026-08-28T18:55:00+08:00",
   "phase": "M1_FACT_PIPELINE",
   "production_ready": false,
   "merge_approved": false,
@@ -27,29 +27,46 @@
     "tj_government_procurement",
     "tj_public_resource_exchange"
   ],
-  "required_p0_not_implemented": [],
-  "verified_opportunity_regression_fixture_count": 9,
+  "verified_opportunity_regression_fixture_count": 21,
   "verified_opportunity_fixture_breakdown": {
     "primary_fixture_file": 8,
-    "attachment_backed_fixture_file": 1
+    "attachment_backed_fixture_file": 1,
+    "procurement_intent_identity_fixture_file": 2,
+    "expanded_official_fixture_file": 10
   },
   "verified_attachment_declaration_fixture_count": 5,
   "real_attachment_binary_capture_count": 0,
+  "deterministic_test_module_count": 16,
   "deterministic_test_modules": [
     "test_adapters",
     "test_attachments",
     "test_attachment_parser",
     "test_award_items",
+    "test_benchmark_agnes",
     "test_first_central_adapter",
     "test_fixture_contracts",
+    "test_identity",
     "test_intent_adapter",
     "test_lifecycle",
+    "test_pdf_parser_docling",
     "test_registry",
     "test_source_health",
-    "test_tianjin_public_resource_adapter",
     "test_source_precedence",
-    "test_tianjin_government_procurement_adapter"
+    "test_tianjin_government_procurement_adapter",
+    "test_tianjin_public_resource_adapter"
   ],
+  "identity_policy": {
+    "machine_readable_file": "tools/medical_pilot/identity_policy.tianjin.v0.1.json",
+    "priority": [
+      "OFFICIAL_PROJECT_NUMBER",
+      "OFFICIAL_NATIVE_RECORD_ID",
+      "SOURCE_LOCAL_RECORD_URL"
+    ],
+    "forbidden_automatic_key": "buyer_name + project_name",
+    "cross_stage_bridge_status": "NOT_IMPLEMENTED",
+    "llm_may_merge_canonical_projects": false,
+    "regression_case": "Tianjin Medical University has same-title PCR procurement intents with 3000000 and 700000 CNY budgets but different official projId values; they must remain distinct."
+  },
   "source_topology": {
     "machine_readable_file": "tools/medical_pilot/source_topology.tianjin.v0.1.json",
     "government_procurement_primary_source": "tj_government_procurement",
@@ -67,69 +84,76 @@
   "attachment_parsing": {
     "downloadable_extensions": [".pdf", ".doc", ".docx", ".xls", ".xlsx"],
     "locally_parseable_extensions": [".docx", ".xlsx"],
-    "parser_version": "ooxml-stdlib-v0.1",
-    "pdf_status": "DOWNLOAD_ONLY_PARSER_PENDING",
+    "ooxml_parser_version": "ooxml-stdlib-v0.1",
+    "pdf_optional_backend": "pdf-docling-v0.1",
+    "pdf_backend_code_status": "IMPLEMENTED_NOT_REAL_BYTES_VALIDATED",
+    "pdf_download_parser_eligible": false,
     "legacy_office_status": "DOWNLOAD_ONLY_PARSER_PENDING",
     "archives": "DISCOVERY_ONLY_NO_AUTO_EXTRACT",
     "xlsx_formula_policy": "SKIP_FORMULA_CACHED_VALUES",
-    "evidence_locators": ["DOCX_PARAGRAPH", "XLSX_RANGE"],
+    "evidence_locators": ["DOCX_PARAGRAPH", "XLSX_RANGE", "PDF page_no+bbox"],
     "real_attachment_declarations": 5,
     "real_binary_parser_validation_status": "NOT_RUN_ON_REAL_BYTES"
+  },
+  "agnes_2_5_flash": {
+    "status": "GO_FOR_BENCHMARK",
+    "production_accuracy_validated": false,
+    "benchmark_manifest": "docs/research/benchmarks/agnes-2.5-flash-v0.1.json",
+    "benchmark_harness": "tools/medical_pilot/benchmark_agnes.py",
+    "benchmark_case_count": 12,
+    "execution_status": "NOT_EXECUTED",
+    "default_mode": "DRY_RUN_NO_NETWORK",
+    "secret_policy": "AGNES_API_KEY only from environment; never committed"
   },
   "migration": {
     "source_repository": "wpuu/Upan",
     "source_branch": "research/medical-tianjin-pilot-v0.1",
     "status": "BASELINE_MIGRATED_TO_STANDALONE_REPOSITORY",
-    "migrated_changed_file_count": 32,
     "policy": "Medical product development continues here; Hermes keeps integration architecture only."
   },
   "critical_rules": [
     "OFFICIAL_PUBLIC_FACT must never be model-generated.",
     "Lifecycle type comes from official notice title, not project name.",
-    "Verified termination supersedes older verified tender for the same canonical project when chronology is source-evidenced.",
+    "Verified termination supersedes older verified tender only when chronology is source-evidenced.",
     "Unverified newer events cannot override verified lifecycle state.",
     "Month-only procurement intent dates must preserve month precision.",
     "DAY-only publication dates must not be treated as true midnight timestamps.",
     "Same-day conflicting lifecycle events with insufficient timestamp precision must be CONFLICTED instead of guessed into an order.",
-    "Exact project_number links PRIMARY and mirror evidence to one canonical opportunity.",
-    "Same-state same-day evidence prefers PRIMARY_SOURCE when exact chronology is unavailable.",
+    "Exact project_number may link PRIMARY and mirror evidence to one canonical opportunity.",
+    "No-project-number records default to source-local identity; buyer/title similarity cannot auto-merge them.",
+    "Procurement-intent projId is exact native identity and same-title different projId records remain distinct.",
+    "LLM may suggest cross-stage link candidates but may not perform canonical merge.",
     "Every runtime source must explicitly declare provenance_role.",
     "Attachment bytes must match snapshot SHA-256 before parsing.",
     "Attachment declaration is not evidence that binary parsing succeeded.",
+    "PDF text/table blocks require page+bbox provenance before they can support evidence.",
     "XLSX formula cached values are not deterministic facts in v0.1.",
     "Award item facts require original official evidence section.",
     "Customer profile missing conditions block high-confidence personalized recommendation.",
     "Coverage remains PARTIAL while any required P0 source is only PARTIAL_IMPLEMENTATION."
   ],
-  "agnes_2_5_flash": {
-    "status": "GO_FOR_BENCHMARK",
-    "production_accuracy_validated": false
-  },
   "ci_status": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
     "tracking_issue": 2,
     "repository": "wpuu/MedicalChannelAI",
-    "run_id": 33141661653,
-    "job_id": 98753623817,
-    "head_sha": "0a75079047355f68a41799a999f3f5ffe72ff9a9",
+    "latest_checked_run_id": 33161419152,
+    "latest_checked_job_id": 98816532381,
+    "latest_checked_head_sha": "03f3282024979179a40f686a7bd65ad8c0d2d473",
     "evidence": {
       "runner_id": 0,
       "runner_name": "",
       "steps_count": 0,
-      "conclusion": "failure",
-      "logs": "BlobNotFound"
+      "conclusion": "failure"
     },
-    "interpretation": "GitHub Actions did not allocate a runner and no test step executed. This is neither a deterministic test PASS nor an assertion FAIL."
+    "interpretation": "GitHub Actions still did not allocate a runner. No Python compile or unittest step executed; this is neither PASS nor assertion FAIL."
   },
   "next": [
-    "capture the first real Tianjin medical DOCX/XLSX attachment bytes and run ooxml-stdlib-v0.1 with SHA-256 evidence",
-    "select and implement a bounded PDF parser with page-level evidence locators before enabling PDF parsing",
+    "expand official-source corpus from 21 to at least 50 VERIFIED Tianjin opportunities without counting multiple lifecycle events as separate opportunities",
+    "capture the first real Tianjin medical DOCX/XLSX/PDF attachment bytes and run parser validation with SHA-256 evidence",
     "verify the 2026 native Tianjin government-procurement listing/search route, pagination and lifecycle category coverage",
-    "capture at least one real 2026 medical native-detail fixture from tjgp.cz.tj.gov.cn and compare it to CCGP mirror evidence",
-    "decide whether Tianjin public-resource tender/amendment/termination columns warrant full implementation or result-only fallback",
-    "expand to at least 20 VERIFIED Tianjin opportunity fixtures, then 50",
+    "implement deterministic evidence-backed cross-stage bridge candidates without automatic LLM merge",
     "execute all deterministic tests once GitHub runner infrastructure is restored",
-    "run Agnes 2.5 Flash benchmark after deterministic execution evidence is available",
-    "build H5/Web demo only after fact API fields stabilize"
+    "run the Agnes 2.5 Flash benchmark only after deterministic execution evidence exists and AGNES_API_KEY is supplied via environment",
+    "stabilize Fact API and customer-profile contracts before H5/Web demo"
   ]
 }
