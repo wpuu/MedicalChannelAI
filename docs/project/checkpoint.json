@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-28T14:15:00+08:00",
+  "as_of": "2026-08-28T14:35:00+08:00",
   "phase": "M1_FACT_PIPELINE",
   "production_ready": false,
   "merge_approved": false,
@@ -32,6 +32,7 @@
   "deterministic_test_modules": [
     "test_adapters",
     "test_attachments",
+    "test_attachment_parser",
     "test_award_items",
     "test_first_central_adapter",
     "test_intent_adapter",
@@ -53,7 +54,18 @@
       "tjmugh_procurement",
       "tj_first_central_hospital_procurement"
     ],
+    "all_runtime_sources_have_explicit_provenance_role": true,
     "latency_policy": "Only compare source publication latency when both source-native timestamps are MINUTE precision; otherwise LATENCY_UNKNOWN."
+  },
+  "attachment_parsing": {
+    "downloadable_extensions": [".pdf", ".doc", ".docx", ".xls", ".xlsx"],
+    "locally_parseable_extensions": [".docx", ".xlsx"],
+    "parser_version": "ooxml-stdlib-v0.1",
+    "pdf_status": "DOWNLOAD_ONLY_PARSER_PENDING",
+    "legacy_office_status": "DOWNLOAD_ONLY_PARSER_PENDING",
+    "archives": "DISCOVERY_ONLY_NO_AUTO_EXTRACT",
+    "xlsx_formula_policy": "SKIP_FORMULA_CACHED_VALUES",
+    "evidence_locators": ["DOCX_PARAGRAPH", "XLSX_RANGE"]
   },
   "migration": {
     "source_repository": "wpuu/Upan",
@@ -72,6 +84,9 @@
     "Same-day conflicting lifecycle events with insufficient timestamp precision must be CONFLICTED instead of guessed into an order.",
     "Exact project_number links PRIMARY and mirror evidence to one canonical opportunity.",
     "Same-state same-day evidence prefers PRIMARY_SOURCE when exact chronology is unavailable.",
+    "Every runtime source must explicitly declare provenance_role.",
+    "Attachment bytes must match snapshot SHA-256 before parsing.",
+    "XLSX formula cached values are not deterministic facts in v0.1.",
     "Award item facts require original official evidence section.",
     "Customer profile missing conditions block high-confidence personalized recommendation.",
     "Coverage remains PARTIAL while any required P0 source is only PARTIAL_IMPLEMENTATION."
@@ -99,8 +114,9 @@
   "next": [
     "verify the 2026 native Tianjin government-procurement listing/search route, pagination and lifecycle category coverage",
     "capture at least one real 2026 medical native-detail fixture from tjgp.cz.tj.gov.cn and compare it to CCGP mirror evidence",
+    "capture real DOCX/XLSX procurement attachments and validate ooxml-stdlib-v0.1 against them",
+    "select a bounded PDF parser and add page-level evidence locators before setting PDF parser_eligible=true",
     "decide whether Tianjin public-resource tender/amendment/termination columns warrant full implementation or result-only fallback",
-    "add real attachment fixtures and PDF/DOCX/XLSX parsers",
     "expand to at least 20 VERIFIED Tianjin fixtures, then 50",
     "execute all deterministic tests once GitHub runner infrastructure is restored",
     "run Agnes 2.5 Flash benchmark after deterministic execution evidence is available",
