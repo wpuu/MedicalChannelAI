@@ -329,8 +329,22 @@ def deterministic_id(prefix: str, seed: str) -> str:
     return f"{prefix}_{uuid.uuid5(ID_NAMESPACE, seed)}"
 
 
+def canonical_identity_seed(notice: ParsedNotice) -> tuple[str, float]:
+    """Return a fail-closed project identity seed and link confidence.
+
+    Exact official project numbers may link evidence across sources. Without an
+    official project number, records remain source-local by URL. Cross-URL or
+    cross-stage linking must be performed later by an explicit evidence-backed
+    bridge instead of buyer/title similarity.
+    """
+
+    if notice.project_number:
+        return f"project_number|{notice.project_number}", 1.0
+    return f"source_record|{notice.source_id}|{notice.source_url}", 1.0
+
+
 def build_event_and_facts(notice: ParsedNotice, snapshot: Snapshot) -> tuple[dict, list[dict]]:
-    project_seed = notice.project_number or f"{notice.buyer_name}|{notice.project_name}"
+    project_seed, link_confidence = canonical_identity_seed(notice)
     canonical_project_id = deterministic_id("mprj", f"project|{project_seed}")
     event_id = deterministic_id(
         "evt", f"event|{notice.source_url}|{notice.published_at}|{notice.notice_type}"
@@ -355,7 +369,7 @@ def build_event_and_facts(notice: ParsedNotice, snapshot: Snapshot) -> tuple[dic
         "content_sha256": snapshot.sha256,
         "attachment_snapshot_ids": [],
         "supersedes_event_ids": [],
-        "link_confidence": 1.0 if notice.project_number else None,
+        "link_confidence": link_confidence,
         "verification_status": verification_status,
         "verification_reason": notice.verification_reason,
     }
