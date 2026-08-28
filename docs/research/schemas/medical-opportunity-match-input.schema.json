@@ -19,6 +19,7 @@
     "product_labels",
     "product_label_provenance",
     "product_label_validation_status",
+    "product_classifier_id",
     "is_rental_project"
   ],
   "properties": {
@@ -69,6 +70,7 @@
     "product_label_validation_status": {
       "enum": ["VALIDATED", "BENCHMARK_PENDING", "UNVERIFIED"]
     },
+    "product_classifier_id": {"type": "string", "minLength": 1, "maxLength": 160},
     "is_rental_project": {"type": ["boolean", "null"]}
   }
 }
