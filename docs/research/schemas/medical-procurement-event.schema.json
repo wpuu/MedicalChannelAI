@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/medical-procurement-event.schema.json",
+  "title": "Medical Procurement Event v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "canonical_project_id",
+    "event_type",
+    "source_id",
+    "source_url",
+    "published_at",
+    "fetched_at",
+    "raw_snapshot_id",
+    "content_sha256",
+    "verification_status"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "event_id": {"type": "string", "pattern": "^evt_[0-9a-fA-F-]{36}$"},
+    "canonical_project_id": {"type": "string", "pattern": "^mprj_[0-9a-fA-F-]{36}$"},
+    "event_type": {
+      "enum": ["MARKET_RESEARCH", "PROCUREMENT_INTENT", "TENDER", "AMENDMENT", "SUSPENSION", "TERMINATION", "AWARD", "CONTRACT", "INTERNAL_SELECTION", "OTHER"]
+    },
+    "source_id": {"type": "string", "pattern": "^[a-z0-9_]{3,80}$"},
+    "source_url": {"type": "string", "format": "uri", "pattern": "^https?://"},
+    "source_authority": {
+      "enum": ["OFFICIAL_GOVERNMENT", "OFFICIAL_HOSPITAL", "OFFICIAL_INSTITUTION", "DISCOVERY_ONLY_THIRD_PARTY"]
+    },
+    "project_number": {"type": ["string", "null"], "maxLength": 160},
+    "published_at": {"type": "string", "format": "date-time"},
+    "fetched_at": {"type": "string", "format": "date-time"},
+    "effective_at": {"type": ["string", "null"], "format": "date-time"},
+    "raw_snapshot_id": {"type": "string", "pattern": "^snap_[0-9a-fA-F-]{36}$"},
+    "content_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+    "attachment_snapshot_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^snap_[0-9a-fA-F-]{36}$"},
+      "uniqueItems": true,
+      "default": []
+    },
+    "supersedes_event_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^evt_[0-9a-fA-F-]{36}$"},
+      "uniqueItems": true,
+      "default": []
+    },
+    "link_confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "verification_status": {
+      "enum": ["DISCOVERED", "FETCHED", "PARSED", "UNVERIFIED", "VERIFIED", "CONFLICTED", "SUPERSEDED", "RETRACTED", "SOURCE_UNAVAILABLE"]
+    },
+    "verification_reason": {"type": ["string", "null"], "maxLength": 1000}
+  }
+}
