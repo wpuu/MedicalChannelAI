@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-28T12:35:00+08:00",
+  "as_of": "2026-08-28T14:15:00+08:00",
   "phase": "M1_FACT_PIPELINE",
   "production_ready": false,
   "merge_approved": false,
@@ -10,16 +10,25 @@
   "coverage_status": "PARTIAL",
   "exhaustiveness_claim": "NOT_EXHAUSTIVE",
   "runtime_p0_sources": [
+    "tj_government_procurement",
+    "ccgp_local_notices",
+    "ccgp_procurement_intent",
+    "tjmugh_procurement",
+    "tj_first_central_hospital_procurement",
+    "tj_public_resource_exchange"
+  ],
+  "required_p0_implemented": [
     "ccgp_local_notices",
     "ccgp_procurement_intent",
     "tjmugh_procurement",
     "tj_first_central_hospital_procurement"
   ],
-  "required_p0_not_implemented": [
-    "tj_public_resource_exchange",
-    "tj_government_procurement"
+  "required_p0_partial_implementation": [
+    "tj_government_procurement",
+    "tj_public_resource_exchange"
   ],
-  "verified_regression_fixture_count": 7,
+  "required_p0_not_implemented": [],
+  "verified_regression_fixture_count": 8,
   "deterministic_test_modules": [
     "test_adapters",
     "test_attachments",
@@ -28,8 +37,24 @@
     "test_intent_adapter",
     "test_lifecycle",
     "test_registry",
-    "test_source_health"
+    "test_source_health",
+    "test_tianjin_public_resource_adapter",
+    "test_source_precedence",
+    "test_tianjin_government_procurement_adapter"
   ],
+  "source_topology": {
+    "machine_readable_file": "tools/medical_pilot/source_topology.tianjin.v0.1.json",
+    "government_procurement_primary_source": "tj_government_procurement",
+    "government_procurement_official_mirrors": [
+      "ccgp_local_notices",
+      "tj_public_resource_exchange"
+    ],
+    "hospital_primary_sources": [
+      "tjmugh_procurement",
+      "tj_first_central_hospital_procurement"
+    ],
+    "latency_policy": "Only compare source publication latency when both source-native timestamps are MINUTE precision; otherwise LATENCY_UNKNOWN."
+  },
   "migration": {
     "source_repository": "wpuu/Upan",
     "source_branch": "research/medical-tianjin-pilot-v0.1",
@@ -40,12 +65,16 @@
   "critical_rules": [
     "OFFICIAL_PUBLIC_FACT must never be model-generated.",
     "Lifecycle type comes from official notice title, not project name.",
-    "Verified termination supersedes older verified tender for the same canonical project.",
+    "Verified termination supersedes older verified tender for the same canonical project when chronology is source-evidenced.",
     "Unverified newer events cannot override verified lifecycle state.",
     "Month-only procurement intent dates must preserve month precision.",
+    "DAY-only publication dates must not be treated as true midnight timestamps.",
+    "Same-day conflicting lifecycle events with insufficient timestamp precision must be CONFLICTED instead of guessed into an order.",
+    "Exact project_number links PRIMARY and mirror evidence to one canonical opportunity.",
+    "Same-state same-day evidence prefers PRIMARY_SOURCE when exact chronology is unavailable.",
     "Award item facts require original official evidence section.",
     "Customer profile missing conditions block high-confidence personalized recommendation.",
-    "Coverage must remain PARTIAL while required P0 sources are not implemented."
+    "Coverage remains PARTIAL while any required P0 source is only PARTIAL_IMPLEMENTATION."
   ],
   "agnes_2_5_flash": {
     "status": "GO_FOR_BENCHMARK",
@@ -53,6 +82,7 @@
   },
   "ci_status": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
+    "tracking_issue": 2,
     "repository": "wpuu/MedicalChannelAI",
     "run_id": 33141661653,
     "job_id": 98753623817,
@@ -67,11 +97,12 @@
     "interpretation": "GitHub Actions did not allocate a runner and no test step executed. This is neither a deterministic test PASS nor an assertion FAIL."
   },
   "next": [
-    "diagnose GitHub Actions runner/account infrastructure separately from code correctness",
-    "implement tj_public_resource_exchange adapter",
-    "study tj_government_procurement vs CCGP duplicate/timing differences",
-    "add real attachment fixtures and document parsers",
-    "expand to at least 50 VERIFIED Tianjin fixtures",
+    "verify the 2026 native Tianjin government-procurement listing/search route, pagination and lifecycle category coverage",
+    "capture at least one real 2026 medical native-detail fixture from tjgp.cz.tj.gov.cn and compare it to CCGP mirror evidence",
+    "decide whether Tianjin public-resource tender/amendment/termination columns warrant full implementation or result-only fallback",
+    "add real attachment fixtures and PDF/DOCX/XLSX parsers",
+    "expand to at least 20 VERIFIED Tianjin fixtures, then 50",
+    "execute all deterministic tests once GitHub runner infrastructure is restored",
     "run Agnes 2.5 Flash benchmark after deterministic execution evidence is available",
     "build H5/Web demo only after fact API fields stabilize"
   ]
