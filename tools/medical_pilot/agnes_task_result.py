@@ -12,10 +12,7 @@ TERMINAL_STATUSES = {"READY", "MODEL_OUTPUT_REJECTED"}
 
 
 class AgnesTaskResultStore(Protocol):
-    """Persistent idempotency store for terminal Agnes task results."""
-
     def get(self, task_id: str) -> dict[str, Any] | None: ...
-
     def put_if_absent(self, task_id: str, result: dict[str, Any]) -> bool: ...
 
 
@@ -25,23 +22,21 @@ class MemoryAgnesTaskResultStore:
 
     def get(self, task_id: str) -> dict[str, Any] | None:
         row = self._rows.get(task_id)
-        return copy.deepcopy(row) if row is not None else None
+        if row is None:
+            return None
+        validate_terminal_result(task_id, row)
+        return copy.deepcopy(row)
 
     def put_if_absent(self, task_id: str, result: dict[str, Any]) -> bool:
+        validate_terminal_result(task_id, result)
         if task_id in self._rows:
             return False
-        validate_terminal_result(task_id, result)
         self._rows[task_id] = copy.deepcopy(result)
         return True
 
 
 class SQLiteAgnesTaskResultStore:
-    """Single-host persistent terminal-result store.
-
-    The table provides process-safe task-id uniqueness when all workers share one DB
-    file. Cross-server deployments require a shared database with equivalent unique
-    insert semantics; this is intentionally separate from the global rate-limit store.
-    """
+    """Single-host persistent terminal-result store with unique task identity."""
 
     def __init__(self, path: Path) -> None:
         self.path = Path(path)
@@ -60,11 +55,12 @@ class SQLiteAgnesTaskResultStore:
 
     def get(self, task_id: str) -> dict[str, Any] | None:
         with self._connect() as conn:
-            row = conn.execute(
-                "SELECT payload FROM agnes_task_results WHERE task_id=?",
-                (task_id,),
-            ).fetchone()
-        return json.loads(row[0]) if row else None
+            row = conn.execute("SELECT payload FROM agnes_task_results WHERE task_id=?", (task_id,)).fetchone()
+        if row is None:
+            return None
+        result = json.loads(row[0])
+        validate_terminal_result(task_id, result)
+        return result
 
     def put_if_absent(self, task_id: str, result: dict[str, Any]) -> bool:
         validate_terminal_result(task_id, result)
@@ -91,6 +87,10 @@ def validate_terminal_result(task_id: str, result: dict[str, Any]) -> None:
     model_input_sha256 = result.get("model_input_sha256")
     if not isinstance(model_input_sha256, str) or len(model_input_sha256) != 64 or any(ch not in "0123456789abcdef" for ch in model_input_sha256):
         raise ValueError("terminal result model_input_sha256 must be lowercase sha256")
+    if not task_id.endswith("|" + model_input_sha256[:24]):
+        raise ValueError("terminal result task_id is not bound to model_input_sha256")
+    if f"|{result['opportunity_id']}|" not in task_id:
+        raise ValueError("terminal result task_id is not bound to opportunity_id")
     completed_at = result.get("completed_at")
     if not isinstance(completed_at, str):
         raise ValueError("terminal result completed_at is required")
