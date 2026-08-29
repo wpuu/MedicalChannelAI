@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T13:00:00+08:00",
+  "as_of": "2026-08-29T16:30:00+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY",
   "production_ready": false,
   "merge_approved": false,
@@ -13,8 +13,8 @@
   "runtime_p0_partial_count": 3,
   "verified_opportunity_regression_fixture_count": 50,
   "verified_institution_evidence_fixture_count": 15,
-  "schema_contract_count": 28,
-  "deterministic_test_module_count": 45,
+  "schema_contract_count": 30,
+  "deterministic_test_module_count": 48,
   "real_attachment_binary_capture_count": 0,
   "real_medical_attachment_binary_capture_count": 0,
   "first_exact_medical_attachment_url": {
@@ -25,7 +25,7 @@
     "download_authorized": false
   },
   "discovery_cadence": {
-    "status": "IMPLEMENTED_V0_1_POLICY_NOT_YET_PERSISTENT_SCHEDULER_WIRED",
+    "status": "IMPLEMENTED_V0_1_POLICY_NOT_YET_PERSISTENT_SOURCE_SCHEDULER_WIRED",
     "timezone": "Asia/Shanghai",
     "fast_procurement_weekday_business_minutes": 10,
     "early_signal_weekday_business_minutes": 15,
@@ -56,36 +56,48 @@
     "provider_queue_rule": "ONLY_SEND_NOW_CAN_QUEUE_PROVIDER; SCHEDULED_STAYS_OUTSIDE_PROVIDER_UNTIL_SCHEDULER_REVALIDATION"
   },
   "agnes_dispatch": {
-    "status": "IMPLEMENTED_V0_1_PLANNER_GLOBAL_LEASE_STORAGE_PENDING",
+    "status": "IMPLEMENTED_V0_1_PERSISTENT_LEASE_STATE_MACHINE_AND_SCHEDULER_BOUNDARY",
     "provider": "AGNES",
     "model": "agnes-2.5-flash",
     "max_request_starts_per_minute": 12,
     "minimum_start_spacing_seconds": 5,
     "max_in_flight": 2,
     "stable_extra_jitter_seconds": 2,
-    "requires_persistent_global_lease": true,
-    "benchmark_default_rpm": 12,
     "daily_top5_routed_through_dispatch": true,
+    "provider_start_requires_claimed_global_lease": true,
+    "lease_prefix": "agl_",
+    "lease_ttl_seconds_default": 120,
+    "sqlite_reference_store": "IMPLEMENTED_SAME_HOST_MULTI_PROCESS_ONLY",
+    "cross_server_shared_atomic_store": "PENDING_ADAPTER_SELECTION",
     "dispatch_does_not_override_model_admission": true
+  },
+  "tjgpc_native_discovery": {
+    "home_route_web_index1_corroborated": true,
+    "web_info_list_route_family_confirmed": true,
+    "w008_purpose": "ONLINE_RESPONSE_HELP",
+    "w008_procurement_discovery_allowed": false,
+    "public_tender_list_class_id": "UNRESOLVED",
+    "procurement_result_list_class_id": "UNRESOLVED",
+    "pagination": "UNRESOLVED"
   },
   "agnes": {"status": "GO_FOR_BENCHMARK", "case_count": 28, "executed": false},
   "ci": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
-    "latest_checked_head_sha": "92f96001d920819c2791df219ef02302a80c0935",
-    "latest_run_id": 33234838405,
-    "latest_job_id": 99053874768,
+    "latest_checked_code_head_sha": "10361c667bf3ab65be5b4b67c19cee75272ebfbb",
+    "latest_run_id": 33243120848,
+    "latest_job_id": 99075757285,
     "latest_known_runner_id": 0,
     "latest_known_steps_count": 0,
     "conclusion": "failure",
     "interpretation": "No Python step executed; neither PASS nor assertion failure."
   },
   "next": [
-    "wire Agnes persistent global lease/token bucket into scheduler",
+    "implement a shared atomic AgnesLeaseStore adapter before horizontal multi-server model workers; Pilot may use one dispatcher plus SQLite",
     "capture real bytes from exact downEnId medical attachment URL",
-    "verify tjgpc native list/pagination and Tianjin finance native discovery",
-    "execute 45 deterministic tests when runner returns",
-    "tune discovery and Agnes dispatch from Latency Ledger and queue wait evidence",
-    "run Agnes benchmark after deterministic evidence",
+    "verify real tjgpc procurement list classId/pagination and Tianjin finance native discovery; do not reuse W008",
+    "execute 48 deterministic tests when runner returns",
+    "tune discovery cadence and Agnes dispatch using Latency Ledger and queue wait evidence",
+    "run Agnes benchmark after deterministic execution evidence",
     "frontend after backend API stabilization"
   ]
 }
