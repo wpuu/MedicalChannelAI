@@ -6,6 +6,10 @@ from typing import Any
 from .collector_core import SCHEMA_VERSION
 
 
+DEFAULT_MODEL_FACT_LIMIT = 24
+DEFAULT_MODEL_FACT_CHAR_LIMIT = 12000
+
+
 @dataclass(frozen=True)
 class QueryBudgets:
     max_db_candidates: int
@@ -30,8 +34,8 @@ class QueryBudgets:
         }
 
 
-INTERACTIVE_NORMAL = QueryBudgets(500, 200, 30, 10, 5, 0, 24, 12000)
-INTERACTIVE_WIDE = QueryBudgets(500, 200, 24, 8, 5, 0, 24, 12000)
+INTERACTIVE_NORMAL = QueryBudgets(500, 200, 30, 10, 5, 0, DEFAULT_MODEL_FACT_LIMIT, DEFAULT_MODEL_FACT_CHAR_LIMIT)
+INTERACTIVE_WIDE = QueryBudgets(500, 200, 24, 8, 5, 0, DEFAULT_MODEL_FACT_LIMIT, DEFAULT_MODEL_FACT_CHAR_LIMIT)
 INTERACTIVE_VERY_WIDE = QueryBudgets(500, 150, 15, 5, 5, 0, 20, 10000)
 DEEP_DIVE = QueryBudgets(20, 10, 1, 1, 1, 3, 32, 16000)
 SCHEDULED_REFRESH = QueryBudgets(5000, 0, 0, 0, 0, 250, 1, 1)
@@ -62,8 +66,8 @@ def _taxonomy_ids(profile: dict[str, Any]) -> set[str]:
 
 
 def _scope_class(region_count: int, taxonomy_count: int) -> tuple[str, int]:
-    # This is a width/risk indicator only. Runtime must NOT generate one live crawl
-    # for every region x product cell. Public data acquisition is source-driven and shared.
+    # Width/risk indicator only. Runtime must NOT generate one live crawl for
+    # every region x product cell. Public-data acquisition is source-driven and shared.
     cells = max(1, region_count) * max(1, taxonomy_count)
     if cells <= 24:
         return "NORMAL", cells
