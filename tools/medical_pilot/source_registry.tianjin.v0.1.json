@@ -2,13 +2,16 @@
   {
     "schema_version": "0.1",
     "source_id": "tj_government_procurement",
-    "source_name": "天津市政府采购网-原始详情页",
+    "source_name": "天津市政府采购网-官方原始详情页",
     "canonical_base_url": "https://tjgp.cz.tj.gov.cn/",
     "authority_type": "OFFICIAL_GOVERNMENT",
     "source_type": "GOVERNMENT_PROCUREMENT",
     "provenance_role": "PRIMARY_SOURCE",
     "geographic_scope": {"country": "CN", "province": "天津市", "city": "天津市", "district": null},
-    "allowed_url_patterns": ["^https?://tjgp\\.cz\\.tj\\.gov\\.cn/portal/documentView\\.do\\?method=view&id=[0-9]+&ver=2(?:&.*)?$"],
+    "allowed_url_patterns": [
+      "^https?://tjgp\\.cz\\.tj\\.gov\\.cn/portal/documentView\\.do\\?method=view&id=[0-9]+&ver=2(?:&.*)?$",
+      "^https?://(?:www\\.)?ccgp-tianjin\\.gov\\.cn/portal/documentView\\.do\\?method=view&id=[0-9]+&ver=2(?:&.*)?$"
+    ],
     "notice_types": ["TENDER", "AMENDMENT", "SUSPENSION", "TERMINATION", "AWARD", "CONTRACT"],
     "collector_mode": "HTTP_STATIC",
     "requires_javascript": false,
