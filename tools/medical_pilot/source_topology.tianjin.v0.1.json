@@ -1,20 +1,37 @@
 {
   "schema_version": "0.1",
-  "as_of": "2026-08-29T10:20:00+08:00",
+  "as_of": "2026-08-29T10:40:00+08:00",
   "scope": "Tianjin government-procurement and hospital early-signal public sources",
   "sources": [
     {
       "source_id": "tj_government_procurement",
       "provenance_role": "PRIMARY_SOURCE",
       "canonical_host": "tjgp.cz.tj.gov.cn",
+      "recognized_official_hosts": [
+        "tjgp.cz.tj.gov.cn",
+        "ccgp-tianjin.gov.cn",
+        "www.ccgp-tianjin.gov.cn"
+      ],
+      "host_interpretation": "OFFICIAL_HOSTS_OR_ALIASES_WITHIN_ONE_PRIMARY_SOURCE_NOT_SEPARATE_SOURCES",
       "implementation_status": "PARTIAL_IMPLEMENTATION",
-      "implemented_scope": "direct detail route /portal/documentView.do?method=view&id=<digits>&ver=2 and evidence-backed parsing of supplied detail pages",
+      "implemented_scope": "strictly allowlisted direct detail route /portal/documentView.do with method=view, numeric id and ver=2; evidence-backed parsing of supplied detail pages",
       "current_validation": {
-        "2026_host_reference_confirmed": true,
-        "detail_route_pattern_confirmed_by_official_2025_references": true,
+        "2026_tjgp_host_reference_confirmed": true,
+        "2026_ccgp_tianjin_content_reference_confirmed": true,
+        "detail_route_pattern_confirmed_by_official_2025_2026_references": true,
+        "runtime_accepts_both_official_hosts": true,
+        "runtime_query_parameter_order_independent": true,
         "2026_native_detail_fetch_confirmed": false,
         "2026_native_listing_or_search_confirmed": false,
-        "direct_attachment_href_confirmed": false
+        "direct_attachment_href_confirmed": false,
+        "execution_environment_direct_dns_test_succeeded": false
+      },
+      "runtime_url_policy": {
+        "allowed_schemes": ["http", "https"],
+        "exact_path": "/portal/documentView.do",
+        "required_exact_query": {"method": "view", "id": "DIGITS_ONLY", "ver": "2"},
+        "extra_query_parameters_allowed": false,
+        "duplicate_query_parameters_allowed": false
       },
       "not_yet_verified": [
         "2026 native listing/search route",
@@ -22,16 +39,20 @@
         "all current lifecycle category routes",
         "2026 direct primary detail fetch from crawler runtime",
         "source-native direct attachment href generation/download route",
-        "source-native publication timestamps for latency measurement"
+        "source-native publication timestamps for latency measurement",
+        "whether one official host is canonical/preferred over the other for public content"
       ],
-      "authority_basis": "天津市财政局指定的天津市政府采购信息发布媒体/中国政府采购网地方分网",
+      "authority_basis": "天津市财政局指定的信息发布体系；2026天津高校官方采购通知直接引用ccgp-tianjin.gov.cn原文，2026采购公告仍引用tjgp.cz.tj.gov.cn业务入口，故v0.1将二者作为同一PRIMARY Source的官方host/alias处理。",
       "evidence_urls": [
         "https://cz.tj.gov.cn/zwgk_53713/zcwjx/zcwjst/202307/t20230728_6364181.html",
+        "https://zbb.tjcu.edu.cn/info/1003/4302.htm",
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260821_27184575.htm",
         "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194418.htm",
         "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219615.htm",
         "https://www.tjbpi.com/xxgk/gg__cgzb/content_31346",
         "https://www.tjftz.gov.cn/contents/6259/370826.html"
       ],
+      "execution_environment_note": "2026-08-29 direct Python network probe in the current execution container failed DNS resolution for both official hosts; this is recorded as environment evidence only and is not interpreted as source outage.",
       "timing_policy": "PRIMARY_WHEN_NATIVE_NOTICE_CAN_BE_FETCHED",
       "latency_status": "UNKNOWN_UNTIL_NATIVE_DETAIL_TIMESTAMPS_ARE_CAPTURED"
     },
