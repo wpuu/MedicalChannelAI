@@ -3,7 +3,8 @@ from __future__ import annotations
 import hashlib
 import unittest
 
-from tools.medical_pilot.collector_core import Snapshot
+from tools.medical_pilot.attachments import BoundedAttachmentFetcher
+from tools.medical_pilot.collector_core import FetchError, Snapshot
 from tools.medical_pilot.registry import adapter_for_source, resolve_source
 from tools.medical_pilot.tianjin_procurement_center_adapter import TianjinProcurementCenterAdapter
 
@@ -28,6 +29,12 @@ CENTER_STRUCTURE_HTML = """
 </body>
 </html>
 """
+
+OBSERVED_ATTACHMENT_WRAPPER = (
+    "https://tjgpc.zwfwb.tj.gov.cn/webInfo/downloadFile.do?"
+    "fileName=%E6%8B%9B%E6%A0%87%E6%96%87%E4%BB%B6%EF%BC%88TGPC-2025-D-0098%EF%BC%89.pdf&"
+    "fileUrl=http%3A%2F%2F218.67.246.33%3A7001%2FZTBS%2Ffileupload%2Fgw%2F%2Fo_1inlbuqk11hlpbf31e94eiu10nrb.pdf"
+)
 
 
 def snapshot(url: str, html: str = CENTER_STRUCTURE_HTML) -> Snapshot:
@@ -90,6 +97,33 @@ class TianjinProcurementCenterAdapterTests(unittest.TestCase):
         self.assertEqual(parsed.buyer_name, "")
         self.assertFalse(parsed.eligible_for_verified)
         self.assertIn("buyer_name", parsed.verification_reason or "")
+
+    def test_observed_official_attachment_wrapper_is_discovered_but_not_download_authorized(self) -> None:
+        adapter = TianjinProcurementCenterAdapter()
+        self.assertTrue(adapter.is_verified_attachment_wrapper_url(OBSERVED_ATTACHMENT_WRAPPER))
+        html = f'<a href="{OBSERVED_ATTACHMENT_WRAPPER.replace("&", "&amp;")}">招标文件（TGPC-2025-D-0098）.pdf</a>'
+        candidates = adapter.discover_attachment_candidates(html, "https://tjgpc.zwfwb.tj.gov.cn/")
+        self.assertEqual(len(candidates), 1)
+        candidate = candidates[0]
+        self.assertEqual(candidate.filename, "招标文件（TGPC-2025-D-0098）.pdf")
+        self.assertEqual(candidate.extension, ".pdf")
+        self.assertFalse(candidate.download_authorized)
+        self.assertEqual(candidate.handling_policy, "DISCOVER_ONLY_OFFICIAL_WRAPPER_PENDING_BYTES_VALIDATION")
+        with self.assertRaises(FetchError) as context:
+            BoundedAttachmentFetcher({"tjgpc.zwfwb.tj.gov.cn"}).fetch(candidate)
+        self.assertEqual(context.exception.code, "ATTACHMENT_DOWNLOAD_NOT_AUTHORIZED")
+
+    def test_attachment_wrapper_rejects_arbitrary_nested_url_and_wrong_origin_shape(self) -> None:
+        adapter = TianjinProcurementCenterAdapter()
+        invalid = (
+            "https://tjgpc.zwfwb.tj.gov.cn/webInfo/downloadFile.do?fileName=a.pdf&fileUrl=https%3A%2F%2Fevil.example%2Fa.pdf",
+            "https://tjgpc.zwfwb.tj.gov.cn/webInfo/downloadFile.do?fileName=a.pdf&fileUrl=http%3A%2F%2F127.0.0.1%3A7001%2FZTBS%2Ffileupload%2Fgw%2Fa.pdf",
+            "https://tjgpc.zwfwb.tj.gov.cn/webInfo/downloadFile.do?fileName=a.pdf&fileUrl=http%3A%2F%2F218.67.246.33%3A7001%2Fother%2Fa.pdf",
+            "https://tjgpc.zwfwb.tj.gov.cn/webInfo/downloadFile.do?fileName=a.exe&fileUrl=http%3A%2F%2F218.67.246.33%3A7001%2FZTBS%2Ffileupload%2Fgw%2Fa.exe",
+        )
+        for url in invalid:
+            with self.subTest(url=url):
+                self.assertFalse(adapter.is_verified_attachment_wrapper_url(url))
 
 
 if __name__ == "__main__":
