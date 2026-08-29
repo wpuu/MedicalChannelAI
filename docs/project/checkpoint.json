@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T11:12:00+08:00",
+  "as_of": "2026-08-29T11:15:00+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY",
   "production_ready": false,
   "merge_approved": false,
@@ -23,47 +23,14 @@
     "status": "IMPLEMENTED_V0_1",
     "profile_hard_cap_policy": "NO_SMALL_HARD_CAP_FOR_REAL_BUSINESS_SCOPE",
     "acquisition_strategy": "SHARED_FACT_INDEX_NOT_PER_PROFILE_CRAWL",
-    "interactive_default": {
-      "max_db_candidates": 500,
-      "max_deterministic_match_candidates": 200,
-      "max_deep_enrichment_candidates": 30,
-      "max_model_candidates": 10,
-      "max_final_action_cards": 5,
-      "max_live_source_requests": 0,
-      "max_model_facts_per_opportunity": 24,
-      "max_model_fact_chars_per_opportunity": 12000
-    }
+    "interactive_default": {"max_db_candidates": 500, "max_deterministic_match_candidates": 200, "max_deep_enrichment_candidates": 30, "max_model_candidates": 10, "max_final_action_cards": 5, "max_live_source_requests": 0, "max_model_facts_per_opportunity": 24, "max_model_fact_chars_per_opportunity": 12000}
   },
-  "material_event": {
-    "status": "IMPLEMENTED_V0_1",
-    "requires_verified_opportunity": true,
-    "requires_verified_non_model_official_facts": true,
-    "change_fields_must_be_fact_grounded": true,
-    "publication_clock_in_identity": false,
-    "persisted_hash_revalidation_before_subscription": true
-  },
-  "continuous_subscription": {
-    "status": "IMPLEMENTED_V0_1",
-    "prefilter_is_final_match": false,
-    "candidate_only_immediate_alert_allowed": false,
-    "max_profiles_per_batch": 1000,
-    "batch_resume_cursor": "next_offset",
-    "terminal_followup_suppression": ["WON", "LOST", "NOT_FIT", "ARCHIVED"]
-  },
-  "notification_delivery": {
-    "status": "IMPLEMENTED_V0_1_NO_PROVIDER_INTEGRATION",
-    "channels": ["WEB_INBOX", "WECHAT_MINI_PROGRAM", "MOBILE_PUSH"],
-    "states": ["QUEUED", "SENT", "DELIVERED", "FAILED", "SUPPRESSED"],
-    "default_max_attempts": 3,
-    "provider_api_integration_status": "NOT_IMPLEMENTED"
-  },
+  "material_event": {"status": "IMPLEMENTED_V0_1", "requires_verified_opportunity": true, "requires_verified_non_model_official_facts": true, "change_fields_must_be_fact_grounded": true, "publication_clock_in_identity": false, "persisted_hash_revalidation_before_subscription": true},
+  "continuous_subscription": {"status": "IMPLEMENTED_V0_1", "prefilter_is_final_match": false, "candidate_only_immediate_alert_allowed": false, "max_profiles_per_batch": 1000, "batch_resume_cursor": "next_offset", "terminal_followup_suppression": ["WON", "LOST", "NOT_FIT", "ARCHIVED"]},
+  "notification_delivery": {"status": "IMPLEMENTED_V0_1_NO_PROVIDER_INTEGRATION", "channels": ["WEB_INBOX", "WECHAT_MINI_PROGRAM", "MOBILE_PUSH"], "states": ["QUEUED", "SENT", "DELIVERED", "FAILED", "SUPPRESSED"], "default_max_attempts": 3, "provider_api_integration_status": "NOT_IMPLEMENTED"},
   "attachment_security": {
     "discovery_and_download_authorization_separated": true,
-    "magic_validation": {
-      "pdf": "%PDF-",
-      "docx_xlsx": "ZIP",
-      "doc_xls": "OLE"
-    },
+    "magic_validation": {"pdf": "%PDF-", "docx_xlsx": "ZIP", "doc_xls": "OLE"},
     "tjgpc_wrapper_discovery": "IMPLEMENTED_DISCOVERY_ONLY",
     "tjgpc_download_authorized": false,
     "tjgpc_nested_fileurl_direct_fetch_allowed": false,
@@ -98,44 +65,34 @@
     "native_pagination_confirmed": false,
     "all_procurement_methods_confirmed": false
   },
-  "latency_ledger": {
-    "status": "IMPLEMENTED_V0_1",
-    "day_precision_publication_latency_allowed": false,
-    "timezone_aware_required": true,
-    "monotonic_stage_order_required": true
-  },
-  "taxonomy_corpus_audit": {
-    "corpus_case_count": 50,
-    "execution_status": "NOT_EXECUTED_RUNNER_BLOCKED",
-    "coverage_rate": null
-  },
-  "agnes_2_5_flash": {
-    "status": "GO_FOR_BENCHMARK",
-    "benchmark_case_count": 28,
-    "execution_status": "NOT_EXECUTED",
-    "can_drive_taxonomy_matching": false
-  },
+  "latency_ledger": {"status": "IMPLEMENTED_V0_1", "day_precision_publication_latency_allowed": false, "timezone_aware_required": true, "monotonic_stage_order_required": true},
+  "taxonomy_corpus_audit": {"corpus_case_count": 50, "execution_status": "NOT_EXECUTED_RUNNER_BLOCKED", "coverage_rate": null},
+  "agnes_2_5_flash": {"status": "GO_FOR_BENCHMARK", "benchmark_case_count": 28, "execution_status": "NOT_EXECUTED", "can_drive_taxonomy_matching": false},
   "ci_status": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
     "tracking_issue": 2,
-    "interpretation": "No Python compile or unittest execution evidence yet; neither PASS nor assertion FAIL."
+    "latest_checked_head_sha": "63e56b477da00138bac1f4a03c9e2c471d8531a7",
+    "latest_checked_run_id": 33230101416,
+    "latest_checked_job_id": 99041292283,
+    "evidence": {"runner_id": 0, "runner_name": "", "steps_count": 0, "conclusion": "failure"},
+    "interpretation": "No Python compile or unittest step executed; neither PASS nor assertion FAIL."
   },
   "critical_rules": [
     "OFFICIAL_PUBLIC_FACT must never be model-generated.",
     "Only VERIFIED grounded semantic changes may emit subscription material events.",
     "Broad customer profiles are allowed; execution is bounded instead.",
-    "Subscription prefilter is performance-only and never replaces full Match Gate.",
+    "Subscription prefilter never replaces full Match Gate.",
     "Tianjin finance official host aliases are one PRIMARY source identity.",
-    "Tianjin procurement center is a supplemental PRIMARY subset and must not replace the citywide finance source.",
-    "An indexed official attachment wrapper is not equivalent to captured bytes.",
+    "Tianjin procurement center is a supplemental PRIMARY subset, not a citywide replacement.",
+    "Indexed attachment wrapper content is not equivalent to captured bytes.",
     "Nested tjgpc fileUrl is never fetched directly and unknown origins are rejected.",
-    "Discovered attachment candidates cannot be downloaded until download_authorized=true.",
-    "MIME acceptance never bypasses file magic validation.",
+    "Discovered attachments require explicit download_authorized=true before network fetch.",
+    "MIME acceptance never bypasses magic-byte validation.",
     "DAY publication precision must never become minute-level latency.",
     "Coverage remains PARTIAL while required P0 sources are partial."
   ],
   "next": [
-    "find exact tjgpc downloadFile wrapper for a medical project such as TGPC-2025-A-0164",
+    "find exact tjgpc downloadFile wrapper for medical project TGPC-2025-A-0164 or equivalent",
     "capture first real official attachment bytes and keep medical/non-medical byte counters separate",
     "verify tjgpc native list class ids and pagination without guessing",
     "continue Tianjin finance primary native list/search/pagination research",
