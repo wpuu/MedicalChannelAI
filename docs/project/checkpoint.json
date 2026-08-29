@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T08:01:00+08:00",
-  "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_CORE_EARLY",
+  "as_of": "2026-08-29T10:04:00+08:00",
+  "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -13,14 +13,86 @@
   "verified_attachment_declaration_fixture_count": 5,
   "real_attachment_binary_capture_count": 0,
   "verified_institution_evidence_fixture_count": 15,
-  "schema_contract_count": 14,
-  "deterministic_test_module_count": 30,
-  "query_budget": {"status": "IMPLEMENTED_V0_1", "profile_hard_cap_policy": "NO_SMALL_HARD_CAP_FOR_REAL_BUSINESS_SCOPE", "acquisition_strategy": "SHARED_FACT_INDEX_NOT_PER_PROFILE_CRAWL", "interactive_default": {"max_db_candidates": 500, "max_deterministic_match_candidates": 200, "max_deep_enrichment_candidates": 30, "max_model_candidates": 10, "max_final_action_cards": 5, "max_live_source_requests": 0, "max_model_facts_per_opportunity": 24, "max_model_fact_chars_per_opportunity": 12000}, "wide_scope_behavior": "SUMMARY_THEN_DRILL_DOWN_AND_STRICT_TOP_N"},
-  "model_context_budget": {"default_max_grounded_facts": 24, "default_max_grounded_fact_chars": 12000, "omitted_fact_count_exposed": true, "fact_value_truncation_allowed": false, "no_fit_behavior": "FAIL_CLOSED"},
-  "institution_evidence": {"verified_fixture_count": 15, "exact_name_or_explicit_alias_only": true},
-  "taxonomy_corpus_audit": {"corpus_case_count": 50, "execution_status": "NOT_EXECUTED_RUNNER_BLOCKED", "coverage_rate": null},
-  "agnes_2_5_flash": {"status": "GO_FOR_BENCHMARK", "benchmark_case_count": 28, "execution_status": "NOT_EXECUTED", "can_drive_taxonomy_matching": false},
-  "ci_status": {"status": "BLOCKED_RUNNER_NOT_ASSIGNED", "tracking_issue": 2, "interpretation": "No Python compile or unittest step has execution evidence; this is neither PASS nor assertion FAIL."},
-  "critical_rules": ["OFFICIAL_PUBLIC_FACT must never be model-generated.", "Broad profiles are allowed; execution is bounded instead.", "Interactive queries use shared indexed facts and never region x product live-crawl Cartesian expansion.", "Whole candidate corpus is never sent in one prompt.", "Omitted model facts are counted and official fact values are never truncated to fit context.", "Coverage remains PARTIAL while required P0 sources are partial."],
-  "next": ["wire Query Budget into future Fact API/daily orchestrator", "execute 30 deterministic tests/taxonomy audit when runner is restored", "capture real attachment bytes", "verify Tianjin government procurement native list/search/pagination/lifecycle", "run Agnes benchmarks after deterministic evidence", "stabilize Fact/Profile/Match/Priority/QueryPlan APIs before H5/Web"]
+  "schema_contract_count": 20,
+  "deterministic_test_module_count": 36,
+  "query_budget": {
+    "status": "IMPLEMENTED_V0_1",
+    "profile_hard_cap_policy": "NO_SMALL_HARD_CAP_FOR_REAL_BUSINESS_SCOPE",
+    "acquisition_strategy": "SHARED_FACT_INDEX_NOT_PER_PROFILE_CRAWL",
+    "interactive_default": {
+      "max_db_candidates": 500,
+      "max_deterministic_match_candidates": 200,
+      "max_deep_enrichment_candidates": 30,
+      "max_model_candidates": 10,
+      "max_final_action_cards": 5,
+      "max_live_source_requests": 0,
+      "max_model_facts_per_opportunity": 24,
+      "max_model_fact_chars_per_opportunity": 12000
+    }
+  },
+  "daily_recommendations": {
+    "status": "IMPLEMENTED_V0_1",
+    "final_action_card_limit": 5,
+    "live_crawl_allowed": false
+  },
+  "continuous_subscription": {
+    "status": "IMPLEMENTED_V0_1",
+    "prefilter": "tools/medical_pilot/subscription_prefilter.py",
+    "evaluation": "tools/medical_pilot/subscription_engine.py",
+    "notification_route": "tools/medical_pilot/subscription_notification.py",
+    "prefilter_keys": ["region", "taxonomy_ids", "customer_type"],
+    "prefilter_is_final_match": false,
+    "missing_key_facts_behavior": "ENRICH_BEFORE_NOTIFY",
+    "candidate_only_immediate_alert_allowed": false,
+    "stable_material_event_dedupe_key": true,
+    "terminal_followup_suppression": ["WON", "LOST", "NOT_FIT", "ARCHIVED"],
+    "active_followup_owner_routing": true
+  },
+  "latency_ledger": {
+    "status": "IMPLEMENTED_V0_1",
+    "module": "tools/medical_pilot/latency_ledger.py",
+    "stages": ["official_published", "discovered", "fetched", "verified", "matched", "notification_queued", "delivered"],
+    "day_precision_publication_latency_allowed": false,
+    "timezone_aware_required": true,
+    "monotonic_stage_order_required": true
+  },
+  "taxonomy_corpus_audit": {
+    "corpus_case_count": 50,
+    "execution_status": "NOT_EXECUTED_RUNNER_BLOCKED",
+    "coverage_rate": null
+  },
+  "agnes_2_5_flash": {
+    "status": "GO_FOR_BENCHMARK",
+    "benchmark_case_count": 28,
+    "execution_status": "NOT_EXECUTED",
+    "can_drive_taxonomy_matching": false
+  },
+  "ci_status": {
+    "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
+    "tracking_issue": 2,
+    "latest_checked_head_sha": "f2f7a1b7a79a1d5b45895af4f2603b31e74981c3",
+    "latest_checked_run_id": 33228238965,
+    "latest_checked_job_id": 99036052795,
+    "evidence": {"runner_id": 0, "runner_name": "", "steps_count": 0, "conclusion": "failure"},
+    "interpretation": "No Python compile or unittest step executed; this is neither PASS nor assertion FAIL."
+  },
+  "critical_rules": [
+    "OFFICIAL_PUBLIC_FACT must never be model-generated.",
+    "Broad profiles are allowed; execution is bounded instead.",
+    "Subscription prefilter is performance-only and never replaces the full Match Gate.",
+    "Missing validated taxonomy or customer type is enriched before notification rather than broad-scanning every customer.",
+    "Candidate-only profiles never receive immediate high-priority alerts.",
+    "Terminal followup states suppress repeated notifications for the same opportunity identity.",
+    "DAY publication precision must never be converted into minute-level source latency.",
+    "Whole candidate corpora are never sent in one model prompt.",
+    "Coverage remains PARTIAL while required P0 sources are partial."
+  ],
+  "next": [
+    "wire subscription/daily/latency contracts into future Fact API and event scheduler",
+    "capture first real Tianjin medical attachment bytes",
+    "verify Tianjin government procurement native list/search/pagination/lifecycle and attachment href",
+    "execute 36 deterministic tests/taxonomy audit when runner is restored",
+    "run Agnes benchmarks only after deterministic execution evidence exists",
+    "stabilize backend APIs before H5/WeChat mini-program frontend"
+  ]
 }
