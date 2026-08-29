@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-today-actions-public.schema.json",
+  "title": "Medical Today Actions Public View v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "mode",
+    "input_candidate_count",
+    "matched_count",
+    "card_count",
+    "model_request_count",
+    "coverage_warning",
+    "cards"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "mode": {"const": "TODAY_ACTIONS"},
+    "input_candidate_count": {"type": "integer", "minimum": 0},
+    "matched_count": {"type": "integer", "minimum": 0},
+    "card_count": {"type": "integer", "minimum": 0, "maximum": 5},
+    "model_request_count": {"type": "integer", "minimum": 0, "maximum": 5},
+    "coverage_warning": {"const": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY"},
+    "cards": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rank",
+          "opportunity_id",
+          "facts",
+          "evidence_source_urls",
+          "customer_context",
+          "priority",
+          "match_status",
+          "recommendation_mode",
+          "model_decision_status",
+          "model_block_reason",
+          "decision"
+        ],
+        "properties": {
+          "rank": {"type": "integer", "minimum": 1, "maximum": 5},
+          "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+          "facts": {"type": "object"},
+          "evidence_source_urls": {"type": "array", "items": {"type": "string", "format": "uri"}, "uniqueItems": true},
+          "customer_context": {"type": "object"},
+          "priority": {"type": "object"},
+          "match_status": {"enum": ["MATCHED_PERSONALIZED", "MATCHED_CANDIDATE"]},
+          "recommendation_mode": {"type": "string"},
+          "model_decision_status": {"enum": ["NOT_ELIGIBLE", "BLOCKED_GROUNDING", "AWAITING_MODEL", "MODEL_OUTPUT_REJECTED", "READY"]},
+          "model_block_reason": {"type": ["string", "null"]},
+          "decision": {"type": ["object", "null"]}
+        }
+      }
+    }
+  }
+}
