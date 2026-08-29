@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Callable
 
 from .agnes_global_lease import AgnesLeaseStore, release_global_lease
 from .agnes_scheduler import claim_next_agnes_task
+from .agnes_task_result import AgnesTaskResultStore, build_terminal_result
 from .model_decision_contract import (
     ACTION_LABELS,
     REASON_LABELS,
@@ -16,6 +18,7 @@ from .model_decision_contract import (
     render_model_decision,
     validate_model_decision,
 )
+from .today_actions_dispatch import model_input_sha256
 
 
 ModelCall = Callable[[dict[str, Any]], dict[str, Any]]
@@ -31,6 +34,8 @@ class TodayActionsWorkerResult:
     lease_id: str | None
     provider_start_allowed: bool
     lease_released: bool | None
+    terminal_result_reused: bool
+    model_input_sha256: str | None
     validated_output: dict[str, Any] | None
     rendered_decision: dict[str, Any] | None
     error_code: str | None
@@ -47,6 +52,8 @@ class TodayActionsWorkerResult:
             "lease_id": self.lease_id,
             "provider_start_allowed": self.provider_start_allowed,
             "lease_released": self.lease_released,
+            "terminal_result_reused": self.terminal_result_reused,
+            "model_input_sha256": self.model_input_sha256,
             "validated_output": self.validated_output,
             "rendered_decision": self.rendered_decision,
             "error_code": self.error_code,
@@ -150,22 +157,99 @@ def _hydrate_model_input(payload: dict[str, Any]) -> ModelDecisionInput:
     )
 
 
+def _payload_map(today_dispatch: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    payloads = today_dispatch.get("task_payloads")
+    if not isinstance(payloads, list):
+        raise ValueError("today_dispatch task_payloads are required")
+    result: dict[str, dict[str, Any]] = {}
+    for row in payloads:
+        if not isinstance(row, dict):
+            raise ValueError("task payload must be object")
+        task_id = row.get("task_id")
+        opportunity_id = row.get("opportunity_id")
+        model_input = row.get("model_input")
+        declared_hash = row.get("model_input_sha256")
+        if not isinstance(task_id, str) or not task_id:
+            raise ValueError("task payload task_id is required")
+        if task_id in result:
+            raise ValueError("task payload task_id must be unique")
+        if not isinstance(opportunity_id, str) or not opportunity_id:
+            raise ValueError("task payload opportunity_id is required")
+        if not isinstance(model_input, dict) or model_input.get("opportunity_id") != opportunity_id:
+            raise ValueError("task payload model_input/opportunity_id mismatch")
+        actual_hash = model_input_sha256(model_input)
+        if declared_hash != actual_hash:
+            raise ValueError("task payload model_input_sha256 mismatch")
+        if not task_id.endswith("|" + actual_hash[:24]):
+            raise ValueError("task_id is not bound to model_input_sha256")
+        _hydrate_model_input(model_input)
+        result[task_id] = row
+    return result
+
+
+def _filtered_dispatch_plan(
+    dispatch_plan: dict[str, Any],
+    *,
+    result_store: AgnesTaskResultStore,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    items = dispatch_plan.get("items")
+    if not isinstance(items, list):
+        raise ValueError("dispatch plan items must be an array")
+    retained: list[dict[str, Any]] = []
+    completed: list[dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict) or not isinstance(item.get("task_id"), str):
+            raise ValueError("dispatch item identity invalid")
+        terminal = result_store.get(item["task_id"])
+        if terminal is None:
+            retained.append(item)
+        else:
+            completed.append(terminal)
+    filtered = copy.deepcopy(dispatch_plan)
+    filtered["items"] = retained
+    return filtered, completed
+
+
+def _reuse_terminal_result(
+    terminal: dict[str, Any],
+    *,
+    worker_id: str,
+    lease_id: str | None = None,
+    lease_released: bool | None = None,
+) -> TodayActionsWorkerResult:
+    return TodayActionsWorkerResult(
+        status="ALREADY_COMPLETED",
+        task_id=terminal.get("task_id"),
+        opportunity_id=terminal.get("opportunity_id"),
+        worker_id=worker_id,
+        lease_id=lease_id,
+        provider_start_allowed=False,
+        lease_released=lease_released,
+        terminal_result_reused=True,
+        model_input_sha256=terminal.get("model_input_sha256"),
+        validated_output=terminal.get("validated_output"),
+        rendered_decision=terminal.get("rendered_decision"),
+        error_code=terminal.get("error_code"),
+        error_message=None,
+        retry_after=None,
+    )
+
+
 def execute_next_today_actions_task(
     today_dispatch: dict[str, Any],
     *,
     store: AgnesLeaseStore,
+    result_store: AgnesTaskResultStore,
     worker_id: str,
     now: datetime,
     model_call: ModelCall,
     clock: Clock | None = None,
 ) -> TodayActionsWorkerResult:
-    """Claim and execute one already-authorized Today Actions model request.
+    """Claim and execute one already-authorized Today Actions model request idempotently.
 
-    ``model_call`` is injected so this trusted orchestration layer never stores API
-    keys or hard-codes provider transport. Every provider call requires a claimed
-    global lease. Serialized model input is re-validated before the call, model output
-    is grounded against the locked input, and the lease is released on every claimed
-    path.
+    Terminal READY/REJECTED results are filtered before claiming a provider-start
+    lease. The claimed payload/hash/identity is checked again before the provider call.
+    Provider errors are not terminal so they can be retried after dispatch backoff.
     """
 
     if now.tzinfo is None or now.utcoffset() is None:
@@ -175,11 +259,38 @@ def execute_next_today_actions_task(
     if today_dispatch.get("source") != "TODAY_ACTIONS":
         raise ValueError("today_dispatch source must be TODAY_ACTIONS")
     dispatch_plan = today_dispatch.get("agnes_dispatch_plan")
-    payloads = today_dispatch.get("task_payloads")
-    if not isinstance(dispatch_plan, dict) or not isinstance(payloads, list):
-        raise ValueError("today_dispatch plan/payloads are required")
+    if not isinstance(dispatch_plan, dict):
+        raise ValueError("today_dispatch agnes_dispatch_plan is required")
 
-    claim = claim_next_agnes_task(dispatch_plan, store=store, worker_id=worker_id, now=now)
+    payload_map = _payload_map(today_dispatch)
+    dispatch_ids = {
+        row.get("task_id") for row in dispatch_plan.get("items") or [] if isinstance(row, dict)
+    }
+    if dispatch_ids != set(payload_map):
+        raise ValueError("dispatch plan and task payload identities diverged")
+
+    filtered_plan, completed = _filtered_dispatch_plan(dispatch_plan, result_store=result_store)
+    if not filtered_plan["items"]:
+        if completed:
+            return _reuse_terminal_result(completed[0], worker_id=worker_id)
+        return TodayActionsWorkerResult(
+            status="NOT_CLAIMED",
+            task_id=None,
+            opportunity_id=None,
+            worker_id=worker_id,
+            lease_id=None,
+            provider_start_allowed=False,
+            lease_released=None,
+            terminal_result_reused=False,
+            model_input_sha256=None,
+            validated_output=None,
+            rendered_decision=None,
+            error_code="NO_TASKS",
+            error_message=None,
+            retry_after=None,
+        )
+
+    claim = claim_next_agnes_task(filtered_plan, store=store, worker_id=worker_id, now=now)
     if claim.get("status") != "CLAIMED":
         return TodayActionsWorkerResult(
             status="NOT_CLAIMED",
@@ -189,6 +300,8 @@ def execute_next_today_actions_task(
             lease_id=None,
             provider_start_allowed=False,
             lease_released=None,
+            terminal_result_reused=False,
+            model_input_sha256=None,
             validated_output=None,
             rendered_decision=None,
             error_code=str(claim.get("status") or "CLAIM_FAILED"),
@@ -200,43 +313,56 @@ def execute_next_today_actions_task(
     lease = claim["lease_decision"]
     task_id = str(task["task_id"])
     lease_id = str(lease["lease_id"])
-    matching = [row for row in payloads if isinstance(row, dict) and row.get("task_id") == task_id]
+    payload = payload_map[task_id]
+    opportunity_id = str(payload["opportunity_id"])
+    input_hash = str(payload["model_input_sha256"])
 
-    opportunity_id: str | None = None
+    # A terminal result may appear after the pre-filter but before/while the lease is
+    # claimed. Re-check to avoid a provider call in that race.
+    raced_terminal = result_store.get(task_id)
+    if raced_terminal is not None:
+        finish_clock = clock or (lambda: datetime.now(timezone.utc))
+        finished_at = finish_clock()
+        if finished_at.tzinfo is None or finished_at.utcoffset() is None:
+            raise ValueError("clock must return timezone-aware datetime")
+        released = release_global_lease(store, lease_id=lease_id, worker_id=worker_id, now=finished_at)
+        return _reuse_terminal_result(
+            raced_terminal,
+            worker_id=worker_id,
+            lease_id=lease_id,
+            lease_released=released,
+        )
+
     status = "WORKER_ERROR"
     validated_output: dict[str, Any] | None = None
     rendered_decision: dict[str, Any] | None = None
     error_code: str | None = None
     error_message: str | None = None
 
+    model_input_raw = payload["model_input"]
     try:
-        if len(matching) != 1:
-            status = "PAYLOAD_ERROR"
-            error_code = "TASK_PAYLOAD_IDENTITY_INVALID"
-            error_message = "claimed task must have exactly one payload"
-        else:
-            payload = matching[0]
-            opportunity_id = payload.get("opportunity_id") if isinstance(payload.get("opportunity_id"), str) else None
-            model_input_raw = payload.get("model_input")
-            if not isinstance(model_input_raw, dict) or model_input_raw.get("opportunity_id") != opportunity_id:
-                raise ModelDecisionError("MODEL_INPUT_INVALID", "task payload opportunity/model input mismatch")
-            model_input = _hydrate_model_input(model_input_raw)
+        # Re-check the immutable fingerprint immediately before the provider call.
+        if model_input_sha256(model_input_raw) != input_hash:
+            raise ModelDecisionError("MODEL_INPUT_HASH_MISMATCH", "model input changed after dispatch")
+        if not task_id.endswith("|" + input_hash[:24]):
+            raise ModelDecisionError("MODEL_INPUT_HASH_MISMATCH", "task id no longer matches model input")
+        model_input = _hydrate_model_input(model_input_raw)
 
+        try:
+            raw_output = model_call(model_input.as_dict())
+        except Exception as exc:  # deployment transport/provider error
+            status = "PROVIDER_ERROR"
+            error_code = "MODEL_CALL_FAILED"
+            error_message = f"{type(exc).__name__}: {exc}"
+        else:
             try:
-                raw_output = model_call(model_input.as_dict())
-            except Exception as exc:  # deployment transport/provider error
-                status = "PROVIDER_ERROR"
-                error_code = "MODEL_CALL_FAILED"
-                error_message = f"{type(exc).__name__}: {exc}"
-            else:
-                try:
-                    validated_output = validate_model_decision(raw_output, model_input)
-                    rendered_decision = render_model_decision(validated_output)
-                    status = "READY"
-                except ModelDecisionError as exc:
-                    status = "MODEL_OUTPUT_REJECTED"
-                    error_code = exc.code
-                    error_message = str(exc)
+                validated_output = validate_model_decision(raw_output, model_input)
+                rendered_decision = render_model_decision(validated_output)
+                status = "READY"
+            except ModelDecisionError as exc:
+                status = "MODEL_OUTPUT_REJECTED"
+                error_code = exc.code
+                error_message = str(exc)
     except ModelDecisionError as exc:
         status = "PAYLOAD_ERROR"
         error_code = exc.code
@@ -246,6 +372,29 @@ def execute_next_today_actions_task(
     finished_at = finish_clock()
     if finished_at.tzinfo is None or finished_at.utcoffset() is None:
         raise ValueError("clock must return timezone-aware datetime")
+
+    # Persist only immutable terminal outcomes. Provider/payload failures remain
+    # retryable and therefore must not poison the idempotency ledger.
+    if status in {"READY", "MODEL_OUTPUT_REJECTED"}:
+        terminal = build_terminal_result(
+            task_id=task_id,
+            opportunity_id=opportunity_id,
+            model_input_sha256=input_hash,
+            status=status,
+            completed_at=finished_at,
+            validated_output=validated_output,
+            rendered_decision=rendered_decision,
+            error_code=error_code,
+        )
+        inserted = result_store.put_if_absent(task_id, terminal)
+        if not inserted:
+            existing = result_store.get(task_id)
+            if existing is not None:
+                validated_output = existing.get("validated_output")
+                rendered_decision = existing.get("rendered_decision")
+                error_code = existing.get("error_code")
+                status = "ALREADY_COMPLETED"
+
     lease_released = release_global_lease(
         store,
         lease_id=lease_id,
@@ -256,6 +405,9 @@ def execute_next_today_actions_task(
         status = "LEASE_RELEASE_FAILED"
         error_code = "GLOBAL_LEASE_RELEASE_FAILED"
         error_message = "claimed Agnes lease could not be released by the same worker"
+        # A terminal ledger entry, if written above, still prevents a duplicate model
+        # call; however no decision is rendered from this worker attempt until the
+        # lease/reconciliation state is investigated.
         validated_output = None
         rendered_decision = None
 
@@ -267,6 +419,8 @@ def execute_next_today_actions_task(
         lease_id=lease_id,
         provider_start_allowed=True,
         lease_released=lease_released,
+        terminal_result_reused=status == "ALREADY_COMPLETED",
+        model_input_sha256=input_hash,
         validated_output=validated_output,
         rendered_decision=rendered_decision,
         error_code=error_code,
