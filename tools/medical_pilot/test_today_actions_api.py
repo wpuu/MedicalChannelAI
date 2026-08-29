@@ -4,6 +4,7 @@ import unittest
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from tools.medical_pilot.agnes_dispatch_queue import MemoryAgnesDispatchQueue
 from tools.medical_pilot.agnes_task_result import MemoryAgnesTaskResultStore
 from tools.medical_pilot.test_opportunity_match_gate import complete_profile, opportunity
 from tools.medical_pilot.today_actions_api import (
@@ -53,18 +54,18 @@ class TodayActionsApiTests(unittest.TestCase):
     def setUp(self) -> None:
         self.repo = Repository()
         self.results = MemoryAgnesTaskResultStore()
+        self.queue = MemoryAgnesDispatchQueue()
         self.tenant_id = self.repo.profile["tenant_id"]
         self.profile_id = self.repo.profile["profile_id"]
 
-    def test_today_returns_public_view_only_and_enqueues_internal_dispatch_server_side(self) -> None:
-        dispatched: list[dict] = []
+    def test_today_returns_public_view_only_and_enqueues_internal_task_server_side(self) -> None:
         response = build_today_actions_api_response(
             tenant_id=self.tenant_id,
             profile_id=self.profile_id,
             repository=self.repo,
             result_store=self.results,
             now=NOW,
-            dispatch_sink=dispatched.append,
+            dispatch_queue=self.queue,
         )
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("model_requests", response.body)
@@ -72,8 +73,23 @@ class TodayActionsApiTests(unittest.TestCase):
         self.assertNotIn("task_payloads", response.body)
         self.assertEqual(response.body["card_count"], 1)
         self.assertEqual(response.body["model_request_count"], 1)
-        self.assertEqual(len(dispatched), 1)
-        self.assertIn("task_payloads", dispatched[0])
+        pending = self.queue.list_pending(limit=10)
+        self.assertEqual(len(pending), 1)
+        self.assertEqual(pending[0]["source"], "TODAY_ACTIONS")
+        self.assertIn("model_input", pending[0])
+
+    def test_repeated_today_refresh_does_not_duplicate_same_model_task(self) -> None:
+        for _ in range(3):
+            response = build_today_actions_api_response(
+                tenant_id=self.tenant_id,
+                profile_id=self.profile_id,
+                repository=self.repo,
+                result_store=self.results,
+                now=NOW,
+                dispatch_queue=self.queue,
+            )
+            self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(self.queue.list_pending(limit=10)), 1)
 
     def test_repository_candidate_query_uses_query_budget_limit(self) -> None:
         build_today_actions_api_response(
@@ -92,10 +108,12 @@ class TodayActionsApiTests(unittest.TestCase):
             repository=self.repo,
             result_store=self.results,
             now=NOW,
+            dispatch_queue=self.queue,
         )
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.body, {"error": "PROFILE_NOT_FOUND"})
         self.assertEqual(self.repo.list_calls, [])
+        self.assertEqual(self.queue.list_pending(limit=10), [])
 
     def test_opportunity_detail_is_selected_only_from_current_tenant_today_cards(self) -> None:
         found = get_today_opportunity_api_response(
@@ -105,6 +123,7 @@ class TodayActionsApiTests(unittest.TestCase):
             repository=self.repo,
             result_store=self.results,
             now=NOW,
+            dispatch_queue=self.queue,
         )
         self.assertEqual(found.status_code, 200)
         self.assertEqual(found.body["opportunity_id"], self.repo.item["opportunity_id"])
@@ -116,9 +135,12 @@ class TodayActionsApiTests(unittest.TestCase):
             repository=self.repo,
             result_store=self.results,
             now=NOW,
+            dispatch_queue=self.queue,
         )
         self.assertEqual(missing.status_code, 404)
         self.assertEqual(missing.body, {"error": "OPPORTUNITY_NOT_FOUND"})
+        # Detail/home calls may both enqueue, but immutable task identity keeps one row.
+        self.assertEqual(len(self.queue.list_pending(limit=10)), 1)
 
 
 if __name__ == "__main__":
