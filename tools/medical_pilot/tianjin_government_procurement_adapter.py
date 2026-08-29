@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, replace
+from pathlib import PurePosixPath
 from urllib.parse import parse_qs, urlparse
 
 from .adapters import MEDICAL_HINTS
+from .attachments import AttachmentCandidate, DOWNLOADABLE_DOCUMENT_EXTENSIONS
 from .ccgp_lifecycle_adapter import CcgpLifecycleAdapter, ParsedCcgpLifecycleNotice
 from .collector_core import DiscoveredLink, Snapshot, extract_anchors, normalize_space, parse_cn_datetime, strip_tags
 
@@ -14,6 +16,7 @@ _OFFICIAL_DETAIL_HOSTS = {
     "ccgp-tianjin.gov.cn",
     "www.ccgp-tianjin.gov.cn",
 }
+_OPAQUE_ATTACHMENT_ID_RE = re.compile(r"^[A-Za-z0-9*_~-]{4,160}$")
 
 
 @dataclass(frozen=True)
@@ -22,11 +25,14 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
 
     Verified scope in Pilot v0.1:
     - official host/alias family: tjgp.cz.tj.gov.cn and ccgp-tianjin.gov.cn (+ www)
-    - detail route family: /portal/documentView.do with exact method=view, numeric id, ver=2
-    - evidence-backed parsing of a supplied detail page
+    - notice detail route: /portal/documentView.do with method=view, numeric id, ver=2
+    - attachment route discovered through official government mirror links:
+      /portal/documentView.do with method=downEnId and an opaque id
+    - evidence-backed parsing of supplied notice detail pages
 
-    Listing/search discovery and every notice category on the live 2026 site are not yet
-    independently verified, so Coverage must remain PARTIAL_IMPLEMENTATION.
+    Attachment discovery is deliberately separate from notice URL resolution. A
+    discovered downEnId attachment remains download_authorized=False until this runtime
+    captures and validates real bytes/MIME/magic/SHA.
     """
 
     source_id: str = "tj_government_procurement"
@@ -55,9 +61,58 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
             return False
         return query["method"][0] == "view" and query["id"][0].isdigit() and query["ver"][0] == "2"
 
+    @staticmethod
+    def is_verified_attachment_url(url: str) -> bool:
+        """Validate the observed official downEnId attachment route fail-closed.
+
+        This checks route shape only; it is not download authorization. The opaque id
+        is intentionally constrained to the observed URL-safe token alphabet and may
+        not contain slashes, query separators, percent signs after parsing, or extras.
+        """
+
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"}:
+            return False
+        if (parsed.hostname or "").lower() not in _OFFICIAL_DETAIL_HOSTS:
+            return False
+        if parsed.path != "/portal/documentView.do" or parsed.fragment:
+            return False
+        try:
+            query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+        except ValueError:
+            return False
+        if set(query) != {"method", "id"} or any(len(values) != 1 for values in query.values()):
+            return False
+        return query["method"][0] == "downEnId" and bool(_OPAQUE_ATTACHMENT_ID_RE.fullmatch(query["id"][0]))
+
+    def discover_attachment_candidates(self, raw_html: str, page_url: str) -> list[AttachmentCandidate]:
+        """Discover official downEnId links without authorizing a network fetch."""
+
+        result: list[AttachmentCandidate] = []
+        seen: set[str] = set()
+        for link in extract_anchors(raw_html, page_url):
+            if link.url in seen or not self.is_verified_attachment_url(link.url):
+                continue
+            filename = normalize_space(link.title)
+            extension = PurePosixPath(filename).suffix.lower()
+            if extension not in DOWNLOADABLE_DOCUMENT_EXTENSIONS:
+                continue
+            seen.add(link.url)
+            result.append(
+                AttachmentCandidate(
+                    source_url=link.url,
+                    filename=filename,
+                    extension=extension,
+                    title=filename,
+                    handling_policy="DISCOVER_ONLY_TIANJIN_OFFICIAL_DOWNENID_PENDING_BYTES_VALIDATION",
+                    download_authorized=False,
+                )
+            )
+        return result
+
     def discover(self, listing_html: str, listing_url: str) -> list[DiscoveredLink]:
         # This helper is deliberately narrow: it only accepts already-visible native
-        # detail links. It does not claim that listing pagination/search is implemented.
+        # notice detail links. It does not claim that listing pagination/search is implemented.
         result: list[DiscoveredLink] = []
         for link in extract_anchors(listing_html, listing_url):
             if not self.is_verified_detail_url(link.url):
@@ -89,8 +144,6 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
             if published_raw and published_raw in normalized_text:
                 evidence["published_at"] = published_raw
         else:
-            # The inherited CCGP parser only recognizes source-native timestamps with
-            # an explicit HH:MM clock, so a non-empty inherited value is minute-precise.
             published_precision = "MINUTE"
 
         missing = [
@@ -118,8 +171,6 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
 
     @staticmethod
     def _extract_native_buyer(text: str) -> str:
-        # Fail closed to the purchaser subsection. Do not let a missing purchaser name
-        # drift across the page and accidentally capture the procurement-agent name.
         section_match = re.search(
             r"采购人信息\s*(.*?)(?=采购代理机构信息|代理机构信息|项目联系方式|$)",
             text,
