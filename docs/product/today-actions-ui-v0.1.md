@@ -6,14 +6,16 @@
 
 ## 1. 前端边界
 
-首版 H5 只消费后端 `TODAY_ACTIONS` 合同，不在浏览器自行做商机评分、事实推断、产品匹配或 AI 判断。
+首版 H5 **只消费后端 `medical-today-actions-public.schema.json` Public View**，不在浏览器自行做商机评分、事实推断、产品匹配或 AI 判断。
 
-四类信息必须视觉上区分：
+内部 `medical-today-actions.schema.json` 中的 `model_requests/model_input`、Agnes Dispatch、global lease、terminal result、Provider 路由与 API Key **全部是服务端内部数据，不得下发浏览器**。
+
+四类可展示信息必须视觉上区分：
 
 1. `facts`：官方/已验证公开事实；
 2. `evidence_source_urls`：官方 Evidence 入口；
 3. `customer_context`：客户自己的关系、产品能力、合作策略，属于 `CUSTOMER_PRIVATE_FACTS`；
-4. `decision`：Agnes 受控判断，不得显示成官方事实。
+4. `decision`：受控 AI 判断，不得显示成官方事实。
 
 Coverage 为 PARTIAL 时必须保留“当前公开数据覆盖非穷尽”提示，不得使用“已覆盖天津全部项目”之类文案。
 
@@ -35,7 +37,7 @@ Coverage 为 PARTIAL 时必须保留“当前公开数据覆盖非穷尽”提�
 - 今日候选数 `input_candidate_count`；
 - 匹配商机数 `matched_count`；
 - 今日重点 `card_count`；
-- AI待分析 `model_request_count`。
+- AI待分析 `model_request_count`（仅数量，不下发内部 model request）。
 
 核心区域只展示最多5张 Today Action Card，按 `rank` 排序。
 
@@ -93,7 +95,7 @@ Coverage 为 PARTIAL 时必须保留“当前公开数据覆盖非穷尽”提�
 
 #### D. 为什么排在前面
 
-展示 `priority.components`，例如产品执行能力、关系、介入阶段、项目金额。必须显示：
+展示 `priority.components`。必须显示：
 
 > 该分数用于安排销售资源优先级，不代表中标概率。
 
@@ -107,7 +109,7 @@ Coverage 为 PARTIAL 时必须保留“当前公开数据覆盖非穷尽”提�
 - `MODEL_OUTPUT_REJECTED`：显示“AI输出未通过事实校验”；
 - `NOT_ELIGIBLE`：显示“当前不需要AI建议”。
 
-不要展示模型名、Provider、API Key、上游地址。
+不要展示模型名、Provider、API Key、上游地址、model_input、lease id、task id 或内部错误栈。
 
 #### F. 跟进记录
 
@@ -170,14 +172,20 @@ Coverage 为 PARTIAL 时必须保留“当前公开数据覆盖非穷尽”提�
 
 ```ts
 interface TodayActionsService {
-  getTodayActions(): Promise<TodayActionsResponse>;
+  getTodayActions(): Promise<TodayActionsPublicResponse>;
   getOpportunity(id: string): Promise<TodayActionCard | null>;
   updateFollowup(id: string, input: FollowupInput): Promise<void>;
   requestOutreachDraft(id: string): Promise<OutreachDraft>;
 }
 ```
 
-首版 `MockTodayActionsService` 实现这些接口；真实 API 接入时替换实现。
+首版 `MockTodayActionsService` 实现这些接口；真实 API 接入时只替换 service 实现。
+
+服务端内部流程固定为：
+
+`Fact/Match/Score → Today Actions internal → input fingerprint → terminal-result reuse → pending Agnes Dispatch/Lease/Worker → Today Actions Public View`
+
+前端不参与其中任何一步。
 
 ## 7. 验收
 
@@ -192,4 +200,4 @@ interface TodayActionsService {
 7. AI异常/阻断状态均有清晰 UI；
 8. 跟进状态可在 mock 中交互；
 9. “生成沟通话术”按需触发，不自动批量生成；
-10. 不显示 Agnes/Provider/API Key 等上游实现信息。
+10. 浏览器看不到 model_input、Agnes/Provider/API Key/lease/task 等内部实现信息。
