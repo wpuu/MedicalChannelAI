@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable
 
 from .agnes_dispatch import load_agnes_dispatch_policy
@@ -11,6 +11,13 @@ from .today_actions_worker import TodayActionsWorkerResult, execute_next_today_a
 
 
 ModelCall = Callable[[dict[str, Any]], dict[str, Any]]
+
+
+def _aware(value: str) -> datetime:
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("queue dispatch not_before must include timezone")
+    return parsed.astimezone(timezone.utc)
 
 
 def _dispatch_from_queue_item(item: dict[str, Any]) -> dict[str, Any]:
@@ -45,6 +52,25 @@ def _dispatch_from_queue_item(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _not_claimed(worker_id: str, code: str, retry_after: str | None = None) -> TodayActionsWorkerResult:
+    return TodayActionsWorkerResult(
+        status="NOT_CLAIMED",
+        task_id=None,
+        opportunity_id=None,
+        worker_id=worker_id,
+        lease_id=None,
+        provider_start_allowed=False,
+        lease_released=None,
+        terminal_result_reused=False,
+        model_input_sha256=None,
+        validated_output=None,
+        rendered_decision=None,
+        error_code=code,
+        error_message=None,
+        retry_after=retry_after,
+    )
+
+
 def execute_next_queued_today_actions_task(
     *,
     queue: AgnesDispatchQueue,
@@ -55,43 +81,41 @@ def execute_next_queued_today_actions_task(
     model_call: ModelCall,
     clock=None,
 ) -> TodayActionsWorkerResult:
-    """Execute one earliest queue item through the existing trusted worker.
+    """Execute one due queue item through the existing trusted Worker.
 
-    Queue order does not override Agnes task priority/not_before/global capacity; the
-    reconstructed single-task dispatch is still adjudicated by the scheduler/lease.
-    Terminal READY/REJECTED/ALREADY_COMPLETED work is removed from the queue. Retryable
-    provider/capacity states remain queued for a later scheduler tick.
+    A future high-priority item must not block a lower-priority item that is already
+    due. Due tasks are filtered first, then ordered by model priority/not_before/task.
+    The global lease remains the final provider-start authority. Terminal work is
+    removed from the queue; retryable provider/capacity states stay queued.
     """
 
+    if now.tzinfo is None or now.utcoffset() is None:
+        raise ValueError("now must be timezone-aware")
     rows = queue.list_pending(limit=100)
     if not rows:
-        return TodayActionsWorkerResult(
-            status="NOT_CLAIMED",
-            task_id=None,
-            opportunity_id=None,
-            worker_id=worker_id,
-            lease_id=None,
-            provider_start_allowed=False,
-            lease_released=None,
-            terminal_result_reused=False,
-            model_input_sha256=None,
-            validated_output=None,
-            rendered_decision=None,
-            error_code="QUEUE_EMPTY",
-            error_message=None,
-            retry_after=None,
+        return _not_claimed(worker_id, "QUEUE_EMPTY")
+
+    current = now.astimezone(timezone.utc)
+    normalized: list[tuple[int, datetime, str, dict[str, Any]]] = []
+    for row in rows:
+        validate_queue_item(row)
+        not_before = _aware(str(row["dispatch_item"].get("not_before") or ""))
+        normalized.append(
+            (
+                int(row["dispatch_item"].get("priority", 999)),
+                not_before,
+                row["task_id"],
+                row,
+            )
         )
 
-    # Preserve the shared model priority semantics even if rows were enqueued at
-    # slightly different times. not_before is the secondary key.
-    rows.sort(
-        key=lambda row: (
-            int(row["dispatch_item"].get("priority", 999)),
-            str(row["dispatch_item"].get("not_before") or ""),
-            row["task_id"],
-        )
-    )
-    selected = rows[0]
+    due = [entry for entry in normalized if entry[1] <= current]
+    if not due:
+        next_time = min(entry[1] for entry in normalized)
+        return _not_claimed(worker_id, "QUEUE_NO_DUE_TASK", next_time.isoformat())
+
+    due.sort(key=lambda entry: (entry[0], entry[1], entry[2]))
+    selected = due[0][3]
     dispatch = _dispatch_from_queue_item(selected)
     result = execute_next_today_actions_task(
         dispatch,
