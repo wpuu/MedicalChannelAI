@@ -42,7 +42,7 @@ Cross-stage 当前只有 `CANDIDATE_REQUIRES_EVIDENCE`，`auto_merge_allowed=fal
 
 正式商机匹配使用 `matching_profile_gate.py`。客户产品能力必须映射到受控 `taxonomy_ids`；人类可读 category/subcategory 仅用于开户访谈和 UI。缺失/非法 taxonomy 会降为 `INCOMPLETE / PROFILE_INTERVIEW_REQUIRED` 并返回下一句问题。
 
-客户画像可以长期保存较多区域、产品和关系数据；**画像完整度不等于单次执行范围必须全部展开**。
+客户画像可以长期保存较多区域、产品和关系数据；**画像完整度不等于单次执行范围必须全部展开，也不应为了性能强迫全国/多产品客户删减真实业务范围。**
 
 ## 6. Query Budget / Execution Plan
 
@@ -75,7 +75,7 @@ Cross-stage 当前只有 `CANDIDATE_REQUIRES_EVIDENCE`，`auto_merge_allowed=fal
 - `WIDE`：25..120，模型Top-N收紧到8
 - `VERY_WIDE`：>120，深度补证收紧到15，模型Top-N收紧到5
 
-这些阈值是 v0.1 可调预算，不是客户画像的永久产品上限。
+**这些是单次交互执行预算，不是客户资料硬上限。** 客户可以真实填写全国/多产品范围；系统应通过共享事实库、DB过滤、Top-N和分批深挖控制成本与延迟。
 
 单项目深挖允许极少量受控实时抓取（当前上限3个请求）；计划采集模式按 Source 驱动，不按客户画像笛卡尔组合。
 
@@ -89,18 +89,7 @@ Cross-stage 当前只有 `CANDIDATE_REQUIRES_EVIDENCE`，`auto_merge_allowed=fal
 
 ## 8. Institution Evidence
 
-当前 **15条** VERIFIED 官方机构 Evidence。除原有总医院、第一中心医院、胸科医院、中医一附院、天津市疾控外，已增加：
-
-- 天津市第三中心医院
-- 天津市第五中心医院
-- 天津市中西医结合医院（天津市南开医院）
-- 天津市中医药研究院附属医院
-- 天津市肿瘤医院
-- 中国医学科学院血液病医院
-- 天津市天津医院
-- 天津大学
-- 天津医科大学
-- 天津科技大学
+当前 **15条** VERIFIED 官方机构 Evidence。除原有总医院、第一中心医院、胸科医院、中医一附院、天津市疾控外，已增加：第三中心、第五中心、南开医院、中医药研究院附属医院、肿瘤医院、血液病医院、天津医院，以及天津大学、天津医科大学、天津科技大学。
 
 公共 Match Pipeline 会精确名称/显式 alias 自动 enrichment；没有官方证据的机构继续 UNKNOWN。西青医院当前没有足够新的明确等级证据，故不升级。
 
@@ -120,21 +109,13 @@ Cross-stage 当前只有 `CANDIDATE_REQUIRES_EVIDENCE`，`auto_merge_allowed=fal
 
 模型输入现在执行硬预算：默认单商机最多24条 VERIFIED 非模型事实、12000字符级事实输入。选择采用确定性字段优先级，不修改事实值。
 
-Model input 会显式记录：
+Model input 会显式记录 source verified fact count、included fact count、omitted fact count、included fact chars 和最大预算。因此不会出现“实际只读24/57条事实，但日志假装模型读过全部”的情况。
 
-- source verified fact count
-- included fact count
-- omitted fact count
-- included fact chars
-- max fact count / char budget
-
-因此不会出现“57条事实实际只读24条，但日志假装模型读过全部”的情况。单条官方事实如果过长而无法完整放入预算，**不会截断事实后继续推理**；若没有任何完整事实能放入则 fail-closed。
+单条官方事实如果过长而无法完整放入预算，**不会截断事实后继续推理**；若没有任何完整事实能放入则 fail-closed。
 
 Priority Score = 产品能力30 + 客户确认关系25 + 阶段25 + 金额20，固定 `BUSINESS_PRIORITY_NOT_WIN_PROBABILITY`。
 
 ## 11. 50条 corpus 可信边界
-
-新增覆盖包括流式/血培养、MRI/CT/DR、内窥镜与内窥镜AI、急救生命支持、消毒灭菌、显微成像、眼科耗材、设备维保和官方装机品牌/购置时间。
 
 - 多子项市场调研页面按一个 source-record Opportunity 计数，不拆子项虚增数量。
 - 同项目不同生命周期事件不重复计数。
@@ -145,15 +126,11 @@ Priority Score = 产品能力30 + 客户确认关系25 + 阶段25 + 金额20，�
 
 已新增 `taxonomy_corpus_audit.py` 和对应测试。Audit 对50条 VERIFIED fixture 使用生产同一 deterministic taxonomy classifier，统计本地规则覆盖和 unresolved 清单。
 
-重要：`deterministic_coverage_rate` 只是本地规则覆盖率，不是准确率，也不是 Agnes 准确率。GitHub Runner 尚未执行，因此当前不宣称具体覆盖率。
+`deterministic_coverage_rate` 只是本地规则覆盖率，不是准确率，也不是 Agnes 准确率。GitHub Runner 尚未执行，因此当前不宣称具体覆盖率。
 
 ## 13. Agnes benchmark
 
-当前仍是 `GO_FOR_BENCHMARK`，不是 production validated。
-
-两套 benchmark：12 case 粗分类/风险 + 16 case 正式 taxonomy/安全放弃分类。均默认 dry-run；只有 `--execute` + 环境变量 `AGNES_API_KEY` 才联网。
-
-Agnes taxonomy classifier 在专项 benchmark通过并显式升级全局 registry 前不能驱动正式匹配。
+当前仍是 `GO_FOR_BENCHMARK`，不是 production validated。两套 benchmark：12 case 粗分类/风险 + 16 case 正式 taxonomy/安全放弃分类。均默认 dry-run；只有 `--execute` + 环境变量 `AGNES_API_KEY` 才联网。
 
 ## 14. Source Topology / Coverage
 
@@ -174,8 +151,8 @@ DOCX/XLSX parser 已实现，真实官方附件 bytes 捕获仍为0。PDF Doclin
 ## 17. 下一步
 
 1. Runner恢复后先执行30组 deterministic tests，并生成真实 taxonomy corpus audit 覆盖率。
-2. 根据 audit unresolved 清单扩充 deterministic taxonomy，剩余模糊项再进入 Agnes/人工分类。
-3. 将 Query Budget 接到未来 Fact API / daily recommendations 调度层，禁止调用方绕过预算。
+2. 将 Query Budget 接到未来 Fact API / daily recommendations 调度层，禁止调用方绕过预算。
+3. 根据 audit unresolved 清单扩充 deterministic taxonomy，剩余模糊项再进入 Agnes/人工分类。
 4. 获取第一份真实天津医疗 DOCX/XLSX/PDF bytes，验证 MIME/redirect/SHA/parser locator。
 5. 验证天津政府采购网2026原生列表/搜索、分页和完整生命周期栏目。
 6. deterministic execution 有证据后，运行 Agnes 两套 benchmark。
