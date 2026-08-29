@@ -49,21 +49,70 @@ def _verified_fact_index(facts: list[dict[str, Any]]) -> dict[str, dict[str, Any
     return result
 
 
-def _semantic_payload(
-    opportunity_id: str,
-    event_type: str,
-    change_fields: dict[str, str],
-    official_effective_at: str | None,
-    official_effective_at_precision: str,
-) -> str:
+def _semantic_payload(opportunity_id: str, event_type: str, change_fields: dict[str, str]) -> str:
+    # Publication/effective timestamps are evidence metadata, not material-event
+    # identity. Mirrors may report the same semantic change at different clock
+    # precision. Identity therefore uses only canonical opportunity + event type +
+    # normalized business change fields.
     payload = {
         "opportunity_id": opportunity_id,
         "event_type": event_type,
         "change_fields": {key: change_fields[key] for key in sorted(change_fields)},
-        "official_effective_at": official_effective_at,
-        "official_effective_at_precision": official_effective_at_precision,
     }
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _digest(opportunity_id: str, event_type: str, change_fields: dict[str, str]) -> str:
+    return hashlib.sha256(_semantic_payload(opportunity_id, event_type, change_fields).encode("utf-8")).hexdigest()
+
+
+def validate_material_event_envelope(event: dict[str, Any]) -> dict[str, Any]:
+    """Validate a persisted material-event envelope before subscription dispatch."""
+
+    if not isinstance(event, dict):
+        raise MaterialEventError("EVENT_NOT_OBJECT", "material event must be an object")
+    if event.get("schema_version") != SCHEMA_VERSION:
+        raise MaterialEventError("SCHEMA_VERSION_INVALID", "material event schema_version must be 0.1")
+    if event.get("verification_status") != "VERIFIED" or event.get("model_generated") is not False:
+        raise MaterialEventError("EVENT_NOT_VERIFIED", "subscription dispatch requires VERIFIED non-model material event")
+
+    opportunity_id = event.get("opportunity_id")
+    event_type = event.get("event_type")
+    change_fields = event.get("change_fields")
+    if not isinstance(opportunity_id, str) or not opportunity_id:
+        raise MaterialEventError("OPPORTUNITY_ID_REQUIRED", "opportunity_id is required")
+    if event_type not in ALLOWED_MATERIAL_EVENT_TYPES:
+        raise MaterialEventError("EVENT_TYPE_INVALID", str(event_type))
+    if not isinstance(change_fields, dict) or not change_fields:
+        raise MaterialEventError("CHANGE_FIELDS_REQUIRED", "material event needs change_fields")
+    if any(not isinstance(key, str) or not key or not isinstance(value, str) or not value for key, value in change_fields.items()):
+        raise MaterialEventError("CHANGE_FIELD_INVALID", "change_fields must contain non-empty strings")
+
+    detected_at = event.get("detected_at")
+    if not isinstance(detected_at, str) or not detected_at:
+        raise MaterialEventError("DETECTED_AT_REQUIRED", "detected_at is required")
+    _require_aware_datetime(detected_at, "detected_at")
+    precision = event.get("official_effective_at_precision")
+    effective_at = event.get("official_effective_at")
+    if precision not in {"DAY", "MINUTE", "SECOND", "UNKNOWN"}:
+        raise MaterialEventError("EFFECTIVE_PRECISION_INVALID", str(precision))
+    if effective_at is not None:
+        if not isinstance(effective_at, str):
+            raise MaterialEventError("TIMESTAMP_INVALID", "official_effective_at must be string or null")
+        _require_aware_datetime(effective_at, "official_effective_at")
+    elif precision != "UNKNOWN":
+        raise MaterialEventError("EFFECTIVE_TIME_REQUIRED", "known precision requires official_effective_at")
+
+    supporting_fact_ids = event.get("supporting_fact_ids")
+    if not isinstance(supporting_fact_ids, list) or not supporting_fact_ids or any(not isinstance(item, str) or not item for item in supporting_fact_ids):
+        raise MaterialEventError("SUPPORTING_FACTS_REQUIRED", "material event must retain supporting_fact_ids")
+
+    digest = _digest(opportunity_id, event_type, change_fields)
+    if event.get("material_event_id") != "mevt_" + digest:
+        raise MaterialEventError("MATERIAL_EVENT_ID_MISMATCH", "material_event_id does not match semantic payload")
+    if event.get("idempotency_key") != "mat_" + digest:
+        raise MaterialEventError("IDEMPOTENCY_KEY_MISMATCH", "idempotency_key does not match semantic payload")
+    return event
 
 
 def build_material_event(
@@ -80,11 +129,10 @@ def build_material_event(
 ) -> dict[str, Any]:
     """Build one idempotent material event only from VERIFIED official facts.
 
-    Event identity is semantic: mirror evidence may add supporting facts later without
-    creating another material event when the actual verified business change is the
-    same. The caller must provide normalized change_fields such as a new lifecycle
-    state or deadline value; every change field must be backed by one of the supplied
-    VERIFIED official facts with the same field name/value.
+    Event identity is semantic: adding mirror evidence or improving publication-time
+    precision does not create another material event when the business change itself
+    is unchanged. Every change field must be backed by a supplied VERIFIED official
+    fact with the same field name/value.
     """
 
     if event_type not in ALLOWED_MATERIAL_EVENT_TYPES:
@@ -139,16 +187,9 @@ def build_material_event(
     if event_type == "AWARD_PUBLISHED" and change_fields.get("lifecycle_state") != "AWARDED":
         raise MaterialEventError("AWARD_STATE_REQUIRED", "award event requires lifecycle_state=AWARDED")
 
-    semantic = _semantic_payload(
-        opportunity_id,
-        event_type,
-        change_fields,
-        official_effective_at,
-        official_effective_at_precision,
-    )
-    digest = hashlib.sha256(semantic.encode("utf-8")).hexdigest()
+    digest = _digest(opportunity_id, event_type, change_fields)
     source_ids = list(dict.fromkeys(item for item in (source_event_ids or []) if isinstance(item, str) and item))
-    return {
+    event = {
         "schema_version": SCHEMA_VERSION,
         "material_event_id": "mevt_" + digest,
         "opportunity_id": opportunity_id,
@@ -163,3 +204,4 @@ def build_material_event(
         "official_effective_at_precision": official_effective_at_precision,
         "idempotency_key": "mat_" + digest,
     }
+    return validate_material_event_envelope(event)
