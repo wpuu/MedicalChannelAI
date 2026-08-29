@@ -24,8 +24,8 @@
       "capability": "TODAY_ACTIONS",
       "inspired_by": "project push + follow-up management",
       "medicalchannelai_target": "Return a bounded set of top actionable cards with why-now, evidence, relationship, owner and next action.",
-      "dependency": ["PRIORITY_SCORE", "GROUNDED_MODEL_DECISION", "QUERY_BUDGET"],
-      "status": "BACKEND_COMPONENTS_EXIST_ORCHESTRATION_PENDING"
+      "dependency": ["PRIORITY_SCORE", "GROUNDED_MODEL_DECISION", "QUERY_BUDGET", "AGNES_DISPATCH"],
+      "status": "IMPLEMENTED_INITIAL_ORCHESTRATION_AND_DISPATCH_BRIDGE_FRONTEND_SPEC_FROZEN"
     },
     {
       "priority": "P0",
@@ -41,7 +41,7 @@
       "inspired_by": "real-time push",
       "medicalchannelai_target": "Measure source_published_at, first_seen_at, verified_at, matched_at and notified_at using source-native timestamp precision.",
       "dependency": ["EVIDENCE_LEDGER"],
-      "status": "NOT_IMPLEMENTED"
+      "status": "COMPONENT_IMPLEMENTED_RUNTIME_PERSISTENCE_WIRING_PENDING"
     },
     {
       "priority": "P1",
@@ -49,7 +49,7 @@
       "inspired_by": "contacts + relationship graph + people penetration",
       "medicalchannelai_target": "Use customer-confirmed hospital/department/channel relationships to rank opportunities and route the next action to the right owner.",
       "dependency": ["CUSTOMER_PRIVATE_FACTS", "INSTITUTION_EVIDENCE"],
-      "status": "DATA_MODEL_PARTIAL"
+      "status": "INITIAL_RANKING_AND_TODAY_ACTION_CONTEXT_IMPLEMENTED"
     },
     {
       "priority": "P1",
@@ -65,7 +65,7 @@
       "inspired_by": "notes + project stage + reminder",
       "medicalchannelai_target": "Record contacted/owner/outcome/reason-not-fit/next-follow-up and use feedback to improve the customer profile.",
       "dependency": ["CUSTOMER_PROFILE"],
-      "status": "NOT_IMPLEMENTED"
+      "status": "SCHEMA_AND_PROFILE_LEARNING_COMPONENT_IMPLEMENTED_RUNTIME_PERSISTENCE_PENDING"
     },
     {
       "priority": "P1",
@@ -73,7 +73,7 @@
       "inspired_by": "PC + App + mini-program multi-terminal",
       "medicalchannelai_target": "Mobile daily actions and follow-up; use the same backend contracts as Web/Hermes.",
       "dependency": ["STABLE_FACT_PROFILE_MATCH_ACTION_API"],
-      "status": "DEFERRED_UNTIL_BACKEND_STABLE"
+      "status": "DEFERRED_UNTIL_H5_PILOT_VALIDATES_WORKFLOW"
     },
     {
       "priority": "P2",
