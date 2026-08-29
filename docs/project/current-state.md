@@ -18,15 +18,15 @@ Draft PR：**#1**
 - Coverage：`PARTIAL / NOT_EXHAUSTIVE`
 - `production_ready=false`
 
-## 当前核心链路
+## 核心链路
 
 `Source → Snapshot/SHA → Evidence Fact → Lifecycle/Identity → VERIFIED Material Event → Institution/Taxonomy → Profile Gate → Match → Query Budget → Priority → Daily Recommendation → Subscription Prefilter/Batch → Notification Route → Delivery State → Latency Ledger → Follow-up → Grounded Model Decision`
 
 ## Query / Subscription / Notification
 
-客户画像允许完整保存真实区域和产品，限制单次执行复杂度：DB候选500 → deterministic match200 → deep enrichment30 → model candidates10 → final Top5；interactive live crawl=0；单商机模型最多24条 VERIFIED facts / 12000字符。
+客户画像允许完整保存真实区域和产品；限制单次执行复杂度：DB候选500 → deterministic match200 → deep enrichment30 → model candidates10 → final Top5；interactive live crawl=0；单商机模型最多24条 VERIFIED facts / 12000字符。
 
-订阅由 VERIFIED Material Event 驱动：反向预筛只做性能优化，候选仍跑完整 Match；`batch_limit<=1000 + next_offset` 分批；普通匹配进入 digest，fully-confirmed + 高优先级才即时提醒；terminal follow-up 抑制同 opportunity 重复提醒。
+订阅由 VERIFIED Material Event 驱动；反向预筛只优化性能，候选仍跑完整 Match；`batch_limit<=1000 + next_offset` 分批；普通匹配进入 digest，fully-confirmed + 高优先级才即时提醒；terminal follow-up 抑制同 opportunity 重复提醒。
 
 Notification Delivery 使用稳定 identity，状态 `QUEUED → SENT → DELIVERED` 或受控 FAILED 重试；SUPPRESSED=`audience=NONE`。Latency Ledger 不允许 DAY 精度伪造成分钟级同步速度。
 
@@ -34,7 +34,7 @@ Notification Delivery 使用稳定 identity，状态 `QUEUED → SENT → DELIVE
 
 ### `tj_government_procurement` — PARTIAL PRIMARY
 
-同一 Source identity 认可：`tjgp.cz.tj.gov.cn`、`ccgp-tianjin.gov.cn`、`www.ccgp-tianjin.gov.cn`。Registry 与 Adapter 已统一支持 exact `/portal/documentView.do` + `method=view` + numeric `id` + `ver=2`，参数顺序可变但多余/重复参数拒绝。
+同一 Source identity 认可 `tjgp.cz.tj.gov.cn`、`ccgp-tianjin.gov.cn`、`www.ccgp-tianjin.gov.cn`。Registry 与 Adapter 已统一支持 exact `/portal/documentView.do` + `method=view` + numeric `id` + `ver=2`，参数顺序可变但多余/重复参数拒绝。
 
 仍未验证原生列表/搜索/分页、crawler runtime 直接详情抓取、source-native attachment href。
 
@@ -47,9 +47,9 @@ Host：`tjgpc.zwfwb.tj.gov.cn`。该源是**集采项目/电子投标入口子�
 - detail route：`/webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=<UUID>`；
 - 公开招标项目名/编号、采购人、信息日期、预算、截止时间确定性解析；
 - 医疗样本 `TGPC-2025-A-0164`（天津医科大学第二医院重症病房医疗设备），官方详情明确多功能吊塔、有创/转运呼吸机、中央监护、支气管镜、除颤仪等，且显示 DOCX 招标文件名；
-- 官方附件 wrapper 家族 `/webInfo/downloadFile.do?fileName=...&fileUrl=...` 已被搜索索引解析为真实文档内容。
+- 官方附件 wrapper `/webInfo/downloadFile.do?fileName=...&fileUrl=...` 已被搜索索引解析为真实文档内容。
 
-安全边界：wrapper 目前只允许 discovery，`download_authorized=false`；nested `fileUrl` 永远不直接请求。v0.1 仅认可已观察的 `218.67.246.33:7001/ZTBS/fileupload/gw/...` 结构用于安全校验；其他 origin/port/path fail-closed。
+安全边界：wrapper 目前只允许 discovery，`download_authorized=false`；nested `fileUrl` 永远不直接请求。v0.1 仅认可已观察的 `218.67.246.33:7001/ZTBS/fileupload/gw/...` 结构用于安全校验；其他 origin/port/path fail-closed，并对编码路径做有界重复解码后再检查 traversal。
 
 尚未确认：医疗项目精确 wrapper URL、crawler runtime bytes/MIME/magic/SHA、原生列表 class id / pagination、全部采购方式。
 
