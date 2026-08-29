@@ -86,6 +86,26 @@ class SubscriptionBatchTests(unittest.TestCase):
         self.assertEqual(result["processed_profile_count"], 0)
         self.assertIn("opportunity.product_labels", result["required_next_facts"])
 
+    def test_invalid_event_type_is_rejected_even_when_opportunity_needs_enrichment(self) -> None:
+        item = opportunity()
+        item["product_labels"] = []
+        with self.assertRaises(ValueError):
+            process_subscription_event_batch(
+                profiles=[profile_variant(1)],
+                opportunity=item,
+                material_event_id="event-batch-invalid",
+                event_type="UNKNOWN_EVENT",
+            )
+
+    def test_empty_material_event_id_is_rejected_before_prefilter(self) -> None:
+        with self.assertRaises(ValueError):
+            process_subscription_event_batch(
+                profiles=[profile_variant(1)],
+                opportunity=opportunity(),
+                material_event_id="",
+                event_type="NEW_VERIFIED_OPPORTUNITY",
+            )
+
     def test_batch_limit_has_hard_safety_cap(self) -> None:
         with self.assertRaises(ValueError):
             process_subscription_event_batch(
