@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable, Protocol
+from typing import Any, Protocol
 
+from .agnes_dispatch_queue import AgnesDispatchQueue, queue_today_actions_dispatch
 from .agnes_task_result import AgnesTaskResultStore
 from .query_budget import build_query_execution_plan
 from .today_actions_service import TodayActionsServiceCycle, build_today_actions_service_cycle
@@ -29,9 +30,6 @@ class TodayActionsRepository(Protocol):
     ) -> dict[str, list[dict[str, Any]]]: ...
 
 
-DispatchSink = Callable[[dict[str, Any]], None]
-
-
 @dataclass(frozen=True)
 class TodayActionsApiResponse:
     status_code: int
@@ -52,14 +50,14 @@ def build_today_actions_api_response(
     repository: TodayActionsRepository,
     result_store: AgnesTaskResultStore,
     now: datetime,
-    dispatch_sink: DispatchSink | None = None,
+    dispatch_queue: AgnesDispatchQueue | None = None,
 ) -> TodayActionsApiResponse:
     """Application boundary for GET /today.
 
-    No HTTP framework is assumed. Tenant/profile ownership is resolved server-side,
-    candidate retrieval is bounded by Query Budget, and only the Public View crosses
-    the response boundary. Pending Agnes dispatch is optionally sent to a server-only
-    queue/scheduler callback and is never embedded in the browser response.
+    Tenant/profile ownership is resolved server-side, candidate retrieval is bounded
+    by Query Budget, and only the Public View crosses the response boundary. Pending
+    Agnes work is optionally written to the server-only idempotent dispatch queue;
+    repeated browser refreshes therefore do not multiply identical model jobs.
     """
 
     _validate_identity(tenant_id, profile_id)
@@ -68,8 +66,6 @@ def build_today_actions_api_response(
 
     profile = repository.load_profile(tenant_id, profile_id)
     if profile is None:
-        # Deliberately use one not-found response for unknown profile and cross-tenant
-        # access so callers cannot enumerate another tenant's profile IDs.
         return TodayActionsApiResponse(404, {"error": "PROFILE_NOT_FOUND"})
     if profile.get("profile_id") != profile_id or profile.get("tenant_id") != tenant_id:
         return TodayActionsApiResponse(404, {"error": "PROFILE_NOT_FOUND"})
@@ -80,7 +76,6 @@ def build_today_actions_api_response(
     if not isinstance(opportunities, list):
         raise ValueError("repository.list_opportunities must return a list")
     if len(opportunities) > limit:
-        # Repository adapters do not get to silently bypass the interactive query cap.
         opportunities = opportunities[:limit]
 
     ids = [
@@ -99,8 +94,8 @@ def build_today_actions_api_response(
         result_store=result_store,
         now=now,
     )
-    if dispatch_sink is not None and cycle.internal_dispatch.get("model_request_count", 0) > 0:
-        dispatch_sink(cycle.internal_dispatch)
+    if dispatch_queue is not None and cycle.internal_dispatch.get("model_request_count", 0) > 0:
+        queue_today_actions_dispatch(dispatch_queue, cycle.internal_dispatch, enqueued_at=now)
 
     public = cycle.public_response()
     if "model_requests" in public or "agnes_dispatch_plan" in public or "task_payloads" in public:
@@ -116,7 +111,7 @@ def get_today_opportunity_api_response(
     repository: TodayActionsRepository,
     result_store: AgnesTaskResultStore,
     now: datetime,
-    dispatch_sink: DispatchSink | None = None,
+    dispatch_queue: AgnesDispatchQueue | None = None,
 ) -> TodayActionsApiResponse:
     """Application boundary for GET /opportunity/:id within the current Today Top5."""
 
@@ -128,7 +123,7 @@ def get_today_opportunity_api_response(
         repository=repository,
         result_store=result_store,
         now=now,
-        dispatch_sink=dispatch_sink,
+        dispatch_queue=dispatch_queue,
     )
     if today.status_code != 200:
         return today
