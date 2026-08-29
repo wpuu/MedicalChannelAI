@@ -1,0 +1,39 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-29T16:20:00+08:00",
+  "source_id": "tj_government_procurement_center",
+  "host": "tjgpc.zwfwb.tj.gov.cn",
+  "purpose": "Prevent unverified classId guessing while native procurement-list discovery remains unresolved.",
+  "confirmed_routes": [
+    {
+      "route": "/web_index1.do",
+      "interpretation": "PUBLIC_HOME_ENTRY",
+      "runtime_discovery_enabled": false,
+      "evidence_strength": "EXTERNAL_RESEARCH_CORROBORATION_NOT_CRAWLER_FETCH"
+    },
+    {
+      "route": "/webInfo/getWebInfoListForwebInfoClass.do?fkWebInfoclassId=W008",
+      "interpretation": "ONLINE_RESPONSE_HELP",
+      "runtime_discovery_enabled": false,
+      "must_not_be_treated_as": ["PUBLIC_TENDER_LIST", "PROCUREMENT_RESULT_LIST", "PROCUREMENT_DISCOVERY_FEED"],
+      "evidence_strength": "REPEATED_OFFICIAL_PROCUREMENT_DOCUMENT_REFERENCES_2022_2026"
+    }
+  ],
+  "unresolved": [
+    "native public-tender list classId",
+    "native procurement-result list classId",
+    "pagination parameter names and semantics",
+    "whether list routes expose all municipal and district centralized-procurement projects",
+    "crawler-runtime direct fetch in current deployment environment"
+  ],
+  "rules": [
+    "Do not probe or register guessed W00x classIds as production discovery routes.",
+    "A classId may enter Source Registry only after its public meaning is independently evidenced.",
+    "Detail UUID URLs discovered through official mirrors may be retained as discovery seeds, but mirror discovery does not upgrade list coverage to IMPLEMENTED."
+  ],
+  "evidence_urls": [
+    "https://tianjin.chinatax.gov.cn/uploadFiles/file/20250625/20250625160045_790.pdf",
+    "https://tianjin.chinatax.gov.cn/uploadFiles/file/20231027/20231027151659_405.pdf",
+    "http://tjgpc.zwfwb.tj.gov.cn/web_index1.do"
+  ]
+}
