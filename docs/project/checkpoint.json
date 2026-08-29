@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T10:04:00+08:00",
+  "as_of": "2026-08-29T10:24:00+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY",
   "production_ready": false,
   "merge_approved": false,
@@ -13,8 +13,8 @@
   "verified_attachment_declaration_fixture_count": 5,
   "real_attachment_binary_capture_count": 0,
   "verified_institution_evidence_fixture_count": 15,
-  "schema_contract_count": 20,
-  "deterministic_test_module_count": 36,
+  "schema_contract_count": 21,
+  "deterministic_test_module_count": 37,
   "query_budget": {
     "status": "IMPLEMENTED_V0_1",
     "profile_hard_cap_policy": "NO_SMALL_HARD_CAP_FOR_REAL_BUSINESS_SCOPE",
@@ -38,6 +38,7 @@
   "continuous_subscription": {
     "status": "IMPLEMENTED_V0_1",
     "prefilter": "tools/medical_pilot/subscription_prefilter.py",
+    "batch_processor": "tools/medical_pilot/subscription_batch.py",
     "evaluation": "tools/medical_pilot/subscription_engine.py",
     "notification_route": "tools/medical_pilot/subscription_notification.py",
     "prefilter_keys": ["region", "taxonomy_ids", "customer_type"],
@@ -45,6 +46,8 @@
     "missing_key_facts_behavior": "ENRICH_BEFORE_NOTIFY",
     "candidate_only_immediate_alert_allowed": false,
     "stable_material_event_dedupe_key": true,
+    "max_profiles_per_batch": 1000,
+    "batch_resume_cursor": "next_offset",
     "terminal_followup_suppression": ["WON", "LOST", "NOT_FIT", "ARCHIVED"],
     "active_followup_owner_routing": true
   },
@@ -55,6 +58,15 @@
     "day_precision_publication_latency_allowed": false,
     "timezone_aware_required": true,
     "monotonic_stage_order_required": true
+  },
+  "source_primary_status": {
+    "source_id": "tj_government_procurement",
+    "implementation_status": "PARTIAL_IMPLEMENTATION",
+    "2026_host_reference_confirmed": true,
+    "detail_route_pattern_confirmed_by_official_2025_references": true,
+    "2026_native_listing_or_search_confirmed": false,
+    "2026_native_detail_fetch_confirmed": false,
+    "direct_attachment_href_confirmed": false
   },
   "taxonomy_corpus_audit": {
     "corpus_case_count": 50,
@@ -70,7 +82,6 @@
   "ci_status": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
     "tracking_issue": 2,
-    "latest_checked_head_sha": "f2f7a1b7a79a1d5b45895af4f2603b31e74981c3",
     "latest_checked_run_id": 33228238965,
     "latest_checked_job_id": 99036052795,
     "evidence": {"runner_id": 0, "runner_name": "", "steps_count": 0, "conclusion": "failure"},
@@ -80,6 +91,7 @@
     "OFFICIAL_PUBLIC_FACT must never be model-generated.",
     "Broad profiles are allowed; execution is bounded instead.",
     "Subscription prefilter is performance-only and never replaces the full Match Gate.",
+    "Subscription event processing is bounded/resumable and must validate event identity before any prefilter short-circuit.",
     "Missing validated taxonomy or customer type is enriched before notification rather than broad-scanning every customer.",
     "Candidate-only profiles never receive immediate high-priority alerts.",
     "Terminal followup states suppress repeated notifications for the same opportunity identity.",
@@ -88,10 +100,10 @@
     "Coverage remains PARTIAL while required P0 sources are partial."
   ],
   "next": [
-    "wire subscription/daily/latency contracts into future Fact API and event scheduler",
+    "wire daily/subscription/latency contracts into future Fact API and persistent event scheduler",
     "capture first real Tianjin medical attachment bytes",
     "verify Tianjin government procurement native list/search/pagination/lifecycle and attachment href",
-    "execute 36 deterministic tests/taxonomy audit when runner is restored",
+    "execute 37 deterministic tests/taxonomy audit when runner is restored",
     "run Agnes benchmarks only after deterministic execution evidence exists",
     "stabilize backend APIs before H5/WeChat mini-program frontend"
   ]
