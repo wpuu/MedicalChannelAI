@@ -15,7 +15,9 @@ def build_daily_agnes_dispatch_plan(
     """Convert already-authorized daily model candidates into one staggered Agnes plan.
 
     This function never adds new candidates and never overrides Match/model-admission
-    gates. The same profile/day/opportunity generates a stable task identity.
+    gates. The same profile/day/opportunity generates a stable task identity. The
+    generic Agnes dispatch object remains schema-clean and is nested under
+    ``agnes_dispatch_plan`` together with Daily-only context.
     """
 
     if now.tzinfo is None or now.utcoffset() is None:
@@ -40,10 +42,10 @@ def build_daily_agnes_dispatch_plan(
         }
         for opportunity_id in ids
     ]
-    plan = build_agnes_dispatch_plan(tasks, now=now)
     return {
-        **plan,
+        "schema_version": "0.1",
         "source": "DAILY_RECOMMENDATION_PLAN",
         "profile_id": profile_id,
         "source_model_candidate_count": len(ids),
+        "agnes_dispatch_plan": build_agnes_dispatch_plan(tasks, now=now),
     }
