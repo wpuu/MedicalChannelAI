@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-opportunity-followup.schema.json",
+  "title": "Medical Opportunity Follow-up v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "followup_id", "tenant_id", "opportunity_id", "status", "owner", "recorded_at", "customer_confirmed"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "followup_id": {"type": "string", "pattern": "^mfollow_[0-9a-fA-F-]{36}$"},
+    "tenant_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "status": {"enum": ["NEW", "REVIEWING", "CONTACTED", "RELATIONSHIP_VERIFIED", "PREPARING", "BID_SUBMITTED", "WON", "LOST", "NOT_FIT", "MONITOR", "ARCHIVED"]},
+    "owner": {"type": ["string", "null"], "maxLength": 200},
+    "next_followup_at": {"type": ["string", "null"], "format": "date-time"},
+    "note": {"type": ["string", "null"], "maxLength": 4000},
+    "not_fit_reason": {"type": ["string", "null"], "enum": ["NO_PRODUCT_CAPABILITY", "NO_MANUFACTURER_ACCESS", "RELATIONSHIP_TOO_WEAK", "AMOUNT_TOO_SMALL", "PROJECT_TOO_LATE", "COMPETITOR_LOCKED_CUSTOMER_JUDGMENT", "DEPARTMENT_OUT_OF_SCOPE", "REGION_OUT_OF_SCOPE", "RENTAL_NOT_SUPPORTED", "OTHER", null]},
+    "not_fit_detail": {"type": ["string", "null"], "maxLength": 1000},
+    "customer_confirmed": {"type": "boolean"},
+    "recorded_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "NOT_FIT"}}},
+      "then": {"required": ["not_fit_reason"]}
+    }
+  ]
+}
