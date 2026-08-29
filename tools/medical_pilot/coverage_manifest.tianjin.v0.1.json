@@ -29,7 +29,13 @@
       "source_id": "tj_government_procurement",
       "priority": "P0",
       "implementation_status": "PARTIAL_IMPLEMENTATION",
-      "implementation_note": "Canonical 2026 host and long-lived /portal/documentView.do?method=view&id=<digits>&ver=2 detail route are verified. Direct detail parsing is implemented, but native listing/search discovery and 2026 category coverage are not yet independently verified."
+      "implementation_note": "Official Tianjin procurement content is recognized across tjgp.cz.tj.gov.cn and ccgp-tianjin.gov.cn aliases. Strict documentView detail parsing is implemented, but native 2026 listing/search discovery, runtime direct-fetch confirmation and source-native attachment hrefs remain unverified."
+    },
+    {
+      "source_id": "tj_government_procurement_center",
+      "priority": "P0",
+      "implementation_status": "PARTIAL_IMPLEMENTATION",
+      "implementation_note": "Official tjgpc.zwfwb.tj.gov.cn public-tender detail route /webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=<UUID> is verified from current indexed official pages. Detail parsing is implemented; native listing class ids/pagination, all procurement methods and direct attachment routes are not yet independently verified. This source is a centralized-procurement subset, not a replacement for the citywide finance procurement source."
     },
     {
       "source_id": "tj_first_central_hospital_procurement",
