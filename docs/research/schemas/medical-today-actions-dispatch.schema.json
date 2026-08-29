@@ -17,10 +17,11 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["task_id", "opportunity_id", "model_input"],
+        "required": ["task_id", "opportunity_id", "model_input_sha256", "model_input"],
         "properties": {
-          "task_id": {"type": "string", "minLength": 1},
+          "task_id": {"type": "string", "minLength": 1, "maxLength": 300},
           "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+          "model_input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
           "model_input": {"type": "object"}
         }
       }
