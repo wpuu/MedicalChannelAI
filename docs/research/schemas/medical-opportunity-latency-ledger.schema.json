@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-opportunity-latency-ledger.schema.json",
+  "title": "Medical Opportunity Latency Ledger v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "ledger_id",
+    "source_id",
+    "opportunity_id",
+    "material_event_id",
+    "official_published_at",
+    "official_published_at_precision",
+    "discovered_at",
+    "fetched_at",
+    "verified_at",
+    "matched_at",
+    "notification_queued_at",
+    "delivered_at",
+    "latency_status",
+    "latencies_seconds",
+    "publication_latency_precision",
+    "warnings"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "ledger_id": {"type": "string", "pattern": "^lat_[0-9a-f]{64}$"},
+    "source_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "material_event_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "official_published_at": {"type": ["string", "null"], "format": "date-time"},
+    "official_published_at_precision": {"enum": ["DAY", "MINUTE", "SECOND", "UNKNOWN"]},
+    "discovered_at": {"type": "string", "format": "date-time"},
+    "fetched_at": {"type": ["string", "null"], "format": "date-time"},
+    "verified_at": {"type": ["string", "null"], "format": "date-time"},
+    "matched_at": {"type": ["string", "null"], "format": "date-time"},
+    "notification_queued_at": {"type": ["string", "null"], "format": "date-time"},
+    "delivered_at": {"type": ["string", "null"], "format": "date-time"},
+    "latency_status": {
+      "enum": ["DISCOVERED_ONLY", "FETCHED_NOT_VERIFIED", "VERIFIED_NOT_MATCHED", "MATCHED_NOT_QUEUED", "QUEUED_NOT_DELIVERED", "FULL_NOTIFICATION_PATH"]
+    },
+    "latencies_seconds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publication_to_discovery",
+        "discovery_to_fetch",
+        "fetch_to_verified",
+        "verified_to_match",
+        "match_to_queue",
+        "queue_to_delivery",
+        "discovery_to_delivery"
+      ],
+      "properties": {
+        "publication_to_discovery": {"type": ["integer", "null"], "minimum": 0},
+        "discovery_to_fetch": {"type": ["integer", "null"], "minimum": 0},
+        "fetch_to_verified": {"type": ["integer", "null"], "minimum": 0},
+        "verified_to_match": {"type": ["integer", "null"], "minimum": 0},
+        "match_to_queue": {"type": ["integer", "null"], "minimum": 0},
+        "queue_to_delivery": {"type": ["integer", "null"], "minimum": 0},
+        "discovery_to_delivery": {"type": ["integer", "null"], "minimum": 0}
+      }
+    },
+    "publication_latency_precision": {"enum": ["MINUTE", "SECOND", "UNAVAILABLE"]},
+    "warnings": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 240},
+      "uniqueItems": true
+    }
+  }
+}
