@@ -11,8 +11,8 @@ Draft PR：**#1**
 - **7 个运行时 P0 Source：4 IMPLEMENTED、3 PARTIAL_IMPLEMENTATION**
 - 50 条 VERIFIED 天津商机 regression fixture
 - 15 条 Institution Evidence
-- **31 份 Schema/合同**
-- **49 组 deterministic unittest 模块**
+- **32 份 Schema/合同**
+- **50 组 deterministic unittest 模块**
 - 真实官方附件 bytes=0；医疗附件 bytes=0
 - 已确认首条天津医疗附件精确官方 URL（`TGPC-2025-A-0164` / `method=downEnId`），但尚未取得 bytes/MIME/SHA
 - Agnes benchmark 28 case，未执行
@@ -20,18 +20,33 @@ Draft PR：**#1**
 
 ## Today Actions v0.1
 
-首页产品目标已经从“返回标讯”推进为“返回最多5条可行动商机”。新增 `today_actions.py` 与 `medical-today-actions.schema.json`，把以下四层严格分开：
+首页产品目标已经从“返回标讯”推进为“返回最多5条可行动商机”。已有：
 
-1. 官方/已验证商机事实；
-2. VERIFIED Evidence 原始来源 URL；
-3. 确定性 Match + Business Priority（不是中标概率）；
-4. Agnes 受约束的销售动作判断。
+- `today_actions.py` + `medical-today-actions.schema.json`；
+- `today_actions_dispatch.py` + `medical-today-actions-dispatch.schema.json`；
+- `today-actions-ui-v0.1.md`，首版 H5 UI 字段已冻结，可开始 mock 前端原型。
+
+Today Actions 把以下来源严格分层：
+
+1. `facts`：官方/已验证公开事实；
+2. `evidence_source_urls`：VERIFIED Evidence 原始来源；
+3. `customer_context`：客户确认的医院关系、产品能力与合作策略，明确属于 `CUSTOMER_PRIVATE_FACTS`；
+4. `priority`：确定性 Business Priority，不是中标概率；
+5. `decision`：Agnes 受约束的销售动作判断。
 
 Daily 流程先完成确定性排序并截取最终 Top5，**只有最终会显示的 Top5 才允许进入 Agnes**。Normal/Wide profile 不再为了首页向 Agnes 发送最终不会展示的第6–10名候选。`model_candidate_count` 与 `model_candidate_ids` Schema 均硬限制为最多5。
 
-Today Actions 不自行调用模型。没有 VERIFIED grounded facts 时保留事实卡，但状态为 `BLOCKED_GROUNDING`，不创建 Agnes 请求；Agnes 若引用未提供的 fact_id、越权 action/reason/risk 或非法 profile path，则输出标为 `MODEL_OUTPUT_REJECTED`，不得渲染给用户。
+Today Actions 本身不直接调用模型。没有 VERIFIED grounded facts 时保留事实卡，但状态为 `BLOCKED_GROUNDING`，不创建 Agnes 请求；Agnes 若引用未提供的 fact_id、越权 action/reason/risk 或非法 profile path，则输出标为 `MODEL_OUTPUT_REJECTED`，不得渲染给用户。
 
-新增 `test_today_actions.py`，覆盖 Top5 模型请求上限、缺 Evidence 阻断、未验证来源隔离、合法模型输出渲染、无根据模型输出拒绝。**这些测试目前仅已写入，尚无 Runner 实际执行证据。**
+`today_actions_dispatch.py` 只接收 Today Actions 已允许的 `model_requests`，为它们建立稳定 `DAILY_TOP5_EXPLANATION` task，并继续进入现有 Agnes Dispatch / Global Lease。已得到合法模型输出的卡不会再次创建模型任务。
+
+新增 `test_today_actions.py` 与 `test_today_actions_dispatch.py`，覆盖 Top5 模型请求上限、缺 Evidence 阻断、未验证来源隔离、客户私有关系分区、合法/非法模型输出以及 Dispatch 身份约束。**这些测试目前仅已写入，尚无 Runner 实际执行证据。**
+
+## 首版 H5 原型
+
+`docs/product/today-actions-ui-v0.1.md` 已标记 `FROZEN_FOR_FIRST_FRONTEND_PROTOTYPE`。首版只做天津 Pilot 的 Today Actions 和商机详情，不做全国地图大屏、支付、复杂权限或微信原生小程序。
+
+首版前端使用 mock service，可以现在开始生成；真实 API 后续替换 service 实现。UI 必须明显区分官方事实、客户私有关系和 AI 判断；Coverage PARTIAL 时不得宣称全量覆盖。
 
 ## 采集、推送与 Agnes 错峰
 
@@ -79,14 +94,15 @@ Source Topology 已区分天津财政 `direct_attachment_href_confirmed=true` �
 
 ## CI
 
-GitHub Actions Runner 基础设施问题仍在；没有真实 Python step 执行证据时，49组 tests 只能标“已写入”，不能标 PASS，也不能解释为 assertion failure。
+GitHub Actions Runner 基础设施问题仍在；没有真实 Python step 执行证据时，50组 tests 只能标“已写入”，不能标 PASS，也不能解释为 assertion failure。
 
 ## 下一步
 
-1. 把 Today Actions 接到实际 Backend API/Agnes 调度闭环；继续保持“确定性 Top5 后再调用模型”。
-2. Runner恢复后执行49组 tests/taxonomy audit；优先修真实失败。
-3. 继续用已确认 `downEnId` 医疗附件 URL 捕获真实 bytes；不再猜下载地址。
-4. 继续验证 `tjgpc` 真正采购公告 list classId / pagination 与天津财政 native discovery；W008 不再重复研究。
-5. deterministic execution 有证据后跑 Agnes benchmark，并用 Latency Ledger + Agnes queue wait 调优 cadence。
-6. Today Actions API 字段稳定后冻结首个 H5/微信端页面规格，再生成前端。
-7. 横向多服务器部署前再实现共享原子 AgnesLeaseStore adapter；天津 Pilot 单 dispatcher + SQLite 不被此项阻塞。
+1. 允许并行生成首版 H5 mock 前端；以后只替换 TodayActionsService，不把业务判断搬进浏览器。
+2. 继续把 Today Actions 接到实际 Backend API/Agnes Worker 闭环。
+3. Runner恢复后执行50组 tests/taxonomy audit；优先修真实失败。
+4. 继续用已确认 `downEnId` 医疗附件 URL 捕获真实 bytes；不再猜下载地址。
+5. 继续验证 `tjgpc` 真正采购公告 list classId / pagination 与天津财政 native discovery；W008 不再重复研究。
+6. deterministic execution 有证据后跑 Agnes benchmark，并用 Latency Ledger + Agnes queue wait 调优 cadence。
+7. H5 Pilot 验证工作流后再决定微信原生小程序，不提前重复开发两套前端。
+8. 横向多服务器部署前再实现共享原子 AgnesLeaseStore adapter；天津 Pilot 单 dispatcher + SQLite 不被此项阻塞。
