@@ -1,15 +1,22 @@
 from __future__ import annotations
 
+import ipaddress
 import re
 from dataclasses import dataclass, replace
-from urllib.parse import parse_qs, urlparse
+from pathlib import PurePosixPath
+from urllib.parse import parse_qs, unquote, urlparse
 
 from .adapters import MEDICAL_HINTS
+from .attachments import AttachmentCandidate
 from .ccgp_lifecycle_adapter import CcgpLifecycleAdapter, ParsedCcgpLifecycleNotice
 from .collector_core import DiscoveredLink, Snapshot, extract_anchors, normalize_space, parse_cn_datetime, parse_money_to_cny, strip_tags
 
 
 _UUID_RE = re.compile(r"^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$")
+_TJGPC_ATTACHMENT_EXTENSIONS = {".pdf", ".docx", ".xlsx"}
+_TJGPC_OBSERVED_ATTACHMENT_HOST = "218.67.246.33"
+_TJGPC_OBSERVED_ATTACHMENT_PORT = 7001
+_TJGPC_OBSERVED_ATTACHMENT_PATH_PREFIX = "/ZTBS/fileupload/gw/"
 
 
 @dataclass(frozen=True)
@@ -20,10 +27,12 @@ class TianjinProcurementCenterAdapter(CcgpLifecycleAdapter):
     - official host: tjgpc.zwfwb.tj.gov.cn
     - detail route: /webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=<UUID>
     - public-tender detail pages whose indexed official content exposes project identity,
-      purchaser, budget and bid/opening timing.
+      purchaser, budget and bid/opening timing
+    - discovery of the observed official downloadFile.do wrapper shape. Attachment
+      candidates remain download_authorized=False until real byte delivery is validated.
 
-    Native listing class ids, pagination, all procurement methods and attachment download
-    routes are not yet independently verified. This source therefore remains
+    Native listing class ids, pagination, all procurement methods and attachment byte
+    delivery are not yet independently verified. This source therefore remains
     PARTIAL_IMPLEMENTATION and must not upgrade Tianjin coverage to exhaustive.
     """
 
@@ -41,12 +50,91 @@ class TianjinProcurementCenterAdapter(CcgpLifecycleAdapter):
             return False
         if parsed.hostname != "tjgpc.zwfwb.tj.gov.cn":
             return False
-        if parsed.path != "/webInfo/getWebInfoByPkWebInfoId1.do":
+        if parsed.path != "/webInfo/getWebInfoByPkWebInfoId1.do" or parsed.fragment:
             return False
-        query = parse_qs(parsed.query, keep_blank_values=True)
+        try:
+            query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+        except ValueError:
+            return False
         if set(query) != {"pkWebInfoId"} or len(query["pkWebInfoId"]) != 1:
             return False
         return bool(_UUID_RE.fullmatch(query["pkWebInfoId"][0]))
+
+    @staticmethod
+    def _validated_attachment_wrapper_parts(url: str) -> tuple[str, str] | None:
+        """Validate the observed tjgpc download wrapper without following nested fileUrl.
+
+        The indexed official wrapper contains a nested HTTP fileUrl. Treating the
+        outer government host alone as trustworthy would create an SSRF-shaped risk if
+        an attacker could inject an arbitrary nested URL. v0.1 therefore accepts only
+        the one observed public attachment origin/path family and never fetches the
+        nested URL directly.
+        """
+
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"} or parsed.hostname != "tjgpc.zwfwb.tj.gov.cn":
+            return None
+        if parsed.path != "/webInfo/downloadFile.do" or parsed.fragment:
+            return None
+        try:
+            query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+        except ValueError:
+            return None
+        if set(query) != {"fileName", "fileUrl"} or any(len(values) != 1 for values in query.values()):
+            return None
+
+        filename = unquote(query["fileName"][0]).strip()
+        if not filename or "/" in filename or "\\" in filename:
+            return None
+        extension = PurePosixPath(filename).suffix.lower()
+        if extension not in _TJGPC_ATTACHMENT_EXTENSIONS:
+            return None
+
+        nested_raw = unquote(query["fileUrl"][0]).strip()
+        nested = urlparse(nested_raw)
+        if nested.scheme != "http" or nested.hostname != _TJGPC_OBSERVED_ATTACHMENT_HOST:
+            return None
+        if nested.port != _TJGPC_OBSERVED_ATTACHMENT_PORT:
+            return None
+        if nested.username or nested.password or nested.fragment or nested.query:
+            return None
+        try:
+            address = ipaddress.ip_address(nested.hostname)
+        except ValueError:
+            return None
+        if address.is_private or address.is_loopback or address.is_link_local or address.is_multicast or address.is_unspecified:
+            return None
+        if not nested.path.startswith(_TJGPC_OBSERVED_ATTACHMENT_PATH_PREFIX):
+            return None
+        if ".." in PurePosixPath(nested.path).parts:
+            return None
+        return filename, nested_raw
+
+    @classmethod
+    def is_verified_attachment_wrapper_url(cls, url: str) -> bool:
+        return cls._validated_attachment_wrapper_parts(url) is not None
+
+    def discover_attachment_candidates(self, raw_html: str, page_url: str) -> list[AttachmentCandidate]:
+        result: list[AttachmentCandidate] = []
+        seen: set[str] = set()
+        for link in extract_anchors(raw_html, page_url):
+            parts = self._validated_attachment_wrapper_parts(link.url)
+            if parts is None or link.url in seen:
+                continue
+            filename, _nested_metadata_only = parts
+            extension = PurePosixPath(filename).suffix.lower()
+            seen.add(link.url)
+            result.append(
+                AttachmentCandidate(
+                    source_url=link.url,
+                    filename=filename,
+                    extension=extension,
+                    title=link.title or filename,
+                    handling_policy="DISCOVER_ONLY_OFFICIAL_WRAPPER_PENDING_BYTES_VALIDATION",
+                    download_authorized=False,
+                )
+            )
+        return result
 
     def discover(self, listing_html: str, listing_url: str) -> list[DiscoveredLink]:
         # Deliberately narrow. This only accepts already-visible verified detail links;
