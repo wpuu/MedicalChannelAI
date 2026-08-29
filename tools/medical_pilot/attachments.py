@@ -34,6 +34,8 @@ EXPECTED_MIME_PREFIXES = {
     ),
 }
 
+OLE_MAGIC = bytes.fromhex("D0CF11E0A1B11AE1")
+
 
 @dataclass(frozen=True)
 class AttachmentCandidate:
@@ -42,6 +44,11 @@ class AttachmentCandidate:
     extension: str
     title: str
     handling_policy: str
+    # Source-specific discovery may identify an official-looking attachment URL before
+    # the underlying byte-delivery route has been validated. Keep discovery and fetch
+    # authorization separate so callers cannot accidentally upgrade it by reusing the
+    # generic downloader.
+    download_authorized: bool = True
 
 
 @dataclass(frozen=True)
@@ -120,6 +127,19 @@ def discover_attachments(raw_html: str, base_url: str) -> list[AttachmentCandida
     return result
 
 
+def _validate_magic(extension: str, body: bytes) -> None:
+    if extension == ".pdf":
+        valid = body.startswith(b"%PDF-")
+    elif extension in {".docx", ".xlsx"}:
+        valid = body.startswith(b"PK\x03\x04") or body.startswith(b"PK\x05\x06") or body.startswith(b"PK\x07\x08")
+    elif extension in {".doc", ".xls"}:
+        valid = body.startswith(OLE_MAGIC)
+    else:
+        valid = True
+    if not valid:
+        raise FetchError("ATTACHMENT_MAGIC_MISMATCH", f"response bytes do not match {extension} file signature")
+
+
 class BoundedAttachmentFetcher:
     def __init__(
         self,
@@ -144,6 +164,11 @@ class BoundedAttachmentFetcher:
         return parsed
 
     def fetch(self, candidate: AttachmentCandidate) -> AttachmentSnapshot:
+        if not candidate.download_authorized:
+            raise FetchError(
+                "ATTACHMENT_DOWNLOAD_NOT_AUTHORIZED",
+                "attachment was discovered but its byte-delivery route has not been validated for download",
+            )
         if candidate.extension in ARCHIVE_DISCOVERY_ONLY_EXTENSIONS:
             raise FetchError("ARCHIVE_DOWNLOAD_DISABLED", "archive attachments are discovery-only in Pilot v0.1")
         if candidate.extension not in DOWNLOADABLE_DOCUMENT_EXTENSIONS:
@@ -180,6 +205,7 @@ class BoundedAttachmentFetcher:
                 "ATTACHMENT_MIME_MISMATCH",
                 f"extension {candidate.extension} expected {allowed_mimes}, got {content_type}; guessed {guessed_mime}",
             )
+        _validate_magic(candidate.extension, body)
 
         digest = hashlib.sha256(body).hexdigest()
         attachment_uuid = uuid.uuid5(ID_NAMESPACE, f"attachment|{final_url}|{digest}")
