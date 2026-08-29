@@ -15,55 +15,12 @@
   "verified_institution_evidence_fixture_count": 15,
   "schema_contract_count": 14,
   "deterministic_test_module_count": 30,
-  "query_budget": {
-    "status": "IMPLEMENTED_V0_1",
-    "schema": "docs/research/schemas/medical-query-execution-plan.schema.json",
-    "module": "tools/medical_pilot/query_budget.py",
-    "principle": "LIMIT_SINGLE_EXECUTION_COMPLEXITY_NOT_LONG_TERM_PROFILE_COMPLETENESS",
-    "acquisition_strategy": "SHARED_FACT_INDEX_NOT_PER_PROFILE_CRAWL",
-    "interactive_default": {
-      "max_db_candidates": 500,
-      "max_deterministic_match_candidates": 200,
-      "max_deep_enrichment_candidates": 30,
-      "max_model_candidates": 10,
-      "max_final_action_cards": 5,
-      "max_live_source_requests": 0,
-      "max_model_facts_per_opportunity": 24,
-      "max_model_fact_chars_per_opportunity": 12000
-    },
-    "scope_cells": {"NORMAL_MAX": 24, "WIDE_MAX": 120, "VERY_WIDE_MIN": 121},
-    "wide_scope_behavior": "SUMMARY_THEN_DRILL_DOWN_AND_STRICT_TOP_N",
-    "profile_scope_may_remain_broad": true,
-    "customer_cartesian_live_crawl_allowed": false
-  },
-  "model_context_budget": {
-    "default_max_grounded_facts": 24,
-    "default_max_grounded_fact_chars": 12000,
-    "omitted_fact_count_exposed": true,
-    "fact_value_truncation_allowed": false,
-    "all_facts_too_large_behavior": "FAIL_CLOSED"
-  },
-  "taxonomy_corpus_audit": {"corpus_case_count": 50, "execution_status": "NOT_EXECUTED_RUNNER_BLOCKED", "coverage_rate": null},
+  "query_budget": {"status": "IMPLEMENTED_V0_1", "profile_hard_cap_policy": "NO_SMALL_HARD_CAP_FOR_REAL_BUSINESS_SCOPE", "acquisition_strategy": "SHARED_FACT_INDEX_NOT_PER_PROFILE_CRAWL", "interactive_default": {"max_db_candidates": 500, "max_deterministic_match_candidates": 200, "max_deep_enrichment_candidates": 30, "max_model_candidates": 10, "max_final_action_cards": 5, "max_live_source_requests": 0, "max_model_facts_per_opportunity": 24, "max_model_fact_chars_per_opportunity": 12000}, "wide_scope_behavior": "SUMMARY_THEN_DRILL_DOWN_AND_STRICT_TOP_N"},
+  "model_context_budget": {"default_max_grounded_facts": 24, "default_max_grounded_fact_chars": 12000, "omitted_fact_count_exposed": true, "fact_value_truncation_allowed": false, "no_fit_behavior": "FAIL_CLOSED"},
   "institution_evidence": {"verified_fixture_count": 15, "exact_name_or_explicit_alias_only": true},
+  "taxonomy_corpus_audit": {"corpus_case_count": 50, "execution_status": "NOT_EXECUTED_RUNNER_BLOCKED", "coverage_rate": null},
   "agnes_2_5_flash": {"status": "GO_FOR_BENCHMARK", "benchmark_case_count": 28, "execution_status": "NOT_EXECUTED", "can_drive_taxonomy_matching": false},
   "ci_status": {"status": "BLOCKED_RUNNER_NOT_ASSIGNED", "tracking_issue": 2, "interpretation": "No Python compile or unittest step has execution evidence; this is neither PASS nor assertion FAIL."},
-  "critical_rules": [
-    "OFFICIAL_PUBLIC_FACT must never be model-generated.",
-    "Missing customer conditions trigger follow-up questions.",
-    "Broad customer profiles are allowed; interactive execution is bounded instead.",
-    "Interactive profile queries use the shared fact index and never region x product live-crawl Cartesian expansion.",
-    "The whole candidate corpus is never sent to one model prompt.",
-    "Omitted model facts are counted and official fact values are never truncated to fit context.",
-    "Formal match uses taxonomy_ids and evidence-backed institution type.",
-    "Priority score is not win probability.",
-    "Coverage stays PARTIAL until required P0 sources are complete."
-  ],
-  "next": [
-    "wire Query Budget into future Fact API and daily recommendation orchestrator",
-    "execute 30 deterministic tests and taxonomy audit when runner is restored",
-    "capture first real Tianjin medical attachment bytes",
-    "verify Tianjin government-procurement native list/search/pagination/lifecycle",
-    "run Agnes benchmarks only after deterministic execution evidence",
-    "stabilize Fact/Profile/Match/Priority/QueryPlan APIs before H5/Web"
-  ]
+  "critical_rules": ["OFFICIAL_PUBLIC_FACT must never be model-generated.", "Broad profiles are allowed; execution is bounded instead.", "Interactive queries use shared indexed facts and never region x product live-crawl Cartesian expansion.", "Whole candidate corpus is never sent in one prompt.", "Omitted model facts are counted and official fact values are never truncated to fit context.", "Coverage remains PARTIAL while required P0 sources are partial."],
+  "next": ["wire Query Budget into future Fact API/daily orchestrator", "execute 30 deterministic tests/taxonomy audit when runner is restored", "capture real attachment bytes", "verify Tianjin government procurement native list/search/pagination/lifecycle", "run Agnes benchmarks after deterministic evidence", "stabilize Fact/Profile/Match/Priority/QueryPlan APIs before H5/Web"]
 }
