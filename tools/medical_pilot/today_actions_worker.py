@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable
 
 from .agnes_global_lease import AgnesLeaseStore, release_global_lease
@@ -19,6 +19,7 @@ from .model_decision_contract import (
 
 
 ModelCall = Callable[[dict[str, Any]], dict[str, Any]]
+Clock = Callable[[], datetime]
 
 
 @dataclass(frozen=True)
@@ -63,12 +64,7 @@ def _nonempty_strings(value: Any, field_name: str) -> tuple[str, ...]:
 
 
 def _hydrate_model_input(payload: dict[str, Any]) -> ModelDecisionInput:
-    """Re-hydrate the already-grounded dispatch payload and fail closed on drift.
-
-    The worker does not rebuild business facts. It only verifies that the serialized
-    input produced by Today Actions still satisfies the model-decision contract before
-    the provider is called.
-    """
+    """Re-hydrate an already-grounded model input and fail closed on drift."""
 
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
         raise ModelDecisionError("MODEL_INPUT_INVALID", "model_input schema_version must be 0.1")
@@ -161,12 +157,15 @@ def execute_next_today_actions_task(
     worker_id: str,
     now: datetime,
     model_call: ModelCall,
+    clock: Clock | None = None,
 ) -> TodayActionsWorkerResult:
     """Claim and execute one already-authorized Today Actions model request.
 
-    This is provider-neutral. ``model_call`` receives the locked model_input object and
-    must return one JSON object. API keys, provider URLs, and retry transports stay in
-    deployment adapters, not in this trusted orchestration layer.
+    ``model_call`` is injected so this trusted orchestration layer never stores API
+    keys or hard-codes provider transport. Every provider call requires a claimed
+    global lease. Serialized model input is re-validated before the call, model output
+    is grounded against the locked input, and the lease is released on every claimed
+    path.
     """
 
     if now.tzinfo is None or now.utcoffset() is None:
@@ -202,6 +201,7 @@ def execute_next_today_actions_task(
     task_id = str(task["task_id"])
     lease_id = str(lease["lease_id"])
     matching = [row for row in payloads if isinstance(row, dict) and row.get("task_id") == task_id]
+
     opportunity_id: str | None = None
     status = "WORKER_ERROR"
     validated_output: dict[str, Any] | None = None
@@ -214,89 +214,62 @@ def execute_next_today_actions_task(
             status = "PAYLOAD_ERROR"
             error_code = "TASK_PAYLOAD_IDENTITY_INVALID"
             error_message = "claimed task must have exactly one payload"
-            return TodayActionsWorkerResult(
-                status=status,
-                task_id=task_id,
-                opportunity_id=None,
-                worker_id=worker_id,
-                lease_id=lease_id,
-                provider_start_allowed=True,
-                lease_released=None,
-                validated_output=None,
-                rendered_decision=None,
-                error_code=error_code,
-                error_message=error_message,
-                retry_after=None,
-            )
+        else:
+            payload = matching[0]
+            opportunity_id = payload.get("opportunity_id") if isinstance(payload.get("opportunity_id"), str) else None
+            model_input_raw = payload.get("model_input")
+            if not isinstance(model_input_raw, dict) or model_input_raw.get("opportunity_id") != opportunity_id:
+                raise ModelDecisionError("MODEL_INPUT_INVALID", "task payload opportunity/model input mismatch")
+            model_input = _hydrate_model_input(model_input_raw)
 
-        payload = matching[0]
-        opportunity_id = payload.get("opportunity_id") if isinstance(payload.get("opportunity_id"), str) else None
-        model_input_raw = payload.get("model_input")
-        if not isinstance(model_input_raw, dict) or model_input_raw.get("opportunity_id") != opportunity_id:
-            raise ModelDecisionError("MODEL_INPUT_INVALID", "task payload opportunity/model input mismatch")
-        model_input = _hydrate_model_input(model_input_raw)
-
-        try:
-            raw_output = model_call(model_input.as_dict())
-        except Exception as exc:  # transport/provider errors are deployment-dependent
-            status = "PROVIDER_ERROR"
-            error_code = "MODEL_CALL_FAILED"
-            error_message = f"{type(exc).__name__}: {exc}"
-            return TodayActionsWorkerResult(
-                status=status,
-                task_id=task_id,
-                opportunity_id=opportunity_id,
-                worker_id=worker_id,
-                lease_id=lease_id,
-                provider_start_allowed=True,
-                lease_released=None,
-                validated_output=None,
-                rendered_decision=None,
-                error_code=error_code,
-                error_message=error_message,
-                retry_after=None,
-            )
-
-        try:
-            validated_output = validate_model_decision(raw_output, model_input)
-            rendered_decision = render_model_decision(validated_output)
-            status = "READY"
-        except ModelDecisionError as exc:
-            status = "MODEL_OUTPUT_REJECTED"
-            error_code = exc.code
-            error_message = str(exc)
-
-        return TodayActionsWorkerResult(
-            status=status,
-            task_id=task_id,
-            opportunity_id=opportunity_id,
-            worker_id=worker_id,
-            lease_id=lease_id,
-            provider_start_allowed=True,
-            lease_released=None,
-            validated_output=validated_output,
-            rendered_decision=rendered_decision,
-            error_code=error_code,
-            error_message=error_message,
-            retry_after=None,
-        )
+            try:
+                raw_output = model_call(model_input.as_dict())
+            except Exception as exc:  # deployment transport/provider error
+                status = "PROVIDER_ERROR"
+                error_code = "MODEL_CALL_FAILED"
+                error_message = f"{type(exc).__name__}: {exc}"
+            else:
+                try:
+                    validated_output = validate_model_decision(raw_output, model_input)
+                    rendered_decision = render_model_decision(validated_output)
+                    status = "READY"
+                except ModelDecisionError as exc:
+                    status = "MODEL_OUTPUT_REJECTED"
+                    error_code = exc.code
+                    error_message = str(exc)
     except ModelDecisionError as exc:
         status = "PAYLOAD_ERROR"
         error_code = exc.code
         error_message = str(exc)
-        return TodayActionsWorkerResult(
-            status=status,
-            task_id=task_id,
-            opportunity_id=opportunity_id,
-            worker_id=worker_id,
-            lease_id=lease_id,
-            provider_start_allowed=True,
-            lease_released=None,
-            validated_output=None,
-            rendered_decision=None,
-            error_code=error_code,
-            error_message=error_message,
-            retry_after=None,
-        )
-    finally:
-        release_global_lease(store, lease_id=lease_id, worker_id=worker_id, now=now)
+
+    finish_clock = clock or (lambda: datetime.now(timezone.utc))
+    finished_at = finish_clock()
+    if finished_at.tzinfo is None or finished_at.utcoffset() is None:
+        raise ValueError("clock must return timezone-aware datetime")
+    lease_released = release_global_lease(
+        store,
+        lease_id=lease_id,
+        worker_id=worker_id,
+        now=finished_at,
+    )
+    if not lease_released:
+        status = "LEASE_RELEASE_FAILED"
+        error_code = "GLOBAL_LEASE_RELEASE_FAILED"
+        error_message = "claimed Agnes lease could not be released by the same worker"
+        validated_output = None
+        rendered_decision = None
+
+    return TodayActionsWorkerResult(
+        status=status,
+        task_id=task_id,
+        opportunity_id=opportunity_id,
+        worker_id=worker_id,
+        lease_id=lease_id,
+        provider_start_allowed=True,
+        lease_released=lease_released,
+        validated_output=validated_output,
+        rendered_decision=rendered_decision,
+        error_code=error_code,
+        error_message=error_message,
+        retry_after=None,
+    )
