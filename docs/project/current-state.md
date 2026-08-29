@@ -6,154 +6,91 @@
 生产就绪：**false**  
 Draft PR：**#1**
 
-## 1. 当前目标
-
-天津 Pilot 验证：公开医疗商业信号能否持续、可追溯地进入事实层，并在**模型不得创造采购事实、客户条件不足必须继续追问、派生分类必须有准入证据、宽范围查询必须受执行预算约束**的前提下，形成渠道/厂家销售可执行的优先级与行动建议。
-
-当前聚焦医疗器械、IVD、耗材；不是诊断或临床决策系统。
-
-## 2. 当前真实规模
+## 当前真实规模
 
 - 6 个运行时 P0 Source：4 IMPLEMENTED、2 PARTIAL_IMPLEMENTATION
-- **50 条 VERIFIED 天津商机 regression fixture**：8 + 1 + 2 + 10 + 16 + 13
+- **50 条 VERIFIED 天津商机 regression fixture**
 - 5 条真实官方附件声明；真实附件 binary capture = 0
 - **15 条天津机构官方 Evidence fixture**
 - **14 份正式 JSON Schema/合同**
 - **30 组 deterministic unittest 模块**
-- 2 套 Agnes benchmark：12 + 16 = **28 case**，均未执行
+- 2 套 Agnes benchmark，共 **28 case**，均未执行
 - Coverage：`PARTIAL / NOT_EXHAUSTIVE`
 - `production_ready=false`
 
-50条 corpus 已达到第一轮分类覆盖/模型评估所需的样本规模门槛，但不等于覆盖天津全部商机。
+## 核心可信链
 
-## 3. 事实底座
+`Source Registry → Snapshot/SHA → Evidence Fact → Lifecycle/Identity → Institution Evidence → Product Taxonomy → Matching Profile Gate → Opportunity Match → Query Budget → Priority Score → Grounded Model Decision`
 
-已实现 Evidence-first SourceRegistry / Opportunity / ProcurementEvent / EvidenceFact、Snapshot SHA-256、官方来源角色、DAY/MINUTE 时间精度、CCGP 生命周期、采购意向 `projId`、医院官网早期信号、天津政府采购原始详情 PARTIAL、公共资源结果镜像 PARTIAL、中标产品/品牌/型号/数量/单价，以及 bounded DOCX/XLSX parser。
+模型不得创造采购事实；客户条件不足必须继续追问；派生分类必须经过来源/准入验证；Coverage 不完整时不能宣称“已查全”。
 
-PDF Docling backend 代码存在，但真实官方 PDF bytes 尚未验证，生产开关仍关闭。
+## Query Budget / 参数复杂度
 
-## 4. Canonical Identity / Cross-stage
+客户画像可以长期保存真实完整的区域、产品、客户类型和关系范围，**不为了性能强迫客户把真实业务范围填窄**。
 
-身份优先级：官方 `project_number` → source native id → source+URL。禁止 `buyer_name + project_name` 自动合并。
+单次交互执行则必须受预算约束：
 
-Cross-stage 当前只有 `CANDIDATE_REQUIRES_EVIDENCE`，`auto_merge_allowed=false`；真正 canonical bridge/merge 尚未实现。
+- `acquisition_strategy = SHARED_FACT_INDEX_NOT_PER_PROFILE_CRAWL`
+- DB候选最多500
+- 确定性匹配最多200
+- 深度补证默认最多30
+- 进入模型默认最多10
+- 首页最终行动卡默认5
+- 交互式画像查询实时全网抓取 = 0
+- 单商机模型事实默认最多24条 / 12000字符级事实输入
 
-## 5. Customer / Matching Profile Gate
+范围复杂度只用于决定执行方式：
 
-正式商机匹配使用 `matching_profile_gate.py`。客户产品能力必须映射到受控 `taxonomy_ids`；人类可读 category/subcategory 仅用于开户访谈和 UI。缺失/非法 taxonomy 会降为 `INCOMPLETE / PROFILE_INTERVIEW_REQUIRED` 并返回下一句问题。
+- `NORMAL`: scope cells <= 24
+- `WIDE`: 25..120 → summary-then-drill-down，模型Top-N收紧到8
+- `VERY_WIDE`: >120 → 深度补证收紧到15，模型Top-N收紧到5
 
-客户画像可以长期保存较多区域、产品和关系数据；**画像完整度不等于单次执行范围必须全部展开，也不应为了性能强迫全国/多产品客户删减真实业务范围。**
+**这些是单次执行预算，不是客户画像永久上限。** 数据采集按 Source Registry 集中运行，不能把“区域数 × 产品数 × 数据源数”变成客户点击一次就触发的实时笛卡尔爬取。
 
-## 6. Query Budget / Execution Plan
+单项目深挖可允许极少量受控实时请求（当前上限3）用于缺失官方详情/附件；计划采集则按数据源驱动。
 
-新增：
+## 模型上下文预算
 
-- `docs/research/schemas/medical-query-execution-plan.schema.json`
-- `tools/medical_pilot/query_budget.py`
-- `tools/medical_pilot/test_query_budget.py`
+Grounded Model Decision 现在显式记录：原始可用 VERIFIED fact 数、实际纳入数、预算排除数、纳入字符数和最大预算。
 
-固定原则：
+事实选择只做确定性优先排序，不修改事实内容。**官方事实不允许为了塞进上下文而被截断。** 如果现有 VERIFIED facts 全部超出单条上下文预算，模型调用直接 fail-closed。
 
-`acquisition_strategy = SHARED_FACT_INDEX_NOT_PER_PROFILE_CRAWL`
+因此未来可以避免两种问题：
 
-即公共数据按 Source Registry 集中持续采集进入事实库，客户选择“多个区域 × 多个产品”时，不允许按笛卡尔积重新实时爬网。
+1. 把几百条候选/几十页附件一次塞进模型，造成速度下降和注意力稀释；
+2. 实际只给模型部分事实，却让日志/前端误以为模型已经读过全部证据。
 
-交互式每日推荐默认预算：
+## Institution Evidence
 
-- DB候选：500
-- 确定性匹配：200
-- 深度补证：30
-- 模型候选：10
-- 最终行动卡：5
-- 实时全网抓取：0
-- 单商机模型事实：最多24条
-- 单商机模型事实字符预算：12000
+当前15条 VERIFIED 官方机构 Evidence，已覆盖总医院、第一中心、胸科、中医一附院、市疾控、第三中心、第五中心、南开医院、中研附院、肿瘤医院、血液病医院、天津医院，以及天津大学、天津医科大学、天津科技大学。
 
-宽画像自动降级为 summary-then-drill-down：
+公共 Match Pipeline 仅做精确名称/显式 alias enrichment；没有足够官方证据的机构保持 UNKNOWN。
 
-- `NORMAL`：scope cells <= 24
-- `WIDE`：25..120，模型Top-N收紧到8
-- `VERY_WIDE`：>120，深度补证收紧到15，模型Top-N收紧到5
+## Product Taxonomy / Agnes
 
-**这些是单次交互执行预算，不是客户资料硬上限。** 客户可以真实填写全国/多产品范围；系统应通过共享事实库、DB过滤、Top-N和分批深挖控制成本与延迟。
+正式匹配使用稳定 `taxonomy_ids`，不使用自由中文字符串。deterministic/human-confirmed classifier 已准入；Agnes taxonomy classifier 仍 `BENCHMARK_PENDING / can_drive_matching=false`。
 
-单项目深挖允许极少量受控实时抓取（当前上限3个请求）；计划采集模式按 Source 驱动，不按客户画像笛卡尔组合。
+Agnes 当前仍是 `GO_FOR_BENCHMARK`，不是 production validated。两套 benchmark 共28 case，均未执行。
 
-## 7. Opportunity Match Pipeline
+## 50条 corpus / taxonomy audit
 
-公开入口：`tools/medical_pilot/match_pipeline.py`。
+50条 corpus 已达到第一轮分类覆盖评估门槛。`taxonomy_corpus_audit.py` 已能统计确定性规则覆盖和 unresolved 清单，但 GitHub Runner 尚未执行，所以当前不宣称具体 coverage rate。
 
-顺序：Matching Profile Gate → Institution Evidence enrichment → VERIFIED/Coverage → 排除规则 → 区域 → Institution/customer type 证据 → 项目阶段 → 金额 → taxonomy → 租赁能力。
+## Source / Attachment
 
-缺关键事实返回 `NEEDS_MORE_FACTS / FACT_ENRICHMENT_REQUIRED / model_explanation_allowed=false`。
+天津政府采购 PRIMARY PARTIAL；CCGP OFFICIAL_MIRROR IMPLEMENTED；天津公共资源 OFFICIAL_MIRROR PARTIAL。Coverage 必须继续 `PARTIAL / NOT_EXHAUSTIVE`。
 
-## 8. Institution Evidence
+DOCX/XLSX parser 已实现，但真实官方附件 bytes 捕获仍为0；PDF Docling只有代码合同，没有真实字节验证。
 
-当前 **15条** VERIFIED 官方机构 Evidence。除原有总医院、第一中心医院、胸科医院、中医一附院、天津市疾控外，已增加：第三中心、第五中心、南开医院、中医药研究院附属医院、肿瘤医院、血液病医院、天津医院，以及天津大学、天津医科大学、天津科技大学。
+## CI真实状态
 
-公共 Match Pipeline 会精确名称/显式 alias 自动 enrichment；没有官方证据的机构继续 UNKNOWN。西青医院当前没有足够新的明确等级证据，故不升级。
+最近已确认的 Medical Pilot CI 仍是 Job 无执行 steps 的基础设施问题；Python compile/unittest 没有开始执行。因此当前30组 deterministic tests 只能标“测试代码已写入，等待真实执行证据”，不能标 PASS，也不能解释为 assertion failure。Issue #2 持续跟踪。
 
-## 9. Product Taxonomy / Classifier Admission
+## 下一步
 
-已建立稳定 taxonomy、确定性分类器、客户 taxonomy 验证和分类器全局准入注册表。
-
-- deterministic classifier：VALIDATED，可驱动匹配
-- human-confirmed classifier：VALIDATED，可驱动匹配
-- Agnes taxonomy classifier：`BENCHMARK_PENDING / can_drive_matching=false`
-
-单条 Agnes 结果不能自报 VALIDATED 绕过全局准入。
-
-## 10. Grounded Model Decision / Context Budget
-
-模型只能选择预设 action/reason/risk code，并引用已有 VERIFIED fact_id / 已确认 profile path；v0.1 不允许模型创造采购事实。
-
-模型输入现在执行硬预算：默认单商机最多24条 VERIFIED 非模型事实、12000字符级事实输入。选择采用确定性字段优先级，不修改事实值。
-
-Model input 会显式记录 source verified fact count、included fact count、omitted fact count、included fact chars 和最大预算。因此不会出现“实际只读24/57条事实，但日志假装模型读过全部”的情况。
-
-单条官方事实如果过长而无法完整放入预算，**不会截断事实后继续推理**；若没有任何完整事实能放入则 fail-closed。
-
-Priority Score = 产品能力30 + 客户确认关系25 + 阶段25 + 金额20，固定 `BUSINESS_PRIORITY_NOT_WIN_PROBABILITY`。
-
-## 11. 50条 corpus 可信边界
-
-- 多子项市场调研页面按一个 source-record Opportunity 计数，不拆子项虚增数量。
-- 同项目不同生命周期事件不重复计数。
-- 官方结果索引能证明已成交、但正文当前不可抓取时，只锁项目身份和 `AWARDED`；金额/供应商保持未知，不从早期公告补值。
-- 每条 fixture 都有 `forbidden_inference`。
-
-## 12. Deterministic Taxonomy Corpus Audit
-
-已新增 `taxonomy_corpus_audit.py` 和对应测试。Audit 对50条 VERIFIED fixture 使用生产同一 deterministic taxonomy classifier，统计本地规则覆盖和 unresolved 清单。
-
-`deterministic_coverage_rate` 只是本地规则覆盖率，不是准确率，也不是 Agnes 准确率。GitHub Runner 尚未执行，因此当前不宣称具体覆盖率。
-
-## 13. Agnes benchmark
-
-当前仍是 `GO_FOR_BENCHMARK`，不是 production validated。两套 benchmark：12 case 粗分类/风险 + 16 case 正式 taxonomy/安全放弃分类。均默认 dry-run；只有 `--execute` + 环境变量 `AGNES_API_KEY` 才联网。
-
-## 14. Source Topology / Coverage
-
-天津政府采购 PRIMARY PARTIAL；CCGP OFFICIAL_MIRROR IMPLEMENTED；天津公共资源 OFFICIAL_MIRROR PARTIAL。医院官网早期信号由总医院和第一中心医院作为 PRIMARY。
-
-Coverage 必须继续 `PARTIAL / NOT_EXHAUSTIVE`，不能宣称“天津已查全”。
-
-## 15. Attachment / PDF
-
-DOCX/XLSX parser 已实现，真实官方附件 bytes 捕获仍为0。PDF Docling仅有代码合同，没有真实字节验证，因此不能宣称附件解析生产可用。
-
-## 16. CI真实状态
-
-最近已确认的 Medical Pilot CI 仍出现 Job 无执行 steps 的基础设施问题；Python compile/unittest 没有开始执行。
-
-因此当前 **30组 deterministic tests 只能标“测试代码已写入，等待真实执行证据”**，不能标 PASS，也不能解释为 assertion failure。Issue #2 继续跟踪 Runner/Actions 基础设施。
-
-## 17. 下一步
-
-1. Runner恢复后先执行30组 deterministic tests，并生成真实 taxonomy corpus audit 覆盖率。
-2. 将 Query Budget 接到未来 Fact API / daily recommendations 调度层，禁止调用方绕过预算。
-3. 根据 audit unresolved 清单扩充 deterministic taxonomy，剩余模糊项再进入 Agnes/人工分类。
-4. 获取第一份真实天津医疗 DOCX/XLSX/PDF bytes，验证 MIME/redirect/SHA/parser locator。
-5. 验证天津政府采购网2026原生列表/搜索、分页和完整生命周期栏目。
-6. deterministic execution 有证据后，运行 Agnes 两套 benchmark。
-7. Fact/Profile/Match/Priority/QueryPlan API 稳定后，再进入老杨 H5/Web 演示端。
+1. 将 Query Budget 接到未来 Fact API / daily recommendations 调度层，禁止调用方绕过预算。
+2. Runner恢复后执行30组 tests 与 taxonomy corpus audit。
+3. 获取首份真实天津医疗附件 bytes 并跑 Snapshot/SHA/parser。
+4. 继续验证天津政府采购网2026原生列表/搜索/分页/生命周期。
+5. deterministic execution 有证据后再跑 Agnes 两套 benchmark。
+6. Fact/Profile/Match/Priority/QueryPlan API 稳定后再进入老杨 H5/Web。
