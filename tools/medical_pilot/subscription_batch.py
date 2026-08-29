@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from .collector_core import SCHEMA_VERSION
-from .subscription_engine import evaluate_subscription_event
+from .subscription_engine import ALLOWED_EVENT_TYPES, evaluate_subscription_event
 from .subscription_notification import route_subscription_notification
 from .subscription_prefilter import build_profile_subscription_index, prefilter_profiles_for_opportunity
 
@@ -30,6 +30,10 @@ def process_subscription_event_batch(
         raise ValueError("batch_offset must be a non-negative integer")
     if not isinstance(batch_limit, int) or not 1 <= batch_limit <= 1000:
         raise ValueError("batch_limit must be an integer from 1 to 1000")
+    if event_type not in ALLOWED_EVENT_TYPES:
+        raise ValueError(f"unsupported subscription event type: {event_type}")
+    if not isinstance(material_event_id, str) or not material_event_id.strip():
+        raise ValueError("material_event_id is required")
 
     opportunity_id = str(opportunity.get("opportunity_id") or "")
     if not opportunity_id:
