@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -13,8 +14,8 @@ from .today_actions_dispatch import build_today_actions_agnes_dispatch
 class TodayActionsServiceCycle:
     """One backend assembly cycle for the H5-facing Today Actions response.
 
-    ``public_today_actions`` is safe for the frontend contract. ``internal_dispatch``
-    stays server-side because it contains locked model inputs and scheduling details.
+    ``public_today_actions`` deliberately excludes model requests and locked model
+    inputs. ``internal_dispatch`` remains server-only for the Agnes worker.
     """
 
     public_today_actions: dict[str, Any]
@@ -23,7 +24,7 @@ class TodayActionsServiceCycle:
     reused_rejected_count: int
 
     def public_response(self) -> dict[str, Any]:
-        return self.public_today_actions
+        return copy.deepcopy(self.public_today_actions)
 
 
 def _terminal_results_for_dispatch(
@@ -83,6 +84,14 @@ def _apply_rejected_terminal_state(today: dict[str, Any], rejected: dict[str, st
     return today
 
 
+def _publicize_today_actions(today: dict[str, Any]) -> dict[str, Any]:
+    """Return the H5-safe view; internal model inputs never cross this boundary."""
+
+    result = copy.deepcopy(today)
+    result.pop("model_requests", None)
+    return result
+
+
 def build_today_actions_service_cycle(
     *,
     profile: dict[str, Any],
@@ -93,11 +102,10 @@ def build_today_actions_service_cycle(
 ) -> TodayActionsServiceCycle:
     """Build public Today Actions and the server-only pending Agnes dispatch.
 
-    Phase 1 computes the current immutable model-input fingerprints. Terminal results
-    are reused only when their task/hash matches this exact current input. READY
-    results are revalidated by ``build_today_actions`` before rendering. Rejected
-    immutable outputs stay rejected and are removed from new model work. New evidence
-    or confirmed profile changes alter the input hash and naturally create new work.
+    Terminal results are reused only when task/input hashes match the exact current
+    facts and confirmed profile. READY outputs are revalidated before rendering;
+    immutable rejected outputs remain rejected. New evidence naturally creates a new
+    task hash. The public response contains no model_input, lease, provider, or key.
     """
 
     if now.tzinfo is None or now.utcoffset() is None:
@@ -135,7 +143,7 @@ def build_today_actions_service_cycle(
         now=now,
     )
     return TodayActionsServiceCycle(
-        public_today_actions=current,
+        public_today_actions=_publicize_today_actions(current),
         internal_dispatch=internal_dispatch,
         reused_ready_count=len(ready),
         reused_rejected_count=len(rejected),
