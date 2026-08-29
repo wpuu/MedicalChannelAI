@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-profile-subscription-evaluation.schema.json",
+  "title": "Medical Profile Subscription Evaluation v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "opportunity_id",
+    "material_event_id",
+    "event_type",
+    "evaluation_status",
+    "delivery_class",
+    "priority_score",
+    "score_interpretation",
+    "model_explanation_allowed",
+    "dedupe_key",
+    "reasons"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "profile_id": {"type": "string", "pattern": "^mprof_[0-9a-fA-F-]{36}$"},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "material_event_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "event_type": {
+      "enum": [
+        "NEW_VERIFIED_OPPORTUNITY",
+        "LIFECYCLE_STATE_CHANGED",
+        "DEADLINE_CHANGED",
+        "AWARD_PUBLISHED"
+      ]
+    },
+    "evaluation_status": {
+      "enum": ["MATCHED", "NEEDS_MORE_FACTS", "REJECTED_OR_BLOCKED"]
+    },
+    "delivery_class": {
+      "enum": ["IMMEDIATE_HIGH_PRIORITY", "DAILY_DIGEST", "ENRICHMENT_ONLY", "NO_NOTIFY"]
+    },
+    "priority_score": {"type": ["integer", "null"], "minimum": 0, "maximum": 100},
+    "score_interpretation": {"const": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
+    "model_explanation_allowed": {"type": "boolean"},
+    "dedupe_key": {"type": "string", "pattern": "^subeval_[0-9a-f]{64}$"},
+    "reasons": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 240},
+      "uniqueItems": true
+    }
+  }
+}
