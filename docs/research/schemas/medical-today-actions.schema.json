@@ -34,6 +34,7 @@
           "opportunity_id",
           "facts",
           "evidence_source_urls",
+          "customer_context",
           "priority",
           "match_status",
           "recommendation_mode",
@@ -49,6 +50,18 @@
             "type": "array",
             "items": {"type": "string", "format": "uri"},
             "uniqueItems": true
+          },
+          "customer_context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["context_type", "business_role", "hospital_relationship", "matching_product_capabilities", "partnering_policy"],
+            "properties": {
+              "context_type": {"const": "CUSTOMER_PRIVATE_FACTS"},
+              "business_role": {"type": ["string", "null"]},
+              "hospital_relationship": {"type": ["object", "null"]},
+              "matching_product_capabilities": {"type": "array", "items": {"type": "object"}},
+              "partnering_policy": {"type": "object"}
+            }
           },
           "priority": {"type": "object"},
           "match_status": {"enum": ["MATCHED_PERSONALIZED", "MATCHED_CANDIDATE"]},
