@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T22:32:26+08:00",
+  "as_of": "2026-08-29T22:36:47+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY_PLUS_TODAY_ACTIONS_INITIAL",
   "production_ready": false,
   "merge_approved": false,
@@ -13,8 +13,8 @@
   "runtime_p0_partial_count": 3,
   "verified_opportunity_regression_fixture_count": 50,
   "verified_institution_evidence_fixture_count": 15,
-  "schema_contract_count": 31,
-  "deterministic_test_module_count": 49,
+  "schema_contract_count": 32,
+  "deterministic_test_module_count": 50,
   "real_attachment_binary_capture_count": 0,
   "real_medical_attachment_binary_capture_count": 0,
   "first_exact_medical_attachment_url": {
@@ -25,13 +25,17 @@
     "download_authorized": false
   },
   "today_actions": {
-    "status": "IMPLEMENTED_INITIAL_ORCHESTRATION_CONTRACT_NOT_YET_RUNTIME_API_WIRED",
+    "status": "IMPLEMENTED_INITIAL_ORCHESTRATION_AND_DISPATCH_BRIDGE_FRONTEND_SPEC_FROZEN",
     "max_final_action_cards": 5,
     "model_candidates_must_be_final_card_subset": true,
     "max_daily_home_model_candidates": 5,
     "facts_ai_judgment_separated": true,
+    "customer_private_context_separated": true,
     "verified_evidence_required_for_model": true,
-    "ungrounded_model_output_rejected": true
+    "ungrounded_model_output_rejected": true,
+    "agnes_dispatch_bridge": true,
+    "h5_ui_spec": "docs/product/today-actions-ui-v0.1.md",
+    "frontend_mock_prototype_allowed": true
   },
   "discovery_cadence": {
     "status": "IMPLEMENTED_V0_1_POLICY_NOT_YET_PERSISTENT_SOURCE_SCHEDULER_WIRED",
@@ -93,21 +97,22 @@
   "agnes": {"status": "GO_FOR_BENCHMARK", "case_count": 28, "executed": false},
   "ci": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
-    "latest_checked_head_sha": "bd9e725050e8c12af91342116b34fd607fb0d490",
-    "latest_run_id": 33243189106,
-    "latest_job_id": 99075941427,
+    "latest_checked_head_sha": "8a7ba125a7a236f78f19bcf93bae86b1630b28af",
+    "latest_run_id": 33257977627,
+    "latest_job_id": 99114901740,
     "latest_known_runner_id": 0,
     "latest_known_steps_count": 0,
     "conclusion": "failure",
-    "interpretation": "No Python step executed; neither PASS nor assertion failure. New Today Actions tests are written but not executed."
+    "interpretation": "No Python step executed; neither PASS nor assertion failure. New Today Actions/dispatch tests are written but not executed."
   },
   "next": [
-    "wire Today Actions to the backend API and Agnes dispatch while preserving deterministic Top5-before-model routing",
-    "execute 49 deterministic tests when runner returns",
+    "generate the first H5 mock frontend against frozen Today Actions v0.1 UI contract",
+    "wire Today Actions to the backend API and Agnes worker execution loop",
+    "execute 50 deterministic tests when runner returns",
     "capture real bytes from exact downEnId medical attachment URL",
     "verify real tjgpc procurement list classId/pagination and Tianjin finance native discovery; do not reuse W008",
     "run Agnes benchmark after deterministic execution evidence and tune cadence using latency/queue evidence",
-    "freeze H5/WeChat frontend fields after Today Actions API stabilizes",
+    "decide native WeChat mini-program only after H5 Pilot validates the workflow",
     "implement a shared atomic AgnesLeaseStore adapter only before horizontal multi-server model workers; Pilot may use one dispatcher plus SQLite"
   ]
 }
