@@ -16,6 +16,14 @@ class DiscoveryCadenceTests(unittest.TestCase):
         self.assertEqual(early.interval_minutes, 15)
         self.assertEqual(slow.interval_minutes, 30)
 
+    def test_fast_sources_use_different_stable_minute_offsets(self) -> None:
+        now = datetime(2026, 8, 31, 2, 0, tzinfo=timezone.utc)
+        finance = plan_discovery_cadence("tj_government_procurement", now=now)
+        center = plan_discovery_cadence("tj_government_procurement_center", now=now)
+        ccgp = plan_discovery_cadence("ccgp_local_notices", now=now)
+        self.assertEqual((finance.minute_offset, center.minute_offset, ccgp.minute_offset), (1, 4, 7))
+        self.assertEqual(len({finance.minute_offset, center.minute_offset, ccgp.minute_offset}), 3)
+
     def test_evening_discovery_continues_but_at_lower_frequency(self) -> None:
         now = datetime(2026, 8, 31, 12, 0, tzinfo=timezone.utc)  # 20:00 local
         fast = plan_discovery_cadence("ccgp_local_notices", now=now)
@@ -36,6 +44,7 @@ class DiscoveryCadenceTests(unittest.TestCase):
         decision = plan_discovery_cadence("tj_government_procurement", now=now, consecutive_failures=2)
         self.assertEqual(decision.base_interval_minutes, 10)
         self.assertEqual(decision.interval_minutes, 40)
+        self.assertEqual(decision.minute_offset, 1)
 
     def test_unknown_source_fails_closed(self) -> None:
         with self.assertRaises(ValueError):
