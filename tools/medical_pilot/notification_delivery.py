@@ -146,16 +146,28 @@ def mark_delivered(record: dict[str, Any], *, delivered_at: str) -> dict[str, An
 
 
 def mark_failed(record: dict[str, Any], *, failed_at: str, error_code: str) -> dict[str, Any]:
-    if record.get("status") not in {"QUEUED", "SENT"}:
-        raise NotificationDeliveryError("FAIL_TRANSITION_INVALID", f"cannot fail from {record.get('status')}")
+    status = record.get("status")
+    if status not in {"QUEUED", "SENT"}:
+        raise NotificationDeliveryError("FAIL_TRANSITION_INVALID", f"cannot fail from {status}")
     if not isinstance(error_code, str) or not error_code:
         raise NotificationDeliveryError("ERROR_CODE_REQUIRED", "error_code is required")
     _parse_aware(failed_at, "failed_at")
-    earlier = record.get("sent_at") if record.get("status") == "SENT" else record.get("queued_at")
-    earlier_name = "sent_at" if record.get("status") == "SENT" else "queued_at"
+    earlier = record.get("sent_at") if status == "SENT" else record.get("queued_at")
+    earlier_name = "sent_at" if status == "SENT" else "queued_at"
     _assert_not_before(failed_at, earlier, "failed_at", earlier_name)
+
+    attempt_count = int(record.get("attempt_count") or 0)
+    max_attempts = int(record.get("max_attempts") or 0)
+    # A failure directly from QUEUED means an outbound provider attempt occurred but
+    # no SENT acknowledgement was obtained. It must still consume one retry slot.
+    if status == "QUEUED":
+        if attempt_count >= max_attempts:
+            raise NotificationDeliveryError("RETRY_LIMIT_REACHED", "notification retry limit reached")
+        attempt_count += 1
+
     result = copy.deepcopy(record)
     result["status"] = "FAILED"
+    result["attempt_count"] = attempt_count
     result["failed_at"] = failed_at
     result["last_error_code"] = error_code
     return result
