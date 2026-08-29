@@ -45,6 +45,7 @@ jobs:
           paths.extend(Path("docs/research/benchmarks").glob("*.json"))
           paths.extend(Path("tools/medical_pilot").glob("*.tianjin.v0.1.json"))
           paths.extend(Path("tools/medical_pilot").glob("product_*.v0.1.json"))
+          paths.extend(Path("tools/medical_pilot").glob("agnes_*.v0.1.json"))
           seen = set()
           for path in paths:
               if path in seen:
