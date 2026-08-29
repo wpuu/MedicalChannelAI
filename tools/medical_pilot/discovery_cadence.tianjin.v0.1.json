@@ -1,0 +1,71 @@
+{
+  "schema_version": "0.1",
+  "timezone": "Asia/Shanghai",
+  "policy": "DISCOVERY_CONTINUES_INDEPENDENTLY_OF_USER_NOTIFICATION_WINDOWS",
+  "source_groups": {
+    "FAST_PROCUREMENT": [
+      "tj_government_procurement",
+      "tj_government_procurement_center",
+      "ccgp_local_notices"
+    ],
+    "EARLY_SIGNAL": [
+      "tjmugh_procurement",
+      "tj_first_central_hospital_procurement"
+    ],
+    "SLOW_SIGNAL": [
+      "ccgp_procurement_intent",
+      "tj_public_resource_exchange"
+    ]
+  },
+  "weekday_windows": [
+    {
+      "window": "00:00-06:30",
+      "interval_minutes": {"FAST_PROCUREMENT": 60, "EARLY_SIGNAL": 120, "SLOW_SIGNAL": 120}
+    },
+    {
+      "window": "06:30-08:30",
+      "interval_minutes": {"FAST_PROCUREMENT": 10, "EARLY_SIGNAL": 15, "SLOW_SIGNAL": 30}
+    },
+    {
+      "window": "08:30-18:30",
+      "interval_minutes": {"FAST_PROCUREMENT": 10, "EARLY_SIGNAL": 15, "SLOW_SIGNAL": 30}
+    },
+    {
+      "window": "18:30-22:30",
+      "interval_minutes": {"FAST_PROCUREMENT": 15, "EARLY_SIGNAL": 30, "SLOW_SIGNAL": 60}
+    },
+    {
+      "window": "22:30-24:00",
+      "interval_minutes": {"FAST_PROCUREMENT": 60, "EARLY_SIGNAL": 120, "SLOW_SIGNAL": 120}
+    }
+  ],
+  "weekend_windows": [
+    {
+      "window": "00:00-07:00",
+      "interval_minutes": {"FAST_PROCUREMENT": 120, "EARLY_SIGNAL": 180, "SLOW_SIGNAL": 180}
+    },
+    {
+      "window": "07:00-22:00",
+      "interval_minutes": {"FAST_PROCUREMENT": 30, "EARLY_SIGNAL": 60, "SLOW_SIGNAL": 120}
+    },
+    {
+      "window": "22:00-24:00",
+      "interval_minutes": {"FAST_PROCUREMENT": 120, "EARLY_SIGNAL": 180, "SLOW_SIGNAL": 180}
+    }
+  ],
+  "failure_backoff": {
+    "multiplier": 2,
+    "max_interval_minutes": 240,
+    "reset_after_success": true
+  },
+  "jitter_percent": 10,
+  "forced_refreshes": [
+    {"local_time": "07:35", "reason": "prepare morning action queue"},
+    {"local_time": "12:50", "reason": "prepare same-day afternoon delta"}
+  ],
+  "notes": [
+    "Notification quiet hours must never stop background discovery.",
+    "This policy is a pilot starting point and must later be tuned from Latency Ledger and source load evidence.",
+    "Do not reduce freshness by polling each customer profile separately; acquisition is shared across customers."
+  ]
+}
