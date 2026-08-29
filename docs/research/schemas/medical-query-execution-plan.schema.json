@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-query-execution-plan.schema.json",
+  "title": "Medical Query Execution Plan v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "mode",
+    "scope_class",
+    "acquisition_strategy",
+    "profile_scope",
+    "budgets",
+    "execution_stages",
+    "warnings"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "mode": {"enum": ["INTERACTIVE_DAILY", "SINGLE_OPPORTUNITY_DEEP_DIVE", "SCHEDULED_INDEX_REFRESH"]},
+    "scope_class": {"enum": ["NORMAL", "WIDE", "VERY_WIDE"]},
+    "acquisition_strategy": {"const": "SHARED_FACT_INDEX_NOT_PER_PROFILE_CRAWL"},
+    "profile_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region_selector_count", "taxonomy_id_count", "scope_cells"],
+      "properties": {
+        "region_selector_count": {"type": "integer", "minimum": 1},
+        "taxonomy_id_count": {"type": "integer", "minimum": 1},
+        "scope_cells": {"type": "integer", "minimum": 1}
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_db_candidates",
+        "max_deterministic_match_candidates",
+        "max_deep_enrichment_candidates",
+        "max_model_candidates",
+        "max_final_action_cards",
+        "max_live_source_requests",
+        "max_model_facts_per_opportunity",
+        "max_model_fact_chars_per_opportunity"
+      ],
+      "properties": {
+        "max_db_candidates": {"type": "integer", "minimum": 1},
+        "max_deterministic_match_candidates": {"type": "integer", "minimum": 1},
+        "max_deep_enrichment_candidates": {"type": "integer", "minimum": 1},
+        "max_model_candidates": {"type": "integer", "minimum": 0},
+        "max_final_action_cards": {"type": "integer", "minimum": 1},
+        "max_live_source_requests": {"type": "integer", "minimum": 0},
+        "max_model_facts_per_opportunity": {"type": "integer", "minimum": 1},
+        "max_model_fact_chars_per_opportunity": {"type": "integer", "minimum": 1}
+      }
+    },
+    "execution_stages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stage", "strategy", "limit"],
+        "properties": {
+          "stage": {"enum": ["FACT_INDEX_FILTER", "DETERMINISTIC_MATCH", "DEEP_ENRICHMENT", "MODEL_DECISION", "FINAL_ACTIONS"]},
+          "strategy": {"type": "string", "minLength": 1, "maxLength": 200},
+          "limit": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 200},
+      "uniqueItems": true
+    }
+  }
+}
