@@ -7,6 +7,7 @@ from .collector_core import SCHEMA_VERSION
 
 TERMINAL_FOLLOWUP_STATUSES = {"WON", "LOST", "NOT_FIT", "ARCHIVED"}
 ACTIVE_FOLLOWUP_STATUSES = {"NEW", "REVIEWING", "CONTACTED", "RELATIONSHIP_VERIFIED", "PREPARING", "BID_SUBMITTED", "MONITOR"}
+ALL_FOLLOWUP_STATUSES = TERMINAL_FOLLOWUP_STATUSES.union(ACTIVE_FOLLOWUP_STATUSES)
 
 
 def route_subscription_notification(
@@ -35,6 +36,8 @@ def route_subscription_notification(
         if latest_followup.get("opportunity_id") != opportunity_id:
             raise ValueError("latest_followup opportunity_id does not match subscription evaluation")
         followup_status = latest_followup.get("status")
+        if followup_status not in ALL_FOLLOWUP_STATUSES:
+            raise ValueError(f"unsupported followup status: {followup_status}")
         owner_value = latest_followup.get("owner")
         owner = owner_value.strip() if isinstance(owner_value, str) and owner_value.strip() else None
 
@@ -84,9 +87,6 @@ def route_subscription_notification(
     else:
         routing_status = "INCLUDE_DAILY_DIGEST"
         reason = "匹配项目进入每日摘要；已有负责人时优先归属负责人。" if owner else "匹配项目进入团队每日摘要。"
-
-    if followup_status is not None and followup_status not in ACTIVE_FOLLOWUP_STATUSES:
-        raise ValueError(f"unsupported followup status: {followup_status}")
 
     return {
         "schema_version": SCHEMA_VERSION,
