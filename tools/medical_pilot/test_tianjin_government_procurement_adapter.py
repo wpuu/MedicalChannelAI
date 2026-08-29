@@ -90,6 +90,15 @@ class TianjinGovernmentProcurementAdapterTests(unittest.TestCase):
                 "https://tjgp.cz.tj.gov.cn.attacker.example/portal/documentView.do?method=view&id=611515456&ver=2"
             )
 
+    def test_ccgp_tianjin_alias_and_reordered_query_parse_through_same_adapter(self) -> None:
+        url = "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=999999999&ver=2&method=view"
+        source = resolve_source(url)
+        self.assertEqual(source.source_id, "tj_government_procurement")
+        parsed = adapter_for_source(source).parse_notice(snapshot(url, NATIVE_STRUCTURE_HTML))
+        self.assertEqual(parsed.source_id, "tj_government_procurement")
+        self.assertEqual(parsed.project_number, "XCSD-2026-A-641")
+        self.assertTrue(parsed.eligible_for_verified)
+
     def test_primary_and_ccgp_mirror_share_one_project_and_primary_wins_same_day_evidence(self) -> None:
         native_url = "https://tjgp.cz.tj.gov.cn/portal/documentView.do?method=view&id=999999999&ver=2"
         ccgp_url = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t-mirror-fixture.htm"
@@ -130,6 +139,11 @@ class TianjinGovernmentProcurementAdapterTests(unittest.TestCase):
         self.assertFalse(
             adapter.is_verified_detail_url(
                 "https://tjgp.cz.tj.gov.cn/portal/documentView.do?method=view&id=abc&ver=2"
+            )
+        )
+        self.assertFalse(
+            adapter.is_verified_detail_url(
+                "https://ccgp-tianjin.gov.cn/portal/documentView.do?method=view&id=1&ver=2&extra=1"
             )
         )
         with self.assertRaises(ValueError):
