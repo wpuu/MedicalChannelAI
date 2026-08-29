@@ -108,6 +108,22 @@ class NotificationDeliveryTests(unittest.TestCase):
             mark_sent(failed_again, sent_at="2026-08-29T10:40:15+08:00")
         self.assertEqual(context.exception.code, "RETRY_LIMIT_REACHED")
 
+    def test_timeout_before_sent_ack_still_consumes_retry_slot(self) -> None:
+        item, route = self._route()
+        queued = create_delivery_record(
+            profile_id=complete_profile()["profile_id"],
+            opportunity_id=item["opportunity_id"],
+            material_event_id="mevt_" + "7" * 64,
+            notification_route=route,
+            channel="WECHAT_MINI_PROGRAM",
+            queued_at="2026-08-29T10:40:00+08:00",
+            max_attempts=2,
+        )
+        failed = mark_failed(queued, failed_at="2026-08-29T10:40:03+08:00", error_code="NO_PROVIDER_ACK")
+        self.assertEqual(failed["attempt_count"], 1)
+        retried = mark_sent(failed, sent_at="2026-08-29T10:40:06+08:00")
+        self.assertEqual(retried["attempt_count"], 2)
+
     def test_sent_before_queue_is_rejected(self) -> None:
         item, route = self._route()
         queued = create_delivery_record(
