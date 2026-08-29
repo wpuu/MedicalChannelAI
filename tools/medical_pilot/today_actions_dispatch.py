@@ -8,7 +8,7 @@ from typing import Any
 from .agnes_dispatch import build_agnes_dispatch_plan
 
 
-def _model_input_sha256(model_input: dict[str, Any]) -> str:
+def model_input_sha256(model_input: dict[str, Any]) -> str:
     canonical = json.dumps(
         model_input,
         ensure_ascii=False,
@@ -71,7 +71,7 @@ def build_today_actions_agnes_dispatch(
             raise ValueError("model_input must match the model request opportunity_id")
 
         seen_opportunity_ids.add(opportunity_id)
-        input_sha256 = _model_input_sha256(model_input)
+        input_sha256 = model_input_sha256(model_input)
         task_id = f"today|{profile_id}|{local_day}|{opportunity_id}|{input_sha256[:24]}"
         tasks.append(
             {
