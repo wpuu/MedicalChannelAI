@@ -70,7 +70,69 @@ class ModelDecisionContractTests(unittest.TestCase):
             "fact_11111111-1111-1111-1111-111111111111",
             "fact_22222222-2222-2222-2222-222222222222",
         })
+        self.assertEqual(model_input.grounded_fact_source_count, 2)
+        self.assertEqual(model_input.grounded_fact_omitted_count, 0)
         self.assertEqual(model_input.confirmed_profile_context["hospital_relationship"]["relationship_strength"], "STRONG")
+
+    def test_builder_bounds_large_fact_sets_and_reports_omissions(self) -> None:
+        facts = [
+            verified_fact(
+                f"fact_{i:08x}-1111-1111-1111-{i:012x}",
+                "other_detail",
+                f"官方事实{i}",
+            )
+            for i in range(30)
+        ]
+        facts.append(
+            verified_fact(
+                "fact_aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa",
+                "project_name",
+                "应优先保留的项目名称",
+            )
+        )
+        model_input = build_model_decision_input(
+            profile=self.profile,
+            opportunity=self.item,
+            match_result=self.match,
+            evidence_facts=facts,
+            max_grounded_facts=5,
+            max_grounded_fact_chars=12000,
+        )
+        self.assertEqual(model_input.grounded_fact_source_count, 31)
+        self.assertEqual(len(model_input.grounded_facts), 5)
+        self.assertEqual(model_input.grounded_fact_omitted_count, 26)
+        self.assertEqual(model_input.grounded_facts[0].field_name, "project_name")
+        payload = model_input.as_dict()
+        self.assertEqual(payload["input_budget"]["included_fact_count"], 5)
+        self.assertEqual(payload["input_budget"]["omitted_fact_count"], 26)
+
+    def test_builder_never_truncates_a_fact_to_force_it_into_context(self) -> None:
+        huge = verified_fact(
+            "fact_bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+            "project_name",
+            "超" * 2000,
+        )
+        with self.assertRaises(ModelDecisionError) as context:
+            build_model_decision_input(
+                profile=self.profile,
+                opportunity=self.item,
+                match_result=self.match,
+                evidence_facts=[huge],
+                max_grounded_facts=5,
+                max_grounded_fact_chars=100,
+            )
+        self.assertEqual(context.exception.code, "MODEL_FACT_BUDGET_NO_FIT")
+
+    def test_invalid_model_fact_budget_fails_closed(self) -> None:
+        with self.assertRaises(ModelDecisionError) as context:
+            build_model_decision_input(
+                profile=self.profile,
+                opportunity=self.item,
+                match_result=self.match,
+                evidence_facts=self.facts,
+                max_grounded_facts=0,
+            )
+        self.assertEqual(context.exception.code, "MODEL_FACT_BUDGET_INVALID")
 
     def test_model_cannot_reference_unknown_fact_id(self) -> None:
         model_input = build_model_decision_input(
