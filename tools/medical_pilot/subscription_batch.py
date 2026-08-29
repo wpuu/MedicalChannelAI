@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from .collector_core import SCHEMA_VERSION
+from .material_event import validate_material_event_envelope
 from .subscription_engine import ALLOWED_EVENT_TYPES, evaluate_subscription_event
 from .subscription_notification import route_subscription_notification
 from .subscription_prefilter import build_profile_subscription_index, prefilter_profiles_for_opportunity
@@ -19,11 +20,12 @@ def process_subscription_event_batch(
     batch_limit: int = 500,
     immediate_priority_score_threshold: int = 80,
 ) -> dict[str, Any]:
-    """Process one material opportunity event against a bounded subset of subscribers.
+    """Low-level bounded subscription processor.
 
-    The reverse index is only a performance prefilter. Every selected profile still
-    goes through the complete deterministic subscription evaluation and follow-up
-    routing. This function never crawls and never calls a model.
+    Callers at the service/event boundary should use
+    process_verified_material_event_batch(), which validates the persisted VERIFIED
+    event envelope first. This lower-level function is retained for deterministic
+    composition and tests. It never crawls and never calls a model.
     """
 
     if not isinstance(batch_offset, int) or batch_offset < 0:
@@ -112,3 +114,31 @@ def process_subscription_event_batch(
         "required_next_facts": [],
         "interpretation": "BOUNDED_PREFILTERED_BATCH_FINAL_MATCH_REQUIRED",
     }
+
+
+def process_verified_material_event_batch(
+    *,
+    profiles: list[dict[str, Any]],
+    opportunity: dict[str, Any],
+    material_event: dict[str, Any],
+    latest_followups_by_profile: dict[str, dict[str, Any]] | None = None,
+    batch_offset: int = 0,
+    batch_limit: int = 500,
+    immediate_priority_score_threshold: int = 80,
+) -> dict[str, Any]:
+    """Public service boundary: validate VERIFIED event envelope before dispatch."""
+
+    event = validate_material_event_envelope(material_event)
+    opportunity_id = opportunity.get("opportunity_id")
+    if event["opportunity_id"] != opportunity_id:
+        raise ValueError("material event opportunity_id does not match opportunity")
+    return process_subscription_event_batch(
+        profiles=profiles,
+        opportunity=opportunity,
+        material_event_id=event["material_event_id"],
+        event_type=event["event_type"],
+        latest_followups_by_profile=latest_followups_by_profile,
+        batch_offset=batch_offset,
+        batch_limit=batch_limit,
+        immediate_priority_score_threshold=immediate_priority_score_threshold,
+    )
