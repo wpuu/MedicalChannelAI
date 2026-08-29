@@ -69,6 +69,79 @@ def _factual_snapshot(opportunity: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _confirmed_relationship(profile: dict[str, Any], hospital_name: Any) -> dict[str, Any] | None:
+    if not isinstance(hospital_name, str) or not hospital_name.strip():
+        return None
+    for relationship in profile.get("hospital_relationships") or []:
+        if not isinstance(relationship, dict):
+            continue
+        if relationship.get("confirmed_by_customer") is not True:
+            continue
+        if relationship.get("hospital_name") != hospital_name:
+            continue
+        return {
+            "hospital_name": hospital_name,
+            "department": relationship.get("department"),
+            "relationship_strength": relationship.get("relationship_strength"),
+            "owner": relationship.get("owner"),
+            "confirmed_by_customer": True,
+            "last_confirmed_at": relationship.get("last_confirmed_at"),
+        }
+    return None
+
+
+def _matching_capabilities(profile: dict[str, Any], opportunity: dict[str, Any]) -> list[dict[str, Any]]:
+    labels = {
+        item
+        for item in opportunity.get("product_labels") or []
+        if isinstance(item, str) and item.strip()
+    }
+    result: list[dict[str, Any]] = []
+    for capability in profile.get("product_capabilities") or []:
+        if not isinstance(capability, dict):
+            continue
+        taxonomy_ids = {
+            item
+            for item in capability.get("taxonomy_ids") or []
+            if isinstance(item, str) and item.strip()
+        }
+        matched = sorted(labels.intersection(taxonomy_ids))
+        if not matched:
+            continue
+        result.append(
+            {
+                "category": capability.get("category"),
+                "subcategory": capability.get("subcategory"),
+                "matched_taxonomy_ids": matched,
+                "brands": list(capability.get("brands") or []),
+                "capability_type": capability.get("capability_type"),
+            }
+        )
+    return result
+
+
+def _customer_context(profile: dict[str, Any], opportunity: dict[str, Any]) -> dict[str, Any]:
+    """Return only customer-confirmed/private operating context.
+
+    This block is deliberately separate from official procurement facts. It may
+    contain the customer's own relationship assets and product capabilities, but it
+    must never be represented as an official hospital or procurement statement.
+    """
+
+    partnering = profile.get("partnering_policy") if isinstance(profile.get("partnering_policy"), dict) else {}
+    return {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": profile.get("business_role"),
+        "hospital_relationship": _confirmed_relationship(profile, opportunity.get("hospital_name")),
+        "matching_product_capabilities": _matching_capabilities(profile, opportunity),
+        "partnering_policy": {
+            "can_seek_temporary_manufacturer": partnering.get("can_seek_temporary_manufacturer"),
+            "can_cooperate_with_channel_partner": partnering.get("can_cooperate_with_channel_partner"),
+            "can_do_rental_projects": partnering.get("can_do_rental_projects"),
+        },
+    }
+
+
 def build_today_actions(
     *,
     profile: dict[str, Any],
@@ -79,9 +152,9 @@ def build_today_actions(
     """Assemble the bounded Today Actions backend contract.
 
     Deterministic matching and priority ranking happen first. Only the final Top 5
-    cards may request an Agnes decision. Official facts, deterministic business
-    priority, and model judgment are emitted in separate fields so the UI cannot
-    accidentally present an AI judgment as an official procurement fact.
+    cards may request an Agnes decision. Official facts, customer-private operating
+    context, deterministic business priority, and model judgment are emitted in
+    separate fields so the UI cannot accidentally present one provenance as another.
 
     The function does not call Agnes. When a model output is supplied, it is accepted
     only after ``validate_model_decision`` verifies enums and grounded references.
@@ -103,8 +176,6 @@ def build_today_actions(
         opportunity_id = plan_card["opportunity_id"]
         opportunity = opportunity_by_id.get(opportunity_id)
         if opportunity is None:
-            # This should be impossible when the daily plan is constructed from the
-            # same input list. Fail closed instead of emitting a partial phantom card.
             continue
 
         match = evaluate_match_pipeline(profile, opportunity)
@@ -121,6 +192,7 @@ def build_today_actions(
             "opportunity_id": opportunity_id,
             "facts": _factual_snapshot(opportunity),
             "evidence_source_urls": _verified_evidence_urls(facts),
+            "customer_context": _customer_context(profile, opportunity),
             "priority": score.as_dict(),
             "match_status": match.status,
             "recommendation_mode": match.recommendation_mode,
