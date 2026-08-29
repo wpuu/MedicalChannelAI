@@ -22,7 +22,7 @@ WIDE_TAXONOMY_IDS = [
 
 
 class DailyRecommendationTests(unittest.TestCase):
-    def test_final_home_cards_are_bounded_to_five(self) -> None:
+    def test_final_home_cards_and_model_calls_are_bounded_to_five(self) -> None:
         profile = complete_profile()
         items = []
         for index in range(8):
@@ -32,10 +32,14 @@ class DailyRecommendationTests(unittest.TestCase):
             items.append(item)
         result = build_daily_recommendation_plan(profile, items)
         self.assertEqual(result["matched_count"], 8)
-        self.assertEqual(result["model_candidate_count"], 8)
+        self.assertEqual(result["model_candidate_count"], 5)
         self.assertEqual(result["final_action_card_count"], 5)
         self.assertEqual(len(result["final_action_cards"]), 5)
         self.assertTrue(all(card["model_explanation_allowed"] for card in result["final_action_cards"]))
+        self.assertEqual(
+            result["model_candidate_ids"],
+            [card["opportunity_id"] for card in result["final_action_cards"]],
+        )
 
     def test_rejected_and_needs_more_facts_do_not_enter_model_candidates(self) -> None:
         profile = complete_profile()
