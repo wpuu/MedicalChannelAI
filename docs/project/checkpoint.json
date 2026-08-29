@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T12:45:00+08:00",
+  "as_of": "2026-08-29T12:48:00+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY",
   "production_ready": false,
   "merge_approved": false,
@@ -59,7 +59,16 @@
     "scheduler_revalidation_required": true
   },
   "agnes": {"status": "GO_FOR_BENCHMARK", "case_count": 28, "executed": false},
-  "ci": {"status": "BLOCKED_RUNNER_NOT_ASSIGNED", "latest_known_runner_id": 0, "latest_known_steps_count": 0},
+  "ci": {
+    "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
+    "latest_checked_head_sha": "69bb274e02feccd34bda69bb1f06615c9a2a0c74",
+    "latest_run_id": 33233666313,
+    "latest_job_id": 99050758780,
+    "latest_known_runner_id": 0,
+    "latest_known_steps_count": 0,
+    "conclusion": "failure",
+    "interpretation": "No Python step executed; neither PASS nor assertion failure."
+  },
   "next": [
     "capture real bytes from exact downEnId medical attachment URL",
     "verify tjgpc native list/pagination and Tianjin finance native discovery",
