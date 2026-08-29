@@ -1,9 +1,21 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from datetime import datetime
 from typing import Any
 
 from .agnes_dispatch import build_agnes_dispatch_plan
+
+
+def _model_input_sha256(model_input: dict[str, Any]) -> str:
+    canonical = json.dumps(
+        model_input,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
 
 
 def build_today_actions_agnes_dispatch(
@@ -12,11 +24,12 @@ def build_today_actions_agnes_dispatch(
     today_actions: dict[str, Any],
     now: datetime,
 ) -> dict[str, Any]:
-    """Bind grounded Today Actions model requests to the shared Agnes dispatch plan.
+    """Bind grounded Today Actions model requests to shared Agnes dispatch.
 
-    The bridge never creates a model candidate. It only schedules requests already
-    admitted by ``build_today_actions`` after deterministic Top5 selection and
-    grounding checks. Model inputs remain keyed to stable task IDs for the worker.
+    Task identity includes a SHA-256 of the locked model input. Replaying the same
+    grounded input therefore keeps one stable task identity, while newly VERIFIED
+    evidence or a changed confirmed profile context creates a new task identity even
+    for the same customer/opportunity/day.
     """
 
     if now.tzinfo is None or now.utcoffset() is None:
@@ -58,7 +71,8 @@ def build_today_actions_agnes_dispatch(
             raise ValueError("model_input must match the model request opportunity_id")
 
         seen_opportunity_ids.add(opportunity_id)
-        task_id = f"today|{profile_id}|{local_day}|{opportunity_id}"
+        input_sha256 = _model_input_sha256(model_input)
+        task_id = f"today|{profile_id}|{local_day}|{opportunity_id}|{input_sha256[:24]}"
         tasks.append(
             {
                 "task_id": task_id,
@@ -70,6 +84,7 @@ def build_today_actions_agnes_dispatch(
             {
                 "task_id": task_id,
                 "opportunity_id": opportunity_id,
+                "model_input_sha256": input_sha256,
                 "model_input": model_input,
             }
         )
