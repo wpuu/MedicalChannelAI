@@ -5,6 +5,7 @@ from typing import Any
 
 from .collector_core import SCHEMA_VERSION, normalize_space
 from .opportunity_match_gate import OpportunityMatchResult
+from .query_budget import DEFAULT_MODEL_FACT_CHAR_LIMIT, DEFAULT_MODEL_FACT_LIMIT
 
 
 class ModelDecisionError(RuntimeError):
@@ -48,6 +49,31 @@ EARLY_STAGES = {"MARKET_RESEARCH", "PROCUREMENT_INTENT", "PREPARING"}
 FORMAL_STAGES = {"TENDERING", "AMENDED", "BID_CLOSED"}
 AWARD_STAGES = {"AWARDED"}
 
+# Deterministic importance only for context selection. It never changes a fact.
+FACT_FIELD_PRIORITY = {
+    "project_number": 0,
+    "project_name": 1,
+    "buyer_name": 2,
+    "hospital_name": 3,
+    "lifecycle_state": 4,
+    "notice_type": 5,
+    "published_at": 6,
+    "published_date": 6,
+    "budget_cny": 7,
+    "budget_amount_cny": 7,
+    "award_total_cny": 7,
+    "bid_deadline": 8,
+    "registration_deadline": 9,
+    "termination_reason": 10,
+    "supplier_name": 11,
+    "raw_name": 12,
+    "product_name": 12,
+    "brand": 13,
+    "model": 14,
+    "quantity": 15,
+    "unit_price_cny": 16,
+}
+
 
 @dataclass(frozen=True)
 class GroundedFact:
@@ -76,6 +102,11 @@ class ModelDecisionInput:
     allowed_risk_codes: tuple[str, ...]
     grounded_facts: tuple[GroundedFact, ...]
     confirmed_profile_context: dict[str, Any]
+    grounded_fact_source_count: int
+    grounded_fact_omitted_count: int
+    grounded_fact_char_count: int
+    max_grounded_facts: int
+    max_grounded_fact_chars: int
 
     def as_dict(self) -> dict:
         return {
@@ -89,7 +120,15 @@ class ModelDecisionInput:
             "allowed_risk_codes": list(self.allowed_risk_codes),
             "grounded_facts": [fact.as_dict() for fact in self.grounded_facts],
             "confirmed_profile_context": self.confirmed_profile_context,
-            "instruction": "Choose only from the supplied enums and reference only supplied fact_ids/profile paths. Do not generate or infer new procurement facts.",
+            "input_budget": {
+                "source_verified_fact_count": self.grounded_fact_source_count,
+                "included_fact_count": len(self.grounded_facts),
+                "omitted_fact_count": self.grounded_fact_omitted_count,
+                "included_fact_chars": self.grounded_fact_char_count,
+                "max_facts": self.max_grounded_facts,
+                "max_fact_chars": self.max_grounded_fact_chars,
+            },
+            "instruction": "Choose only from supplied enums and reference only supplied fact_ids/profile paths. Do not generate or infer new procurement facts. The input_budget may indicate that additional verified facts exist outside this bounded model context.",
         }
 
 
@@ -107,7 +146,7 @@ def _action_types(stage: str) -> tuple[str, ...]:
     raise ModelDecisionError("STAGE_NOT_SUPPORTED", f"unsupported lifecycle stage for model decision: {stage}")
 
 
-def _grounded_facts(facts: list[dict[str, Any]]) -> tuple[GroundedFact, ...]:
+def _valid_grounded_facts(facts: list[dict[str, Any]]) -> tuple[GroundedFact, ...]:
     result: list[GroundedFact] = []
     seen: set[str] = set()
     for fact in facts:
@@ -128,6 +167,35 @@ def _grounded_facts(facts: list[dict[str, Any]]) -> tuple[GroundedFact, ...]:
         seen.add(fact_id)
         result.append(GroundedFact(fact_id, field_name, field_value, source_url))
     return tuple(result)
+
+
+def _fact_cost(fact: GroundedFact) -> int:
+    return len(fact.field_name) + len(fact.field_value) + len(fact.source_url)
+
+
+def _bounded_grounded_facts(
+    facts: list[dict[str, Any]],
+    *,
+    max_facts: int = DEFAULT_MODEL_FACT_LIMIT,
+    max_chars: int = DEFAULT_MODEL_FACT_CHAR_LIMIT,
+) -> tuple[tuple[GroundedFact, ...], int, int, int]:
+    valid = list(_valid_grounded_facts(facts))
+    valid.sort(key=lambda item: (FACT_FIELD_PRIORITY.get(item.field_name, 100), item.fact_id))
+
+    selected: list[GroundedFact] = []
+    char_count = 0
+    for fact in valid:
+        if len(selected) >= max_facts:
+            break
+        cost = _fact_cost(fact)
+        if cost > max_chars:
+            continue
+        if char_count + cost > max_chars:
+            continue
+        selected.append(fact)
+        char_count += cost
+
+    return tuple(selected), len(valid), len(valid) - len(selected), char_count
 
 
 def _confirmed_hospital_relationship(profile: dict[str, Any], hospital_name: str | None) -> dict[str, Any] | None:
@@ -157,18 +225,28 @@ def build_model_decision_input(
     opportunity: dict[str, Any],
     match_result: OpportunityMatchResult,
     evidence_facts: list[dict[str, Any]],
+    max_grounded_facts: int = DEFAULT_MODEL_FACT_LIMIT,
+    max_grounded_fact_chars: int = DEFAULT_MODEL_FACT_CHAR_LIMIT,
 ) -> ModelDecisionInput:
     if not match_result.model_explanation_allowed:
         raise ModelDecisionError("MODEL_NOT_ALLOWED", "opportunity did not pass the deterministic match gate")
     if match_result.status not in {"MATCHED_CANDIDATE", "MATCHED_PERSONALIZED"}:
         raise ModelDecisionError("MATCH_STATUS_NOT_ALLOWED", match_result.status)
+    if max_grounded_facts < 1 or max_grounded_fact_chars < 1:
+        raise ModelDecisionError("MODEL_FACT_BUDGET_INVALID", "model fact budgets must be positive")
 
     opportunity_id = _text(opportunity.get("opportunity_id"))
     stage = _text(opportunity.get("lifecycle_state"))
-    facts = _grounded_facts(evidence_facts)
+    facts, valid_count, omitted_count, fact_chars = _bounded_grounded_facts(
+        evidence_facts,
+        max_facts=max_grounded_facts,
+        max_chars=max_grounded_fact_chars,
+    )
     if not opportunity_id:
         raise ModelDecisionError("OPPORTUNITY_ID_MISSING", "opportunity_id is required")
     if not facts:
+        if valid_count:
+            raise ModelDecisionError("MODEL_FACT_BUDGET_NO_FIT", "verified facts exist but none fit the bounded model context")
         raise ModelDecisionError("NO_GROUNDED_FACTS", "at least one VERIFIED non-model official fact is required")
 
     hospital_name = _text(opportunity.get("hospital_name")) or None
@@ -192,6 +270,11 @@ def build_model_decision_input(
         allowed_risk_codes=tuple(RISK_LABELS),
         grounded_facts=facts,
         confirmed_profile_context=context,
+        grounded_fact_source_count=valid_count,
+        grounded_fact_omitted_count=omitted_count,
+        grounded_fact_char_count=fact_chars,
+        max_grounded_facts=max_grounded_facts,
+        max_grounded_fact_chars=max_grounded_fact_chars,
     )
 
 
