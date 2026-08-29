@@ -18,7 +18,7 @@ DEFAULT_MANIFEST = (
 )
 DEFAULT_BASE_URL = "https://apihub.agnes-ai.com/v1"
 DEFAULT_MODEL = "agnes-2.5-flash"
-DEFAULT_RPM = 18
+DEFAULT_RPM = 12
 
 
 SYSTEM_PROMPT = """You are a constrained classification component for a medical-channel commercial-intelligence system.
@@ -213,8 +213,8 @@ def call_chat_completion(
 def run_benchmark(
     manifest: dict[str, Any], *, base_url: str, api_key: str, model: str, rpm: int
 ) -> dict[str, Any]:
-    if rpm < 1:
-        raise BenchmarkError("rpm must be at least 1")
+    if rpm < 1 or rpm > 12:
+        raise BenchmarkError("rpm must be between 1 and 12; benchmark must not exceed pilot Agnes start-rate budget")
     interval = 60.0 / rpm
     scored: list[dict[str, Any]] = []
     failures: list[dict[str, str]] = []
