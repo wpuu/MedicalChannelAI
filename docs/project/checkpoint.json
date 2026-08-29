@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T10:24:00+08:00",
+  "as_of": "2026-08-29T10:45:00+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY",
   "production_ready": false,
   "merge_approved": false,
@@ -13,8 +13,8 @@
   "verified_attachment_declaration_fixture_count": 5,
   "real_attachment_binary_capture_count": 0,
   "verified_institution_evidence_fixture_count": 15,
-  "schema_contract_count": 21,
-  "deterministic_test_module_count": 37,
+  "schema_contract_count": 23,
+  "deterministic_test_module_count": 39,
   "query_budget": {
     "status": "IMPLEMENTED_V0_1",
     "profile_hard_cap_policy": "NO_SMALL_HARD_CAP_FOR_REAL_BUSINESS_SCOPE",
@@ -30,15 +30,22 @@
       "max_model_fact_chars_per_opportunity": 12000
     }
   },
-  "daily_recommendations": {
+  "material_event": {
     "status": "IMPLEMENTED_V0_1",
-    "final_action_card_limit": 5,
-    "live_crawl_allowed": false
+    "schema": "docs/research/schemas/medical-material-event.schema.json",
+    "module": "tools/medical_pilot/material_event.py",
+    "requires_verified_opportunity": true,
+    "requires_verified_non_model_official_facts": true,
+    "change_fields_must_be_fact_grounded": true,
+    "semantic_identity_inputs": ["opportunity_id", "event_type", "normalized_change_fields"],
+    "publication_clock_in_identity": false,
+    "persisted_hash_revalidation_before_subscription": true
   },
   "continuous_subscription": {
     "status": "IMPLEMENTED_V0_1",
     "prefilter": "tools/medical_pilot/subscription_prefilter.py",
     "batch_processor": "tools/medical_pilot/subscription_batch.py",
+    "public_batch_boundary": "process_verified_material_event_batch",
     "evaluation": "tools/medical_pilot/subscription_engine.py",
     "notification_route": "tools/medical_pilot/subscription_notification.py",
     "prefilter_keys": ["region", "taxonomy_ids", "customer_type"],
@@ -51,6 +58,18 @@
     "terminal_followup_suppression": ["WON", "LOST", "NOT_FIT", "ARCHIVED"],
     "active_followup_owner_routing": true
   },
+  "notification_delivery": {
+    "status": "IMPLEMENTED_V0_1_NO_PROVIDER_INTEGRATION",
+    "schema": "docs/research/schemas/medical-notification-delivery.schema.json",
+    "module": "tools/medical_pilot/notification_delivery.py",
+    "channels": ["WEB_INBOX", "WECHAT_MINI_PROGRAM", "MOBILE_PUSH"],
+    "states": ["QUEUED", "SENT", "DELIVERED", "FAILED", "SUPPRESSED"],
+    "stable_identity_inputs": ["subscription_dedupe_key", "channel"],
+    "default_max_attempts": 3,
+    "failed_before_sent_ack_consumes_attempt": true,
+    "suppressed_audience": "NONE",
+    "provider_api_integration_status": "NOT_IMPLEMENTED"
+  },
   "latency_ledger": {
     "status": "IMPLEMENTED_V0_1",
     "module": "tools/medical_pilot/latency_ledger.py",
@@ -62,11 +81,17 @@
   "source_primary_status": {
     "source_id": "tj_government_procurement",
     "implementation_status": "PARTIAL_IMPLEMENTATION",
-    "2026_host_reference_confirmed": true,
-    "detail_route_pattern_confirmed_by_official_2025_references": true,
+    "recognized_official_hosts": ["tjgp.cz.tj.gov.cn", "ccgp-tianjin.gov.cn", "www.ccgp-tianjin.gov.cn"],
+    "hosts_share_one_source_identity": true,
+    "2026_tjgp_host_reference_confirmed": true,
+    "2026_ccgp_tianjin_content_reference_confirmed": true,
+    "detail_route_pattern_confirmed_by_official_2025_2026_references": true,
+    "runtime_structural_detail_url_validation": true,
     "2026_native_listing_or_search_confirmed": false,
     "2026_native_detail_fetch_confirmed": false,
-    "direct_attachment_href_confirmed": false
+    "direct_attachment_href_confirmed": false,
+    "current_execution_environment_dns_probe_succeeded": false,
+    "dns_probe_interpretation": "EXECUTION_ENVIRONMENT_LIMIT_ONLY_NOT_SOURCE_OUTAGE"
   },
   "taxonomy_corpus_audit": {
     "corpus_case_count": 50,
@@ -82,28 +107,31 @@
   "ci_status": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
     "tracking_issue": 2,
-    "latest_checked_run_id": 33228238965,
-    "latest_checked_job_id": 99036052795,
-    "evidence": {"runner_id": 0, "runner_name": "", "steps_count": 0, "conclusion": "failure"},
+    "latest_checked_code_head_sha": "5905b8bb9e2fe401ac2fdf79ad631fe650868b45",
+    "latest_checked_run_id": 33228983861,
+    "latest_checked_job_id": 99038171385,
+    "evidence": {"steps": null, "conclusion": "failure"},
     "interpretation": "No Python compile or unittest step executed; this is neither PASS nor assertion FAIL."
   },
   "critical_rules": [
     "OFFICIAL_PUBLIC_FACT must never be model-generated.",
+    "Only VERIFIED grounded semantic changes may emit subscription material events.",
+    "Adding mirror evidence or changing source clock precision must not duplicate one semantic material event.",
+    "Persisted material-event identity is revalidated before public subscription batch processing.",
     "Broad profiles are allowed; execution is bounded instead.",
     "Subscription prefilter is performance-only and never replaces the full Match Gate.",
-    "Subscription event processing is bounded/resumable and must validate event identity before any prefilter short-circuit.",
-    "Missing validated taxonomy or customer type is enriched before notification rather than broad-scanning every customer.",
     "Candidate-only profiles never receive immediate high-priority alerts.",
+    "Notification retries reuse one stable delivery identity and consume bounded retry attempts.",
     "Terminal followup states suppress repeated notifications for the same opportunity identity.",
     "DAY publication precision must never be converted into minute-level source latency.",
-    "Whole candidate corpora are never sent in one model prompt.",
+    "Tianjin official host aliases are one PRIMARY Source identity, not duplicate sources.",
     "Coverage remains PARTIAL while required P0 sources are partial."
   ],
   "next": [
-    "wire daily/subscription/latency contracts into future Fact API and persistent event scheduler",
-    "capture first real Tianjin medical attachment bytes",
-    "verify Tianjin government procurement native list/search/pagination/lifecycle and attachment href",
-    "execute 37 deterministic tests/taxonomy audit when runner is restored",
+    "verify Tianjin government procurement native list/search/pagination/lifecycle and attachment href across recognized official hosts",
+    "capture first real Tianjin medical attachment bytes and run Snapshot/SHA/parser validation",
+    "wire material event/subscription/delivery/latency into persistent Fact API and scheduler",
+    "execute 39 deterministic tests/taxonomy audit when runner is restored",
     "run Agnes benchmarks only after deterministic execution evidence exists",
     "stabilize backend APIs before H5/WeChat mini-program frontend"
   ]
