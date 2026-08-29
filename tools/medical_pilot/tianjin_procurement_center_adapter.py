@@ -19,6 +19,16 @@ _TJGPC_OBSERVED_ATTACHMENT_PORT = 7001
 _TJGPC_OBSERVED_ATTACHMENT_PATH_PREFIX = "/ZTBS/fileupload/gw/"
 
 
+def _fully_unquote_path_for_validation(path: str, max_rounds: int = 4) -> str:
+    value = path
+    for _ in range(max_rounds):
+        decoded = unquote(value)
+        if decoded == value:
+            break
+        value = decoded
+    return value
+
+
 @dataclass(frozen=True)
 class TianjinProcurementCenterAdapter(CcgpLifecycleAdapter):
     """Partial adapter for the official Tianjin Government Procurement Center site.
@@ -64,11 +74,9 @@ class TianjinProcurementCenterAdapter(CcgpLifecycleAdapter):
     def _validated_attachment_wrapper_parts(url: str) -> tuple[str, str] | None:
         """Validate the observed tjgpc download wrapper without following nested fileUrl.
 
-        The indexed official wrapper contains a nested HTTP fileUrl. Treating the
-        outer government host alone as trustworthy would create an SSRF-shaped risk if
-        an attacker could inject an arbitrary nested URL. v0.1 therefore accepts only
-        the one observed public attachment origin/path family and never fetches the
-        nested URL directly.
+        parse_qs performs the outer query decode exactly once. The nested URL is never
+        fetched directly. For path-safety checks only, a bounded repeated decode view is
+        used so double/triple-encoded traversal does not bypass the allowlist.
         """
 
         parsed = urlparse(url)
@@ -83,14 +91,14 @@ class TianjinProcurementCenterAdapter(CcgpLifecycleAdapter):
         if set(query) != {"fileName", "fileUrl"} or any(len(values) != 1 for values in query.values()):
             return None
 
-        filename = unquote(query["fileName"][0]).strip()
-        if not filename or "/" in filename or "\\" in filename:
+        filename = query["fileName"][0].strip()
+        if not filename or "/" in filename or "\\" in filename or "%" in filename:
             return None
         extension = PurePosixPath(filename).suffix.lower()
         if extension not in _TJGPC_ATTACHMENT_EXTENSIONS:
             return None
 
-        nested_raw = unquote(query["fileUrl"][0]).strip()
+        nested_raw = query["fileUrl"][0].strip()
         nested = urlparse(nested_raw)
         if nested.scheme != "http" or nested.hostname != _TJGPC_OBSERVED_ATTACHMENT_HOST:
             return None
@@ -104,9 +112,11 @@ class TianjinProcurementCenterAdapter(CcgpLifecycleAdapter):
             return None
         if address.is_private or address.is_loopback or address.is_link_local or address.is_multicast or address.is_unspecified:
             return None
-        if not nested.path.startswith(_TJGPC_OBSERVED_ATTACHMENT_PATH_PREFIX):
+
+        decoded_path = _fully_unquote_path_for_validation(nested.path)
+        if not decoded_path.startswith(_TJGPC_OBSERVED_ATTACHMENT_PATH_PREFIX):
             return None
-        if ".." in PurePosixPath(nested.path).parts:
+        if ".." in PurePosixPath(decoded_path).parts:
             return None
         return filename, nested_raw
 
