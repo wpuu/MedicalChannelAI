@@ -11,8 +11,8 @@ Draft PR：**#1**
 - **7 个运行时 P0 Source：4 IMPLEMENTED、3 PARTIAL_IMPLEMENTATION**
 - 50 条 VERIFIED 天津商机 regression fixture
 - 15 条 Institution Evidence
-- **25 份 Schema/合同**
-- **42 组 deterministic unittest 模块**
+- **26 份 Schema/合同**
+- **43 组 deterministic unittest 模块**
 - 真实官方附件 bytes=0；医疗附件 bytes=0
 - 已确认首条天津医疗附件精确官方 URL（`TGPC-2025-A-0164` / `method=downEnId`），但尚未取得 bytes/MIME/SHA
 - Agnes benchmark 28 case，未执行
@@ -27,8 +27,10 @@ Draft PR：**#1**
 - `tools/medical_pilot/discovery_cadence.tianjin.v0.1.json`
 - `tools/medical_pilot/discovery_cadence.py`
 - `tools/medical_pilot/notification_time_policy.py`
+- `tools/medical_pilot/subscription_delivery_plan.py`
 - `medical-discovery-cadence-decision.schema.json`
 - `medical-notification-time-decision.schema.json`
+- `medical-subscription-delivery-plan.schema.json`
 
 ### Discovery Cadence v0.1
 
@@ -62,6 +64,19 @@ Draft PR：**#1**
 
 中国法定节假日不在代码里硬编码具体日期；Timing API 接受 `holiday_dates / forced_workdays`，以后由年度官方工作日历提供，避免把调休周末误判为休息日。
 
+### Subscription Delivery Plan
+
+Timing Policy 已接到订阅服务公共边界：
+
+`Subscription Evaluation → Follow-up Route → Notification Timing → Subscription Delivery Plan → 到时后才创建 Notification Delivery Record`
+
+关键规则：
+
+- `SEND_NOW` 且 route 允许通知 → `provider_queue_allowed=true`；
+- `SCHEDULED` → `provider_queue_allowed=false`，只保存 `scheduled_for`；
+- scheduler 到时必须重新检查 Material Event / profile / follow-up 状态，再创建真正 `QUEUED` Delivery；
+- 这样微信/Push Provider 不能因为提前看到一个 QUEUED 记录而绕过 quiet-hours 策略。
+
 ## 天津政府采购 / Attachment
 
 新增 `tj_government_procurement_center`（`tjgpc.zwfwb.tj.gov.cn`）作为 `PRIMARY_SOURCE / PARTIAL_IMPLEMENTATION` 集采补充源。已实现 UUID detail route 解析。
@@ -79,19 +94,15 @@ Draft PR：**#1**
 
 Attachment Fetcher 已将 discovery 与 download authorization 分离，并增加 magic 校验：PDF `%PDF-`、DOCX/XLSX ZIP、DOC/XLS OLE。MIME通过但 magic不符也拒绝。
 
-## 既有核心链
-
-Query Budget / Match / Daily Top5 / VERIFIED Material Event / Continuous Subscription / Notification Delivery / Latency Ledger 保持。新的 Timing Policy 位于 Subscription Notification 与 Delivery 之间：先决定是否通知，再决定现在发还是延后到固定业务窗口。
-
 ## CI
 
-GitHub Actions Runner 基础设施问题仍在；没有真实 Python step 执行证据时，42组 tests 只能标“已写入”，不能标 PASS，也不能解释为 assertion failure。
+GitHub Actions Runner 基础设施问题仍在；没有真实 Python step 执行证据时，43组 tests 只能标“已写入”，不能标 PASS，也不能解释为 assertion failure。
 
 ## 下一步
 
 1. 继续用已确认的 `method=downEnId` 医疗附件 URL 攻真实 bytes；不再猜下载地址。
 2. 继续验证 `tjgpc` 原生 list class id/pagination + 天津财政原生发现。
-3. 将 Discovery Cadence 与 Notification Timing 接入后续持久化 scheduler；用 Latency Ledger 真实数据调优 10/15/30 分钟初始频率。
-4. Runner恢复后执行42组 tests 与 taxonomy audit。
+3. 将 Discovery Cadence / Subscription Delivery Plan 接入持久化 scheduler；用 Latency Ledger 真实数据调优 10/15/30 分钟初始频率。
+4. Runner恢复后执行43组 tests 与 taxonomy audit。
 5. deterministic evidence 后再跑 Agnes。
 6. Backend API 稳定后再做 H5/微信小程序。
