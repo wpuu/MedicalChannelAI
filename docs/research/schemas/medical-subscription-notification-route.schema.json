@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-subscription-notification-route.schema.json",
+  "title": "Medical Subscription Notification Route v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "opportunity_id",
+    "subscription_dedupe_key",
+    "source_delivery_class",
+    "routing_status",
+    "audience",
+    "target_owner",
+    "should_notify",
+    "reason"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "subscription_dedupe_key": {"type": "string", "pattern": "^subeval_[0-9a-f]{64}$"},
+    "source_delivery_class": {"enum": ["IMMEDIATE_HIGH_PRIORITY", "DAILY_DIGEST", "ENRICHMENT_ONLY", "NO_NOTIFY"]},
+    "routing_status": {
+      "enum": ["SEND_IMMEDIATE", "INCLUDE_DAILY_DIGEST", "ENRICHMENT_ONLY", "NO_NOTIFY", "SUPPRESS_TERMINAL_FOLLOWUP"]
+    },
+    "audience": {"enum": ["OWNER", "TEAM_INBOX", "NONE"]},
+    "target_owner": {"type": ["string", "null"], "maxLength": 200},
+    "should_notify": {"type": "boolean"},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 240}
+  }
+}
