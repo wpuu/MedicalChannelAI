@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "as_of": "2026-08-29T11:20:00+08:00",
+  "as_of": "2026-08-29T16:25:00+08:00",
   "scope": "Tianjin government-procurement and hospital early-signal public sources",
   "sources": [
     {
@@ -14,7 +14,7 @@
       ],
       "host_interpretation": "OFFICIAL_HOSTS_OR_ALIASES_WITHIN_ONE_PRIMARY_SOURCE_NOT_SEPARATE_SOURCES",
       "implementation_status": "PARTIAL_IMPLEMENTATION",
-      "implemented_scope": "strictly allowlisted direct detail route /portal/documentView.do with method=view, numeric id and ver=2; evidence-backed parsing of supplied detail pages",
+      "implemented_scope": "strictly allowlisted direct detail route /portal/documentView.do with method=view, numeric id and ver=2; evidence-backed parsing of supplied detail pages; strict discovery-only recognition of method=downEnId attachment URLs",
       "current_validation": {
         "2026_tjgp_host_reference_confirmed": true,
         "2026_ccgp_tianjin_content_reference_confirmed": true,
@@ -24,26 +24,40 @@
         "runtime_registry_and_adapter_alias_support_aligned": true,
         "2026_native_detail_fetch_confirmed": false,
         "2026_native_listing_or_search_confirmed": false,
-        "direct_attachment_href_confirmed": false,
+        "direct_attachment_href_confirmed": true,
+        "exact_medical_downenid_route_confirmed": true,
+        "crawler_runtime_attachment_bytes_confirmed": false,
         "execution_environment_direct_dns_test_succeeded": false
       },
       "runtime_url_policy": {
-        "allowed_schemes": ["http", "https"],
-        "exact_path": "/portal/documentView.do",
-        "required_exact_query": {"method": "view", "id": "DIGITS_ONLY", "ver": "2"},
-        "extra_query_parameters_allowed": false,
-        "duplicate_query_parameters_allowed": false
+        "detail": {
+          "allowed_schemes": ["http", "https"],
+          "recognized_hosts": ["tjgp.cz.tj.gov.cn", "ccgp-tianjin.gov.cn", "www.ccgp-tianjin.gov.cn"],
+          "exact_path": "/portal/documentView.do",
+          "required_exact_query": {"method": "view", "id": "DIGITS_ONLY", "ver": "2"},
+          "extra_query_parameters_allowed": false,
+          "duplicate_query_parameters_allowed": false
+        },
+        "attachment_discovery": {
+          "allowed_schemes": ["http", "https"],
+          "recognized_hosts": ["tjgp.cz.tj.gov.cn", "ccgp-tianjin.gov.cn", "www.ccgp-tianjin.gov.cn"],
+          "exact_path": "/portal/documentView.do",
+          "required_exact_query": {"method": "downEnId", "id": "BOUNDED_OPAQUE_TOKEN"},
+          "extra_query_parameters_allowed": false,
+          "download_authorized": false,
+          "first_confirmed_medical_project_number": "TGPC-2025-A-0164"
+        }
       },
       "not_yet_verified": [
         "2026 native listing/search route",
         "pagination/discovery completeness",
         "all current lifecycle category routes",
         "2026 direct primary detail fetch from crawler runtime",
-        "source-native direct attachment href generation/download route",
+        "real attachment bytes/MIME/SHA from method=downEnId",
         "source-native publication timestamps for latency measurement",
         "whether one official host is canonical/preferred over the other for public content"
       ],
-      "authority_basis": "天津市财政局指定的信息发布体系；2026天津高校官方采购通知直接引用ccgp-tianjin.gov.cn原文，2026采购公告仍引用tjgp.cz.tj.gov.cn业务入口，故v0.1将二者作为同一PRIMARY Source的官方host/alias处理。",
+      "authority_basis": "天津市财政局指定的信息发布体系；2026天津高校官方采购通知直接引用ccgp-tianjin.gov.cn原文，2026采购公告仍引用tjgp.cz.tj.gov.cn业务入口，故v0.1将二者作为同一PRIMARY Source的官方host/alias处理。政府镜像页面已保留TGPC-2025-A-0164指向天津官方host的精确downEnId附件URL，但当前执行环境尚未取得附件bytes。",
       "evidence_urls": [
         "https://cz.tj.gov.cn/zwgk_53713/zcwjx/zcwjst/202307/t20230728_6364181.html",
         "https://zbb.tjcu.edu.cn/info/1003/4302.htm",
@@ -51,9 +65,10 @@
         "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194418.htm",
         "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219615.htm",
         "https://www.tjbpi.com/xxgk/gg__cgzb/content_31346",
-        "https://www.tjftz.gov.cn/contents/6259/370826.html"
+        "https://www.tjftz.gov.cn/contents/6259/370826.html",
+        "https://ggzyfw.beijing.gov.cn/xtggtjcggg/20250702/5173111.html"
       ],
-      "execution_environment_note": "2026-08-29 direct Python network probe in the current execution container failed DNS resolution for official-host families tested; this is environment evidence only and is not interpreted as source outage.",
+      "execution_environment_note": "2026-08-29 direct Python/curl network probes in the current execution container failed DNS resolution for the Tianjin official-host families tested; this is environment evidence only and is not interpreted as source outage.",
       "timing_policy": "PRIMARY_WHEN_NATIVE_NOTICE_CAN_BE_FETCHED",
       "latency_status": "UNKNOWN_UNTIL_NATIVE_DETAIL_TIMESTAMPS_ARE_CAPTURED"
     },
@@ -69,7 +84,11 @@
         "2025_2026_public_tender_pages_indexed": true,
         "breadcrumb_project_information_procurement_information_public_tender_confirmed": true,
         "medical_detail_and_docx_filename_confirmed": true,
-        "native_listing_class_ids_confirmed": false,
+        "native_home_route_web_index1_externally_corroborated": true,
+        "web_info_list_route_family_confirmed": true,
+        "w008_online_response_help_purpose_confirmed": true,
+        "w008_is_procurement_discovery_list": false,
+        "native_procurement_listing_class_ids_confirmed": false,
         "native_pagination_confirmed": false,
         "all_procurement_methods_confirmed": false,
         "direct_attachment_wrapper_shape_confirmed": true,
@@ -96,18 +115,27 @@
           "nested_url_direct_fetch_allowed": false,
           "download_authorized": false,
           "path_decode_validation": "BOUNDED_REPEAT_DECODE_FOR_TRAVERSAL_CHECK_ONLY"
+        },
+        "known_non_procurement_route": {
+          "path": "/webInfo/getWebInfoListForwebInfoClass.do",
+          "query": {"fkWebInfoclassId": "W008"},
+          "purpose": "ONLINE_RESPONSE_HELP",
+          "runtime_discovery_enabled": false
         }
       },
       "relationship_to_citywide_primary": "A project published by the procurement center and mirrored on Tianjin finance/CCGP remains one canonical opportunity when official project_number matches. This source may provide center-specific detail or procurement-file workflow evidence, but it is not evidence that all Tianjin projects originate here.",
-      "authority_basis": "天津市政府采购中心官方站当前索引持续展示项目信息/采购信息/公开招标详情，并在正文中明确采购中心身份、网上招投标入口和项目文件名称。",
+      "authority_basis": "天津市政府采购中心官方站当前索引持续展示项目信息/采购信息/公开招标详情，并在正文中明确采购中心身份、网上招投标入口和项目文件名称。2022-2026多份官方采购文件持续将W008链接明确称为网上应答帮助链接，因此W008不得被当作采购公告发现列表。",
       "evidence_urls": [
         "https://tjgpc.zwfwb.tj.gov.cn/webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=2E1138AD-0900-4EC0-B863-6E4A41525FB8",
         "https://tjgpc.zwfwb.tj.gov.cn/webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=84532410-0664-435E-B385-3AD551EE646B",
         "https://tjgpc.zwfwb.tj.gov.cn/webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=F8DE1A68-9A7A-4093-A427-027031E9CE17",
         "https://tjgpc.zwfwb.tj.gov.cn/webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=B9E27DB6-0FBA-4C3A-B222-BEA24EB8A4E7",
-        "https://tjgpc.zwfwb.tj.gov.cn/webInfo/downloadFile.do?fileName=%E5%8D%95%E4%B8%80%E6%9D%A5%E6%BA%90%E9%87%87%E8%B4%AD%E6%96%87%E4%BB%B6.pdf&fileUrl=http%3A%2F%2F218.67.246.33%3A7001%2FZTBS%2Ffileupload%2Fgw%2F%2Fo_1imp71on2p9r3c01sahdh9gkqb.pdf"
+        "https://tjgpc.zwfwb.tj.gov.cn/webInfo/downloadFile.do?fileName=%E5%8D%95%E4%B8%80%E6%9D%A5%E6%BA%90%E9%87%87%E8%B4%AD%E6%96%87%E4%BB%B6.pdf&fileUrl=http%3A%2F%2F218.67.246.33%3A7001%2FZTBS%2Ffileupload%2Fgw%2F%2Fo_1imp71on2p9r3c01sahdh9gkqb.pdf",
+        "https://tianjin.chinatax.gov.cn/uploadFiles/file/20250625/20250625160045_790.pdf",
+        "https://tianjin.chinatax.gov.cn/uploadFiles/file/20231027/20231027151659_405.pdf"
       ],
-      "attachment_interpretation": "Search indexing proves the official wrapper can expose real document content, but web/container direct fetch currently fails. This is mechanism evidence, not evidence that MedicalChannelAI captured bytes. Medical detail TGPC-2025-A-0164 exposes a DOCX filename but its exact wrapper URL is still unresolved.",
+      "attachment_interpretation": "Search indexing proves the official procurement-center wrapper can expose real document content, but web/container direct fetch currently fails. This is mechanism evidence, not evidence that MedicalChannelAI captured bytes. Medical detail TGPC-2025-A-0164 exposes a DOCX filename; its exact finance downEnId attachment URL is separately confirmed, while an exact tjgpc downloadFile wrapper for that medical file remains unresolved.",
+      "native_discovery_research_file": "tools/medical_pilot/tjgpc_native_discovery_research.v0.1.json",
       "timing_policy": "PRIMARY_FOR_CENTER_PUBLISHED_PROJECT_CONTENT_WHEN_FETCHABLE",
       "latency_status": "UNKNOWN_UNTIL_SOURCE_NATIVE_TIMESTAMPS_AND_FETCH_TIMES_ARE_CAPTURED"
     },
