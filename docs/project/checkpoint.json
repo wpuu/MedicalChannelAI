@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-30T05:30:00+08:00",
+  "as_of": "2026-08-30T05:36:00+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_PLUS_TODAY_ACTIONS_TRUSTED_BACKEND",
   "production_ready": false,
   "merge_approved": false,
@@ -13,8 +13,8 @@
   "runtime_p0_partial_count": 3,
   "verified_opportunity_regression_fixture_count": 50,
   "verified_institution_evidence_fixture_count": 15,
-  "schema_contract_count": 35,
-  "deterministic_test_module_count": 54,
+  "schema_contract_count": 36,
+  "deterministic_test_module_count": 57,
   "real_attachment_binary_capture_count": 0,
   "real_medical_attachment_binary_capture_count": 0,
   "first_exact_medical_attachment_url": {
@@ -25,7 +25,7 @@
     "download_authorized": false
   },
   "today_actions": {
-    "status": "TRUSTED_BACKEND_CYCLE_IMPLEMENTED_H5_PUBLIC_VIEW_FROZEN",
+    "status": "TRUSTED_BACKEND_API_QUEUE_WORKER_CYCLE_IMPLEMENTED_H5_PUBLIC_VIEW_FROZEN",
     "max_final_action_cards": 5,
     "max_daily_home_model_candidates": 5,
     "facts_ai_judgment_separated": true,
@@ -34,13 +34,21 @@
     "ungrounded_model_output_rejected": true,
     "model_input_sha256_task_identity": true,
     "terminal_result_idempotency": true,
+    "api_tenant_isolation": true,
+    "api_candidate_budget_limit": 500,
+    "dispatch_queue_task_idempotency": true,
+    "queue_worker_bridge": true,
     "provider_worker_boundary": true,
     "public_view_excludes_model_requests": true,
     "h5_ui_spec": "docs/product/today-actions-ui-v0.1.md",
+    "grok_h5_prompt": "docs/product/grok-today-actions-h5-prompt-v0.1.md",
     "public_schema": "docs/research/schemas/medical-today-actions-public.schema.json",
     "frontend_mock_prototype_allowed": true
   },
   "agnes_worker": {
+    "api_module": "tools/medical_pilot/today_actions_api.py",
+    "queue_module": "tools/medical_pilot/agnes_dispatch_queue.py",
+    "queue_worker_module": "tools/medical_pilot/today_actions_queue_worker.py",
     "worker_module": "tools/medical_pilot/today_actions_worker.py",
     "client_module": "tools/medical_pilot/agnes_client.py",
     "service_module": "tools/medical_pilot/today_actions_service.py",
@@ -48,8 +56,9 @@
     "provider_call_requires_claimed_lease": true,
     "terminal_statuses": ["READY", "MODEL_OUTPUT_REJECTED"],
     "provider_errors_terminal": false,
-    "same_input_replay_skips_provider_start": true,
+    "same_input_replay_skips_queue_duplicate_and_provider_start": true,
     "new_input_hash_creates_new_task": true,
+    "future_high_priority_task_does_not_block_due_lower_priority_task": true,
     "official_allowed_base_urls": [
       "https://apihub.agnes-ai.com/v1",
       "https://apihub.agnes-ai.cn/v1",
@@ -89,7 +98,7 @@
     "ordinary_evening_behavior": "QUEUE_NEXT_BUSINESS_MORNING"
   },
   "agnes_dispatch": {
-    "status": "IMPLEMENTED_V0_1_PERSISTENT_LEASE_AND_TERMINAL_IDEMPOTENCY",
+    "status": "IMPLEMENTED_V0_1_QUEUE_PERSISTENT_LEASE_AND_TERMINAL_IDEMPOTENCY",
     "provider": "AGNES",
     "model": "agnes-2.5-flash",
     "max_request_starts_per_minute": 12,
@@ -99,6 +108,7 @@
     "provider_start_requires_claimed_global_lease": true,
     "lease_prefix": "agl_",
     "lease_ttl_seconds_default": 120,
+    "sqlite_dispatch_queue": "SAME_HOST_MULTI_PROCESS_REFERENCE_ONLY",
     "sqlite_lease_store": "SAME_HOST_MULTI_PROCESS_REFERENCE_ONLY",
     "sqlite_task_result_store": "SAME_HOST_MULTI_PROCESS_REFERENCE_ONLY",
     "cross_server_shared_atomic_stores": "PENDING_BEFORE_HORIZONTAL_SCALE_NOT_PILOT_BLOCKER"
@@ -110,27 +120,27 @@
     "w008_procurement_discovery_allowed": false,
     "public_tender_list_class_id": "UNRESOLVED",
     "procurement_result_list_class_id": "UNRESOLVED",
-    "pagination": "UNRESOLVED"
+    "pagination": "UNRESOLVED",
+    "blind_w00x_guessing_paused": true
   },
   "agnes": {"status": "GO_FOR_BENCHMARK", "case_count": 28, "executed": false},
   "ci": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
-    "latest_checked_code_head_sha": "411b7936accbb6b14333f036b3f743a4b15eb9e8",
-    "latest_run_id": 33276045434,
-    "latest_job_id": 99162844003,
+    "latest_checked_code_head_sha": "80a6f697d74ab3b9fff79d796fcdfd0b29534ca1",
+    "latest_run_id": 33276477250,
+    "latest_job_id": 99163972717,
     "latest_known_runner_id": 0,
     "latest_known_steps_count": 0,
     "conclusion": "failure",
-    "interpretation": "No Python step executed; neither PASS nor assertion failure. 54 tests are written but unexecuted."
+    "interpretation": "No Python step executed; neither PASS nor assertion failure. 57 tests are written but unexecuted."
   },
   "next": [
-    "generate H5 mock in parallel against the public Today Actions contract",
-    "add thin HTTP/serverless adapter exposing TodayActionsServiceCycle.public_response without internal dispatch leakage",
-    "execute 54 deterministic tests when runner returns",
+    "generate/integrate H5 mock in parallel against the public Today Actions contract",
+    "execute 57 deterministic tests when runner returns",
     "capture real bytes from exact downEnId medical attachment URL",
-    "verify real tjgpc procurement list classId/pagination and Tianjin finance native discovery; do not reuse W008",
+    "use verified detail/mirror sources while tjgpc native list classId remains unresolved; do not guess W00x",
     "run Agnes benchmark after deterministic execution evidence and tune cadence using latency/queue evidence",
     "decide native WeChat mini-program only after H5 Pilot validates workflow",
-    "implement shared atomic lease/result stores only before horizontal multi-server workers"
+    "implement shared atomic queue/lease/result stores only before horizontal multi-server workers"
   ]
 }
