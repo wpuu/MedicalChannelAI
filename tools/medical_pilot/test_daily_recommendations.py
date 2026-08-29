@@ -7,6 +7,20 @@ from tools.medical_pilot.daily_recommendations import build_daily_recommendation
 from tools.medical_pilot.test_opportunity_match_gate import complete_profile, opportunity
 
 
+WIDE_TAXONOMY_IDS = [
+    "LAB_BIOCHEMISTRY_ANALYZER",
+    "LAB_CHEMILUMINESCENCE_ANALYZER",
+    "LAB_COAGULATION_ANALYZER",
+    "LAB_HEMATOLOGY_ANALYZER",
+    "LAB_URINALYSIS_ANALYZER",
+    "LAB_PCR_QPCR",
+    "LAB_FLOW_CYTOMETER",
+    "LAB_AUTOMATION_LINE",
+    "LAB_SAMPLE_PREPROCESSING",
+    "LAB_REAGENT_IMMUNOASSAY",
+]
+
+
 class DailyRecommendationTests(unittest.TestCase):
     def test_final_home_cards_are_bounded_to_five(self) -> None:
         profile = complete_profile()
@@ -45,18 +59,19 @@ class DailyRecommendationTests(unittest.TestCase):
         ]
         profile["product_capabilities"] = [
             {
-                "category": "IVD",
+                "category": "医疗产品",
                 "subcategory": f"产品{i}",
-                "taxonomy_ids": ["LAB_CHEMILUMINESCENCE_ANALYZER"],
+                "taxonomy_ids": [taxonomy_id],
                 "brands": [],
                 "capability_type": "DIRECT_UNCONFIRMED",
                 "notes": None,
             }
-            for i in range(10)
+            for i, taxonomy_id in enumerate(WIDE_TAXONOMY_IDS)
         ]
         result = build_daily_recommendation_plan(profile, [])
-        self.assertIn(result["query_plan"]["scope_class"], {"WIDE", "VERY_WIDE"})
-        self.assertLessEqual(result["query_plan"]["budgets"]["max_model_candidates"], 8)
+        self.assertEqual(result["query_plan"]["scope_class"], "VERY_WIDE")
+        self.assertEqual(result["query_plan"]["profile_scope"]["scope_cells"], 160)
+        self.assertEqual(result["query_plan"]["budgets"]["max_model_candidates"], 5)
         self.assertEqual(result["input_candidate_count"], 0)
 
     def test_orchestrator_never_requests_live_crawl_for_interactive_daily(self) -> None:
