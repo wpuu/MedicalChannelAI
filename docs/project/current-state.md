@@ -12,15 +12,15 @@ Draft PR：**#1**
 - **50 条 VERIFIED 天津商机 regression fixture**
 - 5 条真实官方附件声明；真实附件 binary capture = 0
 - **15 条天津机构官方 Evidence fixture**
-- **14 份正式 JSON Schema/合同**
-- **30 组 deterministic unittest 模块**
+- **15 份正式 JSON Schema/合同**
+- **31 组 deterministic unittest 模块**
 - 2 套 Agnes benchmark，共 **28 case**，均未执行
 - Coverage：`PARTIAL / NOT_EXHAUSTIVE`
 - `production_ready=false`
 
 ## 核心链路
 
-`Source Registry → Snapshot/SHA → Evidence Fact → Lifecycle/Identity → Institution Evidence → Product Taxonomy → Matching Profile Gate → Opportunity Match → Query Budget → Priority Score → Grounded Model Decision`
+`Source Registry → Snapshot/SHA → Evidence Fact → Lifecycle/Identity → Institution Evidence → Product Taxonomy → Matching Profile Gate → Opportunity Match → Query Budget → Priority Score → Daily Recommendation Plan → Grounded Model Decision`
 
 ## 参数复杂度 / Query Budget
 
@@ -48,6 +48,18 @@ Draft PR：**#1**
 
 单项目深挖允许极少量受控实时请求（当前上限3）；计划采集按 Source 驱动。
 
+## Daily Recommendation Plan
+
+已新增 `daily_recommendations.py` 与 `medical-daily-recommendation-plan.schema.json`。
+
+公共首页逻辑现在可以在**不重新爬网、不调用模型**的情况下执行：
+
+`共享 VERIFIED 候选 → deterministic Match → Priority Score → bounded model candidates → Top 5 action cards`
+
+未通过事实/画像 Gate 的项目不会进入模型候选。宽画像只会收紧模型/深挖 Top-N，不会拒绝真实客户画像。
+
+这层是未来“今天最值得处理5件事”的确定性后端骨架。
+
 ## 模型上下文预算
 
 Grounded Model Decision 显式记录：
@@ -59,8 +71,6 @@ Grounded Model Decision 显式记录：
 - 最大 fact / 字符预算
 
 事实选择只做确定性优先排序，不修改事实内容。**官方事实不允许截断后强塞进模型。** 如果已有 VERIFIED facts 全部无法完整放入预算，则模型调用 fail-closed。
-
-因此既避免把几十页附件/几百候选一次塞入模型造成注意力稀释，也避免实际只给部分事实却误称模型“读过全部”。
 
 ## Institution Evidence
 
@@ -78,6 +88,17 @@ Match Pipeline 要求 VERIFIED facts、证据化机构类型和受控 taxonomy�
 
 50条 VERIFIED corpus 已达到第一轮分类覆盖评估门槛。`taxonomy_corpus_audit.py` 已就绪，但 GitHub Runner 尚未执行，因此当前不宣称具体 deterministic coverage rate。
 
+## 乙方宝对标
+
+已建立：
+
+- `docs/research/competitors/yifangbao-2026-08.md`
+- `docs/product/competitive-roadmap-v0.1.json`
+
+吸收其持续订阅、前期商机、关系/联系人、竞争历史、跟进管理和微信小程序等已经验证的产品工作流；不复制其泛行业信息流定位。
+
+MedicalChannelAI 的差异化固定为：**医疗垂直 Evidence-first + 客户真实经营画像 + 医院关系资产 + 行动优先，而不是单纯“标讯更多”。**
+
 ## Agnes
 
 Agnes 2.5 Flash 当前仍为 `GO_FOR_BENCHMARK`，不是 production validated。两套 benchmark 共28 case，均未执行；专项 taxonomy benchmark 通过并显式升级 classifier registry 前，Agnes 分类不能驱动正式匹配。
@@ -90,13 +111,14 @@ DOCX/XLSX parser 已实现，但真实官方附件 bytes 捕获仍为0；PDF Doc
 
 ## CI真实状态
 
-最近已确认的 Medical Pilot CI 仍是 Job 无执行 steps 的基础设施问题；Python compile/unittest 没有开始执行。因此当前30组 tests 只能标“已写入等待真实执行证据”，不能标 PASS，也不能解释为 assertion failure。Issue #2 持续跟踪。
+最近已确认的 Medical Pilot CI 仍是 Job 无执行 steps 的基础设施问题；Python compile/unittest 没有开始执行。因此当前31组 tests 只能标“已写入等待真实执行证据”，不能标 PASS，也不能解释为 assertion failure。Issue #2 持续跟踪。
 
 ## 下一步
 
-1. 将 Query Budget 接到未来 Fact API / daily recommendations 调度层，禁止调用方绕过预算。
-2. Runner恢复后执行30组 tests 与 taxonomy corpus audit。
+1. 将 Daily Recommendation / Query Budget 接到未来 Fact API / profile subscription 调度层。
+2. Runner恢复后执行31组 tests 与 taxonomy corpus audit。
 3. 获取首份真实天津医疗附件 bytes 并跑 Snapshot/SHA/parser。
 4. 继续验证天津政府采购网2026原生列表/搜索/分页/生命周期。
-5. deterministic execution 有证据后再跑 Agnes 两套 benchmark。
-6. Fact/Profile/Match/Priority/QueryPlan API 稳定后再进入老杨 H5/Web。
+5. 实现跟进状态 + 用户反馈回写客户画像。
+6. deterministic execution 有证据后再跑 Agnes 两套 benchmark。
+7. Fact/Profile/Match/Priority/QueryPlan/DailyAction API 稳定后再进入老杨 H5/Web。
