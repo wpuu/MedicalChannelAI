@@ -2,11 +2,18 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, replace
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from .adapters import MEDICAL_HINTS
 from .ccgp_lifecycle_adapter import CcgpLifecycleAdapter, ParsedCcgpLifecycleNotice
 from .collector_core import DiscoveredLink, Snapshot, extract_anchors, normalize_space, parse_cn_datetime, strip_tags
+
+
+_OFFICIAL_DETAIL_HOSTS = {
+    "tjgp.cz.tj.gov.cn",
+    "ccgp-tianjin.gov.cn",
+    "www.ccgp-tianjin.gov.cn",
+}
 
 
 @dataclass(frozen=True)
@@ -14,8 +21,8 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
     """Partial adapter for the Tianjin Government Procurement primary publication site.
 
     Verified scope in Pilot v0.1:
-    - canonical host: tjgp.cz.tj.gov.cn
-    - detail route family: /portal/documentView.do?method=view&id=<digits>&ver=2
+    - official host/alias family: tjgp.cz.tj.gov.cn and ccgp-tianjin.gov.cn (+ www)
+    - detail route family: /portal/documentView.do with exact method=view, numeric id, ver=2
     - evidence-backed parsing of a supplied detail page
 
     Listing/search discovery and every notice category on the live 2026 site are not yet
@@ -27,23 +34,26 @@ class TianjinGovernmentProcurementAdapter(CcgpLifecycleAdapter):
 
     @property
     def allowed_hosts(self) -> set[str]:
-        return {"tjgp.cz.tj.gov.cn"}
+        return set(_OFFICIAL_DETAIL_HOSTS)
 
     @staticmethod
     def is_verified_detail_url(url: str) -> bool:
         parsed = urlparse(url)
         if parsed.scheme not in {"http", "https"}:
             return False
-        if parsed.hostname != "tjgp.cz.tj.gov.cn":
+        if (parsed.hostname or "").lower() not in _OFFICIAL_DETAIL_HOSTS:
             return False
-        if parsed.path != "/portal/documentView.do":
+        if parsed.path != "/portal/documentView.do" or parsed.fragment:
             return False
-        query = parsed.query
-        return bool(
-            re.search(r"(?:^|&)method=view(?:&|$)", query)
-            and re.search(r"(?:^|&)id=\d+(?:&|$)", query)
-            and re.search(r"(?:^|&)ver=2(?:&|$)", query)
-        )
+        try:
+            query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+        except ValueError:
+            return False
+        if set(query) != {"method", "id", "ver"}:
+            return False
+        if any(len(values) != 1 for values in query.values()):
+            return False
+        return query["method"][0] == "view" and query["id"][0].isdigit() and query["ver"][0] == "2"
 
     def discover(self, listing_html: str, listing_url: str) -> list[DiscoveredLink]:
         # This helper is deliberately narrow: it only accepts already-visible native
