@@ -3,16 +3,14 @@ from __future__ import annotations
 import hashlib
 import unittest
 
+from tools.medical_pilot.attachments import BoundedAttachmentFetcher
 from tools.medical_pilot.ccgp_lifecycle_adapter import CcgpLifecycleAdapter, build_ccgp_lifecycle_event_and_facts
-from tools.medical_pilot.collector_core import Snapshot
+from tools.medical_pilot.collector_core import FetchError, Snapshot
 from tools.medical_pilot.lifecycle import resolve_project_lifecycle
 from tools.medical_pilot.registry import adapter_for_source, resolve_source
 from tools.medical_pilot.tianjin_government_procurement_adapter import TianjinGovernmentProcurementAdapter
 
 
-# Structure regression only. The native route family is independently evidenced by
-# official Tianjin government/institution pages; this HTML is deliberately local and
-# must not be represented as a captured live native page.
 NATIVE_STRUCTURE_HTML = """
 <html>
 <head><title>天津市胸科医院检验科设备租赁服务项目（项目编号：XCSD-2026-A-641）中标公告</title></head>
@@ -48,6 +46,12 @@ CCGP_MIRROR_HTML = """
 <p>三、中标信息</p>
 </body></html>
 """
+
+MEDICAL_ATTACHMENT_URL = (
+    "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?"
+    "id=cehQ4qF6Unc%2A&method=downEnId"
+)
+MEDICAL_ATTACHMENT_FILENAME = "招标文件（ TGPC-2025-A-0164 ）.docx"
 
 
 def snapshot(url: str, html: str) -> Snapshot:
@@ -98,6 +102,52 @@ class TianjinGovernmentProcurementAdapterTests(unittest.TestCase):
         self.assertEqual(parsed.source_id, "tj_government_procurement")
         self.assertEqual(parsed.project_number, "XCSD-2026-A-641")
         self.assertTrue(parsed.eligible_for_verified)
+
+    def test_known_medical_downenid_attachment_is_discovered_but_not_download_authorized(self) -> None:
+        adapter = TianjinGovernmentProcurementAdapter()
+        self.assertTrue(adapter.is_verified_attachment_url(MEDICAL_ATTACHMENT_URL))
+        html = (
+            '<a href="https://www.ccgp-tianjin.gov.cn/portal/documentView.do?'
+            'id=cehQ4qF6Unc%2A&amp;method=downEnId">'
+            + MEDICAL_ATTACHMENT_FILENAME
+            + "</a>"
+        )
+        candidates = adapter.discover_attachment_candidates(
+            html,
+            "https://ggzyfw.beijing.gov.cn/xtggtjcggg/20250702/5173111.html",
+        )
+        self.assertEqual(len(candidates), 1)
+        candidate = candidates[0]
+        self.assertEqual(candidate.filename, MEDICAL_ATTACHMENT_FILENAME)
+        self.assertEqual(candidate.extension, ".docx")
+        self.assertFalse(candidate.download_authorized)
+        self.assertEqual(
+            candidate.handling_policy,
+            "DISCOVER_ONLY_TIANJIN_OFFICIAL_DOWNENID_PENDING_BYTES_VALIDATION",
+        )
+        with self.assertRaises(FetchError) as context:
+            BoundedAttachmentFetcher({"www.ccgp-tianjin.gov.cn"}).fetch(candidate)
+        self.assertEqual(context.exception.code, "ATTACHMENT_DOWNLOAD_NOT_AUTHORIZED")
+
+    def test_downenid_attachment_route_rejects_spoofed_or_unsafe_variants(self) -> None:
+        adapter = TianjinGovernmentProcurementAdapter()
+        invalid = (
+            "https://evil.example/portal/documentView.do?id=cehQ4qF6Unc%2A&method=downEnId",
+            "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=../secret&method=downEnId",
+            "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=cehQ4qF6Unc%2A&method=delete",
+            "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=cehQ4qF6Unc%2A&method=downEnId&x=1",
+            "https://www.ccgp-tianjin.gov.cn/portal/other.do?id=cehQ4qF6Unc%2A&method=downEnId",
+        )
+        for url in invalid:
+            with self.subTest(url=url):
+                self.assertFalse(adapter.is_verified_attachment_url(url))
+
+    def test_attachment_route_is_not_treated_as_notice_detail_route(self) -> None:
+        adapter = TianjinGovernmentProcurementAdapter()
+        self.assertTrue(adapter.is_verified_attachment_url(MEDICAL_ATTACHMENT_URL))
+        self.assertFalse(adapter.is_verified_detail_url(MEDICAL_ATTACHMENT_URL))
+        with self.assertRaises(ValueError):
+            resolve_source(MEDICAL_ATTACHMENT_URL)
 
     def test_primary_and_ccgp_mirror_share_one_project_and_primary_wins_same_day_evidence(self) -> None:
         native_url = "https://tjgp.cz.tj.gov.cn/portal/documentView.do?method=view&id=999999999&ver=2"
