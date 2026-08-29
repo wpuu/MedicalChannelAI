@@ -12,6 +12,7 @@ Repo `wpuu/MedicalChannelAI`; dev `dev/tianjin-pilot-v0.1`; Draft PR #1; `produc
 - **探索频率与用户推送频率分离。夜间普通消息静默，但后台 discovery/verification/ranking 继续。**
 - 工作日默认 08:10 晨报；08:30–18:30 高优先级 VERIFIED 可即时；13:15 一次普通上午增量；18:30 后普通项目进次日晨报。
 - 晚间例外只用于可行动紧迫事件：`DEADLINE_CHANGED`、生命周期变 `TERMINATED/SUSPENDED`、或行动截止 <=16h。`AWARD_PUBLISHED` 晚间默认不打扰。
+- **Timing=Scheduled 不得提前创建 Provider QUEUED 记录。** 只有 `SEND_NOW` 可直接进入 Provider；Scheduled 到时后必须重新校验事件/画像/跟进状态。
 - 法定节假日/调休不得硬编码猜测；Timing API 接受 official calendar override。
 - `tjgp.cz.tj.gov.cn` + `ccgp-tianjin.gov.cn`(含www) = 同一个天津财政 PRIMARY Source identity。
 - `tjgpc.zwfwb.tj.gov.cn` = 集采 PRIMARY 补充源，不替代全市财政源。
@@ -28,8 +29,8 @@ Repo `wpuu/MedicalChannelAI`; dev `dev/tianjin-pilot-v0.1`; Draft PR #1; `produc
 - 7 P0 Source：4 IMPLEMENTED + 3 PARTIAL
 - 50 VERIFIED 天津商机 corpus
 - 15 Institution Evidence
-- **25 Schema**
-- **42 deterministic test modules（未执行）**
+- **26 Schema**
+- **43 deterministic test modules（未执行）**
 - Agnes benchmark 28 case（未执行）
 
 ## Discovery Cadence v0.1
@@ -41,6 +42,12 @@ Repo `wpuu/MedicalChannelAI`; dev `dev/tianjin-pilot-v0.1`; Draft PR #1; `produc
 
 这些是 Pilot 初始值，未来必须用 Latency Ledger 和来源压力证据调优，不能把10分钟当永久常量。
 
+## Delivery Plan
+
+`Subscription Evaluation → Follow-up Route → Notification Timing → Subscription Delivery Plan → 到时后 Notification Delivery`。
+
+`provider_queue_allowed=true` 仅限 `SEND_NOW`；`SCHEDULED` 只保存 `scheduled_for`，不得提前进入微信/Push Provider。
+
 ## PARTIAL
 
 - `tj_government_procurement`: 官方 alias detail + 精确医疗 `downEnId` URL 已确认；原生 list/search/pagination、真实附件 bytes仍待验证。
@@ -49,13 +56,13 @@ Repo `wpuu/MedicalChannelAI`; dev `dev/tianjin-pilot-v0.1`; Draft PR #1; `produc
 
 ## CI
 
-GitHub Actions Runner 基础设施问题持续；42组 tests 无真实执行证据，不能标 PASS。
+GitHub Actions Runner 基础设施问题持续；43组 tests 无真实执行证据，不能标 PASS。
 
 ## 下一步
 
 1. 用已确认 `downEnId` 医疗附件 URL 捕获真实 bytes，不再猜下载地址。
 2. 验证 `tjgpc` native list/pagination + 天津财政 native discovery。
-3. 将 discovery cadence + notification timing 接入持久化 scheduler，并用 Latency Ledger 反推最佳频率。
-4. Runner恢复后执行42组 tests/taxonomy audit。
+3. 将 discovery cadence + scheduled delivery execution 接入持久化 scheduler，并用 Latency Ledger 反推最佳频率。
+4. Runner恢复后执行43组 tests/taxonomy audit。
 5. deterministic evidence 后跑 Agnes。
 6. Backend API稳定后做H5/微信小程序。
