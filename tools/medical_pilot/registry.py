@@ -12,6 +12,7 @@ from .ccgp_lifecycle_adapter import CcgpLifecycleAdapter
 from .first_central_adapter import FirstCentralHospitalAdapter
 from .intent_adapter import CcgpIntentAdapter
 from .tianjin_government_procurement_adapter import TianjinGovernmentProcurementAdapter
+from .tianjin_procurement_center_adapter import TianjinProcurementCenterAdapter
 from .tianjin_public_resource_adapter import TianjinPublicResourceAdapter
 
 
@@ -29,7 +30,7 @@ TIANJIN_GOVERNMENT_DETAIL_HOSTS = {
 
 
 def _allows_tianjin_government_detail(url: str) -> bool:
-    """Fail-closed structural check for the two official Tianjin procurement hosts.
+    """Fail-closed structural check for the official Tianjin procurement hosts.
 
     Query parameter order may be rewritten by clients/caches, so identity is parsed
     structurally instead of relying on one serialized order. No extra or duplicate
@@ -46,7 +47,10 @@ def _allows_tianjin_government_detail(url: str) -> bool:
         return False
     if parsed.path != "/portal/documentView.do" or parsed.fragment:
         return False
-    query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+    try:
+        query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+    except ValueError:
+        return False
     if set(query) != {"method", "id", "ver"}:
         return False
     if any(len(values) != 1 for values in query.values()):
@@ -80,6 +84,7 @@ class RegisteredSource:
 
 ADAPTER_FACTORIES = {
     "tj_government_procurement": TianjinGovernmentProcurementAdapter,
+    "tj_government_procurement_center": TianjinProcurementCenterAdapter,
     "ccgp_local_notices": CcgpLifecycleAdapter,
     "ccgp_procurement_intent": CcgpIntentAdapter,
     "tjmugh_procurement": TjmughAdapter,
