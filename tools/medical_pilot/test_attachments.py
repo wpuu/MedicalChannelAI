@@ -82,6 +82,19 @@ class AttachmentDiscoveryTests(unittest.TestCase):
             BoundedAttachmentFetcher({"www.ccgp.gov.cn"}).fetch(candidate)
         self.assertEqual(context.exception.code, "ATTACHMENT_HOST_NOT_ALLOWED")
 
+    def test_discovered_but_unvalidated_route_is_rejected_before_network(self) -> None:
+        candidate = AttachmentCandidate(
+            source_url="https://www.ccgp.gov.cn/files/spec.pdf",
+            filename="spec.pdf",
+            extension=".pdf",
+            title="spec.pdf",
+            handling_policy="DISCOVER_ONLY_PENDING_BYTES_VALIDATION",
+            download_authorized=False,
+        )
+        with self.assertRaises(FetchError) as context:
+            BoundedAttachmentFetcher({"www.ccgp.gov.cn"}).fetch(candidate)
+        self.assertEqual(context.exception.code, "ATTACHMENT_DOWNLOAD_NOT_AUTHORIZED")
+
     @patch("urllib.request.urlopen")
     def test_downloaded_pdf_has_hash_but_is_not_falsely_marked_parser_eligible(self, mocked_urlopen) -> None:
         body = b"%PDF-1.7\nmedical pilot fixture"
@@ -133,6 +146,21 @@ class AttachmentDiscoveryTests(unittest.TestCase):
         with self.assertRaises(FetchError) as context:
             BoundedAttachmentFetcher({"www.ccgp.gov.cn"}).fetch(candidate)
         self.assertEqual(context.exception.code, "ATTACHMENT_MIME_MISMATCH")
+
+    @patch("urllib.request.urlopen")
+    def test_allowed_octet_stream_with_wrong_ooxml_magic_fails_closed(self, mocked_urlopen) -> None:
+        url = "https://www.ccgp.gov.cn/files/spec.docx"
+        mocked_urlopen.return_value = FakeResponse(url, b"<html>fake docx</html>", "application/octet-stream")
+        candidate = AttachmentCandidate(
+            source_url=url,
+            filename="spec.docx",
+            extension=".docx",
+            title="spec.docx",
+            handling_policy="DOWNLOAD_AND_PARSE_APPROVED",
+        )
+        with self.assertRaises(FetchError) as context:
+            BoundedAttachmentFetcher({"www.ccgp.gov.cn"}).fetch(candidate)
+        self.assertEqual(context.exception.code, "ATTACHMENT_MAGIC_MISMATCH")
 
 
 if __name__ == "__main__":
