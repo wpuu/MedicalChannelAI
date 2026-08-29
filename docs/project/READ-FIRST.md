@@ -12,7 +12,7 @@ Repo `wpuu/MedicalChannelAI`; dev `dev/tianjin-pilot-v0.1`; Draft PR #1; `produc
 - **探索频率与用户推送频率分离。夜间普通消息静默，但后台 discovery/verification/ranking 继续。**
 - 工作日默认 08:10 晨报；08:30–18:30 高优先级 VERIFIED 可即时；13:15 一次普通上午增量；18:30 后普通项目进次日晨报。
 - 晚间例外只用于可行动紧迫事件：`DEADLINE_CHANGED`、生命周期变 `TERMINATED/SUSPENDED`、或行动截止 <=16h。`AWARD_PUBLISHED` 晚间默认不打扰。
-- **Timing=Scheduled 不得提前创建 Provider QUEUED 记录。** 只有 `SEND_NOW` 可直接进入 Provider；Scheduled 到时后必须重新校验事件/画像/跟进状态。
+- **Timing=SCHEDULED 不得提前创建 Provider QUEUED 记录。** 只有 `SEND_NOW` 可直接进入 Provider；Scheduled 到时后必须重新校验事件/画像/跟进状态。
 - 法定节假日/调休不得硬编码猜测；Timing API 接受 official calendar override。
 - `tjgp.cz.tj.gov.cn` + `ccgp-tianjin.gov.cn`(含www) = 同一个天津财政 PRIMARY Source identity。
 - `tjgpc.zwfwb.tj.gov.cn` = 集采 PRIMARY 补充源，不替代全市财政源。
