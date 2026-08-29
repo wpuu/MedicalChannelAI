@@ -51,6 +51,35 @@ class TodayActionsTests(unittest.TestCase):
         )
         self.assertTrue(all(card["model_decision_status"] == "AWAITING_MODEL" for card in result["cards"]))
 
+    def test_customer_private_relationship_and_product_context_are_separate(self) -> None:
+        profile = complete_profile()
+        profile["hospital_relationships"] = [
+            {
+                "hospital_name": "天津医科大学总医院",
+                "department": "检验科",
+                "relationship_strength": "STRONG",
+                "owner": "销售A",
+                "confirmed_by_customer": True,
+                "last_confirmed_at": "2026-08-28T20:00:00+08:00",
+            }
+        ]
+        item = opportunity()
+        fact = verified_fact(
+            item["opportunity_id"],
+            "fact_99999999-1111-1111-1111-999999999999",
+        )
+        result = build_today_actions(
+            profile=profile,
+            opportunities=[item],
+            evidence_facts_by_opportunity={item["opportunity_id"]: [fact]},
+        )
+        context = result["cards"][0]["customer_context"]
+        self.assertEqual(context["context_type"], "CUSTOMER_PRIVATE_FACTS")
+        self.assertEqual(context["hospital_relationship"]["owner"], "销售A")
+        self.assertEqual(context["hospital_relationship"]["department"], "检验科")
+        self.assertEqual(context["matching_product_capabilities"][0]["subcategory"], "化学发光分析仪")
+        self.assertNotIn("hospital_relationship", result["cards"][0]["facts"])
+
     def test_no_grounded_fact_blocks_model_without_removing_action_card(self) -> None:
         item = opportunity()
         result = build_today_actions(
