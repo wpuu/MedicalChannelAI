@@ -11,8 +11,8 @@ Draft PR：**#1**
 - **7 个运行时 P0 Source：4 IMPLEMENTED、3 PARTIAL_IMPLEMENTATION**
 - 50 条 VERIFIED 天津商机 regression fixture
 - 15 条 Institution Evidence
-- **28 份 Schema/合同**
-- **45 组 deterministic unittest 模块**
+- **30 份 Schema/合同**
+- **48 组 deterministic unittest 模块**
 - 真实官方附件 bytes=0；医疗附件 bytes=0
 - 已确认首条天津医疗附件精确官方 URL（`TGPC-2025-A-0164` / `method=downEnId`），但尚未取得 bytes/MIME/SHA
 - Agnes benchmark 28 case，未执行
@@ -20,68 +20,58 @@ Draft PR：**#1**
 
 ## 采集、推送与 Agnes 错峰
 
-**探索频率、用户推送时间、Agnes API 调用时间三层分离。** 夜间普通消息静默，但 discovery/verification/ranking 继续；模型任务必须进入统一 Agnes Dispatch，不允许业务接口自己批量直呼 API。
+探索频率、用户推送时间、Agnes API 调用时间三层分离。Source 使用稳定 minute offset + jitter；普通夜间消息静默但后台 discovery/verification/ranking 继续；所有模型任务必须走统一 Agnes Dispatch。
 
 ### Discovery Cadence v0.1
 
-FAST / EARLY / SLOW 工作日白天基线仍为 10 / 15 / 30 分钟，晚间降频，深夜继续低频抓取。新增稳定 Source 相位：
-
-- `tj_government_procurement`: `:01`
-- `tj_government_procurement_center`: `:04`
-- `ccgp_local_notices`: `:07`
-- `tjmugh_procurement`: `:03`
-- `tj_first_central_hospital_procurement`: `:11`
-- `ccgp_procurement_intent`: `:05`
-- `tj_public_resource_exchange`: `:19`
-
-因此不会再让一组 Source 同时从 `:00/:10/:20` 启动。原 07:35 / 12:50 单点强制刷新已改为 `07:31–07:43`、`12:46–12:58` 刷新窗口，scheduler 必须把 Source 分散在窗口内。仍保留约 ±10% jitter、失败指数退避至最大240分钟、周末降频不停。
+FAST / EARLY / SLOW 工作日白天基线 10 / 15 / 30 分钟。稳定相位：天津财政`:01`、天津采购中心`:04`、CCGP`:07`、总医院`:03`、一中心`:11`、采购意向`:05`、公共资源`:19`。晨报/午后强刷改为 `07:31–07:43`、`12:46–12:58` 窗口；周末降频不停，失败退避最大240分钟。
 
 ### Notification Timing / Delivery Plan
 
-- 08:10 晨报；
-- 08:30–18:30 fully-confirmed + high-priority VERIFIED 可即时；
-- 13:15 一次普通上午增量；
-- 18:30后普通项目进入次日晨报；
-- 18:30–21:30 仅 DEADLINE_CHANGED、生命周期变 TERMINATED/SUSPENDED、或行动截止<=16h 允许有限晚间例外；
-- `AWARD_PUBLISHED` 晚间默认不打扰。
+- 08:10 晨报；08:30–18:30 fully-confirmed + high-priority VERIFIED 可即时；13:15 上午增量；
+- 18:30后普通项目进入次日晨报；晚间只对截止变化、终止/暂停或行动截止<=16h做有限例外；
+- `SCHEDULED` 不得提前进入 Provider QUEUED；只有 `SEND_NOW` 可直接排 provider，到时还要重验 Material Event / profile / follow-up。
 
-`SCHEDULED` 不得提前进入 Provider QUEUED；只有 `SEND_NOW` 允许 `provider_queue_allowed=true`。到时后 scheduler 必须重验 Material Event / profile / follow-up。
+## Agnes Dispatch + Global Lease
 
-### Agnes Dispatch v0.1
+模型起始预算仍为 <=12 starts/min、start spacing>=5s、max in-flight=2、task稳定0–2s jitter；优先级为交互深挖 > 紧急行动 > Daily Top5 > taxonomy > bulk > benchmark。
 
-新增 `agnes_dispatch.v0.1.json`、`agnes_dispatch.py`、`medical-agnes-dispatch-plan.schema.json`、`daily_model_dispatch.py` 和 Daily wrapper Schema。
+本轮新增：
 
-Pilot 初始模型预算：
+- `agnes_global_lease.py`：可持久化 sliding-window start budget + in-flight TTL lease 状态机；
+- `medical-agnes-global-lease-state.schema.json`；
+- `medical-agnes-lease-decision.schema.json`；
+- `agnes_scheduler.py`：Provider-start 公共边界，只有 `claim_next_agnes_task()` 返回 `CLAIMED + provider_start_allowed=true + agl_* lease` 才允许调用 Agnes；
+- SQLite CAS 参考 Store：支持同一主机多进程共享一个 DB 文件；**不是跨服务器生产全局 Store**。
 
-- 最大 **12 次请求启动/分钟**；
-- 请求启动至少相隔 **5秒**；
-- 最多 **2个 in-flight**；
-- task_id 生成稳定 0–2 秒附加 jitter；
-- 每个 Provider start 在多 Worker 环境必须取得**持久化 global lease/token bucket**；worker-local sleep 不能替代全局限流；
-- 429 采用较长指数退避，5xx 使用较短指数退避，二者均带稳定 jitter；
-- 优先级：交互式深挖 > 紧急行动解释 > Daily Top5 > taxonomy 分类 > bulk enrichment > benchmark；
-- 调度器永远不能绕过模型/分类器 admission gate。
+关键行为：同一 task 不能同时持有两个 active lease；全局 5 秒 spacing、12 starts/60s、2 in-flight 都在共享状态上判断；Worker 崩溃由 TTL 回收 in-flight，但已经预占的 start 仍在60秒窗口内保留，避免重启 burst。跨多 VPS 部署必须使用真正共享的原子 Store（Postgres/Redis/D1 等同等 CAS/事务语义），不能使用每台机器自己的 SQLite 或 worker-local sleep。
 
-Daily Top5 的 `model_candidate_ids` 已接入统一 Agnes Dispatch；业务层不能再 `for candidate: call Agnes()`。两套 benchmark 默认 RPM 也从18降到12，并禁止通过参数超过12 RPM。
+## 天津政府采购 / Attachment / 原生发现
 
-## 天津政府采购 / Attachment
-
-天津财政体系已确认首条医疗采购精确附件 URL：
+天津财政首条医疗精确附件：
 
 `TGPC-2025-A-0164` → `https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=cehQ4qF6Unc%2A&method=downEnId`
 
-当前至少观察到财政 `method=downEnId` 与采购中心 `downloadFile.do?...` 两套官方附件机制。两者仍 discovery-only / bytes-unverified。Attachment Fetcher 保持 download authorization + MIME + magic fail-closed。
+状态必须区分：**精确官方 URL 已确认；真实 bytes 仍为0。** 当前执行容器对 `www.ccgp-tianjin.gov.cn / ccgp-tianjin.gov.cn / tjgpc.zwfwb.tj.gov.cn` 均 DNS resolution failure，不能据此判定官方站故障。
+
+采购中心原生发现研究新增：
+
+- `web_index1.do`：公开首页入口有外部研究持续佐证；
+- `/webInfo/getWebInfoListForwebInfoClass.do?fkWebInfoclassId=W008`：2022–2026 多份官方采购文件持续明确称其为**网上应答帮助链接**，不是采购公告发现列表；
+- 因此 W008 被显式禁止作为 `PUBLIC_TENDER_LIST / PROCUREMENT_RESULT_LIST / DISCOVERY_FEED`；真正采购公告 classId / pagination 仍待证，不猜 W00x。
+
+Source Topology 已修正旧状态：天津财政 `direct_attachment_href_confirmed=true`，同时保持 `crawler_runtime_attachment_bytes_confirmed=false`。
 
 ## CI
 
-GitHub Actions Runner 基础设施问题仍在；没有真实 Python step 执行证据时，45组 tests 只能标“已写入”，不能标 PASS，也不能解释为 assertion failure。
+GitHub Actions Runner 基础设施问题仍在；没有真实 Python step 执行证据时，48组 tests 只能标“已写入”，不能标 PASS，也不能解释为 assertion failure。
 
 ## 下一步
 
-1. 把 Agnes Dispatch 的 global lease/token bucket 接入持久化 scheduler，而不是仅有纯计划器。
-2. 继续用已确认 `downEnId` 医疗附件 URL 攻真实 bytes。
-3. 验证 `tjgpc` native list/pagination + 天津财政 native discovery。
-4. 用 Latency Ledger + Agnes队列等待时间实测调优 10/15/30 分钟与 12 RPM 初始值。
-5. Runner恢复后执行45组 tests/taxonomy audit。
-6. deterministic evidence 后跑 Agnes benchmark。
+1. 为跨服务器 Agnes Scheduler 选择/实现共享原子 Store adapter；核心 Lease 算法不再改。
+2. 继续用已确认 `downEnId` 医疗附件 URL 攻真实 bytes；不再猜下载地址。
+3. 继续验证 `tjgpc` 真正采购公告 list classId / pagination 与天津财政 native discovery；W008 不再重复研究。
+4. 用 Latency Ledger + Agnes queue wait 实测调优 discovery cadence 与12 RPM初始值。
+5. Runner恢复后执行48组 tests/taxonomy audit；优先修真实失败。
+6. deterministic execution 有证据后跑 Agnes benchmark。
 7. Backend API稳定后再做H5/微信小程序。
