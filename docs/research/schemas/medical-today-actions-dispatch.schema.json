@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-today-actions-dispatch.schema.json",
+  "title": "Medical Today Actions Agnes Dispatch v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source", "profile_id", "model_request_count", "agnes_dispatch_plan", "task_payloads"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "source": {"const": "TODAY_ACTIONS"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "model_request_count": {"type": "integer", "minimum": 0, "maximum": 5},
+    "agnes_dispatch_plan": {"type": "object"},
+    "task_payloads": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["task_id", "opportunity_id", "model_input"],
+        "properties": {
+          "task_id": {"type": "string", "minLength": 1},
+          "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+          "model_input": {"type": "object"}
+        }
+      }
+    }
+  }
+}
