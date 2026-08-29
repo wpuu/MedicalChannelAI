@@ -17,6 +17,15 @@
       "tj_public_resource_exchange"
     ]
   },
+  "source_minute_offsets": {
+    "tj_government_procurement": 1,
+    "tj_government_procurement_center": 4,
+    "ccgp_local_notices": 7,
+    "tjmugh_procurement": 3,
+    "tj_first_central_hospital_procurement": 11,
+    "ccgp_procurement_intent": 5,
+    "tj_public_resource_exchange": 19
+  },
   "weekday_windows": [
     {
       "window": "00:00-06:30",
@@ -59,12 +68,14 @@
     "reset_after_success": true
   },
   "jitter_percent": 10,
-  "forced_refreshes": [
-    {"local_time": "07:35", "reason": "prepare morning action queue"},
-    {"local_time": "12:50", "reason": "prepare same-day afternoon delta"}
+  "forced_refresh_windows": [
+    {"window": "07:31-07:43", "reason": "staggered refresh before morning action queue"},
+    {"window": "12:46-12:58", "reason": "staggered refresh before same-day afternoon delta"}
   ],
   "notes": [
     "Notification quiet hours must never stop background discovery.",
+    "Source minute offsets deliberately avoid synchronized :00/:10/:20 bursts.",
+    "Forced refreshes are windows, not one shared wall-clock instant; scheduler must stagger each source within the window.",
     "This policy is a pilot starting point and must later be tuned from Latency Ledger and source load evidence.",
     "Do not reduce freshness by polling each customer profile separately; acquisition is shared across customers."
   ]
