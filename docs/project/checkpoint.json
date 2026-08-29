@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T21:42:00+08:00",
-  "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY",
+  "as_of": "2026-08-29T22:32:26+08:00",
+  "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY_PLUS_TODAY_ACTIONS_INITIAL",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -13,8 +13,8 @@
   "runtime_p0_partial_count": 3,
   "verified_opportunity_regression_fixture_count": 50,
   "verified_institution_evidence_fixture_count": 15,
-  "schema_contract_count": 30,
-  "deterministic_test_module_count": 48,
+  "schema_contract_count": 31,
+  "deterministic_test_module_count": 49,
   "real_attachment_binary_capture_count": 0,
   "real_medical_attachment_binary_capture_count": 0,
   "first_exact_medical_attachment_url": {
@@ -23,6 +23,15 @@
     "url_confirmed": true,
     "bytes_confirmed": false,
     "download_authorized": false
+  },
+  "today_actions": {
+    "status": "IMPLEMENTED_INITIAL_ORCHESTRATION_CONTRACT_NOT_YET_RUNTIME_API_WIRED",
+    "max_final_action_cards": 5,
+    "model_candidates_must_be_final_card_subset": true,
+    "max_daily_home_model_candidates": 5,
+    "facts_ai_judgment_separated": true,
+    "verified_evidence_required_for_model": true,
+    "ungrounded_model_output_rejected": true
   },
   "discovery_cadence": {
     "status": "IMPLEMENTED_V0_1_POLICY_NOT_YET_PERSISTENT_SOURCE_SCHEDULER_WIRED",
@@ -64,11 +73,12 @@
     "max_in_flight": 2,
     "stable_extra_jitter_seconds": 2,
     "daily_top5_routed_through_dispatch": true,
+    "daily_home_model_candidate_rule": "STRICT_SUBSET_OF_FINAL_ACTION_CARDS_MAX_5",
     "provider_start_requires_claimed_global_lease": true,
     "lease_prefix": "agl_",
     "lease_ttl_seconds_default": 120,
     "sqlite_reference_store": "IMPLEMENTED_SAME_HOST_MULTI_PROCESS_ONLY",
-    "cross_server_shared_atomic_store": "PENDING_ADAPTER_SELECTION",
+    "cross_server_shared_atomic_store": "PENDING_ADAPTER_SELECTION_NOT_PILOT_BLOCKER",
     "dispatch_does_not_override_model_admission": true
   },
   "tjgpc_native_discovery": {
@@ -89,15 +99,15 @@
     "latest_known_runner_id": 0,
     "latest_known_steps_count": 0,
     "conclusion": "failure",
-    "interpretation": "No Python step executed; neither PASS nor assertion failure."
+    "interpretation": "No Python step executed; neither PASS nor assertion failure. New Today Actions tests are written but not executed."
   },
   "next": [
-    "implement a shared atomic AgnesLeaseStore adapter before horizontal multi-server model workers; Pilot may use one dispatcher plus SQLite",
+    "wire Today Actions to the backend API and Agnes dispatch while preserving deterministic Top5-before-model routing",
+    "execute 49 deterministic tests when runner returns",
     "capture real bytes from exact downEnId medical attachment URL",
     "verify real tjgpc procurement list classId/pagination and Tianjin finance native discovery; do not reuse W008",
-    "execute 48 deterministic tests when runner returns",
-    "tune discovery cadence and Agnes dispatch using Latency Ledger and queue wait evidence",
-    "run Agnes benchmark after deterministic execution evidence",
-    "frontend after backend API stabilization"
+    "run Agnes benchmark after deterministic execution evidence and tune cadence using latency/queue evidence",
+    "freeze H5/WeChat frontend fields after Today Actions API stabilizes",
+    "implement a shared atomic AgnesLeaseStore adapter only before horizontal multi-server model workers; Pilot may use one dispatcher plus SQLite"
   ]
 }
