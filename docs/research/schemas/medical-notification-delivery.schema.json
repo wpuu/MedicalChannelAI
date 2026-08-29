@@ -34,7 +34,7 @@
     "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
     "material_event_id": {"type": "string", "minLength": 1, "maxLength": 240},
     "channel": {"enum": ["WEB_INBOX", "WECHAT_MINI_PROGRAM", "MOBILE_PUSH"]},
-    "audience": {"enum": ["OWNER", "TEAM_INBOX"]},
+    "audience": {"enum": ["OWNER", "TEAM_INBOX", "NONE"]},
     "target_owner": {"type": ["string", "null"], "maxLength": 200},
     "status": {"enum": ["QUEUED", "SENT", "DELIVERED", "FAILED", "SUPPRESSED"]},
     "attempt_count": {"type": "integer", "minimum": 0},
