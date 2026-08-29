@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T12:48:00+08:00",
+  "as_of": "2026-08-29T12:58:00+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY",
   "production_ready": false,
   "merge_approved": false,
@@ -13,8 +13,8 @@
   "runtime_p0_partial_count": 3,
   "verified_opportunity_regression_fixture_count": 50,
   "verified_institution_evidence_fixture_count": 15,
-  "schema_contract_count": 26,
-  "deterministic_test_module_count": 43,
+  "schema_contract_count": 28,
+  "deterministic_test_module_count": 45,
   "real_attachment_binary_capture_count": 0,
   "real_medical_attachment_binary_capture_count": 0,
   "first_exact_medical_attachment_url": {
@@ -25,17 +25,25 @@
     "download_authorized": false
   },
   "discovery_cadence": {
-    "status": "IMPLEMENTED_V0_1_POLICY_NOT_YET_SCHEDULER_WIRED",
+    "status": "IMPLEMENTED_V0_1_POLICY_NOT_YET_PERSISTENT_SCHEDULER_WIRED",
     "timezone": "Asia/Shanghai",
     "fast_procurement_weekday_business_minutes": 10,
     "early_signal_weekday_business_minutes": 15,
     "slow_signal_weekday_business_minutes": 30,
-    "fast_procurement_weekday_evening_minutes": 15,
+    "source_minute_offsets": {
+      "tj_government_procurement": 1,
+      "tj_government_procurement_center": 4,
+      "ccgp_local_notices": 7,
+      "tjmugh_procurement": 3,
+      "tj_first_central_hospital_procurement": 11,
+      "ccgp_procurement_intent": 5,
+      "tj_public_resource_exchange": 19
+    },
+    "forced_refresh_windows": ["07:31-07:43", "12:46-12:58"],
     "overnight_continues": true,
     "weekend_reduced_not_disabled": true,
     "failure_backoff_max_minutes": 240,
-    "jitter_percent": 10,
-    "forced_refresh_local_times": ["07:35", "12:50"]
+    "jitter_percent": 10
   },
   "notification_timing": {
     "status": "IMPLEMENTED_V0_1_BOUND_TO_SUBSCRIPTION_DELIVERY_PLAN",
@@ -45,37 +53,35 @@
     "workday_immediate_window": "08:30-18:30",
     "evening_urgent_exception_window": "18:30-21:30",
     "ordinary_evening_behavior": "QUEUE_NEXT_BUSINESS_MORNING",
-    "urgent_evening_conditions": ["DEADLINE_CHANGED", "LIFECYCLE_STATE_CHANGED_TO_TERMINATED_OR_SUSPENDED", "ACTION_DEADLINE_WITHIN_16_HOURS"],
-    "award_evening_behavior": "QUEUE_NEXT_BUSINESS_MORNING",
-    "holiday_calendar": "EXTERNAL_OVERRIDE_REQUIRED_NOT_HARDCODED",
     "provider_queue_rule": "ONLY_SEND_NOW_CAN_QUEUE_PROVIDER; SCHEDULED_STAYS_OUTSIDE_PROVIDER_UNTIL_SCHEDULER_REVALIDATION"
   },
-  "subscription_delivery_plan": {
-    "status": "IMPLEMENTED_V0_1",
-    "module": "tools/medical_pilot/subscription_delivery_plan.py",
-    "schema": "docs/research/schemas/medical-subscription-delivery-plan.schema.json",
-    "scheduled_provider_queue_allowed": false,
-    "send_now_provider_queue_allowed": true,
-    "scheduler_revalidation_required": true
+  "agnes_dispatch": {
+    "status": "IMPLEMENTED_V0_1_PLANNER_GLOBAL_LEASE_STORAGE_PENDING",
+    "provider": "AGNES",
+    "model": "agnes-2.5-flash",
+    "max_request_starts_per_minute": 12,
+    "minimum_start_spacing_seconds": 5,
+    "max_in_flight": 2,
+    "stable_extra_jitter_seconds": 2,
+    "requires_persistent_global_lease": true,
+    "benchmark_default_rpm": 12,
+    "daily_top5_routed_through_dispatch": true,
+    "dispatch_does_not_override_model_admission": true
   },
   "agnes": {"status": "GO_FOR_BENCHMARK", "case_count": 28, "executed": false},
   "ci": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
-    "latest_checked_head_sha": "69bb274e02feccd34bda69bb1f06615c9a2a0c74",
-    "latest_run_id": 33233666313,
-    "latest_job_id": 99050758780,
     "latest_known_runner_id": 0,
     "latest_known_steps_count": 0,
-    "conclusion": "failure",
     "interpretation": "No Python step executed; neither PASS nor assertion failure."
   },
   "next": [
+    "wire Agnes persistent global lease/token bucket into scheduler",
     "capture real bytes from exact downEnId medical attachment URL",
     "verify tjgpc native list/pagination and Tianjin finance native discovery",
-    "wire discovery cadence and scheduled delivery execution into persistent scheduler",
-    "execute 43 deterministic tests when runner returns",
-    "tune cadence from real Latency Ledger evidence",
-    "run Agnes after deterministic evidence",
+    "execute 45 deterministic tests when runner returns",
+    "tune discovery and Agnes dispatch from Latency Ledger and queue wait evidence",
+    "run Agnes benchmark after deterministic evidence",
     "frontend after backend API stabilization"
   ]
 }
