@@ -5,6 +5,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 from .adapters import TjmughAdapter
 from .ccgp_lifecycle_adapter import CcgpLifecycleAdapter
@@ -20,6 +21,40 @@ KNOWN_OFFICIAL_MIRRORS = {
     "ccgp_procurement_intent",
     "tj_public_resource_exchange",
 }
+TIANJIN_GOVERNMENT_DETAIL_HOSTS = {
+    "tjgp.cz.tj.gov.cn",
+    "ccgp-tianjin.gov.cn",
+    "www.ccgp-tianjin.gov.cn",
+}
+
+
+def _allows_tianjin_government_detail(url: str) -> bool:
+    """Fail-closed structural check for the two official Tianjin procurement hosts.
+
+    Query parameter order may be rewritten by clients/caches, so identity is parsed
+    structurally instead of relying on one serialized order. No extra or duplicate
+    query parameters are accepted in v0.1.
+    """
+
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return False
+    if parsed.scheme not in {"http", "https"}:
+        return False
+    if (parsed.hostname or "").lower() not in TIANJIN_GOVERNMENT_DETAIL_HOSTS:
+        return False
+    if parsed.path != "/portal/documentView.do" or parsed.fragment:
+        return False
+    query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+    if set(query) != {"method", "id", "ver"}:
+        return False
+    if any(len(values) != 1 for values in query.values()):
+        return False
+    method = query["method"][0]
+    document_id = query["id"][0]
+    version = query["ver"][0]
+    return method == "view" and document_id.isdigit() and version == "2"
 
 
 @dataclass(frozen=True)
@@ -36,7 +71,11 @@ class RegisteredSource:
     raw: dict[str, Any]
 
     def allows_url(self, url: str) -> bool:
-        return self.enabled and any(re.match(pattern, url) for pattern in self.allowed_url_patterns)
+        if not self.enabled:
+            return False
+        if self.source_id == "tj_government_procurement":
+            return _allows_tianjin_government_detail(url)
+        return any(re.match(pattern, url) for pattern in self.allowed_url_patterns)
 
 
 ADAPTER_FACTORIES = {
