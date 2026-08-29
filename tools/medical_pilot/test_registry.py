@@ -35,13 +35,33 @@ class SourceRegistryTests(unittest.TestCase):
         self.assertEqual(source.provenance_role, "PRIMARY_SOURCE")
         self.assertEqual(adapter_for_source(source).source_id, source.source_id)
 
-    def test_tianjin_native_detail_url_resolves_to_primary_source(self) -> None:
+    def test_tianjin_legacy_official_host_detail_resolves_to_primary_source(self) -> None:
         source = resolve_source(
             "https://tjgp.cz.tj.gov.cn/portal/documentView.do?method=view&id=611515456&ver=2"
         )
         self.assertEqual(source.source_id, "tj_government_procurement")
         self.assertEqual(source.provenance_role, "PRIMARY_SOURCE")
         self.assertEqual(adapter_for_source(source).source_id, source.source_id)
+
+    def test_tianjin_ccgp_official_content_alias_resolves_to_same_primary_source(self) -> None:
+        for url in (
+            "http://www.ccgp-tianjin.gov.cn/portal/documentView.do?method=view&id=601407094&ver=2",
+            "https://ccgp-tianjin.gov.cn/portal/documentView.do?method=view&id=270785618&ver=2",
+        ):
+            with self.subTest(url=url):
+                source = resolve_source(url)
+                self.assertEqual(source.source_id, "tj_government_procurement")
+                self.assertEqual(source.provenance_role, "PRIMARY_SOURCE")
+
+    def test_second_official_host_does_not_open_arbitrary_paths(self) -> None:
+        for url in (
+            "https://ccgp-tianjin.gov.cn/arbitrary/path",
+            "https://www.ccgp-tianjin.gov.cn/portal/list.jsp?page=1",
+            "https://ccgp-tianjin.gov.cn/portal/documentView.do?method=delete&id=270785618&ver=2",
+        ):
+            with self.subTest(url=url):
+                with self.assertRaises(ValueError):
+                    resolve_source(url)
 
     def test_domain_substring_attack_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
