@@ -17,9 +17,11 @@ def build_daily_recommendation_plan(profile: dict[str, Any], opportunities: list
 
     This function never crawls the web and never calls a model. It assumes callers
     provide candidates from the shared VERIFIED fact index. Query Budget controls
-    how many candidates may proceed to deterministic matching, model consideration,
-    and final action cards. Model candidate IDs are a strict subset: only rows whose
-    Match Gate explicitly allows model explanation may enter Agnes dispatch.
+    how many candidates may proceed to deterministic matching and final action
+    cards. Model candidate IDs are a strict subset of the final action cards: only
+    rows whose Match Gate explicitly allows model explanation may enter Agnes
+    dispatch. This prevents spending model calls on lower-ranked opportunities that
+    cannot appear in the bounded Today Actions output.
     """
 
     query_plan = build_query_execution_plan(profile, mode="INTERACTIVE_DAILY")
@@ -56,9 +58,13 @@ def build_daily_recommendation_plan(profile: dict[str, Any], opportunities: list
         )
 
     scored.sort(key=lambda row: (-row["priority_score"], row["opportunity_id"]))
-    model_eligible = [row for row in scored if row["model_explanation_allowed"] is True]
-    model_candidates = model_eligible[: budgets["max_model_candidates"]]
+
+    # Deterministic priority decides which cards are allowed onto the bounded home
+    # surface before any model call. Agnes explains/recommends actions for those
+    # cards; it is not used to rescue lower-ranked rows that will not be shown.
     final_cards = scored[: budgets["max_final_action_cards"]]
+    model_eligible_final_cards = [row for row in final_cards if row["model_explanation_allowed"] is True]
+    model_candidates = model_eligible_final_cards[: budgets["max_model_candidates"]]
 
     return {
         "schema_version": SCHEMA_VERSION,
