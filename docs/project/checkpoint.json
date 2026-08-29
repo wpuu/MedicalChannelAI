@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T11:22:00+08:00",
+  "as_of": "2026-08-29T11:24:00+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY",
   "production_ready": false,
   "merge_approved": false,
