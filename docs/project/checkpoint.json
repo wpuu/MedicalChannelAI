@@ -19,6 +19,7 @@
   "verified_institution_evidence_fixture_count": 15,
   "schema_contract_count": 14,
   "deterministic_test_module_count": 30,
+  "new_test_modules_since_previous_checkpoint": ["test_query_budget"],
   "taxonomy_corpus_audit": {
     "module": "tools/medical_pilot/taxonomy_corpus_audit.py",
     "test_module": "tools/medical_pilot/test_taxonomy_corpus_audit.py",
@@ -44,21 +45,15 @@
   "query_budget": {
     "schema": "docs/research/schemas/medical-query-execution-plan.schema.json",
     "module": "tools/medical_pilot/query_budget.py",
+    "test_module": "tools/medical_pilot/test_query_budget.py",
     "status": "IMPLEMENTED_V0_1",
     "principle": "LIMIT_SINGLE_EXECUTION_COMPLEXITY_NOT_LONG_TERM_PROFILE_COMPLETENESS",
     "acquisition_strategy": "SHARED_FACT_INDEX_NOT_PER_PROFILE_CRAWL",
     "scope_classes": {"NORMAL_MAX_CELLS": 24, "WIDE_MAX_CELLS": 120, "VERY_WIDE_MIN_CELLS": 121},
-    "interactive_default": {
-      "max_db_candidates": 500,
-      "max_deterministic_match_candidates": 200,
-      "max_deep_enrichment_candidates": 30,
-      "max_model_candidates": 10,
-      "max_final_action_cards": 5,
-      "max_live_source_requests": 0,
-      "max_model_facts_per_opportunity": 24,
-      "max_model_fact_chars_per_opportunity": 12000
-    },
-    "wide_scope_behavior": "SUMMARY_THEN_DRILL_DOWN_AND_STRICT_TOP_N",
+    "interactive_default": {"max_db_candidates": 500, "max_deterministic_match_candidates": 200, "max_deep_enrichment_candidates": 30, "max_model_candidates": 10, "max_final_action_cards": 5, "max_live_source_requests": 0, "max_model_facts_per_opportunity": 24, "max_model_fact_chars_per_opportunity": 12000},
+    "interactive_wide_model_limit": 8,
+    "interactive_very_wide_model_limit": 5,
+    "interactive_very_wide_deep_enrichment_limit": 15,
     "single_opportunity_deep_dive_live_request_limit": 3,
     "scheduled_refresh": "SOURCE_DRIVEN_NOT_CUSTOMER_CARTESIAN_QUERY"
   },
@@ -71,20 +66,8 @@
     "classifier_global_admission_required": true,
     "agnes_model_classification_current_status": "BENCHMARK_PENDING_NOT_ALLOWED_TO_DRIVE_MATCH"
   },
-  "institution_evidence": {
-    "fixture": "docs/research/fixtures/tianjin-institution-evidence-v0.1.json",
-    "verified_fixture_count": 15,
-    "exact_name_or_explicit_alias_only": true,
-    "name_only_guessing_allowed": false
-  },
-  "product_taxonomy": {
-    "taxonomy": "tools/medical_pilot/product_taxonomy.v0.1.json",
-    "deterministic_classifier": "tools/medical_pilot/product_classifier.py",
-    "classifier_registry": "tools/medical_pilot/product_classifier_registry.v0.1.json",
-    "formal_match_key": "taxonomy_ids",
-    "free_text_product_match_allowed": false,
-    "agnes_classifier_can_drive_matching": false
-  },
+  "institution_evidence": {"fixture": "docs/research/fixtures/tianjin-institution-evidence-v0.1.json", "verified_fixture_count": 15, "exact_name_or_explicit_alias_only": true, "name_only_guessing_allowed": false},
+  "product_taxonomy": {"taxonomy": "tools/medical_pilot/product_taxonomy.v0.1.json", "deterministic_classifier": "tools/medical_pilot/product_classifier.py", "classifier_registry": "tools/medical_pilot/product_classifier_registry.v0.1.json", "formal_match_key": "taxonomy_ids", "free_text_product_match_allowed": false, "agnes_classifier_can_drive_matching": false},
   "model_decision_contract": {
     "module": "tools/medical_pilot/model_decision_contract.py",
     "free_procurement_fact_text_allowed": false,
@@ -94,7 +77,8 @@
     "default_max_grounded_facts": 24,
     "default_max_grounded_fact_chars": 12000,
     "omitted_fact_count_exposed": true,
-    "fact_value_truncation_allowed": false
+    "fact_value_truncation_allowed": false,
+    "no_fit_behavior": "FAIL_CLOSED"
   },
   "priority_score": {"module": "tools/medical_pilot/priority_score.py", "max_score": 100, "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
   "attachment_parsing": {"locally_parseable_extensions": [".docx", ".xlsx"], "pdf_optional_backend": "pdf-docling-v0.1", "real_binary_parser_validation_status": "NOT_RUN_ON_REAL_BYTES"},
@@ -102,27 +86,16 @@
   "critical_rules": [
     "OFFICIAL_PUBLIC_FACT must never be model-generated.",
     "Missing or unconfirmed customer conditions must trigger follow-up questions.",
-    "Long-term customer profile may be broad, but one interactive execution must obey Query Budget.",
-    "Interactive profile queries use shared indexed facts and must not trigger region x product live-crawl Cartesian expansion.",
-    "Model context is bounded per opportunity; the whole candidate corpus must never be sent in one prompt.",
-    "Omitted grounded facts must be explicitly counted; official fact values must not be truncated to force them into context.",
+    "Long-term customer profiles may contain broad region/product scope; one interactive execution must obey Query Budget.",
+    "Interactive profile queries use shared indexed facts and cannot trigger region x product live-crawl Cartesian expansion.",
+    "Model context is bounded per opportunity and the whole candidate corpus must never be sent in one prompt.",
+    "Omitted grounded facts are explicitly counted; official fact values cannot be truncated to force them into model context.",
     "Formal match and score use controlled taxonomy_ids, not free-text product labels.",
     "Agnes taxonomy classification cannot drive matching while classifier registry remains BENCHMARK_PENDING.",
     "Institution grade/type must not be guessed from name.",
     "Priority score is business priority, never win probability.",
     "Coverage remains PARTIAL while required P0 sources are partial."
   ],
-  "ci_status": {
-    "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
-    "tracking_issue": 2,
-    "interpretation": "No Python compile or unittest step has execution evidence; this is neither PASS nor assertion FAIL."
-  },
-  "next": [
-    "wire Query Budget into future Fact API and daily recommendation orchestrator so callers cannot bypass limits",
-    "execute 30 deterministic tests and taxonomy corpus audit when runner is restored",
-    "capture first real Tianjin medical attachment bytes and run parser validation",
-    "verify Tianjin government-procurement native listing/search/pagination and lifecycle coverage",
-    "run Agnes benchmarks only after deterministic execution evidence exists",
-    "stabilize Fact/Profile/Match/Priority/QueryPlan API before H5/Web demo"
-  ]
+  "ci_status": {"status": "BLOCKED_RUNNER_NOT_ASSIGNED", "tracking_issue": 2, "interpretation": "No Python compile or unittest step has execution evidence; this is neither PASS nor assertion FAIL."},
+  "next": ["wire Query Budget into future Fact API and daily recommendation orchestrator so callers cannot bypass limits", "execute 30 deterministic tests and taxonomy corpus audit when runner is restored", "capture first real Tianjin medical attachment bytes and run parser validation", "verify Tianjin government-procurement native listing/search/pagination and lifecycle coverage", "run Agnes benchmarks only after deterministic execution evidence exists", "stabilize Fact/Profile/Match/Priority/QueryPlan API before H5/Web demo"]
 }
