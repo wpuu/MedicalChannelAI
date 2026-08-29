@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "as_of": "2026-08-29T10:40:00+08:00",
+  "as_of": "2026-08-29T10:55:00+08:00",
   "scope": "Tianjin government-procurement and hospital early-signal public sources",
   "sources": [
     {
@@ -19,7 +19,7 @@
         "2026_tjgp_host_reference_confirmed": true,
         "2026_ccgp_tianjin_content_reference_confirmed": true,
         "detail_route_pattern_confirmed_by_official_2025_2026_references": true,
-        "runtime_accepts_both_official_hosts": true,
+        "runtime_accepts_all_recognized_official_hosts": true,
         "runtime_query_parameter_order_independent": true,
         "2026_native_detail_fetch_confirmed": false,
         "2026_native_listing_or_search_confirmed": false,
@@ -52,9 +52,42 @@
         "https://www.tjbpi.com/xxgk/gg__cgzb/content_31346",
         "https://www.tjftz.gov.cn/contents/6259/370826.html"
       ],
-      "execution_environment_note": "2026-08-29 direct Python network probe in the current execution container failed DNS resolution for both official hosts; this is recorded as environment evidence only and is not interpreted as source outage.",
+      "execution_environment_note": "2026-08-29 direct Python network probe in the current execution container failed DNS resolution for both official-host families tested; this is environment evidence only and is not interpreted as source outage.",
       "timing_policy": "PRIMARY_WHEN_NATIVE_NOTICE_CAN_BE_FETCHED",
       "latency_status": "UNKNOWN_UNTIL_NATIVE_DETAIL_TIMESTAMPS_ARE_CAPTURED"
+    },
+    {
+      "source_id": "tj_government_procurement_center",
+      "provenance_role": "PRIMARY_SOURCE",
+      "canonical_host": "tjgpc.zwfwb.tj.gov.cn",
+      "scope_role": "CENTRALIZED_PROCUREMENT_SUBSET_AND_ELECTRONIC_BIDDING_ENTRY_NOT_CITYWIDE_REPLACEMENT",
+      "implementation_status": "PARTIAL_IMPLEMENTATION",
+      "implemented_scope": "strict official detail route /webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=<UUID>; deterministic public-tender detail parsing for project name/number, purchaser, information date, budget and bid deadline",
+      "current_validation": {
+        "official_detail_route_confirmed": true,
+        "2025_2026_public_tender_pages_indexed": true,
+        "breadcrumb_project_information_procurement_information_public_tender_confirmed": true,
+        "native_listing_class_ids_confirmed": false,
+        "native_pagination_confirmed": false,
+        "all_procurement_methods_confirmed": false,
+        "direct_attachment_href_confirmed": false,
+        "crawler_runtime_direct_fetch_confirmed": false
+      },
+      "runtime_url_policy": {
+        "allowed_schemes": ["http", "https"],
+        "exact_host": "tjgpc.zwfwb.tj.gov.cn",
+        "exact_path": "/webInfo/getWebInfoByPkWebInfoId1.do",
+        "required_exact_query": {"pkWebInfoId": "UUID"},
+        "extra_query_parameters_allowed": false
+      },
+      "relationship_to_citywide_primary": "A project published by the procurement center and mirrored on Tianjin finance/CCGP remains one canonical opportunity when official project_number matches. This source may provide earlier center-specific detail or procurement-file workflow evidence, but it is not evidence that all Tianjin projects originate here.",
+      "evidence_urls": [
+        "https://tjgpc.zwfwb.tj.gov.cn/webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=2E1138AD-0900-4EC0-B863-6E4A41525FB8",
+        "https://tjgpc.zwfwb.tj.gov.cn/webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=2001F616-6E09-4C9E-A438-F53DC2B534C0",
+        "https://tjgpc.zwfwb.tj.gov.cn/webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=F8DE1A68-9A7A-4093-A427-027031E9CE17"
+      ],
+      "timing_policy": "PRIMARY_FOR_CENTER_PUBLISHED_PROJECT_CONTENT_WHEN_FETCHABLE",
+      "latency_status": "UNKNOWN_UNTIL_SOURCE_NATIVE_TIMESTAMPS_AND_FETCH_TIMES_ARE_CAPTURED"
     },
     {
       "source_id": "ccgp_local_notices",
@@ -99,6 +132,7 @@
   "identity_policy": {
     "canonical_project_primary_key": "exact normalized project_number when officially present",
     "different_urls_same_project": "retain separate evidence events but map to one canonical_project_id",
+    "multiple_primary_sources_same_project": "retain source-specific evidence events; project_number still controls canonical opportunity identity; chronology requires native timestamps, not provenance-role assumptions",
     "mirror_urls_must_not_create_duplicate_opportunities": true,
     "same_project_same_lifecycle_same_day": "retain all evidence; prefer PRIMARY_SOURCE when chronology cannot be proven",
     "same_day_conflicting_states_with_day_precision": "CONFLICTED; do not invent chronology",
