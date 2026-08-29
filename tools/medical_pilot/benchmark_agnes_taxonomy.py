@@ -19,7 +19,7 @@ DEFAULT_MANIFEST = (
 )
 DEFAULT_BASE_URL = "https://apihub.agnes-ai.com/v1"
 DEFAULT_MODEL = "agnes-2.5-flash"
-DEFAULT_RPM = 18
+DEFAULT_RPM = 12
 
 SYSTEM_PROMPT = """You are a constrained medical-product taxonomy classifier.
 The input facts are locked and were verified outside the model. You do not create procurement facts.
@@ -183,7 +183,9 @@ def call_model(*, api_key: str, base_url: str, model: str, prompt: str, timeout:
 
 
 def run(manifest: dict[str, Any], *, api_key: str, base_url: str, model: str, rpm: int) -> dict[str, Any]:
-    interval = 60.0 / max(1, rpm)
+    if rpm < 1 or rpm > 12:
+        raise TaxonomyBenchmarkError("rpm must be between 1 and 12; benchmark must not exceed pilot Agnes start-rate budget")
+    interval = 60.0 / rpm
     scored: list[dict[str, Any]] = []
     failures: list[dict[str, str]] = []
     for index, case in enumerate(manifest["cases"]):
