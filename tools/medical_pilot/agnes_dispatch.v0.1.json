@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1",
+  "provider": "AGNES",
+  "model": "agnes-2.5-flash",
+  "policy": "STAGGER_MODEL_STARTS_AND_REQUIRE_GLOBAL_LEASE",
+  "max_request_starts_per_minute": 12,
+  "minimum_start_spacing_seconds": 5,
+  "stable_extra_jitter_seconds": 2,
+  "max_in_flight": 2,
+  "max_tasks_per_plan": 100,
+  "task_priorities": {
+    "INTERACTIVE_DEEP_DIVE": 0,
+    "URGENT_ACTION_EXPLANATION": 1,
+    "DAILY_TOP5_EXPLANATION": 2,
+    "TAXONOMY_CLASSIFICATION": 3,
+    "BULK_ENRICHMENT": 4,
+    "BENCHMARK": 5
+  },
+  "retry_policy": {
+    "HTTP_429": {"base_seconds": 60, "multiplier": 2, "max_seconds": 300, "stable_jitter_seconds": 17},
+    "HTTP_5XX": {"base_seconds": 15, "multiplier": 2, "max_seconds": 120, "stable_jitter_seconds": 7}
+  },
+  "requirements": [
+    "Dispatch planning never overrides classifier/model admission gates.",
+    "Every provider start requires a persistent global lease/token-bucket grant in multi-worker deployments.",
+    "Worker-local sleeps alone are insufficient for global rate limiting.",
+    "Benchmark and bulk jobs must not consume capacity ahead of interactive customer work.",
+    "API keys are never stored in this policy file."
+  ]
+}
