@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-29T12:30:00+08:00",
+  "as_of": "2026-08-29T12:40:00+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_CORE_EARLY",
   "production_ready": false,
   "merge_approved": false,
@@ -13,8 +13,8 @@
   "runtime_p0_partial_count": 3,
   "verified_opportunity_regression_fixture_count": 50,
   "verified_institution_evidence_fixture_count": 15,
-  "schema_contract_count": 25,
-  "deterministic_test_module_count": 42,
+  "schema_contract_count": 26,
+  "deterministic_test_module_count": 43,
   "real_attachment_binary_capture_count": 0,
   "real_medical_attachment_binary_capture_count": 0,
   "first_exact_medical_attachment_url": {
@@ -38,7 +38,7 @@
     "forced_refresh_local_times": ["07:35", "12:50"]
   },
   "notification_timing": {
-    "status": "IMPLEMENTED_V0_1_POLICY_NOT_YET_DELIVERY_SCHEDULER_WIRED",
+    "status": "IMPLEMENTED_V0_1_BOUND_TO_SUBSCRIPTION_DELIVERY_PLAN",
     "timezone": "Asia/Shanghai",
     "morning_digest": "08:10",
     "midday_delta": "13:15",
@@ -47,15 +47,24 @@
     "ordinary_evening_behavior": "QUEUE_NEXT_BUSINESS_MORNING",
     "urgent_evening_conditions": ["DEADLINE_CHANGED", "LIFECYCLE_STATE_CHANGED_TO_TERMINATED_OR_SUSPENDED", "ACTION_DEADLINE_WITHIN_16_HOURS"],
     "award_evening_behavior": "QUEUE_NEXT_BUSINESS_MORNING",
-    "holiday_calendar": "EXTERNAL_OVERRIDE_REQUIRED_NOT_HARDCODED"
+    "holiday_calendar": "EXTERNAL_OVERRIDE_REQUIRED_NOT_HARDCODED",
+    "provider_queue_rule": "ONLY_SEND_NOW_CAN_QUEUE_PROVIDER; SCHEDULED_STAYS_OUTSIDE_PROVIDER_UNTIL_SCHEDULER_REVALIDATION"
+  },
+  "subscription_delivery_plan": {
+    "status": "IMPLEMENTED_V0_1",
+    "module": "tools/medical_pilot/subscription_delivery_plan.py",
+    "schema": "docs/research/schemas/medical-subscription-delivery-plan.schema.json",
+    "scheduled_provider_queue_allowed": false,
+    "send_now_provider_queue_allowed": true,
+    "scheduler_revalidation_required": true
   },
   "agnes": {"status": "GO_FOR_BENCHMARK", "case_count": 28, "executed": false},
   "ci": {"status": "BLOCKED_RUNNER_NOT_ASSIGNED", "latest_known_runner_id": 0, "latest_known_steps_count": 0},
   "next": [
     "capture real bytes from exact downEnId medical attachment URL",
     "verify tjgpc native list/pagination and Tianjin finance native discovery",
-    "wire discovery cadence and notification timing into persistent scheduler",
-    "execute 42 deterministic tests when runner returns",
+    "wire discovery cadence and scheduled delivery execution into persistent scheduler",
+    "execute 43 deterministic tests when runner returns",
     "tune cadence from real Latency Ledger evidence",
     "run Agnes after deterministic evidence",
     "frontend after backend API stabilization"
