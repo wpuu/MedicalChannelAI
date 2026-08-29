@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+import copy
 import unittest
 
-from tools.medical_pilot.subscription_batch import process_subscription_event_batch
+from tools.medical_pilot.material_event import MaterialEventError, build_material_event
+from tools.medical_pilot.subscription_batch import (
+    process_subscription_event_batch,
+    process_verified_material_event_batch,
+)
+from tools.medical_pilot.test_model_decision_contract import verified_fact
 from tools.medical_pilot.test_opportunity_match_gate import opportunity
 from tools.medical_pilot.test_subscription_prefilter import DR, profile_variant
 
@@ -42,6 +48,59 @@ class SubscriptionBatchTests(unittest.TestCase):
         )
         self.assertEqual(third["processed_profile_count"], 1)
         self.assertIsNone(third["next_offset"])
+
+    def test_verified_material_envelope_is_public_batch_boundary(self) -> None:
+        item = opportunity()
+        project_fact = verified_fact(
+            "fact_aaaaaaaa-1111-1111-1111-111111111111",
+            "project_name",
+            item["project_name"],
+        )
+        event = build_material_event(
+            opportunity=item,
+            event_type="NEW_VERIFIED_OPPORTUNITY",
+            change_fields={"project_name": item["project_name"]},
+            supporting_fact_ids=[project_fact["fact_id"]],
+            available_facts=[project_fact],
+            source_event_ids=["event_ccgp_001"],
+            detected_at="2026-08-29T10:30:00+08:00",
+            official_effective_at=None,
+            official_effective_at_precision="UNKNOWN",
+        )
+        result = process_verified_material_event_batch(
+            profiles=[profile_variant(1)],
+            opportunity=item,
+            material_event=event,
+        )
+        self.assertEqual(result["material_event_id"], event["material_event_id"])
+        self.assertEqual(result["processed_profile_count"], 1)
+
+    def test_tampered_material_envelope_is_rejected_before_subscription(self) -> None:
+        item = opportunity()
+        project_fact = verified_fact(
+            "fact_bbbbbbbb-1111-1111-1111-111111111111",
+            "project_name",
+            item["project_name"],
+        )
+        event = build_material_event(
+            opportunity=item,
+            event_type="NEW_VERIFIED_OPPORTUNITY",
+            change_fields={"project_name": item["project_name"]},
+            supporting_fact_ids=[project_fact["fact_id"]],
+            available_facts=[project_fact],
+            source_event_ids=[],
+            detected_at="2026-08-29T10:30:00+08:00",
+            official_effective_at=None,
+            official_effective_at_precision="UNKNOWN",
+        )
+        tampered = copy.deepcopy(event)
+        tampered["change_fields"] = {"project_name": "被篡改项目"}
+        with self.assertRaises(MaterialEventError):
+            process_verified_material_event_batch(
+                profiles=[profile_variant(1)],
+                opportunity=item,
+                material_event=tampered,
+            )
 
     def test_irrelevant_profile_is_removed_by_prefilter_before_full_match(self) -> None:
         relevant = profile_variant(1)
