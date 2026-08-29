@@ -18,6 +18,7 @@ class DiscoveryCadenceDecision:
     weekend: bool
     base_interval_minutes: int
     interval_minutes: int
+    minute_offset: int
     jitter_percent: int
     failure_count: int
     reason: str
@@ -31,6 +32,7 @@ class DiscoveryCadenceDecision:
             "weekend": self.weekend,
             "base_interval_minutes": self.base_interval_minutes,
             "interval_minutes": self.interval_minutes,
+            "minute_offset": self.minute_offset,
             "jitter_percent": self.jitter_percent,
             "failure_count": self.failure_count,
             "reason": self.reason,
@@ -65,6 +67,20 @@ def _source_group(policy: dict, source_id: str) -> str:
     return matches[0]
 
 
+def _minute_offset(policy: dict, source_id: str, base_interval: int) -> int:
+    offsets = policy.get("source_minute_offsets") or {}
+    if source_id not in offsets:
+        raise ValueError(f"source_id is missing source_minute_offsets entry: {source_id}")
+    offset = int(offsets[source_id])
+    if offset < 0 or offset >= base_interval:
+        # Backoff may increase interval, but a source's stable phase must always fit
+        # inside its fastest/base interval for the current window.
+        raise ValueError(
+            f"source minute offset must be within current base interval: {source_id} offset={offset} base={base_interval}"
+        )
+    return offset
+
+
 def plan_discovery_cadence(
     source_id: str,
     *,
@@ -89,6 +105,7 @@ def plan_discovery_cadence(
     if len(matching) != 1:
         raise ValueError("cadence windows must cover the local day exactly once")
     base = int(matching[0]["interval_minutes"][group])
+    offset = _minute_offset(policy, source_id, base)
 
     backoff = policy["failure_backoff"]
     multiplier = int(backoff["multiplier"])
@@ -97,7 +114,7 @@ def plan_discovery_cadence(
 
     reason = (
         f"{group} {'weekend' if weekend else 'weekday'} cadence; "
-        f"window={matching[0]['window']}; failures={consecutive_failures}"
+        f"window={matching[0]['window']}; stable_minute_offset={offset}; failures={consecutive_failures}"
     )
     return DiscoveryCadenceDecision(
         source_id=source_id,
@@ -106,6 +123,7 @@ def plan_discovery_cadence(
         weekend=weekend,
         base_interval_minutes=base,
         interval_minutes=interval,
+        minute_offset=offset,
         jitter_percent=int(policy.get("jitter_percent") or 0),
         failure_count=consecutive_failures,
         reason=reason,
