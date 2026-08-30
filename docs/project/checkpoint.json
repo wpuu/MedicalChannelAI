@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-30T12:21:57+08:00",
+  "as_of": "2026-08-30T12:26:31+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_PLUS_TODAY_ACTIONS_TRUSTED_BACKEND_PLUS_H5_WEB_BASELINE",
   "production_ready": false,
   "merge_approved": false,
@@ -48,6 +48,7 @@
     "frontend_api_adapter": "web/src/services/ApiTodayActionsService.ts",
     "frontend_api_env": "VITE_API_BASE_URL",
     "frontend_mock_fallback": true,
+    "frontend_public_internal_field_fail_closed": true,
     "frontend_local_followup_only_until_server_endpoint": true,
     "frontend_outreach_real_api_pending": true,
     "frontend_build_status": "NOT_EXECUTED_YET",
@@ -134,16 +135,16 @@
   "agnes": {"status": "GO_FOR_BENCHMARK", "case_count": 28, "executed": false},
   "ci": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
-    "latest_checked_code_head_sha": "80a6f697d74ab3b9fff79d796fcdfd0b29534ca1",
-    "latest_run_id": 33276477250,
-    "latest_job_id": 99163972717,
+    "latest_checked_head_sha": "3670a6a6f82d0735d10f7a942d832e650c493434",
+    "latest_run_id": 33292494845,
+    "latest_job_id": 99206463206,
     "latest_known_runner_id": 0,
     "latest_known_steps_count": 0,
     "conclusion": "failure",
-    "interpretation": "No Python step executed; neither PASS nor assertion failure. 57 tests are written but unexecuted."
+    "interpretation": "runner_id=0 and steps=[]; no Python step executed, so this is neither PASS nor an assertion failure. 57 tests remain written but unexecuted."
   },
   "next": [
-    "execute web npm build and fix any TypeScript/build errors",
+    "execute web npm build and fix any TypeScript/build errors when an execution runner is available",
     "add thin HTTP/serverless transport that exposes the existing Today Actions API application boundary",
     "keep follow-up local until a tenant-safe server follow-up endpoint is specified",
     "add real on-demand outreach endpoint only after its grounded contract is fixed",
