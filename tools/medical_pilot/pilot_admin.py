@@ -24,12 +24,7 @@ def _print(value: dict[str, Any]) -> None:
 
 
 def _starter_profile(*, tenant_id: str, company_name: str, now: datetime) -> dict[str, Any]:
-    """Create a safe, schema-shaped profile that cannot be personalized yet.
-
-    The placeholders exist only so a one-time invite can be issued before the customer
-    fills the real profile. Confirmation flags are false and product capability is
-    UNKNOWN, so the profile gate must not treat it as executable customer knowledge.
-    """
+    """Create a safe, schema-shaped profile that cannot be personalized yet."""
 
     return {
         "schema_version": "0.1",
@@ -97,6 +92,19 @@ def _invite_result(*, issued, login_url: str | None) -> dict[str, Any]:
     return result
 
 
+def _account_json(account) -> dict[str, Any]:
+    return {
+        "tenant_id": account.tenant_id,
+        "profile_id": account.profile_id,
+        "company_name": account.company_name,
+        "status": account.status,
+        "created_at": account.created_at,
+        "activated_at": account.activated_at,
+        "disabled_at": account.disabled_at,
+        "last_login_at": account.last_login_at,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="MedicalChannelAI Pilot admin bootstrap")
     parser.add_argument("--db", required=True, type=Path, help="persistent Pilot SQLite path")
@@ -111,7 +119,7 @@ def main() -> None:
     evidence_put = subparsers.add_parser("evidence-put", help="upsert one public evidence JSON")
     evidence_put.add_argument("--file", required=True, type=Path)
 
-    invite = subparsers.add_parser("invite", help="issue one-time login invite for an existing profile")
+    invite = subparsers.add_parser("invite", help="issue a fresh one-time login link for an account")
     invite.add_argument("--tenant", required=True)
     invite.add_argument("--profile", required=True)
     invite.add_argument("--ttl", type=int, default=1800)
@@ -119,12 +127,21 @@ def main() -> None:
 
     bootstrap = subparsers.add_parser(
         "bootstrap-invite",
-        help="create an unconfirmed starter customer profile and issue its one-time login invite",
+        help="create an INVITED Pilot account/profile and issue its registration link",
     )
-    bootstrap.add_argument("--tenant", required=True)
+    bootstrap.add_argument("--tenant", default=None, help="optional stable tenant id; generated when omitted")
     bootstrap.add_argument("--company", required=True)
     bootstrap.add_argument("--ttl", type=int, default=1800)
     bootstrap.add_argument("--login-url", default=None)
+
+    for name, help_text in (
+        ("account-status", "show one Pilot account lifecycle record"),
+        ("account-disable", "disable one Pilot account immediately"),
+        ("account-enable", "restore one disabled Pilot account"),
+    ):
+        command = subparsers.add_parser(name, help=help_text)
+        command.add_argument("--tenant", required=True)
+        command.add_argument("--profile", required=True)
 
     args = parser.parse_args()
     runtime = build_sqlite_today_runtime(args.db)
@@ -163,20 +180,23 @@ def main() -> None:
 
     if args.command == "invite":
         now = datetime.now(timezone.utc)
+        principal = TrustedPrincipal(args.tenant, args.profile)
         issued = runtime.issue_profile_invite(
-            principal=TrustedPrincipal(args.tenant, args.profile),
+            principal=principal,
             now=now,
             ttl_seconds=args.ttl,
         )
-        _print(_invite_result(issued=issued, login_url=args.login_url))
+        result = _invite_result(issued=issued, login_url=args.login_url)
+        result["type"] = "account_login_invite"
+        _print(result)
         return
 
     if args.command == "bootstrap-invite":
         now = datetime.now(timezone.utc)
-        tenant_id = str(args.tenant).strip()
+        tenant_id = str(args.tenant).strip() if args.tenant else f"tenant_{uuid.uuid4()}"
         company_name = str(args.company).strip()
-        if not tenant_id or not company_name:
-            raise ValueError("tenant and company are required")
+        if not company_name:
+            raise ValueError("company is required")
         profile = _starter_profile(tenant_id=tenant_id, company_name=company_name, now=now)
         runtime.repository.upsert_profile(profile)
         principal = TrustedPrincipal(tenant_id, profile["profile_id"])
@@ -185,10 +205,30 @@ def main() -> None:
             now=now,
             ttl_seconds=args.ttl,
         )
+        account = runtime.account_store.get(principal)
+        if account is None:
+            raise RuntimeError("account was not provisioned")
         result = _invite_result(issued=issued, login_url=args.login_url)
-        result["type"] = "customer_bootstrap_invite"
+        result["type"] = "customer_registration_invite"
+        result["tenant_id"] = tenant_id
         result["profile_id"] = profile["profile_id"]
+        result["account_status"] = account.status
         _print(result)
+        return
+
+    if args.command in {"account-status", "account-disable", "account-enable"}:
+        now = datetime.now(timezone.utc)
+        principal = TrustedPrincipal(args.tenant, args.profile)
+        if args.command == "account-disable":
+            if not runtime.account_store.set_disabled(principal, disabled=True, now=now):
+                raise ValueError("account not found")
+        elif args.command == "account-enable":
+            if not runtime.account_store.set_disabled(principal, disabled=False, now=now):
+                raise ValueError("account not found")
+        account = runtime.account_store.get(principal)
+        if account is None:
+            raise ValueError("account not found")
+        _print({"ok": True, "type": "account", "account": _account_json(account)})
         return
 
     raise RuntimeError("unsupported command")
