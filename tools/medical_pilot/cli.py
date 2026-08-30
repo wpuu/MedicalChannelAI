@@ -4,18 +4,12 @@ import argparse
 import json
 from pathlib import Path
 import sys
-from urllib.parse import urlparse
 
-from .award_items import build_award_items_fact, extract_official_award_items
-from .ccgp_lifecycle_adapter import (
-    ParsedCcgpLifecycleNotice,
-    build_ccgp_lifecycle_event_and_facts,
-)
-from .collector_core import FetchError, HostBoundFetcher, build_event_and_facts
-from .collector_store import SQLitePublicEventLedger, persist_collector_result
-from .intent_adapter import ParsedIntentNotice, build_intent_event_and_facts
-from .registry import adapter_for_source, resolve_source
-from .today_repo import SQLiteTodayActionsRepository
+from .award_items import extract_official_award_items
+from .ccgp_lifecycle_adapter import ParsedCcgpLifecycleNotice
+from .collector_core import FetchError
+from .collector_ingest import collect_registered_url, persist_collected_notice
+from .intent_adapter import ParsedIntentNotice
 
 
 def main() -> int:
@@ -32,24 +26,17 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        source = resolve_source(args.url)
-        adapter = adapter_for_source(source)
-        host = urlparse(source.canonical_base_url).hostname
-        if not host:
-            raise ValueError("registered source has no valid canonical host")
-        fetcher = HostBoundFetcher({host})
-        snapshot = fetcher.fetch(args.url)
-        parsed = adapter.parse_notice(snapshot)
-        if isinstance(parsed, ParsedIntentNotice):
-            event, facts = build_intent_event_and_facts(parsed, snapshot)
-        elif isinstance(parsed, ParsedCcgpLifecycleNotice):
-            event, facts = build_ccgp_lifecycle_event_and_facts(parsed, snapshot)
-        else:
-            event, facts = build_event_and_facts(parsed, snapshot)
+        collected = collect_registered_url(args.url)
     except (FetchError, ValueError) as exc:
         code = getattr(exc, "code", "INVALID_SOURCE")
         print(json.dumps({"status": "ERROR", "code": code, "message": str(exc)}, ensure_ascii=False))
         return 2
+
+    source = collected.source
+    snapshot = collected.snapshot
+    parsed = collected.parsed
+    event = collected.event
+    facts = collected.facts
 
     parsed_payload = {
         "source_id": parsed.source_id,
@@ -87,7 +74,6 @@ def main() -> int:
             for item in parsed.award_packages
         ]
         if parsed.notice_type == "AWARD":
-            award_items = extract_official_award_items(snapshot.text)
             parsed_payload["award_items"] = [
                 {
                     "package_name": item.package_name,
@@ -98,30 +84,13 @@ def main() -> int:
                     "quantity": item.quantity,
                     "unit_price_cny": item.unit_price_cny,
                 }
-                for item in award_items
+                for item in extract_official_award_items(snapshot.text)
             ]
-            award_items_fact = build_award_items_fact(
-                event=event,
-                snapshot=snapshot,
-                source_id=parsed.source_id,
-                source_url=parsed.source_url,
-                published_at=parsed.published_at,
-                items=award_items,
-            )
-            if award_items_fact is not None:
-                facts.append(award_items_fact)
 
     persistence = None
     if args.db is not None:
         try:
-            repository = SQLiteTodayActionsRepository(args.db)
-            event_ledger = SQLitePublicEventLedger(args.db)
-            opportunity = persist_collector_result(
-                repository=repository,
-                event_ledger=event_ledger,
-                event=event,
-                facts=facts,
-            )
+            opportunity = persist_collected_notice(collected, db_path=args.db)
         except (ValueError, RuntimeError) as exc:
             print(
                 json.dumps(
