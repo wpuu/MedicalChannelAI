@@ -3,14 +3,39 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import os
 from pathlib import Path
-from typing import Type
+from typing import Callable, Type
 
+from .outreach_client import AgnesOutreachClient
 from .pilot_api import dispatch_pilot_api
 from .today_runtime import SQLiteTodayRuntime, build_sqlite_today_runtime
 
 
 MAX_REQUEST_BODY_BYTES = 4096
+OUTREACH_API_KEY_ENV = "MCAI_AGNES_API_KEY"
+OUTREACH_BASE_URL_ENV = "MCAI_AGNES_BASE_URL"
+
+
+def build_outreach_model_call_from_env(
+    environ: dict[str, str] | None = None,
+) -> Callable[[dict], dict] | None:
+    """Build the server-only outreach provider from process environment.
+
+    Absence of the key is allowed so the rest of the Pilot can run without outreach.
+    The raw key is never returned, logged or persisted. Base URL remains subject to
+    the Agnes official-host allowlist enforced by AgnesOutreachClient.
+    """
+
+    env = os.environ if environ is None else environ
+    api_key = (env.get(OUTREACH_API_KEY_ENV) or "").strip()
+    if not api_key:
+        return None
+    base_url = (env.get(OUTREACH_BASE_URL_ENV) or "").strip()
+    kwargs = {"api_key": api_key}
+    if base_url:
+        kwargs["base_url"] = base_url
+    return AgnesOutreachClient(**kwargs)
 
 
 def build_handler(runtime: SQLiteTodayRuntime) -> Type[BaseHTTPRequestHandler]:
@@ -68,7 +93,10 @@ def build_handler(runtime: SQLiteTodayRuntime) -> Type[BaseHTTPRequestHandler]:
 def serve(*, db_path: Path, host: str = "127.0.0.1", port: int = 8787) -> None:
     if not isinstance(port, int) or isinstance(port, bool) or port < 1 or port > 65535:
         raise ValueError("port must be 1..65535")
-    runtime = build_sqlite_today_runtime(Path(db_path))
+    runtime = build_sqlite_today_runtime(
+        Path(db_path),
+        outreach_model_call=build_outreach_model_call_from_env(),
+    )
     server = ThreadingHTTPServer((host, port), build_handler(runtime))
     try:
         server.serve_forever(poll_interval=0.5)
