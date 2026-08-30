@@ -1,8 +1,9 @@
-import { Loader2, ShieldAlert, Sparkles } from 'lucide-react'
+import { Eye, Loader2, ShieldAlert, Sparkles } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { SourceTag } from '@/components/shared/StageBadge'
 import { MODEL_STATUS_COPY } from '@/utils/labels'
+import { isApiMode } from '@/services/apiConfig'
 
 export function DecisionCard({ card }: { card: TodayActionCard }) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
@@ -62,18 +63,30 @@ export function DecisionCard({ card }: { card: TodayActionCard }) {
           </div>
         </div>
       ) : card.model_decision_status === 'AWAITING_MODEL' ? (
-        <div>
-          <div className="flex items-center gap-2 text-[14px] font-semibold text-indigo-900">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            AI分析排队中
+        isApiMode ? (
+          <div>
+            <div className="flex items-center gap-2 text-[14px] font-semibold text-indigo-900">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              AI分析排队中
+            </div>
+            <div className="mt-3 space-y-2">
+              <div className="h-3 w-3/4 animate-pulse-soft rounded bg-indigo-100" />
+              <div className="h-3 w-full animate-pulse-soft rounded bg-indigo-100" />
+              <div className="h-3 w-1/2 animate-pulse-soft rounded bg-indigo-100" />
+            </div>
+            <p className="mt-3 text-[12px] leading-5 text-slate-500">{copy.hint}</p>
           </div>
-          <div className="mt-3 space-y-2">
-            <div className="h-3 w-3/4 animate-pulse-soft rounded bg-indigo-100" />
-            <div className="h-3 w-full animate-pulse-soft rounded bg-indigo-100" />
-            <div className="h-3 w-1/2 animate-pulse-soft rounded bg-indigo-100" />
+        ) : (
+          <div className="flex items-start gap-2">
+            <Eye className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+            <div>
+              <p className="text-[14px] font-semibold text-slate-800">当前先观察</p>
+              <p className="mt-1 text-[13px] leading-6 text-slate-500">
+                该演示项目有产品匹配，但尚未确认医院关系，因此当前不模拟后台排队任务，也不强行给出行动结论。
+              </p>
+            </div>
           </div>
-          <p className="mt-3 text-[12px] leading-5 text-slate-500">{copy.hint}</p>
-        </div>
+        )
       ) : (
         <div className="flex items-start gap-2">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
