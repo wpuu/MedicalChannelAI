@@ -2,6 +2,7 @@ import { Eye, Loader2, ShieldAlert, Sparkles } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import { MODEL_STATUS_COPY } from '@/utils/labels'
 import { SourceTag } from '@/components/shared/StageBadge'
+import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
 
 export function DecisionBlock({ card }: { card: TodayActionCard }) {
@@ -15,8 +16,15 @@ export function DecisionBlock({ card }: { card: TodayActionCard }) {
             <Sparkles className="h-3.5 w-3.5" />
             AI行动建议
           </p>
-          <SourceTag tone="ai">AI判断</SourceTag>
+          <SourceTag tone="ai">
+            {!isApiMode && isVerifiedPublicDemo ? '演示AI判断' : 'AI判断'}
+          </SourceTag>
         </div>
+        {!isApiMode && isVerifiedPublicDemo ? (
+          <p className="mb-2 rounded-lg bg-white/70 px-2.5 py-2 text-[11px] leading-5 text-indigo-800">
+            基于真实公开项目事实 + 演示客户资源计算；当前不是实时 Agnes 调用。
+          </p>
+        ) : null}
         <p className="text-[13px] leading-6 text-slate-800">
           建议动作
           <span className="ml-2 font-semibold">{card.decision.action}</span>
