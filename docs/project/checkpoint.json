@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-31T00:20:00+08:00",
-  "phase": "VERIFIED_PUBLIC_DATA_DEMO_PLUS_INVITE_REGISTRATION_PLUS_EDITABLE_CUSTOMER_PROFILE_PLUS_REAL_AGNES_QUEUE_PILOT",
+  "as_of": "2026-08-31T07:58:00+08:00",
+  "phase": "VERIFIED_PUBLIC_DATA_DEMO_PLUS_INVITE_REGISTRATION_PLUS_EDITABLE_CUSTOMER_PROFILE_PLUS_REAL_AGNES_QUEUE_PLUS_LIVE_OFFICIAL_BOOTSTRAP",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -15,7 +15,7 @@
     "verified_opportunity_regression_fixtures": 50,
     "verified_institution_evidence_fixtures": 15,
     "schema_contracts": 41,
-    "deterministic_test_modules_written": 83,
+    "deterministic_test_modules_written": 84,
     "real_medical_attachment_binary_captures": 0,
     "agnes_benchmark_cases": 28,
     "agnes_benchmark_executed": false
@@ -65,6 +65,17 @@
     "contract_validation_before_persistence": true,
     "smart_phlebotomy_taxonomy_supported": true,
     "save_triggers_today_refresh": true
+  },
+  "real_public_bootstrap": {
+    "status": "WRITTEN_NOT_YET_EXECUTED_ON_PILOT_HOST",
+    "manifest": "deploy/tianjin-pilot-bootstrap-urls-2026-08-30.json",
+    "manifest_entry_count": 5,
+    "importer": "tools.medical_pilot.pilot_live_seed",
+    "official_registered_https_urls_only": true,
+    "expected_project_code_checked_before_persistence": true,
+    "customer_context_seeded": false,
+    "prewritten_model_decisions_seeded": false,
+    "uses_same_collector_pipeline_as_runtime": true
   },
   "agnes": {
     "model_provider_call_browser_side": false,
@@ -121,18 +132,18 @@
     "vercel_frontend_typecheck_and_build_passed": true,
     "vercel_frontend_evidence_commit": "308b2a24d006b49b8c66f65f2c1d4f2418ec32fe",
     "vercel_build_command": "tsc --noEmit && vite build",
-    "python_backend_test_modules_written": 83,
+    "python_backend_test_modules_written": 84,
     "python_backend_tests_passed": false,
     "github_actions_runner_available": false,
-    "interpretation": "Frontend registration/profile H5 has real Vercel typecheck/build evidence. Python backend/account/Agnes tests remain written-only until a runner or Pilot host executes them."
+    "interpretation": "Frontend registration/profile H5 has real Vercel typecheck/build evidence. Python backend/account/Agnes/live-bootstrap tests remain written-only until a runner or Pilot host executes them."
   },
   "next": [
-    "obtain real Python execution for all deterministic backend tests",
+    "obtain real Python execution for all 84 deterministic backend test modules",
     "start single-host Pilot API plus medical-agnes-worker with server-only MCAI_AGNES_API_KEY",
-    "load current verified Tianjin public opportunities into the Pilot SQLite store",
+    "execute pilot_live_seed against the five registered official bootstrap URLs and inspect safe summaries",
     "create Lao Yang INVITED account with bootstrap-invite and send one-time registration link",
     "have Lao Yang fill product capabilities, manufacturer/channel/rental policy and selected hospital relationships",
     "verify profile save immediately queues Agnes and Today Top5 transitions from AWAITING_MODEL to READY",
-    "run authenticated followup/reminder/followed/outreach smoke before calling the Pilot production-ready"
+    "run authenticated followup/reminder/followed/outreach and backup-restore smoke before calling the Pilot production-ready"
   ]
 }
