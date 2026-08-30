@@ -57,8 +57,8 @@ function validateInbox(value: unknown): ReminderInboxResponse {
     !exactKeys(root, ['schema_version', 'mode', 'count', 'reminders']) ||
     root.schema_version !== '0.1' ||
     root.mode !== 'FOLLOWUP_REMINDER_INBOX' ||
-    !Number.isInteger(root.count) ||
     typeof root.count !== 'number' ||
+    !Number.isInteger(root.count) ||
     root.count < 0 ||
     root.count > 20 ||
     !Array.isArray(root.reminders)
