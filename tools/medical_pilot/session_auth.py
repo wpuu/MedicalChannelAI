@@ -12,8 +12,8 @@ from .today_actions_http import TrustedPrincipal
 
 
 SESSION_COOKIE_NAME = "__Host-mcai_session"
-DEFAULT_SESSION_TTL_SECONDS = 7 * 24 * 60 * 60
 MAX_SESSION_TTL_SECONDS = 30 * 24 * 60 * 60
+DEFAULT_SESSION_TTL_SECONDS = MAX_SESSION_TTL_SECONDS
 
 
 class SessionStore(Protocol):
