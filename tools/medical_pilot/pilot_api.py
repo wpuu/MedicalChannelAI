@@ -166,7 +166,6 @@ def enforce_origin_policy(
     normalized_method = method.upper()
     host = _header(headers, "Host")
 
-    # Local systemd liveness must remain possible without exposing business data.
     if path == "/healthz" and normalized_method in {"GET", "HEAD"} and _is_loopback_health_host(host):
         return None
 
@@ -213,6 +212,14 @@ def dispatch_pilot_api(
         return PilotApiResponse(health.status_code, dict(health.headers), health.body)
     if path.startswith("/auth/"):
         response = runtime.auth_transport.handle(
+            method=method,
+            target=inner,
+            headers=headers,
+            body=body,
+            now=now,
+        )
+    elif path == "/profile":
+        response = runtime.profile_transport.handle(
             method=method,
             target=inner,
             headers=headers,
