@@ -32,7 +32,7 @@ export function LoginPage() {
     try {
       await redeemPilotInvite(normalized)
       setCode('')
-      navigate('/today', { replace: true })
+      navigate('/profile', { replace: true })
     } catch (cause) {
       if (cause instanceof Error && cause.message === 'INVITE_INVALID_OR_EXPIRED') {
         setError('邀请码无效、已使用或已过期，请联系管理员重新获取。')
@@ -108,7 +108,7 @@ export function LoginPage() {
         <div className="mt-5 flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
           <p className="text-xs leading-5 text-slate-500">
-            邀请码只能使用一次。登录成功后仅保存安全的 HttpOnly 会话 Cookie；浏览器不会保存 tenant/profile 身份或上游模型凭据。
+            邀请码只能使用一次。登录成功后先填写自己的医院关系、产品和合作能力；浏览器不会保存 tenant/profile 身份或上游模型凭据。
           </p>
         </div>
       </section>
