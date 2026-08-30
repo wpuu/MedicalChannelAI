@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-30T15:36:00+08:00",
-  "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_PLUS_TODAY_ACTIONS_TRUSTED_BACKEND_PLUS_H5_AUTH_SINGLE_HOST_RUNTIME_PLUS_PERSISTENT_DISCOVERY_PLUS_SERVER_FOLLOWUP_PLUS_GROUNDED_OUTREACH_INITIAL",
+  "as_of": "2026-08-30T15:48:00+08:00",
+  "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_PLUS_TODAY_ACTIONS_TRUSTED_BACKEND_PLUS_H5_AUTH_SINGLE_HOST_RUNTIME_PLUS_PERSISTENT_DISCOVERY_PLUS_SERVER_FOLLOWUP_PLUS_GROUNDED_OUTREACH_PLUS_IN_APP_REMINDER_INBOX_INITIAL",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -13,8 +13,8 @@
   "runtime_p0_partial_count": 3,
   "verified_opportunity_regression_fixture_count": 50,
   "verified_institution_evidence_fixture_count": 15,
-  "schema_contract_count": 38,
-  "deterministic_test_module_count": 75,
+  "schema_contract_count": 39,
+  "deterministic_test_module_count": 77,
   "real_attachment_binary_capture_count": 0,
   "real_medical_attachment_binary_capture_count": 0,
   "first_exact_medical_attachment_url": {
@@ -25,7 +25,7 @@
     "download_authorized": false
   },
   "today_actions": {
-    "status": "TRUSTED_BACKEND_H5_AUTH_SINGLE_HOST_RUNTIME_COLLECTOR_DISCOVERY_SERVER_FOLLOWUP_AND_GROUNDED_OUTREACH_INTEGRATED_INITIAL",
+    "status": "TRUSTED_BACKEND_H5_AUTH_SINGLE_HOST_RUNTIME_COLLECTOR_DISCOVERY_SERVER_FOLLOWUP_GROUNDED_OUTREACH_AND_IN_APP_REMINDER_INTEGRATED_INITIAL",
     "max_final_action_cards": 5,
     "max_daily_home_model_candidates": 5,
     "facts_ai_judgment_separated": true,
@@ -45,6 +45,9 @@
     "followup_http_module": "tools/medical_pilot/followup_http.py",
     "followup_store_module": "tools/medical_pilot/followup_store.py",
     "followup_public_schema": "docs/research/schemas/medical-followup-state-public.schema.json",
+    "reminder_store_module": "tools/medical_pilot/reminder_store.py",
+    "reminder_http_module": "tools/medical_pilot/reminder_http.py",
+    "reminder_public_schema": "docs/research/schemas/medical-followup-reminder-inbox-public.schema.json",
     "outreach_contract_module": "tools/medical_pilot/outreach_contract.py",
     "outreach_client_module": "tools/medical_pilot/outreach_client.py",
     "outreach_service_module": "tools/medical_pilot/outreach_service.py",
@@ -87,7 +90,20 @@
     "followup_history_cross_browser_persistent": true,
     "followup_profile_learning_auto_apply_allowed": false,
     "followup_remind_at_persistent": true,
-    "followup_reminder_delivery_wired": false,
+    "followup_remind_at_requires_timezone_aware_iso": true,
+    "followup_h5_date_converted_to_local_0900_iso": true,
+    "reminder_in_app_inbox_wired": true,
+    "reminder_list_endpoint": "GET /api/reminders",
+    "reminder_ack_endpoint": "POST /api/reminders/:reminder_id/ack",
+    "reminder_current_followup_event_only": true,
+    "reminder_due_only_when_remind_at_lte_now": true,
+    "reminder_ack_tenant_profile_private": true,
+    "reminder_ack_idempotent": true,
+    "reminder_h5_public_shape_fail_closed": true,
+    "reminder_out_of_top5_detail_link_suppressed": true,
+    "reminder_external_push_delivery_wired": false,
+    "reminder_wechat_delivery_wired": false,
+    "reminder_sms_delivery_wired": false,
     "outreach_endpoint": "POST /api/outreach/:opportunity_id",
     "outreach_browser_freeform_prompt_allowed": false,
     "outreach_browser_tone_override_allowed": false,
@@ -116,6 +132,8 @@
     "frontend_public_wire_types": "web/src/types/public.ts",
     "frontend_api_adapter": "web/src/services/ApiTodayActionsService.ts",
     "frontend_grounded_outreach_adapter": "web/src/services/GroundedApiTodayActionsService.ts",
+    "frontend_reminder_adapter": "web/src/services/reminderApi.ts",
+    "frontend_reminder_panel": "web/src/components/today/DueRemindersPanel.tsx",
     "frontend_api_env": "VITE_API_BASE_URL",
     "frontend_expected_same_origin_api_base": "/api",
     "frontend_login_route": "/login",
@@ -126,6 +144,7 @@
     "frontend_public_internal_field_fail_closed": true,
     "frontend_api_followup_server_persistent": true,
     "frontend_mock_followup_local_only": true,
+    "frontend_in_app_reminder_inbox_wired": true,
     "frontend_outreach_real_api_wired": true,
     "frontend_outreach_mock_still_supported": true,
     "frontend_build_status": "BLOCKED_RUNNER_NOT_ASSIGNED_NO_STEPS_EXECUTED",
@@ -205,7 +224,7 @@
     "subminute_jitter_runtime_status": "PENDING_MINUTE_GRANULAR_PILOT"
   },
   "notification_timing": {
-    "status": "IMPLEMENTED_V0_1_BOUND_TO_SUBSCRIPTION_DELIVERY_PLAN_FOLLOWUP_REMINDER_DELIVERY_NOT_WIRED",
+    "status": "PROCUREMENT_NOTIFICATION_POLICY_IMPLEMENTED_PLUS_FOLLOWUP_IN_APP_REMINDER_INBOX_INITIAL_EXTERNAL_PUSH_NOT_WIRED",
     "timezone": "Asia/Shanghai",
     "morning_digest": "08:10",
     "midday_delta": "13:15",
@@ -248,17 +267,17 @@
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
     "unittest_discovery_top_level_fix_written": true,
     "unittest_discovery_top_level_fix_executed": false,
-    "latest_checked_head_sha": "e9e501dd48074031186fc5efabbc2fb02629d714",
-    "latest_run_id": 33299581876,
+    "latest_checked_head_sha": "c6feaa90b5de1df360c0e968dfeca7acd4810421",
+    "latest_run_id": 33299994999,
     "latest_jobs": {
       "python-pilot": {
-        "job_id": 99225035574,
+        "job_id": 99226206291,
         "runner_id": 0,
         "steps_count": 0,
         "conclusion": "failure"
       },
       "web-build": {
-        "job_id": 99225035451,
+        "job_id": 99226206120,
         "runner_id": 0,
         "steps_count": 0,
         "conclusion": "failure"
@@ -267,14 +286,14 @@
     "interpretation": "Both jobs ended with runner_id=0 and steps=[]; no compileall, unittest, JSON validation, npm install, TypeScript typecheck or H5 build step executed."
   },
   "next": [
-    "execute 75 deterministic tests and web typecheck/build when runner or an equivalent trusted execution environment becomes available",
-    "wire persisted follow-up remind_at into a tenant-safe reminder delivery planner without claiming push delivery before that exists",
+    "execute 77 deterministic tests and web typecheck/build when runner or an equivalent trusted execution environment becomes available",
+    "add a tenant-safe all-followed-opportunities view so reminders that have dropped out of Today Top5 can reopen a real current detail instead of a dead link",
     "run grounded outreach against a real server-side Agnes key only after deterministic execution evidence; never expose the key or allow browser free-form prompts",
     "run the persistent discovery tick on a real single-host Pilot only after execution evidence exists and record listing/detail latency",
     "resolve the remaining five discovery contracts one source at a time without guessing classId, pagination or CAPTCHA bypasses",
     "capture real bytes from exact downEnId medical attachment URL",
     "run 28 Agnes benchmark cases after deterministic execution evidence and tune cadence using latency/queue evidence",
     "decide native WeChat mini-program only after H5 Pilot validates workflow",
-    "replace SQLite session/repository/followup/outreach/discovery/queue/lease/result stores with shared atomic implementations before horizontal multi-server or stateless Serverless deployment"
+    "replace SQLite session/repository/followup/reminder/outreach/discovery/queue/lease/result stores with shared atomic implementations before horizontal multi-server or stateless Serverless deployment"
   ]
 }
