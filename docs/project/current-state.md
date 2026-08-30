@@ -12,7 +12,7 @@ Draft PR：**#1（保持 Draft，不合并）**
 - 50 条 VERIFIED 天津商机 regression fixture
 - 15 条 Institution Evidence
 - **36 份 Schema/合同**
-- **57 组 deterministic unittest 模块已写入，尚未获得真实执行 PASS 证据**
+- **58 组 deterministic unittest 模块已写入，尚未获得真实执行 PASS 证据**
 - 真实官方附件 bytes=0；医疗附件 bytes=0
 - 首条天津医疗附件精确官方 URL 已确认：`TGPC-2025-A-0164 / method=downEnId`，但 bytes/MIME/SHA 尚未取得
 - Agnes benchmark 28 case，未执行
@@ -26,7 +26,7 @@ Draft PR：**#1（保持 Draft，不合并）**
 
 已经具备：
 
-- 最终 Today Action 最多 5 张；
+- 最终 Today Action 最多5张；
 - 只有最终卡片允许进入模型候选；
 - 官方事实、Evidence、客户私有上下文、Priority、AI Decision 分离；
 - 无 VERIFIED grounded fact 时阻止模型生成；
@@ -37,47 +37,71 @@ Draft PR：**#1（保持 Draft，不合并）**
 
 ### API 应用边界
 
-`tools/medical_pilot/today_actions_api.py` 已实现应用层边界：
+`tools/medical_pilot/today_actions_api.py`：
 
 - `GET /today` 对应 `build_today_actions_api_response()`；
 - `GET /opportunity/:id` 对应 `get_today_opportunity_api_response()`；
 - tenant/profile ownership 服务端校验；
 - Query Budget 限制候选读取；
 - pending Agnes 任务只进入服务端队列；
-- Public View 明确禁止 `model_requests / model_input / task_payloads / dispatch / lease / Provider / API Key` 等内部编排信息。
+- Public View 不允许内部模型编排数据外泄。
 
-当前仍缺的是把上述 Python 应用边界挂到实际 HTTP/Serverless transport，并完成真实部署联调。
+### HTTP transport core
 
-## H5：正式选择 `web/`
+新增 `tools/medical_pilot/today_actions_http.py`，作为框架无关的薄 HTTP 边界：
 
-第二轮分别生成了 `main/grok` 与 `main/claude` 两个候选。审核后停止双版本继续开发，选择 **Grok 第二版**作为正式底稿，已复制到开发分支短目录：
+- 只接受 GET；
+- `/today` 与 `/opportunity/:id`；
+- 强制依赖 `TrustedPrincipalResolver`；
+- tenant/profile **不能**直接从浏览器 query/header 当成可信身份；
+- 默认不打开 permissive CORS，优先同源；
+- `Cache-Control: no-store, private`；
+- 内部异常只返回稳定错误码，不把 Provider/内部错误正文返回浏览器；
+- `RepositoryTodayActionsApplication` 直接复用现有 Today Actions 应用层，不复制业务逻辑。
+
+新增 `test_today_actions_http.py`，验证伪造 tenant/profile query/header 不会覆盖服务端 trusted principal、未认证请求不会进入应用层、非法 method/path 与内部错误均 fail-closed。
+
+**现在仍不直接创建可公网访问的 Vercel endpoint。** 原因是仓库还没有正式的 session/auth resolver 与真实 tenant Repository 运行时绑定。在这两项固定前，裸露 tenant/profile 参数会制造越权风险。
+
+## H5：正式 `web/`
+
+第二轮 `main/grok`、`main/claude` 审核后已停止双版本，选择 Grok 第二版进入正式短目录：
 
 `web/`
 
-候选目录仍保留在 main 作为参考，不继续修改。
-
-### 已完成的前端收敛
+已完成：
 
 - `/today` + `/opportunity/:id`；
-- 手机/桌面响应式布局；
-- Mock Service 与页面隔离；
-- NOT_FIT、提醒、跟进状态、按需沟通话术 Demo；
+- 手机/桌面响应式；
+- Service 与 Mock 解耦；
+- NOT_FIT、提醒、完整跟进状态、按需话术 Demo；
 - 官方事实 / 我的资源 / AI 判断视觉分区；
 - 医院与采购单位分开，不用 buyer 冒充 hospital；
-- 客户画像三态保留：`true / false / 未确认`，未知值不会自动解释成“不可以”；
-- `web/src/types/public.ts` 单独声明后端 H5-safe Public View；
-- `web/src/services/ApiTodayActionsService.ts` 负责真实 Public View → UI view model 的受控适配；
-- 配置 `VITE_API_BASE_URL` 时使用真实 API；未配置时继续使用 Mock Demo；
-- API 模式下跟进暂存在浏览器本地，不伪装成服务端保存；
-- API 模式下真实沟通话术接口未定义前 fail-closed，不擅自本地伪造正式结果；
-- 前端增加 defense-in-depth：若响应出现 `model_requests / model_input / task_payloads / lease / provider / api_key / task_id` 等内部字段，直接拒绝消费。
+- 客户画像保留 true / false / 未确认三态；
+- `web/src/types/public.ts` 单独声明 H5-safe Public View；
+- `web/src/services/ApiTodayActionsService.ts` 做真实 Public View → UI view model 受控适配；
+- `VITE_API_BASE_URL` 有值时切真实 API，无值时继续 Mock Demo；
+- API 模式跟进暂存在浏览器本地，不伪装成服务端保存；
+- grounded outreach 正式接口未定义前，API 模式 fail-closed；
+- 前端 defense-in-depth：若响应出现 `model_requests / model_input / task_payloads / lease / provider / api_key / task_id` 等内部字段，直接拒绝消费。
 
-### H5 当前未完成
+## CI / Build
 
-- `npm run build` **尚未获得本轮实际执行证据**；当前环境无法直接拉取私有仓库到本地执行，因此不能标 PASS；
-- 真实 HTTP transport 尚未部署；
-- 服务端跟进 API 尚未冻结，因此跟进继续 local-only；
-- grounded on-demand outreach API 尚未冻结，因此正式 API 模式暂不生成话术。
+`.github/workflows/medical-pilot-ci.yml` 已增加独立 `web-build` job：
+
+- Node 22
+- `npm ci`
+- `npx tsc --noEmit`
+- `npm run build`
+
+并把 `web/**` 加入 workflow path trigger。
+
+最新已核实 HEAD `75814fecb8c3e6b8fdbb7016759a17d87b1d5db0`，Run `33292624120` 同时创建：
+
+- `web-build` Job `99206804337`：`runner_id=0 / steps=[] / failure`
+- `python-pilot` Job `99206804410`：`runner_id=0 / steps=[] / failure`
+
+因此这次同样**没有执行 npm install、TypeScript、H5 build 或 Python test**。不能把任何一个 job 解释成代码失败，也不能标 PASS。
 
 ## Agnes
 
@@ -107,7 +131,7 @@ Source 相位：天津财政`:01`、天津采购中心`:04`、CCGP`:07`、总医
 
 `TGPC-2025-A-0164` → `https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=cehQ4qF6Unc%2A&method=downEnId`
 
-必须继续保持：`URL confirmed != bytes confirmed`。当前医疗真实附件 bytes 仍为 0。
+必须保持：`URL confirmed != bytes confirmed`。当前医疗真实附件 bytes 仍为0。
 
 TJGPC：
 
@@ -115,20 +139,14 @@ TJGPC：
 - 真正采购公告/结果 list classId 与 pagination 仍未可靠验证；
 - 已停止盲猜 W00x，优先使用已验证 detail/index/mirror 证据链。
 
-## CI
-
-此前多次 GitHub Actions 均出现 `runner_id=0 / steps=[]`，属于 runner 未分配，不是 Python assertion failure。57 组 deterministic tests 目前只能标记“已写入、待真实执行”。
-
-H5 本轮也不得在没有 `npm run build` 实际执行证据前标 PASS。
-
 ## 下一步
 
-1. 核实当前 `web/` HEAD 对应 GitHub Actions 是否仍为 runner-level 阻塞；
-2. 增加薄 HTTP/Serverless transport，把现有 Today Actions API 应用边界真正暴露给 H5；
-3. transport 可用后做 `/today`、`/opportunity/:id` 的真实 Public View 联调；
-4. 再冻结 tenant-safe follow-up API；在此之前保持 local-only；
-5. 再冻结 grounded on-demand outreach API；
-6. Runner 恢复后执行57组 deterministic tests和 web build；
+1. 固定 trusted session/auth resolver；
+2. 固定真实 tenant Repository 运行时绑定；
+3. 两项完成后再加极薄 Vercel/等价 Serverless adapter，不让浏览器自报 tenant/profile；
+4. Runner 恢复后执行58组 deterministic tests + H5 typecheck/build；
+5. 再冻结 tenant-safe follow-up API；在此之前保持 local-only；
+6. 再冻结 grounded on-demand outreach API；
 7. 捕获已知 `downEnId` 医疗附件真实 bytes；
-8. 有 deterministic 执行证据后再运行28个 Agnes benchmark；
-9. H5 Pilot 验证工作流后再决定微信原生小程序。
+8. 有 deterministic 执行证据后运行28个 Agnes benchmark；
+9. H5 Pilot 验证后再决定微信原生小程序。
