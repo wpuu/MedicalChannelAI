@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Activity, CalendarDays, LogOut } from 'lucide-react'
+import { Activity, CalendarDays, LogOut, RotateCcw } from 'lucide-react'
 import { useToast } from '@/context/ToastContext'
 import { isApiMode, logoutPilot } from '@/services/apiConfig'
+import { resetMockDemoState } from '@/services/MockTodayActionsService'
 import { formatToday } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
@@ -29,6 +30,11 @@ export function AppLayout() {
     } finally {
       setLoggingOut(false)
     }
+  }
+
+  const handleResetDemo = () => {
+    resetMockDemoState()
+    window.location.assign('/today')
   }
 
   return (
@@ -69,6 +75,17 @@ export function AppLayout() {
               <NavLink to="/followed" className={navClass}>
                 我的跟进
               </NavLink>
+            ) : null}
+            {!isApiMode ? (
+              <button
+                type="button"
+                onClick={handleResetDemo}
+                title="恢复演示初始状态"
+                className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[12px] text-slate-500 hover:bg-slate-100 hover:text-slate-800 sm:px-2.5"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">重置演示</span>
+              </button>
             ) : null}
             {isApiMode ? (
               <button
