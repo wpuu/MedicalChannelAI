@@ -137,6 +137,33 @@ export function TodayPage() {
         </p>
       </section>
 
+      {!isApiMode ? (
+        <section className="rounded-2xl border border-teal-200 bg-teal-50/70 px-4 py-4 shadow-sm">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-md bg-teal-700 px-2 py-0.5 text-[11px] font-semibold text-white">
+              虚构演示客户画像
+            </span>
+            <span className="text-[12px] text-teal-900">用于说明“为什么这个客户今天应该先跟这5个项目”</span>
+          </div>
+          <p className="mt-2 text-[13px] leading-6 text-slate-700">
+            天津医疗渠道商；已确认部分检验科、设备科医院关系；具备或可合作执行化学发光、生化、POCT、智能采血及医疗设备维保项目。
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+            {['医院关系', 'IVD产品能力', '智能采血资源', '可找厂家', '可联合渠道'].map((label) => (
+              <span
+                key={label}
+                className="rounded-full border border-teal-200 bg-white px-2.5 py-1 font-medium text-teal-800"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+          <p className="mt-3 text-[12px] leading-5 text-slate-500">
+            下方项目、医院、联系人和金额均为虚构演示数据。排序来自“项目公开事实 × 这份客户资源”，不是全市场通用排名。
+          </p>
+        </section>
+      ) : null}
+
       <DueRemindersPanel
         reminders={reminders}
         currentOpportunityIds={data.cards.map((card) => card.opportunity_id)}
