@@ -4,9 +4,17 @@
 
 ## 推荐的两阶段上线
 
-同一个域名先后切两种 H5 模式，不需要换地址：
+同一个域名先后切两种 H5 模式，不需要换地址。
 
 ### A. 给老杨先看：Demo
+
+第一选择：
+
+```text
+https://medradar.qzz.io/
+```
+
+备用：
 
 ```text
 https://medradar.dpdns.org/
@@ -37,7 +45,7 @@ https://<pilot-domain>/
 /etc/caddy             Pilot domain env + Caddyfile
 ```
 
-域名当前推荐：`medradar.dpdns.org` > `medicalai.dpdns.org` > `mcai.dpdns.org`。实际名称以注册时可用为准；正式收费版换独立域名。
+当前域名推荐：`medradar.qzz.io` > `medicalai.qzz.io` > `medradar.dpdns.org` > `mcai.dpdns.org`。实际名称以注册时可用为准；正式收费版换独立域名。
 
 ## 1. 系统用户与目录
 
@@ -54,16 +62,14 @@ sudo chmod 700 /srv/medical/data /srv/medical/backups /etc/medicalchannelai
 
 统一使用 `deploy/build-web.sh`，它会先执行 `npm ci + tsc --noEmit` 再 build。
 
-### Demo 模式
+Demo：
 
 ```bash
 cd /srv/medical/app
 sudo -u medicalai bash deploy/build-web.sh demo
 ```
 
-### 真实 Pilot 模式
-
-只有在 deterministic tests、H5 build 和真实后端 smoke 通过后再切：
+真实 Pilot（只有 deterministic tests、H5 build 和后端 smoke 通过后再切）：
 
 ```bash
 cd /srv/medical/app
@@ -112,7 +118,7 @@ curl -fsS http://127.0.0.1:8787/api/healthz
 
 `/api/healthz` 只用于 liveness，不返回 tenant/profile/Provider/model/API Key。真实业务 smoke 必须走登录后的 Session。
 
-Discovery timer 每分钟触发一次**幂等调度 tick**，不代表每分钟对官网发请求；具体是否抓取由 readiness/cadence/持久化 slot 决定。
+Discovery timer 每分钟触发一次幂等调度 tick，不代表每分钟对官网发请求；具体是否抓取由 readiness/cadence/持久化 slot 决定。
 
 Backup timer 每天 `18:20 UTC = 02:20 Asia/Shanghai` 运行，使用 SQLite `Connection.backup()` + `PRAGMA integrity_check`，默认保留最近14份并输出 SHA-256。
 
@@ -135,19 +141,21 @@ sudo systemctl restart caddy
 默认示例：
 
 ```text
-MCAI_DOMAIN=medradar.dpdns.org
+MCAI_DOMAIN=medradar.qzz.io
 ```
 
 以后换正式域名主要改这一项；SQLite、客户画像、跟进、提醒和 AI 结果不需要迁移。
 
-### Cloudflare 推荐顺序
+### DigitalPlat / DNS / Cloudflare 推荐顺序
 
-1. DigitalPlat 把 `*.dpdns.org` 域名委派给外部 authoritative DNS；
-2. 先使用 DNS-only，让域名直接指向 VPS；
-3. Caddy 成功签发源站 HTTPS，浏览器直接访问确认正常；
-4. 再按需要开启 Cloudflare proxy；
-5. Cloudflare SSL/TLS 最终使用 `Full (strict)`；
-6. `/api/auth/redeem` 做速率限制，`/api/*` 不缓存。
+1. 在 DigitalPlat 注册选定的 `.qzz.io` 或 `.dpdns.org` 名称；
+2. 把该注册名委派给外部 authoritative DNS；
+3. 在外部 DNS 创建指向 VPS 的 A/AAAA 记录；
+4. 若使用 Cloudflare，首次先 DNS-only，让域名直接指向 VPS；
+5. Caddy 成功签发源站 HTTPS，浏览器直连确认正常；
+6. 再按需要开启 Cloudflare proxy；
+7. Cloudflare SSL/TLS 最终使用 `Full (strict)`；
+8. `/api/auth/redeem` 做速率限制，`/api/*` 不缓存。
 
 H5 和 API 必须同 origin；不要打开 permissive CORS。
 
@@ -166,7 +174,7 @@ cd /srv/medical/app
 bash deploy/pilot-smoke.sh https://<pilot-domain>
 ```
 
-该脚本验证：HTTPS healthz、H5 SPA、未登录 `/api/today` 必须保持401。它不替代 authenticated business smoke。
+该脚本验证 HTTPS healthz、H5 SPA、未登录 `/api/today` 必须保持401。它不替代 authenticated business smoke。
 
 ## 7. 首个真实 Pilot 账号
 
