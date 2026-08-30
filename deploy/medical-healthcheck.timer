@@ -1,0 +1,10 @@
+[Unit]
+Description=Run MedicalChannelAI health check every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=medical-healthcheck.service
+
+[Install]
+WantedBy=timers.target
