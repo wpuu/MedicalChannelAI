@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-from datetime import datetime
 import json
 from pathlib import Path
 import sqlite3
@@ -285,7 +284,9 @@ def build_opportunity_projection(
         else lifecycle.verification_status
     )
 
-    rental, rental_provenance = _rental_classification(facts)
+    # Product/rental classification is intentionally scoped to the current lifecycle
+    # event. Older intent/tender wording must not contaminate a later amendment/award.
+    rental, rental_provenance = _rental_classification(current_facts)
     institution = resolve_institution_evidence(buyer_name)
     opportunity: dict[str, Any] = {
         "schema_version": "0.1",
@@ -293,7 +294,6 @@ def build_opportunity_projection(
         "canonical_project_id": lifecycle.canonical_project_id,
         "project_number": project_number if isinstance(project_number, str) else current.get("project_number"),
         "buyer_name": buyer_name.strip(),
-        "buyer_type": institution.institution_type if institution is not None else None,
         "hospital_name": _hospital_name(buyer_name),
         "department": None,
         "region": _region_for_source(source, buyer_name),
@@ -334,7 +334,12 @@ def build_opportunity_projection(
         "customer_type_validation_status": "UNVERIFIED",
         "institution_evidence_id": None,
     }
-    opportunity = apply_product_classification(opportunity, classify_product_facts(facts))
+    if institution is not None:
+        opportunity["buyer_type"] = institution.institution_type
+    opportunity = apply_product_classification(
+        opportunity,
+        classify_product_facts(current_facts),
+    )
     opportunity = enrich_opportunity_customer_type(opportunity)
     return opportunity
 
