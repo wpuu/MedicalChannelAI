@@ -4,7 +4,7 @@ import { formatBudget, pickDisplayDate } from '@/utils/format'
 import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
 import { OfficialText } from '@/components/shared/EmptyValue'
 import { FollowupChip, SourceTag, StageBadge } from '@/components/shared/StageBadge'
-import { PriorityBadge, PriorityScore } from '@/components/shared/PriorityBadge'
+import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
 import { ActionButtons } from './ActionButtons'
 import { CustomerResourceBlock } from './CustomerResourceBlock'
@@ -35,7 +35,15 @@ export function ActionCard({
   const budget = formatBudget(card.facts.budget)
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
   const outreachDisabled =
-    card.model_decision_status === 'BLOCKED_GROUNDING' || card.evidence_source_urls.length === 0
+    card.model_decision_status === 'BLOCKED_GROUNDING' ||
+    card.model_decision_status === 'NOT_ELIGIBLE' ||
+    card.evidence_source_urls.length === 0
+
+  const publicFactLabel = isApiMode
+    ? '官方/已验证事实'
+    : isVerifiedPublicDemo
+      ? '真实公开事实'
+      : '演示公开字段'
 
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -63,9 +71,7 @@ export function ActionCard({
         <div className="min-w-0 space-y-3">
           <div>
             <div className="mb-1 flex items-center gap-1.5">
-              <SourceTag tone="official">
-                {isApiMode ? '官方/已验证事实' : '演示公开字段'}
-              </SourceTag>
+              <SourceTag tone="official">{publicFactLabel}</SourceTag>
             </div>
             <div className="flex items-start gap-2">
               <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
