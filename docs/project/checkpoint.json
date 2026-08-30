@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-30T12:26:31+08:00",
+  "as_of": "2026-08-30T12:30:07+08:00",
   "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_PLUS_TODAY_ACTIONS_TRUSTED_BACKEND_PLUS_H5_WEB_BASELINE",
   "production_ready": false,
   "merge_approved": false,
@@ -14,7 +14,7 @@
   "verified_opportunity_regression_fixture_count": 50,
   "verified_institution_evidence_fixture_count": 15,
   "schema_contract_count": 36,
-  "deterministic_test_module_count": 57,
+  "deterministic_test_module_count": 58,
   "real_attachment_binary_capture_count": 0,
   "real_medical_attachment_binary_capture_count": 0,
   "first_exact_medical_attachment_url": {
@@ -25,7 +25,7 @@
     "download_authorized": false
   },
   "today_actions": {
-    "status": "TRUSTED_BACKEND_API_QUEUE_WORKER_CYCLE_IMPLEMENTED_H5_WEB_BASELINE_INTEGRATED",
+    "status": "TRUSTED_BACKEND_API_QUEUE_WORKER_CYCLE_H5_WEB_AND_HTTP_TRANSPORT_CORE_INTEGRATED",
     "max_final_action_cards": 5,
     "max_daily_home_model_candidates": 5,
     "facts_ai_judgment_separated": true,
@@ -40,6 +40,11 @@
     "queue_worker_bridge": true,
     "provider_worker_boundary": true,
     "public_view_excludes_model_requests": true,
+    "http_transport_module": "tools/medical_pilot/today_actions_http.py",
+    "http_trusted_principal_required": true,
+    "http_tenant_query_parameter_auth_allowed": false,
+    "http_permissive_cors_enabled": false,
+    "http_runtime_auth_and_repository_binding": "PENDING_BEFORE_EXTERNAL_DEPLOYMENT",
     "h5_ui_spec": "docs/product/today-actions-ui-v0.1.md",
     "public_schema": "docs/research/schemas/medical-today-actions-public.schema.json",
     "frontend_selected_candidate": "GROK_SECOND_GENERATION",
@@ -51,7 +56,7 @@
     "frontend_public_internal_field_fail_closed": true,
     "frontend_local_followup_only_until_server_endpoint": true,
     "frontend_outreach_real_api_pending": true,
-    "frontend_build_status": "NOT_EXECUTED_YET",
+    "frontend_build_status": "BLOCKED_RUNNER_NOT_ASSIGNED_NO_STEPS_EXECUTED",
     "frontend_mock_prototype_allowed": true
   },
   "agnes_worker": {
@@ -135,20 +140,20 @@
   "agnes": {"status": "GO_FOR_BENCHMARK", "case_count": 28, "executed": false},
   "ci": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
-    "latest_checked_head_sha": "3670a6a6f82d0735d10f7a942d832e650c493434",
-    "latest_run_id": 33292494845,
-    "latest_job_id": 99206463206,
-    "latest_known_runner_id": 0,
-    "latest_known_steps_count": 0,
-    "conclusion": "failure",
-    "interpretation": "runner_id=0 and steps=[]; no Python step executed, so this is neither PASS nor an assertion failure. 57 tests remain written but unexecuted."
+    "latest_checked_head_sha": "75814fecb8c3e6b8fdbb7016759a17d87b1d5db0",
+    "latest_run_id": 33292624120,
+    "latest_jobs": {
+      "python-pilot": {"job_id": 99206804410, "runner_id": 0, "steps_count": 0, "conclusion": "failure"},
+      "web-build": {"job_id": 99206804337, "runner_id": 0, "steps_count": 0, "conclusion": "failure"}
+    },
+    "interpretation": "Both jobs ended with runner_id=0 and steps=[]; no Python test, TypeScript typecheck, npm install, or H5 build step executed."
   },
   "next": [
-    "execute web npm build and fix any TypeScript/build errors when an execution runner is available",
-    "add thin HTTP/serverless transport that exposes the existing Today Actions API application boundary",
+    "define trusted session/auth resolver and real tenant repository runtime binding before external HTTP deployment",
+    "add a thin Vercel or equivalent adapter only after trusted runtime bindings exist",
+    "execute 58 deterministic tests and web typecheck/build when runner returns",
     "keep follow-up local until a tenant-safe server follow-up endpoint is specified",
     "add real on-demand outreach endpoint only after its grounded contract is fixed",
-    "execute 57 deterministic tests when runner returns",
     "capture real bytes from exact downEnId medical attachment URL",
     "use verified detail/mirror sources while tjgpc native list classId remains unresolved; do not guess W00x",
     "run Agnes benchmark after deterministic execution evidence and tune cadence using latency/queue evidence",
