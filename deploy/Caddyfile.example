@@ -10,11 +10,16 @@
         Content-Security-Policy "default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     }
 
+    @assets path /assets/*
+    header @assets Cache-Control "public, max-age=31536000, immutable"
+
     handle /api/* {
         reverse_proxy 127.0.0.1:8787
     }
 
     handle {
+        # SPA HTML must revalidate so a new Demo/Pilot build takes effect quickly.
+        header Cache-Control "no-cache"
         root * /srv/medical/web
         try_files {path} /index.html
         file_server
