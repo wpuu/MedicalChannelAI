@@ -6,6 +6,7 @@ import json
 from typing import Any, Mapping
 from urllib.parse import urlsplit
 
+from .health_http import handle_health_request
 from .today_runtime import SQLiteTodayRuntime
 
 
@@ -60,6 +61,9 @@ def dispatch_pilot_api(
     if inner is None:
         return _not_found()
     path = urlsplit(inner).path
+    if path == "/healthz":
+        health = handle_health_request(method=method, target=inner, body=body)
+        return PilotApiResponse(health.status_code, dict(health.headers), health.body)
     if path.startswith("/auth/"):
         response = runtime.auth_transport.handle(
             method=method,
@@ -76,16 +80,16 @@ def dispatch_pilot_api(
             body=body,
             now=now,
         )
-    elif path == "/followed":
-        response = runtime.followed_transport.handle(
+    elif path == "/reminders" or path.startswith("/reminders/"):
+        response = runtime.reminder_transport.handle(
             method=method,
             target=inner,
             headers=headers,
             body=body,
             now=now,
         )
-    elif path == "/reminders" or path.startswith("/reminders/"):
-        response = runtime.reminder_transport.handle(
+    elif path == "/followed":
+        response = runtime.followed_transport.handle(
             method=method,
             target=inner,
             headers=headers,
