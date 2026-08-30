@@ -12,6 +12,14 @@ import type { TodayActionsService } from './TodayActionsService'
 
 const STORAGE_KEY = 'medopp.followups.v1'
 
+export function resetMockDemoState(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // A browser that blocks localStorage still has a usable in-memory Demo.
+  }
+}
+
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
