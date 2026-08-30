@@ -1,11 +1,7 @@
 import { ApiTodayActionsService } from './ApiTodayActionsService'
+import { apiBaseUrl } from './apiConfig'
 import { MockTodayActionsService } from './MockTodayActionsService'
 import type { TodayActionsService } from './TodayActionsService'
-
-const env = (import.meta as ImportMeta & {
-  env?: Record<string, string | undefined>
-}).env
-const apiBaseUrl = env?.VITE_API_BASE_URL?.trim()
 
 /**
  * No API base URL: local Mock Demo.
