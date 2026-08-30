@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from zoneinfo import ZoneInfo
 
+from .account_auth import ACCOUNT_ACTIVE, ACCOUNT_DISABLED
 from .session_auth import SESSION_COOKIE_NAME, issue_session
 from .test_opportunity_match_gate import complete_profile, opportunity
 from .today_actions_http import TrustedPrincipal
@@ -75,21 +76,36 @@ class TodayRuntimeTests(unittest.TestCase):
         pending = self.runtime.dispatch_queue.list_pending(limit=10)
         self.assertEqual(len(pending), 1)
         self.assertEqual(pending[0]["profile_id"], self.profile["profile_id"])
+        self.assertEqual(self.runtime.account_store.get(principal).status, ACCOUNT_ACTIVE)
 
-    def test_one_time_invite_exchanges_to_working_session(self) -> None:
+    def test_one_time_invite_registers_account_and_exchanges_to_working_session(self) -> None:
         principal = TrustedPrincipal(
             self.profile["tenant_id"],
             self.profile["profile_id"],
         )
         invite = self.runtime.issue_profile_invite(principal=principal, now=NOW)
 
+        invited = self.runtime.account_store.get(principal)
+        self.assertIsNotNone(invited)
+        self.assertEqual(invited.status, "INVITED")
+
         session = self.runtime.redeem_invite_to_session(code=invite.code, now=NOW)
         replay = self.runtime.redeem_invite_to_session(code=invite.code, now=NOW)
 
         self.assertIsNotNone(session)
         self.assertIsNone(replay)
+        self.assertEqual(self.runtime.account_store.get(principal).status, ACCOUNT_ACTIVE)
         response = self._request_today(session.token)
         self.assertEqual(response.status_code, 200)
+
+    def test_disabling_account_invalidates_existing_runtime_session(self) -> None:
+        principal = TrustedPrincipal(self.profile["tenant_id"], self.profile["profile_id"])
+        session = self.runtime.issue_authenticated_session(principal=principal, now=NOW)
+        self.assertEqual(self._request_today(session.token).status_code, 200)
+
+        self.assertTrue(self.runtime.account_store.set_disabled(principal, disabled=True, now=NOW))
+        self.assertEqual(self.runtime.account_store.get(principal).status, ACCOUNT_DISABLED)
+        self.assertEqual(self._request_today(session.token).status_code, 401)
 
     def test_missing_cookie_is_unauthorized(self) -> None:
         response = self.runtime.transport.handle(
@@ -102,14 +118,17 @@ class TodayRuntimeTests(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json_body(), {"error": "UNAUTHORIZED"})
 
-    def test_session_for_other_tenant_cannot_load_existing_profile_id(self) -> None:
-        # Defense in depth: bypass the runtime issuance guard and inject a session row
-        # for a tenant/profile pair that does not exist in the repository.
-        issued = issue_session(
-            self.runtime.session_store,
-            principal=TrustedPrincipal("tenant-other", self.profile["profile_id"]),
+    def test_active_account_for_other_tenant_still_cannot_load_existing_profile_id(self) -> None:
+        # Defense in depth: activate a valid account/session identity whose tenant/profile
+        # pair is deliberately absent from the customer-profile repository.
+        principal = TrustedPrincipal("tenant-other", self.profile["profile_id"])
+        self.runtime.account_store.ensure_invited(
+            principal=principal,
+            company_name="攻击测试账号",
             now=NOW,
         )
+        self.runtime.account_store.activate_login(principal, now=NOW)
+        issued = issue_session(self.runtime.session_store, principal=principal, now=NOW)
 
         response = self._request_today(issued.token)
 
