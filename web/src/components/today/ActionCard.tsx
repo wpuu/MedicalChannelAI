@@ -32,6 +32,7 @@ export function ActionCard({
 }: ActionCardProps) {
   const dateInfo = pickDisplayDate(card.facts)
   const budget = formatBudget(card.facts.budget)
+  const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
 
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -65,7 +66,7 @@ export function ActionCard({
               <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
               <div className="min-w-0">
                 <p className="text-[15px] font-semibold leading-6 text-slate-900">
-                  <OfficialText value={card.facts.hospital} />
+                  <OfficialText value={buyerDisplay} />
                 </p>
                 <p className="mt-0.5 break-words text-[14px] leading-6 text-slate-700">
                   <OfficialText value={card.facts.project_name} />
