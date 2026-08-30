@@ -30,6 +30,8 @@ class SessionStore(Protocol):
 
     def revoke(self, token_hash: str, *, revoked_at: datetime) -> bool: ...
 
+    def revoke_principal(self, principal: TrustedPrincipal, *, revoked_at: datetime) -> int: ...
+
 
 @dataclass(frozen=True)
 class IssuedSession:
@@ -124,6 +126,18 @@ class MemorySessionStore:
         self._rows[token_hash] = (principal, created_at, expires_at, revoked_at)
         return True
 
+    def revoke_principal(self, principal: TrustedPrincipal, *, revoked_at: datetime) -> int:
+        _validate_principal(principal)
+        _require_aware(revoked_at, "revoked_at")
+        count = 0
+        for token_hash, row in list(self._rows.items()):
+            row_principal, created_at, expires_at, current_revoked = row
+            if row_principal != principal or current_revoked is not None:
+                continue
+            self._rows[token_hash] = (row_principal, created_at, expires_at, revoked_at)
+            count += 1
+        return count
+
 
 class SQLiteSessionStore:
     """Single-host opaque session store.
@@ -215,6 +229,17 @@ class SQLiteSessionStore:
                 (_utc_iso(revoked_at), token_hash),
             )
         return cursor.rowcount == 1
+
+    def revoke_principal(self, principal: TrustedPrincipal, *, revoked_at: datetime) -> int:
+        _validate_principal(principal)
+        _require_aware(revoked_at, "revoked_at")
+        with self._connect() as conn:
+            cursor = conn.execute(
+                "UPDATE medical_sessions SET revoked_at=? "
+                "WHERE tenant_id=? AND profile_id=? AND revoked_at IS NULL",
+                (_utc_iso(revoked_at), principal.tenant_id, principal.profile_id),
+            )
+        return int(cursor.rowcount)
 
 
 def build_set_cookie(token: str, *, ttl_seconds: int) -> str:
