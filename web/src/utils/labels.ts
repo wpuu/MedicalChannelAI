@@ -41,7 +41,10 @@ export const PRIORITY_COMPONENT_LABEL: Record<string, string> = {
 
 export const RELATIONSHIP_LABEL: Record<RelationshipStrength, string> = {
   STRONG: '强',
+  MEDIUM: '中等',
+  HISTORICAL: '历史关系',
   WEAK: '弱',
+  UNKNOWN: '尚未确认',
   NONE: '尚未确认',
 }
 
@@ -49,6 +52,11 @@ export const CAPABILITY_LABEL: Record<CapabilityType, string> = {
   DIRECT: '可直接参与',
   NEED_MANUFACTURER: '需临时寻找厂家',
   PARTNER: '可联合其他渠道商',
+  DIRECT_AUTHORIZED: '已授权，可直接参与',
+  DIRECT_UNCONFIRMED: '有直接产品能力，授权待确认',
+  RENTAL_CAPABLE: '具备租赁参与能力',
+  CAN_SOURCE_PARTNER: '可寻找合作厂家/渠道',
+  SERVICE_ONLY: '仅服务能力',
 }
 
 export const MODEL_STATUS_COPY: Record<
