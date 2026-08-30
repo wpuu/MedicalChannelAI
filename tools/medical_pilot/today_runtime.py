@@ -21,6 +21,7 @@ from .invite_auth import (
 )
 from .outreach_http import OutreachHttpTransport
 from .outreach_service import GroundedOutreachService, SQLiteOutreachResultStore
+from .profile_http import ProfileHttpTransport
 from .reminder_http import ReminderHttpTransport
 from .reminder_store import SQLiteReminderInboxStore
 from .session_auth import (
@@ -60,6 +61,7 @@ class SQLiteTodayRuntime:
     transport: TodayActionsHttpTransport
     outreach_service: GroundedOutreachService
     auth_transport: PilotAuthHttpTransport = field(init=False)
+    profile_transport: ProfileHttpTransport = field(init=False)
     followup_transport: FollowupHttpTransport = field(init=False)
     followed_transport: FollowedHttpTransport = field(init=False)
     reminder_transport: ReminderHttpTransport = field(init=False)
@@ -69,6 +71,10 @@ class SQLiteTodayRuntime:
         self.auth_transport = PilotAuthHttpTransport(
             invite_session_issuer=self,
             session_store=self.session_store,
+        )
+        self.profile_transport = ProfileHttpTransport(
+            principal_resolver=self.principal_resolver,
+            repository=self.repository,
         )
         self.followup_transport = FollowupHttpTransport(
             principal_resolver=self.principal_resolver,
