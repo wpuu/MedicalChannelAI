@@ -165,7 +165,11 @@ export interface TodayActionCard {
   remind_at: string | null
 }
 
-/** Mock-only model request marker; real Public View never returns model requests. */
+/**
+ * Transitional UI-only marker type. Real Public View never returns model requests,
+ * and Demo data should not embed them either. Kept optional only while the adapter
+ * is being simplified away from the older UI shape.
+ */
 export interface ModelRequest {
   opportunity_id: string
   status: ModelDecisionStatus
@@ -184,7 +188,7 @@ export interface TodayActionsResponse {
   generated_at: string
   refreshed_at: string
   cards: TodayActionCard[]
-  model_requests: ModelRequest[]
+  model_requests?: ModelRequest[]
 }
 
 export interface FollowupInput {
