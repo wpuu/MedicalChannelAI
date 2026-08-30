@@ -25,7 +25,8 @@ npx tsc --noEmit
 VITE_BUILD_MODE="${MODE}" VITE_API_BASE_URL="${API_BASE}" npm run build
 
 mkdir -p "${WEB_DIR}"
-rsync -a --delete dist/ "${WEB_DIR}/"
+find "${WEB_DIR}" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+cp -a dist/. "${WEB_DIR}/"
 
 echo "H5 deployed in ${MODE} mode to ${WEB_DIR}"
 if [[ "${MODE}" == "demo" ]]; then
