@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Copy, Loader2 } from 'lucide-react'
 import { Drawer } from '@/components/ui/Drawer'
 import { todayActionsService } from '@/services'
+import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import type { OutreachDraft } from '@/types'
 import { useToast } from '@/context/ToastContext'
 
@@ -11,7 +13,25 @@ interface OutreachDrawerProps {
   onClose: () => void
 }
 
+function outreachErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) return '话术生成失败，请稍后重试'
+  if (error.message === 'HTTP_409') {
+    return '当前商机的已验证公开依据或客户资源不足，暂不能安全生成话术。'
+  }
+  if (error.message === 'HTTP_429') {
+    return '当前 AI 请求较多，请稍后再次生成。'
+  }
+  if (error.message === 'HTTP_503') {
+    return '当前服务器尚未配置话术模型服务。'
+  }
+  if (error.message === 'HTTP_502') {
+    return '模型返回结果未通过事实约束校验，请稍后重试。'
+  }
+  return '话术生成失败，请稍后重试'
+}
+
 export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerProps) {
+  const navigate = useNavigate()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,8 +48,14 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
       .then((res) => {
         if (!cancelled) setDraft(res)
       })
-      .catch(() => {
-        if (!cancelled) setError('话术生成失败，请稍后重试')
+      .catch((cause: unknown) => {
+        if (cancelled) return
+        if (isAuthRequiredError(cause)) {
+          onClose()
+          navigate('/login', { replace: true })
+          return
+        }
+        setError(outreachErrorMessage(cause))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -37,13 +63,13 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     return () => {
       cancelled = true
     }
-  }, [open, opportunityId])
+  }, [navigate, onClose, open, opportunityId])
 
   const copyDraft = async () => {
     if (!draft) return
     try {
       await navigator.clipboard.writeText(draft.draft)
-      toast('演示模式：话术已复制到剪贴板', 'success')
+      toast(isApiMode ? '话术已复制到剪贴板' : '演示模式：话术已复制到剪贴板', 'success')
     } catch {
       toast('复制失败，请手动选择文本')
     }
@@ -77,7 +103,9 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
       }
     >
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-900">
-        演示模式 · 正式版将根据当前商机事实和客户资源按需生成
+        {isApiMode
+          ? '天津 Pilot · 仅根据已验证公开事实与当前客户确认资源按需生成；最终话术不是医院官方表述。'
+          : '演示模式 · 正式版将根据当前商机事实和客户资源按需生成'}
       </div>
       {loading ? (
         <div className="mt-8 flex flex-col items-center justify-center gap-2 text-slate-500">
