@@ -1,0 +1,25 @@
+[Unit]
+Description=MedicalChannelAI Agnes Today Actions Worker
+After=network-online.target medical-pilot.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=medicalai
+Group=medicalai
+WorkingDirectory=/srv/medical/app
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+EnvironmentFile=-/etc/medicalchannelai/pilot.env
+ExecStart=/usr/bin/python3 -m tools.medical_pilot.today_actions_worker_daemon --db /srv/medical/data/pilot.sqlite --idle-sleep 1
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/srv/medical/data
+
+[Install]
+WantedBy=multi-user.target
