@@ -2,22 +2,30 @@ import type { Facts } from '@/types'
 import { OfficialText } from '@/components/shared/EmptyValue'
 import { FactRow, SectionCard } from '@/components/shared/SectionCard'
 import { SourceTag, StageBadge, VerifiedBadge } from '@/components/shared/StageBadge'
+import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
 import { formatBudget, formatDate } from '@/utils/format'
 
 export function FactsCard({ facts }: { facts: Facts }) {
+  const subtitle = isApiMode
+    ? '官方/已验证事实 · 空值不会自行补全'
+    : isVerifiedPublicDemo
+      ? '真实政府采购公开事实快照 · 空值不会自行补全；客户侧资源另行标注为演示数据'
+      : '虚构演示公开字段 · 用于展示正式版的信息结构与事实边界'
+  const sourceLabel = isApiMode
+    ? '官方事实'
+    : isVerifiedPublicDemo
+      ? '真实公开事实'
+      : '演示公开字段'
+
   return (
     <SectionCard
       title="项目公开信息"
-      subtitle={
-        isApiMode
-          ? '官方/已验证事实 · 空值不会自行补全'
-          : '虚构演示公开字段 · 用于展示正式版的信息结构与事实边界'
-      }
+      subtitle={subtitle}
       tone="official"
       extra={
         <div className="flex flex-col items-end gap-1">
-          <SourceTag tone="official">{isApiMode ? '官方事实' : '演示公开字段'}</SourceTag>
+          <SourceTag tone="official">{sourceLabel}</SourceTag>
           <VerifiedBadge status={facts.verification_status} />
         </div>
       }
@@ -28,7 +36,7 @@ export function FactsCard({ facts }: { facts: Facts }) {
       <FactRow label="项目名称">
         <OfficialText value={facts.project_name} />
       </FactRow>
-      {isApiMode || facts.buyer_name ? (
+      {isApiMode || isVerifiedPublicDemo || facts.buyer_name ? (
         <FactRow label="采购单位">
           <OfficialText value={facts.buyer_name ?? null} />
         </FactRow>
