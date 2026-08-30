@@ -77,6 +77,7 @@ export const MODEL_STATUS_COPY: Record<
   },
 }
 
-export function yesNo(value: boolean): string {
+export function yesNo(value: boolean | null | undefined): string {
+  if (value === null || value === undefined) return '未确认'
   return value ? '可以' : '不可以'
 }
