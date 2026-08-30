@@ -75,6 +75,9 @@ class SQLiteTodayRuntime:
         self.profile_transport = ProfileHttpTransport(
             principal_resolver=self.principal_resolver,
             repository=self.repository,
+            after_save=lambda principal, saved_at: self.application.get_today(
+                principal, saved_at
+            ),
         )
         self.followup_transport = FollowupHttpTransport(
             principal_resolver=self.principal_resolver,
