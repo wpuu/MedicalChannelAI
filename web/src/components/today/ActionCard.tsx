@@ -33,6 +33,8 @@ export function ActionCard({
   const dateInfo = pickDisplayDate(card.facts)
   const budget = formatBudget(card.facts.budget)
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
+  const outreachDisabled =
+    card.model_decision_status === 'BLOCKED_GROUNDING' || card.evidence_source_urls.length === 0
 
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -97,6 +99,7 @@ export function ActionCard({
       <div className="border-t border-slate-100 px-4 py-3">
         <ActionButtons
           busy={busy}
+          outreachDisabled={outreachDisabled}
           onDetail={onDetail}
           onContacted={onContacted}
           onFollow={onFollow}
