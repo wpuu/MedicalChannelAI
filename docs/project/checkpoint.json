@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-30T12:58:00+08:00",
-  "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_PLUS_TODAY_ACTIONS_TRUSTED_BACKEND_PLUS_H5_AUTH_SINGLE_HOST_RUNTIME",
+  "as_of": "2026-08-30T13:20:00+08:00",
+  "phase": "M1_FACT_PIPELINE_PLUS_M2_MATCHING_SUBSCRIPTION_PLUS_TODAY_ACTIONS_TRUSTED_BACKEND_PLUS_H5_AUTH_SINGLE_HOST_RUNTIME_PLUS_PERSISTENT_DISCOVERY_INITIAL",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -14,7 +14,7 @@
   "verified_opportunity_regression_fixture_count": 50,
   "verified_institution_evidence_fixture_count": 15,
   "schema_contract_count": 36,
-  "deterministic_test_module_count": 64,
+  "deterministic_test_module_count": 69,
   "real_attachment_binary_capture_count": 0,
   "real_medical_attachment_binary_capture_count": 0,
   "first_exact_medical_attachment_url": {
@@ -25,7 +25,7 @@
     "download_authorized": false
   },
   "today_actions": {
-    "status": "TRUSTED_BACKEND_H5_AUTH_AND_SINGLE_HOST_RUNTIME_INTEGRATED",
+    "status": "TRUSTED_BACKEND_H5_AUTH_SINGLE_HOST_RUNTIME_AND_COLLECTOR_PERSISTENCE_INTEGRATED",
     "max_final_action_cards": 5,
     "max_daily_home_model_candidates": 5,
     "facts_ai_judgment_separated": true,
@@ -49,6 +49,8 @@
     "api_adapter_module": "tools/medical_pilot/pilot_api.py",
     "server_module": "tools/medical_pilot/pilot_server.py",
     "admin_module": "tools/medical_pilot/pilot_admin.py",
+    "collector_ingest_module": "tools/medical_pilot/collector_ingest.py",
+    "collector_store_module": "tools/medical_pilot/collector_store.py",
     "http_trusted_principal_required": true,
     "http_tenant_query_parameter_auth_allowed": false,
     "http_permissive_cors_enabled": false,
@@ -65,7 +67,10 @@
     "runtime_auth_and_repository_binding": "IMPLEMENTED_SINGLE_HOST_SQLITE_PILOT",
     "runtime_public_procurement_storage": "SHARED_GLOBAL_PUBLIC_FACTS_NOT_COPIED_PER_TENANT",
     "runtime_customer_profile_storage": "TENANT_PRIVATE",
-    "runtime_source_collector_repository_wiring": "PENDING",
+    "runtime_source_collector_repository_wiring": "IMPLEMENTED_DETAIL_INGEST_EVENT_LEDGER_CURRENT_EVENT_PROJECTION",
+    "collector_lifecycle_rebuild_from_event_ledger": true,
+    "collector_current_event_only_product_scope": true,
+    "collector_unknown_rental_fails_closed": true,
     "deployment_topology": "SINGLE_HOST_SAME_ORIGIN_PILOT",
     "server_default_bind": "127.0.0.1:8787",
     "serverless_local_sqlite_allowed": false,
@@ -88,6 +93,35 @@
     "frontend_outreach_real_api_pending": true,
     "frontend_build_status": "BLOCKED_RUNNER_NOT_ASSIGNED_NO_STEPS_EXECUTED",
     "frontend_mock_prototype_allowed": true
+  },
+  "discovery": {
+    "runtime_module": "tools/medical_pilot/discovery_runtime.py",
+    "scheduler_module": "tools/medical_pilot/discovery_scheduler.py",
+    "ready_source_count": 2,
+    "not_ready_source_count": 5,
+    "ready_sources": [
+      "tjmugh_procurement",
+      "tj_first_central_hospital_procurement"
+    ],
+    "not_ready_sources": {
+      "tj_government_procurement": "NATIVE_LIST_ROUTE_UNRESOLVED",
+      "tj_government_procurement_center": "PUBLIC_TENDER_LIST_CLASS_ID_UNRESOLVED",
+      "ccgp_local_notices": "GENERIC_NATIONAL_LIST_NOT_TIANJIN_SCOPED",
+      "ccgp_procurement_intent": "SEARCH_DISCOVERY_CAPTCHA_AND_QUERY_CONTRACT_NOT_READY",
+      "tj_public_resource_exchange": "RESULT_LIST_DISCOVERY_CONTRACT_NOT_READY"
+    },
+    "persistent_detail_url_ledger": true,
+    "persistent_schedule_slot_claim": true,
+    "same_host_duplicate_slot_prevention": true,
+    "detail_success_recheck_minutes": 1440,
+    "detail_failure_backoff_base_minutes": 15,
+    "detail_failure_backoff_max_minutes": 240,
+    "source_failure_backoff_bound_to_cadence": true,
+    "source_success_resets_failure_backoff": true,
+    "forced_refresh_windows_wired": true,
+    "minute_granular_scheduler": true,
+    "subminute_jitter_applied": false,
+    "recommended_invocation": "ONE_IDEMPOTENT_TICK_PER_MINUTE_USING_SINGLE_HOST_CRON_OR_SYSTEMD_TIMER"
   },
   "agnes_worker": {
     "api_module": "tools/medical_pilot/today_actions_api.py",
@@ -112,7 +146,7 @@
     "api_key_stored_in_repo": false
   },
   "discovery_cadence": {
-    "status": "IMPLEMENTED_V0_1_POLICY_NOT_YET_PERSISTENT_SOURCE_SCHEDULER_WIRED",
+    "status": "PERSISTENT_SCHEDULER_IMPLEMENTED_FOR_TWO_VERIFIED_LISTINGS_FIVE_SOURCES_FAIL_CLOSED",
     "timezone": "Asia/Shanghai",
     "fast_procurement_weekday_business_minutes": 10,
     "early_signal_weekday_business_minutes": 15,
@@ -130,7 +164,8 @@
     "overnight_continues": true,
     "weekend_reduced_not_disabled": true,
     "failure_backoff_max_minutes": 240,
-    "jitter_percent": 10
+    "jitter_percent_policy": 10,
+    "subminute_jitter_runtime_status": "PENDING_MINUTE_GRANULAR_PILOT"
   },
   "notification_timing": {
     "status": "IMPLEMENTED_V0_1_BOUND_TO_SUBSCRIPTION_DELIVERY_PLAN",
@@ -167,27 +202,40 @@
     "pagination": "UNRESOLVED",
     "blind_w00x_guessing_paused": true
   },
-  "agnes": {"status": "GO_FOR_BENCHMARK", "case_count": 28, "executed": false},
+  "agnes": {
+    "status": "GO_FOR_BENCHMARK_AFTER_DETERMINISTIC_EXECUTION_EVIDENCE",
+    "case_count": 28,
+    "executed": false
+  },
   "ci": {
     "status": "BLOCKED_RUNNER_NOT_ASSIGNED",
-    "latest_checked_head_sha": "dcd4c74fdca20e707e9830a7fb01d794b19666b9",
-    "latest_run_id": 33293579264,
+    "latest_checked_head_sha": "ab844000bd0ba890d79d61db28dc58fe416253ed",
+    "latest_run_id": 33294369330,
     "latest_jobs": {
-      "python-pilot": {"job_id": 99209318840, "runner_id": 0, "steps_count": 0, "conclusion": "failure"},
-      "web-build": {"job_id": 99209318922, "runner_id": 0, "steps_count": 0, "conclusion": "failure"}
+      "python-pilot": {
+        "job_id": 99211395181,
+        "runner_id": 0,
+        "steps_count": 0,
+        "conclusion": "failure"
+      },
+      "web-build": {
+        "job_id": 99211395102,
+        "runner_id": 0,
+        "steps_count": 0,
+        "conclusion": "failure"
+      }
     },
     "interpretation": "Both jobs ended with runner_id=0 and steps=[]; no Python test, TypeScript typecheck, npm install, or H5 build step executed."
   },
   "next": [
-    "wire verified collector outputs into SQLiteTodayActionsRepository so public facts persist automatically instead of admin bootstrap",
-    "execute 64 deterministic tests and web typecheck/build when runner returns",
-    "perform single-host same-origin smoke deployment only after real execution evidence is available",
-    "keep follow-up local until a tenant-safe server follow-up endpoint is specified",
+    "execute 69 deterministic tests and web typecheck/build when runner or an equivalent trusted execution environment becomes available",
+    "run the persistent discovery tick on a real single-host Pilot only after execution evidence exists and record listing/detail latency",
+    "resolve the remaining five discovery contracts one source at a time without guessing classId, pagination or CAPTCHA bypasses",
+    "keep follow-up local until a tenant-safe server follow-up endpoint is specified and tested",
     "add real on-demand outreach endpoint only after its grounded contract is fixed",
     "capture real bytes from exact downEnId medical attachment URL",
-    "use verified detail/mirror sources while tjgpc native list classId remains unresolved; do not guess W00x",
-    "run Agnes benchmark after deterministic execution evidence and tune cadence using latency/queue evidence",
+    "run 28 Agnes benchmark cases after deterministic execution evidence and tune cadence using latency/queue evidence",
     "decide native WeChat mini-program only after H5 Pilot validates workflow",
-    "replace SQLite session/repository/queue/lease/result stores with shared atomic implementations before horizontal multi-server or stateless Serverless deployment"
+    "replace SQLite session/repository/discovery/queue/lease/result stores with shared atomic implementations before horizontal multi-server or stateless Serverless deployment"
   ]
 }
