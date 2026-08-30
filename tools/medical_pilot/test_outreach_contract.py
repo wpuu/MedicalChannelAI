@@ -3,14 +3,14 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import unittest
 
-from .outreach_contract import (
+from tools.medical_pilot.outreach_contract import (
     OutreachContractError,
     build_outreach_model_input,
     render_outreach_draft,
     validate_outreach_model_output,
 )
-from .test_model_decision_contract import verified_fact
-from .test_opportunity_match_gate import complete_profile, opportunity
+from tools.medical_pilot.test_model_decision_contract import verified_fact
+from tools.medical_pilot.test_opportunity_match_gate import complete_profile, opportunity
 
 
 class OutreachContractTests(unittest.TestCase):
