@@ -139,6 +139,7 @@ export function TodayPage() {
 
       <DueRemindersPanel
         reminders={reminders}
+        currentOpportunityIds={data.cards.map((card) => card.opportunity_id)}
         busyId={reminderBusyId}
         onOpen={(opportunityId) => navigate(`/opportunity/${opportunityId}`)}
         onAcknowledge={(reminderId) => void acknowledgeReminder(reminderId)}
