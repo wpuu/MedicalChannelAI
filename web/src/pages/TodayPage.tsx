@@ -8,6 +8,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageSt
 import { NotFitModal } from '@/components/followup/NotFitModal'
 import { RemindModal } from '@/components/followup/RemindModal'
 import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
+import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
@@ -141,15 +142,19 @@ export function TodayPage() {
         <section className="rounded-2xl border border-teal-200 bg-teal-50/70 px-4 py-4 shadow-sm">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-md bg-teal-700 px-2 py-0.5 text-[11px] font-semibold text-white">
-              虚构演示客户画像
+              {isVerifiedPublicDemo ? '真实公开数据演示' : '虚构演示客户画像'}
             </span>
-            <span className="text-[12px] text-teal-900">用于说明“为什么这个客户今天应该先跟这5个项目”</span>
+            <span className="text-[12px] text-teal-900">
+              {isVerifiedPublicDemo
+                ? '采购项目是真实公开事实；客户关系与产品资源仍是演示画像'
+                : '用于说明“为什么这个客户今天应该先跟这5个项目”'}
+            </span>
           </div>
           <p className="mt-2 text-[13px] leading-6 text-slate-700">
-            天津医疗渠道商；已确认部分检验科、设备科医院关系；具备或可合作执行化学发光、生化、POCT、智能采血及医疗设备维保项目。
+            天津医疗渠道商；已确认部分检验科、设备科医院关系；具备或可合作执行IVD、检验设备租赁、影像及医疗设备渠道项目。
           </p>
           <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-            {['医院关系', 'IVD产品能力', '智能采血资源', '可找厂家', '可联合渠道'].map((label) => (
+            {['医院关系', 'IVD产品能力', '检验设备租赁', '可找厂家', '可联合渠道'].map((label) => (
               <span
                 key={label}
                 className="rounded-full border border-teal-200 bg-white px-2.5 py-1 font-medium text-teal-800"
@@ -159,7 +164,9 @@ export function TodayPage() {
             ))}
           </div>
           <p className="mt-3 text-[12px] leading-5 text-slate-500">
-            下方项目、医院、联系人和金额均为虚构演示数据。排序来自“项目公开事实 × 这份客户资源”，不是全市场通用排名。
+            {isVerifiedPublicDemo
+              ? '项目名称、采购单位、预算、公告日期、截止时间、公开联系人和官方依据来自2026-08-30冻结的政府采购公开信息快照；医院关系、产品能力、经营优先级及建议中的客户侧输入为演示数据。'
+              : '下方项目、医院、联系人和金额均为虚构演示数据。排序来自“项目公开事实 × 这份客户资源”，不是全市场通用排名。'}
           </p>
         </section>
       ) : null}
