@@ -181,6 +181,21 @@ class SQLiteTodayActionsRepository:
             raise RuntimeError("stored profile identity diverges from repository key")
         return copy.deepcopy(profile)
 
+    def load_public_opportunity(self, opportunity_id: str) -> dict[str, Any] | None:
+        opportunity_id = _required_text(opportunity_id, "opportunity_id", max_length=160)
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT payload FROM medical_public_opportunities WHERE opportunity_id=?",
+                (opportunity_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        item = _json_object(json.loads(row[0]), "stored opportunity")
+        _reject_private_public_payload(item, "stored opportunity")
+        if item.get("opportunity_id") != opportunity_id:
+            raise RuntimeError("stored opportunity identity diverges from repository key")
+        return copy.deepcopy(item)
+
     def list_opportunities(
         self,
         tenant_id: str,
