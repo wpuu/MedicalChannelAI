@@ -6,7 +6,8 @@ interface DueRemindersPanelProps {
   reminders: DueReminder[]
   currentOpportunityIds: string[]
   busyId: string | null
-  onOpen: (opportunityId: string) => void
+  onOpenToday: (opportunityId: string) => void
+  onOpenFollowed: (opportunityId: string) => void
   onAcknowledge: (reminderId: string) => void
 }
 
@@ -14,7 +15,8 @@ export function DueRemindersPanel({
   reminders,
   currentOpportunityIds,
   busyId,
-  onOpen,
+  onOpenToday,
+  onOpenFollowed,
   onAcknowledge,
 }: DueRemindersPanelProps) {
   if (reminders.length === 0) return null
@@ -39,7 +41,7 @@ export function DueRemindersPanel({
               const buyer = item.facts.hospital_name ?? item.facts.buyer_name ?? '采购单位暂无公开信息'
               const project = item.facts.project_name ?? '项目名称暂无公开信息'
               const busy = busyId === item.reminder_id
-              const canOpen = currentIds.has(item.opportunity_id)
+              const isToday = currentIds.has(item.opportunity_id)
               return (
                 <div
                   key={item.reminder_id}
@@ -50,19 +52,21 @@ export function DueRemindersPanel({
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500">
                     <span>到期：{formatDateTime(item.remind_at) ?? item.remind_at}</span>
                     {item.note ? <span>备注：{item.note}</span> : null}
-                    {!canOpen ? <span>当前不在今日 Top5</span> : null}
+                    {!isToday ? <span>当前不在今日 Top5 · 已保留在我的跟进</span> : null}
                   </div>
                   <div className="mt-3 flex flex-wrap justify-end gap-2">
-                    {canOpen ? (
-                      <button
-                        type="button"
-                        onClick={() => onOpen(item.opportunity_id)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[12px] text-slate-700"
-                      >
-                        查看商机
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </button>
-                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        isToday
+                          ? onOpenToday(item.opportunity_id)
+                          : onOpenFollowed(item.opportunity_id)
+                      }
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[12px] text-slate-700"
+                    >
+                      {isToday ? '查看今日详情' : '查看我的跟进'}
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
                     <button
                       type="button"
                       disabled={busy}
