@@ -76,6 +76,14 @@ def dispatch_pilot_api(
             body=body,
             now=now,
         )
+    elif path == "/followed":
+        response = runtime.followed_transport.handle(
+            method=method,
+            target=inner,
+            headers=headers,
+            body=body,
+            now=now,
+        )
     elif path == "/reminders" or path.startswith("/reminders/"):
         response = runtime.reminder_transport.handle(
             method=method,
