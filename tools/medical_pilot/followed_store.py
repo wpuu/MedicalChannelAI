@@ -47,7 +47,7 @@ class SQLiteFollowedOpportunityStore:
         *,
         principal: TrustedPrincipal,
         limit: int = 100,
-        include_archived: bool = false,
+        include_archived: bool = False,
     ) -> list[CurrentFollowedOpportunity]:
         if not isinstance(principal.tenant_id, str) or not principal.tenant_id.strip():
             raise ValueError("tenant_id is required")
