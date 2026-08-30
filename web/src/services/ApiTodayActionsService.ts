@@ -17,6 +17,29 @@ import type { TodayActionsService } from './TodayActionsService'
 const FOLLOWUP_STORAGE_KEY = 'medopp.api-followups.v1'
 const COVERAGE_WARNING = '当前处于天津 Pilot 阶段，公开数据覆盖持续扩展中。'
 
+const FORBIDDEN_PUBLIC_KEYS = new Set([
+  'model_requests',
+  'model_input',
+  'task_payloads',
+  'agnes_dispatch_plan',
+  'lease',
+  'lease_id',
+  'provider',
+  'api_key',
+  'upstream_model',
+  'completion_nonce',
+  'task_id',
+])
+
+const FORBIDDEN_PUBLIC_PREFIXES = [
+  'model_input_',
+  'agnes_dispatch_',
+  'provider_',
+  'lease_',
+  'api_key_',
+  'upstream_model_',
+]
+
 interface StoredFollowup {
   status: TodayActionCard['followup_status']
   remind_at: string | null
@@ -27,6 +50,26 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null
+}
+
+function assertNoInternalFields(value: unknown, path = '$'): void {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertNoInternalFields(item, `${path}[${index}]`))
+    return
+  }
+  const record = asRecord(value)
+  if (!record) return
+
+  for (const [key, child] of Object.entries(record)) {
+    const normalized = key.toLowerCase()
+    const blocked =
+      FORBIDDEN_PUBLIC_KEYS.has(normalized) ||
+      FORBIDDEN_PUBLIC_PREFIXES.some((prefix) => normalized.startsWith(prefix))
+    if (blocked) {
+      throw new Error(`PUBLIC_VIEW_INTERNAL_FIELD:${path}.${key}`)
+    }
+    assertNoInternalFields(child, `${path}.${key}`)
+  }
 }
 
 function asString(value: unknown): string | null {
@@ -284,7 +327,9 @@ export class ApiTodayActionsService implements TodayActionsService {
       headers: { Accept: 'application/json' },
     })
     if (!response.ok) throw new Error(`HTTP_${response.status}`)
-    return (await response.json()) as T
+    const payload: unknown = await response.json()
+    assertNoInternalFields(payload)
+    return payload as T
   }
 
   async getTodayActions(): Promise<TodayActionsResponse> {
