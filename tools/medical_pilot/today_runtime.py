@@ -19,6 +19,8 @@ from .invite_auth import (
 )
 from .outreach_http import OutreachHttpTransport
 from .outreach_service import GroundedOutreachService, SQLiteOutreachResultStore
+from .reminder_http import ReminderHttpTransport
+from .reminder_store import SQLiteReminderInboxStore
 from .session_auth import (
     IssuedSession,
     OpaqueCookiePrincipalResolver,
@@ -41,8 +43,8 @@ class SQLiteTodayRuntime:
     """Single-host Tianjin Pilot runtime binding.
 
     One SQLite file may safely host public facts, tenant-private profile/follow-up/
-    outreach, auth, discovery and Agnes coordination tables because components use
-    distinct table names plus WAL/busy timeout. This remains a single-host reference
+    reminder/outreach, auth, discovery and Agnes coordination tables because components
+    use distinct table names plus WAL/busy timeout. This remains a single-host reference
     runtime and must not be copied to independent stateless serverless instances.
     """
 
@@ -51,6 +53,7 @@ class SQLiteTodayRuntime:
     invite_store: SQLiteInviteStore
     session_store: SQLiteSessionStore
     followup_store: SQLiteFollowupStore
+    reminder_store: SQLiteReminderInboxStore
     outreach_result_store: SQLiteOutreachResultStore
     result_store: SQLiteAgnesTaskResultStore
     dispatch_queue: SQLiteAgnesDispatchQueue
@@ -61,6 +64,7 @@ class SQLiteTodayRuntime:
     outreach_service: GroundedOutreachService
     auth_transport: PilotAuthHttpTransport = field(init=False)
     followup_transport: FollowupHttpTransport = field(init=False)
+    reminder_transport: ReminderHttpTransport = field(init=False)
     outreach_transport: OutreachHttpTransport = field(init=False)
 
     def __post_init__(self) -> None:
@@ -72,6 +76,11 @@ class SQLiteTodayRuntime:
             principal_resolver=self.principal_resolver,
             repository=self.repository,
             store=self.followup_store,
+        )
+        self.reminder_transport = ReminderHttpTransport(
+            principal_resolver=self.principal_resolver,
+            repository=self.repository,
+            store=self.reminder_store,
         )
         self.outreach_transport = OutreachHttpTransport(
             principal_resolver=self.principal_resolver,
@@ -157,6 +166,7 @@ def build_sqlite_today_runtime(
     invite_store = SQLiteInviteStore(path)
     session_store = SQLiteSessionStore(path)
     followup_store = SQLiteFollowupStore(path)
+    reminder_store = SQLiteReminderInboxStore(path)
     outreach_result_store = SQLiteOutreachResultStore(path)
     result_store = SQLiteAgnesTaskResultStore(path)
     dispatch_queue = SQLiteAgnesDispatchQueue(path)
@@ -187,6 +197,7 @@ def build_sqlite_today_runtime(
         invite_store=invite_store,
         session_store=session_store,
         followup_store=followup_store,
+        reminder_store=reminder_store,
         outreach_result_store=outreach_result_store,
         result_store=result_store,
         dispatch_queue=dispatch_queue,
