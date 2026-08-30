@@ -6,48 +6,69 @@
 
 ## 结论
 
-天津 Pilot 采用单域名单机架构：
+当前不再考虑收费的 `qzz.io` 作为测试入口。
+
+给老杨看的免费商务 Demo：
+
+1. **首选：`medradar.dpdns.org`**
+2. 应急验证：现有 `wpu.dpdns.org` 只用于证明 dpdns 链路可工作，不改动它当前业务
+3. `medicalai.qd.je` 只做备选，不作为首选：`qd.je` 当前存在 Public Suffix / Cloudflare zone 兼容问题
+
+正式商业化后再换独立长期可控域名。
+
+## 中国大陆访问是硬门槛
+
+目标不是“国外能打开”，而是：
+
+> 老杨在天津使用普通手机流量或家庭宽带、不开 VPN，可以直接打开。
+
+Cloudflare 官方明确说明，普通全球网络跨中国网络边界时可能出现明显延迟和可靠性问题；真正的 Cloudflare China Network 是单独的 Enterprise 服务并要求 ICP。
+
+因此免费 Demo 默认采用：
 
 ```text
-浏览器
-  ↓ HTTPS
-Pilot 域名
-  ↓
-Cloudflare DNS / Proxy（可选但推荐）
+medradar.dpdns.org
+  ↓ DNS-only
+境外源站
   ↓ HTTPS
 Caddy
-  ├─ /            → /srv/medical/web
-  └─ /api/*       → 127.0.0.1:8787
-                         ↓
-                  pilot_server.py
-                         ↓
-                  /srv/medical/data/pilot.sqlite
+  ↓
+静态 H5
 ```
 
-运行与备份：
+**第一轮大陆验收不依赖 Cloudflare 橙云代理。**
 
-```text
-/srv/medical/app       Git checkout / release
-/srv/medical/web       H5 build output
-/srv/medical/data      pilot.sqlite
-/srv/medical/backups   consistent SQLite backups
-```
+完整验收见：`deploy/CHINA_ACCESS.md`。
 
-当前 SQLite runtime 只允许一台长期在线服务器；禁止多个 VPS / 容器分别持有独立 SQLite 后同时对外。
+## 源站选择
+
+为了大陆访问，服务器优先级：
+
+1. 香港
+2. 东京 / 大阪
+3. 新加坡
+4. 美国西海岸
+5. 现有美国 Google VPS 作为零新增成本试验
+
+如果美国 VPS 在天津网络慢，不改域名、不改前端，直接把 DNS 指向香港/日本/新加坡的新源站即可。
+
+## H5 国内访问约束
+
+商务 Demo 首屏不得依赖国外第三方运行资源：
+
+- Google Fonts
+- jsDelivr / unpkg / cdnjs
+- Google APIs
+- `*.vercel.app`
+- `*.pages.dev`
+- `*.workers.dev`
+- 外部脚本/字体/样式作为首屏必需资源
+
+`deploy/build-web.sh demo` 在构建后会扫描产物；发现外部 `script/link/@import` 运行依赖则直接失败。
 
 ## 给老杨演示：同一域名两阶段
 
-为了不让第一次商务演示被真实后端验证进度阻塞，同时不换网址：
-
-### 阶段 A：Demo
-
-首选地址：
-
-```text
-https://medradar.qzz.io/
-```
-
-备用：
+### 阶段 A：商务 Demo
 
 ```text
 https://medradar.dpdns.org/
@@ -62,194 +83,115 @@ VITE_API_BASE_URL=
 
 要求：
 
-- 页面明确显示“演示数据”；
-- 只使用虚构 Mock 医疗项目；
-- 不要求登录；
+- 虚构医院、项目、联系人、金额、客户画像；
+- 明确显示“演示数据”；
+- 不登录；
 - 不调用真实 Agnes；
-- 不把 Mock 描述成真实医院采购事实。
+- 不冒充真实采购事实；
+- 不允许搜索引擎收录；
+- 公开依据不足时不能生成沟通话术。
 
 ### 阶段 B：真实天津 Pilot
 
-验证完成后仍使用同一个域名，重新构建：
+后端验证完成后仍使用同一个域名：
 
 ```text
 VITE_BUILD_MODE=pilot
 VITE_API_BASE_URL=/api
 ```
 
-然后启用：invite / Session / 真实后端 / 服务端 follow-up / reminder / followed / grounded outreach。
+然后启用真实 invite / Session / 客户画像 / 采购事实 / follow-up / reminder / followed / grounded outreach。
 
-前端已增加 build-mode fail-closed：Demo 不允许同时配置真实 API；Pilot 必须使用 `/api`。
+前端 build-mode fail-closed，防止 Demo/Pilot 串模式。
 
-## 域名策略
+## 单机 Pilot 拓扑
 
-DigitalPlat Domains 当前提供包括：
+```text
+浏览器
+  ↓ HTTPS
+medradar.dpdns.org
+  ↓ DNS
+Caddy
+  ├─ /      → /srv/medical/web
+  └─ /api/* → 127.0.0.1:8787
+                    ↓
+             pilot_server.py
+                    ↓
+             /srv/medical/data/pilot.sqlite
+```
 
-- `*.qzz.io`
-- `*.dpdns.org`
+公网只开放 80/443，不直接暴露 8787。
 
-并支持外部 nameserver/DNS provider。
+SQLite runtime 当前只允许一台长期在线服务器；禁止多个 VPS / 容器各自持有独立 SQLite 同时对外。
 
-当前业务演示推荐顺序：
+## DNS / TLS
 
-1. `medradar.qzz.io`
-2. `medicalai.qzz.io`
-3. `medradar.dpdns.org`
-4. `mcai.dpdns.org`
+Demo 第一轮：
 
-实际名称是否可用以注册平台实时结果为准。
+1. 注册 `medradar.dpdns.org`；
+2. DNS A/AAAA 直接指向源站；
+3. Caddy 获取 HTTPS 证书；
+4. 用天津/大陆普通网络验收；
+5. 通过后再把链接发给老杨。
 
-`qzz.io` 更短，更适合非技术客户看到的网址；免费 namespace 仍不作为正式商业品牌资产或企业邮箱主域长期依赖。
+Cloudflare proxy 是后续可选实验，不是前置条件。若开启后国内访问变慢或不稳定，退回 DNS-only。
 
-正式收费后换独立长期可控域名，例如 `<brand>.com/.cn/.ai`。域名切换不需要迁移 SQLite 中的采购事实、客户画像、follow-up、reminder 或 outreach cache。
-
-## DNS / TLS / Cloudflare
-
-推荐首次上线顺序：
-
-1. 注册选定的 `qzz.io` / `dpdns.org` 名称；
-2. 委派给外部 authoritative DNS；
-3. DNS A/AAAA 指向单台 VPS；
-4. 若使用 Cloudflare，首次先 DNS-only；
-5. Caddy 直接完成源站 HTTPS 证书签发；
-6. 浏览器直连确认 HTTPS 正常；
-7. 再按需开启 Cloudflare proxy；
-8. Cloudflare TLS 使用 `Full (strict)`；
-9. `/api/auth/redeem` 做速率限制；
-10. `/api/*` 不缓存。
-
-不采用 Flexible 模式作为真实 Pilot 配置。
+真实商业化若需要大陆 CDN/节点，再独立评估 ICP、国内云/CDN 或 Cloudflare China Network。
 
 ## Same-origin 身份边界
 
-真实 Pilot 的 H5 和 API 必须保持同一 canonical origin：
+真实 Pilot 保持：
 
 ```text
-https://<pilot-domain>/
-https://<pilot-domain>/api/*
+https://medradar.dpdns.org/
+https://medradar.dpdns.org/api/*
 ```
 
-这样保留现有：
+保留：
 
 - `__Host-mcai_session`
-- `Secure`
-- `HttpOnly`
-- `SameSite=Strict`
+- Secure
+- HttpOnly
+- SameSite=Strict
 - trusted Session tenant/profile
-- no permissive CORS
+- 无宽泛 CORS
 
 浏览器不得自报 tenant/profile 作为可信身份。
 
 ## 仓库部署文件
 
-运维命令以 `deploy/README.md` 为准。
-
-当前已经写入：
-
+- `deploy/README.md`
+- `deploy/README_DOMAIN.md`
+- `deploy/CHINA_ACCESS.md`
 - `deploy/Caddyfile.example`
-- `deploy/caddy-medical.env.example`
-- `deploy/caddy-medical.conf`
 - `deploy/build-web.sh`
 - `deploy/pilot-smoke.sh`
-- `deploy/medical-pilot.service`
-- `deploy/medical-discovery.service` + `.timer`
-- `deploy/medical-backup.service` + `.timer`
-- `deploy/medical-healthcheck.service` + `.timer`
-- `deploy/pilot.env.example`
+- API/discovery/backup/healthcheck systemd service/timer
+- `tools/medical_pilot/pilot_backup.py`
 
-这些是部署脚手架，**尚未在真实 VPS 执行**。
+当前都是**已写部署脚手架，尚未在真实目标服务器执行**。
 
-## API server
+## Demo 上线门槛
 
-```text
-python3 -m tools.medical_pilot.pilot_server \
-  --db /srv/medical/data/pilot.sqlite \
-  --host 127.0.0.1 \
-  --port 8787
-```
+Demo 不需要等待81组 Python 后端测试，但必须在实际部署环境完成：
 
-公网只暴露 Caddy 80/443；不得直接暴露 8787。
+1. `npm ci`
+2. `npx tsc --noEmit`
+3. `npm run build`
+4. 外部运行资源扫描 PASS
+5. HTTPS 无证书错误
+6. 两条独立大陆网络、无 VPN 验收 PASS
+7. 按 `docs/product/demo.md` 完成商务演示走查
 
-## Discovery
+## 真实 Pilot 上线门槛
 
-systemd timer 每分钟调用一个幂等 tick：
+真实天津 Pilot 仍至少需要：
 
-```text
-python3 -m tools.medical_pilot.discovery_scheduler \
-  --db /srv/medical/data/pilot.sqlite
-```
-
-这不表示每分钟抓官网；readiness、cadence、source backoff 和持久化 slot 决定是否真正请求。
-
-当前只有 2/7 Source 自动 listing discovery ready，其余5个仍 fail-closed。
-
-## Health
-
-公开 liveness：
-
-```text
-GET /api/healthz
-```
-
-固定返回非敏感 Public View，仅说明单机 Pilot 进程存活。不得包含 tenant/profile、业务数据、Provider、模型名或 API Key。
-
-它不代替登录后的业务 smoke。
-
-## Backup
-
-`tools/medical_pilot/pilot_backup.py` 使用 SQLite `Connection.backup()` 进行在线一致性备份，并执行：
-
-```text
-PRAGMA integrity_check
-SHA-256
-```
-
-默认 systemd timer：北京时间每日 02:20；默认保留14份。
-
-正式邀请真实 Pilot 用户前必须做至少一次 backup + restore 实测。
-
-## Secret
-
-服务器 Secret：
-
-```text
-MCAI_AGNES_API_KEY=...
-MCAI_AGNES_BASE_URL=...   # 可选，仍受代码 allowlist
-```
-
-禁止进入：GitHub、H5 bundle、SQLite 业务表、URL/query、客户日志。
-
-## 当前禁止
-
-- 多 VPS 各自一份 SQLite；
-- 多容器各自一份 SQLite；
-- Vercel/Serverless 临时本地文件系统保存 `pilot.sqlite`；
-- H5/API 跨域后让浏览器自报身份；
-- 直接把 127.0.0.1:8787 暴露公网；
-- 把 Demo Mock 介绍成真实采购数据；
-- 在真实执行 PASS 前把 PR #1 合并或标记 production_ready=true。
-
-## 从免费演示域名迁移正式域名
-
-1. 正式域名指向同一 VPS；
-2. 配置新 TLS；
-3. `MCAI_DOMAIN` 改成新域名；
-4. H5 真实 Pilot 仍使用 `/api`；
-5. 新 invite 改为新域名；
-6. 旧免费域名停止发新 invite；
-7. 不跨域搬运 Session Cookie，用户在新域名重新登录；
-8. SQLite 业务数据无需重建。
-
-## 上线前硬门槛
-
-真实天津 Pilot 至少需要：
-
-1. 81 组 deterministic tests 获得真实执行 PASS；
-2. Demo/Pilot 两种 H5 TypeScript/build 均真实 PASS；
+1. 81组 deterministic tests 真实 PASS；
+2. Demo/Pilot 两种 H5 build 真实 PASS；
 3. server-only Agnes grounded outreach smoke；
-4. 单机 VPS HTTPS + Session/invite/follow-up/reminder/followed/outreach smoke；
-5. `/api/healthz` + public HTTPS smoke；
-6. SQLite backup + restore 演练；
-7. 真实 discovery tick 与 latency 记录。
+4. HTTPS + Session/invite/follow-up/reminder/followed/outreach smoke；
+5. SQLite backup + restore 演练；
+6. 真实 discovery tick 与 latency 记录。
 
-Demo 给老杨预览可以早于真实 Pilot 后端上线，但必须始终明确标识“演示数据”。
+PR #1 在这些验证完成前保持 Draft，`production_ready=false`。
