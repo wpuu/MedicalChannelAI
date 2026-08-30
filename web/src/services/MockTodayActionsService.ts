@@ -1,4 +1,6 @@
+import { demoDatasetMode } from '@/config/demoDataset'
 import { mockTodayActionsResponse } from '@/data/today-actions.mock'
+import { verifiedDemoTodayActionsResponse } from '@/data/today-actions.verified-demo'
 import type {
   FollowupInput,
   FollowupRecord,
@@ -10,11 +12,16 @@ import { formatBudget, formatDate, uid } from '@/utils/format'
 import { CAPABILITY_LABEL, RELATIONSHIP_LABEL } from '@/utils/labels'
 import type { TodayActionsService } from './TodayActionsService'
 
-const STORAGE_KEY = 'medopp.followups.v1'
+const SYNTHETIC_STORAGE_KEY = 'medopp.followups.v1'
+const VERIFIED_STORAGE_KEY = 'medopp.verified-followups.v1'
+const STORAGE_KEY = demoDatasetMode === 'verified' ? VERIFIED_STORAGE_KEY : SYNTHETIC_STORAGE_KEY
+const selectedDemoResponse =
+  demoDatasetMode === 'verified' ? verifiedDemoTodayActionsResponse : mockTodayActionsResponse
 
 export function resetMockDemoState(): void {
   try {
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(SYNTHETIC_STORAGE_KEY)
+    localStorage.removeItem(VERIFIED_STORAGE_KEY)
   } catch {
     // A browser that blocks localStorage still has a usable in-memory Demo.
   }
@@ -38,7 +45,7 @@ export class MockTodayActionsService implements TodayActionsService {
   private snapshot: TodayActionsResponse
 
   constructor() {
-    this.snapshot = clone(mockTodayActionsResponse)
+    this.snapshot = clone(selectedDemoResponse)
     this.hydrateFollowups()
   }
 
@@ -76,6 +83,9 @@ export class MockTodayActionsService implements TodayActionsService {
 
   async getTodayActions(): Promise<TodayActionsResponse> {
     await wait(420)
+    if (demoDatasetMode === 'verified') {
+      return clone(this.snapshot)
+    }
     return clone({
       ...this.snapshot,
       model_request_count: 0,
@@ -122,13 +132,17 @@ export class MockTodayActionsService implements TodayActionsService {
     }
     if (
       card.model_decision_status === 'BLOCKED_GROUNDING' ||
+      card.model_decision_status === 'NOT_ELIGIBLE' ||
       card.evidence_source_urls.length === 0
     ) {
       throw new Error('OUTREACH_GROUNDING_INSUFFICIENT')
     }
     return {
       opportunity_id: id,
-      disclaimer: '演示模式 · 正式版将根据当前商机事实和客户资源按需生成。本话术仅供内部沟通参考，不是官方公告，也不代表医院立场。',
+      disclaimer:
+        demoDatasetMode === 'verified'
+          ? '真实公开事实快照 + 演示客户资源 · 话术由页面内演示逻辑生成，不代表实时 Agnes 调用，不代表医院立场。正式版将根据已验证事实和客户真实资源按需生成。'
+          : '演示模式 · 正式版将根据当前商机事实和客户资源按需生成。本话术仅供内部沟通参考，不是官方公告，也不代表医院立场。',
       generated_at: new Date().toISOString(),
       draft: buildDraft(card),
     }
@@ -136,7 +150,7 @@ export class MockTodayActionsService implements TodayActionsService {
 }
 
 function buildDraft(card: TodayActionCard): string {
-  const hospital = card.facts.hospital ?? '对方单位'
+  const hospital = card.facts.hospital ?? card.facts.buyer_name ?? '对方单位'
   const project = card.facts.project_name ?? '相关采购项目'
   const dept = card.facts.department ?? '相关科室'
   const owner = card.customer_context.hospital_relationship?.owner ?? '我们团队'
@@ -144,12 +158,12 @@ function buildDraft(card: TodayActionCard): string {
   const greeting = contact ? `${contact}老师` : `${dept}老师`
   const rel = card.customer_context.hospital_relationship
   const relLine = rel
-    ? `我们与贵院${rel.department ?? ''}保持沟通（关系强度：${RELATIONSHIP_LABEL[rel.relationship_strength]}，内部负责人：${rel.owner ?? '未指定'}）。`
-    : '目前尚未确认院内关系，本次沟通以了解需求与时间节点为主。'
+    ? `演示客户画像中，与贵院${rel.department ?? ''}的关系强度为：${RELATIONSHIP_LABEL[rel.relationship_strength]}（演示内部负责人：${rel.owner ?? '未指定'}）。实际使用时必须由客户确认后才能这样引用。`
+    : '当前演示客户画像尚未确认院内关系，本次沟通以了解需求与时间节点为主。'
   const capability = card.customer_context.matching_product_capabilities[0]
   const capLine = capability
-    ? `在${capability.subcategory ?? capability.category}方向，我们的能力是：${CAPABILITY_LABEL[capability.capability_type]}${capability.brands.length ? `（${capability.brands.join('、')}）` : ''}。`
-    : '当前客户资源中暂无明确匹配产品，需先内部确认可供方案。'
+    ? `演示客户画像在${capability.subcategory ?? capability.category}方向的能力是：${CAPABILITY_LABEL[capability.capability_type]}${capability.brands.length ? `（${capability.brands.join('、')}）` : ''}。`
+    : '当前演示客户画像中暂无明确匹配产品，需先确认真实供给能力。'
   const budget = formatBudget(card.facts.budget)
   const deadline =
     formatDate(card.facts.bid_deadline) ??
@@ -166,17 +180,17 @@ function buildDraft(card: TodayActionCard): string {
     ``,
     `${greeting}您好：`,
     ``,
-    `我是${owner}。关注到${hospital}${dept}正在推进「${project}」。`,
-    factBits.length ? `目前公开信息包括：${factBits.join('；')}。` : `目前可引用的公开信息有限，沟通时请只陈述已核实内容，不要补充未公开细节。`,
+    `我是${owner}。关注到${hospital}${card.facts.department ? dept : ''}正在推进「${project}」。`,
+    factBits.length ? `目前可引用的公开信息包括：${factBits.join('；')}。` : `目前可引用的公开信息有限，沟通时请只陈述已核实内容，不要补充未公开细节。`,
     ``,
     relLine,
     capLine,
     ``,
-    `想和您确认两件事：一是当前需求范围与时间安排；二是后续资料对接窗口。如方便，我可以按贵院节奏准备方案说明。`,
+    `想进一步确认当前需求范围、时间安排以及后续资料对接窗口。如方便，我们再根据实际需求准备对应方案。`,
     ``,
     `谢谢。`,
     ``,
     `——`,
-    `说明：以上内容根据公开事实与客户自有资源起草，不得当作医院官方信息转发。`,
+    `说明：公开项目事实与客户侧资源必须分开核实；以上客户关系/能力在演示版中属于演示画像。`,
   ].join('\n')
 }
