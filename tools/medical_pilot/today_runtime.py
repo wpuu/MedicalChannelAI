@@ -8,6 +8,8 @@ from typing import Callable
 from .agnes_dispatch_queue import SQLiteAgnesDispatchQueue
 from .agnes_task_result import SQLiteAgnesTaskResultStore
 from .auth_http import PilotAuthHttpTransport
+from .followup_http import FollowupHttpTransport
+from .followup_store import SQLiteFollowupStore
 from .invite_auth import (
     IssuedInvite,
     SQLiteInviteStore,
@@ -32,27 +34,34 @@ from .today_repo import SQLiteTodayActionsRepository
 class SQLiteTodayRuntime:
     """Single-host Tianjin Pilot runtime binding.
 
-    One SQLite file may safely host the Pilot profile/public-fact/session/invite/Agnes
-    tables because each component uses distinct table names plus WAL/busy timeout.
-    This is deliberately a single-host reference runtime. It must not be copied to
-    multiple stateless serverless instances as independent local databases.
+    One SQLite file may safely host the Pilot public facts, tenant-private profile,
+    follow-up, session/invite and Agnes tables because components use distinct table
+    names plus WAL/busy timeout. This remains a single-host reference runtime and must
+    not be copied to independent stateless serverless instances.
     """
 
     path: Path
     repository: SQLiteTodayActionsRepository
     invite_store: SQLiteInviteStore
     session_store: SQLiteSessionStore
+    followup_store: SQLiteFollowupStore
     result_store: SQLiteAgnesTaskResultStore
     dispatch_queue: SQLiteAgnesDispatchQueue
     principal_resolver: OpaqueCookiePrincipalResolver
     application: RepositoryTodayActionsApplication
     transport: TodayActionsHttpTransport
     auth_transport: PilotAuthHttpTransport = field(init=False)
+    followup_transport: FollowupHttpTransport = field(init=False)
 
     def __post_init__(self) -> None:
         self.auth_transport = PilotAuthHttpTransport(
             invite_session_issuer=self,
             session_store=self.session_store,
+        )
+        self.followup_transport = FollowupHttpTransport(
+            principal_resolver=self.principal_resolver,
+            repository=self.repository,
+            store=self.followup_store,
         )
 
     def issue_profile_invite(
@@ -139,6 +148,7 @@ def build_sqlite_today_runtime(
     repository = SQLiteTodayActionsRepository(path)
     invite_store = SQLiteInviteStore(path)
     session_store = SQLiteSessionStore(path)
+    followup_store = SQLiteFollowupStore(path)
     result_store = SQLiteAgnesTaskResultStore(path)
     dispatch_queue = SQLiteAgnesDispatchQueue(path)
     principal_resolver = OpaqueCookiePrincipalResolver(
@@ -159,6 +169,7 @@ def build_sqlite_today_runtime(
         repository=repository,
         invite_store=invite_store,
         session_store=session_store,
+        followup_store=followup_store,
         result_store=result_store,
         dispatch_queue=dispatch_queue,
         principal_resolver=principal_resolver,
