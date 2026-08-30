@@ -7,6 +7,7 @@ from typing import Callable
 
 from .agnes_dispatch_queue import SQLiteAgnesDispatchQueue
 from .agnes_task_result import SQLiteAgnesTaskResultStore
+from .auth_http import PilotAuthHttpTransport
 from .invite_auth import (
     IssuedInvite,
     SQLiteInviteStore,
@@ -46,6 +47,7 @@ class SQLiteTodayRuntime:
     principal_resolver: OpaqueCookiePrincipalResolver
     application: RepositoryTodayActionsApplication
     transport: TodayActionsHttpTransport
+    auth_transport: PilotAuthHttpTransport
 
     def issue_profile_invite(
         self,
@@ -146,7 +148,7 @@ def build_sqlite_today_runtime(
         principal_resolver=principal_resolver,
         application=application,
     )
-    return SQLiteTodayRuntime(
+    runtime = SQLiteTodayRuntime(
         path=path,
         repository=repository,
         invite_store=invite_store,
@@ -156,4 +158,10 @@ def build_sqlite_today_runtime(
         principal_resolver=principal_resolver,
         application=application,
         transport=transport,
+        auth_transport=None,  # type: ignore[arg-type]
     )
+    runtime.auth_transport = PilotAuthHttpTransport(
+        invite_session_issuer=runtime,
+        session_store=session_store,
+    )
+    return runtime
