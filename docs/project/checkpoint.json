@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-30T19:45:00+08:00",
-  "phase": "TRUSTED_TIANJIN_BACKEND_PLUS_BUSINESS_DEMO_POLISHED_PLUS_WECHAT_MAINLAND_ACCESS_GATE_PLUS_CANONICAL_ORIGIN_HARDENING_PLUS_SINGLE_HOST_DEPLOYMENT_SCAFFOLD",
+  "as_of": "2026-08-31T00:20:00+08:00",
+  "phase": "VERIFIED_PUBLIC_DATA_DEMO_PLUS_INVITE_REGISTRATION_PLUS_EDITABLE_CUSTOMER_PROFILE_PLUS_REAL_AGNES_QUEUE_PILOT",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -15,68 +15,66 @@
     "verified_opportunity_regression_fixtures": 50,
     "verified_institution_evidence_fixtures": 15,
     "schema_contracts": 41,
-    "deterministic_test_modules_written": 82,
+    "deterministic_test_modules_written": 83,
     "real_medical_attachment_binary_captures": 0,
     "agnes_benchmark_cases": 28,
     "agnes_benchmark_executed": false
   },
   "business_demo": {
-    "status": "POLISHED_DOMAIN_WECHAT_REACHABILITY_CONFIRMED_AWAITING_TARGET_HOST_BUILD",
-    "domain": "medicalai.qd.je",
-    "mainland_reachability_user_tested": true,
-    "wechat_in_app_browser_user_tested": true,
-    "dpdns_wechat_user_test_failed": true,
-    "synthetic_opportunities_only": true,
-    "synthetic_customer_profile_explicit": true,
-    "top1_scenario": "SMART_PHLEBOTOMY_AND_PREANALYTIC_SYSTEM",
-    "one_click_reset": true,
-    "blocked_grounding_outreach_allowed": false,
-    "mock_embeds_internal_model_requests": false,
+    "status": "VERIFIED_PUBLIC_DATA_FRONTEND_AVAILABLE_ON_VERCEL",
+    "domain": "medicalchannelai.vercel.app",
+    "custom_dns_required_for_demo": false,
+    "verified_public_opportunity_snapshot_available": true,
+    "customer_profile_in_verified_demo_is_explicitly_synthetic": true,
+    "official_source_links_available": true,
+    "verified_demo_real_agnes_enabled": false,
+    "verified_demo_login_required": false,
     "search_indexing_allowed": false,
-    "walkthrough_doc": "docs/product/demo.md",
-    "same_domain_demo_to_real_pilot_required": false,
-    "demo_build_mode": "demo",
-    "demo_api_base": "",
-    "demo_real_agnes_enabled": false,
-    "demo_login_required": false
-  },
-  "mainland_access": {
-    "required_before_sending_to_business_user": true,
-    "wechat_in_app_browser_required": true,
-    "acceptance_doc": "deploy/CHINA_ACCESS.md",
-    "vpn_must_be_off_during_acceptance": true,
-    "minimum_independent_mainland_networks": 2,
-    "cloudflare_required": false,
-    "vercel_required": false,
-    "preferred_origin_regions": ["HONG_KONG", "JAPAN", "SINGAPORE", "US_WEST_TEST_ONLY"],
-    "external_runtime_script_style_dependency_allowed": false,
-    "demo_build_scans_external_runtime_assets": true,
-    "demo_dist_default_budget_kib": 3072,
-    "free_domain_reputation_can_change": true,
-    "retest_wechat_on_demo_day": true
-  },
-  "domain_security": {
-    "qd_je_allowed_for_static_synthetic_demo": true,
-    "qd_je_not_relied_on_for_authenticated_pilot": true,
-    "authenticated_real_pilot_should_use_independent_domain": true,
-    "canonical_origin_env": "MCAI_CANONICAL_ORIGIN",
-    "real_pilot_requires_https_canonical_origin": true,
-    "real_pilot_host_must_match_canonical_authority": true,
-    "unsafe_methods_require_matching_origin": true,
-    "loopback_exception_health_only": true,
-    "origin_failure_response": "403_FORBIDDEN_GENERIC"
+    "walkthrough_doc": "docs/product/demo.md"
   },
   "today_actions": {
     "max_final_action_cards": 5,
     "verified_evidence_required_for_model": true,
     "ungrounded_model_output_rejected": true,
     "api_tenant_isolation": true,
-    "public_view_excludes_internal_model_fields": true
+    "public_view_excludes_internal_model_fields": true,
+    "profile_save_recomputes_today_and_enqueues_needed_agnes_tasks": true,
+    "browser_short_polls_awaiting_model_results": true
   },
-  "auth": {
+  "registration_auth": {
+    "strategy": "INVITE_ONLY_PILOT_REGISTRATION",
+    "public_self_signup_enabled": false,
+    "account_statuses": ["INVITED", "ACTIVE", "DISABLED"],
+    "account_profile_mapping": "ONE_ACCOUNT_TO_ONE_TENANT_PROFILE_IN_PILOT",
     "session_type": "OPAQUE_RANDOM_SERVER_SIDE",
     "session_cookie_name": "__Host-mcai_session",
-    "browser_tenant_profile_override_allowed": false
+    "default_session_ttl_days": 30,
+    "browser_tenant_profile_override_allowed": false,
+    "invite_one_time": true,
+    "invite_default_ttl_minutes": 30,
+    "account_disable_blocks_existing_sessions": true,
+    "account_disable_revokes_all_current_sessions": true,
+    "reenable_requires_fresh_login": true,
+    "decision_doc": "docs/product/registration-auth-v0.1.md"
+  },
+  "customer_profile": {
+    "endpoint": "GET/PUT /api/profile",
+    "frontend_route": "/profile",
+    "editable_by_signed_in_customer": true,
+    "server_bound_identity": true,
+    "contract_validation_before_persistence": true,
+    "smart_phlebotomy_taxonomy_supported": true,
+    "save_triggers_today_refresh": true
+  },
+  "agnes": {
+    "model_provider_call_browser_side": false,
+    "dispatch_queue_written": true,
+    "persistent_worker_entry_written": true,
+    "systemd_worker_written": true,
+    "shared_global_lease": true,
+    "api_key_env": "MCAI_AGNES_API_KEY",
+    "api_key_stored_in_repo": false,
+    "real_authenticated_end_to_end_smoke_passed": false
   },
   "followup": {
     "endpoint": "GET/POST /api/followup/:opportunity_id",
@@ -96,13 +94,11 @@
     "frontend_route": "/followed"
   },
   "outreach": {
-    "status": "GROUNDED_ON_DEMAND_SERVER_AND_H5_WIRED_AWAITING_EXECUTION",
+    "status": "GROUNDED_ON_DEMAND_SERVER_AND_H5_WIRED_AWAITING_REAL_PROVIDER_SMOKE",
     "endpoint": "POST /api/outreach/:opportunity_id",
     "model_freeform_sales_copy_allowed": false,
     "server_side_renderer": true,
-    "uses_shared_agnes_global_lease": true,
-    "api_key_env": "MCAI_AGNES_API_KEY",
-    "api_key_stored_in_repo": false
+    "uses_shared_agnes_global_lease": true
   },
   "discovery": {
     "ready_source_count": 2,
@@ -112,40 +108,31 @@
     "persistent_schedule_slot_claim": true
   },
   "deployment": {
-    "status": "SINGLE_HOST_SCAFFOLD_WRITTEN_NOT_YET_EXECUTED",
-    "plan_doc": "docs/project/deployment-plan-v0.1.md",
-    "domain_doc": "deploy/README_DOMAIN.md",
-    "china_access_doc": "deploy/CHINA_ACCESS.md",
-    "build_script": "deploy/build-web.sh",
-    "demo_topology": "MEDICALAI_QD_JE_TO_DIRECT_ORIGIN_TO_CADDY_TO_STATIC_H5",
-    "real_pilot_topology": "INDEPENDENT_HTTPS_DOMAIN_TO_CADDY_TO_STATIC_H5_AND_LOCAL_API",
+    "verified_demo_frontend_host": "VERCEL",
+    "verified_demo_url": "https://medicalchannelai.vercel.app",
+    "real_pilot_backend_strategy": "SINGLE_HOST_SQLITE_PLUS_CADDY",
     "server_default_bind": "127.0.0.1:8787",
     "sqlite_path": "/srv/medical/data/pilot.sqlite",
     "serverless_local_sqlite_allowed": false,
     "multi_vps_independent_sqlite_allowed": false,
-    "real_vps_execution_completed": false
+    "real_pilot_backend_execution_completed": false
   },
-  "ci": {
-    "status": "GITHUB_RUNNER_NOT_ASSIGNED",
-    "latest_checked_head_sha": "c88b73fa4abfd7e53db66cfd3206063331b1f926",
-    "latest_run_id": 33309593283,
-    "python_job_id": 99252124135,
-    "web_job_id": 99252124011,
-    "python_steps_executed": false,
-    "web_steps_executed": false,
-    "deterministic_tests_passed": false,
-    "web_typecheck_passed": false,
-    "demo_web_build_passed": false,
-    "pilot_web_build_passed": false,
-    "interpretation": "Both jobs ended without assigned runner or steps. The 82 deterministic test modules are written only, not PASS."
+  "validation": {
+    "vercel_frontend_typecheck_and_build_passed": true,
+    "vercel_frontend_evidence_commit": "308b2a24d006b49b8c66f65f2c1d4f2418ec32fe",
+    "vercel_build_command": "tsc --noEmit && vite build",
+    "python_backend_test_modules_written": 83,
+    "python_backend_tests_passed": false,
+    "github_actions_runner_available": false,
+    "interpretation": "Frontend registration/profile H5 has real Vercel typecheck/build evidence. Python backend/account/Agnes tests remain written-only until a runner or Pilot host executes them."
   },
   "next": [
-    "keep medicalai.qd.je as the current static business Demo address",
-    "point medicalai.qd.je at a mainland-reachable origin and run deploy/build-web.sh demo",
-    "serve HTTPS with Caddy and pass WeChat plus two independent mainland-network acceptance checks",
-    "run docs/product/demo.md walkthrough and only then send the URL to Lao Yang",
-    "prepare an independent HTTPS domain and MCAI_CANONICAL_ORIGIN before enabling authenticated real Pilot data",
-    "obtain real execution PASS for 82 deterministic backend test modules",
-    "complete Agnes authenticated smoke, backup restore, remaining discovery contracts, attachment bytes and benchmarks"
+    "obtain real Python execution for all deterministic backend tests",
+    "start single-host Pilot API plus medical-agnes-worker with server-only MCAI_AGNES_API_KEY",
+    "load current verified Tianjin public opportunities into the Pilot SQLite store",
+    "create Lao Yang INVITED account with bootstrap-invite and send one-time registration link",
+    "have Lao Yang fill product capabilities, manufacturer/channel/rental policy and selected hospital relationships",
+    "verify profile save immediately queues Agnes and Today Top5 transitions from AWAITING_MODEL to READY",
+    "run authenticated followup/reminder/followed/outreach smoke before calling the Pilot production-ready"
   ]
 }
