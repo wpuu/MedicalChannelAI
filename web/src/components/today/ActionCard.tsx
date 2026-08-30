@@ -5,6 +5,7 @@ import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
 import { OfficialText } from '@/components/shared/EmptyValue'
 import { FollowupChip, SourceTag, StageBadge } from '@/components/shared/StageBadge'
 import { PriorityBadge, PriorityScore } from '@/components/shared/PriorityBadge'
+import { isApiMode } from '@/services/apiConfig'
 import { ActionButtons } from './ActionButtons'
 import { CustomerResourceBlock } from './CustomerResourceBlock'
 import { DecisionBlock } from './DecisionBlock'
@@ -62,7 +63,9 @@ export function ActionCard({
         <div className="min-w-0 space-y-3">
           <div>
             <div className="mb-1 flex items-center gap-1.5">
-              <SourceTag tone="official">官方/已验证事实</SourceTag>
+              <SourceTag tone="official">
+                {isApiMode ? '官方/已验证事实' : '演示公开字段'}
+              </SourceTag>
             </div>
             <div className="flex items-start gap-2">
               <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
