@@ -85,9 +85,9 @@ export interface MatchingProductCapability {
 }
 
 export interface PartneringPolicy {
-  can_find_manufacturer: boolean
-  can_partner_channel: boolean
-  can_handle_lease: boolean
+  can_find_manufacturer: boolean | null
+  can_partner_channel: boolean | null
+  can_handle_lease: boolean | null
 }
 
 export interface CustomerContext {
@@ -125,6 +125,10 @@ export interface FollowupRecord {
   actor: string
 }
 
+/**
+ * UI view model. The backend wire shape is declared separately in public.ts.
+ * Local follow-up state and display timestamps are intentionally UI-only fields.
+ */
 export interface TodayActionCard {
   rank: number
   opportunity_id: string
@@ -142,12 +146,14 @@ export interface TodayActionCard {
   remind_at: string | null
 }
 
+/** Mock-only model request marker; real Public View never returns model requests. */
 export interface ModelRequest {
   opportunity_id: string
   status: ModelDecisionStatus
   requested_at: string
 }
 
+/** UI response after Mock or Public View adapter enrichment. */
 export interface TodayActionsResponse {
   schema_version: '0.1'
   mode: 'TODAY_ACTIONS'
