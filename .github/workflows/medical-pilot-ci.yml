@@ -6,6 +6,7 @@ on:
       - "tools/medical_pilot/**"
       - "tools/__init__.py"
       - "web/**"
+      - "deploy/**"
       - "docs/research/schemas/medical-*.schema.json"
       - "docs/research/fixtures/tianjin-*.json"
       - "docs/research/benchmarks/*.json"
@@ -17,6 +18,7 @@ on:
       - "tools/medical_pilot/**"
       - "tools/__init__.py"
       - "web/**"
+      - "deploy/**"
       - "docs/research/schemas/medical-*.schema.json"
       - "docs/research/fixtures/tianjin-*.json"
       - "docs/research/benchmarks/*.json"
@@ -73,9 +75,19 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - name: Validate deployment shell syntax
+        run: bash -n ../deploy/build-web.sh ../deploy/pilot-smoke.sh
       - name: Install H5 dependencies
         run: npm ci
       - name: Typecheck H5
         run: npx tsc --noEmit
-      - name: Build H5
+      - name: Build H5 Demo mode
+        env:
+          VITE_BUILD_MODE: demo
+          VITE_API_BASE_URL: ""
+        run: npm run build
+      - name: Build H5 Pilot mode
+        env:
+          VITE_BUILD_MODE: pilot
+          VITE_API_BASE_URL: /api
         run: npm run build
