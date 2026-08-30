@@ -20,19 +20,47 @@ interface ReminderInboxResponse {
   reminders: DueReminder[]
 }
 
+const FOLLOWUP_STATUSES = new Set([
+  'NEW',
+  'REVIEWING',
+  'CONTACTED',
+  'RELATIONSHIP_VERIFIED',
+  'PREPARING',
+  'BID_SUBMITTED',
+  'WON',
+  'LOST',
+  'NOT_FIT',
+  'MONITOR',
+  'ARCHIVED',
+])
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null
 }
 
+function exactKeys(record: Record<string, unknown>, allowed: string[]): boolean {
+  const expected = new Set(allowed)
+  return Object.keys(record).length === expected.size &&
+    Object.keys(record).every((key) => expected.has(key))
+}
+
+function nullableString(value: unknown): value is string | null {
+  return value === null || typeof value === 'string'
+}
+
 function validateInbox(value: unknown): ReminderInboxResponse {
   const root = asRecord(value)
   if (
     !root ||
+    !exactKeys(root, ['schema_version', 'mode', 'count', 'reminders']) ||
     root.schema_version !== '0.1' ||
     root.mode !== 'FOLLOWUP_REMINDER_INBOX' ||
     !Number.isInteger(root.count) ||
+    typeof root.count !== 'number' ||
+    root.count < 0 ||
+    root.count > 20 ||
     !Array.isArray(root.reminders)
   ) {
     throw new Error('REMINDER_RESPONSE_INVALID')
@@ -42,12 +70,28 @@ function validateInbox(value: unknown): ReminderInboxResponse {
     const facts = asRecord(row?.facts)
     if (
       !row ||
+      !exactKeys(row, [
+        'reminder_id',
+        'opportunity_id',
+        'followup_status',
+        'remind_at',
+        'note',
+        'facts',
+      ]) ||
       typeof row.reminder_id !== 'string' ||
       !/^mrem_[0-9a-f]{64}$/.test(row.reminder_id) ||
       typeof row.opportunity_id !== 'string' ||
+      !/^opp_[0-9a-fA-F-]{36}$/.test(row.opportunity_id) ||
       typeof row.followup_status !== 'string' ||
+      !FOLLOWUP_STATUSES.has(row.followup_status) ||
       typeof row.remind_at !== 'string' ||
-      !facts
+      Number.isNaN(new Date(row.remind_at).getTime()) ||
+      !nullableString(row.note) ||
+      !facts ||
+      !exactKeys(facts, ['buyer_name', 'hospital_name', 'project_name']) ||
+      !nullableString(facts.buyer_name) ||
+      !nullableString(facts.hospital_name) ||
+      !nullableString(facts.project_name)
     ) {
       throw new Error('REMINDER_RESPONSE_INVALID')
     }
@@ -56,11 +100,11 @@ function validateInbox(value: unknown): ReminderInboxResponse {
       opportunity_id: row.opportunity_id,
       followup_status: row.followup_status,
       remind_at: row.remind_at,
-      note: typeof row.note === 'string' ? row.note : null,
+      note: row.note,
       facts: {
-        buyer_name: typeof facts.buyer_name === 'string' ? facts.buyer_name : null,
-        hospital_name: typeof facts.hospital_name === 'string' ? facts.hospital_name : null,
-        project_name: typeof facts.project_name === 'string' ? facts.project_name : null,
+        buyer_name: facts.buyer_name,
+        hospital_name: facts.hospital_name,
+        project_name: facts.project_name,
       },
     } satisfies DueReminder
   })
