@@ -23,6 +23,9 @@ export function FactsCard({ facts }: { facts: Facts }) {
       <FactRow label="项目名称">
         <OfficialText value={facts.project_name} />
       </FactRow>
+      <FactRow label="采购单位">
+        <OfficialText value={facts.buyer_name ?? null} />
+      </FactRow>
       <FactRow label="医院">
         <OfficialText value={facts.hospital} />
       </FactRow>
@@ -34,6 +37,9 @@ export function FactsCard({ facts }: { facts: Facts }) {
       </FactRow>
       <FactRow label="项目阶段">
         <StageBadge stage={facts.lifecycle_stage} />
+      </FactRow>
+      <FactRow label="公告类型">
+        <OfficialText value={facts.notice_type ?? null} />
       </FactRow>
       <FactRow label="发布时间">
         <OfficialText value={formatDate(facts.publish_date)} />
@@ -59,7 +65,7 @@ export function FactsCard({ facts }: { facts: Facts }) {
         ) : (
           <ul className="space-y-1.5">
             {facts.products.map((item) => (
-              <li key={item.name} className="rounded-lg bg-slate-50 px-2.5 py-2">
+              <li key={`${item.name}-${item.quantity ?? ''}`} className="rounded-lg bg-slate-50 px-2.5 py-2">
                 <p className="font-medium">{item.name}</p>
                 <p className="text-[12px] text-slate-500">
                   {item.category ?? '暂无公开信息'}
