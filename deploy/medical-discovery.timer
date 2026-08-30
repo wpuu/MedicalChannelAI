@@ -1,0 +1,11 @@
+[Unit]
+Description=Run MedicalChannelAI discovery tick every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+Persistent=true
+AccuracySec=1s
+Unit=medical-discovery.service
+
+[Install]
+WantedBy=timers.target
