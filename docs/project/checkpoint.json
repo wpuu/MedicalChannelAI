@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-30T19:35:00+08:00",
-  "phase": "TRUSTED_TIANJIN_BACKEND_PLUS_BUSINESS_DEMO_POLISHED_PLUS_MAINLAND_ACCESS_GATE_PLUS_SINGLE_HOST_DEPLOYMENT_SCAFFOLD",
+  "as_of": "2026-08-30T19:40:00+08:00",
+  "phase": "TRUSTED_TIANJIN_BACKEND_PLUS_BUSINESS_DEMO_POLISHED_PLUS_WECHAT_MAINLAND_ACCESS_GATE_PLUS_SINGLE_HOST_DEPLOYMENT_SCAFFOLD",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -21,7 +21,11 @@
     "agnes_benchmark_executed": false
   },
   "business_demo": {
-    "status": "POLISHED_AWAITING_DOMAIN_TARGET_HOST_BUILD_AND_MAINLAND_NETWORK_ACCEPTANCE",
+    "status": "POLISHED_DOMAIN_WECHAT_REACHABILITY_CONFIRMED_AWAITING_TARGET_HOST_BUILD",
+    "domain": "medicalai.qd.je",
+    "mainland_reachability_user_tested": true,
+    "wechat_in_app_browser_user_tested": true,
+    "dpdns_wechat_user_test_failed": true,
     "synthetic_opportunities_only": true,
     "synthetic_customer_profile_explicit": true,
     "top1_scenario": "SMART_PHLEBOTOMY_AND_PREANALYTIC_SYSTEM",
@@ -30,10 +34,7 @@
     "mock_embeds_internal_model_requests": false,
     "search_indexing_allowed": false,
     "walkthrough_doc": "docs/product/demo.md",
-    "preferred_domain": "medradar.dpdns.org",
-    "existing_reference_domain": "wpu.dpdns.org",
-    "qd_je_status": "AVAILABLE_BUT_NOT_PREFERRED_DUE_TO_PSL_CLOUDFLARE_COMPATIBILITY",
-    "same_domain_demo_to_pilot": true,
+    "same_domain_demo_to_real_pilot_required": false,
     "demo_build_mode": "demo",
     "demo_api_base": "",
     "demo_real_agnes_enabled": false,
@@ -41,15 +42,24 @@
   },
   "mainland_access": {
     "required_before_sending_to_business_user": true,
+    "wechat_in_app_browser_required": true,
     "acceptance_doc": "deploy/CHINA_ACCESS.md",
     "vpn_must_be_off_during_acceptance": true,
     "minimum_independent_mainland_networks": 2,
-    "default_demo_proxy_mode": "DNS_ONLY_DIRECT_ORIGIN",
-    "cloudflare_free_global_proxy_required": false,
+    "cloudflare_required": false,
     "vercel_required": false,
     "preferred_origin_regions": ["HONG_KONG", "JAPAN", "SINGAPORE", "US_WEST_TEST_ONLY"],
     "external_runtime_script_style_dependency_allowed": false,
-    "demo_build_scans_external_runtime_assets": true
+    "demo_build_scans_external_runtime_assets": true,
+    "demo_dist_default_budget_kib": 3072,
+    "free_domain_reputation_can_change": true,
+    "retest_wechat_on_demo_day": true
+  },
+  "domain_security": {
+    "qd_je_public_suffix_status": "NOT_RELIED_ON_FOR_AUTHENTICATED_PILOT",
+    "qd_je_cloudflare_zone_compatibility": "KNOWN_LIMITATION",
+    "qd_je_allowed_for_static_synthetic_demo": true,
+    "authenticated_real_pilot_should_use_independent_domain": true
   },
   "today_actions": {
     "max_final_action_cards": 5,
@@ -99,12 +109,11 @@
   "deployment": {
     "status": "SINGLE_HOST_SCAFFOLD_WRITTEN_NOT_YET_EXECUTED",
     "plan_doc": "docs/project/deployment-plan-v0.1.md",
-    "runbook": "deploy/README.md",
+    "domain_doc": "deploy/README_DOMAIN.md",
     "china_access_doc": "deploy/CHINA_ACCESS.md",
     "build_script": "deploy/build-web.sh",
-    "frontend_demo_requires_python_backend_pass": false,
-    "real_pilot_requires_python_backend_pass": true,
-    "topology": "DPDNS_DNS_ONLY_TO_SINGLE_ORIGIN_TO_CADDY_TO_STATIC_H5_AND_LOCAL_API",
+    "demo_topology": "MEDICALAI_QD_JE_TO_DIRECT_ORIGIN_TO_CADDY_TO_STATIC_H5",
+    "real_pilot_topology": "INDEPENDENT_DOMAIN_TO_CADDY_TO_STATIC_H5_AND_LOCAL_API",
     "server_default_bind": "127.0.0.1:8787",
     "sqlite_path": "/srv/medical/data/pilot.sqlite",
     "serverless_local_sqlite_allowed": false,
@@ -117,16 +126,16 @@
     "web_typecheck_passed": false,
     "demo_web_build_passed": false,
     "pilot_web_build_passed": false,
-    "interpretation": "GitHub Actions jobs continue to end before any runner or step executes. Demo can obtain real frontend execution evidence on the target host; real Pilot still requires trusted backend test execution."
+    "interpretation": "GitHub Actions still does not execute jobs. Static Demo can obtain real frontend build evidence on the target host. Real Pilot still requires trusted backend test execution."
   },
   "next": [
-    "register medradar.dpdns.org",
-    "choose a mainland-reachable origin; test existing US VPS first only if zero extra cost is preferred",
-    "run deploy/build-web.sh demo on the target host",
-    "serve HTTPS with Caddy in DNS-only direct-origin mode",
-    "pass deploy/CHINA_ACCESS.md on two independent mainland networks with VPN off",
+    "keep medicalai.qd.je as the current business Demo address",
+    "point medicalai.qd.je at a mainland-reachable origin and run deploy/build-web.sh demo",
+    "serve HTTPS with Caddy",
+    "pass deploy/CHINA_ACCESS.md including WeChat in-app browser and two independent mainland networks with VPN off",
     "run docs/product/demo.md walkthrough and only then send the URL to Lao Yang",
-    "obtain real execution PASS for 81 deterministic backend tests before switching the same domain to Pilot mode",
-    "complete Agnes authenticated smoke, backup restore verification, remaining discovery contracts, attachment bytes and benchmarks"
+    "prepare an independent domain before enabling authenticated real Pilot customer data",
+    "obtain real execution PASS for 81 deterministic backend tests",
+    "complete Agnes authenticated smoke, backup restore, remaining discovery contracts, attachment bytes and benchmarks"
   ]
 }
