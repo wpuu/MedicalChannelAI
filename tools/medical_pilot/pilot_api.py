@@ -54,7 +54,7 @@ def dispatch_pilot_api(
     body: bytes,
     now: datetime,
 ) -> PilotApiResponse:
-    """Translate same-origin /api/* requests into the trusted core transports."""
+    """Translate same-origin /api/* requests into trusted core transports."""
 
     inner = _inner_target(target)
     if inner is None:
@@ -62,6 +62,14 @@ def dispatch_pilot_api(
     path = urlsplit(inner).path
     if path.startswith("/auth/"):
         response = runtime.auth_transport.handle(
+            method=method,
+            target=inner,
+            headers=headers,
+            body=body,
+            now=now,
+        )
+    elif path.startswith("/followup/"):
+        response = runtime.followup_transport.handle(
             method=method,
             target=inner,
             headers=headers,
