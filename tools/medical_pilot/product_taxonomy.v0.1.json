@@ -21,6 +21,7 @@
     {"id": "MEDICAL_IMAGING_MRI", "display_name": "磁共振MRI", "parent": "MEDICAL_IMAGING", "deterministic_phrases": ["磁共振成像系统", "磁共振成像设备"]},
     {"id": "MEDICAL_IMAGING_ANGIOGRAPHY", "display_name": "血管造影设备", "parent": "MEDICAL_IMAGING", "deterministic_phrases": ["数字减影血管造影", "血管造影系统"]},
     {"id": "MEDICAL_IMAGING_ULTRASOUND", "display_name": "超声设备", "parent": "MEDICAL_IMAGING", "deterministic_phrases": ["彩色多普勒超声", "超声诊断仪"]},
+    {"id": "PHLEBOTOMY_COLLECTION_TABLE", "display_name": "采血台/智能采血工作台", "parent": "GENERAL_MEDICAL_DEVICE", "deterministic_phrases": ["采血台", "智能采血台", "采血工作台", "采血工作站", "智能采血工作站"]},
     {"id": "SURGICAL_LIGHT", "display_name": "手术无影灯", "parent": "GENERAL_MEDICAL_DEVICE", "deterministic_phrases": ["手术无影灯"]},
     {"id": "RESEARCH_MICROSCOPY_IMAGING", "display_name": "显微/荧光成像设备", "parent": "LAB_RESEARCH_EQUIPMENT", "deterministic_phrases": ["荧光显微成像", "荧光显微镜", "共聚焦显微镜"]},
     {"id": "LAB_RESEARCH_INSTRUMENT", "display_name": "实验室科研仪器", "parent": "LAB_RESEARCH_EQUIPMENT", "deterministic_phrases": ["实验室科研设备", "科研仪器"]},
