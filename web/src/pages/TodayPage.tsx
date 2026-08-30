@@ -141,7 +141,8 @@ export function TodayPage() {
         reminders={reminders}
         currentOpportunityIds={data.cards.map((card) => card.opportunity_id)}
         busyId={reminderBusyId}
-        onOpen={(opportunityId) => navigate(`/opportunity/${opportunityId}`)}
+        onOpenToday={(opportunityId) => navigate(`/opportunity/${opportunityId}`)}
+        onOpenFollowed={(opportunityId) => navigate(`/followed?focus=${encodeURIComponent(opportunityId)}`)}
         onAcknowledge={(reminderId) => void acknowledgeReminder(reminderId)}
       />
 
