@@ -84,30 +84,36 @@ class PilotLiveSeedTests(unittest.TestCase):
         manifest = self._manifest(
             [{"expected_project_code": "ZYGP20260851", "url": VALID_URL}]
         )
+        collected = FakeCollected(FakeParsed("ZYGP20260851"))
+        persist_calls = []
 
-        def collector(url, *, db_path):
+        def collector(url):
             self.assertEqual(url, VALID_URL)
+            return collected
+
+        def persister(value, *, db_path):
+            self.assertIs(value, collected)
             self.assertEqual(db_path, self.db_path)
-            return (
-                FakeCollected(FakeParsed("ZYGP20260851")),
-                {
-                    "opportunity_id": "opp_real_1",
-                    "project_name": "天津市泰达医院数字X光机（DR）采购项目",
-                    "verification_status": "VERIFIED",
-                    "lifecycle_state": "TENDERING",
-                    "product_labels": ["MEDICAL_IMAGING_DR"],
-                    "customer_context": {"should_not": "leak"},
-                    "decision": {"should_not": "seed"},
-                },
-            )
+            persist_calls.append(value)
+            return {
+                "opportunity_id": "opp_real_1",
+                "project_name": "天津市泰达医院数字X光机（DR）采购项目",
+                "verification_status": "VERIFIED",
+                "lifecycle_state": "TENDERING",
+                "product_labels": ["MEDICAL_IMAGING_DR"],
+                "customer_context": {"should_not": "leak"},
+                "decision": {"should_not": "seed"},
+            }
 
         exit_code, summary = run_seed(
             db_path=self.db_path,
             manifest_path=manifest,
             collector=collector,
+            persister=persister,
         )
 
         self.assertEqual(exit_code, 0)
+        self.assertEqual(len(persist_calls), 1)
         self.assertEqual(summary["success_count"], 1)
         row = summary["results"][0]
         self.assertEqual(row["product_labels"], ["MEDICAL_IMAGING_DR"])
@@ -123,24 +129,25 @@ class PilotLiveSeedTests(unittest.TestCase):
             ]
         )
 
-        def collector(url, *, db_path):
+        def collector(url):
             if url == SECOND_URL:
                 raise RuntimeError("secret upstream response must not leak")
-            return (
-                FakeCollected(FakeParsed("ZYGP20260851")),
-                {
-                    "opportunity_id": "opp_real_1",
-                    "project_name": "DR",
-                    "verification_status": "VERIFIED",
-                    "lifecycle_state": "TENDERING",
-                    "product_labels": ["MEDICAL_IMAGING_DR"],
-                },
-            )
+            return FakeCollected(FakeParsed("ZYGP20260851"))
+
+        def persister(value, *, db_path):
+            return {
+                "opportunity_id": "opp_real_1",
+                "project_name": "DR",
+                "verification_status": "VERIFIED",
+                "lifecycle_state": "TENDERING",
+                "product_labels": ["MEDICAL_IMAGING_DR"],
+            }
 
         exit_code, summary = run_seed(
             db_path=self.db_path,
             manifest_path=manifest,
             collector=collector,
+            persister=persister,
         )
         self.assertEqual(exit_code, 1)
         self.assertEqual(summary["success_count"], 1)
@@ -149,28 +156,27 @@ class PilotLiveSeedTests(unittest.TestCase):
         self.assertEqual(failed["error_type"], "RuntimeError")
         self.assertNotIn("secret", json.dumps(summary, ensure_ascii=False))
 
-    def test_project_code_mismatch_is_not_imported_as_success(self) -> None:
+    def test_project_code_mismatch_never_reaches_persistence(self) -> None:
         manifest = self._manifest(
             [{"expected_project_code": "ZYGP20260851", "url": VALID_URL}]
         )
+        persisted = False
 
-        def collector(url, *, db_path):
-            return (
-                FakeCollected(FakeParsed("DIFFERENT-CODE")),
-                {
-                    "opportunity_id": "opp_wrong",
-                    "project_name": "Wrong",
-                    "verification_status": "VERIFIED",
-                    "lifecycle_state": "TENDERING",
-                    "product_labels": [],
-                },
-            )
+        def collector(url):
+            return FakeCollected(FakeParsed("DIFFERENT-CODE"))
+
+        def persister(value, *, db_path):
+            nonlocal persisted
+            persisted = True
+            raise AssertionError("mismatched project must never persist")
 
         exit_code, summary = run_seed(
             db_path=self.db_path,
             manifest_path=manifest,
             collector=collector,
+            persister=persister,
         )
+        self.assertFalse(persisted)
         self.assertEqual(exit_code, 2)
         self.assertEqual(summary["success_count"], 0)
         self.assertEqual(summary["results"][0]["error_type"], "ValueError")
