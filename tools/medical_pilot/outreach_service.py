@@ -246,7 +246,7 @@ class GroundedOutreachService:
 
         persisted = copy.deepcopy(rendered)
         persisted["cached"] = False
-        self._result_store.put_if_absent(
+        inserted = self._result_store.put_if_absent(
             task_id=task_id,
             principal=principal,
             opportunity_id=opportunity_id,
@@ -261,5 +261,5 @@ class GroundedOutreachService:
         )
         if winner is None:
             raise RuntimeError("outreach result disappeared after persistence")
-        winner["cached"] = not bool(persisted == winner)
-        return OutreachServiceResult(winner, bool(winner.get("cached")))
+        winner["cached"] = not inserted
+        return OutreachServiceResult(winner, not inserted)
