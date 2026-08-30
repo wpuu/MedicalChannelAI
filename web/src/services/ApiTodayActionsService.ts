@@ -2,6 +2,8 @@ import type {
   CapabilityType,
   FollowupInput,
   FollowupRecord,
+  FollowupStatus,
+  NotFitReason,
   OutreachDraft,
   RelationshipStrength,
   TodayActionCard,
@@ -14,7 +16,6 @@ import type {
 } from '@/types/public'
 import type { TodayActionsService } from './TodayActionsService'
 
-const FOLLOWUP_STORAGE_KEY = 'medopp.api-followups.v1'
 const COVERAGE_WARNING = '当前处于天津 Pilot 阶段，公开数据覆盖持续扩展中。'
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
@@ -40,10 +41,41 @@ const FORBIDDEN_PUBLIC_PREFIXES = [
   'upstream_model_',
 ]
 
-interface StoredFollowup {
-  status: TodayActionCard['followup_status']
+const NOT_FIT_REASON_TO_CODE: Record<NotFitReason, string> = {
+  没有对应产品: 'NO_PRODUCT_CAPABILITY',
+  暂无厂家资源: 'NO_MANUFACTURER_ACCESS',
+  医院关系太弱: 'RELATIONSHIP_TOO_WEAK',
+  项目金额太小: 'AMOUNT_TOO_SMALL',
+  介入时间太晚: 'PROJECT_TOO_LATE',
+  判断竞争对手已锁定: 'COMPETITOR_LOCKED_CUSTOMER_JUDGMENT',
+  科室不匹配: 'DEPARTMENT_OUT_OF_SCOPE',
+  区域不匹配: 'REGION_OUT_OF_SCOPE',
+  不做租赁项目: 'RENTAL_NOT_SUPPORTED',
+  其他: 'OTHER',
+}
+
+const CODE_TO_NOT_FIT_REASON = new Map<string, NotFitReason>(
+  Object.entries(NOT_FIT_REASON_TO_CODE).map(([label, code]) => [code, label as NotFitReason]),
+)
+
+interface ServerFollowupRecord {
+  id: string
+  status: FollowupStatus
+  note: string | null
+  reason: string | null
   remind_at: string | null
-  history: FollowupRecord[]
+  at: string
+  actor: string
+}
+
+interface ServerFollowupState {
+  schema_version: '0.1'
+  opportunity_id: string
+  current_status: FollowupStatus
+  remind_at: string | null
+  history: ServerFollowupRecord[]
+  profile_learning: unknown
+  mutation_inserted?: boolean
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -288,43 +320,45 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
   }
 }
 
+function mapFollowupRecord(record: ServerFollowupRecord): FollowupRecord {
+  return {
+    id: record.id,
+    status: record.status,
+    note: record.note ?? undefined,
+    reason: record.reason ? (CODE_TO_NOT_FIT_REASON.get(record.reason) ?? record.reason) : undefined,
+    remind_at: record.remind_at ?? undefined,
+    at: record.at,
+    actor: record.actor,
+  }
+}
+
+function applyFollowupState(card: TodayActionCard, state: ServerFollowupState): TodayActionCard {
+  if (state.opportunity_id !== card.opportunity_id) {
+    throw new Error('FOLLOWUP_OPPORTUNITY_MISMATCH')
+  }
+  return {
+    ...card,
+    followup_status: state.current_status,
+    followup_history: state.history.map(mapFollowupRecord),
+    remind_at: state.remind_at,
+  }
+}
+
 export class ApiTodayActionsService implements TodayActionsService {
   private readonly baseUrl: string
-  private followups: Record<string, StoredFollowup>
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl.replace(/\/+$/, '')
-    this.followups = this.readFollowups()
   }
 
-  private readFollowups(): Record<string, StoredFollowup> {
-    try {
-      const raw = localStorage.getItem(FOLLOWUP_STORAGE_KEY)
-      return raw ? (JSON.parse(raw) as Record<string, StoredFollowup>) : {}
-    } catch {
-      return {}
-    }
-  }
-
-  private persistFollowups() {
-    localStorage.setItem(FOLLOWUP_STORAGE_KEY, JSON.stringify(this.followups))
-  }
-
-  private enrichFollowup(card: TodayActionCard): TodayActionCard {
-    const saved = this.followups[card.opportunity_id]
-    if (!saved) return card
-    return {
-      ...card,
-      followup_status: saved.status,
-      followup_history: saved.history,
-      remind_at: saved.remind_at,
-    }
-  }
-
-  private async requestJson<T>(path: string): Promise<T> {
+  private async requestJson<T>(path: string, init?: RequestInit): Promise<T> {
     const response = await fetch(`${this.baseUrl}${path}`, {
+      ...init,
       credentials: 'include',
-      headers: { Accept: 'application/json' },
+      headers: {
+        Accept: 'application/json',
+        ...(init?.headers ?? {}),
+      },
     })
     if (!response.ok) throw new Error(`HTTP_${response.status}`)
     const payload: unknown = await response.json()
@@ -332,9 +366,21 @@ export class ApiTodayActionsService implements TodayActionsService {
     return payload as T
   }
 
+  private async getFollowupState(id: string): Promise<ServerFollowupState> {
+    return this.requestJson<ServerFollowupState>(`/followup/${encodeURIComponent(id)}`)
+  }
+
+  private async enrichWithServerFollowup(card: TodayActionCard): Promise<TodayActionCard> {
+    const state = await this.getFollowupState(card.opportunity_id)
+    return applyFollowupState(card, state)
+  }
+
   async getTodayActions(): Promise<TodayActionsResponse> {
     const data = await this.requestJson<TodayActionsPublicResponse>('/today')
     const now = new Date().toISOString()
+    const cards = await Promise.all(
+      data.cards.map(mapPublicCard).map((card) => this.enrichWithServerFollowup(card)),
+    )
     return {
       schema_version: data.schema_version,
       mode: data.mode,
@@ -345,7 +391,7 @@ export class ApiTodayActionsService implements TodayActionsService {
       coverage_warning: COVERAGE_WARNING,
       generated_at: now,
       refreshed_at: now,
-      cards: data.cards.map(mapPublicCard).map((card) => this.enrichFollowup(card)),
+      cards,
       model_requests: [],
     }
   }
@@ -355,7 +401,7 @@ export class ApiTodayActionsService implements TodayActionsService {
       const card = await this.requestJson<PublicTodayActionCard>(
         `/opportunity/${encodeURIComponent(id)}`,
       )
-      return this.enrichFollowup(mapPublicCard(card))
+      return await this.enrichWithServerFollowup(mapPublicCard(card))
     } catch (error) {
       if (error instanceof Error && error.message === 'HTTP_404') return null
       throw error
@@ -363,22 +409,25 @@ export class ApiTodayActionsService implements TodayActionsService {
   }
 
   async updateFollowup(id: string, input: FollowupInput): Promise<void> {
-    const previous = this.followups[id]
-    const record: FollowupRecord = {
-      id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    const payload: Record<string, string> = {
       status: input.status,
-      note: input.note,
-      reason: input.reason,
-      remind_at: input.remind_at,
-      at: new Date().toISOString(),
-      actor: '当前用户',
+      mutation_id: `followup:${crypto.randomUUID()}`,
     }
-    this.followups[id] = {
-      status: input.status,
-      remind_at: input.remind_at ?? previous?.remind_at ?? null,
-      history: [record, ...(previous?.history ?? [])],
+    if (input.note) payload.note = input.note
+    if (input.remind_at) payload.remind_at = input.remind_at
+    if (input.status === 'NOT_FIT') {
+      const reason = input.reason as NotFitReason | undefined
+      if (!reason || !NOT_FIT_REASON_TO_CODE[reason]) {
+        throw new Error('NOT_FIT_REASON_REQUIRED')
+      }
+      payload.reason = NOT_FIT_REASON_TO_CODE[reason]
     }
-    this.persistFollowups()
+
+    await this.requestJson<ServerFollowupState>(`/followup/${encodeURIComponent(id)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
   }
 
   async requestOutreachDraft(_id: string): Promise<OutreachDraft> {
