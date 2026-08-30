@@ -71,12 +71,13 @@ class AccountAuthTests(unittest.TestCase):
                 now=NOW + timedelta(seconds=3),
             )
         )
+        self.sessions.revoke_principal(self.principal, revoked_at=NOW + timedelta(seconds=3))
         disabled = self.accounts.get(self.principal)
         self.assertIsNotNone(disabled)
         self.assertEqual(disabled.status, ACCOUNT_DISABLED)
         self.assertIsNone(resolver.resolve(headers))
 
-    def test_reenabled_account_restores_account_gate_for_unexpired_session(self) -> None:
+    def test_reenabled_account_requires_a_fresh_session_after_revocation(self) -> None:
         self.accounts.ensure_invited(
             principal=self.principal,
             company_name="天津试用客户",
@@ -90,11 +91,16 @@ class AccountAuthTests(unittest.TestCase):
         )
         headers = {"Cookie": f"{SESSION_COOKIE_NAME}={issued.token}"}
         self.accounts.set_disabled(self.principal, disabled=True, now=NOW + timedelta(seconds=1))
+        self.sessions.revoke_principal(self.principal, revoked_at=NOW + timedelta(seconds=1))
         self.assertIsNone(resolver.resolve(headers))
 
         self.accounts.set_disabled(self.principal, disabled=False, now=NOW + timedelta(seconds=2))
         self.assertEqual(self.accounts.get(self.principal).status, ACCOUNT_ACTIVE)
-        self.assertEqual(resolver.resolve(headers), self.principal)
+        self.assertIsNone(resolver.resolve(headers))
+
+        fresh = issue_session(self.sessions, principal=self.principal, now=NOW + timedelta(seconds=4))
+        fresh_headers = {"Cookie": f"{SESSION_COOKIE_NAME}={fresh.token}"}
+        self.assertEqual(resolver.resolve(fresh_headers), self.principal)
 
     def test_invited_account_does_not_authorize_session_until_activation(self) -> None:
         self.accounts.ensure_invited(
