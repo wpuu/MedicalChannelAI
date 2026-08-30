@@ -19,20 +19,20 @@ export function VerifiedBadge({ status }: { status: 'VERIFIED' | 'UNVERIFIED' | 
   if (status === 'VERIFIED') {
     return (
       <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800">
-        VERIFIED
+        已核实
       </span>
     )
   }
   if (status === 'PARTIAL') {
     return (
       <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
-        PARTIAL
+        部分核实
       </span>
     )
   }
   return (
     <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-600">
-      UNVERIFIED
+      未核实
     </span>
   )
 }
