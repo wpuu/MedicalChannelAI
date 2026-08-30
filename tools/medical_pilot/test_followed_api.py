@@ -92,6 +92,7 @@ class FollowedApiTests(unittest.TestCase):
         self.assertEqual(row["opportunity_id"], self.item["opportunity_id"])
         self.assertEqual(row["followup_status"], "CONTACTED")
         self.assertEqual(row["facts"]["project_name"], self.item["project_name"])
+        self.assertEqual(row["facts"]["budget_cny"], 5730000.0)
         self.assertEqual(len(row["evidence_source_urls"]), 1)
         encoded = json.dumps(body, ensure_ascii=False)
         for forbidden in ("tenant-a", "profile-a", "tenant_id", "profile_id", "followup_id"):
