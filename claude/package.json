@@ -1,6 +1,6 @@
 {
   "private": true,
   "scripts": {
-    "build": "cd ../web && npm ci && npm run build && rm -rf ../claude/dist && cp -R dist ../claude/dist"
+    "build": "cd ../web && npm ci && npx tsc --noEmit && npm run build && rm -rf ../claude/dist && cp -R dist ../claude/dist"
   }
 }
