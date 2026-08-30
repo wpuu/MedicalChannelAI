@@ -4,7 +4,7 @@ import copy
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
-from typing import Any, Mapping, Protocol
+from typing import Any, Callable, Mapping, Protocol
 from urllib.parse import urlsplit
 
 from .customer_profile_gate import evaluate_customer_profile
@@ -167,6 +167,10 @@ class ProfileHttpTransport:
     The signed-in principal fixes tenant_id/profile_id. A browser can edit only the
     customer-confirmed business inputs used by deterministic matching and grounded
     Agnes decisions. Server-computed readiness fields are never accepted from JSON.
+
+    When a saved profile is sufficient for candidates, ``after_save`` may start one
+    idempotent Today Actions refresh. The callback stays server-side and is best-effort:
+    profile persistence must not be rolled back by a temporary model/queue failure.
     """
 
     def __init__(
@@ -174,9 +178,11 @@ class ProfileHttpTransport:
         *,
         principal_resolver: TrustedPrincipalResolver,
         repository: ProfileRepository,
+        after_save: Callable[[TrustedPrincipal, datetime], None] | None = None,
     ) -> None:
         self._principal_resolver = principal_resolver
         self._repository = repository
+        self._after_save = after_save
 
     def handle(
         self,
@@ -231,6 +237,14 @@ class ProfileHttpTransport:
             ]
             candidate["updated_at"] = now.astimezone(timezone.utc).isoformat()
             self._repository.upsert_profile(candidate)
+
+            if gate.candidate_opportunity_allowed and self._after_save is not None:
+                try:
+                    self._after_save(principal, now)
+                except Exception:
+                    # Profile persistence is authoritative. /today is idempotent and
+                    # will retry queue admission when the browser opens the result page.
+                    pass
 
             return _json_response(
                 200,
