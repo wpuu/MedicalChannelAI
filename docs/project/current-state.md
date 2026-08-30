@@ -2,7 +2,7 @@
 
 日期：2026-08-30  
 分支：`dev/tianjin-pilot-v0.1`  
-阶段：`TODAY_ACTIONS_TRUSTED_BACKEND + H5 + SERVER_FOLLOWUP + GROUNDED_OUTREACH + IN_APP_REMINDER + FOLLOWED_OPPORTUNITIES + DEPLOYMENT_SCAFFOLD + DEMO_TO_PILOT_MODE_GUARD`  
+阶段：`TRUSTED_TIANJIN_BACKEND + BUSINESS_DEMO_POLISHED + SINGLE_HOST_DEPLOYMENT_SCAFFOLD`  
 生产就绪：**false**  
 Draft PR：**#1（保持 Draft，不合并）**
 
@@ -17,18 +17,78 @@ Draft PR：**#1（保持 Draft，不合并）**
 - Agnes benchmark 28 case，未执行
 - Coverage=`PARTIAL / NOT_EXHAUSTIVE`
 
+## 当前近期目标已经调整
+
+不再等真实天津后端全部验证完才让客户看页面。
+
+现在分成两条线：
+
+### A. 先上线商务 Demo
+
+目标：先让老杨验证“每天给我5个值得跟的项目”这个产品价值。
+
+Demo 已经专门做过商务演示收口：
+
+- TOP1 改为“智能采血与标本前处理系统”，更贴合天津渠道客户资源；
+- 顶部明确展示“虚构演示客户画像”；
+- 排名明确解释为“项目公开事实 × 当前客户医院关系/产品能力”，不是普通招标搜索排行；
+- 所有医院、项目、联系人、金额都明确为虚构；
+- Demo 卡片使用“演示公开字段 / 演示客户资源”，不冒充真实官方事实或真实客户画像；
+- 官方依据在 Demo 中只展示入口形态，不跳转去暗示虚构项目有真实公告；
+- 公开依据不足时，首页、详情和 Mock Service 三层都禁止生成沟通话术；
+- `VERIFIED/PARTIAL/UNVERIFIED` 等技术枚举已经改成“已核实/部分核实/未核实”；
+- 支持“一键重置演示”，演示前可清掉浏览器上次操作的跟进状态；
+- Mock 响应不再嵌入内部 `model_requests` 数据；
+- `robots meta + robots.txt + X-Robots-Tag` 全部禁止搜索引擎收录虚构采购内容；
+- 5分钟演示流程已经写入 `docs/product/demo.md`。
+
+Demo 构建：
+
+```text
+VITE_BUILD_MODE=demo
+VITE_API_BASE_URL=
+```
+
+不登录、不调用真实 Agnes、不依赖真实天津数据。
+
+### B. 后续同域切真实 Pilot
+
+真实后端通过验证后，同一个网址重新构建：
+
+```text
+VITE_BUILD_MODE=pilot
+VITE_API_BASE_URL=/api
+```
+
+然后才启用真实 invite/Session、客户画像、采购事实、follow-up、reminder、followed、outreach。
+
+前端已经有 build-mode fail-closed，避免 Demo/Pilot 串模式。
+
+## 给老杨看的地址
+
+当前推荐：
+
+1. `medradar.qzz.io`
+2. `medicalai.qzz.io`
+3. `medradar.dpdns.org`
+4. `mcai.dpdns.org`
+
+DigitalPlat Domains 当前官方仍列出 `*.qzz.io` 和 `*.dpdns.org` 为 Available public namespaces，并支持外部 DNS provider。具体 `medradar` 是否可注册仍以申请平台实时结果为准。
+
+正式收费版仍建议换独立长期可控域名。
+
 ## 产品闭环
 
-当前已经具备：
+真实 Pilot 代码当前已经具备：
 
-- Today Top5；
-- trusted Session + 一次性 invite；
-- 服务端 tenant-private follow-up；
+- Today Top5 + 详情；
+- opaque Session + 一次性 invite；
+- tenant-private append-only follow-up；
 - 到期站内提醒；
-- `/followed` 长期跟进项目；
+- `/followed` 长期跟进；
 - grounded on-demand outreach；
 - VERIFIED public facts 与客户私有资源分离；
-- Agnes 输出必须经过 grounding / allowlist 校验；
+- Agnes 输出 grounding / allowlist 校验；
 - 浏览器不能自报 tenant/profile 作为可信身份。
 
 当前仍无微信、短信、邮件、系统 Push。
@@ -46,45 +106,7 @@ Collector 已支持：
 
 其余5个 Source 继续 fail-closed，不猜 classId/pagination，不绕 CAPTCHA。
 
-## 给老杨看的地址：同域两阶段
-
-当前推荐：
-
-1. `medradar.qzz.io`
-2. `medicalai.qzz.io`
-3. `medradar.dpdns.org`
-4. `mcai.dpdns.org`
-
-DigitalPlat Domains 当前官方仍列出 `*.qzz.io` 和 `*.dpdns.org` 为 Available public namespaces，并允许连接外部 DNS provider。实际具体名称是否可注册仍以申请平台实时结果为准。
-
-### 第一步：Demo
-
-同一域名先发布明确标注“演示数据”的 Mock H5：
-
-```text
-VITE_BUILD_MODE=demo
-VITE_API_BASE_URL=
-```
-
-- 虚构天津医疗项目；
-- 不登录；
-- 不调用真实 Agnes；
-- 不冒充真实医院采购数据。
-
-### 第二步：真实 Pilot
-
-验证完成后仍用同一个网址重新构建：
-
-```text
-VITE_BUILD_MODE=pilot
-VITE_API_BASE_URL=/api
-```
-
-然后启用真实 invite/Session、客户画像、采购事实、follow-up、reminder、followed、outreach。
-
-前端已经增加 build-mode fail-closed，防止 Demo/Pilot 串模式。
-
-## 部署脚手架
+## 单机部署脚手架
 
 结构：
 
@@ -96,53 +118,44 @@ VITE_API_BASE_URL=/api
 - `deploy/README_DOMAIN.md`
 - `deploy/Caddyfile.example`
 - `deploy/caddy-medical.env.example`
-- `deploy/build-web.sh`
+- `deploy/build-web.sh demo|pilot`
 - `deploy/pilot-smoke.sh`
 - API/discovery/backup/healthcheck systemd service/timer
 - `pilot_backup.py`
 - `GET /api/healthz`
 
-### Health
+`build-web.sh` 已移除 `rsync` 额外依赖，只使用标准 shell/coreutils + npm。
 
-`GET /api/healthz` 只返回固定非敏感 liveness，不包含 tenant/profile、业务数据、Provider/model/API Key。
+Demo 可以直接在目标 VPS 上运行：
 
-### Backup
+```text
+bash deploy/build-web.sh demo
+```
 
-SQLite 使用 `Connection.backup()` 在线备份，之后执行 `PRAGMA integrity_check` 并计算 SHA-256；默认北京时间每天02:20，保留14份。真实 Pilot 前仍需 backup + restore 实测。
+它会真实执行 `npm ci + npx tsc --noEmit + npm run build`。因此即使 GitHub Actions 继续不可用，也可以在目标 VPS 获得真实 H5 构建证据。
 
-### HTTPS
-
-Cloudflare 最终使用 `Full (strict)`。首次源站证书建议先 DNS-only 直连 Caddy，确认 HTTPS 后再开启代理。
-
-这些只是**部署脚手架已写入**，尚未在真实 VPS 执行，不能称为已经上线。
+真实 Pilot 仍必须额外通过81组后端测试和 authenticated smoke。
 
 ## CI / Build 真相
 
-CI 现在定义了：
+最新检查 HEAD：`298b07380febc5f48125109851ad7076b0d97385`  
+Run：`33306414450`
 
-- Python compile + 81组 unittest；
-- JSON 校验；
-- deploy shell syntax；
-- TypeScript typecheck；
-- **Demo H5 build**；
-- **Pilot H5 build**。
+- web-build `99243650826`：runner 未分配，steps=null
+- python-pilot `99243650961`：runner 未分配，steps=null
+- job log blob 不存在
 
-最新实际检查：HEAD `ea1cabf5ee3cacc47dfa4b98d27ee4c937e14a3b`，Run `33304701302`：
+因此 GitHub Actions 仍没有真正执行任何代码。现在不再让这个无效 runner 阻塞静态 Demo；目标 VPS 可以作为 H5 的可信构建环境。
 
-- web-build `99239055207`：`runner_id=0 / steps=[] / failure`
-- python-pilot `99239055274`：`runner_id=0 / steps=[] / failure`
-
-所以所有这些步骤仍然**一个都没有真正执行**。81个 test modules 只是“已写入”，不能标 PASS。
+81个 Python test modules 仍只是“已写入”，**不能标 PASS**，所以真实 Pilot 仍不能上线。
 
 ## 下一步
 
-1. 如果 `medradar.qzz.io` 可注册，优先固定它作为给老杨看的同域 Demo/Pilot 地址；不可用则依次退到其他候选；
-2. 获得81组 tests + Demo/Pilot 两种 H5 build 的真实 PASS；
-3. 可以先部署明确标注演示数据的 Demo 给老杨看；
-4. deterministic PASS 后做 server-only Agnes grounded outreach smoke；
-5. 在同一域名切真实 Pilot，做 HTTPS + Session/invite/follow-up/reminder/followed/outreach smoke；
-6. backup + restore 实测；
-7. 真实 discovery tick latency；
-8. 逐个解决剩余5个 discovery contract；
-9. 捕获 `downEnId` 医疗附件真实 bytes；
-10. 运行28个 Agnes benchmark。
+1. 注册 `medradar.qzz.io`；不可用则退到 `medradar.dpdns.org` 等候选；
+2. 在一台 VPS 上运行 `deploy/build-web.sh demo`，拿到真实 `npm ci + TypeScript + build` PASS；
+3. 用 Caddy HTTPS 发布明确标注虚构数据的 Demo；
+4. 按 `docs/product/demo.md` 做一次浏览器演示走查，然后给老杨看；
+5. 根据老杨是否愿意导入自己的医院关系/产品数据决定下一轮产品重点；
+6. 与 Demo 验证并行，后端继续等待/寻找可信执行环境完成81组 deterministic tests；
+7. 后端 PASS 后再做 server-only Agnes smoke，并在同一域名切真实天津 Pilot；
+8. 之后继续剩余5个 discovery contract、附件真实 bytes 和28个 Agnes benchmark。
