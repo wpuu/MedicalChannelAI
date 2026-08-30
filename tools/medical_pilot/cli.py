@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 import sys
 from urllib.parse import urlparse
 
@@ -11,15 +12,23 @@ from .ccgp_lifecycle_adapter import (
     build_ccgp_lifecycle_event_and_facts,
 )
 from .collector_core import FetchError, HostBoundFetcher, build_event_and_facts
+from .collector_store import SQLitePublicEventLedger, persist_collector_result
 from .intent_adapter import ParsedIntentNotice, build_intent_event_and_facts
 from .registry import adapter_for_source, resolve_source
+from .today_repo import SQLiteTodayActionsRepository
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Research-only one-URL collector for evidence-backed medical opportunity facts."
+        description="Evidence-backed one-URL medical collector with optional Pilot persistence."
     )
     parser.add_argument("url", help="Registered public notice URL")
+    parser.add_argument(
+        "--db",
+        type=Path,
+        default=None,
+        help="optional persistent Pilot SQLite path; when set, verified output is projected into Today repository",
+    )
     args = parser.parse_args()
 
     try:
@@ -102,6 +111,42 @@ def main() -> int:
             if award_items_fact is not None:
                 facts.append(award_items_fact)
 
+    persistence = None
+    if args.db is not None:
+        try:
+            repository = SQLiteTodayActionsRepository(args.db)
+            event_ledger = SQLitePublicEventLedger(args.db)
+            opportunity = persist_collector_result(
+                repository=repository,
+                event_ledger=event_ledger,
+                event=event,
+                facts=facts,
+            )
+        except (ValueError, RuntimeError) as exc:
+            print(
+                json.dumps(
+                    {
+                        "status": "ERROR",
+                        "code": "PERSISTENCE_REJECTED",
+                        "message": str(exc),
+                        "event_id": event.get("event_id"),
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            return 3
+        persistence = {
+            "status": "PERSISTED",
+            "db_path": str(args.db),
+            "opportunity_id": opportunity["opportunity_id"],
+            "canonical_project_id": opportunity["canonical_project_id"],
+            "lifecycle_state": opportunity["lifecycle_state"],
+            "verification_status": opportunity["verification_status"],
+            "product_labels": list(opportunity.get("product_labels") or []),
+            "customer_type": opportunity.get("customer_type"),
+            "is_rental_project": opportunity.get("is_rental_project"),
+        }
+
     result = {
         "status": "OK",
         "source_registry": {
@@ -123,6 +168,7 @@ def main() -> int:
         "parsed": parsed_payload,
         "event": event,
         "facts": facts,
+        "persistence": persistence,
     }
     json.dump(result, sys.stdout, ensure_ascii=False, indent=2)
     sys.stdout.write("\n")
