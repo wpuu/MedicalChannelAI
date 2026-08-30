@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.1",
+  "purpose": "Initial real-public-data bootstrap for the Tianjin personalized Agnes Pilot. URLs only; no customer context or prewritten AI decisions.",
+  "snapshot_date": "2026-08-30",
+  "entries": [
+    {
+      "expected_project_code": "XCSD-2026-A-641",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219613.htm"
+    },
+    {
+      "expected_project_code": "XCSD-2026-C-181",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194426.htm"
+    },
+    {
+      "expected_project_code": "ZYGP20260851",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219685.htm"
+    },
+    {
+      "expected_project_code": "XCSD-2026-A-517",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219677.htm"
+    },
+    {
+      "expected_project_code": "TJBH-2026-A-0052",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194440.htm"
+    }
+  ]
+}
