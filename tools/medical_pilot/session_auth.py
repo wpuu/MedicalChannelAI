@@ -52,6 +52,13 @@ def _validate_principal(principal: TrustedPrincipal) -> None:
         raise ValueError("principal identity is too long")
 
 
+def _validate_token_hash(token_hash: str) -> None:
+    if not isinstance(token_hash, str) or len(token_hash) != 64:
+        raise ValueError("session token_hash must be lowercase sha256")
+    if any(ch not in "0123456789abcdef" for ch in token_hash):
+        raise ValueError("session token_hash must be lowercase sha256")
+
+
 def _token_hash(token: str) -> str:
     if not isinstance(token, str) or len(token) < 32 or len(token) > 128:
         raise ValueError("session token length is invalid")
@@ -83,6 +90,7 @@ class MemorySessionStore:
         created_at: datetime,
         expires_at: datetime,
     ) -> bool:
+        _validate_token_hash(token_hash)
         _validate_principal(principal)
         _require_aware(created_at, "created_at")
         _require_aware(expires_at, "expires_at")
@@ -94,6 +102,7 @@ class MemorySessionStore:
         return True
 
     def get_active(self, token_hash: str, *, now: datetime) -> TrustedPrincipal | None:
+        _validate_token_hash(token_hash)
         _require_aware(now, "now")
         row = self._rows.get(token_hash)
         if row is None:
@@ -104,6 +113,7 @@ class MemorySessionStore:
         return principal
 
     def revoke(self, token_hash: str, *, revoked_at: datetime) -> bool:
+        _validate_token_hash(token_hash)
         _require_aware(revoked_at, "revoked_at")
         row = self._rows.get(token_hash)
         if row is None:
@@ -156,6 +166,7 @@ class SQLiteSessionStore:
         created_at: datetime,
         expires_at: datetime,
     ) -> bool:
+        _validate_token_hash(token_hash)
         _validate_principal(principal)
         _require_aware(created_at, "created_at")
         _require_aware(expires_at, "expires_at")
@@ -177,6 +188,7 @@ class SQLiteSessionStore:
         return cursor.rowcount == 1
 
     def get_active(self, token_hash: str, *, now: datetime) -> TrustedPrincipal | None:
+        _validate_token_hash(token_hash)
         _require_aware(now, "now")
         with self._connect() as conn:
             row = conn.execute(
@@ -194,6 +206,7 @@ class SQLiteSessionStore:
         return principal
 
     def revoke(self, token_hash: str, *, revoked_at: datetime) -> bool:
+        _validate_token_hash(token_hash)
         _require_aware(revoked_at, "revoked_at")
         with self._connect() as conn:
             cursor = conn.execute(
