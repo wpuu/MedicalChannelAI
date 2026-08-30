@@ -2,7 +2,7 @@
 
 日期：2026-08-30  
 分支：`dev/tianjin-pilot-v0.1`  
-阶段：`TRUSTED_TIANJIN_BACKEND + BUSINESS_DEMO_POLISHED + MAINLAND_ACCESS_GATE + SINGLE_HOST_DEPLOYMENT_SCAFFOLD`  
+阶段：`TRUSTED_TIANJIN_BACKEND + BUSINESS_DEMO_POLISHED + WECHAT_MAINLAND_ACCESS_GATE + SINGLE_HOST_DEPLOYMENT_SCAFFOLD`  
 生产就绪：**false**  
 Draft PR：**#1（保持 Draft，不合并）**
 
@@ -17,9 +17,7 @@ Draft PR：**#1（保持 Draft，不合并）**
 - Agnes benchmark 28 case，未执行
 - Coverage=`PARTIAL / NOT_EXHAUSTIVE`
 
-## 近期目标
-
-现在分成两条线：
+## 当前近期目标
 
 ### A. 先上线给老杨看的商务 Demo
 
@@ -38,100 +36,79 @@ Demo 已完成商务收口：
 - robots meta + robots.txt + X-Robots-Tag 禁止搜索引擎收录；
 - `docs/product/demo.md` 固定5分钟商务演示路径。
 
-### B. 后端继续验证真实天津 Pilot
+### B. 后端并行验证真实天津 Pilot
 
-真实 Pilot 代码已具备：
+真实 Pilot 代码已具备 Today Top5、Session/invite、服务端 follow-up、站内 reminder、`/followed`、grounded outreach 和 tenant 隔离；但81组后端 tests 仍没有真实 PASS，因此不能上线真实客户数据。
 
-- Today Top5 + 详情；
-- opaque Session + 一次性 invite；
-- tenant-private append-only follow-up；
-- 到期站内提醒；
-- `/followed` 长期跟进；
-- grounded on-demand outreach；
-- VERIFIED public facts / 客户私有资源分离；
-- Agnes grounding / allowlist；
-- 浏览器不能自报 tenant/profile。
+## Demo 地址已经按真实微信测试调整
 
-真实 Pilot 仍不能上线，因为81组后端测试没有真实 PASS。
-
-## 免费域名决定
-
-不再考虑当前收费的 `qzz.io` 作为测试入口。
-
-当前顺序：
-
-1. **`medradar.dpdns.org`** — 首选商务 Demo / 后续同域 Pilot
-2. `wpu.dpdns.org` — 用户已有且当前可访问，只作为 dpdns 链路参考，不动现有业务
-3. `medicalai.qd.je` — 可注册但不是首选；当前存在 PSL / Cloudflare zone 兼容问题
-
-正式收费后再换独立付费品牌域名。
-
-## 中国大陆访问已经变成硬门槛
-
-给老杨发链接前必须确保：
-
-> 天津普通国内网络、关闭 VPN/Clash/WARP 后可以直接打开。
-
-免费 Demo 默认不依赖 Cloudflare 橙云，不依赖 Vercel：
+当前静态商务 Demo 地址优先：
 
 ```text
-medradar.dpdns.org
-  ↓ DNS-only
-境外源站（香港 > 日本 > 新加坡 > 美国）
+https://medicalai.qd.je/
+```
+
+用户已实测：
+
+- 中国大陆网络可以访问；
+- 微信内置浏览器可以直接点击打开。
+
+当前 `medradar.dpdns.org` 微信实测打不开，因此不作为商务 Demo 入口。
+
+这里以真实目标环境优先，不以理论 DNS/Cloudflare 兼容性反向覆盖实际体验。
+
+## qd.je 只用于静态 Demo
+
+`qd.je` 当前仍存在 Public Suffix List / Cloudflare zone 兼容问题。
+
+所以当前明确：
+
+- `medicalai.qd.je`：无登录、无真实客户数据的商务 Demo；
+- 真实 Pilot / 收费版：优先换独立长期可控域名。
+
+不再强求免费 Demo 域名与真实 Pilot 永久同域。
+
+## 微信 / 大陆访问已经变成硬门槛
+
+发给老杨前必须：
+
+1. 微信内置浏览器直接点击可打开；
+2. 至少2条独立中国大陆网络可访问；
+3. 全程关闭 VPN/Clash/WARP；
+4. HTTPS无警告；
+5. 首页、TOP1详情、刷新、返回、Demo话术、重置均正常。
+
+完整验收：`deploy/CHINA_ACCESS.md`。
+
+由于免费公共后缀信誉可能变化，每次重要演示当天必须重新在微信点击验证。
+
+## Demo 网络拓扑
+
+```text
+medicalai.qd.je
+  ↓ DNS
+境外源站（香港 > 日本 > 新加坡 > 美国测试）
   ↓ HTTPS/Caddy
 静态 H5
 ```
 
-Cloudflare 普通全球网络不是中国大陆节点服务。其 China Network 属于 Enterprise 独立服务并要求 ICP，因此不作为当前免费 Demo 前置条件。
+Demo 不依赖 Cloudflare/Vercel。
 
-大陆验收标准见：`deploy/CHINA_ACCESS.md`。
-
-至少：
-
-- 一条国内手机流量；
-- 另一运营商或家庭宽带；
-- 全程关闭 VPN；
-- HTTPS无警告；
-- 首页、TOP1详情、刷新、返回、Demo话术、重置均正常。
-
-未通过就不把链接发给老杨。
+如果现有美国 VPS 在微信/天津网络足够快，可以零新增成本先用；如果慢，只换亚洲源站和 DNS IP，不改产品。
 
 ## H5 国内访问优化
 
-Demo 首屏不允许依赖 Google Fonts、jsDelivr、unpkg、cdnjs、Google APIs、Vercel/Cloudflare Pages 默认域等第三方运行资源。
+Demo 首屏禁止依赖 Google Fonts、jsDelivr、unpkg、cdnjs、Google APIs、Vercel/Pages/Workers 默认域等第三方运行资源。
 
-`deploy/build-web.sh demo` 现在会在 build 后扫描产物；发现外部 `script/link/@import` 运行依赖直接失败。
-
-因此国内访问时，页面只需要成功连接 `medradar.dpdns.org` 本身。
-
-## 部署
-
-Demo 构建：
-
-```text
-VITE_BUILD_MODE=demo
-VITE_API_BASE_URL=
-bash deploy/build-web.sh demo
-```
-
-脚本实际执行：
+`deploy/build-web.sh demo` 当前执行：
 
 - `npm ci`
 - `npx tsc --noEmit`
 - `npm run build`
-- 外部运行依赖扫描
-- 发布到 `/srv/medical/web`
+- HTML/CSS 外部运行依赖扫描
+- 默认3 MiB dist大小预算
 
-真实 Pilot 后续同域切：
-
-```text
-VITE_BUILD_MODE=pilot
-VITE_API_BASE_URL=/api
-```
-
-单机 Pilot：
-
-`域名 → Caddy → H5 + /api → 127.0.0.1:8787 + pilot.sqlite`
+Caddy 对 `/assets/*` 使用 immutable 长缓存，SPA HTML使用 `no-cache`。
 
 ## Collector / Discovery
 
@@ -148,22 +125,22 @@ Collector 已支持：
 
 ## CI 真相
 
-GitHub Actions 仍存在 runner 未分配问题：job `runner_id=0 / steps=[]`，没有真实运行任何 TypeScript/build/Python test。
+GitHub Actions 仍存在 runner 未分配问题：job `runner_id=0 / steps=[]`，没有真实运行 TypeScript/build/Python tests。
 
 因此：
 
 - GitHub Actions 不再阻塞静态 Demo；
-- Demo 在实际目标服务器构建并验收即可得到真实 H5 PASS 证据；
+- Demo 在实际目标服务器构建并通过微信/大陆验收即可获得真实前端证据；
 - 81个 Python tests 仍不能标 PASS；
-- 真实 Pilot 不得因此提前上线。
+- 真实 Pilot 不得提前上线。
 
 ## 下一步
 
-1. 注册 `medradar.dpdns.org`；
-2. 先选一个大陆可达的源站；零新增成本可先试现有美国 VPS，有问题立即换香港/日本/新加坡；
-3. 在目标服务器运行 `deploy/build-web.sh demo`；
-4. 配 Caddy HTTPS；
-5. 严格执行 `deploy/CHINA_ACCESS.md` 两条国内网络验收；
-6. 按 `docs/product/demo.md` 做完整演示走查；
-7. 通过后才把链接发给老杨；
-8. 并行解决81组后端测试真实执行、Agnes smoke 和真实天津 Pilot 验收。
+1. 继续使用已经可访问的 `medicalai.qd.je` 作为商务 Demo 地址；
+2. 将该域名 DNS 指向选定 Demo 源站；
+3. 目标服务器运行 `deploy/build-web.sh demo`；
+4. Caddy HTTPS；
+5. 严格执行 `deploy/CHINA_ACCESS.md` 微信 + 两条大陆网络验收；
+6. 按 `docs/product/demo.md` 完整走查；
+7. 通过后再把链接发给老杨；
+8. 并行获得81组后端 tests PASS、Agnes smoke，并为真实 Pilot 准备独立域名。
