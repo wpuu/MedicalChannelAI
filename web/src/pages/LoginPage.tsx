@@ -32,7 +32,7 @@ export function LoginPage() {
     try {
       await redeemPilotInvite(normalized)
       setCode('')
-      navigate('/today', { replace: true })
+      navigate('/profile', { replace: true })
     } catch (cause) {
       if (cause instanceof Error && cause.message === 'INVITE_INVALID_OR_EXPIRED') {
         setError('邀请码无效、已使用或已过期，请联系管理员重新获取。')
@@ -108,7 +108,7 @@ export function LoginPage() {
         <div className="mt-5 flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
           <p className="text-xs leading-5 text-slate-500">
-            邀请码只能使用一次。登录成功后可直接查看今日商机，不需要先填写医院关系或产品资料；这些信息以后只用于提高个性化排序精度。
+            邀请码只能使用一次。首次登录先填写医院关系、产品能力和合作资源，保存后系统立即按你的真实资料筛选今日商机，并让需要判断的 Top 5 进入受控 Agnes 分析。
           </p>
         </div>
       </section>
