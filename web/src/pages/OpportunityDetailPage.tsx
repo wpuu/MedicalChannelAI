@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, MessageSquareText } from 'lucide-react'
 import { CustomerContextCard } from '@/components/opportunity/CustomerContextCard'
 import { DecisionCard } from '@/components/opportunity/DecisionCard'
@@ -13,11 +13,13 @@ import { NotFitModal } from '@/components/followup/NotFitModal'
 import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
+import { isAuthRequiredError } from '@/services/apiConfig'
 import type { FollowupStatus, NotFitReason, TodayActionCard } from '@/types'
 import { OfficialText } from '@/components/shared/EmptyValue'
 
 export function OpportunityDetailPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { toast } = useToast()
   const [card, setCard] = useState<TodayActionCard | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,12 +47,16 @@ export function OpportunityDetailPage() {
       } else {
         setCard(res)
       }
-    } catch {
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
       setError('商机详情加载失败，请稍后重试。')
     } finally {
       setLoading(false)
     }
-  }, [id])
+  }, [id, navigate])
 
   useEffect(() => {
     void load()
@@ -64,7 +70,7 @@ export function OpportunityDetailPage() {
     try {
       await todayActionsService.updateFollowup(card.opportunity_id, { status, ...extra })
       await load(true)
-      toast('演示模式：跟进状态已在本地更新', 'success')
+      toast('跟进状态已在当前浏览器本地保存，尚未同步服务器', 'success')
     } catch {
       toast('本地更新失败，请重试')
     }
