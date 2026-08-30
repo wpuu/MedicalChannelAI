@@ -22,18 +22,14 @@ cd "${APP_DIR}/web"
 npm ci
 npx tsc --noEmit
 
-if [[ "${MODE}" == "demo" ]]; then
-  env -u VITE_API_BASE_URL npm run build
-else
-  VITE_API_BASE_URL="${API_BASE}" npm run build
-fi
+VITE_BUILD_MODE="${MODE}" VITE_API_BASE_URL="${API_BASE}" npm run build
 
 mkdir -p "${WEB_DIR}"
 rsync -a --delete dist/ "${WEB_DIR}/"
 
 echo "H5 deployed in ${MODE} mode to ${WEB_DIR}"
 if [[ "${MODE}" == "demo" ]]; then
-  echo "Demo mode: synthetic/local Mock data, no real API login."
+  echo "Demo mode: VITE_BUILD_MODE=demo, synthetic/local Mock data, no real API login."
 else
-  echo "Pilot mode: same-origin API expected at /api."
+  echo "Pilot mode: VITE_BUILD_MODE=pilot, same-origin API required at /api."
 fi
