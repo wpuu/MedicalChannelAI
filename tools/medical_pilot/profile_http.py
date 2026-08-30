@@ -8,6 +8,7 @@ from typing import Any, Callable, Mapping, Protocol
 from urllib.parse import urlsplit
 
 from .customer_profile_gate import evaluate_customer_profile
+from .customer_profile_validation import validate_customer_profile_payload
 from .today_actions_http import TrustedPrincipal, TrustedPrincipalResolver
 
 
@@ -105,12 +106,6 @@ def _principal(
 
 
 def _public_profile(profile: dict[str, Any]) -> dict[str, Any]:
-    """Return only the signed-in customer's editable/private profile view.
-
-    Tenant/profile identifiers are session-bound and intentionally omitted from the
-    browser response. They can never be selected or changed by request JSON.
-    """
-
     result = {key: copy.deepcopy(profile.get(key)) for key in sorted(_EDITABLE_FIELDS)}
     result.update(
         {
@@ -164,13 +159,10 @@ def _with_defaults(profile: dict[str, Any]) -> dict[str, Any]:
 class ProfileHttpTransport:
     """Authenticated customer-profile editing boundary.
 
-    The signed-in principal fixes tenant_id/profile_id. A browser can edit only the
-    customer-confirmed business inputs used by deterministic matching and grounded
-    Agnes decisions. Server-computed readiness fields are never accepted from JSON.
-
-    When a saved profile is sufficient for candidates, ``after_save`` may start one
-    idempotent Today Actions refresh. The callback stays server-side and is best-effort:
-    profile persistence must not be rolled back by a temporary model/queue failure.
+    Session identity fixes tenant/profile. Editable customer facts are validated,
+    server readiness is recomputed, and only then is the profile persisted. When the
+    profile is usable for candidates, one idempotent Today Actions refresh may be
+    started immediately so grounded Agnes work enters the server-only queue.
     """
 
     def __init__(
@@ -236,14 +228,16 @@ class ProfileHttpTransport:
                 item.code for item in gate.missing_conditions
             ]
             candidate["updated_at"] = now.astimezone(timezone.utc).isoformat()
+
+            validate_customer_profile_payload(candidate)
             self._repository.upsert_profile(candidate)
 
             if gate.candidate_opportunity_allowed and self._after_save is not None:
                 try:
                     self._after_save(principal, now)
                 except Exception:
-                    # Profile persistence is authoritative. /today is idempotent and
-                    # will retry queue admission when the browser opens the result page.
+                    # Saving customer-confirmed facts must survive a temporary queue
+                    # failure; opening /today safely retries the same immutable tasks.
                     pass
 
             return _json_response(
