@@ -1,7 +1,8 @@
-import { Loader2, ShieldAlert, Sparkles } from 'lucide-react'
+import { Eye, Loader2, ShieldAlert, Sparkles } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import { MODEL_STATUS_COPY } from '@/utils/labels'
 import { SourceTag } from '@/components/shared/StageBadge'
+import { isApiMode } from '@/services/apiConfig'
 
 export function DecisionBlock({ card }: { card: TodayActionCard }) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
@@ -49,6 +50,21 @@ export function DecisionBlock({ card }: { card: TodayActionCard }) {
   }
 
   if (card.model_decision_status === 'AWAITING_MODEL') {
+    if (!isApiMode) {
+      return (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-start gap-2">
+            <Eye className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+            <div>
+              <p className="text-[13px] font-semibold text-slate-800">当前先观察</p>
+              <p className="mt-1 text-[12px] leading-5 text-slate-500">
+                演示模式不模拟一个永远排队的模型任务。该项目产品匹配，但医院关系尚未确认，当前先保留观察。
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="rounded-xl border border-indigo-100 bg-indigo-50/30 p-3">
         <div className="flex items-center gap-2 text-[13px] font-semibold text-indigo-900">
