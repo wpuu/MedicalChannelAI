@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock, Info } from 'lucide-react'
 import { ActionCard } from '@/components/today/ActionCard'
+import { DueRemindersPanel } from '@/components/today/DueRemindersPanel'
 import { MetricCards } from '@/components/today/MetricCards'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { NotFitModal } from '@/components/followup/NotFitModal'
@@ -10,6 +11,11 @@ import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
+import {
+  acknowledgeDueReminder,
+  getDueReminders,
+  type DueReminder,
+} from '@/services/reminderApi'
 import type { FollowupStatus, NotFitReason, TodayActionsResponse } from '@/types'
 import { formatDateTime } from '@/utils/format'
 
@@ -17,9 +23,11 @@ export function TodayPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [data, setData] = useState<TodayActionsResponse | null>(null)
+  const [reminders, setReminders] = useState<DueReminder[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [reminderBusyId, setReminderBusyId] = useState<string | null>(null)
   const [notFitId, setNotFitId] = useState<string | null>(null)
   const [remindId, setRemindId] = useState<string | null>(null)
   const [outreachId, setOutreachId] = useState<string | null>(null)
@@ -32,6 +40,19 @@ export function TodayPage() {
     try {
       const res = await todayActionsService.getTodayActions()
       setData(res)
+      if (isApiMode) {
+        try {
+          setReminders(await getDueReminders())
+        } catch (cause) {
+          if (isAuthRequiredError(cause)) {
+            navigate('/login', { replace: true })
+            return
+          }
+          // Reminder inbox is auxiliary; a temporary inbox failure must not hide Today Actions.
+        }
+      } else {
+        setReminders([])
+      }
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
@@ -71,6 +92,23 @@ export function TodayPage() {
     }
   }
 
+  const acknowledgeReminder = async (reminderId: string) => {
+    setReminderBusyId(reminderId)
+    try {
+      await acknowledgeDueReminder(reminderId)
+      setReminders((items) => items.filter((item) => item.reminder_id !== reminderId))
+      toast('站内提醒已标记处理', 'success')
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
+      toast('提醒处理失败，请重试')
+    } finally {
+      setReminderBusyId(null)
+    }
+  }
+
   if (loading) return <LoadingState />
   if (error) return <ErrorState message={error} onRetry={() => void load()} />
   if (!data) return <EmptyState title="暂无今日行动" hint="当前没有可展示的重点商机。" />
@@ -98,6 +136,13 @@ export function TodayPage() {
           经营优先级用于安排销售资源，不代表中标概率。
         </p>
       </section>
+
+      <DueRemindersPanel
+        reminders={reminders}
+        busyId={reminderBusyId}
+        onOpen={(opportunityId) => navigate(`/opportunity/${opportunityId}`)}
+        onAcknowledge={(reminderId) => void acknowledgeReminder(reminderId)}
+      />
 
       <MetricCards data={data} />
 
