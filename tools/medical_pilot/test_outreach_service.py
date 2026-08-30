@@ -5,11 +5,11 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from .agnes_global_lease import SQLiteAgnesLeaseStore
-from .outreach_service import GroundedOutreachService, OutreachServiceError, SQLiteOutreachResultStore
-from .test_model_decision_contract import verified_fact
-from .test_opportunity_match_gate import complete_profile, opportunity
-from .today_actions_http import TrustedPrincipal
+from tools.medical_pilot.agnes_global_lease import SQLiteAgnesLeaseStore
+from tools.medical_pilot.outreach_service import GroundedOutreachService, OutreachServiceError, SQLiteOutreachResultStore
+from tools.medical_pilot.test_model_decision_contract import verified_fact
+from tools.medical_pilot.test_opportunity_match_gate import complete_profile, opportunity
+from tools.medical_pilot.today_actions_http import TrustedPrincipal
 
 
 NOW = datetime(2026, 8, 30, 7, 40, tzinfo=timezone.utc)
