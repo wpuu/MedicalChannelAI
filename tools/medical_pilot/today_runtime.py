@@ -9,6 +9,8 @@ from .agnes_dispatch_queue import SQLiteAgnesDispatchQueue
 from .agnes_global_lease import SQLiteAgnesLeaseStore
 from .agnes_task_result import SQLiteAgnesTaskResultStore
 from .auth_http import PilotAuthHttpTransport
+from .followed_http import FollowedHttpTransport
+from .followed_store import SQLiteFollowedOpportunityStore
 from .followup_http import FollowupHttpTransport
 from .followup_store import SQLiteFollowupStore
 from .invite_auth import (
@@ -40,19 +42,14 @@ OutreachModelCall = Callable[[dict[str, Any]], dict[str, Any]]
 
 @dataclass
 class SQLiteTodayRuntime:
-    """Single-host Tianjin Pilot runtime binding.
-
-    One SQLite file may safely host public facts, tenant-private profile/follow-up/
-    reminder/outreach, auth, discovery and Agnes coordination tables because components
-    use distinct table names plus WAL/busy timeout. This remains a single-host reference
-    runtime and must not be copied to independent stateless serverless instances.
-    """
+    """Single-host Tianjin Pilot runtime binding."""
 
     path: Path
     repository: SQLiteTodayActionsRepository
     invite_store: SQLiteInviteStore
     session_store: SQLiteSessionStore
     followup_store: SQLiteFollowupStore
+    followed_store: SQLiteFollowedOpportunityStore
     reminder_store: SQLiteReminderInboxStore
     outreach_result_store: SQLiteOutreachResultStore
     result_store: SQLiteAgnesTaskResultStore
@@ -64,6 +61,7 @@ class SQLiteTodayRuntime:
     outreach_service: GroundedOutreachService
     auth_transport: PilotAuthHttpTransport = field(init=False)
     followup_transport: FollowupHttpTransport = field(init=False)
+    followed_transport: FollowedHttpTransport = field(init=False)
     reminder_transport: ReminderHttpTransport = field(init=False)
     outreach_transport: OutreachHttpTransport = field(init=False)
 
@@ -76,6 +74,11 @@ class SQLiteTodayRuntime:
             principal_resolver=self.principal_resolver,
             repository=self.repository,
             store=self.followup_store,
+        )
+        self.followed_transport = FollowedHttpTransport(
+            principal_resolver=self.principal_resolver,
+            repository=self.repository,
+            store=self.followed_store,
         )
         self.reminder_transport = ReminderHttpTransport(
             principal_resolver=self.principal_resolver,
@@ -166,6 +169,7 @@ def build_sqlite_today_runtime(
     invite_store = SQLiteInviteStore(path)
     session_store = SQLiteSessionStore(path)
     followup_store = SQLiteFollowupStore(path)
+    followed_store = SQLiteFollowedOpportunityStore(path)
     reminder_store = SQLiteReminderInboxStore(path)
     outreach_result_store = SQLiteOutreachResultStore(path)
     result_store = SQLiteAgnesTaskResultStore(path)
@@ -197,6 +201,7 @@ def build_sqlite_today_runtime(
         invite_store=invite_store,
         session_store=session_store,
         followup_store=followup_store,
+        followed_store=followed_store,
         reminder_store=reminder_store,
         outreach_result_store=outreach_result_store,
         result_store=result_store,
