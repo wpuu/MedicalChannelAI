@@ -87,7 +87,7 @@ class OutreachContractTests(unittest.TestCase):
         self.assertIn("化学发光设备采购项目", rendered["draft"])
         self.assertIn("内部沟通话术草稿", rendered["draft"])
         self.assertTrue(rendered["requires_human_confirmation"])
-        self.assertNotIn("中标概率", rendered["draft"])
+        self.assertIn("不代表中标概率或采购承诺", rendered["draft"])
 
 
 if __name__ == "__main__":
