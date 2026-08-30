@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from .outreach_client import AgnesOutreachClient
-from .pilot_server import build_outreach_model_call_from_env
+from tools.medical_pilot.outreach_client import AgnesOutreachClient
+from tools.medical_pilot.pilot_server import build_outreach_model_call_from_env
 
 
 class PilotServerOutreachConfigTests(unittest.TestCase):
