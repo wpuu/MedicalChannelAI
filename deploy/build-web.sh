@@ -27,12 +27,15 @@ VITE_BUILD_MODE="${MODE}" VITE_API_BASE_URL="${API_BASE}" npm run build
 
 if [[ "${MODE}" == "demo" ]]; then
   # Mainland-China business Demo must not depend on third-party runtime assets.
-  # Evidence URLs may exist as plain application data, so only executable/style
-  # dependency patterns are blocked here.
-  if grep -RniE \
-    '(<script[^>]+src=["'"']https?://|<link[^>]+href=["'"']https?://|@import[[:space:]]+(url\()?['"'"']?https?://)' \
-    dist; then
-    echo "ERROR: demo build contains external runtime script/style dependency" >&2
+  # Plain evidence URLs may exist in JS data; only executable/style dependencies
+  # are rejected here.
+  if grep -niE '<(script|link)[^>]+(src|href)="https?://' dist/index.html; then
+    echo "ERROR: demo index.html contains external runtime script/style dependency" >&2
+    exit 3
+  fi
+
+  if find dist -type f -name '*.css' -print0 | xargs -0 -r grep -niE '(@import[^;]*https?://|url\([[:space:]]*https?://)'; then
+    echo "ERROR: demo CSS contains external runtime dependency" >&2
     exit 3
   fi
 
