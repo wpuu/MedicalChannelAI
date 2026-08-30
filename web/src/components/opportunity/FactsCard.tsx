@@ -2,17 +2,22 @@ import type { Facts } from '@/types'
 import { OfficialText } from '@/components/shared/EmptyValue'
 import { FactRow, SectionCard } from '@/components/shared/SectionCard'
 import { SourceTag, StageBadge, VerifiedBadge } from '@/components/shared/StageBadge'
+import { isApiMode } from '@/services/apiConfig'
 import { formatBudget, formatDate } from '@/utils/format'
 
 export function FactsCard({ facts }: { facts: Facts }) {
   return (
     <SectionCard
       title="项目公开信息"
-      subtitle="官方/已验证事实 · 空值不会自行补全"
+      subtitle={
+        isApiMode
+          ? '官方/已验证事实 · 空值不会自行补全'
+          : '虚构演示公开字段 · 用于展示正式版的信息结构与事实边界'
+      }
       tone="official"
       extra={
         <div className="flex flex-col items-end gap-1">
-          <SourceTag tone="official">官方事实</SourceTag>
+          <SourceTag tone="official">{isApiMode ? '官方事实' : '演示公开字段'}</SourceTag>
           <VerifiedBadge status={facts.verification_status} />
         </div>
       }
@@ -23,9 +28,11 @@ export function FactsCard({ facts }: { facts: Facts }) {
       <FactRow label="项目名称">
         <OfficialText value={facts.project_name} />
       </FactRow>
-      <FactRow label="采购单位">
-        <OfficialText value={facts.buyer_name ?? null} />
-      </FactRow>
+      {isApiMode || facts.buyer_name ? (
+        <FactRow label="采购单位">
+          <OfficialText value={facts.buyer_name ?? null} />
+        </FactRow>
+      ) : null}
       <FactRow label="医院">
         <OfficialText value={facts.hospital} />
       </FactRow>
