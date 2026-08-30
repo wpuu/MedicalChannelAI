@@ -157,10 +157,13 @@ def normalize_followup_request(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _request_hash(normalized: dict[str, Any]) -> str:
+def _request_hash(opportunity_id: str, normalized: dict[str, Any]) -> str:
     immutable = {
-        key: normalized[key]
-        for key in ("status", "note", "reason", "remind_at")
+        "opportunity_id": opportunity_id,
+        **{
+            key: normalized[key]
+            for key in ("status", "note", "reason", "remind_at")
+        },
     }
     raw = json.dumps(
         immutable,
@@ -251,7 +254,7 @@ class SQLiteFollowupStore:
         opportunity_id = _required_text(opportunity_id, "opportunity_id", max_length=160)
         normalized = normalize_followup_request(request)
         mutation_id = normalized["mutation_id"]
-        request_hash = _request_hash(normalized)
+        request_hash = _request_hash(opportunity_id, normalized)
         event = _build_event(
             tenant_id=tenant_id,
             opportunity_id=opportunity_id,
@@ -311,7 +314,7 @@ class SQLiteFollowupStore:
             rows = conn.execute(
                 "SELECT payload FROM medical_private_followup_events "
                 "WHERE tenant_id=? AND profile_id=? AND opportunity_id=? "
-                "ORDER BY recorded_at DESC, followup_id DESC LIMIT ?",
+                "ORDER BY recorded_at DESC, rowid DESC LIMIT ?",
                 (tenant_id, profile_id, opportunity_id, limit),
             ).fetchall()
         result: list[dict[str, Any]] = []
