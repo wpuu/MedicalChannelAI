@@ -3,7 +3,7 @@ set -euo pipefail
 
 BASE_URL="${1:-}"
 if [[ -z "${BASE_URL}" ]]; then
-  echo "usage: $0 https://pilot-domain" >&2
+  echo "usage: bash $0 https://pilot-domain" >&2
   exit 2
 fi
 BASE_URL="${BASE_URL%/}"
@@ -25,7 +25,7 @@ echo OK
 
 printf '[2/3] H5 SPA... '
 curl --fail --silent --show-error --max-time 10 "${BASE_URL}/today" >"${TMP_BODY}"
-if ! grep -Eqi '<div[^>]+id=["'"']root["'"']' "${TMP_BODY}"; then
+if ! grep -Fqi 'id="root"' "${TMP_BODY}"; then
   echo "FAILED: /today did not return the H5 index" >&2
   exit 1
 fi
