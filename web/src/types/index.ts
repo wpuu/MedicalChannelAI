@@ -30,8 +30,24 @@ export type NotFitReason =
   | '不做租赁项目'
   | '其他'
 
-export type RelationshipStrength = 'STRONG' | 'WEAK' | 'NONE'
-export type CapabilityType = 'DIRECT' | 'NEED_MANUFACTURER' | 'PARTNER'
+export type RelationshipStrength =
+  | 'STRONG'
+  | 'MEDIUM'
+  | 'HISTORICAL'
+  | 'WEAK'
+  | 'UNKNOWN'
+  | 'NONE'
+
+export type CapabilityType =
+  | 'DIRECT'
+  | 'NEED_MANUFACTURER'
+  | 'PARTNER'
+  | 'DIRECT_AUTHORIZED'
+  | 'DIRECT_UNCONFIRMED'
+  | 'RENTAL_CAPABLE'
+  | 'CAN_SOURCE_PARTNER'
+  | 'SERVICE_ONLY'
+
 export type VerificationStatus = 'VERIFIED' | 'UNVERIFIED' | 'PARTIAL'
 export type CoverageStatus = 'FULL' | 'PARTIAL' | 'NONE'
 
