@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from .account_auth import AccountAwarePrincipalResolver, SQLiteAccountStore
 from .agnes_dispatch_queue import SQLiteAgnesDispatchQueue
 from .agnes_global_lease import SQLiteAgnesLeaseStore
 from .agnes_task_result import SQLiteAgnesTaskResultStore
@@ -34,6 +35,7 @@ from .today_actions_http import (
     RepositoryTodayActionsApplication,
     TodayActionsHttpTransport,
     TrustedPrincipal,
+    TrustedPrincipalResolver,
 )
 from .today_repo import SQLiteTodayActionsRepository
 
@@ -47,6 +49,7 @@ class SQLiteTodayRuntime:
 
     path: Path
     repository: SQLiteTodayActionsRepository
+    account_store: SQLiteAccountStore
     invite_store: SQLiteInviteStore
     session_store: SQLiteSessionStore
     followup_store: SQLiteFollowupStore
@@ -56,7 +59,7 @@ class SQLiteTodayRuntime:
     result_store: SQLiteAgnesTaskResultStore
     dispatch_queue: SQLiteAgnesDispatchQueue
     lease_store: SQLiteAgnesLeaseStore
-    principal_resolver: OpaqueCookiePrincipalResolver
+    principal_resolver: TrustedPrincipalResolver
     application: RepositoryTodayActionsApplication
     transport: TodayActionsHttpTransport
     outreach_service: GroundedOutreachService
@@ -109,6 +112,13 @@ class SQLiteTodayRuntime:
         profile = self.repository.load_profile(principal.tenant_id, principal.profile_id)
         if profile is None:
             raise ValueError("cannot issue invite for unknown tenant/profile")
+        account = self.account_store.ensure_invited(
+            principal=principal,
+            company_name=str(profile.get("company_name") or "未命名客户"),
+            now=now,
+        )
+        if account.status == "DISABLED":
+            raise ValueError("cannot issue invite for disabled account")
         kwargs = {}
         if ttl_seconds is not None:
             kwargs["ttl_seconds"] = ttl_seconds
@@ -129,6 +139,13 @@ class SQLiteTodayRuntime:
         profile = self.repository.load_profile(principal.tenant_id, principal.profile_id)
         if profile is None:
             raise ValueError("cannot issue session for unknown tenant/profile")
+        self.account_store.ensure_invited(
+            principal=principal,
+            company_name=str(profile.get("company_name") or "未命名客户"),
+            now=now,
+        )
+        if not self.account_store.activate_login(principal, now=now):
+            raise ValueError("cannot issue session for disabled or missing account")
         kwargs = {}
         if ttl_seconds is not None:
             kwargs["ttl_seconds"] = ttl_seconds
@@ -151,6 +168,13 @@ class SQLiteTodayRuntime:
             return None
         profile = self.repository.load_profile(principal.tenant_id, principal.profile_id)
         if profile is None:
+            return None
+        self.account_store.ensure_invited(
+            principal=principal,
+            company_name=str(profile.get("company_name") or "未命名客户"),
+            now=now,
+        )
+        if not self.account_store.activate_login(principal, now=now):
             return None
         kwargs = {}
         if session_ttl_seconds is not None:
@@ -175,6 +199,7 @@ def build_sqlite_today_runtime(
         raise ValueError("now_provider must return timezone-aware datetime")
 
     repository = SQLiteTodayActionsRepository(path)
+    account_store = SQLiteAccountStore(path)
     invite_store = SQLiteInviteStore(path)
     session_store = SQLiteSessionStore(path)
     followup_store = SQLiteFollowupStore(path)
@@ -184,10 +209,11 @@ def build_sqlite_today_runtime(
     result_store = SQLiteAgnesTaskResultStore(path)
     dispatch_queue = SQLiteAgnesDispatchQueue(path)
     lease_store = SQLiteAgnesLeaseStore(path, now=initial_now)
-    principal_resolver = OpaqueCookiePrincipalResolver(
+    cookie_resolver = OpaqueCookiePrincipalResolver(
         session_store,
         now_provider=now_provider,
     )
+    principal_resolver = AccountAwarePrincipalResolver(cookie_resolver, account_store)
     application = RepositoryTodayActionsApplication(
         repository=repository,
         result_store=result_store,
@@ -207,6 +233,7 @@ def build_sqlite_today_runtime(
     return SQLiteTodayRuntime(
         path=path,
         repository=repository,
+        account_store=account_store,
         invite_store=invite_store,
         session_store=session_store,
         followup_store=followup_store,
