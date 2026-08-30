@@ -12,15 +12,24 @@ export function CustomerContextCard({ context }: { context: CustomerContext }) {
 
   return (
     <SectionCard
-      title="我的资源"
-      subtitle={isApiMode ? '客户确认信息 · 非官方公告' : '虚构演示客户画像 · 非真实客户信息'}
+      title="个性化资源（可选）"
+      subtitle={
+        isApiMode
+          ? '客户确认信息 · 非官方公告'
+          : '当前无需录入真实资源 · 以下仅演示录入后系统还能如何进一步判断'
+      }
       tone="customer"
       extra={
         <SourceTag tone="customer">
-          {isApiMode ? '我的资源 / 客户自有信息' : '演示客户资源'}
+          {isApiMode ? '我的资源 / 客户自有信息' : '可选增强 · 演示资源'}
         </SourceTag>
       }
     >
+      {!isApiMode ? (
+        <div className="mb-3 rounded-xl border border-teal-100 bg-teal-50 px-3 py-2 text-[12px] leading-5 text-teal-900">
+          首次体验不需要填写医院关系、品牌或厂家资源。先看真实公开项目、官方依据和行动建议；确认有价值后，再补充真实资源让排序更精准。
+        </div>
+      ) : null}
       <FactRow label="医院关系">
         {rel ? rel.hospital : <span className="text-slate-600">尚未确认院内关系</span>}
       </FactRow>
