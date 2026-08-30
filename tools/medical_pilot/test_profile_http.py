@@ -109,6 +109,24 @@ class ProfileHttpTests(unittest.TestCase):
         self.assertGreaterEqual(saved["profile_completeness"], 80)
         self.assertEqual(saved["missing_required_conditions"], [])
 
+    def test_valid_profile_save_requests_immediate_today_refresh(self) -> None:
+        calls: list[tuple[TrustedPrincipal, datetime]] = []
+        transport = ProfileHttpTransport(
+            principal_resolver=Resolver(self.principal),
+            repository=self.repo,
+            after_save=lambda principal, now: calls.append((principal, now)),
+        )
+        payload = editable_payload(self.repo.profile)
+        response = transport.handle(
+            method="PUT",
+            target="/profile",
+            headers={},
+            body=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            now=NOW,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(calls, [(self.principal, NOW)])
+
     def test_browser_cannot_override_tenant_or_profile_identity(self) -> None:
         payload = editable_payload(self.repo.profile)
         payload["tenant_id"] = "other-tenant"
