@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import unittest
 
-from .today_actions_api import TodayActionsApiResponse
-from .today_actions_http import (
+from tools.medical_pilot.today_actions_api import TodayActionsApiResponse
+from tools.medical_pilot.today_actions_http import (
     TodayActionsHttpTransport,
     TrustedPrincipal,
 )
