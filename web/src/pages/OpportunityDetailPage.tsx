@@ -92,6 +92,8 @@ export function OpportunityDetailPage() {
   }
 
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
+  const outreachDisabled =
+    card.model_decision_status === 'BLOCKED_GROUNDING' || card.evidence_source_urls.length === 0
 
   return (
     <div className="space-y-4">
@@ -105,11 +107,13 @@ export function OpportunityDetailPage() {
         </Link>
         <button
           type="button"
+          disabled={outreachDisabled}
+          title={outreachDisabled ? '公开依据不足，暂不安全生成沟通话术' : undefined}
           onClick={() => setOutreachOpen(true)}
-          className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800"
+          className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <MessageSquareText className="h-3.5 w-3.5" />
-          生成沟通话术
+          {outreachDisabled ? '依据不足，暂不生成话术' : '生成沟通话术'}
         </button>
       </div>
 
