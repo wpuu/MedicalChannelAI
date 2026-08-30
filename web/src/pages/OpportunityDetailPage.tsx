@@ -78,6 +78,8 @@ export function OpportunityDetailPage() {
     )
   }
 
+  const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -106,7 +108,7 @@ export function OpportunityDetailPage() {
           <PriorityBadge score={card.priority.score} />
         </div>
         <h2 className="mt-2 text-lg font-semibold leading-7 text-slate-900">
-          <OfficialText value={card.facts.hospital} />
+          <OfficialText value={buyerDisplay} />
         </h2>
         <p className="mt-1 text-[14px] leading-6 text-slate-700">
           <OfficialText value={card.facts.project_name} />
