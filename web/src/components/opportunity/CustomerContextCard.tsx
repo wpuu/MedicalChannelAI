@@ -1,6 +1,7 @@
 import type { CustomerContext } from '@/types'
 import { FactRow, SectionCard } from '@/components/shared/SectionCard'
 import { SourceTag } from '@/components/shared/StageBadge'
+import { isApiMode } from '@/services/apiConfig'
 import { formatDate } from '@/utils/format'
 import { CAPABILITY_LABEL, RELATIONSHIP_LABEL, yesNo } from '@/utils/labels'
 
@@ -12,9 +13,13 @@ export function CustomerContextCard({ context }: { context: CustomerContext }) {
   return (
     <SectionCard
       title="我的资源"
-      subtitle="客户确认信息 · 非官方公告"
+      subtitle={isApiMode ? '客户确认信息 · 非官方公告' : '虚构演示客户画像 · 非真实客户信息'}
       tone="customer"
-      extra={<SourceTag tone="customer">我的资源 / 客户自有信息</SourceTag>}
+      extra={
+        <SourceTag tone="customer">
+          {isApiMode ? '我的资源 / 客户自有信息' : '演示客户资源'}
+        </SourceTag>
+      }
     >
       <FactRow label="医院关系">
         {rel ? rel.hospital : <span className="text-slate-600">尚未确认院内关系</span>}
@@ -42,7 +47,7 @@ export function CustomerContextCard({ context }: { context: CustomerContext }) {
           '暂无匹配产品能力'
         )}
       </FactRow>
-      <FactRow label="品牌">
+      <FactRow label="品牌/方案">
         {capability && capability.brands.length > 0 ? capability.brands.join('、') : '未配置品牌'}
       </FactRow>
       <FactRow label="合作厂家能力">{yesNo(policy.can_find_manufacturer)}</FactRow>
