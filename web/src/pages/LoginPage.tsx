@@ -35,9 +35,9 @@ export function LoginPage() {
       navigate('/profile', { replace: true })
     } catch (cause) {
       if (cause instanceof Error && cause.message === 'INVITE_INVALID_OR_EXPIRED') {
-        setError('邀请码无效、已使用或已过期，请联系管理员重新获取。')
+        setError('邀请链接无效、已使用、已过期或账号已停用，请联系管理员重新获取。')
       } else {
-        setError('登录暂时失败，请稍后重试。')
+        setError('注册 / 登录暂时失败，请稍后重试。')
       }
     } finally {
       setSubmitting(false)
@@ -73,13 +73,13 @@ export function LoginPage() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-slate-900">医疗商机助手</h1>
-            <p className="text-xs text-slate-500">天津 Pilot · 一次性邀请登录</p>
+            <p className="text-xs text-slate-500">天津 Pilot · 邀请注册 / 登录</p>
           </div>
         </div>
 
         <form className="mt-6" onSubmit={submit}>
           <label htmlFor="invite-code" className="text-sm font-medium text-slate-700">
-            邀请码
+            一次性邀请代码
           </label>
           <input
             id="invite-code"
@@ -88,7 +88,7 @@ export function LoginPage() {
             onChange={(event) => setCode(event.target.value)}
             autoComplete="one-time-code"
             spellCheck={false}
-            placeholder="粘贴管理员提供的一次性邀请码"
+            placeholder="打开邀请链接会自动填入，也可以手工粘贴"
             className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-100"
           />
           {error ? (
@@ -101,14 +101,14 @@ export function LoginPage() {
             disabled={submitting}
             className="mt-4 w-full rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? '正在验证…' : '进入系统'}
+            {submitting ? '正在验证…' : '验证并进入'}
           </button>
         </form>
 
         <div className="mt-5 flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
           <p className="text-xs leading-5 text-slate-500">
-            邀请码只能使用一次。首次登录先填写医院关系、产品能力和合作资源，保存后系统立即按你的真实资料筛选今日商机，并让需要判断的 Top 5 进入受控 Agnes 分析。
+            当前采用定向邀请注册，不开放公开自助注册。首次邀请会激活试用账号；成功后当前设备最长保持登录 30 天。换设备或登录过期时，管理员可重新发送一次性登录链接。首次进入先填写医院关系、产品能力和合作资源，保存后立即按你的资料筛选商机并触发受控 Agnes 分析。
           </p>
         </div>
       </section>
