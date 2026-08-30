@@ -1,4 +1,4 @@
-import type { OutreachDraft } from '@/types'
+import type { OutreachDraft, TodayActionsResponse } from '@/types'
 import { ApiTodayActionsService } from './ApiTodayActionsService'
 
 interface ServerOutreachDraft {
@@ -25,6 +25,17 @@ const FORBIDDEN_KEYS = new Set([
   'task_id',
   'completion_nonce',
 ])
+
+const TODAY_POLL_DELAYS_MS = [1000, 1500, 2000, 2500] as const
+
+function sleep(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds))
+}
+
+function hasPendingDecision(data: TodayActionsResponse): boolean {
+  return data.model_request_count > 0 ||
+    data.cards.some((card) => card.model_decision_status === 'AWAITING_MODEL')
+}
 
 function assertSafeOutreach(value: unknown, path = '$'): void {
   if (Array.isArray(value)) {
@@ -71,6 +82,16 @@ export class GroundedApiTodayActionsService extends ApiTodayActionsService {
   constructor(baseUrl: string) {
     super(baseUrl)
     this.outreachBaseUrl = baseUrl.replace(/\/+$/, '')
+  }
+
+  override async getTodayActions(): Promise<TodayActionsResponse> {
+    let data = await super.getTodayActions()
+    for (const delay of TODAY_POLL_DELAYS_MS) {
+      if (!hasPendingDecision(data)) return data
+      await sleep(delay)
+      data = await super.getTodayActions()
+    }
+    return data
   }
 
   override async requestOutreachDraft(id: string): Promise<OutreachDraft> {
