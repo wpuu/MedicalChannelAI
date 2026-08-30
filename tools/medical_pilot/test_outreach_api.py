@@ -6,12 +6,12 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from .pilot_api import dispatch_pilot_api
-from .session_auth import SESSION_COOKIE_NAME
-from .test_model_decision_contract import verified_fact
-from .test_opportunity_match_gate import complete_profile, opportunity
-from .today_actions_http import TrustedPrincipal
-from .today_runtime import build_sqlite_today_runtime
+from tools.medical_pilot.pilot_api import dispatch_pilot_api
+from tools.medical_pilot.session_auth import SESSION_COOKIE_NAME
+from tools.medical_pilot.test_model_decision_contract import verified_fact
+from tools.medical_pilot.test_opportunity_match_gate import complete_profile, opportunity
+from tools.medical_pilot.today_actions_http import TrustedPrincipal
+from tools.medical_pilot.today_runtime import build_sqlite_today_runtime
 
 
 NOW = datetime(2026, 8, 30, 7, 50, tzinfo=timezone.utc)
