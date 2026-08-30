@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Callable
@@ -47,7 +47,13 @@ class SQLiteTodayRuntime:
     principal_resolver: OpaqueCookiePrincipalResolver
     application: RepositoryTodayActionsApplication
     transport: TodayActionsHttpTransport
-    auth_transport: PilotAuthHttpTransport
+    auth_transport: PilotAuthHttpTransport = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.auth_transport = PilotAuthHttpTransport(
+            invite_session_issuer=self,
+            session_store=self.session_store,
+        )
 
     def issue_profile_invite(
         self,
@@ -148,7 +154,7 @@ def build_sqlite_today_runtime(
         principal_resolver=principal_resolver,
         application=application,
     )
-    runtime = SQLiteTodayRuntime(
+    return SQLiteTodayRuntime(
         path=path,
         repository=repository,
         invite_store=invite_store,
@@ -158,10 +164,4 @@ def build_sqlite_today_runtime(
         principal_resolver=principal_resolver,
         application=application,
         transport=transport,
-        auth_transport=None,  # type: ignore[arg-type]
     )
-    runtime.auth_transport = PilotAuthHttpTransport(
-        invite_session_issuer=runtime,
-        session_store=session_store,
-    )
-    return runtime
