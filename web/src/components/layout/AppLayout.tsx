@@ -72,6 +72,11 @@ export function AppLayout() {
               今日行动
             </NavLink>
             {isApiMode ? (
+              <NavLink to="/profile" className={navClass}>
+                我的资料
+              </NavLink>
+            ) : null}
+            {isApiMode ? (
               <NavLink to="/followed" className={navClass}>
                 我的跟进
               </NavLink>
