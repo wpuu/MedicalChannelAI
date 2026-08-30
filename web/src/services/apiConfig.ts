@@ -5,15 +5,9 @@ const env = (import.meta as ImportMeta & {
 export const apiBaseUrl = env?.VITE_API_BASE_URL?.trim()?.replace(/\/+$/, '') ?? ''
 export const isApiMode = apiBaseUrl.length > 0
 
-export class AuthRequiredError extends Error {
-  constructor() {
-    super('AUTH_REQUIRED')
-    this.name = 'AuthRequiredError'
-  }
-}
-
-export function isAuthRequiredError(error: unknown): error is AuthRequiredError {
-  return error instanceof AuthRequiredError
+export function isAuthRequiredError(error: unknown): boolean {
+  return error instanceof Error &&
+    (error.message === 'AUTH_REQUIRED' || error.message === 'HTTP_401')
 }
 
 export async function redeemPilotInvite(code: string): Promise<void> {
