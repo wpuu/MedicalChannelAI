@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 import json
+import math
 from typing import Any, Mapping, Protocol
 from urllib.parse import urlsplit
 
@@ -57,15 +59,34 @@ def _text(opportunity: dict[str, Any], *keys: str) -> str | None:
     return None
 
 
+def _coerce_number(value: Any) -> float | int | None:
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, str) and value.strip():
+        try:
+            parsed = Decimal(value.strip())
+        except InvalidOperation:
+            return None
+        if not parsed.is_finite():
+            return None
+        return float(parsed)
+    return None
+
+
 def _number(opportunity: dict[str, Any], *keys: str) -> float | int | None:
     for key in keys:
         value = opportunity.get(key)
-        if isinstance(value, (int, float)) and not isinstance(value, bool):
-            return value
+        direct = _coerce_number(value)
+        if direct is not None:
+            return direct
         if isinstance(value, dict):
             for nested_key in ("amount_cny", "amount", "value"):
-                nested = value.get(nested_key)
-                if isinstance(nested, (int, float)) and not isinstance(nested, bool):
+                nested = _coerce_number(value.get(nested_key))
+                if nested is not None:
                     return nested
     return None
 
