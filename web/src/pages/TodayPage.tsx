@@ -9,6 +9,7 @@ import { RemindModal } from '@/components/followup/RemindModal'
 import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
+import { isAuthRequiredError } from '@/services/apiConfig'
 import type { FollowupStatus, NotFitReason, TodayActionsResponse } from '@/types'
 import { formatDateTime } from '@/utils/format'
 
@@ -31,12 +32,16 @@ export function TodayPage() {
     try {
       const res = await todayActionsService.getTodayActions()
       setData(res)
-    } catch {
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
       setError('今日行动加载失败，请稍后重试。')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [navigate])
 
   useEffect(() => {
     void load()
@@ -51,7 +56,7 @@ export function TodayPage() {
     try {
       await todayActionsService.updateFollowup(id, { status, ...extra })
       await load(true)
-      toast('演示模式：跟进状态已在本地更新', 'success')
+      toast('跟进状态已在当前浏览器本地保存，尚未同步服务器', 'success')
     } catch {
       toast('本地更新失败，请重试')
     } finally {
