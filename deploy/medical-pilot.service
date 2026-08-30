@@ -1,0 +1,24 @@
+[Unit]
+Description=MedicalChannelAI Tianjin Pilot API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=medicalai
+Group=medicalai
+WorkingDirectory=/srv/medical/app
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/etc/medicalchannelai/pilot.env
+ExecStart=/usr/bin/python3 -m tools.medical_pilot.pilot_server --db /srv/medical/data/pilot.sqlite --host 127.0.0.1 --port 8787
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/srv/medical/data
+
+[Install]
+WantedBy=multi-user.target
