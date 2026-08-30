@@ -15,7 +15,7 @@ interface OutreachDrawerProps {
 
 function outreachErrorMessage(error: unknown): string {
   if (!(error instanceof Error)) return '话术生成失败，请稍后重试'
-  if (error.message === 'HTTP_409') {
+  if (error.message === 'OUTREACH_GROUNDING_INSUFFICIENT' || error.message === 'HTTP_409') {
     return '当前商机的已验证公开依据或客户资源不足，暂不能安全生成话术。'
   }
   if (error.message === 'HTTP_429') {
@@ -105,7 +105,7 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-900">
         {isApiMode
           ? '天津 Pilot · 仅根据已验证公开事实与当前客户确认资源按需生成；最终话术不是医院官方表述。'
-          : '演示模式 · 正式版将根据当前商机事实和客户资源按需生成'}
+          : '演示模式 · 仍遵守事实边界；公开依据不足的商机不会为了演示效果强行生成话术。'}
       </div>
       {loading ? (
         <div className="mt-8 flex flex-col items-center justify-center gap-2 text-slate-500">
