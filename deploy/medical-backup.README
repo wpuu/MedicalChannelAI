@@ -1,0 +1,1 @@
+Daily backup timer runs at 18:20 UTC (02:20 Asia/Shanghai) and keeps the latest 14 SQLite backups by default. The backup utility uses sqlite3.Connection.backup() plus PRAGMA integrity_check and writes SHA-256 metadata to stdout. This file intentionally contains no credentials.
