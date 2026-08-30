@@ -12,7 +12,7 @@ from .pilot_api import CanonicalOriginPolicy, dispatch_pilot_api
 from .today_runtime import SQLiteTodayRuntime, build_sqlite_today_runtime
 
 
-MAX_REQUEST_BODY_BYTES = 4096
+MAX_REQUEST_BODY_BYTES = 64 * 1024
 OUTREACH_API_KEY_ENV = "MCAI_AGNES_API_KEY"
 OUTREACH_BASE_URL_ENV = "MCAI_AGNES_BASE_URL"
 CANONICAL_ORIGIN_ENV = "MCAI_CANONICAL_ORIGIN"
