@@ -9,6 +9,7 @@ User=medicalai
 Group=medicalai
 WorkingDirectory=/srv/medical/app
 Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
 EnvironmentFile=-/etc/medicalchannelai/pilot.env
 ExecStart=/usr/bin/python3 -m tools.medical_pilot.pilot_server --db /srv/medical/data/pilot.sqlite --host 127.0.0.1 --port 8787
 Restart=on-failure
