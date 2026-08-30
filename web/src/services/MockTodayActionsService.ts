@@ -78,6 +78,7 @@ export class MockTodayActionsService implements TodayActionsService {
     await wait(420)
     return clone({
       ...this.snapshot,
+      model_request_count: 0,
       refreshed_at: new Date(Date.now() - 16 * 60 * 1000).toISOString(),
       generated_at: new Date(Date.now() - 24 * 60 * 1000).toISOString(),
     })
