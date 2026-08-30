@@ -69,15 +69,18 @@ export interface Facts {
   project_code: string | null
   project_name: string | null
   hospital: string | null
+  buyer_name?: string | null
   department: string | null
   region: string | null
   lifecycle_stage: string | null
+  notice_type?: string | null
   publish_date: string | null
   registration_deadline: string | null
   bid_deadline: string | null
   expected_purchase_date: string | null
   budget: number | null
   procurement_method: string | null
+  product_categories?: string[]
   products: ProductItem[] | null
   official_contact: OfficialContact | null
   verification_status: VerificationStatus
