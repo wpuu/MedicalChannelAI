@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import urlsplit
 
-from .collector_ingest import collect_and_persist_url
+from .collector_ingest import collect_registered_url, persist_collected_notice
 from .registry import resolve_source
 
 
@@ -48,10 +48,20 @@ def load_manifest(path: Path) -> list[SeedEntry]:
     for index, item in enumerate(entries_raw):
         if not isinstance(item, dict) or set(item) != {"expected_project_code", "url"}:
             raise ValueError(f"entries[{index}] must contain expected_project_code and url only")
-        code = _required_text(item.get("expected_project_code"), f"entries[{index}].expected_project_code", max_length=100)
+        code = _required_text(
+            item.get("expected_project_code"),
+            f"entries[{index}].expected_project_code",
+            max_length=100,
+        )
         url = _required_text(item.get("url"), f"entries[{index}].url", max_length=1000)
         parsed = urlsplit(url)
-        if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password or parsed.fragment:
+        if (
+            parsed.scheme != "https"
+            or not parsed.hostname
+            or parsed.username
+            or parsed.password
+            or parsed.fragment
+        ):
             raise ValueError(f"entries[{index}].url must be a plain HTTPS official detail URL")
         if url in seen_urls or code in seen_codes:
             raise ValueError("bootstrap manifest contains duplicate URL or project code")
@@ -62,6 +72,18 @@ def load_manifest(path: Path) -> list[SeedEntry]:
         seen_codes.add(code)
         result.append(SeedEntry(expected_project_code=code, url=url))
     return result
+
+
+def _parsed_project_code(collected: Any) -> str | None:
+    value = getattr(collected.parsed, "project_number", None) or getattr(
+        collected.parsed,
+        "project_code",
+        None,
+    )
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
 
 
 def _opportunity_summary(opportunity: dict[str, Any]) -> dict[str, Any]:
@@ -78,17 +100,19 @@ def run_seed(
     *,
     db_path: Path,
     manifest_path: Path,
-    collector: Callable[..., tuple[Any, dict[str, Any]]] = collect_and_persist_url,
+    collector: Callable[[str], Any] = collect_registered_url,
+    persister: Callable[..., dict[str, Any]] = persist_collected_notice,
 ) -> tuple[int, dict[str, Any]]:
     entries = load_manifest(manifest_path)
     rows: list[dict[str, Any]] = []
     success = 0
     for index, entry in enumerate(entries):
         try:
-            collected, opportunity = collector(entry.url, db_path=Path(db_path))
-            parsed_code = getattr(collected.parsed, "project_number", None) or getattr(collected.parsed, "project_code", None)
-            if parsed_code is not None and str(parsed_code).strip() != entry.expected_project_code:
+            collected = collector(entry.url)
+            parsed_code = _parsed_project_code(collected)
+            if parsed_code != entry.expected_project_code:
                 raise ValueError("collected project code does not match manifest expectation")
+            opportunity = persister(collected, db_path=Path(db_path))
             row = {
                 "index": index,
                 "status": "OK",
@@ -121,7 +145,9 @@ def run_seed(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Bootstrap real Tianjin public procurement URLs into Pilot SQLite")
+    parser = argparse.ArgumentParser(
+        description="Bootstrap real Tianjin public procurement URLs into Pilot SQLite"
+    )
     parser.add_argument("--db", required=True, type=Path)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     args = parser.parse_args()
