@@ -13,6 +13,7 @@ from .today_actions_http import TrustedPrincipal, TrustedPrincipalResolver
 
 
 MAX_PROFILE_BODY_BYTES = 64 * 1024
+BOOTSTRAP_PLACEHOLDER_NOTE = "BOOTSTRAP_PLACEHOLDER_NOT_CUSTOMER_CONFIRMED"
 
 _EDITABLE_FIELDS = {
     "company_name",
@@ -107,6 +108,22 @@ def _principal(
 
 def _public_profile(profile: dict[str, Any]) -> dict[str, Any]:
     result = {key: copy.deepcopy(profile.get(key)) for key in sorted(_EDITABLE_FIELDS)}
+
+    # A bootstrap profile must be schema-shaped before an invitation can exist, but
+    # its sentinel values are not customer-confirmed business facts. Never present
+    # those placeholders back to the customer as if they had selected them.
+    capabilities = result.get("product_capabilities")
+    if isinstance(capabilities, list):
+        result["product_capabilities"] = [
+            item
+            for item in capabilities
+            if not (isinstance(item, dict) and item.get("notes") == BOOTSTRAP_PLACEHOLDER_NOTE)
+        ]
+    flags = result.get("confirmation_flags")
+    if isinstance(flags, dict) and flags.get("customer_types_confirmed") is False:
+        if result.get("customer_types") == ["OTHER"]:
+            result["customer_types"] = []
+
     result.update(
         {
             "schema_version": "0.1",
