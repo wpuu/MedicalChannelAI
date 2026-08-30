@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "tools/medical_pilot/**"
+      - "web/**"
       - "docs/research/schemas/medical-*.schema.json"
       - "docs/research/fixtures/tianjin-*.json"
       - "docs/research/benchmarks/*.json"
@@ -13,6 +14,7 @@ on:
       - "dev/tianjin-pilot-v0.1"
     paths:
       - "tools/medical_pilot/**"
+      - "web/**"
       - "docs/research/schemas/medical-*.schema.json"
       - "docs/research/fixtures/tianjin-*.json"
       - "docs/research/benchmarks/*.json"
@@ -55,3 +57,23 @@ jobs:
                   json.load(handle)
               print(f"valid json: {path}")
           PY
+
+  web-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install H5 dependencies
+        run: npm ci
+      - name: Typecheck H5
+        run: npx tsc --noEmit
+      - name: Build H5
+        run: npm run build
