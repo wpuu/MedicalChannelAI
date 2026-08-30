@@ -76,6 +76,14 @@ def dispatch_pilot_api(
             body=body,
             now=now,
         )
+    elif path == "/reminders" or path.startswith("/reminders/"):
+        response = runtime.reminder_transport.handle(
+            method=method,
+            target=inner,
+            headers=headers,
+            body=body,
+            now=now,
+        )
     elif path.startswith("/outreach/"):
         response = runtime.outreach_transport.handle(
             method=method,
