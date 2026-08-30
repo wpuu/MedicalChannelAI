@@ -1,51 +1,44 @@
-# 天津 Pilot 单机部署
+# MedicalChannelAI 部署
 
-> `production_ready=false`。本目录只用于单机天津 Pilot，不允许复制成多 VPS / 多容器各自持有 SQLite。
+> `production_ready=false`。静态商务 Demo 与真实天津 Pilot 是两套不同安全级别的部署。
 
-## 推荐的两阶段上线
+## 当前路线
 
-同一个域名先后切两种 H5 模式，不需要换地址。
+### A. 给老杨看的静态商务 Demo
 
-### A. 给老杨先看：Demo
-
-第一选择：
+当前地址：
 
 ```text
-https://medradar.qzz.io/
+https://medicalai.qd.je/
 ```
 
-备用：
+用户已实测中国大陆普通网络和微信内置浏览器可以打开。
+
+Demo：
+
+- 全部虚构数据；
+- 无登录；
+- 无 Session；
+- 无真实 Agnes；
+- 不启动 `pilot_server.py`；
+- `/api/*` 直接 404；
+- 只用于产品价值验证。
+
+### B. 真实天津 Pilot
+
+真实客户数据上线前使用**独立长期可控 HTTPS 域名**，H5 + `/api` 同源。
+
+真实 Pilot 仍需82组 deterministic test modules 获得真实 PASS、Agnes smoke、Session/backup/discovery 验收。
+
+## 目录
 
 ```text
-https://medradar.dpdns.org/
-```
-
-H5 不配置 `VITE_API_BASE_URL`，明确显示“演示数据”，使用虚构 Mock 项目；不要求登录、不调用真实 Agnes、不冒充真实医院采购事实。
-
-### B. 验证通过后：真实天津 Pilot
-
-仍使用同一个地址，H5 重新以 `VITE_API_BASE_URL=/api` 构建，启用 invite/Session、真实后端数据、服务端 follow-up/reminder/outreach。
-
-这样第一次商务演示不被后端验证进度卡住，同时后续不需要通知客户更换网址。
-
-## 目标结构
-
-```text
-https://<pilot-domain>/
-  -> Cloudflare（可选但推荐）
-  -> Caddy
-     -> /              /srv/medical/web (H5 dist)
-     -> /api/*         127.0.0.1:8787
-
 /srv/medical/app       Git checkout
 /srv/medical/web       H5 build output
-/srv/medical/data      pilot.sqlite
-/srv/medical/backups   SQLite online backups
-/etc/medicalchannelai  server-only Agnes env
-/etc/caddy             Pilot domain env + Caddyfile
+/srv/medical/data      pilot.sqlite（真实 Pilot）
+/srv/medical/backups   SQLite online backups（真实 Pilot）
+/etc/medicalchannelai  server-only Pilot env
 ```
-
-当前域名推荐：`medradar.qzz.io` > `medicalai.qzz.io` > `medradar.dpdns.org` > `mcai.dpdns.org`。实际名称以注册时可用为准；正式收费版换独立域名。
 
 ## 1. 系统用户与目录
 
@@ -56,31 +49,125 @@ sudo chown -R medicalai:medicalai /srv/medical
 sudo chmod 700 /srv/medical/data /srv/medical/backups /etc/medicalchannelai
 ```
 
-把 `dev/tianjin-pilot-v0.1` checkout/copy 到 `/srv/medical/app`，并确保代码目录由 `medicalai` 可读。
+把 `dev/tianjin-pilot-v0.1` checkout/copy 到 `/srv/medical/app`。
 
-## 2. 构建 H5
-
-统一使用 `deploy/build-web.sh`，它会先执行 `npm ci + tsc --noEmit` 再 build。
-
-Demo：
+## 2. 构建静态 Demo
 
 ```bash
 cd /srv/medical/app
 sudo -u medicalai bash deploy/build-web.sh demo
 ```
 
-真实 Pilot（只有 deterministic tests、H5 build 和后端 smoke 通过后再切）：
+脚本会真实执行：
+
+- `npm ci`
+- `npx tsc --noEmit`
+- `npm run build`
+- HTML/CSS 外部运行依赖扫描
+- 默认3 MiB dist大小预算
+- 发布到 `/srv/medical/web`
+
+Demo 不要求 Python 后端 PASS。
+
+## 3. Demo Caddy
+
+静态 Demo **必须使用**：
+
+```text
+deploy/Caddyfile.demo.example
+```
+
+不要使用真实 Pilot 的 API 反代模板。
+
+```bash
+sudo cp deploy/Caddyfile.demo.example /etc/caddy/Caddyfile
+```
+
+Caddy 环境中的域名设为：
+
+```text
+MCAI_DOMAIN=medicalai.qd.je
+```
+
+然后：
+
+```bash
+sudo caddy validate --config /etc/caddy/Caddyfile
+sudo systemctl restart caddy
+```
+
+Demo Caddy：
+
+- `/api` 和 `/api/*` 固定404；
+- `/assets/*` immutable一年缓存；
+- SPA HTML `no-cache`；
+- CSP/self-only；
+- X-Robots-Tag noindex。
+
+## 4. Demo 自动 smoke
+
+DNS 和 HTTPS 生效后：
+
+```bash
+cd /srv/medical/app
+MCAI_DOMAIN=medicalai.qd.je bash deploy/demo-smoke.sh
+```
+
+自动验证：
+
+- HTTPS 首页；
+- H5 root；
+- 构建 JS asset；
+- SPA `/today` 深链接；
+- robots noindex；
+- `/api/healthz` 必须404，证明静态 Demo 没有误接真实 API。
+
+然后必须按 `deploy/CHINA_ACCESS.md` 做人工微信 + 两条独立大陆网络验收。
+
+## 5. 大陆/微信验收
+
+最重要的门槛：
+
+```text
+微信内置浏览器 + VPN关闭
+```
+
+至少另外再用：
+
+- 一条国内手机流量；
+- 另一运营商或家庭宽带。
+
+首页、TOP1、刷新、返回、Demo话术、已联系、重置演示都正常后才发给老杨。
+
+免费域名信誉可能变化，重要演示当天重新测试一次微信。
+
+## 6. 真实 Pilot 构建
+
+只有后端验证通过后：
 
 ```bash
 cd /srv/medical/app
 sudo -u medicalai bash deploy/build-web.sh pilot
 ```
 
-客户浏览器不需要安装 Node/Python/命令行；Node 只属于服务器构建环境。
+此模式固定：
 
-## 3. 服务端 Agnes Key
+```text
+VITE_BUILD_MODE=pilot
+VITE_API_BASE_URL=/api
+```
 
-真实 Pilot 才需要：
+## 7. 真实 Pilot 域名与 canonical origin
+
+真实 Pilot **不要默认继续使用 `medicalai.qd.je`**。
+
+准备独立 HTTPS 域名，例如：
+
+```text
+https://<pilot-domain>
+```
+
+复制环境模板：
 
 ```bash
 sudo cp deploy/pilot.env.example /etc/medicalchannelai/pilot.env
@@ -88,11 +175,38 @@ sudo chmod 600 /etc/medicalchannelai/pilot.env
 sudo editor /etc/medicalchannelai/pilot.env
 ```
 
-真实 Key 禁止提交 GitHub、Issue、日志或 H5。
+必须配置：
 
-## 4. systemd：API / discovery / backup / healthcheck
+```text
+MCAI_CANONICAL_ORIGIN=https://<pilot-domain>
+MCAI_AGNES_API_KEY=...
+```
 
-真实 Pilot 安装：
+后端安全策略：
+
+- 未配置 `MCAI_CANONICAL_ORIGIN` → server拒绝启动；
+- Host必须匹配 canonical authority；
+- POST/PUT/PATCH/DELETE 的 Origin必须匹配 canonical origin；
+- 不匹配统一403；
+- loopback只允许 GET/HEAD `/api/healthz`。
+
+## 8. 真实 Pilot Caddy
+
+真实 Pilot 才使用：
+
+```text
+deploy/Caddyfile.example
+```
+
+它将 `/api/*` 反代到：
+
+```text
+127.0.0.1:8787
+```
+
+公网只暴露80/443，不直接暴露8787。
+
+## 9. 真实 Pilot systemd
 
 ```bash
 sudo cp deploy/medical-pilot.service /etc/systemd/system/
@@ -109,90 +223,15 @@ sudo systemctl enable --now medical-backup.timer
 sudo systemctl enable --now medical-healthcheck.timer
 ```
 
-检查：
+本地 health：
 
 ```bash
-systemctl status medical-pilot.service
 curl -fsS http://127.0.0.1:8787/api/healthz
 ```
 
-`/api/healthz` 只用于 liveness，不返回 tenant/profile/Provider/model/API Key。真实业务 smoke 必须走登录后的 Session。
+loopback health 是唯一允许绕过 canonical Host 的 API 路径。
 
-Discovery timer 每分钟触发一次幂等调度 tick，不代表每分钟对官网发请求；具体是否抓取由 readiness/cadence/持久化 slot 决定。
-
-Backup timer 每天 `18:20 UTC = 02:20 Asia/Shanghai` 运行，使用 SQLite `Connection.backup()` + `PRAGMA integrity_check`，默认保留最近14份并输出 SHA-256。
-
-## 5. Caddy + 域名
-
-Caddy 只有一个域名变量：`MCAI_DOMAIN`。
-
-```bash
-sudo cp deploy/Caddyfile.example /etc/caddy/Caddyfile
-sudo cp deploy/caddy-medical.env.example /etc/caddy/medicalchannelai.env
-sudo chmod 600 /etc/caddy/medicalchannelai.env
-sudo mkdir -p /etc/systemd/system/caddy.service.d
-sudo cp deploy/caddy-medical.conf /etc/systemd/system/caddy.service.d/medicalchannelai.conf
-sudo editor /etc/caddy/medicalchannelai.env
-sudo systemctl daemon-reload
-sudo caddy validate --config /etc/caddy/Caddyfile
-sudo systemctl restart caddy
-```
-
-默认示例：
-
-```text
-MCAI_DOMAIN=medradar.qzz.io
-```
-
-以后换正式域名主要改这一项；SQLite、客户画像、跟进、提醒和 AI 结果不需要迁移。
-
-### DigitalPlat / DNS / Cloudflare 推荐顺序
-
-1. 在 DigitalPlat 注册选定的 `.qzz.io` 或 `.dpdns.org` 名称；
-2. 把该注册名委派给外部 authoritative DNS；
-3. 在外部 DNS 创建指向 VPS 的 A/AAAA 记录；
-4. 若使用 Cloudflare，首次先 DNS-only，让域名直接指向 VPS；
-5. Caddy 成功签发源站 HTTPS，浏览器直连确认正常；
-6. 再按需要开启 Cloudflare proxy；
-7. Cloudflare SSL/TLS 最终使用 `Full (strict)`；
-8. `/api/auth/redeem` 做速率限制，`/api/*` 不缓存。
-
-H5 和 API 必须同 origin；不要打开 permissive CORS。
-
-## 6. 公开 smoke
-
-Demo 模式：
-
-```bash
-curl -fsS https://<pilot-domain>/today >/dev/null
-```
-
-真实 Pilot：
-
-```bash
-cd /srv/medical/app
-bash deploy/pilot-smoke.sh https://<pilot-domain>
-```
-
-该脚本验证 HTTPS healthz、H5 SPA、未登录 `/api/today` 必须保持401。它不替代 authenticated business smoke。
-
-## 7. 首个真实 Pilot 账号
-
-先写入客户 profile，再生成一次性邀请。邀请 URL 只发送给指定 Pilot 用户，不写公共日志。
-
-```bash
-cd /srv/medical/app
-python3 -m tools.medical_pilot.pilot_admin \
-  --db /srv/medical/data/pilot.sqlite \
-  profile-put --file /path/to/profile.json
-
-python3 -m tools.medical_pilot.pilot_admin \
-  --db /srv/medical/data/pilot.sqlite \
-  invite --tenant <tenant> --profile <profile> \
-  --login-url https://<pilot-domain>
-```
-
-## 8. 真实 Pilot 上线前最低验收
+## 10. 真实 Pilot 最低验证
 
 ```bash
 cd /srv/medical/app
@@ -202,29 +241,37 @@ python3 -m unittest discover -s tools/medical_pilot -t . -p "test_*.py" -v
 cd web
 npm ci
 npx tsc --noEmit
-VITE_API_BASE_URL=/api npm run build
+VITE_BUILD_MODE=pilot VITE_API_BASE_URL=/api npm run build
 ```
 
-必须得到真实 PASS 后，才允许真实 Agnes smoke、Session/invite/follow-up/reminder/outreach smoke。
+必须获得真实 PASS；当前 GitHub Actions 没有分配 runner，因此仓库里的82个 tests 仍只是“已写入”。
 
-## 9. 手工备份验证
+## 11. 真实 Pilot public smoke
 
 ```bash
 cd /srv/medical/app
+bash deploy/pilot-smoke.sh https://<pilot-domain>
+```
+
+随后还必须做登录后的 Session/invite/follow-up/reminder/followed/outreach smoke。
+
+## 12. Backup
+
+```bash
 python3 -m tools.medical_pilot.pilot_backup \
   --db /srv/medical/data/pilot.sqlite \
   --out-dir /srv/medical/backups \
   --keep 14
-ls -lh /srv/medical/backups
 ```
 
-正式邀请 Pilot 用户前还需要做一次 restore 验证。不要把活跃 SQLite 单文件 `cp` 当作唯一备份并忽略 WAL。
+正式邀请真实用户前做至少一次 restore 演练。
 
 ## 禁止
 
+- 禁止把 qd.je Demo 接真实客户 Session/画像；
 - 禁止把 Mock Demo 介绍成真实医院采购数据；
-- 禁止把当前 SQLite runtime 复制到多个独立服务器同时对外；
-- 禁止使用 Serverless 临时本地文件系统保存 Pilot 数据；
+- 禁止多个独立 SQLite 服务器同时对外；
 - 禁止把 Agnes API Key 放进 `VITE_*`；
-- 禁止让浏览器提交 tenant/profile 作为可信身份；
-- 禁止在真实 PASS 前把 Draft PR #1 合并或标记 `production_ready=true`。
+- 禁止浏览器提交 tenant/profile 作为可信身份；
+- 禁止绕过 canonical Host/Origin；
+- 禁止在真实 PASS 前合并 Draft PR #1 或设置 `production_ready=true`。
