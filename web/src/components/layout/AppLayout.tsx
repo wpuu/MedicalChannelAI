@@ -1,9 +1,28 @@
-import { NavLink, Outlet } from 'react-router-dom'
-import { Activity, CalendarDays } from 'lucide-react'
+import { useState } from 'react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Activity, CalendarDays, LogOut } from 'lucide-react'
+import { useToast } from '@/context/ToastContext'
+import { isApiMode, logoutPilot } from '@/services/apiConfig'
 import { formatToday } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
 export function AppLayout() {
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const [loggingOut, setLoggingOut] = useState(false)
+
+  const handleLogout = async () => {
+    setLoggingOut(true)
+    try {
+      await logoutPilot()
+      navigate('/login', { replace: true })
+    } catch {
+      toast('退出失败，请检查网络后重试')
+    } finally {
+      setLoggingOut(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#f3f5f7]">
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur">
@@ -17,8 +36,15 @@ export function AppLayout() {
                 <h1 className="truncate text-[15px] font-semibold text-slate-900">
                   医疗商机助手
                 </h1>
-                <span className="shrink-0 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 ring-1 ring-amber-200">
-                  演示数据
+                <span
+                  className={cn(
+                    'shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ring-1',
+                    isApiMode
+                      ? 'bg-teal-50 text-teal-800 ring-teal-200'
+                      : 'bg-amber-50 text-amber-800 ring-amber-200',
+                  )}
+                >
+                  {isApiMode ? '天津 Pilot' : '演示数据'}
                 </span>
               </div>
               <p className="hidden items-center gap-1 text-[11px] text-slate-500 sm:flex">
@@ -41,6 +67,17 @@ export function AppLayout() {
             >
               今日行动
             </NavLink>
+            {isApiMode ? (
+              <button
+                type="button"
+                disabled={loggingOut}
+                onClick={() => void handleLogout()}
+                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[12px] text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">退出</span>
+              </button>
+            ) : null}
           </nav>
         </div>
         <p className="border-t border-slate-100 px-4 py-1.5 text-center text-[11px] text-slate-500 sm:hidden">
