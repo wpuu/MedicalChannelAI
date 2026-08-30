@@ -2,7 +2,7 @@
 
 日期：2026-08-30  
 分支：`dev/tianjin-pilot-v0.1`  
-阶段：`M1_FACT_PIPELINE + M2_MATCHING_SUBSCRIPTION + TODAY_ACTIONS_TRUSTED_BACKEND + H5_AUTH_SINGLE_HOST_RUNTIME + PERSISTENT_DISCOVERY + SERVER_FOLLOWUP + GROUNDED_OUTREACH + IN_APP_REMINDER + FOLLOWED_OPPORTUNITIES + DEPLOYMENT_SCAFFOLD_INITIAL`  
+阶段：`TODAY_ACTIONS_TRUSTED_BACKEND + H5 + SERVER_FOLLOWUP + GROUNDED_OUTREACH + IN_APP_REMINDER + FOLLOWED_OPPORTUNITIES + DEPLOYMENT_SCAFFOLD + DEMO_TO_PILOT_MODE_GUARD`  
 生产就绪：**false**  
 Draft PR：**#1（保持 Draft，不合并）**
 
@@ -13,130 +13,136 @@ Draft PR：**#1（保持 Draft，不合并）**
 - 15 条 Institution Evidence
 - **41 份 Schema/合同**
 - **81 组 deterministic unittest 模块已写入，尚未获得真实执行 PASS 证据**
-- 真实官方附件 bytes=0；医疗附件 bytes=0
+- 真实医疗附件 bytes=0
 - Agnes benchmark 28 case，未执行
 - Coverage=`PARTIAL / NOT_EXHAUSTIVE`
 
-## Today Actions / Auth / H5
+## 产品闭环
 
-可信主链：
+当前已经具备：
 
-`Public collector → event ledger → current opportunity projection → Match/Score → Today Actions → Agnes queue/global lease → grounded validation → Public View`
+- Today Top5；
+- trusted Session + 一次性 invite；
+- 服务端 tenant-private follow-up；
+- 到期站内提醒；
+- `/followed` 长期跟进项目；
+- grounded on-demand outreach；
+- VERIFIED public facts 与客户私有资源分离；
+- Agnes 输出必须经过 grounding / allowlist 校验；
+- 浏览器不能自报 tenant/profile 作为可信身份。
 
-已具备：Today Top5、官方事实/客户资源/AI判断分离、opaque Session、一次性 invite、same-origin `/api/*`、服务端 follow-up、站内提醒、grounded outreach 和 `/followed` 长期跟进列表。
-
-浏览器不能把 tenant/profile 作为可信身份；API Key、Provider/model 路由不进入 H5/Public View。
-
-## Follow-up / Reminder / 我的跟进
-
-- `GET/POST /api/followup/:opportunity_id`
-- `GET /api/reminders`
-- `POST /api/reminders/:reminder_id/ack`
-- `GET /api/followed`
-
-跟进数据 tenant/profile-private、append-only；NOT_FIT 只产生画像复核建议，不自动改画像。
-
-“稍后提醒”保存 timezone-aware datetime；到期后打开 H5 可看到站内提醒。当前**没有微信、短信、邮件或系统 Push**。
-
-Today Top5 只表示“今天最值得行动”；已经进入销售流程但掉出 Top5 的项目继续保存在“我的跟进”。到期提醒若已掉出 Top5，会转到 `/followed?focus=...`，不再产生404详情入口。
-
-## Grounded on-demand Outreach
-
-`POST /api/outreach/:opportunity_id`
-
-浏览器不能提交自由 prompt/tone/tenant/profile。Agnes 只允许选择受控策略、问题、定位 code 和已允许 fact/profile 引用；最终中文话术由服务器从 VERIFIED 采购事实和客户确认资源渲染，固定声明“不是医院官方表述，不代表中标概率或采购承诺”。
-
-相同 locked input 使用 tenant/profile-private SHA-256 cache；outreach 与 Today Actions 共用 Agnes global lease。Key 只来自服务端 `MCAI_AGNES_API_KEY`。
+当前仍无微信、短信、邮件、系统 Push。
 
 ## Collector / Discovery
 
 Collector 已支持：
 
-`抓取 → VERIFIED event/facts → public event ledger → lifecycle rebuild → current projection → taxonomy → institution enrichment → today_repo`
+`官方详情 → VERIFIED event/facts → event ledger → lifecycle rebuild → current projection → taxonomy → institution enrichment → today_repo`
 
-自动 listing discovery 当前严格只有 **2/7**：
+自动 listing discovery 仍严格只有 **2/7**：
 
 1. `tjmugh_procurement`
 2. `tj_first_central_hospital_procurement`
 
 其余5个 Source 继续 fail-closed，不猜 classId/pagination，不绕 CAPTCHA。
 
-## Pilot 部署脚手架已写入
+## 给老杨看的地址：同域两阶段
 
-部署设计：
+当前推荐：
 
-`Pilot 域名 → Cloudflare（可选/推荐）→ Caddy → 单台长期在线 VPS → H5 + /api → 127.0.0.1:8787 + SQLite`
+1. `medradar.qzz.io`
+2. `medicalai.qzz.io`
+3. `medradar.dpdns.org`
+4. `mcai.dpdns.org`
 
-当前推荐给老杨演示的临时地址候选：
+DigitalPlat Domains 当前官方仍列出 `*.qzz.io` 和 `*.dpdns.org` 为 Available public namespaces，并允许连接外部 DNS provider。实际具体名称是否可注册仍以申请平台实时结果为准。
 
-- `mcai.dpdns.org`
-- `medicalai.dpdns.org`
-- `medai.dpdns.org`
+### 第一步：Demo
 
-实际是否可注册以申请时为准。正式收费版换自己的独立域名；更换域名不需要迁移数据库或重写 H5/API。
+同一域名先发布明确标注“演示数据”的 Mock H5：
 
-仓库已新增：
+```text
+VITE_BUILD_MODE=demo
+VITE_API_BASE_URL=
+```
 
-- `deploy/Caddyfile.example`
-- `deploy/caddy-medical.env.example`
-- `deploy/caddy-medical.conf`
-- `deploy/medical-pilot.service`
-- `deploy/medical-discovery.service` + `.timer`
-- `deploy/medical-backup.service` + `.timer`
-- `deploy/medical-healthcheck.service` + `.timer`
-- `deploy/pilot.env.example`
+- 虚构天津医疗项目；
+- 不登录；
+- 不调用真实 Agnes；
+- 不冒充真实医院采购数据。
+
+### 第二步：真实 Pilot
+
+验证完成后仍用同一个网址重新构建：
+
+```text
+VITE_BUILD_MODE=pilot
+VITE_API_BASE_URL=/api
+```
+
+然后启用真实 invite/Session、客户画像、采购事实、follow-up、reminder、followed、outreach。
+
+前端已经增加 build-mode fail-closed，防止 Demo/Pilot 串模式。
+
+## 部署脚手架
+
+结构：
+
+`域名 → Cloudflare（可选/推荐）→ Caddy → 单台 VPS → H5 + /api → 127.0.0.1:8787 + /srv/medical/data/pilot.sqlite`
+
+仓库已有：
+
 - `deploy/README.md`
 - `deploy/README_DOMAIN.md`
+- `deploy/Caddyfile.example`
+- `deploy/caddy-medical.env.example`
+- `deploy/build-web.sh`
+- `deploy/pilot-smoke.sh`
+- API/discovery/backup/healthcheck systemd service/timer
+- `pilot_backup.py`
+- `GET /api/healthz`
+
+### Health
+
+`GET /api/healthz` 只返回固定非敏感 liveness，不包含 tenant/profile、业务数据、Provider/model/API Key。
+
+### Backup
+
+SQLite 使用 `Connection.backup()` 在线备份，之后执行 `PRAGMA integrity_check` 并计算 SHA-256；默认北京时间每天02:20，保留14份。真实 Pilot 前仍需 backup + restore 实测。
 
 ### HTTPS
 
-Caddy 负责源站 HTTPS。若使用 Cloudflare，目标模式为 `Full (strict)`。首次签发源站证书时优先先用 DNS-only 直连源站，确认 Caddy HTTPS 正常后再开启 Cloudflare proxy，可减少证书初始化互相等待的问题。
+Cloudflare 最终使用 `Full (strict)`。首次源站证书建议先 DNS-only 直连 Caddy，确认 HTTPS 后再开启代理。
 
-### 健康检查
-
-新增：
-
-- `health_http.py`
-- `GET /api/healthz`
-- `medical-health-public.schema.json`
-
-该端点只返回固定的存活状态，不返回 tenant/profile、业务数据、Provider、模型名或 Key。systemd 每5分钟可做本地 healthcheck。它不是业务正确性验收替代品。
-
-### SQLite 在线备份
-
-新增 `pilot_backup.py`，使用 SQLite `Connection.backup()`，不是直接复制活跃数据库文件；备份后执行 `PRAGMA integrity_check`，并输出 SHA-256。
-
-默认 systemd timer：北京时间每日02:20，保留最近14份。正式邀请 Pilot 用户前仍需至少手工跑一次 backup + restore 验证。
-
-当前这些部署文件是**已写入、尚未在真实 VPS 执行**，因此不能称为已经上线。
+这些只是**部署脚手架已写入**，尚未在真实 VPS 执行，不能称为已经上线。
 
 ## CI / Build 真相
 
-GitHub Actions runner 仍未分配。最近已经核实的代码 Run `33302048917`：
+CI 现在定义了：
 
-- web-build：`runner_id=0 / steps=[]`
-- python-pilot：`runner_id=0 / steps=[]`
+- Python compile + 81组 unittest；
+- JSON 校验；
+- deploy shell syntax；
+- TypeScript typecheck；
+- **Demo H5 build**；
+- **Pilot H5 build**。
 
-因此 compileall、**81组** unittest、JSON Schema 校验、TypeScript typecheck 和 H5 build 仍没有真实执行 PASS。
+最新实际检查：HEAD `ea1cabf5ee3cacc47dfa4b98d27ee4c937e14a3b`，Run `33304701302`：
 
-当前 failure 只能解释为 runner 未执行，不是 assertion/build failure；同时也绝不能把静态审查当作 PASS。
+- web-build `99239055207`：`runner_id=0 / steps=[] / failure`
+- python-pilot `99239055274`：`runner_id=0 / steps=[] / failure`
 
-## Agnes / Attachment / TJGPC
-
-Agnes Pilot 继续固定：`agnes-2.5-flash`，<=12 starts/60s，start spacing >=5s，max in-flight=2，Provider start 前必须取得 global lease。
-
-`TGPC-2025-A-0164` 的精确 `method=downEnId` 医疗附件 URL 已确认，但真实 bytes 仍为0，继续保持 `URL confirmed != bytes confirmed`。
-
-TJGPC `W008` 已确认是网上应答帮助，禁止用于 procurement discovery；真正公告/结果 list classId/pagination 仍未可靠验证。
+所以所有这些步骤仍然**一个都没有真正执行**。81个 test modules 只是“已写入”，不能标 PASS。
 
 ## 下一步
 
-1. 获得81组 deterministic tests + H5 typecheck/build 的真实 PASS；
-2. 用 server-only Agnes Key 做 grounded outreach smoke；
-3. 在一台真实 VPS 执行 `deploy/README.md`，完成 HTTPS、Session/invite/follow-up/reminder/outreach smoke；
-4. 手工验证 SQLite backup + restore，再开启每日 timer；
-5. 在真实 Pilot host 运行 discovery tick 并记录 listing/detail latency；
-6. 逐个解决剩余5个 discovery contract；
-7. 捕获 `downEnId` 医疗附件真实 bytes；
-8. 运行28个 Agnes benchmark；
-9. H5 Pilot 验证后再决定微信原生小程序。
+1. 如果 `medradar.qzz.io` 可注册，优先固定它作为给老杨看的同域 Demo/Pilot 地址；不可用则依次退到其他候选；
+2. 获得81组 tests + Demo/Pilot 两种 H5 build 的真实 PASS；
+3. 可以先部署明确标注演示数据的 Demo 给老杨看；
+4. deterministic PASS 后做 server-only Agnes grounded outreach smoke；
+5. 在同一域名切真实 Pilot，做 HTTPS + Session/invite/follow-up/reminder/followed/outreach smoke；
+6. backup + restore 实测；
+7. 真实 discovery tick latency；
+8. 逐个解决剩余5个 discovery contract；
+9. 捕获 `downEnId` 医疗附件真实 bytes；
+10. 运行28个 Agnes benchmark。
