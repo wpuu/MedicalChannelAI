@@ -136,8 +136,8 @@ def main() -> None:
 
     for name, help_text in (
         ("account-status", "show one Pilot account lifecycle record"),
-        ("account-disable", "disable one Pilot account immediately"),
-        ("account-enable", "restore one disabled Pilot account"),
+        ("account-disable", "disable one Pilot account and revoke all current sessions"),
+        ("account-enable", "restore one disabled Pilot account; a fresh login link is still required"),
     ):
         command = subparsers.add_parser(name, help=help_text)
         command.add_argument("--tenant", required=True)
@@ -219,16 +219,21 @@ def main() -> None:
     if args.command in {"account-status", "account-disable", "account-enable"}:
         now = datetime.now(timezone.utc)
         principal = TrustedPrincipal(args.tenant, args.profile)
+        revoked_sessions = 0
         if args.command == "account-disable":
             if not runtime.account_store.set_disabled(principal, disabled=True, now=now):
                 raise ValueError("account not found")
+            revoked_sessions = runtime.session_store.revoke_principal(principal, revoked_at=now)
         elif args.command == "account-enable":
             if not runtime.account_store.set_disabled(principal, disabled=False, now=now):
                 raise ValueError("account not found")
         account = runtime.account_store.get(principal)
         if account is None:
             raise ValueError("account not found")
-        _print({"ok": True, "type": "account", "account": _account_json(account)})
+        result = {"ok": True, "type": "account", "account": _account_json(account)}
+        if args.command == "account-disable":
+            result["revoked_sessions"] = revoked_sessions
+        _print(result)
         return
 
     raise RuntimeError("unsupported command")
