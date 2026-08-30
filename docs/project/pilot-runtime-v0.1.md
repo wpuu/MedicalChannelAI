@@ -10,24 +10,21 @@
 ## 首版拓扑
 
 ```text
-浏览器 H5
-  │  同域 HTTPS
-  ├─ /              -> 静态 web/
-  └─ /api/*         -> 反向代理
+已验证公开 Source
+  │
+  ├─ collector_ingest.py
+  ├─ collector_store.py / public event ledger
+  └─ discovery_runtime.py + discovery_scheduler.py
                          │
                          v
-                  pilot_server.py
-                  127.0.0.1:8787
-                         │
-                         v
-                  persistent pilot.sqlite
-                    ├─ customer profiles (tenant-private)
-                    ├─ public opportunities (shared public facts)
-                    ├─ public evidence (shared public facts)
-                    ├─ one-time invites
-                    ├─ opaque sessions
-                    ├─ Agnes dispatch queue
-                    └─ Agnes terminal results
+浏览器 H5              persistent pilot.sqlite
+  │  同域 HTTPS           ├─ public events / opportunities / evidence
+  ├─ / -> 静态 web/       ├─ discovery URL / schedule ledgers
+  └─ /api/* -> 反代       ├─ customer profiles (tenant-private)
+               │           ├─ one-time invites / opaque sessions
+               v           ├─ Agnes dispatch queue
+        pilot_server.py     └─ Agnes terminal results
+        127.0.0.1:8787
 ```
 
 H5 构建时使用：
@@ -70,14 +67,14 @@ Pilot 不存客户密码，也不接受浏览器传入 tenant/profile 作为身�
 
 ### Shared public facts
 
-- public procurement opportunities
+- public procurement events / opportunities
 - official evidence
 - public lifecycle facts
 - public institution evidence
 
 相同政府采购项目不得为每个客户复制一份。匹配阶段读取同一份公开事实，再结合当前 tenant/profile 的私有画像计算。
 
-`today_repo.py` 会拒绝把 `tenant_id/profile_id/customer_context/followup/...` 等客户私有字段写入 public opportunity/evidence 表。
+`today_repo.py` 会拒绝把 `tenant_id/profile_id/customer_context/followup/...` 等客户私有字段写入 public opportunity/evidence 表；`collector_store.py` 的 public event ledger 同样拒绝客户私有字段。
 
 ## HTTP 边界
 
@@ -102,6 +99,87 @@ GET  /api/opportunity/:id
 
 反向代理必须对 `/api/auth/redeem` 增加速率限制。
 
+## Collector → Repository
+
+单 URL 入口已统一到：
+
+```text
+collector_ingest.py
+  -> registered source + host allowlist
+  -> source adapter parse
+  -> VERIFIED event/facts
+  -> collector_store.py public event ledger
+  -> existing lifecycle resolver
+  -> current-event factual projection
+  -> deterministic product taxonomy
+  -> VERIFIED institution enrichment
+  -> SQLiteTodayActionsRepository
+```
+
+`cli.py` 保留原 research-only JSON 用法，同时支持：
+
+```text
+python -m tools.medical_pilot.cli <official-detail-url> --db /srv/medical/pilot.sqlite
+```
+
+重要边界：
+
+- lifecycle 由完整 event ledger 重算，旧公告晚到不能把 AWARD 回退成 TENDERING；
+- 同日低精度冲突保持 `CONFLICTED/UNKNOWN`，不伪造先后顺序；
+- 当前产品 taxonomy、award items、租赁判断只取当前 lifecycle event 的 VERIFIED facts；
+- “采购”不等于“非租赁”：明确租赁词才 True，明确购置/购买/买断才 False，否则保持 UNKNOWN；
+- 天津财政已登记的官方详情域名 `tjgp.cz.tj.gov.cn`、`ccgp-tianjin.gov.cn`、`www.ccgp-tianjin.gov.cn` 可作为受控入口/跳转目标，未登记 host 仍拒绝。
+
+## Discovery readiness
+
+当前只允许两个**专属、已验证 listing**自动 discovery：
+
+```text
+tjmugh_procurement
+  https://www.tjmugh.com.cn/cgxxtzgg/index.shtml
+
+tj_first_central_hospital_procurement
+  https://www.tj-fch.com/ywgk/ynbx/index.shtml
+```
+
+以下 5 个 Source 仍明确 `DISCOVERY_NOT_READY`：
+
+- `tj_government_procurement`：native list route 未解决；
+- `tj_government_procurement_center`：采购公告 list classId/pagination 未解决；
+- `ccgp_local_notices`：现有 canonical listing 为全国地方公告，不能直接投影为天津；
+- `ccgp_procurement_intent`：搜索存在 CAPTCHA，自动 discovery/query contract 未固定；
+- `tj_public_resource_exchange`：结果列表 discovery contract 未固定。
+
+**Parser/detail URL 可用，不等于 discovery listing 已可安全自动化。** Scheduler 只遍历 `DISCOVERY_READY_LISTINGS`，不会因为 cadence policy 中存在某个 source_id 就绕过 readiness。
+
+## 持久化 Discovery cadence
+
+`discovery_runtime.py`：
+
+- listing 发现的 detail URL 持久化进 SQLite；
+- 成功 detail 默认 24 小时内不重复抓；
+- detail 失败按 15→30→60…分钟退避，最大 240 分钟；
+- detail 层失败不会错误地把整个 listing Source 判死。
+
+`discovery_scheduler.py`：
+
+- 复用 `discovery_cadence.tianjin.v0.1.json`；
+- Asia/Shanghai 时区；
+- 总医院稳定 `:03`、一中心稳定 `:11`；
+- 工作日白天 EARLY_SIGNAL 基线 15 分钟；周末/夜间自动降频；
+- listing/source 级连续失败扩大 regular cadence，成功后归零；
+- `07:31–07:43`、`12:46–12:58` 强刷窗口使用 source offset 在窗口内稳定错峰，并可绕过普通 backoff；
+- SQLite `PRIMARY KEY(source_id, slot_id)` 原子 claim，同一 host 上 cron 重叠、进程重启、重复 tick 不会重复执行同一个 slot；
+- v0.1 为 minute-granular scheduler，策略中的 sub-minute jitter 尚未实际执行；当前依靠稳定 minute offset 避免同机 Source 同时起跑。
+
+推荐由单机 cron/systemd timer **每分钟调用一次幂等 tick**：
+
+```text
+python -m tools.medical_pilot.discovery_scheduler --db /srv/medical/pilot.sqlite
+```
+
+不需要常驻 while-loop；调度状态和 slot claim 已持久化在数据库里。
+
 ## 管理员 Bootstrap
 
 参考入口：
@@ -112,6 +190,8 @@ python -m tools.medical_pilot.pilot_admin --db /srv/medical/pilot.sqlite opportu
 python -m tools.medical_pilot.pilot_admin --db /srv/medical/pilot.sqlite evidence-put --file evidence.json
 python -m tools.medical_pilot.pilot_admin --db /srv/medical/pilot.sqlite invite --tenant <tenant> --profile <profile> --login-url https://example.com
 ```
+
+其中 `opportunity-put/evidence-put` 现在主要用于测试、bootstrap 与人工修复；已验证 collector 正常路径应优先走 `collector_ingest.py` 自动落库。
 
 邀请码只显示一次，不得提交到 GitHub、Issue、日志或客服工单。
 
@@ -125,13 +205,14 @@ python -m tools.medical_pilot.pilot_server --db /srv/medical/pilot.sqlite --host
 
 以下仍未完成，因此 `production_ready=false`：
 
-- 真实 Source collector 自动持续写入 `today_repo`；当前 repository/bootstrap 已实现，但采集持久化 wiring 仍待接；
+- 7 个 P0 Source 尚未全部拥有可验证的自动 discovery contract；目前只有 2/7 可自动 listing discovery；
+- discovery scheduler 尚无真实服务器 cron/systemd 执行证据；
 - tenant-safe 服务端 follow-up/reminder；当前 H5 跟进仍 local-only；
 - grounded on-demand outreach 正式 API；
 - 真实附件 bytes 捕获；
 - CI runner 的真实 Python/TypeScript/build PASS；
 - 正式多用户成员/角色/审计体系；
-- 横向多服务器共享 queue/lease/result/session/repository Store。
+- 横向多服务器共享 queue/lease/result/session/repository/discovery Store。
 
 ## 禁止的部署方式
 
@@ -143,6 +224,7 @@ python -m tools.medical_pilot.pilot_server --db /srv/medical/pilot.sqlite --host
 
 - TodayActionsRepository
 - SessionStore / InviteStore
+- public event/discovery ledgers
 - AgnesDispatchQueue
 - AgnesTaskResultStore
 - AgnesLeaseStore
