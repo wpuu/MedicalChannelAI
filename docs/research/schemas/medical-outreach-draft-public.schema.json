@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-outreach-draft-public.schema.json",
+  "title": "Medical Grounded Outreach Draft Public View v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "opportunity_id",
+    "disclaimer",
+    "generated_at",
+    "draft",
+    "strategy_code",
+    "supporting_fact_ids",
+    "supporting_profile_paths",
+    "requires_human_confirmation",
+    "cached"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "disclaimer": {"type": "string", "minLength": 1, "maxLength": 500},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "draft": {"type": "string", "minLength": 1, "maxLength": 8000},
+    "strategy_code": {
+      "enum": [
+        "EARLY_REQUIREMENT_DISCOVERY",
+        "FORMAL_TENDER_CLARIFICATION",
+        "RELATIONSHIP_RECONNECT",
+        "CAPABILITY_INTRODUCTION",
+        "PARTNER_ENTRY_DISCUSSION",
+        "POST_AWARD_FUTURE_NEEDS"
+      ]
+    },
+    "supporting_fact_ids": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 180}
+    },
+    "supporting_profile_paths": {
+      "type": "array",
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "business_role",
+          "hospital_relationship",
+          "matching_product_capabilities",
+          "partnering_policy"
+        ]
+      }
+    },
+    "requires_human_confirmation": {"const": true},
+    "cached": {"type": "boolean"}
+  }
+}

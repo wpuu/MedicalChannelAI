@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-health-public.schema.json",
+  "title": "MedicalChannelAI Pilot Health Public View",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "mode"],
+  "properties": {
+    "schema_version": { "const": "0.1" },
+    "status": { "const": "ok" },
+    "mode": { "const": "SINGLE_HOST_PILOT" }
+  }
+}

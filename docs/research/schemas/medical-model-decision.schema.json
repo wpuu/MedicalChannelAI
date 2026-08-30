@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-model-decision.schema.json",
+  "title": "Medical Grounded Model Decision v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "opportunity_id",
+    "action_type",
+    "reason_codes",
+    "risk_codes",
+    "supporting_fact_ids",
+    "supporting_profile_paths",
+    "requires_human_confirmation"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "action_type": {"enum": ["CONTACT_HOSPITAL", "VERIFY_RELATIONSHIP", "FIND_MANUFACTURER", "CONTACT_CHANNEL_PARTNER", "PREPARE_BID", "MONITOR", "NO_ACTION"]},
+    "reason_codes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"enum": ["RELATIONSHIP_EXISTS", "RELATIONSHIP_UNKNOWN", "PRODUCT_CAPABILITY_DIRECT", "PRODUCT_CAPABILITY_PARTNERABLE", "EARLY_STAGE", "FORMAL_TENDER", "LARGE_PROJECT", "RENTAL_CAPABILITY_MATCH", "AWARD_INTELLIGENCE_ONLY"]},
+      "uniqueItems": true
+    },
+    "risk_codes": {
+      "type": "array",
+      "items": {"enum": ["ATTACHMENT_DETAILS_PENDING", "COVERAGE_PARTIAL", "RELATIONSHIP_UNKNOWN", "PRODUCT_CLASSIFICATION_MODEL_DERIVED", "DEADLINE_NEAR", "CROSS_STAGE_LINK_UNCONFIRMED"]},
+      "uniqueItems": true
+    },
+    "supporting_fact_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "pattern": "^fact_[0-9a-fA-F-]{36}$"},
+      "uniqueItems": true
+    },
+    "supporting_profile_paths": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 240},
+      "uniqueItems": true
+    },
+    "requires_human_confirmation": {"type": "boolean"}
+  }
+}

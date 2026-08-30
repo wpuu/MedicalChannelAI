@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-customer-profile.schema.json",
+  "title": "Medical Channel Customer Profile v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "tenant_id",
+    "company_name",
+    "business_role",
+    "operating_regions",
+    "customer_types",
+    "product_capabilities",
+    "partnering_policy",
+    "opportunity_thresholds",
+    "exclusion_rules",
+    "confirmation_flags",
+    "profile_status",
+    "profile_completeness",
+    "missing_required_conditions",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "profile_id": {"type": "string", "pattern": "^mprof_[0-9a-fA-F-]{36}$"},
+    "tenant_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "company_name": {"type": "string", "minLength": 1, "maxLength": 300},
+    "business_role": {
+      "enum": ["LOCAL_DISTRIBUTOR", "REGIONAL_DISTRIBUTOR", "MANUFACTURER_SALES", "MANUFACTURER_CHANNEL_MANAGER", "OTHER"]
+    },
+    "operating_regions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["province", "city", "scope_mode", "districts"],
+        "properties": {
+          "province": {"type": "string", "minLength": 1},
+          "city": {"type": "string", "minLength": 1},
+          "scope_mode": {"enum": ["ENTIRE_CITY", "SELECTED_DISTRICTS"]},
+          "districts": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"scope_mode": {"const": "SELECTED_DISTRICTS"}}},
+            "then": {"properties": {"districts": {"minItems": 1}}}
+          },
+          {
+            "if": {"properties": {"scope_mode": {"const": "ENTIRE_CITY"}}},
+            "then": {"properties": {"districts": {"maxItems": 0}}}
+          }
+        ]
+      }
+    },
+    "customer_types": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"enum": ["TERTIARY_HOSPITAL", "SECONDARY_HOSPITAL", "PRIMARY_CARE", "PRIVATE_HOSPITAL", "CDC", "BLOOD_CENTER", "UNIVERSITY", "RESEARCH_INSTITUTE", "THIRD_PARTY_LAB", "OTHER"]},
+      "uniqueItems": true
+    },
+    "product_capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["category", "taxonomy_ids", "capability_type"],
+        "properties": {
+          "category": {"type": "string", "minLength": 1, "maxLength": 200},
+          "subcategory": {"type": ["string", "null"], "maxLength": 200},
+          "taxonomy_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "pattern": "^[A-Z0-9_]{3,100}$"},
+            "uniqueItems": true
+          },
+          "brands": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true, "default": []},
+          "capability_type": {"enum": ["DIRECT_AUTHORIZED", "DIRECT_UNCONFIRMED", "CAN_SOURCE_PARTNER", "SERVICE_ONLY", "RENTAL_CAPABLE", "UNKNOWN"]},
+          "notes": {"type": ["string", "null"], "maxLength": 1000}
+        }
+      }
+    },
+    "partnering_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["can_seek_temporary_manufacturer", "can_cooperate_with_channel_partner", "can_do_rental_projects"],
+      "properties": {
+        "can_seek_temporary_manufacturer": {"type": "boolean"},
+        "can_cooperate_with_channel_partner": {"type": "boolean"},
+        "can_do_rental_projects": {"type": "boolean"}
+      }
+    },
+    "opportunity_thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_project_amount_cny", "preferred_stages"],
+      "properties": {
+        "minimum_project_amount_cny": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"},
+        "owner_attention_amount_cny": {"type": ["string", "null"], "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"},
+        "preferred_stages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"enum": ["MARKET_RESEARCH", "PROCUREMENT_INTENT", "PREPARING", "TENDERING", "AMENDED", "BID_CLOSED", "AWARDED"]},
+          "uniqueItems": true
+        }
+      }
+    },
+    "exclusion_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "value"],
+        "properties": {
+          "kind": {"enum": ["PRODUCT_CATEGORY", "HOSPITAL_TYPE", "REGION", "PROJECT_STAGE", "OTHER"]},
+          "value": {"type": "string", "minLength": 1, "maxLength": 300},
+          "reason": {"type": ["string", "null"], "maxLength": 1000}
+        }
+      }
+    },
+    "hospital_relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hospital_name", "relationship_strength", "confirmed_by_customer"],
+        "properties": {
+          "hospital_name": {"type": "string", "minLength": 1, "maxLength": 300},
+          "department": {"type": ["string", "null"], "maxLength": 200},
+          "relationship_strength": {"enum": ["STRONG", "MEDIUM", "WEAK", "HISTORICAL", "UNKNOWN"]},
+          "owner": {"type": ["string", "null"], "maxLength": 200},
+          "confirmed_by_customer": {"type": "boolean"},
+          "last_confirmed_at": {"type": ["string", "null"], "format": "date-time"}
+        }
+      },
+      "default": []
+    },
+    "confirmation_flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "region_scope_confirmed",
+        "customer_types_confirmed",
+        "product_capabilities_confirmed",
+        "partnering_policy_confirmed",
+        "opportunity_preferences_confirmed",
+        "exclusion_rules_confirmed"
+      ],
+      "properties": {
+        "region_scope_confirmed": {"type": "boolean"},
+        "customer_types_confirmed": {"type": "boolean"},
+        "product_capabilities_confirmed": {"type": "boolean"},
+        "partnering_policy_confirmed": {"type": "boolean"},
+        "opportunity_preferences_confirmed": {"type": "boolean"},
+        "exclusion_rules_confirmed": {"type": "boolean"}
+      }
+    },
+    "profile_status": {"enum": ["INCOMPLETE", "SUFFICIENT_FOR_CANDIDATES", "SUFFICIENT_FOR_PERSONALIZED_RECOMMENDATION"]},
+    "profile_completeness": {"type": "integer", "minimum": 0, "maximum": 100},
+    "missing_required_conditions": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 200},
+      "uniqueItems": true
+    },
+    "updated_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"profile_status": {"const": "SUFFICIENT_FOR_PERSONALIZED_RECOMMENDATION"}}},
+      "then": {
+        "properties": {
+          "missing_required_conditions": {"maxItems": 0},
+          "profile_completeness": {"minimum": 80},
+          "confirmation_flags": {
+            "properties": {
+              "region_scope_confirmed": {"const": true},
+              "customer_types_confirmed": {"const": true},
+              "product_capabilities_confirmed": {"const": true},
+              "partnering_policy_confirmed": {"const": true},
+              "opportunity_preferences_confirmed": {"const": true},
+              "exclusion_rules_confirmed": {"const": true}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

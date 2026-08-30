@@ -1,0 +1,58 @@
+{
+  "schema_version": "0.1",
+  "scope_id": "tianjin_medical_pilot_v0.1",
+  "scope_label": "天津医疗公开商机 Pilot v0.1",
+  "exhaustiveness_claim": "NOT_EXHAUSTIVE",
+  "required_sources": [
+    {
+      "source_id": "ccgp_local_notices",
+      "priority": "P0",
+      "implementation_status": "IMPLEMENTED"
+    },
+    {
+      "source_id": "ccgp_procurement_intent",
+      "priority": "P0",
+      "implementation_status": "IMPLEMENTED"
+    },
+    {
+      "source_id": "tjmugh_procurement",
+      "priority": "P0",
+      "implementation_status": "IMPLEMENTED"
+    },
+    {
+      "source_id": "tj_public_resource_exchange",
+      "priority": "P0",
+      "implementation_status": "PARTIAL_IMPLEMENTATION",
+      "implementation_note": "Pilot v0.1 currently verifies only government-procurement result detail pages under /jyxxcgjg/. Tender, amendment, termination and other columns must be independently verified before this source can be marked IMPLEMENTED."
+    },
+    {
+      "source_id": "tj_government_procurement",
+      "priority": "P0",
+      "implementation_status": "PARTIAL_IMPLEMENTATION",
+      "implementation_note": "Official Tianjin procurement content is recognized across tjgp.cz.tj.gov.cn and ccgp-tianjin.gov.cn aliases. Strict documentView detail parsing is implemented, but native 2026 listing/search discovery, runtime direct-fetch confirmation and source-native attachment hrefs remain unverified."
+    },
+    {
+      "source_id": "tj_government_procurement_center",
+      "priority": "P0",
+      "implementation_status": "PARTIAL_IMPLEMENTATION",
+      "implementation_note": "Official tjgpc.zwfwb.tj.gov.cn detail route /webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=<UUID> is verified from indexed official pages and deterministic public-tender detail parsing is implemented. Search indexing also confirms the official /webInfo/downloadFile.do?fileName=...&fileUrl=... document-wrapper family. v0.1 can safely discover only the observed wrapper/origin shape, but download_authorized remains false because crawler-runtime bytes, MIME/magic/SHA and medical-project wrapper linkage are not yet validated. Native listing class ids/pagination and all procurement methods remain unverified. This is a centralized-procurement subset, not a citywide-source replacement."
+    },
+    {
+      "source_id": "tj_first_central_hospital_procurement",
+      "priority": "P0",
+      "implementation_status": "IMPLEMENTED"
+    }
+  ],
+  "optional_sources": [
+    {
+      "source_id": "tj_medical_procurement_center",
+      "priority": "P1",
+      "implementation_status": "NOT_IMPLEMENTED"
+    },
+    {
+      "source_id": "other_tianjin_hospital_sources",
+      "priority": "P1",
+      "implementation_status": "DISCOVERY_IN_PROGRESS"
+    }
+  ]
+}

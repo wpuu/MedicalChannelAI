@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-product-classification.schema.json",
+  "title": "Medical Product Classification v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "taxonomy_version",
+    "labels",
+    "provenance",
+    "validation_status",
+    "supporting_fact_ids",
+    "matched_phrases",
+    "classifier_id"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "taxonomy_version": {"const": "0.1"},
+    "labels": {"type": "array", "items": {"type": "string", "pattern": "^[A-Z0-9_]{3,100}$"}, "uniqueItems": true},
+    "provenance": {"enum": ["DETERMINISTIC", "CONTROLLED_MODEL_CLASSIFICATION", "HUMAN_CONFIRMED"]},
+    "validation_status": {"enum": ["VALIDATED", "BENCHMARK_PENDING", "UNVERIFIED"]},
+    "supporting_fact_ids": {"type": "array", "items": {"type": "string", "pattern": "^fact_[0-9a-fA-F-]{36}$"}, "uniqueItems": true},
+    "matched_phrases": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string", "minLength": 1, "maxLength": 200},
+        "uniqueItems": true
+      }
+    },
+    "classifier_id": {"type": "string", "minLength": 1, "maxLength": 160}
+  }
+}

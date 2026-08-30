@@ -1,0 +1,18 @@
+[Unit]
+Description=MedicalChannelAI idempotent discovery tick
+After=network-online.target medical-pilot.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=medicalai
+Group=medicalai
+WorkingDirectory=/srv/medical/app
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 -m tools.medical_pilot.discovery_scheduler --db /srv/medical/data/pilot.sqlite
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/srv/medical/data

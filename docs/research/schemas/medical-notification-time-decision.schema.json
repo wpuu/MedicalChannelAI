@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-notification-time-decision.schema.json",
+  "title": "Medical Notification Time Decision v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "timing_status", "scheduled_for", "delivery_window", "urgent_exception", "reason"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "timing_status": {"enum": ["NO_NOTIFY", "SCHEDULED", "SEND_NOW"]},
+    "scheduled_for": {"type": ["string", "null"], "format": "date-time"},
+    "delivery_window": {"enum": ["NONE", "MORNING_DIGEST", "MIDDAY_DELTA", "WORKDAY_OPEN", "WORKDAY_IMMEDIATE", "EVENING_URGENT_EXCEPTION", "WEEKEND_URGENT_EXCEPTION", "NEXT_BUSINESS_MORNING"]},
+    "urgent_exception": {"type": "boolean"},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 1000}
+  }
+}

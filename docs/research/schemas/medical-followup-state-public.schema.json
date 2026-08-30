@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-followup-state-public.schema.json",
+  "title": "Medical Follow-up Public State v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "opportunity_id",
+    "current_status",
+    "remind_at",
+    "history",
+    "profile_learning"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "current_status": {
+      "enum": [
+        "NEW",
+        "REVIEWING",
+        "CONTACTED",
+        "RELATIONSHIP_VERIFIED",
+        "PREPARING",
+        "BID_SUBMITTED",
+        "WON",
+        "LOST",
+        "NOT_FIT",
+        "MONITOR",
+        "ARCHIVED"
+      ]
+    },
+    "remind_at": {"type": ["string", "null"], "format": "date-time"},
+    "mutation_inserted": {"type": "boolean"},
+    "history": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "note", "reason", "remind_at", "at", "actor"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^mfollow_[0-9a-fA-F-]{36}$"},
+          "status": {
+            "enum": [
+              "NEW",
+              "REVIEWING",
+              "CONTACTED",
+              "RELATIONSHIP_VERIFIED",
+              "PREPARING",
+              "BID_SUBMITTED",
+              "WON",
+              "LOST",
+              "NOT_FIT",
+              "MONITOR",
+              "ARCHIVED"
+            ]
+          },
+          "note": {"type": ["string", "null"], "maxLength": 4000},
+          "reason": {
+            "type": ["string", "null"],
+            "enum": [
+              "NO_PRODUCT_CAPABILITY",
+              "NO_MANUFACTURER_ACCESS",
+              "RELATIONSHIP_TOO_WEAK",
+              "AMOUNT_TOO_SMALL",
+              "PROJECT_TOO_LATE",
+              "COMPETITOR_LOCKED_CUSTOMER_JUDGMENT",
+              "DEPARTMENT_OUT_OF_SCOPE",
+              "REGION_OUT_OF_SCOPE",
+              "RENTAL_NOT_SUPPORTED",
+              "OTHER",
+              null
+            ]
+          },
+          "remind_at": {"type": ["string", "null"], "format": "date-time"},
+          "at": {"type": "string", "format": "date-time"},
+          "actor": {"type": "string", "maxLength": 80}
+        }
+      }
+    },
+    "profile_learning": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["schema_version", "opportunity_id", "learning_status", "suggestions", "warnings"],
+      "properties": {
+        "schema_version": {"const": "0.1"},
+        "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+        "learning_status": {
+          "enum": [
+            "NO_PROFILE_LEARNING_TRIGGER",
+            "REQUIRES_CUSTOMER_CONFIRMATION",
+            "PROFILE_REVIEW_SUGGESTED",
+            "PROJECT_SPECIFIC_ONLY"
+          ]
+        },
+        "suggestions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "reason", "auto_apply_allowed"],
+            "properties": {
+              "code": {"type": "string", "maxLength": 120},
+              "reason": {"type": "string", "maxLength": 1000},
+              "auto_apply_allowed": {"const": false}
+            }
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {"type": "string", "maxLength": 160}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/medical-evidence-fact.schema.json",
+  "title": "Medical Evidence Fact v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "fact_id",
+    "field_name",
+    "field_value",
+    "fact_type",
+    "source_id",
+    "source_url",
+    "fetched_at",
+    "snapshot_id",
+    "snapshot_sha256",
+    "evidence_locator",
+    "verification_status"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "fact_id": {"type": "string", "pattern": "^fact_[0-9a-fA-F-]{36}$"},
+    "opportunity_id": {"type": ["string", "null"], "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "event_id": {"type": ["string", "null"], "pattern": "^evt_[0-9a-fA-F-]{36}$"},
+    "field_name": {"type": "string", "minLength": 1, "maxLength": 160},
+    "field_value": {},
+    "fact_type": {
+      "enum": ["OFFICIAL_PUBLIC_FACT", "CUSTOMER_PROVIDED_FACT", "SYSTEM_DERIVED", "AI_CLASSIFICATION", "AI_RECOMMENDATION", "UNKNOWN"]
+    },
+    "source_id": {"type": "string", "pattern": "^[a-z0-9_]{3,80}$"},
+    "source_url": {"type": "string", "format": "uri", "pattern": "^https?://"},
+    "published_at": {"type": ["string", "null"], "format": "date-time"},
+    "fetched_at": {"type": "string", "format": "date-time"},
+    "snapshot_id": {"type": "string", "pattern": "^snap_[0-9a-fA-F-]{36}$"},
+    "snapshot_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+    "parser_version": {"type": ["string", "null"]},
+    "evidence_locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {"enum": ["HTML_TEXT", "HTML_SELECTOR", "PDF_PAGE", "PDF_TABLE", "DOCX_PARAGRAPH", "XLSX_RANGE", "OTHER"]},
+        "selector": {"type": ["string", "null"]},
+        "page": {"type": ["integer", "null"], "minimum": 1},
+        "table": {"type": ["integer", "null"], "minimum": 1},
+        "paragraph": {"type": ["integer", "null"], "minimum": 1},
+        "sheet": {"type": ["string", "null"]},
+        "range": {"type": ["string", "null"]},
+        "text_hash": {"type": ["string", "null"], "pattern": "^[a-fA-F0-9]{64}$"}
+      }
+    },
+    "verification_status": {
+      "enum": ["UNVERIFIED", "VERIFIED", "CONFLICTED", "SUPERSEDED", "RETRACTED", "SOURCE_UNAVAILABLE"]
+    },
+    "verification_reason": {"type": ["string", "null"], "maxLength": 1000},
+    "verified_at": {"type": ["string", "null"], "format": "date-time"},
+    "superseded_by_fact_id": {"type": ["string", "null"], "pattern": "^fact_[0-9a-fA-F-]{36}$"},
+    "model_generated": {"type": "boolean", "default": false},
+    "model_id": {"type": ["string", "null"], "maxLength": 160}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"fact_type": {"const": "OFFICIAL_PUBLIC_FACT"}}},
+      "then": {
+        "properties": {"model_generated": {"const": false}}
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-daily-recommendation-plan.schema.json",
+  "title": "Medical Daily Recommendation Plan v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "mode", "input_candidate_count", "evaluated_candidate_count", "matched_count", "needs_more_facts_count", "rejected_or_blocked_count", "model_candidate_count", "final_action_card_count", "query_plan", "model_candidate_ids", "final_action_cards"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "mode": {"const": "INTERACTIVE_DAILY"},
+    "input_candidate_count": {"type": "integer", "minimum": 0},
+    "evaluated_candidate_count": {"type": "integer", "minimum": 0},
+    "matched_count": {"type": "integer", "minimum": 0},
+    "needs_more_facts_count": {"type": "integer", "minimum": 0},
+    "rejected_or_blocked_count": {"type": "integer", "minimum": 0},
+    "model_candidate_count": {"type": "integer", "minimum": 0, "maximum": 5},
+    "final_action_card_count": {"type": "integer", "minimum": 0, "maximum": 5},
+    "query_plan": {"type": "object"},
+    "model_candidate_ids": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+      "uniqueItems": true
+    },
+    "final_action_cards": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["opportunity_id", "priority_score", "score_type", "match_status", "model_explanation_allowed", "warnings"],
+        "properties": {
+          "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+          "priority_score": {"type": "integer", "minimum": 0, "maximum": 100},
+          "score_type": {"enum": ["PERSONALIZED_PRIORITY", "CANDIDATE_PRIORITY"]},
+          "match_status": {"enum": ["MATCHED_PERSONALIZED", "MATCHED_CANDIDATE"]},
+          "model_explanation_allowed": {"type": "boolean"},
+          "warnings": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+        }
+      }
+    }
+  }
+}

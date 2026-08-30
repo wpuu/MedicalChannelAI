@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-opportunity-match-input.schema.json",
+  "title": "Medical Opportunity Match Input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "opportunity_id",
+    "verification_status",
+    "coverage_status",
+    "region",
+    "customer_type",
+    "customer_type_provenance",
+    "customer_type_validation_status",
+    "institution_evidence_id",
+    "lifecycle_state",
+    "budget",
+    "product_labels",
+    "product_label_provenance",
+    "product_label_validation_status",
+    "product_classifier_id",
+    "is_rental_project"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "buyer_name": {"type": ["string", "null"], "maxLength": 300},
+    "hospital_name": {"type": ["string", "null"], "maxLength": 300},
+    "project_name": {"type": ["string", "null"], "maxLength": 500},
+    "verification_status": {"enum": ["UNVERIFIED", "VERIFIED", "CONFLICTED", "SUPERSEDED", "SOURCE_UNAVAILABLE"]},
+    "coverage_status": {"enum": ["CURRENT", "PARTIAL", "DEGRADED", "UNKNOWN"]},
+    "region": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["province", "city", "district"],
+      "properties": {
+        "province": {"type": ["string", "null"]},
+        "city": {"type": ["string", "null"]},
+        "district": {"type": ["string", "null"]}
+      }
+    },
+    "customer_type": {
+      "type": ["string", "null"],
+      "enum": ["TERTIARY_HOSPITAL", "SECONDARY_HOSPITAL", "PRIMARY_CARE", "PRIVATE_HOSPITAL", "CDC", "BLOOD_CENTER", "UNIVERSITY", "RESEARCH_INSTITUTE", "THIRD_PARTY_LAB", "OTHER", "UNKNOWN", null]
+    },
+    "customer_type_provenance": {
+      "enum": ["OFFICIAL_INSTITUTION_EVIDENCE", "OFFICIAL_ORGANIZATION_TYPE", "HUMAN_CONFIRMED", "UNRESOLVED"]
+    },
+    "customer_type_validation_status": {"enum": ["VALIDATED", "UNVERIFIED"]},
+    "institution_evidence_id": {"type": ["string", "null"], "pattern": "^inst_[a-z0-9_]{3,100}$"},
+    "lifecycle_state": {"type": ["string", "null"]},
+    "budget": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["amount", "currency"],
+      "properties": {
+        "amount": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"},
+        "currency": {"const": "CNY"}
+      }
+    },
+    "product_labels": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[A-Z0-9_]{3,100}$"},
+      "uniqueItems": true
+    },
+    "product_label_provenance": {
+      "enum": ["DETERMINISTIC", "CONTROLLED_MODEL_CLASSIFICATION", "HUMAN_CONFIRMED"]
+    },
+    "product_label_validation_status": {
+      "enum": ["VALIDATED", "BENCHMARK_PENDING", "UNVERIFIED"]
+    },
+    "product_classifier_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "is_rental_project": {"type": ["boolean", "null"]}
+  }
+}

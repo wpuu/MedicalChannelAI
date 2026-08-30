@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-agnes-dispatch-plan.schema.json",
+  "title": "Medical Agnes Dispatch Plan v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "provider",
+    "model",
+    "planned_at",
+    "max_request_starts_per_minute",
+    "minimum_start_spacing_seconds",
+    "max_in_flight",
+    "requires_persistent_global_lease",
+    "dispatch_does_not_override_model_admission",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "provider": {"const": "AGNES"},
+    "model": {"const": "agnes-2.5-flash"},
+    "planned_at": {"type": "string", "format": "date-time"},
+    "max_request_starts_per_minute": {"type": "integer", "minimum": 1, "maximum": 60},
+    "minimum_start_spacing_seconds": {"type": "integer", "minimum": 1, "maximum": 60},
+    "max_in_flight": {"type": "integer", "minimum": 1, "maximum": 20},
+    "requires_persistent_global_lease": {"const": true},
+    "dispatch_does_not_override_model_admission": {"const": true},
+    "items": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["task_id", "task_type", "priority", "requested_at", "not_before", "start_spacing_seconds", "stable_jitter_seconds", "requires_global_lease"],
+        "properties": {
+          "task_id": {"type": "string", "minLength": 1, "maxLength": 240},
+          "task_type": {"enum": ["INTERACTIVE_DEEP_DIVE", "URGENT_ACTION_EXPLANATION", "DAILY_TOP5_EXPLANATION", "TAXONOMY_CLASSIFICATION", "BULK_ENRICHMENT", "BENCHMARK"]},
+          "priority": {"type": "integer", "minimum": 0, "maximum": 10},
+          "requested_at": {"type": "string", "format": "date-time"},
+          "not_before": {"type": "string", "format": "date-time"},
+          "start_spacing_seconds": {"type": "integer", "minimum": 1, "maximum": 60},
+          "stable_jitter_seconds": {"type": "integer", "minimum": 0, "maximum": 10},
+          "requires_global_lease": {"const": true}
+        }
+      }
+    }
+  }
+}

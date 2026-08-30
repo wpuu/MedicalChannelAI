@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-subscription-delivery-plan.schema.json",
+  "title": "Medical Subscription Delivery Plan v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "opportunity_id", "material_event_id", "subscription_dedupe_key", "routing_status", "audience", "target_owner", "timing_status", "delivery_window", "scheduled_for", "urgent_exception", "provider_queue_allowed", "reason"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "profile_id": {"type": ["string", "null"]},
+    "opportunity_id": {"type": "string", "minLength": 1},
+    "material_event_id": {"type": "string", "minLength": 1},
+    "subscription_dedupe_key": {"type": "string", "minLength": 1},
+    "routing_status": {"type": "string", "minLength": 1},
+    "audience": {"enum": ["OWNER", "TEAM_INBOX", "NONE"]},
+    "target_owner": {"type": ["string", "null"]},
+    "timing_status": {"enum": ["NO_NOTIFY", "SCHEDULED", "SEND_NOW"]},
+    "delivery_window": {"enum": ["NONE", "MORNING_DIGEST", "MIDDAY_DELTA", "WORKDAY_OPEN", "WORKDAY_IMMEDIATE", "EVENING_URGENT_EXCEPTION", "WEEKEND_URGENT_EXCEPTION", "NEXT_BUSINESS_MORNING"]},
+    "scheduled_for": {"type": ["string", "null"], "format": "date-time"},
+    "urgent_exception": {"type": "boolean"},
+    "provider_queue_allowed": {"type": "boolean"},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 1000}
+  }
+}

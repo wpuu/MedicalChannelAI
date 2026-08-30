@@ -1,0 +1,73 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-28T19:05:00+08:00",
+  "goal": "Prefer under-linking over over-deduplication so one real commercial opportunity is never silently swallowed by a same-name record.",
+  "canonical_identity_priority": [
+    {
+      "rank": 1,
+      "basis": "OFFICIAL_PROJECT_NUMBER",
+      "seed": "project_number",
+      "cross_source_linking": "ALLOWED",
+      "confidence": 1.0,
+      "rule": "When an official project number exists, records carrying the exact same project number may share one canonical project identity."
+    },
+    {
+      "rank": 2,
+      "basis": "OFFICIAL_NATIVE_RECORD_ID",
+      "seed": "source_id + native_record_id",
+      "cross_source_linking": "NOT_AUTOMATIC",
+      "confidence": 1.0,
+      "rule": "For source-native records such as CCGP procurement-intent projId, use the exact native record id to keep same-title records distinct."
+    },
+    {
+      "rank": 3,
+      "basis": "SOURCE_LOCAL_RECORD_URL",
+      "seed": "source_id + source_url",
+      "cross_source_linking": "NOT_AUTOMATIC",
+      "confidence": 1.0,
+      "rule": "If no official project number/native record id exists, the source record URL is the identity boundary. Buyer/title similarity must not merge records."
+    }
+  ],
+  "forbidden_identity_shortcuts": [
+    "buyer_name + project_name",
+    "hospital_name + project_name",
+    "same title + close publication date",
+    "LLM semantic similarity alone",
+    "same budget alone",
+    "same product category alone"
+  ],
+  "cross_stage_bridge_policy": {
+    "status": "CANDIDATE_LAYER_IMPLEMENTED_CANONICAL_MERGE_NOT_IMPLEMENTED",
+    "candidate_module": "tools/medical_pilot/cross_stage_link.py",
+    "candidate_status": "CANDIDATE_REQUIRES_EVIDENCE",
+    "auto_merge_allowed": false,
+    "current_candidate_requirements": [
+      "both records VERIFIED",
+      "allowed stage pair",
+      "exact normalized buyer",
+      "exact normalized project title",
+      "forward publication chronology",
+      "no conflicting explicit project numbers"
+    ],
+    "examples": [
+      "PROCUREMENT_INTENT -> TENDER",
+      "MARKET_RESEARCH -> TENDER",
+      "INTERNAL_SELECTION -> TENDER"
+    ],
+    "minimum_principle": "A candidate is only a review hint. Canonical merge remains prohibited until deterministic public bridge evidence is implemented and validated.",
+    "llm_role": "An LLM may suggest additional link candidates but may never perform the canonical merge without deterministic evidence."
+  },
+  "regression_case": {
+    "buyer_name": "天津医科大学",
+    "project_name": "PCR仪等设备采购项目",
+    "record_a": {
+      "projId": "26775f67-61e3-4d28-b0b6-9f01bb5a2b41",
+      "budget_cny": "3000000.00"
+    },
+    "record_b": {
+      "projId": "81532253-adfb-47a1-8969-65469113d541",
+      "budget_cny": "700000.00"
+    },
+    "required_result": "DISTINCT_CANONICAL_PROJECTS"
+  }
+}

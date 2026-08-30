@@ -1,0 +1,11 @@
+[Unit]
+Description=Run MedicalChannelAI SQLite backup daily
+
+[Timer]
+OnCalendar=*-*-* 18:20:00 UTC
+Persistent=true
+AccuracySec=1min
+Unit=medical-backup.service
+
+[Install]
+WantedBy=timers.target

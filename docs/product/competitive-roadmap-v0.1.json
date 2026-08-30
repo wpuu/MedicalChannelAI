@@ -1,0 +1,96 @@
+{
+  "schema_version": "0.1",
+  "benchmark": "YIFANGBAO_2026_08",
+  "product_positioning": "MEDICAL_CHANNEL_OPERATING_AGENT_NOT_GENERIC_TENDER_FEED",
+  "principles": [
+    "ABSORB_VALIDATED_WORKFLOWS_NOT_UI_CLONES",
+    "OFFICIAL_FACTS_AND_AI_JUDGMENTS_MUST_REMAIN_SEPARATE",
+    "CUSTOMER_PROFILE_REPLACES_KEYWORD_TUNING_AS_PRIMARY_MATCH_INPUT",
+    "RELATIONSHIP_ASSETS_ARE_CUSTOMER_PRIVATE_FACTS_NOT_PUBLIC_FACTS",
+    "LIMIT_EXECUTION_BUDGET_NOT_TRUTHFUL_CUSTOMER_PROFILE_SCOPE",
+    "FINAL_HOME_FEED_IS_ACTIONS_NOT_RAW_NOTICE_VOLUME"
+  ],
+  "priority_backlog": [
+    {
+      "priority": "P0",
+      "capability": "CONTINUOUS_PROFILE_SUBSCRIPTION",
+      "inspired_by": "keyword subscription + real-time push",
+      "medicalchannelai_target": "When a new VERIFIED opportunity enters the shared fact index, re-match against stored customer profiles without requiring a new manual search.",
+      "dependency": ["QUERY_BUDGET", "MATCH_PIPELINE", "SHARED_FACT_INDEX"],
+      "status": "PARTIALLY_IMPLEMENTED"
+    },
+    {
+      "priority": "P0",
+      "capability": "TODAY_ACTIONS",
+      "inspired_by": "project push + follow-up management",
+      "medicalchannelai_target": "Return a bounded set of top actionable cards with why-now, evidence, relationship, owner and next action.",
+      "dependency": ["PRIORITY_SCORE", "GROUNDED_MODEL_DECISION", "QUERY_BUDGET", "AGNES_DISPATCH"],
+      "status": "IMPLEMENTED_INITIAL_ORCHESTRATION_AND_DISPATCH_BRIDGE_FRONTEND_SPEC_FROZEN"
+    },
+    {
+      "priority": "P0",
+      "capability": "EARLY_MEDICAL_SIGNALS",
+      "inspired_by": "procurement intent + early opportunity prediction",
+      "medicalchannelai_target": "Government procurement intent plus hospital market research/internal selection/testing invitation, with explicit lifecycle semantics.",
+      "dependency": ["SOURCE_ADAPTERS", "LIFECYCLE"],
+      "status": "IMPLEMENTED_INITIAL_TIANJIN"
+    },
+    {
+      "priority": "P0",
+      "capability": "SOURCE_AND_LATENCY_LEDGER",
+      "inspired_by": "real-time push",
+      "medicalchannelai_target": "Measure source_published_at, first_seen_at, verified_at, matched_at and notified_at using source-native timestamp precision.",
+      "dependency": ["EVIDENCE_LEDGER"],
+      "status": "COMPONENT_IMPLEMENTED_RUNTIME_PERSISTENCE_WIRING_PENDING"
+    },
+    {
+      "priority": "P1",
+      "capability": "RELATIONSHIP_ACTIVATION",
+      "inspired_by": "contacts + relationship graph + people penetration",
+      "medicalchannelai_target": "Use customer-confirmed hospital/department/channel relationships to rank opportunities and route the next action to the right owner.",
+      "dependency": ["CUSTOMER_PRIVATE_FACTS", "INSTITUTION_EVIDENCE"],
+      "status": "INITIAL_RANKING_AND_TODAY_ACTION_CONTEXT_IMPLEMENTED"
+    },
+    {
+      "priority": "P1",
+      "capability": "COMPETITIVE_HISTORY",
+      "inspired_by": "competitor prediction + historical cooperation",
+      "medicalchannelai_target": "Build hospital x product x brand x model x supplier x award-time history from evidence-backed awards before attempting prediction.",
+      "dependency": ["AWARD_ITEMS", "PRODUCT_TAXONOMY"],
+      "status": "INITIAL_FACT_EXTRACTION_IMPLEMENTED"
+    },
+    {
+      "priority": "P1",
+      "capability": "FOLLOW_UP_STATE",
+      "inspired_by": "notes + project stage + reminder",
+      "medicalchannelai_target": "Record contacted/owner/outcome/reason-not-fit/next-follow-up and use feedback to improve the customer profile.",
+      "dependency": ["CUSTOMER_PROFILE"],
+      "status": "SCHEMA_AND_PROFILE_LEARNING_COMPONENT_IMPLEMENTED_RUNTIME_PERSISTENCE_PENDING"
+    },
+    {
+      "priority": "P1",
+      "capability": "WECHAT_MINIPROGRAM",
+      "inspired_by": "PC + App + mini-program multi-terminal",
+      "medicalchannelai_target": "Mobile daily actions and follow-up; use the same backend contracts as Web/Hermes.",
+      "dependency": ["STABLE_FACT_PROFILE_MATCH_ACTION_API"],
+      "status": "DEFERRED_UNTIL_H5_PILOT_VALIDATES_WORKFLOW"
+    },
+    {
+      "priority": "P2",
+      "capability": "CONTACT_ENRICHMENT",
+      "inspired_by": "current/similar/other project contacts",
+      "medicalchannelai_target": "Only evidence-backed public contacts or customer-supplied contacts; never infer private relationships.",
+      "dependency": ["PUBLIC_CONTACT_EVIDENCE"],
+      "status": "NOT_IMPLEMENTED"
+    }
+  ],
+  "explicit_non_goals_v1": [
+    "NATIONAL_SOURCE_COUNT_ARMS_RACE",
+    "GENERAL_13_INDUSTRY_PLATFORM",
+    "GENERIC_ENTERPRISE_DATABASE",
+    "TENDER_GUARANTEE_TRANSACTION_SERVICES",
+    "GENERAL_BID_TEMPLATE_MARKETPLACE",
+    "UNEXPLAINED_WIN_PROBABILITY",
+    "FREE_FORM_AI_FACT_GENERATION"
+  ]
+}

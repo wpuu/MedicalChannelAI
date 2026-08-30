@@ -1,0 +1,226 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-28T21:32:00+08:00",
+  "purpose": "Third official-source expansion set bringing the deterministic Tianjin opportunity corpus to 50 source-record opportunities. Fields are locked only when present in official evidence; two First Central Hospital result records intentionally omit unavailable amount/supplier details rather than infer them.",
+  "cases": [
+    {
+      "case_id": "fifth_central_endoscopy_ai_award_20260615",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202606/t20260615_26753347.htm",
+      "expected": {
+        "buyer_name": "天津市第五中心医院",
+        "project_number": "TJYNSJ-2026-H-042",
+        "project_name": "天津市第五中心医院消化内镜智能辅助诊疗及远程示教系统项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-06-15T18:50:00+08:00",
+        "award_total_cny": "749400.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_supplier": "天津御锦智能医疗供应链管理服务有限公司",
+      "official_award_item_samples": [
+        {"raw_name": "消化内镜实时辅助诊断软件（含上消 / 下消）", "brand": "常视康", "quantity": "2套", "unit_price_cny": "80000.00"},
+        {"raw_name": "消化内镜实时辅助诊断终端（智能屏幕系统）", "brand": "常视康", "model": "HME8C27AI", "quantity": "1套", "unit_price_cny": "370300.00"},
+        {"raw_name": "远程示教系统", "brand": "宇播", "model": "YLW-01PRO", "quantity": "1套", "unit_price_cny": "25000.00"}
+      ],
+      "forbidden_inference": ["Do not treat a software-assisted endoscopy system as evidence of a specific endoscope hardware brand.", "Do not convert the priority score for this award into a clinical efficacy claim."]
+    },
+    {
+      "case_id": "nankai_hospital_endoscopy_processor_award_20260225",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202602/t20260225_26193109.htm",
+      "expected": {
+        "buyer_name": "天津市中西医结合医院（天津市南开医院）",
+        "project_number": "TJBD-2025-A-381",
+        "project_name": "电子内窥镜图像处理器等设备采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-02-25T18:50:00+08:00",
+        "award_total_cny": "898000.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_award_item_samples": [
+        {"raw_name": "尿动力学分析仪", "brand": "维信", "model": "Nidoc 970A+", "quantity": "1台", "unit_price_cny": "330000.00"},
+        {"raw_name": "电子内窥镜图像处理器", "brand": "详见附件", "model": "详见附件", "quantity": "1套", "unit_price_cny": "468000.00"},
+        {"raw_name": "电子输尿管肾盂镜", "brand": "安徽航天", "model": "DU-IIL", "quantity": "2支", "unit_price_cny": "50000.00"}
+      ],
+      "forbidden_inference": ["Do not replace the official '详见附件' brand/model with a guessed endoscopy vendor.", "Do not treat package evaluation quotations as the awarded amounts."]
+    },
+    {
+      "case_id": "tcm_first_xray_disinfection_award_20260731",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202607/t20260731_27053196.htm",
+      "expected": {
+        "buyer_name": "天津中医药大学第一附属医院",
+        "project_number": "XCSD-2026-A-526",
+        "project_name": "天津中医药大学第一附属医院医用X射线及消毒灭菌类医疗设备采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-07-31T23:50:00+08:00",
+        "award_total_cny": "5410000.00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not invent product-level brands/models before the official main-item table is captured as evidence.", "Do not merge this project with the hospital's separate endoscope awards."]
+    },
+    {
+      "case_id": "tust_cell_fluorescence_flow_tender_20260821",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260821_27184563.htm",
+      "expected": {
+        "buyer_name": "天津科技大学",
+        "project_number": "SHGP-2026-A409",
+        "project_name": "天津科技大学全自动细胞荧光处理系统等设备采购项目",
+        "notice_type": "TENDER",
+        "lifecycle_state": "TENDERING",
+        "published_at": "2026-08-21T18:50:00+08:00",
+        "budget_amount_cny": "3650000.00",
+        "bid_deadline": "2026-09-14T09:30:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "official_scope": ["全自动细胞荧光处理系统", "迷你发酵罐", "流式细胞仪", "双色红外激光成像系统"],
+      "attachment_declaration": "项目需求书.docx",
+      "forbidden_inference": ["Do not invent equipment brands/models hidden in the project-needs attachment.", "Do not classify the university project as hospital clinical procurement without institution evidence."]
+    },
+    {
+      "case_id": "tianjin_cancer_hospital_equipment_award_20260803",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202608/t20260803_27061941.htm",
+      "expected": {
+        "buyer_name": "天津市肿瘤医院",
+        "project_number": "BH-ZLYY2026631",
+        "project_name": "天津市肿瘤医院设备采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-08-03T18:50:00+08:00",
+        "award_total_cny": "580000.00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["The title is generic; do not assign a product taxonomy until official item evidence is captured.", "Do not invent supplier/product details from a generic equipment title."]
+    },
+    {
+      "case_id": "tcm_first_endoscopy_laser_other_award_20260310",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202603/t20260310_26255872.htm",
+      "expected": {
+        "buyer_name": "天津中医药大学第一附属医院",
+        "project_number": "ZCZBZC-GK-2026020033",
+        "project_name": "天津中医药大学第一附属医院医用内窥镜、医用激光仪器及其他医疗设备采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-03-10T18:51:00+08:00",
+        "award_total_cny": "2424300.00",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": ["Do not merge this multi-category project with later endoscope-only project XCSD-2026-A-534.", "Do not infer package brand/model facts until the official main-item evidence is parsed."]
+    },
+    {
+      "case_id": "dagang_emergency_medical_equipment_award_20260509",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202605/t20260509_26539994.htm",
+      "expected": {
+        "buyer_name": "天津市滨海新区卫生健康委员会本级",
+        "project_number": "PHKJ-2026-011",
+        "project_name": "大港医院危化伤应急医疗救治中心及区急救分中心相关医用设备采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-05-09T18:50:00+08:00",
+        "award_total_cny": "4115400.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_award_item_samples": [
+        {"raw_name": "体外心肺支持辅助设备", "brand": "航天新长征", "model": "辉昇-I", "quantity": "1", "unit_price_cny": "1150000.00"},
+        {"raw_name": "血液净化设备", "brand": "百特", "model": "PrisMax CN", "quantity": "1", "unit_price_cny": "359000.00"},
+        {"raw_name": "呼吸机", "brand": "谊安", "model": "Shangrila510S", "quantity": "2", "unit_price_cny": "29600.00"},
+        {"raw_name": "医用可视喉镜", "brand": "海业", "model": "HYHJ-1330Ⅰ", "quantity": "2", "unit_price_cny": "10000.00"}
+      ],
+      "forbidden_inference": ["Do not assume the procurement unit itself is the final installed hospital without the project's official allocation context.", "Do not infer recurring consumable demand from equipment purchase alone."]
+    },
+    {
+      "case_id": "first_central_fluorescein_test_paper_award_20260324",
+      "source_url": "https://www.tj-fch.com/system/2026/03/24/030186881.shtml",
+      "expected": {
+        "buyer_name": "天津市第一中心医院",
+        "project_number": "YNBX-2026-G-2003",
+        "project_name": "天津市第一中心医院眼科荧光素钠眼科检测试纸采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-03-24T17:03:00+08:00",
+        "award_total_cny": "63000.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_supplier": "卓智医疗器械（天津）有限公司",
+      "forbidden_inference": ["The official result page leaves the成交内容 blank; do not invent brand/model/quantity.", "Do not infer annual consumption from one award."]
+    },
+    {
+      "case_id": "tmu_super_resolution_microscope_award_20260803",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202608/t20260803_27061940.htm",
+      "expected": {
+        "buyer_name": "天津医科大学",
+        "project_number": "bagp-2026-A-042",
+        "project_name": "天津医科大学超分辨显微镜采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-08-03T18:50:00+08:00",
+        "award_total_cny": "3886000.00",
+        "verification_status": "VERIFIED"
+      },
+      "official_supplier": "天津华生源科技有限公司",
+      "official_award_item_samples": [
+        {"raw_name": "超分辨显微镜", "brand": "艾锐", "model": "Polar-SIM", "quantity": "1", "unit_price_cny": "3886000.00"}
+      ],
+      "forbidden_inference": ["Do not treat evaluation quotations as the award amount.", "Do not infer medical clinical use from a university research procurement record."]
+    },
+    {
+      "case_id": "tjmugh_aug5_medical_equipment_market_research_20260805",
+      "source_url": "https://www.tjmugh.com.cn/system/2026/08/05/030326488.shtml",
+      "expected": {
+        "buyer_name": "天津医科大学总医院",
+        "project_name": "天津医科大学总医院医疗设备项目市场调研论证邀请函",
+        "notice_type": "MARKET_RESEARCH",
+        "lifecycle_state": "MARKET_RESEARCH",
+        "published_at": "2026-08-05T02:35:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "official_scope": ["创面洗消设备", "腹腔镜系统2套", "高频电刀3台", "卡式蒸汽灭菌器", "便携式睡眠仪", "喷射呼吸机", "冷冻离心机", "超低温冰箱", "神经监测仪", "鼻内窥镜3套", "手术器械包"],
+      "official_registration_deadline": "2026-08-07T17:00:00+08:00",
+      "forbidden_inference": ["This is market research, not a formal tender or award.", "Count the source record once until deterministic item-level opportunity identity is introduced.", "Do not invent budget, supplier or brand."]
+    },
+    {
+      "case_id": "tjmugh_jan23_repair_market_research_20260123",
+      "source_url": "https://www.tjmugh.com.cn/system/2026/01/23/030242313.shtml",
+      "expected": {
+        "buyer_name": "天津医科大学总医院",
+        "project_name": "仪器设备维保服务中心市场调研方案论证邀请函",
+        "notice_type": "MARKET_RESEARCH",
+        "lifecycle_state": "MARKET_RESEARCH",
+        "published_at": "2026-01-23T10:44:00+08:00",
+        "verification_status": "VERIFIED"
+      },
+      "official_installed_base_samples": [
+        {"department": "神经内科四病区", "equipment": "工作站（监护仪）", "model": "CSCS", "brand": "通用电气GE", "purchase_date": "2017-07"},
+        {"department": "健康管理中心", "equipment": "无创肝纤维化和脂肪变量化检测系统", "model": "FH3000", "brand": "无锡海斯凯尔", "purchase_date": "2021-09"}
+      ],
+      "forbidden_inference": ["Repair demand does not itself prove a replacement purchase plan.", "Installed-base evidence is limited to the explicitly listed equipment."]
+    },
+    {
+      "case_id": "first_central_endoscope_cleaner_award_20260420",
+      "source_url": "https://www.tj-fch.com/system/2026/04/20/030188723.shtml",
+      "expected": {
+        "buyer_name": "天津市第一中心医院",
+        "project_number": "YNBX-2026-G-2005",
+        "project_name": "天津市第一中心医院消化科内窥镜专用多酶清洗液采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "verification_status": "VERIFIED"
+      },
+      "source_evidence_note": "The official hospital procurement index exposes this result record; the result body was not available in the current fetch cache, so amount/supplier/date-time are intentionally not locked.",
+      "forbidden_inference": ["Do not reuse the earlier tender budget as the final award amount unless the result page proves it.", "Do not invent supplier or brand from the tender page."]
+    },
+    {
+      "case_id": "first_central_microscope_camera_award_20260615",
+      "source_url": "https://www.tj-fch.com/system/2026/06/15/030192550.shtml",
+      "expected": {
+        "buyer_name": "天津市第一中心医院",
+        "project_name": "天津市第一中心医院显微镜摄像头项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "verification_status": "VERIFIED"
+      },
+      "source_evidence_note": "The official hospital procurement index exposes the result record. Amount, project number, supplier and item details are intentionally not locked because the result body was unavailable in the current fetch cache.",
+      "forbidden_inference": ["Do not infer microscope brand/model from the phrase '显微镜摄像头'.", "Do not copy tender-page values into the result without result evidence."]
+    }
+  ]
+}

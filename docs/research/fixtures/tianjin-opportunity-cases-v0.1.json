@@ -1,0 +1,230 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-28T12:50:00+08:00",
+  "purpose": "Regression fixtures for deterministic parsing, lifecycle resolution and later Agnes classification tests. Source facts must be revalidated before production use.",
+  "cases": [
+    {
+      "case_id": "tj_chest_lab_rental_20260827",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219613.htm",
+      "expected": {
+        "buyer_name": "天津市胸科医院",
+        "hospital_name": "天津市胸科医院",
+        "project_number": "XCSD-2026-A-641",
+        "project_name": "天津市胸科医院检验科设备租赁服务项目",
+        "notice_type": "TENDER",
+        "lifecycle_state": "TENDERING",
+        "published_date": "2026-08-27",
+        "budget_amount_cny": "5730000.00",
+        "registration_deadline_date": "2026-09-03",
+        "bid_deadline": "2026-09-17T09:30:00+08:00",
+        "raw_procurement_category": "医疗设备租赁服务",
+        "medical_relevance": "IVD/LAB_RELATED",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": [
+        "Do not guess the exact laboratory analyzers before reading the official attachment.",
+        "Do not guess incumbent brand or supplier.",
+        "Do not guess customer relationship strength."
+      ]
+    },
+    {
+      "case_id": "tj_tianjin_hospital_spectct_terminated_20260824",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202608/t20260824_27194479.htm",
+      "expected": {
+        "buyer_name": "天津市天津医院",
+        "hospital_name": "天津市天津医院",
+        "project_number": "PYGP-2026-A-0157",
+        "project_name": "天津医院单光子发射及X射线计算机断层成像系统（SPECT/CT）采购项目",
+        "notice_type": "TERMINATION",
+        "lifecycle_state": "TERMINATED",
+        "published_date": "2026-08-24",
+        "termination_reason": "本项目项目需求发生重大变更",
+        "verification_status": "VERIFIED"
+      },
+      "regression_rule": "Any earlier tender/amendment event for the same project number must not cause the current state to remain TENDERING after this verified termination event."
+    },
+    {
+      "case_id": "tj_teda_hospital_dr_20260827",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219685.htm",
+      "expected": {
+        "buyer_name": "天津市泰达医院",
+        "hospital_name": "天津市泰达医院",
+        "project_number": "ZYGP20260851",
+        "project_name": "天津市泰达医院数字X光机（DR）采购项目",
+        "notice_type": "TENDER",
+        "lifecycle_state": "TENDERING",
+        "published_date": "2026-08-27",
+        "budget_amount_cny": "2500000.00",
+        "registration_deadline_date": "2026-09-03",
+        "bid_deadline": "2026-09-17T10:00:00+08:00",
+        "medical_relevance": "MEDICAL_DEVICE_IMAGING",
+        "verification_status": "VERIFIED"
+      }
+    },
+    {
+      "case_id": "tj_tcm_first_hospital_optical_brain_intent_20260310",
+      "source_url": "https://cgyx.ccgp.gov.cn/cgyx/pub/proJ/details?projId=d9c9cde4-27c9-4d1f-a0f6-77994bf1ce25",
+      "expected": {
+        "buyer_name": "天津中医药大学第一附属医院",
+        "hospital_name": "天津中医药大学第一附属医院",
+        "project_name": "光电同步脑活动检测仪",
+        "notice_type": "PROCUREMENT_INTENT",
+        "lifecycle_state": "PROCUREMENT_INTENT",
+        "published_date": "2026-03-10",
+        "budget_amount_cny": "3900000.00",
+        "expected_procurement_at": "2026-05",
+        "expected_procurement_precision": "MONTH",
+        "medical_relevance": "MEDICAL_DEVICE_NEURO",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": [
+        "Do not convert the month-only expected procurement period into a fake day such as 2026-05-01.",
+        "Do not invent a bid deadline because this is only a procurement-intent notice.",
+        "Do not infer a final supplier, brand or awarded status."
+      ]
+    },
+    {
+      "case_id": "tj_medical_university_gmp_core_award_20260803",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202608/t20260803_27061943.htm",
+      "expected": {
+        "buyer_name": "天津医科大学",
+        "project_number": "TJBD-2026-A-123",
+        "project_name": "天津医科大学细胞药物GMP实验室生产核心系统设备采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_date": "2026-08-03",
+        "award_total_cny": "8732700.00",
+        "award_packages": [
+          {
+            "package_name": "第1包",
+            "supplier_name": "天津启物科技有限责任公司",
+            "award_amount_cny": "8732700.00"
+          }
+        ],
+        "award_items": [
+          {
+            "raw_name": "蜂巢培养系统",
+            "brand": "东富龙",
+            "model": "TY-CF606",
+            "quantity": "3台",
+            "unit_price_cny": "1088000.00"
+          },
+          {
+            "raw_name": "波浪式生物反应器",
+            "brand": "东富龙",
+            "model": "SUR-25L",
+            "quantity": "6台",
+            "unit_price_cny": "498700.00"
+          },
+          {
+            "raw_name": "细胞制备全站",
+            "brand": "东富龙",
+            "model": "TY-CZ01",
+            "quantity": "1台",
+            "unit_price_cny": "2476500.00"
+          }
+        ],
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": [
+        "Do not infer unlisted brands or device models from the winning supplier name.",
+        "Do not convert evaluated quotation amounts into awarded amounts unless the official winner table states them."
+      ]
+    },
+    {
+      "case_id": "tj_first_central_shadowless_lamp_internal_selection_20260506",
+      "source_url": "https://www.tj-fch.com/system/2026/05/06/030189759.shtml",
+      "expected": {
+        "buyer_name": "天津市第一中心医院",
+        "hospital_name": "天津市第一中心医院",
+        "project_number": "YNBX-2026-G-6003",
+        "project_name": "天津市第一中心医院手术无影灯采购项目",
+        "notice_type": "INTERNAL_SELECTION",
+        "lifecycle_state": "PREPARING",
+        "published_date": "2026-05-06",
+        "budget_amount_cny": "19800.00",
+        "bid_deadline": "2026-05-13T14:00:00+08:00",
+        "medical_relevance": "MEDICAL_DEVICE_SURGICAL",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": [
+        "Do not treat an internal hospital selection as a government public tender.",
+        "Do not infer a winning supplier before a result notice exists."
+      ]
+    },
+    {
+      "case_id": "tj_first_central_medical_device_management_market_research_20260518",
+      "source_url": "https://www.tj-fch.com/system/2026/05/18/030190755.shtml",
+      "expected": {
+        "buyer_name": "天津市第一中心医院",
+        "hospital_name": "天津市第一中心医院",
+        "project_name": "天津市第一中心医院医疗器械精细化管理项目",
+        "notice_type": "MARKET_RESEARCH",
+        "lifecycle_state": "MARKET_RESEARCH",
+        "published_date": "2026-05-18",
+        "budget_amount_cny": null,
+        "bid_deadline": null,
+        "medical_relevance": "MEDICAL_DEVICE_DIGITAL_MANAGEMENT",
+        "verification_status": "VERIFIED"
+      },
+      "forbidden_inference": [
+        "Do not invent a procurement budget when the enterprise-testing notice does not publish one.",
+        "Do not turn the seven-day testing registration period into a fabricated formal bid deadline.",
+        "Do not describe the enterprise-testing notice as a procurement award or formal tender."
+      ]
+    },
+    {
+      "case_id": "tj_cdc_hiv_reagents_public_resource_award_20250605",
+      "source_url": "https://ggzy.zwfwb.tj.gov.cn/jyxxcgjg/I0BgS5K5kAp2ToTVxelNlQ.jhtml",
+      "source_role": "OFFICIAL_MIRROR",
+      "expected": {
+        "buyer_name": "天津市疾病预防控制中心",
+        "buyer_type": "CDC",
+        "project_number": "GY-2025-058",
+        "project_name": "天津市疾病预防控制中心性病艾滋病检测试剂、耗材招标采购项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_date": "2025-06-05",
+        "published_at_precision": "DAY",
+        "award_packages": [
+          {
+            "package_name": "第3包",
+            "supplier_name": "天津市卫防科技有限公司",
+            "award_amount_cny": "16500.00"
+          },
+          {
+            "package_name": "第4包",
+            "supplier_name": "天津脉络医学检验有限公司",
+            "award_amount_cny": "260000.00"
+          }
+        ],
+        "award_items_sample": [
+          {
+            "package_name": "第3包",
+            "raw_name": "采血管",
+            "brand": "瑞埼",
+            "model": "EDTA-K2",
+            "quantity": "10000",
+            "unit_price_cny": "1.25"
+          },
+          {
+            "package_name": "第4包",
+            "raw_name": "HIV分子生物学检测试剂--核酸提取或纯化试剂盒",
+            "brand": "知因生物",
+            "model": "64测试/盒、20测试/盒",
+            "quantity": "500",
+            "unit_price_cny": "15.00"
+          }
+        ],
+        "verification_status": "VERIFIED",
+        "dedupe_key": "project_number:GY-2025-058"
+      },
+      "regression_rule": "The official Tianjin public-resource mirror and CCGP records for project GY-2025-058 must produce distinct evidence events but the same canonical project id; they must not be counted as separate commercial opportunities.",
+      "forbidden_inference": [
+        "Do not treat 2025-06-05T00:00:00+08:00 as an actually published midnight timestamp; precision is DAY only.",
+        "Do not duplicate the opportunity when another official source carries the same exact project number.",
+        "Do not infer additional brands, models, suppliers or package totals beyond the official notice."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-discovery-cadence-decision.schema.json",
+  "title": "Medical Discovery Cadence Decision v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_id", "source_group", "local_time", "weekend", "base_interval_minutes", "interval_minutes", "minute_offset", "jitter_percent", "failure_count", "reason"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "source_id": {"type": "string", "minLength": 1, "maxLength": 120},
+    "source_group": {"enum": ["FAST_PROCUREMENT", "EARLY_SIGNAL", "SLOW_SIGNAL"]},
+    "local_time": {"type": "string", "format": "date-time"},
+    "weekend": {"type": "boolean"},
+    "base_interval_minutes": {"type": "integer", "minimum": 1, "maximum": 1440},
+    "interval_minutes": {"type": "integer", "minimum": 1, "maximum": 1440},
+    "minute_offset": {"type": "integer", "minimum": 0, "maximum": 119},
+    "jitter_percent": {"type": "integer", "minimum": 0, "maximum": 30},
+    "failure_count": {"type": "integer", "minimum": 0},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 1000}
+  }
+}

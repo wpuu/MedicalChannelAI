@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-agnes-task-terminal-result.schema.json",
+  "title": "Medical Agnes Task Terminal Result v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "opportunity_id",
+    "model_input_sha256",
+    "status",
+    "completed_at",
+    "validated_output",
+    "rendered_decision",
+    "error_code"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "task_id": {"type": "string", "minLength": 1, "maxLength": 300},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "model_input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"enum": ["READY", "MODEL_OUTPUT_REJECTED"]},
+    "completed_at": {"type": "string", "format": "date-time"},
+    "validated_output": {"type": ["object", "null"]},
+    "rendered_decision": {"type": ["object", "null"]},
+    "error_code": {"type": ["string", "null"], "maxLength": 160}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "READY"}}},
+      "then": {
+        "properties": {
+          "validated_output": {"type": "object"},
+          "rendered_decision": {"type": "object"},
+          "error_code": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "MODEL_OUTPUT_REJECTED"}}},
+      "then": {
+        "properties": {
+          "validated_output": {"type": "null"},
+          "rendered_decision": {"type": "null"},
+          "error_code": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  ]
+}

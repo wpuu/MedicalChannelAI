@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-subscription-prefilter.schema.json",
+  "title": "Medical Subscription Prefilter v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "input_profile_count",
+    "indexed_profile_count",
+    "candidate_profile_ids",
+    "required_next_facts",
+    "interpretation"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "status": {"enum": ["READY", "NEEDS_MORE_FACTS"]},
+    "input_profile_count": {"type": "integer", "minimum": 0},
+    "indexed_profile_count": {"type": "integer", "minimum": 0},
+    "candidate_profile_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^mprof_[0-9a-fA-F-]{36}$"},
+      "uniqueItems": true
+    },
+    "required_next_facts": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 240},
+      "uniqueItems": true
+    },
+    "interpretation": {"const": "PERFORMANCE_PREFILTER_ONLY_FINAL_MATCH_STILL_REQUIRED"}
+  }
+}

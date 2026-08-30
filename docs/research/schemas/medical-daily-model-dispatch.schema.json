@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-daily-model-dispatch.schema.json",
+  "title": "Medical Daily Model Dispatch v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source", "profile_id", "source_model_candidate_count", "agnes_dispatch_plan"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "source": {"const": "DAILY_RECOMMENDATION_PLAN"},
+    "profile_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "source_model_candidate_count": {"type": "integer", "minimum": 0, "maximum": 10},
+    "agnes_dispatch_plan": {"$ref": "https://medicalchannelai.local/schemas/medical-agnes-dispatch-plan.schema.json"}
+  }
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=MedicalChannelAI SQLite online backup
+After=medical-pilot.service
+
+[Service]
+Type=oneshot
+User=medicalai
+Group=medicalai
+WorkingDirectory=/srv/medical/app
+ExecStart=/usr/bin/python3 -m tools.medical_pilot.pilot_backup --db /srv/medical/data/pilot.sqlite --out-dir /srv/medical/backups --keep 14
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/srv/medical/data /srv/medical/backups

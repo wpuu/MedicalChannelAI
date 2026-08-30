@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-subscription-event-batch.schema.json",
+  "title": "Medical Subscription Event Batch v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "opportunity_id",
+    "material_event_id",
+    "event_type",
+    "candidate_profile_count",
+    "processed_profile_count",
+    "batch_offset",
+    "batch_limit",
+    "next_offset",
+    "dispatches",
+    "required_next_facts",
+    "interpretation"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "status": {"enum": ["READY", "NEEDS_MORE_FACTS"]},
+    "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+    "material_event_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "event_type": {"enum": ["NEW_VERIFIED_OPPORTUNITY", "LIFECYCLE_STATE_CHANGED", "DEADLINE_CHANGED", "AWARD_PUBLISHED"]},
+    "candidate_profile_count": {"type": "integer", "minimum": 0},
+    "processed_profile_count": {"type": "integer", "minimum": 0},
+    "batch_offset": {"type": "integer", "minimum": 0},
+    "batch_limit": {"type": "integer", "minimum": 1, "maximum": 1000},
+    "next_offset": {"type": ["integer", "null"], "minimum": 0},
+    "dispatches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["profile_id", "dedupe_key", "routing_status", "audience", "target_owner", "should_notify"],
+        "properties": {
+          "profile_id": {"type": "string", "pattern": "^mprof_[0-9a-fA-F-]{36}$"},
+          "dedupe_key": {"type": "string", "pattern": "^subeval_[0-9a-f]{64}$"},
+          "routing_status": {"enum": ["SEND_IMMEDIATE", "INCLUDE_DAILY_DIGEST", "ENRICHMENT_ONLY", "NO_NOTIFY", "SUPPRESS_TERMINAL_FOLLOWUP"]},
+          "audience": {"enum": ["OWNER", "TEAM_INBOX", "NONE"]},
+          "target_owner": {"type": ["string", "null"], "maxLength": 200},
+          "should_notify": {"type": "boolean"}
+        }
+      }
+    },
+    "required_next_facts": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 240},
+      "uniqueItems": true
+    },
+    "interpretation": {"const": "BOUNDED_PREFILTERED_BATCH_FINAL_MATCH_REQUIRED"}
+  }
+}

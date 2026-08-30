@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-opportunity-match-result.schema.json",
+  "title": "Medical Opportunity Match Result v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "recommendation_mode",
+    "personalized_recommendation_allowed",
+    "candidate_opportunity_allowed",
+    "model_explanation_allowed",
+    "reasons",
+    "required_next_facts",
+    "profile_gate"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "status": {"enum": ["PROFILE_BLOCKED", "FACT_BLOCKED", "REJECTED", "NEEDS_MORE_FACTS", "MATCHED_CANDIDATE", "MATCHED_PERSONALIZED"]},
+    "recommendation_mode": {"enum": ["PROFILE_INTERVIEW_REQUIRED", "FACT_ENRICHMENT_REQUIRED", "NO_RECOMMENDATION", "CANDIDATE_ONLY", "PERSONALIZED_RECOMMENDATION"]},
+    "personalized_recommendation_allowed": {"type": "boolean"},
+    "candidate_opportunity_allowed": {"type": "boolean"},
+    "model_explanation_allowed": {"type": "boolean"},
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "field_path", "outcome", "message"],
+        "properties": {
+          "code": {"type": "string", "minLength": 1, "maxLength": 120},
+          "field_path": {"type": "string", "minLength": 1, "maxLength": 240},
+          "outcome": {"enum": ["BLOCK", "REJECT", "NEEDS_MORE_FACTS", "PASS"]},
+          "message": {"type": "string", "minLength": 1, "maxLength": 1000}
+        }
+      }
+    },
+    "required_next_facts": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1, "maxLength": 240},
+      "uniqueItems": true
+    },
+    "profile_gate": {"type": "object"}
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-today-actions-worker-result.schema.json",
+  "title": "Medical Today Actions Worker Result v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "task_id",
+    "opportunity_id",
+    "worker_id",
+    "lease_id",
+    "provider_start_allowed",
+    "lease_released",
+    "terminal_result_reused",
+    "model_input_sha256",
+    "validated_output",
+    "rendered_decision",
+    "error_code",
+    "error_message",
+    "retry_after"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "status": {
+      "enum": [
+        "NOT_CLAIMED",
+        "ALREADY_COMPLETED",
+        "READY",
+        "MODEL_OUTPUT_REJECTED",
+        "PROVIDER_ERROR",
+        "PAYLOAD_ERROR",
+        "LEASE_RELEASE_FAILED"
+      ]
+    },
+    "task_id": {"type": ["string", "null"], "maxLength": 300},
+    "opportunity_id": {"type": ["string", "null"], "maxLength": 160},
+    "worker_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "lease_id": {"type": ["string", "null"], "pattern": "^(agl_[0-9a-f]{64})?$"},
+    "provider_start_allowed": {"type": "boolean"},
+    "lease_released": {"type": ["boolean", "null"]},
+    "terminal_result_reused": {"type": "boolean"},
+    "model_input_sha256": {"type": ["string", "null"], "pattern": "^([0-9a-f]{64})?$"},
+    "validated_output": {"type": ["object", "null"]},
+    "rendered_decision": {"type": ["object", "null"]},
+    "error_code": {"type": ["string", "null"], "maxLength": 160},
+    "error_message": {"type": ["string", "null"], "maxLength": 2000},
+    "retry_after": {"type": ["string", "null"], "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "READY"}}},
+      "then": {
+        "properties": {
+          "provider_start_allowed": {"const": true},
+          "lease_released": {"const": true},
+          "terminal_result_reused": {"const": false},
+          "model_input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "validated_output": {"type": "object"},
+          "rendered_decision": {"type": "object"},
+          "error_code": {"type": "null"},
+          "error_message": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "ALREADY_COMPLETED"}}},
+      "then": {
+        "properties": {
+          "terminal_result_reused": {"const": true},
+          "model_input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "NOT_CLAIMED"}}},
+      "then": {
+        "properties": {
+          "provider_start_allowed": {"const": false},
+          "lease_id": {"type": "null"},
+          "lease_released": {"type": "null"},
+          "terminal_result_reused": {"const": false},
+          "model_input_sha256": {"type": "null"},
+          "validated_output": {"type": "null"},
+          "rendered_decision": {"type": "null"}
+        }
+      }
+    }
+  ]
+}

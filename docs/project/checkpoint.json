@@ -1,0 +1,151 @@
+{
+  "schema_version": "0.1",
+  "repository": "wpuu/MedicalChannelAI",
+  "branch": "dev/tianjin-pilot-v0.1",
+  "as_of": "2026-08-30T19:45:00+08:00",
+  "phase": "TRUSTED_TIANJIN_BACKEND_PLUS_BUSINESS_DEMO_POLISHED_PLUS_WECHAT_MAINLAND_ACCESS_GATE_PLUS_CANONICAL_ORIGIN_HARDENING_PLUS_SINGLE_HOST_DEPLOYMENT_SCAFFOLD",
+  "production_ready": false,
+  "merge_approved": false,
+  "draft_pr": 1,
+  "coverage_status": "PARTIAL",
+  "counts": {
+    "runtime_p0_sources": 7,
+    "runtime_p0_implemented": 4,
+    "runtime_p0_partial": 3,
+    "verified_opportunity_regression_fixtures": 50,
+    "verified_institution_evidence_fixtures": 15,
+    "schema_contracts": 41,
+    "deterministic_test_modules_written": 82,
+    "real_medical_attachment_binary_captures": 0,
+    "agnes_benchmark_cases": 28,
+    "agnes_benchmark_executed": false
+  },
+  "business_demo": {
+    "status": "POLISHED_DOMAIN_WECHAT_REACHABILITY_CONFIRMED_AWAITING_TARGET_HOST_BUILD",
+    "domain": "medicalai.qd.je",
+    "mainland_reachability_user_tested": true,
+    "wechat_in_app_browser_user_tested": true,
+    "dpdns_wechat_user_test_failed": true,
+    "synthetic_opportunities_only": true,
+    "synthetic_customer_profile_explicit": true,
+    "top1_scenario": "SMART_PHLEBOTOMY_AND_PREANALYTIC_SYSTEM",
+    "one_click_reset": true,
+    "blocked_grounding_outreach_allowed": false,
+    "mock_embeds_internal_model_requests": false,
+    "search_indexing_allowed": false,
+    "walkthrough_doc": "docs/product/demo.md",
+    "same_domain_demo_to_real_pilot_required": false,
+    "demo_build_mode": "demo",
+    "demo_api_base": "",
+    "demo_real_agnes_enabled": false,
+    "demo_login_required": false
+  },
+  "mainland_access": {
+    "required_before_sending_to_business_user": true,
+    "wechat_in_app_browser_required": true,
+    "acceptance_doc": "deploy/CHINA_ACCESS.md",
+    "vpn_must_be_off_during_acceptance": true,
+    "minimum_independent_mainland_networks": 2,
+    "cloudflare_required": false,
+    "vercel_required": false,
+    "preferred_origin_regions": ["HONG_KONG", "JAPAN", "SINGAPORE", "US_WEST_TEST_ONLY"],
+    "external_runtime_script_style_dependency_allowed": false,
+    "demo_build_scans_external_runtime_assets": true,
+    "demo_dist_default_budget_kib": 3072,
+    "free_domain_reputation_can_change": true,
+    "retest_wechat_on_demo_day": true
+  },
+  "domain_security": {
+    "qd_je_allowed_for_static_synthetic_demo": true,
+    "qd_je_not_relied_on_for_authenticated_pilot": true,
+    "authenticated_real_pilot_should_use_independent_domain": true,
+    "canonical_origin_env": "MCAI_CANONICAL_ORIGIN",
+    "real_pilot_requires_https_canonical_origin": true,
+    "real_pilot_host_must_match_canonical_authority": true,
+    "unsafe_methods_require_matching_origin": true,
+    "loopback_exception_health_only": true,
+    "origin_failure_response": "403_FORBIDDEN_GENERIC"
+  },
+  "today_actions": {
+    "max_final_action_cards": 5,
+    "verified_evidence_required_for_model": true,
+    "ungrounded_model_output_rejected": true,
+    "api_tenant_isolation": true,
+    "public_view_excludes_internal_model_fields": true
+  },
+  "auth": {
+    "session_type": "OPAQUE_RANDOM_SERVER_SIDE",
+    "session_cookie_name": "__Host-mcai_session",
+    "browser_tenant_profile_override_allowed": false
+  },
+  "followup": {
+    "endpoint": "GET/POST /api/followup/:opportunity_id",
+    "storage": "TENANT_PROFILE_PRIVATE_APPEND_ONLY",
+    "mutation_idempotency": true
+  },
+  "reminders": {
+    "status": "IN_APP_INBOX_WIRED_EXTERNAL_PUSH_NOT_WIRED",
+    "wechat_delivery_wired": false,
+    "sms_delivery_wired": false,
+    "email_delivery_wired": false,
+    "system_push_delivery_wired": false
+  },
+  "followed_opportunities": {
+    "status": "SERVER_AND_H5_INITIAL_WIRED",
+    "endpoint": "GET /api/followed",
+    "frontend_route": "/followed"
+  },
+  "outreach": {
+    "status": "GROUNDED_ON_DEMAND_SERVER_AND_H5_WIRED_AWAITING_EXECUTION",
+    "endpoint": "POST /api/outreach/:opportunity_id",
+    "model_freeform_sales_copy_allowed": false,
+    "server_side_renderer": true,
+    "uses_shared_agnes_global_lease": true,
+    "api_key_env": "MCAI_AGNES_API_KEY",
+    "api_key_stored_in_repo": false
+  },
+  "discovery": {
+    "ready_source_count": 2,
+    "not_ready_source_count": 5,
+    "ready_sources": ["tjmugh_procurement", "tj_first_central_hospital_procurement"],
+    "persistent_detail_url_ledger": true,
+    "persistent_schedule_slot_claim": true
+  },
+  "deployment": {
+    "status": "SINGLE_HOST_SCAFFOLD_WRITTEN_NOT_YET_EXECUTED",
+    "plan_doc": "docs/project/deployment-plan-v0.1.md",
+    "domain_doc": "deploy/README_DOMAIN.md",
+    "china_access_doc": "deploy/CHINA_ACCESS.md",
+    "build_script": "deploy/build-web.sh",
+    "demo_topology": "MEDICALAI_QD_JE_TO_DIRECT_ORIGIN_TO_CADDY_TO_STATIC_H5",
+    "real_pilot_topology": "INDEPENDENT_HTTPS_DOMAIN_TO_CADDY_TO_STATIC_H5_AND_LOCAL_API",
+    "server_default_bind": "127.0.0.1:8787",
+    "sqlite_path": "/srv/medical/data/pilot.sqlite",
+    "serverless_local_sqlite_allowed": false,
+    "multi_vps_independent_sqlite_allowed": false,
+    "real_vps_execution_completed": false
+  },
+  "ci": {
+    "status": "GITHUB_RUNNER_NOT_ASSIGNED",
+    "latest_checked_head_sha": "c88b73fa4abfd7e53db66cfd3206063331b1f926",
+    "latest_run_id": 33309593283,
+    "python_job_id": 99252124135,
+    "web_job_id": 99252124011,
+    "python_steps_executed": false,
+    "web_steps_executed": false,
+    "deterministic_tests_passed": false,
+    "web_typecheck_passed": false,
+    "demo_web_build_passed": false,
+    "pilot_web_build_passed": false,
+    "interpretation": "Both jobs ended without assigned runner or steps. The 82 deterministic test modules are written only, not PASS."
+  },
+  "next": [
+    "keep medicalai.qd.je as the current static business Demo address",
+    "point medicalai.qd.je at a mainland-reachable origin and run deploy/build-web.sh demo",
+    "serve HTTPS with Caddy and pass WeChat plus two independent mainland-network acceptance checks",
+    "run docs/product/demo.md walkthrough and only then send the URL to Lao Yang",
+    "prepare an independent HTTPS domain and MCAI_CANONICAL_ORIGIN before enabling authenticated real Pilot data",
+    "obtain real execution PASS for 82 deterministic backend test modules",
+    "complete Agnes authenticated smoke, backup restore, remaining discovery contracts, attachment bytes and benchmarks"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-28T14:50:00+08:00",
+  "purpose": "Verified Tianjin medical opportunities where the official notice itself provides partial facts and explicitly defers additional detail to attachments. The fixture locks the boundary between notice-backed facts and attachment-pending facts.",
+  "cases": [
+    {
+      "case_id": "tjmugh_nephrology_reagents_award_20260608",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202606/t20260608_26710378.htm",
+      "expected": {
+        "buyer_name": "天津医科大学总医院",
+        "hospital_name": "天津医科大学总医院",
+        "project_number": "XCSD-2026-A-247",
+        "project_name": "天津医科大学总医院肾内科临床重点专科建设试剂购置项目",
+        "notice_type": "AWARD",
+        "lifecycle_state": "AWARDED",
+        "published_at": "2026-06-08T18:50:00+08:00",
+        "published_at_precision": "MINUTE",
+        "award_total_cny": "1092806.00",
+        "award_packages": [
+          {
+            "package_name": "第1包",
+            "supplier_name": "天津科仪嘉欣科技有限公司",
+            "award_amount_cny": "801120.00"
+          },
+          {
+            "package_name": "第2包",
+            "supplier_name": "天津市福润特医疗器械销售有限公司",
+            "award_amount_cny": "291686.00"
+          }
+        ],
+        "award_items": [
+          {
+            "package_name": "第2包",
+            "raw_name": "CD45检测试剂",
+            "brand": "天津斯德谱",
+            "model": "100测试/瓶",
+            "quantity": "2300人份",
+            "unit_price_cny": "19.92"
+          },
+          {
+            "package_name": "第2包",
+            "raw_name": "CD3检测试剂",
+            "brand": "天津斯德谱",
+            "model": "100测试/瓶",
+            "quantity": "2300人份",
+            "unit_price_cny": "33.00"
+          },
+          {
+            "package_name": "第2包",
+            "raw_name": "CD16检测试剂",
+            "brand": "天津斯德谱",
+            "model": "100测试/瓶",
+            "quantity": "2300人份",
+            "unit_price_cny": "40.48"
+          },
+          {
+            "package_name": "第2包",
+            "raw_name": "CD56检测试剂",
+            "brand": "天津斯德谱",
+            "model": "100测试/瓶",
+            "quantity": "2300人份",
+            "unit_price_cny": "33.42"
+          }
+        ],
+        "attachment_declarations": [
+          "5.15招标文件-天津医科大学总医院肾内科临床重点专科建设试剂购置项目.docx",
+          "第1包开标分项一览表.docx"
+        ],
+        "verification_status": "VERIFIED"
+      },
+      "attachment_boundary": {
+        "package1_notice_summary": "微载片等 / 华龛等 / WO1-200等 / 120g等 / 0.21万元等，详见附件",
+        "package1_full_itemization_status": "PENDING_ATTACHMENT_BYTES",
+        "package2_itemization_status": "VERIFIED_FROM_NOTICE_BODY"
+      },
+      "forbidden_inference": [
+        "Do not expand the package-1 '等，详见附件' summary into a fabricated complete product list.",
+        "Do not claim the two DOCX files were parsed until their actual bytes are captured and SHA-256 verified.",
+        "Do not replace official awarded amounts with lower evaluation-discount quotations shown in the bidder ranking table."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "0.1",
+  "as_of": "2026-08-29T11:35:00+08:00",
+  "purpose": "Evidence-backed exact medical attachment URL fixtures. URL confirmation is separate from byte capture and parser validation.",
+  "cases": [
+    {
+      "case_id": "tjmu_second_hospital_tgpc_2025_a_0164_procurement_docx_url",
+      "medical_opportunity": true,
+      "buyer_name": "天津医科大学第二医院",
+      "project_number": "TGPC-2025-A-0164",
+      "project_name": "天津医科大学第二医院保健医疗部/老年病科重症病房医疗设备项目",
+      "tianjin_detail_url": "https://tjgpc.zwfwb.tj.gov.cn/webInfo/getWebInfoByPkWebInfoId1.do?pkWebInfoId=84532410-0664-435E-B385-3AD551EE646B",
+      "link_evidence_page": "https://ggzyfw.beijing.gov.cn/xtggtjcggg/20250702/5173111.html",
+      "link_evidence_authority": "OFFICIAL_GOVERNMENT_MIRROR",
+      "link_evidence_note": "北京市公共资源交易服务平台页面标注信息来源为天津市公共资源交易服务平台，并将采购文件下载链接直接指向天津政府采购官方域名。",
+      "attachment": {
+        "filename": "招标文件（ TGPC-2025-A-0164 ）.docx",
+        "extension": ".docx",
+        "official_attachment_url": "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=cehQ4qF6Unc%2A&method=downEnId",
+        "official_attachment_host": "www.ccgp-tianjin.gov.cn",
+        "route_family": "TIANJIN_FINANCE_DOWNENID",
+        "url_confirmation_status": "CONFIRMED_FROM_OFFICIAL_GOVERNMENT_LINK",
+        "download_authorized": false,
+        "binary_capture_status": "PENDING_DIRECT_ATTACHMENT_BYTES",
+        "content_type": null,
+        "size_bytes": null,
+        "sha256": null,
+        "local_parser_status": "IMPLEMENTED",
+        "expected_parser": "ooxml-stdlib-v0.1",
+        "expected_evidence_locator": "DOCX_PARAGRAPH",
+        "parser_validation_status": "NOT_RUN_ON_REAL_BYTES"
+      },
+      "verification_status": "VERIFIED_ATTACHMENT_URL",
+      "forbidden_claims": [
+        "Do not claim the attachment bytes were captured merely because the exact official URL is known.",
+        "Do not claim DOCX parser validation until MIME, ZIP magic, SHA-256 and parser output are observed on real bytes.",
+        "Do not infer that every Tianjin procurement attachment uses method=downEnId from this single confirmed route family."
+      ]
+    }
+  ]
+}

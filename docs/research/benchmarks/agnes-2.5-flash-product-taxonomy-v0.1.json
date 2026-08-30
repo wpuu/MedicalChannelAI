@@ -1,0 +1,124 @@
+{
+  "schema_version": "0.1",
+  "benchmark_id": "agnes-2.5-flash-product-taxonomy-v0.1",
+  "model_target": "agnes-2.5-flash",
+  "taxonomy_file": "tools/medical_pilot/product_taxonomy.v0.1.json",
+  "classifier_id_if_passed": "agnes-2.5-flash-product-taxonomy-v0.1",
+  "purpose": "Determine whether Agnes can safely classify ambiguous VERIFIED procurement text into the same stable product taxonomy used by customer matching, including correct abstention when evidence is insufficient.",
+  "output_contract": {
+    "required": ["case_id", "taxonomy_ids", "needs_more_detail"],
+    "no_free_text": true,
+    "taxonomy_ids_must_exist_in_registry": true,
+    "rule": "Return only taxonomy ids supported by the locked input. If the text is too generic to support a controlled taxonomy id, return an empty array and needs_more_detail=true."
+  },
+  "cases": [
+    {
+      "case_id": "chemiluminescence_analyzer",
+      "locked_input": {"project_name": "全自动化学发光免疫分析仪采购项目"},
+      "acceptable_label_sets": [["LAB_CHEMILUMINESCENCE_ANALYZER"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "spect_ct_specific",
+      "locked_input": {"project_name": "单光子发射及X射线计算机断层成像系统（SPECT/CT）采购项目"},
+      "acceptable_label_sets": [["MEDICAL_IMAGING_SPECT_CT"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "digital_xray_dr",
+      "locked_input": {"project_name": "数字X光机（DR）采购项目"},
+      "acceptable_label_sets": [["MEDICAL_IMAGING_DR"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "qpcr",
+      "locked_input": {"project_name": "实时荧光定量PCR仪采购项目"},
+      "acceptable_label_sets": [["LAB_PCR_QPCR"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "flow_cytometer",
+      "locked_input": {"project_name": "分析型流式细胞仪采购项目"},
+      "acceptable_label_sets": [["LAB_FLOW_CYTOMETER"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "sample_preprocess_and_line",
+      "locked_input": {"project_name": "全自动样本前处理系统及生化免疫流水线采购项目"},
+      "acceptable_label_sets": [["LAB_SAMPLE_PREPROCESSING", "LAB_AUTOMATION_LINE"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "flow_reagents",
+      "locked_input": {"official_items": ["CD45检测试剂", "CD3检测试剂", "CD16检测试剂", "CD56检测试剂"]},
+      "acceptable_label_sets": [["LAB_REAGENT_FLOW_CYTOMETRY"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "molecular_reagent",
+      "locked_input": {"official_item": "HIV分子生物学检测试剂--核酸提取或纯化试剂盒"},
+      "acceptable_label_sets": [["LAB_REAGENT_MOLECULAR"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "medical_device_management",
+      "locked_input": {"project_name": "医疗器械精细化管理系统测试企业征集"},
+      "acceptable_label_sets": [["MEDICAL_DEVICE_DIGITAL_MANAGEMENT"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "shadowless_lamp",
+      "locked_input": {"project_name": "手术无影灯采购项目"},
+      "acceptable_label_sets": [["SURGICAL_LIGHT"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "fluorescence_microscopy",
+      "locked_input": {"project_name": "荧光显微成像设备采购项目"},
+      "acceptable_label_sets": [["RESEARCH_MICROSCOPY_IMAGING"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "pathogen_capacity_generic",
+      "locked_input": {"project_name": "病原微生物能力提升相关设备购置"},
+      "acceptable_label_sets": [[]],
+      "needs_more_detail": true,
+      "safety_case": "ABSTAIN"
+    },
+    {
+      "case_id": "generic_medical_equipment",
+      "locked_input": {"project_name": "医疗设备采购项目"},
+      "acceptable_label_sets": [[]],
+      "needs_more_detail": true,
+      "safety_case": "ABSTAIN"
+    },
+    {
+      "case_id": "generic_reagent_consumable_batch",
+      "locked_input": {"project_name": "2026年试剂耗材采购项目第六批"},
+      "acceptable_label_sets": [[]],
+      "needs_more_detail": true,
+      "safety_case": "ABSTAIN"
+    },
+    {
+      "case_id": "neural_screening_flow_qpcr",
+      "locked_input": {"project_name": "全自动神经细胞筛选鉴定系统", "need_summary": "多通道流式与qPCR联动技术体系及配套设备"},
+      "acceptable_label_sets": [["LAB_PCR_QPCR", "LAB_FLOW_CYTOMETER"]],
+      "needs_more_detail": false
+    },
+    {
+      "case_id": "flow_device_plus_reagent",
+      "locked_input": {"official_items": ["流式细胞仪", "CD45检测试剂"]},
+      "acceptable_label_sets": [["LAB_FLOW_CYTOMETER", "LAB_REAGENT_FLOW_CYTOMETRY"]],
+      "needs_more_detail": false
+    }
+  ],
+  "gates": {
+    "acceptable_label_set_accuracy_min": 0.95,
+    "needs_more_detail_accuracy_min": 0.95,
+    "abstention_safety_accuracy_min": 1.0,
+    "unknown_taxonomy_id_rate_max": 0.0,
+    "contract_failure_rate_max": 0.0,
+    "api_or_json_failure_rate_max": 0.02
+  },
+  "status": "READY_FOR_HARNESS_NOT_EXECUTED"
+}
