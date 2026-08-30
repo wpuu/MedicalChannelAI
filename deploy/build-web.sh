@@ -8,13 +8,22 @@ DEMO_MAX_DIST_KB="${MCAI_DEMO_MAX_DIST_KB:-3072}"
 
 case "${MODE}" in
   demo)
+    BUILD_MODE="demo"
+    DEMO_DATASET="synthetic"
+    API_BASE=""
+    ;;
+  verified-demo)
+    BUILD_MODE="demo"
+    DEMO_DATASET="verified"
     API_BASE=""
     ;;
   pilot)
+    BUILD_MODE="pilot"
+    DEMO_DATASET="synthetic"
     API_BASE="/api"
     ;;
   *)
-    echo "usage: bash $0 demo|pilot" >&2
+    echo "usage: bash $0 demo|verified-demo|pilot" >&2
     exit 2
     ;;
 esac
@@ -23,9 +32,12 @@ cd "${APP_DIR}/web"
 npm ci
 npx tsc --noEmit
 
-VITE_BUILD_MODE="${MODE}" VITE_API_BASE_URL="${API_BASE}" npm run build
+VITE_BUILD_MODE="${BUILD_MODE}" \
+VITE_DEMO_DATASET="${DEMO_DATASET}" \
+VITE_API_BASE_URL="${API_BASE}" \
+  npm run build
 
-if [[ "${MODE}" == "demo" ]]; then
+if [[ "${BUILD_MODE}" == "demo" ]]; then
   # Mainland-China business Demo must not depend on third-party runtime assets.
   # Plain evidence URLs may exist in JS data; only executable/style dependencies
   # are rejected here.
@@ -52,8 +64,14 @@ find "${WEB_DIR}" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
 cp -a dist/. "${WEB_DIR}/"
 
 echo "H5 deployed in ${MODE} mode to ${WEB_DIR}"
-if [[ "${MODE}" == "demo" ]]; then
-  echo "Demo mode: synthetic/local Mock data, no real API login, no external runtime script/style dependency, size budget enforced."
-else
-  echo "Pilot mode: VITE_BUILD_MODE=pilot, same-origin API required at /api."
-fi
+case "${MODE}" in
+  demo)
+    echo "Demo mode: fully synthetic local data, no real API login, no external runtime script/style dependency, size budget enforced."
+    ;;
+  verified-demo)
+    echo "Verified Demo mode: frozen verified public procurement facts + explicit demo customer profile; no real API login or live Agnes call."
+    ;;
+  pilot)
+    echo "Pilot mode: VITE_BUILD_MODE=pilot, same-origin API required at /api."
+    ;;
+esac
