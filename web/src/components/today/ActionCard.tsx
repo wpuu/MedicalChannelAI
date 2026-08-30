@@ -50,7 +50,7 @@ export function ActionCard({
           ) : null}
           {card.facts.coverage_status === 'PARTIAL' ? (
             <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] text-amber-800">
-              覆盖 PARTIAL
+              公开数据覆盖有限
             </span>
           ) : null}
         </div>
