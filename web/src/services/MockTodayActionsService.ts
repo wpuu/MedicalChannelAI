@@ -119,6 +119,12 @@ export class MockTodayActionsService implements TodayActionsService {
     if (!card) {
       throw new Error('未找到对应商机')
     }
+    if (
+      card.model_decision_status === 'BLOCKED_GROUNDING' ||
+      card.evidence_source_urls.length === 0
+    ) {
+      throw new Error('OUTREACH_GROUNDING_INSUFFICIENT')
+    }
     return {
       opportunity_id: id,
       disclaimer: '演示模式 · 正式版将根据当前商机事实和客户资源按需生成。本话术仅供内部沟通参考，不是官方公告，也不代表医院立场。',
