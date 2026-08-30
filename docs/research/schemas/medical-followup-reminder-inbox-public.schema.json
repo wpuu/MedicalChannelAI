@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medicalchannelai.local/schemas/medical-followup-reminder-inbox-public.schema.json",
+  "title": "Medical Follow-up Reminder Inbox Public View v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "mode", "count", "reminders"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "mode": {"const": "FOLLOWUP_REMINDER_INBOX"},
+    "count": {"type": "integer", "minimum": 0, "maximum": 20},
+    "reminders": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reminder_id",
+          "opportunity_id",
+          "followup_status",
+          "remind_at",
+          "note",
+          "facts"
+        ],
+        "properties": {
+          "reminder_id": {"type": "string", "pattern": "^mrem_[0-9a-f]{64}$"},
+          "opportunity_id": {"type": "string", "pattern": "^opp_[0-9a-fA-F-]{36}$"},
+          "followup_status": {
+            "enum": [
+              "NEW",
+              "REVIEWING",
+              "CONTACTED",
+              "RELATIONSHIP_VERIFIED",
+              "PREPARING",
+              "BID_SUBMITTED",
+              "WON",
+              "LOST",
+              "NOT_FIT",
+              "MONITOR",
+              "ARCHIVED"
+            ]
+          },
+          "remind_at": {"type": "string", "format": "date-time"},
+          "note": {"type": ["string", "null"], "maxLength": 4000},
+          "facts": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["buyer_name", "hospital_name", "project_name"],
+            "properties": {
+              "buyer_name": {"type": ["string", "null"], "maxLength": 500},
+              "hospital_name": {"type": ["string", "null"], "maxLength": 500},
+              "project_name": {"type": ["string", "null"], "maxLength": 1000}
+            }
+          }
+        }
+      }
+    }
+  }
+}
