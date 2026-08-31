@@ -3,7 +3,7 @@
   "mode": "TODAY_ACTIONS",
   "input_candidate_count": 6,
   "matched_count": 5,
-  "card_count": 6,
+  "card_count": 5,
   "model_request_count": 0,
   "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
   "cards": [
@@ -77,15 +77,6 @@
       "customer_context": {"context_type":"CUSTOMER_PRIVATE_FACTS","business_role":null,"hospital_relationship":null,"matching_product_capabilities":[],"partnering_policy":{"can_seek_temporary_manufacturer":null,"can_cooperate_with_channel_partner":null,"can_do_rental_projects":null}},
       "priority": {"schema_version":"0.1","score":23,"score_type":"ZERO_CONFIG_PUBLIC_FACTS_ONLY","components":[{"code":"PRODUCT_EXECUTION_CAPABILITY","points":0,"max_points":30,"basis":"NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE","profile_paths":[],"opportunity_paths":[]},{"code":"RELATIONSHIP","points":0,"max_points":10,"basis":"NO_CUSTOMER_CONFIRMED_RELATIONSHIP","profile_paths":[],"opportunity_paths":[]},{"code":"INTERVENTION_STAGE","points":15,"max_points":40,"basis":"LATE_WINDOW","profile_paths":[],"opportunity_paths":["facts.registration_deadline","facts.bid_deadline"]},{"code":"PROJECT_AMOUNT","points":8,"max_points":20,"basis":"PUBLIC_BUDGET_ONLY","profile_paths":[],"opportunity_paths":["facts.budget_cny"]}],"warnings":["ZERO_CONFIG_PUBLIC_FACTS_ONLY"],"interpretation":"BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
       "match_status":"MATCHED_CANDIDATE","recommendation_mode":"LATE_WINDOW","model_decision_status":"AWAITING_MODEL","model_block_reason":null,"decision":null
-    },
-    {
-      "rank": 6,
-      "opportunity_id": "tjmugh_20260805_030326488",
-      "facts": {"project_number":null,"project_name":"天津医科大学总医院医疗设备项目市场调研论证邀请函","buyer_name":"天津医科大学总医院","hospital_name":"天津医科大学总医院","department":null,"region":"天津市","lifecycle_state":"MARKET_RESEARCH","notice_type":"市场调研论证邀请函","published_at":"2026-08-05","published_at_precision":"DAY","registration_deadline":"2026-08-07T17:00:00+08:00","bid_deadline":null,"expected_procurement_at":null,"expected_procurement_precision":null,"budget":null,"procurement_method":null,"product_categories":[],"product_items":[{"raw_name":"创面洗消设备","category":null,"quantity":null,"specification":null},{"raw_name":"腹腔镜系统2套","category":null,"quantity":null,"specification":null},{"raw_name":"高频电刀3台","category":null,"quantity":null,"specification":null},{"raw_name":"卡式蒸汽灭菌器","category":null,"quantity":null,"specification":null},{"raw_name":"便携式睡眠仪","category":null,"quantity":null,"specification":null},{"raw_name":"喷射呼吸机","category":null,"quantity":null,"specification":null},{"raw_name":"冷冻离心机离心机（最高转速21000r/min）","category":null,"quantity":null,"specification":null},{"raw_name":"超低温冰箱（-80℃容量100L）","category":null,"quantity":null,"specification":null},{"raw_name":"中毒防护装备（A级防护服2个、空气气瓶充气泵1个、发电机1个）","category":null,"quantity":null,"specification":null},{"raw_name":"消防设备-EPS应急电源系统","category":null,"quantity":null,"specification":null},{"raw_name":"移液器40套","category":null,"quantity":null,"specification":null},{"raw_name":"神经监测仪","category":null,"quantity":null,"specification":null},{"raw_name":"鼻内窥镜3套","category":null,"quantity":null,"specification":null},{"raw_name":"手术器械包（耳、鼻、喉）","category":null,"quantity":null,"specification":null},{"raw_name":"耳鼻喉开口器成套手术器械","category":null,"quantity":null,"specification":null}],"public_contact":{"name":"张老师","title":"设备采购科","phone":"60361777","email":null},"verification_status":"VERIFIED","coverage_status":"PARTIAL"},
-      "evidence_source_urls": ["https://www.tjmugh.com.cn/system/2026/08/05/030326488.shtml"],
-      "customer_context": {"context_type":"CUSTOMER_PRIVATE_FACTS","business_role":null,"hospital_relationship":null,"matching_product_capabilities":[],"partnering_policy":{"can_seek_temporary_manufacturer":null,"can_cooperate_with_channel_partner":null,"can_do_rental_projects":null}},
-      "priority": {"schema_version":"0.1","score":0,"score_type":"ZERO_CONFIG_PUBLIC_FACTS_ONLY","components":[{"code":"PRODUCT_EXECUTION_CAPABILITY","points":0,"max_points":30,"basis":"NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE","profile_paths":[],"opportunity_paths":[]},{"code":"RELATIONSHIP","points":0,"max_points":10,"basis":"NO_CUSTOMER_CONFIRMED_RELATIONSHIP","profile_paths":[],"opportunity_paths":[]},{"code":"INTERVENTION_STAGE","points":0,"max_points":40,"basis":"ARCHIVE","profile_paths":[],"opportunity_paths":["facts.registration_deadline","facts.bid_deadline"]},{"code":"PROJECT_AMOUNT","points":0,"max_points":20,"basis":"PUBLIC_BUDGET_ONLY","profile_paths":[],"opportunity_paths":["facts.budget_cny"]}],"warnings":["ZERO_CONFIG_PUBLIC_FACTS_ONLY"],"interpretation":"BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
-      "match_status":"MATCHED_CANDIDATE","recommendation_mode":"ARCHIVE","model_decision_status":"NOT_ELIGIBLE","model_block_reason":null,"decision":null
     }
   ]
 }
