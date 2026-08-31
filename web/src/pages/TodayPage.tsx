@@ -11,7 +11,11 @@ import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
-import { AiDecisionError, requestAiDecision } from '@/services/aiDecisionApi'
+import {
+  AiDecisionError,
+  hydrateCachedAiDecisions,
+  requestAiDecision,
+} from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import {
   acknowledgeDueReminder,
@@ -42,7 +46,12 @@ export function TodayPage() {
     }
     try {
       const res = await todayActionsService.getTodayActions()
-      setData(res)
+      if (!isApiMode && isVerifiedPublicDemo) {
+        const cards = await hydrateCachedAiDecisions(res.cards)
+        setData({ ...res, cards })
+      } else {
+        setData(res)
+      }
       if (isApiMode) {
         try {
           setReminders(await getDueReminders())
@@ -122,13 +131,15 @@ export function TodayPage() {
     } catch (cause) {
       if (cause instanceof AiDecisionError) {
         if (cause.code === 'AI_NOT_CONFIGURED') {
-          toast('AI服务端尚未配置 Agnes Key（Preview）')
+          toast('AI服务运行配置尚未完成')
         } else if (cause.code === 'AI_RATE_LIMITED') {
           toast('AI服务当前限流，请稍后再试')
         } else if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') {
-          toast('AI服务端 Key 当前不可用')
+          toast('AI服务当前不可用，请稍后再试')
         } else if (cause.code === 'AI_TIMEOUT') {
           toast('AI分析超时，请稍后重试')
+        } else if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') {
+          toast('该商机暂不在服务端已核验快照中')
         } else {
           toast('AI分析暂时不可用，请稍后重试')
         }
@@ -210,7 +221,7 @@ export function TodayPage() {
           </div>
           <p className="mt-3 text-[12px] leading-5 text-slate-500">
             {isVerifiedPublicDemo
-              ? '当前试用读取证据流水线生成的天津公开事实快照。项目名称、采购单位、预算、公告日期、精确截止时间、公开联系人和官方依据来自已核验公开信息；未录入真实客户资源时，医院关系和产品能力明确为空，不参与排序。AI分析按单条商机手动触发，只接收已核验公开事实。自动日更尚未接入，因此仍按快照展示，不冒充实时全量数据。'
+              ? '当前试用读取证据流水线生成的天津公开事实快照。项目名称、采购单位、预算、公告日期、精确截止时间、公开联系人和官方依据来自已核验公开信息；未录入真实客户资源时，医院关系和产品能力明确为空，不参与排序。AI分析按单条商机手动触发，只接收服务端已核验公开事实。自动日更尚未接入，因此仍按快照展示，不冒充实时全量数据。'
               : '下方项目、医院、联系人和金额均为虚构演示数据。排序来自通用演示场景，不代表真实客户当前资源。'}
           </p>
         </section>
