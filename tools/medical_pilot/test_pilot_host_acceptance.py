@@ -204,6 +204,8 @@ class PilotHostAcceptanceTests(unittest.TestCase):
         self.assertEqual(calls, [])
 
     def test_one_failed_stage_keeps_other_isolated_diagnostics_and_overall_fail(self) -> None:
+        fake_key = "ultra-private-agnes-key-value"
+
         def bootstrap_runner(**kwargs):
             return 0, {"success_count": 5, "failure_count": 0, "results": []}
 
@@ -218,7 +220,7 @@ class PilotHostAcceptanceTests(unittest.TestCase):
                 pilot_db_path=pilot_db(root),
                 environ={
                     "MCAI_CANONICAL_ORIGIN": "https://pilot.example.com",
-                    "MCAI_AGNES_API_KEY": "secret",
+                    "MCAI_AGNES_API_KEY": fake_key,
                 },
                 bootstrap_runner=bootstrap_runner,
                 attachment_runner=attachment_runner,
@@ -234,7 +236,7 @@ class PilotHostAcceptanceTests(unittest.TestCase):
         self.assertEqual(result["customer_chain_agnes"]["status"], "PASS")
         serialized = json.dumps(result, ensure_ascii=False)
         self.assertNotIn("must not be serialized", serialized)
-        self.assertNotIn("secret", serialized)
+        self.assertNotIn(fake_key, serialized)
 
     def test_chain_failure_is_sanitized_and_blocks_acceptance(self) -> None:
         def bootstrap_runner(**kwargs):
