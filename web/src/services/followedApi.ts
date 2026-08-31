@@ -1,3 +1,4 @@
+import { todayActionsService } from './index'
 import { apiBaseUrl, isApiMode } from './apiConfig'
 
 export interface FollowedOpportunity {
@@ -32,6 +33,7 @@ const FOLLOWUP_STATUSES = new Set([
   'LOST',
   'NOT_FIT',
   'MONITOR',
+  'ARCHIVED',
 ])
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -132,8 +134,38 @@ function validateItem(value: unknown): FollowedOpportunity {
   }
 }
 
+async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
+  const data = await todayActionsService.getTodayActions()
+  return data.cards
+    .filter((card) => card.followup_status !== 'NEW')
+    .map((card) => {
+      const latestRecord = card.followup_history[0]
+      const latestNote = card.followup_history.find((record) => Boolean(record.note?.trim()))?.note ?? null
+      return {
+        opportunity_id: card.opportunity_id,
+        followup_status: card.followup_status,
+        remind_at: card.remind_at,
+        latest_note: latestNote,
+        followup_updated_at: latestRecord?.at ?? data.refreshed_at,
+        facts: {
+          project_number: card.facts.project_code,
+          project_name: card.facts.project_name,
+          buyer_name: card.facts.buyer_name ?? null,
+          hospital_name: card.facts.hospital,
+          department: card.facts.department,
+          lifecycle_state: card.facts.lifecycle_stage,
+          published_at: card.facts.publish_date,
+          bid_deadline: card.facts.bid_deadline,
+          expected_procurement_at: card.facts.expected_purchase_date,
+          budget_cny: card.facts.budget,
+        },
+        evidence_source_urls: [...card.evidence_source_urls],
+      }
+    })
+}
+
 export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]> {
-  if (!isApiMode) return []
+  if (!isApiMode) return getLocalFollowedOpportunities()
   const response = await fetch(`${apiBaseUrl}/followed`, {
     credentials: 'include',
     headers: { Accept: 'application/json' },
