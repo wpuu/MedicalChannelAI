@@ -43,6 +43,7 @@ export function ActionCard({
     card.model_decision_status === 'BLOCKED_GROUNDING' ||
     card.model_decision_status === 'NOT_ELIGIBLE' ||
     card.evidence_source_urls.length === 0
+  const isLateWindow = card.recommendation_mode === 'LATE_WINDOW'
 
   const publicFactLabel = isApiMode
     ? '官方/已验证事实'
@@ -61,6 +62,11 @@ export function ActionCard({
           <PriorityBadge score={card.priority.score} />
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
+          {isLateWindow ? (
+            <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-900">
+              报名已结束 · 晚窗口
+            </span>
+          ) : null}
           {card.followup_status !== 'NEW' ? (
             <FollowupChip label={FOLLOWUP_STATUS_LABEL[card.followup_status]} />
           ) : null}
@@ -104,6 +110,11 @@ export function ActionCard({
                 )}
               </span>
             </div>
+            {isLateWindow ? (
+              <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-900">
+                已过报名/获取文件时间，但投标或响应截止尚未到；系统已降低介入阶段分，建议先人工确认是否仍有可执行路径。
+              </p>
+            ) : null}
           </div>
           <CustomerResourceBlock context={card.customer_context} />
         </div>
