@@ -3,6 +3,7 @@ import type { FollowupStatus, TodayActionCard } from '@/types'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { formatDate, formatDateTime } from '@/utils/format'
 import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
+import { isApiMode } from '@/services/apiConfig'
 
 const STATUS_OPTIONS: FollowupStatus[] = [
   'NEW',
@@ -22,9 +23,10 @@ interface FollowupCardProps {
   card: TodayActionCard
   onChangeStatus: (status: FollowupStatus) => void
   onNotFit: () => void
+  onRemind: () => void
 }
 
-export function FollowupCard({ card, onChangeStatus, onNotFit }: FollowupCardProps) {
+export function FollowupCard({ card, onChangeStatus, onNotFit, onRemind }: FollowupCardProps) {
   const [status, setStatus] = useState<FollowupStatus>(card.followup_status)
 
   useEffect(() => {
@@ -32,7 +34,14 @@ export function FollowupCard({ card, onChangeStatus, onNotFit }: FollowupCardPro
   }, [card.followup_status])
 
   return (
-    <SectionCard title="跟进记录" subtitle="销售跟进时间线 · 仅本地演示状态">
+    <SectionCard
+      title="跟进记录"
+      subtitle={
+        isApiMode
+          ? '销售跟进时间线 · 客户私有状态保存在服务器'
+          : '销售跟进时间线 · 试用状态保存在当前浏览器'
+      }
+    >
       <div className="mb-4">
         <label className="text-[12px] text-slate-500">更新跟进状态</label>
         <div className="mt-2 flex gap-2">
@@ -54,6 +63,10 @@ export function FollowupCard({ card, onChangeStatus, onNotFit }: FollowupCardPro
                 onNotFit()
                 return
               }
+              if (status === 'MONITOR') {
+                onRemind()
+                return
+              }
               onChangeStatus(status)
             }}
             className="shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-[13px] text-white"
@@ -65,7 +78,7 @@ export function FollowupCard({ card, onChangeStatus, onNotFit }: FollowupCardPro
 
       {card.remind_at ? (
         <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
-          本地提醒：{formatDate(card.remind_at)}
+          {isApiMode ? '站内提醒' : '本地提醒'}：{formatDate(card.remind_at)}
         </p>
       ) : null}
 
