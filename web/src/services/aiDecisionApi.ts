@@ -73,8 +73,16 @@ function fingerprint(value: unknown): string {
   return (hash >>> 0).toString(16).padStart(8, '0')
 }
 
-function contextFingerprint(card: TodayActionCard): string {
-  return fingerprint(customerContextPayload(card))
+function decisionFingerprint(card: TodayActionCard): string {
+  return fingerprint({
+    customer_context: customerContextPayload(card),
+    runtime_window: {
+      match_status: card.match_status,
+      recommendation_mode: card.recommendation_mode,
+      registration_deadline: card.facts.registration_deadline,
+      bid_deadline: card.facts.bid_deadline,
+    },
+  })
 }
 
 function readCache(): CachedDecisionEntry[] {
@@ -191,10 +199,16 @@ export async function hydrateCachedAiDecisions(
   const snapshotAsOf = await getSnapshotAsOf()
   if (!snapshotAsOf) return cards
   return cards.map((card) => {
+    if (
+      card.model_decision_status === 'NOT_ELIGIBLE' ||
+      card.model_decision_status === 'BLOCKED_GROUNDING'
+    ) {
+      return card
+    }
     const decision = findCachedDecision(
       card.opportunity_id,
       snapshotAsOf,
-      contextFingerprint(card),
+      decisionFingerprint(card),
     )
     if (!decision) return card
     return {
@@ -207,9 +221,16 @@ export async function hydrateCachedAiDecisions(
 }
 
 export async function requestAiDecision(card: TodayActionCard): Promise<Decision> {
+  if (
+    card.model_decision_status === 'NOT_ELIGIBLE' ||
+    card.model_decision_status === 'BLOCKED_GROUNDING'
+  ) {
+    throw new AiDecisionError('OPPORTUNITY_WINDOW_CLOSED', 409)
+  }
+
   const snapshotAsOf = await getSnapshotAsOf()
   const customerContext = customerContextPayload(card)
-  const fingerprintValue = fingerprint(customerContext)
+  const fingerprintValue = decisionFingerprint(card)
   if (snapshotAsOf) {
     const cached = findCachedDecision(card.opportunity_id, snapshotAsOf, fingerprintValue)
     if (cached) return cached
