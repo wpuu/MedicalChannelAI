@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "updated_at": "2026-08-31",
+  "updated_at": "2026-09-01",
   "base_main_head": "6221925212bbb663793d7e0305e2b98f440c0513",
   "active_work_branch": "chatgpt/m1-evidence-pipeline-v1",
   "draft_pr": 3,
@@ -10,24 +10,24 @@
   "verified_snapshot_at": "2026-08-31T17:56:00+08:00",
   "github_actions_status": "RUNNER_EXECUTION_UNVERIFIED",
   "vercel_branch_preview_enabled": true,
-  "vercel_last_fully_verified_preview_commit": "19d67cd87255a0eff51f454fe270d7c6ed8549f4",
-  "vercel_last_fully_verified_preview_deployment": "dpl_7ApCrTy37LPPb7W1jwBFqtkMDXN3",
-  "vercel_last_fully_verified_result": "73_PIPELINE_TESTS_PASS; VERIFIED_SNAPSHOT_CHECKS_PASS; RUNTIME_STATUS_CHECKS_PASS; AI_BOUNDARY_PASS; PREBUILD_PASS; TSC_PASS; VITE_BUILD_PASS; 3_NODE_FUNCTIONS_PACKAGED; DEPLOYMENT_READY",
-  "last_executed_later_build": {
-    "commit": "b1ef85a5fc026d04cb604a36f78cf664fd3614a0",
-    "deployment": "dpl_HSCrarpemJkbfxdohB7BMP4hUSoA",
-    "result": "89_OF_90_PIPELINE_TESTS_PASS; ONLY_LEGACY_BUNDLED_SNAPSHOT_COMPATIBILITY_FAILED",
-    "followup": "Compatibility normalization for deadline precision, registration_deadline_date and intervention evidence paths is now committed after that executed build."
+  "vercel_last_fully_verified_preview_commit": "6c1abf395d98225b84ef05ab8321476a768ed15c",
+  "vercel_last_fully_verified_preview_deployment": "dpl_3uQXiVfWXtfuRfWaJSiVUGLGSZCb",
+  "vercel_last_fully_verified_result": "90_PIPELINE_TESTS_PASS; VERIFIED_SNAPSHOT_CHECKS_PASS; RUNTIME_STATUS_CHECKS_PASS; AI_BOUNDARY_PASS; PREBUILD_PASS; TSC_PASS; VITE_BUILD_PASS; 3_NODE_FUNCTIONS_PACKAGED; DEPLOYMENT_READY",
+  "latest_executed_later_build": {
+    "commit": "6c1abf395d98225b84ef05ab8321476a768ed15c",
+    "deployment": "dpl_3uQXiVfWXtfuRfWaJSiVUGLGSZCb",
+    "result": "90_OF_90_PIPELINE_TESTS_PASS; VERIFIED_SNAPSHOT_PASS; RUNTIME_STATUS_PASS; AI_BOUNDARY_PASS; PREBUILD_PASS; TSC_PASS; VITE_BUILD_PASS; READY",
+    "followup": "Code/build validation is complete for the current M1 branch. Remaining validation is runtime AI configuration plus real grounded POST and interactive UI acceptance."
   },
-  "latest_pre_trigger_head": "181eaa7940c5c6329c53634c3a69b36a260d7661",
-  "latest_changes_validation_status": "FINAL_CONSOLIDATED_PREVIEW_REQUESTED_BY_THIS_CHECKPOINT_COMMIT",
+  "latest_pre_trigger_head": "6c1abf395d98225b84ef05ab8321476a768ed15c",
+  "latest_changes_validation_status": "FULLY_VERIFIED_READY_PREVIEW",
   "production_observation": {
     "vercel_default_domain": "https://medicalchannelai.vercel.app/",
     "vercel_production_commit": "3de90bfdc19ab4f37f4c0028133b7186b754d642",
     "vercel_production_api_status": "OLD_STATIC_SPA_FALLBACK; /api/status RETURNS HTML NOT STATUS JSON",
     "custom_domain_observation": "https://medicalai.qd.je/ is reachable but is not registered in this Vercel project's domain list; its observed page title differs from the old Vercel production SPA, so automatic promotion linkage is not assumed."
   },
-  "milestone": "M1_USABLE_TIANJIN_VERIFIED_TRIAL_FINAL_VALIDATION",
+  "milestone": "M1_USABLE_TIANJIN_VERIFIED_TRIAL_RUNTIME_AI_VALIDATION",
   "gates": {
     "canonical_fact_schema": true,
     "verified_source_classes": 3,
@@ -52,7 +52,7 @@
     "grounded_ai_optional_self_reported_context": true,
     "ai_date_only_deadline_guard": true,
     "ai_multi_key_401_403_429_failover": true,
-    "ai_runtime_configuration_observed_on_earlier_preview": "NOT_CONFIGURED",
+    "ai_runtime_configuration_observed_on_latest_preview": "NOT_CONFIGURED",
     "ai_latest_runtime_post_verified": false,
     "ccgp_guarded_sync": true,
     "tjmugh_guarded_sync": true,
@@ -60,14 +60,14 @@
     "scheduled_refresh_defined": true,
     "scheduled_refresh_default_branch_execution": false,
     "github_ci_test_evidence": false,
-    "latest_consolidated_preview_verified": false,
+    "latest_consolidated_preview_verified": true,
     "custom_domain_promotion_path_verified": false
   },
   "final_validation_required": [
-    "Run latest branch through full Vercel prebuild: current Pipeline suite, snapshot checks, runtime status checks, AI boundary checks, tsc --noEmit and Vite build.",
-    "Confirm three Node.js Functions package correctly: /api/public-snapshot, /api/ai/analyze and /api/status.",
-    "Confirm AI multi-key failover and date-only deadline regressions are part of the executed checks.",
-    "After code validation, configure Preview AI runtime if still absent and execute one real grounded AI POST without exposing credentials.",
+    "Configure Preview AGNES_API_KEYS as an encrypted Vercel runtime environment variable; never commit credentials to GitHub.",
+    "Redeploy Preview after runtime configuration and require /api/status to report ai.configured=true.",
+    "Execute one real grounded AI POST against a VERIFIED open opportunity and inspect the response for grounding, date handling and absence of private/provider leakage.",
+    "Interactively check Today / Opportunity Pool / Followups / Resources on the latest Preview.",
     "Identify how medicalai.qd.je is hosted/proxied before production promotion; do not assume merging main updates it."
   ],
   "merge_boundary": "Do not merge or production-promote without explicit product-owner approval. A scheduled refresh cannot be required before merge because schedules run from the default branch; after merge, the first real refresh must pass before dynamic-refresh production is considered healthy."
