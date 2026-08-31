@@ -22,6 +22,7 @@ interface ActionCardProps {
   onRemind: () => void
   onOutreach: () => void
   onAnalyze?: () => void
+  analysisUnavailableReason?: string | null
 }
 
 export function ActionCard({
@@ -35,6 +36,7 @@ export function ActionCard({
   onRemind,
   onOutreach,
   onAnalyze,
+  analysisUnavailableReason,
 }: ActionCardProps) {
   const dateInfo = pickDisplayDate(card.facts)
   const budget = formatBudget(card.facts.budget)
@@ -118,7 +120,12 @@ export function ActionCard({
           </div>
           <CustomerResourceBlock context={card.customer_context} />
         </div>
-        <DecisionBlock card={card} onAnalyze={onAnalyze} analyzing={aiBusy} />
+        <DecisionBlock
+          card={card}
+          onAnalyze={onAnalyze}
+          analyzing={aiBusy}
+          analysisUnavailableReason={analysisUnavailableReason}
+        />
       </div>
 
       <div className="border-t border-slate-100 px-4 py-3">
