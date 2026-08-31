@@ -9,6 +9,7 @@ from .ccgp_lifecycle_adapter import (
     ParsedCcgpLifecycleNotice,
     build_ccgp_lifecycle_event_and_facts,
 )
+from .ccgp_procurement_demand import build_ccgp_procurement_demand_facts
 from .collector_core import HostBoundFetcher, ParsedNotice, Snapshot, build_event_and_facts
 from .collector_store import SQLitePublicEventLedger, persist_collector_result
 from .intent_adapter import ParsedIntentNotice, build_intent_event_and_facts
@@ -61,6 +62,16 @@ def collect_registered_url(url: str) -> CollectedNotice:
         event, facts = build_intent_event_and_facts(parsed, snapshot)
     elif isinstance(parsed, ParsedCcgpLifecycleNotice):
         event, facts = build_ccgp_lifecycle_event_and_facts(parsed, snapshot)
+        facts.extend(
+            build_ccgp_procurement_demand_facts(
+                event=event,
+                snapshot=snapshot,
+                source_id=parsed.source_id,
+                source_url=parsed.source_url,
+                published_at=parsed.published_at,
+                verification_reason=parsed.verification_reason,
+            )
+        )
     else:
         event, facts = build_event_and_facts(parsed, snapshot)
 
