@@ -109,6 +109,32 @@ class DiscoveryRuntimeTests(unittest.TestCase):
         """
         self.assertEqual(extract_registered_detail_links("ccgp_local_notices", html), [])
 
+    def test_ccgp_generic_equipment_word_is_not_enough_but_medical_purchaser_is(self) -> None:
+        html = """
+        <html><body><ul>
+          <li>
+            <a href="/cggg/dfgg/gkzb/202608/t20260830_30000001.htm">教学设备更新项目公开招标公告</a>
+            <span>地域：天津 采购人：天津市某职业学校</span>
+          </li>
+          <li>
+            <a href="/cggg/dfgg/gkzb/202608/t20260830_30000002.htm">信息化设备更新项目公开招标公告</a>
+            <span>地域：天津 采购人：天津市某人民医院</span>
+          </li>
+          <li>
+            <a href="/cggg/dfgg/gkzb/202608/t20260830_30000003.htm">科研设备采购项目公开招标公告</a>
+            <span>地域：天津市 采购人：天津医科大学</span>
+          </li>
+        </ul></body></html>
+        """
+        links = extract_registered_detail_links("ccgp_local_notices", html)
+        self.assertEqual(
+            [url for url, _title in links],
+            [
+                "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260830_30000002.htm",
+                "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260830_30000003.htm",
+            ],
+        )
+
     def test_ccgp_ready_contract_is_explicitly_bounded_two_page_partial_not_exhaustive(self) -> None:
         self.assertEqual(
             DISCOVERY_READY_LISTINGS["ccgp_local_notices"],
