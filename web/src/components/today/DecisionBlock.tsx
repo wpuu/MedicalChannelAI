@@ -5,7 +5,13 @@ import { SourceTag } from '@/components/shared/StageBadge'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
 
-export function DecisionBlock({ card }: { card: TodayActionCard }) {
+interface DecisionBlockProps {
+  card: TodayActionCard
+  onAnalyze?: () => void
+  analyzing?: boolean
+}
+
+export function DecisionBlock({ card, onAnalyze, analyzing }: DecisionBlockProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
 
   if (card.model_decision_status === 'READY' && card.decision) {
@@ -17,12 +23,12 @@ export function DecisionBlock({ card }: { card: TodayActionCard }) {
             AI行动建议
           </p>
           <SourceTag tone="ai">
-            {!isApiMode && isVerifiedPublicDemo ? '演示AI判断' : 'AI判断'}
+            {!isApiMode && isVerifiedPublicDemo ? '公开事实约束AI' : 'AI判断'}
           </SourceTag>
         </div>
         {!isApiMode && isVerifiedPublicDemo ? (
           <p className="mb-2 rounded-lg bg-white/70 px-2.5 py-2 text-[11px] leading-5 text-indigo-800">
-            当前仅在明确标注的演示判断中展示；真实公开事实本身不等于AI结论。
+            本次AI只收到已核验公开事实，不包含或推断医院关系、厂家授权和客户私有资源。
           </p>
         ) : null}
         <p className="text-[13px] leading-6 text-slate-800">
@@ -63,11 +69,26 @@ export function DecisionBlock({ card }: { card: TodayActionCard }) {
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
           <div className="flex items-start gap-2">
             <Eye className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-[13px] font-semibold text-slate-800">尚未做个性化AI判断</p>
               <p className="mt-1 text-[12px] leading-5 text-slate-500">
                 当前只按已核验公开事实、项目金额和时间窗口排序；未录入客户产品能力或医院关系，因此不推断产品匹配度、中标概率或院内关系。
               </p>
+              {onAnalyze ? (
+                <button
+                  type="button"
+                  disabled={analyzing}
+                  onClick={onAnalyze}
+                  className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {analyzing ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  )}
+                  {analyzing ? 'AI分析中' : '用AI分析这条'}
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
