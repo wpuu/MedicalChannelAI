@@ -36,6 +36,31 @@ class PilotBackupTests(unittest.TestCase):
         self.assertEqual(row, ("alpha",))
         self.assertEqual(integrity, ("ok",))
 
+    def test_online_backup_includes_committed_wal_pages_while_writer_connection_stays_open(self) -> None:
+        writer = sqlite3.connect(str(self.db))
+        try:
+            self.assertEqual(writer.execute("PRAGMA journal_mode=WAL").fetchone()[0].lower(), "wal")
+            writer.execute("PRAGMA wal_autocheckpoint=0")
+            writer.execute("INSERT INTO sample(value) VALUES ('committed-in-live-wal')")
+            writer.commit()
+            wal_path = Path(str(self.db) + "-wal")
+            self.assertTrue(wal_path.exists())
+            self.assertGreater(wal_path.stat().st_size, 0)
+
+            result = create_sqlite_backup(
+                db_path=self.db,
+                out_dir=self.out,
+                keep=14,
+                now=NOW,
+            )
+            target = self.out / str(result["backup_file"])
+            with sqlite3.connect(str(target)) as conn:
+                values = [row[0] for row in conn.execute("SELECT value FROM sample ORDER BY id")]
+            self.assertEqual(values, ["alpha", "committed-in-live-wal"])
+            self.assertTrue(wal_path.exists())
+        finally:
+            writer.close()
+
     def test_retention_keeps_requested_total_count(self) -> None:
         for day in range(1, 5):
             create_sqlite_backup(
