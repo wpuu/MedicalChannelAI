@@ -16,6 +16,6 @@
     "official_bootstrap_failure_count": 0,
     "attachment_binary_capture": true,
     "attachment_parser_pass": true,
-    "agnes_authenticated_contract_smoke": true
+    "full_customer_chain_agnes_smoke": true
   }
 }
