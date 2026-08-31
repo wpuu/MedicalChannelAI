@@ -88,20 +88,47 @@ jobs:
         working-directory: pipeline
         run: python -m unittest discover -s tests -v
 
-      - name: Publish verified snapshot to optional external store
+      - name: Publish and verify optional external snapshot
         shell: bash
         env:
           VERIFIED_SNAPSHOT_PUBLISH_URL: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_URL }}
           VERIFIED_SNAPSHOT_PUBLISH_TOKEN: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_TOKEN }}
+          VERIFIED_SNAPSHOT_READ_URL: ${{ secrets.VERIFIED_SNAPSHOT_READ_URL }}
         run: |
           set -euo pipefail
           if [[ -z "${VERIFIED_SNAPSHOT_PUBLISH_URL:-}" ]]; then
+            if [[ -n "${VERIFIED_SNAPSHOT_READ_URL:-}" ]]; then
+              echo 'VERIFIED_SNAPSHOT_READ_URL is configured without VERIFIED_SNAPSHOT_PUBLISH_URL.' >&2
+              exit 2
+            fi
             echo 'External verified-snapshot publishing is not configured; keeping Git snapshot flow only.'
             exit 0
           fi
+          if [[ -z "${VERIFIED_SNAPSHOT_READ_URL:-}" ]]; then
+            echo 'External snapshot publishing requires VERIFIED_SNAPSHOT_READ_URL for fail-closed readback verification.' >&2
+            exit 2
+          fi
+
           python pipeline/scripts/publish_snapshot_http.py \
             --snapshot web/public/data/today-actions.public.json \
             --method PUT
+
+          verified=0
+          for attempt in 1 2 3; do
+            if python pipeline/scripts/verify_snapshot_roundtrip.py \
+              --snapshot web/public/data/today-actions.public.json; then
+              verified=1
+              break
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              echo "External snapshot readback not consistent yet; retry ${attempt}/3 after 2s."
+              sleep 2
+            fi
+          done
+          if [[ "${verified}" -ne 1 ]]; then
+            echo 'External snapshot round-trip verification failed after 3 attempts.' >&2
+            exit 2
+          fi
 
       - name: Commit verified refresh only when data changed
         shell: bash
