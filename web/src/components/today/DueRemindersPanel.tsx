@@ -1,4 +1,5 @@
 import { BellRing, Check, ChevronRight } from 'lucide-react'
+import { isApiMode } from '@/services/apiConfig'
 import type { DueReminder } from '@/services/reminderApi'
 import { formatDateTime } from '@/utils/format'
 
@@ -32,7 +33,9 @@ export function DueRemindersPanel({
               到期跟进提醒 · {reminders.length}
             </h3>
             <p className="mt-0.5 text-[12px] leading-5 text-amber-800">
-              站内提醒 · 打开医疗商机助手时显示，当前尚未接入微信、短信或系统 Push。
+              {isApiMode
+                ? '站内提醒 · 打开医疗商机助手时显示，当前尚未接入微信、短信或系统 Push。'
+                : '本地提醒 · 仅在当前浏览器打开医疗商机助手时显示，不会发送系统通知。'}
             </p>
           </div>
 
