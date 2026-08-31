@@ -4,6 +4,7 @@ import unittest
 
 from medical_channel_pipeline.ccgp_detail import (
     CcgpDetailParseError,
+    parse_ccgp_competitive_consultation_text,
     parse_ccgp_public_tender_text,
 )
 
@@ -48,6 +49,37 @@ ATTACHMENT_ONLY_FIXTURE = FIXTURE.replace(
     "第2包 否 80 80 其他医疗设备 具体内容详见项目需求书。",
 )
 
+CONSULTATION_FIXTURE = """
+竞争性磋商公告
+公告信息：
+采购项目名称 | 天津市第一中心医院复康院区提升改造项目基础硬件及附属设施建设项目智能语音采集设备采购项目
+采购单位 | 天津市第一中心医院
+行政区域 | 市辖区 | 公告时间 | 2026年05月15日 18:50
+发布日期：2026年05月15日
+一、项目基本情况
+项目编号：TGPC-2026-A-0081
+项目名称：天津市第一中心医院复康院区提升改造项目基础硬件及附属设施建设项目智能语音采集设备采购项目
+采购方式：竞争性磋商
+预算金额：100.0万元
+最高限价：100.0万元
+采购需求：
+第1包 否 100 100 其他信息化设备 详见竞争性磋商文件
+二、申请人的资格要求：略
+三、获取采购文件
+时间：2026年05月15日到 2026年05月22日，每天上午09:00至12:00，下午12:00至17:00（北京时间，法定节假日除外）
+地点：天津市政府采购中心网
+四、响应文件提交
+截止时间：2026年05月26日 08点30分（北京时间）
+地点：天津市政府采购中心网
+五、开启
+时间：2026年05月26日 09点30分（北京时间）
+地点：天津市政府采购中心网
+八、凡对本次采购提出询问，请按以下方式联系。
+1.采购人信息 名称：天津市第一中心医院 地址：天津市西青区保山西道2号 联系方式：022-23628323
+2.采购代理机构信息 名称：天津市政府采购中心 地址：天津市河东区红星路79号二楼 联系方式：022-24538271
+3.项目联系方式 项目联系人：张艳、李楠 电 话：022-24538271
+"""
+
 
 class CcgpDetailTests(unittest.TestCase):
     def test_public_tender_detail_becomes_verified_canonical_record(self) -> None:
@@ -73,6 +105,37 @@ class CcgpDetailTests(unittest.TestCase):
         self.assertIn("基因测序仪", facts["product_items"][0]["raw_name"])
         self.assertEqual(facts["public_contact"]["name"], "李宁")
         self.assertEqual(facts["public_contact"]["phone"], "022-23717450-8019")
+
+    def test_competitive_consultation_uses_response_submission_deadline_not_opening_time(self) -> None:
+        record = parse_ccgp_competitive_consultation_text(
+            CONSULTATION_FIXTURE,
+            source_url="https://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202605/t20260515_26577430.htm",
+            observed_at="2026-08-31T18:15:00+08:00",
+            opportunity_id="ccgp_tgpc_2026_a_0081",
+        )
+        facts = record["facts"]
+        self.assertEqual(facts["project_number"], "TGPC-2026-A-0081")
+        self.assertEqual(facts["procurement_method"], "竞争性磋商")
+        self.assertEqual(facts["notice_type"], "竞争性磋商公告")
+        self.assertEqual(facts["registration_deadline"], "2026-05-22T17:00:00+08:00")
+        self.assertEqual(facts["bid_deadline"], "2026-05-26T08:30:00+08:00")
+        self.assertNotEqual(facts["bid_deadline"], "2026-05-26T09:30:00+08:00")
+        self.assertEqual(facts["budget_cny"], 1_000_000)
+        self.assertEqual(facts["product_items"], [])
+        self.assertEqual(facts["public_contact"]["name"], "张艳、李楠")
+
+    def test_competitive_consultation_missing_exact_response_deadline_fails_closed(self) -> None:
+        text = CONSULTATION_FIXTURE.replace(
+            "截止时间：2026年05月26日 08点30分（北京时间）",
+            "截止时间：具体时间另行通知",
+        )
+        with self.assertRaisesRegex(CcgpDetailParseError, "CCGP_RESPONSE_DEADLINE_NOT_FOUND"):
+            parse_ccgp_competitive_consultation_text(
+                text,
+                source_url="https://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202605/t20260515_26577430.htm",
+                observed_at="2026-08-31T18:15:00+08:00",
+                opportunity_id="consultation_missing_deadline",
+            )
 
     def test_numeric_package_labels_are_parsed(self) -> None:
         record = parse_ccgp_public_tender_text(
