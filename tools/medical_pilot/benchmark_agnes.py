@@ -2,22 +2,19 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
-import sys
-import time
 import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
+
+from .agnes_client import DEFAULT_BASE_URL, DEFAULT_MODEL, validate_base_url
 
 
 DEFAULT_MANIFEST = (
     Path(__file__).resolve().parents[2]
     / "docs/research/benchmarks/agnes-2.5-flash-v0.1.json"
 )
-DEFAULT_BASE_URL = "https://apihub.agnes-ai.com/v1"
-DEFAULT_MODEL = "agnes-2.5-flash"
 DEFAULT_RPM = 12
 
 
@@ -162,11 +159,21 @@ def call_chat_completion(
     model: str,
     user_prompt: str,
     timeout_seconds: int = 60,
-    retries: int = 2,
+    retries: int = 0,
+    global_lease_granted: bool = False,
 ) -> str:
-    endpoint = base_url.rstrip("/") + "/chat/completions"
+    """One provider start only, callable solely from a global-lease holder."""
+
+    if global_lease_granted is not True:
+        raise BenchmarkError("DIRECT_PROVIDER_CALL_REQUIRES_GLOBAL_LEASE")
+    if retries != 0:
+        raise BenchmarkError("BENCHMARK_PROVIDER_RETRY_REQUIRES_NEW_GLOBAL_LEASE")
+    if model != DEFAULT_MODEL:
+        raise BenchmarkError("BENCHMARK_MODEL_NOT_ALLOWED")
+    official_base_url = validate_base_url(base_url)
+    endpoint = official_base_url + "/chat/completions"
     payload = {
-        "model": model,
+        "model": DEFAULT_MODEL,
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
@@ -175,10 +182,9 @@ def call_chat_completion(
         "max_tokens": 300,
         "stream": False,
     }
-    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     request = urllib.request.Request(
         endpoint,
-        data=body,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
         method="POST",
         headers={
             "Authorization": f"Bearer {api_key}",
@@ -187,114 +193,56 @@ def call_chat_completion(
             "User-Agent": "MedicalChannelAI-AgnesBenchmark/0.1",
         },
     )
-
-    last_error: Exception | None = None
-    for attempt in range(retries + 1):
-        try:
-            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
-                raw = response.read(2 * 1024 * 1024)
-                data = json.loads(raw.decode("utf-8"))
-                content = data["choices"][0]["message"]["content"]
-                if not isinstance(content, str):
-                    raise BenchmarkError("chat completion content is not a string")
-                return content
-        except urllib.error.HTTPError as exc:
-            last_error = exc
-            if exc.code not in {429, 500, 502, 503, 520} or attempt >= retries:
-                raise BenchmarkError(f"Agnes API HTTP {exc.code}") from exc
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, KeyError, IndexError) as exc:
-            last_error = exc
-            if attempt >= retries:
-                raise BenchmarkError(f"Agnes API response failure: {type(exc).__name__}: {exc}") from exc
-        time.sleep(2**attempt)
-    raise BenchmarkError(f"Agnes API request failed: {last_error}")
+    try:
+        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+            raw = response.read(2 * 1024 * 1024)
+            data = json.loads(raw.decode("utf-8"))
+            content = data["choices"][0]["message"]["content"]
+            if not isinstance(content, str):
+                raise BenchmarkError("chat completion content is not a string")
+            return content
+    except urllib.error.HTTPError as exc:
+        raise BenchmarkError(f"Agnes API HTTP {exc.code}") from exc
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, KeyError, IndexError) as exc:
+        raise BenchmarkError(f"Agnes API response failure: {type(exc).__name__}") from exc
 
 
 def run_benchmark(
     manifest: dict[str, Any], *, base_url: str, api_key: str, model: str, rpm: int
 ) -> dict[str, Any]:
-    if rpm < 1 or rpm > 12:
-        raise BenchmarkError("rpm must be between 1 and 12; benchmark must not exceed pilot Agnes start-rate budget")
-    interval = 60.0 / rpm
-    scored: list[dict[str, Any]] = []
-    failures: list[dict[str, str]] = []
-    started = time.monotonic()
-
-    for index, case in enumerate(manifest["cases"]):
-        if index:
-            target = started + index * interval
-            remaining = target - time.monotonic()
-            if remaining > 0:
-                time.sleep(remaining)
-        try:
-            raw = call_chat_completion(
-                base_url=base_url,
-                api_key=api_key,
-                model=model,
-                user_prompt=build_user_prompt(manifest, case),
-            )
-            output = extract_json_object(raw)
-            scored.append(score_case(manifest, case, output))
-        except BenchmarkError as exc:
-            failures.append({"case_id": case["case_id"], "error": str(exc)})
-
-    return {
-        "benchmark_id": manifest["benchmark_id"],
-        "model": model,
-        "base_url": base_url,
-        "result": aggregate_scores(manifest, scored, len(failures)),
-        "cases": scored,
-        "failures": failures,
-    }
+    raise BenchmarkError("DIRECT_EXECUTION_DISABLED_USE_AGNES_BENCHMARK_SUITE")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Agnes 2.5 Flash medical-channel benchmark harness")
+    parser = argparse.ArgumentParser(description="Agnes 2.5 Flash medical-channel benchmark scoring harness")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
-    parser.add_argument("--execute", action="store_true", help="Actually call the OpenAI-compatible API")
-    parser.add_argument("--output", type=Path, help="Optional result JSON path")
-    parser.add_argument("--rpm", type=int, default=DEFAULT_RPM)
+    parser.add_argument("--execute", action="store_true", help="Deprecated and blocked; use agnes_benchmark_suite")
     args = parser.parse_args()
 
     try:
         manifest = load_manifest(args.manifest)
     except (OSError, json.JSONDecodeError, BenchmarkError) as exc:
-        print(json.dumps({"status": "ERROR", "message": str(exc)}, ensure_ascii=False))
+        print(json.dumps({"status": "ERROR", "error_class": type(exc).__name__}, ensure_ascii=False))
         return 2
 
-    if not args.execute:
-        result = {
-            "status": "DRY_RUN",
-            "benchmark_id": manifest["benchmark_id"],
-            "target_model": manifest["model_target"],
-            "case_count": len(manifest["cases"]),
-            "gates": manifest["gates"],
+    if args.execute:
+        print(json.dumps({
+            "status": "ERROR",
+            "error_class": "DIRECT_EXECUTION_DISABLED_USE_AGNES_BENCHMARK_SUITE",
             "network_called": False,
-            "message": "Use --execute with AGNES_API_KEY in the environment to run. No API key is stored in the repository.",
-        }
-    else:
-        api_key = os.environ.get("AGNES_API_KEY")
-        if not api_key:
-            print(json.dumps({"status": "ERROR", "message": "AGNES_API_KEY is required for --execute"}, ensure_ascii=False))
-            return 2
-        base_url = os.environ.get("AGNES_BASE_URL", DEFAULT_BASE_URL)
-        model = os.environ.get("AGNES_MODEL", manifest.get("model_target", DEFAULT_MODEL))
-        result = {
-            "status": "COMPLETED",
-            **run_benchmark(
-                manifest,
-                base_url=base_url,
-                api_key=api_key,
-                model=model,
-                rpm=args.rpm,
-            ),
-        }
+        }, ensure_ascii=False, separators=(",", ":")))
+        return 2
 
-    if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    json.dump(result, sys.stdout, ensure_ascii=False, indent=2)
-    sys.stdout.write("\n")
+    print(json.dumps({
+        "status": "DRY_RUN_NO_NETWORK",
+        "benchmark_id": manifest["benchmark_id"],
+        "target_model": manifest["model_target"],
+        "case_count": len(manifest["cases"]),
+        "gates": manifest["gates"],
+        "network_called": False,
+        "execute_via": "python3 -m tools.medical_pilot.agnes_benchmark_suite --execute --maintenance-window",
+        "automatic_classifier_admission_allowed": False,
+    }, ensure_ascii=False, indent=2))
     return 0
 
 
