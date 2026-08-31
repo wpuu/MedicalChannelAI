@@ -7,6 +7,8 @@ from typing import Any
 from .ccgp_events import validate_notice_events
 from .validation import validate_records
 
+MAX_TODAY_CARDS = 5
+
 
 def _as_datetime(value: str | None) -> datetime | None:
     if not value:
@@ -254,16 +256,18 @@ def build_public_snapshot(
         sortable.append((-score, effective_record["opportunity_id"], effective_record, correction_urls))
 
     sortable.sort(key=lambda item: (item[0], item[1]))
+    matched_count = len(sortable)
+    selected = sortable[:MAX_TODAY_CARDS]
     cards = [
         _public_card(item[2], rank + 1, as_of, item[3])
-        for rank, item in enumerate(sortable)
+        for rank, item in enumerate(selected)
     ]
     return {
         "schema_version": "0.1",
         "mode": "TODAY_ACTIONS",
         "snapshot_as_of": as_of.isoformat(),
         "input_candidate_count": len(validated),
-        "matched_count": len(cards),
+        "matched_count": matched_count,
         "card_count": len(cards),
         "model_request_count": 0,
         "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
