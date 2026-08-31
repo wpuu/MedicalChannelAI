@@ -34,6 +34,20 @@ FIXTURE = """
 3.项目联系方式 项目联系人：李宁 电 话：022-23717450-8019
 """
 
+NUMERIC_PACKAGE_FIXTURE = FIXTURE.replace(
+    "第1包 否 190 190 其他医疗设备 具体内容详见项目需求书。第一包：基因测序仪、自动化建库仪、宏基因组分析系统的采购；\n"
+    "第2包 否 80 80 其他医疗设备 具体内容详见项目需求书。第二包：微生物质谱检测系统（飞行时间质谱检测系统）、高性能生物计算工业一体机的采购；",
+    "第1包：基因测序仪、自动化建库仪、宏基因组分析系统的采购；\n"
+    "第2包：微生物质谱检测系统（飞行时间质谱检测系统）、高性能生物计算工业一体机的采购；",
+)
+
+ATTACHMENT_ONLY_FIXTURE = FIXTURE.replace(
+    "第1包 否 190 190 其他医疗设备 具体内容详见项目需求书。第一包：基因测序仪、自动化建库仪、宏基因组分析系统的采购；\n"
+    "第2包 否 80 80 其他医疗设备 具体内容详见项目需求书。第二包：微生物质谱检测系统（飞行时间质谱检测系统）、高性能生物计算工业一体机的采购；",
+    "第1包 否 190 190 其他医疗设备 具体内容详见项目需求书。\n"
+    "第2包 否 80 80 其他医疗设备 具体内容详见项目需求书。",
+)
+
 
 class CcgpDetailTests(unittest.TestCase):
     def test_public_tender_detail_becomes_verified_canonical_record(self) -> None:
@@ -59,6 +73,27 @@ class CcgpDetailTests(unittest.TestCase):
         self.assertIn("基因测序仪", facts["product_items"][0]["raw_name"])
         self.assertEqual(facts["public_contact"]["name"], "李宁")
         self.assertEqual(facts["public_contact"]["phone"], "022-23717450-8019")
+
+    def test_numeric_package_labels_are_parsed(self) -> None:
+        record = parse_ccgp_public_tender_text(
+            NUMERIC_PACKAGE_FIXTURE,
+            source_url="https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194426.htm",
+            observed_at="2026-08-31T18:15:00+08:00",
+            opportunity_id="numeric_packages",
+        )
+        products = record["facts"]["product_items"]
+        self.assertEqual(len(products), 2)
+        self.assertEqual(products[0]["raw_name"], "基因测序仪、自动化建库仪、宏基因组分析系统")
+        self.assertIn("微生物质谱检测系统", products[1]["raw_name"])
+
+    def test_attachment_only_package_text_does_not_invent_products(self) -> None:
+        record = parse_ccgp_public_tender_text(
+            ATTACHMENT_ONLY_FIXTURE,
+            source_url="https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194426.htm",
+            observed_at="2026-08-31T18:15:00+08:00",
+            opportunity_id="attachment_only",
+        )
+        self.assertEqual(record["facts"]["product_items"], [])
 
     def test_missing_exact_registration_end_time_fails_closed(self) -> None:
         text = FIXTURE.replace("下午13:30至16:00", "下午时间以代理机构通知为准")
