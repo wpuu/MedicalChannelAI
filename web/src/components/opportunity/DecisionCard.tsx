@@ -11,9 +11,15 @@ interface DecisionCardProps {
   card: TodayActionCard
   onAnalyze?: () => void
   analyzing?: boolean
+  analysisUnavailableReason?: string | null
 }
 
-export function DecisionCard({ card, onAnalyze, analyzing }: DecisionCardProps) {
+export function DecisionCard({
+  card,
+  onAnalyze,
+  analyzing,
+  analysisUnavailableReason,
+}: DecisionCardProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
   const hasCustomerContext = hasUserCustomerContext(card.customer_context)
 
@@ -118,7 +124,11 @@ export function DecisionCard({ card, onAnalyze, analyzing }: DecisionCardProps) 
                   ? '当前排序已经结合你填写的产品能力或医院关系。点击分析后，AI会把这些用户确认资源与服务端已核验公开事实分开使用，进一步给出行动建议。'
                   : '当前排序只使用已核验公开事实、项目金额和时间窗口。没有客户产品资料或医院关系时，系统不会假装已经完成资源匹配。'}
               </p>
-              {onAnalyze ? (
+              {analysisUnavailableReason ? (
+                <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-800">
+                  {analysisUnavailableReason}
+                </p>
+              ) : onAnalyze ? (
                 <button
                   type="button"
                   disabled={analyzing}
