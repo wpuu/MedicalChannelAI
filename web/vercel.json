@@ -1,10 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "git": {
-    "deploymentEnabled": {
-      "chatgpt/m1-evidence-pipeline-v1": false
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
