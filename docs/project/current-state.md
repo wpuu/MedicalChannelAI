@@ -2,89 +2,59 @@
 
 日期：2026-08-31  
 分支：`dev/tianjin-pilot-v0.1`  
-阶段：`DETERMINISTIC_AND_REAL_PUBLIC_BOOTSTRAP_PASS / REAL_AGNES_AND_PILOT_HOST_SMOKE_PENDING`  
+阶段：`DETERMINISTIC + REAL_PUBLIC_BOOTSTRAP PASS / HOST_ACCEPTANCE READY / REAL_HOST EXECUTION PENDING`  
 生产就绪：**false**  
 Draft PR：**#1（保持 Draft，不合并）**
 
 ## 当前可信验证基线
 
-最新干净验证提交：`63d47aa1a0311a74a02908456733ca41679b559c`  
-Vercel deployment：`dpl_DK3P2jgaLHqfkGAFV6verUpHj9ZG` → **READY**
+代码门禁证据：`7c40802019b280d8c6af6c7f543908e8a8ea5fd3`  
+Vercel deployment：`dpl_2PL9asnHRPwrSDQ6PZdS12R96kv6` → **READY**
 
 同一提交实际执行：
 
-- `478` 个 Python unittest → **OK**；
-- `npx tsc --noEmit` → **PASS**；
-- Vite production build → **PASS**；
-- `1887` modules transformed；
-- `dist/index.html` 约 `413.58 KiB`，gzip `127.17 KiB`。
+- **491 个 Python unittest → OK**；
+- `npx tsc --noEmit` → PASS；
+- Vite production build → PASS；
+- 1887 modules transformed；
+- `dist/index.html` 约 413.58 KiB / gzip 127.17 KiB。
 
-GitHub Actions 仍存在 runner 未分配问题，因此当前可信执行门使用 Vercel Preview，而不是把 GitHub Actions 的 runner failure 当代码失败。
+GitHub Actions 仍存在 runner 未分配问题，因此开发分支继续使用 Vercel Preview 作为可信执行门。
+
+本轮曾出现一轮 491-case 的单一失败：systemd unit 注释中出现了字符串 `[Install]`，触发了“acceptance unit 不得可安装”的字符串测试。只修改注释措辞、未放宽断言后，491 cases 全部通过。
 
 ## 当前规模
 
-- 7 个运行时 P0 Source：4 `IMPLEMENTED`、3 `PARTIAL_IMPLEMENTATION`；
+- 7 个运行时 P0 Source：4 IMPLEMENTED、3 PARTIAL_IMPLEMENTATION；
 - 自动 listing discovery：2/7 ready；
 - 50 条 VERIFIED 天津商机 regression fixtures；
 - 15 条 Institution Evidence；
 - 41 份 Schema/合同；
-- 88 个 deterministic test modules；
-- 478 个实际执行 unittest cases；
-- 真实医疗附件 binary capture：**0**；
+- **91 个 deterministic test modules**；
+- **491 个实际执行 unittest cases**；
+- 真实医疗附件 binary capture：0；
 - Agnes benchmark：28 case，尚未真实执行；
 - Coverage=`PARTIAL / NOT_EXHAUSTIVE`。
 
 ## 当前商务 Demo
 
-Vercel verified public-data Demo：
-
 ```text
 https://medicalchannelai.vercel.app
 ```
 
-该 Demo 展示真实公开项目快照，但客户资源/画像为明确的演示数据；它不是老杨的真实账号，也没有启用真实 Agnes provider。
+公开采购事实/官方链接是真实的；客户画像资源为明确演示数据；它不是老杨真实账号，也不是实时 Agnes。
 
-## 真实 Pilot 已具备的产品链
+## 真实公开数据链
 
-- 邀请制注册、账号状态、30天 server-side opaque Session；
-- `/profile` 客户画像编辑；
-- Today Top5 + 详情；
-- 客户产品能力以 controlled taxonomy ID 作为稳定匹配键；
-- profile 保存后重新计算 Today 并按需排 Agnes；
-- 画像达到候选条件后保存直接进入 `/today`；
-- tenant/profile private follow-up；
-- 到期站内提醒；
-- `/followed` 长期跟进；
-- grounded on-demand outreach；
-- VERIFIED public facts 与 customer-confirmed private context 分离；
-- 浏览器不能自报可信 tenant/profile；
-- canonical Host/Origin API boundary；
-- 单机 SQLite + Caddy + systemd 部署脚手架；
-- Agnes persistent queue/worker + shared global lease。
+5条冻结官方天津项目已经在隔离 live 环境真实执行：
 
-仍不得标记 production-ready，因为真实 Pilot 主机、真实 Agnes provider、真实附件和外部提醒交付等还没有完成最终 smoke。
+```text
+input=5
+success=5
+failure=0
+```
 
-## 真实天津公开数据 bootstrap
-
-Manifest：`deploy/tianjin-pilot-bootstrap-urls-2026-08-30.json`  
-Importer：`python3 -m tools.medical_pilot.pilot_live_seed`
-
-隔离 Vercel live verification 已真实访问5条注册官方 URL：
-
-- input=5；
-- success=5；
-- failure=0；
-- 项目编号在持久化前与 manifest expected code 核对；
-- 不 seed 客户关系；
-- 不 seed 预写 Agnes 结论。
-
-真实验证 deployment：`dpl_5TnA7PKNWtJitBUak1m7CbBnExE5`。
-
-## CCGP 采购需求 grounding 已修复并真实验证
-
-新增 `tools/medical_pilot/ccgp_procurement_demand.py`，只从明确 `包号 + 采购需求` 表格的合法包号行生成 VERIFIED `product_item` facts；资格条件、政策说明、联系人等正文不会进入 taxonomy。
-
-修复后的真实 live bootstrap 中，`XCSD-2026-C-181 / 病原微生物能力提升相关设备购置` 已得到：
+CCGP `采购需求` 表格已经进入 VERIFIED `product_item` grounding。`XCSD-2026-C-181 / 病原微生物能力提升相关设备购置` 已真实得到：
 
 - `LAB_NGS_SEQUENCER`
 - `LAB_AUTOMATED_LIBRARY_PREP`
@@ -92,64 +62,104 @@ Importer：`python3 -m tools.medical_pilot.pilot_live_seed`
 - `LAB_MICROBIAL_MASS_SPECTROMETRY`
 - `LAB_BIOINFORMATICS_COMPUTE_APPLIANCE`
 
-这些 ID 已同步暴露到 `/profile` 产品能力选择。泰达医院 DR 仍正确得到 `MEDICAL_IMAGING_DR`；其余信息不足项目继续保持空标签，不硬猜。
+这些 controlled taxonomy ID 已同步进入 `/profile` 产品能力选择。
 
-## 真实附件状态：仍未通过
+## 真实附件状态
 
-已实现 bounded live attachment probe：
+`XCSD-2026-C-181项目需求书.docx` 的天津财政官方下载 URL 已被冻结到：
 
 ```text
-tools/medical_pilot/attachment_live_probe.py
+deploy/pilot-host-acceptance-v0.1.json
 ```
 
-限制 HTTPS、天津财政官方 host、`method=downEnId`、DOCX/XLSX、最大32MiB、MIME、magic、SHA-256、本地 OOXML parser。
+Vercel IAD 两次真实下载分别约20秒、60秒 read timeout，因此当前继续保持：
 
-Vercel IAD 两次真实请求分别在约20秒和60秒发生 read timeout，均未拿到响应 bytes。因此当前必须保持：
+```text
+real attachment bytes = 0
+MIME/size/SHA-256 = 未观察
+real OOXML parser = 未在该真实附件上 PASS
+```
 
-- real attachment bytes = 0；
-- MIME/size/SHA-256 = 未观察；
-- real OOXML parser = 未在该真实附件上通过。
+不把“官方 URL 已确认”解释成“附件 binary 已验证”。
 
-下一次应从中国附近的真实 Pilot 主机或更适合访问天津政府站点的网络执行。
+## 真实 Agnes 状态
 
-## Agnes 当前真相
+已经具备：
 
-已完成：
-
-- server-only provider architecture；
-- `agnes-2.5-flash` contract；
-- queue / scheduler / terminal result；
+- server-only `MCAI_AGNES_API_KEY` 架构；
+- `agnes-2.5-flash` constrained contract；
+- persistent queue / Worker / terminal result；
 - shared global lease；
-- Today worker；
-- grounded outreach；
-- deterministic contract tests；
-- 隔离 provider smoke CLI：`python3 -m tools.medical_pilot.agnes_provider_smoke`。
+- grounded Today Actions / outreach；
+- 独立 synthetic provider smoke。
 
-该 smoke 使用固定合成 grounded input + 临时 SQLite lease，不读取老杨资料；仍通过正式 global lease 和 `validate_model_decision`，不会绕过生产边界。
+但真实 authenticated Agnes provider 尚未在目标 Pilot 主机 PASS，因此不能声称“真实 Agnes 已跑通”。
 
-尚未完成：
+## 新增：统一真实 Pilot 主机验收
 
-- `MCAI_AGNES_API_KEY` 在真实 Pilot 执行环境中的最终配置；
-- **真实 authenticated Agnes provider smoke**；
-- 老杨真实 profile → queue → worker → `READY` Top5 的端到端验收。
+核心文件：
 
-因此不能声称“真实 Agnes 已跑通”。
+```text
+tools/medical_pilot/pilot_host_preflight.py
+tools/medical_pilot/pilot_host_acceptance.py
+deploy/pilot-host-acceptance-v0.1.json
+deploy/medical-pilot-acceptance.service
+deploy/PILOT_HOST_ACCEPTANCE.md
+```
 
-## Discovery
+API 与 Worker systemd unit 现在都：
 
-自动 listing discovery 仍只有 2/7 ready：
+1. 强制要求 `/etc/medicalchannelai/pilot.env` 存在，不再把 EnvironmentFile 设为 optional；
+2. 在正式 `ExecStart` 前执行 `pilot_host_preflight`；
+3. API 检查 canonical HTTPS origin + DB 路径；
+4. Worker 检查 Agnes Key + allowlisted official base URL + DB 路径；
+5. 失败时 fail-closed，不启动服务。
 
-1. `tjmugh_procurement`
-2. `tj_first_central_hospital_procurement`
+统一 acceptance 通过一个 manual oneshot：
 
-其余5个继续 fail-closed：不猜 classId/pagination，不绕 CAPTCHA，不为自动化覆盖率制造虚假成功。
+```bash
+sudo systemctl start medical-pilot-acceptance.service
+sudo journalctl -u medical-pilot-acceptance.service -n 50 --no-pager
+```
 
-## 下一步优先级
+它会：
 
-1. 在中国附近的 Pilot 主机执行真实附件 probe，拿到 bytes/MIME/SHA/parser 证据；
-2. 配置 server-only `MCAI_AGNES_API_KEY`，执行 `python3 -m tools.medical_pilot.agnes_provider_smoke`；
-3. provider smoke PASS 后启动真实 API + Agnes Worker；
-4. 创建老杨 INVITED 账号并发送一次性注册链接；
-5. 老杨填产品能力、厂家/渠道/租赁能力和确认医院关系；
-6. 验证保存后 Agnes 任务排队、worker 运行、Today Top5 从 `AWAITING_MODEL` 进入 `READY`；
-7. 再做 authenticated follow-up/reminder/followed/outreach、backup/restore 和大陆/微信实际访问验收。
+```text
+真实主机配置/DB路径 preflight
+→ 临时 SQLite 5条官方 bootstrap（必须5/5）
+→ 真实天津附件 bytes/MIME/SHA/parser
+→ 合成 grounded input 的真实 Agnes authenticated contract smoke
+```
+
+四项全部 PASS 才返回 overall `status=PASS`。
+
+关键安全边界：
+
+- 只检查真实 `/srv/medical/data/pilot.sqlite` 路径/权限，**不写生产 DB**；
+- bootstrap 使用临时 SQLite；
+- Agnes smoke 使用临时 SQLite lease；
+- 不读取老杨/真实客户资料；
+- 不打印 Key、provider body、完整 model input、附件正文。
+
+## 真实服务器后的固定顺序
+
+1. 部署代码/H5、创建 `medicalai` 用户和 `/srv/medical/data`；
+2. 创建 root-only `/etc/medicalchannelai/pilot.env`；
+3. 安装三个 systemd unit；
+4. **先运行 `medical-pilot-acceptance.service`，overall PASS 才继续**；
+5. 再把5条官方项目正式导入 `/srv/medical/data/pilot.sqlite`；
+6. 启动 `medical-pilot.service` + `medical-agnes-worker.service`；
+7. 验证本机 health、真实 queue → Agnes → READY；
+8. 之后才创建老杨 INVITED 账号并发送一次性注册链接；
+9. 完成 authenticated followup/reminder/followed/outreach、backup/restore、大陆/微信访问验收后，才评估 production_ready / merge。
+
+## 仍然不能宣称
+
+当前继续保持：
+
+```text
+production_ready=false
+real_authenticated_agnes_provider_pass=false
+real_attachment_binary_capture_count=0
+PR #1 = Draft / do not merge
+```
