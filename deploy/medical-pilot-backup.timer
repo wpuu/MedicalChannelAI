@@ -1,0 +1,11 @@
+[Unit]
+Description=Schedule MedicalChannelAI Pilot Verified SQLite Backup
+
+[Timer]
+OnCalendar=*-*-* 03:40:00 Asia/Shanghai
+Persistent=true
+RandomizedDelaySec=300
+Unit=medical-pilot-backup.service
+
+[Install]
+WantedBy=timers.target
