@@ -6,9 +6,13 @@ import type {
   TodayActionsResponse,
 } from '@/types'
 import type { PublicTodayActionCard, TodayActionsPublicResponse } from '@/types/public'
+import {
+  backfillLocalFollowupSnapshots,
+  hydrateLocalFollowups,
+  persistLocalFollowup,
+} from './localFollowupStore'
 import type { TodayActionsService } from './TodayActionsService'
 
-const STORAGE_KEY = 'medopp.pipeline-followups.v1'
 const COVERAGE_WARNING = '天津 Pilot · 公开事实来自证据流水线快照；当前仍为部分来源覆盖。'
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
@@ -33,12 +37,6 @@ const FORBIDDEN_PUBLIC_PREFIXES = [
   'api_key_',
   'upstream_model_',
 ]
-
-interface StoredFollowup {
-  status: TodayActionCard['followup_status']
-  remind_at: string | null
-  history: FollowupRecord[]
-}
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -245,44 +243,6 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
 
   constructor(private readonly snapshotUrl: string) {}
 
-  private hydrateFollowups(cards: TodayActionCard[]): TodayActionCard[] {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return cards
-      const stored = JSON.parse(raw) as Record<string, StoredFollowup>
-      return cards.map((card) => {
-        const saved = stored[card.opportunity_id]
-        return saved
-          ? {
-              ...card,
-              followup_status: saved.status,
-              remind_at: saved.remind_at,
-              followup_history: saved.history,
-            }
-          : card
-      })
-    } catch {
-      return cards
-    }
-  }
-
-  private persistFollowups(): void {
-    if (!this.snapshot) return
-    try {
-      const stored: Record<string, StoredFollowup> = {}
-      for (const card of this.snapshot.cards) {
-        stored[card.opportunity_id] = {
-          status: card.followup_status,
-          remind_at: card.remind_at,
-          history: card.followup_history,
-        }
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
-    } catch {
-      // Browsers that block localStorage can still use the in-memory snapshot.
-    }
-  }
-
   private async ensureLoaded(): Promise<TodayActionsResponse> {
     if (this.snapshot) return this.snapshot
     const response = await fetch(this.snapshotUrl, {
@@ -302,6 +262,11 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
     ) {
       throw new Error('SNAPSHOT_RESPONSE_INVALID')
     }
+
+    const mappedCards = data.cards.map(mapPublicCard)
+    backfillLocalFollowupSnapshots(mappedCards)
+    const hydratedCards = hydrateLocalFollowups(mappedCards)
+
     this.snapshot = {
       schema_version: data.schema_version,
       mode: data.mode,
@@ -312,7 +277,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       coverage_warning: COVERAGE_WARNING,
       generated_at: data.snapshot_as_of,
       refreshed_at: data.snapshot_as_of,
-      cards: this.hydrateFollowups(data.cards.map(mapPublicCard)),
+      cards: hydratedCards,
       model_requests: [],
     }
     return this.snapshot
@@ -344,7 +309,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
     card.followup_status = input.status
     card.remind_at = input.remind_at ?? (input.status === 'MONITOR' ? card.remind_at : null)
     card.followup_history = [record, ...card.followup_history]
-    this.persistFollowups()
+    persistLocalFollowup(card)
   }
 
   async requestOutreachDraft(id: string): Promise<OutreachDraft> {
