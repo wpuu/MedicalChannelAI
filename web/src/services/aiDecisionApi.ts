@@ -1,4 +1,4 @@
-import type { Decision, TodayActionCard, TodayActionsResponse } from '@/types'
+import type { Decision, TodayActionCard } from '@/types'
 
 const CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
 const MAX_CACHE_ENTRIES = 50
@@ -30,22 +30,52 @@ function stringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
 }
 
+function normalizeDecision(value: unknown): Decision | null {
+  const record = asRecord(value)
+  if (!record) return null
+  const action = typeof record.action === 'string' ? record.action.trim() : ''
+  const reasons = stringArray(record.reasons)
+  const risks = stringArray(record.risks)
+  const confirmations = stringArray(record.needs_human_confirmation)
+  if (!action || reasons.length === 0) return null
+  return {
+    action,
+    reasons,
+    risks,
+    needs_human_confirmation:
+      confirmations.length > 0
+        ? confirmations
+        : ['执行前需要人工确认公开附件、客户资源与实际项目条件'],
+  }
+}
+
 function readCache(): CachedDecisionEntry[] {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
     if (!raw) return []
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    return parsed.filter((item): item is CachedDecisionEntry => {
+    const entries: CachedDecisionEntry[] = []
+    for (const item of parsed) {
       const record = asRecord(item)
-      return Boolean(
-        record &&
-          typeof record.snapshot_as_of === 'string' &&
-          typeof record.opportunity_id === 'string' &&
-          typeof record.cached_at === 'string' &&
-          asRecord(record.decision),
-      )
-    })
+      if (
+        !record ||
+        typeof record.snapshot_as_of !== 'string' ||
+        typeof record.opportunity_id !== 'string' ||
+        typeof record.cached_at !== 'string'
+      ) {
+        continue
+      }
+      const decision = normalizeDecision(record.decision)
+      if (!decision) continue
+      entries.push({
+        snapshot_as_of: record.snapshot_as_of,
+        opportunity_id: record.opportunity_id,
+        cached_at: record.cached_at,
+        decision,
+      })
+    }
+    return entries
   } catch {
     return []
   }
@@ -56,6 +86,22 @@ function writeCache(entries: CachedDecisionEntry[]): void {
     localStorage.setItem(CACHE_KEY, JSON.stringify(entries.slice(0, MAX_CACHE_ENTRIES)))
   } catch {
     // Cache is an optimization only. AI analysis still works when storage is unavailable.
+  }
+}
+
+async function getSnapshotAsOf(): Promise<string | null> {
+  try {
+    const response = await fetch('/data/today-actions.public.json', {
+      headers: { Accept: 'application/json' },
+      cache: 'no-cache',
+    })
+    if (!response.ok) return null
+    const payload: unknown = await response.json()
+    const record = asRecord(payload)
+    const value = record?.snapshot_as_of
+    return typeof value === 'string' && !Number.isNaN(Date.parse(value)) ? value : null
+  } catch {
+    return null
   }
 }
 
@@ -90,33 +136,12 @@ function cacheDecision(
   ])
 }
 
-export function hydrateCachedAiDecisions(data: TodayActionsResponse): TodayActionsResponse {
-  const snapshotAsOf = data.refreshed_at
-  const cached = readCache().filter((entry) => entry.snapshot_as_of === snapshotAsOf)
-  if (cached.length === 0) return data
-  const byId = new Map(cached.map((entry) => [entry.opportunity_id, entry.decision]))
-  return {
-    ...data,
-    cards: data.cards.map((card) => {
-      const decision = byId.get(card.opportunity_id)
-      return decision
-        ? {
-            ...card,
-            model_decision_status: 'READY',
-            model_block_reason: null,
-            decision,
-          }
-        : card
-    }),
+export async function requestAiDecision(card: TodayActionCard): Promise<Decision> {
+  const snapshotAsOf = await getSnapshotAsOf()
+  if (snapshotAsOf) {
+    const cached = getCachedDecision(card.opportunity_id, snapshotAsOf)
+    if (cached) return cached
   }
-}
-
-export async function requestAiDecision(
-  card: TodayActionCard,
-  snapshotAsOf: string,
-): Promise<Decision> {
-  const cached = getCachedDecision(card.opportunity_id, snapshotAsOf)
-  if (cached) return cached
 
   const response = await fetch('/api/ai/analyze', {
     method: 'POST',
@@ -134,20 +159,13 @@ export async function requestAiDecision(
     throw new AiDecisionError(code, response.status)
   }
 
-  const rawDecision = asRecord(record?.decision)
-  const action = typeof rawDecision?.action === 'string' ? rawDecision.action.trim() : ''
-  const reasons = stringArray(rawDecision?.reasons)
-  const risks = stringArray(rawDecision?.risks)
-  if (!action || reasons.length === 0) {
+  const decision = normalizeDecision(record?.decision)
+  if (!decision) {
     throw new AiDecisionError('AI_RESPONSE_INVALID', 502)
   }
 
-  const decision: Decision = {
-    action,
-    reasons,
-    risks,
-    needs_human_confirmation: ['执行前需要人工确认公开附件、客户资源与实际项目条件'],
+  if (snapshotAsOf) {
+    cacheDecision(card.opportunity_id, snapshotAsOf, decision)
   }
-  cacheDecision(card.opportunity_id, snapshotAsOf, decision)
   return decision
 }
