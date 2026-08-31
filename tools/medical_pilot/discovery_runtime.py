@@ -15,15 +15,18 @@ from .registry import RegisteredSource, adapter_for_source, load_registry
 DISCOVERY_READY_LISTINGS = {
     "tjmugh_procurement": "https://www.tjmugh.com.cn/cgxxtzgg/index.shtml",
     "tj_first_central_hospital_procurement": "https://www.tj-fch.com/ywgk/ynbx/index.shtml",
+    # CCGP dfgg is a national list. The CcgpLifecycleAdapter admits only records
+    # whose same <li> explicitly says 地域：天津/天津市. This head listing therefore
+    # adds a verified partial mirror; it is not treated as exhaustive Tianjin scope.
+    "ccgp_local_notices": "https://www.ccgp.gov.cn/cggg/dfgg/index.htm",
 }
 
 # These remain intentionally disabled until a source-specific, Tianjin-scoped listing
-# and pagination contract is verified. A generic national CCGP listing must not be
-# projected as Tianjin simply because the detail parser is reusable.
+# and pagination contract is verified. Never guess undocumented classId/W00x routes or
+# bypass CAPTCHA merely to increase the ready-source count.
 DISCOVERY_NOT_READY = {
     "tj_government_procurement": "NATIVE_LIST_ROUTE_UNRESOLVED",
     "tj_government_procurement_center": "PUBLIC_TENDER_LIST_CLASS_ID_UNRESOLVED",
-    "ccgp_local_notices": "GENERIC_NATIONAL_LIST_NOT_TIANJIN_SCOPED",
     "ccgp_procurement_intent": "SEARCH_DISCOVERY_CAPTCHA_AND_QUERY_CONTRACT_NOT_READY",
     "tj_public_resource_exchange": "RESULT_LIST_DISCOVERY_CONTRACT_NOT_READY",
 }
@@ -82,6 +85,8 @@ def _source(source_id: str) -> RegisteredSource:
 
 
 def discovery_readiness(source_id: str) -> tuple[bool, str]:
+    if source_id == "ccgp_local_notices":
+        return True, "VERIFIED_EXPLICIT_TIANJIN_REGION_FILTER_HEAD_LISTING_PARTIAL"
     if source_id in DISCOVERY_READY_LISTINGS:
         return True, "VERIFIED_DEDICATED_LISTING"
     if source_id in DISCOVERY_NOT_READY:
