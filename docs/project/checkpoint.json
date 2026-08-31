@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-31T07:58:00+08:00",
-  "phase": "VERIFIED_PUBLIC_DATA_DEMO_PLUS_INVITE_REGISTRATION_PLUS_EDITABLE_CUSTOMER_PROFILE_PLUS_REAL_AGNES_QUEUE_PLUS_LIVE_OFFICIAL_BOOTSTRAP",
+  "as_of": "2026-08-31T08:06:00+08:00",
+  "phase": "DETERMINISTIC_BACKEND_AND_WEB_GATE_PASS_PLUS_REAL_AGNES_AND_LIVE_HOST_SMOKE_PENDING",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -15,7 +15,8 @@
     "verified_opportunity_regression_fixtures": 50,
     "verified_institution_evidence_fixtures": 15,
     "schema_contracts": 41,
-    "deterministic_test_modules_written": 84,
+    "deterministic_test_modules_written": 85,
+    "deterministic_unittest_cases_executed": 464,
     "real_medical_attachment_binary_captures": 0,
     "agnes_benchmark_cases": 28,
     "agnes_benchmark_executed": false
@@ -39,7 +40,8 @@
     "api_tenant_isolation": true,
     "public_view_excludes_internal_model_fields": true,
     "profile_save_recomputes_today_and_enqueues_needed_agnes_tasks": true,
-    "browser_short_polls_awaiting_model_results": true
+    "browser_short_polls_awaiting_model_results": true,
+    "controlled_taxonomy_ids_drive_customer_product_matching": true
   },
   "registration_auth": {
     "strategy": "INVITE_ONLY_PILOT_REGISTRATION",
@@ -55,6 +57,7 @@
     "account_disable_blocks_existing_sessions": true,
     "account_disable_revokes_all_current_sessions": true,
     "reenable_requires_fresh_login": true,
+    "bootstrap_placeholders_hidden_from_customer_public_profile": true,
     "decision_doc": "docs/product/registration-auth-v0.1.md"
   },
   "customer_profile": {
@@ -67,7 +70,7 @@
     "save_triggers_today_refresh": true
   },
   "real_public_bootstrap": {
-    "status": "WRITTEN_NOT_YET_EXECUTED_ON_PILOT_HOST",
+    "status": "WRITTEN_AND_DETERMINISTICALLY_TESTED_NOT_YET_EXECUTED_AGAINST_LIVE_URLS_ON_PILOT_HOST",
     "manifest": "deploy/tianjin-pilot-bootstrap-urls-2026-08-30.json",
     "manifest_entry_count": 5,
     "importer": "tools.medical_pilot.pilot_live_seed",
@@ -85,6 +88,7 @@
     "shared_global_lease": true,
     "api_key_env": "MCAI_AGNES_API_KEY",
     "api_key_stored_in_repo": false,
+    "deterministic_contract_tests_passed": true,
     "real_authenticated_end_to_end_smoke_passed": false
   },
   "followup": {
@@ -129,18 +133,25 @@
     "real_pilot_backend_execution_completed": false
   },
   "validation": {
-    "vercel_frontend_typecheck_and_build_passed": true,
-    "vercel_frontend_evidence_commit": "308b2a24d006b49b8c66f65f2c1d4f2418ec32fe",
-    "vercel_build_command": "tsc --noEmit && vite build",
-    "python_backend_test_modules_written": 84,
-    "python_backend_tests_passed": false,
+    "status": "DETERMINISTIC_BACKEND_AND_WEB_GATE_PASS",
+    "evidence_commit": "bb2d90a809bc6f584bc44ddbc048ace2386131df",
+    "vercel_deployment_id": "dpl_HJLFBaoEWZL72wYus8kJGJ1SVGYF",
+    "vercel_deployment_state": "READY",
+    "python_command": "python3 -m unittest discover -s tools/medical_pilot -t . -p 'test_*.py'",
+    "python_test_cases_executed": 464,
+    "python_backend_tests_passed": true,
+    "typescript_check_passed": true,
+    "vite_production_build_passed": true,
+    "vite_modules_transformed": 1887,
+    "vite_dist_index_kib": 413.25,
+    "vite_dist_gzip_kib": 126.96,
     "github_actions_runner_available": false,
-    "interpretation": "Frontend registration/profile H5 has real Vercel typecheck/build evidence. Python backend/account/Agnes/live-bootstrap tests remain written-only until a runner or Pilot host executes them."
+    "interpretation": "Vercel Preview was used as an independent execution gate because GitHub Actions still fails before runner assignment. On the same commit, all 464 Python unittest cases passed, TypeScript checking passed, Vite production build passed, and the deployment reached READY. This does not constitute a real Agnes provider or live Pilot-host smoke."
   },
   "next": [
-    "obtain real Python execution for all 84 deterministic backend test modules",
+    "run pilot_live_seed against the five registered official URLs on a networked Pilot host or isolated live-bootstrap environment and inspect safe summaries",
     "start single-host Pilot API plus medical-agnes-worker with server-only MCAI_AGNES_API_KEY",
-    "execute pilot_live_seed against the five registered official bootstrap URLs and inspect safe summaries",
+    "run a real authenticated Agnes provider smoke without using Lao Yang's account as the first test subject",
     "create Lao Yang INVITED account with bootstrap-invite and send one-time registration link",
     "have Lao Yang fill product capabilities, manufacturer/channel/rental policy and selected hospital relationships",
     "verify profile save immediately queues Agnes and Today Top5 transitions from AWAITING_MODEL to READY",
