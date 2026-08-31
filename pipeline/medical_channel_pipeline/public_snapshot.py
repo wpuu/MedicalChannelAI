@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from .ccgp_events import validate_notice_events
 from .validation import validate_records
 
 MAX_TODAY_CARDS = 5
+TIANJIN_TZ = ZoneInfo("Asia/Shanghai")
 
 
 def _as_datetime(value: str | None) -> datetime | None:
@@ -19,15 +21,28 @@ def _as_datetime(value: str | None) -> datetime | None:
     return dt
 
 
+def _as_date(value: str | None) -> date | None:
+    if not value:
+        return None
+    return date.fromisoformat(value)
+
+
 def _actionability(facts: dict[str, Any], as_of: datetime) -> tuple[str, int, str]:
     bid = _as_datetime(facts.get("bid_deadline"))
     registration = _as_datetime(facts.get("registration_deadline"))
+    registration_date = _as_date(facts.get("registration_deadline_date"))
     if bid and bid <= as_of:
         return "ARCHIVE", 0, "NOT_ELIGIBLE"
     if registration and registration <= as_of:
         if not bid:
             return "ARCHIVE", 0, "NOT_ELIGIBLE"
         return "LATE_WINDOW", 15, "AWAITING_MODEL"
+    if registration is None and registration_date is not None:
+        local_date = as_of.astimezone(TIANJIN_TZ).date()
+        if registration_date < local_date:
+            if not bid:
+                return "ARCHIVE", 0, "NOT_ELIGIBLE"
+            return "LATE_WINDOW", 15, "AWAITING_MODEL"
     return "PUBLIC_OPPORTUNITY", 40, "AWAITING_MODEL"
 
 
@@ -148,6 +163,10 @@ def _public_card(
         "published_at": facts.get("published_at"),
         "published_at_precision": "DAY" if facts.get("published_at") else None,
         "registration_deadline": facts.get("registration_deadline"),
+        "registration_deadline_date": facts.get("registration_deadline_date"),
+        "registration_deadline_precision": (
+            "MINUTE" if facts.get("registration_deadline") else "DAY" if facts.get("registration_deadline_date") else None
+        ),
         "bid_deadline": facts.get("bid_deadline"),
         "expected_procurement_at": facts.get("expected_procurement_at"),
         "expected_procurement_precision": facts.get("expected_procurement_precision"),
@@ -207,7 +226,11 @@ def _public_card(
                     "max_points": 40,
                     "basis": mode,
                     "profile_paths": [],
-                    "opportunity_paths": ["facts.registration_deadline", "facts.bid_deadline"],
+                    "opportunity_paths": [
+                        "facts.registration_deadline",
+                        "facts.registration_deadline_date",
+                        "facts.bid_deadline",
+                    ],
                 },
                 {
                     "code": "PROJECT_AMOUNT",
