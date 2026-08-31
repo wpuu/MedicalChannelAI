@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
+from .ccgp_events import validate_notice_events
 from .validation import validate_records
 
 
@@ -39,6 +40,27 @@ def _amount_points(budget: int | None) -> int:
     if budget >= 500_000:
         return 8
     return 4
+
+
+def _event_blocks_today(event: dict[str, Any], as_of: datetime) -> bool:
+    published = datetime.fromisoformat(event["published_at"]).date()
+    if published > as_of.date():
+        return False
+    if event["event_type"] == "TERMINATION":
+        return True
+    return event["event_type"] == "CORRECTION" and bool(event.get("requires_reconciliation", True))
+
+
+def _blocked_project_numbers(
+    notice_events: list[dict[str, Any]],
+    as_of: datetime,
+) -> set[str]:
+    events = validate_notice_events(notice_events)
+    return {
+        event["project_number"].strip().lower()
+        for event in events
+        if _event_blocks_today(event, as_of)
+    }
 
 
 def _public_card(record: dict[str, Any], rank: int, as_of: datetime) -> dict[str, Any]:
@@ -134,18 +156,28 @@ def _public_card(record: dict[str, Any], rank: int, as_of: datetime) -> dict[str
     }
 
 
-def build_public_snapshot(records: list[dict[str, Any]], as_of: datetime) -> dict[str, Any]:
+def build_public_snapshot(
+    records: list[dict[str, Any]],
+    as_of: datetime,
+    notice_events: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     if as_of.tzinfo is None:
         as_of = as_of.replace(tzinfo=timezone.utc)
     validated = validate_records(records)
+    blocked_project_numbers = _blocked_project_numbers(notice_events or [], as_of)
+
     sortable: list[tuple[int, str, dict[str, Any]]] = []
     for record in validated:
         facts = record["facts"]
+        project_number = str(facts.get("project_number") or "").strip().lower()
+        if project_number and project_number in blocked_project_numbers:
+            continue
         mode, intervention, _ = _actionability(facts, as_of)
         if mode == "ARCHIVE":
             continue
         score = intervention + _amount_points(facts.get("budget_cny"))
         sortable.append((-score, record["opportunity_id"], record))
+
     sortable.sort(key=lambda item: (item[0], item[1]))
     cards = [_public_card(item[2], rank + 1, as_of) for rank, item in enumerate(sortable)]
     return {
