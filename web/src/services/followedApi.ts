@@ -1,5 +1,6 @@
 import { todayActionsService } from './index'
 import { apiBaseUrl, isApiMode } from './apiConfig'
+import { listStoredFollowups } from './localFollowupStore'
 
 export interface FollowedOpportunity {
   opportunity_id: string
@@ -135,33 +136,33 @@ function validateItem(value: unknown): FollowedOpportunity {
 }
 
 async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
-  const data = await todayActionsService.getTodayActions()
-  return data.cards
-    .filter((card) => card.followup_status !== 'NEW')
-    .map((card) => {
-      const latestRecord = card.followup_history[0]
-      const latestNote = card.followup_history.find((record) => Boolean(record.note?.trim()))?.note ?? null
-      return {
-        opportunity_id: card.opportunity_id,
-        followup_status: card.followup_status,
-        remind_at: card.remind_at,
-        latest_note: latestNote,
-        followup_updated_at: latestRecord?.at ?? data.refreshed_at,
-        facts: {
-          project_number: card.facts.project_code,
-          project_name: card.facts.project_name,
-          buyer_name: card.facts.buyer_name ?? null,
-          hospital_name: card.facts.hospital,
-          department: card.facts.department,
-          lifecycle_state: card.facts.lifecycle_stage,
-          published_at: card.facts.publish_date,
-          bid_deadline: card.facts.bid_deadline,
-          expected_procurement_at: card.facts.expected_purchase_date,
-          budget_cny: card.facts.budget,
+  // Loading the current feed also migrates older v1 follow-up entries by attaching
+  // a minimal public snapshot before those opportunities rotate out of Today Top5.
+  await todayActionsService.getTodayActions()
+
+  return listStoredFollowups()
+    .flatMap(({ opportunity_id, entry }) => {
+      const snapshot = entry.public_snapshot
+      if (!snapshot) return []
+      const latestRecord = entry.history[0]
+      const latestNote = entry.history.find((record) => Boolean(record.note?.trim()))?.note ?? null
+      return [
+        {
+          opportunity_id,
+          followup_status: entry.status,
+          remind_at: entry.remind_at,
+          latest_note: latestNote,
+          followup_updated_at:
+            latestRecord?.at ?? entry.remind_at ?? '1970-01-01T00:00:00.000Z',
+          facts: { ...snapshot.facts },
+          evidence_source_urls: [...snapshot.evidence_source_urls],
         },
-        evidence_source_urls: [...card.evidence_source_urls],
-      }
+      ]
     })
+    .sort(
+      (a, b) =>
+        new Date(b.followup_updated_at).getTime() - new Date(a.followup_updated_at).getTime(),
+    )
 }
 
 export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]> {
