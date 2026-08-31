@@ -1,4 +1,7 @@
-import todayActionsSnapshot from '../../public/data/today-actions.public.json' with { type: 'json' }
+import {
+  loadVerifiedSnapshot,
+  verifiedSnapshotSourceMode,
+} from '../_verifiedSnapshot.js'
 
 export const config = {
   maxDuration: 30,
@@ -58,10 +61,7 @@ function sameOriginAllowed(request) {
   }
   if (originUrl.protocol !== 'https:' && process.env.NODE_ENV === 'production') return false
 
-  const hosts = [
-    headerValue(request, 'x-forwarded-host'),
-    headerValue(request, 'host'),
-  ]
+  const hosts = [headerValue(request, 'x-forwarded-host'), headerValue(request, 'host')]
     .filter(Boolean)
     .map((value) => value.toLowerCase())
   return hosts.includes(originUrl.host.toLowerCase())
@@ -100,9 +100,8 @@ function fingerprint(value) {
   return (hash >>> 0).toString(16).padStart(8, '0')
 }
 
-function snapshotCacheKey(opportunityId, customerContext, runtimeWindowStatus) {
-  const snapshotAsOf = cleanString(todayActionsSnapshot?.snapshot_as_of, 100) || 'snapshot-unknown'
-  return `${snapshotAsOf}:${opportunityId}:window-${runtimeWindowStatus}:ctx-${fingerprint(customerContext)}`
+function snapshotCacheKey(snapshotAsOf, opportunityId, customerContext, runtimeWindowStatus) {
+  return `${snapshotAsOf || 'snapshot-unknown'}:${opportunityId}:window-${runtimeWindowStatus}:ctx-${fingerprint(customerContext)}`
 }
 
 function getWarmCachedDecision(cacheKey) {
@@ -244,8 +243,8 @@ function sanitizeCustomerContext(raw) {
   }
 }
 
-function findVerifiedOpportunity(opportunityId) {
-  const cards = Array.isArray(todayActionsSnapshot?.cards) ? todayActionsSnapshot.cards : []
+function findVerifiedOpportunity(snapshot, opportunityId) {
+  const cards = Array.isArray(snapshot?.cards) ? snapshot.cards : []
   const card = cards.find((item) => item?.opportunity_id === opportunityId)
   const factsRecord = asObject(card?.facts)
   if (!card || !factsRecord || factsRecord.verification_status !== 'VERIFIED') return null
@@ -455,7 +454,14 @@ export default async function handler(request, response) {
   const opportunityId = cleanString(body.opportunity_id, 200)
   if (!opportunityId) return sendJson(response, 400, { error: 'OPPORTUNITY_ID_REQUIRED' })
 
-  const grounded = findVerifiedOpportunity(opportunityId)
+  let snapshot
+  try {
+    snapshot = await loadVerifiedSnapshot()
+  } catch {
+    return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
+  }
+
+  const grounded = findVerifiedOpportunity(snapshot, opportunityId)
   if (!grounded) {
     return sendJson(response, 404, { error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' })
   }
@@ -476,7 +482,13 @@ export default async function handler(request, response) {
 
   const baseUrl = (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim()
   const apiKey = keys[stableIndex(opportunityId, keys.length)]
-  const cacheKey = snapshotCacheKey(opportunityId, customerContext, windowStatus)
+  const snapshotAsOf = cleanString(snapshot.snapshot_as_of, 100)
+  const cacheKey = snapshotCacheKey(
+    snapshotAsOf,
+    opportunityId,
+    customerContext,
+    windowStatus,
+  )
 
   try {
     const decision = await getOrCreateDecision(cacheKey, {
@@ -491,7 +503,8 @@ export default async function handler(request, response) {
     return sendJson(response, 200, {
       schema_version: '0.1',
       opportunity_id: opportunityId,
-      snapshot_as_of: cleanString(todayActionsSnapshot?.snapshot_as_of, 100),
+      snapshot_as_of: snapshotAsOf,
+      snapshot_source_mode: verifiedSnapshotSourceMode(),
       generated_at: analysisAsOf,
       runtime_window_status: windowStatus,
       decision,
