@@ -8,6 +8,16 @@ const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const MODEL_ID = 'agnes-2.5-flash'
 const MAX_FACT_TEXT = 1200
 const MAX_ARRAY_ITEMS = 30
+const RESULT_CACHE_TTL_MS = 10 * 60 * 1000
+const RESULT_CACHE_MAX = 50
+const RATE_WINDOW_MS = 60 * 1000
+const RATE_MAX_PER_CLIENT = 10
+
+// Warm-instance protection only. These Maps reduce accidental repeat cost but are
+// not a substitute for distributed production rate limiting or authenticated quotas.
+const resultCache = new Map()
+const inFlight = new Map()
+const rateBuckets = new Map()
 
 function sendJson(response, status, payload) {
   response.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -29,6 +39,81 @@ function cleanString(value, max = MAX_FACT_TEXT) {
 function cleanArray(value, mapper) {
   if (!Array.isArray(value)) return []
   return value.slice(0, MAX_ARRAY_ITEMS).map(mapper).filter(Boolean)
+}
+
+function headerValue(request, name) {
+  const value = request.headers?.[name]
+  if (Array.isArray(value)) return value[0] ?? null
+  return typeof value === 'string' ? value : null
+}
+
+function sameOriginAllowed(request) {
+  const origin = headerValue(request, 'origin')
+  if (!origin) return false
+  let originUrl
+  try {
+    originUrl = new URL(origin)
+  } catch {
+    return false
+  }
+  if (originUrl.protocol !== 'https:' && process.env.NODE_ENV === 'production') return false
+
+  const hosts = [
+    headerValue(request, 'x-forwarded-host'),
+    headerValue(request, 'host'),
+  ]
+    .filter(Boolean)
+    .map((value) => value.toLowerCase())
+  return hosts.includes(originUrl.host.toLowerCase())
+}
+
+function clientKey(request) {
+  const forwarded = headerValue(request, 'x-forwarded-for')
+  const firstIp = forwarded?.split(',')[0]?.trim()
+  return firstIp || headerValue(request, 'x-real-ip') || 'unknown-client'
+}
+
+function warmRateLimitExceeded(request) {
+  const now = Date.now()
+  const key = clientKey(request)
+  const current = rateBuckets.get(key)
+  if (!current || now - current.windowStartedAt >= RATE_WINDOW_MS) {
+    rateBuckets.set(key, { windowStartedAt: now, count: 1 })
+    return false
+  }
+  current.count += 1
+  if (rateBuckets.size > 500) {
+    for (const [bucketKey, bucket] of rateBuckets) {
+      if (now - bucket.windowStartedAt >= RATE_WINDOW_MS) rateBuckets.delete(bucketKey)
+    }
+  }
+  return current.count > RATE_MAX_PER_CLIENT
+}
+
+function snapshotCacheKey(opportunityId) {
+  const snapshotAsOf = cleanString(todayActionsSnapshot?.snapshot_as_of, 100) || 'snapshot-unknown'
+  return `${snapshotAsOf}:${opportunityId}`
+}
+
+function getWarmCachedDecision(cacheKey) {
+  const entry = resultCache.get(cacheKey)
+  if (!entry) return null
+  if (Date.now() >= entry.expiresAt) {
+    resultCache.delete(cacheKey)
+    return null
+  }
+  return entry.decision
+}
+
+function cacheWarmDecision(cacheKey, decision) {
+  if (resultCache.size >= RESULT_CACHE_MAX) {
+    const oldestKey = resultCache.keys().next().value
+    if (oldestKey) resultCache.delete(oldestKey)
+  }
+  resultCache.set(cacheKey, {
+    expiresAt: Date.now() + RESULT_CACHE_TTL_MS,
+    decision,
+  })
 }
 
 function normalizeSnapshotBudget(value) {
@@ -221,14 +306,43 @@ async function callProvider({ apiKey, baseUrl, facts, evidenceUrls }) {
   }
 }
 
+async function getOrCreateDecision(cacheKey, providerArgs) {
+  const cached = getWarmCachedDecision(cacheKey)
+  if (cached) return cached
+
+  const pending = inFlight.get(cacheKey)
+  if (pending) return pending
+
+  const promise = callProvider(providerArgs)
+    .then((decision) => {
+      cacheWarmDecision(cacheKey, decision)
+      return decision
+    })
+    .finally(() => {
+      inFlight.delete(cacheKey)
+    })
+  inFlight.set(cacheKey, promise)
+  return promise
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST')
     return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
   }
+  if (!sameOriginAllowed(request)) {
+    return sendJson(response, 403, { error: 'SAME_ORIGIN_REQUIRED' })
+  }
+  if (warmRateLimitExceeded(request)) {
+    return sendJson(response, 429, { error: 'AI_RATE_LIMITED' })
+  }
 
   const body = asObject(request.body)
-  const opportunityId = cleanString(body?.opportunity_id, 200)
+  if (!body) return sendJson(response, 400, { error: 'JSON_BODY_REQUIRED' })
+  if (Object.keys(body).some((key) => key !== 'opportunity_id')) {
+    return sendJson(response, 400, { error: 'UNEXPECTED_FIELDS' })
+  }
+  const opportunityId = cleanString(body.opportunity_id, 200)
   if (!opportunityId) return sendJson(response, 400, { error: 'OPPORTUNITY_ID_REQUIRED' })
 
   const grounded = findVerifiedOpportunity(opportunityId)
@@ -243,9 +357,10 @@ export default async function handler(request, response) {
 
   const baseUrl = (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim()
   const apiKey = keys[stableIndex(opportunityId, keys.length)]
+  const cacheKey = snapshotCacheKey(opportunityId)
 
   try {
-    const decision = await callProvider({
+    const decision = await getOrCreateDecision(cacheKey, {
       apiKey,
       baseUrl,
       facts: grounded.facts,
@@ -254,6 +369,7 @@ export default async function handler(request, response) {
     return sendJson(response, 200, {
       schema_version: '0.1',
       opportunity_id: opportunityId,
+      snapshot_as_of: cleanString(todayActionsSnapshot?.snapshot_as_of, 100),
       generated_at: new Date().toISOString(),
       decision,
       decision_source: 'GROUNDED_AI_PUBLIC_FACTS_ONLY',
