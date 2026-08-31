@@ -38,6 +38,7 @@ const DONE_FOR_TODAY = new Set<FollowupStatus>([
   'LOST',
   'ARCHIVED',
 ])
+const MAX_TODAY_CARDS = 5
 
 function shouldHideFromVerifiedTrialToday(card: TodayActionCard): boolean {
   if (DONE_FOR_TODAY.has(card.followup_status)) return true
@@ -68,8 +69,19 @@ export function TodayPage() {
     try {
       const res = await todayActionsService.getTodayActions()
       if (!isApiMode && isVerifiedPublicDemo) {
-        const cards = await hydrateCachedAiDecisions(res.cards)
-        setData({ ...res, cards })
+        const pool = res.opportunity_pool ?? res.cards
+        const hydratedPool = await hydrateCachedAiDecisions(pool)
+        const cards = hydratedPool
+          .filter((card) => !shouldHideFromVerifiedTrialToday(card))
+          .slice(0, MAX_TODAY_CARDS)
+        setData({
+          ...res,
+          matched_count: hydratedPool.length,
+          card_count: cards.length,
+          opportunity_pool_count: hydratedPool.length,
+          cards,
+          opportunity_pool: hydratedPool,
+        })
       } else {
         setData(res)
       }
@@ -139,18 +151,19 @@ export function TodayPage() {
       const decision = await requestAiDecision(card)
       setData((current) => {
         if (!current) return current
+        const updateCard = (item: TodayActionCard) =>
+          item.opportunity_id === id
+            ? {
+                ...item,
+                model_decision_status: 'READY' as const,
+                model_block_reason: null,
+                decision,
+              }
+            : item
         return {
           ...current,
-          cards: current.cards.map((item) =>
-            item.opportunity_id === id
-              ? {
-                  ...item,
-                  model_decision_status: 'READY',
-                  model_block_reason: null,
-                  decision,
-                }
-              : item,
-          ),
+          cards: current.cards.map(updateCard),
+          opportunity_pool: current.opportunity_pool?.map(updateCard),
         }
       })
       toast('AI已基于公开事实给出行动建议', 'success')
@@ -164,6 +177,8 @@ export function TodayPage() {
           toast('AI服务当前不可用，请稍后再试')
         } else if (cause.code === 'AI_TIMEOUT') {
           toast('AI分析超时，请稍后重试')
+        } else if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') {
+          toast('该项目公开窗口已经结束，当前不再生成行动建议')
         } else if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') {
           toast('该商机暂不在服务端已核验快照中')
         } else {
@@ -203,6 +218,7 @@ export function TodayPage() {
       ? data.cards.filter((card) => !shouldHideFromVerifiedTrialToday(card))
       : data.cards
   const visibleData = { ...data, card_count: visibleCards.length, cards: visibleCards }
+  const poolCount = data.opportunity_pool_count ?? data.opportunity_pool?.length ?? data.matched_count
 
   return (
     <div className="space-y-4">
@@ -223,9 +239,20 @@ export function TodayPage() {
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
           <p className="text-[13px] leading-5 text-amber-900">{data.coverage_warning}</p>
         </div>
-        <p className="mt-2 text-[12px] text-slate-400">
-          经营优先级用于安排销售资源，不代表中标概率。
-        </p>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[12px] text-slate-400">
+            经营优先级用于安排销售资源，不代表中标概率。
+          </p>
+          {!isApiMode && isVerifiedPublicDemo && poolCount > visibleCards.length ? (
+            <button
+              type="button"
+              onClick={() => navigate('/opportunities')}
+              className="rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[12px] font-medium text-teal-800 hover:bg-teal-100"
+            >
+              查看全部 {poolCount} 条商机
+            </button>
+          ) : null}
+        </div>
       </section>
 
       {!isApiMode ? (
@@ -253,7 +280,7 @@ export function TodayPage() {
           </div>
           <p className="mt-3 text-[12px] leading-5 text-slate-500">
             {isVerifiedPublicDemo
-              ? '当前试用读取证据流水线生成的天津公开事实快照。项目名称、采购单位、预算、公告日期、精确截止时间、公开联系人和官方依据来自已核验公开信息；未录入真实客户资源时，医院关系和产品能力明确为空，不参与排序。AI分析按单条商机手动触发，只接收服务端已核验公开事实。已联系、不适合和设置未来提醒的项目会移入“我的跟进”，不继续占用今日重点。自动日更尚未接入，因此仍按快照展示，不冒充实时全量数据。'
+              ? '当前试用读取证据流水线生成的天津公开事实快照。项目名称、采购单位、预算、公告日期、精确截止时间、公开联系人和官方依据来自已核验公开信息；未录入真实客户资源时，医院关系和产品能力明确为空，不参与排序。AI分析按单条商机手动触发，只接收服务端已核验公开事实。已联系、不适合和设置未来提醒的项目会移入“我的跟进”，系统会从商机池自动补足新的今日重点。自动刷新链已准备，当前试用仍按已验证快照展示，不冒充实时全量数据。'
               : '下方项目、医院、联系人和金额均为虚构演示数据。排序来自通用演示场景，不代表真实客户当前资源。'}
           </p>
         </section>
