@@ -208,3 +208,5 @@ export interface OutreachDraft {
   draft: string
   disclaimer: string
 }
+
+export type PriorityTier = 'critical' | 'high' | 'medium' | 'low'
