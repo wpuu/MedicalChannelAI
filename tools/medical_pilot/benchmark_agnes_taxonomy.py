@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
-import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -147,7 +145,17 @@ def aggregate(manifest: dict[str, Any], scored: list[dict[str, Any]], failures: 
     }
 
 
-def call_model(*, api_key: str, base_url: str, model: str, prompt: str, timeout: int = 60) -> str:
+def call_model(
+    *,
+    api_key: str,
+    base_url: str,
+    model: str,
+    prompt: str,
+    timeout: int = 60,
+    global_lease_granted: bool = False,
+) -> str:
+    if global_lease_granted is not True:
+        raise TaxonomyBenchmarkError("DIRECT_PROVIDER_CALL_REQUIRES_GLOBAL_LEASE")
     request = urllib.request.Request(
         base_url.rstrip("/") + "/chat/completions",
         data=json.dumps(
@@ -179,59 +187,38 @@ def call_model(*, api_key: str, base_url: str, model: str, prompt: str, timeout:
                 raise TaxonomyBenchmarkError("response content is not text")
             return content
     except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, KeyError, IndexError) as exc:
-        raise TaxonomyBenchmarkError(f"Agnes request failed: {type(exc).__name__}: {exc}") from exc
+        raise TaxonomyBenchmarkError(f"Agnes request failed: {type(exc).__name__}") from exc
 
 
 def run(manifest: dict[str, Any], *, api_key: str, base_url: str, model: str, rpm: int) -> dict[str, Any]:
-    if rpm < 1 or rpm > 12:
-        raise TaxonomyBenchmarkError("rpm must be between 1 and 12; benchmark must not exceed pilot Agnes start-rate budget")
-    interval = 60.0 / rpm
-    scored: list[dict[str, Any]] = []
-    failures: list[dict[str, str]] = []
-    for index, case in enumerate(manifest["cases"]):
-        if index:
-            time.sleep(interval)
-        try:
-            raw = call_model(api_key=api_key, base_url=base_url, model=model, prompt=build_user_prompt(case))
-            output = extract_json_object(raw)
-            scored.append(score_case(case, output))
-        except TaxonomyBenchmarkError as exc:
-            failures.append({"case_id": case["case_id"], "error": str(exc)})
-    return {
-        "benchmark_id": manifest["benchmark_id"],
-        "model": model,
-        "aggregate": aggregate(manifest, scored, len(failures)),
-        "cases": scored,
-        "failures": failures,
-    }
+    raise TaxonomyBenchmarkError("DIRECT_EXECUTION_DISABLED_USE_AGNES_BENCHMARK_SUITE")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Agnes controlled product-taxonomy benchmark")
+    parser = argparse.ArgumentParser(description="Agnes controlled product-taxonomy benchmark scoring harness")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
-    parser.add_argument("--execute", action="store_true", help="Actually call Agnes; default is dry-run")
-    parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
-    parser.add_argument("--model", default=DEFAULT_MODEL)
-    parser.add_argument("--rpm", type=int, default=DEFAULT_RPM)
+    parser.add_argument("--execute", action="store_true", help="Deprecated and blocked; use agnes_benchmark_suite")
     args = parser.parse_args()
 
     manifest = load_manifest(args.manifest)
-    if not args.execute:
+    if args.execute:
         print(json.dumps({
-            "status": "DRY_RUN_NO_NETWORK",
-            "benchmark_id": manifest["benchmark_id"],
-            "case_count": len(manifest["cases"]),
-            "taxonomy_id_count": len(taxonomy_ids()),
-            "classifier_id_if_passed": manifest["classifier_id_if_passed"],
-        }, ensure_ascii=False, indent=2))
-        return 0
+            "status": "ERROR",
+            "error_class": "DIRECT_EXECUTION_DISABLED_USE_AGNES_BENCHMARK_SUITE",
+            "network_called": False,
+        }, ensure_ascii=False, separators=(",", ":")))
+        return 2
 
-    api_key = os.environ.get("AGNES_API_KEY")
-    if not api_key:
-        raise SystemExit("AGNES_API_KEY is required only when --execute is supplied")
-    result = run(manifest, api_key=api_key, base_url=args.base_url, model=args.model, rpm=args.rpm)
-    print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0 if result["aggregate"]["passed"] else 2
+    print(json.dumps({
+        "status": "DRY_RUN_NO_NETWORK",
+        "benchmark_id": manifest["benchmark_id"],
+        "case_count": len(manifest["cases"]),
+        "taxonomy_id_count": len(taxonomy_ids()),
+        "classifier_id_if_passed": manifest["classifier_id_if_passed"],
+        "execute_via": "python3 -m tools.medical_pilot.agnes_benchmark_suite --execute --maintenance-window",
+        "automatic_classifier_admission_allowed": False,
+    }, ensure_ascii=False, indent=2))
+    return 0
 
 
 if __name__ == "__main__":
