@@ -183,11 +183,13 @@ export interface TodayActionsResponse {
   input_candidate_count: number
   matched_count: number
   card_count: number
+  opportunity_pool_count?: number
   model_request_count: number
   coverage_warning: string
   generated_at: string
   refreshed_at: string
   cards: TodayActionCard[]
+  opportunity_pool?: TodayActionCard[]
   model_requests?: ModelRequest[]
 }
 
