@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import handler from '../api/ai/analyze.js'
+import { clearVerifiedSnapshotCacheForTests } from '../api/_verifiedSnapshot.js'
 
 const snapshot = JSON.parse(
   readFileSync(new URL('../public/data/today-actions.public.json', import.meta.url), 'utf8'),
@@ -45,8 +46,13 @@ function expectStatus(response, expected, code) {
 
 const savedKeys = process.env.AGNES_API_KEYS
 const savedKey = process.env.AGNES_API_KEY
+const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
+const savedPublicRemote = process.env.VITE_VERIFIED_SNAPSHOT_URL
 process.env.AGNES_API_KEYS = ''
 process.env.AGNES_API_KEY = ''
+process.env.VERIFIED_SNAPSHOT_URL = ''
+process.env.VITE_VERIFIED_SNAPSHOT_URL = ''
+clearVerifiedSnapshotCacheForTests()
 
 try {
   let response = await invoke({ method: 'GET' })
@@ -105,8 +111,13 @@ try {
 
   console.log('AI boundary checks: PASS')
 } finally {
+  clearVerifiedSnapshotCacheForTests()
   if (savedKeys === undefined) delete process.env.AGNES_API_KEYS
   else process.env.AGNES_API_KEYS = savedKeys
   if (savedKey === undefined) delete process.env.AGNES_API_KEY
   else process.env.AGNES_API_KEY = savedKey
+  if (savedRemote === undefined) delete process.env.VERIFIED_SNAPSHOT_URL
+  else process.env.VERIFIED_SNAPSHOT_URL = savedRemote
+  if (savedPublicRemote === undefined) delete process.env.VITE_VERIFIED_SNAPSHOT_URL
+  else process.env.VITE_VERIFIED_SNAPSHOT_URL = savedPublicRemote
 }
