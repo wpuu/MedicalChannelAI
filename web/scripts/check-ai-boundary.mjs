@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import handler from '../api/ai/analyze.js'
+import { runtimeWindowStatus } from '../api/ai/_analyzeCore.js'
 import { clearVerifiedSnapshotCacheForTests } from '../api/_verifiedSnapshot.js'
 
 const snapshot = JSON.parse(
@@ -29,10 +30,7 @@ function mockResponse() {
 
 async function invoke({ method = 'POST', body = {}, origin, host = 'trial.example', ip = '198.51.100.1' } = {}) {
   const response = mockResponse()
-  const headers = {
-    host,
-    'x-forwarded-for': ip,
-  }
+  const headers = { host, 'x-forwarded-for': ip }
   if (origin) headers.origin = origin
   await handler({ method, headers, body }, response)
   return response
@@ -56,6 +54,18 @@ process.env.VITE_VERIFIED_SNAPSHOT_URL = ''
 clearVerifiedSnapshotCacheForTests()
 
 try {
+  const dateOnlyFacts = {
+    registration_deadline: null,
+    registration_deadline_date: '2026-07-10',
+    bid_deadline: null,
+  }
+  if (runtimeWindowStatus(dateOnlyFacts, Date.parse('2026-07-10T23:30:00+08:00')) !== 'OPEN') {
+    throw new Error('AI_DATE_ONLY_DEADLINE_DAY_MUST_REMAIN_OPEN')
+  }
+  if (runtimeWindowStatus(dateOnlyFacts, Date.parse('2026-07-11T00:01:00+08:00')) !== 'CLOSED') {
+    throw new Error('AI_DATE_ONLY_DEADLINE_NEXT_DAY_MUST_CLOSE')
+  }
+
   let response = await invoke({ method: 'GET' })
   expectStatus(response, 405, 'AI_BOUNDARY_GET')
   if (response.body?.error !== 'METHOD_NOT_ALLOWED') throw new Error('AI_BOUNDARY_GET_CODE')
@@ -120,8 +130,74 @@ try {
     throw new Error('AI_BOUNDARY_POOL_ONLY_ID_NOT_GROUNDED')
   }
 
+  const expiredDateOnlyId = 'verified-date-only-expired-regression'
+  const expiredCard = JSON.parse(JSON.stringify(snapshot.cards[0]))
+  expiredCard.opportunity_id = expiredDateOnlyId
+  expiredCard.rank = 7
+  expiredCard.facts.registration_deadline = null
+  expiredCard.facts.registration_deadline_date = '2000-01-01'
+  expiredCard.facts.registration_deadline_precision = 'DAY'
+  expiredCard.facts.bid_deadline = null
+  const expiredRemote = JSON.parse(JSON.stringify(snapshot))
+  expiredRemote.opportunity_pool = [...snapshot.cards, expiredCard]
+  expiredRemote.opportunity_pool_count = expiredRemote.opportunity_pool.length
+  expiredRemote.matched_count = expiredRemote.opportunity_pool.length
+  clearVerifiedSnapshotCacheForTests()
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    headers: { get: () => null },
+    text: async () => JSON.stringify(expiredRemote),
+  })
+  response = await invoke({
+    origin: 'https://trial.example',
+    body: { opportunity_id: expiredDateOnlyId },
+    ip: '198.51.100.7',
+  })
+  expectStatus(response, 409, 'AI_BOUNDARY_DATE_ONLY_CLOSED')
+  if (response.body?.error !== 'OPPORTUNITY_WINDOW_CLOSED') {
+    throw new Error('AI_BOUNDARY_DATE_ONLY_CLOSED_CODE')
+  }
+
   process.env.VERIFIED_SNAPSHOT_URL = ''
   clearVerifiedSnapshotCacheForTests()
+
+  process.env.AGNES_API_KEYS = 'fake-key-a,fake-key-b'
+  const seenAuthorization = []
+  let providerAttempt = 0
+  globalThis.fetch = async (_url, options = {}) => {
+    providerAttempt += 1
+    seenAuthorization.push(options.headers?.Authorization ?? null)
+    if (providerAttempt === 1) {
+      return { ok: false, status: 429 }
+    }
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        choices: [{ message: { content: JSON.stringify({
+          action: '联系采购方核实当前窗口',
+          reasons: ['基于已核验公开事实进行下一步人工确认'],
+          risks: ['不得把未知客户关系写成事实'],
+          requires_human_confirmation: true,
+        }) } }],
+      }),
+    }
+  }
+  response = await invoke({
+    origin: 'https://trial.example',
+    body: { opportunity_id: knownOpportunityId },
+    ip: '198.51.100.8',
+  })
+  expectStatus(response, 200, 'AI_MULTI_KEY_FAILOVER_SUCCESS')
+  if (providerAttempt !== 2) throw new Error(`AI_MULTI_KEY_FAILOVER_ATTEMPTS:${providerAttempt}`)
+  if (new Set(seenAuthorization).size !== 2) throw new Error('AI_MULTI_KEY_FAILOVER_DID_NOT_ROTATE_KEY')
+  const responseText = JSON.stringify(response.body)
+  if (responseText.includes('fake-key-a') || responseText.includes('fake-key-b')) {
+    throw new Error('AI_MULTI_KEY_SECRET_LEAK')
+  }
+
+  process.env.AGNES_API_KEYS = ''
   globalThis.fetch = savedFetch
 
   for (let index = 0; index < 10; index += 1) {
