@@ -8,13 +8,16 @@ import tempfile
 import unittest
 
 from tools.medical_pilot.agnes_benchmark_suite import (
+    AgnesBenchmarkSuiteError,
     EXPECTED_TOTAL_CASES,
     TARGET_CLASSIFIER_ID,
     _write_private_result,
     dry_run_summary,
     run_suite,
 )
+from tools.medical_pilot.agnes_dispatch_queue import SQLiteAgnesDispatchQueue
 from tools.medical_pilot.classifier_admission import load_classifier_admissions
+from tools.medical_pilot.today_actions_dispatch import model_input_sha256
 
 
 START = datetime(2026, 8, 31, 2, 0, tzinfo=timezone.utc)
@@ -33,6 +36,30 @@ class FakeClock:
         self.current += timedelta(seconds=seconds)
 
 
+def seed_pending_business_task(db_path: Path) -> None:
+    queue = SQLiteAgnesDispatchQueue(db_path)
+    opportunity_id = "opp_pending_benchmark_guard"
+    model_input = {"schema_version": "0.1", "opportunity_id": opportunity_id}
+    input_hash = model_input_sha256(model_input)
+    task_id = f"today|profile_guard|{opportunity_id}|{input_hash[:24]}"
+    queue.enqueue_if_absent(
+        {
+            "schema_version": "0.1",
+            "task_id": task_id,
+            "source": "TODAY_ACTIONS",
+            "profile_id": "profile_guard",
+            "opportunity_id": opportunity_id,
+            "model_input_sha256": input_hash,
+            "model_input": model_input,
+            "dispatch_item": {
+                "task_id": task_id,
+                "requires_global_lease": True,
+            },
+            "enqueued_at": START.isoformat(),
+        }
+    )
+
+
 class AgnesBenchmarkSuiteTests(unittest.TestCase):
     def test_dry_run_freezes_12_plus_16_as_28_and_never_admits(self) -> None:
         result = dry_run_summary()
@@ -41,10 +68,42 @@ class AgnesBenchmarkSuiteTests(unittest.TestCase):
         self.assertEqual(result["taxonomy_case_count"], 16)
         self.assertEqual(result["total_case_count"], 28)
         self.assertTrue(result["requires_shared_global_lease"])
+        self.assertTrue(result["requires_quiescent_maintenance_window"])
         self.assertEqual(result["provider_retries_per_case"], 0)
         self.assertFalse(result["automatic_classifier_admission_allowed"])
         self.assertFalse(result["classifier_registry_modified"])
         self.assertFalse(result["network_called"])
+
+    def test_execute_requires_explicit_maintenance_window_before_provider_start(self) -> None:
+        calls: list[str] = []
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with self.assertRaises(AgnesBenchmarkSuiteError) as context:
+                run_suite(
+                    api_key="fake-key",
+                    base_url="https://apihub.agnes-ai.com/v1",
+                    lease_db_path=Path(temp_dir) / "lease.sqlite",
+                    general_provider=lambda *args: calls.append("general") or "{}",
+                    taxonomy_provider=lambda *args: calls.append("taxonomy") or "{}",
+                )
+        self.assertEqual(context.exception.code, "MAINTENANCE_WINDOW_CONFIRMATION_REQUIRED")
+        self.assertEqual(calls, [])
+
+    def test_pending_business_queue_blocks_benchmark_before_provider_start(self) -> None:
+        calls: list[str] = []
+        with tempfile.TemporaryDirectory() as temp_dir:
+            db_path = Path(temp_dir) / "lease.sqlite"
+            seed_pending_business_task(db_path)
+            with self.assertRaises(AgnesBenchmarkSuiteError) as context:
+                run_suite(
+                    api_key="fake-key",
+                    base_url="https://apihub.agnes-ai.com/v1",
+                    lease_db_path=db_path,
+                    maintenance_window_confirmed=True,
+                    general_provider=lambda *args: calls.append("general") or "{}",
+                    taxonomy_provider=lambda *args: calls.append("taxonomy") or "{}",
+                )
+        self.assertEqual(context.exception.code, "BUSINESS_AGNES_QUEUE_NOT_QUIESCENT")
+        self.assertEqual(calls, [])
 
     def test_perfect_28_case_suite_passes_with_global_spacing_and_registry_unchanged(self) -> None:
         clock = FakeClock()
@@ -85,6 +144,7 @@ class AgnesBenchmarkSuiteTests(unittest.TestCase):
                 api_key=fake_key,
                 base_url="https://apihub.agnes-ai.com/v1",
                 lease_db_path=Path(temp_dir) / "lease.sqlite",
+                maintenance_window_confirmed=True,
                 now_provider=clock.now,
                 sleeper=clock.sleep,
                 general_provider=general_provider,
@@ -97,6 +157,8 @@ class AgnesBenchmarkSuiteTests(unittest.TestCase):
         self.assertEqual(result["provider_start_count"], EXPECTED_TOTAL_CASES)
         self.assertEqual(len(starts), EXPECTED_TOTAL_CASES)
         self.assertTrue(result["every_provider_start_requires_global_lease"])
+        self.assertTrue(result["business_queue_quiescent_required"])
+        self.assertTrue(result["maintenance_window_confirmed"])
         self.assertEqual(result["provider_retries_per_case"], 0)
         self.assertEqual(result["admission_recommendation"], "ELIGIBLE_FOR_MANUAL_ADMISSION_REVIEW")
         self.assertFalse(result["automatic_classifier_admission_allowed"])
@@ -146,6 +208,7 @@ class AgnesBenchmarkSuiteTests(unittest.TestCase):
                 api_key="fake-key",
                 base_url="https://apihub.agnes-ai.com/v1",
                 lease_db_path=Path(temp_dir) / "lease.sqlite",
+                maintenance_window_confirmed=True,
                 now_provider=clock.now,
                 sleeper=clock.sleep,
                 general_provider=general_provider,
@@ -167,6 +230,7 @@ class AgnesBenchmarkSuiteTests(unittest.TestCase):
                     api_key="fake-key",
                     base_url="https://example.com/v1",
                     lease_db_path=Path(temp_dir) / "lease.sqlite",
+                    maintenance_window_confirmed=True,
                     general_provider=lambda *args: calls.append("general") or "{}",
                     taxonomy_provider=lambda *args: calls.append("taxonomy") or "{}",
                 )
@@ -206,6 +270,7 @@ class AgnesBenchmarkSuiteTests(unittest.TestCase):
                 api_key="do-not-echo-this-key",
                 base_url="https://apihub.agnes-ai.com/v1",
                 lease_db_path=Path(temp_dir) / "lease.sqlite",
+                maintenance_window_confirmed=True,
                 now_provider=clock.now,
                 sleeper=clock.sleep,
                 general_provider=failing_general,
