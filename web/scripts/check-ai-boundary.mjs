@@ -42,6 +42,21 @@ function expectStatus(response, expected, code) {
   }
 }
 
+function successfulProviderResponse() {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({
+      choices: [{ message: { content: JSON.stringify({
+        action: '联系采购方核实当前窗口',
+        reasons: ['基于已核验公开事实进行下一步人工确认'],
+        risks: ['不得把未知客户关系写成事实'],
+        requires_human_confirmation: true,
+      }) } }],
+    }),
+  }
+}
+
 const savedKeys = process.env.AGNES_API_KEYS
 const savedKey = process.env.AGNES_API_KEY
 const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
@@ -163,38 +178,86 @@ try {
   clearVerifiedSnapshotCacheForTests()
 
   process.env.AGNES_API_KEYS = 'fake-key-a,fake-key-b'
-  const seenAuthorization = []
+  let seenAuthorization = []
+  let seenUrls = []
   let providerAttempt = 0
-  globalThis.fetch = async (_url, options = {}) => {
+
+  globalThis.fetch = async (url, options = {}) => {
     providerAttempt += 1
+    seenUrls.push(String(url))
     seenAuthorization.push(options.headers?.Authorization ?? null)
-    if (providerAttempt === 1) {
-      return { ok: false, status: 429 }
-    }
-    return {
-      ok: true,
-      status: 200,
-      json: async () => ({
-        choices: [{ message: { content: JSON.stringify({
-          action: '联系采购方核实当前窗口',
-          reasons: ['基于已核验公开事实进行下一步人工确认'],
-          risks: ['不得把未知客户关系写成事实'],
-          requires_human_confirmation: true,
-        }) } }],
-      }),
-    }
+    return { ok: false, status: 429 }
   }
   response = await invoke({
     origin: 'https://trial.example',
     body: { opportunity_id: knownOpportunityId },
     ip: '198.51.100.8',
   })
-  expectStatus(response, 200, 'AI_MULTI_KEY_FAILOVER_SUCCESS')
-  if (providerAttempt !== 2) throw new Error(`AI_MULTI_KEY_FAILOVER_ATTEMPTS:${providerAttempt}`)
-  if (new Set(seenAuthorization).size !== 2) throw new Error('AI_MULTI_KEY_FAILOVER_DID_NOT_ROTATE_KEY')
-  const responseText = JSON.stringify(response.body)
+  expectStatus(response, 429, 'AI_PROVIDER_429_STOPS_IMMEDIATELY')
+  if (response.body?.error !== 'AI_RATE_LIMITED') throw new Error('AI_PROVIDER_429_CODE')
+  if (providerAttempt !== 1) throw new Error(`AI_PROVIDER_429_RETRIED:${providerAttempt}`)
+  if (new Set(seenAuthorization).size !== 1) throw new Error('AI_PROVIDER_429_ROTATED_KEY')
+  let responseText = JSON.stringify(response.body)
   if (responseText.includes('fake-key-a') || responseText.includes('fake-key-b')) {
     throw new Error('AI_MULTI_KEY_SECRET_LEAK')
+  }
+
+  providerAttempt = 0
+  seenAuthorization = []
+  seenUrls = []
+  globalThis.fetch = async (url, options = {}) => {
+    providerAttempt += 1
+    seenUrls.push(String(url))
+    seenAuthorization.push(options.headers?.Authorization ?? null)
+    if (providerAttempt === 1) return { ok: false, status: 503 }
+    return successfulProviderResponse()
+  }
+  response = await invoke({
+    origin: 'https://trial.example',
+    body: { opportunity_id: knownOpportunityId },
+    ip: '198.51.100.9',
+  })
+  expectStatus(response, 200, 'AI_PROVIDER_503_RETRY_SUCCESS')
+  if (providerAttempt !== 2) throw new Error(`AI_PROVIDER_503_RETRY_ATTEMPTS:${providerAttempt}`)
+  if (new Set(seenAuthorization).size !== 1) throw new Error('AI_PROVIDER_503_RETRY_ROTATED_KEY')
+  if (new Set(seenUrls).size !== 1) throw new Error('AI_PROVIDER_503_RETRY_CHANGED_ROUTE')
+
+  providerAttempt = 0
+  seenAuthorization = []
+  seenUrls = []
+  globalThis.fetch = async (url, options = {}) => {
+    providerAttempt += 1
+    seenUrls.push(String(url))
+    seenAuthorization.push(options.headers?.Authorization ?? null)
+    if (providerAttempt === 1) {
+      const error = new TypeError('fetch failed')
+      error.cause = { code: 'ENOTFOUND' }
+      throw error
+    }
+    return successfulProviderResponse()
+  }
+  response = await invoke({
+    origin: 'https://trial.example',
+    body: {
+      opportunity_id: knownOpportunityId,
+      customer_context: {
+        matching_product_capabilities: [{ category: '检验设备', capability_type: 'CHANNEL' }],
+      },
+    },
+    ip: '198.51.100.10',
+  })
+  expectStatus(response, 200, 'AI_PROVIDER_NETWORK_ALTERNATE_SUCCESS')
+  if (providerAttempt !== 2) throw new Error(`AI_PROVIDER_NETWORK_RETRY_ATTEMPTS:${providerAttempt}`)
+  if (new Set(seenAuthorization).size !== 1) throw new Error('AI_PROVIDER_NETWORK_RETRY_ROTATED_KEY')
+  if (!seenUrls[0]?.startsWith('https://apihub.agnes-ai.com/v1/')) {
+    throw new Error(`AI_PROVIDER_PRIMARY_ROUTE_UNEXPECTED:${seenUrls[0]}`)
+  }
+  if (!seenUrls[1]?.startsWith('https://apihub.agnes-ai.cn/v1/')) {
+    throw new Error(`AI_PROVIDER_ALTERNATE_ROUTE_NOT_USED:${seenUrls[1]}`)
+  }
+  responseText = JSON.stringify(response.body)
+  if (responseText.includes('fake-key-a') || responseText.includes('fake-key-b')) {
+    throw new Error('AI_NETWORK_RETRY_SECRET_LEAK')
   }
 
   process.env.AGNES_API_KEYS = ''

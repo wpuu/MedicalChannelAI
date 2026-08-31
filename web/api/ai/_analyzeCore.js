@@ -6,6 +6,7 @@ import {
 export const config = { maxDuration: 30 }
 
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
+const DEFAULT_ALTERNATE_BASE_URL = 'https://apihub.agnes-ai.cn/v1'
 const MODEL_ID = 'agnes-2.5-flash'
 const MAX_FACT_TEXT = 1200
 const MAX_ARRAY_ITEMS = 30
@@ -13,7 +14,8 @@ const RESULT_CACHE_TTL_MS = 10 * 60 * 1000
 const RESULT_CACHE_MAX = 50
 const RATE_WINDOW_MS = 60 * 1000
 const RATE_MAX_PER_CLIENT = 10
-const PROVIDER_TIMEOUT_MS = 25_000
+const PROVIDER_ATTEMPT_TIMEOUT_MS = 12_000
+const PROVIDER_RETRY_DELAY_MS = 250
 const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
 
 const resultCache = new Map()
@@ -296,9 +298,8 @@ function stableIndex(text, length) {
   return Math.abs(hash >>> 0) % length
 }
 
-function orderedKeys(keys, opportunityId) {
-  const start = stableIndex(opportunityId, keys.length)
-  return Array.from({ length: keys.length }, (_, offset) => keys[(start + offset) % keys.length])
+function selectedKey(keys, opportunityId) {
+  return keys[stableIndex(opportunityId, keys.length)]
 }
 
 function stripCodeFence(text) {
@@ -356,11 +357,40 @@ function buildMessages(facts, evidenceUrls, customerContext, windowStatus, analy
   ]
 }
 
+function normalizeBaseUrl(value) {
+  return String(value || '').trim().replace(/\/+$/, '')
+}
+
+function isTransientHttpStatus(status) {
+  return [408, 500, 502, 503, 504, 520, 522, 524].includes(Number(status))
+}
+
+function isConnectivityError(error) {
+  if (error?.name === 'AbortError') return true
+  if (error instanceof TypeError) return true
+  const code = String(error?.cause?.code || error?.code || '').toUpperCase()
+  return [
+    'ENOTFOUND',
+    'EAI_AGAIN',
+    'ECONNRESET',
+    'ECONNREFUSED',
+    'ETIMEDOUT',
+    'UND_ERR_CONNECT_TIMEOUT',
+    'UND_ERR_HEADERS_TIMEOUT',
+    'CERT_HAS_EXPIRED',
+    'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+  ].includes(code)
+}
+
+function retryDelay() {
+  return new Promise((resolve) => setTimeout(resolve, PROVIDER_RETRY_DELAY_MS))
+}
+
 async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerContext, windowStatus, analysisAsOf }) {
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS)
+  const timeout = setTimeout(() => controller.abort(), PROVIDER_ATTEMPT_TIMEOUT_MS)
   try {
-    const response = await fetch(`${baseUrl.replace(/\/+$/, '')}/chat/completions`, {
+    const response = await fetch(`${normalizeBaseUrl(baseUrl)}/chat/completions`, {
       method: 'POST',
       signal: controller.signal,
       headers: {
@@ -390,21 +420,26 @@ async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerCont
   }
 }
 
-async function callProviderWithKeyFailover(providerArgs, keys, opportunityId) {
-  const candidates = orderedKeys(keys, opportunityId)
-  let lastKeyScopedError = null
-  for (let index = 0; index < candidates.length; index += 1) {
-    try {
-      return await callProvider({ ...providerArgs, apiKey: candidates[index] })
-    } catch (error) {
-      const status = Number(error?.status)
-      const keyScoped = status === 401 || status === 403 || status === 429
-      if (!keyScoped) throw error
-      lastKeyScopedError = error
-      if (index === candidates.length - 1) throw error
+async function callProviderWithTransientRetry(providerArgs, keys, opportunityId) {
+  const apiKey = selectedKey(keys, opportunityId)
+  try {
+    return await callProvider({ ...providerArgs, apiKey })
+  } catch (error) {
+    const status = Number(error?.status)
+    if (status === 401 || status === 403 || status === 429) throw error
+
+    let retryBaseUrl = providerArgs.baseUrl
+    if (isConnectivityError(error)) {
+      if (normalizeBaseUrl(providerArgs.baseUrl) === normalizeBaseUrl(DEFAULT_BASE_URL)) {
+        retryBaseUrl = DEFAULT_ALTERNATE_BASE_URL
+      }
+    } else if (!isTransientHttpStatus(status)) {
+      throw error
     }
+
+    await retryDelay()
+    return callProvider({ ...providerArgs, baseUrl: retryBaseUrl, apiKey })
   }
-  throw lastKeyScopedError || new Error('AI_PROVIDER_UNAVAILABLE')
 }
 
 async function getOrCreateDecision(cacheKey, providerArgs, keys, opportunityId) {
@@ -412,7 +447,7 @@ async function getOrCreateDecision(cacheKey, providerArgs, keys, opportunityId) 
   if (cached) return cached
   const pending = inFlight.get(cacheKey)
   if (pending) return pending
-  const promise = callProviderWithKeyFailover(providerArgs, keys, opportunityId)
+  const promise = callProviderWithTransientRetry(providerArgs, keys, opportunityId)
     .then((decision) => {
       cacheWarmDecision(cacheKey, decision)
       return decision
@@ -486,7 +521,7 @@ export default async function handler(request, response) {
     const status = Number(error?.status)
     if (status === 429) return sendJson(response, 429, { error: 'AI_RATE_LIMITED' })
     if (status === 401 || status === 403) return sendJson(response, 503, { error: 'AI_PROVIDER_AUTH_UNAVAILABLE' })
-    if (error?.name === 'AbortError') return sendJson(response, 504, { error: 'AI_TIMEOUT' })
+    if (status === 408 || error?.name === 'AbortError') return sendJson(response, 504, { error: 'AI_TIMEOUT' })
     return sendJson(response, 502, { error: 'AI_PROVIDER_UNAVAILABLE' })
   }
 }
