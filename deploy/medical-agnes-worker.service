@@ -10,7 +10,8 @@ Group=medicalai
 WorkingDirectory=/srv/medical/app
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONDONTWRITEBYTECODE=1
-EnvironmentFile=-/etc/medicalchannelai/pilot.env
+EnvironmentFile=/etc/medicalchannelai/pilot.env
+ExecStartPre=/usr/bin/python3 -m tools.medical_pilot.pilot_host_preflight --role worker --db /srv/medical/data/pilot.sqlite
 ExecStart=/usr/bin/python3 -m tools.medical_pilot.today_actions_worker_daemon --db /srv/medical/data/pilot.sqlite --idle-sleep 1
 Restart=on-failure
 RestartSec=5
