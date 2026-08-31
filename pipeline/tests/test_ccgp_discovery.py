@@ -23,13 +23,14 @@ FIXTURE = """
 
 
 class CcgpDiscoveryTests(unittest.TestCase):
-    def test_build_search_url_uses_public_search_contract(self) -> None:
+    def test_build_search_url_uses_tianjin_region_contract(self) -> None:
         url = build_search_url(
             keyword="检验科",
             notice_type="公开招标",
             page_index=2,
             start_date="2026-08-01",
             end_date="2026-08-31",
+            region="天津",
         )
         parsed = urlparse(url)
         params = parse_qs(parsed.query)
@@ -39,6 +40,19 @@ class CcgpDiscoveryTests(unittest.TestCase):
         self.assertEqual(params["page_index"], ["2"])
         self.assertEqual(params["start_time"], ["2026:08:01"])
         self.assertEqual(params["end_time"], ["2026:08:31"])
+        self.assertEqual(params["displayZone"], ["天津"])
+        self.assertEqual(params["zoneId"], ["12"])
+
+    def test_unsupported_region_is_rejected(self) -> None:
+        with self.assertRaisesRegex(ValueError, "unsupported region"):
+            build_search_url(
+                keyword="医疗",
+                notice_type="公开招标",
+                page_index=1,
+                start_date="2026-08-01",
+                end_date="2026-08-31",
+                region="未配置地区",
+            )
 
     def test_parse_search_html_yields_discovery_only_candidates(self) -> None:
         candidates = parse_search_html(FIXTURE, keyword="医疗")
