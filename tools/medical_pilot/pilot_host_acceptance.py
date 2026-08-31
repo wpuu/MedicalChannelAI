@@ -8,11 +8,11 @@ from pathlib import Path, PurePosixPath
 import tempfile
 from typing import Any, Callable, Mapping
 
-from .agnes_client import DEFAULT_BASE_URL, validate_base_url
-from .agnes_provider_smoke import run_provider_smoke
 from .attachment_live_probe import probe_attachment, validate_probe_filename, validate_tianjin_finance_attachment_url
+from .pilot_full_chain_smoke import run_full_chain_smoke
 from .pilot_host_preflight import run_preflight
 from .pilot_live_seed import run_seed
+from .today_actions_worker_daemon import build_agnes_client_from_env
 
 
 DEFAULT_ACCEPTANCE_MANIFEST = Path("deploy/pilot-host-acceptance-v0.1.json")
@@ -104,7 +104,7 @@ def load_acceptance_manifest(path: Path) -> HostAcceptanceManifest:
         "official_bootstrap_failure_count",
         "attachment_binary_capture",
         "attachment_parser_pass",
-        "agnes_authenticated_contract_smoke",
+        "full_customer_chain_agnes_smoke",
     }:
         raise PilotHostAcceptanceError("ACCEPTANCE_REQUIREMENTS_INVALID")
     expected_success = requirements.get("official_bootstrap_success_count")
@@ -116,7 +116,7 @@ def load_acceptance_manifest(path: Path) -> HostAcceptanceManifest:
         or requirements.get("official_bootstrap_failure_count") != 0
         or requirements.get("attachment_binary_capture") is not True
         or requirements.get("attachment_parser_pass") is not True
-        or requirements.get("agnes_authenticated_contract_smoke") is not True
+        or requirements.get("full_customer_chain_agnes_smoke") is not True
     ):
         raise PilotHostAcceptanceError("ACCEPTANCE_REQUIREMENTS_INVALID")
 
@@ -191,22 +191,47 @@ def _attachment_result(result: dict[str, Any], *, expected_project_code: str) ->
     }
 
 
-def _provider_result(result: dict[str, Any]) -> dict[str, Any]:
-    passed = result.get("status") == "PASS" and result.get("contract_validation_passed") is True
+def _full_chain_result(result: dict[str, Any]) -> dict[str, Any]:
+    passed = (
+        result.get("status") == "PASS"
+        and result.get("database_scope") == "TEMPORARY_ONLY"
+        and result.get("synthetic_account") is True
+        and result.get("customer_data_used") is False
+        and result.get("production_data_touched") is False
+        and result.get("invite_redeemed") is True
+        and result.get("invite_replay_rejected") is True
+        and result.get("profile_saved") is True
+        and result.get("profile_personalized_ready") is True
+        and result.get("initial_today_model_status") == "AWAITING_MODEL"
+        and result.get("global_lease_required") is True
+        and result.get("worker_status") == "READY"
+        and result.get("provider_call_executed") is True
+        and result.get("queue_drained") is True
+        and result.get("final_today_model_status") == "READY"
+        and result.get("decision_rendered") is True
+        and result.get("public_internal_field_leak") is False
+    )
     safe = {
         "status": "PASS" if passed else "FAIL",
+        "database_scope": result.get("database_scope"),
+        "synthetic_account": result.get("synthetic_account") is True,
+        "customer_data_used": bool(result.get("customer_data_used")),
+        "production_data_touched": bool(result.get("production_data_touched")),
+        "invite_redeemed": bool(result.get("invite_redeemed")),
+        "invite_replay_rejected": bool(result.get("invite_replay_rejected")),
+        "profile_saved": bool(result.get("profile_saved")),
+        "profile_personalized_ready": bool(result.get("profile_personalized_ready")),
+        "initial_today_model_status": result.get("initial_today_model_status"),
+        "global_lease_required": bool(result.get("global_lease_required")),
+        "worker_status": result.get("worker_status"),
         "provider_call_executed": bool(result.get("provider_call_executed")),
-        "contract_validation_passed": bool(result.get("contract_validation_passed")),
-        "lease_status": result.get("lease_status"),
+        "queue_drained": bool(result.get("queue_drained")),
+        "final_today_model_status": result.get("final_today_model_status"),
+        "decision_rendered": bool(result.get("decision_rendered")),
+        "public_internal_field_leak": bool(result.get("public_internal_field_leak")),
     }
-    if passed:
-        safe["action_type"] = result.get("action_type")
-        safe["supporting_fact_count"] = result.get("supporting_fact_count")
-        safe["requires_human_confirmation"] = result.get("requires_human_confirmation")
-    else:
-        safe["error_class"] = result.get("error_class")
-        safe["retryable"] = result.get("retryable")
-        safe["retry_after"] = result.get("retry_after")
+    if not passed and result.get("error_class"):
+        safe["error_class"] = str(result.get("error_class"))[:120]
     return safe
 
 
@@ -217,7 +242,8 @@ def run_host_acceptance(
     environ: Mapping[str, str] | None = None,
     bootstrap_runner: Callable[..., tuple[int, dict[str, Any]]] = run_seed,
     attachment_runner: Callable[..., dict[str, Any]] = probe_attachment,
-    provider_runner: Callable[..., dict[str, Any]] = run_provider_smoke,
+    full_chain_runner: Callable[..., dict[str, Any]] = run_full_chain_smoke,
+    model_client_factory: Callable[[dict[str, str]], Callable[[dict[str, Any]], dict[str, Any]]] = build_agnes_client_from_env,
 ) -> dict[str, Any]:
     manifest_path = Path(manifest_path)
     manifest = load_acceptance_manifest(manifest_path)
@@ -235,19 +261,15 @@ def run_host_acceptance(
             "host_preflight": preflight_result,
             "official_bootstrap": {"status": "SKIPPED"},
             "attachment": {"status": "SKIPPED"},
-            "agnes_provider": {"status": "SKIPPED"},
+            "customer_chain_agnes": {"status": "SKIPPED"},
             "production_data_touched": False,
         }
 
-    api_key = (env.get("MCAI_AGNES_API_KEY") or "").strip()
-    base_url = validate_base_url((env.get("MCAI_AGNES_BASE_URL") or DEFAULT_BASE_URL).strip())
     repo_root = manifest_path.resolve().parent.parent
     bootstrap_manifest_path = repo_root / manifest.bootstrap_manifest
 
     with tempfile.TemporaryDirectory(prefix="mcai-pilot-host-acceptance-") as temp_dir:
-        temp_root = Path(temp_dir)
-        bootstrap_db = temp_root / "bootstrap.sqlite"
-        lease_db = temp_root / "agnes-lease.sqlite"
+        bootstrap_db = Path(temp_dir) / "bootstrap.sqlite"
 
         try:
             exit_code, summary = bootstrap_runner(
@@ -275,19 +297,16 @@ def run_host_acceptance(
             attachment_result = _safe_error(exc)
             attachment_result["project_code"] = manifest.attachment_project_code
 
-        try:
-            provider_raw = provider_runner(
-                api_key=api_key,
-                base_url=base_url,
-                lease_db_path=lease_db,
-            )
-            provider_result = _provider_result(provider_raw)
-        except Exception as exc:
-            provider_result = _safe_error(exc)
+    try:
+        client = model_client_factory(dict(env))
+        chain_raw = full_chain_runner(model_call=client)
+        chain_result = _full_chain_result(chain_raw)
+    except Exception as exc:
+        chain_result = _safe_error(exc)
 
     passed = all(
         item.get("status") == "PASS"
-        for item in (preflight_result, bootstrap_result, attachment_result, provider_result)
+        for item in (preflight_result, bootstrap_result, attachment_result, chain_result)
     )
     return {
         "schema_version": "0.1",
@@ -295,7 +314,7 @@ def run_host_acceptance(
         "host_preflight": preflight_result,
         "official_bootstrap": bootstrap_result,
         "attachment": attachment_result,
-        "agnes_provider": provider_result,
+        "customer_chain_agnes": chain_result,
         "production_data_touched": False,
     }
 
@@ -303,9 +322,9 @@ def run_host_acceptance(
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Run fail-closed Tianjin Pilot host acceptance using only temporary SQLite, "
-            "official public URLs and synthetic Agnes smoke data. The production DB path "
-            "is checked for readiness but never written by this command."
+            "Run fail-closed Tianjin Pilot host acceptance using temporary SQLite, official public URLs, "
+            "a real attachment probe and one full synthetic customer-to-Agnes chain. The production DB "
+            "path is checked for readiness but never written by this command."
         )
     )
     parser.add_argument("--manifest", type=Path, default=DEFAULT_ACCEPTANCE_MANIFEST)
