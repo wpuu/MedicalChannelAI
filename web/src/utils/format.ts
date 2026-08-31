@@ -10,6 +10,22 @@ export function formatDate(value: string | null | undefined): string | null {
   return `${y}年${m}月${d}日`
 }
 
+export function formatDateOnly(value: string | null | undefined): string | null {
+  if (!value) return null
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return null
+  const [, year, month, day] = match
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
+  if (
+    date.getUTCFullYear() !== Number(year) ||
+    date.getUTCMonth() + 1 !== Number(month) ||
+    date.getUTCDate() !== Number(day)
+  ) {
+    return null
+  }
+  return `${Number(year)}年${Number(month)}月${Number(day)}日`
+}
+
 export function formatDateTime(value: string | null | undefined): string | null {
   if (!value) return null
   const date = new Date(value)
@@ -57,6 +73,7 @@ export function pickDisplayDate(facts: {
   bid_deadline: string | null
   expected_purchase_date: string | null
   registration_deadline: string | null
+  registration_deadline_date?: string | null
 }): { label: string; value: string } | null {
   if (facts.bid_deadline) {
     const formatted = formatDate(facts.bid_deadline)
@@ -69,6 +86,15 @@ export function pickDisplayDate(facts: {
   if (facts.registration_deadline) {
     const formatted = formatDate(facts.registration_deadline)
     if (formatted) return { label: '报名截止', value: formatted }
+  }
+  if (facts.registration_deadline_date) {
+    const formatted = formatDateOnly(facts.registration_deadline_date)
+    if (formatted) {
+      return {
+        label: '报名截止日期',
+        value: `${formatted}（未公布具体时间）`,
+      }
+    }
   }
   return null
 }
