@@ -121,7 +121,7 @@ def _public_card(record: dict[str, Any], rank: int, as_of: datetime) -> dict[str
                     "opportunity_paths": ["facts.budget_cny"],
                 },
             ],
-            "warnings": ["ZERO_CONFIG_PUBLIC_FACTS_ONLY"],
+            "warnings": ["ZERO_CONFIG_PUBLIC_FACTS_ONLY", *(record.get("quality_flags") or [])],
             "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY",
         },
         "match_status": "MATCHED_CANDIDATE",
