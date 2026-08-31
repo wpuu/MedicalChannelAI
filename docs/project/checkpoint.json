@@ -33,7 +33,7 @@
     "ai_server_reads_verified_snapshot_by_opportunity_id": true,
     "ai_client_cannot_supply_verified_facts": true,
     "ai_source_text_prompt_injection_boundary": true,
-    "ai_preview_configured": false,
+    "ai_preview_configuration_status": "UNVERIFIED",
     "ai_preview_route_verified": false,
     "live_scheduled_collection": false,
     "local_test_evidence": true,
