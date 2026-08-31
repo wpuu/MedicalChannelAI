@@ -58,6 +58,21 @@ const RELATIONSHIP_STRENGTHS = new Set<RelationshipStrength>([
   'NONE',
 ])
 
+const GENERIC_CAPABILITY_KEYWORDS = new Set([
+  '医疗',
+  '设备',
+  '医疗设备',
+  '耗材',
+  '服务',
+  '医院',
+  '采购',
+  '项目',
+  '系统',
+  '软件',
+  '产品',
+  '仪器',
+])
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -171,6 +186,13 @@ function normalizeForMatch(value: string | null | undefined): string {
   return (value ?? '').toLowerCase().replace(/[\s（）()、，,·.\-_/]+/g, '')
 }
 
+export function isSpecificCapabilityKeyword(value: string): boolean {
+  const normalized = normalizeForMatch(value)
+  if (!normalized || GENERIC_CAPABILITY_KEYWORDS.has(normalized)) return false
+  const hasCjk = /[\u3400-\u9fff]/.test(normalized)
+  return hasCjk ? normalized.length >= 2 : normalized.length >= 4
+}
+
 function cardSearchText(card: TodayActionCard): string {
   const values = [
     card.facts.project_name,
@@ -221,16 +243,41 @@ function relationshipPoints(strength: RelationshipStrength): number {
   }
 }
 
+function hospitalNamesMatch(buyer: string, hospital: string): boolean {
+  if (buyer === hospital) return true
+  // Avoid a very short/generic user-entered fragment such as “总医院” becoming
+  // a relationship match for unrelated institutions.
+  if (hospital.length < 4) return false
+  return buyer.includes(hospital) || hospital.includes(buyer)
+}
+
+function relationAppliesToCard(
+  relation: LocalHospitalRelationship,
+  card: TodayActionCard,
+): boolean {
+  const buyer = normalizeForMatch(card.facts.hospital ?? card.facts.buyer_name)
+  const hospital = normalizeForMatch(relation.hospital)
+  if (!buyer || !hospital || !hospitalNamesMatch(buyer, hospital)) return false
+
+  const scopedDepartment = normalizeForMatch(relation.department)
+  if (!scopedDepartment) return true
+
+  const cardDepartment = normalizeForMatch(card.facts.department)
+  if (!cardDepartment) return false
+  return (
+    cardDepartment === scopedDepartment ||
+    cardDepartment.includes(scopedDepartment) ||
+    scopedDepartment.includes(cardDepartment)
+  )
+}
+
 function relationshipForCard(
   card: TodayActionCard,
   profile: LocalCustomerProfile,
 ): LocalHospitalRelationship | null {
-  const buyer = normalizeForMatch(card.facts.hospital ?? card.facts.buyer_name)
-  if (!buyer) return null
   let best: LocalHospitalRelationship | null = null
   for (const relation of profile.hospital_relationships) {
-    const hospital = normalizeForMatch(relation.hospital)
-    if (!hospital || (!buyer.includes(hospital) && !hospital.includes(buyer))) continue
+    if (!relationAppliesToCard(relation, card)) continue
     if (!best || relationshipPoints(relation.relationship_strength) > relationshipPoints(best.relationship_strength)) {
       best = relation
     }
@@ -245,8 +292,9 @@ function capabilitiesForCard(
   const haystack = cardSearchText(card)
   if (!haystack) return []
   return profile.product_capabilities.filter((capability) => {
+    if (!isSpecificCapabilityKeyword(capability.keyword)) return false
     const keyword = normalizeForMatch(capability.keyword)
-    return Boolean(keyword && haystack.includes(keyword))
+    return haystack.includes(keyword)
   })
 }
 
