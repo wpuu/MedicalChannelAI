@@ -22,6 +22,7 @@ import {
   getDueReminders,
   type DueReminder,
 } from '@/services/reminderApi'
+import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
 import type {
   FollowupStatus,
   NotFitReason,
@@ -39,6 +40,7 @@ const DONE_FOR_TODAY = new Set<FollowupStatus>([
   'ARCHIVED',
 ])
 const MAX_TODAY_CARDS = 5
+const AI_UNCONFIGURED_REASON = 'AI运行配置尚未完成；公开商机、官方依据、跟进和提醒仍可正常使用。'
 
 function shouldHideFromVerifiedTrialToday(card: TodayActionCard): boolean {
   if (DONE_FOR_TODAY.has(card.followup_status)) return true
@@ -51,6 +53,7 @@ export function TodayPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [data, setData] = useState<TodayActionsResponse | null>(null)
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
   const [reminders, setReminders] = useState<DueReminder[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -81,6 +84,9 @@ export function TodayPage() {
           opportunity_pool_count: hydratedPool.length,
           cards,
           opportunity_pool: hydratedPool,
+        })
+        void getRuntimeStatus().then((status) => {
+          if (status) setRuntimeStatus(status)
         })
       } else {
         setData(res)
@@ -170,6 +176,11 @@ export function TodayPage() {
     } catch (cause) {
       if (cause instanceof AiDecisionError) {
         if (cause.code === 'AI_NOT_CONFIGURED') {
+          setRuntimeStatus((current) =>
+            current
+              ? { ...current, ai: { configured: false } }
+              : current,
+          )
           toast('AI服务运行配置尚未完成')
         } else if (cause.code === 'AI_RATE_LIMITED') {
           toast('AI服务当前限流，请稍后再试')
@@ -219,6 +230,10 @@ export function TodayPage() {
       : data.cards
   const visibleData = { ...data, card_count: visibleCards.length, cards: visibleCards }
   const poolCount = data.opportunity_pool_count ?? data.opportunity_pool?.length ?? data.matched_count
+  const aiUnavailableReason =
+    !isApiMode && isVerifiedPublicDemo && runtimeStatus?.ai.configured === false
+      ? AI_UNCONFIGURED_REASON
+      : null
 
   return (
     <div className="space-y-4">
@@ -277,6 +292,22 @@ export function TodayPage() {
                 {label}
               </span>
             ))}
+            {isVerifiedPublicDemo && runtimeStatus?.snapshot.available ? (
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800">
+                公开快照服务正常
+              </span>
+            ) : null}
+            {isVerifiedPublicDemo && runtimeStatus ? (
+              <span
+                className={
+                  runtimeStatus.ai.configured
+                    ? 'rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 font-medium text-indigo-800'
+                    : 'rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 font-medium text-amber-800'
+                }
+              >
+                {runtimeStatus.ai.configured ? 'AI服务已连接' : 'AI服务待配置'}
+              </span>
+            ) : null}
           </div>
           <p className="mt-3 text-[12px] leading-5 text-slate-500">
             {isVerifiedPublicDemo
@@ -314,10 +345,11 @@ export function TodayPage() {
               onRemind={() => setRemindId(card.opportunity_id)}
               onOutreach={() => setOutreachId(card.opportunity_id)}
               onAnalyze={
-                isVerifiedPublicDemo && !isApiMode
+                isVerifiedPublicDemo && !isApiMode && !aiUnavailableReason
                   ? () => void analyzeOpportunity(card.opportunity_id)
                   : undefined
               }
+              analysisUnavailableReason={aiUnavailableReason}
             />
           ))}
         </div>
