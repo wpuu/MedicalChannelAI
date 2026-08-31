@@ -293,10 +293,15 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
     const payload: unknown = await response.json()
     assertNoInternalFields(payload)
     const data = payload as TodayActionsPublicResponse
-    if (data.schema_version !== '0.1' || data.mode !== 'TODAY_ACTIONS' || !Array.isArray(data.cards)) {
+    if (
+      data.schema_version !== '0.1' ||
+      data.mode !== 'TODAY_ACTIONS' ||
+      !Array.isArray(data.cards) ||
+      typeof data.snapshot_as_of !== 'string' ||
+      Number.isNaN(Date.parse(data.snapshot_as_of))
+    ) {
       throw new Error('SNAPSHOT_RESPONSE_INVALID')
     }
-    const now = new Date().toISOString()
     this.snapshot = {
       schema_version: data.schema_version,
       mode: data.mode,
@@ -305,8 +310,8 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       card_count: data.card_count,
       model_request_count: data.model_request_count,
       coverage_warning: COVERAGE_WARNING,
-      generated_at: now,
-      refreshed_at: now,
+      generated_at: data.snapshot_as_of,
+      refreshed_at: data.snapshot_as_of,
       cards: this.hydrateFollowups(data.cards.map(mapPublicCard)),
       model_requests: [],
     }
