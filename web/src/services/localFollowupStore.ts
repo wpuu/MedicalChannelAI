@@ -207,6 +207,65 @@ export function listStoredFollowups(): Array<{
     .map(([opportunity_id, entry]) => ({ opportunity_id, entry }))
 }
 
+export function getStoredHistoricalOpportunityCard(opportunityId: string): TodayActionCard | null {
+  const entry = readLocalFollowups()[opportunityId]
+  const snapshot = entry?.public_snapshot
+  if (!entry || !snapshot) return null
+
+  return {
+    rank: 0,
+    opportunity_id: snapshot.opportunity_id,
+    facts: {
+      project_code: snapshot.facts.project_number,
+      project_name: snapshot.facts.project_name,
+      hospital: snapshot.facts.hospital_name,
+      buyer_name: snapshot.facts.buyer_name,
+      department: snapshot.facts.department,
+      region: null,
+      lifecycle_stage: snapshot.facts.lifecycle_state,
+      notice_type: null,
+      publish_date: snapshot.facts.published_at,
+      registration_deadline: null,
+      bid_deadline: snapshot.facts.bid_deadline,
+      expected_purchase_date: snapshot.facts.expected_procurement_at,
+      budget: snapshot.facts.budget_cny,
+      procurement_method: null,
+      product_categories: [],
+      products: null,
+      official_contact: null,
+      verification_status: 'VERIFIED',
+      coverage_status: 'PARTIAL',
+    },
+    evidence_source_urls: [...snapshot.evidence_source_urls],
+    customer_context: {
+      hospital_relationship: null,
+      matching_product_capabilities: [],
+      partnering_policy: {
+        can_find_manufacturer: null,
+        can_partner_channel: null,
+        can_handle_lease: null,
+      },
+    },
+    priority: {
+      score: 0,
+      components: {
+        PRODUCT_EXECUTION_CAPABILITY: 0,
+        RELATIONSHIP: 0,
+        INTERVENTION_STAGE: 0,
+        PROJECT_AMOUNT: 0,
+      },
+    },
+    match_status: 'ARCHIVE',
+    recommendation_mode: 'ARCHIVE',
+    model_decision_status: 'NOT_ELIGIBLE',
+    model_block_reason: '该商机已不在当前有效商机池中，仅保留历史公开事实与跟进记录。',
+    decision: null,
+    followup_status: entry.status,
+    followup_history: entry.history,
+    remind_at: entry.remind_at,
+  }
+}
+
 export function localReminderId(opportunityId: string): string {
   return `${LOCAL_REMINDER_PREFIX}${opportunityId}`
 }
