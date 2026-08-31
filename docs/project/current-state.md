@@ -2,34 +2,36 @@
 
 日期：2026-08-31  
 分支：`dev/tianjin-pilot-v0.1`  
-阶段：`DETERMINISTIC + REAL_PUBLIC + BACKUP/RESTORE + FULL CUSTOMER CHAIN + AGNES BENCHMARK/REVIEW GATES PASS / REAL HOST EXECUTION PENDING`  
+阶段：`DETERMINISTIC + REAL_PUBLIC + BACKUP/RESTORE + FULL CUSTOMER CHAIN + AGNES BENCHMARK/REVIEW + 3-SOURCE DISCOVERY / REAL HOST EXECUTION PENDING`  
 生产就绪：**false**  
 Draft PR：**#1（保持 Draft，不合并）**
 
 ## 当前可信验证基线
 
-最新代码门禁证据：`42caf97cb7609aa96acf54fec4cd895509eecee5`  
-Vercel deployment：`dpl_DjRWgbYHQYkZ2N9XEitzefMkBthh` → **READY**
+最新**已实际执行完成**的代码门禁证据：`e41a2ba7465391c1c0ea4afa471eb17313c72e1a`  
+Vercel deployment：`dpl_6oDTAkDCPbnJF3hnk1nEsdpZdvkt` → **READY**
 
 同一提交实际执行：
 
-- **530 个 Python unittest → OK**；
+- **536 个 Python unittest → OK**；
 - `npx tsc --noEmit` → PASS；
 - Vite production build → PASS；
 - 1887 modules transformed；
 - `dist/index.html` 约 413.58 KiB / gzip 127.17 KiB。
 
-GitHub Actions 仍存在 runner 未分配问题，因此开发分支继续使用 Vercel Preview 作为可信执行门。
+当前 GitHub HEAD `571b740bc89ddb4fe42cf47ef535bc85dd0b5c30` 又新增了一个 CCGP 非医疗设备反例测试；该提交的 Vercel status 是 `build-rate-limit`，没有实际启动构建。因此**不能**把它写成“537 tests PASS”。可信执行数字继续保持 536，直到新的完整门禁真实运行。
+
+GitHub Actions 当前也没有该 HEAD 的可用 workflow run，所以没有用 GitHub Actions 替代验证。
 
 ## 当前规模
 
 - 7 个运行时 P0 Source：4 IMPLEMENTED、3 PARTIAL_IMPLEMENTATION；
-- 自动 listing discovery：2/7 ready；
+- 自动 listing discovery：**3/7 ready，4/7 not ready**；
 - 50 条 VERIFIED 天津商机 regression fixtures；
 - 15 条 Institution Evidence；
 - 41 份 Schema/合同；
 - **96 个 deterministic test modules**；
-- **530 个实际执行 unittest cases**；
+- **536 个已实际执行 unittest cases**；
 - 真实医疗附件 binary capture：0；
 - Agnes benchmark：**12 general + 16 taxonomy = 28 case，尚未真实执行**；
 - Coverage=`PARTIAL / NOT_EXHAUSTIVE`。
@@ -43,6 +45,73 @@ https://medicalchannelai.vercel.app
 公开采购事实/官方链接是真实的；客户画像资源为明确演示数据；它不是老杨真实账号，也不是实时 Agnes。
 
 真实 Pilot canonical domain 由用户另行处理，本阶段不继续做域名配置。域名完成后再接入 host acceptance / Caddy / Cookie / same-origin 验收。
+
+## 自动 Discovery：当前 3/7 Ready
+
+### Ready 1：天津医科大学总医院
+
+```text
+tjmugh_procurement
+https://www.tjmugh.com.cn/cgxxtzgg/index.shtml
+```
+
+Dedicated hospital listing，使用原有 persistent detail ledger / 24h success recheck / failure backoff。
+
+### Ready 2：天津市第一中心医院
+
+```text
+tj_first_central_hospital_procurement
+https://www.tj-fch.com/ywgk/ynbx/index.shtml
+```
+
+Dedicated hospital listing，同样进入 persistent ledger。
+
+### Ready 3：中国政府采购网地方公告天津过滤镜像
+
+```text
+ccgp_local_notices
+https://www.ccgp.gov.cn/cggg/dfgg/index.htm
+https://www.ccgp.gov.cn/cggg/dfgg/index_1.htm
+```
+
+这里明确是**有限两页 partial mirror，不是天津全量采购列表**。
+
+准入条件 fail-closed：
+
+1. 只扫描代码中显式冻结的 `index.htm` + 已独立核实的 `index_1.htm`；
+2. **不会**因为存在 `index_1.htm` 就推导/猜测 `index_2.htm`、`index_N.htm`；
+3. 每条详情必须在**同一个 `<li>` 公告记录**中明确出现 `地域：天津/天津市`；
+4. 页面其他位置出现“天津”不能给某条公告授权；
+5. 详情 URL 必须是 CCGP 官方 HTTPS host + 已验证 dfgg detail path；
+6. 全国列表使用更严格医疗信号：医院、医疗、医学、医科大学、中医药大学、妇幼、检验、临床、病理、影像、放射、超声、手术、康复、血站、疾控、卫生健康、试剂、药品等；
+7. **单独出现“设备/耗材”不再足以判定医疗**，防止“学校教学设备/市政设备”等误入；
+8. 两个固定 listing page 任一抓取失败，本轮 CCGP source 直接失败，不把残缺扫描记为健康；
+9. 两页详情链接合并去重后进入同一 SQLite discovery URL ledger；
+10. CCGP scheduler 固定 `:07` offset，当前工作日白天 10 分钟 baseline；仍有 persistent slot claim 防重复执行。
+
+当前 readiness reason：
+
+```text
+VERIFIED_EXPLICIT_TIANJIN_REGION_FILTER_BOUNDED_TWO_PAGE_PARTIAL
+```
+
+### 仍 Not Ready 4/7
+
+```text
+tj_government_procurement
+  NATIVE_LIST_ROUTE_UNRESOLVED
+
+tj_government_procurement_center
+  PUBLIC_TENDER_LIST_CLASS_ID_UNRESOLVED
+
+ccgp_procurement_intent
+  SEARCH_DISCOVERY_CAPTCHA_AND_QUERY_CONTRACT_NOT_READY
+
+tj_public_resource_exchange
+  RESULT_LIST_DISCOVERY_CONTRACT_NOT_READY
+```
+
+继续禁止：猜测天津集采 `W00x/classId`、绕过采购意向 CAPTCHA、臆造公共资源 `/index.jhtml` 路径，仅为了提高 ready 数量。
 
 ## 真实公开数据链
 
@@ -230,19 +299,20 @@ backup integrity_check
 
 后续顺序：
 
-1. 目标主机环境文件准备后，在维护窗口运行一次 28-case Agnes benchmark；
-2. 对结果运行 `agnes_benchmark_review`，只获得人工准入审核资格，不自动启用 classifier；
-3. 域名完成后配置真实 canonical HTTPS origin；
-4. 创建 `medicalai`、`/srv/medical/data`、`/srv/medical/backups`；
-5. 创建 root-only `/etc/medicalchannelai/pilot.env`；
-6. 安装 Pilot/Worker/Acceptance systemd unit；
-7. **先运行 `medical-pilot-acceptance.service`，overall PASS 才继续**；
-8. 把5条官方项目正式导入 `/srv/medical/data/pilot.sqlite`；
-9. 启动 `medical-pilot.service` + `medical-agnes-worker.service`；
-10. 验证本机 health、生产库真实 queue → Agnes → READY；
-11. 手工运行一次 `pilot_backup_job`，确认 backup + restore smoke PASS，再 enable timer；
-12. 之后才创建老杨 INVITED 账号并发送一次性注册链接；
-13. 完成 authenticated followup/reminder/followed/outreach、大陆/微信访问验收后，才评估 production_ready / merge。
+1. 继续提高官方 discovery 覆盖，但只接入已验证列表契约；
+2. 目标主机环境文件准备后，在维护窗口运行一次 28-case Agnes benchmark；
+3. 对结果运行 `agnes_benchmark_review`，只获得人工准入审核资格，不自动启用 classifier；
+4. 域名完成后配置真实 canonical HTTPS origin；
+5. 创建 `medicalai`、`/srv/medical/data`、`/srv/medical/backups`；
+6. 创建 root-only `/etc/medicalchannelai/pilot.env`；
+7. 安装 Pilot/Worker/Acceptance systemd unit；
+8. **先运行 `medical-pilot-acceptance.service`，overall PASS 才继续**；
+9. 把5条官方项目正式导入 `/srv/medical/data/pilot.sqlite`；
+10. 启动 `medical-pilot.service` + `medical-agnes-worker.service`；
+11. 验证本机 health、生产库真实 queue → Agnes → READY；
+12. 手工运行一次 `pilot_backup_job`，确认 backup + restore smoke PASS，再 enable timer；
+13. 之后才创建老杨 INVITED 账号并发送一次性注册链接；
+14. 完成 authenticated followup/reminder/followed/outreach、大陆/微信访问验收后，才评估 production_ready / merge。
 
 ## 仍然不能宣称
 
@@ -253,5 +323,6 @@ agnes_benchmark_executed=false
 agnes_classifier_status=BENCHMARK_PENDING
 real_attachment_binary_capture_count=0
 real_host_backup_restore_smoke_pass=false
+latest_head_extra_test_execution_pending_build_rate_limit=true
 PR #1 = Draft / do not merge
 ```
