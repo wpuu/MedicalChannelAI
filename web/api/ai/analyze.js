@@ -244,8 +244,10 @@ function sanitizeCustomerContext(raw) {
 }
 
 function findVerifiedOpportunity(snapshot, opportunityId) {
+  const pool = Array.isArray(snapshot?.opportunity_pool) ? snapshot.opportunity_pool : []
   const cards = Array.isArray(snapshot?.cards) ? snapshot.cards : []
-  const card = cards.find((item) => item?.opportunity_id === opportunityId)
+  const candidates = pool.length ? pool : cards
+  const card = candidates.find((item) => item?.opportunity_id === opportunityId)
   const factsRecord = asObject(card?.facts)
   if (!card || !factsRecord || factsRecord.verification_status !== 'VERIFIED') return null
 
