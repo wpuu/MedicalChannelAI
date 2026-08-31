@@ -22,7 +22,7 @@ export function DecisionBlock({ card }: { card: TodayActionCard }) {
         </div>
         {!isApiMode && isVerifiedPublicDemo ? (
           <p className="mb-2 rounded-lg bg-white/70 px-2.5 py-2 text-[11px] leading-5 text-indigo-800">
-            基于真实公开项目事实 + 演示客户资源计算；当前不是实时 Agnes 调用。
+            当前仅在明确标注的演示判断中展示；真实公开事实本身不等于AI结论。
           </p>
         ) : null}
         <p className="text-[13px] leading-6 text-slate-800">
@@ -64,9 +64,9 @@ export function DecisionBlock({ card }: { card: TodayActionCard }) {
           <div className="flex items-start gap-2">
             <Eye className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
             <div>
-              <p className="text-[13px] font-semibold text-slate-800">当前先观察</p>
+              <p className="text-[13px] font-semibold text-slate-800">尚未做个性化AI判断</p>
               <p className="mt-1 text-[12px] leading-5 text-slate-500">
-                演示模式不模拟一个永远排队的模型任务。该项目产品匹配，但医院关系尚未确认，当前先保留观察。
+                当前只按已核验公开事实、项目金额和时间窗口排序；未录入客户产品能力或医院关系，因此不推断产品匹配度、中标概率或院内关系。
               </p>
             </div>
           </div>
