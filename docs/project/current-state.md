@@ -1,158 +1,178 @@
 # MedicalChannelAI 当前状态
 
-日期：2026-08-30  
+日期：2026-08-31  
 分支：`dev/tianjin-pilot-v0.1`  
-阶段：`TRUSTED_TIANJIN_BACKEND + BUSINESS_DEMO_POLISHED + WECHAT_MAINLAND_ACCESS_GATE + CANONICAL_ORIGIN_HARDENING + SINGLE_HOST_DEPLOYMENT_SCAFFOLD`  
+阶段：`DETERMINISTIC_AND_REAL_PUBLIC_BOOTSTRAP_PASS / REAL_AGNES_AND_PILOT_HOST_SMOKE_PENDING`  
 生产就绪：**false**  
 Draft PR：**#1（保持 Draft，不合并）**
 
-## 当前真实规模
+## 当前可信验证基线
 
-- 7 个运行时 P0 Source：4 `IMPLEMENTED`、3 `PARTIAL_IMPLEMENTATION`
-- 50 条 VERIFIED 天津商机 fixture
-- 15 条 Institution Evidence
-- 41 份 Schema/合同
-- **82 组 deterministic unittest 模块已写入，尚无真实执行 PASS**
-- 真实医疗附件 bytes=0
-- Agnes benchmark 28 case，未执行
-- Coverage=`PARTIAL / NOT_EXHAUSTIVE`
+最新干净验证提交：`1f9e6f47e42f1371b2c2654abdb8e985a54a1eca`  
+Vercel deployment：`dpl_4mBR3RkkZ8ResDBn8VLuAvTyensF` → **READY**
 
-## 商务 Demo
+同一提交实际执行：
 
-当前静态商务 Demo 地址：
+- `475` 个 Python unittest → **OK**；
+- `npx tsc --noEmit` → **PASS**；
+- Vite production build → **PASS**；
+- `1887` modules transformed；
+- `dist/index.html` 约 `413.25 KiB`，gzip `126.96 KiB`。
 
-```text
-https://medicalai.qd.je/
-```
+GitHub Actions 仍存在 runner 未分配问题，因此当前可信执行门使用 Vercel Preview，而不是把 GitHub Actions 的 runner failure 当代码失败。
 
-用户已在目标环境实测：
+## 当前规模
 
-- 中国大陆普通网络可以访问；
-- 微信内置浏览器可以直接点击打开。
+- 7 个运行时 P0 Source：4 `IMPLEMENTED`、3 `PARTIAL_IMPLEMENTATION`；
+- 自动 listing discovery：2/7 ready；
+- 50 条 VERIFIED 天津商机 regression fixtures；
+- 15 条 Institution Evidence；
+- 41 份 Schema/合同；
+- 87 个 deterministic test modules；
+- 475 个实际执行 unittest cases；
+- 真实医疗附件 binary capture：**0**；
+- Agnes benchmark：28 case，尚未真实执行；
+- Coverage=`PARTIAL / NOT_EXHAUSTIVE`。
 
-当前 `medradar.dpdns.org` 微信实测打不开，因此不再作为商务入口。这里按真实用户体验决策，不确认其具体失败原因是微信黑名单还是其他信誉/网络策略。
+## 当前商务 Demo
 
-Demo 已完成商务收口：TOP1 智能采血、虚构客户画像、来源分层、依据不足禁止话术、一键重置、无假 AI 排队、禁止搜索引擎收录、5分钟演示流程。
-
-## qd.je 只承担无登录静态 Demo
-
-`qd.je` 当前存在 Public Suffix / Cloudflare zone 兼容限制，因此：
-
-- `medicalai.qd.je`：仅无登录、无真实客户数据的虚构商务 Demo；
-- 真实 Pilot：使用独立长期可控 HTTPS 域名；
-- 不再要求免费 Demo 域名与真实 Pilot 永久同域。
-
-## 微信 / 中国大陆访问是硬门槛
-
-发给老杨前必须满足 `deploy/CHINA_ACCESS.md`：
-
-1. 微信内置浏览器直接点击可打开；
-2. 至少2条独立大陆网络可访问；
-3. 全程关闭 VPN/Clash/WARP；
-4. HTTPS无警告；
-5. 首页、TOP1、刷新、返回、Demo话术、重置正常；
-6. 演示当天再次用微信点击验证免费域名没有新拦截。
-
-Demo 推荐拓扑：
+Vercel verified public-data Demo：
 
 ```text
-medicalai.qd.je
-  ↓ DNS
-境外源站（香港 > 日本 > 新加坡 > 美国零成本测试）
-  ↓ HTTPS / Caddy
-静态 H5
+https://medicalchannelai.vercel.app
 ```
 
-Demo 不依赖 Cloudflare/Vercel。
+该 Demo 展示真实公开项目快照，但客户资源/画像为明确的演示数据；它不是老杨的真实账号，也没有启用真实 Agnes provider。
 
-## H5 大陆访问优化
+## 真实 Pilot 已具备的产品链
 
-`deploy/build-web.sh demo` 当前会执行：
-
-- `npm ci`
-- `npx tsc --noEmit`
-- `npm run build`
-- HTML/CSS 外部运行依赖扫描
-- 默认3 MiB dist大小预算
-
-首屏禁止依赖 Google Fonts、jsDelivr、unpkg、cdnjs、Google APIs、Vercel/Pages/Workers 默认域等第三方运行资源。
-
-Caddy 对 Vite hash assets 使用 immutable 长缓存，SPA HTML使用 `no-cache`。
-
-## 真实 Pilot 新增 canonical Host / Origin 防线
-
-真实 Pilot 不再只依赖 `SameSite` Cookie 与反向代理域名配置。
-
-新增：
-
-```text
-MCAI_CANONICAL_ORIGIN=https://<independent-pilot-domain>
-```
-
-`pilot_server.py` 启动真实后端时必须配置该值，否则 fail-closed 拒绝启动。
-
-API 策略：
-
-- canonical origin 必须是 HTTPS；
-- 所有业务 API 请求 `Host` 必须匹配 canonical authority；
-- `POST / PUT / PATCH / DELETE` 必须带与 canonical origin 匹配的 `Origin`；
-- Host/Origin 不匹配统一返回 `403 {"error":"FORBIDDEN"}`，不泄露具体失败原因；
-- 本机 `127.0.0.1 / localhost / ::1` 仅可绕过域名访问 `GET/HEAD /api/healthz`；
-- loopback 不能因此访问 `/today` 或写接口。
-
-新增 `test_pilot_origin_policy.py`，覆盖伪造 Host、跨源写请求、sibling origin、本机 health-only 例外和缺失 canonical origin 的启动配置。该模块**已写入但尚未真实执行 PASS**。
-
-## 真实 Pilot 产品链
-
-代码当前已经具备：
-
+- 邀请制注册、账号状态、30天 server-side opaque Session；
+- `/profile` 客户画像编辑；
 - Today Top5 + 详情；
-- opaque Session + 一次性 invite；
-- tenant-private append-only follow-up；
+- 客户产品能力以 controlled taxonomy ID 作为稳定匹配键；
+- profile 保存后重新计算 Today 并按需排 Agnes；
+- tenant/profile private follow-up；
 - 到期站内提醒；
 - `/followed` 长期跟进；
 - grounded on-demand outreach；
-- VERIFIED public facts / 客户私有资源分离；
-- Agnes grounding / allowlist；
-- 浏览器不能自报 tenant/profile；
-- canonical Host/Origin API boundary。
+- VERIFIED public facts 与 customer-confirmed private context 分离；
+- 浏览器不能自报可信 tenant/profile；
+- canonical Host/Origin API boundary；
+- 单机 SQLite + Caddy + systemd 部署脚手架；
+- Agnes persistent queue/worker + shared global lease。
 
-真实客户数据仍不能上线，因为82个测试模块没有真实 PASS。
+仍不得标记 production-ready，因为真实 Pilot 主机、真实 Agnes provider、外部提醒交付等还没有完成最终 smoke。
 
-## Collector / Discovery
+## 真实天津公开数据 bootstrap
 
-Collector 已支持：
+Manifest：
 
-`官方详情 → VERIFIED event/facts → event ledger → lifecycle rebuild → current projection → taxonomy → institution enrichment → today_repo`
+```text
+deploy/tianjin-pilot-bootstrap-urls-2026-08-30.json
+```
 
-自动 listing discovery 仍只有 2/7：
+Importer：
+
+```text
+python3 -m tools.medical_pilot.pilot_live_seed
+```
+
+隔离 Vercel live verification 已真实访问5条注册官方 URL：
+
+- input=5；
+- success=5；
+- failure=0；
+- 项目编号在持久化前与 manifest expected code 核对；
+- 不 seed 客户关系；
+- 不 seed 预写 Agnes 结论。
+
+最新真实验证 deployment：`dpl_5TnA7PKNWtJitBUak1m7CbBnExE5`。
+
+## CCGP 采购需求 grounding 已修复并真实验证
+
+此前 `XCSD-2026-C-181 / 病原微生物能力提升相关设备购置` 虽能 5/5 抓取，但 `product_labels=[]`。根因不是 taxonomy，而是 CCGP 公告中的“采购需求”表格没有被提升成 VERIFIED product facts。
+
+现在新增：
+
+```text
+tools/medical_pilot/ccgp_procurement_demand.py
+```
+
+安全边界：
+
+1. 只认明确的 `包号` + `采购需求` 表头；
+2. 只认合法包号行；
+3. 只把对应采购需求单元格生成 `OFFICIAL_PUBLIC_FACT / product_item`；
+4. 每个 fact 绑定原 snapshot、event、SHA-256 和 evidence text hash；
+5. 资格条件、政策说明、联系人等正文不会因为含“医疗设备”等词而进入 taxonomy；
+6. classifier 仍只消费 `VERIFIED + model_generated=false` 的官方事实。
+
+修复后的真实 live bootstrap 中，`XCSD-2026-C-181` 已得到：
+
+- `LAB_NGS_SEQUENCER`
+- `LAB_AUTOMATED_LIBRARY_PREP`
+- `LAB_METAGENOMICS_ANALYSIS`
+- `LAB_MICROBIAL_MASS_SPECTROMETRY`
+- `LAB_BIOINFORMATICS_COMPUTE_APPLIANCE`
+
+泰达医院 DR 仍正确得到 `MEDICAL_IMAGING_DR`；其余信息不足的项目继续保持空标签，不硬猜。
+
+## 真实附件状态：仍未通过
+
+已经确认一个天津政府官方附件下载 URL，并实现 bounded live attachment probe：
+
+```text
+tools/medical_pilot/attachment_live_probe.py
+```
+
+probe 会限制：HTTPS、天津财政官方 host、`method=downEnId`、DOCX/XLSX、最大32MiB、MIME、magic、SHA-256、本地 OOXML parser；日志只输出安全元数据，不输出附件正文。
+
+但 Vercel IAD 两次真实请求分别在约20秒和60秒发生 **read timeout**，均没有拿到响应 bytes。因此当前必须保持：
+
+- real attachment bytes = 0；
+- MIME = 未观察；
+- size = 未观察；
+- SHA-256 = 未观察；
+- real OOXML parser = 未在该真实附件上通过。
+
+下一次应从中国附近的真实 Pilot 主机或更适合访问天津政府站点的网络执行，而不是继续盲目拉长 Vercel US timeout。
+
+## Agnes 当前真相
+
+已完成：
+
+- server-only provider architecture；
+- `agnes-2.5-flash` contract；
+- queue / scheduler / terminal result；
+- shared global lease；
+- Today worker；
+- grounded outreach；
+- deterministic contract tests。
+
+尚未完成：
+
+- `MCAI_AGNES_API_KEY` 在真实 Pilot 执行环境中的最终配置；
+- 隔离真实 authenticated Agnes provider smoke；
+- 老杨真实 profile → queue → worker → `READY` Top5 的端到端验收。
+
+因此不能声称“真实 Agnes 已跑通”。
+
+## Discovery
+
+自动 listing discovery 仍只有 2/7 ready：
 
 1. `tjmugh_procurement`
 2. `tj_first_central_hospital_procurement`
 
-其余5个继续 fail-closed，不猜 classId/pagination，不绕 CAPTCHA。
+其余5个继续 fail-closed：不猜 classId/pagination，不绕 CAPTCHA，不为自动化覆盖率制造虚假成功。
 
-## CI 真相
+## 下一步优先级
 
-最新检查 HEAD：`c88b73fa4abfd7e53db66cfd3206063331b1f926`  
-Run：`33309593283`
-
-- web-build `99252124011`：未执行任何 step；
-- python-pilot `99252124135`：未执行任何 step。
-
-GitHub Actions 仍是 runner 未分配问题。因此：
-
-- 静态 Demo 不再被它阻塞；
-- 82个 Python test modules 只是“已写入”，不能标 PASS；
-- 真实 Pilot 仍不得提前上线。
-
-## 下一步
-
-1. 保持 `medicalai.qd.je` 作为当前静态商务 Demo 地址；
-2. DNS 指向大陆可达源站；
-3. 目标服务器运行 `deploy/build-web.sh demo`；
-4. Caddy HTTPS；
-5. 通过微信 + 两条大陆网络验收；
-6. 按 `docs/product/demo.md` 完整走查后再发给老杨；
-7. 真实 Pilot 前准备独立 HTTPS 域名并配置 `MCAI_CANONICAL_ORIGIN`；
-8. 并行取得82组后端 tests PASS、Agnes smoke、backup restore 和真实 discovery 验证。
+1. 在中国附近的 Pilot 主机执行真实附件 probe，拿到 bytes/MIME/SHA/parser 证据；
+2. 在真实 Pilot 主机配置 server-only `MCAI_AGNES_API_KEY`；
+3. 用隔离临时 SQLite/profile 做真实 Agnes smoke，不先用老杨账号测试；
+4. 把新加入的病原微生物/测序 taxonomy IDs 暴露到客户 `/profile` 产品能力选择；
+5. 创建老杨 INVITED 账号并发送一次性注册链接；
+6. 老杨填产品能力、厂家/渠道/租赁能力和确认医院关系；
+7. 验证保存后 Agnes 任务排队、worker 运行、Today Top5 从 `AWAITING_MODEL` 进入 `READY`；
+8. 再做 authenticated follow-up/reminder/followed/outreach、backup/restore 和大陆/微信实际访问验收。
