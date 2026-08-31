@@ -1,3 +1,4 @@
+import snapshotHandler from '../api/public-snapshot.js'
 import {
   bundledVerifiedSnapshot,
   clearVerifiedSnapshotCacheForTests,
@@ -6,6 +7,31 @@ import {
 
 function expect(condition, code) {
   if (!condition) throw new Error(code)
+}
+
+function mockResponse() {
+  return {
+    headers: {},
+    statusCode: null,
+    body: null,
+    setHeader(name, value) {
+      this.headers[String(name).toLowerCase()] = value
+    },
+    status(code) {
+      this.statusCode = code
+      return this
+    },
+    json(payload) {
+      this.body = payload
+      return this
+    },
+  }
+}
+
+async function invokeSnapshot(method = 'GET') {
+  const response = mockResponse()
+  await snapshotHandler({ method }, response)
+  return response
 }
 
 const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
@@ -25,6 +51,16 @@ try {
     bundled.snapshot_as_of === bundledVerifiedSnapshot().snapshot_as_of,
     'SNAPSHOT_BUNDLED_AS_OF',
   )
+
+  let endpoint = await invokeSnapshot('GET')
+  expect(endpoint.statusCode === 200, 'SNAPSHOT_ENDPOINT_GET_STATUS')
+  expect(endpoint.body?.schema_version === '0.1', 'SNAPSHOT_ENDPOINT_GET_BODY')
+  expect(
+    endpoint.headers['x-medicalchannelai-snapshot-source'] === 'BUNDLED',
+    'SNAPSHOT_ENDPOINT_BUNDLED_SOURCE',
+  )
+  endpoint = await invokeSnapshot('POST')
+  expect(endpoint.statusCode === 405, 'SNAPSHOT_ENDPOINT_POST_STATUS')
 
   process.env.VERIFIED_SNAPSHOT_URL = 'http://snapshot.example/data.json'
   clearVerifiedSnapshotCacheForTests()
@@ -52,6 +88,13 @@ try {
     remoteFailure?.message === 'VERIFIED_SNAPSHOT_HTTP_503',
     'SNAPSHOT_REMOTE_FAILURE_MUST_NOT_FALL_BACK',
   )
+  clearVerifiedSnapshotCacheForTests()
+  endpoint = await invokeSnapshot('GET')
+  expect(endpoint.statusCode === 503, 'SNAPSHOT_ENDPOINT_REMOTE_FAILURE_STATUS')
+  expect(
+    endpoint.body?.error === 'VERIFIED_SNAPSHOT_UNAVAILABLE',
+    'SNAPSHOT_ENDPOINT_REMOTE_FAILURE_CODE',
+  )
 
   const remotePayload = structuredClone(bundledVerifiedSnapshot())
   remotePayload.snapshot_as_of = '2026-08-31T12:34:56+08:00'
@@ -65,6 +108,12 @@ try {
   const remote = await loadVerifiedSnapshot()
   expect(remote.snapshot_as_of === remotePayload.snapshot_as_of, 'SNAPSHOT_REMOTE_AS_OF')
   expect(remote !== bundled, 'SNAPSHOT_REMOTE_NOT_BUNDLED')
+  endpoint = await invokeSnapshot('GET')
+  expect(endpoint.statusCode === 200, 'SNAPSHOT_ENDPOINT_REMOTE_STATUS')
+  expect(
+    endpoint.headers['x-medicalchannelai-snapshot-source'] === 'REMOTE',
+    'SNAPSHOT_ENDPOINT_REMOTE_SOURCE',
+  )
 
   console.log('Verified snapshot checks: PASS')
 } finally {
