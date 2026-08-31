@@ -18,20 +18,40 @@ def load_array(path: Path, *, label: str) -> list[dict]:
     return payload
 
 
-def normalize_legacy_bundled_snapshot(payload: dict) -> dict:
-    """One-way migration compatibility for the pre-pool bundled trial snapshot.
+def _normalize_legacy_card(card: dict) -> dict:
+    normalized = dict(card)
+    facts = dict(normalized.get('facts') or {})
+    facts.setdefault('registration_deadline_date', None)
+    if 'registration_deadline_precision' not in facts:
+        if facts.get('registration_deadline'):
+            facts['registration_deadline_precision'] = 'MINUTE'
+        elif facts.get('registration_deadline_date'):
+            facts['registration_deadline_precision'] = 'DAY'
+        else:
+            facts['registration_deadline_precision'] = None
+    normalized['facts'] = facts
+    return normalized
 
-    The next pipeline publish writes `opportunity_pool` natively. Until then, the
-    committed bundled snapshot contains exactly the same five actionable records
-    in `cards`, so treating cards as the pool preserves facts without hand-copying
-    a second JSON block.
+
+def normalize_legacy_bundled_snapshot(payload: dict) -> dict:
+    """One-way compatibility for the bundled snapshot generated before pool/deadline precision.
+
+    This compatibility only adds deterministic schema metadata. It never changes a
+    procurement fact or invents a deadline time. The next real pipeline publish
+    writes these fields and `opportunity_pool` natively.
     """
-    if 'opportunity_pool' in payload:
-        return payload
     normalized = dict(payload)
-    cards = list(payload.get('cards') or [])
-    normalized['opportunity_pool_count'] = len(cards)
-    normalized['opportunity_pool'] = cards
+    cards = [_normalize_legacy_card(card) for card in list(payload.get('cards') or [])]
+    normalized['cards'] = cards
+
+    raw_pool = payload.get('opportunity_pool')
+    pool = (
+        [_normalize_legacy_card(card) for card in raw_pool]
+        if isinstance(raw_pool, list)
+        else list(cards)
+    )
+    normalized['opportunity_pool_count'] = payload.get('opportunity_pool_count', len(pool))
+    normalized['opportunity_pool'] = pool
     return normalized
 
 
