@@ -73,6 +73,21 @@ const GENERIC_CAPABILITY_KEYWORDS = new Set([
   '仪器',
 ])
 
+const SHORT_MEDICAL_CAPABILITY_KEYWORDS = new Set([
+  'dr',
+  'ct',
+  'mr',
+  'cr',
+  'ivd',
+  'pcr',
+  'lis',
+  'his',
+  'mri',
+  'ecg',
+  'icu',
+  'gpu',
+])
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -189,6 +204,7 @@ function normalizeForMatch(value: string | null | undefined): string {
 export function isSpecificCapabilityKeyword(value: string): boolean {
   const normalized = normalizeForMatch(value)
   if (!normalized || GENERIC_CAPABILITY_KEYWORDS.has(normalized)) return false
+  if (SHORT_MEDICAL_CAPABILITY_KEYWORDS.has(normalized)) return true
   const hasCjk = /[\u3400-\u9fff]/.test(normalized)
   return hasCjk ? normalized.length >= 2 : normalized.length >= 4
 }
@@ -245,8 +261,6 @@ function relationshipPoints(strength: RelationshipStrength): number {
 
 function hospitalNamesMatch(buyer: string, hospital: string): boolean {
   if (buyer === hospital) return true
-  // Avoid a very short/generic user-entered fragment such as “总医院” becoming
-  // a relationship match for unrelated institutions.
   if (hospital.length < 4) return false
   return buyer.includes(hospital) || hospital.includes(buyer)
 }
