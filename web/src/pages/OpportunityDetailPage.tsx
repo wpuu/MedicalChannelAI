@@ -23,7 +23,10 @@ import {
 } from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStore'
+import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
 import type { FollowupStatus, NotFitReason, TodayActionCard } from '@/types'
+
+const AI_UNCONFIGURED_REASON = 'AI运行配置尚未完成；当前已核验事实、官方依据和跟进功能不受影响。'
 
 function aiErrorMessage(cause: unknown): string {
   if (!(cause instanceof AiDecisionError)) return 'AI分析暂时不可用，请稍后重试'
@@ -42,6 +45,7 @@ export function OpportunityDetailPage() {
   const { toast } = useToast()
   const [card, setCard] = useState<TodayActionCard | null>(null)
   const [historical, setHistorical] = useState(false)
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
@@ -78,6 +82,9 @@ export function OpportunityDetailPage() {
       } else if (!isApiMode && isVerifiedPublicDemo) {
         const [hydrated] = await hydrateCachedAiDecisions([res])
         setCard(hydrated ?? res)
+        void getRuntimeStatus().then((status) => {
+          if (status) setRuntimeStatus(status)
+        })
       } else {
         setCard(res)
       }
@@ -130,6 +137,11 @@ export function OpportunityDetailPage() {
       })
       toast('AI已基于已核验公开事实给出行动建议', 'success')
     } catch (cause) {
+      if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
+        setRuntimeStatus((current) =>
+          current ? { ...current, ai: { configured: false } } : current,
+        )
+      }
       toast(aiErrorMessage(cause))
     } finally {
       setAiBusy(false)
@@ -150,6 +162,10 @@ export function OpportunityDetailPage() {
     card.model_decision_status === 'BLOCKED_GROUNDING' ||
     card.model_decision_status === 'NOT_ELIGIBLE' ||
     card.evidence_source_urls.length === 0
+  const aiUnavailableReason =
+    !historical && !isApiMode && isVerifiedPublicDemo && runtimeStatus?.ai.configured === false
+      ? AI_UNCONFIGURED_REASON
+      : null
 
   return (
     <div className="space-y-4">
@@ -196,6 +212,17 @@ export function OpportunityDetailPage() {
                 TOP {card.rank}
               </span>
               <PriorityBadge score={card.priority.score} />
+              {!isApiMode && isVerifiedPublicDemo && runtimeStatus ? (
+                <span
+                  className={
+                    runtimeStatus.ai.configured
+                      ? 'rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-800 ring-1 ring-indigo-200'
+                      : 'rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200'
+                  }
+                >
+                  {runtimeStatus.ai.configured ? 'AI已连接' : 'AI待配置'}
+                </span>
+              ) : null}
             </>
           )}
         </div>
@@ -224,7 +251,12 @@ export function OpportunityDetailPage() {
           <DecisionCard
             card={card}
             analyzing={aiBusy}
-            onAnalyze={!isApiMode && isVerifiedPublicDemo ? () => void analyze() : undefined}
+            onAnalyze={
+              !isApiMode && isVerifiedPublicDemo && !aiUnavailableReason
+                ? () => void analyze()
+                : undefined
+            }
+            analysisUnavailableReason={aiUnavailableReason}
           />
         </>
       ) : null}
