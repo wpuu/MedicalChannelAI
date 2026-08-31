@@ -3,6 +3,7 @@ import type { TodayActionCard } from '@/types'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { SourceTag } from '@/components/shared/StageBadge'
 import { MODEL_STATUS_COPY } from '@/utils/labels'
+import { hasUserCustomerContext } from '@/utils/customerContext'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
 
@@ -14,15 +15,24 @@ interface DecisionCardProps {
 
 export function DecisionCard({ card, onAnalyze, analyzing }: DecisionCardProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
+  const hasCustomerContext = hasUserCustomerContext(card.customer_context)
 
   return (
     <SectionCard
       title="AI行动建议"
-      subtitle="只基于已核验公开事实，不预测中标概率，不推断院内关系"
+      subtitle={
+        hasCustomerContext
+          ? '已核验公开事实与用户确认资源分开使用；不预测中标概率'
+          : '只基于已核验公开事实，不预测中标概率，不推断院内关系'
+      }
       tone="ai"
       extra={
         <SourceTag tone="ai">
-          {!isApiMode && isVerifiedPublicDemo ? '公开事实约束AI' : 'AI行动建议'}
+          {!isApiMode && isVerifiedPublicDemo
+            ? hasCustomerContext
+              ? '公开事实 + 我的资源'
+              : '公开事实约束AI'
+            : 'AI行动建议'}
         </SourceTag>
       }
     >
@@ -30,7 +40,9 @@ export function DecisionCard({ card, onAnalyze, analyzing }: DecisionCardProps) 
         <div className="space-y-4">
           {!isApiMode && isVerifiedPublicDemo ? (
             <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 px-3 py-2 text-[12px] leading-5 text-indigo-900">
-              本次分析只读取服务端已发布的 VERIFIED 快照。浏览器不能自行提交或修改“已核验事实”。
+              {hasCustomerContext
+                ? '公开采购事实由服务端 VERIFIED 快照提供；“我的资源”来自你自己填写的业务信息。AI可以结合两者做行动判断，但不会把用户自述改写成医院官方事实。'
+                : '本次分析只读取服务端已发布的 VERIFIED 快照。浏览器不能自行提交或修改“已核验事实”。'}
             </div>
           ) : null}
           <div>
@@ -54,7 +66,7 @@ export function DecisionCard({ card, onAnalyze, analyzing }: DecisionCardProps) 
           <div>
             <p className="text-[12px] font-medium text-slate-500">风险</p>
             {card.decision.risks.length === 0 ? (
-              <p className="mt-1 text-[13px] text-slate-500">当前公开事实下未补充额外风险；仍需人工核对正式附件。</p>
+              <p className="mt-1 text-[13px] text-slate-500">当前信息下未补充额外风险；仍需人工核对正式附件与实际资源状态。</p>
             ) : (
               <ul className="mt-1 space-y-1.5">
                 {card.decision.risks.map((item) => (
@@ -102,7 +114,9 @@ export function DecisionCard({ card, onAnalyze, analyzing }: DecisionCardProps) 
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-semibold text-slate-800">尚未做AI行动分析</p>
               <p className="mt-1 text-[13px] leading-6 text-slate-500">
-                当前排序只使用已核验公开事实、项目金额和时间窗口。没有客户产品资料或医院关系时，系统不会假装已经完成资源匹配。
+                {hasCustomerContext
+                  ? '当前排序已经结合你填写的产品能力或医院关系。点击分析后，AI会把这些用户确认资源与服务端已核验公开事实分开使用，进一步给出行动建议。'
+                  : '当前排序只使用已核验公开事实、项目金额和时间窗口。没有客户产品资料或医院关系时，系统不会假装已经完成资源匹配。'}
               </p>
               {onAnalyze ? (
                 <button
@@ -116,7 +130,11 @@ export function DecisionCard({ card, onAnalyze, analyzing }: DecisionCardProps) 
                   ) : (
                     <Sparkles className="h-3.5 w-3.5" />
                   )}
-                  {analyzing ? 'AI分析中' : '用AI分析这条'}
+                  {analyzing
+                    ? 'AI分析中'
+                    : hasCustomerContext
+                      ? '结合我的资源分析'
+                      : '用AI分析这条'}
                 </button>
               ) : null}
             </div>
