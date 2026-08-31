@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 from tools.medical_pilot.benchmark_agnes_taxonomy import (
+    TaxonomyBenchmarkError,
     aggregate,
     build_user_prompt,
+    call_model,
     load_manifest,
+    run,
     score_case,
     validate_output,
 )
@@ -92,6 +96,29 @@ class AgnesTaxonomyBenchmarkTests(unittest.TestCase):
         self.assertTrue(result["passed"])
         self.assertEqual(result["metrics"]["unknown_taxonomy_id_rate"], 0.0)
         self.assertEqual(result["metrics"]["abstention_safety_accuracy"], 1.0)
+
+    def test_direct_provider_call_requires_explicit_global_lease_and_never_opens_network(self) -> None:
+        with patch("tools.medical_pilot.benchmark_agnes_taxonomy.urllib.request.urlopen") as urlopen:
+            with self.assertRaises(TaxonomyBenchmarkError) as context:
+                call_model(
+                    api_key="fake-key",
+                    base_url="https://apihub.agnes-ai.com/v1",
+                    model="agnes-2.5-flash",
+                    prompt="{}",
+                )
+        self.assertIn("GLOBAL_LEASE", str(context.exception))
+        urlopen.assert_not_called()
+
+    def test_legacy_taxonomy_run_execution_is_disabled(self) -> None:
+        with self.assertRaises(TaxonomyBenchmarkError) as context:
+            run(
+                self.manifest,
+                api_key="fake-key",
+                base_url="https://apihub.agnes-ai.com/v1",
+                model="agnes-2.5-flash",
+                rpm=12,
+            )
+        self.assertIn("AGNES_BENCHMARK_SUITE", str(context.exception))
 
 
 if __name__ == "__main__":
