@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-31T08:34:00+08:00",
-  "phase": "DETERMINISTIC_AND_REAL_PUBLIC_BOOTSTRAP_PASS_REAL_AGNES_AND_PILOT_HOST_SMOKE_PENDING",
+  "as_of": "2026-08-31T08:52:00+08:00",
+  "phase": "DETERMINISTIC_AND_REAL_PUBLIC_BOOTSTRAP_PASS_HOST_ACCEPTANCE_READY_REAL_HOST_EXECUTION_PENDING",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -15,8 +15,8 @@
     "verified_opportunity_regression_fixtures": 50,
     "verified_institution_evidence_fixtures": 15,
     "schema_contracts": 41,
-    "deterministic_test_modules_written": 88,
-    "deterministic_unittest_cases_executed": 478,
+    "deterministic_test_modules_written": 91,
+    "deterministic_unittest_cases_executed": 491,
     "real_medical_attachment_binary_captures": 0,
     "agnes_benchmark_cases": 28,
     "agnes_benchmark_executed": false
@@ -72,7 +72,7 @@
     "ready_save_navigates_to_today": true
   },
   "real_public_bootstrap": {
-    "status": "LIVE_ISOLATED_BOOTSTRAP_5_OF_5_PASS_PILOT_HOST_EXECUTION_STILL_PENDING",
+    "status": "LIVE_ISOLATED_BOOTSTRAP_5_OF_5_PASS_PILOT_HOST_PRODUCTION_IMPORT_PENDING",
     "manifest": "deploy/tianjin-pilot-bootstrap-urls-2026-08-30.json",
     "manifest_entry_count": 5,
     "importer": "tools.medical_pilot.pilot_live_seed",
@@ -98,6 +98,7 @@
   "attachments": {
     "bounded_live_probe_written": true,
     "official_tianjin_downenid_route_confirmed": true,
+    "acceptance_manifest_contains_frozen_official_attachment": true,
     "real_binary_capture_passed": false,
     "real_binary_capture_count": 0,
     "vercel_iad_attempt_20s": "READ_TIMEOUT",
@@ -121,6 +122,23 @@
     "provider_smoke_uses_synthetic_grounded_data": true,
     "provider_smoke_requires_global_lease": true,
     "real_authenticated_end_to_end_smoke_passed": false
+  },
+  "host_acceptance": {
+    "status": "WRITTEN_AND_DETERMINISTICALLY_VERIFIED_REAL_HOST_NOT_EXECUTED",
+    "manifest": "deploy/pilot-host-acceptance-v0.1.json",
+    "runner": "python3 -m tools.medical_pilot.pilot_host_acceptance",
+    "preflight_runner": "python3 -m tools.medical_pilot.pilot_host_preflight",
+    "systemd_unit": "deploy/medical-pilot-acceptance.service",
+    "systemd_start_command": "sudo systemctl start medical-pilot-acceptance.service",
+    "systemd_log_command": "sudo journalctl -u medical-pilot-acceptance.service -n 50 --no-pager",
+    "api_and_worker_environment_file_required": true,
+    "api_and_worker_execstartpre_enabled": true,
+    "checks_real_pilot_db_path_permissions": true,
+    "writes_real_pilot_db": false,
+    "bootstrap_uses_temporary_sqlite": true,
+    "agnes_smoke_uses_temporary_sqlite": true,
+    "customer_data_used": false,
+    "full_real_host_acceptance_passed": false
   },
   "followup": {
     "endpoint": "GET/POST /api/followup/:opportunity_id",
@@ -159,17 +177,19 @@
     "real_pilot_backend_strategy": "SINGLE_HOST_SQLITE_PLUS_CADDY",
     "server_default_bind": "127.0.0.1:8787",
     "sqlite_path": "/srv/medical/data/pilot.sqlite",
+    "systemd_environment_file": "/etc/medicalchannelai/pilot.env",
+    "systemd_environment_file_optional": false,
     "serverless_local_sqlite_allowed": false,
     "multi_vps_independent_sqlite_allowed": false,
     "real_pilot_backend_execution_completed": false
   },
   "validation": {
-    "status": "DETERMINISTIC_BACKEND_AND_WEB_GATE_PASS_PLUS_ISOLATED_LIVE_PUBLIC_BOOTSTRAP_PASS",
-    "evidence_commit": "63d47aa1a0311a74a02908456733ca41679b559c",
-    "vercel_deployment_id": "dpl_DK3P2jgaLHqfkGAFV6verUpHj9ZG",
+    "status": "491_TEST_GATE_PASS_PLUS_ISOLATED_LIVE_PUBLIC_BOOTSTRAP_PASS",
+    "evidence_commit": "7c40802019b280d8c6af6c7f543908e8a8ea5fd3",
+    "vercel_deployment_id": "dpl_2PL9asnHRPwrSDQ6PZdS12R96kv6",
     "vercel_deployment_state": "READY",
     "python_command": "python3 -m unittest discover -s tools/medical_pilot -t . -p 'test_*.py'",
-    "python_test_cases_executed": 478,
+    "python_test_cases_executed": 491,
     "python_backend_tests_passed": true,
     "typescript_check_passed": true,
     "vite_production_build_passed": true,
@@ -177,13 +197,14 @@
     "vite_dist_index_kib": 413.58,
     "vite_dist_gzip_kib": 127.17,
     "github_actions_runner_available": false,
-    "interpretation": "The clean Vercel Preview gate on commit 63d47aa1 ran all 478 Python unittest cases, TypeScript checking and the Vite production build and reached READY with no one-shot network marker. The H5 includes the new pathogen-genomics taxonomy options and the isolated Agnes provider-smoke harness is covered by deterministic tests. Separately, deployment dpl_5TnA7PKNWtJitBUak1m7CbBnExE5 executed five registered official URLs against isolated temporary SQLite and passed 5/5, including five grounded taxonomy labels for the disease-control project. No real authenticated Agnes provider call has yet been observed."
+    "interpretation": "The clean Vercel Preview gate on commit 7c408020 ran all 491 Python unittest cases, TypeScript checking and the Vite production build and reached READY. Host preflight, strict systemd EnvironmentFile/ExecStartPre boundaries, the frozen acceptance manifest, temporary-SQLite bootstrap/provider acceptance flow and the manual oneshot acceptance unit are covered. A prior 491-case run had one test-only false positive because a comment literally contained the forbidden string [Install]; the comment was corrected without relaxing the assertion. Separately, deployment dpl_5TnA7PKNWtJitBUak1m7CbBnExE5 executed five registered official URLs against isolated temporary SQLite and passed 5/5. No real authenticated Agnes provider call or real attachment byte capture has yet been observed on the target Pilot host."
   },
   "next": [
-    "run the bounded official attachment probe from a China-near Pilot host or other suitable network and capture real MIME, size, SHA-256 and OOXML parser evidence",
-    "configure server-only MCAI_AGNES_API_KEY on the Pilot host and run python3 -m tools.medical_pilot.agnes_provider_smoke",
-    "start single-host Pilot API plus medical-agnes-worker only after the isolated provider smoke is understood",
-    "create Lao Yang INVITED account with bootstrap-invite and send one-time registration link",
+    "on the target single Pilot host install the three systemd units and create root-controlled /etc/medicalchannelai/pilot.env with MCAI_CANONICAL_ORIGIN and server-only MCAI_AGNES_API_KEY",
+    "run sudo systemctl start medical-pilot-acceptance.service and inspect its safe JSON log; require overall PASS before enabling the API or Agnes worker",
+    "after host acceptance PASS import the five official bootstrap URLs into /srv/medical/data/pilot.sqlite using pilot_live_seed",
+    "start medical-pilot.service and medical-agnes-worker.service and verify local health plus queue-to-READY behavior",
+    "create Lao Yang INVITED account with bootstrap-invite and send the one-time registration link",
     "have Lao Yang fill product capabilities, manufacturer/channel/rental policy and selected hospital relationships",
     "verify profile save immediately queues Agnes and Today Top5 transitions from AWAITING_MODEL to READY",
     "run authenticated followup/reminder/followed/outreach and backup-restore smoke before calling the Pilot production-ready"
