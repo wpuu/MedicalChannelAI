@@ -52,17 +52,15 @@ export function TodayPage() {
       } else {
         setData(res)
       }
-      if (isApiMode) {
-        try {
-          setReminders(await getDueReminders())
-        } catch (cause) {
-          if (isAuthRequiredError(cause)) {
-            navigate('/login', { replace: true })
-            return
-          }
-          // Reminder inbox is auxiliary; a temporary inbox failure must not hide Today Actions.
+
+      try {
+        setReminders(await getDueReminders())
+      } catch (cause) {
+        if (isAuthRequiredError(cause)) {
+          navigate('/login', { replace: true })
+          return
         }
-      } else {
+        // Reminder inbox is auxiliary; a temporary failure must not hide Today Actions.
         setReminders([])
       }
     } catch (cause) {
@@ -155,8 +153,8 @@ export function TodayPage() {
     setReminderBusyId(reminderId)
     try {
       await acknowledgeDueReminder(reminderId)
-      setReminders((items) => items.filter((item) => item.reminder_id !== reminderId))
-      toast('站内提醒已标记处理', 'success')
+      await load(true)
+      toast(isApiMode ? '站内提醒已标记处理' : '本地提醒已标记处理', 'success')
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
