@@ -31,17 +31,19 @@ def listing_snapshot(url: str, html: str) -> Snapshot:
 
 
 class DiscoveryRuntimeTests(unittest.TestCase):
-    def test_only_two_dedicated_hospital_lists_are_ready(self) -> None:
+    def test_three_verified_listing_contracts_are_ready(self) -> None:
         self.assertEqual(
             set(DISCOVERY_READY_LISTINGS),
-            {"tjmugh_procurement", "tj_first_central_hospital_procurement"},
+            {"tjmugh_procurement", "tj_first_central_hospital_procurement", "ccgp_local_notices"},
         )
         self.assertEqual(discovery_readiness("tjmugh_procurement")[0], True)
         ready, reason = discovery_readiness("ccgp_local_notices")
-        self.assertFalse(ready)
-        self.assertEqual(reason, "GENERIC_NATIONAL_LIST_NOT_TIANJIN_SCOPED")
+        self.assertTrue(ready)
+        self.assertEqual(reason, "VERIFIED_EXPLICIT_TIANJIN_REGION_FILTER_HEAD_LISTING_PARTIAL")
         self.assertFalse(discovery_readiness("tj_government_procurement")[0])
         self.assertFalse(discovery_readiness("tj_government_procurement_center")[0])
+        self.assertFalse(discovery_readiness("ccgp_procurement_intent")[0])
+        self.assertFalse(discovery_readiness("tj_public_resource_exchange")[0])
 
     def test_hospital_listing_only_admits_registered_detail_urls(self) -> None:
         html = """
@@ -57,6 +59,62 @@ class DiscoveryRuntimeTests(unittest.TestCase):
             links,
             [("https://www.tjmugh.com.cn/system/2026/08/30/12345.shtml", "医疗设备市场调研公告")],
         )
+
+    def test_ccgp_national_listing_requires_tianjin_in_same_record(self) -> None:
+        html = """
+        <html><body>
+          <div>页面其他位置出现天津不能给任何行授权</div>
+          <ul>
+            <li>
+              <a href="/cggg/dfgg/gkzb/202608/t20260824_27194440.htm">天津市滨海新区海滨人民医院采购人工智能 GPU 算力服务器项目公开招标公告</a>
+              <span>公开招标 发布时间：2026-08-24 18:50 地域：天津 采购人：天津市滨海新区海滨人民医院</span>
+            </li>
+            <li>
+              <a href="/cggg/dfgg/gkzb/202608/t20260827_99999999.htm">某省人民医院医疗设备采购项目公开招标公告</a>
+              <span>公开招标 发布时间：2026-08-27 18:50 地域：山东 采购人：某省人民医院</span>
+            </li>
+            <li>
+              <a href="/cggg/dfgg/gkzb/202608/t20260827_88888888.htm">天津市道路绿化提升工程公开招标公告</a>
+              <span>公开招标 发布时间：2026-08-27 18:50 地域：天津市 采购人：天津市某委员会</span>
+            </li>
+            <li>
+              <a href="https://attacker.example/cggg/dfgg/gkzb/202608/t20260827_77777777.htm">天津医院医疗设备采购</a>
+              <span>地域：天津 采购人：天津医院</span>
+            </li>
+          </ul>
+        </body></html>
+        """
+
+        links = extract_registered_detail_links("ccgp_local_notices", html)
+        self.assertEqual(
+            links,
+            [
+                (
+                    "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194440.htm",
+                    "天津市滨海新区海滨人民医院采购人工智能 GPU 算力服务器项目公开招标公告",
+                )
+            ],
+        )
+
+    def test_ccgp_region_text_outside_notice_record_never_grants_tianjin_scope(self) -> None:
+        html = """
+        <html><body>
+          <div>地域：天津</div>
+          <li>
+            <a href="/cggg/dfgg/gkzb/202608/t20260827_99999999.htm">人民医院医疗设备采购项目公开招标公告</a>
+            <span>地域：河北 采购人：某人民医院</span>
+          </li>
+        </body></html>
+        """
+        self.assertEqual(extract_registered_detail_links("ccgp_local_notices", html), [])
+
+    def test_ccgp_ready_contract_is_explicitly_head_listing_partial_not_exhaustive(self) -> None:
+        self.assertEqual(
+            DISCOVERY_READY_LISTINGS["ccgp_local_notices"],
+            "https://www.ccgp.gov.cn/cggg/dfgg/index.htm",
+        )
+        _, reason = discovery_readiness("ccgp_local_notices")
+        self.assertIn("HEAD_LISTING_PARTIAL", reason)
 
     def test_successful_detail_is_not_refetched_until_recheck_window(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -92,6 +150,34 @@ class DiscoveryRuntimeTests(unittest.TestCase):
             self.assertEqual(second.attempted_count, 0)
             self.assertEqual(len(calls), 1)
             self.assertEqual(first.listing_url, listing_url)
+
+    def test_ccgp_filtered_link_enters_same_persistent_due_ledger(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            db = Path(tmp) / "pilot.sqlite"
+            listing_url = DISCOVERY_READY_LISTINGS["ccgp_local_notices"]
+            html = """
+            <li>
+              <a href="/cggg/dfgg/gkzb/202608/t20260824_27194440.htm">天津市滨海新区海滨人民医院采购人工智能 GPU 算力服务器项目公开招标公告</a>
+              <span>发布时间：2026-08-24 18:50 地域：天津 采购人：天津市滨海新区海滨人民医院</span>
+            </li>
+            """
+            calls: list[str] = []
+
+            result = run_source_discovery_once(
+                "ccgp_local_notices",
+                db_path=db,
+                now=NOW,
+                fetch_listing=lambda url: listing_snapshot(url, html),
+                ingest_detail=lambda url, path: calls.append(url),
+            )
+
+            self.assertEqual(result.listing_url, listing_url)
+            self.assertEqual(result.discovered_count, 1)
+            self.assertEqual(result.persisted_count, 1)
+            self.assertEqual(
+                calls,
+                ["https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194440.htm"],
+            )
 
     def test_failed_detail_uses_backoff_in_persistent_ledger(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
