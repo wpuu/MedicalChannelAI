@@ -244,6 +244,11 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
 
   constructor(private readonly snapshotUrl: string) {}
 
+  private refreshLocalDerivedState(data: TodayActionsResponse): TodayActionsResponse {
+    data.cards = personalizeTrialCards(hydrateLocalFollowups(data.cards))
+    return data
+  }
+
   private async ensureLoaded(): Promise<TodayActionsResponse> {
     if (this.snapshot) return this.snapshot
     const response = await fetch(this.snapshotUrl, {
@@ -266,8 +271,6 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
 
     const mappedCards = data.cards.map(mapPublicCard)
     backfillLocalFollowupSnapshots(mappedCards)
-    const hydratedCards = hydrateLocalFollowups(mappedCards)
-    const personalizedCards = personalizeTrialCards(hydratedCards)
 
     this.snapshot = {
       schema_version: data.schema_version,
@@ -279,24 +282,25 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       coverage_warning: COVERAGE_WARNING,
       generated_at: data.snapshot_as_of,
       refreshed_at: data.snapshot_as_of,
-      cards: personalizedCards,
+      cards: mappedCards,
       model_requests: [],
     }
-    return this.snapshot
+    return this.refreshLocalDerivedState(this.snapshot)
   }
 
   async getTodayActions(): Promise<TodayActionsResponse> {
-    return structuredClone(await this.ensureLoaded())
+    const data = this.refreshLocalDerivedState(await this.ensureLoaded())
+    return structuredClone(data)
   }
 
   async getOpportunity(id: string): Promise<TodayActionCard | null> {
-    const data = await this.ensureLoaded()
+    const data = this.refreshLocalDerivedState(await this.ensureLoaded())
     const card = data.cards.find((item) => item.opportunity_id === id)
     return card ? structuredClone(card) : null
   }
 
   async updateFollowup(id: string, input: FollowupInput): Promise<void> {
-    const data = await this.ensureLoaded()
+    const data = this.refreshLocalDerivedState(await this.ensureLoaded())
     const card = data.cards.find((item) => item.opportunity_id === id)
     if (!card) throw new Error('未找到对应商机')
     const record: FollowupRecord = {
