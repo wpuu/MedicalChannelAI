@@ -24,6 +24,11 @@ from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
     parse_search_html,
 )
 from medical_channel_pipeline.ccgp_events import parse_ccgp_event_html  # noqa: E402
+from medical_channel_pipeline.state import (  # noqa: E402
+    active_ccgp_project_numbers,
+    merge_canonical_records,
+    merge_notice_events,
+)
 
 VERIFIED_NOTICE_ADAPTERS = {
     '公开招标': parse_ccgp_public_tender_html,
@@ -45,6 +50,16 @@ def now_iso() -> str:
 def write_json(path: Path, payload: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def load_json_arrays(paths: list[Path], *, label: str) -> list[dict]:
+    merged: list[dict] = []
+    for path in paths:
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        if not isinstance(payload, list):
+            raise ValueError(f'{label} must contain a JSON array: {path}')
+        merged.extend(payload)
+    return merged
 
 
 def discovery_event(candidate, *, project_number: str, event_type: str, observed_at: str) -> dict:
@@ -195,7 +210,7 @@ def discover_candidates(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description='Low-frequency CCGP Pilot sync: Tianjin discovery -> VERIFIED detail -> event safety scan.'
+        description='Stateful low-frequency CCGP Pilot sync: Tianjin discovery -> VERIFIED detail -> active-project event watch.'
     )
     parser.add_argument('--keyword', required=True)
     parser.add_argument('--start-date', required=True, help='YYYY-MM-DD')
@@ -213,7 +228,22 @@ def main() -> int:
         default=None,
         help='Repeat to select VERIFIED-supported CCGP notice types. Defaults to public tender + competitive consultation.',
     )
+    parser.add_argument(
+        '--existing-records-input',
+        action='append',
+        type=Path,
+        default=[],
+        help='Previous canonical-record JSON array. Repeat to merge source stores before this sync.',
+    )
+    parser.add_argument(
+        '--existing-events-input',
+        action='append',
+        type=Path,
+        default=[],
+        help='Previous correction/termination event JSON array. Repeat to preserve event history.',
+    )
     parser.add_argument('--max-candidates', type=int, default=5)
+    parser.add_argument('--max-event-watch-projects', type=int, default=20)
     parser.add_argument('--delay-seconds', type=float, default=4.0)
     parser.add_argument('--records-output', required=True, type=Path)
     parser.add_argument('--events-output', required=True, type=Path)
@@ -222,14 +252,20 @@ def main() -> int:
 
     if not 1 <= args.max_candidates <= 20:
         raise ValueError('--max-candidates must be between 1 and 20')
+    if not 1 <= args.max_event_watch_projects <= 100:
+        raise ValueError('--max-event-watch-projects must be between 1 and 100')
     if args.delay_seconds < 3:
         raise ValueError('--delay-seconds must be >= 3')
 
     notice_types = args.notice_type or DEFAULT_NOTICE_TYPES
     observed_at = now_iso()
+    observed_datetime = datetime.fromisoformat(observed_at)
     failures: list[dict] = []
-    records: list[dict] = []
-    events: list[dict] = []
+    new_records: list[dict] = []
+    new_events: list[dict] = []
+
+    existing_records = load_json_arrays(args.existing_records_input, label='existing records')
+    existing_events = load_json_arrays(args.existing_events_input, label='existing events')
 
     discovered = discover_candidates(
         keyword=args.keyword,
@@ -253,7 +289,7 @@ def main() -> int:
                 observed_at=observed_at,
                 opportunity_id=stable_id('ccgp', candidate.detail_url),
             )
-            records.append(record)
+            new_records.append(record)
         except Exception as exc:
             failures.append(
                 {
@@ -266,10 +302,17 @@ def main() -> int:
                     'message': str(exc)[:300],
                 }
             )
-            continue
 
-        project_number = record['facts']['project_number']
-        events.extend(
+    merged_records = merge_canonical_records(existing_records, new_records)
+    watch_projects = active_ccgp_project_numbers(merged_records, observed_datetime)
+    if len(watch_projects) > args.max_event_watch_projects:
+        raise RuntimeError(
+            f'ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>'
+            f'{args.max_event_watch_projects}'
+        )
+
+    for project_number in watch_projects:
+        new_events.extend(
             scan_events(
                 project_number,
                 region=args.region,
@@ -281,13 +324,7 @@ def main() -> int:
             )
         )
 
-    records_by_project = {}
-    for record in records:
-        records_by_project[record['facts']['project_number'].strip().lower()] = record
-    records = list(records_by_project.values())
-
-    events_by_id = {event['event_id']: event for event in events}
-    events = list(events_by_id.values())
+    merged_events = merge_notice_events(existing_events, new_events)
 
     report = {
         'schema_version': '0.1',
@@ -297,12 +334,20 @@ def main() -> int:
         'keyword': args.keyword,
         'notice_types': notice_types,
         'candidate_count': len(candidates),
-        'verified_record_count': len(records),
-        'notice_event_count': len(events),
+        'existing_record_count': len(existing_records),
+        'new_verified_record_count': len(new_records),
+        'merged_record_count': len(merged_records),
+        'event_watch_project_count': len(watch_projects),
+        'existing_event_count': len(existing_events),
+        'new_notice_event_count': len(new_events),
+        'merged_event_count': len(merged_events),
         'failure_count': len(failures),
         'failures': failures,
         'policy': {
             'region_is_explicitly_scoped_in_ccgp_query': True,
+            'previous_canonical_state_is_preserved': True,
+            'active_old_projects_continue_event_monitoring': True,
+            'event_watch_over_cap_fails_closed': True,
             'discovery_only_never_becomes_verified_without_detail': True,
             'only_notice_types_with_explicit_verified_adapter_are_collected': True,
             'rate_limit_bypass': False,
@@ -310,12 +355,13 @@ def main() -> int:
         },
     }
 
-    write_json(args.records_output, records)
-    write_json(args.events_output, events)
+    write_json(args.records_output, merged_records)
+    write_json(args.events_output, merged_events)
     write_json(args.report_output, report)
     print(
-        f'region={args.region} candidates={len(candidates)} verified={len(records)} '
-        f'events={len(events)} failures={len(failures)}'
+        f'region={args.region} candidates={len(candidates)} new_verified={len(new_records)} '
+        f'merged_records={len(merged_records)} watched={len(watch_projects)} '
+        f'new_events={len(new_events)} failures={len(failures)}'
     )
     return 0
 
