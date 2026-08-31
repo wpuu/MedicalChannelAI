@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ExternalLink, RefreshCw } from 'lucide-react'
+import { ChevronRight, ExternalLink, RefreshCw } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { isAuthRequiredError } from '@/services/apiConfig'
@@ -67,7 +67,7 @@ export function FollowedPage() {
     return (
       <EmptyState
         title="暂无跟进中的商机"
-        hint="在今日行动中点击已联系、继续跟进或稍后提醒后，会进入这里。"
+        hint="在今日行动或商机池中加入跟进、标记已联系或设置提醒后，会进入这里。"
       />
     )
   }
@@ -123,6 +123,14 @@ export function FollowedPage() {
                     {item.facts.project_name ?? '项目名称暂无公开信息'}
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/opportunity/${item.opportunity_id}`)}
+                  className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  查看详情
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
               </div>
 
               <div className="mt-3 grid gap-2 text-[12px] text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
