@@ -1,0 +1,96 @@
+name: Tianjin Medical Refresh
+
+on:
+  schedule:
+    # 08:20 Asia/Shanghai every day.
+    - cron: '20 0 * * *'
+    # 16:20 Asia/Shanghai on weekdays to catch same-day notices.
+    - cron: '20 8 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tianjin-medical-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify current evidence pipeline
+        working-directory: pipeline
+        run: python -m unittest discover -s tests -v
+
+      - name: Compute one authoritative refresh timestamp
+        id: clock
+        shell: bash
+        run: |
+          set -euo pipefail
+          AS_OF="$(python - <<'PY'
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          print(datetime.now(ZoneInfo('Asia/Shanghai')).isoformat())
+          PY
+          )"
+          echo "as_of=${AS_OF}" >> "$GITHUB_OUTPUT"
+          echo "Refresh as-of: ${AS_OF}"
+
+      - name: Sync verified Tianjin CCGP state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python pipeline/scripts/sync_tianjin_plan.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --existing-records-input pipeline/data/tianjin_verified_seed.json \
+            --existing-records-input pipeline/data/tianjin_live_ccgp_records.json \
+            --existing-events-input pipeline/data/tianjin_notice_events.json \
+            --records-output pipeline/data/tianjin_live_ccgp_records.json \
+            --events-output pipeline/data/tianjin_notice_events.json \
+            --report-output pipeline/data/tianjin_sync_report.json
+
+      - name: Publish H5-safe verified snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          python pipeline/scripts/publish_web_snapshot.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --input pipeline/data/tianjin_live_ccgp_records.json \
+            --input pipeline/data/tianjin_official_institution_seed.json \
+            --event-input pipeline/data/tianjin_notice_events.json \
+            --output web/public/data/today-actions.public.json
+
+      - name: Verify generated snapshot
+        working-directory: pipeline
+        run: python -m unittest discover -s tests -v
+
+      - name: Commit verified refresh only when data changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'medicalchannel-refresh[bot]'
+          git config user.email 'medicalchannel-refresh[bot]@users.noreply.github.com'
+          git add \
+            pipeline/data/tianjin_live_ccgp_records.json \
+            pipeline/data/tianjin_notice_events.json \
+            pipeline/data/tianjin_sync_report.json \
+            web/public/data/today-actions.public.json
+          if git diff --cached --quiet; then
+            echo 'No verified state change to commit.'
+            exit 0
+          fi
+          git commit -m 'data: refresh Tianjin verified opportunities'
+          git push
