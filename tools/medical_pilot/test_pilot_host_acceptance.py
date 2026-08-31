@@ -49,6 +49,12 @@ def write_manifest(root: Path, *, attachment_url: str = ATTACHMENT_URL) -> Path:
     return path
 
 
+def pilot_db(root: Path) -> Path:
+    data = root / "data"
+    data.mkdir(parents=True, exist_ok=True)
+    return data / "pilot.sqlite"
+
+
 class PilotHostAcceptanceTests(unittest.TestCase):
     def test_manifest_accepts_only_frozen_official_inputs(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -121,9 +127,11 @@ class PilotHostAcceptanceTests(unittest.TestCase):
             }
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            path = write_manifest(Path(temp_dir))
+            root = Path(temp_dir)
+            path = write_manifest(root)
             result = run_host_acceptance(
                 manifest_path=path,
+                pilot_db_path=pilot_db(root),
                 environ={
                     "MCAI_CANONICAL_ORIGIN": "https://pilot.example.com",
                     "MCAI_AGNES_API_KEY": "super-secret-test-key",
@@ -134,6 +142,7 @@ class PilotHostAcceptanceTests(unittest.TestCase):
             )
 
         self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["host_preflight"]["status"], "PASS")
         self.assertFalse(result["production_data_touched"])
         self.assertEqual(calls, {"bootstrap": 1, "attachment": 1, "provider": 1})
         self.assertNotIn("super-secret-test-key", json.dumps(result, ensure_ascii=False))
@@ -146,9 +155,11 @@ class PilotHostAcceptanceTests(unittest.TestCase):
             raise AssertionError("network stage must not run")
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            path = write_manifest(Path(temp_dir))
+            root = Path(temp_dir)
+            path = write_manifest(root)
             result = run_host_acceptance(
                 manifest_path=path,
+                pilot_db_path=pilot_db(root),
                 environ={"MCAI_CANONICAL_ORIGIN": "https://pilot.example.com"},
                 bootstrap_runner=forbidden_runner,
                 attachment_runner=forbidden_runner,
@@ -156,7 +167,9 @@ class PilotHostAcceptanceTests(unittest.TestCase):
             )
 
         self.assertEqual(result["status"], "FAIL")
-        self.assertEqual(result["environment"]["error_class"], "MCAI_AGNES_API_KEY_MISSING")
+        self.assertEqual(result["host_preflight"]["status"], "FAIL")
+        checks = {item["check_id"]: item for item in result["host_preflight"]["checks"]}
+        self.assertEqual(checks["agnes_api_key"]["error_code"], "AGNES_API_KEY_MISSING")
         self.assertEqual(result["official_bootstrap"]["status"], "SKIPPED")
         self.assertEqual(calls, [])
 
@@ -179,9 +192,11 @@ class PilotHostAcceptanceTests(unittest.TestCase):
             }
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            path = write_manifest(Path(temp_dir))
+            root = Path(temp_dir)
+            path = write_manifest(root)
             result = run_host_acceptance(
                 manifest_path=path,
+                pilot_db_path=pilot_db(root),
                 environ={
                     "MCAI_CANONICAL_ORIGIN": "https://pilot.example.com",
                     "MCAI_AGNES_API_KEY": "secret",
@@ -192,6 +207,7 @@ class PilotHostAcceptanceTests(unittest.TestCase):
             )
 
         self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["host_preflight"]["status"], "PASS")
         self.assertEqual(result["official_bootstrap"]["status"], "PASS")
         self.assertEqual(result["attachment"]["status"], "FAIL")
         self.assertEqual(result["attachment"]["error_class"], "TimeoutError")
