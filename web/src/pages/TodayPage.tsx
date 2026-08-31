@@ -22,8 +22,29 @@ import {
   getDueReminders,
   type DueReminder,
 } from '@/services/reminderApi'
-import type { FollowupStatus, NotFitReason, TodayActionsResponse } from '@/types'
+import type {
+  FollowupStatus,
+  NotFitReason,
+  TodayActionCard,
+  TodayActionsResponse,
+} from '@/types'
 import { formatDateTime } from '@/utils/format'
+
+const DONE_FOR_TODAY = new Set<FollowupStatus>([
+  'CONTACTED',
+  'NOT_FIT',
+  'BID_SUBMITTED',
+  'WON',
+  'LOST',
+  'ARCHIVED',
+])
+
+function shouldHideFromVerifiedTrialToday(card: TodayActionCard): boolean {
+  if (DONE_FOR_TODAY.has(card.followup_status)) return true
+  if (card.followup_status !== 'MONITOR' || !card.remind_at) return false
+  const remindAt = new Date(card.remind_at).getTime()
+  return !Number.isNaN(remindAt) && remindAt > Date.now()
+}
 
 export function TodayPage() {
   const navigate = useNavigate()
@@ -87,10 +108,17 @@ export function TodayPage() {
     try {
       await todayActionsService.updateFollowup(id, { status, ...extra })
       await load(true)
-      toast(
-        isApiMode ? '跟进状态已同步服务器' : '试用模式：跟进状态已在本地更新',
-        'success',
-      )
+      if (isApiMode) {
+        toast('跟进状态已同步服务器', 'success')
+      } else if (status === 'CONTACTED') {
+        toast('已联系，商机已移入“我的跟进”', 'success')
+      } else if (status === 'NOT_FIT') {
+        toast('已标记不适合，记录已保留在“我的跟进”', 'success')
+      } else if (status === 'MONITOR' && extra?.remind_at) {
+        toast('提醒已设置，提醒前暂不占用今日重点', 'success')
+      } else {
+        toast('试用模式：跟进状态已在本地更新', 'success')
+      }
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
@@ -170,6 +198,12 @@ export function TodayPage() {
   if (error) return <ErrorState message={error} onRetry={() => void load()} />
   if (!data) return <EmptyState title="暂无今日行动" hint="当前没有可展示的重点商机。" />
 
+  const visibleCards =
+    !isApiMode && isVerifiedPublicDemo
+      ? data.cards.filter((card) => !shouldHideFromVerifiedTrialToday(card))
+      : data.cards
+  const visibleData = { ...data, card_count: visibleCards.length, cards: visibleCards }
+
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
@@ -219,7 +253,7 @@ export function TodayPage() {
           </div>
           <p className="mt-3 text-[12px] leading-5 text-slate-500">
             {isVerifiedPublicDemo
-              ? '当前试用读取证据流水线生成的天津公开事实快照。项目名称、采购单位、预算、公告日期、精确截止时间、公开联系人和官方依据来自已核验公开信息；未录入真实客户资源时，医院关系和产品能力明确为空，不参与排序。AI分析按单条商机手动触发，只接收服务端已核验公开事实。自动日更尚未接入，因此仍按快照展示，不冒充实时全量数据。'
+              ? '当前试用读取证据流水线生成的天津公开事实快照。项目名称、采购单位、预算、公告日期、精确截止时间、公开联系人和官方依据来自已核验公开信息；未录入真实客户资源时，医院关系和产品能力明确为空，不参与排序。AI分析按单条商机手动触发，只接收服务端已核验公开事实。已联系、不适合和设置未来提醒的项目会移入“我的跟进”，不继续占用今日重点。自动日更尚未接入，因此仍按快照展示，不冒充实时全量数据。'
               : '下方项目、医院、联系人和金额均为虚构演示数据。排序来自通用演示场景，不代表真实客户当前资源。'}
           </p>
         </section>
@@ -227,20 +261,20 @@ export function TodayPage() {
 
       <DueRemindersPanel
         reminders={reminders}
-        currentOpportunityIds={data.cards.map((card) => card.opportunity_id)}
+        currentOpportunityIds={visibleCards.map((card) => card.opportunity_id)}
         busyId={reminderBusyId}
         onOpenToday={(opportunityId) => navigate(`/opportunity/${opportunityId}`)}
         onOpenFollowed={(opportunityId) => navigate(`/followed?focus=${encodeURIComponent(opportunityId)}`)}
         onAcknowledge={(reminderId) => void acknowledgeReminder(reminderId)}
       />
 
-      <MetricCards data={data} />
+      <MetricCards data={visibleData} />
 
-      {data.cards.length === 0 ? (
-        <EmptyState title="今日暂无重点行动" hint="公开项目尚未达到需要今天采取行动的条件。" />
+      {visibleCards.length === 0 ? (
+        <EmptyState title="今日暂无重点行动" hint="公开项目尚未达到需要今天采取行动的条件，或当前重点已处理。" />
       ) : (
         <div className="space-y-3">
-          {data.cards.map((card) => (
+          {visibleCards.map((card) => (
             <ActionCard
               key={card.opportunity_id}
               card={card}
