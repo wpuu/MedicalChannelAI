@@ -37,6 +37,18 @@ class PipelineStateTests(unittest.TestCase):
             original['facts']['project_number'],
         )
 
+    def test_hospital_seed_transitions_to_live_state_without_duplicate(self) -> None:
+        original = copy.deepcopy(self.institution_records[0])
+        replacement = copy.deepcopy(original)
+        replacement['source']['observed_at'] = '2026-08-31T11:30:00+00:00'
+        merged = merge_canonical_records([original], [replacement])
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]['opportunity_id'], original['opportunity_id'])
+        self.assertEqual(
+            merged[0]['source']['observed_at'],
+            '2026-08-31T11:30:00+00:00',
+        )
+
     def test_event_with_same_id_can_be_reconciled_by_newer_state(self) -> None:
         base = {
             'schema_version': '0.1',
