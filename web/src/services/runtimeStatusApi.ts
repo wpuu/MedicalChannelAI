@@ -2,6 +2,7 @@ export interface RuntimeStatus {
   schema_version: '0.1'
   service: 'MedicalChannelAI'
   ready: boolean
+  degraded: boolean
   production_ready: false
   ai: {
     configured: boolean
@@ -10,6 +11,9 @@ export interface RuntimeStatus {
     available: boolean
     source_mode: 'BUNDLED' | 'REMOTE' | 'UNAVAILABLE'
     snapshot_as_of: string | null
+    freshness: 'FRESH' | 'STALE' | 'INVALID' | 'UNAVAILABLE'
+    age_minutes: number | null
+    stale_after_minutes: number
     today_card_count: number
     opportunity_pool_count: number
   }
@@ -30,6 +34,7 @@ function isRuntimeStatus(value: unknown): value is RuntimeStatus {
     row.schema_version === '0.1' &&
     row.service === 'MedicalChannelAI' &&
     typeof row.ready === 'boolean' &&
+    typeof row.degraded === 'boolean' &&
     row.production_ready === false &&
     Boolean(ai) &&
     typeof ai?.configured === 'boolean' &&
@@ -37,6 +42,9 @@ function isRuntimeStatus(value: unknown): value is RuntimeStatus {
     typeof snapshot?.available === 'boolean' &&
     ['BUNDLED', 'REMOTE', 'UNAVAILABLE'].includes(String(snapshot?.source_mode)) &&
     (snapshot?.snapshot_as_of === null || typeof snapshot?.snapshot_as_of === 'string') &&
+    ['FRESH', 'STALE', 'INVALID', 'UNAVAILABLE'].includes(String(snapshot?.freshness)) &&
+    (snapshot?.age_minutes === null || typeof snapshot?.age_minutes === 'number') &&
+    typeof snapshot?.stale_after_minutes === 'number' &&
     typeof snapshot?.today_card_count === 'number' &&
     typeof snapshot?.opportunity_pool_count === 'number'
   )
