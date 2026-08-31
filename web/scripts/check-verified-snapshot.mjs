@@ -96,6 +96,33 @@ try {
     'SNAPSHOT_ENDPOINT_REMOTE_FAILURE_CODE',
   )
 
+  const maliciousPayload = structuredClone(bundledVerifiedSnapshot())
+  maliciousPayload.cards[0].provider = 'must-never-reach-browser'
+  clearVerifiedSnapshotCacheForTests()
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    headers: { get: () => null },
+    text: async () => JSON.stringify(maliciousPayload),
+  })
+  let boundaryError = null
+  try {
+    await loadVerifiedSnapshot()
+  } catch (error) {
+    boundaryError = error
+  }
+  expect(
+    boundaryError?.message?.startsWith('VERIFIED_SNAPSHOT_INTERNAL_FIELD:'),
+    'SNAPSHOT_REMOTE_INTERNAL_FIELD_MUST_BE_REJECTED',
+  )
+  clearVerifiedSnapshotCacheForTests()
+  endpoint = await invokeSnapshot('GET')
+  expect(endpoint.statusCode === 503, 'SNAPSHOT_ENDPOINT_INTERNAL_FIELD_STATUS')
+  expect(
+    endpoint.body?.error === 'VERIFIED_SNAPSHOT_UNAVAILABLE',
+    'SNAPSHOT_ENDPOINT_INTERNAL_FIELD_CODE',
+  )
+
   const remotePayload = structuredClone(bundledVerifiedSnapshot())
   remotePayload.snapshot_as_of = '2026-08-31T12:34:56+08:00'
   clearVerifiedSnapshotCacheForTests()
