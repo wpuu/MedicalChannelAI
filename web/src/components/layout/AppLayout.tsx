@@ -4,11 +4,11 @@ import { Activity, CalendarDays, LogOut, RotateCcw } from 'lucide-react'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { isApiMode, logoutPilot } from '@/services/apiConfig'
+import { resetLocalFollowups } from '@/services/localFollowupStore'
 import { resetMockDemoState } from '@/services/MockTodayActionsService'
 import { formatToday } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
-const VERIFIED_TRIAL_FOLLOWUP_KEY = 'medopp.pipeline-followups.v1'
 const GROUNDED_AI_CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
 
 export function AppLayout() {
@@ -38,8 +38,8 @@ export function AppLayout() {
 
   const handleResetTrial = () => {
     resetMockDemoState()
+    resetLocalFollowups()
     try {
-      localStorage.removeItem(VERIFIED_TRIAL_FOLLOWUP_KEY)
       localStorage.removeItem(GROUNDED_AI_CACHE_KEY)
     } catch {
       // Storage reset is best-effort; reload still resets in-memory state.
