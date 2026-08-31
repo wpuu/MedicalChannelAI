@@ -10,6 +10,7 @@ import { PriorityCard } from '@/components/opportunity/PriorityCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { NotFitModal } from '@/components/followup/NotFitModal'
+import { RemindModal } from '@/components/followup/RemindModal'
 import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
 import { OfficialText } from '@/components/shared/EmptyValue'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
@@ -42,6 +43,7 @@ export function OpportunityDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [notFitOpen, setNotFitOpen] = useState(false)
+  const [remindOpen, setRemindOpen] = useState(false)
   const [outreachOpen, setOutreachOpen] = useState(false)
   const [aiBusy, setAiBusy] = useState(false)
 
@@ -84,7 +86,7 @@ export function OpportunityDetailPage() {
 
   const updateStatus = async (
     status: FollowupStatus,
-    extra?: { reason?: string; note?: string },
+    extra?: { reason?: string; note?: string; remind_at?: string },
   ) => {
     if (!card) return
     try {
@@ -192,6 +194,7 @@ export function OpportunityDetailPage() {
         card={card}
         onChangeStatus={(status) => void updateStatus(status)}
         onNotFit={() => setNotFitOpen(true)}
+        onRemind={() => setRemindOpen(true)}
       />
 
       <NotFitModal
@@ -200,6 +203,17 @@ export function OpportunityDetailPage() {
         onConfirm={(reason: NotFitReason) => {
           setNotFitOpen(false)
           void updateStatus('NOT_FIT', { reason })
+        }}
+      />
+      <RemindModal
+        open={remindOpen}
+        onClose={() => setRemindOpen(false)}
+        onConfirm={(remindAt) => {
+          setRemindOpen(false)
+          void updateStatus('MONITOR', {
+            remind_at: remindAt,
+            note: '稍后提醒',
+          })
         }}
       />
       <OutreachDrawer
