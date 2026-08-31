@@ -41,7 +41,11 @@
         "termination_reason": "本项目项目需求发生重大变更",
         "verification_status": "VERIFIED"
       },
-      "regression_rule": "Any earlier tender/amendment event for the same project number must not cause the current state to remain TENDERING after this verified termination event."
+      "regression_rule": "Any earlier tender/amendment event for the same project number must not cause the current state to remain TENDERING after this verified termination event.",
+      "forbidden_inference": [
+        "Do not keep or recreate an active TENDERING state after the verified termination event.",
+        "Do not infer a replacement procurement, supplier or new deadline until a later official notice proves it."
+      ]
     },
     {
       "case_id": "tj_teda_hospital_dr_20260827",
@@ -59,7 +63,11 @@
         "bid_deadline": "2026-09-17T10:00:00+08:00",
         "medical_relevance": "MEDICAL_DEVICE_IMAGING",
         "verification_status": "VERIFIED"
-      }
+      },
+      "forbidden_inference": [
+        "Do not invent the DR brand, model, technical configuration or supplier before official evidence publishes them.",
+        "Do not infer a hospital relationship or winning probability from the buyer name alone."
+      ]
     },
     {
       "case_id": "tj_tcm_first_hospital_optical_brain_intent_20260310",
