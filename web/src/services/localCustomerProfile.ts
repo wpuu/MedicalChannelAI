@@ -1,0 +1,331 @@
+import type {
+  CapabilityType,
+  CustomerContext,
+  HospitalRelationship,
+  MatchingProductCapability,
+  RelationshipStrength,
+  TodayActionCard,
+} from '@/types'
+
+const STORAGE_KEY = 'medopp.customer-profile.v1'
+
+export interface LocalProductCapability {
+  keyword: string
+  capability_type: CapabilityType
+}
+
+export interface LocalHospitalRelationship {
+  hospital: string
+  department: string | null
+  relationship_strength: RelationshipStrength
+}
+
+export interface LocalCustomerProfile {
+  product_capabilities: LocalProductCapability[]
+  hospital_relationships: LocalHospitalRelationship[]
+  can_find_manufacturer: boolean | null
+  can_partner_channel: boolean | null
+  can_handle_lease: boolean | null
+  updated_at: string | null
+}
+
+const EMPTY_PROFILE: LocalCustomerProfile = {
+  product_capabilities: [],
+  hospital_relationships: [],
+  can_find_manufacturer: null,
+  can_partner_channel: null,
+  can_handle_lease: null,
+  updated_at: null,
+}
+
+const CAPABILITY_TYPES = new Set<CapabilityType>([
+  'DIRECT',
+  'NEED_MANUFACTURER',
+  'PARTNER',
+  'DIRECT_AUTHORIZED',
+  'DIRECT_UNCONFIRMED',
+  'RENTAL_CAPABLE',
+  'CAN_SOURCE_PARTNER',
+  'SERVICE_ONLY',
+])
+
+const RELATIONSHIP_STRENGTHS = new Set<RelationshipStrength>([
+  'STRONG',
+  'MEDIUM',
+  'HISTORICAL',
+  'WEAK',
+  'UNKNOWN',
+  'NONE',
+])
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+function cleanText(value: unknown, max = 160): string | null {
+  if (typeof value !== 'string') return null
+  const text = value.trim().replace(/\s+/g, ' ')
+  return text ? text.slice(0, max) : null
+}
+
+function triState(value: unknown): boolean | null {
+  return typeof value === 'boolean' ? value : null
+}
+
+export function emptyLocalCustomerProfile(): LocalCustomerProfile {
+  return structuredClone(EMPTY_PROFILE)
+}
+
+export function loadLocalCustomerProfile(): LocalCustomerProfile {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return emptyLocalCustomerProfile()
+    const root = asRecord(JSON.parse(raw))
+    if (!root) return emptyLocalCustomerProfile()
+
+    const product_capabilities: LocalProductCapability[] = []
+    if (Array.isArray(root.product_capabilities)) {
+      for (const item of root.product_capabilities.slice(0, 50)) {
+        const row = asRecord(item)
+        const keyword = cleanText(row?.keyword)
+        const type = row?.capability_type
+        if (!keyword || typeof type !== 'string' || !CAPABILITY_TYPES.has(type as CapabilityType)) continue
+        product_capabilities.push({ keyword, capability_type: type as CapabilityType })
+      }
+    }
+
+    const hospital_relationships: LocalHospitalRelationship[] = []
+    if (Array.isArray(root.hospital_relationships)) {
+      for (const item of root.hospital_relationships.slice(0, 100)) {
+        const row = asRecord(item)
+        const hospital = cleanText(row?.hospital, 240)
+        const strength = row?.relationship_strength
+        if (
+          !hospital ||
+          typeof strength !== 'string' ||
+          !RELATIONSHIP_STRENGTHS.has(strength as RelationshipStrength)
+        ) {
+          continue
+        }
+        hospital_relationships.push({
+          hospital,
+          department: cleanText(row?.department, 160),
+          relationship_strength: strength as RelationshipStrength,
+        })
+      }
+    }
+
+    const updatedAt = cleanText(root.updated_at, 80)
+    return {
+      product_capabilities,
+      hospital_relationships,
+      can_find_manufacturer: triState(root.can_find_manufacturer),
+      can_partner_channel: triState(root.can_partner_channel),
+      can_handle_lease: triState(root.can_handle_lease),
+      updated_at: updatedAt && !Number.isNaN(Date.parse(updatedAt)) ? updatedAt : null,
+    }
+  } catch {
+    return emptyLocalCustomerProfile()
+  }
+}
+
+export function saveLocalCustomerProfile(profile: LocalCustomerProfile): void {
+  const normalized: LocalCustomerProfile = {
+    product_capabilities: profile.product_capabilities
+      .map((item) => ({
+        keyword: cleanText(item.keyword) ?? '',
+        capability_type: item.capability_type,
+      }))
+      .filter((item) => item.keyword && CAPABILITY_TYPES.has(item.capability_type))
+      .slice(0, 50),
+    hospital_relationships: profile.hospital_relationships
+      .map((item) => ({
+        hospital: cleanText(item.hospital, 240) ?? '',
+        department: cleanText(item.department, 160),
+        relationship_strength: item.relationship_strength,
+      }))
+      .filter(
+        (item) =>
+          item.hospital && RELATIONSHIP_STRENGTHS.has(item.relationship_strength),
+      )
+      .slice(0, 100),
+    can_find_manufacturer: triState(profile.can_find_manufacturer),
+    can_partner_channel: triState(profile.can_partner_channel),
+    can_handle_lease: triState(profile.can_handle_lease),
+    updated_at: new Date().toISOString(),
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized))
+}
+
+export function clearLocalCustomerProfile(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // Best effort only.
+  }
+}
+
+function normalizeForMatch(value: string | null | undefined): string {
+  return (value ?? '').toLowerCase().replace(/[\s（）()、，,·.\-_/]+/g, '')
+}
+
+function cardSearchText(card: TodayActionCard): string {
+  const values = [
+    card.facts.project_name,
+    card.facts.department,
+    ...(card.facts.product_categories ?? []),
+    ...(card.facts.products ?? []).flatMap((item) => [
+      item.name,
+      item.category,
+      item.specification,
+    ]),
+  ]
+  return normalizeForMatch(values.filter(Boolean).join('|'))
+}
+
+function capabilityPoints(type: CapabilityType): number {
+  switch (type) {
+    case 'DIRECT_AUTHORIZED':
+    case 'DIRECT':
+      return 30
+    case 'RENTAL_CAPABLE':
+      return 26
+    case 'DIRECT_UNCONFIRMED':
+      return 22
+    case 'NEED_MANUFACTURER':
+    case 'CAN_SOURCE_PARTNER':
+      return 16
+    case 'PARTNER':
+      return 14
+    case 'SERVICE_ONLY':
+      return 12
+    default:
+      return 0
+  }
+}
+
+function relationshipPoints(strength: RelationshipStrength): number {
+  switch (strength) {
+    case 'STRONG':
+      return 10
+    case 'MEDIUM':
+      return 7
+    case 'HISTORICAL':
+      return 4
+    case 'WEAK':
+      return 2
+    default:
+      return 0
+  }
+}
+
+function relationshipForCard(
+  card: TodayActionCard,
+  profile: LocalCustomerProfile,
+): LocalHospitalRelationship | null {
+  const buyer = normalizeForMatch(card.facts.hospital ?? card.facts.buyer_name)
+  if (!buyer) return null
+  let best: LocalHospitalRelationship | null = null
+  for (const relation of profile.hospital_relationships) {
+    const hospital = normalizeForMatch(relation.hospital)
+    if (!hospital || (!buyer.includes(hospital) && !hospital.includes(buyer))) continue
+    if (!best || relationshipPoints(relation.relationship_strength) > relationshipPoints(best.relationship_strength)) {
+      best = relation
+    }
+  }
+  return best
+}
+
+function capabilitiesForCard(
+  card: TodayActionCard,
+  profile: LocalCustomerProfile,
+): LocalProductCapability[] {
+  const haystack = cardSearchText(card)
+  if (!haystack) return []
+  return profile.product_capabilities.filter((capability) => {
+    const keyword = normalizeForMatch(capability.keyword)
+    return Boolean(keyword && haystack.includes(keyword))
+  })
+}
+
+function toCustomerContext(
+  relation: LocalHospitalRelationship | null,
+  capabilities: LocalProductCapability[],
+  profile: LocalCustomerProfile,
+): CustomerContext {
+  const hospitalRelationship: HospitalRelationship | null = relation
+    ? {
+        hospital: relation.hospital,
+        department: relation.department,
+        relationship_strength: relation.relationship_strength,
+        owner: null,
+        last_confirmed_at: profile.updated_at,
+      }
+    : null
+
+  const matching: MatchingProductCapability[] = capabilities.map((item) => ({
+    category: item.keyword,
+    subcategory: null,
+    matched_taxonomy_ids: [],
+    brands: [],
+    capability_type: item.capability_type,
+  }))
+
+  return {
+    hospital_relationship: hospitalRelationship,
+    matching_product_capabilities: matching,
+    partnering_policy: {
+      can_find_manufacturer: profile.can_find_manufacturer,
+      can_partner_channel: profile.can_partner_channel,
+      can_handle_lease: profile.can_handle_lease,
+    },
+  }
+}
+
+export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard[] {
+  const profile = loadLocalCustomerProfile()
+  if (
+    profile.product_capabilities.length === 0 &&
+    profile.hospital_relationships.length === 0 &&
+    profile.can_find_manufacturer === null &&
+    profile.can_partner_channel === null &&
+    profile.can_handle_lease === null
+  ) {
+    return cards
+  }
+
+  const personalized = cards.map((card) => {
+    const relation = relationshipForCard(card, profile)
+    const capabilities = capabilitiesForCard(card, profile)
+    const capabilityPoint = capabilities.reduce(
+      (max, item) => Math.max(max, capabilityPoints(item.capability_type)),
+      0,
+    )
+    const relationPoint = relation ? relationshipPoints(relation.relationship_strength) : 0
+    const publicBase = Math.max(
+      0,
+      card.priority.score -
+        Math.round((card.priority.components.PRODUCT_EXECUTION_CAPABILITY / 100) * 30) -
+        Math.round((card.priority.components.RELATIONSHIP / 100) * 10),
+    )
+
+    return {
+      ...card,
+      customer_context: toCustomerContext(relation, capabilities, profile),
+      priority: {
+        score: Math.min(100, publicBase + capabilityPoint + relationPoint),
+        components: {
+          ...card.priority.components,
+          PRODUCT_EXECUTION_CAPABILITY: Math.round((capabilityPoint / 30) * 100),
+          RELATIONSHIP: relationPoint * 10,
+        },
+      },
+    }
+  })
+
+  return personalized
+    .sort((a, b) => b.priority.score - a.priority.score || a.rank - b.rank)
+    .map((card, index) => ({ ...card, rank: index + 1 }))
+}
