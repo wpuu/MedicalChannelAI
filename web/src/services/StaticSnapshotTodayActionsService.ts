@@ -15,6 +15,7 @@ import { personalizeTrialCards } from './localCustomerProfile'
 import type { TodayActionsService } from './TodayActionsService'
 
 const COVERAGE_WARNING = '天津 Pilot · 公开事实来自证据流水线快照；当前仍为部分来源覆盖。'
+const LATE_WINDOW_PERCENT = 38
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
   'model_requests',
@@ -239,13 +240,67 @@ function buildGroundedDraft(card: TodayActionCard): string {
   ].join('\n')
 }
 
+function parsedTime(value: string | null): number | null {
+  if (!value) return null
+  const time = Date.parse(value)
+  return Number.isNaN(time) ? null : time
+}
+
+function applyRuntimeActionability(card: TodayActionCard, now: number): TodayActionCard | null {
+  const bidDeadline = parsedTime(card.facts.bid_deadline)
+  if (bidDeadline !== null && bidDeadline <= now) return null
+
+  const registrationDeadline = parsedTime(card.facts.registration_deadline)
+  if (registrationDeadline === null || registrationDeadline > now) return card
+  if (bidDeadline === null) return null
+  if (card.recommendation_mode === 'LATE_WINDOW') return card
+
+  const currentStagePercent = card.priority.components.INTERVENTION_STAGE
+  const stagePointReduction = Math.max(
+    0,
+    Math.round(((currentStagePercent - LATE_WINDOW_PERCENT) / 100) * 40),
+  )
+  return {
+    ...card,
+    recommendation_mode: 'LATE_WINDOW',
+    priority: {
+      ...card.priority,
+      score: Math.max(0, card.priority.score - stagePointReduction),
+      components: {
+        ...card.priority.components,
+        INTERVENTION_STAGE: LATE_WINDOW_PERCENT,
+      },
+    },
+  }
+}
+
+function freshnessWarning(snapshotAsOf: string, now: number): string {
+  const snapshotTime = Date.parse(snapshotAsOf)
+  if (Number.isNaN(snapshotTime)) return COVERAGE_WARNING
+  const ageHours = Math.max(0, (now - snapshotTime) / 3_600_000)
+  if (ageHours >= 72) {
+    return `${COVERAGE_WARNING} 当前快照已超过72小时未更新，可能遗漏新项目；页面会自动排除已过截止日期的旧项目，但新增商机请以官方来源为准。`
+  }
+  if (ageHours >= 24) {
+    return `${COVERAGE_WARNING} 当前快照已超过24小时未更新，可能遗漏新项目；已过截止日期的项目会在浏览器端自动降级或移出今日行动。`
+  }
+  return COVERAGE_WARNING
+}
+
 export class StaticSnapshotTodayActionsService implements TodayActionsService {
   private snapshot: TodayActionsResponse | null = null
 
   constructor(private readonly snapshotUrl: string) {}
 
   private refreshLocalDerivedState(data: TodayActionsResponse): TodayActionsResponse {
-    data.cards = personalizeTrialCards(hydrateLocalFollowups(data.cards))
+    const now = Date.now()
+    const runtimeCards = hydrateLocalFollowups(data.cards)
+      .map((card) => applyRuntimeActionability(card, now))
+      .filter((card): card is TodayActionCard => card !== null)
+    data.cards = personalizeTrialCards(runtimeCards)
+    data.matched_count = data.cards.length
+    data.card_count = data.cards.length
+    data.coverage_warning = freshnessWarning(data.refreshed_at, now)
     return data
   }
 
