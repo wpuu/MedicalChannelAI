@@ -2,7 +2,7 @@ const env = (import.meta as ImportMeta & {
   env?: Record<string, string | undefined>
 }).env
 
-const LOCAL_SNAPSHOT_URL = '/data/today-actions.public.json'
+const SAME_ORIGIN_SNAPSHOT_API = '/api/public-snapshot'
 
 function normalizeSnapshotUrl(raw: string | undefined): string | null {
   const value = raw?.trim()
@@ -22,11 +22,16 @@ function normalizeSnapshotUrl(raw: string | undefined): string | null {
 /**
  * Verified-trial snapshot location.
  *
- * Default: bundled `/data/today-actions.public.json`.
- * Optional: set `VITE_VERIFIED_SNAPSHOT_URL` to an externally refreshed HTTPS JSON object.
- * This lets verified data refresh independently from frontend deployments.
+ * Default: same-origin `/api/public-snapshot`.
+ * The server function reads the bundled snapshot when no remote source is configured,
+ * or `VERIFIED_SNAPSHOT_URL` when a remotely refreshed HTTPS snapshot is configured.
+ * This keeps frontend code, AI grounding and dynamic data on one snapshot version while
+ * allowing data refreshes without a Vercel frontend rebuild.
+ *
+ * `VITE_VERIFIED_SNAPSHOT_URL` remains an explicit browser-side override for controlled
+ * local/testing scenarios; remote browser origins must provide their own CORS policy.
  */
 export const verifiedSnapshotUrl =
-  normalizeSnapshotUrl(env?.VITE_VERIFIED_SNAPSHOT_URL) ?? LOCAL_SNAPSHOT_URL
+  normalizeSnapshotUrl(env?.VITE_VERIFIED_SNAPSHOT_URL) ?? SAME_ORIGIN_SNAPSHOT_API
 
-export const usesExternalVerifiedSnapshot = verifiedSnapshotUrl !== LOCAL_SNAPSHOT_URL
+export const usesExternalVerifiedSnapshot = verifiedSnapshotUrl !== SAME_ORIGIN_SNAPSHOT_API
