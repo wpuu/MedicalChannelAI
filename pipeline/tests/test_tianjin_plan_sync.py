@@ -4,8 +4,9 @@ import importlib.util
 import json
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = PIPELINE_ROOT / 'scripts' / 'sync_tianjin_plan.py'
@@ -50,6 +51,18 @@ class TianjinPlanSyncTests(unittest.TestCase):
         self.assertEqual(plan['lookback_days'], 3)
         self.assertEqual(plan['delay_seconds'], 4.0)
 
+    def test_load_plan_deduplicates_keywords_before_network_queries(self) -> None:
+        payload = self.base_plan()
+        payload['keywords'] = ['医院', ' 医院 ', '医疗', '医疗']
+        plan = sync_tianjin_plan.load_plan(self.write_plan(payload))
+        self.assertEqual(plan['keywords'], ['医院', '医疗'])
+
+    def test_load_plan_rejects_non_tianjin_region(self) -> None:
+        payload = self.base_plan()
+        payload['region'] = '北京'
+        with self.assertRaisesRegex(ValueError, 'REGION_LOCKED'):
+            sync_tianjin_plan.load_plan(self.write_plan(payload))
+
     def test_load_plan_rejects_notice_type_without_verified_adapter(self) -> None:
         payload = self.base_plan()
         payload['notice_types'] = ['询价公告']
@@ -69,6 +82,12 @@ class TianjinPlanSyncTests(unittest.TestCase):
         utc_value = sync_tianjin_plan.parse_as_of('2026-08-31T15:30:00Z')
         self.assertEqual(utc_value.astimezone(sync_tianjin_plan.SHANGHAI).date().isoformat(), '2026-08-31')
 
+    def test_plan_date_window_uses_shanghai_calendar_days(self) -> None:
+        as_of = sync_tianjin_plan.parse_as_of('2026-08-31T16:30:00Z')
+        start_date, end_date = sync_tianjin_plan.plan_date_window(as_of, 3)
+        self.assertEqual(start_date, '2026-08-30')
+        self.assertEqual(end_date, '2026-09-01')
+
     def test_parse_as_of_rejects_naive_timestamp(self) -> None:
         with self.assertRaisesRegex(ValueError, 'timezone'):
             sync_tianjin_plan.parse_as_of('2026-08-31T12:00:00')
@@ -80,12 +99,45 @@ class TianjinPlanSyncTests(unittest.TestCase):
         self.assertGreaterEqual(len(plan['keywords']), 3)
         self.assertLessEqual(plan['max_candidates'], 50)
 
-    def test_stable_id_is_same_for_same_detail_url_across_keywords(self) -> None:
-        url = 'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/example.htm'
-        first = sync_tianjin_plan.stable_id('ccgp', url)
-        second = sync_tianjin_plan.stable_id('ccgp', url)
-        self.assertEqual(first, second)
-        self.assertTrue(first.startswith('ccgp_'))
+    def test_same_detail_url_across_keywords_is_verified_once(self) -> None:
+        shared = SimpleNamespace(
+            detail_url='https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/shared.htm',
+            published_at='2026-08-31',
+            title='共享项目',
+        )
+        second = SimpleNamespace(
+            detail_url='https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/second.htm',
+            published_at='2026-08-31',
+            title='第二项目',
+        )
+        discovered_by_url: dict[str, tuple[str, object]] = {}
+        discovered_keywords: dict[str, set[str]] = {}
+
+        sync_tianjin_plan.merge_discovered_candidates(
+            discovered_by_url,
+            discovered_keywords,
+            keyword='医院',
+            candidates=[('公开招标', shared)],
+        )
+        sync_tianjin_plan.merge_discovered_candidates(
+            discovered_by_url,
+            discovered_keywords,
+            keyword='医疗',
+            candidates=[('公开招标', shared), ('竞争性磋商', second)],
+        )
+        sync_tianjin_plan.merge_discovered_candidates(
+            discovered_by_url,
+            discovered_keywords,
+            keyword='检验',
+            candidates=[('公开招标', shared)],
+        )
+
+        self.assertEqual(len(discovered_by_url), 2)
+        self.assertEqual(
+            discovered_keywords[shared.detail_url],
+            {'医院', '医疗', '检验'},
+        )
+        self.assertIs(discovered_by_url[shared.detail_url][1], shared)
 
     def test_parse_as_of_default_is_timezone_aware(self) -> None:
         value = sync_tianjin_plan.parse_as_of(None)
