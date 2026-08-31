@@ -1,6 +1,7 @@
 import type { FollowupRecord, FollowupStatus, TodayActionCard } from '@/types'
 
 const STORAGE_KEY = 'medopp.pipeline-followups.v1'
+const LOCAL_REMINDER_PREFIX = 'local-reminder:'
 
 export interface StoredPublicOpportunity {
   opportunity_id: string
@@ -204,6 +205,27 @@ export function listStoredFollowups(): Array<{
   return Object.entries(readLocalFollowups())
     .filter(([, entry]) => entry.status !== 'NEW')
     .map(([opportunity_id, entry]) => ({ opportunity_id, entry }))
+}
+
+export function localReminderId(opportunityId: string): string {
+  return `${LOCAL_REMINDER_PREFIX}${opportunityId}`
+}
+
+export function opportunityIdFromLocalReminderId(reminderId: string): string | null {
+  return reminderId.startsWith(LOCAL_REMINDER_PREFIX)
+    ? reminderId.slice(LOCAL_REMINDER_PREFIX.length) || null
+    : null
+}
+
+export function clearLocalReminder(opportunityId: string): void {
+  const stored = readLocalFollowups()
+  const entry = stored[opportunityId]
+  if (!entry) return
+  stored[opportunityId] = {
+    ...entry,
+    remind_at: null,
+  }
+  writeLocalFollowups(stored)
 }
 
 export function resetLocalFollowups(): void {
