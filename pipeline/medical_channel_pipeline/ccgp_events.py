@@ -24,7 +24,6 @@ MATERIAL_CHANGE_KEYWORDS = (
     "资格要求",
     "评分标准",
     "评标办法",
-    "采购文件",
 )
 
 
