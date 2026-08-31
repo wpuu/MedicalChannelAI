@@ -20,23 +20,31 @@
     "verified_seed_data": true,
     "verified_source_classes": 2,
     "source_discovery_ccgp": true,
-    "source_adapter_ccgp_verified_detail": false,
+    "source_adapter_ccgp_verified_detail_implemented": true,
+    "source_adapter_ccgp_verified_detail_live_runtime_verified": false,
     "source_adapter_official_institution": true,
+    "notice_correction_termination_event_layer": true,
+    "unreconciled_notice_events_suppressed_from_today_actions": true,
     "unified_frontend_public_snapshot": true,
     "web_verified_trial_uses_pipeline_snapshot": true,
     "archived_records_excluded_from_today_actions": true,
     "on_demand_grounded_ai_boundary": true,
     "on_demand_grounded_ai_ui_wired": true,
+    "ai_server_reads_verified_snapshot_by_opportunity_id": true,
+    "ai_client_cannot_supply_verified_facts": true,
+    "ai_source_text_prompt_injection_boundary": true,
     "ai_preview_configured": false,
     "ai_preview_route_verified": false,
     "live_scheduled_collection": false,
     "local_test_evidence": true,
+    "new_regressions_executed_after_latest_changes": false,
     "github_ci_test_evidence": false,
     "latest_preview_build_verified": false
   },
   "blockers": [
     "GitHub Actions runner is not assigned for repository CI.",
     "Vercel Hobby build rate limit is blocking Preview builds for the latest branch commits.",
-    "Preview AI runtime configuration is not yet verified."
+    "Preview AI runtime configuration is not yet verified.",
+    "New CCGP detail/event and AI-boundary regressions still need executable validation."
   ]
 }
