@@ -39,7 +39,7 @@ def write_manifest(root: Path, *, attachment_url: str = ATTACHMENT_URL) -> Path:
                     "official_bootstrap_failure_count": 0,
                     "attachment_binary_capture": True,
                     "attachment_parser_pass": True,
-                    "agnes_authenticated_contract_smoke": True,
+                    "full_customer_chain_agnes_smoke": True,
                 },
             },
             ensure_ascii=False,
@@ -53,6 +53,28 @@ def pilot_db(root: Path) -> Path:
     data = root / "data"
     data.mkdir(parents=True, exist_ok=True)
     return data / "pilot.sqlite"
+
+
+def passing_chain() -> dict:
+    return {
+        "status": "PASS",
+        "database_scope": "TEMPORARY_ONLY",
+        "synthetic_account": True,
+        "customer_data_used": False,
+        "production_data_touched": False,
+        "invite_redeemed": True,
+        "invite_replay_rejected": True,
+        "profile_saved": True,
+        "profile_personalized_ready": True,
+        "initial_today_model_status": "AWAITING_MODEL",
+        "global_lease_required": True,
+        "worker_status": "READY",
+        "provider_call_executed": True,
+        "queue_drained": True,
+        "final_today_model_status": "READY",
+        "decision_rendered": True,
+        "public_internal_field_leak": False,
+    }
 
 
 class PilotHostAcceptanceTests(unittest.TestCase):
@@ -75,7 +97,8 @@ class PilotHostAcceptanceTests(unittest.TestCase):
         self.assertEqual(context.exception.code, "ACCEPTANCE_ATTACHMENT_NOT_ALLOWED")
 
     def test_full_acceptance_passes_without_touching_production_data_or_exposing_key(self) -> None:
-        calls = {"bootstrap": 0, "attachment": 0, "provider": 0}
+        calls = {"bootstrap": 0, "attachment": 0, "client": 0, "chain": 0}
+        sentinel_client = object()
 
         def bootstrap_runner(*, db_path, manifest_path):
             calls["bootstrap"] += 1
@@ -111,20 +134,15 @@ class PilotHostAcceptanceTests(unittest.TestCase):
                 "taxonomy_labels": ["LAB_NGS_SEQUENCER"],
             }
 
-        def provider_runner(*, api_key, base_url, lease_db_path):
-            calls["provider"] += 1
-            self.assertEqual(api_key, "super-secret-test-key")
-            self.assertEqual(base_url, "https://apihub.agnes-ai.com/v1")
-            self.assertIn("mcai-pilot-host-acceptance-", str(lease_db_path))
-            return {
-                "status": "PASS",
-                "provider_call_executed": True,
-                "contract_validation_passed": True,
-                "lease_status": "GRANTED",
-                "action_type": "MONITOR",
-                "supporting_fact_count": 1,
-                "requires_human_confirmation": True,
-            }
+        def model_client_factory(environ):
+            calls["client"] += 1
+            self.assertEqual(environ["MCAI_AGNES_API_KEY"], "super-secret-test-key")
+            return sentinel_client
+
+        def full_chain_runner(*, model_call):
+            calls["chain"] += 1
+            self.assertIs(model_call, sentinel_client)
+            return passing_chain()
 
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -138,14 +156,20 @@ class PilotHostAcceptanceTests(unittest.TestCase):
                 },
                 bootstrap_runner=bootstrap_runner,
                 attachment_runner=attachment_runner,
-                provider_runner=provider_runner,
+                full_chain_runner=full_chain_runner,
+                model_client_factory=model_client_factory,
             )
 
         self.assertEqual(result["status"], "PASS")
         self.assertEqual(result["host_preflight"]["status"], "PASS")
+        self.assertEqual(result["customer_chain_agnes"]["status"], "PASS")
         self.assertFalse(result["production_data_touched"])
-        self.assertEqual(calls, {"bootstrap": 1, "attachment": 1, "provider": 1})
-        self.assertNotIn("super-secret-test-key", json.dumps(result, ensure_ascii=False))
+        self.assertEqual(calls, {"bootstrap": 1, "attachment": 1, "client": 1, "chain": 1})
+        serialized = json.dumps(result, ensure_ascii=False)
+        self.assertNotIn("super-secret-test-key", serialized)
+        self.assertNotIn("model_input", serialized)
+        self.assertNotIn("task_id", serialized)
+        self.assertNotIn("lease_id", serialized)
 
     def test_missing_key_fails_before_any_network_stage(self) -> None:
         calls = []
@@ -153,6 +177,10 @@ class PilotHostAcceptanceTests(unittest.TestCase):
         def forbidden_runner(**kwargs):
             calls.append(kwargs)
             raise AssertionError("network stage must not run")
+
+        def forbidden_factory(environ):
+            calls.append(environ)
+            raise AssertionError("client must not be built")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -163,7 +191,8 @@ class PilotHostAcceptanceTests(unittest.TestCase):
                 environ={"MCAI_CANONICAL_ORIGIN": "https://pilot.example.com"},
                 bootstrap_runner=forbidden_runner,
                 attachment_runner=forbidden_runner,
-                provider_runner=forbidden_runner,
+                full_chain_runner=forbidden_runner,
+                model_client_factory=forbidden_factory,
             )
 
         self.assertEqual(result["status"], "FAIL")
@@ -171,6 +200,7 @@ class PilotHostAcceptanceTests(unittest.TestCase):
         checks = {item["check_id"]: item for item in result["host_preflight"]["checks"]}
         self.assertEqual(checks["agnes_api_key"]["error_code"], "AGNES_API_KEY_MISSING")
         self.assertEqual(result["official_bootstrap"]["status"], "SKIPPED")
+        self.assertEqual(result["customer_chain_agnes"]["status"], "SKIPPED")
         self.assertEqual(calls, [])
 
     def test_one_failed_stage_keeps_other_isolated_diagnostics_and_overall_fail(self) -> None:
@@ -179,17 +209,6 @@ class PilotHostAcceptanceTests(unittest.TestCase):
 
         def attachment_runner(**kwargs):
             raise TimeoutError("must not be serialized")
-
-        def provider_runner(**kwargs):
-            return {
-                "status": "PASS",
-                "provider_call_executed": True,
-                "contract_validation_passed": True,
-                "lease_status": "GRANTED",
-                "action_type": "NO_ACTION",
-                "supporting_fact_count": 1,
-                "requires_human_confirmation": True,
-            }
 
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -203,7 +222,8 @@ class PilotHostAcceptanceTests(unittest.TestCase):
                 },
                 bootstrap_runner=bootstrap_runner,
                 attachment_runner=attachment_runner,
-                provider_runner=provider_runner,
+                full_chain_runner=lambda **_: passing_chain(),
+                model_client_factory=lambda _: object(),
             )
 
         self.assertEqual(result["status"], "FAIL")
@@ -211,8 +231,48 @@ class PilotHostAcceptanceTests(unittest.TestCase):
         self.assertEqual(result["official_bootstrap"]["status"], "PASS")
         self.assertEqual(result["attachment"]["status"], "FAIL")
         self.assertEqual(result["attachment"]["error_class"], "TimeoutError")
-        self.assertEqual(result["agnes_provider"]["status"], "PASS")
-        self.assertNotIn("must not be serialized", json.dumps(result, ensure_ascii=False))
+        self.assertEqual(result["customer_chain_agnes"]["status"], "PASS")
+        serialized = json.dumps(result, ensure_ascii=False)
+        self.assertNotIn("must not be serialized", serialized)
+        self.assertNotIn("secret", serialized)
+
+    def test_chain_failure_is_sanitized_and_blocks_acceptance(self) -> None:
+        def bootstrap_runner(**kwargs):
+            return 0, {"success_count": 5, "failure_count": 0, "results": []}
+
+        def attachment_runner(**kwargs):
+            return {
+                "status_code": 200,
+                "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "size_bytes": 12345,
+                "sha256": "b" * 64,
+                "parser_version": "ooxml-v0.1",
+                "block_count": 2,
+                "taxonomy_validation_status": "VALIDATED",
+                "taxonomy_labels": [],
+            }
+
+        def full_chain_runner(**kwargs):
+            raise RuntimeError("provider-secret-body")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            result = run_host_acceptance(
+                manifest_path=write_manifest(root),
+                pilot_db_path=pilot_db(root),
+                environ={
+                    "MCAI_CANONICAL_ORIGIN": "https://pilot.example.com",
+                    "MCAI_AGNES_API_KEY": "secret",
+                },
+                bootstrap_runner=bootstrap_runner,
+                attachment_runner=attachment_runner,
+                full_chain_runner=full_chain_runner,
+                model_client_factory=lambda _: object(),
+            )
+
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["customer_chain_agnes"], {"status": "FAIL", "error_class": "RuntimeError"})
+        self.assertNotIn("provider-secret-body", json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == "__main__":
