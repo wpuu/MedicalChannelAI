@@ -111,6 +111,7 @@ export interface PublicTodayActionCard {
 export interface TodayActionsPublicResponse {
   schema_version: '0.1'
   mode: 'TODAY_ACTIONS'
+  snapshot_as_of: string
   input_candidate_count: number
   matched_count: number
   card_count: number
