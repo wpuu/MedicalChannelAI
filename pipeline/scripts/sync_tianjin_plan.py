@@ -31,6 +31,7 @@ from sync_ccgp_query import (  # noqa: E402
 
 DEFAULT_PLAN = PIPELINE_ROOT / 'data' / 'tianjin_query_plan.json'
 SHANGHAI = ZoneInfo('Asia/Shanghai')
+PILOT_REGION = '天津'
 
 
 def parse_as_of(value: str | None) -> datetime:
@@ -42,20 +43,43 @@ def parse_as_of(value: str | None) -> datetime:
     return parsed
 
 
+def ordered_unique_strings(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for raw in values:
+        value = raw.strip()
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        result.append(value)
+    return result
+
+
 def load_plan(path: Path) -> dict:
     payload = json.loads(path.read_text(encoding='utf-8'))
     if not isinstance(payload, dict) or payload.get('schema_version') != '0.1':
         raise ValueError('TIANJIN_QUERY_PLAN_INVALID')
 
-    keywords = payload.get('keywords')
+    raw_keywords = payload.get('keywords')
     notice_types = payload.get('notice_types')
-    if not isinstance(keywords, list) or not keywords or not all(isinstance(item, str) and item.strip() for item in keywords):
+    if (
+        not isinstance(raw_keywords, list)
+        or not raw_keywords
+        or not all(isinstance(item, str) for item in raw_keywords)
+    ):
+        raise ValueError('TIANJIN_QUERY_PLAN_KEYWORDS_INVALID')
+    keywords = ordered_unique_strings(raw_keywords)
+    if not keywords:
         raise ValueError('TIANJIN_QUERY_PLAN_KEYWORDS_INVALID')
     if not isinstance(notice_types, list) or not notice_types:
         raise ValueError('TIANJIN_QUERY_PLAN_NOTICE_TYPES_INVALID')
     unsupported = [item for item in notice_types if item not in VERIFIED_NOTICE_ADAPTERS]
     if unsupported:
         raise ValueError(f'TIANJIN_QUERY_PLAN_NOTICE_TYPE_UNSUPPORTED:{unsupported}')
+
+    region = str(payload.get('region') or PILOT_REGION).strip()
+    if region != PILOT_REGION:
+        raise ValueError(f'TIANJIN_QUERY_PLAN_REGION_LOCKED:{region}')
 
     lookback_days = int(payload.get('lookback_days', 3))
     max_candidates = int(payload.get('max_candidates', 12))
@@ -71,14 +95,39 @@ def load_plan(path: Path) -> dict:
         raise ValueError('TIANJIN_QUERY_PLAN_DELAY_TOO_LOW')
 
     return {
-        'region': str(payload.get('region') or '天津'),
-        'keywords': [item.strip() for item in keywords],
-        'notice_types': notice_types,
+        'region': region,
+        'keywords': keywords,
+        'notice_types': list(notice_types),
         'lookback_days': lookback_days,
         'max_candidates': max_candidates,
         'max_event_watch_projects': max_event_watch_projects,
         'delay_seconds': delay_seconds,
     }
+
+
+def plan_date_window(as_of: datetime, lookback_days: int) -> tuple[str, str]:
+    if as_of.tzinfo is None:
+        raise ValueError('TIANJIN_PLAN_AS_OF_TIMEZONE_REQUIRED')
+    if not 1 <= lookback_days <= 14:
+        raise ValueError('TIANJIN_PLAN_LOOKBACK_INVALID')
+    local_date = as_of.astimezone(SHANGHAI).date()
+    start_date = local_date - timedelta(days=lookback_days - 1)
+    return start_date.isoformat(), local_date.isoformat()
+
+
+def merge_discovered_candidates(
+    discovered_by_url: dict[str, tuple[str, object]],
+    discovered_keywords: dict[str, set[str]],
+    *,
+    keyword: str,
+    candidates: list[tuple[str, object]],
+) -> None:
+    for notice_type, candidate in candidates:
+        detail_url = str(getattr(candidate, 'detail_url', '') or '').strip()
+        if not detail_url:
+            continue
+        discovered_by_url.setdefault(detail_url, (notice_type, candidate))
+        discovered_keywords.setdefault(detail_url, set()).add(keyword)
 
 
 def main() -> int:
@@ -96,10 +145,7 @@ def main() -> int:
 
     plan = load_plan(args.plan)
     as_of = parse_as_of(args.as_of)
-    local_date = as_of.astimezone(SHANGHAI).date()
-    start_date = local_date - timedelta(days=plan['lookback_days'] - 1)
-    start_text = start_date.isoformat()
-    end_text = local_date.isoformat()
+    start_text, end_text = plan_date_window(as_of, plan['lookback_days'])
     observed_at = as_of.astimezone(timezone.utc).isoformat()
 
     failures: list[dict] = []
@@ -120,9 +166,12 @@ def main() -> int:
             delay_seconds=plan['delay_seconds'],
             failures=failures,
         )
-        for notice_type, candidate in candidates:
-            discovered_by_url.setdefault(candidate.detail_url, (notice_type, candidate))
-            discovered_keywords.setdefault(candidate.detail_url, set()).add(keyword)
+        merge_discovered_candidates(
+            discovered_by_url,
+            discovered_keywords,
+            keyword=keyword,
+            candidates=candidates,
+        )
         if keyword_index + 1 < len(plan['keywords']):
             time.sleep(plan['delay_seconds'])
 
@@ -131,7 +180,7 @@ def main() -> int:
 
     discovered = list(discovered_by_url.values())
     discovered.sort(
-        key=lambda item: (item[1].published_at or '', item[1].detail_url),
+        key=lambda item: (getattr(item[1], 'published_at', None) or '', getattr(item[1], 'detail_url', '')),
         reverse=True,
     )
     selected = discovered[: plan['max_candidates']]
@@ -207,6 +256,7 @@ def main() -> int:
         'failures': failures,
         'publish_allowed': discovery_success_count > 0,
         'policy': {
+            'region_locked_to_tianjin': True,
             'multi_keyword_discovery_is_deduplicated_before_detail_fetch': True,
             'event_watch_runs_once_after_all_keywords': True,
             'previous_canonical_state_is_preserved': True,
