@@ -18,6 +18,7 @@ from medical_channel_pipeline.ccgp_detail import (  # noqa: E402
     parse_ccgp_public_tender_html,
 )
 from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
+    REGION_ZONE_IDS,
     build_search_url,
     fetch_search_page,
     parse_search_html,
@@ -29,6 +30,7 @@ VERIFIED_NOTICE_ADAPTERS = {
     '竞争性磋商': parse_ccgp_competitive_consultation_html,
 }
 DEFAULT_NOTICE_TYPES = ['公开招标', '竞争性磋商']
+DEFAULT_REGION = '天津'
 
 
 def stable_id(prefix: str, value: str) -> str:
@@ -67,6 +69,7 @@ def discovery_event(candidate, *, project_number: str, event_type: str, observed
 def scan_events(
     project_number: str,
     *,
+    region: str,
     start_date: str,
     end_date: str,
     delay_seconds: float,
@@ -81,6 +84,7 @@ def scan_events(
             page_index=1,
             start_date=start_date,
             end_date=end_date,
+            region=region,
         )
         try:
             html = fetch_search_page(search_url)
@@ -89,6 +93,7 @@ def scan_events(
             failures.append(
                 {
                     'stage': 'event_search',
+                    'region': region,
                     'project_number': project_number,
                     'notice_type': notice_type,
                     'error': type(exc).__name__,
@@ -114,6 +119,7 @@ def scan_events(
                 failures.append(
                     {
                         'stage': 'event_detail',
+                        'region': region,
                         'project_number': project_number,
                         'url': candidate.detail_url,
                         'error': type(exc).__name__,
@@ -138,6 +144,7 @@ def scan_events(
 def discover_candidates(
     *,
     keyword: str,
+    region: str,
     notice_types: list[str],
     start_date: str,
     end_date: str,
@@ -155,6 +162,7 @@ def discover_candidates(
             page_index=1,
             start_date=start_date,
             end_date=end_date,
+            region=region,
         )
         try:
             html = fetch_search_page(search_url)
@@ -163,6 +171,7 @@ def discover_candidates(
             failures.append(
                 {
                     'stage': 'discovery_search',
+                    'region': region,
                     'notice_type': notice_type,
                     'error': type(exc).__name__,
                     'message': str(exc)[:300],
@@ -186,11 +195,17 @@ def discover_candidates(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description='Low-frequency CCGP Pilot sync: discovery -> VERIFIED detail -> event safety scan.'
+        description='Low-frequency CCGP Pilot sync: Tianjin discovery -> VERIFIED detail -> event safety scan.'
     )
     parser.add_argument('--keyword', required=True)
     parser.add_argument('--start-date', required=True, help='YYYY-MM-DD')
     parser.add_argument('--end-date', required=True, help='YYYY-MM-DD')
+    parser.add_argument(
+        '--region',
+        choices=sorted(REGION_ZONE_IDS),
+        default=DEFAULT_REGION,
+        help='CCGP province-level region selector. Tianjin Pilot defaults to 天津.',
+    )
     parser.add_argument(
         '--notice-type',
         action='append',
@@ -218,6 +233,7 @@ def main() -> int:
 
     discovered = discover_candidates(
         keyword=args.keyword,
+        region=args.region,
         notice_types=notice_types,
         start_date=args.start_date,
         end_date=args.end_date,
@@ -242,6 +258,7 @@ def main() -> int:
             failures.append(
                 {
                     'stage': 'verified_detail',
+                    'region': args.region,
                     'notice_type': notice_type,
                     'title': candidate.title,
                     'url': candidate.detail_url,
@@ -255,6 +272,7 @@ def main() -> int:
         events.extend(
             scan_events(
                 project_number,
+                region=args.region,
                 start_date=args.start_date,
                 end_date=args.end_date,
                 delay_seconds=args.delay_seconds,
@@ -274,6 +292,8 @@ def main() -> int:
     report = {
         'schema_version': '0.1',
         'observed_at': observed_at,
+        'region': args.region,
+        'region_zone_id': REGION_ZONE_IDS[args.region],
         'keyword': args.keyword,
         'notice_types': notice_types,
         'candidate_count': len(candidates),
@@ -282,6 +302,7 @@ def main() -> int:
         'failure_count': len(failures),
         'failures': failures,
         'policy': {
+            'region_is_explicitly_scoped_in_ccgp_query': True,
             'discovery_only_never_becomes_verified_without_detail': True,
             'only_notice_types_with_explicit_verified_adapter_are_collected': True,
             'rate_limit_bypass': False,
@@ -293,7 +314,7 @@ def main() -> int:
     write_json(args.events_output, events)
     write_json(args.report_output, report)
     print(
-        f'candidates={len(candidates)} verified={len(records)} '
+        f'region={args.region} candidates={len(candidates)} verified={len(records)} '
         f'events={len(events)} failures={len(failures)}'
     )
     return 0
