@@ -10,21 +10,21 @@ const items = [
   },
   {
     key: 'matched_count' as const,
-    label: '匹配商机',
+    label: '可行动商机',
     icon: GitCompare,
-    hint: '与客户资源匹配',
+    hint: '通过公开事实行动筛选',
   },
   {
     key: 'card_count' as const,
     label: '今日重点',
     icon: Target,
-    hint: '建议今天采取行动',
+    hint: '建议今天继续判断或行动',
   },
   {
     key: 'model_request_count' as const,
-    label: 'AI待分析',
+    label: 'AI任务队列',
     icon: Loader,
-    hint: '等待行动建议',
+    hint: '已提交模型处理的任务',
   },
 ]
 
