@@ -7,11 +7,11 @@ export type DemoDatasetMode = 'synthetic' | 'verified'
 const raw = env?.VITE_DEMO_DATASET?.trim()?.toLowerCase() ?? ''
 
 /**
- * Static Demo dataset selector.
+ * Static trial dataset selector.
  *
- * synthetic: every opportunity/customer field is fictional.
- * verified: public procurement facts come from a frozen official-source snapshot;
- *           customer relationship/product capability remains an explicit demo profile.
+ * synthetic: every opportunity/customer field is fictional and used only for UI-flow testing.
+ * verified: procurement facts come from the evidence-pipeline public snapshot;
+ *           customer relationship/product capability remains empty until real customer data is supplied.
  */
 export const demoDatasetMode: DemoDatasetMode = raw === 'verified' ? 'verified' : 'synthetic'
 export const isVerifiedPublicDemo = demoDatasetMode === 'verified'
