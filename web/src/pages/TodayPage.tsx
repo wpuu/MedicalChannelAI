@@ -79,7 +79,7 @@ export function TodayPage() {
       await todayActionsService.updateFollowup(id, { status, ...extra })
       await load(true)
       toast(
-        isApiMode ? '跟进状态已同步服务器' : '演示模式：跟进状态已在本地更新',
+        isApiMode ? '跟进状态已同步服务器' : '试用模式：跟进状态已在本地更新',
         'success',
       )
     } catch (cause) {
@@ -163,7 +163,7 @@ export function TodayPage() {
           </div>
           <p className="mt-3 text-[12px] leading-5 text-slate-500">
             {isVerifiedPublicDemo
-              ? '当前生产演示使用2026-08-30冻结的政府采购公开信息快照。项目名称、采购单位、预算、公告日期、截止时间、公开联系人和官方依据来自公开信息；客户关系、产品能力和由其产生的个性化加分仍为演示数据。自动日更正在接入前，不会把冻结快照冒充实时数据。'
+              ? '当前试用读取证据流水线生成的天津公开事实快照。项目名称、采购单位、预算、公告日期、精确截止时间、公开联系人和官方依据来自已核验公开信息；未录入真实客户资源时，医院关系和产品能力明确为空，不参与排序。自动日更尚未接入，因此仍按快照展示，不冒充实时全量数据。'
               : '下方项目、医院、联系人和金额均为虚构演示数据。排序来自通用演示场景，不代表真实客户当前资源。'}
           </p>
         </section>
