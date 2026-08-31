@@ -27,11 +27,7 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      opportunity_id: card.opportunity_id,
-      facts: card.facts,
-      evidence_source_urls: card.evidence_source_urls,
-    }),
+    body: JSON.stringify({ opportunity_id: card.opportunity_id }),
   })
 
   const payload: unknown = await response.json().catch(() => null)
