@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
 
@@ -42,28 +43,94 @@ def _amount_points(budget: int | None) -> int:
     return 4
 
 
-def _event_blocks_today(event: dict[str, Any], as_of: datetime) -> bool:
+def _event_is_effective(event: dict[str, Any], as_of: datetime) -> bool:
     published = datetime.fromisoformat(event["published_at"]).date()
-    if published > as_of.date():
-        return False
-    if event["event_type"] == "TERMINATION":
-        return True
-    return event["event_type"] == "CORRECTION" and bool(event.get("requires_reconciliation", True))
+    return published <= as_of.date()
 
 
-def _blocked_project_numbers(
+def _build_event_states(
     notice_events: list[dict[str, Any]],
     as_of: datetime,
-) -> set[str]:
-    events = validate_notice_events(notice_events)
-    return {
-        event["project_number"].strip().lower()
-        for event in events
-        if _event_blocks_today(event, as_of)
-    }
+) -> dict[str, dict[str, Any]]:
+    events = sorted(
+        validate_notice_events(notice_events),
+        key=lambda event: (event["published_at"], event["event_id"]),
+    )
+    states: dict[str, dict[str, Any]] = {}
+    for event in events:
+        if not _event_is_effective(event, as_of):
+            continue
+        project_number = event["project_number"].strip().lower()
+        state = states.setdefault(
+            project_number,
+            {
+                "terminated": False,
+                "fact_overrides": {},
+                "unresolved_fact_paths": set(),
+                "evidence_source_urls": [],
+                "applied_event_ids": [],
+            },
+        )
+        source_url = event["source_url"]
+        if source_url not in state["evidence_source_urls"]:
+            state["evidence_source_urls"].append(source_url)
+        state["applied_event_ids"].append(event["event_id"])
+
+        if event["event_type"] == "TERMINATION":
+            state["terminated"] = True
+            continue
+
+        changed_paths = set(event.get("changed_fact_paths") or [])
+        overrides = event.get("fact_overrides") or {}
+        unresolved = set(event.get("unresolved_fact_paths") or [])
+
+        if event.get("requires_reconciliation") and not changed_paths and not unresolved:
+            unresolved.add("__unparsed_correction__")
+
+        for path in changed_paths:
+            if path in overrides:
+                state["fact_overrides"][path] = overrides[path]
+                state["unresolved_fact_paths"].discard(path)
+            else:
+                state["unresolved_fact_paths"].add(path)
+        state["unresolved_fact_paths"].update(unresolved)
+
+    return states
 
 
-def _public_card(record: dict[str, Any], rank: int, as_of: datetime) -> dict[str, Any]:
+def _apply_event_state(
+    record: dict[str, Any],
+    event_state: dict[str, Any] | None,
+) -> tuple[dict[str, Any] | None, list[str]]:
+    if not event_state:
+        return record, []
+    if event_state["terminated"] or event_state["unresolved_fact_paths"]:
+        return None, []
+
+    updated = deepcopy(record)
+    facts = updated["facts"]
+    applied_paths: list[str] = []
+    for path, value in event_state["fact_overrides"].items():
+        if not path.startswith("facts."):
+            continue
+        key = path.split(".", 1)[1]
+        facts[key] = value
+        applied_paths.append(path)
+
+    if applied_paths:
+        flags = list(updated.get("quality_flags") or [])
+        if "OFFICIAL_CORRECTION_APPLIED" not in flags:
+            flags.append("OFFICIAL_CORRECTION_APPLIED")
+        updated["quality_flags"] = flags
+    return updated, list(event_state["evidence_source_urls"])
+
+
+def _public_card(
+    record: dict[str, Any],
+    rank: int,
+    as_of: datetime,
+    correction_evidence_urls: list[str] | None = None,
+) -> dict[str, Any]:
     facts = record["facts"]
     mode, intervention_points, model_status = _actionability(facts, as_of)
     amount_points = _amount_points(facts.get("budget_cny"))
@@ -90,12 +157,16 @@ def _public_card(record: dict[str, Any], rank: int, as_of: datetime) -> dict[str
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL",
     }
-    source_url = record["source"]["url"]
+    evidence_source_urls = [record["source"]["url"]]
+    for url in correction_evidence_urls or []:
+        if url not in evidence_source_urls:
+            evidence_source_urls.append(url)
+
     return {
         "rank": rank,
         "opportunity_id": record["opportunity_id"],
         "facts": public_facts,
-        "evidence_source_urls": [source_url],
+        "evidence_source_urls": evidence_source_urls,
         "customer_context": {
             "context_type": "CUSTOMER_PRIVATE_FACTS",
             "business_role": None,
@@ -164,22 +235,29 @@ def build_public_snapshot(
     if as_of.tzinfo is None:
         as_of = as_of.replace(tzinfo=timezone.utc)
     validated = validate_records(records)
-    blocked_project_numbers = _blocked_project_numbers(notice_events or [], as_of)
+    event_states = _build_event_states(notice_events or [], as_of)
 
-    sortable: list[tuple[int, str, dict[str, Any]]] = []
+    sortable: list[tuple[int, str, dict[str, Any], list[str]]] = []
     for record in validated:
         facts = record["facts"]
         project_number = str(facts.get("project_number") or "").strip().lower()
-        if project_number and project_number in blocked_project_numbers:
+        event_state = event_states.get(project_number) if project_number else None
+        effective_record, correction_urls = _apply_event_state(record, event_state)
+        if effective_record is None:
             continue
-        mode, intervention, _ = _actionability(facts, as_of)
+
+        effective_facts = effective_record["facts"]
+        mode, intervention, _ = _actionability(effective_facts, as_of)
         if mode == "ARCHIVE":
             continue
-        score = intervention + _amount_points(facts.get("budget_cny"))
-        sortable.append((-score, record["opportunity_id"], record))
+        score = intervention + _amount_points(effective_facts.get("budget_cny"))
+        sortable.append((-score, effective_record["opportunity_id"], effective_record, correction_urls))
 
     sortable.sort(key=lambda item: (item[0], item[1]))
-    cards = [_public_card(item[2], rank + 1, as_of) for rank, item in enumerate(sortable)]
+    cards = [
+        _public_card(item[2], rank + 1, as_of, item[3])
+        for rank, item in enumerate(sortable)
+    ]
     return {
         "schema_version": "0.1",
         "mode": "TODAY_ACTIONS",
