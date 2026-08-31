@@ -114,7 +114,11 @@ class ResearchFixtureContractTests(unittest.TestCase):
             self.assertEqual(expected["lifecycle_state"], "AWARDED")
             self.assertNotIn("award_total_cny", expected)
             self.assertNotIn("official_supplier", case)
-            self.assertIn("unavailable", case["source_evidence_note"].lower())
+            evidence_note = case["source_evidence_note"].lower()
+            self.assertTrue(
+                "unavailable" in evidence_note or "not available" in evidence_note,
+                case_id,
+            )
 
     def test_attachment_declarations_never_claim_real_parser_success_without_binary(self) -> None:
         cases = load_cases(ATTACHMENT_FIXTURES)
