@@ -42,6 +42,7 @@ class ModelDecisionContractTests(unittest.TestCase):
         self.item["hospital_name"] = "天津测试医院"
         self.item["product_label_provenance"] = "DETERMINISTIC"
         self.item["product_label_validation_status"] = "VALIDATED"
+        self.item["product_classifier_id"] = "deterministic-product-taxonomy-v0.1"
         self.match = evaluate_match_pipeline(self.profile, self.item)
         self.facts = [
             verified_fact("fact_11111111-1111-1111-1111-111111111111", "project_name", "检验设备采购项目"),
@@ -204,6 +205,7 @@ class ModelDecisionContractTests(unittest.TestCase):
         blocked_item["verification_status"] = "UNVERIFIED"
         blocked_item["product_label_provenance"] = "DETERMINISTIC"
         blocked_item["product_label_validation_status"] = "VALIDATED"
+        blocked_item["product_classifier_id"] = "deterministic-product-taxonomy-v0.1"
         blocked_match = evaluate_match_pipeline(self.profile, blocked_item)
         with self.assertRaises(ModelDecisionError) as context:
             build_model_decision_input(
