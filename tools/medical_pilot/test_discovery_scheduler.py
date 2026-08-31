@@ -14,8 +14,10 @@ from .discovery_scheduler import (
 
 
 MONDAY_1003 = datetime(2026, 8, 31, 2, 3, tzinfo=timezone.utc)  # 10:03 Asia/Shanghai
+MONDAY_1007 = datetime(2026, 8, 31, 2, 7, tzinfo=timezone.utc)  # 10:07 Asia/Shanghai
 MONDAY_1011 = datetime(2026, 8, 31, 2, 11, tzinfo=timezone.utc)  # 10:11 Asia/Shanghai
 SUNDAY_0734 = datetime(2026, 8, 29, 23, 34, tzinfo=timezone.utc)  # 2026-08-30 07:34 local
+SUNDAY_0738 = datetime(2026, 8, 29, 23, 38, tzinfo=timezone.utc)  # 2026-08-30 07:38 local
 SUNDAY_0742 = datetime(2026, 8, 29, 23, 42, tzinfo=timezone.utc)  # 2026-08-30 07:42 local
 
 
@@ -36,31 +38,44 @@ def success_result(source_id: str) -> DiscoveryRunResult:
 class DiscoverySchedulerTests(unittest.TestCase):
     def test_regular_slots_use_existing_source_offsets(self) -> None:
         total = due_discovery_slot("tjmugh_procurement", now=MONDAY_1003)
+        ccgp = due_discovery_slot("ccgp_local_notices", now=MONDAY_1007)
         first = due_discovery_slot("tj_first_central_hospital_procurement", now=MONDAY_1011)
         self.assertIsNotNone(total)
+        self.assertIsNotNone(ccgp)
         self.assertIsNotNone(first)
         assert total is not None
+        assert ccgp is not None
         assert first is not None
         self.assertEqual(total.kind, "REGULAR")
+        self.assertEqual(ccgp.kind, "REGULAR")
         self.assertEqual(first.kind, "REGULAR")
         self.assertEqual(total.interval_minutes, 15)
+        self.assertEqual(ccgp.interval_minutes, 10)
         self.assertEqual(first.interval_minutes, 15)
         self.assertIsNone(due_discovery_slot("tjmugh_procurement", now=MONDAY_1011))
-
-    def test_not_ready_source_never_receives_a_slot(self) -> None:
         self.assertIsNone(due_discovery_slot("ccgp_local_notices", now=MONDAY_1003))
+
+    def test_still_not_ready_sources_never_receive_a_slot(self) -> None:
         self.assertIsNone(due_discovery_slot("tj_government_procurement", now=MONDAY_1003))
+        self.assertIsNone(due_discovery_slot("tj_government_procurement_center", now=MONDAY_1003))
+        self.assertIsNone(due_discovery_slot("ccgp_procurement_intent", now=MONDAY_1003))
+        self.assertIsNone(due_discovery_slot("tj_public_resource_exchange", now=MONDAY_1003))
 
     def test_forced_refresh_uses_stable_source_minute_inside_window(self) -> None:
         total = due_discovery_slot("tjmugh_procurement", now=SUNDAY_0734)
+        ccgp = due_discovery_slot("ccgp_local_notices", now=SUNDAY_0738)
         first = due_discovery_slot("tj_first_central_hospital_procurement", now=SUNDAY_0742)
         self.assertIsNotNone(total)
+        self.assertIsNotNone(ccgp)
         self.assertIsNotNone(first)
         assert total is not None
+        assert ccgp is not None
         assert first is not None
         self.assertEqual(total.kind, "FORCED_REFRESH")
+        self.assertEqual(ccgp.kind, "FORCED_REFRESH")
         self.assertEqual(first.kind, "FORCED_REFRESH")
         self.assertIn("07:31-07:43", total.slot_id)
+        self.assertIn("07:31-07:43", ccgp.slot_id)
         self.assertIn("07:31-07:43", first.slot_id)
 
     def test_same_slot_is_claimed_only_once_even_after_runtime_reopen(self) -> None:
@@ -82,6 +97,21 @@ class DiscoverySchedulerTests(unittest.TestCase):
 
             reopened = SQLiteDiscoveryScheduleLedger(db)
             self.assertEqual(reopened.consecutive_failures("tjmugh_procurement"), 0)
+
+    def test_ccgp_ready_source_is_claimed_and_run_at_its_fast_offset(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            db = Path(tmp) / "pilot.sqlite"
+            calls: list[str] = []
+
+            def runner(source_id: str, *, db_path: Path, now: datetime) -> DiscoveryRunResult:
+                calls.append(source_id)
+                return success_result(source_id)
+
+            result = run_due_discovery_tick(db_path=db, now=MONDAY_1007, run_source=runner)
+            self.assertEqual(result.due_sources, ("ccgp_local_notices",))
+            self.assertEqual(result.claimed_sources, ("ccgp_local_notices",))
+            self.assertEqual(result.succeeded_sources, ("ccgp_local_notices",))
+            self.assertEqual(calls, ["ccgp_local_notices"])
 
     def test_source_failure_widens_regular_cadence_and_success_resets(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
