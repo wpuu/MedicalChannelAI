@@ -163,10 +163,21 @@ def _extract_registration_deadline(text: str) -> str:
     if not section:
         raise CcgpDetailParseError("CCGP_REGISTRATION_SECTION_NOT_FOUND")
     year, month, day, schedule = section.groups()
-    times = re.findall(r"至\s*(\d{1,2})\s*[：:]\s*(\d{2})", schedule)
-    if not times:
-        raise CcgpDetailParseError("CCGP_REGISTRATION_END_TIME_NOT_FOUND")
-    hour, minute = times[-1]
+
+    # CCGP commonly publishes separate morning/afternoon acquisition windows.
+    # If an afternoon clause exists, its explicit closing time is the daily cutoff.
+    # Never fall back to the morning close when the afternoon cutoff is missing.
+    if "下午" in schedule:
+        afternoon_schedule = schedule.rsplit("下午", 1)[1]
+        afternoon_times = re.findall(r"至\s*(\d{1,2})\s*[：:]\s*(\d{2})", afternoon_schedule)
+        if not afternoon_times:
+            raise CcgpDetailParseError("CCGP_REGISTRATION_END_TIME_NOT_FOUND")
+        hour, minute = afternoon_times[-1]
+    else:
+        times = re.findall(r"至\s*(\d{1,2})\s*[：:]\s*(\d{2})", schedule)
+        if not times:
+            raise CcgpDetailParseError("CCGP_REGISTRATION_END_TIME_NOT_FOUND")
+        hour, minute = times[-1]
     return _datetime_from_cn(year, month, day, hour, minute)
 
 
