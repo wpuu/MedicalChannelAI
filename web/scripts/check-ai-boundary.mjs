@@ -101,6 +101,7 @@ try {
   const remoteSnapshot = JSON.parse(JSON.stringify(snapshot))
   remoteSnapshot.opportunity_pool = [...snapshot.cards, poolOnlyCard]
   remoteSnapshot.opportunity_pool_count = remoteSnapshot.opportunity_pool.length
+  remoteSnapshot.matched_count = remoteSnapshot.opportunity_pool.length
   process.env.VERIFIED_SNAPSHOT_URL = 'https://snapshot.example/today-actions.public.json'
   clearVerifiedSnapshotCacheForTests()
   globalThis.fetch = async () => ({
