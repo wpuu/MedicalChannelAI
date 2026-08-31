@@ -130,6 +130,19 @@ def merge_discovered_candidates(
         discovered_keywords.setdefault(detail_url, set()).add(keyword)
 
 
+def publish_gate(
+    *,
+    discovery_success_count: int,
+    selected_candidate_count: int,
+    new_verified_record_count: int,
+) -> tuple[bool, str]:
+    if discovery_success_count <= 0:
+        return False, 'ALL_DISCOVERY_QUERIES_FAILED'
+    if selected_candidate_count > 0 and new_verified_record_count <= 0:
+        return False, 'ALL_SELECTED_DETAILS_FAILED_VERIFICATION'
+    return True, 'PASS'
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description='Low-frequency Tianjin medical plan sync: multi-keyword discovery -> dedupe -> VERIFIED detail -> one event watch pass.'
@@ -235,6 +248,12 @@ def main() -> int:
         )
     merged_events = merge_notice_events(existing_events, new_events)
 
+    publish_allowed, publish_gate_reason = publish_gate(
+        discovery_success_count=discovery_success_count,
+        selected_candidate_count=len(selected),
+        new_verified_record_count=len(new_records),
+    )
+
     report = {
         'schema_version': '0.1',
         'observed_at': observed_at,
@@ -254,7 +273,8 @@ def main() -> int:
         'merged_event_count': len(merged_events),
         'failure_count': len(failures),
         'failures': failures,
-        'publish_allowed': discovery_success_count > 0,
+        'publish_allowed': publish_allowed,
+        'publish_gate_reason': publish_gate_reason,
         'policy': {
             'region_locked_to_tianjin': True,
             'multi_keyword_discovery_is_deduplicated_before_detail_fetch': True,
@@ -262,6 +282,7 @@ def main() -> int:
             'previous_canonical_state_is_preserved': True,
             'discovery_only_never_becomes_verified_without_detail': True,
             'all_discovery_queries_failed_blocks_publish': True,
+            'all_selected_details_failed_verification_blocks_publish': True,
             'rate_limit_bypass': False,
             'minimum_request_delay_seconds': plan['delay_seconds'],
         },
@@ -275,10 +296,13 @@ def main() -> int:
         f"queries_ok={discovery_success_count}/{planned_discovery_queries} "
         f"unique={len(discovered)} selected={len(selected)} verified={len(new_records)} "
         f"records={len(merged_records)} watched={len(watch_projects)} "
-        f"events={len(new_events)} failures={len(failures)}"
+        f"events={len(new_events)} failures={len(failures)} gate={publish_gate_reason}"
     )
-    if discovery_success_count == 0:
-        print('all discovery queries failed; refusing to publish a fresh snapshot', file=sys.stderr)
+    if not publish_allowed:
+        print(
+            f'refresh publish blocked: {publish_gate_reason}',
+            file=sys.stderr,
+        )
         return 2
     return 0
 
