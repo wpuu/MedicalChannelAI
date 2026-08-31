@@ -138,19 +138,21 @@ def build_public_snapshot(records: list[dict[str, Any]], as_of: datetime) -> dic
     if as_of.tzinfo is None:
         as_of = as_of.replace(tzinfo=timezone.utc)
     validated = validate_records(records)
-    sortable = []
+    sortable: list[tuple[int, str, dict[str, Any]]] = []
     for record in validated:
         facts = record["facts"]
         mode, intervention, _ = _actionability(facts, as_of)
-        sortable.append((mode == "ARCHIVE", -(intervention + _amount_points(facts.get("budget_cny"))), record))
-    sortable.sort(key=lambda item: (item[0], item[1], item[2]["opportunity_id"]))
+        if mode == "ARCHIVE":
+            continue
+        score = intervention + _amount_points(facts.get("budget_cny"))
+        sortable.append((-score, record["opportunity_id"], record))
+    sortable.sort(key=lambda item: (item[0], item[1]))
     cards = [_public_card(item[2], rank + 1, as_of) for rank, item in enumerate(sortable)]
-    matched_count = sum(1 for card in cards if card["recommendation_mode"] != "ARCHIVE")
     return {
         "schema_version": "0.1",
         "mode": "TODAY_ACTIONS",
-        "input_candidate_count": len(cards),
-        "matched_count": matched_count,
+        "input_candidate_count": len(validated),
+        "matched_count": len(cards),
         "card_count": len(cards),
         "model_request_count": 0,
         "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
