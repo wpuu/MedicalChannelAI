@@ -1,7 +1,14 @@
 import { promises as dns } from 'node:dns'
 import https from 'node:https'
+import { createHash } from 'node:crypto'
 
 const host = 'medicalai.qd.je'
+const targets = [
+  ['custom', 'https://medicalai.qd.je'],
+  ['vercel-default', 'https://medicalchannelai.vercel.app'],
+  ['vercel-project', 'https://medicalchannelai-rerisse7-1717s-projects.vercel.app'],
+  ['vercel-main-alias', 'https://medicalchannelai-git-main-rerisse7-1717s-projects.vercel.app'],
+]
 
 async function safeResolve(label, fn) {
   try {
@@ -16,26 +23,30 @@ await safeResolve('A', () => dns.resolve4(host))
 await safeResolve('AAAA', () => dns.resolve6(host))
 await safeResolve('CNAME', () => dns.resolveCname(host))
 
-for (const path of ['/', '/api/status']) {
-  try {
-    const response = await fetch(`https://${host}${path}`, { redirect: 'manual' })
-    const text = await response.text()
-    const title = text.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1] ?? null
-    console.log('[domain-probe:http]', JSON.stringify({
-      path,
-      status: response.status,
-      content_type: response.headers.get('content-type'),
-      server: response.headers.get('server'),
-      via: response.headers.get('via'),
-      location: response.headers.get('location'),
-      x_vercel_id: response.headers.get('x-vercel-id'),
-      x_vercel_cache: response.headers.get('x-vercel-cache'),
-      cf_ray: response.headers.get('cf-ray'),
-      title,
-      body_preview: text.slice(0, 500),
-    }))
-  } catch (error) {
-    console.log('[domain-probe:http]', JSON.stringify({ path, error: error?.message || String(error), cause: error?.cause?.code || null }))
+for (const [label, base] of targets) {
+  for (const path of ['/', '/api/status']) {
+    try {
+      const response = await fetch(`${base}${path}`, { redirect: 'manual' })
+      const text = await response.text()
+      const title = text.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1] ?? null
+      const sha256 = createHash('sha256').update(text).digest('hex')
+      console.log('[domain-probe:compare]', JSON.stringify({
+        label,
+        path,
+        status: response.status,
+        content_type: response.headers.get('content-type'),
+        server: response.headers.get('server'),
+        via: response.headers.get('via'),
+        location: response.headers.get('location'),
+        x_vercel_id: response.headers.get('x-vercel-id'),
+        x_vercel_cache: response.headers.get('x-vercel-cache'),
+        title,
+        bytes: Buffer.byteLength(text),
+        sha256,
+      }))
+    } catch (error) {
+      console.log('[domain-probe:compare]', JSON.stringify({ label, path, error: error?.message || String(error), cause: error?.cause?.code || null }))
+    }
   }
 }
 
