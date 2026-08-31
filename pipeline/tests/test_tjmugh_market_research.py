@@ -40,13 +40,15 @@ class TjmughMarketResearchTests(unittest.TestCase):
         self.assertEqual(len(record["facts"]["product_items"]), 5)
         self.assertEqual(record["facts"]["public_contact"]["phone"], "60361777")
 
-    def test_verified_seed_is_archived_after_market_research_deadline(self) -> None:
+    def test_closed_market_research_is_kept_in_fact_layer_but_not_today_feed(self) -> None:
         seed = Path(__file__).resolve().parents[1] / "data" / "tianjin_official_institution_seed.json"
         records = json.loads(seed.read_text(encoding="utf-8"))
         self.assertEqual(len(validate_records(records)), 1)
         payload = build_public_snapshot(records, datetime.fromisoformat("2026-08-31T16:42:00+08:00"))
-        self.assertEqual(payload["cards"][0]["recommendation_mode"], "ARCHIVE")
-        self.assertEqual(payload["cards"][0]["model_decision_status"], "NOT_ELIGIBLE")
+        self.assertEqual(payload["input_candidate_count"], 1)
+        self.assertEqual(payload["matched_count"], 0)
+        self.assertEqual(payload["card_count"], 0)
+        self.assertEqual(payload["cards"], [])
 
     def test_unapproved_host_is_rejected(self) -> None:
         with self.assertRaisesRegex(TjmughParseError, "TJMUGH_SOURCE_HOST_REJECTED"):
