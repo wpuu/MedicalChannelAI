@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-31T08:52:00+08:00",
-  "phase": "DETERMINISTIC_AND_REAL_PUBLIC_BOOTSTRAP_PASS_HOST_ACCEPTANCE_READY_REAL_HOST_EXECUTION_PENDING",
+  "as_of": "2026-08-31T09:04:00+08:00",
+  "phase": "DETERMINISTIC_REAL_PUBLIC_AND_BACKUP_GATES_PASS_HOST_ACCEPTANCE_READY_REAL_HOST_EXECUTION_PENDING",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -15,8 +15,8 @@
     "verified_opportunity_regression_fixtures": 50,
     "verified_institution_evidence_fixtures": 15,
     "schema_contracts": 41,
-    "deterministic_test_modules_written": 91,
-    "deterministic_unittest_cases_executed": 491,
+    "deterministic_test_modules_written": 93,
+    "deterministic_unittest_cases_executed": 503,
     "real_medical_attachment_binary_captures": 0,
     "agnes_benchmark_cases": 28,
     "agnes_benchmark_executed": false
@@ -140,6 +140,30 @@
     "customer_data_used": false,
     "full_real_host_acceptance_passed": false
   },
+  "backup_restore": {
+    "status": "IMPLEMENTED_AND_DETERMINISTICALLY_VERIFIED_REAL_HOST_TIMER_NOT_YET_RUN",
+    "online_backup_module": "tools.medical_pilot.pilot_backup",
+    "restore_module": "tools.medical_pilot.pilot_restore",
+    "scheduled_job_module": "tools.medical_pilot.pilot_backup_job",
+    "backup_service": "deploy/medical-pilot-backup.service",
+    "backup_timer": "deploy/medical-pilot-backup.timer",
+    "runbook": "deploy/PILOT_BACKUP_RESTORE.md",
+    "sqlite_backup_api_used": true,
+    "source_opened_read_only": true,
+    "live_committed_wal_pages_tested": true,
+    "backup_integrity_check": true,
+    "backup_foreign_key_check": true,
+    "atomic_backup_publish": true,
+    "backup_file_mode": "0600",
+    "backup_contains_customer_data": true,
+    "daily_schedule": "03:40 Asia/Shanghai plus up to 300s randomized delay",
+    "retention_count": 14,
+    "every_scheduled_backup_requires_restore_smoke": true,
+    "restore_smoke_uses_temporary_database": true,
+    "automatic_production_restore_allowed": false,
+    "production_restore_requires_api_worker_stopped": true,
+    "real_host_backup_restore_smoke_passed": false
+  },
   "followup": {
     "endpoint": "GET/POST /api/followup/:opportunity_id",
     "storage": "TENANT_PROFILE_PRIVATE_APPEND_ONLY",
@@ -177,6 +201,7 @@
     "real_pilot_backend_strategy": "SINGLE_HOST_SQLITE_PLUS_CADDY",
     "server_default_bind": "127.0.0.1:8787",
     "sqlite_path": "/srv/medical/data/pilot.sqlite",
+    "backup_path": "/srv/medical/backups",
     "systemd_environment_file": "/etc/medicalchannelai/pilot.env",
     "systemd_environment_file_optional": false,
     "serverless_local_sqlite_allowed": false,
@@ -184,12 +209,12 @@
     "real_pilot_backend_execution_completed": false
   },
   "validation": {
-    "status": "491_TEST_GATE_PASS_PLUS_ISOLATED_LIVE_PUBLIC_BOOTSTRAP_PASS",
-    "evidence_commit": "7c40802019b280d8c6af6c7f543908e8a8ea5fd3",
-    "vercel_deployment_id": "dpl_2PL9asnHRPwrSDQ6PZdS12R96kv6",
+    "status": "503_TEST_GATE_PASS_PLUS_ISOLATED_LIVE_PUBLIC_BOOTSTRAP_PASS",
+    "evidence_commit": "6e7ab64c56df34be7e0881dc6d121f937e1e598b",
+    "vercel_deployment_id": "dpl_6gzgNNVv3AXMGYbp277Jj8tZ12PE",
     "vercel_deployment_state": "READY",
     "python_command": "python3 -m unittest discover -s tools/medical_pilot -t . -p 'test_*.py'",
-    "python_test_cases_executed": 491,
+    "python_test_cases_executed": 503,
     "python_backend_tests_passed": true,
     "typescript_check_passed": true,
     "vite_production_build_passed": true,
@@ -197,16 +222,16 @@
     "vite_dist_index_kib": 413.58,
     "vite_dist_gzip_kib": 127.17,
     "github_actions_runner_available": false,
-    "interpretation": "The clean Vercel Preview gate on commit 7c408020 ran all 491 Python unittest cases, TypeScript checking and the Vite production build and reached READY. Host preflight, strict systemd EnvironmentFile/ExecStartPre boundaries, the frozen acceptance manifest, temporary-SQLite bootstrap/provider acceptance flow and the manual oneshot acceptance unit are covered. A prior 491-case run had one test-only false positive because a comment literally contained the forbidden string [Install]; the comment was corrected without relaxing the assertion. Separately, deployment dpl_5TnA7PKNWtJitBUak1m7CbBnExE5 executed five registered official URLs against isolated temporary SQLite and passed 5/5. No real authenticated Agnes provider call or real attachment byte capture has yet been observed on the target Pilot host."
+    "interpretation": "The clean Vercel Preview gate on commit 6e7ab64c ran all 503 Python unittest cases, TypeScript checking and the Vite production build and reached READY. Backup tests prove SQLite Backup API captures committed WAL pages while the writer connection remains open and the WAL file still exists. Backup/restore code also covers integrity and foreign-key checks, private 0600 files, non-destructive restore candidates, corrupt-backup rejection, daily systemd scheduling and mandatory restore-smoke verification. Separately, deployment dpl_5TnA7PKNWtJitBUak1m7CbBnExE5 executed five registered official URLs against isolated temporary SQLite and passed 5/5. No real authenticated Agnes provider call or real attachment byte capture has yet been observed on the target Pilot host."
   },
   "next": [
-    "on the target single Pilot host install the three systemd units and create root-controlled /etc/medicalchannelai/pilot.env with MCAI_CANONICAL_ORIGIN and server-only MCAI_AGNES_API_KEY",
-    "run sudo systemctl start medical-pilot-acceptance.service and inspect its safe JSON log; require overall PASS before enabling the API or Agnes worker",
-    "after host acceptance PASS import the five official bootstrap URLs into /srv/medical/data/pilot.sqlite using pilot_live_seed",
+    "on the target single Pilot host create root-controlled /etc/medicalchannelai/pilot.env and /srv/medical/backups with medicalai-only permissions",
+    "run sudo systemctl start medical-pilot-acceptance.service and require overall PASS before enabling API or Agnes worker",
+    "after host acceptance PASS import the five official bootstrap URLs into /srv/medical/data/pilot.sqlite",
     "start medical-pilot.service and medical-agnes-worker.service and verify local health plus queue-to-READY behavior",
-    "create Lao Yang INVITED account with bootstrap-invite and send the one-time registration link",
-    "have Lao Yang fill product capabilities, manufacturer/channel/rental policy and selected hospital relationships",
-    "verify profile save immediately queues Agnes and Today Top5 transitions from AWAITING_MODEL to READY",
-    "run authenticated followup/reminder/followed/outreach and backup-restore smoke before calling the Pilot production-ready"
+    "run one manual pilot_backup_job and enable medical-pilot-backup.timer only after backup plus restore_smoke PASS on the target host",
+    "run an isolated full invite/profile-to-queue-to-real-Agnes-READY smoke before using Lao Yang as a test subject",
+    "create Lao Yang INVITED account only after the isolated full smoke passes",
+    "run authenticated followup/reminder/followed/outreach and mainland/WeChat access checks before calling the Pilot production-ready"
   ]
 }
