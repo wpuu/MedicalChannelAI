@@ -62,6 +62,17 @@ jobs:
             --events-output pipeline/data/tianjin_notice_events.json \
             --report-output pipeline/data/tianjin_sync_report.json
 
+      - name: Sync verified TMUGH early-demand state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python pipeline/scripts/sync_tjmugh_market_research.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --existing-records-input pipeline/data/tianjin_official_institution_seed.json \
+            --existing-records-input pipeline/data/tianjin_live_tjmugh_records.json \
+            --records-output pipeline/data/tianjin_live_tjmugh_records.json \
+            --report-output pipeline/data/tianjin_tjmugh_sync_report.json
+
       - name: Publish H5-safe verified snapshot
         shell: bash
         run: |
@@ -69,7 +80,7 @@ jobs:
           python pipeline/scripts/publish_web_snapshot.py \
             --as-of '${{ steps.clock.outputs.as_of }}' \
             --input pipeline/data/tianjin_live_ccgp_records.json \
-            --input pipeline/data/tianjin_official_institution_seed.json \
+            --input pipeline/data/tianjin_live_tjmugh_records.json \
             --event-input pipeline/data/tianjin_notice_events.json \
             --output web/public/data/today-actions.public.json
 
@@ -85,8 +96,10 @@ jobs:
           git config user.email 'medicalchannel-refresh[bot]@users.noreply.github.com'
           git add \
             pipeline/data/tianjin_live_ccgp_records.json \
+            pipeline/data/tianjin_live_tjmugh_records.json \
             pipeline/data/tianjin_notice_events.json \
             pipeline/data/tianjin_sync_report.json \
+            pipeline/data/tianjin_tjmugh_sync_report.json \
             web/public/data/today-actions.public.json
           if git diff --cached --quiet; then
             echo 'No verified state change to commit.'
