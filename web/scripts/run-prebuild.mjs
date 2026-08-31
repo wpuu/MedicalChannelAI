@@ -34,5 +34,6 @@ if (!pythonRan) {
   throw new Error('PYTHON_RUNTIME_NOT_FOUND_FOR_PIPELINE_TESTS')
 }
 
+await import('./check-verified-snapshot.mjs')
 await import('./check-ai-boundary.mjs')
 console.log('Prebuild verification: PASS')
