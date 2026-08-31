@@ -15,9 +15,9 @@ if [[ "${VERCEL_GIT_COMMIT_REF:-}" == "dev/tianjin-pilot-v0.1" ]]; then
     cd ..
     python3 -m unittest discover -s tools/medical_pilot -t . -p 'test_*.py'
 
-    # This marker is committed only for a deliberate one-shot network validation and
-    # removed immediately afterwards. The SQLite database lives in Vercel /tmp and
-    # never contains customer context or credentials.
+    # These markers are committed only for deliberate one-shot network validation and
+    # removed immediately after the resulting deployment is inspected. No customer
+    # context or provider credentials are involved in either verification path.
     if [[ -f deploy/.verify-live-bootstrap-once ]]; then
       echo "[pilot-live-bootstrap] verifying registered official URLs against isolated temporary SQLite"
       live_db="/tmp/medicalchannelai-live-bootstrap-${VERCEL_GIT_COMMIT_SHA:-manual}.sqlite"
@@ -26,6 +26,13 @@ if [[ "${VERCEL_GIT_COMMIT_REF:-}" == "dev/tianjin-pilot-v0.1" ]]; then
         --db "${live_db}" \
         --manifest deploy/tianjin-pilot-bootstrap-urls-2026-08-30.json
       rm -f "${live_db}" "${live_db}-wal" "${live_db}-shm"
+    fi
+
+    if [[ -f deploy/.verify-live-attachment-once ]]; then
+      echo "[pilot-live-attachment] capturing one approved Tianjin government DOCX attachment"
+      python3 -m tools.medical_pilot.attachment_live_probe \
+        --url 'https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=1OQ5vSM9GqM%2A&method=downEnId' \
+        --filename 'XCSD-2026-C-181项目需求书.docx'
     fi
   )
 fi
