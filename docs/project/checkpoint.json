@@ -9,11 +9,12 @@
   "demo_mode": "verified_snapshot_with_local_trial_state",
   "verified_snapshot_at": "2026-08-31T17:56:00+08:00",
   "github_actions_status": "RUNNER_EXECUTION_UNVERIFIED",
-  "vercel_preview_status": "LATEST_FUNCTIONAL_CODE_VERIFIED; BRANCH_AUTO_PREVIEWS_PAUSED_AFTER_VALIDATION",
+  "vercel_preview_status": "WEB_AI_CODE_VERIFIED_AT_0485010; FINAL_PUBLISHER_PREVIEW_BLOCKED_BY_HOBBY_BUILD_RATE_LIMIT; BRANCH_AUTO_PREVIEWS_PAUSED",
   "vercel_last_verified_preview_commit": "04850101bfc72b81989fbb62e7cb78fd7365e0e4",
   "vercel_last_verified_preview_deployment": "dpl_3dvW5SDu8LizaZ1cVSa2Bjxeug2U",
   "vercel_last_verified_preview_result": "61_PIPELINE_TESTS_PASS; VERIFIED_SNAPSHOT_CHECKS_PASS; AI_BOUNDARY_PASS; PREBUILD_PASS; TSC_PASS; VITE_BUILD_PASS; 2_NODE_FUNCTIONS_PACKAGED; DEPLOYMENT_READY",
-  "latest_changes_validation_status": "FUNCTIONAL_CODE_VERIFIED_AT_0485010; LATER_COMMITS_ONLY_PAUSE_PREVIEW_AND_UPDATE_CHECKPOINT",
+  "publisher_local_test_status": "PASS_5_TESTS_2026-08-31",
+  "latest_changes_validation_status": "WEB_AND_AI_FUNCTIONAL_CODE_VERIFIED_AT_0485010; OPTIONAL_HTTP_PUBLISHER_HAS_LOCAL_5_TEST_PASS; FULL_PREVIEW_FOR_PUBLISHER_BATCH_NOT_EXECUTED_DUE_HOBBY_BUILD_RATE_LIMIT",
   "milestone": "M1_EVIDENCE_PIPELINE_AND_VERIFIED_TRIAL",
   "gates": {
     "docs_project_present": true,
@@ -49,6 +50,14 @@
     "remote_snapshot_requires_verified_cards": true,
     "remote_snapshot_requires_https_evidence": true,
     "remote_snapshot_count_consistency_enforced": true,
+    "optional_https_snapshot_publisher": true,
+    "snapshot_publisher_requires_https": true,
+    "snapshot_publisher_rejects_url_userinfo": true,
+    "snapshot_publisher_emits_sha256_integrity_header": true,
+    "snapshot_publisher_optional_bearer_token": true,
+    "snapshot_publisher_workflow_integration": true,
+    "snapshot_publisher_local_tests_pass": true,
+    "snapshot_publisher_full_preview_verified": false,
     "on_demand_grounded_ai_boundary": true,
     "on_demand_grounded_ai_ui_wired": true,
     "ai_server_reads_verified_snapshot_by_opportunity_id": true,
@@ -76,14 +85,15 @@
     "last_verified_pipeline_test_count": 61,
     "verified_snapshot_prebuild_checks": true,
     "github_ci_test_evidence": false,
-    "latest_functional_preview_build_verified": true,
+    "latest_web_ai_preview_build_verified": true,
     "interactive_preview_browser_verified": false
   },
   "blockers": [
     "Preview AI POST execution with a real configured Agnes runtime is not yet verified.",
     "Interactive Preview route/UI behavior remains unverified because the Preview is protected by Vercel Authentication and the available share-fetch path did not establish an authenticated browser session.",
     "The scheduled refresh workflow is not active until it is on the default branch and a GitHub Actions runner completes a real run.",
-    "Optional external verified-snapshot support exists, but no external public snapshot store is claimed configured by default.",
+    "Optional external verified-snapshot publishing and reading are implemented, but no external public snapshot store is claimed configured by default.",
+    "The publisher batch did not receive a full Vercel Preview because the final validation trigger hit the Hobby build-rate limit; its 5 new unit tests passed locally.",
     "Production/custom-domain promotion requires explicit product-owner approval; main has not been changed."
   ]
 }
