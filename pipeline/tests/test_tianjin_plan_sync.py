@@ -106,7 +106,7 @@ class TianjinPlanSyncTests(unittest.TestCase):
             title='共享项目',
         )
         second = SimpleNamespace(
-            detail_url='https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/second.htm',
+            detail_url='https://www.ccgp.gov.cn/cggg/dfgg/jzxcs/202608/second.htm',
             published_at='2026-08-31',
             title='第二项目',
         )
@@ -138,6 +138,42 @@ class TianjinPlanSyncTests(unittest.TestCase):
             {'医院', '医疗', '检验'},
         )
         self.assertIs(discovered_by_url[shared.detail_url][1], shared)
+
+    def test_publish_gate_blocks_when_every_discovery_query_failed(self) -> None:
+        allowed, reason = sync_tianjin_plan.publish_gate(
+            discovery_success_count=0,
+            selected_candidate_count=0,
+            new_verified_record_count=0,
+        )
+        self.assertFalse(allowed)
+        self.assertEqual(reason, 'ALL_DISCOVERY_QUERIES_FAILED')
+
+    def test_publish_gate_allows_successful_empty_search(self) -> None:
+        allowed, reason = sync_tianjin_plan.publish_gate(
+            discovery_success_count=10,
+            selected_candidate_count=0,
+            new_verified_record_count=0,
+        )
+        self.assertTrue(allowed)
+        self.assertEqual(reason, 'PASS')
+
+    def test_publish_gate_blocks_when_candidates_exist_but_all_details_fail(self) -> None:
+        allowed, reason = sync_tianjin_plan.publish_gate(
+            discovery_success_count=10,
+            selected_candidate_count=4,
+            new_verified_record_count=0,
+        )
+        self.assertFalse(allowed)
+        self.assertEqual(reason, 'ALL_SELECTED_DETAILS_FAILED_VERIFICATION')
+
+    def test_publish_gate_allows_partial_verified_details(self) -> None:
+        allowed, reason = sync_tianjin_plan.publish_gate(
+            discovery_success_count=9,
+            selected_candidate_count=4,
+            new_verified_record_count=2,
+        )
+        self.assertTrue(allowed)
+        self.assertEqual(reason, 'PASS')
 
     def test_parse_as_of_default_is_timezone_aware(self) -> None:
         value = sync_tianjin_plan.parse_as_of(None)
