@@ -78,12 +78,23 @@ def _validate_source(source: dict[str, Any]) -> None:
     _parse_dateish(observed_at, "source.observed_at")
 
 
+def _evidence_source_allowed(record_source: dict[str, Any], evidence_url: str) -> bool:
+    source_url = record_source["url"]
+    if evidence_url == source_url:
+        return True
+    if record_source.get("source_type") != "OFFICIAL_INSTITUTION_NOTICE":
+        return False
+    source_host = urlparse(source_url).hostname
+    parsed = urlparse(evidence_url)
+    return parsed.scheme == "https" and bool(parsed.hostname) and parsed.hostname == source_host
+
+
 def _evidence_index(record: dict[str, Any]) -> dict[str, dict[str, Any]]:
     items = record.get("evidence")
     if not isinstance(items, list):
         raise ValidationError("EVIDENCE_LIST_REQUIRED")
     out: dict[str, dict[str, Any]] = {}
-    source_url = record["source"]["url"]
+    source = record["source"]
     for item in items:
         if not isinstance(item, dict):
             raise ValidationError("EVIDENCE_ITEM_INVALID")
@@ -94,7 +105,7 @@ def _evidence_index(record: dict[str, Any]) -> dict[str, dict[str, Any]]:
             raise ValidationError(f"EVIDENCE_FIELD_PATH_INVALID:{path}")
         if not isinstance(locator, str) or not locator.strip():
             raise ValidationError(f"EVIDENCE_LOCATOR_REQUIRED:{path}")
-        if evidence_url != source_url:
+        if not isinstance(evidence_url, str) or not _evidence_source_allowed(source, evidence_url):
             raise ValidationError(f"EVIDENCE_SOURCE_MISMATCH:{path}")
         if path in out:
             raise ValidationError(f"DUPLICATE_EVIDENCE_PATH:{path}")
