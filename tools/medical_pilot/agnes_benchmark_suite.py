@@ -12,6 +12,7 @@ from typing import Any, Callable
 
 from .agnes_client import DEFAULT_BASE_URL, DEFAULT_MODEL, validate_base_url
 from .agnes_dispatch import build_agnes_dispatch_plan
+from .agnes_dispatch_queue import SQLiteAgnesDispatchQueue
 from .agnes_global_lease import SQLiteAgnesLeaseStore, acquire_global_lease, release_global_lease
 from .benchmark_agnes import (
     aggregate_scores as aggregate_general,
@@ -100,6 +101,7 @@ def dry_run_summary() -> dict[str, Any]:
         "taxonomy_case_count": len(taxonomy["cases"]),
         "total_case_count": len(general["cases"]) + len(taxonomy["cases"]),
         "requires_shared_global_lease": True,
+        "requires_quiescent_maintenance_window": True,
         "provider_retries_per_case": 0,
         "automatic_classifier_admission_allowed": False,
         "classifier_registry_modified": False,
@@ -107,6 +109,11 @@ def dry_run_summary() -> dict[str, Any]:
         "admission_state_required": "BENCHMARK_PENDING",
         "network_called": False,
     }
+
+
+def _assert_business_queue_quiescent(queue: SQLiteAgnesDispatchQueue) -> None:
+    if queue.list_pending(limit=1):
+        raise AgnesBenchmarkSuiteError("BUSINESS_AGNES_QUEUE_NOT_QUIESCENT")
 
 
 def _sleep_until_lease(
@@ -199,17 +206,23 @@ def run_suite(
     api_key: str,
     base_url: str,
     lease_db_path: Path,
+    maintenance_window_confirmed: bool = False,
     now_provider: Callable[[], datetime] | None = None,
     sleeper: Callable[[float], None] = time.sleep,
     general_provider: Callable[[dict[str, Any], dict[str, Any], str, str], str] | None = None,
     taxonomy_provider: Callable[[dict[str, Any], str, str], str] | None = None,
 ) -> dict[str, Any]:
+    if not maintenance_window_confirmed:
+        raise AgnesBenchmarkSuiteError("MAINTENANCE_WINDOW_CONFIRMATION_REQUIRED")
     if not isinstance(api_key, str) or not api_key.strip():
         raise AgnesBenchmarkSuiteError("MCAI_AGNES_API_KEY_MISSING")
     official_base_url = validate_base_url(base_url)
     general_manifest, taxonomy_manifest, registry_before = _validate_suite_inputs()
     clock = now_provider or (lambda: datetime.now(timezone.utc))
-    store = SQLiteAgnesLeaseStore(Path(lease_db_path), now=_aware_now(clock))
+    db_path = Path(lease_db_path)
+    store = SQLiteAgnesLeaseStore(db_path, now=_aware_now(clock))
+    business_queue = SQLiteAgnesDispatchQueue(db_path)
+    _assert_business_queue_quiescent(business_queue)
 
     def default_general_provider(manifest: dict[str, Any], case: dict[str, Any], key: str, url: str) -> str:
         return call_chat_completion(
@@ -249,6 +262,7 @@ def run_suite(
     for case in general_manifest["cases"]:
         task_id = f"benchmark|general|{case['case_id']}"
         try:
+            _assert_business_queue_quiescent(business_queue)
             raw = _run_one_provider_start(
                 store=store,
                 task_id=task_id,
@@ -260,21 +274,27 @@ def run_suite(
             general_scored.append(score_general_case(general_manifest, case, output))
         except Exception as exc:
             general_failures.append({"case_id": case["case_id"], "error_class": type(exc).__name__})
+            if isinstance(exc, AgnesBenchmarkSuiteError) and exc.code == "BUSINESS_AGNES_QUEUE_NOT_QUIESCENT":
+                break
 
-    for case in taxonomy_manifest["cases"]:
-        task_id = f"benchmark|taxonomy|{case['case_id']}"
-        try:
-            raw = _run_one_provider_start(
-                store=store,
-                task_id=task_id,
-                provider_call=lambda case=case: invoke_taxonomy(case),
-                now_provider=clock,
-                sleeper=sleeper,
-            )
-            output = extract_taxonomy_json(raw)
-            taxonomy_scored.append(score_taxonomy_case(case, output))
-        except Exception as exc:
-            taxonomy_failures.append({"case_id": case["case_id"], "error_class": type(exc).__name__})
+    if not general_failures or general_failures[-1].get("error_class") != "AgnesBenchmarkSuiteError":
+        for case in taxonomy_manifest["cases"]:
+            task_id = f"benchmark|taxonomy|{case['case_id']}"
+            try:
+                _assert_business_queue_quiescent(business_queue)
+                raw = _run_one_provider_start(
+                    store=store,
+                    task_id=task_id,
+                    provider_call=lambda case=case: invoke_taxonomy(case),
+                    now_provider=clock,
+                    sleeper=sleeper,
+                )
+                output = extract_taxonomy_json(raw)
+                taxonomy_scored.append(score_taxonomy_case(case, output))
+            except Exception as exc:
+                taxonomy_failures.append({"case_id": case["case_id"], "error_class": type(exc).__name__})
+                if isinstance(exc, AgnesBenchmarkSuiteError) and exc.code == "BUSINESS_AGNES_QUEUE_NOT_QUIESCENT":
+                    break
 
     general_aggregate = aggregate_general(general_manifest, general_scored, len(general_failures))
     taxonomy_aggregate = aggregate_taxonomy(taxonomy_manifest, taxonomy_scored, len(taxonomy_failures))
@@ -298,6 +318,8 @@ def run_suite(
         "completed_case_count": completed,
         "provider_start_count": provider_start_count,
         "every_provider_start_requires_global_lease": True,
+        "business_queue_quiescent_required": True,
+        "maintenance_window_confirmed": True,
         "provider_retries_per_case": 0,
         "general": {
             "aggregate": general_aggregate,
@@ -364,6 +386,11 @@ def main() -> int:
         )
     )
     parser.add_argument("--execute", action="store_true", help="Actually call Agnes. Default is no-network dry run.")
+    parser.add_argument(
+        "--maintenance-window",
+        action="store_true",
+        help="Required with --execute. Confirms customer API/worker are stopped or otherwise quiescent.",
+    )
     parser.add_argument("--lease-db", type=Path, default=DEFAULT_LEASE_DB)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
@@ -380,6 +407,7 @@ def main() -> int:
                 api_key=api_key,
                 base_url=base_url,
                 lease_db_path=args.lease_db,
+                maintenance_window_confirmed=args.maintenance_window,
             )
         if args.output:
             _write_private_result(args.output, result)
