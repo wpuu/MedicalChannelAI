@@ -150,6 +150,8 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       notice_type: card.facts.notice_type,
       publish_date: card.facts.published_at,
       registration_deadline: card.facts.registration_deadline,
+      registration_deadline_date: card.facts.registration_deadline_date,
+      registration_deadline_precision: card.facts.registration_deadline_precision,
       bid_deadline: card.facts.bid_deadline,
       expected_purchase_date: card.facts.expected_procurement_at,
       budget: normalizeBudget(card.facts.budget),
@@ -225,6 +227,9 @@ function buildGroundedDraft(card: TodayActionCard): string {
     card.facts.notice_type ? `公告类型：${card.facts.notice_type}` : null,
     card.facts.budget ? `公开预算：${Math.round(card.facts.budget / 10000)}万元` : null,
     card.facts.registration_deadline ? `报名/获取文件截止：${card.facts.registration_deadline}` : null,
+    !card.facts.registration_deadline && card.facts.registration_deadline_date
+      ? `报名截止日期：${card.facts.registration_deadline_date}（官方未公布具体时间）`
+      : null,
     card.facts.bid_deadline ? `投标/响应截止：${card.facts.bid_deadline}` : null,
   ].filter(Boolean)
   return [
@@ -245,6 +250,31 @@ function parsedTime(value: string | null): number | null {
   if (!value) return null
   const time = Date.parse(value)
   return Number.isNaN(time) ? null : time
+}
+
+function tianjinDateKey(now: number): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(now))
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  return `${values.year}-${values.month}-${values.day}`
+}
+
+function validDateOnly(value: string | null | undefined): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
+  const [year, month, day] = value.split('-').map(Number)
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() + 1 !== month ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null
+  }
+  return value
 }
 
 function archivedRuntimeCard(card: TodayActionCard): TodayActionCard {
@@ -275,19 +305,27 @@ function applyRuntimeActionability(
 ): TodayActionCard | null {
   const bidDeadline = parsedTime(card.facts.bid_deadline)
   const registrationDeadline = parsedTime(card.facts.registration_deadline)
+  const registrationDeadlineDate = validDateOnly(card.facts.registration_deadline_date)
+  const localDate = tianjinDateKey(now)
   const bidClosed = bidDeadline !== null && bidDeadline <= now
   const registrationOnlyClosed =
-    bidDeadline === null && registrationDeadline !== null && registrationDeadline <= now
+    bidDeadline === null &&
+    ((registrationDeadline !== null && registrationDeadline <= now) ||
+      (registrationDeadline === null &&
+        registrationDeadlineDate !== null &&
+        registrationDeadlineDate < localDate))
 
   if (bidClosed || registrationOnlyClosed) {
     return includeInactive ? archivedRuntimeCard(card) : null
   }
 
   const lateWindow =
-    registrationDeadline !== null &&
-    registrationDeadline <= now &&
     bidDeadline !== null &&
-    bidDeadline > now
+    bidDeadline > now &&
+    ((registrationDeadline !== null && registrationDeadline <= now) ||
+      (registrationDeadline === null &&
+        registrationDeadlineDate !== null &&
+        registrationDeadlineDate < localDate))
   if (!lateWindow) return { ...card }
 
   const currentStagePercent = card.priority.components.INTERVENTION_STAGE
