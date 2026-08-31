@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-31T15:34:00+08:00",
-  "phase": "DETERMINISTIC_REAL_PUBLIC_BACKUP_FULL_CHAIN_AND_BENCHMARK_GATES_PASS_REAL_HOST_EXECUTION_PENDING",
+  "as_of": "2026-08-31T15:42:00+08:00",
+  "phase": "DETERMINISTIC_REAL_PUBLIC_BACKUP_FULL_CHAIN_BENCHMARK_AND_REVIEW_GATES_PASS_REAL_HOST_EXECUTION_PENDING",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -15,8 +15,8 @@
     "verified_opportunity_regression_fixtures": 50,
     "verified_institution_evidence_fixtures": 15,
     "schema_contracts": 41,
-    "deterministic_test_modules_written": 95,
-    "deterministic_unittest_cases_executed": 524,
+    "deterministic_test_modules_written": 96,
+    "deterministic_unittest_cases_executed": 530,
     "real_medical_attachment_binary_captures": 0,
     "agnes_benchmark_cases": 28,
     "agnes_benchmark_executed": false
@@ -127,8 +127,9 @@
     "real_authenticated_end_to_end_smoke_passed": false
   },
   "agnes_benchmark": {
-    "status": "28_CASE_EXECUTION_GATE_READY_REAL_PROVIDER_NOT_EXECUTED",
+    "status": "28_CASE_EXECUTION_AND_IMMUTABLE_REVIEW_GATES_READY_REAL_PROVIDER_NOT_EXECUTED",
     "suite": "tools.medical_pilot.agnes_benchmark_suite",
+    "reviewer": "tools.medical_pilot.agnes_benchmark_review",
     "general_manifest": "docs/research/benchmarks/agnes-2.5-flash-v0.1.json",
     "taxonomy_manifest": "docs/research/benchmarks/agnes-2.5-flash-product-taxonomy-v0.1.json",
     "general_case_count": 12,
@@ -151,6 +152,13 @@
     "result_file": "/srv/medical/data/agnes-benchmark-result-v0.1.json",
     "result_file_mode": "0600",
     "result_overwrite_allowed": false,
+    "result_binds_general_manifest_sha256": true,
+    "result_binds_taxonomy_manifest_sha256": true,
+    "result_binds_classifier_registry_sha256_before_after": true,
+    "review_rejects_manifest_or_registry_drift": true,
+    "review_is_read_only": true,
+    "review_success_status": "ELIGIBLE_FOR_MANUAL_REGISTRY_CHANGE",
+    "owner_review_required_before_registry_commit": true,
     "automatic_classifier_admission_allowed": false,
     "automatic_classifier_admission_performed": false,
     "real_provider_execution_passed": false
@@ -264,12 +272,12 @@
     "real_pilot_backend_execution_completed": false
   },
   "validation": {
-    "status": "524_TEST_GATE_PASS_PLUS_ISOLATED_LIVE_PUBLIC_BOOTSTRAP_PASS",
-    "evidence_commit": "75755c76e013ea803e3094cad6f20fecab9634a2",
-    "vercel_deployment_id": "dpl_7LeDesNvefgTLPo9t3jEuToxeLTB",
+    "status": "530_TEST_GATE_PASS_PLUS_ISOLATED_LIVE_PUBLIC_BOOTSTRAP_PASS",
+    "evidence_commit": "42caf97cb7609aa96acf54fec4cd895509eecee5",
+    "vercel_deployment_id": "dpl_DjRWgbYHQYkZ2N9XEitzefMkBthh",
     "vercel_deployment_state": "READY",
     "python_command": "python3 -m unittest discover -s tools/medical_pilot -t . -p 'test_*.py'",
-    "python_test_cases_executed": 524,
+    "python_test_cases_executed": 530,
     "python_backend_tests_passed": true,
     "typescript_check_passed": true,
     "vite_production_build_passed": true,
@@ -277,11 +285,12 @@
     "vite_dist_index_kib": 413.58,
     "vite_dist_gzip_kib": 127.17,
     "github_actions_runner_available": false,
-    "interpretation": "The clean Vercel Preview gate on commit 75755c7 ran all 524 Python unittest cases, TypeScript checking and the Vite production build and reached READY. The fixed Agnes benchmark suite contains 12 general plus 16 taxonomy cases, requires a quiescent maintenance window, checks the shared business queue before every case, obtains a persistent global lease for every provider start, performs zero retries under one lease, uses only the fixed Agnes model and allowlisted official endpoint, writes a private non-overwriting result, and cannot automatically change classifier admission. Both legacy standalone benchmark execution paths are blocked. No real 28-case Agnes benchmark, real authenticated target-host Agnes acceptance, or real attachment byte capture has yet been observed."
+    "interpretation": "The clean Vercel Preview gate on commit 42caf97 ran all 530 Python unittest cases, TypeScript checking and the Vite production build and reached READY. The fixed 28-case Agnes benchmark is globally leased, quiescent-only, no-retry, official-endpoint-only, and cannot automatically change classifier admission. Benchmark results are bound to both benchmark manifest SHA-256 values and classifier registry SHA-256 before/after. The read-only reviewer requires a private 0600 regular result file, validates 28/28 evidence and current checkout hashes, requires the classifier to remain BENCHMARK_PENDING, and never mutates the registry. No real 28-case Agnes benchmark, real authenticated target-host Agnes acceptance, or real attachment byte capture has yet been observed."
   },
   "next": [
     "continue non-domain product and validation work while canonical domain setup remains deferred",
-    "on the target host, after server environment exists, run the 28-case Agnes benchmark only in a quiescent maintenance window and keep classifier BENCHMARK_PENDING until manual review",
+    "improve official listing discovery coverage without guessing undocumented routes or bypassing CAPTCHA",
+    "on the target host, after server environment exists, run the 28-case Agnes benchmark only in a quiescent maintenance window and pass the immutable read-only review before any explicit Owner registry decision",
     "once the real domain is ready create root-controlled /etc/medicalchannelai/pilot.env and /srv/medical/backups with medicalai-only permissions",
     "run sudo systemctl start medical-pilot-acceptance.service and require overall PASS including the full synthetic customer-to-real-Agnes chain",
     "after host acceptance PASS import the five official bootstrap URLs into /srv/medical/data/pilot.sqlite",
