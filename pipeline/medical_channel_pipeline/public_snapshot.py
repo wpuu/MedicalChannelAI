@@ -18,9 +18,11 @@ def _as_datetime(value: str | None) -> datetime | None:
 def _actionability(facts: dict[str, Any], as_of: datetime) -> tuple[str, int, str]:
     bid = _as_datetime(facts.get("bid_deadline"))
     registration = _as_datetime(facts.get("registration_deadline"))
-    if bid and bid < as_of:
+    if bid and bid <= as_of:
         return "ARCHIVE", 0, "NOT_ELIGIBLE"
-    if registration and registration < as_of:
+    if registration and registration <= as_of:
+        if not bid:
+            return "ARCHIVE", 0, "NOT_ELIGIBLE"
         return "LATE_WINDOW", 15, "AWAITING_MODEL"
     return "PUBLIC_OPPORTUNITY", 40, "AWAITING_MODEL"
 
