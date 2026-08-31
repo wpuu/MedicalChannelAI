@@ -142,6 +142,19 @@ def _apply_event_state(
     return updated, list(event_state["evidence_source_urls"])
 
 
+def _record_evidence_urls(record: dict[str, Any]) -> list[str]:
+    urls: list[str] = []
+    primary = record["source"]["url"]
+    urls.append(primary)
+    for item in record.get("evidence") or []:
+        if not isinstance(item, dict):
+            continue
+        url = item.get("source_url")
+        if isinstance(url, str) and url and url not in urls:
+            urls.append(url)
+    return urls
+
+
 def _public_card(
     record: dict[str, Any],
     rank: int,
@@ -178,7 +191,7 @@ def _public_card(
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL",
     }
-    evidence_source_urls = [record["source"]["url"]]
+    evidence_source_urls = _record_evidence_urls(record)
     for url in correction_evidence_urls or []:
         if url not in evidence_source_urls:
             evidence_source_urls.append(url)
