@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   BookmarkPlus,
   Check,
+  ChevronRight,
   ExternalLink,
   Filter,
   Search,
@@ -64,11 +66,13 @@ function PoolCard({
   aiBusy,
   onAnalyze,
   onFollow,
+  onOpen,
 }: {
   card: TodayActionCard
   aiBusy: boolean
   onAnalyze: () => void
   onFollow: () => void
+  onOpen: () => void
 }) {
   const buyer = card.facts.hospital ?? card.facts.buyer_name ?? '采购单位未提供'
   const budget = formatBudget(card.facts.budget)
@@ -101,7 +105,7 @@ function PoolCard({
             {deadline ? <span>{deadline}</span> : null}
             {card.facts.region ? <span>{card.facts.region}</span> : null}
           </div>
-          <div className="mt-3">
+          <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
               disabled={followed}
@@ -110,6 +114,14 @@ function PoolCard({
             >
               {followed ? <Check className="h-3.5 w-3.5" /> : <BookmarkPlus className="h-3.5 w-3.5" />}
               {followed ? '已在我的跟进' : '加入我的跟进'}
+            </button>
+            <button
+              type="button"
+              onClick={onOpen}
+              className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
+            >
+              完整详情
+              <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
@@ -178,6 +190,7 @@ function PoolCard({
 }
 
 export function OpportunityPoolPage() {
+  const navigate = useNavigate()
   const { toast } = useToast()
   const [cards, setCards] = useState<TodayActionCard[]>([])
   const [snapshotAsOf, setSnapshotAsOf] = useState<string | null>(null)
@@ -332,6 +345,7 @@ export function OpportunityPoolPage() {
               aiBusy={aiBusyId === card.opportunity_id}
               onAnalyze={() => void analyze(card.opportunity_id)}
               onFollow={() => addToFollowups(card.opportunity_id)}
+              onOpen={() => navigate(`/opportunity/${card.opportunity_id}`)}
             />
           ))}
         </div>
