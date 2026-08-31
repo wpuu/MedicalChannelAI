@@ -231,6 +231,7 @@ def run_suite(
             model=DEFAULT_MODEL,
             user_prompt=build_general_prompt(manifest, case),
             retries=0,
+            global_lease_granted=True,
         )
 
     def default_taxonomy_provider(case: dict[str, Any], key: str, url: str) -> str:
@@ -239,6 +240,7 @@ def run_suite(
             base_url=url,
             model=DEFAULT_MODEL,
             prompt=build_taxonomy_prompt(case),
+            global_lease_granted=True,
         )
 
     general_call = general_provider or default_general_provider
