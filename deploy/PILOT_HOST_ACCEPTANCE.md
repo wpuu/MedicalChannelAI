@@ -55,6 +55,8 @@ MCAI_AGNES_API_KEY=<server-only-key>
 
 禁止把 Key 放入 GitHub、命令行参数、URL、浏览器、SQLite 客户画像或日志。
 
+> 域名尚未准备好时，不运行真实 host acceptance；可以继续完成不依赖域名的代码与离线验证。
+
 ## 4. 准备数据目录
 
 ```bash
@@ -88,10 +90,14 @@ deploy/pilot-host-acceptance-v0.1.json
 1. `pilot_host_preflight --role all`：检查真实 Pilot DB 路径权限、canonical origin、Agnes Key、Agnes 官方 endpoint；
 2. 在**临时 SQLite** 中访问5条冻结的官方采购 URL，要求 `5 success / 0 failure`；
 3. 下载冻结的天津财政官方 `XCSD-2026-C-181项目需求书.docx`，要求真实 HTTP bytes、MIME/size/SHA-256、OOXML parser block；
-4. 在**临时 SQLite lease store** 中用合成 grounded input 发起真实 Agnes authenticated contract smoke，仍经过正式 global lease 和 `validate_model_decision`；
+4. 运行**完整隔离客户链**：合成 INVITED 账号 → 一次性 invite redemption → opaque Session → `PUT /profile` → Today `AWAITING_MODEL` → 持久队列 → shared global lease → 真实 Agnes → Worker `READY` → 最终 Today public view `READY`；
 5. 四个阶段全部 PASS 才返回 overall `status=PASS`。
 
-输出为安全 JSON，不输出 API Key、provider response body、完整 model input、附件正文或客户资料。
+完整客户链只使用临时 SQLite 和明确标记的合成客户/商机/证据。它不创建老杨账号、不读取生产客户资料、不写 `/srv/medical/data/pilot.sqlite`。
+
+真实 acceptance 只需要**一次 Agnes provider 调用**；不再另外做一遍较窄的 provider-only smoke。
+
+输出为安全 JSON，不输出 API Key、invite code、Session token、tenant/profile id、task id、lease id、provider response body、完整 model input、附件正文或客户资料。
 
 示意：
 
@@ -102,13 +108,54 @@ deploy/pilot-host-acceptance-v0.1.json
   "host_preflight": {"status": "PASS"},
   "official_bootstrap": {"status": "PASS", "success_count": 5, "failure_count": 0},
   "attachment": {"status": "PASS", "size_bytes": 12345, "sha256": "..."},
-  "agnes_provider": {"status": "PASS", "contract_validation_passed": true}
+  "customer_chain_agnes": {
+    "status": "PASS",
+    "database_scope": "TEMPORARY_ONLY",
+    "synthetic_account": true,
+    "initial_today_model_status": "AWAITING_MODEL",
+    "worker_status": "READY",
+    "final_today_model_status": "READY",
+    "queue_drained": true
+  }
 }
 ```
 
 没有看到 overall `PASS` 就不得启用真实 Pilot。
 
-## 6. Acceptance PASS 后才写真实生产库
+## 6. 单独运行完整隔离客户链
+
+不依赖生产 DB，可以在已经配置 server-only Agnes Key 的主机上单独执行：
+
+```bash
+cd /srv/medical/app
+set -a
+source /etc/medicalchannelai/pilot.env
+set +a
+sudo -E -u medicalai python3 -m tools.medical_pilot.pilot_full_chain_smoke
+```
+
+该命令自行创建并删除临时 SQLite。它只验证业务链与真实 Agnes，不访问5条 bootstrap URL，也不下载真实附件。
+
+成功要求至少同时看到：
+
+```text
+status=PASS
+database_scope=TEMPORARY_ONLY
+synthetic_account=true
+customer_data_used=false
+production_data_touched=false
+invite_redeemed=true
+invite_replay_rejected=true
+profile_personalized_ready=true
+initial_today_model_status=AWAITING_MODEL
+global_lease_required=true
+worker_status=READY
+queue_drained=true
+final_today_model_status=READY
+decision_rendered=true
+```
+
+## 7. Acceptance PASS 后才写真实生产库
 
 Acceptance 中的5条 bootstrap 使用临时 SQLite，不会把它们写入 `/srv/medical/data/pilot.sqlite`。
 
@@ -130,7 +177,7 @@ failure_count=0
 
 项目编号在持久化前与 manifest expected code 核对；不写客户关系，不写预制 Agnes 结论。
 
-## 7. 再启动 API 与 Worker
+## 8. 再启动 API 与 Worker
 
 ```bash
 sudo systemctl enable --now medical-pilot.service
@@ -147,7 +194,7 @@ curl --fail --silent --show-error http://127.0.0.1:8787/api/healthz
 
 随后再通过 canonical HTTPS 域名验证浏览器登录/profile/Today Actions。
 
-## 8. 老杨账号是后续步骤，不是主机测试工具
+## 9. 老杨账号是后续步骤，不是主机测试工具
 
 只有完成：
 
@@ -155,14 +202,15 @@ curl --fail --silent --show-error http://127.0.0.1:8787/api/healthz
 Host Acceptance PASS
 → 生产库5/5 bootstrap
 → API / Worker 正常
-→ queue → real Agnes → READY smoke
+→ 生产库 queue → real Agnes → READY smoke
+→ backup + restore smoke PASS
 ```
 
 之后才创建老杨 `INVITED` 账号并发送一次性注册链接。
 
 第一次真实 provider 调用、第一次附件验证、第一次服务器配置错误排查都不能拿老杨账号试。
 
-## 9. 当前仍不能宣称
+## 10. 当前仍不能宣称
 
 在目标主机真实运行本验收并得到 PASS 之前，继续保持：
 
