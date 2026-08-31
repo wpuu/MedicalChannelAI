@@ -1,0 +1,21 @@
+{
+  "schema_version": "0.1",
+  "updated_at": "2026-08-31",
+  "base_main_head": "6221925212bbb663793d7e0305e2b98f440c0513",
+  "active_work_branch": "chatgpt/m1-evidence-pipeline-v1",
+  "production_ready": false,
+  "deployed_demo_url": "https://medicalai.qd.je/",
+  "demo_mode": "verified_static_snapshot",
+  "verified_snapshot_at": "2026-08-30T13:30:00Z",
+  "ci_status": "BLOCKED_RUNNER_NOT_ASSIGNED",
+  "milestone": "M1_EVIDENCE_PIPELINE",
+  "grok_required": false,
+  "gates": {
+    "docs_project_present": true,
+    "canonical_fact_schema": false,
+    "verified_seed_data": false,
+    "source_adapter_ccgp": false,
+    "frontend_public_snapshot": false,
+    "automated_test_evidence": false
+  }
+}
