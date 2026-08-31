@@ -11,6 +11,7 @@ from .discovery_runtime import (
     SQLiteDiscoveryUrlLedger,
     discovery_readiness,
     extract_registered_detail_links,
+    listing_pages_for_source,
     run_source_discovery_once,
 )
 
@@ -39,7 +40,7 @@ class DiscoveryRuntimeTests(unittest.TestCase):
         self.assertEqual(discovery_readiness("tjmugh_procurement")[0], True)
         ready, reason = discovery_readiness("ccgp_local_notices")
         self.assertTrue(ready)
-        self.assertEqual(reason, "VERIFIED_EXPLICIT_TIANJIN_REGION_FILTER_HEAD_LISTING_PARTIAL")
+        self.assertEqual(reason, "VERIFIED_EXPLICIT_TIANJIN_REGION_FILTER_BOUNDED_TWO_PAGE_PARTIAL")
         self.assertFalse(discovery_readiness("tj_government_procurement")[0])
         self.assertFalse(discovery_readiness("tj_government_procurement_center")[0])
         self.assertFalse(discovery_readiness("ccgp_procurement_intent")[0])
@@ -71,7 +72,7 @@ class DiscoveryRuntimeTests(unittest.TestCase):
             </li>
             <li>
               <a href="/cggg/dfgg/gkzb/202608/t20260827_99999999.htm">某省人民医院医疗设备采购项目公开招标公告</a>
-              <span>公开招标 发布时间：2026-08-27 18:50 地域：山东 采购人：某省人民医院</span>
+              <span>公开招标 发布时间：2026-08-27 18:50 地域：山东 采购人：某人民医院</span>
             </li>
             <li>
               <a href="/cggg/dfgg/gkzb/202608/t20260827_88888888.htm">天津市道路绿化提升工程公开招标公告</a>
@@ -108,13 +109,20 @@ class DiscoveryRuntimeTests(unittest.TestCase):
         """
         self.assertEqual(extract_registered_detail_links("ccgp_local_notices", html), [])
 
-    def test_ccgp_ready_contract_is_explicitly_head_listing_partial_not_exhaustive(self) -> None:
+    def test_ccgp_ready_contract_is_explicitly_bounded_two_page_partial_not_exhaustive(self) -> None:
         self.assertEqual(
             DISCOVERY_READY_LISTINGS["ccgp_local_notices"],
             "https://www.ccgp.gov.cn/cggg/dfgg/index.htm",
         )
+        self.assertEqual(
+            listing_pages_for_source("ccgp_local_notices"),
+            (
+                "https://www.ccgp.gov.cn/cggg/dfgg/index.htm",
+                "https://www.ccgp.gov.cn/cggg/dfgg/index_1.htm",
+            ),
+        )
         _, reason = discovery_readiness("ccgp_local_notices")
-        self.assertIn("HEAD_LISTING_PARTIAL", reason)
+        self.assertIn("BOUNDED_TWO_PAGE_PARTIAL", reason)
 
     def test_successful_detail_is_not_refetched_until_recheck_window(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -150,34 +158,92 @@ class DiscoveryRuntimeTests(unittest.TestCase):
             self.assertEqual(second.attempted_count, 0)
             self.assertEqual(len(calls), 1)
             self.assertEqual(first.listing_url, listing_url)
+            self.assertEqual(first.listing_page_count, 1)
 
-    def test_ccgp_filtered_link_enters_same_persistent_due_ledger(self) -> None:
+    def test_ccgp_two_verified_pages_merge_dedupe_and_persist_same_ledger(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             db = Path(tmp) / "pilot.sqlite"
-            listing_url = DISCOVERY_READY_LISTINGS["ccgp_local_notices"]
-            html = """
+            head_url, page_1_url = listing_pages_for_source("ccgp_local_notices")
+            head_html = """
             <li>
-              <a href="/cggg/dfgg/gkzb/202608/t20260824_27194440.htm">天津市滨海新区海滨人民医院采购人工智能 GPU 算力服务器项目公开招标公告</a>
-              <span>发布时间：2026-08-24 18:50 地域：天津 采购人：天津市滨海新区海滨人民医院</span>
+              <a href="/cggg/dfgg/gkzb/202608/t20260830_27194440.htm">天津市某医院医疗设备采购项目公开招标公告</a>
+              <span>发布时间：2026-08-30 18:50 地域：天津 采购人：天津市某医院</span>
             </li>
             """
-            calls: list[str] = []
+            page_1_html = """
+            <li>
+              <a href="/cggg/dfgg/gkzb/202608/t20260830_27194440.htm">天津市某医院医疗设备采购项目公开招标公告</a>
+              <span>发布时间：2026-08-30 18:50 地域：天津 采购人：天津市某医院</span>
+            </li>
+            <li>
+              <a href="/cggg/dfgg/zbgg/202608/t20260830_27194441.htm">天津市另一医院检验设备采购项目中标公告</a>
+              <span>发布时间：2026-08-30 17:50 地域：天津市 采购人：天津市另一医院</span>
+            </li>
+            """
+            fetched: list[str] = []
+            ingested: list[str] = []
+
+            def fake_fetch(url: str):
+                fetched.append(url)
+                if url == head_url:
+                    return listing_snapshot(url, head_html)
+                if url == page_1_url:
+                    return listing_snapshot(url, page_1_html)
+                raise AssertionError(url)
 
             result = run_source_discovery_once(
                 "ccgp_local_notices",
                 db_path=db,
                 now=NOW,
-                fetch_listing=lambda url: listing_snapshot(url, html),
-                ingest_detail=lambda url, path: calls.append(url),
+                fetch_listing=fake_fetch,
+                ingest_detail=lambda url, path: ingested.append(url),
             )
 
-            self.assertEqual(result.listing_url, listing_url)
-            self.assertEqual(result.discovered_count, 1)
-            self.assertEqual(result.persisted_count, 1)
+            self.assertEqual(fetched, [head_url, page_1_url])
+            self.assertEqual(result.listing_url, head_url)
+            self.assertEqual(result.listing_urls, (head_url, page_1_url))
+            self.assertEqual(result.listing_page_count, 2)
+            self.assertEqual(result.discovered_count, 2)
+            self.assertEqual(result.persisted_count, 2)
             self.assertEqual(
-                calls,
-                ["https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194440.htm"],
+                set(ingested),
+                {
+                    "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260830_27194440.htm",
+                    "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202608/t20260830_27194441.htm",
+                },
             )
+
+    def test_ccgp_second_listing_page_failure_aborts_before_detail_ingest(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            db = Path(tmp) / "pilot.sqlite"
+            head_url, page_1_url = listing_pages_for_source("ccgp_local_notices")
+            ingested: list[str] = []
+
+            def fake_fetch(url: str):
+                if url == head_url:
+                    return listing_snapshot(
+                        url,
+                        """
+                        <li>
+                          <a href="/cggg/dfgg/gkzb/202608/t20260830_27194440.htm">天津医院医疗设备采购项目公开招标公告</a>
+                          <span>地域：天津 采购人：天津医院</span>
+                        </li>
+                        """,
+                    )
+                if url == page_1_url:
+                    raise TimeoutError("second listing page unavailable")
+                raise AssertionError(url)
+
+            with self.assertRaises(TimeoutError):
+                run_source_discovery_once(
+                    "ccgp_local_notices",
+                    db_path=db,
+                    now=NOW,
+                    fetch_listing=fake_fetch,
+                    ingest_detail=lambda url, path: ingested.append(url),
+                )
+
+            self.assertEqual(ingested, [])
 
     def test_failed_detail_uses_backoff_in_persistent_ledger(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
