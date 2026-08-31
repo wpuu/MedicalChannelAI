@@ -9,11 +9,11 @@
   "demo_mode": "verified_snapshot_with_local_trial_state",
   "verified_snapshot_at": "2026-08-31T17:56:00+08:00",
   "github_actions_status": "RUNNER_EXECUTION_UNVERIFIED",
-  "vercel_preview_status": "LATEST_FUNCTIONAL_CODE_VERIFIED; BRANCH_AUTO_PREVIEWS_PAUSED_AFTER_VALIDATION",
+  "vercel_preview_status": "ROUNDTRIP_BATCH_VERIFIED_AT_19D67CD; FRESHNESS_BATCH_PREVIEW_BLOCKED_BY_HOBBY_BUILD_RATE_LIMIT; BRANCH_AUTO_PREVIEWS_PAUSED",
   "vercel_last_verified_preview_commit": "19d67cd87255a0eff51f454fe270d7c6ed8549f4",
   "vercel_last_verified_preview_deployment": "dpl_7ApCrTy37LPPb7W1jwBFqtkMDXN3",
   "vercel_last_verified_preview_result": "73_PIPELINE_TESTS_PASS; VERIFIED_SNAPSHOT_CHECKS_PASS; RUNTIME_STATUS_CHECKS_PASS; AI_BOUNDARY_PASS; PREBUILD_PASS; TSC_PASS; VITE_BUILD_PASS; 3_NODE_FUNCTIONS_PACKAGED; DEPLOYMENT_READY",
-  "latest_changes_validation_status": "FUNCTIONAL_CODE_VERIFIED_AT_19D67CD; LATER_COMMITS_ONLY_PAUSE_PREVIEW_AND_UPDATE_PROJECT_STATE",
+  "latest_changes_validation_status": "SNAPSHOT_FRESHNESS_FIELDS_AND_DETERMINISTIC_STATUS_CHECKS_IMPLEMENTED_AFTER_19D67CD; NEW_PREVIEW_TRIGGER_REJECTED_BEFORE_EXECUTION_BY_HOBBY_BUILD_RATE_LIMIT",
   "milestone": "M1_EVIDENCE_PIPELINE_AND_VERIFIED_TRIAL",
   "gates": {
     "docs_project_present": true,
@@ -69,6 +69,10 @@
     "runtime_status_ui_integrated_today": true,
     "runtime_status_ui_integrated_opportunity_pool": true,
     "runtime_status_ui_integrated_opportunity_detail": true,
+    "runtime_status_snapshot_freshness_implemented": true,
+    "runtime_status_snapshot_stale_threshold_minutes": 1800,
+    "runtime_status_snapshot_future_tolerance_minutes": 15,
+    "runtime_status_snapshot_freshness_preview_verified": false,
     "runtime_status_live_value_verified": false,
     "on_demand_grounded_ai_boundary": true,
     "on_demand_grounded_ai_ui_wired": true,
@@ -108,6 +112,7 @@
     "Interactive Preview route/UI behavior remains unverified because the Preview is protected by Vercel Authentication and the available temporary share-fetch path did not establish an authenticated browser session.",
     "The scheduled refresh workflow is not active until it is on the default branch and a GitHub Actions runner completes a real run.",
     "Optional external verified-snapshot publishing, readback verification and remote reading are implemented and build-verified, but no external public snapshot store is claimed configured by default.",
+    "The new snapshot freshness status batch has deterministic regression checks in source, but its validation Preview was rejected before execution by Vercel Hobby build-rate-limit; do not claim that batch executable-verified yet.",
     "Production/custom-domain promotion requires explicit product-owner approval; main has not been changed."
   ]
 }
