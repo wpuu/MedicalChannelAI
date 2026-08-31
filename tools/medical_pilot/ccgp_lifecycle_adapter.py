@@ -3,13 +3,16 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, field
+from urllib.parse import urlparse
 
-from .adapters import CcgpAdapter, _notice_type_from_title
+from .adapters import CcgpAdapter, _medical_hint, _notice_type_from_title
 from .collector_core import (
+    DiscoveredLink,
     ParsedNotice,
     Snapshot,
     build_event_and_facts,
     deterministic_id,
+    extract_anchors,
     extract_table_rows,
     normalize_space,
     parse_money_to_cny,
@@ -36,6 +39,52 @@ class ParsedCcgpLifecycleNotice(ParsedNotice):
 
 @dataclass(frozen=True)
 class CcgpLifecycleAdapter(CcgpAdapter):
+    """CCGP lifecycle detail parser plus fail-closed Tianjin listing discovery.
+
+    The CCGP ``dfgg`` listing is national. Discovery must therefore never infer
+    Tianjin scope from the registered source alone. A detail link is admitted only
+    when the *same listing record* explicitly states ``地域：天津`` (or 天津市).
+    This makes the national listing a partial Tianjin mirror rather than silently
+    projecting every national row into the Tianjin source.
+    """
+
+    _DETAIL_PATH = re.compile(
+        r"^/cggg/dfgg/[^/]+/20[0-9]{4}/t20[0-9]{6}_[0-9]+\.htm$",
+        re.I,
+    )
+    _TIANJIN_REGION = re.compile(r"地域\s*[:：]\s*天津(?:市)?(?:\s|采购人|$)")
+
+    def discover(self, listing_html: str, listing_url: str) -> list[DiscoveredLink]:
+        result: list[DiscoveredLink] = []
+        seen: set[str] = set()
+
+        # CCGP renders each notice as one <li> record containing title/link plus
+        # metadata such as 发布时间、地域、采购人. Keep the locality decision inside
+        # that record; a page-level occurrence of "天津" is never sufficient.
+        records = re.findall(r"<li\b[^>]*>(.*?)</li\s*>", listing_html, re.I | re.S)
+        for record_html in records:
+            record_text = normalize_space(strip_tags(record_html))
+            if not self._TIANJIN_REGION.search(record_text):
+                continue
+
+            for link in extract_anchors(record_html, listing_url):
+                parsed = urlparse(link.url)
+                host = (parsed.hostname or "").lower()
+                if host not in self.allowed_hosts:
+                    continue
+                if parsed.scheme != "https" or parsed.query or parsed.fragment:
+                    continue
+                if not self._DETAIL_PATH.match(parsed.path):
+                    continue
+                if not _medical_hint(link.title):
+                    continue
+                if link.url in seen:
+                    continue
+                seen.add(link.url)
+                result.append(link)
+
+        return result
+
     def parse_notice(self, snapshot: Snapshot) -> ParsedCcgpLifecycleNotice:
         base = super().parse_notice(snapshot)
         text = strip_tags(snapshot.text)
