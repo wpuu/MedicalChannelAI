@@ -4,6 +4,7 @@ import type { CapabilityType, RelationshipStrength } from '@/types'
 import { useToast } from '@/context/ToastContext'
 import {
   clearLocalCustomerProfile,
+  isSpecificCapabilityKeyword,
   loadLocalCustomerProfile,
   saveLocalCustomerProfile,
   type LocalCustomerProfile,
@@ -55,8 +56,16 @@ export function ResourcesPage() {
   const [profile, setProfile] = useState<LocalCustomerProfile>(() => loadLocalCustomerProfile())
 
   const save = () => {
+    const ignoredGenericCount = profile.product_capabilities.filter(
+      (item) => item.keyword.trim() && !isSpecificCapabilityKeyword(item.keyword),
+    ).length
     saveLocalCustomerProfile(profile)
-    toast('资源已保存在当前浏览器，将重新计算商机排序', 'success')
+    toast(
+      ignoredGenericCount > 0
+        ? `资源已保存；${ignoredGenericCount} 个过于宽泛的关键词不会参与高分匹配`
+        : '资源已保存在当前浏览器，将重新计算商机排序',
+      'success',
+    )
     window.setTimeout(() => window.location.assign('/today'), 250)
   }
 
@@ -91,7 +100,7 @@ export function ResourcesPage() {
           <div>
             <h3 className="text-[15px] font-semibold text-slate-900">产品 / 服务能力</h3>
             <p className="mt-1 text-[12px] leading-5 text-slate-500">
-              用你实际会参与的关键词，例如“检验设备”“DR”“病原微生物”“医疗设备租赁”。关键词会与公开项目名称和采购内容匹配。
+              尽量填写具体产品或能力，例如“生化分析仪”“DR”“病原微生物质谱”“医疗设备租赁”。“医疗”“设备”“服务”等过于宽泛的词可以保存，但不会用于高分匹配。
             </p>
           </div>
           <button
@@ -118,56 +127,68 @@ export function ResourcesPage() {
           </div>
         ) : (
           <div className="mt-4 space-y-2.5">
-            {profile.product_capabilities.map((item, index) => (
-              <div key={`${index}-${item.capability_type}`} className="grid gap-2 rounded-xl bg-slate-50 p-3 md:grid-cols-[1fr_240px_auto]">
-                <input
-                  value={item.keyword}
-                  placeholder="产品 / 服务关键词"
-                  onChange={(event) => {
-                    const keyword = event.target.value
-                    setProfile((current) => ({
-                      ...current,
-                      product_capabilities: current.product_capabilities.map((row, rowIndex) =>
-                        rowIndex === index ? { ...row, keyword } : row,
-                      ),
-                    }))
-                  }}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-teal-500"
-                />
-                <select
-                  value={item.capability_type}
-                  onChange={(event) => {
-                    const capability_type = event.target.value as CapabilityType
-                    setProfile((current) => ({
-                      ...current,
-                      product_capabilities: current.product_capabilities.map((row, rowIndex) =>
-                        rowIndex === index ? { ...row, capability_type } : row,
-                      ),
-                    }))
-                  }}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-700 outline-none focus:border-teal-500"
-                >
-                  {CAPABILITY_OPTIONS.map((value) => (
-                    <option key={value} value={value}>
-                      {CAPABILITY_LABEL[value]}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  title="删除"
-                  onClick={() =>
-                    setProfile((current) => ({
-                      ...current,
-                      product_capabilities: current.product_capabilities.filter((_, rowIndex) => rowIndex !== index),
-                    }))
-                  }
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-rose-600"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+            {profile.product_capabilities.map((item, index) => {
+              const tooGeneric = Boolean(item.keyword.trim()) && !isSpecificCapabilityKeyword(item.keyword)
+              return (
+                <div key={`${index}-${item.capability_type}`} className="rounded-xl bg-slate-50 p-3">
+                  <div className="grid gap-2 md:grid-cols-[1fr_240px_auto]">
+                    <input
+                      value={item.keyword}
+                      placeholder="产品 / 服务关键词"
+                      onChange={(event) => {
+                        const keyword = event.target.value
+                        setProfile((current) => ({
+                          ...current,
+                          product_capabilities: current.product_capabilities.map((row, rowIndex) =>
+                            rowIndex === index ? { ...row, keyword } : row,
+                          ),
+                        }))
+                      }}
+                      className={`rounded-lg border bg-white px-3 py-2 text-[13px] outline-none focus:border-teal-500 ${
+                        tooGeneric ? 'border-amber-300' : 'border-slate-200'
+                      }`}
+                    />
+                    <select
+                      value={item.capability_type}
+                      onChange={(event) => {
+                        const capability_type = event.target.value as CapabilityType
+                        setProfile((current) => ({
+                          ...current,
+                          product_capabilities: current.product_capabilities.map((row, rowIndex) =>
+                            rowIndex === index ? { ...row, capability_type } : row,
+                          ),
+                        }))
+                      }}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-700 outline-none focus:border-teal-500"
+                    >
+                      {CAPABILITY_OPTIONS.map((value) => (
+                        <option key={value} value={value}>
+                          {CAPABILITY_LABEL[value]}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      title="删除"
+                      onClick={() =>
+                        setProfile((current) => ({
+                          ...current,
+                          product_capabilities: current.product_capabilities.filter((_, rowIndex) => rowIndex !== index),
+                        }))
+                      }
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-rose-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {tooGeneric ? (
+                    <p className="mt-2 text-[11px] leading-5 text-amber-700">
+                      这个关键词过于宽泛，不会参与产品匹配加分。请改成更具体的产品、设备、检验项目或服务类型。
+                    </p>
+                  ) : null}
+                </div>
+              )
+            })}
           </div>
         )}
       </section>
@@ -177,7 +198,7 @@ export function ResourcesPage() {
           <div>
             <h3 className="text-[15px] font-semibold text-slate-900">医院关系</h3>
             <p className="mt-1 text-[12px] leading-5 text-slate-500">
-              只填你自己确认过的关系。医院名称与公开采购单位匹配后才会影响排序，不会根据联系人姓名自动推断关系。
+              只填你自己确认过的关系。医院名称与公开采购单位匹配后才会影响排序；如果填写了具体关系科室，这条关系只对同科室项目生效，不会自动扩大为全院关系。
             </p>
           </div>
           <button
@@ -222,7 +243,7 @@ export function ResourcesPage() {
                 />
                 <input
                   value={item.department ?? ''}
-                  placeholder="关系科室（可空）"
+                  placeholder="关系科室（留空=全院）"
                   onChange={(event) => {
                     const department = event.target.value || null
                     setProfile((current) => ({
