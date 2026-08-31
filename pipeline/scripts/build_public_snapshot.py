@@ -15,12 +15,24 @@ from medical_channel_pipeline import build_public_snapshot  # noqa: E402
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build a frontend-safe MedicalChannelAI snapshot")
-    parser.add_argument("--input", required=True, type=Path)
+    parser.add_argument(
+        "--input",
+        required=True,
+        action="append",
+        type=Path,
+        help="Verified canonical-record JSON array. Repeat --input to merge official source classes.",
+    )
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--as-of", required=True, help="ISO-8601 timestamp, e.g. 2026-08-31T08:00:00+00:00")
     args = parser.parse_args()
 
-    records = json.loads(args.input.read_text(encoding="utf-8"))
+    records = []
+    for path in args.input:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(payload, list):
+            raise ValueError(f"input must contain a JSON array: {path}")
+        records.extend(payload)
+
     as_of = datetime.fromisoformat(args.as_of.replace("Z", "+00:00"))
     payload = build_public_snapshot(records, as_of)
     args.output.parent.mkdir(parents=True, exist_ok=True)
