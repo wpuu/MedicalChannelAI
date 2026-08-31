@@ -1,4 +1,4 @@
-import type { Decision, TodayActionCard } from '@/types'
+import type { CustomerContext, Decision, TodayActionCard } from '@/types'
 
 const CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
 const MAX_CACHE_ENTRIES = 50
@@ -6,6 +6,7 @@ const MAX_CACHE_ENTRIES = 50
 interface CachedDecisionEntry {
   snapshot_as_of: string
   opportunity_id: string
+  context_fingerprint: string
   cached_at: string
   decision: Decision
 }
@@ -49,6 +50,33 @@ function normalizeDecision(value: unknown): Decision | null {
   }
 }
 
+function customerContextPayload(card: TodayActionCard): CustomerContext | null {
+  const context = card.customer_context
+  const policy = context.partnering_policy
+  const hasContext = Boolean(
+    context.hospital_relationship ||
+      context.matching_product_capabilities.length > 0 ||
+      policy.can_find_manufacturer !== null ||
+      policy.can_partner_channel !== null ||
+      policy.can_handle_lease !== null,
+  )
+  return hasContext ? context : null
+}
+
+function fingerprint(value: unknown): string {
+  const text = JSON.stringify(value ?? null)
+  let hash = 2166136261
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index)
+    hash = Math.imul(hash, 16777619)
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0')
+}
+
+function contextFingerprint(card: TodayActionCard): string {
+  return fingerprint(customerContextPayload(card))
+}
+
 function readCache(): CachedDecisionEntry[] {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
@@ -71,6 +99,10 @@ function readCache(): CachedDecisionEntry[] {
       entries.push({
         snapshot_as_of: record.snapshot_as_of,
         opportunity_id: record.opportunity_id,
+        context_fingerprint:
+          typeof record.context_fingerprint === 'string'
+            ? record.context_fingerprint
+            : fingerprint(null),
         cached_at: record.cached_at,
         decision,
       })
@@ -86,6 +118,14 @@ function writeCache(entries: CachedDecisionEntry[]): void {
     localStorage.setItem(CACHE_KEY, JSON.stringify(entries.slice(0, MAX_CACHE_ENTRIES)))
   } catch {
     // Cache is an optimization only. AI analysis still works when storage is unavailable.
+  }
+}
+
+export function clearAiDecisionCache(): void {
+  try {
+    localStorage.removeItem(CACHE_KEY)
+  } catch {
+    // Best effort only.
   }
 }
 
@@ -105,10 +145,16 @@ async function getSnapshotAsOf(): Promise<string | null> {
   }
 }
 
-function findCachedDecision(opportunityId: string, snapshotAsOf: string): Decision | null {
+function findCachedDecision(
+  opportunityId: string,
+  snapshotAsOf: string,
+  fingerprintValue: string,
+): Decision | null {
   const entry = readCache().find(
     (item) =>
-      item.opportunity_id === opportunityId && item.snapshot_as_of === snapshotAsOf,
+      item.opportunity_id === opportunityId &&
+      item.snapshot_as_of === snapshotAsOf &&
+      item.context_fingerprint === fingerprintValue,
   )
   return entry?.decision ?? null
 }
@@ -116,19 +162,22 @@ function findCachedDecision(opportunityId: string, snapshotAsOf: string): Decisi
 function cacheDecision(
   opportunityId: string,
   snapshotAsOf: string,
+  fingerprintValue: string,
   decision: Decision,
 ): void {
   const existing = readCache().filter(
     (item) =>
       !(
         item.opportunity_id === opportunityId &&
-        item.snapshot_as_of === snapshotAsOf
+        item.snapshot_as_of === snapshotAsOf &&
+        item.context_fingerprint === fingerprintValue
       ),
   )
   writeCache([
     {
       snapshot_as_of: snapshotAsOf,
       opportunity_id: opportunityId,
+      context_fingerprint: fingerprintValue,
       cached_at: new Date().toISOString(),
       decision,
     },
@@ -142,7 +191,11 @@ export async function hydrateCachedAiDecisions(
   const snapshotAsOf = await getSnapshotAsOf()
   if (!snapshotAsOf) return cards
   return cards.map((card) => {
-    const decision = findCachedDecision(card.opportunity_id, snapshotAsOf)
+    const decision = findCachedDecision(
+      card.opportunity_id,
+      snapshotAsOf,
+      contextFingerprint(card),
+    )
     if (!decision) return card
     return {
       ...card,
@@ -155,8 +208,10 @@ export async function hydrateCachedAiDecisions(
 
 export async function requestAiDecision(card: TodayActionCard): Promise<Decision> {
   const snapshotAsOf = await getSnapshotAsOf()
+  const customerContext = customerContextPayload(card)
+  const fingerprintValue = fingerprint(customerContext)
   if (snapshotAsOf) {
-    const cached = findCachedDecision(card.opportunity_id, snapshotAsOf)
+    const cached = findCachedDecision(card.opportunity_id, snapshotAsOf, fingerprintValue)
     if (cached) return cached
   }
 
@@ -166,7 +221,10 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ opportunity_id: card.opportunity_id }),
+    body: JSON.stringify({
+      opportunity_id: card.opportunity_id,
+      ...(customerContext ? { customer_context: customerContext } : {}),
+    }),
   })
 
   const payload: unknown = await response.json().catch(() => null)
@@ -182,7 +240,7 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
   }
 
   if (snapshotAsOf) {
-    cacheDecision(card.opportunity_id, snapshotAsOf, decision)
+    cacheDecision(card.opportunity_id, snapshotAsOf, fingerprintValue, decision)
   }
   return decision
 }
