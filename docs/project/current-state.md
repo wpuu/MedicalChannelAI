@@ -2,18 +2,18 @@
 
 日期：2026-08-31  
 分支：`dev/tianjin-pilot-v0.1`  
-阶段：`DETERMINISTIC + REAL_PUBLIC + BACKUP/RESTORE + FULL CUSTOMER CHAIN GATES PASS / REAL HOST EXECUTION PENDING`  
+阶段：`DETERMINISTIC + REAL_PUBLIC + BACKUP/RESTORE + FULL CUSTOMER CHAIN + AGNES BENCHMARK GATES PASS / REAL HOST EXECUTION PENDING`  
 生产就绪：**false**  
 Draft PR：**#1（保持 Draft，不合并）**
 
 ## 当前可信验证基线
 
-最新代码门禁证据：`9e747b05921317aaba9ac49b283645ac409d45be`  
-Vercel deployment：`dpl_DnF6nf139xeWmXN9BEazRdx8eH63` → **READY**
+最新代码门禁证据：`75755c76e013ea803e3094cad6f20fecab9634a2`  
+Vercel deployment：`dpl_7LeDesNvefgTLPo9t3jEuToxeLTB` → **READY**
 
 同一提交实际执行：
 
-- **508 个 Python unittest → OK**；
+- **524 个 Python unittest → OK**；
 - `npx tsc --noEmit` → PASS；
 - Vite production build → PASS；
 - 1887 modules transformed；
@@ -28,10 +28,10 @@ GitHub Actions 仍存在 runner 未分配问题，因此开发分支继续使用
 - 50 条 VERIFIED 天津商机 regression fixtures；
 - 15 条 Institution Evidence；
 - 41 份 Schema/合同；
-- **94 个 deterministic test modules**；
-- **508 个实际执行 unittest cases**；
+- **95 个 deterministic test modules**；
+- **524 个实际执行 unittest cases**；
 - 真实医疗附件 binary capture：0；
-- Agnes benchmark：28 case，尚未真实执行；
+- Agnes benchmark：**12 general + 16 taxonomy = 28 case，尚未真实执行**；
 - Coverage=`PARTIAL / NOT_EXHAUSTIVE`。
 
 ## 当前商务 Demo
@@ -80,14 +80,14 @@ real OOXML parser = 未在该真实附件上 PASS
 
 ## 完整隔离客户链 smoke：代码级 PASS
 
-新增：
+核心：
 
 ```text
 tools/medical_pilot/pilot_full_chain_smoke.py
 tools/medical_pilot/test_pilot_full_chain_smoke.py
 ```
 
-这不是单独调用 Agnes 的假 smoke，而是使用正式 runtime：
+正式路径被实际单元测试覆盖为：
 
 ```text
 临时 SQLite
@@ -112,44 +112,64 @@ tools/medical_pilot/test_pilot_full_chain_smoke.py
 
 所有客户、商机、关系、证据都是明确 `SYNTHETIC` 合成数据；临时 SQLite 在执行后删除。不读取老杨资料，不写生产 DB。
 
-确定性门禁同时验证：
-
-- 未登记 taxonomy classifier 不能偷偷进入匹配；
-- smoke 必须使用已准入的 `HUMAN_CONFIRMED` classifier；
-- 非 grounded model output 会进入 `MODEL_OUTPUT_REJECTED`，不会伪装 READY；
-- public result 不回显 invite/session/tenant/profile/task/lease/model input；
-- provider exception message 不进入安全输出。
-
 当前只能宣称**完整业务链的确定性代码路径 PASS**；因为目标主机尚未配置并真实调用 Agnes，所以 `real_authenticated_end_to_end_smoke_passed=false`。
 
-## 真实 Agnes 状态
+## Agnes 28-case benchmark gate 已完成代码准备
 
-已经具备：server-only Key、`agnes-2.5-flash` constrained contract、persistent queue / Worker / terminal result、shared global lease、grounded Today Actions / outreach，以及完整客户链 smoke。
-
-但真实 authenticated Agnes provider 尚未在目标 Pilot 主机 PASS，因此不能声称“真实 Agnes 已跑通”。
-
-## 统一真实 Pilot 主机验收已升级
-
-核心：
+固定题库仍是原来的两组：
 
 ```text
-tools/medical_pilot/pilot_host_preflight.py
-tools/medical_pilot/pilot_host_acceptance.py
-deploy/pilot-host-acceptance-v0.1.json
-deploy/medical-pilot-acceptance.service
-deploy/PILOT_HOST_ACCEPTANCE.md
+12 case：agnes-2.5-flash-v0.1.json
+16 case：agnes-2.5-flash-product-taxonomy-v0.1.json
+合计：28 case
 ```
 
-API / Worker systemd unit 强制 `/etc/medicalchannelai/pilot.env`，并在启动前 fail-closed preflight。
+没有改题目或降低评分门槛。
 
-域名就绪后，目标主机运行：
+统一真实执行器：
+
+```text
+tools/medical_pilot/agnes_benchmark_suite.py
+deploy/medical-agnes-benchmark.service
+deploy/AGNES_BENCHMARK.md
+```
+
+当前安全边界：
+
+- 模型固定 `agnes-2.5-flash`；
+- base URL 必须通过 Agnes 官方 `/v1` allowlist；
+- Key 只读取 `MCAI_AGNES_API_KEY`，不写 repo；
+- **每一次 provider start 都先取得 shared global lease**；
+- 单 case provider retry 固定 0，不能在一个 lease 下偷偷重试；
+- API/Worker 必须处于维护窗口，业务 queue 必须为空；
+- 每个 case 开始前重新检查业务 queue，客户任务出现时 benchmark 会 fail-closed；
+- 两个旧 standalone benchmark 的直接 `--execute` 已禁用；
+- 结果文件默认 `/srv/medical/data/agnes-benchmark-result-v0.1.json`，`0600`，拒绝静默覆盖；
+- 即使 28-case 全 PASS，也只返回 `ELIGIBLE_FOR_MANUAL_ADMISSION_REVIEW`；
+- **绝不自动修改** `product_classifier_registry.v0.1.json`，classifier 继续 `BENCHMARK_PENDING`，直到人工审核明确批准。
+
+当前事实仍然是：
+
+```text
+agnes_benchmark_executed=false
+agnes_classifier_status=BENCHMARK_PENDING
+agnes_classifier_can_drive_matching=false
+```
+
+不能把“执行器代码 PASS”写成“真实 Agnes benchmark PASS”。
+
+## 真实 Agnes / Host Acceptance 状态
+
+真实 authenticated Agnes provider 仍未在目标 Pilot 主机 PASS，因此不能声称“真实 Agnes 已跑通”。
+
+域名就绪后，目标主机先运行：
 
 ```bash
 sudo systemctl start medical-pilot-acceptance.service
 sudo journalctl -u medical-pilot-acceptance.service -n 50 --no-pager
 ```
 
-验收链现在是：
+Host Acceptance 链：
 
 ```text
 真实主机配置/DB路径 preflight
@@ -159,22 +179,9 @@ sudo journalctl -u medical-pilot-acceptance.service -n 50 --no-pager
   → persistent queue → global lease → real Agnes → Worker READY → Today READY
 ```
 
-完整 acceptance 只进行**一次真实 Agnes provider 调用**，不再额外重复 provider-only smoke。
-
-四项全部 PASS 才允许进入真实 Pilot 启动阶段。Acceptance 不写生产 DB，也不读取老杨资料。
+完整 acceptance 只进行**一次真实 Agnes provider 调用**，不额外重复 provider-only smoke。四项全部 PASS 才允许进入真实 Pilot 启动阶段。
 
 ## 备份 / 恢复闭环
-
-核心：
-
-```text
-tools/medical_pilot/pilot_backup.py
-tools/medical_pilot/pilot_restore.py
-tools/medical_pilot/pilot_backup_job.py
-deploy/medical-pilot-backup.service
-deploy/medical-pilot-backup.timer
-deploy/PILOT_BACKUP_RESTORE.md
-```
 
 正式备份使用 SQLite Backup API，不直接 `cp` 运行中的 WAL 数据库。已经实际测试 writer 连接保持打开、WAL 文件仍存在时，备份能够读取已提交记录。
 
@@ -192,25 +199,30 @@ backup integrity_check
 
 ## 真实服务器后的固定顺序
 
-当前域名未完成，所以以下真实主机步骤暂不执行：
+当前域名未完成，所以域名相关步骤暂不执行。非域名依赖的 benchmark 工具已准备完毕，但真实 benchmark 仍要求目标主机环境和 Key。
 
-1. 域名完成后，配置真实 canonical HTTPS origin；
-2. 创建 `medicalai`、`/srv/medical/data`、`/srv/medical/backups`；
-3. 创建 root-only `/etc/medicalchannelai/pilot.env`；
-4. 安装 Pilot/Worker/Acceptance systemd unit；
-5. **先运行 `medical-pilot-acceptance.service`，overall PASS 才继续**；
-6. 把5条官方项目正式导入 `/srv/medical/data/pilot.sqlite`；
-7. 启动 `medical-pilot.service` + `medical-agnes-worker.service`；
-8. 验证本机 health、生产库真实 queue → Agnes → READY；
-9. 手工运行一次 `pilot_backup_job`，确认 backup + restore smoke PASS，再 enable timer；
-10. 之后才创建老杨 INVITED 账号并发送一次性注册链接；
-11. 完成 authenticated followup/reminder/followed/outreach、大陆/微信访问验收后，才评估 production_ready / merge。
+后续顺序：
+
+1. 目标主机环境文件准备后，在维护窗口运行一次 28-case Agnes benchmark；结果只进入人工准入审核，不自动启用 classifier；
+2. 域名完成后配置真实 canonical HTTPS origin；
+3. 创建 `medicalai`、`/srv/medical/data`、`/srv/medical/backups`；
+4. 创建 root-only `/etc/medicalchannelai/pilot.env`；
+5. 安装 Pilot/Worker/Acceptance systemd unit；
+6. **先运行 `medical-pilot-acceptance.service`，overall PASS 才继续**；
+7. 把5条官方项目正式导入 `/srv/medical/data/pilot.sqlite`；
+8. 启动 `medical-pilot.service` + `medical-agnes-worker.service`；
+9. 验证本机 health、生产库真实 queue → Agnes → READY；
+10. 手工运行一次 `pilot_backup_job`，确认 backup + restore smoke PASS，再 enable timer；
+11. 之后才创建老杨 INVITED 账号并发送一次性注册链接；
+12. 完成 authenticated followup/reminder/followed/outreach、大陆/微信访问验收后，才评估 production_ready / merge。
 
 ## 仍然不能宣称
 
 ```text
 production_ready=false
 real_authenticated_agnes_provider_pass=false
+agnes_benchmark_executed=false
+agnes_classifier_status=BENCHMARK_PENDING
 real_attachment_binary_capture_count=0
 real_host_backup_restore_smoke_pass=false
 PR #1 = Draft / do not merge
