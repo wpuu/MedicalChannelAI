@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-31T08:28:00+08:00",
+  "as_of": "2026-08-31T08:34:00+08:00",
   "phase": "DETERMINISTIC_AND_REAL_PUBLIC_BOOTSTRAP_PASS_REAL_AGNES_AND_PILOT_HOST_SMOKE_PENDING",
   "production_ready": false,
   "merge_approved": false,
@@ -15,8 +15,8 @@
     "verified_opportunity_regression_fixtures": 50,
     "verified_institution_evidence_fixtures": 15,
     "schema_contracts": 41,
-    "deterministic_test_modules_written": 87,
-    "deterministic_unittest_cases_executed": 475,
+    "deterministic_test_modules_written": 88,
+    "deterministic_unittest_cases_executed": 478,
     "real_medical_attachment_binary_captures": 0,
     "agnes_benchmark_cases": 28,
     "agnes_benchmark_executed": false
@@ -67,7 +67,9 @@
     "server_bound_identity": true,
     "contract_validation_before_persistence": true,
     "smart_phlebotomy_taxonomy_supported": true,
-    "save_triggers_today_refresh": true
+    "pathogen_genomics_taxonomy_exposed_in_h5": true,
+    "save_triggers_today_refresh": true,
+    "ready_save_navigates_to_today": true
   },
   "real_public_bootstrap": {
     "status": "LIVE_ISOLATED_BOOTSTRAP_5_OF_5_PASS_PILOT_HOST_EXECUTION_STILL_PENDING",
@@ -115,6 +117,9 @@
     "api_key_env": "MCAI_AGNES_API_KEY",
     "api_key_stored_in_repo": false,
     "deterministic_contract_tests_passed": true,
+    "isolated_provider_smoke_cli": "python3 -m tools.medical_pilot.agnes_provider_smoke",
+    "provider_smoke_uses_synthetic_grounded_data": true,
+    "provider_smoke_requires_global_lease": true,
     "real_authenticated_end_to_end_smoke_passed": false
   },
   "followup": {
@@ -160,25 +165,24 @@
   },
   "validation": {
     "status": "DETERMINISTIC_BACKEND_AND_WEB_GATE_PASS_PLUS_ISOLATED_LIVE_PUBLIC_BOOTSTRAP_PASS",
-    "evidence_commit": "1f9e6f47e42f1371b2c2654abdb8e985a54a1eca",
-    "vercel_deployment_id": "dpl_4mBR3RkkZ8ResDBn8VLuAvTyensF",
+    "evidence_commit": "63d47aa1a0311a74a02908456733ca41679b559c",
+    "vercel_deployment_id": "dpl_DK3P2jgaLHqfkGAFV6verUpHj9ZG",
     "vercel_deployment_state": "READY",
     "python_command": "python3 -m unittest discover -s tools/medical_pilot -t . -p 'test_*.py'",
-    "python_test_cases_executed": 475,
+    "python_test_cases_executed": 478,
     "python_backend_tests_passed": true,
     "typescript_check_passed": true,
     "vite_production_build_passed": true,
     "vite_modules_transformed": 1887,
-    "vite_dist_index_kib": 413.25,
-    "vite_dist_gzip_kib": 126.96,
+    "vite_dist_index_kib": 413.58,
+    "vite_dist_gzip_kib": 127.17,
     "github_actions_runner_available": false,
-    "interpretation": "The clean Vercel Preview gate on commit 1f9e6f47 ran all 475 Python unittest cases, TypeScript checking and the Vite production build and reached READY with no one-shot network marker. Separately, deployment dpl_5TnA7PKNWtJitBUak1m7CbBnExE5 executed the five registered official URLs against isolated temporary SQLite and passed 5/5; the disease-control project gained five grounded controlled taxonomy labels from the official procurement-demand table. Neither result constitutes a real authenticated Agnes provider smoke or a real Pilot-host deployment smoke."
+    "interpretation": "The clean Vercel Preview gate on commit 63d47aa1 ran all 478 Python unittest cases, TypeScript checking and the Vite production build and reached READY with no one-shot network marker. The H5 includes the new pathogen-genomics taxonomy options and the isolated Agnes provider-smoke harness is covered by deterministic tests. Separately, deployment dpl_5TnA7PKNWtJitBUak1m7CbBnExE5 executed five registered official URLs against isolated temporary SQLite and passed 5/5, including five grounded taxonomy labels for the disease-control project. No real authenticated Agnes provider call has yet been observed."
   },
   "next": [
     "run the bounded official attachment probe from a China-near Pilot host or other suitable network and capture real MIME, size, SHA-256 and OOXML parser evidence",
-    "start single-host Pilot API plus medical-agnes-worker with server-only MCAI_AGNES_API_KEY",
-    "run a real authenticated Agnes provider smoke without using Lao Yang's account as the first test subject",
-    "expose the newly admitted pathogen-genomics taxonomy IDs in the customer profile selector",
+    "configure server-only MCAI_AGNES_API_KEY on the Pilot host and run python3 -m tools.medical_pilot.agnes_provider_smoke",
+    "start single-host Pilot API plus medical-agnes-worker only after the isolated provider smoke is understood",
     "create Lao Yang INVITED account with bootstrap-invite and send one-time registration link",
     "have Lao Yang fill product capabilities, manufacturer/channel/rental policy and selected hospital relationships",
     "verify profile save immediately queues Agnes and Today Top5 transitions from AWAITING_MODEL to READY",
