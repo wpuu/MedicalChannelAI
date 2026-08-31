@@ -53,6 +53,10 @@ class PublishedWebSnapshotTests(unittest.TestCase):
             PIPELINE_ROOT / 'data' / 'tianjin_live_tjmugh_records.json',
             label='live TMUGH state',
         )
+        live_tjnothop = load_array(
+            PIPELINE_ROOT / 'data' / 'tianjin_live_tjnothop_records.json',
+            label='live Tianjin Hospital state',
+        )
 
         ccgp_source = (
             live_ccgp
@@ -70,7 +74,7 @@ class PublishedWebSnapshotTests(unittest.TestCase):
                 label='TMUGH seed',
             )
         )
-        records = [*ccgp_source, *tmugh_source]
+        records = [*ccgp_source, *tmugh_source, *live_tjnothop]
 
         notice_events = load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json',
