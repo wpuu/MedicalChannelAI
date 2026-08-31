@@ -88,6 +88,21 @@ jobs:
         working-directory: pipeline
         run: python -m unittest discover -s tests -v
 
+      - name: Publish verified snapshot to optional external store
+        shell: bash
+        env:
+          VERIFIED_SNAPSHOT_PUBLISH_URL: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_URL }}
+          VERIFIED_SNAPSHOT_PUBLISH_TOKEN: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VERIFIED_SNAPSHOT_PUBLISH_URL:-}" ]]; then
+            echo 'External verified-snapshot publishing is not configured; keeping Git snapshot flow only.'
+            exit 0
+          fi
+          python pipeline/scripts/publish_snapshot_http.py \
+            --snapshot web/public/data/today-actions.public.json \
+            --method PUT
+
       - name: Commit verified refresh only when data changed
         shell: bash
         run: |
