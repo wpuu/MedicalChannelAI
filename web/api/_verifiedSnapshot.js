@@ -3,6 +3,8 @@ import bundledSnapshot from '../public/data/today-actions.public.json' with { ty
 const REMOTE_CACHE_TTL_MS = 60 * 1000
 const REMOTE_TIMEOUT_MS = 6000
 const MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024
+const MAX_TODAY_CARDS = 5
+const MAX_OPPORTUNITY_POOL = 500
 
 let remoteCache = null
 
@@ -46,8 +48,25 @@ export function validateVerifiedSnapshot(value) {
   ) {
     throw new Error('VERIFIED_SNAPSHOT_AS_OF_INVALID')
   }
-  if (!Array.isArray(snapshot.cards) || snapshot.cards.length > 500) {
+  if (!Array.isArray(snapshot.cards) || snapshot.cards.length > MAX_TODAY_CARDS) {
     throw new Error('VERIFIED_SNAPSHOT_CARDS_INVALID')
+  }
+
+  const pool = snapshot.opportunity_pool
+  if (pool !== undefined) {
+    if (!Array.isArray(pool) || pool.length > MAX_OPPORTUNITY_POOL) {
+      throw new Error('VERIFIED_SNAPSHOT_POOL_INVALID')
+    }
+    if (
+      snapshot.opportunity_pool_count !== undefined &&
+      snapshot.opportunity_pool_count !== pool.length
+    ) {
+      throw new Error('VERIFIED_SNAPSHOT_POOL_COUNT_MISMATCH')
+    }
+    const poolIds = new Set(pool.map((item) => item?.opportunity_id).filter(Boolean))
+    if (snapshot.cards.some((item) => !poolIds.has(item?.opportunity_id))) {
+      throw new Error('VERIFIED_SNAPSHOT_TOP5_NOT_IN_POOL')
+    }
   }
   return snapshot
 }
