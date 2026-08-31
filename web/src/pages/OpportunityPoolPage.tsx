@@ -16,11 +16,13 @@ import { StageBadge } from '@/components/shared/StageBadge'
 import { useToast } from '@/context/ToastContext'
 import { AiDecisionError, requestAiDecision } from '@/services/aiDecisionApi'
 import { persistLocalFollowup } from '@/services/localFollowupStore'
+import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
 import { getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
 import type { TodayActionCard } from '@/types'
 import { formatBudget, formatDateTime, uid } from '@/utils/format'
 
 type WindowFilter = 'ALL' | 'OPEN' | 'LATE_WINDOW'
+const AI_UNCONFIGURED_REASON = 'AI运行配置尚未完成；商机检索、官方依据和本地跟进仍可正常使用。'
 
 function normalizedSearchText(card: TodayActionCard): string {
   return [
@@ -67,12 +69,14 @@ function PoolCard({
   onAnalyze,
   onFollow,
   onOpen,
+  analysisUnavailableReason,
 }: {
   card: TodayActionCard
   aiBusy: boolean
-  onAnalyze: () => void
+  onAnalyze?: () => void
   onFollow: () => void
   onOpen: () => void
+  analysisUnavailableReason?: string | null
 }) {
   const buyer = card.facts.hospital ?? card.facts.buyer_name ?? '采购单位未提供'
   const budget = formatBudget(card.facts.budget)
@@ -182,7 +186,12 @@ function PoolCard({
           </div>
         </div>
         <div className="mt-4">
-          <DecisionBlock card={card} analyzing={aiBusy} onAnalyze={onAnalyze} />
+          <DecisionBlock
+            card={card}
+            analyzing={aiBusy}
+            onAnalyze={onAnalyze}
+            analysisUnavailableReason={analysisUnavailableReason}
+          />
         </div>
       </details>
     </article>
@@ -194,6 +203,7 @@ export function OpportunityPoolPage() {
   const { toast } = useToast()
   const [cards, setCards] = useState<TodayActionCard[]>([])
   const [snapshotAsOf, setSnapshotAsOf] = useState<string | null>(null)
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
   const [query, setQuery] = useState('')
   const [windowFilter, setWindowFilter] = useState<WindowFilter>('ALL')
   const [aiBusyId, setAiBusyId] = useState<string | null>(null)
@@ -215,6 +225,9 @@ export function OpportunityPoolPage() {
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
+    void getRuntimeStatus().then((status) => {
+      if (!cancelled && status) setRuntimeStatus(status)
+    })
     return () => {
       cancelled = true
     }
@@ -273,6 +286,11 @@ export function OpportunityPoolPage() {
       )
       toast('AI已基于已核验公开事实给出行动建议', 'success')
     } catch (cause) {
+      if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
+        setRuntimeStatus((current) =>
+          current ? { ...current, ai: { configured: false } } : current,
+        )
+      }
       toast(aiErrorMessage(cause))
     } finally {
       setAiBusyId(null)
@@ -284,6 +302,9 @@ export function OpportunityPoolPage() {
     return <ErrorState message="商机池加载失败，请稍后重试。" onRetry={() => window.location.reload()} />
   }
 
+  const aiUnavailableReason =
+    runtimeStatus?.ai.configured === false ? AI_UNCONFIGURED_REASON : null
+
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
@@ -294,8 +315,13 @@ export function OpportunityPoolPage() {
               今日行动只展示 Top 5；这里保留同一事实快照中全部仍有效的公开机会，可直接加入跟进或按需AI分析。
             </p>
           </div>
-          <div className="text-[12px] text-slate-500">
-            {snapshotAsOf ? `快照 ${formatDateTime(snapshotAsOf) ?? snapshotAsOf}` : null}
+          <div className="flex flex-col items-end gap-1 text-[12px] text-slate-500">
+            <span>{snapshotAsOf ? `快照 ${formatDateTime(snapshotAsOf) ?? snapshotAsOf}` : null}</span>
+            {runtimeStatus ? (
+              <span className={runtimeStatus.ai.configured ? 'text-indigo-700' : 'text-amber-700'}>
+                {runtimeStatus.ai.configured ? 'AI服务已连接' : 'AI服务待配置'}
+              </span>
+            ) : null}
           </div>
         </div>
 
@@ -343,7 +369,10 @@ export function OpportunityPoolPage() {
               key={card.opportunity_id}
               card={card}
               aiBusy={aiBusyId === card.opportunity_id}
-              onAnalyze={() => void analyze(card.opportunity_id)}
+              onAnalyze={
+                aiUnavailableReason ? undefined : () => void analyze(card.opportunity_id)
+              }
+              analysisUnavailableReason={aiUnavailableReason}
               onFollow={() => addToFollowups(card.opportunity_id)}
               onOpen={() => navigate(`/opportunity/${card.opportunity_id}`)}
             />
