@@ -1,0 +1,22 @@
+[Unit]
+Description=MedicalChannelAI Tianjin Pilot Host Acceptance
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=medicalai
+Group=medicalai
+WorkingDirectory=/srv/medical/app
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+EnvironmentFile=/etc/medicalchannelai/pilot.env
+ExecStart=/usr/bin/python3 -m tools.medical_pilot.pilot_host_acceptance --manifest deploy/pilot-host-acceptance-v0.1.json --db /srv/medical/data/pilot.sqlite
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/srv/medical/data
+
+# Deliberately no [Install] section: this is a manual acceptance gate, not a daemon.
