@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import tempfile
 import time
-from typing import Any, Callable, Mapping
+from typing import Any, Callable
 
 from .agnes_client import DEFAULT_BASE_URL, DEFAULT_MODEL, validate_base_url
 from .agnes_dispatch import build_agnes_dispatch_plan
@@ -236,22 +236,29 @@ def run_suite(
     taxonomy_failures: list[dict[str, str]] = []
     provider_start_count = 0
 
+    def invoke_general(case: dict[str, Any]) -> str:
+        nonlocal provider_start_count
+        provider_start_count += 1
+        return general_call(general_manifest, case, api_key, official_base_url)
+
+    def invoke_taxonomy(case: dict[str, Any]) -> str:
+        nonlocal provider_start_count
+        provider_start_count += 1
+        return taxonomy_call(case, api_key, official_base_url)
+
     for case in general_manifest["cases"]:
         task_id = f"benchmark|general|{case['case_id']}"
         try:
             raw = _run_one_provider_start(
                 store=store,
                 task_id=task_id,
-                provider_call=lambda case=case: general_call(general_manifest, case, api_key, official_base_url),
+                provider_call=lambda case=case: invoke_general(case),
                 now_provider=clock,
                 sleeper=sleeper,
             )
-            provider_start_count += 1
             output = extract_general_json(raw)
             general_scored.append(score_general_case(general_manifest, case, output))
         except Exception as exc:
-            if not isinstance(exc, AgnesBenchmarkSuiteError):
-                provider_start_count += 1
             general_failures.append({"case_id": case["case_id"], "error_class": type(exc).__name__})
 
     for case in taxonomy_manifest["cases"]:
@@ -260,16 +267,13 @@ def run_suite(
             raw = _run_one_provider_start(
                 store=store,
                 task_id=task_id,
-                provider_call=lambda case=case: taxonomy_call(case, api_key, official_base_url),
+                provider_call=lambda case=case: invoke_taxonomy(case),
                 now_provider=clock,
                 sleeper=sleeper,
             )
-            provider_start_count += 1
             output = extract_taxonomy_json(raw)
             taxonomy_scored.append(score_taxonomy_case(case, output))
         except Exception as exc:
-            if not isinstance(exc, AgnesBenchmarkSuiteError):
-                provider_start_count += 1
             taxonomy_failures.append({"case_id": case["case_id"], "error_class": type(exc).__name__})
 
     general_aggregate = aggregate_general(general_manifest, general_scored, len(general_failures))
