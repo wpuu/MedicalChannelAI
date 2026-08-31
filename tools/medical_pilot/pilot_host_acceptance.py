@@ -11,11 +11,12 @@ from typing import Any, Callable, Mapping
 from .agnes_client import DEFAULT_BASE_URL, validate_base_url
 from .agnes_provider_smoke import run_provider_smoke
 from .attachment_live_probe import probe_attachment, validate_probe_filename, validate_tianjin_finance_attachment_url
-from .pilot_api import CanonicalOriginPolicy
+from .pilot_host_preflight import run_preflight
 from .pilot_live_seed import run_seed
 
 
 DEFAULT_ACCEPTANCE_MANIFEST = Path("deploy/pilot-host-acceptance-v0.1.json")
+DEFAULT_PILOT_DB_PATH = Path("/srv/medical/data/pilot.sqlite")
 EXPECTED_BOOTSTRAP_MANIFEST = "deploy/tianjin-pilot-bootstrap-urls-2026-08-30.json"
 REQUIRED_ENVIRONMENT = ("MCAI_CANONICAL_ORIGIN", "MCAI_AGNES_API_KEY")
 
@@ -133,19 +134,6 @@ def _safe_error(exc: Exception) -> dict[str, Any]:
     return {"status": "FAIL", "error_class": str(code)[:120]}
 
 
-def _validate_environment(environ: Mapping[str, str]) -> tuple[str, str]:
-    origin = (environ.get("MCAI_CANONICAL_ORIGIN") or "").strip()
-    api_key = (environ.get("MCAI_AGNES_API_KEY") or "").strip()
-    if not origin:
-        raise PilotHostAcceptanceError("MCAI_CANONICAL_ORIGIN_MISSING")
-    if not api_key:
-        raise PilotHostAcceptanceError("MCAI_AGNES_API_KEY_MISSING")
-    CanonicalOriginPolicy.parse(origin)
-    base_url = (environ.get("MCAI_AGNES_BASE_URL") or DEFAULT_BASE_URL).strip()
-    base_url = validate_base_url(base_url)
-    return api_key, base_url
-
-
 def _bootstrap_result(
     *,
     exit_code: int,
@@ -225,6 +213,7 @@ def _provider_result(result: dict[str, Any]) -> dict[str, Any]:
 def run_host_acceptance(
     *,
     manifest_path: Path,
+    pilot_db_path: Path = DEFAULT_PILOT_DB_PATH,
     environ: Mapping[str, str] | None = None,
     bootstrap_runner: Callable[..., tuple[int, dict[str, Any]]] = run_seed,
     attachment_runner: Callable[..., dict[str, Any]] = probe_attachment,
@@ -234,20 +223,24 @@ def run_host_acceptance(
     manifest = load_acceptance_manifest(manifest_path)
     env = os.environ if environ is None else environ
 
-    try:
-        api_key, base_url = _validate_environment(env)
-        environment_result: dict[str, Any] = {"status": "PASS"}
-    except Exception as exc:
+    preflight_result = run_preflight(
+        role="all",
+        db_path=Path(pilot_db_path),
+        environ=env,
+    )
+    if preflight_result.get("status") != "PASS":
         return {
             "schema_version": "0.1",
             "status": "FAIL",
-            "environment": _safe_error(exc),
+            "host_preflight": preflight_result,
             "official_bootstrap": {"status": "SKIPPED"},
             "attachment": {"status": "SKIPPED"},
             "agnes_provider": {"status": "SKIPPED"},
             "production_data_touched": False,
         }
 
+    api_key = (env.get("MCAI_AGNES_API_KEY") or "").strip()
+    base_url = validate_base_url((env.get("MCAI_AGNES_BASE_URL") or DEFAULT_BASE_URL).strip())
     repo_root = manifest_path.resolve().parent.parent
     bootstrap_manifest_path = repo_root / manifest.bootstrap_manifest
 
@@ -294,12 +287,12 @@ def run_host_acceptance(
 
     passed = all(
         item.get("status") == "PASS"
-        for item in (environment_result, bootstrap_result, attachment_result, provider_result)
+        for item in (preflight_result, bootstrap_result, attachment_result, provider_result)
     )
     return {
         "schema_version": "0.1",
         "status": "PASS" if passed else "FAIL",
-        "environment": environment_result,
+        "host_preflight": preflight_result,
         "official_bootstrap": bootstrap_result,
         "attachment": attachment_result,
         "agnes_provider": provider_result,
@@ -311,13 +304,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Run fail-closed Tianjin Pilot host acceptance using only temporary SQLite, "
-            "official public URLs and synthetic Agnes smoke data."
+            "official public URLs and synthetic Agnes smoke data. The production DB path "
+            "is checked for readiness but never written by this command."
         )
     )
     parser.add_argument("--manifest", type=Path, default=DEFAULT_ACCEPTANCE_MANIFEST)
+    parser.add_argument("--db", type=Path, default=DEFAULT_PILOT_DB_PATH)
     args = parser.parse_args()
     try:
-        result = run_host_acceptance(manifest_path=args.manifest)
+        result = run_host_acceptance(
+            manifest_path=args.manifest,
+            pilot_db_path=args.db,
+        )
     except Exception as exc:
         result = {
             "schema_version": "0.1",
