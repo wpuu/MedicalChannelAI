@@ -1,6 +1,7 @@
 import { Eye, Loader2, ShieldAlert, Sparkles } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import { MODEL_STATUS_COPY } from '@/utils/labels'
+import { hasUserCustomerContext } from '@/utils/customerContext'
 import { SourceTag } from '@/components/shared/StageBadge'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
@@ -13,6 +14,7 @@ interface DecisionBlockProps {
 
 export function DecisionBlock({ card, onAnalyze, analyzing }: DecisionBlockProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
+  const hasCustomerContext = hasUserCustomerContext(card.customer_context)
 
   if (card.model_decision_status === 'READY' && card.decision) {
     return (
@@ -23,12 +25,18 @@ export function DecisionBlock({ card, onAnalyze, analyzing }: DecisionBlockProps
             AI行动建议
           </p>
           <SourceTag tone="ai">
-            {!isApiMode && isVerifiedPublicDemo ? '公开事实约束AI' : 'AI判断'}
+            {!isApiMode && isVerifiedPublicDemo
+              ? hasCustomerContext
+                ? '公开事实 + 我的资源'
+                : '公开事实约束AI'
+              : 'AI判断'}
           </SourceTag>
         </div>
         {!isApiMode && isVerifiedPublicDemo ? (
           <p className="mb-2 rounded-lg bg-white/70 px-2.5 py-2 text-[11px] leading-5 text-indigo-800">
-            本次AI只收到已核验公开事实，不包含或推断医院关系、厂家授权和客户私有资源。
+            {hasCustomerContext
+              ? '本次AI使用服务端已核验公开事实，并结合你在“我的资源”中自行确认的产品能力或医院关系；两类信息保持独立来源，不把用户自述升级成医院官方事实。'
+              : '本次AI只使用服务端已核验公开事实；未填写客户资源时，不推断医院关系、厂家授权或产品能力。'}
           </p>
         ) : null}
         <p className="text-[13px] leading-6 text-slate-800">
@@ -70,9 +78,11 @@ export function DecisionBlock({ card, onAnalyze, analyzing }: DecisionBlockProps
           <div className="flex items-start gap-2">
             <Eye className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-semibold text-slate-800">尚未做个性化AI判断</p>
+              <p className="text-[13px] font-semibold text-slate-800">尚未做AI行动分析</p>
               <p className="mt-1 text-[12px] leading-5 text-slate-500">
-                当前只按已核验公开事实、项目金额和时间窗口排序；未录入客户产品能力或医院关系，因此不推断产品匹配度、中标概率或院内关系。
+                {hasCustomerContext
+                  ? '当前经营优先级已结合你填写的产品能力或医院关系。点击分析后，AI会把这些用户确认资源与服务端已核验公开事实分开使用，给出更具体的下一步动作。'
+                  : '当前只按已核验公开事实、项目金额和时间窗口排序；未录入客户产品能力或医院关系，因此不推断产品匹配度、中标概率或院内关系。'}
               </p>
               {onAnalyze ? (
                 <button
@@ -86,7 +96,11 @@ export function DecisionBlock({ card, onAnalyze, analyzing }: DecisionBlockProps
                   ) : (
                     <Sparkles className="h-3.5 w-3.5" />
                   )}
-                  {analyzing ? 'AI分析中' : '用AI分析这条'}
+                  {analyzing
+                    ? 'AI分析中'
+                    : hasCustomerContext
+                      ? '结合我的资源分析'
+                      : '用AI分析这条'}
                 </button>
               ) : null}
             </div>
