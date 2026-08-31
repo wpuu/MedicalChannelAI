@@ -35,6 +35,17 @@ class AgnesBenchmarkServiceTests(unittest.TestCase):
         self.assertIn("BENCHMARK_PENDING", runbook)
         self.assertIn("0600", runbook)
 
+    def test_runbook_requires_read_only_hash_bound_review_before_any_registry_change(self) -> None:
+        runbook = RUNBOOK.read_text(encoding="utf-8")
+        self.assertIn("tools.medical_pilot.agnes_benchmark_review", runbook)
+        self.assertIn("ELIGIBLE_FOR_MANUAL_REGISTRY_CHANGE", runbook)
+        self.assertIn("OWNER_REVIEW_REQUIRED_BEFORE_EXPLICIT_REGISTRY_COMMIT", runbook)
+        self.assertIn("general_manifest_sha256", runbook)
+        self.assertIn("taxonomy_manifest_sha256", runbook)
+        self.assertIn("classifier_registry_sha256_before", runbook)
+        self.assertIn("classifier_registry_sha256_after", runbook)
+        self.assertIn("审核器本身永远不改 registry", runbook)
+
 
 if __name__ == "__main__":
     unittest.main()
