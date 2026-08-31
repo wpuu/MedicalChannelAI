@@ -1,0 +1,18 @@
+[Unit]
+Description=MedicalChannelAI Pilot Verified SQLite Backup
+After=local-fs.target
+
+[Service]
+Type=oneshot
+User=medicalai
+Group=medicalai
+WorkingDirectory=/srv/medical/app
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 -m tools.medical_pilot.pilot_backup_job --db /srv/medical/data/pilot.sqlite --out-dir /srv/medical/backups --keep 14
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/srv/medical/backups
