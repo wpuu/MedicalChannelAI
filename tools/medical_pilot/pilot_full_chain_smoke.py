@@ -152,7 +152,7 @@ def _synthetic_opportunity(now: datetime) -> dict[str, Any]:
         "product_labels": [SYNTHETIC_TAXONOMY_ID],
         "product_label_provenance": "HUMAN_CONFIRMED",
         "product_label_validation_status": "VALIDATED",
-        "product_classifier_id": "synthetic-full-chain-smoke-v0.1",
+        "product_classifier_id": "human-confirmed-product-taxonomy-v0.1",
         "product_categories": ["IVD"],
         "product_items": ["化学发光分析仪"],
         "is_rental_project": False,
