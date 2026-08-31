@@ -10,9 +10,15 @@ interface DecisionBlockProps {
   card: TodayActionCard
   onAnalyze?: () => void
   analyzing?: boolean
+  analysisUnavailableReason?: string | null
 }
 
-export function DecisionBlock({ card, onAnalyze, analyzing }: DecisionBlockProps) {
+export function DecisionBlock({
+  card,
+  onAnalyze,
+  analyzing,
+  analysisUnavailableReason,
+}: DecisionBlockProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
   const hasCustomerContext = hasUserCustomerContext(card.customer_context)
 
@@ -84,7 +90,11 @@ export function DecisionBlock({ card, onAnalyze, analyzing }: DecisionBlockProps
                   ? '当前经营优先级已结合你填写的产品能力或医院关系。点击分析后，AI会把这些用户确认资源与服务端已核验公开事实分开使用，给出更具体的下一步动作。'
                   : '当前只按已核验公开事实、项目金额和时间窗口排序；未录入客户产品能力或医院关系，因此不推断产品匹配度、中标概率或院内关系。'}
               </p>
-              {onAnalyze ? (
+              {analysisUnavailableReason ? (
+                <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-800">
+                  {analysisUnavailableReason}
+                </p>
+              ) : onAnalyze ? (
                 <button
                   type="button"
                   disabled={analyzing}
