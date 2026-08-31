@@ -20,7 +20,7 @@ interface ActionCardProps {
   onNotFit: () => void
   onRemind: () => void
   onOutreach: () => void
-  onAnalyze: () => void
+  onAnalyze?: () => void
 }
 
 export function ActionCard({
