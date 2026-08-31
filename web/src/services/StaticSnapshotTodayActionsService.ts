@@ -11,6 +11,7 @@ import {
   hydrateLocalFollowups,
   persistLocalFollowup,
 } from './localFollowupStore'
+import { personalizeTrialCards } from './localCustomerProfile'
 import type { TodayActionsService } from './TodayActionsService'
 
 const COVERAGE_WARNING = '天津 Pilot · 公开事实来自证据流水线快照；当前仍为部分来源覆盖。'
@@ -266,6 +267,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
     const mappedCards = data.cards.map(mapPublicCard)
     backfillLocalFollowupSnapshots(mappedCards)
     const hydratedCards = hydrateLocalFollowups(mappedCards)
+    const personalizedCards = personalizeTrialCards(hydratedCards)
 
     this.snapshot = {
       schema_version: data.schema_version,
@@ -277,7 +279,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       coverage_warning: COVERAGE_WARNING,
       generated_at: data.snapshot_as_of,
       refreshed_at: data.snapshot_as_of,
-      cards: hydratedCards,
+      cards: personalizedCards,
       model_requests: [],
     }
     return this.snapshot
