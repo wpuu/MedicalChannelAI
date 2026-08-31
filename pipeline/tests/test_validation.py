@@ -65,6 +65,27 @@ class EvidencePipelineTests(unittest.TestCase):
             self.assertIsNone(card["customer_context"]["hospital_relationship"])
             self.assertEqual(card["customer_context"]["matching_product_capabilities"], [])
 
+    def test_today_actions_exposes_all_actionable_count_but_only_top_five_cards(self) -> None:
+        records = copy.deepcopy(self.records)
+        extra = copy.deepcopy(self.records[0])
+        extra["opportunity_id"] = "verified_extra_top5_guard"
+        extra["facts"]["project_number"] = "TOP5-GUARD-006"
+        extra["facts"]["budget_cny"] = 0
+        records.append(extra)
+
+        payload = build_public_snapshot(
+            records,
+            datetime.fromisoformat("2026-08-28T12:00:00+08:00"),
+        )
+        self.assertEqual(payload["matched_count"], 6)
+        self.assertEqual(payload["card_count"], 5)
+        self.assertEqual(len(payload["cards"]), 5)
+        self.assertEqual([item["rank"] for item in payload["cards"]], [1, 2, 3, 4, 5])
+        self.assertNotIn(
+            "verified_extra_top5_guard",
+            {item["opportunity_id"] for item in payload["cards"]},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
