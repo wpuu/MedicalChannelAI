@@ -19,7 +19,10 @@ class PublishedWebSnapshotTests(unittest.TestCase):
             payload = json.loads((PIPELINE_ROOT / 'data' / name).read_text(encoding='utf-8'))
             records.extend(payload)
 
-        expected = build_public_snapshot(records, PUBLISHED_AS_OF)
+        notice_events = json.loads(
+            (PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json').read_text(encoding='utf-8')
+        )
+        expected = build_public_snapshot(records, PUBLISHED_AS_OF, notice_events)
         actual = json.loads(
             (REPO_ROOT / 'web' / 'public' / 'data' / 'today-actions.public.json').read_text(
                 encoding='utf-8'
