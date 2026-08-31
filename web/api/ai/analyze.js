@@ -1,3 +1,5 @@
+import todayActionsSnapshot from '../../public/data/today-actions.public.json' with { type: 'json' }
+
 export const config = {
   maxDuration: 30,
 }
@@ -29,29 +31,37 @@ function cleanArray(value, mapper) {
   return value.slice(0, MAX_ARRAY_ITEMS).map(mapper).filter(Boolean)
 }
 
-function sanitizeFacts(raw) {
+function normalizeSnapshotBudget(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  const record = asObject(value)
+  if (!record) return null
+  const amount = record.amount_cny
+  return typeof amount === 'number' && Number.isFinite(amount) ? amount : null
+}
+
+function sanitizeSnapshotFacts(raw) {
   const facts = asObject(raw) ?? {}
-  const contact = asObject(facts.official_contact)
+  const contact = asObject(facts.public_contact)
   return {
-    project_code: cleanString(facts.project_code, 120),
+    project_code: cleanString(facts.project_number, 120),
     project_name: cleanString(facts.project_name, 500),
-    hospital: cleanString(facts.hospital, 300),
+    hospital: cleanString(facts.hospital_name, 300),
     buyer_name: cleanString(facts.buyer_name, 300),
     department: cleanString(facts.department, 200),
     region: cleanString(facts.region, 200),
-    lifecycle_stage: cleanString(facts.lifecycle_stage, 100),
+    lifecycle_stage: cleanString(facts.lifecycle_state, 100),
     notice_type: cleanString(facts.notice_type, 100),
-    publish_date: cleanString(facts.publish_date, 80),
+    publish_date: cleanString(facts.published_at, 80),
     registration_deadline: cleanString(facts.registration_deadline, 80),
     bid_deadline: cleanString(facts.bid_deadline, 80),
-    expected_purchase_date: cleanString(facts.expected_purchase_date, 80),
-    budget: typeof facts.budget === 'number' && Number.isFinite(facts.budget) ? facts.budget : null,
+    expected_purchase_date: cleanString(facts.expected_procurement_at, 80),
+    budget: normalizeSnapshotBudget(facts.budget),
     procurement_method: cleanString(facts.procurement_method, 100),
     product_categories: cleanArray(facts.product_categories, (item) => cleanString(item, 200)),
-    products: cleanArray(facts.products, (item) => {
+    products: cleanArray(facts.product_items, (item) => {
       const product = asObject(item)
       if (!product) return null
-      const name = cleanString(product.name, 300)
+      const name = cleanString(product.raw_name ?? product.name, 300)
       if (!name) return null
       return {
         name,
@@ -84,6 +94,18 @@ function sanitizeEvidenceUrls(value) {
       return null
     }
   })
+}
+
+function findVerifiedOpportunity(opportunityId) {
+  const cards = Array.isArray(todayActionsSnapshot?.cards) ? todayActionsSnapshot.cards : []
+  const card = cards.find((item) => item?.opportunity_id === opportunityId)
+  const factsRecord = asObject(card?.facts)
+  if (!card || !factsRecord || factsRecord.verification_status !== 'VERIFIED') return null
+
+  const evidenceUrls = sanitizeEvidenceUrls(card.evidence_source_urls)
+  const facts = sanitizeSnapshotFacts(factsRecord)
+  if (!facts.project_name || evidenceUrls.length === 0) return null
+  return { facts, evidenceUrls }
 }
 
 function getApiKeys() {
@@ -209,10 +231,9 @@ export default async function handler(request, response) {
   const opportunityId = cleanString(body?.opportunity_id, 200)
   if (!opportunityId) return sendJson(response, 400, { error: 'OPPORTUNITY_ID_REQUIRED' })
 
-  const facts = sanitizeFacts(body?.facts)
-  const evidenceUrls = sanitizeEvidenceUrls(body?.evidence_source_urls)
-  if (!facts.project_name || evidenceUrls.length === 0) {
-    return sendJson(response, 400, { error: 'GROUNDING_REQUIRED' })
+  const grounded = findVerifiedOpportunity(opportunityId)
+  if (!grounded) {
+    return sendJson(response, 404, { error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' })
   }
 
   const keys = getApiKeys()
@@ -224,7 +245,12 @@ export default async function handler(request, response) {
   const apiKey = keys[stableIndex(opportunityId, keys.length)]
 
   try {
-    const decision = await callProvider({ apiKey, baseUrl, facts, evidenceUrls })
+    const decision = await callProvider({
+      apiKey,
+      baseUrl,
+      facts: grounded.facts,
+      evidenceUrls: grounded.evidenceUrls,
+    })
     return sendJson(response, 200, {
       schema_version: '0.1',
       opportunity_id: opportunityId,
