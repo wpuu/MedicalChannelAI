@@ -79,11 +79,17 @@ class EvidencePipelineTests(unittest.TestCase):
         )
         self.assertEqual(payload["matched_count"], 6)
         self.assertEqual(payload["card_count"], 5)
+        self.assertEqual(payload["opportunity_pool_count"], 6)
         self.assertEqual(len(payload["cards"]), 5)
+        self.assertEqual(len(payload["opportunity_pool"]), 6)
         self.assertEqual([item["rank"] for item in payload["cards"]], [1, 2, 3, 4, 5])
         self.assertNotIn(
             "verified_extra_top5_guard",
             {item["opportunity_id"] for item in payload["cards"]},
+        )
+        self.assertIn(
+            "verified_extra_top5_guard",
+            {item["opportunity_id"] for item in payload["opportunity_pool"]},
         )
 
 
