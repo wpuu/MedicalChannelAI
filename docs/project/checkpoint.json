@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-31T08:06:00+08:00",
-  "phase": "DETERMINISTIC_BACKEND_AND_WEB_GATE_PASS_PLUS_REAL_AGNES_AND_LIVE_HOST_SMOKE_PENDING",
+  "as_of": "2026-08-31T08:28:00+08:00",
+  "phase": "DETERMINISTIC_AND_REAL_PUBLIC_BOOTSTRAP_PASS_REAL_AGNES_AND_PILOT_HOST_SMOKE_PENDING",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -15,8 +15,8 @@
     "verified_opportunity_regression_fixtures": 50,
     "verified_institution_evidence_fixtures": 15,
     "schema_contracts": 41,
-    "deterministic_test_modules_written": 85,
-    "deterministic_unittest_cases_executed": 464,
+    "deterministic_test_modules_written": 87,
+    "deterministic_unittest_cases_executed": 475,
     "real_medical_attachment_binary_captures": 0,
     "agnes_benchmark_cases": 28,
     "agnes_benchmark_executed": false
@@ -70,7 +70,7 @@
     "save_triggers_today_refresh": true
   },
   "real_public_bootstrap": {
-    "status": "WRITTEN_AND_DETERMINISTICALLY_TESTED_NOT_YET_EXECUTED_AGAINST_LIVE_URLS_ON_PILOT_HOST",
+    "status": "LIVE_ISOLATED_BOOTSTRAP_5_OF_5_PASS_PILOT_HOST_EXECUTION_STILL_PENDING",
     "manifest": "deploy/tianjin-pilot-bootstrap-urls-2026-08-30.json",
     "manifest_entry_count": 5,
     "importer": "tools.medical_pilot.pilot_live_seed",
@@ -78,7 +78,33 @@
     "expected_project_code_checked_before_persistence": true,
     "customer_context_seeded": false,
     "prewritten_model_decisions_seeded": false,
-    "uses_same_collector_pipeline_as_runtime": true
+    "uses_same_collector_pipeline_as_runtime": true,
+    "isolated_live_verification_passed": true,
+    "isolated_live_success_count": 5,
+    "isolated_live_failure_count": 0,
+    "ccgp_procurement_demand_grounded": true,
+    "pathogen_genomics_live_taxonomy_labels": [
+      "LAB_NGS_SEQUENCER",
+      "LAB_AUTOMATED_LIBRARY_PREP",
+      "LAB_METAGENOMICS_ANALYSIS",
+      "LAB_MICROBIAL_MASS_SPECTROMETRY",
+      "LAB_BIOINFORMATICS_COMPUTE_APPLIANCE"
+    ],
+    "live_verification_commit": "a4e2199eaeb8bb90838f28d79c0ed49d3e19718c",
+    "live_verification_deployment_id": "dpl_5TnA7PKNWtJitBUak1m7CbBnExE5"
+  },
+  "attachments": {
+    "bounded_live_probe_written": true,
+    "official_tianjin_downenid_route_confirmed": true,
+    "real_binary_capture_passed": false,
+    "real_binary_capture_count": 0,
+    "vercel_iad_attempt_20s": "READ_TIMEOUT",
+    "vercel_iad_attempt_60s": "READ_TIMEOUT",
+    "mime_observed": false,
+    "sha256_observed": false,
+    "real_ooxml_parser_passed": false,
+    "next_execution_location": "CHINA_NEAR_PILOT_HOST_OR_OTHER_SUITABLE_NETWORK",
+    "forbidden_interpretation": "Exact official attachment URL confirmation does not mean bytes, MIME, SHA-256 or parser success were observed."
   },
   "agnes": {
     "model_provider_call_browser_side": false,
@@ -133,12 +159,12 @@
     "real_pilot_backend_execution_completed": false
   },
   "validation": {
-    "status": "DETERMINISTIC_BACKEND_AND_WEB_GATE_PASS",
-    "evidence_commit": "bb2d90a809bc6f584bc44ddbc048ace2386131df",
-    "vercel_deployment_id": "dpl_HJLFBaoEWZL72wYus8kJGJ1SVGYF",
+    "status": "DETERMINISTIC_BACKEND_AND_WEB_GATE_PASS_PLUS_ISOLATED_LIVE_PUBLIC_BOOTSTRAP_PASS",
+    "evidence_commit": "1f9e6f47e42f1371b2c2654abdb8e985a54a1eca",
+    "vercel_deployment_id": "dpl_4mBR3RkkZ8ResDBn8VLuAvTyensF",
     "vercel_deployment_state": "READY",
     "python_command": "python3 -m unittest discover -s tools/medical_pilot -t . -p 'test_*.py'",
-    "python_test_cases_executed": 464,
+    "python_test_cases_executed": 475,
     "python_backend_tests_passed": true,
     "typescript_check_passed": true,
     "vite_production_build_passed": true,
@@ -146,12 +172,13 @@
     "vite_dist_index_kib": 413.25,
     "vite_dist_gzip_kib": 126.96,
     "github_actions_runner_available": false,
-    "interpretation": "Vercel Preview was used as an independent execution gate because GitHub Actions still fails before runner assignment. On the same commit, all 464 Python unittest cases passed, TypeScript checking passed, Vite production build passed, and the deployment reached READY. This does not constitute a real Agnes provider or live Pilot-host smoke."
+    "interpretation": "The clean Vercel Preview gate on commit 1f9e6f47 ran all 475 Python unittest cases, TypeScript checking and the Vite production build and reached READY with no one-shot network marker. Separately, deployment dpl_5TnA7PKNWtJitBUak1m7CbBnExE5 executed the five registered official URLs against isolated temporary SQLite and passed 5/5; the disease-control project gained five grounded controlled taxonomy labels from the official procurement-demand table. Neither result constitutes a real authenticated Agnes provider smoke or a real Pilot-host deployment smoke."
   },
   "next": [
-    "run pilot_live_seed against the five registered official URLs on a networked Pilot host or isolated live-bootstrap environment and inspect safe summaries",
+    "run the bounded official attachment probe from a China-near Pilot host or other suitable network and capture real MIME, size, SHA-256 and OOXML parser evidence",
     "start single-host Pilot API plus medical-agnes-worker with server-only MCAI_AGNES_API_KEY",
     "run a real authenticated Agnes provider smoke without using Lao Yang's account as the first test subject",
+    "expose the newly admitted pathogen-genomics taxonomy IDs in the customer profile selector",
     "create Lao Yang INVITED account with bootstrap-invite and send one-time registration link",
     "have Lao Yang fill product capabilities, manufacturer/channel/rental policy and selected hospital relationships",
     "verify profile save immediately queues Agnes and Today Top5 transitions from AWAITING_MODEL to READY",
