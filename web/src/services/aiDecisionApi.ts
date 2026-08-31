@@ -105,7 +105,7 @@ async function getSnapshotAsOf(): Promise<string | null> {
   }
 }
 
-function getCachedDecision(opportunityId: string, snapshotAsOf: string): Decision | null {
+function findCachedDecision(opportunityId: string, snapshotAsOf: string): Decision | null {
   const entry = readCache().find(
     (item) =>
       item.opportunity_id === opportunityId && item.snapshot_as_of === snapshotAsOf,
@@ -136,10 +136,27 @@ function cacheDecision(
   ])
 }
 
+export async function hydrateCachedAiDecisions(
+  cards: TodayActionCard[],
+): Promise<TodayActionCard[]> {
+  const snapshotAsOf = await getSnapshotAsOf()
+  if (!snapshotAsOf) return cards
+  return cards.map((card) => {
+    const decision = findCachedDecision(card.opportunity_id, snapshotAsOf)
+    if (!decision) return card
+    return {
+      ...card,
+      model_decision_status: 'READY',
+      model_block_reason: null,
+      decision,
+    }
+  })
+}
+
 export async function requestAiDecision(card: TodayActionCard): Promise<Decision> {
   const snapshotAsOf = await getSnapshotAsOf()
   if (snapshotAsOf) {
-    const cached = getCachedDecision(card.opportunity_id, snapshotAsOf)
+    const cached = findCachedDecision(card.opportunity_id, snapshotAsOf)
     if (cached) return cached
   }
 
