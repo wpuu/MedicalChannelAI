@@ -1,0 +1,21 @@
+{
+  "schema_version": "0.1",
+  "purpose": "Single-host Tianjin Pilot acceptance inputs. Public URLs only; no customer data or credentials.",
+  "bootstrap_manifest": "deploy/tianjin-pilot-bootstrap-urls-2026-08-30.json",
+  "attachment": {
+    "project_code": "XCSD-2026-C-181",
+    "filename": "XCSD-2026-C-181项目需求书.docx",
+    "url": "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=1OQ5vSM9GqM%2A&method=downEnId"
+  },
+  "required_environment": [
+    "MCAI_CANONICAL_ORIGIN",
+    "MCAI_AGNES_API_KEY"
+  ],
+  "acceptance_requires": {
+    "official_bootstrap_success_count": 5,
+    "official_bootstrap_failure_count": 0,
+    "attachment_binary_capture": true,
+    "attachment_parser_pass": true,
+    "agnes_authenticated_contract_smoke": true
+  }
+}
