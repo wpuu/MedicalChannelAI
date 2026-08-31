@@ -192,7 +192,7 @@ export interface TodayActionsResponse {
   refreshed_at: string
   cards: TodayActionCard[]
   opportunity_pool?: TodayActionCard[]
-  model_requests: ModelRequest[]
+  model_requests?: ModelRequest[]
 }
 
 export interface FollowupInput {
