@@ -26,6 +26,35 @@ CORRECTION_FIXTURE = """
 三、其他补充事宜 无
 """
 
+RESPONSE_CORRECTION_FIXTURE = """
+更正公告
+一、项目基本情况
+原公告的采购项目编号：TGPC-2026-A-0081
+原公告的采购项目名称：天津市第一中心医院复康院区提升改造项目基础硬件及附属设施建设项目智能语音采集设备采购项目
+首次公告日期：2026-05-15
+二、更正信息
+更正事项：采购公告
+更正内容：原公告的响应文件提交截止时间：2026-05-26 08:30:00，更正为：2026-05-29 08:30:00。
+原公告的开启时间：2026-05-26 09:30:00，更正为：2026-05-29 09:30:00。
+其他内容不变
+更正日期：2026-05-20
+三、其他补充事宜 无
+"""
+
+MATERIAL_RESPONSE_CORRECTION_FIXTURE = """
+更正公告
+一、项目基本情况
+原公告的采购项目编号：TGPC-2026-A-0081
+原公告的采购项目名称：天津市第一中心医院复康院区提升改造项目基础硬件及附属设施建设项目智能语音采集设备采购项目
+首次公告日期：2026-05-15
+二、更正信息
+更正事项：采购文件
+更正内容：原公告的响应文件提交截止时间：2026-05-26 08:30:00，更正为：2026-05-29 08:30:00。
+同时调整采购需求中的技术参数，具体详见更正后的竞争性磋商文件。
+更正日期：2026-05-20
+三、其他补充事宜 无
+"""
+
 INCOMPLETE_CORRECTION_FIXTURE = """
 更正公告
 一、项目基本情况
@@ -66,6 +95,7 @@ TERMINATION_FIXTURE = """
 """
 
 CORRECTION_URL = 'https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260901_99999999.htm'
+RESPONSE_CORRECTION_URL = 'https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202605/t20260520_99999997.htm'
 
 
 class CcgpEventTests(unittest.TestCase):
@@ -90,6 +120,34 @@ class CcgpEventTests(unittest.TestCase):
         )
         self.assertEqual(event['unresolved_fact_paths'], [])
         self.assertFalse(event['terminal'])
+
+    def test_exact_response_submission_correction_maps_to_canonical_bid_deadline(self) -> None:
+        event = parse_ccgp_event_text(
+            RESPONSE_CORRECTION_FIXTURE,
+            source_url=RESPONSE_CORRECTION_URL,
+            observed_at='2026-05-20T12:00:00+08:00',
+            event_id='correction_tgpc_2026_a_0081',
+        )
+        self.assertFalse(event['requires_reconciliation'])
+        self.assertEqual(event['changed_fact_paths'], ['facts.bid_deadline'])
+        self.assertEqual(
+            event['fact_overrides']['facts.bid_deadline'],
+            '2026-05-29T08:30:00+08:00',
+        )
+
+    def test_material_response_correction_stays_suppressed_despite_exact_deadline(self) -> None:
+        event = parse_ccgp_event_text(
+            MATERIAL_RESPONSE_CORRECTION_FIXTURE,
+            source_url=RESPONSE_CORRECTION_URL,
+            observed_at='2026-05-20T12:00:00+08:00',
+            event_id='material_correction_tgpc_2026_a_0081',
+        )
+        self.assertEqual(
+            event['fact_overrides']['facts.bid_deadline'],
+            '2026-05-29T08:30:00+08:00',
+        )
+        self.assertTrue(event['requires_reconciliation'])
+        self.assertIn('__material_correction__', event['unresolved_fact_paths'])
 
     def test_exact_correction_rebuilds_today_card_and_adds_event_evidence(self) -> None:
         event = parse_ccgp_event_text(
