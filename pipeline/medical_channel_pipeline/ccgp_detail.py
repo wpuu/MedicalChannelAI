@@ -113,7 +113,7 @@ def _extract_project_number(text: str) -> str:
 
 def _extract_project_name(text: str) -> str:
     match = _required_match(
-        r"项目名称\s*[：:]\s*(.+?)\s+预算金额\s*[：:]",
+        r"项目名称\s*[：:]\s*(.+?)\s+(?:采购方式\s*[：:]\s*.+?\s+)?预算金额\s*[：:]",
         text,
         "CCGP_PROJECT_NAME_NOT_FOUND",
         re.S,
@@ -153,7 +153,7 @@ def _extract_publish_date(text: str) -> str:
 
 def _extract_registration_deadline(text: str) -> str:
     section = re.search(
-        r"三[、.]\s*获取招标文件\s+时间\s*[：:]\s*"
+        r"三[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
         r"20\d{2}年\d{1,2}月\d{1,2}日\s*到\s*"
         r"(20\d{2})年(\d{1,2})月(\d{1,2})日"
         r"(.+?)(?:地点\s*[：:]|四[、.])",
@@ -177,6 +177,18 @@ def _extract_bid_deadline(text: str) -> str:
         r"(\d{1,2})\s*点\s*(\d{1,2})\s*分",
         text,
         "CCGP_BID_DEADLINE_NOT_FOUND",
+        re.S,
+    )
+    return _datetime_from_cn(*match.groups())
+
+
+def _extract_response_deadline(text: str) -> str:
+    match = _required_match(
+        r"四[、.]\s*响应文件提交\s+截止时间\s*[：:]\s*"
+        r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*"
+        r"(\d{1,2})\s*点\s*(\d{1,2})\s*分",
+        text,
+        "CCGP_RESPONSE_DEADLINE_NOT_FOUND",
         re.S,
     )
     return _datetime_from_cn(*match.groups())
@@ -237,29 +249,25 @@ def _extract_package_products(text: str) -> list[dict[str, Any]]:
     return items
 
 
-def parse_ccgp_public_tender_text(
-    text: str,
+def _build_verified_record(
     *,
     source_url: str,
     observed_at: str,
     opportunity_id: str,
+    project_number: str,
+    project_name: str,
+    buyer_name: str,
+    region: str | None,
+    published_at: str,
+    registration_deadline: str,
+    bid_deadline: str,
+    budget_cny: int | None,
+    product_items: list[dict[str, Any]],
+    public_contact: dict[str, str | None] | None,
+    notice_type: str,
+    procurement_method: str,
+    deadline_locator: str,
 ) -> dict[str, Any]:
-    _assert_source_url(source_url)
-    normalized = _normalize_space(text.replace("\xa0", " "))
-    if "公开招标公告" not in normalized:
-        raise CcgpDetailParseError("CCGP_NOTICE_TYPE_NOT_PUBLIC_TENDER")
-
-    project_number = _extract_project_number(normalized)
-    project_name = _extract_project_name(normalized)
-    buyer_name = _extract_buyer(normalized)
-    region = _extract_region(normalized)
-    published_at = _extract_publish_date(normalized)
-    registration_deadline = _extract_registration_deadline(normalized)
-    bid_deadline = _extract_bid_deadline(normalized)
-    budget_cny = _extract_budget_cny(normalized)
-    product_items = _extract_package_products(normalized)
-    public_contact = _extract_contact(normalized)
-
     facts: dict[str, Any] = {
         "project_number": project_number,
         "project_name": project_name,
@@ -268,14 +276,14 @@ def parse_ccgp_public_tender_text(
         "department": None,
         "region": region,
         "lifecycle_state": "BIDDING",
-        "notice_type": "公开招标公告",
+        "notice_type": notice_type,
         "published_at": published_at,
         "registration_deadline": registration_deadline,
         "bid_deadline": bid_deadline,
         "expected_procurement_at": None,
         "expected_procurement_precision": None,
         "budget_cny": budget_cny,
-        "procurement_method": "公开招标",
+        "procurement_method": procurement_method,
         "product_categories": [],
         "product_items": product_items,
         "public_contact": public_contact,
@@ -284,13 +292,13 @@ def parse_ccgp_public_tender_text(
     evidence_paths: list[tuple[str, str]] = [
         ("facts.project_number", "一、项目基本情况/项目编号"),
         ("facts.project_name", "一、项目基本情况/项目名称"),
-        ("facts.buyer_name", "七、采购人信息/名称"),
-        ("facts.lifecycle_state", "公告类型=公开招标公告/确定性生命周期映射"),
-        ("facts.notice_type", "公告类型/公开招标公告"),
+        ("facts.buyer_name", "采购人信息/名称"),
+        ("facts.lifecycle_state", f"公告类型={notice_type}/确定性生命周期映射"),
+        ("facts.notice_type", f"公告类型/{notice_type}"),
         ("facts.published_at", "公告发布日期"),
-        ("facts.registration_deadline", "三、获取招标文件/时间"),
-        ("facts.bid_deadline", "四、提交投标文件截止时间、开标时间和地点"),
-        ("facts.procurement_method", "公告类型=公开招标公告/确定性采购方式映射"),
+        ("facts.registration_deadline", "三、获取采购文件/时间" if procurement_method != "公开招标" else "三、获取招标文件/时间"),
+        ("facts.bid_deadline", deadline_locator),
+        ("facts.procurement_method", f"公告类型={notice_type}/确定性采购方式映射"),
     ]
     if region:
         evidence_paths.append(("facts.region", "公告概要/行政区域"))
@@ -299,7 +307,7 @@ def parse_ccgp_public_tender_text(
     if product_items:
         evidence_paths.append(("facts.product_items", "一、项目基本情况/采购需求/分包设备清单"))
     if public_contact:
-        evidence_paths.append(("facts.public_contact", "七、项目联系方式"))
+        evidence_paths.append(("facts.public_contact", "项目联系方式"))
 
     record = {
         "schema_version": "0.1",
@@ -319,6 +327,73 @@ def parse_ccgp_public_tender_text(
     return validate_record(record)
 
 
+def parse_ccgp_public_tender_text(
+    text: str,
+    *,
+    source_url: str,
+    observed_at: str,
+    opportunity_id: str,
+) -> dict[str, Any]:
+    _assert_source_url(source_url)
+    normalized = _normalize_space(text.replace("\xa0", " "))
+    if "公开招标公告" not in normalized:
+        raise CcgpDetailParseError("CCGP_NOTICE_TYPE_NOT_PUBLIC_TENDER")
+
+    return _build_verified_record(
+        source_url=source_url,
+        observed_at=observed_at,
+        opportunity_id=opportunity_id,
+        project_number=_extract_project_number(normalized),
+        project_name=_extract_project_name(normalized),
+        buyer_name=_extract_buyer(normalized),
+        region=_extract_region(normalized),
+        published_at=_extract_publish_date(normalized),
+        registration_deadline=_extract_registration_deadline(normalized),
+        bid_deadline=_extract_bid_deadline(normalized),
+        budget_cny=_extract_budget_cny(normalized),
+        product_items=_extract_package_products(normalized),
+        public_contact=_extract_contact(normalized),
+        notice_type="公开招标公告",
+        procurement_method="公开招标",
+        deadline_locator="四、提交投标文件截止时间、开标时间和地点",
+    )
+
+
+def parse_ccgp_competitive_consultation_text(
+    text: str,
+    *,
+    source_url: str,
+    observed_at: str,
+    opportunity_id: str,
+) -> dict[str, Any]:
+    _assert_source_url(source_url)
+    normalized = _normalize_space(text.replace("\xa0", " "))
+    if "竞争性磋商公告" not in normalized:
+        raise CcgpDetailParseError("CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION")
+    method_match = re.search(r"采购方式\s*[：:]\s*竞争性磋商", normalized)
+    if not method_match:
+        raise CcgpDetailParseError("CCGP_COMPETITIVE_CONSULTATION_METHOD_NOT_FOUND")
+
+    return _build_verified_record(
+        source_url=source_url,
+        observed_at=observed_at,
+        opportunity_id=opportunity_id,
+        project_number=_extract_project_number(normalized),
+        project_name=_extract_project_name(normalized),
+        buyer_name=_extract_buyer(normalized),
+        region=_extract_region(normalized),
+        published_at=_extract_publish_date(normalized),
+        registration_deadline=_extract_registration_deadline(normalized),
+        bid_deadline=_extract_response_deadline(normalized),
+        budget_cny=_extract_budget_cny(normalized),
+        product_items=_extract_package_products(normalized),
+        public_contact=_extract_contact(normalized),
+        notice_type="竞争性磋商公告",
+        procurement_method="竞争性磋商",
+        deadline_locator="四、响应文件提交/截止时间",
+    )
+
+
 def parse_ccgp_public_tender_html(
     html: str,
     *,
@@ -327,6 +402,21 @@ def parse_ccgp_public_tender_html(
     opportunity_id: str,
 ) -> dict[str, Any]:
     return parse_ccgp_public_tender_text(
+        html_to_text(html),
+        source_url=source_url,
+        observed_at=observed_at,
+        opportunity_id=opportunity_id,
+    )
+
+
+def parse_ccgp_competitive_consultation_html(
+    html: str,
+    *,
+    source_url: str,
+    observed_at: str,
+    opportunity_id: str,
+) -> dict[str, Any]:
+    return parse_ccgp_competitive_consultation_text(
         html_to_text(html),
         source_url=source_url,
         observed_at=observed_at,
