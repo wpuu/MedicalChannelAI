@@ -125,8 +125,11 @@ def _parse_cn_datetime(value: str) -> str | None:
 
 
 def _extract_bid_deadline_override(text: str) -> tuple[bool, str | None]:
+    # Public tenders usually say 投标文件提交截止时间, while competitive
+    # consultation / negotiation corrections use 响应文件提交截止时间. Both map
+    # to the canonical last-submission field facts.bid_deadline.
     standard = re.search(
-        r"原公告的投标文件提交截止时间\s*[：:]\s*.+?更正为\s*[：:]?\s*"
+        r"原公告的(?:投标文件|响应文件)提交截止时间\s*[：:]\s*.+?更正为\s*[：:]?\s*"
         r"(20\d{2}[-/]\d{1,2}[-/]\d{1,2}\s+\d{1,2}[：:]\d{2}(?::\d{2})?)",
         text,
         re.S,
@@ -135,7 +138,8 @@ def _extract_bid_deadline_override(text: str) -> tuple[bool, str | None]:
         return True, _parse_iso_like_datetime(standard.group(1))
 
     cn = re.search(
-        r"现更正(?:投标文件提交截止时间|投标截止时间、开标时间|投标截止时间).*?[：:]\s*"
+        r"现更正(?:投标文件提交截止时间|投标截止时间、开标时间|投标截止时间|"
+        r"响应文件提交截止时间|响应文件截止时间).*?[：:]\s*"
         r"((?:20\d{2}).{0,40}?(?:点|时|[:：]).{0,8}?(?:分)?)",
         text,
         re.S,
@@ -143,7 +147,13 @@ def _extract_bid_deadline_override(text: str) -> tuple[bool, str | None]:
     if cn:
         return True, _parse_cn_datetime(cn.group(1))
 
-    changed = bool(re.search(r"(?:投标文件提交截止时间|投标截止时间).{0,80}?(?:更正|调整|变更)", text))
+    changed = bool(
+        re.search(
+            r"(?:投标文件提交截止时间|投标截止时间|响应文件提交截止时间|响应文件截止时间)"
+            r".{0,80}?(?:更正|调整|变更)",
+            text,
+        )
+    )
     return changed, None
 
 
