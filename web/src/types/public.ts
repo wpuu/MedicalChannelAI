@@ -104,9 +104,9 @@ export interface PublicTodayActionCard {
 }
 
 /**
- * Exact H5-safe response returned by the backend Today Actions boundary.
- * Internal model requests, model_input, dispatch tasks, provider data and leases
- * are intentionally absent from this type.
+ * Exact H5-safe response returned by the verified public snapshot boundary.
+ * `cards` is the Top5 Today Actions surface; `opportunity_pool` retains all
+ * currently actionable verified opportunities from the same snapshot version.
  */
 export interface TodayActionsPublicResponse {
   schema_version: '0.1'
@@ -115,7 +115,9 @@ export interface TodayActionsPublicResponse {
   input_candidate_count: number
   matched_count: number
   card_count: number
+  opportunity_pool_count?: number
   model_request_count: number
   coverage_warning: 'PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY'
   cards: PublicTodayActionCard[]
+  opportunity_pool?: PublicTodayActionCard[]
 }
