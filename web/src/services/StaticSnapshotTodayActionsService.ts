@@ -246,14 +246,48 @@ function parsedTime(value: string | null): number | null {
   return Number.isNaN(time) ? null : time
 }
 
-function applyRuntimeActionability(card: TodayActionCard, now: number): TodayActionCard | null {
-  const bidDeadline = parsedTime(card.facts.bid_deadline)
-  if (bidDeadline !== null && bidDeadline <= now) return null
+function archivedRuntimeCard(card: TodayActionCard): TodayActionCard {
+  const currentStagePercent = card.priority.components.INTERVENTION_STAGE
+  const stagePointReduction = Math.max(0, Math.round((currentStagePercent / 100) * 40))
+  return {
+    ...card,
+    match_status: 'ARCHIVE',
+    recommendation_mode: 'ARCHIVE',
+    model_decision_status: 'NOT_ELIGIBLE',
+    model_block_reason: '公开截止时间已过，当前仅保留事实与历史跟进记录。',
+    decision: null,
+    priority: {
+      ...card.priority,
+      score: Math.max(0, card.priority.score - stagePointReduction),
+      components: {
+        ...card.priority.components,
+        INTERVENTION_STAGE: 0,
+      },
+    },
+  }
+}
 
+function applyRuntimeActionability(
+  card: TodayActionCard,
+  now: number,
+  includeInactive: boolean,
+): TodayActionCard | null {
+  const bidDeadline = parsedTime(card.facts.bid_deadline)
   const registrationDeadline = parsedTime(card.facts.registration_deadline)
-  if (registrationDeadline === null || registrationDeadline > now) return card
-  if (bidDeadline === null) return null
-  if (card.recommendation_mode === 'LATE_WINDOW') return card
+  const bidClosed = bidDeadline !== null && bidDeadline <= now
+  const registrationOnlyClosed =
+    bidDeadline === null && registrationDeadline !== null && registrationDeadline <= now
+
+  if (bidClosed || registrationOnlyClosed) {
+    return includeInactive ? archivedRuntimeCard(card) : null
+  }
+
+  const lateWindow =
+    registrationDeadline !== null &&
+    registrationDeadline <= now &&
+    bidDeadline !== null &&
+    bidDeadline > now
+  if (!lateWindow) return { ...card }
 
   const currentStagePercent = card.priority.components.INTERVENTION_STAGE
   const stagePointReduction = Math.max(
@@ -262,7 +296,14 @@ function applyRuntimeActionability(card: TodayActionCard, now: number): TodayAct
   )
   return {
     ...card,
+    match_status: 'LATE_WINDOW',
     recommendation_mode: 'LATE_WINDOW',
+    model_decision_status:
+      card.model_decision_status === 'NOT_ELIGIBLE' ||
+      card.model_decision_status === 'BLOCKED_GROUNDING'
+        ? card.model_decision_status
+        : 'AWAITING_MODEL',
+    decision: null,
     priority: {
       ...card.priority,
       score: Math.max(0, card.priority.score - stagePointReduction),
@@ -287,21 +328,34 @@ function freshnessWarning(snapshotAsOf: string, now: number): string {
   return COVERAGE_WARNING
 }
 
+function rerank(cards: TodayActionCard[]): TodayActionCard[] {
+  return [...cards]
+    .sort((a, b) => b.priority.score - a.priority.score || a.rank - b.rank)
+    .map((card, index) => ({ ...card, rank: index + 1 }))
+}
+
 export class StaticSnapshotTodayActionsService implements TodayActionsService {
   private snapshot: TodayActionsResponse | null = null
 
   constructor(private readonly snapshotUrl: string) {}
 
-  private refreshLocalDerivedState(data: TodayActionsResponse): TodayActionsResponse {
+  private deriveLocalState(
+    data: TodayActionsResponse,
+    includeInactive = false,
+  ): TodayActionsResponse {
     const now = Date.now()
-    const runtimeCards = hydrateLocalFollowups(data.cards)
-      .map((card) => applyRuntimeActionability(card, now))
+    const runtimeCards = data.cards
+      .map((card) => applyRuntimeActionability(card, now, includeInactive))
       .filter((card): card is TodayActionCard => card !== null)
-    data.cards = personalizeTrialCards(runtimeCards)
-    data.matched_count = data.cards.length
-    data.card_count = data.cards.length
-    data.coverage_warning = freshnessWarning(data.refreshed_at, now)
-    return data
+    const followedCards = hydrateLocalFollowups(rerank(runtimeCards))
+    const personalizedCards = personalizeTrialCards(followedCards)
+    return {
+      ...data,
+      matched_count: personalizedCards.length,
+      card_count: personalizedCards.length,
+      coverage_warning: freshnessWarning(data.refreshed_at, now),
+      cards: personalizedCards,
+    }
   }
 
   private async ensureLoaded(): Promise<TodayActionsResponse> {
@@ -340,22 +394,21 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       cards: mappedCards,
       model_requests: [],
     }
-    return this.refreshLocalDerivedState(this.snapshot)
+    return this.snapshot
   }
 
   async getTodayActions(): Promise<TodayActionsResponse> {
-    const data = this.refreshLocalDerivedState(await this.ensureLoaded())
-    return structuredClone(data)
+    return structuredClone(this.deriveLocalState(await this.ensureLoaded()))
   }
 
   async getOpportunity(id: string): Promise<TodayActionCard | null> {
-    const data = this.refreshLocalDerivedState(await this.ensureLoaded())
+    const data = this.deriveLocalState(await this.ensureLoaded(), true)
     const card = data.cards.find((item) => item.opportunity_id === id)
     return card ? structuredClone(card) : null
   }
 
   async updateFollowup(id: string, input: FollowupInput): Promise<void> {
-    const data = this.refreshLocalDerivedState(await this.ensureLoaded())
+    const data = this.deriveLocalState(await this.ensureLoaded(), true)
     const card = data.cards.find((item) => item.opportunity_id === id)
     if (!card) throw new Error('未找到对应商机')
     const record: FollowupRecord = {
