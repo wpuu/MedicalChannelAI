@@ -218,7 +218,7 @@ def _extract_package_products(text: str) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     seen: set[str] = set()
     for match in re.finditer(
-        r"第[一二三四五六七八九十]+包\s*[：:]\s*(.+?)(?:的采购|；|;|。)",
+        r"第(?:[一二三四五六七八九十]+|\d+)包\s*[：:]\s*(.+?)(?:的采购|；|;|。)",
         text,
         re.S,
     ):
