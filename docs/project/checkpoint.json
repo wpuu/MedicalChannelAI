@@ -8,14 +8,18 @@
   "demo_mode": "verified_static_snapshot",
   "verified_snapshot_at": "2026-08-30T13:30:00Z",
   "ci_status": "BLOCKED_RUNNER_NOT_ASSIGNED",
+  "local_test_status": "PASS_10_TESTS_2026-08-31",
   "milestone": "M1_EVIDENCE_PIPELINE",
   "grok_required": false,
   "gates": {
     "docs_project_present": true,
-    "canonical_fact_schema": false,
-    "verified_seed_data": false,
-    "source_adapter_ccgp": false,
-    "frontend_public_snapshot": false,
-    "automated_test_evidence": false
+    "canonical_fact_schema": true,
+    "verified_seed_data": true,
+    "source_discovery_ccgp": true,
+    "source_adapter_ccgp_verified_detail": false,
+    "source_adapter_official_institution": false,
+    "frontend_public_snapshot": true,
+    "local_test_evidence": true,
+    "github_ci_test_evidence": false
   }
 }
