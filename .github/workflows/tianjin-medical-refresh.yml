@@ -73,6 +73,16 @@ jobs:
             --records-output pipeline/data/tianjin_live_tjmugh_records.json \
             --report-output pipeline/data/tianjin_tjmugh_sync_report.json
 
+      - name: Sync verified Tianjin Hospital equipment-research state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python pipeline/scripts/sync_tjnothop_market_research.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --existing-records-input pipeline/data/tianjin_live_tjnothop_records.json \
+            --records-output pipeline/data/tianjin_live_tjnothop_records.json \
+            --report-output pipeline/data/tianjin_tjnothop_sync_report.json
+
       - name: Publish H5-safe verified snapshot
         shell: bash
         run: |
@@ -81,6 +91,7 @@ jobs:
             --as-of '${{ steps.clock.outputs.as_of }}' \
             --input pipeline/data/tianjin_live_ccgp_records.json \
             --input pipeline/data/tianjin_live_tjmugh_records.json \
+            --input pipeline/data/tianjin_live_tjnothop_records.json \
             --event-input pipeline/data/tianjin_notice_events.json \
             --output web/public/data/today-actions.public.json
 
@@ -139,9 +150,11 @@ jobs:
           git add \
             pipeline/data/tianjin_live_ccgp_records.json \
             pipeline/data/tianjin_live_tjmugh_records.json \
+            pipeline/data/tianjin_live_tjnothop_records.json \
             pipeline/data/tianjin_notice_events.json \
             pipeline/data/tianjin_sync_report.json \
             pipeline/data/tianjin_tjmugh_sync_report.json \
+            pipeline/data/tianjin_tjnothop_sync_report.json \
             web/public/data/today-actions.public.json
           if git diff --cached --quiet; then
             echo 'No verified state change to commit.'
