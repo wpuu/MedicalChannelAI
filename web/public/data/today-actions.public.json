@@ -1,0 +1,91 @@
+{
+  "schema_version": "0.1",
+  "mode": "TODAY_ACTIONS",
+  "input_candidate_count": 6,
+  "matched_count": 5,
+  "card_count": 6,
+  "model_request_count": 0,
+  "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
+  "cards": [
+    {
+      "rank": 1,
+      "opportunity_id": "verified_xks_2026_a_641",
+      "facts": {
+        "project_number": "XCSD-2026-A-641",
+        "project_name": "天津市胸科医院检验科设备租赁服务项目",
+        "buyer_name": "天津市胸科医院",
+        "hospital_name": "天津市胸科医院",
+        "department": "检验科",
+        "region": "天津市",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-08-27",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-03T16:00:00+08:00",
+        "bid_deadline": "2026-09-17T09:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {"amount_cny": 5730000, "currency": "CNY"},
+        "procurement_method": "公开招标",
+        "product_categories": ["医疗设备租赁服务"],
+        "product_items": [{"raw_name":"天津市胸科医院检验科设备租赁服务项目","category":"医疗设备租赁服务","quantity":null,"specification":"具体内容及要求详见官方项目附件"}],
+        "public_contact": {"name":"张忠义、尤心霖","title":"项目联系人","phone":"022-23717450-8002","email":null},
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": ["https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219613.htm"],
+      "customer_context": {"context_type":"CUSTOMER_PRIVATE_FACTS","business_role":null,"hospital_relationship":null,"matching_product_capabilities":[],"partnering_policy":{"can_seek_temporary_manufacturer":null,"can_cooperate_with_channel_partner":null,"can_do_rental_projects":null}},
+      "priority": {"schema_version":"0.1","score":60,"score_type":"ZERO_CONFIG_PUBLIC_FACTS_ONLY","components":[{"code":"PRODUCT_EXECUTION_CAPABILITY","points":0,"max_points":30,"basis":"NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE","profile_paths":[],"opportunity_paths":[]},{"code":"RELATIONSHIP","points":0,"max_points":10,"basis":"NO_CUSTOMER_CONFIRMED_RELATIONSHIP","profile_paths":[],"opportunity_paths":[]},{"code":"INTERVENTION_STAGE","points":40,"max_points":40,"basis":"PUBLIC_OPPORTUNITY","profile_paths":[],"opportunity_paths":["facts.registration_deadline","facts.bid_deadline"]},{"code":"PROJECT_AMOUNT","points":20,"max_points":20,"basis":"PUBLIC_BUDGET_ONLY","profile_paths":[],"opportunity_paths":["facts.budget_cny"]}],"warnings":["ZERO_CONFIG_PUBLIC_FACTS_ONLY"],"interpretation":"BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 2,
+      "opportunity_id": "verified_teda_20260851",
+      "facts": {"project_number":"ZYGP20260851","project_name":"天津市泰达医院数字X光机（DR）采购项目","buyer_name":"天津市泰达医院","hospital_name":"天津市泰达医院","department":null,"region":"天津市滨海新区","lifecycle_state":"BIDDING","notice_type":"公开招标公告","published_at":"2026-08-27","published_at_precision":"DAY","registration_deadline":"2026-09-03T17:00:00+08:00","bid_deadline":"2026-09-17T10:00:00+08:00","expected_procurement_at":null,"expected_procurement_precision":null,"budget":{"amount_cny":2500000,"currency":"CNY"},"procurement_method":"公开招标","product_categories":["医用X线诊断设备"],"product_items":[{"raw_name":"数字X光机（DR）","category":"医用X线诊断设备","quantity":"1台","specification":"具体要求详见官方项目需求书"}],"public_contact":{"name":"王亚楠、王志娜、苏东芸、孙楠","title":"项目联系人","phone":"022-28227838-803","email":null},"verification_status":"VERIFIED","coverage_status":"PARTIAL"},
+      "evidence_source_urls": ["https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219685.htm"],
+      "customer_context": {"context_type":"CUSTOMER_PRIVATE_FACTS","business_role":null,"hospital_relationship":null,"matching_product_capabilities":[],"partnering_policy":{"can_seek_temporary_manufacturer":null,"can_cooperate_with_channel_partner":null,"can_do_rental_projects":null}},
+      "priority": {"schema_version":"0.1","score":54,"score_type":"ZERO_CONFIG_PUBLIC_FACTS_ONLY","components":[{"code":"PRODUCT_EXECUTION_CAPABILITY","points":0,"max_points":30,"basis":"NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE","profile_paths":[],"opportunity_paths":[]},{"code":"RELATIONSHIP","points":0,"max_points":10,"basis":"NO_CUSTOMER_CONFIRMED_RELATIONSHIP","profile_paths":[],"opportunity_paths":[]},{"code":"INTERVENTION_STAGE","points":40,"max_points":40,"basis":"PUBLIC_OPPORTUNITY","profile_paths":[],"opportunity_paths":["facts.registration_deadline","facts.bid_deadline"]},{"code":"PROJECT_AMOUNT","points":14,"max_points":20,"basis":"PUBLIC_BUDGET_ONLY","profile_paths":[],"opportunity_paths":["facts.budget_cny"]}],"warnings":["ZERO_CONFIG_PUBLIC_FACTS_ONLY"],"interpretation":"BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
+      "match_status":"MATCHED_CANDIDATE","recommendation_mode":"PUBLIC_OPPORTUNITY","model_decision_status":"AWAITING_MODEL","model_block_reason":null,"decision":null
+    },
+    {
+      "rank": 3,
+      "opportunity_id": "verified_zybfy_2026_a_517",
+      "facts": {"project_number":"XCSD-2026-A-517","project_name":"天津市职业病防治院采购X线移动业务用车项目","buyer_name":"天津市职业病防治院","hospital_name":"天津市职业病防治院","department":null,"region":"天津市","lifecycle_state":"BIDDING","notice_type":"公开招标公告","published_at":"2026-08-27","published_at_precision":"DAY","registration_deadline":"2026-09-03T16:00:00+08:00","bid_deadline":"2026-09-17T14:00:00+08:00","expected_procurement_at":null,"expected_procurement_precision":null,"budget":{"amount_cny":1300000,"currency":"CNY"},"procurement_method":"公开招标","product_categories":["医用磁共振设备"],"product_items":[{"raw_name":"X线移动业务用车","category":null,"quantity":null,"specification":"官方采购需求栏为“详见附件”"}],"public_contact":{"name":"孙一瑶","title":"项目联系人","phone":"022-23717450-8002","email":null},"verification_status":"VERIFIED","coverage_status":"PARTIAL"},
+      "evidence_source_urls": ["https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219677.htm"],
+      "customer_context": {"context_type":"CUSTOMER_PRIVATE_FACTS","business_role":null,"hospital_relationship":null,"matching_product_capabilities":[],"partnering_policy":{"can_seek_temporary_manufacturer":null,"can_cooperate_with_channel_partner":null,"can_do_rental_projects":null}},
+      "priority": {"schema_version":"0.1","score":54,"score_type":"ZERO_CONFIG_PUBLIC_FACTS_ONLY","components":[{"code":"PRODUCT_EXECUTION_CAPABILITY","points":0,"max_points":30,"basis":"NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE","profile_paths":[],"opportunity_paths":[]},{"code":"RELATIONSHIP","points":0,"max_points":10,"basis":"NO_CUSTOMER_CONFIRMED_RELATIONSHIP","profile_paths":[],"opportunity_paths":[]},{"code":"INTERVENTION_STAGE","points":40,"max_points":40,"basis":"PUBLIC_OPPORTUNITY","profile_paths":[],"opportunity_paths":["facts.registration_deadline","facts.bid_deadline"]},{"code":"PROJECT_AMOUNT","points":14,"max_points":20,"basis":"PUBLIC_BUDGET_ONLY","profile_paths":[],"opportunity_paths":["facts.budget_cny"]}],"warnings":["ZERO_CONFIG_PUBLIC_FACTS_ONLY","SOURCE_CATEGORY_TITLE_CONFLICT"],"interpretation":"BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
+      "match_status":"MATCHED_CANDIDATE","recommendation_mode":"PUBLIC_OPPORTUNITY","model_decision_status":"AWAITING_MODEL","model_block_reason":null,"decision":null
+    },
+    {
+      "rank": 4,
+      "opportunity_id": "verified_bhcdc_2026_c_181",
+      "facts": {"project_number":"XCSD-2026-C-181","project_name":"病原微生物能力提升相关设备购置","buyer_name":"天津市滨海新区疾病预防控制中心（天津市滨海新区卫生监督所）","hospital_name":null,"department":null,"region":"天津市滨海新区","lifecycle_state":"BIDDING","notice_type":"公开招标公告","published_at":"2026-08-24","published_at_precision":"DAY","registration_deadline":"2026-08-31T16:00:00+08:00","bid_deadline":"2026-09-14T09:30:00+08:00","expected_procurement_at":null,"expected_procurement_precision":null,"budget":{"amount_cny":2700000,"currency":"CNY"},"procurement_method":"公开招标","product_categories":["其他医疗设备"],"product_items":[{"raw_name":"基因测序仪、自动化建库仪、宏基因组分析系统","category":"其他医疗设备","quantity":null,"specification":"第一包，具体要求以官方项目需求书为准"},{"raw_name":"微生物质谱检测系统（飞行时间质谱检测系统）、高性能生物计算工业一体机","category":"其他医疗设备","quantity":null,"specification":"第二包，具体要求以官方项目需求书为准"}],"public_contact":{"name":"李宁","title":"项目联系人","phone":"022-23717450-8019","email":null},"verification_status":"VERIFIED","coverage_status":"PARTIAL"},
+      "evidence_source_urls": ["https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194426.htm"],
+      "customer_context": {"context_type":"CUSTOMER_PRIVATE_FACTS","business_role":null,"hospital_relationship":null,"matching_product_capabilities":[],"partnering_policy":{"can_seek_temporary_manufacturer":null,"can_cooperate_with_channel_partner":null,"can_do_rental_projects":null}},
+      "priority": {"schema_version":"0.1","score":29,"score_type":"ZERO_CONFIG_PUBLIC_FACTS_ONLY","components":[{"code":"PRODUCT_EXECUTION_CAPABILITY","points":0,"max_points":30,"basis":"NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE","profile_paths":[],"opportunity_paths":[]},{"code":"RELATIONSHIP","points":0,"max_points":10,"basis":"NO_CUSTOMER_CONFIRMED_RELATIONSHIP","profile_paths":[],"opportunity_paths":[]},{"code":"INTERVENTION_STAGE","points":15,"max_points":40,"basis":"LATE_WINDOW","profile_paths":[],"opportunity_paths":["facts.registration_deadline","facts.bid_deadline"]},{"code":"PROJECT_AMOUNT","points":14,"max_points":20,"basis":"PUBLIC_BUDGET_ONLY","profile_paths":[],"opportunity_paths":["facts.budget_cny"]}],"warnings":["ZERO_CONFIG_PUBLIC_FACTS_ONLY"],"interpretation":"BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
+      "match_status":"MATCHED_CANDIDATE","recommendation_mode":"LATE_WINDOW","model_decision_status":"AWAITING_MODEL","model_block_reason":null,"decision":null
+    },
+    {
+      "rank": 5,
+      "opportunity_id": "verified_hbrmyy_gpu_0052",
+      "facts": {"project_number":"TJBH-2026-A-0052","project_name":"天津市滨海新区海滨人民医院采购人工智能GPU（8卡）算力服务器项目","buyer_name":"天津市滨海新区海滨人民医院","hospital_name":"天津市滨海新区海滨人民医院","department":null,"region":"天津市滨海新区","lifecycle_state":"BIDDING","notice_type":"公开招标公告","published_at":"2026-08-24","published_at_precision":"DAY","registration_deadline":"2026-08-31T17:00:00+08:00","bid_deadline":"2026-09-24T08:30:00+08:00","expected_procurement_at":null,"expected_procurement_precision":null,"budget":{"amount_cny":650000,"currency":"CNY"},"procurement_method":"公开招标","product_categories":["服务器"],"product_items":[{"raw_name":"人工智能GPU（8卡）算力服务器","category":"服务器","quantity":null,"specification":"详见官方招标文件"}],"public_contact":{"name":"夏冰","title":"项目联系人","phone":"022-25866107","email":null},"verification_status":"VERIFIED","coverage_status":"PARTIAL"},
+      "evidence_source_urls": ["https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194440.htm"],
+      "customer_context": {"context_type":"CUSTOMER_PRIVATE_FACTS","business_role":null,"hospital_relationship":null,"matching_product_capabilities":[],"partnering_policy":{"can_seek_temporary_manufacturer":null,"can_cooperate_with_channel_partner":null,"can_do_rental_projects":null}},
+      "priority": {"schema_version":"0.1","score":23,"score_type":"ZERO_CONFIG_PUBLIC_FACTS_ONLY","components":[{"code":"PRODUCT_EXECUTION_CAPABILITY","points":0,"max_points":30,"basis":"NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE","profile_paths":[],"opportunity_paths":[]},{"code":"RELATIONSHIP","points":0,"max_points":10,"basis":"NO_CUSTOMER_CONFIRMED_RELATIONSHIP","profile_paths":[],"opportunity_paths":[]},{"code":"INTERVENTION_STAGE","points":15,"max_points":40,"basis":"LATE_WINDOW","profile_paths":[],"opportunity_paths":["facts.registration_deadline","facts.bid_deadline"]},{"code":"PROJECT_AMOUNT","points":8,"max_points":20,"basis":"PUBLIC_BUDGET_ONLY","profile_paths":[],"opportunity_paths":["facts.budget_cny"]}],"warnings":["ZERO_CONFIG_PUBLIC_FACTS_ONLY"],"interpretation":"BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
+      "match_status":"MATCHED_CANDIDATE","recommendation_mode":"LATE_WINDOW","model_decision_status":"AWAITING_MODEL","model_block_reason":null,"decision":null
+    },
+    {
+      "rank": 6,
+      "opportunity_id": "tjmugh_20260805_030326488",
+      "facts": {"project_number":null,"project_name":"天津医科大学总医院医疗设备项目市场调研论证邀请函","buyer_name":"天津医科大学总医院","hospital_name":"天津医科大学总医院","department":null,"region":"天津市","lifecycle_state":"MARKET_RESEARCH","notice_type":"市场调研论证邀请函","published_at":"2026-08-05","published_at_precision":"DAY","registration_deadline":"2026-08-07T17:00:00+08:00","bid_deadline":null,"expected_procurement_at":null,"expected_procurement_precision":null,"budget":null,"procurement_method":null,"product_categories":[],"product_items":[{"raw_name":"创面洗消设备","category":null,"quantity":null,"specification":null},{"raw_name":"腹腔镜系统2套","category":null,"quantity":null,"specification":null},{"raw_name":"高频电刀3台","category":null,"quantity":null,"specification":null},{"raw_name":"卡式蒸汽灭菌器","category":null,"quantity":null,"specification":null},{"raw_name":"便携式睡眠仪","category":null,"quantity":null,"specification":null},{"raw_name":"喷射呼吸机","category":null,"quantity":null,"specification":null},{"raw_name":"冷冻离心机离心机（最高转速21000r/min）","category":null,"quantity":null,"specification":null},{"raw_name":"超低温冰箱（-80℃容量100L）","category":null,"quantity":null,"specification":null},{"raw_name":"中毒防护装备（A级防护服2个、空气气瓶充气泵1个、发电机1个）","category":null,"quantity":null,"specification":null},{"raw_name":"消防设备-EPS应急电源系统","category":null,"quantity":null,"specification":null},{"raw_name":"移液器40套","category":null,"quantity":null,"specification":null},{"raw_name":"神经监测仪","category":null,"quantity":null,"specification":null},{"raw_name":"鼻内窥镜3套","category":null,"quantity":null,"specification":null},{"raw_name":"手术器械包（耳、鼻、喉）","category":null,"quantity":null,"specification":null},{"raw_name":"耳鼻喉开口器成套手术器械","category":null,"quantity":null,"specification":null}],"public_contact":{"name":"张老师","title":"设备采购科","phone":"60361777","email":null},"verification_status":"VERIFIED","coverage_status":"PARTIAL"},
+      "evidence_source_urls": ["https://www.tjmugh.com.cn/system/2026/08/05/030326488.shtml"],
+      "customer_context": {"context_type":"CUSTOMER_PRIVATE_FACTS","business_role":null,"hospital_relationship":null,"matching_product_capabilities":[],"partnering_policy":{"can_seek_temporary_manufacturer":null,"can_cooperate_with_channel_partner":null,"can_do_rental_projects":null}},
+      "priority": {"schema_version":"0.1","score":0,"score_type":"ZERO_CONFIG_PUBLIC_FACTS_ONLY","components":[{"code":"PRODUCT_EXECUTION_CAPABILITY","points":0,"max_points":30,"basis":"NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE","profile_paths":[],"opportunity_paths":[]},{"code":"RELATIONSHIP","points":0,"max_points":10,"basis":"NO_CUSTOMER_CONFIRMED_RELATIONSHIP","profile_paths":[],"opportunity_paths":[]},{"code":"INTERVENTION_STAGE","points":0,"max_points":40,"basis":"ARCHIVE","profile_paths":[],"opportunity_paths":["facts.registration_deadline","facts.bid_deadline"]},{"code":"PROJECT_AMOUNT","points":0,"max_points":20,"basis":"PUBLIC_BUDGET_ONLY","profile_paths":[],"opportunity_paths":["facts.budget_cny"]}],"warnings":["ZERO_CONFIG_PUBLIC_FACTS_ONLY"],"interpretation":"BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"},
+      "match_status":"MATCHED_CANDIDATE","recommendation_mode":"ARCHIVE","model_decision_status":"NOT_ELIGIBLE","model_block_reason":null,"decision":null
+    }
+  ]
+}
