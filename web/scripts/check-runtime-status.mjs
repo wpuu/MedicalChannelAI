@@ -1,4 +1,4 @@
-import statusHandler from '../api/status.js'
+import statusHandler, { snapshotFreshness } from '../api/status.js'
 import { clearVerifiedSnapshotCacheForTests } from '../api/_verifiedSnapshot.js'
 
 function expect(condition, code) {
@@ -37,6 +37,24 @@ const savedPublicRemote = process.env.VITE_VERIFIED_SNAPSHOT_URL
 const savedFetch = globalThis.fetch
 
 try {
+  const fixedNow = Date.parse('2026-09-01T12:00:00Z')
+  let freshness = snapshotFreshness('2026-08-31T07:00:00Z', fixedNow)
+  expect(freshness.freshness === 'FRESH', 'STATUS_FRESHNESS_FRESH')
+  expect(freshness.degraded === false, 'STATUS_FRESHNESS_FRESH_NOT_DEGRADED')
+  expect(freshness.age_minutes === 1740, 'STATUS_FRESHNESS_FRESH_AGE')
+
+  freshness = snapshotFreshness('2026-08-31T05:00:00Z', fixedNow)
+  expect(freshness.freshness === 'STALE', 'STATUS_FRESHNESS_STALE')
+  expect(freshness.degraded === true, 'STATUS_FRESHNESS_STALE_DEGRADED')
+  expect(freshness.age_minutes === 1860, 'STATUS_FRESHNESS_STALE_AGE')
+
+  freshness = snapshotFreshness('2026-09-01T12:16:00Z', fixedNow)
+  expect(freshness.freshness === 'INVALID', 'STATUS_FRESHNESS_FUTURE_INVALID')
+  expect(freshness.age_minutes === null, 'STATUS_FRESHNESS_FUTURE_AGE_NULL')
+
+  freshness = snapshotFreshness('not-a-date', fixedNow)
+  expect(freshness.freshness === 'INVALID', 'STATUS_FRESHNESS_DATE_INVALID')
+
   process.env.AGNES_API_KEYS = ''
   process.env.AGNES_API_KEY = ''
   process.env.VERIFIED_SNAPSHOT_URL = ''
@@ -49,6 +67,8 @@ try {
   expect(response.body?.production_ready === false, 'STATUS_PRODUCTION_READY_FALSE')
   expect(response.body?.snapshot?.available === true, 'STATUS_SNAPSHOT_AVAILABLE')
   expect(response.body?.snapshot?.source_mode === 'BUNDLED', 'STATUS_BUNDLED_MODE')
+  expect(['FRESH', 'STALE'].includes(response.body?.snapshot?.freshness), 'STATUS_BUNDLED_FRESHNESS')
+  expect(typeof response.body?.snapshot?.stale_after_minutes === 'number', 'STATUS_STALE_THRESHOLD')
   expect(response.body?.ai?.configured === false, 'STATUS_AI_UNCONFIGURED')
 
   response = await invoke('POST')
@@ -67,8 +87,10 @@ try {
   response = await invoke('GET')
   expect(response.statusCode === 503, 'STATUS_REMOTE_FAILURE_HTTP')
   expect(response.body?.ready === false, 'STATUS_REMOTE_FAILURE_READY')
+  expect(response.body?.degraded === true, 'STATUS_REMOTE_FAILURE_DEGRADED')
   expect(response.body?.snapshot?.available === false, 'STATUS_REMOTE_FAILURE_AVAILABLE')
   expect(response.body?.snapshot?.source_mode === 'REMOTE', 'STATUS_REMOTE_FAILURE_MODE')
+  expect(response.body?.snapshot?.freshness === 'UNAVAILABLE', 'STATUS_REMOTE_FAILURE_FRESHNESS')
   expect(response.body?.ai?.configured === true, 'STATUS_REMOTE_FAILURE_AI_BOOL')
   expect(!JSON.stringify(response.body).includes(secret), 'STATUS_REMOTE_FAILURE_SECRET_LEAK')
 
@@ -77,6 +99,7 @@ try {
   response = await invoke('GET')
   expect(response.statusCode === 503, 'STATUS_INVALID_REMOTE_HTTP')
   expect(response.body?.snapshot?.source_mode === 'UNAVAILABLE', 'STATUS_INVALID_REMOTE_MODE')
+  expect(response.body?.snapshot?.freshness === 'UNAVAILABLE', 'STATUS_INVALID_REMOTE_FRESHNESS')
 
   console.log('Runtime status checks: PASS')
 } finally {
