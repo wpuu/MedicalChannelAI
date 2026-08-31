@@ -3,8 +3,9 @@ import { ToastProvider } from '@/context/ToastContext'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { FollowedPage } from '@/pages/FollowedPage'
 import { LoginPage } from '@/pages/LoginPage'
-import { TodayPage } from '@/pages/TodayPage'
 import { OpportunityDetailPage } from '@/pages/OpportunityDetailPage'
+import { ResourcesPage } from '@/pages/ResourcesPage'
+import { TodayPage } from '@/pages/TodayPage'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/today" replace />} />
             <Route path="/today" element={<TodayPage />} />
             <Route path="/followed" element={<FollowedPage />} />
+            <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/opportunity/:id" element={<OpportunityDetailPage />} />
             <Route path="*" element={<Navigate to="/today" replace />} />
           </Route>
