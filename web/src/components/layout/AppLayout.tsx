@@ -4,6 +4,7 @@ import { Activity, CalendarDays, LogOut, RotateCcw } from 'lucide-react'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { isApiMode, logoutPilot } from '@/services/apiConfig'
+import { clearLocalCustomerProfile } from '@/services/localCustomerProfile'
 import { resetLocalFollowups } from '@/services/localFollowupStore'
 import { resetMockDemoState } from '@/services/MockTodayActionsService'
 import { formatToday } from '@/utils/format'
@@ -39,6 +40,7 @@ export function AppLayout() {
   const handleResetTrial = () => {
     resetMockDemoState()
     resetLocalFollowups()
+    if (isVerifiedPublicDemo) clearLocalCustomerProfile()
     try {
       localStorage.removeItem(GROUNDED_AI_CACHE_KEY)
     } catch {
@@ -90,6 +92,11 @@ export function AppLayout() {
             <NavLink to="/followed" className={navClass}>
               我的跟进
             </NavLink>
+            {!isApiMode && isVerifiedPublicDemo ? (
+              <NavLink to="/resources" className={navClass}>
+                我的资源
+              </NavLink>
+            ) : null}
             {!isApiMode ? (
               <button
                 type="button"
