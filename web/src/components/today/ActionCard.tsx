@@ -13,23 +13,27 @@ import { DecisionBlock } from './DecisionBlock'
 interface ActionCardProps {
   card: TodayActionCard
   busy?: boolean
+  aiBusy?: boolean
   onDetail: () => void
   onContacted: () => void
   onFollow: () => void
   onNotFit: () => void
   onRemind: () => void
   onOutreach: () => void
+  onAnalyze: () => void
 }
 
 export function ActionCard({
   card,
   busy,
+  aiBusy,
   onDetail,
   onContacted,
   onFollow,
   onNotFit,
   onRemind,
   onOutreach,
+  onAnalyze,
 }: ActionCardProps) {
   const dateInfo = pickDisplayDate(card.facts)
   const budget = formatBudget(card.facts.budget)
@@ -102,7 +106,7 @@ export function ActionCard({
           </div>
           <CustomerResourceBlock context={card.customer_context} />
         </div>
-        <DecisionBlock card={card} />
+        <DecisionBlock card={card} onAnalyze={onAnalyze} analyzing={aiBusy} />
       </div>
 
       <div className="border-t border-slate-100 px-4 py-3">
