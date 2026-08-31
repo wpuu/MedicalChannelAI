@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 from tools.medical_pilot.benchmark_agnes import (
+    BenchmarkError,
     aggregate_scores,
     build_user_prompt,
+    call_chat_completion,
     extract_json_object,
     load_manifest,
+    run_benchmark,
     score_case,
 )
 
@@ -73,6 +77,43 @@ class AgnesBenchmarkHarnessTests(unittest.TestCase):
         self.assertTrue(aggregate["passed"])
         self.assertEqual(aggregate["metrics"]["segment_accuracy"], 1.0)
         self.assertEqual(aggregate["metrics"]["api_or_json_failure_rate"], 0.0)
+
+    def test_direct_provider_call_requires_explicit_global_lease_and_never_opens_network(self) -> None:
+        with patch("tools.medical_pilot.benchmark_agnes.urllib.request.urlopen") as urlopen:
+            with self.assertRaises(BenchmarkError) as context:
+                call_chat_completion(
+                    base_url="https://apihub.agnes-ai.com/v1",
+                    api_key="fake-key",
+                    model="agnes-2.5-flash",
+                    user_prompt="{}",
+                )
+        self.assertIn("GLOBAL_LEASE", str(context.exception))
+        urlopen.assert_not_called()
+
+    def test_provider_retry_under_one_lease_is_rejected_before_network(self) -> None:
+        with patch("tools.medical_pilot.benchmark_agnes.urllib.request.urlopen") as urlopen:
+            with self.assertRaises(BenchmarkError) as context:
+                call_chat_completion(
+                    base_url="https://apihub.agnes-ai.com/v1",
+                    api_key="fake-key",
+                    model="agnes-2.5-flash",
+                    user_prompt="{}",
+                    retries=1,
+                    global_lease_granted=True,
+                )
+        self.assertIn("NEW_GLOBAL_LEASE", str(context.exception))
+        urlopen.assert_not_called()
+
+    def test_legacy_run_benchmark_execution_is_disabled(self) -> None:
+        with self.assertRaises(BenchmarkError) as context:
+            run_benchmark(
+                load_manifest(),
+                base_url="https://apihub.agnes-ai.com/v1",
+                api_key="fake-key",
+                model="agnes-2.5-flash",
+                rpm=12,
+            )
+        self.assertIn("AGNES_BENCHMARK_SUITE", str(context.exception))
 
 
 if __name__ == "__main__":
