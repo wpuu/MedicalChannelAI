@@ -48,6 +48,7 @@ const savedKeys = process.env.AGNES_API_KEYS
 const savedKey = process.env.AGNES_API_KEY
 const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
 const savedPublicRemote = process.env.VITE_VERIFIED_SNAPSHOT_URL
+const savedFetch = globalThis.fetch
 process.env.AGNES_API_KEYS = ''
 process.env.AGNES_API_KEY = ''
 process.env.VERIFIED_SNAPSHOT_URL = ''
@@ -93,6 +94,35 @@ try {
   expectStatus(response, 503, 'AI_BOUNDARY_UNCONFIGURED')
   if (response.body?.error !== 'AI_NOT_CONFIGURED') throw new Error('AI_BOUNDARY_UNCONFIGURED_CODE')
 
+  const poolOnlyOpportunityId = 'verified-pool-only-regression'
+  const poolOnlyCard = JSON.parse(JSON.stringify(snapshot.cards[0]))
+  poolOnlyCard.opportunity_id = poolOnlyOpportunityId
+  poolOnlyCard.rank = 6
+  const remoteSnapshot = JSON.parse(JSON.stringify(snapshot))
+  remoteSnapshot.opportunity_pool = [...snapshot.cards, poolOnlyCard]
+  remoteSnapshot.opportunity_pool_count = remoteSnapshot.opportunity_pool.length
+  process.env.VERIFIED_SNAPSHOT_URL = 'https://snapshot.example/today-actions.public.json'
+  clearVerifiedSnapshotCacheForTests()
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    headers: { get: () => null },
+    text: async () => JSON.stringify(remoteSnapshot),
+  })
+  response = await invoke({
+    origin: 'https://trial.example',
+    body: { opportunity_id: poolOnlyOpportunityId },
+    ip: '198.51.100.6',
+  })
+  expectStatus(response, 503, 'AI_BOUNDARY_POOL_ONLY_ID')
+  if (response.body?.error !== 'AI_NOT_CONFIGURED') {
+    throw new Error('AI_BOUNDARY_POOL_ONLY_ID_NOT_GROUNDED')
+  }
+
+  process.env.VERIFIED_SNAPSHOT_URL = ''
+  clearVerifiedSnapshotCacheForTests()
+  globalThis.fetch = savedFetch
+
   for (let index = 0; index < 10; index += 1) {
     response = await invoke({
       origin: 'https://trial.example',
@@ -112,6 +142,7 @@ try {
   console.log('AI boundary checks: PASS')
 } finally {
   clearVerifiedSnapshotCacheForTests()
+  globalThis.fetch = savedFetch
   if (savedKeys === undefined) delete process.env.AGNES_API_KEYS
   else process.env.AGNES_API_KEYS = savedKeys
   if (savedKey === undefined) delete process.env.AGNES_API_KEY
