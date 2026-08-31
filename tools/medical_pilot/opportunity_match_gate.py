@@ -219,7 +219,14 @@ def _product_match(profile: dict[str, Any], opportunity: dict[str, Any]) -> tupl
     for capability in profile.get("product_capabilities") or []:
         if not isinstance(capability, dict):
             continue
-        keys = {_norm(capability.get("category")), _norm(capability.get("subcategory"))}
+        # Stable matching keys are controlled taxonomy IDs. category/subcategory are
+        # retained only as a backwards-compatible fallback for older stored profiles.
+        keys = {
+            _norm(item)
+            for item in (capability.get("taxonomy_ids") or [])
+            if _text(item)
+        }
+        keys.update({_norm(capability.get("category")), _norm(capability.get("subcategory"))})
         keys.discard("")
         if not keys.intersection(labels):
             continue
