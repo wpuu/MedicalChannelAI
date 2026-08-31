@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Filter, Search, SlidersHorizontal } from 'lucide-react'
+import {
+  BookmarkPlus,
+  Check,
+  ExternalLink,
+  Filter,
+  Search,
+  SlidersHorizontal,
+} from 'lucide-react'
+import { DecisionBlock } from '@/components/today/DecisionBlock'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { StageBadge } from '@/components/shared/StageBadge'
+import { useToast } from '@/context/ToastContext'
+import { AiDecisionError, requestAiDecision } from '@/services/aiDecisionApi'
+import { persistLocalFollowup } from '@/services/localFollowupStore'
 import { getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
 import type { TodayActionCard } from '@/types'
-import { formatBudget, formatDateTime } from '@/utils/format'
+import { formatBudget, formatDateTime, uid } from '@/utils/format'
 
 type WindowFilter = 'ALL' | 'OPEN' | 'LATE_WINDOW'
 
@@ -37,11 +48,33 @@ function deadlineLabel(card: TodayActionCard): string | null {
   return null
 }
 
-function PoolCard({ card }: { card: TodayActionCard }) {
+function aiErrorMessage(cause: unknown): string {
+  if (!(cause instanceof AiDecisionError)) return 'AI分析暂时不可用，请稍后重试'
+  if (cause.code === 'AI_NOT_CONFIGURED') return 'AI服务端运行配置尚未完成'
+  if (cause.code === 'AI_RATE_LIMITED') return 'AI服务当前限流，请稍后再试'
+  if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') return 'AI服务端当前不可用'
+  if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，请稍后重试'
+  if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
+  if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机不在服务端已核验商机池中'
+  return 'AI分析暂时不可用，请稍后重试'
+}
+
+function PoolCard({
+  card,
+  aiBusy,
+  onAnalyze,
+  onFollow,
+}: {
+  card: TodayActionCard
+  aiBusy: boolean
+  onAnalyze: () => void
+  onFollow: () => void
+}) {
   const buyer = card.facts.hospital ?? card.facts.buyer_name ?? '采购单位未提供'
   const budget = formatBudget(card.facts.budget)
   const deadline = deadlineLabel(card)
   const late = card.recommendation_mode === 'LATE_WINDOW'
+  const followed = card.followup_status !== 'NEW'
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -68,6 +101,17 @@ function PoolCard({ card }: { card: TodayActionCard }) {
             {deadline ? <span>{deadline}</span> : null}
             {card.facts.region ? <span>{card.facts.region}</span> : null}
           </div>
+          <div className="mt-3">
+            <button
+              type="button"
+              disabled={followed}
+              onClick={onFollow}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-[12px] font-medium text-teal-800 transition hover:bg-teal-100 disabled:cursor-default disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
+            >
+              {followed ? <Check className="h-3.5 w-3.5" /> : <BookmarkPlus className="h-3.5 w-3.5" />}
+              {followed ? '已在我的跟进' : '加入我的跟进'}
+            </button>
+          </div>
         </div>
         <div className="shrink-0 text-right">
           <div className="text-2xl font-semibold tabular-nums text-slate-900">{card.priority.score}</div>
@@ -77,7 +121,7 @@ function PoolCard({ card }: { card: TodayActionCard }) {
 
       <details className="border-t border-slate-100 px-4 py-3">
         <summary className="cursor-pointer select-none text-[12px] font-medium text-teal-700">
-          查看设备、联系人和官方依据
+          查看设备、联系人、官方依据和AI判断
         </summary>
         <div className="mt-3 grid gap-4 text-[12px] leading-5 text-slate-600 md:grid-cols-2">
           <div>
@@ -125,16 +169,21 @@ function PoolCard({ card }: { card: TodayActionCard }) {
             </div>
           </div>
         </div>
+        <div className="mt-4">
+          <DecisionBlock card={card} analyzing={aiBusy} onAnalyze={onAnalyze} />
+        </div>
       </details>
     </article>
   )
 }
 
 export function OpportunityPoolPage() {
+  const { toast } = useToast()
   const [cards, setCards] = useState<TodayActionCard[]>([])
   const [snapshotAsOf, setSnapshotAsOf] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [windowFilter, setWindowFilter] = useState<WindowFilter>('ALL')
+  const [aiBusyId, setAiBusyId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -168,6 +217,55 @@ export function OpportunityPoolPage() {
     })
   }, [cards, query, windowFilter])
 
+  const addToFollowups = (id: string) => {
+    setCards((current) =>
+      current.map((card) => {
+        if (card.opportunity_id !== id || card.followup_status !== 'NEW') return card
+        const record = {
+          id: uid('fu'),
+          status: 'REVIEWING' as const,
+          note: '从商机池加入跟进',
+          at: new Date().toISOString(),
+          actor: '当前用户',
+        }
+        const next: TodayActionCard = {
+          ...card,
+          followup_status: 'REVIEWING',
+          followup_history: [record, ...card.followup_history],
+        }
+        persistLocalFollowup(next)
+        return next
+      }),
+    )
+    toast('已加入“我的跟进”', 'success')
+  }
+
+  const analyze = async (id: string) => {
+    const card = cards.find((item) => item.opportunity_id === id)
+    if (!card) return
+    setAiBusyId(id)
+    try {
+      const decision = await requestAiDecision(card)
+      setCards((current) =>
+        current.map((item) =>
+          item.opportunity_id === id
+            ? {
+                ...item,
+                model_decision_status: 'READY',
+                model_block_reason: null,
+                decision,
+              }
+            : item,
+        ),
+      )
+      toast('AI已基于已核验公开事实给出行动建议', 'success')
+    } catch (cause) {
+      toast(aiErrorMessage(cause))
+    } finally {
+      setAiBusyId(null)
+    }
+  }
+
   if (loading) return <LoadingState />
   if (error) {
     return <ErrorState message="商机池加载失败，请稍后重试。" onRetry={() => window.location.reload()} />
@@ -180,7 +278,7 @@ export function OpportunityPoolPage() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900">全部已核验商机</h2>
             <p className="mt-1 text-[13px] leading-6 text-slate-500">
-              今日行动只展示 Top 5；这里保留同一事实快照中全部仍有效的公开机会。
+              今日行动只展示 Top 5；这里保留同一事实快照中全部仍有效的公开机会，可直接加入跟进或按需AI分析。
             </p>
           </div>
           <div className="text-[12px] text-slate-500">
@@ -228,7 +326,13 @@ export function OpportunityPoolPage() {
       {visible.length ? (
         <div className="space-y-3">
           {visible.map((card) => (
-            <PoolCard key={card.opportunity_id} card={card} />
+            <PoolCard
+              key={card.opportunity_id}
+              card={card}
+              aiBusy={aiBusyId === card.opportunity_id}
+              onAnalyze={() => void analyze(card.opportunity_id)}
+              onFollow={() => addToFollowups(card.opportunity_id)}
+            />
           ))}
         </div>
       ) : (
