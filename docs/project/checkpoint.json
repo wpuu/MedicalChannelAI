@@ -10,24 +10,37 @@
   "verified_snapshot_at": "2026-08-31T17:56:00+08:00",
   "github_actions_status": "RUNNER_EXECUTION_UNVERIFIED",
   "vercel_branch_preview_enabled": true,
-  "vercel_last_fully_verified_preview_commit": "6c1abf395d98225b84ef05ab8321476a768ed15c",
-  "vercel_last_fully_verified_preview_deployment": "dpl_3uQXiVfWXtfuRfWaJSiVUGLGSZCb",
-  "vercel_last_fully_verified_result": "90_PIPELINE_TESTS_PASS; VERIFIED_SNAPSHOT_CHECKS_PASS; RUNTIME_STATUS_CHECKS_PASS; AI_BOUNDARY_PASS; PREBUILD_PASS; TSC_PASS; VITE_BUILD_PASS; 3_NODE_FUNCTIONS_PACKAGED; DEPLOYMENT_READY",
+  "vercel_last_fully_verified_preview_commit": "7a8823029000573720daa337c0263da5be140cff",
+  "vercel_last_fully_verified_preview_deployment": "dpl_5pCCJuEfHU4TCnNjvbFeDW2eVdXc",
+  "vercel_last_fully_verified_result": "90_PIPELINE_TESTS_PASS; VERIFIED_SNAPSHOT_CHECKS_PASS; RUNTIME_STATUS_CHECKS_PASS; AI_BOUNDARY_PASS; PREBUILD_PASS; TSC_PASS; VITE_BUILD_PASS; 3_NODE_FUNCTIONS_PACKAGED; CLEAN_DEPLOYMENT_READY",
   "latest_executed_later_build": {
-    "commit": "6c1abf395d98225b84ef05ab8321476a768ed15c",
-    "deployment": "dpl_3uQXiVfWXtfuRfWaJSiVUGLGSZCb",
-    "result": "90_OF_90_PIPELINE_TESTS_PASS; VERIFIED_SNAPSHOT_PASS; RUNTIME_STATUS_PASS; AI_BOUNDARY_PASS; PREBUILD_PASS; TSC_PASS; VITE_BUILD_PASS; READY",
-    "followup": "Code/build validation is complete for the current M1 branch. Remaining validation is runtime AI configuration plus real grounded POST and interactive UI acceptance."
+    "commit": "7a8823029000573720daa337c0263da5be140cff",
+    "deployment": "dpl_5pCCJuEfHU4TCnNjvbFeDW2eVdXc",
+    "result": "90_OF_90_PIPELINE_TESTS_PASS; VERIFIED_SNAPSHOT_PASS; RUNTIME_STATUS_PASS; AI_BOUNDARY_PASS; PREBUILD_PASS; TSC_PASS; VITE_BUILD_PASS; EXACTLY_3_NODE_FUNCTIONS; READY",
+    "followup": "Temporary Agnes smoke routes/scripts and the test credential were removed from the current branch tree before this clean build."
   },
-  "latest_pre_trigger_head": "6c1abf395d98225b84ef05ab8321476a768ed15c",
-  "latest_changes_validation_status": "FULLY_VERIFIED_READY_PREVIEW",
+  "ai_validation_evidence": {
+    "test_key_validated": true,
+    "primary_endpoint_http_200": true,
+    "alternate_endpoint_http_200": true,
+    "exact_grounded_handler_build_smoke_http_200": true,
+    "exact_grounded_handler_opportunity_id": "verified_xks_2026_a_641",
+    "exact_grounded_handler_decision_source": "GROUNDED_AI_PUBLIC_FACTS_ONLY",
+    "exact_grounded_handler_runtime_window_status": "OPEN",
+    "temporary_smoke_code_present_in_current_tree": false,
+    "preview_runtime_env_persisted": false,
+    "real_http_post_against_env_configured_preview_verified": false,
+    "note": "One earlier Preview-only runtime smoke returned AI_PROVIDER_UNAVAILABLE, while later raw Agnes calls and the exact existing analyze handler succeeded with HTTP 200 from Vercel build execution. Treat the earlier 502 as a transient runtime/upstream observation, not as a deterministic code failure."
+  },
+  "latest_pre_trigger_head": "7a8823029000573720daa337c0263da5be140cff",
+  "latest_changes_validation_status": "FULLY_VERIFIED_CLEAN_READY_PREVIEW",
   "production_observation": {
     "vercel_default_domain": "https://medicalchannelai.vercel.app/",
     "vercel_production_commit": "3de90bfdc19ab4f37f4c0028133b7186b754d642",
     "vercel_production_api_status": "OLD_STATIC_SPA_FALLBACK; /api/status RETURNS HTML NOT STATUS JSON",
     "custom_domain_observation": "https://medicalai.qd.je/ is reachable but is not registered in this Vercel project's domain list; its observed page title differs from the old Vercel production SPA, so automatic promotion linkage is not assumed."
   },
-  "milestone": "M1_USABLE_TIANJIN_VERIFIED_TRIAL_RUNTIME_AI_VALIDATION",
+  "milestone": "M1_USABLE_TIANJIN_VERIFIED_TRIAL_RUNTIME_ENV_AND_UI_ACCEPTANCE",
   "gates": {
     "canonical_fact_schema": true,
     "verified_source_classes": 3,
@@ -52,8 +65,10 @@
     "grounded_ai_optional_self_reported_context": true,
     "ai_date_only_deadline_guard": true,
     "ai_multi_key_401_403_429_failover": true,
-    "ai_runtime_configuration_observed_on_latest_preview": "NOT_CONFIGURED",
+    "ai_test_key_and_exact_handler_smoke_verified": true,
+    "ai_runtime_configuration_observed_on_latest_clean_preview": "NOT_CONFIGURED",
     "ai_latest_runtime_post_verified": false,
+    "temporary_ai_test_code_removed": true,
     "ccgp_guarded_sync": true,
     "tjmugh_guarded_sync": true,
     "tianjin_hospital_guarded_sync": true,
@@ -64,9 +79,9 @@
     "custom_domain_promotion_path_verified": false
   },
   "final_validation_required": [
-    "Configure Preview AGNES_API_KEYS as an encrypted Vercel runtime environment variable; never commit credentials to GitHub.",
+    "Persist Preview AGNES_API_KEYS as an encrypted Vercel runtime environment variable; the currently connected Vercel actions cannot write project env values.",
     "Redeploy Preview after runtime configuration and require /api/status to report ai.configured=true.",
-    "Execute one real grounded AI POST against a VERIFIED open opportunity and inspect the response for grounding, date handling and absence of private/provider leakage.",
+    "Execute one real same-origin HTTP POST through /api/ai/analyze against a VERIFIED open opportunity and inspect the response for grounding, date handling and absence of private/provider leakage.",
     "Interactively check Today / Opportunity Pool / Followups / Resources on the latest Preview.",
     "Identify how medicalai.qd.je is hosted/proxied before production promotion; do not assume merging main updates it."
   ],
