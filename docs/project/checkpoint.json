@@ -2,8 +2,8 @@
   "schema_version": "0.1",
   "repository": "wpuu/MedicalChannelAI",
   "branch": "dev/tianjin-pilot-v0.1",
-  "as_of": "2026-08-31T15:42:00+08:00",
-  "phase": "DETERMINISTIC_REAL_PUBLIC_BACKUP_FULL_CHAIN_BENCHMARK_AND_REVIEW_GATES_PASS_REAL_HOST_EXECUTION_PENDING",
+  "as_of": "2026-08-31T16:23:00+08:00",
+  "phase": "DETERMINISTIC_REAL_PUBLIC_BACKUP_FULL_CHAIN_BENCHMARK_REVIEW_AND_3_SOURCE_DISCOVERY_GATES_REAL_HOST_EXECUTION_PENDING",
   "production_ready": false,
   "merge_approved": false,
   "draft_pr": 1,
@@ -16,7 +16,7 @@
     "verified_institution_evidence_fixtures": 15,
     "schema_contracts": 41,
     "deterministic_test_modules_written": 96,
-    "deterministic_unittest_cases_executed": 530,
+    "deterministic_unittest_cases_executed": 536,
     "real_medical_attachment_binary_captures": 0,
     "agnes_benchmark_cases": 28,
     "agnes_benchmark_executed": false
@@ -251,9 +251,31 @@
     "uses_shared_agnes_global_lease": true
   },
   "discovery": {
-    "ready_source_count": 2,
-    "not_ready_source_count": 5,
-    "ready_sources": ["tjmugh_procurement", "tj_first_central_hospital_procurement"],
+    "ready_source_count": 3,
+    "not_ready_source_count": 4,
+    "ready_sources": [
+      "tjmugh_procurement",
+      "tj_first_central_hospital_procurement",
+      "ccgp_local_notices"
+    ],
+    "not_ready_sources": {
+      "tj_government_procurement": "NATIVE_LIST_ROUTE_UNRESOLVED",
+      "tj_government_procurement_center": "PUBLIC_TENDER_LIST_CLASS_ID_UNRESOLVED",
+      "ccgp_procurement_intent": "SEARCH_DISCOVERY_CAPTCHA_AND_QUERY_CONTRACT_NOT_READY",
+      "tj_public_resource_exchange": "RESULT_LIST_DISCOVERY_CONTRACT_NOT_READY"
+    },
+    "ccgp_local_notices_readiness": "VERIFIED_EXPLICIT_TIANJIN_REGION_FILTER_BOUNDED_TWO_PAGE_PARTIAL",
+    "ccgp_fixed_listing_pages": [
+      "https://www.ccgp.gov.cn/cggg/dfgg/index.htm",
+      "https://www.ccgp.gov.cn/cggg/dfgg/index_1.htm"
+    ],
+    "ccgp_listing_page_inference_allowed": false,
+    "ccgp_same_record_tianjin_region_required": true,
+    "ccgp_strong_medical_record_signal_required": true,
+    "ccgp_generic_equipment_or_consumables_term_alone_sufficient": false,
+    "ccgp_all_fixed_listing_pages_required_per_run": true,
+    "ccgp_cross_page_detail_dedupe": true,
+    "ccgp_scheduler_stable_minute_offset": 7,
     "persistent_detail_url_ledger": true,
     "persistent_schedule_slot_claim": true
   },
@@ -272,12 +294,12 @@
     "real_pilot_backend_execution_completed": false
   },
   "validation": {
-    "status": "530_TEST_GATE_PASS_PLUS_ISOLATED_LIVE_PUBLIC_BOOTSTRAP_PASS",
-    "evidence_commit": "42caf97cb7609aa96acf54fec4cd895509eecee5",
-    "vercel_deployment_id": "dpl_DjRWgbYHQYkZ2N9XEitzefMkBthh",
+    "status": "536_TEST_GATE_PASS_PLUS_ISOLATED_LIVE_PUBLIC_BOOTSTRAP_PASS_LATEST_EXTRA_TEST_PENDING_BUILD_RATE_LIMIT",
+    "evidence_commit": "e41a2ba7465391c1c0ea4afa471eb17313c72e1a",
+    "vercel_deployment_id": "dpl_6oDTAkDCPbnJF3hnk1nEsdpZdvkt",
     "vercel_deployment_state": "READY",
     "python_command": "python3 -m unittest discover -s tools/medical_pilot -t . -p 'test_*.py'",
-    "python_test_cases_executed": 530,
+    "python_test_cases_executed": 536,
     "python_backend_tests_passed": true,
     "typescript_check_passed": true,
     "vite_production_build_passed": true,
@@ -285,11 +307,15 @@
     "vite_dist_index_kib": 413.58,
     "vite_dist_gzip_kib": 127.17,
     "github_actions_runner_available": false,
-    "interpretation": "The clean Vercel Preview gate on commit 42caf97 ran all 530 Python unittest cases, TypeScript checking and the Vite production build and reached READY. The fixed 28-case Agnes benchmark is globally leased, quiescent-only, no-retry, official-endpoint-only, and cannot automatically change classifier admission. Benchmark results are bound to both benchmark manifest SHA-256 values and classifier registry SHA-256 before/after. The read-only reviewer requires a private 0600 regular result file, validates 28/28 evidence and current checkout hashes, requires the classifier to remain BENCHMARK_PENDING, and never mutates the registry. No real 28-case Agnes benchmark, real authenticated target-host Agnes acceptance, or real attachment byte capture has yet been observed."
+    "latest_extra_test_commit": "571b740bc89ddb4fe42cf47ef535bc85dd0b5c30",
+    "latest_extra_test_execution_status": "NOT_EXECUTED_VERCEL_BUILD_RATE_LIMIT",
+    "latest_extra_test_claimed_pass": false,
+    "interpretation": "The clean Vercel Preview gate on commit e41a2ba ran all 536 Python unittest cases, TypeScript checking and the Vite production build and reached READY. It includes the production CCGP two-page bounded discovery and strong-medical-signal filtering code. Commit 571b740 adds a regression test proving generic nonmedical equipment is rejected, but Vercel rejected the build before execution due to build-rate-limit and GitHub Actions had no usable workflow run, so that additional test is not claimed as executed. Discovery is now 3/7 ready: two dedicated hospital listings plus a fail-closed CCGP national-list partial mirror restricted to two explicitly verified listing pages, same-record Tianjin region and strong medical signals. No real 28-case Agnes benchmark, target-host authenticated Agnes acceptance, real attachment byte capture or real host backup/restore smoke has yet been observed."
   },
   "next": [
     "continue non-domain product and validation work while canonical domain setup remains deferred",
-    "improve official listing discovery coverage without guessing undocumented routes or bypassing CAPTCHA",
+    "improve official listing discovery coverage without guessing undocumented routes, inferring unverified pagination, or bypassing CAPTCHA",
+    "when Vercel build capacity is available, execute the current HEAD gate and only then advance the executed unittest count beyond 536",
     "on the target host, after server environment exists, run the 28-case Agnes benchmark only in a quiescent maintenance window and pass the immutable read-only review before any explicit Owner registry decision",
     "once the real domain is ready create root-controlled /etc/medicalchannelai/pilot.env and /srv/medical/backups with medicalai-only permissions",
     "run sudo systemctl start medical-pilot-acceptance.service and require overall PASS including the full synthetic customer-to-real-Agnes chain",
