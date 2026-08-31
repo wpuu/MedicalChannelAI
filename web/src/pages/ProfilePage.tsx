@@ -21,6 +21,11 @@ const PRODUCTS = [
   ['LAB_HEMATOLOGY_ANALYZER', '血细胞分析设备'],
   ['LAB_URINALYSIS_ANALYZER', '尿液分析设备'],
   ['LAB_PCR_QPCR', 'PCR / qPCR 分子检测设备'],
+  ['LAB_NGS_SEQUENCER', '基因 / 高通量测序设备'],
+  ['LAB_AUTOMATED_LIBRARY_PREP', '自动化建库设备'],
+  ['LAB_METAGENOMICS_ANALYSIS', '宏基因组分析系统'],
+  ['LAB_MICROBIAL_MASS_SPECTROMETRY', '微生物飞行时间质谱'],
+  ['LAB_BIOINFORMATICS_COMPUTE_APPLIANCE', '生物信息 / 生物计算一体机'],
   ['LAB_FLOW_CYTOMETER', '流式细胞仪'],
   ['LAB_AUTOMATION_LINE', '检验自动化 / 生化免疫流水线'],
   ['LAB_SAMPLE_PREPROCESSING', '样本前处理设备'],
@@ -265,6 +270,7 @@ export function ProfilePage() {
       setReadiness(envelope.readiness)
       if (envelope.readiness.candidate_opportunity_allowed) {
         toast('资料已保存。今日行动会按新画像重新匹配并触发需要的 Agnes 分析。', 'success')
+        navigate('/today')
       } else {
         toast(envelope.readiness.next_question || '资料已保存，但仍缺少必要信息。')
       }
