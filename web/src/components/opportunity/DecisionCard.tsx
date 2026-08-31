@@ -3,24 +3,40 @@ import type { TodayActionCard } from '@/types'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { SourceTag } from '@/components/shared/StageBadge'
 import { MODEL_STATUS_COPY } from '@/utils/labels'
+import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
 
-export function DecisionCard({ card }: { card: TodayActionCard }) {
+interface DecisionCardProps {
+  card: TodayActionCard
+  onAnalyze?: () => void
+  analyzing?: boolean
+}
+
+export function DecisionCard({ card, onAnalyze, analyzing }: DecisionCardProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
 
   return (
     <SectionCard
       title="AI行动建议"
-      subtitle="只基于已经提供的信息，不预测医院一定会采购"
+      subtitle="只基于已核验公开事实，不预测中标概率，不推断院内关系"
       tone="ai"
-      extra={<SourceTag tone="ai">AI行动建议</SourceTag>}
+      extra={
+        <SourceTag tone="ai">
+          {!isApiMode && isVerifiedPublicDemo ? '公开事实约束AI' : 'AI行动建议'}
+        </SourceTag>
+      }
     >
       {card.model_decision_status === 'READY' && card.decision ? (
         <div className="space-y-4">
+          {!isApiMode && isVerifiedPublicDemo ? (
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 px-3 py-2 text-[12px] leading-5 text-indigo-900">
+              本次分析只读取服务端已发布的 VERIFIED 快照。浏览器不能自行提交或修改“已核验事实”。
+            </div>
+          ) : null}
           <div>
             <p className="text-[12px] text-slate-500">建议动作</p>
-            <p className="mt-1 flex items-center gap-1.5 text-[15px] font-semibold text-slate-900">
-              <Sparkles className="h-4 w-4 text-indigo-600" />
+            <p className="mt-1 flex items-start gap-1.5 text-[15px] font-semibold leading-6 text-slate-900">
+              <Sparkles className="mt-1 h-4 w-4 shrink-0 text-indigo-600" />
               {card.decision.action}
             </p>
           </div>
@@ -37,14 +53,18 @@ export function DecisionCard({ card }: { card: TodayActionCard }) {
           </div>
           <div>
             <p className="text-[12px] font-medium text-slate-500">风险</p>
-            <ul className="mt-1 space-y-1.5">
-              {card.decision.risks.map((item) => (
-                <li key={item} className="flex gap-2 text-[13px] leading-6 text-slate-700">
-                  <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-amber-500" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+            {card.decision.risks.length === 0 ? (
+              <p className="mt-1 text-[13px] text-slate-500">当前公开事实下未补充额外风险；仍需人工核对正式附件。</p>
+            ) : (
+              <ul className="mt-1 space-y-1.5">
+                {card.decision.risks.map((item) => (
+                  <li key={item} className="flex gap-2 text-[13px] leading-6 text-slate-700">
+                    <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-amber-500" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div>
             <p className="text-[12px] font-medium text-slate-500">需要人工确认</p>
@@ -79,11 +99,26 @@ export function DecisionCard({ card }: { card: TodayActionCard }) {
         ) : (
           <div className="flex items-start gap-2">
             <Eye className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-            <div>
-              <p className="text-[14px] font-semibold text-slate-800">当前先观察</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold text-slate-800">尚未做AI行动分析</p>
               <p className="mt-1 text-[13px] leading-6 text-slate-500">
-                该演示项目有产品匹配，但尚未确认医院关系，因此当前不模拟后台排队任务，也不强行给出行动结论。
+                当前排序只使用已核验公开事实、项目金额和时间窗口。没有客户产品资料或医院关系时，系统不会假装已经完成资源匹配。
               </p>
+              {onAnalyze ? (
+                <button
+                  type="button"
+                  disabled={analyzing}
+                  onClick={onAnalyze}
+                  className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {analyzing ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  )}
+                  {analyzing ? 'AI分析中' : '用AI分析这条'}
+                </button>
+              ) : null}
             </div>
           </div>
         )
