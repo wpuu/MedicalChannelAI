@@ -23,12 +23,8 @@ class EvidencePipelineTests(unittest.TestCase):
     def test_unsupported_critical_fact_is_rejected(self) -> None:
         record = copy.deepcopy(self.records[0])
         record["facts"]["department"] = "未经来源支持的科室"
-        record["evidence"] = [
-            item for item in record["evidence"] if item["field_path"] != "facts.department"
-        ]
-        with self.assertRaisesRegex(
-            ValidationError, "UNSUPPORTED_CRITICAL_FACT:facts.department"
-        ):
+        record["evidence"] = [item for item in record["evidence"] if item["field_path"] != "facts.department"]
+        with self.assertRaisesRegex(ValidationError, "UNSUPPORTED_CRITICAL_FACT:facts.department"):
             validate_records([record])
 
     def test_non_ccgp_host_cannot_claim_ccgp_source(self) -> None:
@@ -40,27 +36,34 @@ class EvidencePipelineTests(unittest.TestCase):
             validate_records([record])
 
     def test_expired_registration_is_not_immediate_public_opportunity(self) -> None:
-        payload = build_public_snapshot(
-            copy.deepcopy(self.records),
-            datetime.fromisoformat("2026-09-04T00:00:00+08:00"),
-        )
-        card = next(
-            item
-            for item in payload["cards"]
-            if item["opportunity_id"] == "verified_xks_2026_a_641"
-        )
+        payload = build_public_snapshot(copy.deepcopy(self.records), datetime.fromisoformat("2026-09-04T00:00:00+08:00"))
+        card = next(item for item in payload["cards"] if item["opportunity_id"] == "verified_xks_2026_a_641")
         self.assertEqual(card["recommendation_mode"], "LATE_WINDOW")
 
-    def test_public_snapshot_has_no_demo_customer_relationship(self) -> None:
+    def test_final_day_cutoff_uses_exact_official_time(self) -> None:
         payload = build_public_snapshot(
             copy.deepcopy(self.records),
             datetime.fromisoformat("2026-08-31T16:42:00+08:00"),
         )
+        cdc = next(item for item in payload["cards"] if item["opportunity_id"] == "verified_bhcdc_2026_c_181")
+        gpu = next(item for item in payload["cards"] if item["opportunity_id"] == "verified_hbrmyy_gpu_0052")
+        self.assertEqual(cdc["recommendation_mode"], "LATE_WINDOW")
+        self.assertEqual(gpu["recommendation_mode"], "PUBLIC_OPPORTUNITY")
+
+    def test_source_category_conflict_is_preserved_as_warning(self) -> None:
+        payload = build_public_snapshot(
+            copy.deepcopy(self.records),
+            datetime.fromisoformat("2026-08-31T16:42:00+08:00"),
+        )
+        card = next(item for item in payload["cards"] if item["opportunity_id"] == "verified_zybfy_2026_a_517")
+        self.assertIn("SOURCE_CATEGORY_TITLE_CONFLICT", card["priority"]["warnings"])
+        self.assertEqual(card["facts"]["product_categories"], ["医用磁共振设备"])
+
+    def test_public_snapshot_has_no_demo_customer_relationship(self) -> None:
+        payload = build_public_snapshot(copy.deepcopy(self.records), datetime.fromisoformat("2026-08-31T16:42:00+08:00"))
         for card in payload["cards"]:
             self.assertIsNone(card["customer_context"]["hospital_relationship"])
-            self.assertEqual(
-                card["customer_context"]["matching_product_capabilities"], []
-            )
+            self.assertEqual(card["customer_context"]["matching_product_capabilities"], [])
 
 
 if __name__ == "__main__":
