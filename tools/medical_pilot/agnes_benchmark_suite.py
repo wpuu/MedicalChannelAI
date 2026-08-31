@@ -15,6 +15,7 @@ from .agnes_dispatch import build_agnes_dispatch_plan
 from .agnes_dispatch_queue import SQLiteAgnesDispatchQueue
 from .agnes_global_lease import SQLiteAgnesLeaseStore, acquire_global_lease, release_global_lease
 from .benchmark_agnes import (
+    DEFAULT_MANIFEST as GENERAL_MANIFEST_PATH,
     aggregate_scores as aggregate_general,
     build_user_prompt as build_general_prompt,
     call_chat_completion,
@@ -23,6 +24,7 @@ from .benchmark_agnes import (
     score_case as score_general_case,
 )
 from .benchmark_agnes_taxonomy import (
+    DEFAULT_MANIFEST as TAXONOMY_MANIFEST_PATH,
     aggregate as aggregate_taxonomy,
     build_user_prompt as build_taxonomy_prompt,
     call_model as call_taxonomy_model,
@@ -67,6 +69,14 @@ def _registry_path() -> Path:
     return Path(__file__).with_name("product_classifier_registry.v0.1.json")
 
 
+def _input_hashes() -> dict[str, str]:
+    return {
+        "general_manifest_sha256": _sha256_file(GENERAL_MANIFEST_PATH),
+        "taxonomy_manifest_sha256": _sha256_file(TAXONOMY_MANIFEST_PATH),
+        "classifier_registry_sha256": _sha256_file(_registry_path()),
+    }
+
+
 def _validate_suite_inputs() -> tuple[dict[str, Any], dict[str, Any], str]:
     general = load_general_manifest()
     taxonomy = load_taxonomy_manifest()
@@ -93,6 +103,7 @@ def _validate_suite_inputs() -> tuple[dict[str, Any], dict[str, Any], str]:
 
 def dry_run_summary() -> dict[str, Any]:
     general, taxonomy, registry_sha = _validate_suite_inputs()
+    hashes = _input_hashes()
     return {
         "schema_version": "0.1",
         "status": "DRY_RUN_NO_NETWORK",
@@ -100,6 +111,8 @@ def dry_run_summary() -> dict[str, Any]:
         "general_case_count": len(general["cases"]),
         "taxonomy_case_count": len(taxonomy["cases"]),
         "total_case_count": len(general["cases"]) + len(taxonomy["cases"]),
+        "general_manifest_sha256": hashes["general_manifest_sha256"],
+        "taxonomy_manifest_sha256": hashes["taxonomy_manifest_sha256"],
         "requires_shared_global_lease": True,
         "requires_quiescent_maintenance_window": True,
         "provider_retries_per_case": 0,
@@ -218,6 +231,7 @@ def run_suite(
         raise AgnesBenchmarkSuiteError("MCAI_AGNES_API_KEY_MISSING")
     official_base_url = validate_base_url(base_url)
     general_manifest, taxonomy_manifest, registry_before = _validate_suite_inputs()
+    input_hashes_before = _input_hashes()
     clock = now_provider or (lambda: datetime.now(timezone.utc))
     db_path = Path(lease_db_path)
     store = SQLiteAgnesLeaseStore(db_path, now=_aware_now(clock))
@@ -300,8 +314,13 @@ def run_suite(
 
     general_aggregate = aggregate_general(general_manifest, general_scored, len(general_failures))
     taxonomy_aggregate = aggregate_taxonomy(taxonomy_manifest, taxonomy_scored, len(taxonomy_failures))
-    registry_after = _sha256_file(_registry_path())
+    input_hashes_after = _input_hashes()
+    registry_after = input_hashes_after["classifier_registry_sha256"]
     registry_modified = registry_after != registry_before
+    manifests_modified = (
+        input_hashes_after["general_manifest_sha256"] != input_hashes_before["general_manifest_sha256"]
+        or input_hashes_after["taxonomy_manifest_sha256"] != input_hashes_before["taxonomy_manifest_sha256"]
+    )
     completed = len(general_scored) + len(taxonomy_scored)
     passed = (
         completed == EXPECTED_TOTAL_CASES
@@ -309,6 +328,7 @@ def run_suite(
         and general_aggregate.get("passed") is True
         and taxonomy_aggregate.get("passed") is True
         and not registry_modified
+        and not manifests_modified
     )
 
     return {
@@ -319,6 +339,11 @@ def run_suite(
         "total_case_count": EXPECTED_TOTAL_CASES,
         "completed_case_count": completed,
         "provider_start_count": provider_start_count,
+        "general_manifest_sha256": input_hashes_before["general_manifest_sha256"],
+        "taxonomy_manifest_sha256": input_hashes_before["taxonomy_manifest_sha256"],
+        "classifier_registry_sha256_before": registry_before,
+        "classifier_registry_sha256_after": registry_after,
+        "benchmark_inputs_modified_during_run": manifests_modified,
         "every_provider_start_requires_global_lease": True,
         "business_queue_quiescent_required": True,
         "maintenance_window_confirmed": True,
