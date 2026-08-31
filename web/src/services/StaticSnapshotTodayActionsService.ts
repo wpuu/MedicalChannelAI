@@ -16,6 +16,7 @@ import type { TodayActionsService } from './TodayActionsService'
 
 const COVERAGE_WARNING = '天津 Pilot · 公开事实来自证据流水线快照；当前仍为部分来源覆盖。'
 const LATE_WINDOW_PERCENT = 38
+const MAX_TODAY_CARDS = 5
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
   'model_requests',
@@ -339,22 +340,34 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
 
   constructor(private readonly snapshotUrl: string) {}
 
+  private derivePool(
+    data: TodayActionsResponse,
+    includeInactive = false,
+  ): TodayActionCard[] {
+    const now = Date.now()
+    const publicPool = data.opportunity_pool?.length ? data.opportunity_pool : data.cards
+    const runtimeCards = publicPool
+      .map((card) => applyRuntimeActionability(card, now, includeInactive))
+      .filter((card): card is TodayActionCard => card !== null)
+    const followedCards = hydrateLocalFollowups(rerank(runtimeCards))
+    return personalizeTrialCards(followedCards)
+  }
+
   private deriveLocalState(
     data: TodayActionsResponse,
     includeInactive = false,
   ): TodayActionsResponse {
     const now = Date.now()
-    const runtimeCards = data.cards
-      .map((card) => applyRuntimeActionability(card, now, includeInactive))
-      .filter((card): card is TodayActionCard => card !== null)
-    const followedCards = hydrateLocalFollowups(rerank(runtimeCards))
-    const personalizedCards = personalizeTrialCards(followedCards)
+    const pool = this.derivePool(data, includeInactive)
+    const todayCards = includeInactive ? pool : pool.slice(0, MAX_TODAY_CARDS)
     return {
       ...data,
-      matched_count: personalizedCards.length,
-      card_count: personalizedCards.length,
+      matched_count: includeInactive ? data.matched_count : pool.length,
+      card_count: todayCards.length,
+      opportunity_pool_count: pool.length,
       coverage_warning: freshnessWarning(data.refreshed_at, now),
-      cards: personalizedCards,
+      cards: todayCards,
+      opportunity_pool: pool,
     }
   }
 
@@ -372,6 +385,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       data.schema_version !== '0.1' ||
       data.mode !== 'TODAY_ACTIONS' ||
       !Array.isArray(data.cards) ||
+      (data.opportunity_pool !== undefined && !Array.isArray(data.opportunity_pool)) ||
       typeof data.snapshot_as_of !== 'string' ||
       Number.isNaN(Date.parse(data.snapshot_as_of))
     ) {
@@ -379,7 +393,8 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
     }
 
     const mappedCards = data.cards.map(mapPublicCard)
-    backfillLocalFollowupSnapshots(mappedCards)
+    const mappedPool = (data.opportunity_pool ?? data.cards).map(mapPublicCard)
+    backfillLocalFollowupSnapshots(mappedPool)
 
     this.snapshot = {
       schema_version: data.schema_version,
@@ -387,11 +402,13 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       input_candidate_count: data.input_candidate_count,
       matched_count: data.matched_count,
       card_count: data.card_count,
+      opportunity_pool_count: data.opportunity_pool_count ?? mappedPool.length,
       model_request_count: data.model_request_count,
       coverage_warning: COVERAGE_WARNING,
       generated_at: data.snapshot_as_of,
       refreshed_at: data.snapshot_as_of,
       cards: mappedCards,
+      opportunity_pool: mappedPool,
       model_requests: [],
     }
     return this.snapshot
@@ -403,13 +420,13 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
 
   async getOpportunity(id: string): Promise<TodayActionCard | null> {
     const data = this.deriveLocalState(await this.ensureLoaded(), true)
-    const card = data.cards.find((item) => item.opportunity_id === id)
+    const card = (data.opportunity_pool ?? data.cards).find((item) => item.opportunity_id === id)
     return card ? structuredClone(card) : null
   }
 
   async updateFollowup(id: string, input: FollowupInput): Promise<void> {
     const data = this.deriveLocalState(await this.ensureLoaded(), true)
-    const card = data.cards.find((item) => item.opportunity_id === id)
+    const card = (data.opportunity_pool ?? data.cards).find((item) => item.opportunity_id === id)
     if (!card) throw new Error('未找到对应商机')
     const record: FollowupRecord = {
       id: uid('fu'),
