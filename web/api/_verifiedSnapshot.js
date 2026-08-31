@@ -6,10 +6,58 @@ const MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024
 const MAX_TODAY_CARDS = 5
 const MAX_OPPORTUNITY_POOL = 500
 
+const FORBIDDEN_PUBLIC_KEYS = new Set([
+  'model_requests',
+  'model_input',
+  'task_payloads',
+  'agnes_dispatch_plan',
+  'lease',
+  'lease_id',
+  'provider',
+  'api_key',
+  'upstream_model',
+  'completion_nonce',
+  'task_id',
+  'private_key',
+  'access_token',
+  'refresh_token',
+])
+
+const FORBIDDEN_PUBLIC_PREFIXES = [
+  'model_input_',
+  'agnes_dispatch_',
+  'provider_',
+  'lease_',
+  'api_key_',
+  'upstream_model_',
+  'private_key_',
+  'access_token_',
+  'refresh_token_',
+]
+
 let remoteCache = null
 
 function asObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : null
+}
+
+function assertPublicSnapshotBoundary(value, path = '$') {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertPublicSnapshotBoundary(item, `${path}[${index}]`))
+    return
+  }
+  const record = asObject(value)
+  if (!record) return
+  for (const [key, child] of Object.entries(record)) {
+    const normalized = key.toLowerCase()
+    if (
+      FORBIDDEN_PUBLIC_KEYS.has(normalized) ||
+      FORBIDDEN_PUBLIC_PREFIXES.some((prefix) => normalized.startsWith(prefix))
+    ) {
+      throw new Error(`VERIFIED_SNAPSHOT_INTERNAL_FIELD:${path}.${key}`)
+    }
+    assertPublicSnapshotBoundary(child, `${path}.${key}`)
+  }
 }
 
 function configuredRemoteUrl() {
@@ -39,6 +87,7 @@ function configuredRemoteUrl() {
 export function validateVerifiedSnapshot(value) {
   const snapshot = asObject(value)
   if (!snapshot) throw new Error('VERIFIED_SNAPSHOT_INVALID')
+  assertPublicSnapshotBoundary(snapshot)
   if (snapshot.schema_version !== '0.1' || snapshot.mode !== 'TODAY_ACTIONS') {
     throw new Error('VERIFIED_SNAPSHOT_SCHEMA_INVALID')
   }
