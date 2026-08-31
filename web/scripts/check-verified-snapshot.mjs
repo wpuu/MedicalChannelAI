@@ -34,6 +34,28 @@ async function invokeSnapshot(method = 'GET') {
   return response
 }
 
+async function expectRemoteRejected(payload, expectedMessage, code) {
+  clearVerifiedSnapshotCacheForTests()
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    headers: { get: () => null },
+    text: async () => JSON.stringify(payload),
+  })
+  let failure = null
+  try {
+    await loadVerifiedSnapshot()
+  } catch (error) {
+    failure = error
+  }
+  expect(
+    expectedMessage instanceof RegExp
+      ? expectedMessage.test(failure?.message ?? '')
+      : failure?.message === expectedMessage,
+    code,
+  )
+}
+
 const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
 const savedPublicRemote = process.env.VITE_VERIFIED_SNAPSHOT_URL
 const savedFetch = globalThis.fetch
@@ -96,31 +118,87 @@ try {
     'SNAPSHOT_ENDPOINT_REMOTE_FAILURE_CODE',
   )
 
-  const maliciousPayload = structuredClone(bundledVerifiedSnapshot())
-  maliciousPayload.cards[0].provider = 'must-never-reach-browser'
+  const internalFieldPayload = structuredClone(bundledVerifiedSnapshot())
+  internalFieldPayload.cards[0].provider = 'must-never-reach-browser'
+  await expectRemoteRejected(
+    internalFieldPayload,
+    /^VERIFIED_SNAPSHOT_INTERNAL_FIELD:/,
+    'SNAPSHOT_REMOTE_INTERNAL_FIELD_MUST_BE_REJECTED',
+  )
+
+  const privateContextPayload = structuredClone(bundledVerifiedSnapshot())
+  privateContextPayload.cards[0].customer_context.hospital_relationship = {
+    hospital_name: '不得进入公共快照',
+  }
+  await expectRemoteRejected(
+    privateContextPayload,
+    /^VERIFIED_SNAPSHOT_PRIVATE_CONTEXT_PRESENT:/,
+    'SNAPSHOT_REMOTE_PRIVATE_CONTEXT_MUST_BE_REJECTED',
+  )
+
+  const unverifiedPayload = structuredClone(bundledVerifiedSnapshot())
+  unverifiedPayload.cards[0].facts.verification_status = 'PARTIAL'
+  await expectRemoteRejected(
+    unverifiedPayload,
+    /^VERIFIED_SNAPSHOT_CARD_NOT_VERIFIED:/,
+    'SNAPSHOT_REMOTE_UNVERIFIED_CARD_MUST_BE_REJECTED',
+  )
+
+  const insecureEvidencePayload = structuredClone(bundledVerifiedSnapshot())
+  insecureEvidencePayload.cards[0].evidence_source_urls = ['http://example.com/not-official']
+  await expectRemoteRejected(
+    insecureEvidencePayload,
+    /^VERIFIED_SNAPSHOT_EVIDENCE_INVALID:/,
+    'SNAPSHOT_REMOTE_HTTP_EVIDENCE_MUST_BE_REJECTED',
+  )
+
+  const badCardCountPayload = structuredClone(bundledVerifiedSnapshot())
+  badCardCountPayload.card_count += 1
+  await expectRemoteRejected(
+    badCardCountPayload,
+    'VERIFIED_SNAPSHOT_CARD_COUNT_MISMATCH',
+    'SNAPSHOT_REMOTE_CARD_COUNT_MUST_MATCH',
+  )
+
+  const poolPayload = structuredClone(bundledVerifiedSnapshot())
+  poolPayload.opportunity_pool = structuredClone(poolPayload.cards)
+  poolPayload.opportunity_pool_count = poolPayload.opportunity_pool.length
+  poolPayload.matched_count = poolPayload.opportunity_pool.length
   clearVerifiedSnapshotCacheForTests()
   globalThis.fetch = async () => ({
     ok: true,
     status: 200,
     headers: { get: () => null },
-    text: async () => JSON.stringify(maliciousPayload),
+    text: async () => JSON.stringify(poolPayload),
   })
-  let boundaryError = null
-  try {
-    await loadVerifiedSnapshot()
-  } catch (error) {
-    boundaryError = error
-  }
+  const poolRemote = await loadVerifiedSnapshot()
   expect(
-    boundaryError?.message?.startsWith('VERIFIED_SNAPSHOT_INTERNAL_FIELD:'),
-    'SNAPSHOT_REMOTE_INTERNAL_FIELD_MUST_BE_REJECTED',
+    poolRemote.opportunity_pool_count === poolRemote.opportunity_pool.length,
+    'SNAPSHOT_REMOTE_POOL_VALID',
   )
+
+  const badPoolCountPayload = structuredClone(poolPayload)
+  badPoolCountPayload.opportunity_pool_count += 1
+  await expectRemoteRejected(
+    badPoolCountPayload,
+    'VERIFIED_SNAPSHOT_POOL_COUNT_MISMATCH',
+    'SNAPSHOT_REMOTE_POOL_COUNT_MUST_MATCH',
+  )
+
+  const badMatchedCountPayload = structuredClone(poolPayload)
+  badMatchedCountPayload.matched_count += 1
+  await expectRemoteRejected(
+    badMatchedCountPayload,
+    'VERIFIED_SNAPSHOT_MATCHED_COUNT_MISMATCH',
+    'SNAPSHOT_REMOTE_MATCHED_COUNT_MUST_MATCH',
+  )
+
   clearVerifiedSnapshotCacheForTests()
   endpoint = await invokeSnapshot('GET')
-  expect(endpoint.statusCode === 503, 'SNAPSHOT_ENDPOINT_INTERNAL_FIELD_STATUS')
+  expect(endpoint.statusCode === 503, 'SNAPSHOT_ENDPOINT_INVALID_REMOTE_STATUS')
   expect(
     endpoint.body?.error === 'VERIFIED_SNAPSHOT_UNAVAILABLE',
-    'SNAPSHOT_ENDPOINT_INTERNAL_FIELD_CODE',
+    'SNAPSHOT_ENDPOINT_INVALID_REMOTE_CODE',
   )
 
   const remotePayload = structuredClone(bundledVerifiedSnapshot())
