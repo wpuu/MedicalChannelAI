@@ -1,0 +1,20 @@
+[Unit]
+Description=MedicalChannelAI manual Agnes 28-case benchmark gate
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/medicalchannelai/pilot.env
+
+[Service]
+Type=oneshot
+User=medicalai
+Group=medicalai
+WorkingDirectory=/srv/medical/app
+EnvironmentFile=/etc/medicalchannelai/pilot.env
+ExecStartPre=/bin/sh -c '! /usr/bin/systemctl is-active --quiet medical-pilot.service && ! /usr/bin/systemctl is-active --quiet medical-agnes-worker.service'
+ExecStart=/usr/bin/python3 -m tools.medical_pilot.agnes_benchmark_suite --execute --maintenance-window --lease-db /srv/medical/data/pilot.sqlite --output /srv/medical/data/agnes-benchmark-result-v0.1.json
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadOnlyPaths=/srv/medical/app
+ReadWritePaths=/srv/medical/data
