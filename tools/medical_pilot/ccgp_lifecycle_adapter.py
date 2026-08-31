@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass, field
 from urllib.parse import urlparse
 
-from .adapters import CcgpAdapter, _medical_hint, _notice_type_from_title
+from .adapters import CcgpAdapter, _notice_type_from_title
 from .collector_core import (
     DiscoveredLink,
     ParsedNotice,
@@ -17,6 +17,41 @@ from .collector_core import (
     normalize_space,
     parse_money_to_cny,
     strip_tags,
+)
+
+
+# CCGP dfgg is a nationwide feed, so generic procurement words such as 设备/耗材
+# are too broad: a school computer or municipal machine would otherwise become a
+# medical candidate. These signals are intentionally stronger and are evaluated
+# against the same <li> record, including purchaser metadata, not against the page.
+_CCGP_MEDICAL_RECORD_HINTS = (
+    "医院",
+    "医疗",
+    "医学",
+    "医科大学",
+    "中医药大学",
+    "中医院",
+    "妇幼",
+    "检验",
+    "临床",
+    "病理",
+    "影像",
+    "放射",
+    "超声",
+    "手术",
+    "康复",
+    "护理",
+    "急救",
+    "血液",
+    "血站",
+    "疾控",
+    "疾病预防",
+    "卫生健康",
+    "卫生院",
+    "体检",
+    "传染病",
+    "试剂",
+    "药品",
 )
 
 
@@ -43,9 +78,10 @@ class CcgpLifecycleAdapter(CcgpAdapter):
 
     The CCGP ``dfgg`` listing is national. Discovery must therefore never infer
     Tianjin scope from the registered source alone. A detail link is admitted only
-    when the *same listing record* explicitly states ``地域：天津`` (or 天津市).
-    This makes the national listing a partial Tianjin mirror rather than silently
-    projecting every national row into the Tianjin source.
+    when the *same listing record* explicitly states ``地域：天津`` (or 天津市) and
+    carries a strong medical signal in its title/purchaser metadata. This makes the
+    national listing a partial Tianjin medical mirror rather than silently projecting
+    every national or generic-equipment row into the Tianjin source.
     """
 
     _DETAIL_PATH = re.compile(
@@ -59,12 +95,14 @@ class CcgpLifecycleAdapter(CcgpAdapter):
         seen: set[str] = set()
 
         # CCGP renders each notice as one <li> record containing title/link plus
-        # metadata such as 发布时间、地域、采购人. Keep the locality decision inside
-        # that record; a page-level occurrence of "天津" is never sufficient.
+        # metadata such as 发布时间、地域、采购人. Both locality and medical relevance
+        # remain inside that record; page-level text can never grant admission.
         records = re.findall(r"<li\b[^>]*>(.*?)</li\s*>", listing_html, re.I | re.S)
         for record_html in records:
             record_text = normalize_space(strip_tags(record_html))
             if not self._TIANJIN_REGION.search(record_text):
+                continue
+            if not any(hint in record_text for hint in _CCGP_MEDICAL_RECORD_HINTS):
                 continue
 
             for link in extract_anchors(record_html, listing_url):
@@ -75,8 +113,6 @@ class CcgpLifecycleAdapter(CcgpAdapter):
                 if parsed.scheme != "https" or parsed.query or parsed.fragment:
                     continue
                 if not self._DETAIL_PATH.match(parsed.path):
-                    continue
-                if not _medical_hint(link.title):
                     continue
                 if link.url in seen:
                     continue
