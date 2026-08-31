@@ -76,6 +76,8 @@ export interface Facts {
   notice_type?: string | null
   publish_date: string | null
   registration_deadline: string | null
+  registration_deadline_date?: string | null
+  registration_deadline_precision?: 'MINUTE' | 'DAY' | null
   bid_deadline: string | null
   expected_purchase_date: string | null
   budget: number | null
@@ -190,7 +192,7 @@ export interface TodayActionsResponse {
   refreshed_at: string
   cards: TodayActionCard[]
   opportunity_pool?: TodayActionCard[]
-  model_requests?: ModelRequest[]
+  model_requests: ModelRequest[]
 }
 
 export interface FollowupInput {
@@ -202,9 +204,7 @@ export interface FollowupInput {
 
 export interface OutreachDraft {
   opportunity_id: string
+  generated_at: string
   draft: string
   disclaimer: string
-  generated_at: string
 }
-
-export type PriorityTier = 'critical' | 'high' | 'medium' | 'low'
