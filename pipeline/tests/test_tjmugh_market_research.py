@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import json
 import unittest
+from datetime import datetime
+from pathlib import Path
 
+from medical_channel_pipeline import build_public_snapshot, validate_records
 from medical_channel_pipeline.tjmugh_market_research import (
     TjmughParseError,
     parse_tjmugh_market_research,
@@ -35,6 +39,14 @@ class TjmughMarketResearchTests(unittest.TestCase):
         self.assertEqual(record["facts"]["registration_deadline"], "2026-08-07T17:00:00+08:00")
         self.assertEqual(len(record["facts"]["product_items"]), 5)
         self.assertEqual(record["facts"]["public_contact"]["phone"], "60361777")
+
+    def test_verified_seed_is_archived_after_market_research_deadline(self) -> None:
+        seed = Path(__file__).resolve().parents[1] / "data" / "tianjin_official_institution_seed.json"
+        records = json.loads(seed.read_text(encoding="utf-8"))
+        self.assertEqual(len(validate_records(records)), 1)
+        payload = build_public_snapshot(records, datetime.fromisoformat("2026-08-31T16:42:00+08:00"))
+        self.assertEqual(payload["cards"][0]["recommendation_mode"], "ARCHIVE")
+        self.assertEqual(payload["cards"][0]["model_decision_status"], "NOT_ELIGIBLE")
 
     def test_unapproved_host_is_rejected(self) -> None:
         with self.assertRaisesRegex(TjmughParseError, "TJMUGH_SOURCE_HOST_REJECTED"):
