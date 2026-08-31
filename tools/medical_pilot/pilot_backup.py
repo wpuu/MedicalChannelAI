@@ -15,7 +15,7 @@ from typing import Any
 BACKUP_NAME_RE = re.compile(r"^pilot-(\d{8}T\d{6}Z)\.sqlite$")
 
 
-class PilotBackupError(RuntimeError):
+class PilotBackupError(ValueError):
     def __init__(self, code: str) -> None:
         super().__init__(code)
         self.code = code
