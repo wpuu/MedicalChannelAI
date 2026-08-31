@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from urllib.parse import urlparse
 from typing import Any
 
@@ -15,6 +15,7 @@ CRITICAL_FACT_PATHS = {
     "facts.notice_type",
     "facts.published_at",
     "facts.registration_deadline",
+    "facts.registration_deadline_date",
     "facts.bid_deadline",
     "facts.expected_procurement_at",
     "facts.budget_cny",
@@ -46,6 +47,15 @@ def _parse_dateish(value: str, path: str) -> None:
         datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValidationError(f"INVALID_DATE:{path}:{value}") from exc
+
+
+def _parse_date_only(value: str, path: str) -> None:
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValidationError(f"INVALID_DATE_ONLY:{path}:{value}") from exc
+    if parsed.isoformat() != value:
+        raise ValidationError(f"INVALID_DATE_ONLY:{path}:{value}")
 
 
 def _validate_source(source: dict[str, Any]) -> None:
@@ -116,6 +126,14 @@ def validate_record(record: dict[str, Any]) -> dict[str, Any]:
             if not isinstance(value, str):
                 raise ValidationError(f"INVALID_DATE_TYPE:facts.{key}")
             _parse_dateish(value, f"facts.{key}")
+
+    registration_deadline_date = facts.get("registration_deadline_date")
+    if registration_deadline_date is not None:
+        if not isinstance(registration_deadline_date, str):
+            raise ValidationError("INVALID_DATE_TYPE:facts.registration_deadline_date")
+        _parse_date_only(registration_deadline_date, "facts.registration_deadline_date")
+    if facts.get("registration_deadline") is not None and registration_deadline_date is not None:
+        raise ValidationError("REGISTRATION_DEADLINE_PRECISION_CONFLICT")
 
     budget = facts.get("budget_cny")
     if budget is not None and (isinstance(budget, bool) or not isinstance(budget, int) or budget < 0):
