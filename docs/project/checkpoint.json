@@ -6,9 +6,12 @@
   "production_ready": false,
   "deployed_demo_url": "https://medicalai.qd.je/",
   "demo_mode": "verified_static_snapshot",
-  "verified_snapshot_at": "2026-08-30T13:30:00Z",
+  "verified_snapshot_at": "2026-08-31T17:56:00+08:00",
   "ci_status": "BLOCKED_RUNNER_NOT_ASSIGNED",
-  "local_test_status": "PASS_14_TESTS_2026-08-31",
+  "local_test_status": "LAST_CONFIRMED_PASS_14_TESTS_2026-08-31; NEW_CHANGES_PENDING_EXECUTION",
+  "vercel_preview_status": "BLOCKED_HOBBY_BUILD_RATE_LIMIT_FOR_LATEST_COMMITS",
+  "vercel_last_verified_preview_commit": "64c4b5f8f7bc21aec12b10ef075178f88eaf4f17",
+  "vercel_last_verified_preview_result": "READY_BUILD_AND_SNAPSHOT_HTTP_200",
   "milestone": "M1_EVIDENCE_PIPELINE",
   "grok_required": false,
   "gates": {
@@ -20,8 +23,20 @@
     "source_adapter_ccgp_verified_detail": false,
     "source_adapter_official_institution": true,
     "unified_frontend_public_snapshot": true,
+    "web_verified_trial_uses_pipeline_snapshot": true,
+    "archived_records_excluded_from_today_actions": true,
+    "on_demand_grounded_ai_boundary": true,
+    "on_demand_grounded_ai_ui_wired": true,
+    "ai_preview_configured": false,
+    "ai_preview_route_verified": false,
     "live_scheduled_collection": false,
     "local_test_evidence": true,
-    "github_ci_test_evidence": false
-  }
+    "github_ci_test_evidence": false,
+    "latest_preview_build_verified": false
+  },
+  "blockers": [
+    "GitHub Actions runner is not assigned for repository CI.",
+    "Vercel Hobby build rate limit is blocking Preview builds for the latest branch commits.",
+    "Preview AI runtime configuration is not yet verified."
+  ]
 }
