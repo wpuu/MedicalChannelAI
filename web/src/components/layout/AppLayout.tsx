@@ -89,6 +89,11 @@ export function AppLayout() {
             <NavLink to="/today" className={navClass}>
               今日行动
             </NavLink>
+            {!isApiMode && isVerifiedPublicDemo ? (
+              <NavLink to="/opportunities" className={navClass}>
+                商机池
+              </NavLink>
+            ) : null}
             <NavLink to="/followed" className={navClass}>
               我的跟进
             </NavLink>
