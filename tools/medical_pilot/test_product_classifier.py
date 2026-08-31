@@ -38,6 +38,19 @@ class ProductClassifierTests(unittest.TestCase):
         self.assertIn("LAB_PCR_QPCR", result.labels)
         self.assertIn("LAB_FLOW_CYTOMETER", result.labels)
 
+    def test_pathogen_genomics_notice_uses_controlled_ids(self) -> None:
+        result = classify_product_facts([
+            fact(
+                "fact_33333333-3333-3333-3333-333333333334",
+                "第一包：基因测序仪、自动化建库仪、宏基因组分析系统；第二包：微生物质谱检测系统（飞行时间质谱检测系统）、高性能生物计算工业一体机。",
+            )
+        ])
+        self.assertIn("LAB_NGS_SEQUENCER", result.labels)
+        self.assertIn("LAB_AUTOMATED_LIBRARY_PREP", result.labels)
+        self.assertIn("LAB_METAGENOMICS_ANALYSIS", result.labels)
+        self.assertIn("LAB_MICROBIAL_MASS_SPECTROMETRY", result.labels)
+        self.assertIn("LAB_BIOINFORMATICS_COMPUTE_APPLIANCE", result.labels)
+
     def test_specific_flow_reagent_suppresses_generic_reagent(self) -> None:
         result = classify_product_facts([
             fact("fact_44444444-4444-4444-4444-444444444444", "CD45检测试剂、CD3检测试剂等检验试剂")
