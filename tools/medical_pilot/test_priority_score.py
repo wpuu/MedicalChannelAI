@@ -15,6 +15,7 @@ class PriorityScoreTests(unittest.TestCase):
         item["lifecycle_state"] = stage
         item["product_label_provenance"] = "DETERMINISTIC"
         item["product_label_validation_status"] = "VALIDATED"
+        item["product_classifier_id"] = "deterministic-product-taxonomy-v0.1"
         if relationship is not None:
             profile["hospital_relationships"] = [
                 {
