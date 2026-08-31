@@ -87,11 +87,11 @@ export function ResourcesPage() {
           </div>
           <div className="inline-flex items-center gap-1.5 rounded-lg bg-teal-50 px-2.5 py-1.5 text-[11px] font-medium text-teal-800 ring-1 ring-teal-200">
             <ShieldCheck className="h-3.5 w-3.5" />
-            当前浏览器本地保存
+            默认仅保存在当前浏览器
           </div>
         </div>
         <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 text-[12px] leading-5 text-amber-900">
-          这些内容属于你自己确认的业务资源，不是医院公开事实。系统会明确区分两类数据；填写医院关系也不会被展示成医院官方信息。
+          这些内容属于你自己确认的业务资源，不是医院公开事实。平时只保存在当前浏览器；只有你主动点击“结合我的资源分析”时，与该商机匹配到的最小相关资源会发送给本站 AI 服务端用于本次分析。系统仍会把用户自报资源与医院公开事实分开处理。
         </div>
       </section>
 
