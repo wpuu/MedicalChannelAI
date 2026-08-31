@@ -24,6 +24,12 @@ BID_TYPE_CODES = {
     "终止公告": "10",
 }
 
+# CCGP public-search region IDs follow its province-level selector contract.
+# The Tianjin Pilot is intentionally locked to Tianjin instead of querying nationwide.
+REGION_ZONE_IDS = {
+    "天津": "12",
+}
+
 
 @dataclass(frozen=True)
 class DiscoveryCandidate:
@@ -51,11 +57,15 @@ def build_search_url(
     page_index: int = 1,
     start_date: str,
     end_date: str,
+    region: str | None = None,
 ) -> str:
     if page_index < 1:
         raise ValueError("page_index must be >= 1")
     if notice_type not in BID_TYPE_CODES:
         raise ValueError(f"unsupported notice_type: {notice_type}")
+    if region is not None and region not in REGION_ZONE_IDS:
+        raise ValueError(f"unsupported region: {region}")
+
     params = {
         "searchtype": "1",
         "page_index": str(page_index),
@@ -69,8 +79,8 @@ def build_search_url(
         "start_time": _ccgp_date(start_date),
         "end_time": _ccgp_date(end_date),
         "timeType": "6",
-        "displayZone": "",
-        "zoneId": "",
+        "displayZone": region or "",
+        "zoneId": REGION_ZONE_IDS.get(region, "") if region else "",
         "pppStatus": "0",
         "agentName": "",
     }
