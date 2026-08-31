@@ -90,7 +90,7 @@ def probe_attachment(*, url: str, filename: str) -> dict[str, Any]:
     )
     snapshot = BoundedAttachmentFetcher(
         TIANJIN_GOVERNMENT_DETAIL_HOSTS,
-        timeout_seconds=20,
+        timeout_seconds=60,
         max_bytes=32 * 1024 * 1024,
     ).fetch(candidate)
     parsed = parse_attachment(snapshot)
