@@ -30,15 +30,32 @@ def _normalize_legacy_card(card: dict) -> dict:
         else:
             facts['registration_deadline_precision'] = None
     normalized['facts'] = facts
+
+    priority = dict(normalized.get('priority') or {})
+    components = []
+    for component in list(priority.get('components') or []):
+        row = dict(component)
+        if row.get('code') == 'INTERVENTION_STAGE':
+            paths = list(row.get('opportunity_paths') or [])
+            if 'facts.registration_deadline_date' not in paths:
+                try:
+                    bid_index = paths.index('facts.bid_deadline')
+                except ValueError:
+                    bid_index = len(paths)
+                paths.insert(bid_index, 'facts.registration_deadline_date')
+            row['opportunity_paths'] = paths
+        components.append(row)
+    priority['components'] = components
+    normalized['priority'] = priority
     return normalized
 
 
 def normalize_legacy_bundled_snapshot(payload: dict) -> dict:
-    """One-way compatibility for the bundled snapshot generated before pool/deadline precision.
+    """One-way compatibility for bundled schema metadata added after the snapshot.
 
-    This compatibility only adds deterministic schema metadata. It never changes a
-    procurement fact or invents a deadline time. The next real pipeline publish
-    writes these fields and `opportunity_pool` natively.
+    This only adds deterministic metadata (`opportunity_pool`, deadline precision,
+    and evidence-path declarations). It never changes a procurement fact or invents
+    a deadline time. The next real pipeline publish writes these fields natively.
     """
     normalized = dict(payload)
     cards = [_normalize_legacy_card(card) for card in list(payload.get('cards') or [])]
@@ -78,27 +95,16 @@ class PublishedWebSnapshotTests(unittest.TestCase):
             label='live Tianjin Hospital state',
         )
 
-        ccgp_source = (
-            live_ccgp
-            if live_ccgp
-            else load_array(
-                PIPELINE_ROOT / 'data' / 'tianjin_verified_seed.json',
-                label='CCGP seed',
-            )
+        ccgp_source = live_ccgp if live_ccgp else load_array(
+            PIPELINE_ROOT / 'data' / 'tianjin_verified_seed.json', label='CCGP seed'
         )
-        tmugh_source = (
-            live_tjmugh
-            if live_tjmugh
-            else load_array(
-                PIPELINE_ROOT / 'data' / 'tianjin_official_institution_seed.json',
-                label='TMUGH seed',
-            )
+        tmugh_source = live_tjmugh if live_tjmugh else load_array(
+            PIPELINE_ROOT / 'data' / 'tianjin_official_institution_seed.json', label='TMUGH seed'
         )
         records = [*ccgp_source, *tmugh_source, *live_tjnothop]
 
         notice_events = load_array(
-            PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json',
-            label='notice events',
+            PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json', label='notice events'
         )
         expected = build_public_snapshot(records, published_as_of, notice_events)
         self.assertEqual(actual, expected)
