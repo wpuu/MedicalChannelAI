@@ -261,6 +261,7 @@ def build_public_snapshot(
     return {
         "schema_version": "0.1",
         "mode": "TODAY_ACTIONS",
+        "snapshot_as_of": as_of.isoformat(),
         "input_candidate_count": len(validated),
         "matched_count": len(cards),
         "card_count": len(cards),
