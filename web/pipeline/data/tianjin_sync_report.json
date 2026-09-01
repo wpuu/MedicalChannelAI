@@ -1,0 +1,103 @@
+{
+  "schema_version": "0.1",
+  "observed_at": "2026-09-01T13:33:16.482124+00:00",
+  "region": "天津",
+  "start_date": "2026-08-30",
+  "end_date": "2026-09-01",
+  "keywords": [
+    "医院",
+    "医疗",
+    "检验",
+    "疾病预防控制",
+    "卫生健康"
+  ],
+  "notice_types": [
+    "公开招标",
+    "竞争性磋商"
+  ],
+  "planned_discovery_query_count": 10,
+  "discovery_success_count": 10,
+  "unique_discovered_candidate_count": 27,
+  "selected_candidate_count": 12,
+  "new_verified_record_count": 7,
+  "merged_record_count": 12,
+  "event_watch_project_count": 9,
+  "new_notice_event_count": 0,
+  "merged_event_count": 0,
+  "failure_count": 5,
+  "failures": [
+    {
+      "stage": "verified_detail",
+      "region": "天津",
+      "notice_type": "竞争性磋商",
+      "keywords": [
+        "疾病预防控制"
+      ],
+      "title": "天津市红桥区疾病预防控制中心 天津市红桥区疾病预防控制中心（区卫生监督所）新冠变异监测（本土变异监测）试剂耗材采购项目 (项目编号:SLV2026-A-174)中标公告",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260901_27246995.htm",
+      "error": "CcgpDetailParseError",
+      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
+    },
+    {
+      "stage": "verified_detail",
+      "region": "天津",
+      "notice_type": "竞争性磋商",
+      "keywords": [
+        "医院"
+      ],
+      "title": "天津市胸科医院 天津市胸科医院电子病历等级能力提升项目 (项目编号:XCSD-2026-A-671)中标公告",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260901_27246968.htm",
+      "error": "CcgpDetailParseError",
+      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
+    },
+    {
+      "stage": "verified_detail",
+      "region": "天津",
+      "notice_type": "竞争性磋商",
+      "keywords": [
+        "疾病预防控制"
+      ],
+      "title": "天津市红桥区疾病预防控制中心 天津市红桥区疾病预防控制中心（区卫生监督所）传染病四大症候群检测试剂耗材采购项目 (项目编号:SLV2026-A-175)中标公告",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260901_27246947.htm",
+      "error": "CcgpDetailParseError",
+      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
+    },
+    {
+      "stage": "verified_detail",
+      "region": "天津",
+      "notice_type": "竞争性磋商",
+      "keywords": [
+        "医院"
+      ],
+      "title": "天津市儿童医院 天津市儿童医院2026年在职职工及退休职工体检项目 (项目编号:TJYL-ZFCG-20260011)中标公告",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260901_27246939.htm",
+      "error": "CcgpDetailParseError",
+      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
+    },
+    {
+      "stage": "verified_detail",
+      "region": "天津",
+      "notice_type": "竞争性磋商",
+      "keywords": [
+        "医院"
+      ],
+      "title": "天津医科大学总医院 天津医科大学总医院肿瘤诊疗规范化及费用合理化平台项目 (项目编号:ZCZBZC-GK-2026030106)中标公告",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260901_27246904.htm",
+      "error": "CcgpDetailParseError",
+      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
+    }
+  ],
+  "publish_allowed": true,
+  "publish_gate_reason": "PASS",
+  "policy": {
+    "region_locked_to_tianjin": true,
+    "multi_keyword_discovery_is_deduplicated_before_detail_fetch": true,
+    "event_watch_runs_once_after_all_keywords": true,
+    "previous_canonical_state_is_preserved": true,
+    "discovery_only_never_becomes_verified_without_detail": true,
+    "all_discovery_queries_failed_blocks_publish": true,
+    "all_selected_details_failed_verification_blocks_publish": true,
+    "rate_limit_bypass": false,
+    "minimum_request_delay_seconds": 4.0
+  }
+}

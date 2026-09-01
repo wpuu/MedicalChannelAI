@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1",
+  "observed_at": "2026-09-01T13:33:16.482124+00:00",
+  "source": "TJNOTHOP_NEWS_INDEX",
+  "index_url": "https://www.tjnothop.cn/xwzx/index.shtml",
+  "start_date": "2026-08-12",
+  "end_date": "2026-09-01",
+  "discovered_supported_count": 0,
+  "selected_candidate_count": 0,
+  "new_verified_record_count": 0,
+  "existing_record_count": 0,
+  "merged_record_count": 0,
+  "failure_count": 0,
+  "failures": [],
+  "publish_allowed": true,
+  "publish_gate_reason": "PASS",
+  "policy": {
+    "official_index_required": true,
+    "only_standard_medical_equipment_procurement_research_titles": true,
+    "index_and_detail_title_must_match": true,
+    "published_date_requires_official_index_evidence": true,
+    "date_only_deadline_never_invented_as_exact_time": true,
+    "detail_must_pass_verified_parser": true,
+    "failed_detail_never_replaces_existing_verified_record": true,
+    "all_selected_details_failed_verification_blocks_publish": true,
+    "rate_limit_bypass": false,
+    "minimum_detail_delay_seconds": 3.0
+  }
+}
