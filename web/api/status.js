@@ -3,6 +3,7 @@ import {
   verifiedSnapshotSourceMode,
 } from './_verifiedSnapshot.js'
 
+const APP_VERSION = '0.1.2'
 const SNAPSHOT_STALE_AFTER_MINUTES = 30 * 60
 const SNAPSHOT_FUTURE_TOLERANCE_MINUTES = 15
 
@@ -19,6 +20,11 @@ function aiConfigured() {
     .split(/[\n,;]+/)
     .map((value) => value.trim())
     .some(Boolean)
+}
+
+function buildCommit() {
+  const value = String(process.env.VERCEL_GIT_COMMIT_SHA || '').trim()
+  return value ? value.slice(0, 7) : null
 }
 
 function safeSourceMode() {
@@ -73,6 +79,8 @@ export default async function handler(request, response) {
   const base = {
     schema_version: '0.1',
     service: 'MedicalChannelAI',
+    version: APP_VERSION,
+    commit: buildCommit(),
     production_ready: false,
     ai: {
       configured: aiConfigured(),

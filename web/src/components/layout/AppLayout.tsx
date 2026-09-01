@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Activity, CalendarDays, LogOut, RotateCcw } from 'lucide-react'
+import { APP_BUILD_LABEL } from '@/config/appVersion'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { isApiMode, logoutPilot } from '@/services/apiConfig'
@@ -135,6 +136,12 @@ export function AppLayout() {
       <main className="mx-auto w-full max-w-[1200px] px-4 py-4 pb-16 sm:py-6">
         <Outlet />
       </main>
+      <div
+        className="fixed bottom-1 right-2 z-30 select-none rounded bg-white/80 px-1.5 py-0.5 text-[10px] text-slate-400 shadow-sm ring-1 ring-slate-200/70 backdrop-blur"
+        title="当前页面版本与构建提交"
+      >
+        {APP_BUILD_LABEL}
+      </div>
     </div>
   )
 }
