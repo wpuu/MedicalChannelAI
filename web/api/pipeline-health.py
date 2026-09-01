@@ -9,6 +9,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_ROOT = PROJECT_ROOT / 'pipeline'
 sys.path.insert(0, str(PIPELINE_ROOT))
+CROSS_RUNTIME_KEY = 'medicalchannelai-cross-runtime-v1'
 
 try:
     from medical_channel_pipeline import build_public_snapshot
@@ -43,6 +44,23 @@ def cache_roundtrip() -> bool:
         return False
 
 
+def write_cross_runtime_probe() -> bool:
+    if not _CACHE_IMPORT_OK or RuntimeCache is None:
+        return False
+    try:
+        cache = RuntimeCache()
+        value = {
+            'schema_version': '0.1',
+            'probe': 'python-to-node-runtime-cache',
+            'written_at_epoch': int(time.time()),
+        }
+        cache.set(CROSS_RUNTIME_KEY, value, {'ttl': 3600, 'tags': ['medicalchannelai-cross-runtime']})
+        read_back = cache.get(CROSS_RUNTIME_KEY)
+        return isinstance(read_back, dict) and read_back.get('probe') == value['probe']
+    except Exception:
+        return False
+
+
 class handler(BaseHTTPRequestHandler):
     def _send_json(self, status: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode('utf-8')
@@ -56,7 +74,8 @@ class handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         cache_ok = cache_roundtrip()
-        ready = bool(_IMPORT_OK and _DATA_OK and cache_ok)
+        cross_runtime_written = write_cross_runtime_probe()
+        ready = bool(_IMPORT_OK and _DATA_OK and cache_ok and cross_runtime_written)
         self._send_json(
             200 if ready else 503,
             {
@@ -67,6 +86,7 @@ class handler(BaseHTTPRequestHandler):
                     'module_import': bool(_IMPORT_OK),
                     'data_bundle': bool(_DATA_OK),
                     'runtime_cache': cache_ok,
+                    'cross_runtime_probe_written': cross_runtime_written,
                 },
             },
         )

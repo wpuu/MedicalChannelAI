@@ -3,7 +3,7 @@ import {
   verifiedSnapshotSourceMode,
 } from './_verifiedSnapshot.js'
 
-const APP_VERSION = '0.1.6'
+const APP_VERSION = '0.1.7'
 const SNAPSHOT_STALE_AFTER_MINUTES = 30 * 60
 const SNAPSHOT_FUTURE_TOLERANCE_MINUTES = 15
 
@@ -38,36 +38,17 @@ function safeSourceMode() {
 export function snapshotFreshness(snapshotAsOf, nowMs = Date.now()) {
   const parsed = Date.parse(snapshotAsOf || '')
   if (Number.isNaN(parsed)) {
-    return {
-      freshness: 'INVALID',
-      age_minutes: null,
-      degraded: true,
-    }
+    return { freshness: 'INVALID', age_minutes: null, degraded: true }
   }
-
   const rawAgeMinutes = (nowMs - parsed) / 60_000
   if (rawAgeMinutes < -SNAPSHOT_FUTURE_TOLERANCE_MINUTES) {
-    return {
-      freshness: 'INVALID',
-      age_minutes: null,
-      degraded: true,
-    }
+    return { freshness: 'INVALID', age_minutes: null, degraded: true }
   }
-
   const ageMinutes = Math.max(0, Math.floor(rawAgeMinutes))
   if (ageMinutes > SNAPSHOT_STALE_AFTER_MINUTES) {
-    return {
-      freshness: 'STALE',
-      age_minutes: ageMinutes,
-      degraded: true,
-    }
+    return { freshness: 'STALE', age_minutes: ageMinutes, degraded: true }
   }
-
-  return {
-    freshness: 'FRESH',
-    age_minutes: ageMinutes,
-    degraded: false,
-  }
+  return { freshness: 'FRESH', age_minutes: ageMinutes, degraded: false }
 }
 
 export default async function handler(request, response) {
@@ -82,18 +63,14 @@ export default async function handler(request, response) {
     version: APP_VERSION,
     commit: buildCommit(),
     production_ready: false,
-    ai: {
-      configured: aiConfigured(),
-    },
+    ai: { configured: aiConfigured() },
   }
 
   try {
     const snapshot = await loadVerifiedSnapshot()
-    const pool = Array.isArray(snapshot.opportunity_pool)
-      ? snapshot.opportunity_pool
-      : snapshot.cards
+    const pool = Array.isArray(snapshot.opportunity_pool) ? snapshot.opportunity_pool : snapshot.cards
     const freshness = snapshotFreshness(snapshot.snapshot_as_of)
-    const payload = {
+    return sendJson(response, freshness.freshness === 'INVALID' ? 503 : 200, {
       ...base,
       ready: freshness.freshness !== 'INVALID',
       degraded: freshness.degraded,
@@ -107,8 +84,7 @@ export default async function handler(request, response) {
         today_card_count: Array.isArray(snapshot.cards) ? snapshot.cards.length : 0,
         opportunity_pool_count: Array.isArray(pool) ? pool.length : 0,
       },
-    }
-    return sendJson(response, freshness.freshness === 'INVALID' ? 503 : 200, payload)
+    })
   } catch {
     return sendJson(response, 503, {
       ...base,
