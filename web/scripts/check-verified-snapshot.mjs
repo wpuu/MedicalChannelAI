@@ -73,6 +73,10 @@ try {
     bundled.snapshot_as_of === bundledVerifiedSnapshot().snapshot_as_of,
     'SNAPSHOT_BUNDLED_AS_OF',
   )
+  expect(
+    bundled.cards.every((card) => card.priority?.score_type === 'ZERO_CONFIG_PUBLIC_FACTS_V2'),
+    'SNAPSHOT_BUNDLED_RANKING_MUST_BE_V2',
+  )
 
   let endpoint = await invokeSnapshot('GET')
   expect(endpoint.statusCode === 200, 'SNAPSHOT_ENDPOINT_GET_STATUS')
@@ -142,6 +146,36 @@ try {
     unverifiedPayload,
     /^VERIFIED_SNAPSHOT_CARD_NOT_VERIFIED:/,
     'SNAPSHOT_REMOTE_UNVERIFIED_CARD_MUST_BE_REJECTED',
+  )
+
+  const legacyRankingPayload = structuredClone(bundledVerifiedSnapshot())
+  legacyRankingPayload.cards[0].priority.score_type = 'ZERO_CONFIG_PUBLIC_FACTS_ONLY'
+  await expectRemoteRejected(
+    legacyRankingPayload,
+    /^VERIFIED_SNAPSHOT_RANKING_VERSION_INVALID:/,
+    'SNAPSHOT_REMOTE_V1_RANKING_MUST_BE_REJECTED',
+  )
+
+  const wrongRankingMaxPayload = structuredClone(bundledVerifiedSnapshot())
+  wrongRankingMaxPayload.cards[0].priority.components.find(
+    (item) => item.code === 'INTERVENTION_STAGE',
+  ).max_points = 40
+  await expectRemoteRejected(
+    wrongRankingMaxPayload,
+    /^VERIFIED_SNAPSHOT_PRIORITY_COMPONENT_INVALID:/,
+    'SNAPSHOT_REMOTE_V1_MAX_POINTS_MUST_BE_REJECTED',
+  )
+
+  const privateScorePayload = structuredClone(bundledVerifiedSnapshot())
+  const privateComponent = privateScorePayload.cards[0].priority.components.find(
+    (item) => item.code === 'RELATIONSHIP',
+  )
+  privateComponent.points = 1
+  privateScorePayload.cards[0].priority.score += 1
+  await expectRemoteRejected(
+    privateScorePayload,
+    /^VERIFIED_SNAPSHOT_PRIVATE_SCORE_PRESENT:/,
+    'SNAPSHOT_REMOTE_ZERO_CONFIG_PRIVATE_SCORE_MUST_BE_REJECTED',
   )
 
   const insecureEvidencePayload = structuredClone(bundledVerifiedSnapshot())
