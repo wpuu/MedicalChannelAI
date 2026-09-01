@@ -12,6 +12,13 @@
 - 默认低成本模型候选：`agnes-2.5-flash`，仅承担分类、匹配、追问、解释和建议，不得成为官方事实权威
 - 未来可通过受控 Skill / Tool API 接入 Hermes，但本仓库独立于 Hermes 产品代码
 
+## 商业产品方向
+
+- 当前公开试用继续以可追溯采购事实和可行动商机为核心，不因商业 V2 设计延迟上线。
+- 上线后的核心优化方向是从“公开标讯 + AI”继续前移到**需求萌芽、医院事件时间线、装机后生命周期、医院配置缺口推测、渠道战斗力和持续销售监控**。
+- 商业验证北极星新增“有效惊喜率”：用户看到的推荐中，有多少是“以前不知道，并且愿意进一步调查/联系”的机会。
+- 完整产品商业补充见 [`docs/project/COMMERCIAL_OPPORTUNITY_V2.md`](docs/project/COMMERCIAL_OPPORTUNITY_V2.md)。
+
 ## Collector 执行面
 
 - 当前生产候选使用单一 Vercel Daily Cron 启动 `medicalchannelai-refresh-v2` Queue。
