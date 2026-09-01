@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from vercel.functions import RuntimeCache
 from vercel.workflow import Workflows
 
-wf = Workflows(namespace="medicalchannelai-tianjin-refresh")
+wf = Workflows(namespace="medicalchannelaitianjinrefresh")
 
 STATUS_KEY = "medicalchannelai:collector-workflow-status:v1"
 STATUS_TTL_SECONDS = 7 * 24 * 60 * 60
