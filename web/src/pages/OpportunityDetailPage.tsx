@@ -18,6 +18,7 @@ import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import {
   AiDecisionError,
+  aiDecisionErrorMessage,
   hydrateCachedAiDecisions,
   requestAiDecision,
 } from '@/services/aiDecisionApi'
@@ -27,17 +28,6 @@ import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusAp
 import type { FollowupStatus, NotFitReason, TodayActionCard } from '@/types'
 
 const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；其他功能正常。'
-
-function aiErrorMessage(cause: unknown): string {
-  if (!(cause instanceof AiDecisionError)) return 'AI分析暂时不可用，请重试'
-  if (cause.code === 'AI_NOT_CONFIGURED') return 'AI暂时不可用，请稍后再试'
-  if (cause.code === 'AI_RATE_LIMITED') return 'AI请求较多，请稍后再试'
-  if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') return 'AI暂时不可用，请稍后再试'
-  if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，请重试'
-  if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
-  if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机暂不在已核验商机池中'
-  return 'AI分析暂时不可用，请重试'
-}
 
 export function OpportunityDetailPage() {
   const { id } = useParams()
@@ -142,7 +132,7 @@ export function OpportunityDetailPage() {
           current ? { ...current, ai: { configured: false } } : current,
         )
       }
-      toast(aiErrorMessage(cause))
+      toast(aiDecisionErrorMessage(cause))
     } finally {
       setAiBusy(false)
     }

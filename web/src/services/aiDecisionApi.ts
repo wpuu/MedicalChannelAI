@@ -20,6 +20,43 @@ export class AiDecisionError extends Error {
   }
 }
 
+export function aiDecisionErrorMessage(cause: unknown): string {
+  if (!(cause instanceof AiDecisionError)) {
+    return '网络连接异常或AI服务暂时不可用，请重试'
+  }
+  if (cause.code === 'AI_NOT_CONFIGURED') {
+    return 'AI服务尚未启用；公开商机和跟进功能不受影响'
+  }
+  if (cause.code === 'AI_RATE_LIMITED') {
+    return 'AI请求较多，请约1分钟后再试'
+  }
+  if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') {
+    return 'AI服务连接异常，请稍后再试'
+  }
+  if (cause.code === 'AI_TIMEOUT') {
+    return 'AI分析超时，可立即重试'
+  }
+  if (cause.code === 'AI_PROVIDER_UNAVAILABLE') {
+    return 'AI服务暂时连接失败，请稍后再试'
+  }
+  if (cause.code === 'VERIFIED_SNAPSHOT_UNAVAILABLE') {
+    return '公开商机数据正在更新，请稍后再试AI分析'
+  }
+  if (cause.code === 'SAME_ORIGIN_REQUIRED') {
+    return '当前访问地址未通过AI安全校验，请从正式站点进入'
+  }
+  if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') {
+    return '该项目公开窗口已经结束，当前不再生成行动建议'
+  }
+  if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') {
+    return '该商机暂不在已核验商机池中'
+  }
+  if (cause.code === 'AI_RESPONSE_INVALID') {
+    return 'AI返回内容未通过校验，请重试'
+  }
+  return 'AI分析暂时不可用，请重试'
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)

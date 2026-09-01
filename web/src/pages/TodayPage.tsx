@@ -13,6 +13,7 @@ import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import {
   AiDecisionError,
+  aiDecisionErrorMessage,
   hydrateCachedAiDecisions,
   requestAiDecision,
 } from '@/services/aiDecisionApi'
@@ -176,28 +177,12 @@ export function TodayPage() {
       })
       toast('AI行动建议已生成', 'success')
     } catch (cause) {
-      if (cause instanceof AiDecisionError) {
-        if (cause.code === 'AI_NOT_CONFIGURED') {
-          setRuntimeStatus((current) =>
-            current ? { ...current, ai: { configured: false } } : current,
-          )
-          toast('AI暂时不可用，请稍后再试')
-        } else if (cause.code === 'AI_RATE_LIMITED') {
-          toast('AI请求较多，请稍后再试')
-        } else if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') {
-          toast('AI暂时不可用，请稍后再试')
-        } else if (cause.code === 'AI_TIMEOUT') {
-          toast('AI分析超时，请重试')
-        } else if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') {
-          toast('该项目公开窗口已经结束，当前不再生成行动建议')
-        } else if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') {
-          toast('该商机暂不在已核验商机池中')
-        } else {
-          toast('AI分析暂时不可用，请重试')
-        }
-      } else {
-        toast('AI分析暂时不可用，请重试')
+      if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
+        setRuntimeStatus((current) =>
+          current ? { ...current, ai: { configured: false } } : current,
+        )
       }
+      toast(aiDecisionErrorMessage(cause))
     } finally {
       setAiBusyId(null)
     }

@@ -233,16 +233,12 @@ function buildGroundedDraft(card: TodayActionCard): string {
     card.facts.bid_deadline ? `投标/响应截止：${card.facts.bid_deadline}` : null,
   ].filter(Boolean)
   return [
-    '【公开事实沟通草稿】',
-    '',
     `${greeting}您好：`,
     '',
     `关注到${buyer}公开发布了「${project}」。`,
-    facts.length ? `目前可核验的公开信息包括：${facts.join('；')}。` : '当前公开信息有限，沟通时仅引用已核验内容。',
+    facts.length ? `公开信息显示：${facts.join('；')}。` : '目前可核验的公开信息有限。',
     '',
     '想进一步了解当前需求范围、时间安排以及后续资料对接窗口。如方便，我们再根据实际需求准备对应方案。',
-    '',
-    '说明：本草稿只使用公开采购事实，不代表医院立场，也未推断院内关系、厂家授权、品牌资源或中标概率。',
   ].join('\n')
 }
 
@@ -490,7 +486,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       opportunity_id: id,
       generated_at: new Date().toISOString(),
       draft: buildGroundedDraft(card),
-      disclaimer: '试用快照模式 · 仅依据已核验公开事实生成，不推断客户关系、厂家资源或医院内部信息。',
+      disclaimer: '发送前请核对公开信息与实际情况；未推断医院关系、厂家授权或中标概率。',
     }
   }
 }
