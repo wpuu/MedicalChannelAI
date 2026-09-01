@@ -22,6 +22,7 @@ jobs:
       - name: Probe official early-signal pipeline without publishing
         shell: bash
         run: |
+          set +e
           set -uo pipefail
           python web/pipeline/scripts/sync_tjmugh_market_research.py \
             --as-of '2026-09-02T01:28:00+08:00' \
