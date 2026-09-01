@@ -58,7 +58,7 @@ class QueueConsumerRegistrationTests(unittest.TestCase):
         namespace_constants = _string_constants(ast.parse(namespace_source))
         self.assertEqual(namespace_constants.get("QUEUE_TOPIC_NAME"), EXPECTED_TOPIC)
         consumer_source = CONSUMER_PATH.read_text(encoding="utf-8")
-        self.assertIn("Topic[dict[str, object]](QUEUE_TOPIC_NAME)", consumer_source)
+        self.assertIn(f'Topic[dict[str, object]]("{EXPECTED_TOPIC}")', consumer_source)
 
 
 if __name__ == "__main__":

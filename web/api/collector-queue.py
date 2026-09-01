@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from vercel.queue import Message, Topic, asgi_app, subscribe
 
-from collector_namespace import QUEUE_TOPIC_NAME
 from collector_queue import process_collector_payload
 
-QUEUE_TOPIC = Topic[dict[str, object]](QUEUE_TOPIC_NAME)
+QUEUE_TOPIC = Topic[dict[str, object]]("medicalchannelai-refresh-v2")
 CONSUMER_GROUP = "api/collector-queue.py"
 
 
