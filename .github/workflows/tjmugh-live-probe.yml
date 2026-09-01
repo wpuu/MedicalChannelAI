@@ -25,7 +25,7 @@ jobs:
           set +e
           set -uo pipefail
           python web/pipeline/scripts/sync_tjmugh_market_research.py \
-            --as-of '2026-09-02T02:45:00+08:00' \
+            --as-of '2026-09-02T02:49:00+08:00' \
             --lookback-days 30 \
             --max-candidates 12 \
             --delay-seconds 3 \
