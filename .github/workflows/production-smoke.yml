@@ -1,0 +1,126 @@
+name: Production Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/production-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannel-production-smoke
+  cancel-in-progress: true
+
+jobs:
+  verify-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wait for this commit on medicalai.qd.je
+        shell: bash
+        env:
+          EXPECTED_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          expected="${EXPECTED_COMMIT:0:7}"
+          echo "Waiting for Production commit ${expected}"
+          for attempt in $(seq 1 40); do
+            status_json="$(curl --fail --silent --show-error --max-time 15 https://medicalai.qd.je/api/status || true)"
+            deployed="$(python3 -c 'import json,sys; 
+try:
+ print(json.loads(sys.stdin.read()).get("commit", ""))
+except Exception:
+ print("")' <<<"${status_json}")"
+            if [[ "${deployed}" == "${expected}" ]]; then
+              echo "Production version confirmed: ${deployed}"
+              exit 0
+            fi
+            echo "Attempt ${attempt}/40: deployed=${deployed:-unavailable}; expected=${expected}"
+            sleep 10
+          done
+          echo "Production did not reach expected commit ${expected}." >&2
+          exit 1
+
+      - name: Verify public snapshot and real grounded AI POST
+        shell: bash
+        run: |
+          set -euo pipefail
+          snapshot="$(curl --fail --silent --show-error --max-time 20 https://medicalai.qd.je/api/public-snapshot)"
+          python3 - <<'PY' <<<"${snapshot}" > /tmp/opportunity_ids.txt
+          import json, sys
+          data = json.load(sys.stdin)
+          pool = data.get('opportunity_pool') or data.get('cards') or []
+          seen = set()
+          for item in pool:
+              oid = item.get('opportunity_id') if isinstance(item, dict) else None
+              if oid and oid not in seen:
+                  seen.add(oid)
+                  print(oid)
+          PY
+
+          if [[ ! -s /tmp/opportunity_ids.txt ]]; then
+            echo 'No verified opportunity IDs available for production smoke.' >&2
+            exit 1
+          fi
+
+          success=0
+          while IFS= read -r opportunity_id; do
+            body="$(python3 -c 'import json,sys; print(json.dumps({"opportunity_id": sys.argv[1]}, ensure_ascii=False))' "${opportunity_id}")"
+            response_file="$(mktemp)"
+            http_code="$(curl --silent --show-error --max-time 35 \
+              --output "${response_file}" \
+              --write-out '%{http_code}' \
+              --request POST \
+              --header 'Origin: https://medicalai.qd.je' \
+              --header 'Content-Type: application/json' \
+              --data "${body}" \
+              https://medicalai.qd.je/api/ai/analyze || true)"
+
+            echo "AI smoke opportunity=${opportunity_id} http=${http_code}"
+            if [[ "${http_code}" == '409' ]]; then
+              rm -f "${response_file}"
+              continue
+            fi
+            if [[ "${http_code}" != '200' ]]; then
+              echo 'Unexpected AI response:' >&2
+              cat "${response_file}" >&2 || true
+              rm -f "${response_file}"
+              exit 1
+            fi
+
+            python3 - "${opportunity_id}" "${response_file}" <<'PY'
+          import json, sys
+          opportunity_id, path = sys.argv[1], sys.argv[2]
+          with open(path, encoding='utf-8') as f:
+              payload = json.load(f)
+          assert payload.get('opportunity_id') == opportunity_id, payload
+          assert payload.get('decision_source') in {
+              'GROUNDED_AI_PUBLIC_FACTS_ONLY',
+              'GROUNDED_AI_PUBLIC_FACTS_PLUS_CUSTOMER_CONTEXT',
+          }, payload
+          decision = payload.get('decision') or {}
+          assert isinstance(decision.get('action'), str) and decision['action'].strip(), payload
+          assert isinstance(decision.get('reasons'), list) and decision['reasons'], payload
+          assert decision.get('requires_human_confirmation') is True, payload
+          print('Real grounded AI response validated without printing model output.')
+          PY
+            rm -f "${response_file}"
+            success=1
+            break
+          done < /tmp/opportunity_ids.txt
+
+          if [[ "${success}" != '1' ]]; then
+            echo 'All verified opportunities are currently closed; origin path passed but no open AI case was available.' >&2
+            exit 1
+          fi
+
+      - name: Verify production status remains healthy
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 15 https://medicalai.qd.je/api/status \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("ready") is True; assert d.get("ai",{}).get("configured") is True; print("Production smoke: PASS", d.get("version"), d.get("commit"))'
