@@ -25,15 +25,21 @@ jobs:
           set -euo pipefail
           cd web/pipeline
           python - <<'PY'
+          import re
           from medical_channel_pipeline.tjmugh_discovery import INDEX_URL, fetch_tjmugh_page, parse_tjmugh_index_html
 
           html = fetch_tjmugh_page(INDEX_URL)
           candidates = parse_tjmugh_index_html(html)
+          charset = re.search(r'charset\s*=\s*["\']?\s*([A-Za-z0-9._-]+)', html, re.I)
           print(f'html_chars={len(html)}')
+          print(f'meta_charset={charset.group(1) if charset else "NONE"}')
           print(f'contains_hospital={"天津医科大学总医院" in html}')
           print(f'contains_medical_equipment={"医疗设备" in html}')
           print(f'contains_market_research={"市场调研" in html}')
           print(f'system_link_text_count={html.count("/system/")}')
+          print(f'absolute_http_system_links={len(re.findall(r"href=[\\\"\\\']http://(?:www\\.)?tjmugh\\.com\\.cn/system/", html, re.I))}')
+          print(f'absolute_https_system_links={len(re.findall(r"href=[\\\"\\\']https://(?:www\\.)?tjmugh\\.com\\.cn/system/", html, re.I))}')
+          print(f'relative_system_links={len(re.findall(r"href=[\\\"\\\']/system/", html, re.I))}')
           print(f'supported_candidates={len(candidates)}')
           for item in candidates[:10]:
               print(f'candidate={item.published_at}|{item.title}|{item.detail_url}')
