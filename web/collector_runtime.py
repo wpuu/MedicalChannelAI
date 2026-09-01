@@ -1,0 +1,617 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import sys
+import time
+from collections import Counter
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+from zoneinfo import ZoneInfo
+
+from vercel.functions import RuntimeCache
+
+WEB_ROOT = Path(__file__).resolve().parent
+PIPELINE_ROOT = WEB_ROOT / "pipeline"
+SCRIPT_DIR = PIPELINE_ROOT / "scripts"
+DATA_ROOT = PIPELINE_ROOT / "data"
+sys.path.insert(0, str(PIPELINE_ROOT))
+sys.path.insert(0, str(SCRIPT_DIR))
+
+from medical_channel_pipeline import build_public_snapshot  # noqa: E402
+from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
+from medical_channel_pipeline.state import (  # noqa: E402
+    active_ccgp_project_numbers,
+    merge_canonical_records,
+    merge_notice_events,
+)
+from medical_channel_pipeline.tjmugh_discovery import (  # noqa: E402
+    INDEX_URL as TJMUGH_INDEX_URL,
+    fetch_tjmugh_page,
+    parse_tjmugh_index_html,
+    select_candidates_since as select_tjmugh_candidates,
+    stable_opportunity_id as tjmugh_opportunity_id,
+)
+from medical_channel_pipeline.tjmugh_market_research import parse_tjmugh_market_research  # noqa: E402
+from medical_channel_pipeline.tjnothop_discovery import (  # noqa: E402
+    INDEX_URL as TJNOTHOP_INDEX_URL,
+    fetch_tjnothop_page,
+    parse_tjnothop_index_html,
+    select_candidates_since as select_tjnothop_candidates,
+    stable_opportunity_id as tjnothop_opportunity_id,
+)
+from medical_channel_pipeline.tjnothop_market_research import parse_tjnothop_market_research  # noqa: E402
+from sync_ccgp_query import VERIFIED_NOTICE_ADAPTERS, discover_candidates, scan_events, stable_id  # noqa: E402
+from sync_tianjin_plan import load_plan, plan_date_window, publish_gate as ccgp_publish_gate  # noqa: E402
+
+SCHEMA_VERSION = "0.1"
+SHANGHAI = ZoneInfo("Asia/Shanghai")
+STATE_TTL_SECONDS = 14 * 24 * 60 * 60
+SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
+MAX_STAGE_ATTEMPTS_PER_DAY = 2
+EVENT_BATCH_SIZE = 5
+
+META_KEY = "medicalchannelai:collector-runtime-state:v1"
+CCGP_RECORDS_KEY = "medicalchannelai:collector-ccgp-records:v1"
+CCGP_EVENTS_KEY = "medicalchannelai:collector-ccgp-events:v1"
+CCGP_WATCH_KEY = "medicalchannelai:collector-ccgp-watch-projects:v1"
+TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v1"
+TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v1"
+LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
+
+STAGE_ORDER = (
+    "ccgp",
+    "event1",
+    "event2",
+    "event3",
+    "event4",
+    "event5",
+    "event6",
+    "tjmugh",
+    "tjnothop",
+    "publish",
+)
+EXPECTED_SCHEDULES = {
+    "ccgp": "20 0 * * *",
+    "event1": "35 0 * * *",
+    "event2": "50 0 * * *",
+    "event3": "5 1 * * *",
+    "event4": "20 1 * * *",
+    "event5": "35 1 * * *",
+    "event6": "50 1 * * *",
+    "tjmugh": "5 2 * * *",
+    "tjnothop": "20 2 * * *",
+    "publish": "35 2 * * *",
+}
+
+
+class CollectorError(RuntimeError):
+    code = "COLLECTOR_ERROR"
+
+
+class CollectorPrecondition(CollectorError):
+    code = "COLLECTOR_PRECONDITION_FAILED"
+
+
+class CollectorStageBlocked(CollectorError):
+    code = "COLLECTOR_STAGE_BLOCKED"
+
+
+def _now_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _cache_set(cache: RuntimeCache, key: str, value: Any, *, tag: str, ttl: int = STATE_TTL_SECONDS) -> None:
+    cache.set(key, value, {"ttl": ttl, "tags": [tag]})
+
+
+def _load_array(path: Path) -> list[dict[str, Any]]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, list):
+        raise ValueError(f"COLLECTOR_BOOTSTRAP_ARRAY_REQUIRED:{path.name}")
+    return payload
+
+
+def _bootstrap_ccgp_records() -> list[dict[str, Any]]:
+    return merge_canonical_records(
+        _load_array(DATA_ROOT / "tianjin_verified_seed.json"),
+        _load_array(DATA_ROOT / "tianjin_live_ccgp_records.json"),
+    )
+
+
+def _bootstrap_ccgp_events() -> list[dict[str, Any]]:
+    return merge_notice_events([], _load_array(DATA_ROOT / "tianjin_notice_events.json"))
+
+
+def _bootstrap_tjmugh_records() -> list[dict[str, Any]]:
+    return merge_canonical_records(
+        _load_array(DATA_ROOT / "tianjin_official_institution_seed.json"),
+        _load_array(DATA_ROOT / "tianjin_live_tjmugh_records.json"),
+    )
+
+
+def _bootstrap_tjnothop_records() -> list[dict[str, Any]]:
+    return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_tjnothop_records.json"))
+
+
+def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[str, Any]], bool]:
+    value = cache.get(key)
+    if isinstance(value, list):
+        return value, False
+    records = bootstrap()
+    _cache_set(cache, key, records, tag="medicalchannelai-collector-canonical")
+    return records, True
+
+
+def _new_cycle(now: datetime) -> dict[str, Any]:
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "local_date": now.astimezone(SHANGHAI).date().isoformat(),
+        "cycle_as_of": now.astimezone(SHANGHAI).isoformat(),
+        "stages": {},
+        "updated_at": now.isoformat(),
+    }
+
+
+def load_status(cache: RuntimeCache | None = None) -> dict[str, Any]:
+    cache = cache or RuntimeCache()
+    value = cache.get(META_KEY)
+    if isinstance(value, dict):
+        return value
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "local_date": None,
+        "cycle_as_of": None,
+        "stages": {},
+        "updated_at": None,
+    }
+
+
+def _write_status(cache: RuntimeCache, state: dict[str, Any]) -> None:
+    state["updated_at"] = _now_utc().isoformat()
+    _cache_set(cache, META_KEY, state, tag="medicalchannelai-collector-state")
+
+
+def _stage_index(stage: str) -> int:
+    try:
+        return STAGE_ORDER.index(stage)
+    except ValueError as exc:
+        raise CollectorPrecondition(f"COLLECTOR_STAGE_INVALID:{stage}") from exc
+
+
+def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    index = _stage_index(stage)
+    local_date = now.astimezone(SHANGHAI).date().isoformat()
+    state = load_status(cache)
+
+    if stage == "ccgp" and state.get("local_date") != local_date:
+        state = _new_cycle(now)
+        _write_status(cache, state)
+    elif state.get("local_date") != local_date:
+        raise CollectorPrecondition("COLLECTOR_CYCLE_NOT_STARTED_TODAY")
+
+    stages = state.setdefault("stages", {})
+    previous = stages.get(stage)
+    if isinstance(previous, dict) and previous.get("status") == "COMPLETED":
+        return state, previous
+
+    if index > 0:
+        required = STAGE_ORDER[index - 1]
+        required_state = stages.get(required)
+        if not isinstance(required_state, dict) or required_state.get("status") != "COMPLETED":
+            raise CollectorPrecondition(f"COLLECTOR_PREVIOUS_STAGE_INCOMPLETE:{required}")
+
+    attempts = int(previous.get("attempt_count", 0)) if isinstance(previous, dict) else 0
+    if attempts >= MAX_STAGE_ATTEMPTS_PER_DAY:
+        raise CollectorPrecondition(f"COLLECTOR_STAGE_RETRY_LIMIT:{stage}")
+
+    stages[stage] = {
+        "status": "RUNNING",
+        "attempt_count": attempts + 1,
+        "started_at": now.isoformat(),
+        "completed_at": None,
+        "error_code": None,
+        "error_message": None,
+        "result": None,
+    }
+    _write_status(cache, state)
+    return state, None
+
+
+def _mark_completed(cache: RuntimeCache, state: dict[str, Any], stage: str, result: dict[str, Any]) -> None:
+    current = state["stages"][stage]
+    current["status"] = "COMPLETED"
+    current["completed_at"] = _now_utc().isoformat()
+    current["result"] = result
+    current["error_code"] = None
+    current["error_message"] = None
+    _write_status(cache, state)
+
+
+def _mark_failed(cache: RuntimeCache, state: dict[str, Any], stage: str, exc: Exception) -> None:
+    current = state["stages"][stage]
+    current["status"] = "FAILED"
+    current["completed_at"] = _now_utc().isoformat()
+    current["error_code"] = getattr(exc, "code", type(exc).__name__)
+    current["error_message"] = str(exc)[:300]
+    _write_status(cache, state)
+
+
+def _cycle_as_of(state: dict[str, Any]) -> datetime:
+    raw = str(state.get("cycle_as_of") or "")
+    parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        raise CollectorPrecondition("COLLECTOR_CYCLE_AS_OF_INVALID")
+    return parsed
+
+
+def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
+    plan = load_plan(DATA_ROOT / "tianjin_query_plan.json")
+    as_of = _cycle_as_of(state)
+    start_text, end_text = plan_date_window(as_of, plan["lookback_days"])
+    observed_at = as_of.astimezone(timezone.utc).isoformat()
+    existing_records, bootstrapped_records = _cached_list(cache, CCGP_RECORDS_KEY, _bootstrap_ccgp_records)
+    existing_events, bootstrapped_events = _cached_list(cache, CCGP_EVENTS_KEY, _bootstrap_ccgp_events)
+
+    failures: list[dict[str, Any]] = []
+    discovered_by_url: dict[str, tuple[str, object]] = {}
+    discovered_keywords: dict[str, set[str]] = {}
+    planned_queries = len(plan["keywords"]) * len(plan["notice_types"])
+
+    for keyword_index, keyword in enumerate(plan["keywords"]):
+        candidates = discover_candidates(
+            keyword=keyword,
+            region=plan["region"],
+            notice_types=plan["notice_types"],
+            start_date=start_text,
+            end_date=end_text,
+            delay_seconds=plan["delay_seconds"],
+            failures=failures,
+        )
+        for notice_type, candidate in candidates:
+            detail_url = str(getattr(candidate, "detail_url", "") or "").strip()
+            if not detail_url:
+                continue
+            discovered_by_url.setdefault(detail_url, (notice_type, candidate))
+            discovered_keywords.setdefault(detail_url, set()).add(keyword)
+        if keyword_index + 1 < len(plan["keywords"]):
+            time.sleep(plan["delay_seconds"])
+
+    discovery_failures = [item for item in failures if item.get("stage") == "discovery_search"]
+    discovery_success_count = max(0, planned_queries - len(discovery_failures))
+    discovered = list(discovered_by_url.values())
+    discovered.sort(
+        key=lambda item: (
+            getattr(item[1], "published_at", None) or "",
+            getattr(item[1], "detail_url", ""),
+        ),
+        reverse=True,
+    )
+    selected = discovered[: plan["max_candidates"]]
+
+    new_records: list[dict[str, Any]] = []
+    for notice_type, candidate in selected:
+        adapter = VERIFIED_NOTICE_ADAPTERS[notice_type]
+        try:
+            time.sleep(plan["delay_seconds"])
+            detail_html = fetch_ccgp_detail_html(candidate.detail_url)
+            new_records.append(
+                adapter(
+                    detail_html,
+                    source_url=candidate.detail_url,
+                    observed_at=observed_at,
+                    opportunity_id=stable_id("ccgp", candidate.detail_url),
+                )
+            )
+        except Exception as exc:
+            failures.append(
+                {
+                    "stage": "verified_detail",
+                    "notice_type": notice_type,
+                    "keywords": sorted(discovered_keywords.get(candidate.detail_url, set())),
+                    "title": candidate.title,
+                    "url": candidate.detail_url,
+                    "error": type(exc).__name__,
+                    "message": str(exc)[:300],
+                }
+            )
+
+    allowed, reason = ccgp_publish_gate(
+        discovery_success_count=discovery_success_count,
+        selected_candidate_count=len(selected),
+        new_verified_record_count=len(new_records),
+    )
+    if not allowed:
+        raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}")
+
+    merged_records = merge_canonical_records(existing_records, new_records)
+    watch_projects = active_ccgp_project_numbers(merged_records, as_of)
+    if len(watch_projects) > plan["max_event_watch_projects"]:
+        raise CollectorStageBlocked(
+            f"ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>{plan['max_event_watch_projects']}"
+        )
+
+    _cache_set(cache, CCGP_RECORDS_KEY, merged_records, tag="medicalchannelai-collector-canonical")
+    _cache_set(cache, CCGP_EVENTS_KEY, existing_events, tag="medicalchannelai-collector-events")
+    _cache_set(cache, CCGP_WATCH_KEY, watch_projects, tag="medicalchannelai-collector-watch")
+
+    return {
+        "start_date": start_text,
+        "end_date": end_text,
+        "planned_discovery_query_count": planned_queries,
+        "discovery_success_count": discovery_success_count,
+        "unique_discovered_candidate_count": len(discovered),
+        "selected_candidate_count": len(selected),
+        "new_verified_record_count": len(new_records),
+        "merged_record_count": len(merged_records),
+        "event_watch_project_count": len(watch_projects),
+        "failure_count": len(failures),
+        "publish_gate_reason": reason,
+        "bootstrapped_records": bootstrapped_records,
+        "bootstrapped_events": bootstrapped_events,
+    }
+
+
+def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> dict[str, Any]:
+    batch_index = int(stage.removeprefix("event")) - 1
+    watch_projects = cache.get(CCGP_WATCH_KEY)
+    if not isinstance(watch_projects, list):
+        raise CollectorPrecondition("COLLECTOR_WATCH_PROJECTS_MISSING")
+    projects = [str(item) for item in watch_projects][
+        batch_index * EVENT_BATCH_SIZE : (batch_index + 1) * EVENT_BATCH_SIZE
+    ]
+    existing_events, _ = _cached_list(cache, CCGP_EVENTS_KEY, _bootstrap_ccgp_events)
+    ccgp_result = state.get("stages", {}).get("ccgp", {}).get("result") or {}
+    start_text = str(ccgp_result.get("start_date") or "")
+    end_text = str(ccgp_result.get("end_date") or "")
+    if not start_text or not end_text:
+        raise CollectorPrecondition("COLLECTOR_CCGP_WINDOW_MISSING")
+
+    plan = load_plan(DATA_ROOT / "tianjin_query_plan.json")
+    observed_at = _cycle_as_of(state).astimezone(timezone.utc).isoformat()
+    failures: list[dict[str, Any]] = []
+    new_events: list[dict[str, Any]] = []
+
+    for project_number in projects:
+        before = len(failures)
+        new_events.extend(
+            scan_events(
+                project_number,
+                region=plan["region"],
+                start_date=start_text,
+                end_date=end_text,
+                delay_seconds=plan["delay_seconds"],
+                observed_at=observed_at,
+                failures=failures,
+            )
+        )
+        project_search_failures = [
+            item
+            for item in failures[before:]
+            if item.get("stage") == "event_search" and item.get("project_number") == project_number
+        ]
+        if len(project_search_failures) >= 2:
+            raise CollectorStageBlocked(f"EVENT_WATCH_ALL_SEARCHES_FAILED:{project_number}")
+
+    merged_events = merge_notice_events(existing_events, new_events)
+    _cache_set(cache, CCGP_EVENTS_KEY, merged_events, tag="medicalchannelai-collector-events")
+    return {
+        "batch_index": batch_index + 1,
+        "project_count": len(projects),
+        "projects": projects,
+        "new_notice_event_count": len(new_events),
+        "merged_event_count": len(merged_events),
+        "failure_count": len(failures),
+    }
+
+
+def _run_tjmugh(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
+    as_of = _cycle_as_of(state)
+    local_date = as_of.astimezone(SHANGHAI).date()
+    start_date = local_date - timedelta(days=6)
+    observed_at = as_of.astimezone(timezone.utc).isoformat()
+    existing_records, bootstrapped = _cached_list(cache, TJMUGH_RECORDS_KEY, _bootstrap_tjmugh_records)
+    failures: list[dict[str, Any]] = []
+
+    try:
+        index_html = fetch_tjmugh_page(TJMUGH_INDEX_URL)
+        discovered = parse_tjmugh_index_html(index_html)
+    except Exception as exc:
+        raise CollectorStageBlocked(f"TJMUGH_INDEX_DISCOVERY_FAILED:{type(exc).__name__}") from exc
+
+    selected = select_tjmugh_candidates(
+        discovered,
+        start_date=start_date,
+        end_date=local_date,
+        max_candidates=15,
+    )
+    new_records: list[dict[str, Any]] = []
+    for candidate in selected:
+        time.sleep(3.0)
+        try:
+            detail_html = fetch_tjmugh_page(candidate.detail_url)
+            new_records.append(
+                parse_tjmugh_market_research(
+                    detail_html,
+                    source_url=candidate.detail_url,
+                    observed_at=observed_at,
+                    opportunity_id=tjmugh_opportunity_id(candidate.detail_url),
+                )
+            )
+        except Exception as exc:
+            failures.append(
+                {
+                    "stage": "verified_detail",
+                    "title": candidate.title,
+                    "url": candidate.detail_url,
+                    "error": type(exc).__name__,
+                    "message": str(exc)[:300],
+                }
+            )
+    if selected and not new_records:
+        raise CollectorStageBlocked("TJMUGH_ALL_SELECTED_DETAILS_FAILED_VERIFICATION")
+
+    merged = merge_canonical_records(existing_records, new_records)
+    _cache_set(cache, TJMUGH_RECORDS_KEY, merged, tag="medicalchannelai-collector-canonical")
+    return {
+        "discovered_supported_count": len(discovered),
+        "selected_candidate_count": len(selected),
+        "new_verified_record_count": len(new_records),
+        "merged_record_count": len(merged),
+        "failure_count": len(failures),
+        "bootstrapped_records": bootstrapped,
+        "publish_gate_reason": "PASS",
+    }
+
+
+def _run_tjnothop(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
+    as_of = _cycle_as_of(state)
+    local_date = as_of.astimezone(SHANGHAI).date()
+    start_date = local_date - timedelta(days=20)
+    observed_at = as_of.astimezone(timezone.utc).isoformat()
+    existing_records, bootstrapped = _cached_list(cache, TJNOTHOP_RECORDS_KEY, _bootstrap_tjnothop_records)
+    failures: list[dict[str, Any]] = []
+
+    try:
+        index_html = fetch_tjnothop_page(TJNOTHOP_INDEX_URL)
+        discovered = parse_tjnothop_index_html(index_html)
+    except Exception as exc:
+        raise CollectorStageBlocked(f"TJNOTHOP_INDEX_DISCOVERY_FAILED:{type(exc).__name__}") from exc
+
+    selected = select_tjnothop_candidates(
+        discovered,
+        start_date=start_date,
+        end_date=local_date,
+        max_candidates=15,
+    )
+    new_records: list[dict[str, Any]] = []
+    for candidate in selected:
+        time.sleep(3.0)
+        try:
+            if not candidate.published_at:
+                raise ValueError("TJNOTHOP_INDEX_PUBLISHED_DATE_REQUIRED")
+            detail_html = fetch_tjnothop_page(candidate.detail_url)
+            new_records.append(
+                parse_tjnothop_market_research(
+                    detail_html,
+                    source_url=candidate.detail_url,
+                    index_url=TJNOTHOP_INDEX_URL,
+                    index_published_at=candidate.published_at,
+                    expected_title=candidate.title,
+                    observed_at=observed_at,
+                    opportunity_id=tjnothop_opportunity_id(candidate.detail_url),
+                )
+            )
+        except Exception as exc:
+            failures.append(
+                {
+                    "stage": "verified_detail",
+                    "title": candidate.title,
+                    "url": candidate.detail_url,
+                    "error": type(exc).__name__,
+                    "message": str(exc)[:300],
+                }
+            )
+    if selected and not new_records:
+        raise CollectorStageBlocked("TJNOTHOP_ALL_SELECTED_DETAILS_FAILED_VERIFICATION")
+
+    merged = merge_canonical_records(existing_records, new_records)
+    _cache_set(cache, TJNOTHOP_RECORDS_KEY, merged, tag="medicalchannelai-collector-canonical")
+    return {
+        "discovered_supported_count": len(discovered),
+        "selected_candidate_count": len(selected),
+        "new_verified_record_count": len(new_records),
+        "merged_record_count": len(merged),
+        "failure_count": len(failures),
+        "bootstrapped_records": bootstrapped,
+        "publish_gate_reason": "PASS",
+    }
+
+
+def _digest(value: Any) -> str:
+    encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
+    ccgp_records = cache.get(CCGP_RECORDS_KEY)
+    events = cache.get(CCGP_EVENTS_KEY)
+    tjmugh_records = cache.get(TJMUGH_RECORDS_KEY)
+    tjnothop_records = cache.get(TJNOTHOP_RECORDS_KEY)
+    if not all(isinstance(value, list) for value in (ccgp_records, events, tjmugh_records, tjnothop_records)):
+        raise CollectorPrecondition("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
+
+    records = list(ccgp_records) + list(tjmugh_records) + list(tjnothop_records)
+    as_of = _now_utc()
+    snapshot = build_public_snapshot(records, as_of, list(events))
+    digest = _digest(snapshot)
+    _cache_set(
+        cache,
+        LATEST_RUNTIME_SNAPSHOT_KEY,
+        snapshot,
+        tag="medicalchannelai-verified-snapshot",
+        ttl=SNAPSHOT_TTL_SECONDS,
+    )
+    read_back = cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
+    if not isinstance(read_back, dict) or _digest(read_back) != digest:
+        raise CollectorStageBlocked("RUNTIME_SNAPSHOT_READBACK_MISMATCH")
+
+    pool = read_back.get("opportunity_pool")
+    return {
+        "snapshot_as_of": read_back.get("snapshot_as_of"),
+        "today_card_count": len(read_back.get("cards") or []),
+        "opportunity_pool_count": len(pool) if isinstance(pool, list) else len(read_back.get("cards") or []),
+        "canonical_record_count": len(records),
+        "notice_event_count": len(events),
+        "sha256": digest,
+    }
+
+
+def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str, Any]]:
+    now = now or _now_utc()
+    cache = RuntimeCache()
+    try:
+        state, previous = _prepare_stage(cache, stage, now)
+    except CollectorPrecondition as exc:
+        return 409, {"action": "REJECTED", "stage": stage, "error": str(exc), "error_code": exc.code}
+
+    if previous is not None:
+        return 200, {
+            "action": "ALREADY_COMPLETED_TODAY",
+            "stage": stage,
+            "local_date": state.get("local_date"),
+            "completed_at": previous.get("completed_at"),
+            "result": previous.get("result"),
+        }
+
+    try:
+        if stage == "ccgp":
+            result = _run_ccgp(cache, state)
+        elif stage.startswith("event"):
+            result = _run_event_batch(cache, state, stage)
+        elif stage == "tjmugh":
+            result = _run_tjmugh(cache, state)
+        elif stage == "tjnothop":
+            result = _run_tjnothop(cache, state)
+        elif stage == "publish":
+            result = _run_publish(cache, state)
+        else:
+            raise CollectorPrecondition(f"COLLECTOR_STAGE_INVALID:{stage}")
+    except Exception as exc:
+        _mark_failed(cache, state, stage, exc)
+        return 503, {
+            "action": "FAILED",
+            "stage": stage,
+            "local_date": state.get("local_date"),
+            "error_code": getattr(exc, "code", type(exc).__name__),
+            "error": str(exc)[:300],
+        }
+
+    _mark_completed(cache, state, stage, result)
+    return 200, {
+        "action": "COMPLETED",
+        "stage": stage,
+        "local_date": state.get("local_date"),
+        "result": result,
+    }

@@ -3,9 +3,7 @@ from __future__ import annotations
 import json
 from http.server import BaseHTTPRequestHandler
 
-from vercel.functions import RuntimeCache
-
-STATE_KEY = "medicalchannelai:collector-cron-smoke:v1"
+from collector_runtime import STAGE_ORDER, load_status
 
 
 class handler(BaseHTTPRequestHandler):
@@ -21,20 +19,24 @@ class handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         try:
-            value = RuntimeCache().get(STATE_KEY)
-            if not isinstance(value, dict):
-                value = {
-                    "schema_version": "0.1",
-                    "local_date": None,
-                    "stages": {},
-                    "updated_at": None,
-                }
+            state = load_status()
+            stages = state.get("stages") if isinstance(state.get("stages"), dict) else {}
+            completed = sum(
+                1
+                for stage in STAGE_ORDER
+                if isinstance(stages.get(stage), dict) and stages[stage].get("status") == "COMPLETED"
+            )
             self._send_json(
                 200,
                 {
                     "schema_version": "0.1",
                     "service": "MedicalChannelAI",
-                    "collector": value,
+                    "collector": {
+                        **state,
+                        "stage_order": list(STAGE_ORDER),
+                        "completed_stage_count": completed,
+                        "total_stage_count": len(STAGE_ORDER),
+                    },
                 },
             )
         except Exception:
