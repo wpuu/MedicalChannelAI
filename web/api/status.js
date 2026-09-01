@@ -3,7 +3,7 @@ import {
   verifiedSnapshotSourceMode,
 } from './_verifiedSnapshot.js'
 
-const APP_VERSION = '0.1.5'
+const APP_VERSION = '0.1.6'
 const SNAPSHOT_STALE_AFTER_MINUTES = 30 * 60
 const SNAPSHOT_FUTURE_TOLERANCE_MINUTES = 15
 

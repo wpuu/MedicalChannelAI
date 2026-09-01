@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
@@ -12,12 +13,34 @@ sys.path.insert(0, str(PIPELINE_ROOT))
 try:
     from medical_channel_pipeline import build_public_snapshot
     from medical_channel_pipeline.validation import validate_record
+    from vercel.functions import RuntimeCache
 
     _IMPORT_OK = callable(build_public_snapshot) and callable(validate_record)
     _DATA_OK = (PIPELINE_ROOT / 'data' / 'tianjin_query_plan.json').is_file()
+    _CACHE_IMPORT_OK = True
 except Exception:
     _IMPORT_OK = False
     _DATA_OK = False
+    _CACHE_IMPORT_OK = False
+    RuntimeCache = None  # type: ignore[assignment,misc]
+
+
+def cache_roundtrip() -> bool:
+    if not _CACHE_IMPORT_OK or RuntimeCache is None:
+        return False
+    try:
+        cache = RuntimeCache(namespace='medicalchannelai-runtime')
+        key = 'health-roundtrip-v1'
+        value = {
+            'schema_version': '0.1',
+            'probe': 'pipeline-runtime',
+            'written_at_epoch': int(time.time()),
+        }
+        cache.set(key, value, {'ttl': 3600, 'tags': ['medicalchannelai-runtime-health']})
+        read_back = cache.get(key)
+        return isinstance(read_back, dict) and read_back.get('probe') == value['probe']
+    except Exception:
+        return False
 
 
 class handler(BaseHTTPRequestHandler):
@@ -32,7 +55,8 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self) -> None:
-        ready = bool(_IMPORT_OK and _DATA_OK)
+        cache_ok = cache_roundtrip()
+        ready = bool(_IMPORT_OK and _DATA_OK and cache_ok)
         self._send_json(
             200 if ready else 503,
             {
@@ -42,6 +66,7 @@ class handler(BaseHTTPRequestHandler):
                     'available': ready,
                     'module_import': bool(_IMPORT_OK),
                     'data_bundle': bool(_DATA_OK),
+                    'runtime_cache': cache_ok,
                 },
             },
         )
