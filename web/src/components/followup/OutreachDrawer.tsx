@@ -30,13 +30,54 @@ function outreachErrorMessage(error: unknown): string {
   return '沟通草稿生成失败，请稍后重试'
 }
 
+function contactNames(value: string): string[] {
+  return value
+    .split(/[、，,；;／/]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+/**
+ * Public notices often list several project contacts in one field. That does not
+ * prove the user will send the message to all of them, so a multi-name greeting
+ * should not enumerate everyone. Keep one-person greetings personal and plural
+ * greetings neutral/natural.
+ */
+function normalizeGreetingLine(value: string): string {
+  const text = value.trim()
+  if (/^各位老师[，,]?(?:您好|好)[：:]?$/.test(text)) return '各位老师好：'
+  if (/^老师[，,]?您好[：:]?$/.test(text)) return '您好：'
+
+  const match = text.match(/^(.+?)老师[，,]?(?:您好|好)[：:]?$/)
+  if (!match) return value
+  const names = contactNames(match[1])
+  if (names.length >= 2) return '各位老师好：'
+  if (names.length === 1) return `${names[0]}老师，您好：`
+  return '您好：'
+}
+
+function formatChineseDateTimeText(value: string): string {
+  return value.replace(
+    /(20\d{2})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})/g,
+    (_whole, year: string, month: string, day: string, hour: string, minute: string) =>
+      `${year}年${Number(month)}月${Number(day)}日 ${hour}:${minute}`,
+  )
+}
+
+function normalizePublicationAttribution(value: string): string {
+  const match = value.trim().match(/^关注到.+?公开发布了「(.+?)」。$/)
+  if (!match) return value
+  return `关注到「${match[1]}」的公开信息。`
+}
+
 /**
  * The sendable payload must contain only the message the user intends to copy.
  * Product/safety notes stay in UI chrome and are never mixed into clipboard text.
- * This also cleans legacy snapshot drafts that embedded those notes in the body.
+ * This also cleans legacy snapshot/server drafts so old wording cannot leak back
+ * into a message after the frontend greeting rules are upgraded.
  */
 function toSendableDraft(value: string): string {
-  return value
+  const lines = value
     .split('\n')
     .filter((line) => {
       const text = line.trim()
@@ -44,7 +85,16 @@ function toSendableDraft(value: string): string {
       if (text.startsWith('说明：本草稿只使用公开采购事实')) return false
       return true
     })
-    .join('\n')
+
+  const firstContentIndex = lines.findIndex((line) => line.trim())
+  if (firstContentIndex >= 0) {
+    lines[firstContentIndex] = normalizeGreetingLine(lines[firstContentIndex])
+  }
+  for (let index = firstContentIndex + 1; index < lines.length; index += 1) {
+    lines[index] = normalizePublicationAttribution(lines[index])
+  }
+
+  return formatChineseDateTimeText(lines.join('\n'))
     .replace(/\n{3,}/g, '\n\n')
     .trim()
 }
