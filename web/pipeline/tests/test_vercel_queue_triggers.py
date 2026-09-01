@@ -6,6 +6,8 @@ from pathlib import Path
 
 WEB_ROOT = Path(__file__).resolve().parents[2]
 VERCEL_CONFIG = WEB_ROOT / "vercel.json"
+EXPECTED_PATH = "api/collector-queue.py"
+EXPECTED_TOPIC = "medicalchannelai-refresh-v2"
 
 
 class VercelQueueTriggerTests(unittest.TestCase):
@@ -14,29 +16,18 @@ class VercelQueueTriggerTests(unittest.TestCase):
         cls.config = json.loads(VERCEL_CONFIG.read_text(encoding="utf-8"))
         cls.functions = cls.config.get("functions") or {}
 
-    def _queue_trigger(self, path: str) -> dict:
-        function = self.functions.get(path)
+    def test_queue_trigger_is_bound_to_v2_topic(self) -> None:
+        function = self.functions.get(EXPECTED_PATH)
         self.assertIsInstance(function, dict)
+        self.assertEqual(function.get("maxDuration"), 300)
         triggers = function.get("experimentalTriggers")
         self.assertIsInstance(triggers, list)
         self.assertEqual(len(triggers), 1)
-        trigger = triggers[0]
-        self.assertEqual(trigger.get("type"), "queue/v2beta")
-        return trigger
+        self.assertEqual(triggers[0].get("type"), "queue/v2beta")
+        self.assertEqual(triggers[0].get("topic"), EXPECTED_TOPIC)
 
-    def test_legacy_v1_trigger_stays_isolated(self) -> None:
-        trigger = self._queue_trigger("api/collector-queue.py")
-        self.assertEqual(trigger.get("topic"), "medicalchannelai-refresh")
-
-    def test_v2_trigger_targets_fresh_function_identity(self) -> None:
-        trigger = self._queue_trigger("api/collector-queue-v2.py")
-        self.assertEqual(trigger.get("topic"), "medicalchannelai-refresh-v2")
-        self.assertEqual(self.functions["api/collector-queue-v2.py"].get("maxDuration"), 300)
-
-    def test_v1_and_v2_triggers_cannot_share_function_path(self) -> None:
-        legacy = self._queue_trigger("api/collector-queue.py")
-        v2 = self._queue_trigger("api/collector-queue-v2.py")
-        self.assertNotEqual(legacy.get("topic"), v2.get("topic"))
+    def test_no_duplicate_v2_queue_function_is_configured(self) -> None:
+        self.assertNotIn("api/collector-queue-v2.py", self.functions)
 
 
 if __name__ == "__main__":

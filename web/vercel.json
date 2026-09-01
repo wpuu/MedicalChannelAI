@@ -14,17 +14,6 @@
       "experimentalTriggers": [
         {
           "type": "queue/v2beta",
-          "topic": "medicalchannelai-refresh",
-          "retryAfterSeconds": 150,
-          "initialDelaySeconds": 0
-        }
-      ]
-    },
-    "api/collector-queue-v2.py": {
-      "maxDuration": 300,
-      "experimentalTriggers": [
-        {
-          "type": "queue/v2beta",
           "topic": "medicalchannelai-refresh-v2",
           "retryAfterSeconds": 150,
           "initialDelaySeconds": 0

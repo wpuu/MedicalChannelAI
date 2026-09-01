@@ -4,9 +4,7 @@ from vercel.queue import Message, Topic, asgi_app, subscribe
 
 from collector_queue import process_collector_payload
 
-# Legacy v1 subscriber. It remains isolated on the old topic so delayed v1
-# deliveries cannot be fanned out to the new v2 consumer group.
-QUEUE_TOPIC = Topic[dict[str, object]]("medicalchannelai-refresh")
+QUEUE_TOPIC = Topic[dict[str, object]]("medicalchannelai-refresh-v2")
 CONSUMER_GROUP = "api/collector-queue.py"
 
 
