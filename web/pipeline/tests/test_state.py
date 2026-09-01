@@ -37,6 +37,39 @@ class PipelineStateTests(unittest.TestCase):
             original['facts']['project_number'],
         )
 
+    def test_corrected_project_number_replaces_same_opportunity_id(self) -> None:
+        corrected = copy.deepcopy(self.ccgp_records[0])
+        polluted = copy.deepcopy(corrected)
+        polluted['facts']['project_number'] = (
+            f"{corrected['facts']['project_number']})公开招标公告"
+        )
+        polluted['source']['source_id'] = (
+            f"ccgp:{polluted['facts']['project_number']}"
+        )
+        merged = merge_canonical_records([polluted], [corrected])
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(
+            merged[0]['facts']['project_number'],
+            corrected['facts']['project_number'],
+        )
+        self.assertEqual(merged[0]['opportunity_id'], corrected['opportunity_id'])
+
+    def test_new_record_collapses_project_and_opportunity_identity_duplicates(self) -> None:
+        corrected = copy.deepcopy(self.ccgp_records[0])
+        polluted = copy.deepcopy(corrected)
+        polluted['facts']['project_number'] = (
+            f"{corrected['facts']['project_number']})公开招标公告"
+        )
+        polluted['source']['source_id'] = (
+            f"ccgp:{polluted['facts']['project_number']}"
+        )
+        merged = merge_canonical_records([polluted, corrected], [corrected])
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(
+            merged[0]['facts']['project_number'],
+            corrected['facts']['project_number'],
+        )
+
     def test_hospital_seed_transitions_to_live_state_without_duplicate(self) -> None:
         original = copy.deepcopy(self.institution_records[0])
         replacement = copy.deepcopy(original)

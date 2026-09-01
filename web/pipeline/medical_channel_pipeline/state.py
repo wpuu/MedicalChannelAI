@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .ccgp_events import validate_notice_events
-from .validation import validate_records
+from .validation import validate_record, validate_records
 
 
 def _as_datetime(value: str | None) -> datetime | None:
@@ -16,28 +16,58 @@ def _as_datetime(value: str | None) -> datetime | None:
     return parsed
 
 
-def _record_key(record: dict[str, Any]) -> str:
+def _record_identity(record: dict[str, Any]) -> tuple[str, str]:
     project_number = str(record.get('facts', {}).get('project_number') or '').strip().lower()
-    if project_number:
-        return f'project:{project_number}'
     opportunity_id = str(record.get('opportunity_id') or '').strip()
-    if not opportunity_id:
+    if not project_number and not opportunity_id:
         raise ValueError('STATE_RECORD_KEY_REQUIRED')
-    return f'opportunity:{opportunity_id}'
+    return project_number, opportunity_id
+
+
+def _same_record_identity(left: dict[str, Any], right: dict[str, Any]) -> bool:
+    left_project, left_opportunity = _record_identity(left)
+    right_project, right_opportunity = _record_identity(right)
+    return bool(
+        (left_project and right_project and left_project == right_project)
+        or (
+            left_opportunity
+            and right_opportunity
+            and left_opportunity == right_opportunity
+        )
+    )
 
 
 def merge_canonical_records(
     existing_records: list[dict[str, Any]],
     new_records: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    existing = validate_records(existing_records) if existing_records else []
-    new = validate_records(new_records) if new_records else []
-    merged: dict[str, dict[str, Any]] = {}
-    for record in existing:
-        merged[_record_key(record)] = record
+    # Validate each record before reconciliation, but deliberately defer
+    # collection-level duplicate checks until after identity repair. This lets a
+    # newer verified record heal legacy cache entries whose project number was
+    # malformed while keeping the same opportunity_id.
+    existing = [validate_record(record) for record in existing_records] if existing_records else []
+    new = [validate_record(record) for record in new_records] if new_records else []
+    merged = list(existing)
+
     for record in new:
-        merged[_record_key(record)] = record
-    return validate_records(list(merged.values())) if merged else []
+        matching_indexes = [
+            index
+            for index, current in enumerate(merged)
+            if _same_record_identity(current, record)
+        ]
+        if not matching_indexes:
+            merged.append(record)
+            continue
+
+        # Keep the earliest canonical slot for stable ordering, replace it with
+        # the newest verified record, and collapse any duplicate identities that
+        # may have been created by a previously malformed project number.
+        first = matching_indexes[0]
+        merged[first] = record
+        for index in reversed(matching_indexes[1:]):
+            del merged[index]
+
+    return validate_records(merged) if merged else []
 
 
 def merge_notice_events(
