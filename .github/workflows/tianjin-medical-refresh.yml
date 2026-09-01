@@ -2,9 +2,8 @@ name: Tianjin Medical Refresh
 
 on:
   schedule:
-    # 08:20 Asia/Shanghai every day.
+    # Legacy GitHub scheduler. Keep as a fallback until the Vercel-native collector is accepted.
     - cron: '20 0 * * *'
-    # 16:20 Asia/Shanghai on weekdays to catch same-day notices.
     - cron: '20 8 * * 1-5'
   workflow_dispatch:
 
@@ -32,7 +31,7 @@ jobs:
           python-version: '3.12'
 
       - name: Verify current evidence pipeline
-        working-directory: pipeline
+        working-directory: web/pipeline
         run: python -m unittest discover -s tests -v
 
       - name: Compute one authoritative refresh timestamp
@@ -53,50 +52,50 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python pipeline/scripts/sync_tianjin_plan.py \
+          python web/pipeline/scripts/sync_tianjin_plan.py \
             --as-of '${{ steps.clock.outputs.as_of }}' \
-            --existing-records-input pipeline/data/tianjin_verified_seed.json \
-            --existing-records-input pipeline/data/tianjin_live_ccgp_records.json \
-            --existing-events-input pipeline/data/tianjin_notice_events.json \
-            --records-output pipeline/data/tianjin_live_ccgp_records.json \
-            --events-output pipeline/data/tianjin_notice_events.json \
-            --report-output pipeline/data/tianjin_sync_report.json
+            --existing-records-input web/pipeline/data/tianjin_verified_seed.json \
+            --existing-records-input web/pipeline/data/tianjin_live_ccgp_records.json \
+            --existing-events-input web/pipeline/data/tianjin_notice_events.json \
+            --records-output web/pipeline/data/tianjin_live_ccgp_records.json \
+            --events-output web/pipeline/data/tianjin_notice_events.json \
+            --report-output web/pipeline/data/tianjin_sync_report.json
 
       - name: Sync verified TMUGH early-demand state
         shell: bash
         run: |
           set -euo pipefail
-          python pipeline/scripts/sync_tjmugh_market_research.py \
+          python web/pipeline/scripts/sync_tjmugh_market_research.py \
             --as-of '${{ steps.clock.outputs.as_of }}' \
-            --existing-records-input pipeline/data/tianjin_official_institution_seed.json \
-            --existing-records-input pipeline/data/tianjin_live_tjmugh_records.json \
-            --records-output pipeline/data/tianjin_live_tjmugh_records.json \
-            --report-output pipeline/data/tianjin_tjmugh_sync_report.json
+            --existing-records-input web/pipeline/data/tianjin_official_institution_seed.json \
+            --existing-records-input web/pipeline/data/tianjin_live_tjmugh_records.json \
+            --records-output web/pipeline/data/tianjin_live_tjmugh_records.json \
+            --report-output web/pipeline/data/tianjin_tjmugh_sync_report.json
 
       - name: Sync verified Tianjin Hospital equipment-research state
         shell: bash
         run: |
           set -euo pipefail
-          python pipeline/scripts/sync_tjnothop_market_research.py \
+          python web/pipeline/scripts/sync_tjnothop_market_research.py \
             --as-of '${{ steps.clock.outputs.as_of }}' \
-            --existing-records-input pipeline/data/tianjin_live_tjnothop_records.json \
-            --records-output pipeline/data/tianjin_live_tjnothop_records.json \
-            --report-output pipeline/data/tianjin_tjnothop_sync_report.json
+            --existing-records-input web/pipeline/data/tianjin_live_tjnothop_records.json \
+            --records-output web/pipeline/data/tianjin_live_tjnothop_records.json \
+            --report-output web/pipeline/data/tianjin_tjnothop_sync_report.json
 
       - name: Publish H5-safe verified snapshot
         shell: bash
         run: |
           set -euo pipefail
-          python pipeline/scripts/publish_web_snapshot.py \
+          python web/pipeline/scripts/publish_web_snapshot.py \
             --as-of '${{ steps.clock.outputs.as_of }}' \
-            --input pipeline/data/tianjin_live_ccgp_records.json \
-            --input pipeline/data/tianjin_live_tjmugh_records.json \
-            --input pipeline/data/tianjin_live_tjnothop_records.json \
-            --event-input pipeline/data/tianjin_notice_events.json \
+            --input web/pipeline/data/tianjin_live_ccgp_records.json \
+            --input web/pipeline/data/tianjin_live_tjmugh_records.json \
+            --input web/pipeline/data/tianjin_live_tjnothop_records.json \
+            --event-input web/pipeline/data/tianjin_notice_events.json \
             --output web/public/data/today-actions.public.json
 
       - name: Verify generated snapshot
-        working-directory: pipeline
+        working-directory: web/pipeline
         run: python -m unittest discover -s tests -v
 
       - name: Publish and verify optional external snapshot
@@ -120,13 +119,13 @@ jobs:
             exit 2
           fi
 
-          python pipeline/scripts/publish_snapshot_http.py \
+          python web/pipeline/scripts/publish_snapshot_http.py \
             --snapshot web/public/data/today-actions.public.json \
             --method PUT
 
           verified=0
           for attempt in 1 2 3; do
-            if python pipeline/scripts/verify_snapshot_roundtrip.py \
+            if python web/pipeline/scripts/verify_snapshot_roundtrip.py \
               --snapshot web/public/data/today-actions.public.json; then
               verified=1
               break
@@ -148,13 +147,13 @@ jobs:
           git config user.name 'medicalchannel-refresh[bot]'
           git config user.email 'medicalchannel-refresh[bot]@users.noreply.github.com'
           git add \
-            pipeline/data/tianjin_live_ccgp_records.json \
-            pipeline/data/tianjin_live_tjmugh_records.json \
-            pipeline/data/tianjin_live_tjnothop_records.json \
-            pipeline/data/tianjin_notice_events.json \
-            pipeline/data/tianjin_sync_report.json \
-            pipeline/data/tianjin_tjmugh_sync_report.json \
-            pipeline/data/tianjin_tjnothop_sync_report.json \
+            web/pipeline/data/tianjin_live_ccgp_records.json \
+            web/pipeline/data/tianjin_live_tjmugh_records.json \
+            web/pipeline/data/tianjin_live_tjnothop_records.json \
+            web/pipeline/data/tianjin_notice_events.json \
+            web/pipeline/data/tianjin_sync_report.json \
+            web/pipeline/data/tianjin_tjmugh_sync_report.json \
+            web/pipeline/data/tianjin_tjnothop_sync_report.json \
             web/public/data/today-actions.public.json
           if git diff --cached --quiet; then
             echo 'No verified state change to commit.'

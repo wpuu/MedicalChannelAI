@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]
-REPO_ROOT = PIPELINE_ROOT.parent
+WEB_ROOT = PIPELINE_ROOT.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
@@ -18,7 +18,7 @@ DEFAULT_INPUTS = [
     PIPELINE_ROOT / 'data' / 'tianjin_official_institution_seed.json',
 ]
 DEFAULT_EVENT_INPUTS = [PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json']
-DEFAULT_OUTPUT = REPO_ROOT / 'web' / 'public' / 'data' / 'today-actions.public.json'
+DEFAULT_OUTPUT = WEB_ROOT / 'public' / 'data' / 'today-actions.public.json'
 
 
 def load_arrays(paths: list[Path], *, label: str) -> list[dict]:

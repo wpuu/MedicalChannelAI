@@ -8,7 +8,7 @@ from pathlib import Path
 from medical_channel_pipeline import build_public_snapshot
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]
-REPO_ROOT = PIPELINE_ROOT.parent
+WEB_ROOT = PIPELINE_ROOT.parent
 
 
 def load_array(path: Path, *, label: str) -> list[dict]:
@@ -51,12 +51,6 @@ def _normalize_legacy_card(card: dict) -> dict:
 
 
 def normalize_legacy_bundled_snapshot(payload: dict) -> dict:
-    """One-way compatibility for bundled schema metadata added after the snapshot.
-
-    This only adds deterministic metadata (`opportunity_pool`, deadline precision,
-    and evidence-path declarations). It never changes a procurement fact or invents
-    a deadline time. The next real pipeline publish writes these fields natively.
-    """
     normalized = dict(payload)
     cards = [_normalize_legacy_card(card) for card in list(payload.get('cards') or [])]
     normalized['cards'] = cards
@@ -75,7 +69,7 @@ def normalize_legacy_bundled_snapshot(payload: dict) -> dict:
 class PublishedWebSnapshotTests(unittest.TestCase):
     def test_published_web_snapshot_matches_pipeline_output(self) -> None:
         actual_raw = json.loads(
-            (REPO_ROOT / 'web' / 'public' / 'data' / 'today-actions.public.json').read_text(
+            (WEB_ROOT / 'public' / 'data' / 'today-actions.public.json').read_text(
                 encoding='utf-8'
             )
         )

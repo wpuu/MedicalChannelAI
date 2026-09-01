@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
-const pipelineDir = resolve(scriptDir, '../../pipeline')
+const pipelineDir = resolve(scriptDir, '../pipeline')
 const unittestArgs = ['-m', 'unittest', 'discover', '-s', 'tests', '-v']
 
 const candidates = []
