@@ -74,8 +74,11 @@ for (const code of [
 }
 
 const outreach = read('src/components/followup/OutreachDrawer.tsx')
-assert.match(outreach, /if \(names\.length >= 2\) return '各位老师好：'/)
-assert.match(outreach, /return `\$\{names\[0\]\}老师，您好：`/)
+assert.match(outreach, /recipientSelection === GROUP_RECIPIENT\) return '各位老师好：'/)
+assert.match(outreach, /availableRecipients\.length >= 2\) return '您好：'/)
+assert.match(outreach, /return personGreeting\(availableRecipients\[0\]\)/)
+assert.match(outreach, /\(老师\|先生\|女士\)\$/)
+assert.match(outreach, /公告列出多位联系人，不代表本次需要群发；默认不指定收件人/)
 assert.match(outreach, /formatChineseDateTimeText/)
 assert.match(outreach, /normalizePublicationAttribution/)
 assert.match(outreach, /normalizeFormalProcurementWording/)
