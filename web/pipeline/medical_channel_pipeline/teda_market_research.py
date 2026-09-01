@@ -49,14 +49,12 @@ def _normalize(text: str) -> str:
     return re.sub(r'\s+', '', text)
 
 
-def _assert_source_url(source_url: str) -> None:
-    parsed = urlparse(source_url)
-    if (
-        parsed.scheme != 'https'
-        or parsed.hostname not in ALLOWED_HOSTS
-        or not re.fullmatch(r'/article/show/9/\d+', parsed.path.rstrip('/'))
-    ):
-        raise TedaParseError('TEDA_SOURCE_URL_REJECTED')
+def _assert_official_url(url: str, *, code: str, detail_required: bool = False) -> None:
+    parsed = urlparse(url)
+    if parsed.scheme != 'https' or parsed.hostname not in ALLOWED_HOSTS:
+        raise TedaParseError(code)
+    if detail_required and not re.fullmatch(r'/article/show/9/\d+', parsed.path.rstrip('/')):
+        raise TedaParseError(code)
 
 
 def _verify_title(text: str, expected_title: str) -> str:
@@ -74,19 +72,45 @@ def _verify_medical_early_signal(text: str) -> None:
         raise TedaParseError('TEDA_MEDICAL_EARLY_SIGNAL_NOT_VERIFIED')
 
 
-def _extract_published_at(text: str) -> str:
+def _parse_iso_date(value: str, *, code: str) -> str:
+    try:
+        return date.fromisoformat(value).isoformat()
+    except ValueError as exc:
+        raise TedaParseError(code) from exc
+
+
+def _extract_detail_published_at(text: str) -> str | None:
     parse_text = _compact_fragmented_digits(text)
-    footer_matches = re.findall(
+    patterns = (
         r'天津市泰达医院\s*(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日',
-        parse_text,
+        r'天津市泰达医院\s*(20\d{2})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{1,2})',
     )
-    if not footer_matches:
-        raise TedaParseError('TEDA_PUBLISHED_DATE_NOT_FOUND')
-    year, month, day = (int(value) for value in footer_matches[-1])
+    matches: list[tuple[str, str, str]] = []
+    for pattern in patterns:
+        matches.extend(re.findall(pattern, parse_text))
+    if not matches:
+        return None
+    year, month, day = (int(value) for value in matches[-1])
     try:
         return date(year, month, day).isoformat()
     except ValueError as exc:
         raise TedaParseError('TEDA_PUBLISHED_DATE_INVALID') from exc
+
+
+def _resolve_published_at(text: str, index_published_at: str | None) -> tuple[str, bool]:
+    detail_date = _extract_detail_published_at(text)
+    index_date = (
+        _parse_iso_date(index_published_at, code='TEDA_INDEX_PUBLISHED_DATE_INVALID')
+        if index_published_at
+        else None
+    )
+    if detail_date and index_date and detail_date != index_date:
+        raise TedaParseError('TEDA_PUBLISHED_DATE_MISMATCH')
+    if detail_date:
+        return detail_date, False
+    if index_date:
+        return index_date, True
+    raise TedaParseError('TEDA_PUBLISHED_DATE_NOT_FOUND')
 
 
 def _parse_money(value: str, unit: str) -> int:
@@ -102,61 +126,92 @@ def _parse_money(value: str, unit: str) -> int:
     return int(integral)
 
 
+def _product_segment_to_item(segment: str) -> tuple[dict[str, Any], int | None]:
+    segment = re.sub(r'\s+', ' ', segment).strip(' ;；,，')
+    budget_match = re.search(
+        r'预算\s*[：:]?\s*([0-9]+(?:\.[0-9]+)?)\s*(万元|万|元)',
+        segment,
+    )
+    budget = None
+    if budget_match:
+        unit = '万' if budget_match.group(2) in {'万', '万元'} else '元'
+        budget = _parse_money(budget_match.group(1), unit)
+    quantity_match = re.search(r'([0-9]+(?:\.[0-9]+)?)\s*(台|套|个|批|件|组)', segment)
+    quantity = ''.join(quantity_match.groups()) if quantity_match else None
+    name_end_candidates = [
+        match.start()
+        for match in (quantity_match, budget_match)
+        if match is not None
+    ]
+    name_end = min(name_end_candidates) if name_end_candidates else len(segment)
+    raw_name = segment[:name_end].strip(' ：:;；,，')
+    raw_name = re.sub(r'^设备明细\s*[：:]?\s*', '', raw_name).strip()
+    if not raw_name or raw_name in {'设备明细', '其他需求'}:
+        raise TedaParseError('TEDA_PRODUCT_NAME_EMPTY')
+    return (
+        {
+            'raw_name': raw_name,
+            'category': None,
+            'quantity': quantity,
+            'specification': None,
+        },
+        budget,
+    )
+
+
+def _extract_product_segments(section: str) -> list[str]:
+    detail_match = re.search(
+        r'(?:^|\s)1[、.．]\s*设备明细\s*[：:]?\s*(.+?)(?=(?:\s|^)2[、.．]\s*其他需求|$)',
+        section,
+    )
+    if detail_match:
+        detail_section = detail_match.group(1).strip()
+        nested_markers = list(re.finditer(r'(?:^|\s)(\d{1,2})\s*[）)]\s*', detail_section))
+        if nested_markers:
+            segments: list[str] = []
+            for index, marker in enumerate(nested_markers):
+                start = marker.end()
+                end = nested_markers[index + 1].start() if index + 1 < len(nested_markers) else len(detail_section)
+                value = detail_section[start:end].strip(' ;；,，')
+                if value:
+                    segments.append(value)
+            return segments
+        if detail_section:
+            return [detail_section]
+
+    markers = list(re.finditer(r'(?:^|\s)(\d{1,2})[、.．]\s*', section))
+    segments = []
+    for index, marker in enumerate(markers):
+        start = marker.end()
+        end = markers[index + 1].start() if index + 1 < len(markers) else len(section)
+        value = section[start:end].strip(' ;；,，')
+        if value:
+            segments.append(value)
+    return segments
+
+
 def _extract_product_items(text: str) -> tuple[list[dict[str, Any]], int | None]:
     section_match = re.search(
         r'一[、.．]\s*拟采购设备项目\s*[：:]?\s*(.+?)(?=\s*二[、.．]\s*报名资料)',
         text,
     )
     if not section_match:
-        # Older TEDA medical-device notices use “拟采购设备项目” under a nearby
-        # heading but retain the same numbered equipment list.
         section_match = re.search(
-            r'拟采购设备项目\s*(.+?)(?=\s*二[、.．]\s*报名资料)',
+            r'拟采购设备项目\s*[：:]?\s*(.+?)(?=\s*二[、.．]\s*报名资料)',
             text,
         )
     if not section_match:
         raise TedaParseError('TEDA_PRODUCT_SECTION_NOT_FOUND')
-    section = section_match.group(1).strip()
-    markers = list(re.finditer(r'(?:^|\s)(\d{1,2})[、.．]\s*', section))
-    if not markers:
+    segments = _extract_product_segments(section_match.group(1).strip())
+    if not segments:
         raise TedaParseError('TEDA_PRODUCT_ITEMS_NOT_FOUND')
 
     items: list[dict[str, Any]] = []
     item_budgets: list[int | None] = []
-    for index, marker in enumerate(markers):
-        start = marker.end()
-        end = markers[index + 1].start() if index + 1 < len(markers) else len(section)
-        segment = section[start:end].strip(' ;；,，')
-        if not segment:
-            continue
-        budget_match = re.search(r'预算\s*([0-9]+(?:\.[0-9]+)?)\s*(万元|万|元)', segment)
-        budget = None
-        if budget_match:
-            unit = '万' if budget_match.group(2) in {'万', '万元'} else '元'
-            budget = _parse_money(budget_match.group(1), unit)
-        quantity_match = re.search(r'([0-9]+(?:\.[0-9]+)?)\s*(台|套|个|批|件|组)\b', segment)
-        quantity = ''.join(quantity_match.groups()) if quantity_match else None
-        name_end_candidates = [
-            match.start()
-            for match in (quantity_match, budget_match)
-            if match is not None
-        ]
-        name_end = min(name_end_candidates) if name_end_candidates else len(segment)
-        raw_name = segment[:name_end].strip(' ：:;；,，')
-        if not raw_name:
-            raise TedaParseError('TEDA_PRODUCT_NAME_EMPTY')
-        items.append(
-            {
-                'raw_name': raw_name,
-                'category': None,
-                'quantity': quantity,
-                'specification': None,
-            }
-        )
+    for segment in segments:
+        item, budget = _product_segment_to_item(segment)
+        items.append(item)
         item_budgets.append(budget)
-    if not items:
-        raise TedaParseError('TEDA_PRODUCT_ITEMS_EMPTY')
-
     budget_cny = None
     if item_budgets and all(value is not None for value in item_budgets):
         budget_cny = sum(value for value in item_budgets if value is not None)
@@ -198,20 +253,15 @@ def _extract_deadline(text: str) -> tuple[str | None, str | None, list[str]]:
 def _extract_contact(text: str) -> dict[str, str | None] | None:
     parse_text = _compact_fragmented_digits(text)
     contact_match = re.search(
-        r'联系方式\s*[：:]?\s*([^\s，。；;:：]{1,10}老师)\s*[：:]?\s*([0-9-]{7,20})',
+        r'(?:联系方式\s*[：:]?\s*)?([\u4e00-\u9fff]{1,4}\s*老师)\s*[：:]?\s*([0-9-]{7,20})',
         parse_text,
     )
-    if not contact_match:
-        contact_match = re.search(
-            r'([^\s，。；;:：]{1,10}老师)\s*[：:]?\s*([0-9-]{7,20})',
-            parse_text,
-        )
     email_match = re.search(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', text)
     if not contact_match and not email_match:
         return None
     title = '医疗设备部' if '医疗设备部' in text else None
     return {
-        'name': contact_match.group(1) if contact_match else None,
+        'name': _normalize(contact_match.group(1)) if contact_match else None,
         'title': title,
         'phone': contact_match.group(2) if contact_match else None,
         'email': email_match.group(0) if email_match else None,
@@ -222,15 +272,18 @@ def parse_teda_market_research(
     html: str,
     *,
     source_url: str,
+    index_url: str,
+    index_published_at: str | None,
     expected_title: str,
     observed_at: str,
     opportunity_id: str,
 ) -> dict[str, Any]:
-    _assert_source_url(source_url)
+    _assert_official_url(source_url, code='TEDA_SOURCE_URL_REJECTED', detail_required=True)
+    _assert_official_url(index_url, code='TEDA_INDEX_URL_REJECTED')
     text = _visible_text(html)
     title = _verify_title(text, expected_title)
     _verify_medical_early_signal(text)
-    published_at = _extract_published_at(text)
+    published_at, published_from_index = _resolve_published_at(text, index_published_at)
     product_items, budget_cny = _extract_product_items(text)
     registration_deadline, registration_deadline_date, quality_flags = _extract_deadline(text)
     public_contact = _extract_contact(text)
@@ -268,13 +321,17 @@ def parse_teda_market_research(
             'locator': '正文明确为医疗设备采购需求调研或采购前论证；确定性生命周期映射',
         },
         {'field_path': 'facts.notice_type', 'source_url': source_url, 'locator': '详情页标题/正文调研类型'},
-        {'field_path': 'facts.published_at', 'source_url': source_url, 'locator': '正文落款发布日期'},
-        {'field_path': 'facts.product_items', 'source_url': source_url, 'locator': '一、拟采购设备项目'},
+        {
+            'field_path': 'facts.published_at',
+            'source_url': index_url if published_from_index else source_url,
+            'locator': '官方招标公告列表发布日期' if published_from_index else '正文落款发布日期',
+        },
+        {'field_path': 'facts.product_items', 'source_url': source_url, 'locator': '一、拟采购设备项目/设备明细'},
     ]
     deadline_path = 'facts.registration_deadline' if registration_deadline else 'facts.registration_deadline_date'
     evidence.append({'field_path': deadline_path, 'source_url': source_url, 'locator': '报名截止时间'})
     if budget_cny is not None:
-        evidence.append({'field_path': 'facts.budget_cny', 'source_url': source_url, 'locator': '拟采购设备项目/预算'})
+        evidence.append({'field_path': 'facts.budget_cny', 'source_url': source_url, 'locator': '拟采购设备项目/设备明细预算'})
     if public_contact:
         evidence.append({'field_path': 'facts.public_contact', 'source_url': source_url, 'locator': '调研文件提交/联系方式'})
 
