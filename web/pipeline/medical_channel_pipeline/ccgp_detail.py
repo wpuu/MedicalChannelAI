@@ -108,7 +108,11 @@ def _extract_project_number(text: str) -> str:
         text,
         "CCGP_PROJECT_NUMBER_NOT_FOUND",
     )
-    return match.group(1).strip()
+    value = match.group(1).strip()
+    # Some CCGP pages concatenate the notice-title suffix directly onto the
+    # project-number token. Strip only that explicit official suffix; valid
+    # parentheses inside a project number must remain untouched.
+    return re.sub(r"[)）](?:公开招标|竞争性磋商)公告$", "", value).strip()
 
 
 def _extract_project_name(text: str) -> str:
