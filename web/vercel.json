@@ -7,7 +7,7 @@
   },
   "functions": {
     "api/collector-run.py": {
-      "maxDuration": 300
+      "maxDuration": 60
     },
     "api/pipeline-health.py": {
       "maxDuration": 60
@@ -18,44 +18,8 @@
   },
   "crons": [
     {
-      "path": "/api/collector-run?stage=ccgp",
+      "path": "/api/collector-run",
       "schedule": "20 0 * * *"
-    },
-    {
-      "path": "/api/collector-run?stage=event1",
-      "schedule": "35 0 * * *"
-    },
-    {
-      "path": "/api/collector-run?stage=event2",
-      "schedule": "50 0 * * *"
-    },
-    {
-      "path": "/api/collector-run?stage=event3",
-      "schedule": "5 1 * * *"
-    },
-    {
-      "path": "/api/collector-run?stage=event4",
-      "schedule": "20 1 * * *"
-    },
-    {
-      "path": "/api/collector-run?stage=event5",
-      "schedule": "35 1 * * *"
-    },
-    {
-      "path": "/api/collector-run?stage=event6",
-      "schedule": "50 1 * * *"
-    },
-    {
-      "path": "/api/collector-run?stage=tjmugh",
-      "schedule": "5 2 * * *"
-    },
-    {
-      "path": "/api/collector-run?stage=tjnothop",
-      "schedule": "20 2 * * *"
-    },
-    {
-      "path": "/api/collector-run?stage=publish",
-      "schedule": "35 2 * * *"
     }
   ],
   "rewrites": [
@@ -68,31 +32,16 @@
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow, noarchive, nosnippet"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "no-referrer"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        }
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ]

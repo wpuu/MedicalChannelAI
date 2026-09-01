@@ -1,7 +1,13 @@
 [project]
 name = "medicalchannelai-runtime"
-version = "0.2.6"
+version = "0.3.0"
 requires-python = ">=3.12"
 dependencies = [
   "vercel",
 ]
+
+[[tool.vercel.subscribers]]
+entrypoint = "collector_queue"
+topics = ["medicalchannelai-refresh"]
+retry_after_seconds = 150
+max_concurrency = 1

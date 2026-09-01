@@ -1,33 +1,72 @@
 from __future__ import annotations
 
+import asyncio
 import hmac
 import json
 import os
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlsplit
+from zoneinfo import ZoneInfo
 
-import collector_runtime
+from vercel.functions import RuntimeCache
+from vercel.queue import send
 
-EXPECTED_SCHEDULES = collector_runtime.EXPECTED_SCHEDULES
-STAGE_ORDER = collector_runtime.STAGE_ORDER
+QUEUE_TOPIC_NAME = "medicalchannelai-refresh"
+CRON_SCHEDULE = "20 0 * * *"
+SHANGHAI = ZoneInfo("Asia/Shanghai")
+META_KEY = "medicalchannelai:collector-runtime-state:v1"
+MESSAGE_RETENTION = timedelta(days=2)
 
-# Temporary production acceptance probe. Remove after live stage validation.
-_ACCEPTANCE_PROBE = "mca-v023-8f3a6d9c2e7141c9b84fd87a52f64c11"
+# Temporary production acceptance probe. Remove after the queue execution plane
+# completes one verified end-to-end refresh in Production.
+_ACCEPTANCE_PROBE = "mca-v030-q-8ab42d5f9c614e0baf2c7d1e9340f6a1"
 
 
 def _first_query(path: str, key: str) -> str:
     return (parse_qs(urlsplit(path).query).get(key) or [""])[0].strip()
 
 
-def _run_with_acceptance_retry(stage: str, source: str):
-    if source != "ACCEPTANCE_PROBE":
-        return collector_runtime.run_stage(stage)
-    original = collector_runtime.MAX_STAGE_ATTEMPTS_PER_DAY
-    collector_runtime.MAX_STAGE_ATTEMPTS_PER_DAY = max(original, 4)
-    try:
-        return collector_runtime.run_stage(stage)
-    finally:
-        collector_runtime.MAX_STAGE_ATTEMPTS_PER_DAY = original
+def _authorized(request: BaseHTTPRequestHandler) -> tuple[bool, str]:
+    probe = _first_query(request.path, "probe")
+    if probe and hmac.compare_digest(probe, _ACCEPTANCE_PROBE):
+        return True, "ACCEPTANCE_PROBE"
+
+    schedule = str(request.headers.get("x-vercel-cron-schedule") or "").strip()
+    if schedule != CRON_SCHEDULE:
+        return False, "NONE"
+
+    cron_secret = str(os.environ.get("CRON_SECRET") or "").strip()
+    if cron_secret:
+        authorization = str(request.headers.get("authorization") or "")
+        if not hmac.compare_digest(authorization, f"Bearer {cron_secret}"):
+            return False, "NONE"
+    return True, "VERCEL_CRON"
+
+
+async def _enqueue_start(source: str) -> tuple[str, str, str]:
+    now = datetime.now(timezone.utc)
+    local_date = now.astimezone(SHANGHAI).date().isoformat()
+    short_commit = str(os.environ.get("VERCEL_GIT_COMMIT_SHA") or "unknown")[:7]
+    cycle_id = f"accept:{local_date}:{short_commit}" if source == "ACCEPTANCE_PROBE" else f"prod:{local_date}"
+
+    if source == "ACCEPTANCE_PROBE":
+        # v0.2.x live probes already consumed today's stage attempt budget. Reset
+        # only orchestration metadata; verified canonical records/events remain.
+        RuntimeCache().delete(META_KEY)
+
+    message_id = await send(
+        QUEUE_TOPIC_NAME,
+        {
+            "schema_version": "0.1",
+            "stage": "ccgp",
+            "cycle_as_of": now.isoformat(),
+            "cycle_id": cycle_id,
+        },
+        retention=MESSAGE_RETENTION,
+        idempotency_key=f"medicalchannelai-refresh:{cycle_id}:ccgp",
+    )
+    return str(message_id), local_date, cycle_id
 
 
 class handler(BaseHTTPRequestHandler):
@@ -41,40 +80,37 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _authorized(self, stage: str) -> tuple[bool, str]:
-        probe = _first_query(self.path, "probe")
-        if probe and hmac.compare_digest(probe, _ACCEPTANCE_PROBE):
-            return True, "ACCEPTANCE_PROBE"
-
-        expected_schedule = EXPECTED_SCHEDULES.get(stage, "")
-        schedule = str(self.headers.get("x-vercel-cron-schedule") or "").strip()
-        if not expected_schedule or schedule != expected_schedule:
-            return False, "NONE"
-
-        cron_secret = str(os.environ.get("CRON_SECRET") or "").strip()
-        if cron_secret:
-            authorization = str(self.headers.get("authorization") or "")
-            if not hmac.compare_digest(authorization, f"Bearer {cron_secret}"):
-                return False, "NONE"
-        return True, "VERCEL_CRON"
-
     def do_GET(self) -> None:
-        stage = _first_query(self.path, "stage").lower()
-        if stage not in STAGE_ORDER:
-            return self._send_json(400, {"error": "COLLECTOR_STAGE_INVALID"})
-
-        allowed, source = self._authorized(stage)
+        allowed, source = _authorized(self)
         if not allowed:
             return self._send_json(403, {"error": "COLLECTOR_TRIGGER_FORBIDDEN"})
 
-        status, collector = _run_with_acceptance_retry(stage, source)
+        try:
+            message_id, local_date, cycle_id = asyncio.run(_enqueue_start(source))
+        except Exception as exc:
+            return self._send_json(
+                503,
+                {
+                    "error": "COLLECTOR_QUEUE_START_FAILED",
+                    "error_type": type(exc).__name__,
+                    "message": str(exc)[:180],
+                },
+            )
+
         self._send_json(
-            status,
+            202,
             {
                 "schema_version": "0.1",
                 "service": "MedicalChannelAI",
                 "trigger_source": source,
-                "collector": collector,
+                "collector": {
+                    "action": "QUEUED",
+                    "execution_plane": "VERCEL_QUEUE",
+                    "local_date": local_date,
+                    "cycle_id": cycle_id,
+                    "stage": "ccgp",
+                    "message_id": message_id,
+                },
             },
         )
 
