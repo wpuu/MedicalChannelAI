@@ -35,8 +35,12 @@ export const NOT_FIT_REASONS = [
 export const PRIORITY_COMPONENT_LABEL: Record<string, string> = {
   PRODUCT_EXECUTION_CAPABILITY: '产品执行能力',
   RELATIONSHIP: '医院关系',
-  INTERVENTION_STAGE: '介入阶段',
+  EXECUTION_FLEXIBILITY: '找货/合作执行能力',
+  INTERVENTION_STAGE: '可介入阶段',
+  DEADLINE_URGENCY: '截止时间紧迫度',
   PROJECT_AMOUNT: '项目金额',
+  PRODUCT_SPECIFICITY: '产品与采购信息明确度',
+  PUBLICATION_FRESHNESS: '信息新鲜度',
 }
 
 export const RELATIONSHIP_LABEL: Record<RelationshipStrength, string> = {
