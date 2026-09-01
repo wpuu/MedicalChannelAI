@@ -1,8 +1,34 @@
 import { cn } from '@/utils/cn'
 import { EmptyValue } from './EmptyValue'
 
+const STAGE_LABELS: Record<string, string> = {
+  BIDDING: '招标中',
+  MARKET_RESEARCH: '采购调研',
+  PRE_MARKET_RESEARCH: '采购调研',
+  PROCUREMENT_RESEARCH: '采购调研',
+  PROCUREMENT_INTENT: '采购意向',
+  PLANNING: '采购计划',
+  ANNOUNCED: '已公告',
+  AWARDED: '已中标/成交',
+  CONTRACTED: '已签约',
+  TERMINATED: '已终止',
+  CLOSED: '已结束',
+  ARCHIVED: '已归档',
+}
+
+export function lifecycleStageLabel(stage: string | null): string | null {
+  if (!stage) return null
+  const normalized = stage.trim()
+  if (!normalized) return null
+  const mapped = STAGE_LABELS[normalized.toUpperCase()]
+  if (mapped) return mapped
+  if (/[\u3400-\u9fff]/.test(normalized)) return normalized
+  return '项目进行中'
+}
+
 export function StageBadge({ stage }: { stage: string | null }) {
-  if (!stage) return <EmptyValue />
+  const label = lifecycleStageLabel(stage)
+  if (!label) return <EmptyValue />
   return (
     <span
       className={cn(
@@ -10,7 +36,7 @@ export function StageBadge({ stage }: { stage: string | null }) {
         'border-slate-200 bg-slate-50 text-slate-700',
       )}
     >
-      {stage}
+      {label}
     </span>
   )
 }

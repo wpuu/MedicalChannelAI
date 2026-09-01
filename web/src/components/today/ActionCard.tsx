@@ -55,10 +55,10 @@ export function ActionCard({
 
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-3 py-3 sm:px-4">
         <div className="flex items-center gap-2">
-          <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white">
-            TOP {card.rank}
+          <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-white">
+            重点 {card.rank}
           </span>
           <PriorityScore score={card.priority.score} />
           <PriorityBadge score={card.priority.score} />
@@ -66,7 +66,7 @@ export function ActionCard({
         <div className="flex flex-wrap items-center gap-1.5">
           {isLateWindow ? (
             <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-900">
-              报名已结束 · 晚窗口
+              报名已结束
             </span>
           ) : null}
           {card.followup_status !== 'NEW' ? (
@@ -75,7 +75,7 @@ export function ActionCard({
         </div>
       </div>
 
-      <div className="grid gap-3 px-4 py-4 lg:grid-cols-2">
+      <div className="grid gap-3 px-3 py-3 sm:px-4 sm:py-4 lg:grid-cols-2">
         <div className="min-w-0 space-y-3">
           <div>
             <div className="mb-1 flex items-center gap-1.5">
@@ -100,11 +100,7 @@ export function ActionCard({
               </span>
               <span className="inline-flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                {dateInfo ? (
-                  `${dateInfo.label} ${dateInfo.value}`
-                ) : (
-                  <OfficialText value={null} />
-                )}
+                {dateInfo ? `${dateInfo.label} ${dateInfo.value}` : <OfficialText value={null} />}
               </span>
             </div>
             {isLateWindow ? (
@@ -123,7 +119,7 @@ export function ActionCard({
         />
       </div>
 
-      <div className="border-t border-slate-100 px-4 py-3">
+      <div className="border-t border-slate-100 px-3 py-3 sm:px-4">
         <ActionButtons
           busy={busy}
           outreachDisabled={outreachDisabled}
