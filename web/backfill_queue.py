@@ -35,6 +35,27 @@ async def enqueue_start(*, cycle_id: str) -> str:
     return await _enqueue_stage(stage="discover:0", cycle_id=cycle_id)
 
 
+async def _fence_duplicate_delivery(*, stage: str, cycle_id: str) -> bool:
+    state = runtime.load_status()
+    if str(state.get("cycle_id") or "") != cycle_id:
+        return True
+
+    current_stage = state.get("current_stage")
+    status = str(state.get("status") or "")
+    if status == "COMPLETED" and current_stage is None:
+        return True
+
+    if status in {"RUNNING", "QUEUED"} and isinstance(current_stage, str) and current_stage and current_stage != stage:
+        # The delivered stage has already committed and the chain has advanced.
+        # Re-emit only the authoritative current stage using its idempotency key.
+        # This also closes the crash window between committing a stage and
+        # enqueueing its successor.
+        if _active_cycle_matches(cycle_id):
+            await _enqueue_stage(stage=current_stage, cycle_id=cycle_id)
+        return True
+    return False
+
+
 async def process_backfill_payload(payload: dict[str, Any]) -> None:
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
         return
@@ -45,6 +66,8 @@ async def process_backfill_payload(payload: dict[str, Any]) -> None:
         return
 
     if not _active_cycle_matches(cycle_id):
+        return
+    if await _fence_duplicate_delivery(stage=stage, cycle_id=cycle_id):
         return
 
     try:
