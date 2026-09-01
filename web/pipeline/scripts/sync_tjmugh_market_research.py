@@ -25,7 +25,7 @@ from medical_channel_pipeline.tjmugh_market_research import parse_tjmugh_market_
 
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 MIN_DETAIL_DELAY_SECONDS = 3.0
-DETAIL_FETCH_ATTEMPTS = 2
+FETCH_ATTEMPTS = 2
 RETRYABLE_HTTP_CODES = {408, 425, 429, 500, 502, 503, 504}
 
 
@@ -53,7 +53,7 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
-def is_retryable_detail_fetch_error(exc: Exception) -> bool:
+def is_retryable_fetch_error(exc: Exception) -> bool:
     message = str(exc)
     if message == 'TJMUGH_NETWORK_ERROR':
         return True
@@ -61,11 +61,11 @@ def is_retryable_detail_fetch_error(exc: Exception) -> bool:
     return bool(match and int(match.group(1)) in RETRYABLE_HTTP_CODES)
 
 
-def fetch_detail_with_retry(
+def fetch_page_with_retry(
     url: str,
     *,
     delay_seconds: float,
-    attempts: int = DETAIL_FETCH_ATTEMPTS,
+    attempts: int = FETCH_ATTEMPTS,
 ) -> str:
     if attempts < 1:
         raise ValueError('attempts must be >= 1')
@@ -73,7 +73,7 @@ def fetch_detail_with_retry(
         try:
             return fetch_tjmugh_page(url)
         except RuntimeError as exc:
-            if attempt >= attempts or not is_retryable_detail_fetch_error(exc):
+            if attempt >= attempts or not is_retryable_fetch_error(exc):
                 raise
             time.sleep(delay_seconds)
     raise AssertionError('unreachable')
@@ -123,7 +123,10 @@ def main() -> int:
     failures: list[dict] = []
 
     try:
-        index_html = fetch_tjmugh_page(INDEX_URL)
+        index_html = fetch_page_with_retry(
+            INDEX_URL,
+            delay_seconds=args.delay_seconds,
+        )
         discovered = parse_tjmugh_index_html(index_html)
     except Exception as exc:
         report = {
@@ -157,7 +160,7 @@ def main() -> int:
     for candidate in selected:
         time.sleep(args.delay_seconds)
         try:
-            detail_html = fetch_detail_with_retry(
+            detail_html = fetch_page_with_retry(
                 candidate.detail_url,
                 delay_seconds=args.delay_seconds,
             )
@@ -217,8 +220,8 @@ def main() -> int:
             'detail_must_pass_verified_parser': True,
             'failed_detail_never_replaces_existing_verified_record': True,
             'every_selected_detail_requires_current_or_existing_verified_record': True,
-            'retry_transient_detail_fetch_errors': True,
-            'detail_fetch_attempts': DETAIL_FETCH_ATTEMPTS,
+            'retry_transient_index_and_detail_fetch_errors': True,
+            'fetch_attempts': FETCH_ATTEMPTS,
             'rate_limit_bypass': False,
             'minimum_detail_delay_seconds': args.delay_seconds,
         },
