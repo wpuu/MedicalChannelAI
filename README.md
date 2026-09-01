@@ -12,4 +12,11 @@
 - 默认低成本模型候选：`agnes-2.5-flash`，仅承担分类、匹配、追问、解释和建议，不得成为官方事实权威
 - 未来可通过受控 Skill / Tool API 接入 Hermes，但本仓库独立于 Hermes 产品代码
 
+## Collector 执行面
+
+- 当前生产候选使用单一 Vercel Daily Cron 启动 `medicalchannelai-refresh-v2` Queue。
+- Collector canonical state、notice events、watch state、active cycle 与 latest verified snapshot 使用隔离的 Runtime Cache `:v2` namespace。
+- Queue worker 在每个 stage 执行前校验 active `cycle_id`；旧 deployment / 旧 cycle 的延迟重试不得写入新的 v2 执行状态。
+- verified snapshot 读取层仅允许经过完整 public snapshot validation 的 v1 → v2 一次性迁移；抓取失败不得覆盖最后一份已验证 snapshot。
+
 开发状态、验收条件和当前工作以仓库内 `docs/project/` 与机器可读 checkpoint 为准。
