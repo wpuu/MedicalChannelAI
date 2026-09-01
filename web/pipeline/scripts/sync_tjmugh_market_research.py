@@ -84,11 +84,14 @@ def publish_gate(
     index_discovery_succeeded: bool,
     selected_candidate_count: int,
     new_verified_record_count: int,
+    missing_selected_count: int,
 ) -> tuple[bool, str]:
     if not index_discovery_succeeded:
         return False, 'INDEX_DISCOVERY_FAILED'
-    if selected_candidate_count > 0 and new_verified_record_count <= 0:
-        return False, 'ALL_SELECTED_DETAILS_FAILED_VERIFICATION'
+    if missing_selected_count > 0:
+        if missing_selected_count == selected_candidate_count and new_verified_record_count <= 0:
+            return False, 'ALL_SELECTED_DETAILS_FAILED_VERIFICATION'
+        return False, 'SELECTED_DETAILS_INCOMPLETE'
     return True, 'PASS'
 
 
@@ -149,6 +152,7 @@ def main() -> int:
         end_date=local_date,
         max_candidates=args.max_candidates,
     )
+    selected_ids = [stable_opportunity_id(candidate.detail_url) for candidate in selected]
     new_records: list[dict] = []
     for candidate in selected:
         time.sleep(args.delay_seconds)
@@ -177,10 +181,17 @@ def main() -> int:
             )
 
     merged_records = merge_canonical_records(existing_records, new_records)
+    merged_ids = {
+        record.get('opportunity_id')
+        for record in merged_records
+        if isinstance(record, dict) and isinstance(record.get('opportunity_id'), str)
+    }
+    missing_selected_ids = [opportunity_id for opportunity_id in selected_ids if opportunity_id not in merged_ids]
     publish_allowed, publish_gate_reason = publish_gate(
         index_discovery_succeeded=True,
         selected_candidate_count=len(selected),
         new_verified_record_count=len(new_records),
+        missing_selected_count=len(missing_selected_ids),
     )
     report = {
         'schema_version': '0.1',
@@ -194,6 +205,8 @@ def main() -> int:
         'new_verified_record_count': len(new_records),
         'existing_record_count': len(existing_records),
         'merged_record_count': len(merged_records),
+        'missing_selected_count': len(missing_selected_ids),
+        'missing_selected_opportunity_ids': missing_selected_ids,
         'failure_count': len(failures),
         'failures': failures,
         'publish_allowed': publish_allowed,
@@ -203,7 +216,7 @@ def main() -> int:
             'only_supported_medical_equipment_market_research_titles': True,
             'detail_must_pass_verified_parser': True,
             'failed_detail_never_replaces_existing_verified_record': True,
-            'all_selected_details_failed_verification_blocks_publish': True,
+            'every_selected_detail_requires_current_or_existing_verified_record': True,
             'retry_transient_detail_fetch_errors': True,
             'detail_fetch_attempts': DETAIL_FETCH_ATTEMPTS,
             'rate_limit_bypass': False,
@@ -214,7 +227,8 @@ def main() -> int:
     write_json(args.report_output, report)
     print(
         f'discovered={len(discovered)} selected={len(selected)} verified={len(new_records)} '
-        f'records={len(merged_records)} failures={len(failures)} gate={publish_gate_reason}'
+        f'records={len(merged_records)} missing={len(missing_selected_ids)} '
+        f'failures={len(failures)} gate={publish_gate_reason}'
     )
     if not publish_allowed:
         print(f'TMUGH refresh publish blocked: {publish_gate_reason}', file=sys.stderr)
