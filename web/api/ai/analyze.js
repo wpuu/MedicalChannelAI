@@ -11,19 +11,24 @@ function firstHeaderValue(value) {
 
 /**
  * medicalai.qd.je is reverse-proxied through Caddy to Vercel. The browser keeps
- * Origin=https://medicalai.qd.je while the upstream Host can become a Vercel
+ * Origin=https://medicalai.qd.je while the upstream Host becomes a Vercel
  * hostname, so the core same-origin guard would otherwise reject our own UI.
- * Only the exact public first-party Origin is normalized; all other origins keep
- * the strict core validation unchanged.
+ * Only the exact public first-party Origin is normalized; every other origin
+ * continues through the strict core validation unchanged.
  */
 export default function handler(request, response) {
   const origin = firstHeaderValue(request.headers?.origin)
-  if (origin === PUBLIC_FIRST_PARTY_ORIGIN) {
-    request.headers = {
+  if (origin !== PUBLIC_FIRST_PARTY_ORIGIN) return coreHandler(request, response)
+
+  const normalizedRequest = {
+    ...request,
+    method: request.method,
+    body: request.body,
+    headers: {
       ...request.headers,
       host: 'medicalai.qd.je',
       'x-forwarded-host': 'medicalai.qd.je',
-    }
+    },
   }
-  return coreHandler(request, response)
+  return coreHandler(normalizedRequest, response)
 }
