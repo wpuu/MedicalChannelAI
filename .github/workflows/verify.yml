@@ -42,3 +42,30 @@ jobs:
       - name: Run full prebuild, typecheck and production build
         working-directory: web
         run: npm run build
+
+      - name: Print verified ranking summary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('web/public/data/today-actions.public.json')
+          data = json.loads(path.read_text(encoding='utf-8'))
+          print(f"snapshot_as_of={data['snapshot_as_of']}")
+          print(f"opportunity_pool_count={data['opportunity_pool_count']}")
+          for card in data['opportunity_pool'][:10]:
+              components = {item['code']: item['points'] for item in card['priority']['components']}
+              facts = card['facts']
+              print(json.dumps({
+                  'rank': card['rank'],
+                  'score': card['priority']['score'],
+                  'mode': card['recommendation_mode'],
+                  'hospital': facts.get('hospital_name') or facts.get('buyer_name'),
+                  'project': facts.get('project_name'),
+                  'budget_cny': (facts.get('budget') or {}).get('amount_cny') if isinstance(facts.get('budget'), dict) else None,
+                  'registration_deadline': facts.get('registration_deadline') or facts.get('registration_deadline_date'),
+                  'bid_deadline': facts.get('bid_deadline'),
+                  'components': components,
+              }, ensure_ascii=False))
+          PY
