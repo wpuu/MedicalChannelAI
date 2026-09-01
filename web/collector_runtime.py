@@ -323,7 +323,13 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         new_verified_record_count=len(new_records),
     )
     if not allowed:
-        raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}")
+        detail_failures = [item for item in failures if item.get("stage") == "verified_detail"]
+        diagnostic = ";".join(
+            f"{item.get('error')}:{item.get('message')}"
+            for item in detail_failures[:3]
+        )
+        suffix = f";DETAIL_FAILURES:{diagnostic}" if diagnostic else ""
+        raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}{suffix}")
 
     merged_records = merge_canonical_records(existing_records, new_records)
     watch_projects = active_ccgp_project_numbers(merged_records, as_of)
