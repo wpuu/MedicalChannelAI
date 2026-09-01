@@ -50,6 +50,15 @@ function shouldHideFromVerifiedTrialToday(card: TodayActionCard): boolean {
   return !Number.isNaN(remindAt) && remindAt > Date.now()
 }
 
+function userCoverageWarning(value: string): string {
+  return value
+    .replace(
+      '天津 Pilot · 公开事实来自证据流水线快照；当前仍为部分来源覆盖。',
+      '天津公开采购 · 商机来自已核验官方公开信息；当前仍为部分来源覆盖。',
+    )
+    .replaceAll('天津 Pilot', '天津公开采购')
+}
+
 export function TodayPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -126,17 +135,11 @@ export function TodayPage() {
     try {
       await todayActionsService.updateFollowup(id, { status, ...extra })
       await load(true)
-      if (isApiMode) {
-        toast('跟进状态已同步服务器', 'success')
-      } else if (status === 'CONTACTED') {
-        toast('已联系，商机已移入“我的跟进”', 'success')
-      } else if (status === 'NOT_FIT') {
-        toast('已标记不适合，记录已保留在“我的跟进”', 'success')
-      } else if (status === 'MONITOR' && extra?.remind_at) {
-        toast('提醒已设置，提醒前暂不占用今日重点', 'success')
-      } else {
-        toast('跟进状态已更新', 'success')
-      }
+      if (isApiMode) toast('跟进状态已同步服务器', 'success')
+      else if (status === 'CONTACTED') toast('已联系，商机已移入“我的跟进”', 'success')
+      else if (status === 'NOT_FIT') toast('已标记不适合，记录已保留在“我的跟进”', 'success')
+      else if (status === 'MONITOR' && extra?.remind_at) toast('提醒已设置，提醒前暂不占用今日重点', 'success')
+      else toast('跟进状态已更新', 'success')
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
@@ -151,23 +154,15 @@ export function TodayPage() {
   const analyzeOpportunity = async (id: string) => {
     const card = data?.cards.find((item) => item.opportunity_id === id)
     if (!card || !isVerifiedPublicDemo || isApiMode) return
-
     setAiBusyId(id)
     try {
       const decision = await requestAiDecision(card)
-      setRuntimeStatus((current) =>
-        current ? { ...current, ai: { configured: true } } : current,
-      )
+      setRuntimeStatus((current) => current ? { ...current, ai: { configured: true } } : current)
       setData((current) => {
         if (!current) return current
         const updateCard = (item: TodayActionCard) =>
           item.opportunity_id === id
-            ? {
-                ...item,
-                model_decision_status: 'READY' as const,
-                model_block_reason: null,
-                decision,
-              }
+            ? { ...item, model_decision_status: 'READY' as const, model_block_reason: null, decision }
             : item
         return {
           ...current,
@@ -178,9 +173,7 @@ export function TodayPage() {
       toast('AI行动建议已生成', 'success')
     } catch (cause) {
       if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
-        setRuntimeStatus((current) =>
-          current ? { ...current, ai: { configured: false } } : current,
-        )
+        setRuntimeStatus((current) => current ? { ...current, ai: { configured: false } } : current)
       }
       toast(aiDecisionErrorMessage(cause))
     } finally {
@@ -221,30 +214,30 @@ export function TodayPage() {
       : null
 
   return (
-    <div className="space-y-4">
-      <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className="space-y-3 sm:space-y-4">
+      <section className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-4 sm:py-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">今天值得跟的医疗商机</h2>
-            <p className="mt-1 text-[13px] leading-6 text-slate-500">
-              先看重点项目，再决定联系、跟进或让 AI 帮你分析。
+            <h2 className="text-[17px] font-semibold text-slate-900 sm:text-lg">今天值得跟的医疗商机</h2>
+            <p className="mt-1 text-[12px] leading-5 text-slate-500 sm:text-[13px] sm:leading-6">
+              先看重点，再决定联系、跟进或按需让AI分析。
             </p>
           </div>
-          <div className="flex items-center gap-1.5 text-[12px] text-slate-500">
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 sm:text-[12px]">
             <Clock className="h-3.5 w-3.5" />
             最近刷新 {formatDateTime(data.refreshed_at)}
           </div>
         </div>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="mt-2.5 flex flex-col gap-2 sm:mt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-start gap-1.5 text-[11px] leading-5 text-slate-400">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <span>{data.coverage_warning}</span>
+            <span>{userCoverageWarning(data.coverage_warning)}</span>
           </div>
           {!isApiMode && isVerifiedPublicDemo && poolCount > visibleCards.length ? (
             <button
               type="button"
               onClick={() => navigate('/opportunities')}
-              className="rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[12px] font-medium text-teal-800 hover:bg-teal-100"
+              className="self-start rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[12px] font-medium text-teal-800 hover:bg-teal-100"
             >
               查看全部 {poolCount} 条
             </button>
@@ -254,8 +247,8 @@ export function TodayPage() {
 
       {!isApiMode && isVerifiedPublicDemo ? (
         <div className="flex flex-wrap items-center gap-2 px-1 text-[11px] text-slate-500">
-          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">天津公开商机试用</span>
-          <span>公开信息可查看官方依据</span>
+          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">数据范围：天津公开采购</span>
+          <span>每条商机可查看官方依据</span>
           {runtimeStatus?.ai.configured ? (
             <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-indigo-700">AI可用</span>
           ) : runtimeStatus?.ai.configured === false ? (
@@ -291,11 +284,7 @@ export function TodayPage() {
               onNotFit={() => setNotFitId(card.opportunity_id)}
               onRemind={() => setRemindId(card.opportunity_id)}
               onOutreach={() => setOutreachId(card.opportunity_id)}
-              onAnalyze={
-                isVerifiedPublicDemo && !isApiMode
-                  ? () => void analyzeOpportunity(card.opportunity_id)
-                  : undefined
-              }
+              onAnalyze={isVerifiedPublicDemo && !isApiMode ? () => void analyzeOpportunity(card.opportunity_id) : undefined}
               analysisUnavailableReason={aiUnavailableReason}
             />
           ))}
@@ -319,17 +308,10 @@ export function TodayPage() {
           if (!remindId) return
           const id = remindId
           setRemindId(null)
-          void updateStatus(id, 'MONITOR', {
-            remind_at: remindAt,
-            note: '稍后提醒',
-          })
+          void updateStatus(id, 'MONITOR', { remind_at: remindAt, note: '稍后提醒' })
         }}
       />
-      <OutreachDrawer
-        open={Boolean(outreachId)}
-        opportunityId={outreachId}
-        onClose={() => setOutreachId(null)}
-      />
+      <OutreachDrawer open={Boolean(outreachId)} opportunityId={outreachId} onClose={() => setOutreachId(null)} />
     </div>
   )
 }

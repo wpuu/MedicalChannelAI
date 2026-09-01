@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react'
 import { Loader2, ShieldAlert, Sparkles } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import { MODEL_STATUS_COPY } from '@/utils/labels'
@@ -5,6 +6,10 @@ import { hasUserCustomerContext } from '@/utils/customerContext'
 import { SourceTag } from '@/components/shared/StageBadge'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
+import {
+  getAiRequestBusySnapshot,
+  subscribeAiRequestBusy,
+} from '@/services/aiRequestGate'
 
 interface DecisionBlockProps {
   card: TodayActionCard
@@ -21,6 +26,12 @@ export function DecisionBlock({
 }: DecisionBlockProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
   const hasCustomerContext = hasUserCustomerContext(card.customer_context)
+  const globalAiBusy = useSyncExternalStore(
+    subscribeAiRequestBusy,
+    getAiRequestBusySnapshot,
+    () => false,
+  )
+  const anotherAiRequestBusy = globalAiBusy && !analyzing
 
   if (card.model_decision_status === 'READY' && card.decision) {
     return (
@@ -84,9 +95,9 @@ export function DecisionBlock({
             {onAnalyze ? (
               <button
                 type="button"
-                disabled={analyzing}
+                disabled={Boolean(analyzing) || globalAiBusy}
                 onClick={onAnalyze}
-                className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-500 disabled:opacity-70"
               >
                 {analyzing ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -95,14 +106,20 @@ export function DecisionBlock({
                 )}
                 {analyzing
                   ? 'AI分析中'
-                  : hasCustomerContext
-                    ? '结合我的资源分析'
-                    : analysisUnavailableReason
-                      ? '重试AI分析'
-                      : '用AI分析这条'}
+                  : anotherAiRequestBusy
+                    ? '已有AI任务处理中'
+                    : hasCustomerContext
+                      ? '结合我的资源分析'
+                      : analysisUnavailableReason
+                        ? '重试AI分析'
+                        : '用AI分析这条'}
               </button>
             ) : null}
-            {analysisUnavailableReason ? (
+            {anotherAiRequestBusy ? (
+              <p className="mt-2 text-[11px] leading-5 text-slate-500">
+                为避免重复消耗，当前一次只处理一条AI分析。
+              </p>
+            ) : analysisUnavailableReason ? (
               <p className="mt-2 text-[11px] leading-5 text-amber-700">
                 {analysisUnavailableReason}
               </p>

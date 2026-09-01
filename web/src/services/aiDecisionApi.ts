@@ -1,5 +1,6 @@
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
 import type { CustomerContext, Decision, TodayActionCard } from '@/types'
+import { beginAiRequest, endAiRequest } from './aiRequestGate'
 
 const CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
 const MAX_CACHE_ENTRIES = 50
@@ -22,39 +23,18 @@ export class AiDecisionError extends Error {
 }
 
 export function aiDecisionErrorMessage(cause: unknown): string {
-  if (!(cause instanceof AiDecisionError)) {
-    return '网络连接异常或AI服务暂时不可用，请重试'
-  }
-  if (cause.code === 'AI_NOT_CONFIGURED') {
-    return 'AI服务尚未启用；公开商机和跟进功能不受影响'
-  }
-  if (cause.code === 'AI_RATE_LIMITED') {
-    return 'AI请求较多，请约1分钟后再试'
-  }
-  if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') {
-    return 'AI服务连接异常，请稍后再试'
-  }
-  if (cause.code === 'AI_TIMEOUT') {
-    return 'AI分析超时，可立即重试'
-  }
-  if (cause.code === 'AI_PROVIDER_UNAVAILABLE') {
-    return 'AI服务暂时连接失败，请稍后再试'
-  }
-  if (cause.code === 'VERIFIED_SNAPSHOT_UNAVAILABLE') {
-    return '公开商机数据正在更新，请稍后再试AI分析'
-  }
-  if (cause.code === 'SAME_ORIGIN_REQUIRED') {
-    return '当前访问地址未通过AI安全校验，请从正式站点进入'
-  }
-  if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') {
-    return '该项目公开窗口已经结束，当前不再生成行动建议'
-  }
-  if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') {
-    return '该商机暂不在已核验商机池中'
-  }
-  if (cause.code === 'AI_RESPONSE_INVALID') {
-    return 'AI返回内容未通过校验，请重试'
-  }
+  if (!(cause instanceof AiDecisionError)) return '网络连接异常或AI服务暂时不可用，请重试'
+  if (cause.code === 'AI_CLIENT_BUSY') return '已有AI分析任务正在处理，请稍候'
+  if (cause.code === 'AI_NOT_CONFIGURED') return 'AI服务尚未启用；公开商机和跟进功能不受影响'
+  if (cause.code === 'AI_RATE_LIMITED') return 'AI请求较多，请约1分钟后再试'
+  if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') return 'AI服务连接异常，请稍后再试'
+  if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，可立即重试'
+  if (cause.code === 'AI_PROVIDER_UNAVAILABLE') return 'AI服务暂时连接失败，请稍后再试'
+  if (cause.code === 'VERIFIED_SNAPSHOT_UNAVAILABLE') return '公开商机数据正在更新，请稍后再试AI分析'
+  if (cause.code === 'SAME_ORIGIN_REQUIRED') return '当前访问地址未通过AI安全校验，请从正式站点进入'
+  if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
+  if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机暂不在已核验商机池中'
+  if (cause.code === 'AI_RESPONSE_INVALID') return 'AI返回内容未通过校验，请重试'
   return 'AI分析暂时不可用，请重试'
 }
 
@@ -132,23 +112,13 @@ function readCache(): CachedDecisionEntry[] {
     const entries: CachedDecisionEntry[] = []
     for (const item of parsed) {
       const record = asRecord(item)
-      if (
-        !record ||
-        typeof record.snapshot_as_of !== 'string' ||
-        typeof record.opportunity_id !== 'string' ||
-        typeof record.cached_at !== 'string'
-      ) {
-        continue
-      }
+      if (!record || typeof record.snapshot_as_of !== 'string' || typeof record.opportunity_id !== 'string' || typeof record.cached_at !== 'string') continue
       const decision = normalizeDecision(record.decision)
       if (!decision) continue
       entries.push({
         snapshot_as_of: record.snapshot_as_of,
         opportunity_id: record.opportunity_id,
-        context_fingerprint:
-          typeof record.context_fingerprint === 'string'
-            ? record.context_fingerprint
-            : fingerprint(null),
+        context_fingerprint: typeof record.context_fingerprint === 'string' ? record.context_fingerprint : fingerprint(null),
         cached_at: record.cached_at,
         decision,
       })
@@ -177,10 +147,7 @@ export function clearAiDecisionCache(): void {
 
 async function getSnapshotAsOf(): Promise<string | null> {
   try {
-    const response = await fetch(verifiedSnapshotUrl, {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    })
+    const response = await fetch(verifiedSnapshotUrl, { headers: { Accept: 'application/json' }, cache: 'no-store' })
     if (!response.ok) return null
     const payload: unknown = await response.json()
     const record = asRecord(payload)
@@ -191,78 +158,33 @@ async function getSnapshotAsOf(): Promise<string | null> {
   }
 }
 
-function findCachedDecision(
-  opportunityId: string,
-  snapshotAsOf: string,
-  fingerprintValue: string,
-): Decision | null {
+function findCachedDecision(opportunityId: string, snapshotAsOf: string, fingerprintValue: string): Decision | null {
   const entry = readCache().find(
-    (item) =>
-      item.opportunity_id === opportunityId &&
-      item.snapshot_as_of === snapshotAsOf &&
-      item.context_fingerprint === fingerprintValue,
+    (item) => item.opportunity_id === opportunityId && item.snapshot_as_of === snapshotAsOf && item.context_fingerprint === fingerprintValue,
   )
   return entry?.decision ?? null
 }
 
-function cacheDecision(
-  opportunityId: string,
-  snapshotAsOf: string,
-  fingerprintValue: string,
-  decision: Decision,
-): void {
+function cacheDecision(opportunityId: string, snapshotAsOf: string, fingerprintValue: string, decision: Decision): void {
   const existing = readCache().filter(
-    (item) =>
-      !(
-        item.opportunity_id === opportunityId &&
-        item.snapshot_as_of === snapshotAsOf &&
-        item.context_fingerprint === fingerprintValue
-      ),
+    (item) => !(item.opportunity_id === opportunityId && item.snapshot_as_of === snapshotAsOf && item.context_fingerprint === fingerprintValue),
   )
-  writeCache([
-    {
-      snapshot_as_of: snapshotAsOf,
-      opportunity_id: opportunityId,
-      context_fingerprint: fingerprintValue,
-      cached_at: new Date().toISOString(),
-      decision,
-    },
-    ...existing,
-  ])
+  writeCache([{ snapshot_as_of: snapshotAsOf, opportunity_id: opportunityId, context_fingerprint: fingerprintValue, cached_at: new Date().toISOString(), decision }, ...existing])
 }
 
-export async function hydrateCachedAiDecisions(
-  cards: TodayActionCard[],
-): Promise<TodayActionCard[]> {
+export async function hydrateCachedAiDecisions(cards: TodayActionCard[]): Promise<TodayActionCard[]> {
   const snapshotAsOf = await getSnapshotAsOf()
   if (!snapshotAsOf) return cards
   return cards.map((card) => {
-    if (
-      card.model_decision_status === 'NOT_ELIGIBLE' ||
-      card.model_decision_status === 'BLOCKED_GROUNDING'
-    ) {
-      return card
-    }
-    const decision = findCachedDecision(
-      card.opportunity_id,
-      snapshotAsOf,
-      decisionFingerprint(card),
-    )
+    if (card.model_decision_status === 'NOT_ELIGIBLE' || card.model_decision_status === 'BLOCKED_GROUNDING') return card
+    const decision = findCachedDecision(card.opportunity_id, snapshotAsOf, decisionFingerprint(card))
     if (!decision) return card
-    return {
-      ...card,
-      model_decision_status: 'READY',
-      model_block_reason: null,
-      decision,
-    }
+    return { ...card, model_decision_status: 'READY', model_block_reason: null, decision }
   })
 }
 
 export async function requestAiDecision(card: TodayActionCard): Promise<Decision> {
-  if (
-    card.model_decision_status === 'NOT_ELIGIBLE' ||
-    card.model_decision_status === 'BLOCKED_GROUNDING'
-  ) {
+  if (card.model_decision_status === 'NOT_ELIGIBLE' || card.model_decision_status === 'BLOCKED_GROUNDING') {
     throw new AiDecisionError('OPPORTUNITY_WINDOW_CLOSED', 409)
   }
 
@@ -274,32 +196,29 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
     if (cached) return cached
   }
 
-  const response = await fetch('/api/ai/analyze', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      opportunity_id: card.opportunity_id,
-      ...(customerContext ? { customer_context: customerContext } : {}),
-    }),
-  })
+  if (!beginAiRequest()) throw new AiDecisionError('AI_CLIENT_BUSY', 429)
+  try {
+    const response = await fetch('/api/ai/analyze', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        opportunity_id: card.opportunity_id,
+        ...(customerContext ? { customer_context: customerContext } : {}),
+      }),
+    })
 
-  const payload: unknown = await response.json().catch(() => null)
-  const record = asRecord(payload)
-  if (!response.ok) {
-    const code = typeof record?.error === 'string' ? record.error : `AI_HTTP_${response.status}`
-    throw new AiDecisionError(code, response.status)
-  }
+    const payload: unknown = await response.json().catch(() => null)
+    const record = asRecord(payload)
+    if (!response.ok) {
+      const code = typeof record?.error === 'string' ? record.error : `AI_HTTP_${response.status}`
+      throw new AiDecisionError(code, response.status)
+    }
 
-  const decision = normalizeDecision(record?.decision)
-  if (!decision) {
-    throw new AiDecisionError('AI_RESPONSE_INVALID', 502)
+    const decision = normalizeDecision(record?.decision)
+    if (!decision) throw new AiDecisionError('AI_RESPONSE_INVALID', 502)
+    if (snapshotAsOf) cacheDecision(card.opportunity_id, snapshotAsOf, fingerprintValue, decision)
+    return decision
+  } finally {
+    endAiRequest()
   }
-
-  if (snapshotAsOf) {
-    cacheDecision(card.opportunity_id, snapshotAsOf, fingerprintValue, decision)
-  }
-  return decision
 }

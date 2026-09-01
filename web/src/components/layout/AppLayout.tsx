@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Activity, CalendarDays, LogOut, RotateCcw } from 'lucide-react'
+import {
+  Activity,
+  BookmarkCheck,
+  BriefcaseBusiness,
+  ClipboardList,
+  Layers3,
+  LogOut,
+  RotateCcw,
+} from 'lucide-react'
 import { APP_BUILD_LABEL } from '@/config/appVersion'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
@@ -8,7 +16,6 @@ import { isApiMode, logoutPilot } from '@/services/apiConfig'
 import { clearLocalCustomerProfile } from '@/services/localCustomerProfile'
 import { resetLocalFollowups } from '@/services/localFollowupStore'
 import { resetMockDemoState } from '@/services/MockTodayActionsService'
-import { formatToday } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
 const GROUNDED_AI_CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
@@ -33,12 +40,16 @@ export function AppLayout() {
   const { toast } = useToast()
   const [loggingOut, setLoggingOut] = useState(false)
 
-  const navClass = ({ isActive }: { isActive: boolean }) =>
+  const desktopNavClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      'rounded-lg px-2.5 py-1.5 text-[13px] font-medium sm:px-3',
-      isActive
-        ? 'bg-teal-700 text-white'
-        : 'text-slate-600 hover:bg-slate-100',
+      'rounded-lg px-3 py-1.5 text-[13px] font-medium',
+      isActive ? 'bg-teal-700 text-white' : 'text-slate-600 hover:bg-slate-100',
+    )
+
+  const mobileNavClass = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-medium',
+      isActive ? 'bg-teal-50 text-teal-800' : 'text-slate-500',
     )
 
   const handleLogout = async () => {
@@ -66,27 +77,29 @@ export function AppLayout() {
   }
 
   const modeLabel = isApiMode
-    ? '天津 Pilot'
+    ? '天津试用'
     : isVerifiedPublicDemo
-      ? '真实公开试用'
+      ? '天津公开试用'
       : '演示数据'
+
+  const showPoolAndResources = !isApiMode && isVerifiedPublicDemo
 
   return (
     <div className="min-h-screen bg-[#f3f5f7]">
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4">
+        <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between gap-3 px-3 sm:h-auto sm:px-4 sm:py-3">
           <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-700 text-white">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white sm:h-8 sm:w-8 sm:rounded-lg">
               <Activity className="h-4 w-4" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="hidden truncate text-[15px] font-semibold text-slate-900 min-[390px]:block">
+                <h1 className="truncate text-[16px] font-semibold text-slate-900 sm:text-[15px]">
                   医疗商机助手
                 </h1>
                 <span
                   className={cn(
-                    'shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ring-1',
+                    'hidden shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ring-1 lg:inline-flex',
                     isApiMode || isVerifiedPublicDemo
                       ? 'bg-teal-50 text-teal-800 ring-teal-200'
                       : 'bg-amber-50 text-amber-800 ring-amber-200',
@@ -95,40 +108,31 @@ export function AppLayout() {
                   {modeLabel}
                 </span>
               </div>
-              <p className="hidden items-center gap-1 text-[11px] text-slate-500 md:flex">
-                <CalendarDays className="h-3 w-3" />
-                {formatToday()}
-              </p>
             </div>
           </div>
-          <nav className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-            <NavLink to="/today" className={navClass}>
-              今日行动
-            </NavLink>
-            {!isApiMode && isVerifiedPublicDemo ? (
-              <NavLink to="/opportunities" className={navClass}>
-                商机池
-              </NavLink>
+
+          <nav className="hidden shrink-0 items-center gap-1 sm:flex">
+            <NavLink to="/today" className={desktopNavClass}>今日行动</NavLink>
+            {showPoolAndResources ? (
+              <NavLink to="/opportunities" className={desktopNavClass}>商机池</NavLink>
             ) : null}
-            <NavLink to="/followed" className={navClass}>
-              我的跟进
-            </NavLink>
-            {!isApiMode && isVerifiedPublicDemo ? (
-              <NavLink to="/resources" className={navClass}>
-                我的资源
-              </NavLink>
+            <NavLink to="/followed" className={desktopNavClass}>我的跟进</NavLink>
+            {showPoolAndResources ? (
+              <NavLink to="/resources" className={desktopNavClass}>我的资源</NavLink>
             ) : null}
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-1">
             {!isApiMode ? (
               <button
                 type="button"
                 onClick={handleResetTrial}
-                title={isVerifiedPublicDemo ? '清除本地试用状态' : '恢复演示初始状态'}
-                className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[12px] text-slate-500 hover:bg-slate-100 hover:text-slate-800 sm:px-2.5"
+                title={isVerifiedPublicDemo ? '清除本机试用状态' : '恢复演示初始状态'}
+                aria-label={isVerifiedPublicDemo ? '清除本机试用状态' : '恢复演示初始状态'}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 sm:h-auto sm:w-auto sm:gap-1 sm:px-2.5 sm:py-1.5 sm:text-[12px]"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">
-                  {isVerifiedPublicDemo ? '重置试用' : '重置演示'}
-                </span>
+                <RotateCcw className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                <span className="hidden lg:inline">{isVerifiedPublicDemo ? '重置试用' : '重置演示'}</span>
               </button>
             ) : null}
             {isApiMode ? (
@@ -136,23 +140,47 @@ export function AppLayout() {
                 type="button"
                 disabled={loggingOut}
                 onClick={() => void handleLogout()}
-                className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[12px] text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 sm:px-2.5"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 sm:h-auto sm:w-auto sm:gap-1 sm:px-2.5 sm:py-1.5 sm:text-[12px]"
               >
-                <LogOut className="h-3.5 w-3.5" />
+                <LogOut className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                 <span className="hidden sm:inline">退出</span>
               </button>
             ) : null}
-          </nav>
+          </div>
         </div>
-        <p className="border-t border-slate-100 px-4 py-1.5 text-center text-[11px] text-slate-500 md:hidden">
-          {formatToday()}
-        </p>
       </header>
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-4 pb-16 sm:py-6">
+
+      <main className="mx-auto w-full max-w-[1200px] px-3 py-3 pb-28 sm:px-4 sm:py-6 sm:pb-16">
         <Outlet />
       </main>
+
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 px-2 pt-1.5 pb-[calc(env(safe-area-inset-bottom)+0.45rem)] shadow-[0_-8px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:hidden">
+        <div className="mx-auto flex max-w-md gap-1">
+          <NavLink to="/today" className={mobileNavClass}>
+            <ClipboardList className="h-5 w-5" />
+            <span>今日</span>
+          </NavLink>
+          {showPoolAndResources ? (
+            <NavLink to="/opportunities" className={mobileNavClass}>
+              <Layers3 className="h-5 w-5" />
+              <span>商机</span>
+            </NavLink>
+          ) : null}
+          <NavLink to="/followed" className={mobileNavClass}>
+            <BookmarkCheck className="h-5 w-5" />
+            <span>跟进</span>
+          </NavLink>
+          {showPoolAndResources ? (
+            <NavLink to="/resources" className={mobileNavClass}>
+              <BriefcaseBusiness className="h-5 w-5" />
+              <span>资源</span>
+            </NavLink>
+          ) : null}
+        </div>
+      </nav>
+
       <div
-        className="fixed bottom-1 right-2 z-30 select-none rounded bg-white/80 px-1.5 py-0.5 text-[10px] text-slate-400 shadow-sm ring-1 ring-slate-200/70 backdrop-blur"
+        className="fixed bottom-1 right-2 z-30 hidden select-none rounded bg-white/80 px-1.5 py-0.5 text-[10px] text-slate-400 shadow-sm ring-1 ring-slate-200/70 backdrop-blur sm:block"
         title="当前页面版本与构建提交"
       >
         {APP_BUILD_LABEL}

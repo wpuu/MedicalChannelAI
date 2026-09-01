@@ -1,30 +1,35 @@
-import { ClipboardList, GitCompare, Loader, Target } from 'lucide-react'
+import { CheckCircle2, ClipboardList, Layers3, Target } from 'lucide-react'
 import type { TodayActionsResponse } from '@/types'
 
 const items = [
   {
-    key: 'input_candidate_count' as const,
-    label: '今日候选',
+    key: 'input_candidate_count',
+    label: '已核验候选',
     icon: ClipboardList,
-    hint: '进入筛选的公开项目',
+    hint: '进入事实筛选的公开项目',
+    value: (data: TodayActionsResponse) => data.input_candidate_count,
   },
   {
-    key: 'matched_count' as const,
-    label: '可行动商机',
-    icon: GitCompare,
-    hint: '通过公开事实行动筛选',
+    key: 'matched_count',
+    label: '商机池',
+    icon: Layers3,
+    hint: '当前仍值得判断或跟进',
+    value: (data: TodayActionsResponse) => data.matched_count,
   },
   {
-    key: 'card_count' as const,
+    key: 'card_count',
     label: '今日重点',
     icon: Target,
-    hint: '建议今天继续判断或行动',
+    hint: '优先处理的前几条商机',
+    value: (data: TodayActionsResponse) => data.card_count,
   },
   {
-    key: 'model_request_count' as const,
-    label: 'AI任务队列',
-    icon: Loader,
-    hint: '已提交模型处理的任务',
+    key: 'ai_ready',
+    label: '重点已分析',
+    icon: CheckCircle2,
+    hint: '今日重点中已有AI建议',
+    value: (data: TodayActionsResponse) =>
+      data.cards.filter((card) => card.model_decision_status === 'READY' && card.decision).length,
   },
 ]
 
@@ -43,9 +48,9 @@ export function MetricCards({ data }: { data: TodayActionsResponse }) {
               <span className="text-[12px]">{item.label}</span>
             </div>
             <div className="mt-1.5 text-2xl font-semibold tabular-nums text-slate-900">
-              {data[item.key]}
+              {item.value(data)}
             </div>
-            <p className="mt-0.5 text-[11px] text-slate-400">{item.hint}</p>
+            <p className="mt-0.5 text-[11px] leading-4 text-slate-400">{item.hint}</p>
           </div>
         )
       })}
