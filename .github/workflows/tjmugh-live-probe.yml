@@ -19,42 +19,49 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Inspect official deadline wording
+      - name: Verify official early-signal pipeline without publishing
         shell: bash
         run: |
-          set -euo pipefail
-          cd web/pipeline
+          set +e
+          set -uo pipefail
+          python web/pipeline/scripts/sync_tjmugh_market_research.py \
+            --as-of '2026-09-02T02:45:00+08:00' \
+            --lookback-days 30 \
+            --max-candidates 12 \
+            --delay-seconds 3 \
+            --records-output /tmp/tjmugh-records.json \
+            --report-output /tmp/tjmugh-report.json
+          sync_status=$?
           python - <<'PY'
-          import re
-          import time
-          from datetime import date
-          from medical_channel_pipeline.tjmugh_discovery import (
-              INDEX_URL,
-              fetch_tjmugh_page,
-              parse_tjmugh_index_html,
-              select_candidates_since,
-          )
-          from medical_channel_pipeline.tjmugh_market_research import _visible_text
+          import json
+          from pathlib import Path
 
-          index_html = fetch_tjmugh_page(INDEX_URL)
-          candidates = select_candidates_since(
-              parse_tjmugh_index_html(index_html),
-              start_date=date(2026, 8, 4),
-              end_date=date(2026, 9, 2),
-              max_candidates=12,
-          )
-          print(f'candidate_count={len(candidates)}')
-          for candidate in candidates:
-              time.sleep(3)
-              text = _visible_text(fetch_tjmugh_page(candidate.detail_url))
-              snippets = []
-              for match in re.finditer(r'报名|截止', text):
-                  start = max(0, match.start() - 100)
-                  end = min(len(text), match.end() + 220)
-                  snippet = re.sub(r'\s+', ' ', text[start:end]).strip()
-                  if snippet not in snippets:
-                      snippets.append(snippet)
-              print(f'--- {candidate.published_at} {candidate.detail_url}')
-              for snippet in snippets[:6]:
-                  print(snippet)
+          report_path = Path('/tmp/tjmugh-report.json')
+          records_path = Path('/tmp/tjmugh-records.json')
+          report = json.loads(report_path.read_text(encoding='utf-8')) if report_path.exists() else {}
+          records = json.loads(records_path.read_text(encoding='utf-8')) if records_path.exists() else []
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          print(f'record_count={len(records)}')
+          for record in records:
+              facts = record['facts']
+              print(json.dumps({
+                  'opportunity_id': record['opportunity_id'],
+                  'project_name': facts.get('project_name'),
+                  'published_at': facts.get('published_at'),
+                  'registration_deadline': facts.get('registration_deadline'),
+                  'product_count': len(facts.get('product_items') or []),
+                  'contact': facts.get('public_contact'),
+              }, ensure_ascii=False))
+          target = [record for record in records if record['facts'].get('published_at') == '2026-08-31']
+          if not target:
+              raise SystemExit('LIVE_PROBE_2026_08_31_DETAIL_NOT_VERIFIED')
+          if target[0]['facts'].get('registration_deadline') != '2026-09-03T17:00:00+08:00':
+              raise SystemExit('LIVE_PROBE_2026_08_31_DEADLINE_WRONG')
+          if not target[0]['facts'].get('product_items'):
+              raise SystemExit('LIVE_PROBE_2026_08_31_PRODUCTS_MISSING')
           PY
+          verify_status=$?
+          if [[ "$sync_status" -ne 0 ]]; then
+            exit "$sync_status"
+          fi
+          exit "$verify_status"
