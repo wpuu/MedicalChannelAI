@@ -1,11 +1,7 @@
 [project]
 name = "medicalchannelai-runtime"
-version = "0.2.0"
+version = "0.2.2"
 requires-python = ">=3.12"
 dependencies = [
   "vercel",
-  "vercel-workflow",
 ]
-
-[[tool.vercel.workflows]]
-entrypoint = "collector_workflow:wf"

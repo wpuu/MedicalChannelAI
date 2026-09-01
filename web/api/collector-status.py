@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler
 
 from vercel.functions import RuntimeCache
 
-STATUS_KEY = "medicalchannelai:collector-workflow-status:v1"
+STATE_KEY = "medicalchannelai:collector-cron-smoke:v1"
 
 
 class handler(BaseHTTPRequestHandler):
@@ -21,13 +21,12 @@ class handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         try:
-            value = RuntimeCache().get(STATUS_KEY)
+            value = RuntimeCache().get(STATE_KEY)
             if not isinstance(value, dict):
                 value = {
                     "schema_version": "0.1",
-                    "phase": "IDLE",
-                    "triggered_at": None,
-                    "run_id": None,
+                    "local_date": None,
+                    "stages": {},
                     "updated_at": None,
                 }
             self._send_json(

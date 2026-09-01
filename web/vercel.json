@@ -5,6 +5,16 @@
       "chatgpt/m1-evidence-pipeline-v1": true
     }
   },
+  "crons": [
+    {
+      "path": "/api/collector-cron-smoke?stage=a",
+      "schedule": "20 0 * * *"
+    },
+    {
+      "path": "/api/collector-cron-smoke?stage=b",
+      "schedule": "40 0 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
