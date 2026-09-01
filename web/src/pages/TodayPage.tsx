@@ -56,7 +56,7 @@ function userCoverageWarning(value: string): string {
       '天津 Pilot · 公开事实来自证据流水线快照；当前仍为部分来源覆盖。',
       '天津公开采购 · 商机来自已核验官方公开信息；当前仍为部分来源覆盖。',
     )
-    .replaceAll('天津 Pilot', '天津公开采购')
+    .split('天津 Pilot').join('天津公开采购')
 }
 
 export function TodayPage() {
