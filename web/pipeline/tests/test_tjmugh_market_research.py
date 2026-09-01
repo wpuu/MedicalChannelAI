@@ -25,6 +25,20 @@ FIXTURE = """
 </body></html>
 """
 
+FRAGMENTED_LIVE_FIXTURE = """
+<html><body>
+<h3>天津医科大学总医院医疗设备项目市场调研论证邀请函</h3>
+<div>2026-08-31 09:00</div>
+<p>天津医科大学总医院设备采购科拟开展院内项目市场调研论证。</p>
+<p>一、论证项目名称：</p>
+<p>（1）设备甲（2）设备乙2套</p>
+<p>二、供应商参加本次论证活动必须提供下列相关材料：</p>
+<p>本次报名为现场报名，报名需携带营业执照，报名截止时间为：2026年9月3日下午17：:0<span>0</span>点前。</p>
+<p>三、联系方式：</p>
+<p>联系电话：6<span>036</span><span>177</span><span>7张老师</span></p>
+</body></html>
+"""
+
 
 class TjmughMarketResearchTests(unittest.TestCase):
     def test_official_market_research_page_becomes_verified_record(self) -> None:
@@ -39,6 +53,18 @@ class TjmughMarketResearchTests(unittest.TestCase):
         self.assertEqual(record["facts"]["registration_deadline"], "2026-08-07T17:00:00+08:00")
         self.assertEqual(len(record["facts"]["product_items"]), 5)
         self.assertEqual(record["facts"]["public_contact"]["phone"], "60361777")
+
+    def test_live_numeric_node_fragmentation_does_not_destroy_verified_facts(self) -> None:
+        record = parse_tjmugh_market_research(
+            FRAGMENTED_LIVE_FIXTURE,
+            source_url="https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+            observed_at="2026-09-01T18:43:00Z",
+            opportunity_id="tjmugh_20260831_030337994",
+        )
+        self.assertEqual(record["facts"]["registration_deadline"], "2026-09-03T17:00:00+08:00")
+        self.assertEqual(record["facts"]["public_contact"]["phone"], "60361777")
+        self.assertEqual(record["facts"]["public_contact"]["name"], "张老师")
+        self.assertEqual([item["raw_name"] for item in record["facts"]["product_items"]], ["设备甲", "设备乙2套"])
 
     def test_closed_market_research_is_kept_in_fact_layer_but_not_today_feed(self) -> None:
         seed = Path(__file__).resolve().parents[1] / "data" / "tianjin_official_institution_seed.json"
