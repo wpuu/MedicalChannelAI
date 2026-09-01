@@ -19,30 +19,38 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Probe official index with production discovery code
+      - name: Probe official early-signal pipeline without publishing
         shell: bash
         run: |
           set -euo pipefail
-          cd web/pipeline
+          python web/pipeline/scripts/sync_tjmugh_market_research.py \
+            --as-of '2026-09-02T01:28:00+08:00' \
+            --lookback-days 30 \
+            --max-candidates 12 \
+            --delay-seconds 3 \
+            --output /tmp/tjmugh-records.json \
+            --report-output /tmp/tjmugh-report.json
           python - <<'PY'
-          import re
-          from medical_channel_pipeline.tjmugh_discovery import INDEX_URL, fetch_tjmugh_page, parse_tjmugh_index_html
+          import json
+          from pathlib import Path
 
-          html = fetch_tjmugh_page(INDEX_URL)
-          candidates = parse_tjmugh_index_html(html)
-          charset = re.search(r'charset\s*=\s*["\']?\s*([A-Za-z0-9._-]+)', html, re.I)
-          print(f'html_chars={len(html)}')
-          print(f'meta_charset={charset.group(1) if charset else "NONE"}')
-          print(f'contains_hospital={"天津医科大学总医院" in html}')
-          print(f'contains_medical_equipment={"医疗设备" in html}')
-          print(f'contains_market_research={"市场调研" in html}')
-          print(f'system_link_text_count={html.count("/system/")}')
-          print(f'absolute_http_system_links={len(re.findall(r"href=[\\\"\\\']http://(?:www\\.)?tjmugh\\.com\\.cn/system/", html, re.I))}')
-          print(f'absolute_https_system_links={len(re.findall(r"href=[\\\"\\\']https://(?:www\\.)?tjmugh\\.com\\.cn/system/", html, re.I))}')
-          print(f'relative_system_links={len(re.findall(r"href=[\\\"\\\']/system/", html, re.I))}')
-          print(f'supported_candidates={len(candidates)}')
-          for item in candidates[:10]:
-              print(f'candidate={item.published_at}|{item.title}|{item.detail_url}')
-          if not any(item.published_at == '2026-08-31' for item in candidates):
-              raise SystemExit('LIVE_PROBE_MISSING_2026_08_31_SUPPORTED_NOTICE')
+          report = json.loads(Path('/tmp/tjmugh-report.json').read_text(encoding='utf-8'))
+          records = json.loads(Path('/tmp/tjmugh-records.json').read_text(encoding='utf-8'))
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          print(f'record_count={len(records)}')
+          for record in records:
+              facts = record['facts']
+              print(json.dumps({
+                  'opportunity_id': record['opportunity_id'],
+                  'project_name': facts.get('project_name'),
+                  'published_at': facts.get('published_at'),
+                  'registration_deadline': facts.get('registration_deadline'),
+                  'products': [item.get('raw_name') for item in facts.get('product_items') or []],
+                  'contact': facts.get('public_contact'),
+              }, ensure_ascii=False))
+          target = [r for r in records if r['facts'].get('published_at') == '2026-08-31']
+          if not target:
+              raise SystemExit('LIVE_PROBE_2026_08_31_DETAIL_NOT_VERIFIED')
+          if not target[0]['facts'].get('product_items'):
+              raise SystemExit('LIVE_PROBE_2026_08_31_PRODUCTS_MISSING')
           PY
