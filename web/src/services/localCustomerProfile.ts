@@ -421,7 +421,7 @@ export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard
       card.priority.score -
         Math.round((card.priority.components.PRODUCT_EXECUTION_CAPABILITY / 100) * 25) -
         Math.round((card.priority.components.RELATIONSHIP / 100) * 10) -
-        Math.round((card.priority.components.EXECUTION_FLEXIBILITY / 100) * 5),
+        Math.round(((card.priority.components.EXECUTION_FLEXIBILITY ?? 0) / 100) * 5),
     )
     const privatePoints = capabilityPoint + relationPoint + flexibilityPoint
 
