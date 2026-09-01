@@ -3,11 +3,12 @@ from __future__ import annotations
 import re
 from dataclasses import asdict, dataclass
 from html.parser import HTMLParser
-from urllib.parse import urlencode, urljoin
+from urllib.parse import urlencode, urljoin, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
 CCGP_SEARCH_URL = "https://search.ccgp.gov.cn/bxsearch"
 CCGP_DETAIL_BASE = "https://www.ccgp.gov.cn/"
+CCGP_DETAIL_HOSTS = {"ccgp.gov.cn", "www.ccgp.gov.cn"}
 RATE_LIMIT_MARKERS = ("您的访问过于频繁", "频繁访问")
 
 BID_TYPE_CODES = {
@@ -24,8 +25,6 @@ BID_TYPE_CODES = {
     "终止公告": "10",
 }
 
-# CCGP public-search region IDs follow its province-level selector contract.
-# The Tianjin Pilot is intentionally locked to Tianjin instead of querying nationwide.
 REGION_ZONE_IDS = {
     "天津": "12",
 }
@@ -173,6 +172,25 @@ def _parse_meta(meta: str) -> tuple[str | None, str | None, str | None, str | No
     return published_at, buyer_name, region, notice_type
 
 
+def _canonical_detail_url(href: str) -> str:
+    detail_url = urljoin(CCGP_DETAIL_BASE, href)
+    parsed = urlsplit(detail_url)
+    hostname = (parsed.hostname or "").lower()
+
+    # CCGP search has historically emitted absolute http://www.ccgp.gov.cn links.
+    # Upgrade only the exact national CCGP hosts to HTTPS. Never rewrite an
+    # external/local-government host into a trusted national host.
+    if (
+        parsed.scheme == "http"
+        and hostname in CCGP_DETAIL_HOSTS
+        and parsed.username is None
+        and parsed.password is None
+        and parsed.port in (None, 80)
+    ):
+        return urlunsplit(("https", hostname, parsed.path, parsed.query, parsed.fragment))
+    return detail_url
+
+
 def parse_search_html(html: str, *, keyword: str) -> list[DiscoveryCandidate]:
     if any(marker in html for marker in RATE_LIMIT_MARKERS):
         raise RuntimeError("CCGP_RATE_LIMITED")
@@ -181,7 +199,7 @@ def parse_search_html(html: str, *, keyword: str) -> list[DiscoveryCandidate]:
     candidates: list[DiscoveryCandidate] = []
     seen_urls: set[str] = set()
     for title, href, meta in parser.rows:
-        detail_url = urljoin(CCGP_DETAIL_BASE, href)
+        detail_url = _canonical_detail_url(href)
         if detail_url in seen_urls:
             continue
         seen_urls.add(detail_url)
@@ -211,7 +229,7 @@ def fetch_search_page(search_url: str, *, timeout_seconds: int = 30) -> str:
             "Accept-Language": "zh-CN,zh;q=0.9",
         },
     )
-    with urlopen(request, timeout=timeout_seconds) as response:  # no anti-bot bypass
+    with urlopen(request, timeout=timeout_seconds) as response:
         body = response.read()
         charset = response.headers.get_content_charset() or "utf-8"
     html = body.decode(charset, errors="replace")
