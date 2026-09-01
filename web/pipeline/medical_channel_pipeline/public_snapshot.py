@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -36,28 +36,118 @@ def _actionability(facts: dict[str, Any], as_of: datetime) -> tuple[str, int, st
     if registration and registration <= as_of:
         if not bid:
             return "ARCHIVE", 0, "NOT_ELIGIBLE"
-        return "LATE_WINDOW", 15, "AWAITING_MODEL"
+        return "LATE_WINDOW", 8, "AWAITING_MODEL"
     if registration is None and registration_date is not None:
         local_date = as_of.astimezone(TIANJIN_TZ).date()
         if registration_date < local_date:
             if not bid:
                 return "ARCHIVE", 0, "NOT_ELIGIBLE"
-            return "LATE_WINDOW", 15, "AWAITING_MODEL"
-    return "PUBLIC_OPPORTUNITY", 40, "AWAITING_MODEL"
+            return "LATE_WINDOW", 8, "AWAITING_MODEL"
+    return "PUBLIC_OPPORTUNITY", 25, "AWAITING_MODEL"
+
+
+def _next_action_deadline(facts: dict[str, Any], as_of: datetime) -> datetime | None:
+    registration = _as_datetime(facts.get("registration_deadline"))
+    if registration and registration > as_of:
+        return registration
+
+    registration_date = _as_date(facts.get("registration_deadline_date"))
+    if registration is None and registration_date is not None:
+        local_date = as_of.astimezone(TIANJIN_TZ).date()
+        if registration_date >= local_date:
+            return datetime.combine(registration_date, time.max, tzinfo=TIANJIN_TZ)
+
+    bid = _as_datetime(facts.get("bid_deadline"))
+    if bid and bid > as_of:
+        return bid
+    return None
+
+
+def _deadline_urgency_points(facts: dict[str, Any], as_of: datetime) -> int:
+    deadline = _next_action_deadline(facts, as_of)
+    if deadline is None:
+        return 0
+    hours_left = (deadline - as_of).total_seconds() / 3600
+    if hours_left < 0:
+        return 0
+    if hours_left <= 24:
+        return 10
+    if hours_left <= 72:
+        return 9
+    if hours_left <= 7 * 24:
+        return 7
+    if hours_left <= 14 * 24:
+        return 5
+    if hours_left <= 30 * 24:
+        return 3
+    return 1
 
 
 def _amount_points(budget: int | None) -> int:
     if budget is None:
         return 0
     if budget >= 5_000_000:
-        return 20
+        return 10
     if budget >= 3_000_000:
-        return 18
+        return 9
     if budget >= 1_000_000:
-        return 14
+        return 7
     if budget >= 500_000:
-        return 8
-    return 4
+        return 4
+    if budget > 0:
+        return 2
+    return 0
+
+
+def _product_specificity_points(facts: dict[str, Any]) -> int:
+    points = 0
+    items = facts.get("product_items") or []
+    categories = facts.get("product_categories") or []
+    if isinstance(items, list) and items:
+        points += 4
+    if isinstance(categories, list) and categories:
+        points += 2
+    if facts.get("department"):
+        points += 1
+    if facts.get("procurement_method"):
+        points += 1
+    return min(8, points)
+
+
+def _publication_freshness_points(facts: dict[str, Any], as_of: datetime) -> int:
+    value = facts.get("published_at")
+    if not value:
+        return 0
+    try:
+        published_date = date.fromisoformat(str(value)[:10])
+    except ValueError:
+        return 0
+    local_date = as_of.astimezone(TIANJIN_TZ).date()
+    age_days = (local_date - published_date).days
+    if age_days < 0:
+        return 0
+    if age_days <= 1:
+        return 7
+    if age_days <= 3:
+        return 6
+    if age_days <= 7:
+        return 5
+    if age_days <= 14:
+        return 3
+    if age_days <= 30:
+        return 1
+    return 0
+
+
+def _public_score_components(facts: dict[str, Any], as_of: datetime) -> dict[str, int]:
+    _, intervention_points, _ = _actionability(facts, as_of)
+    return {
+        "INTERVENTION_STAGE": intervention_points,
+        "DEADLINE_URGENCY": _deadline_urgency_points(facts, as_of),
+        "PROJECT_AMOUNT": _amount_points(facts.get("budget_cny")),
+        "PRODUCT_SPECIFICITY": _product_specificity_points(facts),
+        "PUBLICATION_FRESHNESS": _publication_freshness_points(facts, as_of),
+    }
 
 
 def _event_is_effective(event: dict[str, Any], as_of: datetime) -> bool:
@@ -162,8 +252,9 @@ def _public_card(
     correction_evidence_urls: list[str] | None = None,
 ) -> dict[str, Any]:
     facts = record["facts"]
-    mode, intervention_points, model_status = _actionability(facts, as_of)
-    amount_points = _amount_points(facts.get("budget_cny"))
+    mode, _, model_status = _actionability(facts, as_of)
+    components = _public_score_components(facts, as_of)
+    public_score = sum(components.values())
     public_facts = {
         "project_number": facts.get("project_number"),
         "project_name": facts.get("project_name"),
@@ -214,13 +305,13 @@ def _public_card(
         },
         "priority": {
             "schema_version": "0.1",
-            "score": amount_points + intervention_points,
-            "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+            "score": public_score,
+            "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
             "components": [
                 {
                     "code": "PRODUCT_EXECUTION_CAPABILITY",
                     "points": 0,
-                    "max_points": 30,
+                    "max_points": 25,
                     "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
                     "profile_paths": [],
                     "opportunity_paths": [],
@@ -234,9 +325,17 @@ def _public_card(
                     "opportunity_paths": [],
                 },
                 {
+                    "code": "EXECUTION_FLEXIBILITY",
+                    "points": 0,
+                    "max_points": 5,
+                    "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+                    "profile_paths": [],
+                    "opportunity_paths": [],
+                },
+                {
                     "code": "INTERVENTION_STAGE",
-                    "points": intervention_points,
-                    "max_points": 40,
+                    "points": components["INTERVENTION_STAGE"],
+                    "max_points": 25,
                     "basis": mode,
                     "profile_paths": [],
                     "opportunity_paths": [
@@ -246,12 +345,45 @@ def _public_card(
                     ],
                 },
                 {
+                    "code": "DEADLINE_URGENCY",
+                    "points": components["DEADLINE_URGENCY"],
+                    "max_points": 10,
+                    "basis": "NEXT_ACTIONABLE_DEADLINE",
+                    "profile_paths": [],
+                    "opportunity_paths": [
+                        "facts.registration_deadline",
+                        "facts.registration_deadline_date",
+                        "facts.bid_deadline",
+                    ],
+                },
+                {
                     "code": "PROJECT_AMOUNT",
-                    "points": amount_points,
-                    "max_points": 20,
+                    "points": components["PROJECT_AMOUNT"],
+                    "max_points": 10,
                     "basis": "PUBLIC_BUDGET_ONLY",
                     "profile_paths": [],
                     "opportunity_paths": ["facts.budget_cny"],
+                },
+                {
+                    "code": "PRODUCT_SPECIFICITY",
+                    "points": components["PRODUCT_SPECIFICITY"],
+                    "max_points": 8,
+                    "basis": "PUBLIC_EXECUTION_DETAIL_COMPLETENESS",
+                    "profile_paths": [],
+                    "opportunity_paths": [
+                        "facts.product_items",
+                        "facts.product_categories",
+                        "facts.department",
+                        "facts.procurement_method",
+                    ],
+                },
+                {
+                    "code": "PUBLICATION_FRESHNESS",
+                    "points": components["PUBLICATION_FRESHNESS"],
+                    "max_points": 7,
+                    "basis": "OFFICIAL_PUBLICATION_RECENCY",
+                    "profile_paths": [],
+                    "opportunity_paths": ["facts.published_at"],
                 },
             ],
             "warnings": ["ZERO_CONFIG_PUBLIC_FACTS_ONLY", *(record.get("quality_flags") or [])],
@@ -265,6 +397,23 @@ def _public_card(
     }
 
 
+def _published_sort_timestamp(facts: dict[str, Any]) -> float:
+    value = facts.get("published_at")
+    if not value:
+        return 0.0
+    try:
+        published = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if published.tzinfo is None:
+            published = published.replace(tzinfo=TIANJIN_TZ)
+        return published.timestamp()
+    except ValueError:
+        try:
+            published_date = date.fromisoformat(str(value)[:10])
+            return datetime.combine(published_date, time.min, tzinfo=TIANJIN_TZ).timestamp()
+        except ValueError:
+            return 0.0
+
+
 def build_public_snapshot(
     records: list[dict[str, Any]],
     as_of: datetime,
@@ -275,7 +424,7 @@ def build_public_snapshot(
     validated = validate_records(records)
     event_states = _build_event_states(notice_events or [], as_of)
 
-    sortable: list[tuple[int, str, dict[str, Any], list[str]]] = []
+    sortable: list[tuple[int, float, float, str, dict[str, Any], list[str]]] = []
     for record in validated:
         facts = record["facts"]
         project_number = str(facts.get("project_number") or "").strip().lower()
@@ -285,15 +434,27 @@ def build_public_snapshot(
             continue
 
         effective_facts = effective_record["facts"]
-        mode, intervention, _ = _actionability(effective_facts, as_of)
+        mode, _, _ = _actionability(effective_facts, as_of)
         if mode == "ARCHIVE":
             continue
-        score = intervention + _amount_points(effective_facts.get("budget_cny"))
-        sortable.append((-score, effective_record["opportunity_id"], effective_record, correction_urls))
+        score = sum(_public_score_components(effective_facts, as_of).values())
+        deadline = _next_action_deadline(effective_facts, as_of)
+        deadline_sort = deadline.timestamp() if deadline else float("inf")
+        published_sort = -_published_sort_timestamp(effective_facts)
+        sortable.append(
+            (
+                -score,
+                deadline_sort,
+                published_sort,
+                effective_record["opportunity_id"],
+                effective_record,
+                correction_urls,
+            )
+        )
 
-    sortable.sort(key=lambda item: (item[0], item[1]))
+    sortable.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
     opportunity_pool = [
-        _public_card(item[2], rank + 1, as_of, item[3])
+        _public_card(item[4], rank + 1, as_of, item[5])
         for rank, item in enumerate(sortable)
     ]
     cards = opportunity_pool[:MAX_TODAY_CARDS]
