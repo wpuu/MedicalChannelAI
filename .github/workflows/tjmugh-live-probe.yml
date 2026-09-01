@@ -25,9 +25,9 @@ jobs:
           set +e
           set -uo pipefail
           python web/pipeline/scripts/sync_tjmugh_market_research.py \
-            --as-of '2026-09-02T02:49:00+08:00' \
+            --as-of '2026-09-02T02:52:00+08:00' \
             --lookback-days 30 \
-            --max-candidates 12 \
+            --max-candidates 4 \
             --delay-seconds 3 \
             --records-output /tmp/tjmugh-records.json \
             --report-output /tmp/tjmugh-report.json
@@ -59,6 +59,8 @@ jobs:
               raise SystemExit('LIVE_PROBE_2026_08_31_DEADLINE_WRONG')
           if not target[0]['facts'].get('product_items'):
               raise SystemExit('LIVE_PROBE_2026_08_31_PRODUCTS_MISSING')
+          if report.get('publish_gate_reason') != 'PASS' or report.get('missing_selected_count') != 0:
+              raise SystemExit('LIVE_PROBE_PUBLISH_GATE_NOT_COMPLETE')
           PY
           verify_status=$?
           if [[ "$sync_status" -ne 0 ]]; then
