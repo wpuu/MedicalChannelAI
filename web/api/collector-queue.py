@@ -8,7 +8,13 @@ QUEUE_TOPIC = Topic[dict[str, object]]("medicalchannelai-refresh")
 CONSUMER_GROUP = "api/collector-queue.py"
 
 
-@subscribe(topic=QUEUE_TOPIC, consumer_group=CONSUMER_GROUP)
+@subscribe(
+    topic=QUEUE_TOPIC,
+    consumer_group=CONSUMER_GROUP,
+    retry_after=150,
+    max_concurrency=1,
+    max_attempts=3,
+)
 async def collector_worker(message: Message[dict[str, object]]) -> None:
     payload = message.payload
     if isinstance(payload, dict):
