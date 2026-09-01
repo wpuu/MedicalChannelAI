@@ -120,8 +120,12 @@ export interface CustomerContext {
 export interface PriorityComponents {
   PRODUCT_EXECUTION_CAPABILITY: number
   RELATIONSHIP: number
+  EXECUTION_FLEXIBILITY: number
   INTERVENTION_STAGE: number
+  DEADLINE_URGENCY: number
   PROJECT_AMOUNT: number
+  PRODUCT_SPECIFICITY: number
+  PUBLICATION_FRESHNESS: number
 }
 
 export interface Priority {
