@@ -47,7 +47,16 @@ async def process_backfill_payload(payload: dict[str, Any]) -> None:
     if not _active_cycle_matches(cycle_id):
         return
 
-    status, result = runtime.run_stage(stage, cycle_id=cycle_id)
+    try:
+        status, result = runtime.run_stage(stage, cycle_id=cycle_id)
+    except runtime.BackfillError as exc:
+        # run_stage can reject an already-exhausted stage before entering its
+        # internal handler. The runtime has already persisted FAILED state, so
+        # acknowledge the final delivery instead of asking Queue to retry it.
+        if "BACKFILL_STAGE_RETRY_LIMIT" in str(exc):
+            return
+        raise
+
     action = str(result.get("action") or "")
     next_stage = result.get("next_stage")
 
