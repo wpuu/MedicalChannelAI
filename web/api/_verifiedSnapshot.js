@@ -7,6 +7,7 @@ const MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024
 const MAX_TODAY_CARDS = 5
 const MAX_OPPORTUNITY_POOL = 500
 const LATEST_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:latest:v1'
+const RUNTIME_SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
   'model_requests', 'model_input', 'task_payloads', 'agnes_dispatch_plan', 'lease', 'lease_id',
@@ -132,7 +133,22 @@ async function loadRuntimeCachedSnapshot() {
   if (!process.env.VERCEL_REGION) return null
   const cache = getCache()
   const value = await cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
-  return value ? validateVerifiedSnapshot(value) : null
+  if (value) {
+    try {
+      return validateVerifiedSnapshot(value)
+    } catch {
+      // Invalid collector state is never served. Replace it with the known-good bundled snapshot.
+    }
+  }
+
+  const bundled = bundledVerifiedSnapshot()
+  await cache.set(LATEST_RUNTIME_SNAPSHOT_KEY, bundled, {
+    ttl: RUNTIME_SNAPSHOT_TTL_SECONDS,
+    tags: ['medicalchannelai-verified-snapshot'],
+  })
+  const readBack = await cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
+  if (!readBack) throw new Error('RUNTIME_SNAPSHOT_READBACK_FAILED')
+  return validateVerifiedSnapshot(readBack)
 }
 export async function loadVerifiedSnapshot() {
   const remoteUrl = configuredRemoteUrl()
