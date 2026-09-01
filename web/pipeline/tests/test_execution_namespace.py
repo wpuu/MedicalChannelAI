@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import sys
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-from collector_namespace import (
+WEB_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(WEB_ROOT))
+
+from collector_namespace import (  # noqa: E402
     ACTIVE_CYCLE_KEY,
     CCGP_EVENTS_KEY,
     CCGP_RECORDS_KEY,
@@ -18,8 +22,6 @@ from collector_namespace import (
     apply_runtime_namespace,
     cycle_has_running_stage,
 )
-
-WEB_ROOT = Path(__file__).resolve().parents[2]
 
 
 class ExecutionNamespaceTests(unittest.TestCase):
