@@ -1,3 +1,4 @@
+import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
 import type { CustomerContext, Decision, TodayActionCard } from '@/types'
 
 const CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
@@ -176,9 +177,9 @@ export function clearAiDecisionCache(): void {
 
 async function getSnapshotAsOf(): Promise<string | null> {
   try {
-    const response = await fetch('/data/today-actions.public.json', {
+    const response = await fetch(verifiedSnapshotUrl, {
       headers: { Accept: 'application/json' },
-      cache: 'no-cache',
+      cache: 'no-store',
     })
     if (!response.ok) return null
     const payload: unknown = await response.json()
