@@ -18,13 +18,14 @@ function publicSignalLabel(score: number): string {
 
 export function PriorityBadge({
   score,
-  publicOnly = false,
+  publicOnly,
 }: {
   score: number
   publicOnly?: boolean
 }) {
-  const tier = publicOnly ? publicSignalTier(score) : getPriorityTier(score)
-  const label = publicOnly ? publicSignalLabel(score) : getPriorityLabel(score)
+  const usePublicScale = publicOnly ?? score <= 60
+  const tier = usePublicScale ? publicSignalTier(score) : getPriorityTier(score)
+  const label = usePublicScale ? publicSignalLabel(score) : getPriorityLabel(score)
   return (
     <span
       className={cn(
@@ -42,12 +43,13 @@ export function PriorityBadge({
 
 export function PriorityScore({
   score,
-  publicOnly = false,
+  publicOnly,
 }: {
   score: number
   publicOnly?: boolean
 }) {
-  const tier = publicOnly ? publicSignalTier(score) : getPriorityTier(score)
+  const usePublicScale = publicOnly ?? score <= 60
+  const tier = usePublicScale ? publicSignalTier(score) : getPriorityTier(score)
   return (
     <div className="flex items-baseline gap-1">
       <span
@@ -61,7 +63,9 @@ export function PriorityScore({
       >
         {score}
       </span>
-      <span className="text-[11px] text-slate-400">{publicOnly ? '/ 60 公开分' : '分'}</span>
+      <span className="text-[11px] text-slate-400">
+        {usePublicScale ? '/ 60 公开分' : '分'}
+      </span>
     </div>
   )
 }
