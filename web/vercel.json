@@ -9,6 +9,17 @@
     "api/collector-run.py": {
       "maxDuration": 60
     },
+    "api/collector-queue.py": {
+      "maxDuration": 300,
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "medicalchannelai-refresh",
+          "retryAfterSeconds": 150,
+          "initialDelaySeconds": 0
+        }
+      ]
+    },
     "api/pipeline-health.py": {
       "maxDuration": 60
     },
