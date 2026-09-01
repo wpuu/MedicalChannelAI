@@ -70,6 +70,23 @@ function normalizePublicationAttribution(value: string): string {
   return `关注到「${match[1]}」的公开信息。`
 }
 
+function normalizeFormalProcurementWording(value: string): string {
+  const formalProcurement =
+    value.includes('招标文件获取') ||
+    value.includes('投标/响应截止') ||
+    value.includes('的公开采购信息。')
+  if (!formalProcurement) return value
+  return value
+    .replace(
+      '想确认目前是否还有公开答疑、技术交流或资料对接窗口；如方便，我们可以按项目要求准备相关资料。',
+      '想确认目前是否还有公开答疑或公告允许的资料对接窗口；如方便，我们可以按项目要求准备相关资料。',
+    )
+    .replace(
+      '想确认目前是否还有公开答疑、技术交流或资料对接窗口。',
+      '想确认目前是否还有公开答疑或公告允许的资料对接窗口。',
+    )
+}
+
 /**
  * The sendable payload must contain only the message the user intends to copy.
  * Product/safety notes stay in UI chrome and are never mixed into clipboard text.
@@ -94,9 +111,10 @@ function toSendableDraft(value: string): string {
     lines[index] = normalizePublicationAttribution(lines[index])
   }
 
-  return formatChineseDateTimeText(lines.join('\n'))
+  const formatted = formatChineseDateTimeText(lines.join('\n'))
     .replace(/\n{3,}/g, '\n\n')
     .trim()
+  return normalizeFormalProcurementWording(formatted)
 }
 
 export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerProps) {
