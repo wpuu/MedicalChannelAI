@@ -12,6 +12,21 @@ import { formatToday } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
 const GROUNDED_AI_CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
+const AI_DECISION_CONTRACT_KEY = 'medopp.ai-decision-contract-version'
+const AI_DECISION_CONTRACT_VERSION = 'v2'
+
+function migrateAiDecisionCacheContract(): void {
+  if (typeof localStorage === 'undefined') return
+  try {
+    if (localStorage.getItem(AI_DECISION_CONTRACT_KEY) === AI_DECISION_CONTRACT_VERSION) return
+    localStorage.removeItem(GROUNDED_AI_CACHE_KEY)
+    localStorage.setItem(AI_DECISION_CONTRACT_KEY, AI_DECISION_CONTRACT_VERSION)
+  } catch {
+    // Cache migration is best-effort; AI analysis can run without local storage.
+  }
+}
+
+migrateAiDecisionCacheContract()
 
 export function AppLayout() {
   const navigate = useNavigate()
