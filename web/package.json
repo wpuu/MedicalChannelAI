@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "verify": "node scripts/run-prebuild.mjs && tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/run-prebuild.mjs && tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

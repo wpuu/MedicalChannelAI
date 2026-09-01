@@ -3,6 +3,7 @@ import type { TodayActionCard } from '@/types'
 import { formatBudget, pickDisplayDate } from '@/utils/format'
 import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
 import { OfficialText } from '@/components/shared/EmptyValue'
+import { PriorityBadge, PriorityScore } from '@/components/shared/PriorityBadge'
 import { FollowupChip, SourceTag, StageBadge } from '@/components/shared/StageBadge'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
@@ -13,23 +14,29 @@ import { DecisionBlock } from './DecisionBlock'
 interface ActionCardProps {
   card: TodayActionCard
   busy?: boolean
+  aiBusy?: boolean
   onDetail: () => void
   onContacted: () => void
   onFollow: () => void
   onNotFit: () => void
   onRemind: () => void
   onOutreach: () => void
+  onAnalyze?: () => void
+  analysisUnavailableReason?: string | null
 }
 
 export function ActionCard({
   card,
   busy,
+  aiBusy,
   onDetail,
   onContacted,
   onFollow,
   onNotFit,
   onRemind,
   onOutreach,
+  onAnalyze,
+  analysisUnavailableReason,
 }: ActionCardProps) {
   const dateInfo = pickDisplayDate(card.facts)
   const budget = formatBudget(card.facts.budget)
@@ -38,11 +45,12 @@ export function ActionCard({
     card.model_decision_status === 'BLOCKED_GROUNDING' ||
     card.model_decision_status === 'NOT_ELIGIBLE' ||
     card.evidence_source_urls.length === 0
+  const isLateWindow = card.recommendation_mode === 'LATE_WINDOW'
 
   const publicFactLabel = isApiMode
     ? '官方/已验证事实'
     : isVerifiedPublicDemo
-      ? '真实公开事实'
+      ? '公开信息'
       : '演示公开字段'
 
   return (
@@ -56,13 +64,13 @@ export function ActionCard({
           <PriorityBadge score={card.priority.score} />
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
+          {isLateWindow ? (
+            <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-900">
+              报名已结束 · 晚窗口
+            </span>
+          ) : null}
           {card.followup_status !== 'NEW' ? (
             <FollowupChip label={FOLLOWUP_STATUS_LABEL[card.followup_status]} />
-          ) : null}
-          {card.facts.coverage_status === 'PARTIAL' ? (
-            <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] text-amber-800">
-              公开数据覆盖有限
-            </span>
           ) : null}
         </div>
       </div>
@@ -99,10 +107,20 @@ export function ActionCard({
                 )}
               </span>
             </div>
+            {isLateWindow ? (
+              <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-900">
+                报名/获取文件时间已过，但投标或响应截止尚未到。建议先确认是否仍有可执行路径。
+              </p>
+            ) : null}
           </div>
           <CustomerResourceBlock context={card.customer_context} />
         </div>
-        <DecisionBlock card={card} />
+        <DecisionBlock
+          card={card}
+          onAnalyze={onAnalyze}
+          analyzing={aiBusy}
+          analysisUnavailableReason={analysisUnavailableReason}
+        />
       </div>
 
       <div className="border-t border-slate-100 px-4 py-3">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, MessageSquareText } from 'lucide-react'
+import { ArrowLeft, Archive, MessageSquareText } from 'lucide-react'
 import { CustomerContextCard } from '@/components/opportunity/CustomerContextCard'
 import { DecisionCard } from '@/components/opportunity/DecisionCard'
 import { EvidenceCard } from '@/components/opportunity/EvidenceCard'
@@ -10,23 +10,49 @@ import { PriorityCard } from '@/components/opportunity/PriorityCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { NotFitModal } from '@/components/followup/NotFitModal'
+import { RemindModal } from '@/components/followup/RemindModal'
 import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
+import { OfficialText } from '@/components/shared/EmptyValue'
+import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
+import {
+  AiDecisionError,
+  hydrateCachedAiDecisions,
+  requestAiDecision,
+} from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
+import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStore'
+import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
 import type { FollowupStatus, NotFitReason, TodayActionCard } from '@/types'
-import { OfficialText } from '@/components/shared/EmptyValue'
+
+const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；其他功能正常。'
+
+function aiErrorMessage(cause: unknown): string {
+  if (!(cause instanceof AiDecisionError)) return 'AI分析暂时不可用，请重试'
+  if (cause.code === 'AI_NOT_CONFIGURED') return 'AI暂时不可用，请稍后再试'
+  if (cause.code === 'AI_RATE_LIMITED') return 'AI请求较多，请稍后再试'
+  if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') return 'AI暂时不可用，请稍后再试'
+  if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，请重试'
+  if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
+  if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机暂不在已核验商机池中'
+  return 'AI分析暂时不可用，请重试'
+}
 
 export function OpportunityDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toast } = useToast()
   const [card, setCard] = useState<TodayActionCard | null>(null)
+  const [historical, setHistorical] = useState(false)
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [notFitOpen, setNotFitOpen] = useState(false)
+  const [remindOpen, setRemindOpen] = useState(false)
   const [outreachOpen, setOutreachOpen] = useState(false)
+  const [aiBusy, setAiBusy] = useState(false)
 
   const load = useCallback(async (silent = false) => {
     if (!id) {
@@ -39,11 +65,26 @@ export function OpportunityDetailPage() {
       setError(null)
     }
     setNotFound(false)
+    setHistorical(false)
     try {
       const res = await todayActionsService.getOpportunity(id)
       if (!res) {
-        setNotFound(true)
-        setCard(null)
+        const stored = !isApiMode && isVerifiedPublicDemo
+          ? getStoredHistoricalOpportunityCard(id)
+          : null
+        if (stored) {
+          setHistorical(true)
+          setCard(stored)
+        } else {
+          setNotFound(true)
+          setCard(null)
+        }
+      } else if (!isApiMode && isVerifiedPublicDemo) {
+        const [hydrated] = await hydrateCachedAiDecisions([res])
+        setCard(hydrated ?? res)
+        void getRuntimeStatus().then((status) => {
+          if (status) setRuntimeStatus(status)
+        })
       } else {
         setCard(res)
       }
@@ -64,16 +105,13 @@ export function OpportunityDetailPage() {
 
   const updateStatus = async (
     status: FollowupStatus,
-    extra?: { reason?: string; note?: string },
+    extra?: { reason?: string; note?: string; remind_at?: string },
   ) => {
-    if (!card) return
+    if (!card || historical) return
     try {
       await todayActionsService.updateFollowup(card.opportunity_id, { status, ...extra })
       await load(true)
-      toast(
-        isApiMode ? '跟进状态已同步服务器' : '演示模式：跟进状态已在本地更新',
-        'success',
-      )
+      toast('跟进状态已更新', 'success')
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
@@ -83,46 +121,97 @@ export function OpportunityDetailPage() {
     }
   }
 
+  const analyze = async () => {
+    if (!card || historical || isApiMode || !isVerifiedPublicDemo) return
+    setAiBusy(true)
+    try {
+      const decision = await requestAiDecision(card)
+      setRuntimeStatus((current) =>
+        current ? { ...current, ai: { configured: true } } : current,
+      )
+      setCard({
+        ...card,
+        model_decision_status: 'READY',
+        model_block_reason: null,
+        decision,
+      })
+      toast('AI行动建议已生成', 'success')
+    } catch (cause) {
+      if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
+        setRuntimeStatus((current) =>
+          current ? { ...current, ai: { configured: false } } : current,
+        )
+      }
+      toast(aiErrorMessage(cause))
+    } finally {
+      setAiBusy(false)
+    }
+  }
+
   if (loading) return <LoadingState />
   if (error) return <ErrorState message={error} onRetry={() => void load()} />
   if (notFound || !card) {
     return (
-      <EmptyState title="未找到该商机" hint="请返回今日行动，从当前 5 张卡片进入详情。" />
+      <EmptyState title="未找到该商机" hint="请返回今日行动或商机池，从当前商机进入详情。" />
     )
   }
 
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
   const outreachDisabled =
-    card.model_decision_status === 'BLOCKED_GROUNDING' || card.evidence_source_urls.length === 0
+    historical ||
+    card.model_decision_status === 'BLOCKED_GROUNDING' ||
+    card.model_decision_status === 'NOT_ELIGIBLE' ||
+    card.evidence_source_urls.length === 0
+  const aiUnavailableReason =
+    !historical && !isApiMode && isVerifiedPublicDemo && runtimeStatus?.ai.configured === false
+      ? AI_UNCONFIGURED_REASON
+      : null
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
-          to="/today"
+          to={historical ? '/followed' : '/today'}
           className="inline-flex items-center gap-1 text-[13px] text-slate-600 hover:text-slate-900"
         >
           <ArrowLeft className="h-4 w-4" />
-          返回今日行动
+          {historical ? '返回我的跟进' : '返回今日行动'}
         </Link>
-        <button
-          type="button"
-          disabled={outreachDisabled}
-          title={outreachDisabled ? '公开依据不足，暂不安全生成沟通话术' : undefined}
-          onClick={() => setOutreachOpen(true)}
-          className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <MessageSquareText className="h-3.5 w-3.5" />
-          {outreachDisabled ? '依据不足，暂不生成话术' : '生成沟通话术'}
-        </button>
+        {!historical ? (
+          <button
+            type="button"
+            disabled={outreachDisabled}
+            title={outreachDisabled ? '公开依据不足，暂不能生成沟通草稿' : undefined}
+            onClick={() => setOutreachOpen(true)}
+            className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <MessageSquareText className="h-3.5 w-3.5" />
+            {outreachDisabled ? '暂不能生成草稿' : '生成沟通草稿'}
+          </button>
+        ) : null}
       </div>
+
+      {historical ? (
+        <section className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-5 text-amber-900">
+          <Archive className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>这是历史跟进快照，仅保留当时的公开信息和跟进记录。</p>
+        </section>
+      ) : null}
 
       <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-white">
-            TOP {card.rank}
-          </span>
-          <PriorityBadge score={card.priority.score} />
+          {historical ? (
+            <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">
+              历史快照
+            </span>
+          ) : (
+            <>
+              <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-white">
+                TOP {card.rank}
+              </span>
+              <PriorityBadge score={card.priority.score} />
+            </>
+          )}
         </div>
         <h2 className="mt-2 text-lg font-semibold leading-7 text-slate-900">
           <OfficialText value={buyerDisplay} />
@@ -131,7 +220,9 @@ export function OpportunityDetailPage() {
           <OfficialText value={card.facts.project_name} />
         </p>
         <p className="mt-3 text-[12px] leading-5 text-slate-500">
-          经营优先级，用于安排销售资源，不代表中标概率。
+          {historical
+            ? '项目是否仍可介入请以当前官方信息为准。'
+            : '优先级用于安排跟进；详细公开依据见下方。'}
         </p>
       </section>
 
@@ -140,28 +231,58 @@ export function OpportunityDetailPage() {
         urls={card.evidence_source_urls}
         verificationStatus={card.facts.verification_status}
       />
-      <CustomerContextCard context={card.customer_context} />
-      <PriorityCard priority={card.priority} />
-      <DecisionCard card={card} />
+      {!historical ? (
+        <>
+          <CustomerContextCard context={card.customer_context} />
+          <PriorityCard priority={card.priority} />
+          <DecisionCard
+            card={card}
+            analyzing={aiBusy}
+            onAnalyze={
+              !isApiMode && isVerifiedPublicDemo
+                ? () => void analyze()
+                : undefined
+            }
+            analysisUnavailableReason={aiUnavailableReason}
+          />
+        </>
+      ) : null}
       <FollowupCard
         card={card}
+        readOnly={historical}
         onChangeStatus={(status) => void updateStatus(status)}
         onNotFit={() => setNotFitOpen(true)}
+        onRemind={() => setRemindOpen(true)}
       />
 
-      <NotFitModal
-        open={notFitOpen}
-        onClose={() => setNotFitOpen(false)}
-        onConfirm={(reason: NotFitReason) => {
-          setNotFitOpen(false)
-          void updateStatus('NOT_FIT', { reason })
-        }}
-      />
-      <OutreachDrawer
-        open={outreachOpen}
-        opportunityId={card.opportunity_id}
-        onClose={() => setOutreachOpen(false)}
-      />
+      {!historical ? (
+        <>
+          <NotFitModal
+            open={notFitOpen}
+            onClose={() => setNotFitOpen(false)}
+            onConfirm={(reason: NotFitReason) => {
+              setNotFitOpen(false)
+              void updateStatus('NOT_FIT', { reason })
+            }}
+          />
+          <RemindModal
+            open={remindOpen}
+            onClose={() => setRemindOpen(false)}
+            onConfirm={(remindAt) => {
+              setRemindOpen(false)
+              void updateStatus('MONITOR', {
+                remind_at: remindAt,
+                note: '稍后提醒',
+              })
+            }}
+          />
+          <OutreachDrawer
+            open={outreachOpen}
+            opportunityId={card.opportunity_id}
+            onClose={() => setOutreachOpen(false)}
+          />
+        </>
+      ) : null}
     </div>
   )
 }

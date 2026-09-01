@@ -1,6 +1,8 @@
+import { Link } from 'react-router-dom'
 import type { CustomerContext } from '@/types'
 import { FactRow, SectionCard } from '@/components/shared/SectionCard'
 import { SourceTag } from '@/components/shared/StageBadge'
+import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
 import { formatDate } from '@/utils/format'
 import { CAPABILITY_LABEL, RELATIONSHIP_LABEL, yesNo } from '@/utils/labels'
@@ -9,25 +11,56 @@ export function CustomerContextCard({ context }: { context: CustomerContext }) {
   const rel = context.hospital_relationship
   const capability = context.matching_product_capabilities[0]
   const policy = context.partnering_policy
+  const hasResource = Boolean(
+    rel ||
+      capability ||
+      policy.can_find_manufacturer !== null ||
+      policy.can_partner_channel !== null ||
+      policy.can_handle_lease !== null,
+  )
+
+  const subtitle = isApiMode
+    ? '客户确认信息 · 非官方公告'
+    : isVerifiedPublicDemo
+      ? hasResource
+        ? '当前浏览器本地填写的客户自有资源 · 与公开采购事实分开保存'
+        : '当前尚未填写客户资源 · 不影响查看公开商机'
+      : '演示客户资源 · 不代表真实客户信息'
+
+  const sourceLabel = isApiMode
+    ? '我的资源 / 客户自有信息'
+    : isVerifiedPublicDemo
+      ? hasResource
+        ? '我的本地资源'
+        : '未填写资源'
+      : '演示资源'
 
   return (
     <SectionCard
       title="个性化资源（可选）"
-      subtitle={
-        isApiMode
-          ? '客户确认信息 · 非官方公告'
-          : '当前无需录入真实资源 · 以下仅演示录入后系统还能如何进一步判断'
-      }
+      subtitle={subtitle}
       tone="customer"
-      extra={
-        <SourceTag tone="customer">
-          {isApiMode ? '我的资源 / 客户自有信息' : '可选增强 · 演示资源'}
-        </SourceTag>
-      }
+      extra={<SourceTag tone="customer">{sourceLabel}</SourceTag>}
     >
-      {!isApiMode ? (
+      {!isApiMode && isVerifiedPublicDemo ? (
         <div className="mb-3 rounded-xl border border-teal-100 bg-teal-50 px-3 py-2 text-[12px] leading-5 text-teal-900">
-          首次体验不需要填写医院关系、品牌或厂家资源。先看真实公开项目、官方依据和行动建议；确认有价值后，再补充真实资源让排序更精准。
+          {hasResource
+            ? '这些内容来自你在“我的资源”中主动填写，只用于个性化排序；系统不会把它们包装成医院公开事实。'
+            : '首次体验不需要填写医院关系或产品资源。需要更精准排序时，再补充你自己确认的资源。'}
+          {!hasResource ? (
+            <div className="mt-2">
+              <Link
+                to="/resources"
+                className="inline-flex rounded-lg border border-teal-200 bg-white px-2.5 py-1.5 font-medium text-teal-800 hover:bg-teal-50"
+              >
+                填写我的资源
+              </Link>
+            </div>
+          ) : null}
+        </div>
+      ) : !isApiMode ? (
+        <div className="mb-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-900">
+          当前为虚构演示客户画像，仅用于验证界面流程。
         </div>
       ) : null}
       <FactRow label="医院关系">

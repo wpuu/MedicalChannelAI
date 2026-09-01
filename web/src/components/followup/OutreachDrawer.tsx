@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Copy, Loader2 } from 'lucide-react'
 import { Drawer } from '@/components/ui/Drawer'
 import { todayActionsService } from '@/services'
-import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
+import { isAuthRequiredError } from '@/services/apiConfig'
 import type { OutreachDraft } from '@/types'
 import { useToast } from '@/context/ToastContext'
 
@@ -14,20 +14,39 @@ interface OutreachDrawerProps {
 }
 
 function outreachErrorMessage(error: unknown): string {
-  if (!(error instanceof Error)) return '话术生成失败，请稍后重试'
+  if (!(error instanceof Error)) return '沟通草稿生成失败，请稍后重试'
   if (error.message === 'OUTREACH_GROUNDING_INSUFFICIENT' || error.message === 'HTTP_409') {
-    return '当前商机的已验证公开依据或客户资源不足，暂不能安全生成话术。'
+    return '当前商机的公开依据不足，暂不能生成沟通草稿。'
   }
   if (error.message === 'HTTP_429') {
-    return '当前 AI 请求较多，请稍后再次生成。'
+    return '当前请求较多，请稍后再次生成。'
   }
   if (error.message === 'HTTP_503') {
-    return '当前服务器尚未配置话术模型服务。'
+    return '生成服务暂时不可用，请稍后再试。'
   }
   if (error.message === 'HTTP_502') {
-    return '模型返回结果未通过事实约束校验，请稍后重试。'
+    return '生成结果未通过事实校验，请稍后重试。'
   }
-  return '话术生成失败，请稍后重试'
+  return '沟通草稿生成失败，请稍后重试'
+}
+
+/**
+ * The sendable payload must contain only the message the user intends to copy.
+ * Product/safety notes stay in UI chrome and are never mixed into clipboard text.
+ * This also cleans legacy snapshot drafts that embedded those notes in the body.
+ */
+function toSendableDraft(value: string): string {
+  return value
+    .split('\n')
+    .filter((line) => {
+      const text = line.trim()
+      if (text === '【公开事实沟通草稿】') return false
+      if (text.startsWith('说明：本草稿只使用公开采购事实')) return false
+      return true
+    })
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
 export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerProps) {
@@ -65,11 +84,13 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     }
   }, [navigate, onClose, open, opportunityId])
 
+  const sendableDraft = useMemo(() => (draft ? toSendableDraft(draft.draft) : ''), [draft])
+
   const copyDraft = async () => {
-    if (!draft) return
+    if (!sendableDraft) return
     try {
-      await navigator.clipboard.writeText(draft.draft)
-      toast(isApiMode ? '话术已复制到剪贴板' : '演示模式：话术已复制到剪贴板', 'success')
+      await navigator.clipboard.writeText(sendableDraft)
+      toast('沟通内容已复制', 'success')
     } catch {
       toast('复制失败，请手动选择文本')
     }
@@ -79,8 +100,8 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     <Drawer
       open={open}
       onClose={onClose}
-      title="生成沟通话术"
-      subtitle="按需生成 · 不是官方事实"
+      title="沟通草稿"
+      subtitle="可直接复制，发送前按实际情况修改"
       footer={
         <div className="flex justify-end gap-2">
           <button
@@ -92,34 +113,32 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
           </button>
           <button
             type="button"
-            disabled={!draft}
+            disabled={!sendableDraft}
             onClick={copyDraft}
             className="inline-flex items-center gap-1 rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] text-white disabled:opacity-50"
           >
             <Copy className="h-3.5 w-3.5" />
-            复制话术
+            复制内容
           </button>
         </div>
       }
     >
-      <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-900">
-        {isApiMode
-          ? '天津 Pilot · 仅根据已验证公开事实与当前客户确认资源按需生成；最终话术不是医院官方表述。'
-          : '演示模式 · 仍遵守事实边界；公开依据不足的商机不会为了演示效果强行生成话术。'}
-      </div>
       {loading ? (
         <div className="mt-8 flex flex-col items-center justify-center gap-2 text-slate-500">
           <Loader2 className="h-5 w-5 animate-spin" />
-          <p className="text-[13px]">正在按当前事实与客户资源起草…</p>
+          <p className="text-[13px]">正在生成沟通内容…</p>
         </div>
       ) : null}
       {error ? <p className="mt-6 text-[13px] text-rose-700">{error}</p> : null}
       {draft ? (
-        <div className="mt-4">
-          <p className="text-[12px] leading-5 text-slate-500">{draft.disclaimer}</p>
-          <pre className="mt-3 whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-white p-3 font-sans text-[13px] leading-6 text-slate-800">
-            {draft.draft}
+        <div className="mt-2">
+          <p className="mb-2 text-[12px] font-medium text-slate-500">可复制内容</p>
+          <pre className="whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-white p-3 font-sans text-[13px] leading-6 text-slate-800">
+            {sendableDraft}
           </pre>
+          <p className="mt-2 text-[11px] leading-5 text-slate-400">
+            提示：{draft.disclaimer}
+          </p>
         </div>
       ) : null}
     </Drawer>

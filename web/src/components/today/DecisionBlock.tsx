@@ -1,12 +1,26 @@
-import { Eye, Loader2, ShieldAlert, Sparkles } from 'lucide-react'
+import { Loader2, ShieldAlert, Sparkles } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import { MODEL_STATUS_COPY } from '@/utils/labels'
+import { hasUserCustomerContext } from '@/utils/customerContext'
 import { SourceTag } from '@/components/shared/StageBadge'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
 
-export function DecisionBlock({ card }: { card: TodayActionCard }) {
+interface DecisionBlockProps {
+  card: TodayActionCard
+  onAnalyze?: () => void
+  analyzing?: boolean
+  analysisUnavailableReason?: string | null
+}
+
+export function DecisionBlock({
+  card,
+  onAnalyze,
+  analyzing,
+  analysisUnavailableReason,
+}: DecisionBlockProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
+  const hasCustomerContext = hasUserCustomerContext(card.customer_context)
 
   if (card.model_decision_status === 'READY' && card.decision) {
     return (
@@ -17,14 +31,13 @@ export function DecisionBlock({ card }: { card: TodayActionCard }) {
             AI行动建议
           </p>
           <SourceTag tone="ai">
-            {!isApiMode && isVerifiedPublicDemo ? '演示AI判断' : 'AI判断'}
+            {!isApiMode && isVerifiedPublicDemo
+              ? hasCustomerContext
+                ? '公开信息 + 我的资源'
+                : '基于公开信息'
+              : 'AI判断'}
           </SourceTag>
         </div>
-        {!isApiMode && isVerifiedPublicDemo ? (
-          <p className="mb-2 rounded-lg bg-white/70 px-2.5 py-2 text-[11px] leading-5 text-indigo-800">
-            基于真实公开项目事实 + 演示客户资源计算；当前不是实时 Agnes 调用。
-          </p>
-        ) : null}
         <p className="text-[13px] leading-6 text-slate-800">
           建议动作
           <span className="ml-2 font-semibold">{card.decision.action}</span>
@@ -42,7 +55,7 @@ export function DecisionBlock({ card }: { card: TodayActionCard }) {
         </div>
         {card.decision.risks.length > 0 ? (
           <div className="mt-2">
-            <p className="text-[12px] font-medium text-slate-500">风险</p>
+            <p className="text-[12px] font-medium text-slate-500">需要确认</p>
             <ul className="mt-1 space-y-1 text-[13px] leading-5 text-slate-700">
               {card.decision.risks.map((risk) => (
                 <li key={risk} className="flex gap-2">
@@ -61,14 +74,39 @@ export function DecisionBlock({ card }: { card: TodayActionCard }) {
     if (!isApiMode) {
       return (
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <div className="flex items-start gap-2">
-            <Eye className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-            <div>
-              <p className="text-[13px] font-semibold text-slate-800">当前先观察</p>
-              <p className="mt-1 text-[12px] leading-5 text-slate-500">
-                演示模式不模拟一个永远排队的模型任务。该项目产品匹配，但医院关系尚未确认，当前先保留观察。
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold text-slate-800">AI行动分析</p>
+            <p className="mt-1 text-[12px] leading-5 text-slate-500">
+              {hasCustomerContext
+                ? '结合公开信息和你填写的资源，给出更具体的下一步动作。'
+                : '基于已核验公开信息，给出下一步动作和需要确认的事项。'}
+            </p>
+            {onAnalyze ? (
+              <button
+                type="button"
+                disabled={analyzing}
+                onClick={onAnalyze}
+                className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {analyzing ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5" />
+                )}
+                {analyzing
+                  ? 'AI分析中'
+                  : hasCustomerContext
+                    ? '结合我的资源分析'
+                    : analysisUnavailableReason
+                      ? '重试AI分析'
+                      : '用AI分析这条'}
+              </button>
+            ) : null}
+            {analysisUnavailableReason ? (
+              <p className="mt-2 text-[11px] leading-5 text-amber-700">
+                {analysisUnavailableReason}
               </p>
-            </div>
+            ) : null}
           </div>
         </div>
       )
@@ -77,14 +115,13 @@ export function DecisionBlock({ card }: { card: TodayActionCard }) {
       <div className="rounded-xl border border-indigo-100 bg-indigo-50/30 p-3">
         <div className="flex items-center gap-2 text-[13px] font-semibold text-indigo-900">
           <Loader2 className="h-4 w-4 animate-spin" />
-          AI分析排队中
+          AI分析中
         </div>
         <div className="mt-3 space-y-2">
           <div className="h-3 w-3/4 animate-pulse-soft rounded bg-indigo-100" />
           <div className="h-3 w-full animate-pulse-soft rounded bg-indigo-100" />
           <div className="h-3 w-2/3 animate-pulse-soft rounded bg-indigo-100" />
         </div>
-        <p className="mt-2 text-[12px] leading-5 text-slate-500">{copy.hint}</p>
       </div>
     )
   }

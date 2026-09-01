@@ -1,0 +1,26 @@
+{
+  "schema_version": "0.1",
+  "region": "天津",
+  "keywords": [
+    "医院",
+    "医疗",
+    "检验",
+    "疾病预防控制",
+    "卫生健康"
+  ],
+  "notice_types": [
+    "公开招标",
+    "竞争性磋商"
+  ],
+  "lookback_days": 3,
+  "max_candidates": 12,
+  "max_event_watch_projects": 30,
+  "delay_seconds": 4.0,
+  "policy": {
+    "purpose": "TIANJIN_MEDICAL_CHANNEL_PILOT",
+    "region_locked": true,
+    "only_verified_notice_adapters": true,
+    "discovery_is_not_fact_evidence": true,
+    "event_lookback_required": true
+  }
+}

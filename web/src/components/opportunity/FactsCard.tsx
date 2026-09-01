@@ -6,11 +6,19 @@ import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
 import { formatBudget, formatDate } from '@/utils/format'
 
+function registrationDeadlineDisplay(facts: Facts): string | null {
+  if (facts.registration_deadline) return formatDate(facts.registration_deadline)
+  if (facts.registration_deadline_date) {
+    return `${facts.registration_deadline_date}（未公布具体时间）`
+  }
+  return null
+}
+
 export function FactsCard({ facts }: { facts: Facts }) {
   const subtitle = isApiMode
     ? '官方/已验证事实 · 空值不会自行补全'
     : isVerifiedPublicDemo
-      ? '真实政府采购公开事实快照 · 空值不会自行补全；客户侧资源另行标注为演示数据'
+      ? '真实公开事实快照 · 空值不会自行补全；客户侧资源另行标注'
       : '虚构演示公开字段 · 用于展示正式版的信息结构与事实边界'
   const sourceLabel = isApiMode
     ? '官方事实'
@@ -30,50 +38,24 @@ export function FactsCard({ facts }: { facts: Facts }) {
         </div>
       }
     >
-      <FactRow label="项目编号">
-        <OfficialText value={facts.project_code} />
-      </FactRow>
-      <FactRow label="项目名称">
-        <OfficialText value={facts.project_name} />
-      </FactRow>
+      <FactRow label="项目编号"><OfficialText value={facts.project_code} /></FactRow>
+      <FactRow label="项目名称"><OfficialText value={facts.project_name} /></FactRow>
       {isApiMode || isVerifiedPublicDemo || facts.buyer_name ? (
-        <FactRow label="采购单位">
-          <OfficialText value={facts.buyer_name ?? null} />
-        </FactRow>
+        <FactRow label="采购单位"><OfficialText value={facts.buyer_name ?? null} /></FactRow>
       ) : null}
-      <FactRow label="医院">
-        <OfficialText value={facts.hospital} />
+      <FactRow label="医院"><OfficialText value={facts.hospital} /></FactRow>
+      <FactRow label="科室"><OfficialText value={facts.department} /></FactRow>
+      <FactRow label="地区"><OfficialText value={facts.region} /></FactRow>
+      <FactRow label="项目阶段"><StageBadge stage={facts.lifecycle_stage} /></FactRow>
+      <FactRow label="公告类型"><OfficialText value={facts.notice_type ?? null} /></FactRow>
+      <FactRow label="发布时间"><OfficialText value={formatDate(facts.publish_date)} /></FactRow>
+      <FactRow label={facts.registration_deadline_date && !facts.registration_deadline ? '报名截止日期' : '报名截止'}>
+        <OfficialText value={registrationDeadlineDisplay(facts)} />
       </FactRow>
-      <FactRow label="科室">
-        <OfficialText value={facts.department} />
-      </FactRow>
-      <FactRow label="地区">
-        <OfficialText value={facts.region} />
-      </FactRow>
-      <FactRow label="项目阶段">
-        <StageBadge stage={facts.lifecycle_stage} />
-      </FactRow>
-      <FactRow label="公告类型">
-        <OfficialText value={facts.notice_type ?? null} />
-      </FactRow>
-      <FactRow label="发布时间">
-        <OfficialText value={formatDate(facts.publish_date)} />
-      </FactRow>
-      <FactRow label="报名截止">
-        <OfficialText value={formatDate(facts.registration_deadline)} />
-      </FactRow>
-      <FactRow label="投标截止">
-        <OfficialText value={formatDate(facts.bid_deadline)} />
-      </FactRow>
-      <FactRow label="预计采购时间">
-        <OfficialText value={formatDate(facts.expected_purchase_date)} />
-      </FactRow>
-      <FactRow label="项目预算">
-        <OfficialText value={formatBudget(facts.budget)} />
-      </FactRow>
-      <FactRow label="采购方式">
-        <OfficialText value={facts.procurement_method} />
-      </FactRow>
+      <FactRow label="投标截止"><OfficialText value={formatDate(facts.bid_deadline)} /></FactRow>
+      <FactRow label="预计采购时间"><OfficialText value={formatDate(facts.expected_purchase_date)} /></FactRow>
+      <FactRow label="项目预算"><OfficialText value={formatBudget(facts.budget)} /></FactRow>
+      <FactRow label="采购方式"><OfficialText value={facts.procurement_method} /></FactRow>
       <FactRow label="采购产品">
         {!facts.products || facts.products.length === 0 ? (
           <OfficialText value={null} />
@@ -83,9 +65,7 @@ export function FactsCard({ facts }: { facts: Facts }) {
               <li key={`${item.name}-${item.quantity ?? ''}`} className="rounded-lg bg-slate-50 px-2.5 py-2">
                 <p className="font-medium">{item.name}</p>
                 <p className="text-[12px] text-slate-500">
-                  {item.category ?? '暂无公开信息'}
-                  {' · '}
-                  {item.quantity ?? '暂无公开信息'}
+                  {item.category ?? '暂无公开信息'} · {item.quantity ?? '暂无公开信息'}
                   {item.specification ? ` · ${item.specification}` : ''}
                 </p>
               </li>
@@ -98,22 +78,10 @@ export function FactsCard({ facts }: { facts: Facts }) {
           <OfficialText value={null} />
         ) : (
           <div className="space-y-0.5">
-            <p>
-              姓名：
-              <OfficialText value={facts.official_contact.name} />
-            </p>
-            <p>
-              职务：
-              <OfficialText value={facts.official_contact.title} />
-            </p>
-            <p>
-              电话：
-              <OfficialText value={facts.official_contact.phone} />
-            </p>
-            <p>
-              邮箱：
-              <OfficialText value={facts.official_contact.email} />
-            </p>
+            <p>姓名：<OfficialText value={facts.official_contact.name} /></p>
+            <p>职务：<OfficialText value={facts.official_contact.title} /></p>
+            <p>电话：<OfficialText value={facts.official_contact.phone} /></p>
+            <p>邮箱：<OfficialText value={facts.official_contact.email} /></p>
           </div>
         )}
       </FactRow>

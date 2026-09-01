@@ -1,4 +1,6 @@
+import { todayActionsService } from './index'
 import { apiBaseUrl, isApiMode } from './apiConfig'
+import { listStoredFollowups } from './localFollowupStore'
 
 export interface FollowedOpportunity {
   opportunity_id: string
@@ -32,6 +34,7 @@ const FOLLOWUP_STATUSES = new Set([
   'LOST',
   'NOT_FIT',
   'MONITOR',
+  'ARCHIVED',
 ])
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -132,8 +135,38 @@ function validateItem(value: unknown): FollowedOpportunity {
   }
 }
 
+async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
+  // Loading the current feed also migrates older v1 follow-up entries by attaching
+  // a minimal public snapshot before those opportunities rotate out of Today Top5.
+  await todayActionsService.getTodayActions()
+
+  return listStoredFollowups()
+    .flatMap(({ opportunity_id, entry }) => {
+      const snapshot = entry.public_snapshot
+      if (!snapshot) return []
+      const latestRecord = entry.history[0]
+      const latestNote = entry.history.find((record) => Boolean(record.note?.trim()))?.note ?? null
+      return [
+        {
+          opportunity_id,
+          followup_status: entry.status,
+          remind_at: entry.remind_at,
+          latest_note: latestNote,
+          followup_updated_at:
+            latestRecord?.at ?? entry.remind_at ?? '1970-01-01T00:00:00.000Z',
+          facts: { ...snapshot.facts },
+          evidence_source_urls: [...snapshot.evidence_source_urls],
+        },
+      ]
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.followup_updated_at).getTime() - new Date(a.followup_updated_at).getTime(),
+    )
+}
+
 export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]> {
-  if (!isApiMode) return []
+  if (!isApiMode) return getLocalFollowedOpportunities()
   const response = await fetch(`${apiBaseUrl}/followed`, {
     credentials: 'include',
     headers: { Accept: 'application/json' },

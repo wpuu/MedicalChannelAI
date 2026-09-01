@@ -3,6 +3,7 @@ import type { FollowupStatus, TodayActionCard } from '@/types'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { formatDate, formatDateTime } from '@/utils/format'
 import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
+import { isApiMode } from '@/services/apiConfig'
 
 const STATUS_OPTIONS: FollowupStatus[] = [
   'NEW',
@@ -22,9 +23,17 @@ interface FollowupCardProps {
   card: TodayActionCard
   onChangeStatus: (status: FollowupStatus) => void
   onNotFit: () => void
+  onRemind: () => void
+  readOnly?: boolean
 }
 
-export function FollowupCard({ card, onChangeStatus, onNotFit }: FollowupCardProps) {
+export function FollowupCard({
+  card,
+  onChangeStatus,
+  onNotFit,
+  onRemind,
+  readOnly = false,
+}: FollowupCardProps) {
   const [status, setStatus] = useState<FollowupStatus>(card.followup_status)
 
   useEffect(() => {
@@ -32,40 +41,55 @@ export function FollowupCard({ card, onChangeStatus, onNotFit }: FollowupCardPro
   }, [card.followup_status])
 
   return (
-    <SectionCard title="跟进记录" subtitle="销售跟进时间线 · 仅本地演示状态">
-      <div className="mb-4">
-        <label className="text-[12px] text-slate-500">更新跟进状态</label>
-        <div className="mt-2 flex gap-2">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as FollowupStatus)}
-            className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-teal-700"
-          >
-            {STATUS_OPTIONS.map((item) => (
-              <option key={item} value={item}>
-                {FOLLOWUP_STATUS_LABEL[item]}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => {
-              if (status === 'NOT_FIT') {
-                onNotFit()
-                return
-              }
-              onChangeStatus(status)
-            }}
-            className="shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-[13px] text-white"
-          >
-            保存
-          </button>
+    <SectionCard
+      title="跟进记录"
+      subtitle={
+        readOnly
+          ? '历史跟进快照 · 仅查看已保存记录'
+          : isApiMode
+            ? '销售跟进时间线 · 客户私有状态保存在服务器'
+            : '销售跟进时间线 · 试用状态保存在当前浏览器'
+      }
+    >
+      {!readOnly ? (
+        <div className="mb-4">
+          <label className="text-[12px] text-slate-500">更新跟进状态</label>
+          <div className="mt-2 flex gap-2">
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as FollowupStatus)}
+              className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-teal-700"
+            >
+              {STATUS_OPTIONS.map((item) => (
+                <option key={item} value={item}>
+                  {FOLLOWUP_STATUS_LABEL[item]}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => {
+                if (status === 'NOT_FIT') {
+                  onNotFit()
+                  return
+                }
+                if (status === 'MONITOR') {
+                  onRemind()
+                  return
+                }
+                onChangeStatus(status)
+              }}
+              className="shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-[13px] text-white"
+            >
+              保存
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {card.remind_at ? (
         <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
-          本地提醒：{formatDate(card.remind_at)}
+          {readOnly ? '已保存提醒' : isApiMode ? '站内提醒' : '本地提醒'}：{formatDate(card.remind_at)}
         </p>
       ) : null}
 

@@ -1,4 +1,10 @@
 import { apiBaseUrl, isApiMode } from './apiConfig'
+import {
+  clearLocalReminder,
+  listStoredFollowups,
+  localReminderId,
+  opportunityIdFromLocalReminderId,
+} from './localFollowupStore'
 
 export interface DueReminder {
   reminder_id: string
@@ -117,8 +123,35 @@ function validateInbox(value: unknown): ReminderInboxResponse {
   }
 }
 
+function getLocalDueReminders(): DueReminder[] {
+  const now = Date.now()
+  return listStoredFollowups()
+    .flatMap(({ opportunity_id, entry }) => {
+      if (!entry.remind_at || !entry.public_snapshot) return []
+      const dueAt = new Date(entry.remind_at).getTime()
+      if (Number.isNaN(dueAt) || dueAt > now) return []
+      const latestNote = entry.history.find((record) => Boolean(record.note?.trim()))?.note ?? null
+      return [
+        {
+          reminder_id: localReminderId(opportunity_id),
+          opportunity_id,
+          followup_status: entry.status,
+          remind_at: entry.remind_at,
+          note: latestNote,
+          facts: {
+            buyer_name: entry.public_snapshot.facts.buyer_name,
+            hospital_name: entry.public_snapshot.facts.hospital_name,
+            project_name: entry.public_snapshot.facts.project_name,
+          },
+        },
+      ]
+    })
+    .sort((a, b) => new Date(a.remind_at).getTime() - new Date(b.remind_at).getTime())
+    .slice(0, 20)
+}
+
 export async function getDueReminders(): Promise<DueReminder[]> {
-  if (!isApiMode) return []
+  if (!isApiMode) return getLocalDueReminders()
   const response = await fetch(`${apiBaseUrl}/reminders`, {
     credentials: 'include',
     headers: { Accept: 'application/json' },
@@ -128,7 +161,12 @@ export async function getDueReminders(): Promise<DueReminder[]> {
 }
 
 export async function acknowledgeDueReminder(reminderId: string): Promise<void> {
-  if (!isApiMode) return
+  if (!isApiMode) {
+    const opportunityId = opportunityIdFromLocalReminderId(reminderId)
+    if (!opportunityId) throw new Error('REMINDER_ID_INVALID')
+    clearLocalReminder(opportunityId)
+    return
+  }
   if (!/^mrem_[0-9a-f]{64}$/.test(reminderId)) throw new Error('REMINDER_ID_INVALID')
   const response = await fetch(`${apiBaseUrl}/reminders/${encodeURIComponent(reminderId)}/ack`, {
     method: 'POST',
