@@ -1,9 +1,30 @@
 import { cn } from '@/utils/cn'
 import { getPriorityLabel, getPriorityTier } from '@/utils/format'
+import type { PriorityTier } from '@/types'
 
-export function PriorityBadge({ score }: { score: number }) {
-  const tier = getPriorityTier(score)
-  const label = getPriorityLabel(score)
+function publicSignalTier(score: number): PriorityTier {
+  if (score >= 50) return 'critical'
+  if (score >= 40) return 'high'
+  if (score >= 30) return 'medium'
+  return 'low'
+}
+
+function publicSignalLabel(score: number): string {
+  if (score >= 50) return '公开信号强'
+  if (score >= 40) return '值得查看'
+  if (score >= 30) return '持续观察'
+  return '低优先'
+}
+
+export function PriorityBadge({
+  score,
+  publicOnly = false,
+}: {
+  score: number
+  publicOnly?: boolean
+}) {
+  const tier = publicOnly ? publicSignalTier(score) : getPriorityTier(score)
+  const label = publicOnly ? publicSignalLabel(score) : getPriorityLabel(score)
   return (
     <span
       className={cn(
@@ -19,8 +40,14 @@ export function PriorityBadge({ score }: { score: number }) {
   )
 }
 
-export function PriorityScore({ score }: { score: number }) {
-  const tier = getPriorityTier(score)
+export function PriorityScore({
+  score,
+  publicOnly = false,
+}: {
+  score: number
+  publicOnly?: boolean
+}) {
+  const tier = publicOnly ? publicSignalTier(score) : getPriorityTier(score)
   return (
     <div className="flex items-baseline gap-1">
       <span
@@ -34,7 +61,7 @@ export function PriorityScore({ score }: { score: number }) {
       >
         {score}
       </span>
-      <span className="text-[11px] text-slate-400">分</span>
+      <span className="text-[11px] text-slate-400">{publicOnly ? '/ 60 公开分' : '分'}</span>
     </div>
   )
 }
