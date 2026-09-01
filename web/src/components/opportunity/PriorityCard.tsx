@@ -24,7 +24,7 @@ export function PriorityCard({ priority }: { priority: Priority }) {
           <div key={key}>
             <div className="mb-1 flex items-center justify-between text-[12px]">
               <span className="text-slate-600">{PRIORITY_COMPONENT_LABEL[key]}</span>
-              <span className="tabular-nums text-slate-500">{value}</span>
+              <span className="tabular-nums text-slate-500">{value}%</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-slate-100">
               <div
@@ -36,7 +36,7 @@ export function PriorityCard({ priority }: { priority: Priority }) {
         ))}
       </div>
       <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-[12px] leading-5 text-slate-500">
-        该分数用于安排销售资源优先级，不代表中标概率。
+        分项显示的是各维度得分占比，用于解释强弱，不可直接相加；总分用于安排销售资源优先级，不代表中标概率。
       </p>
     </SectionCard>
   )
