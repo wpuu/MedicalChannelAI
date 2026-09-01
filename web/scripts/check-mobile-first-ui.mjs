@@ -41,4 +41,40 @@ const card = read('src/components/today/ActionCard.tsx')
 assert.doesNotMatch(card, /TOP \{card\.rank\}/)
 assert.match(card, /重点 \{card\.rank\}/)
 
+const staticService = read('src/services/StaticSnapshotTodayActionsService.ts')
+assert.match(staticService, /const INTERVENTION_MAX_POINTS = 25/)
+assert.match(staticService, /const LATE_WINDOW_POINTS = 8/)
+assert.doesNotMatch(staticService, /LATE_WINDOW_PERCENT = 38/)
+assert.doesNotMatch(staticService, /\* 40\)\)/)
+assert.match(staticService, /return '各位老师好：'/)
+assert.match(staticService, /return `\$\{names\[0\]\}老师，您好：`/)
+assert.match(staticService, /关注到「\$\{project\}」的公开/)
+assert.doesNotMatch(staticService, /关注到\$\{buyer\}公开发布了/)
+for (const code of [
+  'EXECUTION_FLEXIBILITY',
+  'DEADLINE_URGENCY',
+  'PRODUCT_SPECIFICITY',
+  'PUBLICATION_FRESHNESS',
+]) {
+  assert.match(staticService, new RegExp(`componentPercent\\(card, '${code}'\\)`))
+}
+
+const apiService = read('src/services/ApiTodayActionsService.ts')
+assert.match(apiService, /generated_at: data\.snapshot_as_of/)
+assert.match(apiService, /refreshed_at: data\.snapshot_as_of/)
+for (const code of [
+  'EXECUTION_FLEXIBILITY',
+  'DEADLINE_URGENCY',
+  'PRODUCT_SPECIFICITY',
+  'PUBLICATION_FRESHNESS',
+]) {
+  assert.match(apiService, new RegExp(`componentPercent\\(card, '${code}'\\)`))
+}
+
+const outreach = read('src/components/followup/OutreachDrawer.tsx')
+assert.match(outreach, /if \(names\.length >= 2\) return '各位老师好：'/)
+assert.match(outreach, /return `\$\{names\[0\]\}老师，您好：`/)
+assert.match(outreach, /formatChineseDateTimeText/)
+assert.match(outreach, /normalizePublicationAttribution/)
+
 console.log('Mobile-first UI checks: PASS')
