@@ -13,6 +13,8 @@ interface OutreachDrawerProps {
   onClose: () => void
 }
 
+const GROUP_RECIPIENT = '__GROUP__'
+
 function outreachErrorMessage(error: unknown): string {
   if (!(error instanceof Error)) return '沟通草稿生成失败，请稍后重试'
   if (error.message === 'OUTREACH_GROUNDING_INSUFFICIENT' || error.message === 'HTTP_409') {
@@ -37,22 +39,38 @@ function contactNames(value: string): string[] {
     .filter(Boolean)
 }
 
+function personGreeting(name: string): string {
+  const cleaned = name.trim()
+  if (!cleaned) return '您好：'
+  if (/(老师|先生|女士)$/.test(cleaned)) return `${cleaned}，您好：`
+  return `${cleaned}老师，您好：`
+}
+
 /**
- * Public notices often list several project contacts in one field. That does not
- * prove the user will send the message to all of them, so a multi-name greeting
- * should not enumerate everyone. Keep one-person greetings personal and plural
- * greetings neutral/natural.
+ * A public notice can list several possible project contacts, but that field is
+ * not evidence that the user will send one message to all of them. Multi-contact
+ * notices therefore default to an unspecified greeting. The user can explicitly
+ * choose one recipient or choose a group greeting before copying.
  */
-function normalizeGreetingLine(value: string): string {
+function normalizeGreetingLine(
+  value: string,
+  recipientSelection: string,
+  availableRecipients: string[],
+): string {
+  if (recipientSelection === GROUP_RECIPIENT) return '各位老师好：'
+  if (recipientSelection) return personGreeting(recipientSelection)
+  if (availableRecipients.length >= 2) return '您好：'
+  if (availableRecipients.length === 1) return personGreeting(availableRecipients[0])
+
   const text = value.trim()
-  if (/^各位老师[，,]?(?:您好|好)[：:]?$/.test(text)) return '各位老师好：'
-  if (/^老师[，,]?您好[：:]?$/.test(text)) return '您好：'
+  if (/^各位老师[，,]?(?:您好|好)[：:]?$/.test(text)) return '您好：'
+  if (/^老师[，,]?您好[：:]?$/.test(text) || /^您好[：:]?$/.test(text)) return '您好：'
 
   const match = text.match(/^(.+?)老师[，,]?(?:您好|好)[：:]?$/)
   if (!match) return value
   const names = contactNames(match[1])
-  if (names.length >= 2) return '各位老师好：'
-  if (names.length === 1) return `${names[0]}老师，您好：`
+  if (names.length >= 2) return '您好：'
+  if (names.length === 1) return personGreeting(names[0])
   return '您好：'
 }
 
@@ -93,7 +111,11 @@ function normalizeFormalProcurementWording(value: string): string {
  * This also cleans legacy snapshot/server drafts so old wording cannot leak back
  * into a message after the frontend greeting rules are upgraded.
  */
-function toSendableDraft(value: string): string {
+function toSendableDraft(
+  value: string,
+  recipientSelection: string,
+  availableRecipients: string[],
+): string {
   const lines = value
     .split('\n')
     .filter((line) => {
@@ -105,7 +127,11 @@ function toSendableDraft(value: string): string {
 
   const firstContentIndex = lines.findIndex((line) => line.trim())
   if (firstContentIndex >= 0) {
-    lines[firstContentIndex] = normalizeGreetingLine(lines[firstContentIndex])
+    lines[firstContentIndex] = normalizeGreetingLine(
+      lines[firstContentIndex],
+      recipientSelection,
+      availableRecipients,
+    )
   }
   for (let index = firstContentIndex + 1; index < lines.length; index += 1) {
     lines[index] = normalizePublicationAttribution(lines[index])
@@ -123,6 +149,8 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [draft, setDraft] = useState<OutreachDraft | null>(null)
+  const [availableRecipients, setAvailableRecipients] = useState<string[]>([])
+  const [recipientSelection, setRecipientSelection] = useState('')
 
   useEffect(() => {
     if (!open || !opportunityId) return
@@ -130,6 +158,22 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     setLoading(true)
     setError(null)
     setDraft(null)
+    setAvailableRecipients([])
+    setRecipientSelection('')
+
+    todayActionsService
+      .getOpportunity(opportunityId)
+      .then((card) => {
+        if (cancelled) return
+        const names = contactNames(card?.facts.official_contact?.name ?? '')
+        setAvailableRecipients(names)
+        if (names.length === 1) setRecipientSelection(names[0])
+      })
+      .catch(() => {
+        // Recipient resolution is a convenience layer. Draft generation can still
+        // proceed with a neutral greeting if opportunity detail lookup is unavailable.
+      })
+
     todayActionsService
       .requestOutreachDraft(opportunityId)
       .then((res) => {
@@ -152,7 +196,13 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     }
   }, [navigate, onClose, open, opportunityId])
 
-  const sendableDraft = useMemo(() => (draft ? toSendableDraft(draft.draft) : ''), [draft])
+  const sendableDraft = useMemo(
+    () =>
+      draft
+        ? toSendableDraft(draft.draft, recipientSelection, availableRecipients)
+        : '',
+    [availableRecipients, draft, recipientSelection],
+  )
 
   const copyDraft = async () => {
     if (!sendableDraft) return
@@ -200,6 +250,52 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
       {error ? <p className="mt-6 text-[13px] text-rose-700">{error}</p> : null}
       {draft ? (
         <div className="mt-2">
+          {availableRecipients.length > 1 ? (
+            <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="text-[12px] font-medium text-slate-700">称呼对象</p>
+              <p className="mt-0.5 text-[11px] leading-5 text-slate-500">
+                公告列出多位联系人，不代表本次需要群发；默认不指定收件人。
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setRecipientSelection('')}
+                  className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                    recipientSelection === ''
+                      ? 'border-teal-600 bg-teal-50 text-teal-800'
+                      : 'border-slate-200 bg-white text-slate-600'
+                  }`}
+                >
+                  不指定
+                </button>
+                {availableRecipients.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => setRecipientSelection(name)}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                      recipientSelection === name
+                        ? 'border-teal-600 bg-teal-50 text-teal-800'
+                        : 'border-slate-200 bg-white text-slate-600'
+                    }`}
+                  >
+                    {name}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setRecipientSelection(GROUP_RECIPIENT)}
+                  className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                    recipientSelection === GROUP_RECIPIENT
+                      ? 'border-teal-600 bg-teal-50 text-teal-800'
+                      : 'border-slate-200 bg-white text-slate-600'
+                  }`}
+                >
+                  各位老师
+                </button>
+              </div>
+            </div>
+          ) : null}
           <p className="mb-2 text-[12px] font-medium text-slate-500">可复制内容</p>
           <pre className="whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-white p-3 font-sans text-[13px] leading-6 text-slate-800">
             {sendableDraft}
