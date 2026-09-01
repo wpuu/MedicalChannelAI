@@ -1,7 +1,4 @@
-import {
-  loadVerifiedSnapshot,
-  verifiedSnapshotSourceMode,
-} from './_verifiedSnapshot.js'
+import { loadVerifiedSnapshot, verifiedSnapshotSourceMode } from './_verifiedSnapshot.js'
 
 const APP_VERSION = '0.1.8'
 const SNAPSHOT_STALE_AFTER_MINUTES = 30 * 60
@@ -21,13 +18,14 @@ function buildCommit() {
   const value = String(process.env.VERCEL_GIT_COMMIT_SHA || '').trim()
   return value ? value.slice(0, 7) : null
 }
+function remoteConfigured() {
+  return Boolean((process.env.VERIFIED_SNAPSHOT_URL || process.env.VITE_VERIFIED_SNAPSHOT_URL || '').trim())
+}
 export function snapshotFreshness(snapshotAsOf, nowMs = Date.now()) {
   const parsed = Date.parse(snapshotAsOf || '')
   if (Number.isNaN(parsed)) return { freshness: 'INVALID', age_minutes: null, degraded: true }
   const rawAgeMinutes = (nowMs - parsed) / 60_000
-  if (rawAgeMinutes < -SNAPSHOT_FUTURE_TOLERANCE_MINUTES) {
-    return { freshness: 'INVALID', age_minutes: null, degraded: true }
-  }
+  if (rawAgeMinutes < -SNAPSHOT_FUTURE_TOLERANCE_MINUTES) return { freshness: 'INVALID', age_minutes: null, degraded: true }
   const ageMinutes = Math.max(0, Math.floor(rawAgeMinutes))
   if (ageMinutes > SNAPSHOT_STALE_AFTER_MINUTES) return { freshness: 'STALE', age_minutes: ageMinutes, degraded: true }
   return { freshness: 'FRESH', age_minutes: ageMinutes, degraded: false }
@@ -61,10 +59,12 @@ export default async function handler(request, response) {
       },
     })
   } catch {
+    const mode = verifiedSnapshotSourceMode()
+    const failureMode = remoteConfigured() ? (mode === 'REMOTE' ? 'REMOTE' : 'UNAVAILABLE') : 'UNAVAILABLE'
     return sendJson(response, 503, {
       ...base, ready: false, degraded: true,
       snapshot: {
-        available: false, source_mode: 'UNAVAILABLE', snapshot_as_of: null,
+        available: false, source_mode: failureMode, snapshot_as_of: null,
         freshness: 'UNAVAILABLE', age_minutes: null, stale_after_minutes: SNAPSHOT_STALE_AFTER_MINUTES,
         today_card_count: 0, opportunity_pool_count: 0,
       },
