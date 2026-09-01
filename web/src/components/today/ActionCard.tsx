@@ -11,6 +11,7 @@ import { isApiMode } from '@/services/apiConfig'
 import { ActionButtons } from './ActionButtons'
 import { CustomerResourceBlock } from './CustomerResourceBlock'
 import { DecisionBlock } from './DecisionBlock'
+import { RecommendationFeedback } from './RecommendationFeedback'
 
 interface ActionCardProps {
   card: TodayActionCard
@@ -120,6 +121,11 @@ export function ActionCard({
           analysisUnavailableReason={analysisUnavailableReason}
         />
       </div>
+
+      <RecommendationFeedback
+        opportunityId={card.opportunity_id}
+        onWorthFollowing={card.followup_status === 'NEW' ? onFollow : undefined}
+      />
 
       <div className="border-t border-slate-100 px-3 py-3 sm:px-4">
         <ActionButtons
