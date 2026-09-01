@@ -2,6 +2,7 @@ import { Building2, Calendar, Wallet } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import { formatBudget, pickDisplayDate } from '@/utils/format'
 import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
+import { hasUserCustomerContext } from '@/utils/customerContext'
 import { OfficialText } from '@/components/shared/EmptyValue'
 import { PriorityBadge, PriorityScore } from '@/components/shared/PriorityBadge'
 import { FollowupChip, SourceTag, StageBadge } from '@/components/shared/StageBadge'
@@ -41,6 +42,7 @@ export function ActionCard({
   const dateInfo = pickDisplayDate(card.facts)
   const budget = formatBudget(card.facts.budget)
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
+  const publicOnlyPriority = !hasUserCustomerContext(card.customer_context)
   const outreachDisabled =
     card.model_decision_status === 'BLOCKED_GROUNDING' ||
     card.model_decision_status === 'NOT_ELIGIBLE' ||
@@ -60,8 +62,8 @@ export function ActionCard({
           <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-white">
             重点 {card.rank}
           </span>
-          <PriorityScore score={card.priority.score} />
-          <PriorityBadge score={card.priority.score} />
+          <PriorityScore score={card.priority.score} publicOnly={publicOnlyPriority} />
+          <PriorityBadge score={card.priority.score} publicOnly={publicOnlyPriority} />
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           {isLateWindow ? (
