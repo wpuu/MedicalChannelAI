@@ -65,6 +65,49 @@ class EvidencePipelineTests(unittest.TestCase):
             self.assertIsNone(card["customer_context"]["hospital_relationship"])
             self.assertEqual(card["customer_context"]["matching_product_capabilities"], [])
 
+    def test_ranking_v2_public_score_contract(self) -> None:
+        payload = build_public_snapshot(
+            copy.deepcopy(self.records),
+            datetime.fromisoformat("2026-08-31T16:42:00+08:00"),
+        )
+        expected_public_max = {
+            "INTERVENTION_STAGE": 25,
+            "DEADLINE_URGENCY": 10,
+            "PROJECT_AMOUNT": 10,
+            "PRODUCT_SPECIFICITY": 8,
+            "PUBLICATION_FRESHNESS": 7,
+        }
+        expected_private_max = {
+            "PRODUCT_EXECUTION_CAPABILITY": 25,
+            "RELATIONSHIP": 10,
+            "EXECUTION_FLEXIBILITY": 5,
+        }
+        for card in payload["cards"]:
+            self.assertEqual(card["priority"]["score_type"], "ZERO_CONFIG_PUBLIC_FACTS_V2")
+            components = {item["code"]: item for item in card["priority"]["components"]}
+            for code, max_points in expected_public_max.items():
+                self.assertEqual(components[code]["max_points"], max_points)
+            for code, max_points in expected_private_max.items():
+                self.assertEqual(components[code]["max_points"], max_points)
+                self.assertEqual(components[code]["points"], 0)
+            self.assertEqual(sum(expected_public_max.values()), 60)
+            self.assertLessEqual(card["priority"]["score"], 60)
+            self.assertEqual(
+                card["priority"]["score"],
+                sum(item["points"] for item in card["priority"]["components"]),
+            )
+
+    def test_ranking_v2_late_window_intervention_is_reduced(self) -> None:
+        payload = build_public_snapshot(
+            copy.deepcopy(self.records),
+            datetime.fromisoformat("2026-09-04T00:00:00+08:00"),
+        )
+        card = next(item for item in payload["cards"] if item["opportunity_id"] == "verified_xks_2026_a_641")
+        components = {item["code"]: item for item in card["priority"]["components"]}
+        self.assertEqual(components["INTERVENTION_STAGE"]["max_points"], 25)
+        self.assertEqual(components["INTERVENTION_STAGE"]["points"], 8)
+        self.assertEqual(card["recommendation_mode"], "LATE_WINDOW")
+
     def test_today_actions_exposes_all_actionable_count_but_only_top_five_cards(self) -> None:
         records = copy.deepcopy(self.records)
         extra = copy.deepcopy(self.records[0])
