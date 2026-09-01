@@ -120,12 +120,13 @@ export interface CustomerContext {
 export interface PriorityComponents {
   PRODUCT_EXECUTION_CAPABILITY: number
   RELATIONSHIP: number
-  EXECUTION_FLEXIBILITY: number
   INTERVENTION_STAGE: number
-  DEADLINE_URGENCY: number
   PROJECT_AMOUNT: number
-  PRODUCT_SPECIFICITY: number
-  PUBLICATION_FRESHNESS: number
+  /** v2 fields are present for real verified opportunities; legacy demo fixtures may omit them. */
+  EXECUTION_FLEXIBILITY?: number
+  DEADLINE_URGENCY?: number
+  PRODUCT_SPECIFICITY?: number
+  PUBLICATION_FRESHNESS?: number
 }
 
 export interface Priority {
