@@ -26,17 +26,17 @@ import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStor
 import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
 import type { FollowupStatus, NotFitReason, TodayActionCard } from '@/types'
 
-const AI_UNCONFIGURED_REASON = 'AI运行配置尚未完成；当前已核验事实、官方依据和跟进功能不受影响。'
+const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；其他功能正常。'
 
 function aiErrorMessage(cause: unknown): string {
-  if (!(cause instanceof AiDecisionError)) return 'AI分析暂时不可用，请稍后重试'
-  if (cause.code === 'AI_NOT_CONFIGURED') return 'AI服务端运行配置尚未完成'
-  if (cause.code === 'AI_RATE_LIMITED') return 'AI服务当前限流，请稍后再试'
-  if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') return 'AI服务端当前不可用'
-  if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，请稍后重试'
+  if (!(cause instanceof AiDecisionError)) return 'AI分析暂时不可用，请重试'
+  if (cause.code === 'AI_NOT_CONFIGURED') return 'AI暂时不可用，请稍后再试'
+  if (cause.code === 'AI_RATE_LIMITED') return 'AI请求较多，请稍后再试'
+  if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') return 'AI暂时不可用，请稍后再试'
+  if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，请重试'
   if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
-  if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机不在服务端已核验快照中，暂不能分析'
-  return 'AI分析暂时不可用，请稍后重试'
+  if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机暂不在已核验商机池中'
+  return 'AI分析暂时不可用，请重试'
 }
 
 export function OpportunityDetailPage() {
@@ -111,10 +111,7 @@ export function OpportunityDetailPage() {
     try {
       await todayActionsService.updateFollowup(card.opportunity_id, { status, ...extra })
       await load(true)
-      toast(
-        isApiMode ? '跟进状态已同步服务器' : '试用模式：跟进状态已在本地更新',
-        'success',
-      )
+      toast('跟进状态已更新', 'success')
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
@@ -129,13 +126,16 @@ export function OpportunityDetailPage() {
     setAiBusy(true)
     try {
       const decision = await requestAiDecision(card)
+      setRuntimeStatus((current) =>
+        current ? { ...current, ai: { configured: true } } : current,
+      )
       setCard({
         ...card,
         model_decision_status: 'READY',
         model_block_reason: null,
         decision,
       })
-      toast('AI已基于已核验公开事实给出行动建议', 'success')
+      toast('AI行动建议已生成', 'success')
     } catch (cause) {
       if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
         setRuntimeStatus((current) =>
@@ -152,7 +152,7 @@ export function OpportunityDetailPage() {
   if (error) return <ErrorState message={error} onRetry={() => void load()} />
   if (notFound || !card) {
     return (
-      <EmptyState title="未找到该商机" hint="请返回今日行动或商机池，从当前已核验商机进入详情。" />
+      <EmptyState title="未找到该商机" hint="请返回今日行动或商机池，从当前商机进入详情。" />
     )
   }
 
@@ -181,12 +181,12 @@ export function OpportunityDetailPage() {
           <button
             type="button"
             disabled={outreachDisabled}
-            title={outreachDisabled ? '公开依据不足，暂不安全生成沟通草稿' : undefined}
+            title={outreachDisabled ? '公开依据不足，暂不能生成沟通草稿' : undefined}
             onClick={() => setOutreachOpen(true)}
             className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <MessageSquareText className="h-3.5 w-3.5" />
-            {outreachDisabled ? '依据不足，暂不生成' : '生成沟通草稿'}
+            {outreachDisabled ? '暂不能生成草稿' : '生成沟通草稿'}
           </button>
         ) : null}
       </div>
@@ -194,9 +194,7 @@ export function OpportunityDetailPage() {
       {historical ? (
         <section className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-5 text-amber-900">
           <Archive className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>
-            这是浏览器保存的历史跟进快照。该项目已不在当前有效商机池中，仅保留当时的公开事实、官方依据和跟进记录；当前不再生成 AI 建议或外联草稿。
-          </p>
+          <p>这是历史跟进快照，仅保留当时的公开信息和跟进记录。</p>
         </section>
       ) : null}
 
@@ -212,17 +210,6 @@ export function OpportunityDetailPage() {
                 TOP {card.rank}
               </span>
               <PriorityBadge score={card.priority.score} />
-              {!isApiMode && isVerifiedPublicDemo && runtimeStatus ? (
-                <span
-                  className={
-                    runtimeStatus.ai.configured
-                      ? 'rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-800 ring-1 ring-indigo-200'
-                      : 'rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800 ring-1 ring-amber-200'
-                  }
-                >
-                  {runtimeStatus.ai.configured ? 'AI已连接' : 'AI待配置'}
-                </span>
-              ) : null}
             </>
           )}
         </div>
@@ -234,8 +221,8 @@ export function OpportunityDetailPage() {
         </p>
         <p className="mt-3 text-[12px] leading-5 text-slate-500">
           {historical
-            ? '历史快照仅用于追溯公开事实和跟进记录，不代表项目当前仍可介入。'
-            : '经营优先级用于安排销售资源，不代表中标概率；未录入客户资源时不判断医院关系或产品匹配度。'}
+            ? '项目是否仍可介入请以当前官方信息为准。'
+            : '优先级用于安排跟进；详细公开依据见下方。'}
         </p>
       </section>
 
@@ -252,7 +239,7 @@ export function OpportunityDetailPage() {
             card={card}
             analyzing={aiBusy}
             onAnalyze={
-              !isApiMode && isVerifiedPublicDemo && !aiUnavailableReason
+              !isApiMode && isVerifiedPublicDemo
                 ? () => void analyze()
                 : undefined
             }
