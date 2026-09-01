@@ -1,0 +1,42 @@
+name: TMUGH Live Discovery Probe
+
+on:
+  push:
+    branches:
+      - chatgpt/opportunity-ranking-v2-final
+    paths:
+      - '.github/workflows/tjmugh-live-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Probe official index with production discovery code
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web/pipeline
+          python - <<'PY'
+          from medical_channel_pipeline.tjmugh_discovery import INDEX_URL, fetch_tjmugh_page, parse_tjmugh_index_html
+
+          html = fetch_tjmugh_page(INDEX_URL)
+          candidates = parse_tjmugh_index_html(html)
+          print(f'html_chars={len(html)}')
+          print(f'contains_hospital={"天津医科大学总医院" in html}')
+          print(f'contains_medical_equipment={"医疗设备" in html}')
+          print(f'contains_market_research={"市场调研" in html}')
+          print(f'system_link_text_count={html.count("/system/")}')
+          print(f'supported_candidates={len(candidates)}')
+          for item in candidates[:10]:
+              print(f'candidate={item.published_at}|{item.title}|{item.detail_url}')
+          if not any(item.published_at == '2026-08-31' for item in candidates):
+              raise SystemExit('LIVE_PROBE_MISSING_2026_08_31_SUPPORTED_NOTICE')
+          PY
