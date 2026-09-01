@@ -39,6 +39,19 @@ def _visible_text(html: str) -> str:
     return " ".join(parser.parts)
 
 
+def _compact_fragmented_digits(text: str) -> str:
+    """Repair digits split only by HTML text-node boundaries.
+
+    The live North China/TMUGH pages can render `00` as separate text nodes, so
+    visible text becomes `0 0`, and the same happens inside phone numbers. This
+    normalization is intentionally narrow: it removes whitespace only when both
+    neighboring characters are digits. It does not invent or broaden any date,
+    deadline, or contact fact.
+    """
+
+    return re.sub(r"(?<=\d)\s+(?=\d)", "", text)
+
+
 def _assert_source_url(source_url: str) -> None:
     parsed = urlparse(source_url)
     if parsed.scheme != "https" or parsed.hostname not in ALLOWED_HOSTS:
@@ -48,7 +61,10 @@ def _assert_source_url(source_url: str) -> None:
 def _extract_title(text: str) -> str:
     match = re.search(r"(天津医科大学总医院[^。]{0,80}?市场调研论证邀请函)", text)
     if match:
-        return re.sub(r"\s+", "", match.group(1))
+        title = re.sub(r"\s+", "", match.group(1))
+        while title.startswith("天津医科大学总医院天津医科大学总医院"):
+            title = title.removeprefix("天津医科大学总医院")
+        return title
     match = re.search(r"([^。]{0,80}?医疗设备[^。]{0,40}?市场调研论证邀请函)", text)
     if match:
         title = re.sub(r"\s+", "", match.group(1))
@@ -65,9 +81,10 @@ def _extract_published_date(text: str) -> str:
 
 
 def _extract_deadline(text: str) -> str:
+    parse_text = _compact_fragmented_digits(text)
     match = re.search(
         r"报名截止时间.{0,30}?(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?[^0-9]{0,12}(\d{1,2})\s*[：:]\s*:?(\d{2})",
-        text,
+        parse_text,
     )
     if not match:
         raise TjmughParseError("TJMUGH_REGISTRATION_DEADLINE_NOT_FOUND")
@@ -97,7 +114,8 @@ def _extract_items(text: str) -> list[dict[str, Any]]:
 
 
 def _extract_contact(text: str) -> dict[str, str | None] | None:
-    match = re.search(r"联系电话\s*[：:]?\s*(\d{7,12})\s*([^\s，。；;]{1,8}老师)?", text)
+    parse_text = _compact_fragmented_digits(text)
+    match = re.search(r"联系电话\s*[：:]?\s*(\d{7,12})\s*([^\s，。；;]{1,8}老师)?", parse_text)
     if not match:
         return None
     phone = match.group(1)
