@@ -227,18 +227,18 @@ function capabilityPoints(type: CapabilityType): number {
   switch (type) {
     case 'DIRECT_AUTHORIZED':
     case 'DIRECT':
-      return 30
+      return 25
     case 'RENTAL_CAPABLE':
-      return 26
-    case 'DIRECT_UNCONFIRMED':
       return 22
+    case 'DIRECT_UNCONFIRMED':
+      return 18
     case 'NEED_MANUFACTURER':
     case 'CAN_SOURCE_PARTNER':
-      return 16
-    case 'PARTNER':
       return 14
-    case 'SERVICE_ONLY':
+    case 'PARTNER':
       return 12
+    case 'SERVICE_ONLY':
+      return 8
     default:
       return 0
   }
@@ -312,6 +312,55 @@ function capabilitiesForCard(
   })
 }
 
+function cardLooksLikeLease(card: TodayActionCard): boolean {
+  const text = normalizeForMatch(
+    [
+      card.facts.project_name,
+      card.facts.procurement_method,
+      ...(card.facts.product_categories ?? []),
+    ]
+      .filter(Boolean)
+      .join('|'),
+  )
+  return text.includes('租赁') || text.includes('租用') || text.includes('租机')
+}
+
+function executionFlexibilityPoints(
+  card: TodayActionCard,
+  capabilities: LocalProductCapability[],
+  profile: LocalCustomerProfile,
+): number {
+  let points = 0
+  const types = new Set(capabilities.map((item) => item.capability_type))
+
+  if (cardLooksLikeLease(card) && profile.can_handle_lease === true) {
+    return 5
+  }
+  if (types.has('RENTAL_CAPABLE') && profile.can_handle_lease === true) {
+    points = Math.max(points, 5)
+  }
+  if (
+    (types.has('NEED_MANUFACTURER') || types.has('CAN_SOURCE_PARTNER')) &&
+    profile.can_find_manufacturer === true
+  ) {
+    points = Math.max(points, 3)
+  }
+  if (
+    (types.has('PARTNER') || types.has('CAN_SOURCE_PARTNER')) &&
+    profile.can_partner_channel === true
+  ) {
+    points = Math.max(points, 3)
+  }
+  if (
+    types.has('CAN_SOURCE_PARTNER') &&
+    profile.can_find_manufacturer === true &&
+    profile.can_partner_channel === true
+  ) {
+    points = 5
+  }
+  return Math.min(5, points)
+}
+
 function toCustomerContext(
   relation: LocalHospitalRelationship | null,
   capabilities: LocalProductCapability[],
@@ -366,22 +415,27 @@ export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard
       0,
     )
     const relationPoint = relation ? relationshipPoints(relation.relationship_strength) : 0
+    const flexibilityPoint = executionFlexibilityPoints(card, capabilities, profile)
     const publicBase = Math.max(
       0,
       card.priority.score -
-        Math.round((card.priority.components.PRODUCT_EXECUTION_CAPABILITY / 100) * 30) -
-        Math.round((card.priority.components.RELATIONSHIP / 100) * 10),
+        Math.round((card.priority.components.PRODUCT_EXECUTION_CAPABILITY / 100) * 25) -
+        Math.round((card.priority.components.RELATIONSHIP / 100) * 10) -
+        Math.round((card.priority.components.EXECUTION_FLEXIBILITY / 100) * 5),
     )
+    const privatePoints = capabilityPoint + relationPoint + flexibilityPoint
 
     return {
       ...card,
+      match_status: privatePoints > 0 ? 'MATCHED_PERSONALIZED' : card.match_status,
       customer_context: toCustomerContext(relation, capabilities, profile),
       priority: {
-        score: Math.min(100, publicBase + capabilityPoint + relationPoint),
+        score: Math.min(100, publicBase + privatePoints),
         components: {
           ...card.priority.components,
-          PRODUCT_EXECUTION_CAPABILITY: Math.round((capabilityPoint / 30) * 100),
+          PRODUCT_EXECUTION_CAPABILITY: Math.round((capabilityPoint / 25) * 100),
           RELATIONSHIP: relationPoint * 10,
+          EXECUTION_FLEXIBILITY: flexibilityPoint * 20,
         },
       },
     }
