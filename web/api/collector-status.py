@@ -3,7 +3,13 @@ from __future__ import annotations
 import json
 from http.server import BaseHTTPRequestHandler
 
-from collector_runtime import STAGE_ORDER, load_status
+from vercel.functions import RuntimeCache
+
+import collector_runtime as runtime
+from collector_namespace import ACTIVE_CYCLE_KEY, active_cycle_id, apply_runtime_namespace
+
+apply_runtime_namespace(runtime)
+STAGE_ORDER = runtime.STAGE_ORDER
 
 
 class handler(BaseHTTPRequestHandler):
@@ -19,7 +25,9 @@ class handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         try:
-            state = load_status()
+            cache = RuntimeCache()
+            state = runtime.load_status(cache)
+            active = active_cycle_id(cache.get(ACTIVE_CYCLE_KEY))
             stages = state.get("stages") if isinstance(state.get("stages"), dict) else {}
             completed = sum(
                 1
@@ -33,6 +41,8 @@ class handler(BaseHTTPRequestHandler):
                     "service": "MedicalChannelAI",
                     "collector": {
                         **state,
+                        "active_cycle_id": active,
+                        "execution_namespace": "v2",
                         "stage_order": list(STAGE_ORDER),
                         "completed_stage_count": completed,
                         "total_stage_count": len(STAGE_ORDER),

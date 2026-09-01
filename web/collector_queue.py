@@ -3,11 +3,20 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any
 
+from vercel.functions import RuntimeCache
 from vercel.queue import send
 
-from collector_runtime import STAGE_ORDER, run_stage
+import collector_runtime as runtime
+from collector_namespace import (
+    ACTIVE_CYCLE_KEY,
+    QUEUE_TOPIC_NAME,
+    active_cycle_id,
+    apply_runtime_namespace,
+)
 
-QUEUE_TOPIC_NAME = "medicalchannelai-refresh"
+apply_runtime_namespace(runtime)
+STAGE_ORDER = runtime.STAGE_ORDER
+
 MESSAGE_RETENTION = timedelta(hours=24)
 NEXT_STAGE_DELAY_SECONDS = 2
 
@@ -31,6 +40,14 @@ def _next_stage(stage: str) -> str | None:
     return STAGE_ORDER[index + 1] if index + 1 < len(STAGE_ORDER) else None
 
 
+def _active_cycle_matches(cycle_id: str) -> bool:
+    value = RuntimeCache().get(ACTIVE_CYCLE_KEY)
+    current = active_cycle_id(value)
+    if current is None:
+        raise RuntimeError("COLLECTOR_ACTIVE_CYCLE_MISSING")
+    return current == cycle_id
+
+
 async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) -> str:
     message_id = await send(
         QUEUE_TOPIC_NAME,
@@ -42,7 +59,7 @@ async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) ->
         },
         retention=MESSAGE_RETENTION,
         delay=NEXT_STAGE_DELAY_SECONDS if stage != "ccgp" else 0,
-        idempotency_key=f"medicalchannelai-refresh:{cycle_id}:{stage}",
+        idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:{stage}",
     )
     return str(message_id)
 
@@ -57,11 +74,19 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if stage not in STAGE_ORDER or not cycle_id or cycle_as_of is None:
         return
 
-    status, result = run_stage(stage, now=cycle_as_of)
+    # Vercel Queues are at-least-once. A redelivery from an older accepted cycle
+    # must be acknowledged without touching the current collector namespace.
+    if not _active_cycle_matches(cycle_id):
+        return
+
+    status, result = runtime.run_stage(stage, now=cycle_as_of)
     action = str(result.get("action") or "")
     if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
         next_stage = _next_stage(stage)
         if next_stage is not None:
+            # Do not extend a cycle that was superseded while this stage ran.
+            if not _active_cycle_matches(cycle_id):
+                return
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         return
 
@@ -71,7 +96,6 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
         # leave the collector status FAILED instead of retrying forever.
         return
 
-    # Raising asks Vercel Queues to redeliver. run_stage() itself caps real
-    # upstream attempts per stage/day, so persistent failures become stable FAILED
-    # status rather than an unbounded request loop.
+    # Raising asks Vercel Queues to redeliver. The active-cycle fence above makes
+    # delayed retries harmless after a newer cycle becomes authoritative.
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")

@@ -6,8 +6,9 @@ from pathlib import Path
 
 WEB_ROOT = Path(__file__).resolve().parents[2]
 CONSUMER_PATH = WEB_ROOT / "api" / "collector-queue.py"
+NAMESPACE_PATH = WEB_ROOT / "collector_namespace.py"
 EXPECTED_CONSUMER_GROUP = "api/collector-queue.py"
-EXPECTED_TOPIC = "medicalchannelai-refresh"
+EXPECTED_TOPIC = "medicalchannelai-refresh-v2"
 
 
 def _string_constants(tree: ast.AST) -> dict[str, str]:
@@ -52,9 +53,12 @@ class QueueConsumerRegistrationTests(unittest.TestCase):
             EXPECTED_CONSUMER_GROUP,
         )
 
-    def test_queue_topic_is_explicit_and_stable(self) -> None:
-        source = CONSUMER_PATH.read_text(encoding="utf-8")
-        self.assertIn(f'"{EXPECTED_TOPIC}"', source)
+    def test_queue_topic_is_isolated_v2_namespace(self) -> None:
+        namespace_source = NAMESPACE_PATH.read_text(encoding="utf-8")
+        namespace_constants = _string_constants(ast.parse(namespace_source))
+        self.assertEqual(namespace_constants.get("QUEUE_TOPIC_NAME"), EXPECTED_TOPIC)
+        consumer_source = CONSUMER_PATH.read_text(encoding="utf-8")
+        self.assertIn("Topic[dict[str, object]](QUEUE_TOPIC_NAME)", consumer_source)
 
 
 if __name__ == "__main__":

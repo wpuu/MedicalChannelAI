@@ -6,7 +6,8 @@ const REMOTE_TIMEOUT_MS = 6000
 const MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024
 const MAX_TODAY_CARDS = 5
 const MAX_OPPORTUNITY_POOL = 500
-const LATEST_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:latest:v1'
+const LATEST_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:latest:v2'
+const LEGACY_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:latest:v1'
 const RUNTIME_SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
@@ -129,6 +130,15 @@ async function loadRemoteSnapshot(remoteUrl) {
     clearTimeout(timeout)
   }
 }
+async function persistRuntimeSnapshot(cache, snapshot) {
+  await cache.set(LATEST_RUNTIME_SNAPSHOT_KEY, snapshot, {
+    ttl: RUNTIME_SNAPSHOT_TTL_SECONDS,
+    tags: ['medicalchannelai-verified-snapshot'],
+  })
+  const readBack = await cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
+  if (!readBack) throw new Error('RUNTIME_SNAPSHOT_READBACK_FAILED')
+  return validateVerifiedSnapshot(readBack)
+}
 async function loadRuntimeCachedSnapshot() {
   if (!process.env.VERCEL_REGION) return null
   const cache = getCache()
@@ -137,18 +147,21 @@ async function loadRuntimeCachedSnapshot() {
     try {
       return validateVerifiedSnapshot(value)
     } catch {
-      // Invalid collector state is never served. Replace it with the known-good bundled snapshot.
+      // Invalid v2 state is never served; attempt one safe legacy migration below.
     }
   }
 
-  const bundled = bundledVerifiedSnapshot()
-  await cache.set(LATEST_RUNTIME_SNAPSHOT_KEY, bundled, {
-    ttl: RUNTIME_SNAPSHOT_TTL_SECONDS,
-    tags: ['medicalchannelai-verified-snapshot'],
-  })
-  const readBack = await cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
-  if (!readBack) throw new Error('RUNTIME_SNAPSHOT_READBACK_FAILED')
-  return validateVerifiedSnapshot(readBack)
+  const legacy = await cache.get(LEGACY_RUNTIME_SNAPSHOT_KEY)
+  if (legacy) {
+    try {
+      const verifiedLegacy = validateVerifiedSnapshot(legacy)
+      return await persistRuntimeSnapshot(cache, verifiedLegacy)
+    } catch {
+      // Invalid legacy state is never migrated.
+    }
+  }
+
+  return persistRuntimeSnapshot(cache, bundledVerifiedSnapshot())
 }
 export async function loadVerifiedSnapshot() {
   const remoteUrl = configuredRemoteUrl()
