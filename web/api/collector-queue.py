@@ -1,7 +1,17 @@
 from __future__ import annotations
 
-# Importing the module registers the @subscribe handler before asgi_app() is built.
-from collector_queue import collector_worker as _collector_worker  # noqa: F401
-from vercel.queue import asgi_app
+from vercel.queue import Message, Topic, asgi_app, subscribe
+
+from collector_queue import process_collector_payload
+
+QUEUE_TOPIC = Topic[dict[str, object]]("medicalchannelai-refresh")
+
+
+@subscribe(topic=QUEUE_TOPIC)
+async def collector_worker(message: Message[dict[str, object]]) -> None:
+    payload = message.payload
+    if isinstance(payload, dict):
+        await process_collector_payload(payload)
+
 
 app = asgi_app()

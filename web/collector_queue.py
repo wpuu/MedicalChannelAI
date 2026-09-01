@@ -3,13 +3,12 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any
 
-from vercel.queue import Message, Topic, send, subscribe
+from vercel.queue import send
 
 from collector_runtime import STAGE_ORDER, run_stage
 
 QUEUE_TOPIC_NAME = "medicalchannelai-refresh"
-QUEUE_TOPIC = Topic[dict[str, object]](QUEUE_TOPIC_NAME)
-MESSAGE_RETENTION = timedelta(days=2)
+MESSAGE_RETENTION = timedelta(hours=24)
 NEXT_STAGE_DELAY_SECONDS = 2
 
 
@@ -48,9 +47,7 @@ async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) ->
     return str(message_id)
 
 
-@subscribe(topic=QUEUE_TOPIC)
-async def collector_worker(message: Message[dict[str, object]]) -> None:
-    payload = message.payload
+async def process_collector_payload(payload: dict[str, Any]) -> None:
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
         return
 
@@ -74,7 +71,7 @@ async def collector_worker(message: Message[dict[str, object]]) -> None:
         # leave the collector status FAILED instead of retrying forever.
         return
 
-    # Throwing asks Vercel Queues to redeliver. run_stage() itself caps real
-    # upstream attempts per stage/day, so a persistent failure becomes a stable
-    # FAILED status instead of an unbounded request loop.
+    # Raising asks Vercel Queues to redeliver. run_stage() itself caps real
+    # upstream attempts per stage/day, so persistent failures become stable FAILED
+    # status rather than an unbounded request loop.
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")
