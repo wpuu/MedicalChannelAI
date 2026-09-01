@@ -15,7 +15,9 @@ import { personalizeTrialCards } from './localCustomerProfile'
 import type { TodayActionsService } from './TodayActionsService'
 
 const COVERAGE_WARNING = '天津 Pilot · 公开事实来自证据流水线快照；当前仍为部分来源覆盖。'
-const LATE_WINDOW_PERCENT = 38
+const INTERVENTION_MAX_POINTS = 25
+const LATE_WINDOW_POINTS = 8
+const LATE_WINDOW_PERCENT = Math.round((LATE_WINDOW_POINTS / INTERVENTION_MAX_POINTS) * 100)
 const MAX_TODAY_CARDS = 5
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
@@ -187,8 +189,12 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       components: {
         PRODUCT_EXECUTION_CAPABILITY: componentPercent(card, 'PRODUCT_EXECUTION_CAPABILITY'),
         RELATIONSHIP: componentPercent(card, 'RELATIONSHIP'),
+        EXECUTION_FLEXIBILITY: componentPercent(card, 'EXECUTION_FLEXIBILITY'),
         INTERVENTION_STAGE: componentPercent(card, 'INTERVENTION_STAGE'),
+        DEADLINE_URGENCY: componentPercent(card, 'DEADLINE_URGENCY'),
         PROJECT_AMOUNT: componentPercent(card, 'PROJECT_AMOUNT'),
+        PRODUCT_SPECIFICITY: componentPercent(card, 'PRODUCT_SPECIFICITY'),
+        PUBLICATION_FRESHNESS: componentPercent(card, 'PUBLICATION_FRESHNESS'),
       },
     },
     match_status: card.match_status,
@@ -218,27 +224,71 @@ function uid(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+function splitContactNames(value: string | null | undefined): string[] {
+  if (!value) return []
+  return value
+    .split(/[、，,；;／/]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function outreachGreeting(contact: string | null | undefined): string {
+  const names = splitContactNames(contact)
+  if (names.length >= 2) return '各位老师好：'
+  if (names.length === 1) return `${names[0]}老师，您好：`
+  return '您好：'
+}
+
+function chineseDateTime(value: string | null | undefined): string | null {
+  if (!value) return null
+  const match = value.match(/^(20\d{2})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/)
+  if (!match) return value
+  return `${match[1]}年${Number(match[2])}月${Number(match[3])}日 ${match[4]}:${match[5]}`
+}
+
+function chineseDate(value: string | null | undefined): string | null {
+  if (!value) return null
+  const match = value.match(/^(20\d{2})-(\d{2})-(\d{2})$/)
+  if (!match) return value
+  return `${match[1]}年${Number(match[2])}月${Number(match[3])}日`
+}
+
+function isMarketResearchCard(card: TodayActionCard): boolean {
+  const text = `${card.facts.lifecycle_stage ?? ''}|${card.facts.notice_type ?? ''}|${card.facts.project_name ?? ''}`
+  return /MARKET_RESEARCH|调研|需求调查|需求征集|意向征集/.test(text)
+}
+
 function buildGroundedDraft(card: TodayActionCard): string {
-  const buyer = card.facts.hospital ?? card.facts.buyer_name ?? '相关单位'
   const project = card.facts.project_name ?? '相关项目'
-  const contact = card.facts.official_contact?.name
-  const greeting = contact ? `${contact}老师` : '老师'
+  const greeting = outreachGreeting(card.facts.official_contact?.name)
+  const registration = chineseDateTime(card.facts.registration_deadline)
+  const registrationDate = chineseDate(card.facts.registration_deadline_date)
+  const bid = chineseDateTime(card.facts.bid_deadline)
+  const marketResearch = isMarketResearchCard(card)
   const facts = [
-    card.facts.notice_type ? `公告类型：${card.facts.notice_type}` : null,
-    card.facts.budget ? `公开预算：${Math.round(card.facts.budget / 10000)}万元` : null,
-    card.facts.registration_deadline ? `报名/获取文件截止：${card.facts.registration_deadline}` : null,
-    !card.facts.registration_deadline && card.facts.registration_deadline_date
-      ? `报名截止日期：${card.facts.registration_deadline_date}（官方未公布具体时间）`
-      : null,
-    card.facts.bid_deadline ? `投标/响应截止：${card.facts.bid_deadline}` : null,
-  ].filter(Boolean)
+    card.facts.budget ? `项目预算约${Math.round(card.facts.budget / 10000)}万元` : null,
+    registration
+      ? `${marketResearch ? '资料提交/报名' : '招标文件获取'}截至${registration}`
+      : registrationDate
+        ? `${marketResearch ? '资料提交/报名' : '招标文件获取'}截止日期为${registrationDate}（官方未公布具体时间）`
+        : null,
+    bid ? `投标/响应截止${bid}` : null,
+  ].filter((item): item is string => Boolean(item))
+
+  const closing =
+    card.recommendation_mode === 'LATE_WINDOW'
+      ? '注意到前期报名或文件获取时间已过，想确认后续是否还有公开答疑或合规的资料对接窗口；如无，我们将按公告安排关注后续进展。'
+      : marketResearch
+        ? '想确认目前是否仍接受产品资料、技术交流或需求反馈；如方便，我们可以按公开要求准备相关资料。'
+        : '想确认目前是否还有公开答疑、技术交流或资料对接窗口；如方便，我们可以按项目要求准备相关资料。'
+
   return [
-    `${greeting}您好：`,
+    greeting,
     '',
-    `关注到${buyer}公开发布了「${project}」。`,
-    facts.length ? `公开信息显示：${facts.join('；')}。` : '目前可核验的公开信息有限。',
+    `关注到「${project}」的公开${marketResearch ? '调研' : '采购'}信息。`,
+    facts.length ? `公开信息显示，${facts.join('，')}。` : '目前可核验的公开信息有限。',
     '',
-    '想进一步了解当前需求范围、时间安排以及后续资料对接窗口。如方便，我们再根据实际需求准备对应方案。',
+    closing,
   ].join('\n')
 }
 
@@ -273,9 +323,14 @@ function validDateOnly(value: string | null | undefined): string | null {
   return value
 }
 
+function interventionPointsFromPercent(value: number): number {
+  return Math.max(0, Math.round((value / 100) * INTERVENTION_MAX_POINTS))
+}
+
 function archivedRuntimeCard(card: TodayActionCard): TodayActionCard {
-  const currentStagePercent = card.priority.components.INTERVENTION_STAGE
-  const stagePointReduction = Math.max(0, Math.round((currentStagePercent / 100) * 40))
+  const currentStagePoints = interventionPointsFromPercent(
+    card.priority.components.INTERVENTION_STAGE,
+  )
   return {
     ...card,
     match_status: 'ARCHIVE',
@@ -285,7 +340,7 @@ function archivedRuntimeCard(card: TodayActionCard): TodayActionCard {
     decision: null,
     priority: {
       ...card.priority,
-      score: Math.max(0, card.priority.score - stagePointReduction),
+      score: Math.max(0, card.priority.score - currentStagePoints),
       components: {
         ...card.priority.components,
         INTERVENTION_STAGE: 0,
@@ -324,11 +379,10 @@ function applyRuntimeActionability(
         registrationDeadlineDate < localDate))
   if (!lateWindow) return { ...card }
 
-  const currentStagePercent = card.priority.components.INTERVENTION_STAGE
-  const stagePointReduction = Math.max(
-    0,
-    Math.round(((currentStagePercent - LATE_WINDOW_PERCENT) / 100) * 40),
+  const currentStagePoints = interventionPointsFromPercent(
+    card.priority.components.INTERVENTION_STAGE,
   )
+  const stagePointReduction = Math.max(0, currentStagePoints - LATE_WINDOW_POINTS)
   return {
     ...card,
     match_status: 'LATE_WINDOW',
