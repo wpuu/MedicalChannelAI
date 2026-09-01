@@ -1,3 +1,4 @@
+// Bump APP_VERSION whenever production-visible behavior changes.
 export const APP_VERSION = '0.1.2'
 
 const rawCommit = typeof __BUILD_COMMIT__ === 'string' ? __BUILD_COMMIT__ : ''
