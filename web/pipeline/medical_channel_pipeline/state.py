@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .ccgp_events import validate_notice_events
+from .channel_scope import is_medical_channel_relevant_record
 from .validation import validate_record, validate_records
 
 
@@ -92,6 +93,8 @@ def active_ccgp_project_numbers(
     for record in validate_records(records):
         source = record.get('source', {})
         if source.get('source_type') != 'CCGP_NOTICE':
+            continue
+        if not is_medical_channel_relevant_record(record):
             continue
         facts = record.get('facts', {})
         project_number = str(facts.get('project_number') or '').strip()

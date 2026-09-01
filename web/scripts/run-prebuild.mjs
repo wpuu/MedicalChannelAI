@@ -35,6 +35,7 @@ if (!pythonRan) {
 }
 
 await import('./check-verified-snapshot.mjs')
+await import('./check-medical-channel-scope.mjs')
 await import('./check-runtime-status.mjs')
 await import('./check-ai-boundary.mjs')
 console.log('Prebuild verification: PASS')

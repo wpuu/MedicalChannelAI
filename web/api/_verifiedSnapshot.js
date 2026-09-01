@@ -1,5 +1,6 @@
 import { getCache } from '@vercel/functions'
 import bundledSnapshot from '../public/data/today-actions.public.json' with { type: 'json' }
+import { filterSnapshotToMedicalChannel } from './_medicalChannelScope.js'
 
 const REMOTE_CACHE_TTL_MS = 60 * 1000
 const REMOTE_TIMEOUT_MS = 6000
@@ -108,6 +109,9 @@ export function validateVerifiedSnapshot(value) {
   }
   return snapshot
 }
+function scopedVerifiedSnapshot(snapshot) {
+  return validateVerifiedSnapshot(filterSnapshotToMedicalChannel(snapshot))
+}
 export function bundledVerifiedSnapshot() {
   return validateVerifiedSnapshot(bundledSnapshot)
 }
@@ -167,20 +171,20 @@ export async function loadVerifiedSnapshot() {
   const remoteUrl = configuredRemoteUrl()
   if (remoteUrl) {
     lastSourceMode = 'REMOTE'
-    return loadRemoteSnapshot(remoteUrl)
+    return scopedVerifiedSnapshot(await loadRemoteSnapshot(remoteUrl))
   }
   try {
     const runtimeSnapshot = await loadRuntimeCachedSnapshot()
     if (runtimeSnapshot) {
       lastSourceMode = 'RUNTIME_CACHE'
-      return runtimeSnapshot
+      return scopedVerifiedSnapshot(runtimeSnapshot)
     }
   } catch {
     lastSourceMode = 'BUNDLED_FALLBACK'
-    return bundledVerifiedSnapshot()
+    return scopedVerifiedSnapshot(bundledVerifiedSnapshot())
   }
   lastSourceMode = 'BUNDLED'
-  return bundledVerifiedSnapshot()
+  return scopedVerifiedSnapshot(bundledVerifiedSnapshot())
 }
 export function verifiedSnapshotSourceMode() {
   return lastSourceMode
