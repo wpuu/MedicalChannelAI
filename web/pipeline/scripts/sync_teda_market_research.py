@@ -173,6 +173,8 @@ def main() -> int:
             record = parse_teda_market_research(
                 detail_html,
                 source_url=candidate.detail_url,
+                index_url=candidate.index_url,
+                index_published_at=candidate.published_at,
                 expected_title=candidate.title,
                 observed_at=observed_at,
                 opportunity_id=stable_opportunity_id(candidate.detail_url),
@@ -237,6 +239,8 @@ def main() -> int:
         'policy': {
             'official_index_required': True,
             'bounded_index_pages': args.index_pages,
+            'official_index_publication_date_is_evidence': True,
+            'detail_publication_date_must_match_index_when_both_exist': True,
             'early_signal_title_prefilter_only': True,
             'medical_early_signal_must_be_verified_in_detail': True,
             'detail_must_pass_canonical_validation': True,
