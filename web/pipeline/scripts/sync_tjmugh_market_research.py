@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -24,6 +25,8 @@ from medical_channel_pipeline.tjmugh_market_research import parse_tjmugh_market_
 
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 MIN_DETAIL_DELAY_SECONDS = 3.0
+DETAIL_FETCH_ATTEMPTS = 2
+RETRYABLE_HTTP_CODES = {408, 425, 429, 500, 502, 503, 504}
 
 
 def parse_as_of(value: str | None) -> datetime:
@@ -48,6 +51,32 @@ def load_json_arrays(paths: list[Path]) -> list[dict]:
 def write_json(path: Path, payload: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def is_retryable_detail_fetch_error(exc: Exception) -> bool:
+    message = str(exc)
+    if message == 'TJMUGH_NETWORK_ERROR':
+        return True
+    match = re.fullmatch(r'TJMUGH_HTTP_(\d{3})', message)
+    return bool(match and int(match.group(1)) in RETRYABLE_HTTP_CODES)
+
+
+def fetch_detail_with_retry(
+    url: str,
+    *,
+    delay_seconds: float,
+    attempts: int = DETAIL_FETCH_ATTEMPTS,
+) -> str:
+    if attempts < 1:
+        raise ValueError('attempts must be >= 1')
+    for attempt in range(1, attempts + 1):
+        try:
+            return fetch_tjmugh_page(url)
+        except RuntimeError as exc:
+            if attempt >= attempts or not is_retryable_detail_fetch_error(exc):
+                raise
+            time.sleep(delay_seconds)
+    raise AssertionError('unreachable')
 
 
 def publish_gate(
@@ -124,7 +153,10 @@ def main() -> int:
     for candidate in selected:
         time.sleep(args.delay_seconds)
         try:
-            detail_html = fetch_tjmugh_page(candidate.detail_url)
+            detail_html = fetch_detail_with_retry(
+                candidate.detail_url,
+                delay_seconds=args.delay_seconds,
+            )
             record = parse_tjmugh_market_research(
                 detail_html,
                 source_url=candidate.detail_url,
@@ -172,6 +204,8 @@ def main() -> int:
             'detail_must_pass_verified_parser': True,
             'failed_detail_never_replaces_existing_verified_record': True,
             'all_selected_details_failed_verification_blocks_publish': True,
+            'retry_transient_detail_fetch_errors': True,
+            'detail_fetch_attempts': DETAIL_FETCH_ATTEMPTS,
             'rate_limit_bypass': False,
             'minimum_detail_delay_seconds': args.delay_seconds,
         },
