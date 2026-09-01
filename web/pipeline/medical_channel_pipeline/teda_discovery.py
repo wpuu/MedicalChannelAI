@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import date
 from html.parser import HTMLParser
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlparse
@@ -21,14 +22,17 @@ class TedaDiscoveryError(ValueError):
 class TedaCandidate:
     title: str
     detail_url: str
+    index_url: str
+    published_at: str | None
 
 
 class _IndexParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
-        self.links: list[tuple[str, str]] = []
+        self.links: list[dict[str, str | None]] = []
         self._href: str | None = None
         self._text: list[str] = []
+        self._pending_index: int | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag == 'a':
@@ -39,13 +43,34 @@ class _IndexParser(HTMLParser):
         if tag == 'a' and self._href:
             title = re.sub(r'\s+', ' ', ''.join(self._text)).strip()
             if title:
-                self.links.append((self._href, title))
+                self.links.append(
+                    {
+                        'href': self._href,
+                        'title': title,
+                        'published_at': None,
+                    }
+                )
+                self._pending_index = len(self.links) - 1
             self._href = None
             self._text = []
 
     def handle_data(self, data: str) -> None:
+        text = data.strip()
+        if not text:
+            return
         if self._href is not None:
-            self._text.append(data)
+            self._text.append(text)
+            return
+        if self._pending_index is None:
+            return
+        match = re.search(r'\b(20\d{2})[-/.年](\d{1,2})[-/.月](\d{1,2})(?:日)?\b', text)
+        if match:
+            year, month, day = (int(value) for value in match.groups())
+            try:
+                self.links[self._pending_index]['published_at'] = date(year, month, day).isoformat()
+            except ValueError:
+                pass
+            self._pending_index = None
 
 
 def _assert_url(url: str, *, code: str) -> None:
@@ -97,14 +122,23 @@ def parse_teda_index_html(html: str, *, index_url: str = INDEX_URL) -> list[Teda
     parser.feed(html)
     result: list[TedaCandidate] = []
     seen: set[str] = set()
-    for href, title in parser.links:
-        if not _supported_title(title):
+    for row in parser.links:
+        href = row.get('href')
+        title = row.get('title')
+        if not href or not title or not _supported_title(title):
             continue
         detail_url = _normalize_official_url(index_url, href)
         if not detail_url or not _detail_id(detail_url) or detail_url in seen:
             continue
         seen.add(detail_url)
-        result.append(TedaCandidate(title=title, detail_url=detail_url))
+        result.append(
+            TedaCandidate(
+                title=title,
+                detail_url=detail_url,
+                index_url=index_url,
+                published_at=row.get('published_at'),
+            )
+        )
     return result
 
 
