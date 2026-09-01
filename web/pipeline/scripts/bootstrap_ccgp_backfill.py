@@ -8,6 +8,7 @@ import time
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -27,6 +28,7 @@ from sync_ccgp_query import (  # noqa: E402
 from sync_tianjin_plan import load_plan  # noqa: E402
 
 DATA_ROOT = ROOT / "data"
+SHANGHAI = ZoneInfo("Asia/Shanghai")
 DEFAULT_LOOKBACK_DAYS = 30
 DEFAULT_CHUNK_DAYS = 7
 DEFAULT_MAX_CANDIDATES = 120
@@ -93,7 +95,7 @@ def main() -> int:
         raise ValueError("--max-event-watch-projects must be between 1 and 200")
 
     as_of = parse_as_of(args.as_of)
-    local_end = as_of.astimezone().date()
+    local_end = as_of.astimezone(SHANGHAI).date()
     windows = build_date_windows(local_end, lookback_days=args.lookback_days, chunk_days=args.chunk_days)
     plan = load_plan(DATA_ROOT / "tianjin_query_plan.json")
     delay_seconds = float(plan["delay_seconds"])
