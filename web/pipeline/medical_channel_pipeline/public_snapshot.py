@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from copy import deepcopy
 from datetime import date, datetime, time, timezone
 from typing import Any
@@ -10,6 +11,16 @@ from .validation import validate_records
 
 MAX_TODAY_CARDS = 5
 TIANJIN_TZ = ZoneInfo("Asia/Shanghai")
+
+_SPECIFIC_PRODUCT_ACRONYM_RE = re.compile(
+    r"(?<![A-Za-z0-9])(?:CT|DR|MRI|DSA|PCR|POCT|IVD|LIS|PACS|RIS|HIS|GPU)(?![A-Za-z0-9])",
+    re.IGNORECASE,
+)
+_SPECIFIC_PRODUCT_TERM_RE = re.compile(
+    r"(?:数字减影血管造影|血管造影机|磁共振|彩色超声|超声诊断|胃肠动力|X线|X光机|"
+    r"内窥镜|内镜|质谱|测序|透析|呼吸机|心电|脑电|病理|生化分析|免疫分析|"
+    r"血液分析|采血|检验科设备|实验室设备)"
+)
 
 
 def _as_datetime(value: str | None) -> datetime | None:
@@ -99,11 +110,25 @@ def _amount_points(budget: int | None) -> int:
     return 0
 
 
+def _project_title_has_specific_product_signal(project_name: Any) -> bool:
+    if not isinstance(project_name, str):
+        return False
+    title = project_name.strip()
+    if not title:
+        return False
+    return bool(_SPECIFIC_PRODUCT_ACRONYM_RE.search(title) or _SPECIFIC_PRODUCT_TERM_RE.search(title))
+
+
 def _product_specificity_points(facts: dict[str, Any]) -> int:
     points = 0
     items = facts.get("product_items") or []
     categories = facts.get("product_categories") or []
     if isinstance(items, list) and items:
+        points += 4
+    elif _project_title_has_specific_product_signal(facts.get("project_name")):
+        # A verified official title can safely establish a product family even
+        # when the parser has not extracted a structured line item. This is a
+        # deterministic fallback, not an AI inference.
         points += 4
     if isinstance(categories, list) and categories:
         points += 2
@@ -368,9 +393,10 @@ def _public_card(
                     "code": "PRODUCT_SPECIFICITY",
                     "points": components["PRODUCT_SPECIFICITY"],
                     "max_points": 8,
-                    "basis": "PUBLIC_EXECUTION_DETAIL_COMPLETENESS",
+                    "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
                     "profile_paths": [],
                     "opportunity_paths": [
+                        "facts.project_name",
                         "facts.product_items",
                         "facts.product_categories",
                         "facts.department",
