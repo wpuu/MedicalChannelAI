@@ -6,7 +6,6 @@ import json
 import os
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler
-from urllib.parse import parse_qs, urlsplit
 from zoneinfo import ZoneInfo
 
 from vercel.functions import RuntimeCache
@@ -25,24 +24,12 @@ CRON_SCHEDULE = "20 0 * * *"
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 MESSAGE_RETENTION = timedelta(days=2)
 
-# Temporary production acceptance probe. Remove after the v2 queue execution
-# plane completes one verified end-to-end refresh in Production.
-_ACCEPTANCE_PROBE = "mca-v030-q-8ab42d5f9c614e0baf2c7d1e9340f6a1"
-
 
 class CollectorStartConflict(RuntimeError):
     pass
 
 
-def _first_query(path: str, key: str) -> str:
-    return (parse_qs(urlsplit(path).query).get(key) or [""])[0].strip()
-
-
 def _authorized(request: BaseHTTPRequestHandler) -> tuple[bool, str]:
-    probe = _first_query(request.path, "probe")
-    if probe and hmac.compare_digest(probe, _ACCEPTANCE_PROBE):
-        return True, "ACCEPTANCE_PROBE"
-
     schedule = str(request.headers.get("x-vercel-cron-schedule") or "").strip()
     if schedule != CRON_SCHEDULE:
         return False, "NONE"
@@ -67,11 +54,6 @@ def _activate_cycle(
     if cycle_has_running_stage(current_state):
         raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
 
-    if source == "ACCEPTANCE_PROBE":
-        # Reset only v2 orchestration metadata. Canonical v2 state remains and
-        # can be reconciled by the next verified run.
-        cache.delete(META_KEY)
-
     active = {
         "schema_version": "0.1",
         "cycle_id": cycle_id,
@@ -92,8 +74,7 @@ def _activate_cycle(
 async def _enqueue_start(source: str) -> tuple[str, str, str]:
     now = datetime.now(timezone.utc)
     local_date = now.astimezone(SHANGHAI).date().isoformat()
-    short_commit = str(os.environ.get("VERCEL_GIT_COMMIT_SHA") or "unknown")[:7]
-    cycle_id = f"accept:{local_date}:{short_commit}" if source == "ACCEPTANCE_PROBE" else f"prod:{local_date}"
+    cycle_id = f"prod:{local_date}"
 
     cache = RuntimeCache()
     _activate_cycle(
