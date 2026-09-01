@@ -6,25 +6,26 @@ import { PRIORITY_COMPONENT_LABEL } from '@/utils/labels'
 
 export function PriorityCard({
   priority,
-  publicOnly = false,
+  publicOnly,
 }: {
   priority: Priority
   publicOnly?: boolean
 }) {
+  const usePublicScale = publicOnly ?? priority.score <= 60
   const entries = Object.entries(priority.components) as [keyof Priority['components'], number][]
 
   return (
     <SectionCard
       title="商机优先级"
-      subtitle={publicOnly ? '公开事实优先级，尚未计入你的资源匹配' : '为什么排在前面'}
-      extra={<PriorityBadge score={priority.score} publicOnly={publicOnly} />}
+      subtitle={usePublicScale ? '公开事实维度（满分60）' : '为什么排在前面'}
+      extra={<PriorityBadge score={priority.score} publicOnly={usePublicScale} />}
     >
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
           <p className="text-[12px] text-slate-500">
-            {publicOnly ? '公开事实得分' : '经营优先级'}
+            {usePublicScale ? '公开事实得分' : '经营优先级'}
           </p>
-          <PriorityScore score={priority.score} publicOnly={publicOnly} />
+          <PriorityScore score={priority.score} publicOnly={usePublicScale} />
         </div>
       </div>
       <div className="space-y-3">
@@ -44,8 +45,8 @@ export function PriorityCard({
         ))}
       </div>
       <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-[12px] leading-5 text-slate-500">
-        {publicOnly
-          ? '当前仅按公开事实计算，满分60；填写产品能力、医院关系和执行方式后，才进入满分100的个性化经营优先级。分项为各维度得分占比，不可直接相加。'
+        {usePublicScale
+          ? '当前总分仍处于公开事实0–60分区间；未填写用户资源或用户资源未匹配时，私有资源维度不会加分。分项为各维度得分占比，不可直接相加。'
           : '分项显示的是各维度得分占比，用于解释强弱，不可直接相加；总分用于安排销售资源优先级，不代表中标概率。'}
       </p>
     </SectionCard>
