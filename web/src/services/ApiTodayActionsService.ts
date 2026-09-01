@@ -160,7 +160,8 @@ function normalizeRelationshipStrength(value: string | null): RelationshipStreng
     value === 'MEDIUM' ||
     value === 'HISTORICAL' ||
     value === 'WEAK' ||
-    value === 'UNKNOWN'
+    value === 'UNKNOWN' ||
+    value === 'NONE'
   ) {
     return value
   }
@@ -169,6 +170,9 @@ function normalizeRelationshipStrength(value: string | null): RelationshipStreng
 
 function normalizeCapabilityType(value: string | null): CapabilityType | null {
   const allowed: CapabilityType[] = [
+    'DIRECT',
+    'NEED_MANUFACTURER',
+    'PARTNER',
     'DIRECT_AUTHORIZED',
     'DIRECT_UNCONFIRMED',
     'RENTAL_CAPABLE',
@@ -255,6 +259,8 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       notice_type: card.facts.notice_type,
       publish_date: card.facts.published_at,
       registration_deadline: card.facts.registration_deadline,
+      registration_deadline_date: card.facts.registration_deadline_date,
+      registration_deadline_precision: card.facts.registration_deadline_precision,
       bid_deadline: card.facts.bid_deadline,
       expected_purchase_date: card.facts.expected_procurement_at,
       budget: normalizeBudget(card.facts.budget),
@@ -296,8 +302,12 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
           'PRODUCT_EXECUTION_CAPABILITY',
         ),
         RELATIONSHIP: componentPercent(card, 'RELATIONSHIP'),
+        EXECUTION_FLEXIBILITY: componentPercent(card, 'EXECUTION_FLEXIBILITY'),
         INTERVENTION_STAGE: componentPercent(card, 'INTERVENTION_STAGE'),
+        DEADLINE_URGENCY: componentPercent(card, 'DEADLINE_URGENCY'),
         PROJECT_AMOUNT: componentPercent(card, 'PROJECT_AMOUNT'),
+        PRODUCT_SPECIFICITY: componentPercent(card, 'PRODUCT_SPECIFICITY'),
+        PUBLICATION_FRESHNESS: componentPercent(card, 'PUBLICATION_FRESHNESS'),
       },
     },
     match_status: card.match_status,
@@ -377,7 +387,6 @@ export class ApiTodayActionsService implements TodayActionsService {
 
   async getTodayActions(): Promise<TodayActionsResponse> {
     const data = await this.requestJson<TodayActionsPublicResponse>('/today')
-    const now = new Date().toISOString()
     const cards = await Promise.all(
       data.cards.map(mapPublicCard).map((card) => this.enrichWithServerFollowup(card)),
     )
@@ -389,8 +398,8 @@ export class ApiTodayActionsService implements TodayActionsService {
       card_count: data.card_count,
       model_request_count: data.model_request_count,
       coverage_warning: COVERAGE_WARNING,
-      generated_at: now,
-      refreshed_at: now,
+      generated_at: data.snapshot_as_of,
+      refreshed_at: data.snapshot_as_of,
       cards,
       model_requests: [],
     }
