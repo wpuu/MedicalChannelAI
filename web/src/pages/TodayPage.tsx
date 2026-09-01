@@ -40,7 +40,7 @@ const DONE_FOR_TODAY = new Set<FollowupStatus>([
   'ARCHIVED',
 ])
 const MAX_TODAY_CARDS = 5
-const AI_UNCONFIGURED_REASON = 'AI运行配置尚未完成；公开商机、官方依据、跟进和提醒仍可正常使用。'
+const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；公开商机和跟进功能不受影响。'
 
 function shouldHideFromVerifiedTrialToday(card: TodayActionCard): boolean {
   if (DONE_FOR_TODAY.has(card.followup_status)) return true
@@ -99,7 +99,6 @@ export function TodayPage() {
           navigate('/login', { replace: true })
           return
         }
-        // Reminder inbox is auxiliary; a temporary failure must not hide Today Actions.
         setReminders([])
       }
     } catch (cause) {
@@ -135,7 +134,7 @@ export function TodayPage() {
       } else if (status === 'MONITOR' && extra?.remind_at) {
         toast('提醒已设置，提醒前暂不占用今日重点', 'success')
       } else {
-        toast('试用模式：跟进状态已在本地更新', 'success')
+        toast('跟进状态已更新', 'success')
       }
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
@@ -155,6 +154,9 @@ export function TodayPage() {
     setAiBusyId(id)
     try {
       const decision = await requestAiDecision(card)
+      setRuntimeStatus((current) =>
+        current ? { ...current, ai: { configured: true } } : current,
+      )
       setData((current) => {
         if (!current) return current
         const updateCard = (item: TodayActionCard) =>
@@ -172,31 +174,29 @@ export function TodayPage() {
           opportunity_pool: current.opportunity_pool?.map(updateCard),
         }
       })
-      toast('AI已基于公开事实给出行动建议', 'success')
+      toast('AI行动建议已生成', 'success')
     } catch (cause) {
       if (cause instanceof AiDecisionError) {
         if (cause.code === 'AI_NOT_CONFIGURED') {
           setRuntimeStatus((current) =>
-            current
-              ? { ...current, ai: { configured: false } }
-              : current,
+            current ? { ...current, ai: { configured: false } } : current,
           )
-          toast('AI服务运行配置尚未完成')
+          toast('AI暂时不可用，请稍后再试')
         } else if (cause.code === 'AI_RATE_LIMITED') {
-          toast('AI服务当前限流，请稍后再试')
+          toast('AI请求较多，请稍后再试')
         } else if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') {
-          toast('AI服务当前不可用，请稍后再试')
+          toast('AI暂时不可用，请稍后再试')
         } else if (cause.code === 'AI_TIMEOUT') {
-          toast('AI分析超时，请稍后重试')
+          toast('AI分析超时，请重试')
         } else if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') {
           toast('该项目公开窗口已经结束，当前不再生成行动建议')
         } else if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') {
-          toast('该商机暂不在服务端已核验快照中')
+          toast('该商机暂不在已核验商机池中')
         } else {
-          toast('AI分析暂时不可用，请稍后重试')
+          toast('AI分析暂时不可用，请重试')
         }
       } else {
-        toast('AI分析暂时不可用，请稍后重试')
+        toast('AI分析暂时不可用，请重试')
       }
     } finally {
       setAiBusyId(null)
@@ -208,7 +208,7 @@ export function TodayPage() {
     try {
       await acknowledgeDueReminder(reminderId)
       await load(true)
-      toast(isApiMode ? '站内提醒已标记处理' : '本地提醒已标记处理', 'success')
+      toast('提醒已处理', 'success')
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
@@ -242,7 +242,7 @@ export function TodayPage() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900">今天值得跟的医疗商机</h2>
             <p className="mt-1 text-[13px] leading-6 text-slate-500">
-              不需要先录资料。先从公开采购信息里看最多 5 个重点项目、官方依据和下一步动作。
+              先看重点项目，再决定联系、跟进或让 AI 帮你分析。
             </p>
           </div>
           <div className="flex items-center gap-1.5 text-[12px] text-slate-500">
@@ -250,71 +250,33 @@ export function TodayPage() {
             最近刷新 {formatDateTime(data.refreshed_at)}
           </div>
         </div>
-        <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
-          <p className="text-[13px] leading-5 text-amber-900">{data.coverage_warning}</p>
-        </div>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[12px] text-slate-400">
-            经营优先级用于安排销售资源，不代表中标概率。
-          </p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-start gap-1.5 text-[11px] leading-5 text-slate-400">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>{data.coverage_warning}</span>
+          </div>
           {!isApiMode && isVerifiedPublicDemo && poolCount > visibleCards.length ? (
             <button
               type="button"
               onClick={() => navigate('/opportunities')}
               className="rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[12px] font-medium text-teal-800 hover:bg-teal-100"
             >
-              查看全部 {poolCount} 条商机
+              查看全部 {poolCount} 条
             </button>
           ) : null}
         </div>
       </section>
 
-      {!isApiMode ? (
-        <section className="rounded-2xl border border-teal-200 bg-teal-50/70 px-4 py-4 shadow-sm">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-md bg-teal-700 px-2 py-0.5 text-[11px] font-semibold text-white">
-              {isVerifiedPublicDemo ? '零配置体验 · 真实公开项目' : '零配置体验 · 演示数据'}
-            </span>
-            <span className="text-[12px] text-teal-900">
-              先直接看每天能发现什么；医院关系和产品资料以后再录，也能先判断这个产品有没有价值。
-            </span>
-          </div>
-          <p className="mt-2 text-[13px] leading-6 text-slate-700">
-            当前按“天津医疗渠道商”通用场景展示。公开采购事实和官方依据与客户侧资源严格分开；未录入真实客户资源，不影响先体验商机发现、项目核验和行动建议流程。
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-            {['无需先录资料', '最多5个重点', '官方依据可核验', '按需AI分析', '后续可个性化'].map((label) => (
-              <span
-                key={label}
-                className="rounded-full border border-teal-200 bg-white px-2.5 py-1 font-medium text-teal-800"
-              >
-                {label}
-              </span>
-            ))}
-            {isVerifiedPublicDemo && runtimeStatus?.snapshot.available ? (
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800">
-                公开快照服务正常
-              </span>
-            ) : null}
-            {isVerifiedPublicDemo && runtimeStatus ? (
-              <span
-                className={
-                  runtimeStatus.ai.configured
-                    ? 'rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 font-medium text-indigo-800'
-                    : 'rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 font-medium text-amber-800'
-                }
-              >
-                {runtimeStatus.ai.configured ? 'AI服务已连接' : 'AI服务待配置'}
-              </span>
-            ) : null}
-          </div>
-          <p className="mt-3 text-[12px] leading-5 text-slate-500">
-            {isVerifiedPublicDemo
-              ? '当前试用读取证据流水线生成的天津公开事实快照。项目名称、采购单位、预算、公告日期、精确截止时间、公开联系人和官方依据来自已核验公开信息；未录入真实客户资源时，医院关系和产品能力明确为空，不参与排序。AI分析按单条商机手动触发，只接收服务端已核验公开事实。已联系、不适合和设置未来提醒的项目会移入“我的跟进”，系统会从商机池自动补足新的今日重点。自动刷新链已准备，当前试用仍按已验证快照展示，不冒充实时全量数据。'
-              : '下方项目、医院、联系人和金额均为虚构演示数据。排序来自通用演示场景，不代表真实客户当前资源。'}
-          </p>
-        </section>
+      {!isApiMode && isVerifiedPublicDemo ? (
+        <div className="flex flex-wrap items-center gap-2 px-1 text-[11px] text-slate-500">
+          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">天津公开商机试用</span>
+          <span>公开信息可查看官方依据</span>
+          {runtimeStatus?.ai.configured ? (
+            <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-indigo-700">AI可用</span>
+          ) : runtimeStatus?.ai.configured === false ? (
+            <span className="rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700">AI暂不可用</span>
+          ) : null}
+        </div>
       ) : null}
 
       <DueRemindersPanel
@@ -329,7 +291,7 @@ export function TodayPage() {
       <MetricCards data={visibleData} />
 
       {visibleCards.length === 0 ? (
-        <EmptyState title="今日暂无重点行动" hint="公开项目尚未达到需要今天采取行动的条件，或当前重点已处理。" />
+        <EmptyState title="今日暂无重点行动" hint="当前重点已处理，或暂无需要今天采取行动的项目。" />
       ) : (
         <div className="space-y-3">
           {visibleCards.map((card) => (
@@ -345,7 +307,7 @@ export function TodayPage() {
               onRemind={() => setRemindId(card.opportunity_id)}
               onOutreach={() => setOutreachId(card.opportunity_id)}
               onAnalyze={
-                isVerifiedPublicDemo && !isApiMode && !aiUnavailableReason
+                isVerifiedPublicDemo && !isApiMode
                   ? () => void analyzeOpportunity(card.opportunity_id)
                   : undefined
               }
