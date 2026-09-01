@@ -41,13 +41,20 @@ function normalizedSearchText(card: TodayActionCard): string {
 }
 
 function deadlineLabel(card: TodayActionCard): string | null {
-  if (card.facts.bid_deadline) {
+  if (card.recommendation_mode === 'LATE_WINDOW' && card.facts.bid_deadline) {
     const formatted = formatDateTime(card.facts.bid_deadline)
     return formatted ? `投标/响应截止 ${formatted}` : null
   }
   if (card.facts.registration_deadline) {
     const formatted = formatDateTime(card.facts.registration_deadline)
     return formatted ? `报名截止 ${formatted}` : null
+  }
+  if (card.facts.registration_deadline_date) {
+    return `报名截止日期 ${card.facts.registration_deadline_date}（未公布具体时间）`
+  }
+  if (card.facts.bid_deadline) {
+    const formatted = formatDateTime(card.facts.bid_deadline)
+    return formatted ? `投标/响应截止 ${formatted}` : null
   }
   return null
 }
