@@ -50,7 +50,7 @@ export function ActionCard({
   const publicFactLabel = isApiMode
     ? '官方/已验证事实'
     : isVerifiedPublicDemo
-      ? '真实公开事实'
+      ? '公开信息'
       : '演示公开字段'
 
   return (
@@ -71,11 +71,6 @@ export function ActionCard({
           ) : null}
           {card.followup_status !== 'NEW' ? (
             <FollowupChip label={FOLLOWUP_STATUS_LABEL[card.followup_status]} />
-          ) : null}
-          {card.facts.coverage_status === 'PARTIAL' ? (
-            <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] text-amber-800">
-              公开数据覆盖有限
-            </span>
           ) : null}
         </div>
       </div>
@@ -114,7 +109,7 @@ export function ActionCard({
             </div>
             {isLateWindow ? (
               <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-900">
-                已过报名/获取文件时间，但投标或响应截止尚未到；系统已降低介入阶段分，建议先人工确认是否仍有可执行路径。
+                报名/获取文件时间已过，但投标或响应截止尚未到。建议先确认是否仍有可执行路径。
               </p>
             ) : null}
           </div>
