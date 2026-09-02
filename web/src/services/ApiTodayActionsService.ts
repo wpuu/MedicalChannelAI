@@ -240,6 +240,7 @@ function componentPercent(card: PublicTodayActionCard, code: string): number {
 }
 
 function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
+  const target = card.customer_context.target_hospital
   const relationship = card.customer_context.hospital_relationship
   const capabilities = card.customer_context.matching_product_capabilities
     .map(normalizeCapability)
@@ -273,6 +274,15 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
     },
     evidence_source_urls: card.evidence_source_urls,
     customer_context: {
+      target_hospital:
+        target && target.watched_by_customer
+          ? {
+              hospital: target.hospital_name,
+              department: target.department,
+              watched_by_customer: true,
+              updated_at: target.updated_at,
+            }
+          : null,
       hospital_relationship:
         relationship && relationship.confirmed_by_customer
           ? {
