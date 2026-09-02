@@ -16,7 +16,7 @@ import { isApiMode } from '@/services/apiConfig'
 
 export default function App() {
   const localTrialEnabled = !isApiMode && isVerifiedPublicDemo
-  const targetHospitalsEnabled = isApiMode || localTrialEnabled
+  const authenticatedOrTrial = isApiMode || localTrialEnabled
 
   return (
     <BrowserRouter>
@@ -33,15 +33,11 @@ export default function App() {
               <Route path="/today" element={<TodayPage />} />
               <Route
                 path="/targets"
-                element={
-                  targetHospitalsEnabled ? <TargetHospitalsPage /> : <Navigate to="/today" replace />
-                }
+                element={authenticatedOrTrial ? <TargetHospitalsPage /> : <Navigate to="/today" replace />}
               />
               <Route
                 path="/opportunities"
-                element={
-                  localTrialEnabled ? <OpportunityPoolPage /> : <Navigate to="/today" replace />
-                }
+                element={authenticatedOrTrial ? <OpportunityPoolPage /> : <Navigate to="/today" replace />}
               />
               <Route path="/followed" element={<FollowedPage />} />
               <Route
