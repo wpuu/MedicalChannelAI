@@ -141,8 +141,9 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         self.assertIn('times_seen', store)
         self.assertIn('active_in_latest_scan', store)
         self.assertIn('findingKey(result.source_id, candidate.url)', store)
-        self.assertIn('累计保存的AI发现', page)
+        self.assertIn('累计发现', page)
         self.assertIn('新一轮扫描不会覆盖旧发现', page)
+        self.assertIn('同一链接自动去重', page)
         self.assertIn('历史已保存', page)
         self.assertIn('FINDINGS_RENDER_LIMIT = 500', page)
 
