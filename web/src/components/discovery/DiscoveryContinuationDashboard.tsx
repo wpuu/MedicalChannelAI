@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ExternalLink, Loader2, RefreshCw, ScanSearch, ShieldCheck } from 'lucide-react'
+import { ExternalLink, Loader2, ScanSearch, ShieldCheck } from 'lucide-react'
+import { useDiscoveryWorkspace } from '@/components/discovery/DiscoveryWorkspaceProvider'
 import {
   discoveryContinuationErrorMessage,
   scanDiscoveryContinuation,
 } from '@/services/discoveryContinuationApi'
+import {
+  mergeDiscoveryContinuationIntoWorkspace,
+} from '@/services/discoveryContinuationFindings'
 import {
   appendContinuationSegment,
   continuationEligible,
@@ -12,12 +16,7 @@ import {
   loadContinuationLedger,
   type DiscoveryContinuationLedger,
 } from '@/services/discoveryContinuationLedger'
-import {
-  loadDiscoveryWorkspace,
-  loadDiscoveryWorkspaceDurable,
-  type DiscoveryWorkspace,
-  type SavedDiscoverySource,
-} from '@/services/discoveryRadarStore'
+import type { DiscoveryWorkspace, SavedDiscoverySource } from '@/services/discoveryRadarStore'
 import type { DiscoveryRadarResult } from '@/services/discoveryRadarApi'
 import { formatDateTime } from '@/utils/format'
 
@@ -26,7 +25,6 @@ type EligibleSource = {
   root: DiscoveryRadarResult
 }
 
-const WORKSPACE_REFRESH_MS = 5000
 const SIGNAL_LABELS: Record<string, string> = {
   DEMAND_RESEARCH: '需求调研',
   SUPPLIER_RECRUITMENT: '供应商征集',
@@ -44,33 +42,10 @@ function eligibleRows(workspace: DiscoveryWorkspace): EligibleSource[] {
 }
 
 export function DiscoveryContinuationDashboard() {
-  const [workspace, setWorkspace] = useState(() => loadDiscoveryWorkspace())
-  const [ready, setReady] = useState(false)
+  const { workspace, setWorkspace, storageReady } = useDiscoveryWorkspace()
   const [ledgers, setLedgers] = useState<Record<string, DiscoveryContinuationLedger>>({})
   const [busySource, setBusySource] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
-
-  const reloadWorkspace = async () => {
-    const loaded = await loadDiscoveryWorkspaceDurable(loadDiscoveryWorkspace())
-    setWorkspace(loaded.workspace)
-    setReady(true)
-  }
-
-  useEffect(() => {
-    let active = true
-    const refresh = async () => {
-      const loaded = await loadDiscoveryWorkspaceDurable(loadDiscoveryWorkspace())
-      if (!active) return
-      setWorkspace(loaded.workspace)
-      setReady(true)
-    }
-    void refresh()
-    const timer = window.setInterval(() => void refresh(), WORKSPACE_REFRESH_MS)
-    return () => {
-      active = false
-      window.clearInterval(timer)
-    }
-  }, [])
 
   const eligible = useMemo(() => eligibleRows(workspace), [workspace])
   const ledgerKey = useMemo(
@@ -85,6 +60,15 @@ export function DiscoveryContinuationDashboard() {
     ).then((rows) => {
       if (!active) return
       setLedgers(Object.fromEntries(rows))
+      setWorkspace((current) => {
+        let next = current
+        for (const [, ledger] of rows) {
+          for (const segment of ledger.segments) {
+            next = mergeDiscoveryContinuationIntoWorkspace(next, segment)
+          }
+        }
+        return next
+      })
     })
     return () => { active = false }
     // Rehydrate only when the eligible source/root fingerprint set changes.
@@ -118,6 +102,7 @@ export function DiscoveryContinuationDashboard() {
       const segment = await scanDiscoveryContinuation(source, root, currentLedger.segments)
       const nextLedger = await appendContinuationSegment(currentLedger, segment)
       setLedgers((current) => ({ ...current, [source.id]: nextLedger }))
+      setWorkspace((current) => mergeDiscoveryContinuationIntoWorkspace(current, segment))
     } catch (cause) {
       setErrors((current) => ({ ...current, [source.id]: discoveryContinuationErrorMessage(cause) }))
     } finally {
@@ -125,23 +110,18 @@ export function DiscoveryContinuationDashboard() {
     }
   }
 
-  if (!ready || eligible.length === 0) return null
+  if (!storageReady || eligible.length === 0) return null
 
   return (
     <section className="rounded-2xl border border-amber-200 bg-amber-50/40 p-3.5 shadow-sm sm:p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-2">
-          <ScanSearch className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
-          <div>
-            <h3 className="text-[14px] font-semibold text-slate-900">深分页补扫发现</h3>
-            <p className="mt-1 max-w-3xl text-[11px] leading-5 text-slate-600">
-              这里只出现根扫描已经确认“仍有更深分页”或“80条窗口被截断”的真实公开渠道。续扫结果保存在独立 IndexedDB segment 账本，不覆盖首页增量快照；每段只追加新链接，并继续使用 Agnes 判断前期窗口。
-            </p>
-          </div>
+      <div className="flex items-start gap-2">
+        <ScanSearch className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+        <div>
+          <h3 className="text-[14px] font-semibold text-slate-900">深分页补扫发现</h3>
+          <p className="mt-1 max-w-3xl text-[11px] leading-5 text-slate-600">
+            这里只出现根扫描已经确认“仍有更深分页”或“80条窗口被截断”的真实公开渠道。续扫仍保存在独立 IndexedDB segment 账本，不覆盖首页增量快照；候选同时按来源与官方URL幂等合并进统一累计发现账本。
+          </p>
         </div>
-        <button type="button" disabled={busySource !== null} onClick={() => void reloadWorkspace()} className="inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-amber-200 bg-white px-3 text-[10px] text-amber-900 hover:bg-amber-50 disabled:opacity-50">
-          <RefreshCw className="h-3 w-3" /> 刷新根扫描状态
-        </button>
       </div>
 
       <div className="mt-3 grid grid-cols-4 gap-2">
@@ -207,7 +187,7 @@ export function DiscoveryContinuationDashboard() {
       </div>
 
       <p className="mt-3 text-[10px] leading-4 text-amber-900">
-        当前刻意不让这个组件直接改写“累计保存的AI发现”主账本，避免两个独立页面状态同时写同一个 IndexedDB 造成旧状态覆盖新结果。下一步先把雷达工作区改成共享状态，再把续扫候选按 source + 官方URL 无损合并进统一发现账本。
+        根扫描与补扫现在共享同一个工作区内存状态和持久化队列；补扫候选会按 source + 官方URL 无损并入“累计保存的AI发现”。独立 segment 账本仍只负责分页恢复位置、根指纹和补扫审计，不会改写根扫描 anchor 快照。
       </p>
     </section>
   )
