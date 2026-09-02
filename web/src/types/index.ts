@@ -132,7 +132,8 @@ export interface PriorityComponents {
 
 export interface Priority {
   score: number
-  score_scope: PriorityScoreScope
+  /** Real v2 adapters must set this explicitly. Missing means legacy fixture/snapshot and is treated as PUBLIC only for backward compatibility. */
+  score_scope?: PriorityScoreScope
   components: PriorityComponents
 }
 
