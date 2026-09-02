@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from pathlib import Path
 
@@ -9,9 +10,27 @@ WEB_ROOT = Path(__file__).resolve().parents[2]
 
 class DiscoveryContinuationContractTests(unittest.TestCase):
     def setUp(self):
-        self.endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover-continuation.js').read_text(encoding='utf-8')
+        self.endpoint = (WEB_ROOT / 'api' / 'ai' / '_discoverContinuation.js').read_text(encoding='utf-8')
+        self.router = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
         self.client = (WEB_ROOT / 'src' / 'services' / 'discoveryContinuationApi.ts').read_text(encoding='utf-8')
         self.ledger = (WEB_ROOT / 'src' / 'services' / 'discoveryContinuationLedger.ts').read_text(encoding='utf-8')
+        self.vercel = json.loads((WEB_ROOT / 'vercel.json').read_text(encoding='utf-8'))
+
+    def test_continuation_is_internal_handler_reached_through_existing_public_path(self):
+        self.assertIn("import continuationDiscoveryHandler from './_discoverContinuation.js'", self.router)
+        self.assertIn("routeName === 'continuation'", self.router)
+        self.assertIn('continuationDiscoveryHandler(request, response)', self.router)
+        rewrites = {
+            row.get('source'): row.get('destination')
+            for row in self.vercel.get('rewrites', [])
+            if isinstance(row, dict)
+        }
+        self.assertEqual(
+            rewrites.get('/api/ai/discover-continuation'),
+            '/api/ai/discover?route=continuation',
+        )
+        self.assertIn("fetch('/api/ai/discover-continuation'", self.client)
+        self.assertNotIn("fetch('/api/ai/discover?route=continuation'", self.client)
 
     def test_continuation_is_separate_shadow_segment_not_root_snapshot_replacement(self):
         self.assertIn("mode: 'AI_DISCOVERY_CONTINUATION_SHADOW'", self.endpoint)
@@ -20,8 +39,6 @@ class DiscoveryContinuationContractTests(unittest.TestCase):
         self.assertIn('production_data_mutated: false', self.endpoint)
         self.assertNotIn('publish_web_snapshot', self.endpoint)
         self.assertNotIn('private_followups', self.endpoint)
-        self.assertIn("fetch('/api/ai/discover-continuation'", self.client)
-        self.assertNotIn("fetch('/api/ai/discover'", self.client)
 
     def test_only_complete_root_scans_with_real_coverage_gap_are_eligible(self):
         self.assertIn('if (raw.coverage_partial !== false) return null', self.endpoint)
@@ -56,6 +73,7 @@ class DiscoveryContinuationContractTests(unittest.TestCase):
         self.assertIn('canonicalOfficialUrl', self.endpoint)
         self.assertIn('MAX_SOURCE_BYTES', self.endpoint)
         self.assertIn('MAX_REQUEST_BODY_BYTES = 262_144', self.endpoint)
+        self.assertIn('export const config = { maxDuration: 30 }', self.endpoint)
 
     def test_segment_ledger_is_independent_indexeddb_state_tied_to_root_fingerprint(self):
         self.assertIn("DB_NAME = 'medicalchannelai.discovery.continuation.local'", self.ledger)
