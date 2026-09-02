@@ -10,11 +10,13 @@ import { OpportunityDetailPage } from '@/pages/OpportunityDetailPage'
 import { OpportunityPoolPage } from '@/pages/OpportunityPoolPage'
 import { PilotResourcesPage } from '@/pages/PilotResourcesPage'
 import { ResourcesPage } from '@/pages/ResourcesPage'
+import { TargetHospitalsPage } from '@/pages/TargetHospitalsPage'
 import { TodayPage } from '@/pages/TodayPage'
 import { isApiMode } from '@/services/apiConfig'
 
 export default function App() {
   const localTrialEnabled = !isApiMode && isVerifiedPublicDemo
+  const targetHospitalsEnabled = isApiMode || localTrialEnabled
 
   return (
     <BrowserRouter>
@@ -29,6 +31,12 @@ export default function App() {
               <Route path="/" element={<Navigate to="/today" replace />} />
               <Route path="/radar" element={<DiscoveryRadarPage />} />
               <Route path="/today" element={<TodayPage />} />
+              <Route
+                path="/targets"
+                element={
+                  targetHospitalsEnabled ? <TargetHospitalsPage /> : <Navigate to="/today" replace />
+                }
+              />
               <Route
                 path="/opportunities"
                 element={

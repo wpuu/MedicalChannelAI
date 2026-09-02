@@ -5,10 +5,10 @@ import {
   BookmarkCheck,
   BriefcaseBusiness,
   ClipboardList,
-  Layers3,
   LogOut,
   Radar,
   RotateCcw,
+  Target,
 } from 'lucide-react'
 import { APP_BUILD_LABEL } from '@/config/appVersion'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
@@ -85,6 +85,7 @@ export function AppLayout() {
 
   const showPool = !isApiMode && isVerifiedPublicDemo
   const showResources = isApiMode || isVerifiedPublicDemo
+  const showTargets = isApiMode || isVerifiedPublicDemo
 
   return (
     <div className="min-h-screen bg-[#f3f5f7]">
@@ -116,6 +117,7 @@ export function AppLayout() {
           <nav className="hidden shrink-0 items-center gap-1 sm:flex">
             <NavLink to="/radar" className={desktopNavClass}>AI雷达</NavLink>
             <NavLink to="/today" className={desktopNavClass}>今日行动</NavLink>
+            {showTargets ? <NavLink to="/targets" className={desktopNavClass}>目标医院</NavLink> : null}
             {showPool ? <NavLink to="/opportunities" className={desktopNavClass}>商机池</NavLink> : null}
             <NavLink to="/followed" className={desktopNavClass}>我的跟进</NavLink>
             {showResources ? <NavLink to="/resources" className={desktopNavClass}>我的资源</NavLink> : null}
@@ -163,10 +165,10 @@ export function AppLayout() {
             <ClipboardList className="h-5 w-5" />
             <span>今日</span>
           </NavLink>
-          {showPool ? (
-            <NavLink to="/opportunities" className={mobileNavClass}>
-              <Layers3 className="h-5 w-5" />
-              <span>商机</span>
+          {showTargets ? (
+            <NavLink to="/targets" className={mobileNavClass}>
+              <Target className="h-5 w-5" />
+              <span>目标</span>
             </NavLink>
           ) : null}
           <NavLink to="/followed" className={mobileNavClass}>
