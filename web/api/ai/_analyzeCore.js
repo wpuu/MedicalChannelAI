@@ -195,6 +195,15 @@ function sanitizeEvidenceUrls(value) {
 function sanitizeCustomerContext(raw) {
   const root = asObject(raw)
   if (!root) return null
+  const target = asObject(root.target_hospital)
+  const sanitizedTarget = target
+    ? {
+        hospital: cleanString(target.hospital, 300),
+        department: cleanString(target.department, 200),
+        watched_by_customer: target.watched_by_customer === true,
+        updated_at: cleanString(target.updated_at, 100),
+      }
+    : null
   const relationship = asObject(root.hospital_relationship)
   const sanitizedRelationship = relationship
     ? {
@@ -222,13 +231,15 @@ function sanitizeCustomerContext(raw) {
     can_partner_channel: typeof policy?.can_partner_channel === 'boolean' ? policy.can_partner_channel : null,
     can_handle_lease: typeof policy?.can_handle_lease === 'boolean' ? policy.can_handle_lease : null,
   }
+  const hasTarget = Boolean(sanitizedTarget?.hospital && sanitizedTarget.watched_by_customer)
   const hasRelationship = Boolean(
     sanitizedRelationship?.hospital || sanitizedRelationship?.department || sanitizedRelationship?.relationship_strength,
   )
   const hasPolicy = Object.values(partneringPolicy).some((value) => value !== null)
-  if (!hasRelationship && capabilities.length === 0 && !hasPolicy) return null
+  if (!hasTarget && !hasRelationship && capabilities.length === 0 && !hasPolicy) return null
   return {
     context_type: 'CUSTOMER_SELF_REPORTED_CONTEXT',
+    target_hospital: hasTarget ? sanitizedTarget : null,
     hospital_relationship: hasRelationship ? sanitizedRelationship : null,
     matching_product_capabilities: capabilities,
     partnering_policy: partneringPolicy,
