@@ -1,5 +1,6 @@
 import { Plus, Save, ShieldCheck, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { LocalProfileImportCard } from '@/components/profile/LocalProfileImportCard'
 import type { CapabilityType, RelationshipStrength } from '@/types'
 import { useToast } from '@/context/ToastContext'
 import {
@@ -137,6 +138,12 @@ export function PilotResourcesPage() {
           这些数据与医院公开采购事实分表存储，并按当前登录用户隔离。页面不会把数据库连接串、密码哈希或会话令牌暴露给浏览器。公开试用阶段曾保存在本机的数据不会自动上传。
         </div>
       </section>
+
+      <LocalProfileImportCard
+        accountProfile={profile}
+        disabled={saving}
+        onImported={setProfile}
+      />
 
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
