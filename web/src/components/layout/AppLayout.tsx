@@ -82,7 +82,8 @@ export function AppLayout() {
       ? '天津公开试用'
       : '演示数据'
 
-  const showPoolAndResources = !isApiMode && isVerifiedPublicDemo
+  const showPool = !isApiMode && isVerifiedPublicDemo
+  const showResources = isApiMode || isVerifiedPublicDemo
 
   return (
     <div className="min-h-screen bg-[#f3f5f7]">
@@ -113,13 +114,9 @@ export function AppLayout() {
 
           <nav className="hidden shrink-0 items-center gap-1 sm:flex">
             <NavLink to="/today" className={desktopNavClass}>今日行动</NavLink>
-            {showPoolAndResources ? (
-              <NavLink to="/opportunities" className={desktopNavClass}>商机池</NavLink>
-            ) : null}
+            {showPool ? <NavLink to="/opportunities" className={desktopNavClass}>商机池</NavLink> : null}
             <NavLink to="/followed" className={desktopNavClass}>我的跟进</NavLink>
-            {showPoolAndResources ? (
-              <NavLink to="/resources" className={desktopNavClass}>我的资源</NavLink>
-            ) : null}
+            {showResources ? <NavLink to="/resources" className={desktopNavClass}>我的资源</NavLink> : null}
           </nav>
 
           <div className="flex shrink-0 items-center gap-1">
@@ -160,7 +157,7 @@ export function AppLayout() {
             <ClipboardList className="h-5 w-5" />
             <span>今日</span>
           </NavLink>
-          {showPoolAndResources ? (
+          {showPool ? (
             <NavLink to="/opportunities" className={mobileNavClass}>
               <Layers3 className="h-5 w-5" />
               <span>商机</span>
@@ -170,7 +167,7 @@ export function AppLayout() {
             <BookmarkCheck className="h-5 w-5" />
             <span>跟进</span>
           </NavLink>
-          {showPoolAndResources ? (
+          {showResources ? (
             <NavLink to="/resources" className={mobileNavClass}>
               <BriefcaseBusiness className="h-5 w-5" />
               <span>资源</span>
