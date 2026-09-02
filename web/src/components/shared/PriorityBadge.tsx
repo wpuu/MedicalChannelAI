@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn'
 import { getPriorityLabel, getPriorityTier } from '@/utils/format'
-import type { PriorityTier } from '@/types'
+import type { PriorityScoreScope, PriorityTier } from '@/types'
 
 function publicSignalTier(score: number): PriorityTier {
   if (score >= 50) return 'critical'
@@ -18,12 +18,12 @@ function publicSignalLabel(score: number): string {
 
 export function PriorityBadge({
   score,
-  publicOnly,
+  scoreScope,
 }: {
   score: number
-  publicOnly?: boolean
+  scoreScope: PriorityScoreScope
 }) {
-  const usePublicScale = publicOnly ?? score <= 60
+  const usePublicScale = scoreScope === 'PUBLIC'
   const tier = usePublicScale ? publicSignalTier(score) : getPriorityTier(score)
   const label = usePublicScale ? publicSignalLabel(score) : getPriorityLabel(score)
   return (
@@ -43,12 +43,12 @@ export function PriorityBadge({
 
 export function PriorityScore({
   score,
-  publicOnly,
+  scoreScope,
 }: {
   score: number
-  publicOnly?: boolean
+  scoreScope: PriorityScoreScope
 }) {
-  const usePublicScale = publicOnly ?? score <= 60
+  const usePublicScale = scoreScope === 'PUBLIC'
   const tier = usePublicScale ? publicSignalTier(score) : getPriorityTier(score)
   return (
     <div className="flex items-baseline gap-1">
@@ -64,7 +64,7 @@ export function PriorityScore({
         {score}
       </span>
       <span className="text-[11px] text-slate-400">
-        {usePublicScale ? '/ 60 公开分' : '分'}
+        {usePublicScale ? '/ 60 公开分' : '/ 100 个性化分'}
       </span>
     </div>
   )
