@@ -1,7 +1,8 @@
+import type { FollowupStatus, TodayActionCard } from '@/types'
+import { isStableOpportunityId } from '@/utils/opportunityId'
 import { todayActionsService } from './index'
 import { apiBaseUrl, isApiMode } from './apiConfig'
 import { listStoredFollowups } from './localFollowupStore'
-import { isStableOpportunityId } from '@/utils/opportunityId'
 
 export interface FollowedOpportunity {
   opportunity_id: string
@@ -24,7 +25,7 @@ export interface FollowedOpportunity {
   evidence_source_urls: string[]
 }
 
-const FOLLOWUP_STATUSES = new Set([
+const FOLLOWUP_STATUSES = new Set<FollowupStatus>([
   'NEW',
   'REVIEWING',
   'CONTACTED',
@@ -37,6 +38,19 @@ const FOLLOWUP_STATUSES = new Set([
   'MONITOR',
   'ARCHIVED',
 ])
+
+const NOT_FIT_REASON_LABEL: Record<string, string> = {
+  NO_PRODUCT_CAPABILITY: '没有对应产品',
+  NO_MANUFACTURER_ACCESS: '暂无厂家资源',
+  RELATIONSHIP_TOO_WEAK: '医院关系太弱',
+  AMOUNT_TOO_SMALL: '项目金额太小',
+  PROJECT_TOO_LATE: '介入时间太晚',
+  COMPETITOR_LOCKED_CUSTOMER_JUDGMENT: '判断竞争对手已锁定',
+  DEPARTMENT_OUT_OF_SCOPE: '科室不匹配',
+  REGION_OUT_OF_SCOPE: '区域不匹配',
+  RENTAL_NOT_SUPPORTED: '不做租赁项目',
+  OTHER: '其他',
+}
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -56,6 +70,10 @@ function nullableString(value: unknown): value is string | null {
 
 function nullableNumber(value: unknown): value is number | null {
   return value === null || (typeof value === 'number' && Number.isFinite(value))
+}
+
+function isFollowupStatus(value: unknown): value is FollowupStatus {
+  return typeof value === 'string' && FOLLOWUP_STATUSES.has(value as FollowupStatus)
 }
 
 async function responseError(response: Response): Promise<Error> {
@@ -82,8 +100,7 @@ function validateItem(value: unknown): FollowedOpportunity {
       'evidence_source_urls',
     ]) ||
     !isStableOpportunityId(row.opportunity_id) ||
-    typeof row.followup_status !== 'string' ||
-    !FOLLOWUP_STATUSES.has(row.followup_status) ||
+    !isFollowupStatus(row.followup_status) ||
     !nullableString(row.remind_at) ||
     !nullableString(row.latest_note) ||
     typeof row.followup_updated_at !== 'string' ||
@@ -145,6 +162,58 @@ function validateItem(value: unknown): FollowedOpportunity {
   }
 }
 
+interface HistoricalFollowupState {
+  status: FollowupStatus
+  remind_at: string | null
+  history: TodayActionCard['followup_history']
+}
+
+function validateHistoricalFollowupState(value: unknown, opportunityId: string): HistoricalFollowupState {
+  const root = asRecord(value)
+  if (
+    !root ||
+    root.schema_version !== '0.1' ||
+    root.opportunity_id !== opportunityId ||
+    !isFollowupStatus(root.current_status) ||
+    !nullableString(root.remind_at) ||
+    !Array.isArray(root.history)
+  ) {
+    throw new Error('FOLLOWUP_RESPONSE_INVALID')
+  }
+
+  const history = root.history.map((value) => {
+    const row = asRecord(value)
+    if (
+      !row ||
+      typeof row.id !== 'string' ||
+      !isFollowupStatus(row.status) ||
+      !nullableString(row.note) ||
+      !nullableString(row.reason) ||
+      !nullableString(row.remind_at) ||
+      typeof row.at !== 'string' ||
+      Number.isNaN(new Date(row.at).getTime()) ||
+      typeof row.actor !== 'string'
+    ) {
+      throw new Error('FOLLOWUP_RESPONSE_INVALID')
+    }
+    return {
+      id: row.id,
+      status: row.status,
+      note: row.note ?? undefined,
+      reason: row.reason ? (NOT_FIT_REASON_LABEL[row.reason] ?? row.reason) : undefined,
+      remind_at: row.remind_at ?? undefined,
+      at: row.at,
+      actor: row.actor,
+    }
+  })
+
+  return {
+    status: root.current_status,
+    remind_at: root.remind_at,
+    history,
+  }
+}
+
 async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
   // Loading the current feed also migrates older v1 follow-up entries by attaching
   // a minimal public snapshot before those opportunities rotate out of Today Top5.
@@ -200,4 +269,83 @@ export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]>
   const items = root.items.map(validateItem)
   if (root.count !== items.length) throw new Error('FOLLOWED_RESPONSE_INVALID')
   return items
+}
+
+export async function getHistoricalFollowedOpportunityCard(
+  opportunityId: string,
+): Promise<TodayActionCard | null> {
+  if (!isApiMode) return null
+  if (!isStableOpportunityId(opportunityId)) throw new Error('OPPORTUNITY_ID_INVALID')
+
+  const followed = await getFollowedOpportunities()
+  const item = followed.find((row) => row.opportunity_id === opportunityId)
+  if (!item) return null
+
+  const response = await fetch(`${apiBaseUrl}/followup/${encodeURIComponent(opportunityId)}`, {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  })
+  if (!response.ok) throw await responseError(response)
+  const state = validateHistoricalFollowupState(await response.json(), opportunityId)
+
+  return {
+    rank: 0,
+    opportunity_id: opportunityId,
+    facts: {
+      project_code: item.facts.project_number,
+      project_name: item.facts.project_name,
+      hospital: item.facts.hospital_name,
+      buyer_name: item.facts.buyer_name,
+      department: item.facts.department,
+      region: null,
+      lifecycle_stage: item.facts.lifecycle_state,
+      notice_type: null,
+      publish_date: item.facts.published_at,
+      registration_deadline: null,
+      registration_deadline_date: null,
+      registration_deadline_precision: null,
+      bid_deadline: item.facts.bid_deadline,
+      expected_purchase_date: item.facts.expected_procurement_at,
+      budget: item.facts.budget_cny,
+      procurement_method: null,
+      product_categories: [],
+      products: null,
+      official_contact: null,
+      verification_status: 'PARTIAL',
+      coverage_status: 'PARTIAL',
+    },
+    evidence_source_urls: [...item.evidence_source_urls],
+    customer_context: {
+      target_hospital: null,
+      hospital_relationship: null,
+      matching_product_capabilities: [],
+      partnering_policy: {
+        can_find_manufacturer: null,
+        can_partner_channel: null,
+        can_handle_lease: null,
+      },
+    },
+    priority: {
+      score: 0,
+      score_scope: 'PUBLIC',
+      components: {
+        PRODUCT_EXECUTION_CAPABILITY: 0,
+        RELATIONSHIP: 0,
+        EXECUTION_FLEXIBILITY: 0,
+        INTERVENTION_STAGE: 0,
+        DEADLINE_URGENCY: 0,
+        PROJECT_AMOUNT: 0,
+        PRODUCT_SPECIFICITY: 0,
+        PUBLICATION_FRESHNESS: 0,
+      },
+    },
+    match_status: 'ARCHIVE',
+    recommendation_mode: 'ARCHIVE',
+    model_decision_status: 'NOT_ELIGIBLE',
+    model_block_reason: '该商机已不在当前可行动商机池；仅展示已保存的历史公开快照与跟进记录。',
+    decision: null,
+    followup_status: state.status,
+    followup_history: state.history,
+    remind_at: state.remind_at,
+  }
 }
