@@ -34,7 +34,12 @@ function triState(value: unknown): boolean | null | undefined {
 
 function parseProfile(value: unknown): LocalCustomerProfile {
   const root = asRecord(value)
-  if (!root || !Array.isArray(root.product_capabilities) || !Array.isArray(root.hospital_relationships)) {
+  if (
+    !root ||
+    !Array.isArray(root.product_capabilities) ||
+    !Array.isArray(root.hospital_relationships) ||
+    !Array.isArray(root.target_hospitals)
+  ) {
     throw new Error('PROFILE_RESPONSE_INVALID')
   }
 
@@ -66,6 +71,18 @@ function parseProfile(value: unknown): LocalCustomerProfile {
     }
   })
 
+  const target_hospitals = root.target_hospitals.map((value) => {
+    const row = asRecord(value)
+    if (
+      !row || typeof row.hospital !== 'string' ||
+      !(row.department === null || typeof row.department === 'string')
+    ) throw new Error('PROFILE_RESPONSE_INVALID')
+    return {
+      hospital: row.hospital,
+      department: row.department as string | null,
+    }
+  })
+
   const can_find_manufacturer = triState(root.can_find_manufacturer)
   const can_partner_channel = triState(root.can_partner_channel)
   const can_handle_lease = triState(root.can_handle_lease)
@@ -79,6 +96,7 @@ function parseProfile(value: unknown): LocalCustomerProfile {
   return {
     product_capabilities,
     hospital_relationships,
+    target_hospitals,
     can_find_manufacturer,
     can_partner_channel,
     can_handle_lease,
@@ -119,6 +137,7 @@ export async function saveCustomerProfile(profile: LocalCustomerProfile): Promis
     body: JSON.stringify({
       product_capabilities: profile.product_capabilities,
       hospital_relationships: profile.hospital_relationships,
+      target_hospitals: profile.target_hospitals,
       can_find_manufacturer: profile.can_find_manufacturer,
       can_partner_channel: profile.can_partner_channel,
       can_handle_lease: profile.can_handle_lease,
