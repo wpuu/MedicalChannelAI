@@ -12,6 +12,32 @@ assert.match(layout, /sm:hidden/)
 assert.match(layout, /hidden shrink-0 items-center gap-1 sm:flex/)
 assert.match(layout, /lg:inline-flex/)
 assert.match(layout, /sm:block/)
+for (const [path, label] of [
+  ['/radar', '雷达'],
+  ['/today', '今日'],
+  ['/targets', '目标'],
+  ['/followed', '跟进'],
+  ['/resources', '资源'],
+]) {
+  assert.match(layout, new RegExp(`to="${path.replace('/', '\\/')}"`))
+  assert.match(layout, new RegExp(`<span>${label}<\\/span>`))
+}
+assert.match(layout, /showTargets = isApiMode \|\| isVerifiedPublicDemo/)
+assert.match(layout, /showResources = isApiMode \|\| isVerifiedPublicDemo/)
+
+const app = read('src/App.tsx')
+assert.match(app, /<Route element=\{<RequirePilotSession \/>\}>/)
+assert.match(app, /path="\/radar"/)
+assert.match(app, /path="\/today"/)
+assert.match(app, /path="\/targets"/)
+assert.match(app, /path="\/followed"/)
+assert.match(app, /path="\/resources"/)
+
+const sessionGuard = read('src/components/auth/RequirePilotSession.tsx')
+assert.match(sessionGuard, /isAuthRequiredError/)
+assert.match(sessionGuard, /<Navigate to="\/login" replace \/>/)
+assert.match(sessionGuard, /系统不会降级为匿名模式/)
+assert.doesNotMatch(sessionGuard, /setState\('authorized'\).*catch/s)
 
 const stages = read('src/components/shared/StageBadge.tsx')
 assert.match(stages, /BIDDING: '招标中'/)
@@ -36,6 +62,39 @@ const today = read('src/pages/TodayPage.tsx')
 assert.doesNotMatch(today, /天津公开商机试用/)
 assert.match(today, /数据范围：天津公开采购/)
 assert.match(today, /天津公开采购/)
+assert.match(today, /<DueRemindersPanel/)
+assert.match(today, /navigate\(`\/followed\?focus=\$\{encodeURIComponent\(opportunityId\)\}`\)/)
+assert.match(today, /acknowledgeDueReminder/)
+
+const reminders = read('src/components/today/DueRemindersPanel.tsx')
+assert.match(reminders, /到期跟进提醒/)
+assert.match(reminders, /站内提醒/)
+assert.match(reminders, /onOpenFollowed\(item\.opportunity_id\)/)
+assert.match(reminders, /当前不在今日 Top5 · 已保留在我的跟进/)
+assert.match(reminders, /pb|flex flex-wrap justify-end gap-2/)
+
+const followed = read('src/pages/FollowedPage.tsx')
+assert.match(followed, /useSearchParams/)
+assert.match(followed, /const focusedId = searchParams\.get\('focus'\)/)
+assert.match(followed, /return \[focused, \.\.\.items\.filter/)
+assert.match(followed, /来自到期提醒/)
+assert.match(followed, /item\.remind_at/)
+
+const targets = read('src/pages/TargetHospitalsPage.tsx')
+assert.match(targets, /目标医院经营视图/)
+assert.match(targets, /目标医院本身不会增加医院关系分/)
+assert.match(targets, /目标医院名称不会自动推导官网地址/)
+assert.match(targets, /to="\/resources"/)
+assert.match(targets, /to="\/radar"/)
+assert.match(targets, /grid grid-cols-2 gap-2 sm:grid-cols-4/)
+
+const pilotResources = read('src/pages/PilotResourcesPage.tsx')
+assert.match(pilotResources, /目标医院 \/ 重点关注/)
+assert.match(pilotResources, /医院关系/)
+assert.match(pilotResources, /产品 \/ 服务能力/)
+assert.match(pilotResources, /目标医院不会自动算成“有关系”/)
+assert.match(pilotResources, /saveCustomerProfile\(profile\)/)
+assert.match(pilotResources, /账号私有数据库/)
 
 const card = read('src/components/today/ActionCard.tsx')
 assert.doesNotMatch(card, /TOP \{card\.rank\}/)
