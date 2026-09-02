@@ -26,7 +26,6 @@ import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStore'
 import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
 import type { FollowupStatus, NotFitReason, TodayActionCard } from '@/types'
-import { hasUserCustomerContext } from '@/utils/customerContext'
 
 const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；其他功能正常。'
 
@@ -148,7 +147,6 @@ export function OpportunityDetailPage() {
   }
 
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
-  const publicOnlyPriority = !hasUserCustomerContext(card.customer_context)
   const outreachDisabled =
     historical ||
     card.model_decision_status === 'BLOCKED_GROUNDING' ||
@@ -201,7 +199,7 @@ export function OpportunityDetailPage() {
               <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-white">
                 重点 {card.rank}
               </span>
-              <PriorityBadge score={card.priority.score} publicOnly={publicOnlyPriority} />
+              <PriorityBadge score={card.priority.score} scoreScope={card.priority.score_scope} />
             </>
           )}
         </div>
@@ -226,7 +224,7 @@ export function OpportunityDetailPage() {
       {!historical ? (
         <>
           <CustomerContextCard context={card.customer_context} />
-          <PriorityCard priority={card.priority} publicOnly={publicOnlyPriority} />
+          <PriorityCard priority={card.priority} />
           <DecisionCard
             card={card}
             analyzing={aiBusy}
