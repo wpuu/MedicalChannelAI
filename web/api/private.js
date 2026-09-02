@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { authenticatedUser, readJsonBody, sendJson } from './_auth.js'
 import { privateDatabaseConfigured, privateDb } from './_privateDb.js'
 import {
@@ -10,6 +10,9 @@ import { loadVerifiedSnapshot } from './_verifiedSnapshot.js'
 const FOLLOWUP_STATUSES = new Set([
   'NEW', 'REVIEWING', 'CONTACTED', 'RELATIONSHIP_VERIFIED', 'PREPARING',
   'BID_SUBMITTED', 'WON', 'LOST', 'NOT_FIT', 'MONITOR', 'ARCHIVED',
+])
+const DONE_FOR_TODAY = new Set([
+  'CONTACTED', 'NOT_FIT', 'BID_SUBMITTED', 'WON', 'LOST', 'ARCHIVED',
 ])
 const NOT_FIT_REASONS = new Set([
   'NO_PRODUCT_CAPABILITY', 'NO_MANUFACTURER_ACCESS', 'RELATIONSHIP_TOO_WEAK',
@@ -36,6 +39,12 @@ function opportunityId(request) {
   return value && value.length <= 200 ? value : null
 }
 
+function reminderId(request) {
+  const raw = firstQuery(request, 'id')
+  const value = typeof raw === 'string' ? raw.trim() : ''
+  return /^mrem_[0-9a-f]{64}$/.test(value) ? value : null
+}
+
 function allow(request, response, methods) {
   if (methods.includes(request.method)) return true
   response.setHeader('Allow', methods.join(', '))
@@ -43,12 +52,32 @@ function allow(request, response, methods) {
   return false
 }
 
+function shouldAppearToday(followup) {
+  if (!followup) return true
+  if (DONE_FOR_TODAY.has(followup.status)) return false
+  if (followup.status !== 'MONITOR' || !followup.remind_at) return true
+  const remindAt = new Date(followup.remind_at).getTime()
+  return Number.isNaN(remindAt) || remindAt <= Date.now()
+}
+
+async function todayFollowupMap(sql, user) {
+  const rows = await sql`
+    SELECT opportunity_id, status, remind_at
+    FROM private_followups
+    WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+    LIMIT 500
+  `
+  return new Map(rows.map((row) => [row.opportunity_id, row]))
+}
+
 async function todayRoute(request, response, user) {
   if (!allow(request, response, ['GET'])) return
   try {
     const snapshot = await loadVerifiedSnapshot()
     const pool = await personalizedOpportunityPoolForUser(user, snapshot)
-    const cards = pool.slice(0, 5)
+    const followups = await todayFollowupMap(privateDb(), user)
+    const todayPool = pool.filter((card) => shouldAppearToday(followups.get(card.opportunity_id)))
+    const cards = todayPool.slice(0, 5)
     return sendJson(response, 200, {
       schema_version: '0.1',
       mode: 'TODAY_ACTIONS',
@@ -361,6 +390,102 @@ async function followedRoute(request, response, user) {
   }
 }
 
+function reminderPublicFacts(snapshot) {
+  return {
+    buyer_name: snapshot?.facts?.buyer_name ?? null,
+    hospital_name: snapshot?.facts?.hospital_name ?? null,
+    project_name: snapshot?.facts?.project_name ?? null,
+  }
+}
+
+function reminderKey(userId, opportunity, remindAt) {
+  const digest = createHash('sha256')
+    .update(`${userId}\n${opportunity}\n${new Date(remindAt).toISOString()}`)
+    .digest('hex')
+  return `mrem_${digest}`
+}
+
+async function dueReminderRows(sql, user, limit = 20) {
+  return sql`
+    SELECT
+      f.opportunity_id, f.status, f.remind_at, f.public_snapshot,
+      (
+        SELECT e.note FROM private_followup_events e
+        WHERE e.followup_id = f.id AND e.user_id = ${user.id}
+          AND e.note IS NOT NULL AND length(trim(e.note)) > 0
+        ORDER BY e.created_at DESC, e.id DESC LIMIT 1
+      ) AS latest_note
+    FROM private_followups f
+    WHERE f.user_id = ${user.id}
+      AND f.organization_id = ${user.organization_id}
+      AND f.remind_at IS NOT NULL
+      AND f.remind_at <= now()
+    ORDER BY f.remind_at ASC, f.updated_at ASC
+    LIMIT ${limit}
+  `
+}
+
+async function remindersRoute(request, response, user) {
+  if (!allow(request, response, ['GET'])) return
+  const sql = privateDb()
+  try {
+    const rows = await dueReminderRows(sql, user, 20)
+    const reminders = []
+    for (const row of rows) {
+      if (!FOLLOWUP_STATUSES.has(row.status) || !row.remind_at) continue
+      const snapshot = sanitizeStoredSnapshot(row.public_snapshot)
+      if (!snapshot) continue
+      const remindAt = new Date(row.remind_at).toISOString()
+      reminders.push({
+        reminder_id: reminderKey(user.id, row.opportunity_id, remindAt),
+        opportunity_id: row.opportunity_id,
+        followup_status: row.status,
+        remind_at: remindAt,
+        note: nullableText(row.latest_note),
+        facts: reminderPublicFacts(snapshot),
+      })
+    }
+    return sendJson(response, 200, {
+      schema_version: '0.1', mode: 'FOLLOWUP_REMINDER_INBOX', count: reminders.length, reminders,
+    })
+  } catch (error) {
+    console.error('private reminder inbox failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })
+    return sendJson(response, 500, { error: 'REMINDER_REQUEST_FAILED' })
+  }
+}
+
+async function reminderAckRoute(request, response, user) {
+  if (!allow(request, response, ['POST'])) return
+  const id = reminderId(request)
+  if (!id) return sendJson(response, 400, { error: 'REMINDER_ID_INVALID' })
+  const sql = privateDb()
+  try {
+    const rows = await dueReminderRows(sql, user, 100)
+    const row = rows.find((item) =>
+      item.remind_at && reminderKey(user.id, item.opportunity_id, item.remind_at) === id,
+    )
+    if (!row) return sendJson(response, 404, { error: 'REMINDER_NOT_FOUND' })
+
+    await sql`
+      UPDATE private_followups
+      SET remind_at = NULL, updated_at = now()
+      WHERE user_id = ${user.id}
+        AND organization_id = ${user.organization_id}
+        AND opportunity_id = ${row.opportunity_id}
+        AND remind_at = ${row.remind_at}
+    `
+    return sendJson(response, 200, {
+      schema_version: '0.1', reminder_id: id, acknowledged: true,
+    })
+  } catch (error) {
+    console.error('private reminder acknowledge failed', {
+      reminder_id: id,
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
+    return sendJson(response, 500, { error: 'REMINDER_ACK_FAILED' })
+  }
+}
+
 async function currentFeedback(sql, userId, id) {
   const rows = await sql`
     SELECT value, updated_at FROM private_recommendation_feedback
@@ -434,6 +559,8 @@ export default async function handler(request, response) {
   if (route === 'opportunity') return opportunityRoute(request, response, user)
   if (route === 'followup') return followupRoute(request, response, user)
   if (route === 'followed') return followedRoute(request, response, user)
+  if (route === 'reminders') return remindersRoute(request, response, user)
+  if (route === 'reminder-ack') return reminderAckRoute(request, response, user)
   if (route === 'feedback') return feedbackRoute(request, response, user)
   return sendJson(response, 404, { error: 'PRIVATE_ROUTE_NOT_FOUND' })
 }
