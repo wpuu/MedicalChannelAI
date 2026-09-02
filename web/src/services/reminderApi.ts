@@ -5,6 +5,7 @@ import {
   localReminderId,
   opportunityIdFromLocalReminderId,
 } from './localFollowupStore'
+import { isStableOpportunityId } from '@/utils/opportunityId'
 
 export interface DueReminder {
   reminder_id: string
@@ -56,6 +57,16 @@ function nullableString(value: unknown): value is string | null {
   return value === null || typeof value === 'string'
 }
 
+async function responseError(response: Response): Promise<Error> {
+  try {
+    const root = asRecord(await response.json())
+    if (typeof root?.error === 'string') return new Error(root.error)
+  } catch {
+    // Fall through to the status-only error.
+  }
+  return new Error(`HTTP_${response.status}`)
+}
+
 function validateInbox(value: unknown): ReminderInboxResponse {
   const root = asRecord(value)
   if (
@@ -86,8 +97,7 @@ function validateInbox(value: unknown): ReminderInboxResponse {
       ]) ||
       typeof row.reminder_id !== 'string' ||
       !/^mrem_[0-9a-f]{64}$/.test(row.reminder_id) ||
-      typeof row.opportunity_id !== 'string' ||
-      !/^opp_[0-9a-fA-F-]{36}$/.test(row.opportunity_id) ||
+      !isStableOpportunityId(row.opportunity_id) ||
       typeof row.followup_status !== 'string' ||
       !FOLLOWUP_STATUSES.has(row.followup_status) ||
       typeof row.remind_at !== 'string' ||
@@ -156,7 +166,7 @@ export async function getDueReminders(): Promise<DueReminder[]> {
     credentials: 'include',
     headers: { Accept: 'application/json' },
   })
-  if (!response.ok) throw new Error(`HTTP_${response.status}`)
+  if (!response.ok) throw await responseError(response)
   return validateInbox(await response.json()).reminders
 }
 
@@ -177,5 +187,5 @@ export async function acknowledgeDueReminder(reminderId: string): Promise<void> 
     },
     body: '{}',
   })
-  if (!response.ok) throw new Error(`HTTP_${response.status}`)
+  if (!response.ok) throw await responseError(response)
 }
