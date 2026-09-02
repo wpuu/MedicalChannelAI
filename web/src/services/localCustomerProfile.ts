@@ -20,9 +20,15 @@ export interface LocalHospitalRelationship {
   relationship_strength: RelationshipStrength
 }
 
+export interface LocalTargetHospital {
+  hospital: string
+  department: string | null
+}
+
 export interface LocalCustomerProfile {
   product_capabilities: LocalProductCapability[]
   hospital_relationships: LocalHospitalRelationship[]
+  target_hospitals: LocalTargetHospital[]
   can_find_manufacturer: boolean | null
   can_partner_channel: boolean | null
   can_handle_lease: boolean | null
@@ -32,6 +38,7 @@ export interface LocalCustomerProfile {
 const EMPTY_PROFILE: LocalCustomerProfile = {
   product_capabilities: [],
   hospital_relationships: [],
+  target_hospitals: [],
   can_find_manufacturer: null,
   can_partner_channel: null,
   can_handle_lease: null,
@@ -147,10 +154,26 @@ export function loadLocalCustomerProfile(): LocalCustomerProfile {
       }
     }
 
+    const target_hospitals: LocalTargetHospital[] = []
+    if (Array.isArray(root.target_hospitals)) {
+      const keys = new Set<string>()
+      for (const item of root.target_hospitals.slice(0, 100)) {
+        const row = asRecord(item)
+        const hospital = cleanText(row?.hospital, 240)
+        if (!hospital) continue
+        const department = cleanText(row?.department, 160)
+        const key = `${hospital.toLowerCase()}|${(department ?? '').toLowerCase()}`
+        if (keys.has(key)) continue
+        keys.add(key)
+        target_hospitals.push({ hospital, department })
+      }
+    }
+
     const updatedAt = cleanText(root.updated_at, 80)
     return {
       product_capabilities,
       hospital_relationships,
+      target_hospitals,
       can_find_manufacturer: triState(root.can_find_manufacturer),
       can_partner_channel: triState(root.can_partner_channel),
       can_handle_lease: triState(root.can_handle_lease),
@@ -162,6 +185,19 @@ export function loadLocalCustomerProfile(): LocalCustomerProfile {
 }
 
 export function saveLocalCustomerProfile(profile: LocalCustomerProfile): void {
+  const targetKeys = new Set<string>()
+  const normalizedTargets: LocalTargetHospital[] = []
+  for (const item of profile.target_hospitals) {
+    const hospital = cleanText(item.hospital, 240) ?? ''
+    const department = cleanText(item.department, 160)
+    if (!hospital) continue
+    const key = `${hospital.toLowerCase()}|${(department ?? '').toLowerCase()}`
+    if (targetKeys.has(key)) continue
+    targetKeys.add(key)
+    normalizedTargets.push({ hospital, department })
+    if (normalizedTargets.length >= 100) break
+  }
+
   const normalized: LocalCustomerProfile = {
     product_capabilities: profile.product_capabilities
       .map((item) => ({
@@ -181,6 +217,7 @@ export function saveLocalCustomerProfile(profile: LocalCustomerProfile): void {
           item.hospital && RELATIONSHIP_STRENGTHS.has(item.relationship_strength),
       )
       .slice(0, 100),
+    target_hospitals: normalizedTargets,
     can_find_manufacturer: triState(profile.can_find_manufacturer),
     can_partner_channel: triState(profile.can_partner_channel),
     can_handle_lease: triState(profile.can_handle_lease),
