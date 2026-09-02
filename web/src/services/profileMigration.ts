@@ -13,6 +13,7 @@ export function hasProfileData(profile: LocalCustomerProfile): boolean {
   return Boolean(
     profile.product_capabilities.length ||
     profile.hospital_relationships.length ||
+    profile.target_hospitals.length ||
     profile.can_find_manufacturer !== null ||
     profile.can_partner_channel !== null ||
     profile.can_handle_lease !== null,
@@ -54,9 +55,24 @@ export function mergeLocalProfileIntoAccount(
     if (hospital_relationships.length >= 100) break
   }
 
+  const targetKeys = new Set(
+    account.target_hospitals.map(
+      (item) => `${normalize(item.hospital)}|${normalize(item.department)}`,
+    ),
+  )
+  const target_hospitals = [...account.target_hospitals]
+  for (const item of local.target_hospitals) {
+    const key = `${normalize(item.hospital)}|${normalize(item.department)}`
+    if (!normalize(item.hospital) || targetKeys.has(key)) continue
+    targetKeys.add(key)
+    target_hospitals.push({ ...item })
+    if (target_hospitals.length >= 100) break
+  }
+
   return {
     product_capabilities,
     hospital_relationships,
+    target_hospitals,
     // Existing account values win. Local data only fills fields the account has
     // never answered, so an old browser cannot silently overwrite newer choices.
     can_find_manufacturer:
