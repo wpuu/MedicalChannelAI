@@ -39,6 +39,21 @@ ARGUMENT_FIXTURE = """
 </body></html>
 """
 
+NESTED_QUANTITY_FIXTURE = """
+<html><body>
+<h2>天津市泰达医院电子内窥镜系统等设备介绍论证邀请公告</h2>
+<p>我院拟进行医疗设备采购，近日将组织相关专家进行论证。</p>
+<p>一、拟采购设备项目：</p>
+<p>1、设备明细： 1)电子内窥镜系统（高端2套、中端2套) 预算：920万元； 2)男性生理多参数检测仪 预算：42万元； 3)男性功能治疗仪 预算：42万元； 4）全自动化学发光免疫分析仪 预算：44万元；</p>
+<p>2、其他需求：无</p>
+<p>二、报名资料及要求</p>
+<p>三、报名方式及要求</p>
+<p>1、报名截止时间：2026年7月2日下午4:00；</p>
+<p>4、联系方式：何老师15822612462</p>
+<p>天津市泰达医院</p><p>2026年6月25日</p>
+</body></html>
+"""
+
 
 def parse_fixture(
     html: str,
@@ -47,7 +62,7 @@ def parse_fixture(
     expected_title: str,
     observed_at: str = '2026-09-01T18:00:00Z',
     opportunity_id: str,
-    index_published_at: str,
+    index_published_at: str | None,
 ):
     return parse_teda_market_research(
         html,
@@ -96,6 +111,26 @@ class TedaMarketResearchTests(unittest.TestCase):
         self.assertEqual(facts['registration_deadline'], '2026-09-04T16:00:00+08:00')
         self.assertIsNone(facts['registration_deadline_date'])
         self.assertEqual(facts['budget_cny'], 2500000)
+
+    def test_nested_variant_quantities_do_not_truncate_product_name(self) -> None:
+        record = parse_fixture(
+            NESTED_QUANTITY_FIXTURE,
+            source_url='https://www.tedahospital.com.cn/article/show/9/883',
+            expected_title='天津市泰达医院电子内窥镜系统等设备介绍论证邀请公告',
+            opportunity_id='teda_883',
+            index_published_at='2026-06-25',
+        )
+        facts = record['facts']
+        self.assertEqual(facts['budget_cny'], 10480000)
+        self.assertEqual(
+            [item['raw_name'] for item in facts['product_items']],
+            ['电子内窥镜系统', '男性生理多参数检测仪', '男性功能治疗仪', '全自动化学发光免疫分析仪'],
+        )
+        first = facts['product_items'][0]
+        self.assertIsNone(first['quantity'])
+        self.assertEqual(first['specification'], '高端2套、中端2套')
+        self.assertNotIn('设备明细', [item['raw_name'] for item in facts['product_items']])
+        self.assertNotIn('其他需求', [item['raw_name'] for item in facts['product_items']])
 
     def test_nonmedical_early_signal_title_cannot_enter_fact_layer(self) -> None:
         html = DEMAND_FIXTURE.replace('医疗设备采购需求调研', '弱电设备采购需求调研')
@@ -163,6 +198,17 @@ class TedaMarketResearchTests(unittest.TestCase):
         ][0]
         self.assertEqual(record['facts']['published_at'], '2026-07-22')
         self.assertEqual(published_evidence['source_url'], INDEX_URL)
+
+    def test_missing_official_publication_date_is_explicitly_unsupported(self) -> None:
+        html = DEMAND_FIXTURE.replace('<p>天津市泰达医院</p><p>2026年7月22日</p>', '')
+        with self.assertRaisesRegex(TedaParseError, 'OFFICIAL_PUBLISHED_DATE_NOT_AVAILABLE'):
+            parse_fixture(
+                html,
+                source_url='https://www.tedahospital.com.cn/article/show/9/901',
+                expected_title='天津市泰达医院生物安全柜设备需求调研',
+                opportunity_id='teda_901',
+                index_published_at=None,
+            )
 
 
 if __name__ == '__main__':
