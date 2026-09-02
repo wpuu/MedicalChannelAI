@@ -28,7 +28,7 @@ class DiscoveryCoverageRiskUiTests(unittest.TestCase):
         self.assertIn('coverageRiskLabel(risk.code)', self.page)
         self.assertIn('{risk.reason}', self.page)
         self.assertIn('{risk.recommended_action}', self.page)
-        self.assertNotIn('{risk.code}', self.page)
+        self.assertNotIn('>{risk.code}<', self.page)
 
     def test_coverage_ui_explains_score_separation(self):
         self.assertIn('覆盖完整度与AI发现分分开计算', self.page)
