@@ -26,10 +26,16 @@ function triState(value) {
   return value === true || value === false || value === null ? value : undefined
 }
 
+function targetKey(item) {
+  return `${item.hospital.toLowerCase()}|${String(item.department || '').toLowerCase()}`
+}
+
 function validateProfile(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null
   if (!Array.isArray(body.product_capabilities) || body.product_capabilities.length > 50) return null
   if (!Array.isArray(body.hospital_relationships) || body.hospital_relationships.length > 100) return null
+  const targetHospitalsProvided = Object.prototype.hasOwnProperty.call(body, 'target_hospitals')
+  if (targetHospitalsProvided && (!Array.isArray(body.target_hospitals) || body.target_hospitals.length > 100)) return null
 
   const productCapabilities = []
   for (const value of body.product_capabilities) {
@@ -50,6 +56,22 @@ function validateProfile(body) {
     hospitalRelationships.push({ hospital, department, relationship_strength: strength })
   }
 
+  const targetHospitals = []
+  const targetKeys = new Set()
+  if (targetHospitalsProvided) {
+    for (const value of body.target_hospitals) {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+      const hospital = cleanText(value.hospital, 240)
+      const department = value.department === null ? null : cleanText(value.department, 160)
+      if (!hospital) return null
+      const item = { hospital, department }
+      const key = targetKey(item)
+      if (targetKeys.has(key)) continue
+      targetKeys.add(key)
+      targetHospitals.push(item)
+    }
+  }
+
   const canFindManufacturer = triState(body.can_find_manufacturer)
   const canPartnerChannel = triState(body.can_partner_channel)
   const canHandleLease = triState(body.can_handle_lease)
@@ -62,6 +84,7 @@ function validateProfile(body) {
   return {
     product_capabilities: productCapabilities,
     hospital_relationships: hospitalRelationships,
+    target_hospitals: targetHospitalsProvided ? targetHospitals : null,
     can_find_manufacturer: canFindManufacturer,
     can_partner_channel: canPartnerChannel,
     can_handle_lease: canHandleLease,
@@ -83,7 +106,7 @@ async function requireUser(request, response) {
 
 async function getProfile(user) {
   const sql = privateDb()
-  const [capabilities, relationships, preferences] = await Promise.all([
+  const [capabilities, relationships, targets, preferences] = await Promise.all([
     sql`
       SELECT keyword, capability_type, updated_at
       FROM private_product_capabilities
@@ -93,6 +116,12 @@ async function getProfile(user) {
     sql`
       SELECT hospital, department, relationship_strength, updated_at
       FROM private_hospital_relationships
+      WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+      ORDER BY created_at ASC
+    `,
+    sql`
+      SELECT hospital, department, updated_at
+      FROM private_target_hospitals
       WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
       ORDER BY created_at ASC
     `,
@@ -107,6 +136,7 @@ async function getProfile(user) {
   const timestamps = [
     ...capabilities.map((row) => row.updated_at),
     ...relationships.map((row) => row.updated_at),
+    ...targets.map((row) => row.updated_at),
     preference?.updated_at,
   ].filter(Boolean).map((value) => new Date(value).getTime()).filter(Number.isFinite)
   const updatedAt = timestamps.length ? new Date(Math.max(...timestamps)).toISOString() : null
@@ -119,6 +149,10 @@ async function getProfile(user) {
       hospital: row.hospital,
       department: row.department,
       relationship_strength: row.relationship_strength,
+    })),
+    target_hospitals: targets.map((row) => ({
+      hospital: row.hospital,
+      department: row.department,
     })),
     can_find_manufacturer: preference?.can_find_manufacturer ?? null,
     can_partner_channel: preference?.can_partner_channel ?? null,
@@ -150,6 +184,7 @@ export default async function handler(request, response) {
       await sql.begin(async (tx) => {
         await tx`DELETE FROM private_product_capabilities WHERE user_id = ${user.id}`
         await tx`DELETE FROM private_hospital_relationships WHERE user_id = ${user.id}`
+        await tx`DELETE FROM private_target_hospitals WHERE user_id = ${user.id}`
         await tx`DELETE FROM private_user_preferences WHERE user_id = ${user.id}`
       })
       return sendJson(response, 200, {
@@ -183,6 +218,20 @@ export default async function handler(request, response) {
           )
         `
       }
+
+      if (profile.target_hospitals !== null) {
+        await tx`DELETE FROM private_target_hospitals WHERE user_id = ${user.id}`
+        for (const item of profile.target_hospitals) {
+          await tx`
+            INSERT INTO private_target_hospitals (
+              id, organization_id, user_id, hospital, department
+            ) VALUES (
+              ${randomUUID()}, ${user.organization_id}, ${user.id}, ${item.hospital}, ${item.department}
+            )
+          `
+        }
+      }
+
       await tx`
         INSERT INTO private_user_preferences (
           user_id, can_find_manufacturer, can_partner_channel, can_handle_lease, updated_at
