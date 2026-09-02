@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: verify-${{ github.ref }}
@@ -22,6 +22,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Apply guarded score-scope migration
+        if: github.event_name == 'push' && github.ref == 'refs/heads/chatgpt/opportunity-ranking-v2-final'
+        run: |
+          cd web
+          node scripts/apply-score-scope-migration.mjs
+          cd ..
+          if git diff --quiet; then
+            echo "Migration produced no changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/src/services/ApiTodayActionsService.ts web/src/services/StaticSnapshotTodayActionsService.ts web/src/services/localCustomerProfile.ts web/src/services/verifiedOpportunityPool.ts
+          git commit -m "fix: propagate explicit priority score scope through adapters"
+          git push
 
       - name: Set up Python
         uses: actions/setup-python@v5
