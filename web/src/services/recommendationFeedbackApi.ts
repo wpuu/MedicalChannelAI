@@ -10,6 +10,7 @@ const FEEDBACK_VALUES = new Set<OpportunityFeedback>([
   'NEW_NOT_VALUABLE',
   'NEW_WORTH_FOLLOWING',
 ])
+const FEEDBACK_CHANGED_EVENT = 'medopp:recommendation-feedback-changed'
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -28,6 +29,18 @@ function parseValue(payload: unknown, opportunityId: string): OpportunityFeedbac
     throw new Error('FEEDBACK_RESPONSE_INVALID')
   }
   return root.value as OpportunityFeedback | null
+}
+
+function emitFeedbackChanged(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(FEEDBACK_CHANGED_EVENT))
+  }
+}
+
+export function subscribeRemoteRecommendationFeedback(listener: () => void): () => void {
+  if (typeof window === 'undefined') return () => undefined
+  window.addEventListener(FEEDBACK_CHANGED_EVENT, listener)
+  return () => window.removeEventListener(FEEDBACK_CHANGED_EVENT, listener)
 }
 
 export async function loadRecommendationFeedback(opportunityId: string): Promise<OpportunityFeedback | null> {
@@ -58,5 +71,7 @@ export async function saveRecommendationFeedback(
     ...(value === null ? {} : { body: JSON.stringify({ value }) }),
   })
   if (!response.ok) throw new Error(`HTTP_${response.status}`)
-  return parseValue(await response.json(), opportunityId)
+  const confirmed = parseValue(await response.json(), opportunityId)
+  emitFeedbackChanged()
+  return confirmed
 }
