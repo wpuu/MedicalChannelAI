@@ -53,6 +53,23 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         self.assertIn('SOURCE_REDIRECT_REJECTED', endpoint)
         self.assertIn('MAX_SOURCE_BYTES', endpoint)
 
+    def test_safe_next_page_coverage_is_bounded_and_same_origin(self):
+        endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
+        service = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarApi.ts').read_text(encoding='utf-8')
+        self.assertIn('MAX_COVERAGE_PAGES = 2', endpoint)
+        self.assertIn('NEXT_PAGE_LABELS', endpoint)
+        self.assertIn('extractNextPageUrl', endpoint)
+        self.assertIn("canonicalOfficialUrl(href, baseUrl, source.hosts)", endpoint)
+        self.assertIn('fetchOfficialCoverage(source)', endpoint)
+        self.assertIn('if (anchorByUrl.size >= MAX_ANCHORS) break', endpoint)
+        self.assertIn('coverage_page_count', endpoint)
+        self.assertIn('coverage_page_urls', endpoint)
+        self.assertIn('coverage_next_page_detected', endpoint)
+        self.assertIn('coverage_page_limit_applied', endpoint)
+        self.assertIn('coverage_page_count: number', service)
+        self.assertIn('coverage_page_urls: string[]', service)
+        self.assertIn('body.coverage_page_count !== body.coverage_page_urls.length', service)
+
     def test_radar_reuses_saved_result_when_official_link_fingerprint_is_unchanged(self):
         endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
         service = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarApi.ts').read_text(encoding='utf-8')
