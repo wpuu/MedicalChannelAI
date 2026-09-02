@@ -16,14 +16,18 @@ function publicSignalLabel(score: number): string {
   return '低优先'
 }
 
+function publicScale(scoreScope: PriorityScoreScope | undefined): boolean {
+  return scoreScope !== 'PERSONALIZED'
+}
+
 export function PriorityBadge({
   score,
   scoreScope,
 }: {
   score: number
-  scoreScope: PriorityScoreScope
+  scoreScope?: PriorityScoreScope
 }) {
-  const usePublicScale = scoreScope === 'PUBLIC'
+  const usePublicScale = publicScale(scoreScope)
   const tier = usePublicScale ? publicSignalTier(score) : getPriorityTier(score)
   const label = usePublicScale ? publicSignalLabel(score) : getPriorityLabel(score)
   return (
@@ -46,9 +50,9 @@ export function PriorityScore({
   scoreScope,
 }: {
   score: number
-  scoreScope: PriorityScoreScope
+  scoreScope?: PriorityScoreScope
 }) {
-  const usePublicScale = scoreScope === 'PUBLIC'
+  const usePublicScale = publicScale(scoreScope)
   const tier = usePublicScale ? publicSignalTier(score) : getPriorityTier(score)
   return (
     <div className="flex items-baseline gap-1">
