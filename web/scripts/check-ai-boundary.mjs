@@ -61,6 +61,7 @@ const savedKeys = process.env.AGNES_API_KEYS
 const savedKey = process.env.AGNES_API_KEY
 const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
 const savedPublicRemote = process.env.VITE_VERIFIED_SNAPSHOT_URL
+const savedPilot = process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED
 const savedFetch = globalThis.fetch
 process.env.AGNES_API_KEYS = ''
 process.env.AGNES_API_KEY = ''
@@ -69,6 +70,16 @@ process.env.VITE_VERIFIED_SNAPSHOT_URL = ''
 clearVerifiedSnapshotCacheForTests()
 
 try {
+  process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED = '1'
+  let response = await invoke({ body: { opportunity_id: knownOpportunityId } })
+  expectStatus(response, 403, 'AI_PILOT_BOUNDARY_ORIGIN_REQUIRED')
+  if (response.body?.error !== 'SAME_ORIGIN_REQUIRED') throw new Error('AI_PILOT_BOUNDARY_ORIGIN_CODE')
+
+  // The remaining cases exercise the public grounded AI core. Keep them isolated
+  // from Preview/Pilot build environment variables so authentication does not
+  // mask request-shape, grounding, provider, retry, and rate-limit assertions.
+  process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED = ''
+
   const dateOnlyFacts = {
     registration_deadline: null,
     registration_deadline_date: '2026-07-10',
@@ -81,7 +92,7 @@ try {
     throw new Error('AI_DATE_ONLY_DEADLINE_NEXT_DAY_MUST_CLOSE')
   }
 
-  let response = await invoke({ method: 'GET' })
+  response = await invoke({ method: 'GET' })
   expectStatus(response, 405, 'AI_BOUNDARY_GET')
   if (response.body?.error !== 'METHOD_NOT_ALLOWED') throw new Error('AI_BOUNDARY_GET_CODE')
 
@@ -291,4 +302,6 @@ try {
   else process.env.VERIFIED_SNAPSHOT_URL = savedRemote
   if (savedPublicRemote === undefined) delete process.env.VITE_VERIFIED_SNAPSHOT_URL
   else process.env.VITE_VERIFIED_SNAPSHOT_URL = savedPublicRemote
+  if (savedPilot === undefined) delete process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED
+  else process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED = savedPilot
 }
