@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { RequirePilotSession } from '@/components/auth/RequirePilotSession'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ToastProvider } from '@/context/ToastContext'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
@@ -21,22 +22,24 @@ export default function App() {
             path="/login"
             element={isApiMode ? <LoginPage /> : <Navigate to="/today" replace />}
           />
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Navigate to="/today" replace />} />
-            <Route path="/today" element={<TodayPage />} />
-            <Route
-              path="/opportunities"
-              element={
-                localTrialEnabled ? <OpportunityPoolPage /> : <Navigate to="/today" replace />
-              }
-            />
-            <Route path="/followed" element={<FollowedPage />} />
-            <Route
-              path="/resources"
-              element={localTrialEnabled ? <ResourcesPage /> : <Navigate to="/today" replace />}
-            />
-            <Route path="/opportunity/:id" element={<OpportunityDetailPage />} />
-            <Route path="*" element={<Navigate to="/today" replace />} />
+          <Route element={<RequirePilotSession />}>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Navigate to="/today" replace />} />
+              <Route path="/today" element={<TodayPage />} />
+              <Route
+                path="/opportunities"
+                element={
+                  localTrialEnabled ? <OpportunityPoolPage /> : <Navigate to="/today" replace />
+                }
+              />
+              <Route path="/followed" element={<FollowedPage />} />
+              <Route
+                path="/resources"
+                element={localTrialEnabled ? <ResourcesPage /> : <Navigate to="/today" replace />}
+              />
+              <Route path="/opportunity/:id" element={<OpportunityDetailPage />} />
+              <Route path="*" element={<Navigate to="/today" replace />} />
+            </Route>
           </Route>
         </Routes>
       </ToastProvider>
