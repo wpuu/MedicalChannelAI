@@ -114,6 +114,15 @@ function cacheStatusText(result: DiscoveryRadarResult) {
   return `首次/强制分析 · AI分析 ${result.ai_analyzed_anchor_count} 条`
 }
 
+function coverageStatusText(result: DiscoveryRadarResult) {
+  if (result.coverage_page_limit_applied) {
+    return `自动检查 ${result.coverage_page_count} 页 · 仍有下一页，已到安全上限`
+  }
+  if (result.coverage_page_count > 1) return `自动检查 ${result.coverage_page_count} 页 · 已纳入明确下一页`
+  if (result.coverage_next_page_detected) return '检测到分页，但本轮未继续扩展'
+  return '检查入口页 · 未检测到明确下一页'
+}
+
 export function DiscoveryRadarPage() {
   const [workspace, setWorkspace] = useState(() => loadDiscoveryWorkspace())
   const [storageReady, setStorageReady] = useState(false)
@@ -435,7 +444,7 @@ export function DiscoveryRadarPage() {
             <p className="mt-1 text-[11px] leading-5 text-slate-600">
               “天津市”不是一次性搜索词，而是一个渠道集合：天津市范围内的医院官网、政府采购、公共资源交易、卫健主管部门等入口都归到同一范围。再次搜索时逐渠道检查更新，只把新增/变更链接交给AI，已经判断过且未变化的链接直接复用。
             </p>
-            <p className="mt-1 text-[10px] leading-4 text-slate-500">大范围扫描按渠道顺序执行，并在渠道之间保留约 2.2 秒间隔，减少对官方站点的瞬时压力。</p>
+            <p className="mt-1 text-[10px] leading-4 text-slate-500">单个入口如果存在同官方域名、明确标记的“下一页”或 rel=next，当前会安全地再检查 1 页；总分析链接仍最多 80 条。大范围扫描按渠道顺序执行，并在渠道之间保留约 2.2 秒间隔。</p>
           </div>
         </div>
         {scopeNames.length ? (
@@ -579,11 +588,12 @@ export function DiscoveryRadarPage() {
                         <span>发现分 {result.discovery_score ?? '—'}</span>
                         <span className={result.ai_called ? 'text-indigo-700' : 'text-emerald-700'}>{cacheStatusText(result)}</span>
                       </div>
+                      <p className={`mt-1 text-[9px] ${result.coverage_page_limit_applied ? 'text-amber-700' : 'text-slate-400'}`}>{coverageStatusText(result)}</p>
                       <p className="mt-1 text-[9px] text-slate-400">新增 {result.new_anchor_count} · 标题变化 {result.changed_anchor_count} · 移出当前窗口 {result.removed_anchor_count} · 复用旧链接 {result.reused_anchor_count}</p>
                       <p className="mt-1 text-[9px] text-slate-400">官网检查 {formatDateTime(result.checked_at)} · 最近AI分析 {formatDateTime(result.analyzed_at)}</p>
                     </div>
                   ) : (
-                    <p className="mt-3 text-[10px] leading-5 text-slate-400">首次扫描保存当前链接快照；以后逐链接比较，新链接和标题变化才交给AI，旧链接不重复分析。</p>
+                    <p className="mt-3 text-[10px] leading-5 text-slate-400">首次扫描保存当前链接快照；以后逐链接比较，新链接和标题变化才交给AI，旧链接不重复分析。明确的同域“下一页”会额外检查1页。</p>
                   )}
 
                   {stats ? (
@@ -638,7 +648,7 @@ export function DiscoveryRadarPage() {
       <section className="flex items-start gap-2 rounded-2xl border border-teal-100 bg-teal-50 px-3 py-3 text-[11px] leading-5 text-teal-950 sm:px-4">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
-          真实边界：区域搜索只覆盖用户实际维护的公开渠道，不把“天津市”三个字当成全网无遗漏保证；单个入口当前分析当前页最多80个官方链接，需要分页的官网应把分页/栏目作为独立入口或后续使用专用适配器。演示版先用 IndexedDB 保存发现账本；跨设备、后台长期扫描和不可丢失历史仍必须迁到账号级云端。
+          真实边界：区域搜索只覆盖用户实际维护的公开渠道，不把“天津市”三个字当成全网无遗漏保证；单个入口当前最多分析80个去重官方链接，只有同官方域名、明确标记为 rel=next / “下一页”的分页才会自动再检查1页（最多2页）。若仍检测到下一页会明确提示已到安全上限；JS分页、复杂分页或更深历史仍需独立入口或专用适配器。演示版先用 IndexedDB 保存发现账本；跨设备、后台长期扫描和不可丢失历史仍必须迁到账号级云端。
         </p>
       </section>
     </div>
