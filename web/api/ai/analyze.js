@@ -41,6 +41,25 @@ function sendJson(response, status, payload) {
   response.status(status).json(payload)
 }
 
+function pilotSameOriginAllowed(request) {
+  const origin = firstHeaderValue(request.headers?.origin)
+  if (!origin) return false
+  let originUrl
+  try {
+    originUrl = new URL(origin)
+  } catch {
+    return false
+  }
+  if (originUrl.protocol !== 'https:' && process.env.NODE_ENV === 'production') return false
+  const hosts = [
+    firstHeaderValue(request.headers?.['x-forwarded-host']),
+    firstHeaderValue(request.headers?.host),
+  ]
+    .filter(Boolean)
+    .map((value) => value.toLowerCase())
+  return hosts.includes(originUrl.host.toLowerCase())
+}
+
 function rawVerifiedCard(snapshot, opportunityId) {
   const pool = Array.isArray(snapshot?.opportunity_pool) ? snapshot.opportunity_pool : []
   const cards = Array.isArray(snapshot?.cards) ? snapshot.cards : []
@@ -266,6 +285,9 @@ export default async function handler(request, response) {
   const normalizedRequest = normalizeProxyOrigin(request)
   if (!privatePilotEnabled()) return coreHandler(normalizedRequest, response)
   if (request.method !== 'POST') return coreHandler(normalizedRequest, response)
+  if (!pilotSameOriginAllowed(normalizedRequest)) {
+    return sendJson(response, 403, { error: 'SAME_ORIGIN_REQUIRED' })
+  }
   if (!privateDatabaseConfigured()) {
     return sendJson(response, 503, { error: 'PRIVATE_DATABASE_NOT_CONFIGURED' })
   }
