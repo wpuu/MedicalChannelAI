@@ -86,6 +86,7 @@ const SHORT_MEDICAL_CAPABILITY_KEYWORDS = new Set([
   'ct',
   'mr',
   'cr',
+  'dsa',
   'ivd',
   'pcr',
   'lis',
@@ -95,6 +96,19 @@ const SHORT_MEDICAL_CAPABILITY_KEYWORDS = new Set([
   'icu',
   'gpu',
 ])
+
+const CAPABILITY_ALIAS_GROUPS = [
+  ['dsa', '数字减影血管造影', '数字减影血管造影机', '血管造影机'],
+  ['dr', '数字x光机', '数字x线摄影', '数字化x线摄影', '数字化x射线摄影'],
+  ['ct', 'ct机', 'ct影像', '计算机断层扫描', '电子计算机断层扫描'],
+  ['mr', 'mri', '磁共振', '磁共振成像'],
+  ['cr', '计算机x线摄影'],
+  ['ivd', '体外诊断'],
+  ['pcr', '聚合酶链式反应', '核酸扩增'],
+  ['lis', '检验信息系统', '实验室信息系统'],
+  ['his', '医院信息系统'],
+  ['ecg', '心电图', '心电图机'],
+]
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -239,12 +253,23 @@ function normalizeForMatch(value: string | null | undefined): string {
   return (value ?? '').toLowerCase().replace(/[\s（）()、，,·.\-_/]+/g, '')
 }
 
+const NORMALIZED_CAPABILITY_ALIAS_GROUPS = CAPABILITY_ALIAS_GROUPS.map((group) =>
+  group.map((item) => normalizeForMatch(item)).filter(Boolean),
+)
+
 export function isSpecificCapabilityKeyword(value: string): boolean {
   const normalized = normalizeForMatch(value)
   if (!normalized || GENERIC_CAPABILITY_KEYWORDS.has(normalized)) return false
   if (SHORT_MEDICAL_CAPABILITY_KEYWORDS.has(normalized)) return true
   const hasCjk = /[\u3400-\u9fff]/.test(normalized)
   return hasCjk ? normalized.length >= 2 : normalized.length >= 4
+}
+
+function capabilityMatchTerms(value: string): string[] {
+  const keyword = normalizeForMatch(value)
+  if (!keyword) return []
+  const group = NORMALIZED_CAPABILITY_ALIAS_GROUPS.find((items) => items.includes(keyword))
+  return group ?? [keyword]
 }
 
 function cardSearchText(card: TodayActionCard): string {
@@ -352,8 +377,7 @@ function capabilitiesForCard(
   if (!haystack) return []
   return profile.product_capabilities.filter((capability) => {
     if (!isSpecificCapabilityKeyword(capability.keyword)) return false
-    const keyword = normalizeForMatch(capability.keyword)
-    return haystack.includes(keyword)
+    return capabilityMatchTerms(capability.keyword).some((term) => haystack.includes(term))
   })
 }
 
