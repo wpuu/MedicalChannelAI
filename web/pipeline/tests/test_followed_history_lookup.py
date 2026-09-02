@@ -23,7 +23,8 @@ class FollowedHistoryLookupTests(unittest.TestCase):
         self.assertIn("f.user_id = ${user.id}", followed)
         self.assertIn("f.organization_id = ${user.organization_id}", followed)
         self.assertIn("mode: 'FOLLOWED_OPPORTUNITY'", followed)
-        self.assertIn("LIMIT 100", followed)
+        self.assertIn("LIMIT 1", followed)
+        self.assertIn("LIMIT 101 OFFSET ${offset}", followed)
 
 
 if __name__ == "__main__":
