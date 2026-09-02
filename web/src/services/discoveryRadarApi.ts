@@ -14,6 +14,7 @@ export type DiscoveryCacheStatus =
   | 'FRESH_DELTA_AI'
   | 'REUSED_UNCHANGED'
   | 'REUSED_NO_NEW_LINKS'
+  | 'REUSED_PARTIAL_COVERAGE'
 
 export interface DiscoverySourceInput {
   id: DiscoverySourceId
@@ -64,6 +65,9 @@ export interface DiscoveryRadarResult {
   coverage_page_urls: string[]
   coverage_next_page_detected: boolean
   coverage_page_limit_applied: boolean
+  coverage_partial: boolean
+  coverage_error_code: string | null
+  coverage_scanned_anchor_count: number
   raw_candidate_count: number
   candidate_count: number
   historical_known_verified_count: number
@@ -111,6 +115,7 @@ export function discoveryRadarErrorMessage(error: unknown): string {
   if (error.code === 'SOURCE_DNS_UNRESOLVED') return '该渠道域名暂时无法解析，请检查地址'
   if (error.code === 'SOURCE_REDIRECT_REJECTED') return '该渠道跳转到了未允许的域名，请直接填写最终官方入口'
   if (error.code === 'SOURCE_TOO_LARGE') return '该页面过大，不适合作为列表入口，请换成更具体的采购/公告栏目页'
+  if (error.code === 'SOURCE_TIMEOUT') return '该官方页面本次响应超时，请稍后再试'
   if (error.code === 'SAME_ORIGIN_REQUIRED') return '请从正式演示站点打开AI情报雷达'
   if (error.code === 'AI_RADAR_RESPONSE_INVALID') return 'AI返回内容未通过安全校验，请重试'
   return 'AI情报雷达暂时不可用，请稍后重试'
@@ -175,7 +180,12 @@ export async function scanDiscoverySource(
       typeof body?.coverage_page_count !== 'number' ||
       typeof body?.coverage_next_page_detected !== 'boolean' ||
       typeof body?.coverage_page_limit_applied !== 'boolean' ||
+      typeof body?.coverage_partial !== 'boolean' ||
+      !(body?.coverage_error_code === null || typeof body?.coverage_error_code === 'string') ||
+      typeof body?.coverage_scanned_anchor_count !== 'number' ||
       body.coverage_page_count !== body.coverage_page_urls.length ||
+      (body.coverage_partial && !body.coverage_error_code) ||
+      (!body.coverage_partial && body.coverage_error_code !== null) ||
       body?.production_data_mutated !== false
     ) {
       throw new DiscoveryRadarError('AI_RADAR_RESPONSE_INVALID', 502)
