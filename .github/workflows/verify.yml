@@ -39,6 +39,13 @@ jobs:
         working-directory: web
         run: npm install --no-audit --no-fund
 
+      - name: Upload resolved package lock
+        uses: actions/upload-artifact@v4
+        with:
+          name: resolved-package-lock
+          path: web/package-lock.json
+          retention-days: 1
+
       - name: Run full prebuild, typecheck and production build
         working-directory: web
         run: npm run build
