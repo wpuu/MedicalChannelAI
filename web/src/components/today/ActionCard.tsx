@@ -28,7 +28,7 @@ interface ActionCardProps {
   analysisUnavailableReason?: string | null
 }
 
-const PRIORITY_REASON_LABELS = [
+const PRIORITY_DIMENSION_LABELS = [
   ['PRODUCT_EXECUTION_CAPABILITY', '产品执行'],
   ['RELATIONSHIP', '医院关系'],
   ['INTERVENTION_STAGE', '介入时机'],
@@ -39,15 +39,15 @@ const PRIORITY_REASON_LABELS = [
   ['PUBLICATION_FRESHNESS', '信息新鲜度'],
 ] as const
 
-function priorityReasonText(card: TodayActionCard): string | null {
-  const ranked = PRIORITY_REASON_LABELS
-    .map(([key, label]) => ({ label, points: Number(card.priority.components[key] ?? 0) }))
-    .filter((item) => item.points > 0)
-    .sort((left, right) => right.points - left.points)
+function priorityDimensionText(card: TodayActionCard): string | null {
+  const ranked = PRIORITY_DIMENSION_LABELS
+    .map(([key, label]) => ({ label, percent: Number(card.priority.components[key] ?? 0) }))
+    .filter((item) => item.percent > 0)
+    .sort((left, right) => right.percent - left.percent)
     .slice(0, 3)
 
   if (ranked.length === 0) return null
-  return ranked.map((item) => `${item.label} +${item.points}`).join(' · ')
+  return ranked.map((item) => `${item.label} ${item.percent}%`).join(' · ')
 }
 
 export function ActionCard({
@@ -72,7 +72,7 @@ export function ActionCard({
     card.model_decision_status === 'NOT_ELIGIBLE' ||
     card.evidence_source_urls.length === 0
   const isLateWindow = card.recommendation_mode === 'LATE_WINDOW'
-  const priorityReason = priorityReasonText(card)
+  const priorityDimensions = priorityDimensionText(card)
   const contact = card.facts.official_contact
   const contactParts = [contact?.name, contact?.title, contact?.phone].filter(
     (value): value is string => Boolean(value),
@@ -134,9 +134,9 @@ export function ActionCard({
                 {dateInfo ? `${dateInfo.label} ${dateInfo.value}` : <OfficialText value={null} />}
               </span>
             </div>
-            {priorityReason ? (
+            {priorityDimensions ? (
               <p className="mt-2 rounded-lg bg-slate-50 px-2.5 py-2 text-[11px] leading-5 text-slate-600">
-                为什么排前：{priorityReason}
+                主要匹配维度（完成度）：{priorityDimensions}。维度百分比不是直接加分，也不代表中标概率。
               </p>
             ) : null}
             {contactParts.length > 0 ? (
