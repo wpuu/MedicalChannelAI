@@ -62,8 +62,8 @@ assert.match(resourceBlock, /产品\/服务能力/)
 
 const followed = read('src/pages/FollowedPage.tsx')
 assert.match(followed, /我的跟进/)
-assert.match(followed, /getFollowedPage/)
-assert.match(followed, /getFollowedOpportunity/)
+assert.match(followed, /getFollowedOpportunityPage/)
+assert.match(followed, /getFollowedOpportunityById/)
 assert.match(followed, /加载更早跟进/)
 
 const targetRoute = read('src/pages/TargetHospitalsPage.tsx')
