@@ -1,5 +1,6 @@
 import { Building2, Calendar, Wallet } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
+import type { OpportunityFeedback } from '@/services/opportunityFeedbackStore'
 import { formatBudget, pickDisplayDate } from '@/utils/format'
 import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
 import { OfficialText } from '@/components/shared/EmptyValue'
@@ -23,6 +24,7 @@ interface ActionCardProps {
   onRemind: () => void
   onOutreach: () => void
   onAnalyze?: () => void
+  onFeedbackChanged?: (value: OpportunityFeedback | null) => Promise<void> | void
   analysisUnavailableReason?: string | null
 }
 
@@ -37,6 +39,7 @@ export function ActionCard({
   onRemind,
   onOutreach,
   onAnalyze,
+  onFeedbackChanged,
   analysisUnavailableReason,
 }: ActionCardProps) {
   const dateInfo = pickDisplayDate(card.facts)
@@ -123,6 +126,7 @@ export function ActionCard({
       <RecommendationFeedback
         opportunityId={card.opportunity_id}
         onWorthFollowing={card.followup_status === 'NEW' ? onFollow : undefined}
+        onFeedbackChanged={onFeedbackChanged}
       />
 
       <div className="border-t border-slate-100 px-3 py-3 sm:px-4">
