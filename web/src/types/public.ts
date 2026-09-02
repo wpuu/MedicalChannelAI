@@ -33,6 +33,13 @@ export interface PublicFacts {
   coverage_status: string | null
 }
 
+export interface PublicTargetHospital {
+  hospital_name: string
+  department: string | null
+  watched_by_customer: true
+  updated_at: string | null
+}
+
 export interface PublicHospitalRelationship {
   hospital_name: string
   department: string | null
@@ -59,6 +66,7 @@ export interface PublicPartneringPolicy {
 export interface PublicCustomerContext {
   context_type: 'CUSTOMER_PRIVATE_FACTS'
   business_role: string | null
+  target_hospital: PublicTargetHospital | null
   hospital_relationship: PublicHospitalRelationship | null
   matching_product_capabilities: PublicProductCapability[]
   partnering_policy: PublicPartneringPolicy
