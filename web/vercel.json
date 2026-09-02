@@ -44,6 +44,8 @@
     { "source": "/api/opportunity/:id", "destination": "/api/private?route=opportunity&id=:id" },
     { "source": "/api/followup/:id", "destination": "/api/private?route=followup&id=:id" },
     { "source": "/api/followed", "destination": "/api/private?route=followed" },
+    { "source": "/api/reminders", "destination": "/api/private?route=reminders" },
+    { "source": "/api/reminders/:id/ack", "destination": "/api/private?route=reminder-ack&id=:id" },
     { "source": "/api/feedback/:id", "destination": "/api/private?route=feedback&id=:id" },
     { "source": "/api/ai/discover-continuation", "destination": "/api/ai/discover?route=continuation" },
     {
