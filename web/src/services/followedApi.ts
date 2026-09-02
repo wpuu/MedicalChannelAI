@@ -361,34 +361,123 @@ async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
     )
 }
 
-export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]> {
-  if (!isApiMode) return getLocalFollowedOpportunities()
-  const response = await fetch(`${apiBaseUrl}/followed`, {
+export interface FollowedOpportunityPage {
+  offset: number
+  items: FollowedOpportunity[]
+  has_more: boolean
+}
+
+export interface FollowedStatusIndexItem {
+  opportunity_id: string
+  followup_status: FollowupStatus
+  remind_at: string | null
+  followup_updated_at: string
+}
+
+function validateStatusIndexItem(value: unknown): FollowedStatusIndexItem {
+  const row = asRecord(value)
+  if (
+    !row ||
+    !exactKeys(row, ['opportunity_id', 'followup_status', 'remind_at', 'followup_updated_at']) ||
+    !isStableOpportunityId(row.opportunity_id) ||
+    !isFollowupStatus(row.followup_status) ||
+    !nullableString(row.remind_at) ||
+    typeof row.followup_updated_at !== 'string' ||
+    Number.isNaN(Date.parse(row.followup_updated_at))
+  ) {
+    throw new Error('FOLLOWED_STATUS_INDEX_INVALID')
+  }
+  return {
+    opportunity_id: row.opportunity_id,
+    followup_status: row.followup_status,
+    remind_at: row.remind_at,
+    followup_updated_at: row.followup_updated_at,
+  }
+}
+
+export async function getFollowedOpportunityPage(offset = 0): Promise<FollowedOpportunityPage> {
+  if (!Number.isInteger(offset) || offset < 0 || offset > 10000) {
+    throw new Error('FOLLOWED_OFFSET_INVALID')
+  }
+  if (!isApiMode) {
+    const all = await getLocalFollowedOpportunities()
+    return {
+      offset,
+      items: all.slice(offset, offset + 100),
+      has_more: offset + 100 < all.length,
+    }
+  }
+  const response = await fetch(`${apiBaseUrl}/followed?offset=${offset}`, {
     credentials: 'include',
     headers: { Accept: 'application/json' },
   })
   if (!response.ok) throw await responseError(response)
-  const value: unknown = await response.json()
-  const root = asRecord(value)
+  const root = asRecord(await response.json())
   if (
     !root ||
-    !exactKeys(root, ['schema_version', 'mode', 'count', 'items']) ||
+    !exactKeys(root, ['schema_version', 'mode', 'offset', 'count', 'has_more', 'items']) ||
     root.schema_version !== '0.1' ||
     root.mode !== 'FOLLOWED_OPPORTUNITIES' ||
+    root.offset !== offset ||
     typeof root.count !== 'number' ||
     !Number.isInteger(root.count) ||
     root.count < 0 ||
     root.count > 100 ||
+    typeof root.has_more !== 'boolean' ||
     !Array.isArray(root.items)
   ) {
     throw new Error('FOLLOWED_RESPONSE_INVALID')
   }
   const items = root.items.map(validateItem)
   if (root.count !== items.length) throw new Error('FOLLOWED_RESPONSE_INVALID')
+  return { offset, items, has_more: root.has_more }
+}
+
+export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]> {
+  return (await getFollowedOpportunityPage(0)).items
+}
+
+export async function getFollowedStatusIndex(): Promise<FollowedStatusIndexItem[]> {
+  if (!isApiMode) {
+    return listStoredFollowups().map(({ opportunity_id, entry }) => ({
+      opportunity_id,
+      followup_status: entry.status,
+      remind_at: entry.remind_at,
+      followup_updated_at: entry.history[0]?.at ?? entry.remind_at ?? '1970-01-01T00:00:00.000Z',
+    }))
+  }
+  const response = await fetch(`${apiBaseUrl}/followed?view=status-index`, {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  })
+  if (!response.ok) throw await responseError(response)
+  const root = asRecord(await response.json())
+  if (
+    !root ||
+    !exactKeys(root, ['schema_version', 'mode', 'count', 'truncated', 'items']) ||
+    root.schema_version !== '0.1' ||
+    root.mode !== 'FOLLOWED_STATUS_INDEX' ||
+    typeof root.count !== 'number' ||
+    !Number.isInteger(root.count) ||
+    root.count < 0 ||
+    root.count > 5000 ||
+    typeof root.truncated !== 'boolean' ||
+    !Array.isArray(root.items)
+  ) {
+    throw new Error('FOLLOWED_STATUS_INDEX_INVALID')
+  }
+  if (root.truncated) throw new Error('FOLLOWED_STATUS_INDEX_TRUNCATED')
+  const items = root.items.map(validateStatusIndexItem)
+  if (root.count !== items.length) throw new Error('FOLLOWED_STATUS_INDEX_INVALID')
   return items
 }
 
-async function getFollowedOpportunityById(opportunityId: string): Promise<FollowedOpportunity | null> {
+export async function getFollowedOpportunityById(opportunityId: string): Promise<FollowedOpportunity | null> {
+  if (!isStableOpportunityId(opportunityId)) throw new Error('OPPORTUNITY_ID_INVALID')
+  if (!isApiMode) {
+    const all = await getLocalFollowedOpportunities()
+    return all.find((item) => item.opportunity_id === opportunityId) ?? null
+  }
   const response = await fetch(`${apiBaseUrl}/followed?id=${encodeURIComponent(opportunityId)}`, {
     credentials: 'include',
     headers: { Accept: 'application/json' },

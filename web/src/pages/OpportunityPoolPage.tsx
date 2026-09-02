@@ -18,7 +18,7 @@ import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { AiDecisionError, requestAiDecision } from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
-import { getFollowedOpportunities } from '@/services/followedApi'
+import { getFollowedStatusIndex } from '@/services/followedApi'
 import { persistLocalFollowup } from '@/services/localFollowupStore'
 import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
 import { getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
@@ -239,7 +239,7 @@ export function OpportunityPoolPage() {
       if (isApiMode) {
         const [data, followed] = await Promise.all([
           todayActionsService.getTodayActions(),
-          getFollowedOpportunities(),
+          getFollowedStatusIndex(),
         ])
         const followedById = new Map(followed.map((item) => [item.opportunity_id, item]))
         const pool = (data.opportunity_pool ?? data.cards).map((card) => {

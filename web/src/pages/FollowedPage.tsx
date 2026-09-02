@@ -4,8 +4,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { isAuthRequiredError } from '@/services/apiConfig'
 import {
-  getFollowedOpportunities,
+  getFollowedOpportunityById,
+  getFollowedOpportunityPage,
+  getFollowedStatusIndex,
   type FollowedOpportunity,
+  type FollowedStatusIndexItem,
 } from '@/services/followedApi'
 import { formatBudget, formatDate, formatDateTime } from '@/utils/format'
 
@@ -64,6 +67,10 @@ export function FollowedPage() {
   const [searchParams] = useSearchParams()
   const focusedId = searchParams.get('focus')
   const [items, setItems] = useState<FollowedOpportunity[]>([])
+  const [statusIndex, setStatusIndex] = useState<FollowedStatusIndexItem[]>([])
+  const [nextOffset, setNextOffset] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<PipelineFilter>('ALL')
   const [loading, setLoading] = useState(true)
@@ -73,7 +80,19 @@ export function FollowedPage() {
     setLoading(true)
     setError(null)
     try {
-      setItems(await getFollowedOpportunities())
+      const [page, index] = await Promise.all([
+        getFollowedOpportunityPage(0),
+        getFollowedStatusIndex(),
+      ])
+      let nextItems = page.items
+      if (focusedId && !nextItems.some((item) => item.opportunity_id === focusedId)) {
+        const focused = await getFollowedOpportunityById(focusedId)
+        if (focused) nextItems = [focused, ...nextItems]
+      }
+      setItems(nextItems)
+      setStatusIndex(index)
+      setNextOffset(page.items.length)
+      setHasMore(page.has_more)
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
@@ -83,18 +102,40 @@ export function FollowedPage() {
     } finally {
       setLoading(false)
     }
-  }, [navigate])
+  }, [focusedId, navigate])
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const page = await getFollowedOpportunityPage(nextOffset)
+      setItems((current) => {
+        const seen = new Set(current.map((item) => item.opportunity_id))
+        return [...current, ...page.items.filter((item) => !seen.has(item.opportunity_id))]
+      })
+      setNextOffset(nextOffset + page.items.length)
+      setHasMore(page.has_more)
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
+      setError('更早的跟进记录加载失败，请稍后重试。')
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [hasMore, loadingMore, navigate, nextOffset])
 
   useEffect(() => {
     void load()
   }, [load])
 
   const metrics = useMemo(() => ({
-    total: items.length,
-    active: items.filter((item) => ACTIVE_STATUSES.has(item.followup_status)).length,
-    reminders: items.filter((item) => Boolean(item.remind_at)).length,
-    won: items.filter((item) => item.followup_status === 'WON').length,
-  }), [items])
+    total: statusIndex.length,
+    active: statusIndex.filter((item) => ACTIVE_STATUSES.has(item.followup_status)).length,
+    reminders: statusIndex.filter((item) => Boolean(item.remind_at)).length,
+    won: statusIndex.filter((item) => item.followup_status === 'WON').length,
+  }), [statusIndex])
 
   const filteredItems = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -189,7 +230,7 @@ export function FollowedPage() {
             ))}
           </div>
         </div>
-        <p className="mt-2 px-1 text-[11px] text-slate-400">当前显示 {orderedItems.length} / {items.length} 条</p>
+        <p className="mt-2 px-1 text-[11px] text-slate-400">当前显示 {orderedItems.length} 条 · 已加载详情 {items.length} / 全部 {statusIndex.length} 条{hasMore ? ' · 可继续加载更早记录' : ''}</p>
       </section>
 
       {orderedItems.length === 0 ? (
@@ -297,6 +338,19 @@ export function FollowedPage() {
           })}
         </div>
       )}
+
+      {hasMore ? (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            disabled={loadingMore}
+            onClick={() => void loadMore()}
+            className="min-h-10 rounded-xl border border-slate-200 bg-white px-4 text-[12px] font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50"
+          >
+            {loadingMore ? '正在加载…' : '加载更早跟进'}
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }

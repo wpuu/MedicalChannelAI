@@ -545,6 +545,18 @@ async function followedRoute(request, response, user) {
     return sendJson(response, 400, { error: 'OPPORTUNITY_ID_INVALID' })
   }
 
+  const rawView = firstQuery(request, 'view')
+  const view = typeof rawView === 'string' ? rawView.trim() : ''
+  if (view && view !== 'status-index') {
+    return sendJson(response, 400, { error: 'FOLLOWED_VIEW_INVALID' })
+  }
+
+  const rawOffset = firstQuery(request, 'offset')
+  const offset = rawOffset === undefined ? 0 : Number(rawOffset)
+  if (!Number.isInteger(offset) || offset < 0 || offset > 10000) {
+    return sendJson(response, 400, { error: 'FOLLOWED_OFFSET_INVALID' })
+  }
+
   const sql = privateDb()
   try {
     if (requestedId) {
@@ -570,6 +582,34 @@ async function followedRoute(request, response, user) {
       })
     }
 
+    if (view === 'status-index') {
+      const rows = await sql`
+        SELECT opportunity_id, status, remind_at, updated_at
+        FROM private_followups
+        WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+        ORDER BY updated_at DESC, id DESC
+        LIMIT 5001
+      `
+      const truncated = rows.length > 5000
+      const items = rows.slice(0, 5000).flatMap((row) =>
+        FOLLOWUP_STATUSES.has(row.status)
+          ? [{
+              opportunity_id: row.opportunity_id,
+              followup_status: row.status,
+              remind_at: row.remind_at ? new Date(row.remind_at).toISOString() : null,
+              followup_updated_at: new Date(row.updated_at).toISOString(),
+            }]
+          : [],
+      )
+      return sendJson(response, 200, {
+        schema_version: '0.1',
+        mode: 'FOLLOWED_STATUS_INDEX',
+        count: items.length,
+        truncated,
+        items,
+      })
+    }
+
     const rows = await sql`
       SELECT
         f.opportunity_id, f.status, f.remind_at, f.public_snapshot, f.updated_at,
@@ -582,15 +622,23 @@ async function followedRoute(request, response, user) {
       FROM private_followups f
       WHERE f.user_id = ${user.id} AND f.organization_id = ${user.organization_id}
       ORDER BY f.updated_at DESC, f.id DESC
-      LIMIT 100
+      LIMIT 101 OFFSET ${offset}
     `
-    const items = rows.map(followedItemFromRow).filter(Boolean)
+    const hasMore = rows.length > 100
+    const items = rows.slice(0, 100).map(followedItemFromRow).filter(Boolean)
     return sendJson(response, 200, {
-      schema_version: '0.1', mode: 'FOLLOWED_OPPORTUNITIES', count: items.length, items,
+      schema_version: '0.1',
+      mode: 'FOLLOWED_OPPORTUNITIES',
+      offset,
+      count: items.length,
+      has_more: hasMore,
+      items,
     })
   } catch (error) {
     console.error('private followed request failed', {
       opportunity_id: requestedId,
+      view,
+      offset,
       error: error instanceof Error ? error.message : 'UNKNOWN',
     })
     return sendJson(response, 500, { error: 'FOLLOWED_REQUEST_FAILED' })
