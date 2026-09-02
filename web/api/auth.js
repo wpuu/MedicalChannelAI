@@ -39,7 +39,7 @@ async function register(request, response) {
     await createSession(user.id, request, response)
     return sendJson(response, 201, {
       schema_version: '0.1',
-      user: { username: user.username, role: user.role },
+      user: { username: user.username, display_name: user.display_name ?? null, role: user.role },
     })
   } catch (error) {
     const code = error instanceof Error ? error.message : 'REGISTRATION_FAILED'
@@ -67,7 +67,7 @@ async function login(request, response) {
     await ensurePrivateSchema()
     const sql = privateDb()
     const rows = await sql`
-      SELECT id, username_display, password_salt, password_hash, role
+      SELECT id, username_display, display_name, password_salt, password_hash, role
       FROM private_users
       WHERE username_normalized = ${username.normalized} AND status = 'ACTIVE'
       LIMIT 1
@@ -81,7 +81,7 @@ async function login(request, response) {
     await createSession(user.id, request, response)
     return sendJson(response, 200, {
       schema_version: '0.1',
-      user: { username: user.username_display, role: user.role },
+      user: { username: user.username_display, display_name: user.display_name, role: user.role },
     })
   } catch (error) {
     console.error('pilot login failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })
