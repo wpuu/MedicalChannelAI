@@ -35,6 +35,10 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Refresh bundled snapshot for pipeline self-check
+        working-directory: web/pipeline
+        run: python scripts/refresh_bundled_snapshot.py
+
       - name: Verify current evidence pipeline
         working-directory: web/pipeline
         run: python -m unittest discover -s tests -v
