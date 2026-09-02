@@ -60,6 +60,10 @@ export interface DiscoveryRadarResult {
   reused_anchor_count: number
   anchor_cap_applied: boolean
   anchor_snapshot: DiscoveryAnchorSnapshot[]
+  coverage_page_count: number
+  coverage_page_urls: string[]
+  coverage_next_page_detected: boolean
+  coverage_page_limit_applied: boolean
   raw_candidate_count: number
   candidate_count: number
   historical_known_verified_count: number
@@ -160,6 +164,7 @@ export async function scanDiscoverySource(
       body?.benchmark_scope !== 'CURRENT_ANALYZED_OFFICIAL_LINKS' ||
       !Array.isArray(body?.candidates) ||
       !Array.isArray(body?.anchor_snapshot) ||
+      !Array.isArray(body?.coverage_page_urls) ||
       typeof body?.content_fingerprint !== 'string' ||
       typeof body?.ai_called !== 'boolean' ||
       typeof body?.new_anchor_count !== 'number' ||
@@ -167,6 +172,10 @@ export async function scanDiscoverySource(
       typeof body?.removed_anchor_count !== 'number' ||
       typeof body?.reused_anchor_count !== 'number' ||
       typeof body?.ai_analyzed_anchor_count !== 'number' ||
+      typeof body?.coverage_page_count !== 'number' ||
+      typeof body?.coverage_next_page_detected !== 'boolean' ||
+      typeof body?.coverage_page_limit_applied !== 'boolean' ||
+      body.coverage_page_count !== body.coverage_page_urls.length ||
       body?.production_data_mutated !== false
     ) {
       throw new DiscoveryRadarError('AI_RADAR_RESPONSE_INVALID', 502)
