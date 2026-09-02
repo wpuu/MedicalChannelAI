@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ExternalLink, Loader2, Radar, ScanSearch, ShieldCheck, Sparkles } from 'lucide-react'
 import {
   discoveryRadarErrorMessage,
@@ -29,15 +30,23 @@ export function DiscoveryRadarPage() {
   const [error, setError] = useState<string | null>(null)
 
   const rows = useMemo(() => Object.values(results).filter(Boolean) as DiscoveryRadarResult[], [results])
-  const summary = useMemo(() => ({
-    anchors: rows.reduce((sum, row) => sum + row.analyzed_anchor_count, 0),
-    candidates: rows.reduce((sum, row) => sum + row.candidate_count, 0),
-    knownHits: rows.reduce((sum, row) => sum + row.known_verified_hit_count, 0),
-    novel: rows.reduce(
-      (sum, row) => sum + row.candidates.filter((item) => item.verification_status === 'DISCOVERED_UNVERIFIED').length,
-      0,
-    ),
-  }), [rows])
+  const summary = useMemo(() => {
+    const scores = rows
+      .map((row) => row.discovery_score)
+      .filter((value): value is number => typeof value === 'number')
+    return {
+      anchors: rows.reduce((sum, row) => sum + row.analyzed_anchor_count, 0),
+      candidates: rows.reduce((sum, row) => sum + row.candidate_count, 0),
+      knownHits: rows.reduce((sum, row) => sum + row.known_verified_hit_count, 0),
+      novel: rows.reduce(
+        (sum, row) => sum + row.candidates.filter((item) => item.verification_status === 'DISCOVERED_UNVERIFIED').length,
+        0,
+      ),
+      score: scores.length
+        ? Math.round((scores.reduce((sum, value) => sum + value, 0) / scores.length) * 10) / 10
+        : null,
+    }
+  }, [rows])
 
   const scanOne = async (sourceId: DiscoverySourceId, preserveBusy = false) => {
     if (!preserveBusy) setBusySource(sourceId)
@@ -91,12 +100,13 @@ export function DiscoveryRadarPage() {
       </section>
 
       {rows.length > 0 ? (
-        <section className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+        <section className="grid grid-cols-2 gap-2 sm:grid-cols-5 sm:gap-3">
           {[
             ['本次分析链接', summary.anchors, '真实官方链接'],
             ['AI候选', summary.candidates, '前期窗口候选'],
             ['已知核验命中', summary.knownHits, '与独立事实层吻合'],
             ['新候选', summary.novel, '仍待独立核验'],
+            ['AI发现分', summary.score ?? '—', '0-100，仅当前扫描范围'],
           ].map(([label, value, hint]) => (
             <div key={String(label)} className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-4">
               <p className="text-[11px] text-slate-500">{label}</p>
@@ -146,10 +156,12 @@ export function DiscoveryRadarPage() {
                     </div>
                     <div className="rounded-lg bg-slate-50 px-1.5 py-2">
                       <p className="text-[16px] font-semibold text-slate-900">{result.discovery_score ?? '—'}</p>
-                      <p className="text-[9px] text-slate-400">已知样本分</p>
+                      <p className="text-[9px] text-slate-400">AI发现分</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-400">扫描于 {formatDateTime(result.scanned_at)}</p>
+                  <p className="text-[10px] text-slate-400">
+                    扫描于 {formatDateTime(result.scanned_at)} · 已知样本 {result.known_verified_hit_count}/{result.known_verified_count || '—'}
+                  </p>
                 </div>
               ) : (
                 <div className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-4 text-center text-[11px] leading-5 text-slate-400">
@@ -167,7 +179,7 @@ export function DiscoveryRadarPage() {
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
             <div>
               <h3 className="text-[14px] font-semibold text-slate-900">AI这次认为值得进入核验队列的链接</h3>
-              <p className="mt-0.5 text-[11px] leading-5 text-slate-500">“新候选”只是发现结果，不会自动进入正式商机池。</p>
+              <p className="mt-0.5 text-[11px] leading-5 text-slate-500">“新候选”只是发现结果，不会自动进入正式商机池；命中已核验样本时可以直接进入系统查看完整证据和行动建议。</p>
             </div>
           </div>
           <div className="mt-3 divide-y divide-slate-100">
@@ -194,6 +206,14 @@ export function DiscoveryRadarPage() {
                   <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 </a>
                 <p className="mt-1 text-[11px] leading-5 text-slate-500">{candidate.reason}</p>
+                {candidate.opportunity_id ? (
+                  <Link
+                    to={`/opportunity/${encodeURIComponent(candidate.opportunity_id)}`}
+                    className="mt-2 inline-flex min-h-9 items-center rounded-lg bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-800 ring-1 ring-emerald-200 hover:bg-emerald-100"
+                  >
+                    打开已核验商机 →
+                  </Link>
+                ) : null}
               </div>
             ))}
           </div>

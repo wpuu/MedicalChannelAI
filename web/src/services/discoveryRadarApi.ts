@@ -10,6 +10,7 @@ export interface DiscoveryRadarCandidate {
   confidence: number
   reason: string
   verification_status: DiscoveryVerificationStatus
+  opportunity_id: string | null
 }
 
 export interface DiscoveryRadarResult {
@@ -23,10 +24,12 @@ export interface DiscoveryRadarResult {
   analyzed_anchor_count: number
   anchor_cap_applied: boolean
   candidate_count: number
+  historical_known_verified_count: number
   known_verified_count: number
   known_verified_hit_count: number
   known_recall: number | null
   discovery_score: number | null
+  benchmark_scope: 'CURRENT_ANALYZED_OFFICIAL_LINKS'
   rejected_ungrounded_count: number
   rejected_invalid_count: number
   production_data_mutated: false
@@ -84,6 +87,7 @@ export async function scanDiscoverySource(sourceId: DiscoverySourceId): Promise<
     if (
       body?.mode !== 'AI_DISCOVERY_SHADOW' ||
       body?.source_id !== sourceId ||
+      body?.benchmark_scope !== 'CURRENT_ANALYZED_OFFICIAL_LINKS' ||
       !Array.isArray(body?.candidates) ||
       body?.production_data_mutated !== false
     ) {

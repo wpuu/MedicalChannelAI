@@ -49,6 +49,16 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         self.assertIn('gold_urls = historical_gold_urls & current_anchor_urls', script)
         self.assertIn('CURRENT_FETCHED_OFFICIAL_LINKS_WITH_KNOWN_VERIFIED_GOLD', script)
 
+    def test_verified_ai_hit_can_open_the_independently_verified_opportunity(self):
+        endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
+        service = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarApi.ts').read_text(encoding='utf-8')
+        page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
+        self.assertIn('verifiedOpportunityMapForSource', endpoint)
+        self.assertIn('opportunity_id: opportunityId', endpoint)
+        self.assertIn('opportunity_id: string | null', service)
+        self.assertIn('打开已核验商机', page)
+        self.assertIn('AI发现分', page)
+
     def test_radar_page_is_reachable_and_explains_verification_boundary(self):
         app = (WEB_ROOT / 'src' / 'App.tsx').read_text(encoding='utf-8')
         layout = (WEB_ROOT / 'src' / 'components' / 'layout' / 'AppLayout.tsx').read_text(encoding='utf-8')

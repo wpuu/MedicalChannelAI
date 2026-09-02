@@ -334,20 +334,22 @@ function parseCandidates(content, anchors) {
   }
 }
 
-function verifiedUrlsForSource(snapshot, source) {
+function verifiedOpportunityMapForSource(snapshot, source) {
   const pool = Array.isArray(snapshot?.opportunity_pool) && snapshot.opportunity_pool.length
     ? snapshot.opportunity_pool
     : Array.isArray(snapshot?.cards) ? snapshot.cards : []
-  const urls = new Set()
+  const byUrl = new Map()
   for (const card of pool) {
     if (card?.facts?.verification_status !== 'VERIFIED') continue
+    const opportunityId = typeof card?.opportunity_id === 'string' ? card.opportunity_id : null
+    if (!opportunityId) continue
     for (const raw of Array.isArray(card?.evidence_source_urls) ? card.evidence_source_urls : []) {
       if (typeof raw !== 'string') continue
       const url = canonicalOfficialUrl(raw, source.url, source.hosts)
-      if (url) urls.add(url)
+      if (url) byUrl.set(url, opportunityId)
     }
   }
-  return urls
+  return byUrl
 }
 
 function currentBenchmarkUrls(verifiedUrls, anchors) {
@@ -379,12 +381,13 @@ export default async function handler(request, response) {
 
     const content = await callProvider(sourceId, source, anchors, keys)
     const parsed = parseCandidates(content, anchors)
-    let historicalVerifiedUrls = new Set()
+    let verifiedOpportunityByUrl = new Map()
     try {
-      historicalVerifiedUrls = verifiedUrlsForSource(await loadVerifiedSnapshot(), source)
+      verifiedOpportunityByUrl = verifiedOpportunityMapForSource(await loadVerifiedSnapshot(), source)
     } catch {
       // Discovery remains useful even when the independent benchmark snapshot is temporarily unavailable.
     }
+    const historicalVerifiedUrls = new Set(verifiedOpportunityByUrl.keys())
     const benchmarkVerifiedUrls = currentBenchmarkUrls(historicalVerifiedUrls, anchors)
 
     const knownHitCount = parsed.candidates.filter((item) => benchmarkVerifiedUrls.has(item.url)).length
@@ -417,10 +420,14 @@ export default async function handler(request, response) {
       rejected_ungrounded_count: parsed.rejectedUngrounded,
       rejected_invalid_count: parsed.rejectedInvalid,
       production_data_mutated: false,
-      candidates: parsed.candidates.map((item) => ({
-        ...item,
-        verification_status: historicalVerifiedUrls.has(item.url) ? 'KNOWN_VERIFIED' : 'DISCOVERED_UNVERIFIED',
-      })),
+      candidates: parsed.candidates.map((item) => {
+        const opportunityId = verifiedOpportunityByUrl.get(item.url) || null
+        return {
+          ...item,
+          verification_status: opportunityId ? 'KNOWN_VERIFIED' : 'DISCOVERED_UNVERIFIED',
+          opportunity_id: opportunityId,
+        }
+      }),
     })
   } catch (error) {
     console.error('AI discovery radar failed', {
