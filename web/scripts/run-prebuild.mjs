@@ -45,6 +45,7 @@ if (!pythonRan) {
   throw new Error('PYTHON_RUNTIME_NOT_FOUND_FOR_PIPELINE_TESTS')
 }
 
+await import('./check-serverless-entrypoints.mjs')
 await import('./check-verified-snapshot.mjs')
 await import('./check-medical-channel-scope.mjs')
 await import('./check-ai-decision-contract.mjs')
