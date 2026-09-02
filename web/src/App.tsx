@@ -7,6 +7,7 @@ import { FollowedPage } from '@/pages/FollowedPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { OpportunityDetailPage } from '@/pages/OpportunityDetailPage'
 import { OpportunityPoolPage } from '@/pages/OpportunityPoolPage'
+import { PilotResourcesPage } from '@/pages/PilotResourcesPage'
 import { ResourcesPage } from '@/pages/ResourcesPage'
 import { TodayPage } from '@/pages/TodayPage'
 import { isApiMode } from '@/services/apiConfig'
@@ -35,7 +36,13 @@ export default function App() {
               <Route path="/followed" element={<FollowedPage />} />
               <Route
                 path="/resources"
-                element={localTrialEnabled ? <ResourcesPage /> : <Navigate to="/today" replace />}
+                element={
+                  isApiMode
+                    ? <PilotResourcesPage />
+                    : localTrialEnabled
+                      ? <ResourcesPage />
+                      : <Navigate to="/today" replace />
+                }
               />
               <Route path="/opportunity/:id" element={<OpportunityDetailPage />} />
               <Route path="*" element={<Navigate to="/today" replace />} />
