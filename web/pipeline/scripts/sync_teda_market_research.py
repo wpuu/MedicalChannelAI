@@ -30,7 +30,10 @@ SHANGHAI = ZoneInfo('Asia/Shanghai')
 MIN_REQUEST_DELAY_SECONDS = 3.0
 FETCH_ATTEMPTS = 2
 RETRYABLE_HTTP_CODES = {408, 425, 429, 500, 502, 503, 504}
-UNSUPPORTED_DETAIL_CODES = {'TEDA_MEDICAL_EARLY_SIGNAL_NOT_VERIFIED'}
+UNSUPPORTED_DETAIL_CODES = {
+    'TEDA_MEDICAL_EARLY_SIGNAL_NOT_VERIFIED',
+    'TEDA_OFFICIAL_PUBLISHED_DATE_NOT_AVAILABLE',
+}
 
 
 def parse_as_of(value: str | None) -> datetime:
@@ -217,6 +220,10 @@ def main() -> int:
     merged_records = merge_canonical_records(existing_records, new_records)
     publish_allowed = len(failures) == 0
     publish_gate_reason = 'PASS' if publish_allowed else 'CANDIDATE_VERIFICATION_INCOMPLETE'
+    unsupported_reason_counts = {
+        code: sum(1 for item in unsupported if item['reason'] == code)
+        for code in sorted(UNSUPPORTED_DETAIL_CODES)
+    }
     report = {
         'schema_version': '0.1',
         'observed_at': observed_at,
@@ -228,7 +235,12 @@ def main() -> int:
         'considered_candidate_count': min(len(discovered), args.max_candidates),
         'new_verified_record_count': len(new_records),
         'out_of_window_count': out_of_window_count,
-        'unsupported_nonmedical_count': len(unsupported),
+        'unsupported_candidate_count': len(unsupported),
+        'unsupported_nonmedical_count': unsupported_reason_counts['TEDA_MEDICAL_EARLY_SIGNAL_NOT_VERIFIED'],
+        'unsupported_missing_official_published_date_count': unsupported_reason_counts[
+            'TEDA_OFFICIAL_PUBLISHED_DATE_NOT_AVAILABLE'
+        ],
+        'unsupported_reason_counts': unsupported_reason_counts,
         'unsupported_candidates': unsupported,
         'existing_record_count': len(existing_records),
         'merged_record_count': len(merged_records),
@@ -239,8 +251,9 @@ def main() -> int:
         'policy': {
             'official_index_required': True,
             'bounded_index_pages': args.index_pages,
-            'official_index_publication_date_is_evidence': True,
+            'official_index_publication_date_is_evidence_when_present': True,
             'detail_publication_date_must_match_index_when_both_exist': True,
+            'missing_official_publication_date_is_explicitly_unsupported': True,
             'early_signal_title_prefilter_only': True,
             'medical_early_signal_must_be_verified_in_detail': True,
             'detail_must_pass_canonical_validation': True,
