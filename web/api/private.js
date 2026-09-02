@@ -237,6 +237,18 @@ async function followupState(sql, user, id, mutationInserted) {
   }
 }
 
+async function existingFollowupSnapshot(sql, user, id) {
+  const rows = await sql`
+    SELECT public_snapshot
+    FROM private_followups
+    WHERE user_id = ${user.id}
+      AND organization_id = ${user.organization_id}
+      AND opportunity_id = ${id}
+    LIMIT 1
+  `
+  return rows[0]?.public_snapshot ?? null
+}
+
 async function followupRoute(request, response, user) {
   if (!allow(request, response, ['GET', 'POST'])) return
   const id = opportunityId(request)
@@ -249,10 +261,33 @@ async function followupRoute(request, response, user) {
 
     const mutation = validateMutation(readJsonBody(request))
     if (!mutation) return sendJson(response, 400, { error: 'FOLLOWUP_MUTATION_INVALID' })
-    const snapshot = await loadVerifiedSnapshot()
-    const card = findVerifiedSnapshotCard(snapshot, id)
-    if (!card) return sendJson(response, 404, { error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' })
-    const publicSnapshot = publicSnapshotForFollowup(card)
+
+    let card = null
+    let snapshotUnavailable = false
+    try {
+      const snapshot = await loadVerifiedSnapshot()
+      card = findVerifiedSnapshotCard(snapshot, id)
+    } catch (error) {
+      snapshotUnavailable = true
+      console.warn('verified snapshot unavailable during private followup mutation', {
+        opportunity_id: id,
+        error: error instanceof Error ? error.message : 'UNKNOWN',
+      })
+    }
+
+    // First-time followup creation still requires a currently verified opportunity.
+    // Once the user already follows an opportunity, its stored public snapshot is
+    // immutable fallback evidence and private CRM state may continue after the
+    // public action window closes or the opportunity rotates out of the live pool.
+    const storedSnapshot = card ? null : await existingFollowupSnapshot(sql, user, id)
+    if (!card && !storedSnapshot) {
+      return sendJson(
+        response,
+        snapshotUnavailable ? 503 : 404,
+        { error: snapshotUnavailable ? 'VERIFIED_SNAPSHOT_UNAVAILABLE' : 'VERIFIED_OPPORTUNITY_NOT_FOUND' },
+      )
+    }
+    const publicSnapshot = card ? publicSnapshotForFollowup(card) : storedSnapshot
     let mutationInserted = false
 
     await sql.begin(async (tx) => {
@@ -275,7 +310,9 @@ async function followupRoute(request, response, user) {
       `
       const followupRows = await tx`
         SELECT id, remind_at FROM private_followups
-        WHERE user_id = ${user.id} AND opportunity_id = ${id}
+        WHERE user_id = ${user.id}
+          AND organization_id = ${user.organization_id}
+          AND opportunity_id = ${id}
         FOR UPDATE
       `
       const followup = followupRows[0]
@@ -301,7 +338,9 @@ async function followupRoute(request, response, user) {
         UPDATE private_followups
         SET status = ${mutation.status}, remind_at = ${nextReminder},
             public_snapshot = ${tx.json(publicSnapshot)}, updated_at = now()
-        WHERE id = ${followup.id} AND user_id = ${user.id}
+        WHERE id = ${followup.id}
+          AND user_id = ${user.id}
+          AND organization_id = ${user.organization_id}
       `
       mutationInserted = true
     })
