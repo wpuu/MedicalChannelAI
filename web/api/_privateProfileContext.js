@@ -12,7 +12,7 @@ function specificKeyword(value) {
   const keyword = String(value || '').trim()
   const normalized = normalize(keyword)
   if (!normalized || GENERIC_KEYWORDS.has(normalized)) return false
-  if (/^[a-z0-9]+$/.test(normalized)) return normalized.length >= 2
+  if (/^[a-z0-9]+$/.test(normalized)) return normalized.length >= 4
   return normalized.length >= 2
 }
 
@@ -59,7 +59,40 @@ function hospitalMatches(relation, facts) {
   )
 }
 
-export async function minimalPrivateContextForOpportunity(user, facts) {
+function relationshipPoints(strength) {
+  switch (strength) {
+    case 'STRONG': return 10
+    case 'MEDIUM': return 7
+    case 'HISTORICAL': return 4
+    case 'WEAK': return 2
+    default: return 0
+  }
+}
+
+function capabilityPoints(type) {
+  switch (type) {
+    case 'DIRECT_AUTHORIZED':
+    case 'DIRECT': return 25
+    case 'RENTAL_CAPABLE': return 22
+    case 'DIRECT_UNCONFIRMED': return 18
+    case 'NEED_MANUFACTURER':
+    case 'CAN_SOURCE_PARTNER': return 14
+    case 'PARTNER': return 12
+    case 'SERVICE_ONLY': return 8
+    default: return 0
+  }
+}
+
+function cardLooksLikeLease(facts) {
+  const text = normalize([
+    facts?.project_name,
+    facts?.procurement_method,
+    ...(Array.isArray(facts?.product_categories) ? facts.product_categories : []),
+  ].filter(Boolean).join(' '))
+  return text.includes('租赁') || text.includes('租用') || text.includes('租机')
+}
+
+export async function loadPrivateProfileForUser(user) {
   const sql = privateDb()
   const [capabilities, relationships, preferences] = await Promise.all([
     sql`
@@ -83,9 +116,16 @@ export async function minimalPrivateContextForOpportunity(user, facts) {
       LIMIT 1
     `,
   ])
+  return {
+    capabilities: [...capabilities],
+    relationships: [...relationships],
+    preferences: preferences[0] || null,
+  }
+}
 
+export function minimalPrivateContextFromProfile(profile, facts) {
   const searchText = searchableOpportunityText(facts)
-  const matchingCapabilityRows = capabilities
+  const matchingCapabilityRows = profile.capabilities
     .filter((row) => specificKeyword(row.keyword) && searchText.includes(normalize(row.keyword)))
     .slice(0, 12)
   const matchingCapabilities = matchingCapabilityRows.map((row) => ({
@@ -95,8 +135,15 @@ export async function minimalPrivateContextForOpportunity(user, facts) {
     brands: [],
   }))
 
-  const matchingRelationship = relationships.find((row) => hospitalMatches(row, facts)) || null
-  const preference = preferences[0] || null
+  let matchingRelationship = null
+  for (const relation of profile.relationships) {
+    if (!hospitalMatches(relation, facts)) continue
+    if (!matchingRelationship || relationshipPoints(relation.relationship_strength) > relationshipPoints(matchingRelationship.relationship_strength)) {
+      matchingRelationship = relation
+    }
+  }
+
+  const preference = profile.preferences
   const partneringPolicy = {
     can_find_manufacturer: preference?.can_find_manufacturer ?? null,
     can_partner_channel: preference?.can_partner_channel ?? null,
@@ -134,4 +181,54 @@ export async function minimalPrivateContextForOpportunity(user, facts) {
     ),
     profile_version: timestamps.length ? String(Math.max(...timestamps)) : 'empty',
   }
+}
+
+export function privatePriorityPoints(context, facts) {
+  const capabilityPoint = (context.matching_product_capabilities || []).reduce(
+    (max, item) => Math.max(max, capabilityPoints(item.capability_type)),
+    0,
+  )
+  const relationshipPoint = context.hospital_relationship
+    ? relationshipPoints(context.hospital_relationship.relationship_strength)
+    : 0
+
+  const types = new Set((context.matching_product_capabilities || []).map((item) => item.capability_type))
+  const policy = context.partnering_policy || {}
+  let flexibilityPoint = 0
+  if (cardLooksLikeLease(facts) && policy.can_handle_lease === true) {
+    flexibilityPoint = 5
+  }
+  if (types.has('RENTAL_CAPABLE') && policy.can_handle_lease === true) {
+    flexibilityPoint = Math.max(flexibilityPoint, 5)
+  }
+  if (
+    (types.has('NEED_MANUFACTURER') || types.has('CAN_SOURCE_PARTNER')) &&
+    policy.can_find_manufacturer === true
+  ) {
+    flexibilityPoint = Math.max(flexibilityPoint, 3)
+  }
+  if (
+    (types.has('PARTNER') || types.has('CAN_SOURCE_PARTNER')) &&
+    policy.can_partner_channel === true
+  ) {
+    flexibilityPoint = Math.max(flexibilityPoint, 3)
+  }
+  if (
+    types.has('CAN_SOURCE_PARTNER') &&
+    policy.can_find_manufacturer === true &&
+    policy.can_partner_channel === true
+  ) {
+    flexibilityPoint = 5
+  }
+
+  return {
+    capability: capabilityPoint,
+    relationship: relationshipPoint,
+    flexibility: Math.min(5, flexibilityPoint),
+  }
+}
+
+export async function minimalPrivateContextForOpportunity(user, facts) {
+  const profile = await loadPrivateProfileForUser(user)
+  return minimalPrivateContextFromProfile(profile, facts)
 }
