@@ -24,6 +24,7 @@ import {
   requestAiDecision,
 } from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
+import { getHistoricalFollowedOpportunityCard } from '@/services/followedApi'
 import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStore'
 import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
 import type { FollowupStatus, NotFitReason, TodayActionCard } from '@/types'
@@ -60,9 +61,11 @@ export function OpportunityDetailPage() {
     try {
       const res = await todayActionsService.getOpportunity(id)
       if (!res) {
-        const stored = !isApiMode && isVerifiedPublicDemo
-          ? getStoredHistoricalOpportunityCard(id)
-          : null
+        const stored = isApiMode
+          ? await getHistoricalFollowedOpportunityCard(id)
+          : isVerifiedPublicDemo
+            ? getStoredHistoricalOpportunityCard(id)
+            : null
         if (stored) {
           setHistorical(true)
           setCard(stored)
@@ -189,7 +192,7 @@ export function OpportunityDetailPage() {
       {historical ? (
         <section className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-5 text-amber-900">
           <Archive className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>这是历史跟进快照，仅保留当时的公开信息和跟进记录。</p>
+          <p>这是你当时保存的跟进快照。项目已不在当前可行动商机池，不重新计算优先级，也不生成新的 AI 建议；是否仍可介入请重新核对官方信息。</p>
         </section>
       ) : null}
 
@@ -197,7 +200,7 @@ export function OpportunityDetailPage() {
         <div className="flex flex-wrap items-center gap-2">
           {historical ? (
             <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">
-              历史快照
+              历史跟进快照
             </span>
           ) : (
             <>
@@ -225,7 +228,7 @@ export function OpportunityDetailPage() {
         </p>
         <p className="mt-3 text-[12px] leading-5 text-slate-500">
           {historical
-            ? '项目是否仍可介入请以当前官方信息为准。'
+            ? '以下公开字段和官方链接来自你进入跟进流程时保存的快照，不代表当前项目状态。'
             : '先决定怎么做，再按需查看官方事实、证据和评分解释。'}
         </p>
       </section>
