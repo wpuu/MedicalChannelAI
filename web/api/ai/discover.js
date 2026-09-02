@@ -13,6 +13,7 @@ const RATE_WINDOW_MS = 60 * 1000
 const RATE_MAX_PER_CLIENT = 30
 const PROVIDER_TIMEOUT_MS = 12_000
 const SOURCE_TIMEOUT_MS = 8_000
+const OPTIONAL_PAGE_TIMEOUT_MS = 4_000
 const MAX_SOURCE_BYTES = 2_000_000
 const MAX_REQUEST_BODY_BYTES = 262_144
 const MAX_ANCHORS = 80
@@ -297,14 +298,14 @@ function decodeBody(buffer, declaredCharset) {
   return decoded[0]?.text || new TextDecoder('utf-8').decode(buffer)
 }
 
-async function fetchOfficialPage(source, pageUrl) {
+async function fetchOfficialPage(source, pageUrl, timeoutMs = SOURCE_TIMEOUT_MS) {
   let currentUrl = pageUrl
   for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
     const parsed = new URL(currentUrl)
     if (!source.hosts.has(parsed.hostname.toLowerCase())) throw new Error('SOURCE_REDIRECT_REJECTED')
     await assertPublicHostname(parsed.hostname)
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), SOURCE_TIMEOUT_MS)
+    const timeout = setTimeout(() => controller.abort(), timeoutMs)
     let response
     try {
       response = await fetch(currentUrl, {
@@ -316,6 +317,9 @@ async function fetchOfficialPage(source, pageUrl) {
           'Accept-Language': 'zh-CN,zh;q=0.9',
         },
       })
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') throw new Error('SOURCE_TIMEOUT')
+      throw error
     } finally {
       clearTimeout(timeout)
     }
@@ -339,18 +343,38 @@ async function fetchOfficialPage(source, pageUrl) {
   throw new Error('SOURCE_REDIRECT_REJECTED')
 }
 
+function optionalCoverageErrorCode(error) {
+  const message = error instanceof Error ? error.message : ''
+  if (/^SOURCE_[A-Z0-9_]+$/.test(message) && message.length <= 80) return message
+  return 'OPTIONAL_PAGE_UNAVAILABLE'
+}
+
 async function fetchOfficialCoverage(source) {
   const seenPageUrls = new Set()
   const anchorByUrl = new Map()
   const pageUrls = []
   let nextPageDetected = false
   let pageLimitApplied = false
+  let partial = false
+  let errorCode = null
   let currentUrl = source.url
 
   for (let pageIndex = 0; pageIndex < MAX_COVERAGE_PAGES; pageIndex += 1) {
     if (seenPageUrls.has(currentUrl)) break
     seenPageUrls.add(currentUrl)
-    const page = await fetchOfficialPage(source, currentUrl)
+    let page
+    try {
+      page = await fetchOfficialPage(
+        source,
+        currentUrl,
+        pageIndex === 0 ? SOURCE_TIMEOUT_MS : OPTIONAL_PAGE_TIMEOUT_MS,
+      )
+    } catch (error) {
+      if (pageIndex === 0) throw error
+      partial = true
+      errorCode = optionalCoverageErrorCode(error)
+      break
+    }
     pageUrls.push(page.url)
     for (const anchor of extractAnchors(page.html, source, page.url)) {
       if (!anchorByUrl.has(anchor.url)) anchorByUrl.set(anchor.url, anchor)
@@ -372,6 +396,9 @@ async function fetchOfficialCoverage(source) {
     pageUrls,
     nextPageDetected,
     pageLimitApplied,
+    partial,
+    errorCode,
+    scannedAnchorCount: anchorByUrl.size,
   }
 }
 
@@ -532,6 +559,26 @@ function previousAnchorSnapshot(previous, source) {
   return rows
 }
 
+function reusablePreviousSnapshot(body, source) {
+  const previous = body?.previous_scan
+  if (!previous || typeof previous !== 'object' || Array.isArray(previous)) return null
+  if (previous.analysis_version !== ANALYSIS_VERSION || canonicalSourceUrl(previous.source_url) !== source.url) return null
+  if (!Array.isArray(previous.candidates) || previous.candidates.length > 60) return null
+  const anchors = previousAnchorSnapshot(previous, source)
+  if (!anchors?.length) return null
+  const fingerprint = typeof previous.content_fingerprint === 'string' ? previous.content_fingerprint : ''
+  if (fingerprint !== anchorFingerprint(anchors)) return null
+  const rawCount = Number(previous.raw_candidate_count)
+  if (!Number.isInteger(rawCount) || rawCount < previous.candidates.length || rawCount > 200) return null
+  const analyzedAt = typeof previous.analyzed_at === 'string' && Number.isFinite(Date.parse(previous.analyzed_at))
+    ? previous.analyzed_at
+    : null
+  if (!analyzedAt) return null
+  const parsed = parseCandidateRows(previous.candidates, anchors, rawCount)
+  if (parsed.rejectedUngrounded || parsed.rejectedInvalid || parsed.candidates.length !== previous.candidates.length) return null
+  return { anchors, fingerprint, analyzedAt, parsed }
+}
+
 function previousScanContext(body, source, anchors, fingerprint) {
   if (body?.force_ai === true) return null
   const previous = body?.previous_scan
@@ -659,6 +706,9 @@ function resultPayload({
     coverage_page_urls: coverage.pageUrls,
     coverage_next_page_detected: coverage.nextPageDetected,
     coverage_page_limit_applied: coverage.pageLimitApplied,
+    coverage_partial: coverage.partial,
+    coverage_error_code: coverage.errorCode,
+    coverage_scanned_anchor_count: coverage.scannedAnchorCount,
     raw_candidate_count: parsed.rawCount,
     candidate_count: parsed.candidates.length,
     historical_known_verified_count: benchmark.map.size,
@@ -693,10 +743,34 @@ export default async function handler(request, response) {
 
   try {
     const coverage = await fetchOfficialCoverage(source)
-    const allAnchors = coverage.anchors
-    const anchors = allAnchors.slice(0, MAX_ANCHORS)
-    if (!anchors.length) return sendJson(response, 503, { error: 'AI_RADAR_SOURCE_EMPTY' })
+    const currentAllAnchors = coverage.anchors
+    const currentAnchors = currentAllAnchors.slice(0, MAX_ANCHORS)
+    if (!currentAnchors.length) return sendJson(response, 503, { error: 'AI_RADAR_SOURCE_EMPTY' })
 
+    if (coverage.partial && body?.force_ai !== true) {
+      const saved = reusablePreviousSnapshot(body, source)
+      if (saved) {
+        const benchmark = await benchmarkContext(source, saved.anchors)
+        return sendJson(response, 200, resultPayload({
+          source,
+          checkedAt,
+          analyzedAt: saved.analyzedAt,
+          allAnchors: saved.anchors,
+          anchors: saved.anchors,
+          fingerprint: saved.fingerprint,
+          parsed: saved.parsed,
+          benchmark,
+          aiCalled: false,
+          cacheStatus: 'REUSED_PARTIAL_COVERAGE',
+          aiAnalyzedAnchorCount: 0,
+          delta: { newCount: 0, changedCount: 0, removedCount: 0, reusedCount: saved.anchors.length },
+          coverage,
+        }))
+      }
+    }
+
+    const allAnchors = currentAllAnchors
+    const anchors = currentAnchors
     const fingerprint = anchorFingerprint(anchors)
     const benchmark = await benchmarkContext(source, anchors)
     const previous = previousScanContext(body, source, anchors, fingerprint)
