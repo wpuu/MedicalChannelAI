@@ -139,7 +139,7 @@ async function exportAccount(request, response) {
     const user = await requireUser(request, response)
     if (!user) return
     const sql = privateDb()
-    const [accountRows, capabilities, relationships, preferences, followups, events, feedback] = await Promise.all([
+    const [accountRows, capabilities, relationships, targetHospitals, preferences, followups, events, feedback] = await Promise.all([
       sql`
         SELECT username_display, display_name, role, status, created_at, updated_at
         FROM private_users WHERE id = ${user.id} LIMIT 1
@@ -153,6 +153,12 @@ async function exportAccount(request, response) {
       sql`
         SELECT hospital, department, relationship_strength, created_at, updated_at
         FROM private_hospital_relationships
+        WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+        ORDER BY created_at ASC
+      `,
+      sql`
+        SELECT hospital, department, created_at, updated_at
+        FROM private_target_hospitals
         WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
         ORDER BY created_at ASC
       `,
@@ -195,6 +201,7 @@ async function exportAccount(request, response) {
       private_profile: {
         product_capabilities: capabilities,
         hospital_relationships: relationships,
+        target_hospitals: targetHospitals,
         preferences: preferences[0] || null,
       },
       followups,
