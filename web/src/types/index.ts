@@ -50,6 +50,7 @@ export type CapabilityType =
 
 export type VerificationStatus = 'VERIFIED' | 'UNVERIFIED' | 'PARTIAL'
 export type CoverageStatus = 'FULL' | 'PARTIAL' | 'NONE'
+export type PriorityScoreScope = 'PUBLIC' | 'PERSONALIZED'
 
 export interface ProductItem {
   name: string
@@ -131,6 +132,7 @@ export interface PriorityComponents {
 
 export interface Priority {
   score: number
+  score_scope: PriorityScoreScope
   components: PriorityComponents
 }
 
