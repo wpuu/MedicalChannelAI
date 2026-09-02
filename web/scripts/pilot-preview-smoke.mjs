@@ -153,6 +153,9 @@ async function cleanup() {
 async function main() {
   console.log(`Pilot Preview smoke target: ${base.origin}`)
 
+  const continuationRoute = await request('/api/ai/discover-continuation', { expected: [405] })
+  assert(continuationRoute.payload?.error === 'METHOD_NOT_ALLOWED', 'CONTINUATION_REWRITE_INVALID')
+
   const anonymous = await request('/api/auth/me', { expected: [401, 503] })
   if (anonymous.status === 503) {
     throw new Error(`PILOT_BACKEND_NOT_READY:${anonymous.payload?.error || 'HTTP_503'}`)
@@ -174,6 +177,7 @@ async function main() {
   const emptyProfile = await request('/api/profile')
   assert(emptyProfile.payload?.mode === 'PRIVATE_CUSTOMER_PROFILE', 'PROFILE_MODE_INVALID')
   assert(Array.isArray(emptyProfile.payload?.profile?.product_capabilities), 'PROFILE_CAPABILITIES_INVALID')
+  assert(Array.isArray(emptyProfile.payload?.profile?.target_hospitals), 'PROFILE_TARGETS_INVALID')
 
   const initialToday = await request('/api/today')
   const initialPool = Array.isArray(initialToday.payload?.opportunity_pool)
@@ -184,6 +188,7 @@ async function main() {
   const opportunityId = target?.opportunity_id
   const projectName = target?.facts?.project_name
   const hospital = target?.facts?.hospital_name || target?.facts?.buyer_name
+  const targetHospital = hospital || 'Preview Smoke Target Hospital'
   assert(typeof opportunityId === 'string' && opportunityId, 'TARGET_OPPORTUNITY_ID_MISSING')
   assert(typeof projectName === 'string' && projectName.trim(), 'TARGET_PROJECT_NAME_MISSING')
 
@@ -194,12 +199,17 @@ async function main() {
       hospital_relationships: hospital
         ? [{ hospital, department: null, relationship_strength: 'STRONG' }]
         : [],
+      target_hospitals: [{ hospital: targetHospital, department: null }],
       can_find_manufacturer: true,
       can_partner_channel: true,
       can_handle_lease: true,
     },
   })
   assert(savedProfile.payload?.profile?.product_capabilities?.length === 1, 'PROFILE_SAVE_FAILED')
+  assert(
+    savedProfile.payload?.profile?.target_hospitals?.some((item) => item?.hospital === targetHospital),
+    'TARGET_HOSPITAL_SAVE_FAILED',
+  )
 
   const personalizedToday = await request('/api/today')
   const personalizedPool = Array.isArray(personalizedToday.payload?.opportunity_pool)
@@ -227,28 +237,41 @@ async function main() {
   assert(feedback.payload?.value === 'NEW_WORTH_FOLLOWING', 'FEEDBACK_PERSISTENCE_FAILED')
 
   const mutationId = `followup:${randomUUID()}`
+  const remindAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
   const followupBody = {
     status: 'REVIEWING',
     mutation_id: mutationId,
     note: 'Pilot Preview automated smoke test',
+    remind_at: remindAt,
   }
   const firstFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`, {
     method: 'POST',
     body: followupBody,
   })
   assert(firstFollowup.payload?.mutation_inserted === true, 'FOLLOWUP_INSERT_FAILED')
+  assert(
+    Date.parse(firstFollowup.payload?.remind_at) === Date.parse(remindAt),
+    'FOLLOWUP_REMINDER_SAVE_FAILED',
+  )
   const repeatedFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`, {
     method: 'POST',
     body: followupBody,
   })
   assert(repeatedFollowup.payload?.mutation_inserted === false, 'FOLLOWUP_IDEMPOTENCY_FAILED')
   assert(repeatedFollowup.payload?.current_status === 'REVIEWING', 'FOLLOWUP_STATUS_INVALID')
+  assert(
+    Date.parse(repeatedFollowup.payload?.remind_at) === Date.parse(remindAt),
+    'FOLLOWUP_REMINDER_IDEMPOTENCY_FAILED',
+  )
 
   const followed = await request('/api/followed')
+  const followedTarget = Array.isArray(followed.payload?.items)
+    ? followed.payload.items.find((item) => item?.opportunity_id === opportunityId)
+    : null
+  assert(followedTarget, 'FOLLOWED_LIST_MISSING_TARGET')
   assert(
-    Array.isArray(followed.payload?.items) &&
-      followed.payload.items.some((item) => item?.opportunity_id === opportunityId),
-    'FOLLOWED_LIST_MISSING_TARGET',
+    Date.parse(followedTarget?.remind_at) === Date.parse(remindAt),
+    'FOLLOWED_REMINDER_MISSING',
   )
 
   const privateBoundary = await request('/api/ai/analyze', {
@@ -273,6 +296,16 @@ async function main() {
   const exported = await request('/api/account/export')
   scanForbiddenKeys(exported.payload)
   assert(exported.payload?.account?.username === username, 'ACCOUNT_EXPORT_USERNAME_MISMATCH')
+  assert(
+    exported.payload?.private_profile?.target_hospitals?.some((item) => item?.hospital === targetHospital),
+    'ACCOUNT_EXPORT_TARGET_HOSPITAL_MISSING',
+  )
+  assert(
+    exported.payload?.followups?.some(
+      (item) => item?.opportunity_id === opportunityId && Date.parse(item?.remind_at) === Date.parse(remindAt),
+    ),
+    'ACCOUNT_EXPORT_REMINDER_MISSING',
+  )
 
   await request('/api/auth/logout', { method: 'POST' })
   const loggedOut = await request('/api/auth/me', { expected: [401] })
@@ -287,6 +320,15 @@ async function main() {
   assert(
     persistedProfile.payload?.profile?.product_capabilities?.some((item) => item?.keyword === projectName.slice(0, 160)),
     'CROSS_SESSION_PROFILE_PERSISTENCE_FAILED',
+  )
+  assert(
+    persistedProfile.payload?.profile?.target_hospitals?.some((item) => item?.hospital === targetHospital),
+    'CROSS_SESSION_TARGET_HOSPITAL_PERSISTENCE_FAILED',
+  )
+  const persistedFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`)
+  assert(
+    Date.parse(persistedFollowup.payload?.remind_at) === Date.parse(remindAt),
+    'CROSS_SESSION_REMINDER_PERSISTENCE_FAILED',
   )
 
   const deleted = await request('/api/account/delete', {
