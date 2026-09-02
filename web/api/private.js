@@ -131,23 +131,80 @@ function normalizeBudget(value) {
   return null
 }
 
+function snapshotText(value, maxLength = 1000) {
+  if (typeof value !== 'string') return null
+  const text = value.trim().replace(/\s+/g, ' ')
+  return text ? text.slice(0, maxLength) : null
+}
+
+function snapshotStringArray(value, maxItems = 50, maxLength = 300) {
+  if (!Array.isArray(value)) return []
+  const result = []
+  for (const item of value) {
+    const text = snapshotText(item, maxLength)
+    if (!text) continue
+    result.push(text)
+    if (result.length >= maxItems) break
+  }
+  return result
+}
+
+function snapshotProducts(value) {
+  if (!Array.isArray(value)) return []
+  const result = []
+  for (const item of value) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue
+    const name = snapshotText(item.raw_name ?? item.product_name ?? item.name ?? item.item_name, 500)
+    if (!name) continue
+    result.push({
+      name,
+      category: snapshotText(item.category ?? item.product_category, 300),
+      quantity: snapshotText(item.quantity ?? item.qty, 160),
+      specification: snapshotText(item.specification ?? item.spec ?? item.model, 1000),
+    })
+    if (result.length >= 50) break
+  }
+  return result
+}
+
+function snapshotContact(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const contact = {
+    name: snapshotText(value.name ?? value.contact_name, 300),
+    title: snapshotText(value.title ?? value.role, 300),
+    phone: snapshotText(value.phone ?? value.telephone ?? value.mobile, 200),
+    email: snapshotText(value.email, 320),
+  }
+  return Object.values(contact).some(Boolean) ? contact : null
+}
+
 function publicSnapshotForFollowup(card) {
   const facts = card.facts || {}
   return {
     facts: {
-      project_number: facts.project_number ?? null,
-      project_name: facts.project_name ?? null,
-      buyer_name: facts.buyer_name ?? null,
-      hospital_name: facts.hospital_name ?? null,
-      department: facts.department ?? null,
-      lifecycle_state: facts.lifecycle_state ?? null,
-      published_at: facts.published_at ?? null,
-      bid_deadline: facts.bid_deadline ?? null,
-      expected_procurement_at: facts.expected_procurement_at ?? null,
+      project_number: snapshotText(facts.project_number, 300),
+      project_name: snapshotText(facts.project_name, 1000),
+      buyer_name: snapshotText(facts.buyer_name, 500),
+      hospital_name: snapshotText(facts.hospital_name, 500),
+      department: snapshotText(facts.department, 300),
+      region: snapshotText(facts.region, 300),
+      lifecycle_state: snapshotText(facts.lifecycle_state, 160),
+      notice_type: snapshotText(facts.notice_type, 300),
+      published_at: snapshotText(facts.published_at, 80),
+      registration_deadline: snapshotText(facts.registration_deadline, 80),
+      registration_deadline_date: snapshotText(facts.registration_deadline_date, 40),
+      bid_deadline: snapshotText(facts.bid_deadline, 80),
+      expected_procurement_at: snapshotText(facts.expected_procurement_at, 80),
       budget_cny: normalizeBudget(facts.budget),
+      procurement_method: snapshotText(facts.procurement_method, 300),
+      product_categories: snapshotStringArray(facts.product_categories),
+      product_items: snapshotProducts(facts.product_items),
+      public_contact: snapshotContact(facts.public_contact),
+      verification_status: snapshotText(facts.verification_status, 40),
+      coverage_status: snapshotText(facts.coverage_status, 40),
     },
     evidence_source_urls: Array.isArray(card.evidence_source_urls)
-      ? card.evidence_source_urls.filter((value) => typeof value === 'string').slice(0, 50)
+      ? card.evidence_source_urls.filter((value) => typeof value === 'string' && /^https:\/\//i.test(value)).slice(0, 50)
       : [],
   }
 }
@@ -275,10 +332,6 @@ async function followupRoute(request, response, user) {
       })
     }
 
-    // First-time followup creation still requires a currently verified opportunity.
-    // Once the user already follows an opportunity, its stored public snapshot is
-    // immutable fallback evidence and private CRM state may continue after the
-    // public action window closes or the opportunity rotates out of the live pool.
     const storedSnapshot = card ? null : await existingFollowupSnapshot(sql, user, id)
     if (!card && !storedSnapshot) {
       return sendJson(
@@ -363,6 +416,35 @@ function nullableNumber(value) {
   return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
+function sanitizeStoredProducts(value) {
+  if (!Array.isArray(value)) return []
+  const result = []
+  for (const item of value) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue
+    const name = nullableText(item.name ?? item.raw_name ?? item.product_name)
+    if (!name) continue
+    result.push({
+      name,
+      category: nullableText(item.category),
+      quantity: nullableText(item.quantity),
+      specification: nullableText(item.specification),
+    })
+    if (result.length >= 50) break
+  }
+  return result
+}
+
+function sanitizeStoredContact(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const contact = {
+    name: nullableText(value.name),
+    title: nullableText(value.title),
+    phone: nullableText(value.phone),
+    email: nullableText(value.email),
+  }
+  return Object.values(contact).some(Boolean) ? contact : null
+}
+
 function sanitizeStoredSnapshot(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   const rawFacts = value.facts
@@ -373,11 +455,21 @@ function sanitizeStoredSnapshot(value) {
     buyer_name: nullableText(rawFacts.buyer_name),
     hospital_name: nullableText(rawFacts.hospital_name),
     department: nullableText(rawFacts.department),
+    region: nullableText(rawFacts.region),
     lifecycle_state: nullableText(rawFacts.lifecycle_state),
+    notice_type: nullableText(rawFacts.notice_type),
     published_at: nullableText(rawFacts.published_at),
+    registration_deadline: nullableText(rawFacts.registration_deadline),
+    registration_deadline_date: nullableText(rawFacts.registration_deadline_date),
     bid_deadline: nullableText(rawFacts.bid_deadline),
     expected_procurement_at: nullableText(rawFacts.expected_procurement_at),
     budget_cny: nullableNumber(rawFacts.budget_cny),
+    procurement_method: nullableText(rawFacts.procurement_method),
+    product_categories: snapshotStringArray(rawFacts.product_categories),
+    product_items: sanitizeStoredProducts(rawFacts.product_items),
+    public_contact: sanitizeStoredContact(rawFacts.public_contact),
+    verification_status: nullableText(rawFacts.verification_status),
+    coverage_status: nullableText(rawFacts.coverage_status),
   }
   const evidenceSourceUrls = Array.isArray(value.evidence_source_urls)
     ? value.evidence_source_urls
