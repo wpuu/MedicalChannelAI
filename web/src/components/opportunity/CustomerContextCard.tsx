@@ -8,11 +8,13 @@ import { formatDate } from '@/utils/format'
 import { CAPABILITY_LABEL, RELATIONSHIP_LABEL, yesNo } from '@/utils/labels'
 
 export function CustomerContextCard({ context }: { context: CustomerContext }) {
+  const target = context.target_hospital
   const rel = context.hospital_relationship
   const capability = context.matching_product_capabilities[0]
   const policy = context.partnering_policy
   const hasResource = Boolean(
-    rel ||
+    target ||
+      rel ||
       capability ||
       policy.can_find_manufacturer !== null ||
       policy.can_partner_channel !== null ||
@@ -45,8 +47,8 @@ export function CustomerContextCard({ context }: { context: CustomerContext }) {
       {!isApiMode && isVerifiedPublicDemo ? (
         <div className="mb-3 rounded-xl border border-teal-100 bg-teal-50 px-3 py-2 text-[12px] leading-5 text-teal-900">
           {hasResource
-            ? '这些内容来自你在“我的资源”中主动填写，只用于个性化排序；系统不会把它们包装成医院公开事实。'
-            : '首次体验不需要填写医院关系或产品资源。需要更精准排序时，再补充你自己确认的资源。'}
+            ? '这些内容来自你在“我的资源”中主动填写，只用于个性化判断；系统不会把它们包装成医院公开事实。目标医院也不会被当成已有医院关系。'
+            : '首次体验不需要填写目标医院、医院关系或产品资源。需要更精准关注时，再补充你自己确认的资源。'}
           {!hasResource ? (
             <div className="mt-2">
               <Link
@@ -63,6 +65,16 @@ export function CustomerContextCard({ context }: { context: CustomerContext }) {
           当前为虚构演示客户画像，仅用于验证界面流程。
         </div>
       ) : null}
+      <FactRow label="重点关注">
+        {target ? (
+          <div>
+            <p>{target.hospital}</p>
+            <p className="text-[12px] text-slate-500">{target.department ? `重点科室：${target.department}` : '全院关注'} · 不代表已有关系</p>
+          </div>
+        ) : (
+          <span className="text-slate-600">未设为目标医院</span>
+        )}
+      </FactRow>
       <FactRow label="医院关系">
         {rel ? rel.hospital : <span className="text-slate-600">尚未确认院内关系</span>}
       </FactRow>
