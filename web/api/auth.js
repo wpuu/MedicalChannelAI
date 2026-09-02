@@ -1,5 +1,6 @@
 import {
   authenticatedUser,
+  clearSessionCookie,
   createSession,
   destroyCurrentSession,
   hashPassword,
@@ -120,6 +121,138 @@ async function me(request, response) {
   }
 }
 
+async function requireUser(request, response) {
+  const user = await authenticatedUser(request)
+  if (!user) {
+    sendJson(response, 401, { error: 'AUTH_REQUIRED' })
+    return null
+  }
+  return user
+}
+
+async function exportAccount(request, response) {
+  if (request.method !== 'GET') {
+    response.setHeader('Allow', 'GET')
+    return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
+  }
+  try {
+    const user = await requireUser(request, response)
+    if (!user) return
+    const sql = privateDb()
+    const [accountRows, capabilities, relationships, preferences, followups, events, feedback] = await Promise.all([
+      sql`
+        SELECT username_display, display_name, role, status, created_at, updated_at
+        FROM private_users WHERE id = ${user.id} LIMIT 1
+      `,
+      sql`
+        SELECT keyword, capability_type, created_at, updated_at
+        FROM private_product_capabilities
+        WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+        ORDER BY created_at ASC
+      `,
+      sql`
+        SELECT hospital, department, relationship_strength, created_at, updated_at
+        FROM private_hospital_relationships
+        WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+        ORDER BY created_at ASC
+      `,
+      sql`
+        SELECT can_find_manufacturer, can_partner_channel, can_handle_lease, updated_at
+        FROM private_user_preferences WHERE user_id = ${user.id} LIMIT 1
+      `,
+      sql`
+        SELECT id, opportunity_id, status, remind_at, public_snapshot, created_at, updated_at
+        FROM private_followups
+        WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+        ORDER BY created_at ASC
+      `,
+      sql`
+        SELECT followup_id, mutation_id, status, note, reason, remind_at, created_at
+        FROM private_followup_events
+        WHERE user_id = ${user.id}
+        ORDER BY created_at ASC
+      `,
+      sql`
+        SELECT opportunity_id, value, created_at, updated_at
+        FROM private_recommendation_feedback
+        WHERE user_id = ${user.id}
+        ORDER BY created_at ASC
+      `,
+    ])
+    const account = accountRows[0]
+    if (!account) return sendJson(response, 404, { error: 'ACCOUNT_NOT_FOUND' })
+    return sendJson(response, 200, {
+      schema_version: '0.1',
+      exported_at: new Date().toISOString(),
+      account: {
+        username: account.username_display,
+        display_name: account.display_name,
+        role: account.role,
+        status: account.status,
+        created_at: account.created_at,
+        updated_at: account.updated_at,
+      },
+      private_profile: {
+        product_capabilities: capabilities,
+        hospital_relationships: relationships,
+        preferences: preferences[0] || null,
+      },
+      followups,
+      followup_events: events,
+      recommendation_feedback: feedback,
+    })
+  } catch (error) {
+    console.error('account export failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })
+    return sendJson(response, 500, { error: 'ACCOUNT_EXPORT_FAILED' })
+  }
+}
+
+async function deleteAccount(request, response) {
+  if (request.method !== 'POST') {
+    response.setHeader('Allow', 'POST')
+    return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
+  }
+  const body = readJsonBody(request)
+  const password = validatePassword(body?.password)
+  if (!password) return sendJson(response, 400, { error: 'PASSWORD_INVALID' })
+
+  try {
+    const user = await requireUser(request, response)
+    if (!user) return
+    const sql = privateDb()
+    const rows = await sql`
+      SELECT password_salt, password_hash
+      FROM private_users
+      WHERE id = ${user.id} AND status = 'ACTIVE'
+      LIMIT 1
+    `
+    const account = rows[0]
+    if (!account || !await verifyPassword(password, account.password_salt, account.password_hash)) {
+      return sendJson(response, 401, { error: 'PASSWORD_CONFIRMATION_FAILED' })
+    }
+
+    await sql.begin(async (tx) => {
+      await tx`DELETE FROM private_users WHERE id = ${user.id}`
+      const remaining = await tx`
+        SELECT count(*)::int AS count
+        FROM private_users
+        WHERE organization_id = ${user.organization_id}
+      `
+      if (Number(remaining[0]?.count || 0) === 0) {
+        await tx`DELETE FROM private_organizations WHERE id = ${user.organization_id}`
+      }
+    })
+    clearSessionCookie(request, response)
+    return sendJson(response, 200, {
+      schema_version: '0.1',
+      deleted: true,
+    })
+  } catch (error) {
+    console.error('account deletion failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })
+    return sendJson(response, 500, { error: 'ACCOUNT_DELETE_FAILED' })
+  }
+}
+
 export default async function handler(request, response) {
   if (!privateDatabaseConfigured()) {
     return sendJson(response, 503, { error: 'PRIVATE_DATABASE_NOT_CONFIGURED' })
@@ -129,5 +262,7 @@ export default async function handler(request, response) {
   if (route === 'login') return login(request, response)
   if (route === 'logout') return logout(request, response)
   if (route === 'me') return me(request, response)
+  if (route === 'export') return exportAccount(request, response)
+  if (route === 'delete') return deleteAccount(request, response)
   return sendJson(response, 404, { error: 'AUTH_ROUTE_NOT_FOUND' })
 }
