@@ -56,6 +56,7 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
     def test_safe_next_page_coverage_is_bounded_and_same_origin(self):
         endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
         service = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarApi.ts').read_text(encoding='utf-8')
+        page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
         self.assertIn('MAX_COVERAGE_PAGES = 2', endpoint)
         self.assertIn('NEXT_PAGE_LABELS', endpoint)
         self.assertIn('extractNextPageUrl', endpoint)
@@ -69,6 +70,10 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         self.assertIn('coverage_page_count: number', service)
         self.assertIn('coverage_page_urls: string[]', service)
         self.assertIn('body.coverage_page_count !== body.coverage_page_urls.length', service)
+        self.assertIn('coverageStatusText', page)
+        self.assertIn('已到安全上限', page)
+        self.assertIn('明确标记为 rel=next / “下一页”', page)
+        self.assertIn('最多2页', page)
 
     def test_radar_reuses_saved_result_when_official_link_fingerprint_is_unchanged(self):
         endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
@@ -198,7 +203,8 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         self.assertIn('to="/radar"', layout)
         self.assertIn('区域增量搜索', page)
         self.assertIn('独立核验前不发布', page)
-        self.assertIn('单个入口当前分析当前页最多80个官方链接', page)
+        self.assertIn('单个入口当前最多分析80个去重官方链接', page)
+        self.assertIn('JS分页、复杂分页或更深历史仍需独立入口或专用适配器', page)
 
 
 if __name__ == '__main__':
