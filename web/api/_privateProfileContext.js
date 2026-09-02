@@ -16,23 +16,36 @@ function specificKeyword(value) {
   return normalized.length >= 2
 }
 
+function productTextItems(facts) {
+  const items = Array.isArray(facts?.products)
+    ? facts.products
+    : Array.isArray(facts?.product_items)
+      ? facts.product_items
+      : []
+  return items.flatMap((item) => [
+    item?.name,
+    item?.raw_name,
+    item?.category,
+    item?.specification,
+  ])
+}
+
 function searchableOpportunityText(facts) {
   const values = [
     facts?.project_name,
     facts?.hospital,
+    facts?.hospital_name,
     facts?.buyer_name,
     facts?.department,
     ...(Array.isArray(facts?.product_categories) ? facts.product_categories : []),
-    ...(Array.isArray(facts?.products)
-      ? facts.products.flatMap((item) => [item?.name, item?.category, item?.specification])
-      : []),
+    ...productTextItems(facts),
   ]
   return normalize(values.filter(Boolean).join(' '))
 }
 
 function hospitalMatches(relation, facts) {
   const relationHospital = normalize(relation.hospital)
-  const factHospital = normalize(facts?.hospital || facts?.buyer_name)
+  const factHospital = normalize(facts?.hospital || facts?.hospital_name || facts?.buyer_name)
   if (!relationHospital || !factHospital) return false
   if (!(relationHospital === factHospital || relationHospital.includes(factHospital) || factHospital.includes(relationHospital))) {
     return false
@@ -72,15 +85,15 @@ export async function minimalPrivateContextForOpportunity(user, facts) {
   ])
 
   const searchText = searchableOpportunityText(facts)
-  const matchingCapabilities = capabilities
+  const matchingCapabilityRows = capabilities
     .filter((row) => specificKeyword(row.keyword) && searchText.includes(normalize(row.keyword)))
     .slice(0, 12)
-    .map((row) => ({
-      category: row.keyword,
-      subcategory: null,
-      capability_type: row.capability_type,
-      brands: [],
-    }))
+  const matchingCapabilities = matchingCapabilityRows.map((row) => ({
+    category: row.keyword,
+    subcategory: null,
+    capability_type: row.capability_type,
+    brands: [],
+  }))
 
   const matchingRelationship = relationships.find((row) => hospitalMatches(row, facts)) || null
   const preference = preferences[0] || null
@@ -107,10 +120,7 @@ export async function minimalPrivateContextForOpportunity(user, facts) {
   }
 
   const timestamps = [
-    ...matchingCapabilities.flatMap((item) => {
-      const source = capabilities.find((row) => row.keyword === item.category)
-      return source?.updated_at ? [new Date(source.updated_at).getTime()] : []
-    }),
+    ...matchingCapabilityRows.map((row) => row.updated_at ? new Date(row.updated_at).getTime() : null),
     matchingRelationship?.updated_at ? new Date(matchingRelationship.updated_at).getTime() : null,
     preference?.updated_at ? new Date(preference.updated_at).getTime() : null,
   ].filter((value) => typeof value === 'number' && Number.isFinite(value))
