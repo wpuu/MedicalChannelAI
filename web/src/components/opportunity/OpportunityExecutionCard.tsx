@@ -23,6 +23,15 @@ const CAPABILITY_OPTIONS: CapabilityType[] = [
   'SERVICE_ONLY',
 ]
 const OBVIOUS_MEDICAL_INSTITUTION = /(医院|卫生院|社区卫生服务中心|妇幼保健院|妇幼保健中心|疾病预防控制中心|疾控中心|血液中心|医学中心|急救中心|疗养院)/
+const PROJECT_CAPABILITY_HINTS = [
+  { keyword: 'DSA', terms: ['数字减影血管造影', '血管造影机'] },
+  { keyword: 'DR', terms: ['数字X光机', '数字X线摄影', '数字化X线摄影', '数字化X射线摄影'] },
+  { keyword: 'CT', terms: ['CT机', 'CT影像', '计算机断层扫描', '电子计算机断层扫描'] },
+  { keyword: 'MRI', terms: ['磁共振', '磁共振成像'] },
+  { keyword: 'IVD', terms: ['体外诊断'] },
+  { keyword: 'PCR', terms: ['聚合酶链式反应', '核酸扩增'] },
+  { keyword: 'ECG', terms: ['心电图机'] },
+] as const
 
 function normalize(value: string | null | undefined): string {
   return String(value || '')
@@ -64,7 +73,15 @@ function sameExactScope(
 function productHint(card: TodayActionCard): string | null {
   const product = card.facts.products?.find((item) => item.name?.trim())?.name?.trim()
   if (product) return product
-  return card.facts.product_categories?.find((item) => item.trim())?.trim() ?? null
+  const category = card.facts.product_categories?.find((item) => item.trim())?.trim()
+  if (category) return category
+
+  const projectText = normalize(card.facts.project_name)
+  if (!projectText) return null
+  const hint = PROJECT_CAPABILITY_HINTS.find((item) =>
+    item.terms.some((term) => projectText.includes(normalize(term))),
+  )
+  return hint?.keyword ?? null
 }
 
 function StatusRow({
@@ -227,7 +244,7 @@ export function OpportunityExecutionCard({
     if (saving) return
     const keyword = capabilityKeyword.trim()
     if (!keyword || !isSpecificCapabilityKeyword(keyword)) {
-      toast('请填写更具体的产品/服务关键词，例如“生化分析仪”“DR”“病原微生物质谱”')
+      toast('请填写更具体的产品/服务关键词，例如“生化分析仪”“DR”“DSA”“病原微生物质谱”')
       return
     }
     const existingIndex = profile.product_capabilities.findIndex(
@@ -304,7 +321,7 @@ export function OpportunityExecutionCard({
           label="产品 / 执行能力"
           ready={Boolean(capability)}
           value={capability ? `${capability.category} · ${CAPABILITY_LABEL[capability.capability_type]}` : '暂无匹配的自有产品能力'}
-          detail={capability ? '该能力会参与当前商机的个性化可执行性判断。' : hint ? `公告产品提示：${hint}。确认你能做后再录入资源。` : '当前公开事实不足以安全替你自动创建产品能力。'}
+          detail={capability ? '该能力会参与当前商机的个性化可执行性判断。' : hint ? `公告产品/项目提示：${hint}。确认你能做后再录入资源。` : '当前公开事实不足以安全替你自动创建产品能力。'}
         />
       </div>
 
@@ -392,7 +409,7 @@ export function OpportunityExecutionCard({
             <div>
               <p className="text-[12px] font-semibold text-indigo-950">确认你能执行的产品 / 服务能力</p>
               <p className="mt-1 text-[11px] leading-5 text-indigo-800">
-                {hint ? `下面关键词仅来自公告产品提示“${hint}”，不是系统认定你有这项资源。` : '请填写你实际能够执行的具体产品或服务。'}
+                {hint ? `下面关键词仅由公告产品字段或标题中的确定性医疗术语提示为“${hint}”，不是系统认定你有这项资源。` : '请填写你实际能够执行的具体产品或服务。'}
               </p>
             </div>
             <button type="button" onClick={() => setCapabilityEditor(false)} className="rounded p-1 text-indigo-700 hover:bg-indigo-100">
