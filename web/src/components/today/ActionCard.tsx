@@ -1,4 +1,4 @@
-import { Building2, Calendar, Wallet } from 'lucide-react'
+import { Building2, Calendar, Phone, Wallet } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import type { OpportunityFeedback } from '@/services/opportunityFeedbackStore'
 import { formatBudget, pickDisplayDate } from '@/utils/format'
@@ -28,6 +28,28 @@ interface ActionCardProps {
   analysisUnavailableReason?: string | null
 }
 
+const PRIORITY_REASON_LABELS = [
+  ['PRODUCT_EXECUTION_CAPABILITY', '产品执行'],
+  ['RELATIONSHIP', '医院关系'],
+  ['INTERVENTION_STAGE', '介入时机'],
+  ['PROJECT_AMOUNT', '项目金额'],
+  ['EXECUTION_FLEXIBILITY', '执行灵活性'],
+  ['DEADLINE_URGENCY', '窗口紧迫度'],
+  ['PRODUCT_SPECIFICITY', '产品明确度'],
+  ['PUBLICATION_FRESHNESS', '信息新鲜度'],
+] as const
+
+function priorityReasonText(card: TodayActionCard): string | null {
+  const ranked = PRIORITY_REASON_LABELS
+    .map(([key, label]) => ({ label, points: Number(card.priority.components[key] ?? 0) }))
+    .filter((item) => item.points > 0)
+    .sort((left, right) => right.points - left.points)
+    .slice(0, 3)
+
+  if (ranked.length === 0) return null
+  return ranked.map((item) => `${item.label} +${item.points}`).join(' · ')
+}
+
 export function ActionCard({
   card,
   busy,
@@ -50,6 +72,11 @@ export function ActionCard({
     card.model_decision_status === 'NOT_ELIGIBLE' ||
     card.evidence_source_urls.length === 0
   const isLateWindow = card.recommendation_mode === 'LATE_WINDOW'
+  const priorityReason = priorityReasonText(card)
+  const contact = card.facts.official_contact
+  const contactParts = [contact?.name, contact?.title, contact?.phone].filter(
+    (value): value is string => Boolean(value),
+  )
 
   const publicFactLabel = isApiMode
     ? '官方/已验证事实'
@@ -107,6 +134,19 @@ export function ActionCard({
                 {dateInfo ? `${dateInfo.label} ${dateInfo.value}` : <OfficialText value={null} />}
               </span>
             </div>
+            {priorityReason ? (
+              <p className="mt-2 rounded-lg bg-slate-50 px-2.5 py-2 text-[11px] leading-5 text-slate-600">
+                为什么排前：{priorityReason}
+              </p>
+            ) : null}
+            {contactParts.length > 0 ? (
+              <div className="mt-2 flex items-start gap-1.5 text-[11px] leading-5 text-slate-600">
+                <Phone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+                <span className="break-words">
+                  公告公开联系人：{contactParts.join(' · ')}
+                </span>
+              </div>
+            ) : null}
             {isLateWindow ? (
               <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-900">
                 报名/获取文件时间已过，但投标或响应截止尚未到。建议先确认是否仍有可执行路径。
