@@ -1,9 +1,11 @@
 import { Plus, Save, ShieldCheck, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AccountDataCard } from '@/components/profile/AccountDataCard'
 import { LocalProfileImportCard } from '@/components/profile/LocalProfileImportCard'
 import type { CapabilityType, RelationshipStrength } from '@/types'
 import { useToast } from '@/context/ToastContext'
+import { isAuthRequiredError } from '@/services/apiConfig'
 import {
   emptyLocalCustomerProfile,
   isSpecificCapabilityKeyword,
@@ -49,7 +51,38 @@ function TriStateSelect({ value, onChange }: {
   )
 }
 
+function profileForSave(profile: LocalCustomerProfile): LocalCustomerProfile {
+  return {
+    ...profile,
+    product_capabilities: profile.product_capabilities
+      .filter((item) => item.keyword.trim())
+      .map((item) => ({ ...item, keyword: item.keyword.trim() })),
+    target_hospitals: profile.target_hospitals
+      .filter((item) => item.hospital.trim())
+      .map((item) => ({
+        hospital: item.hospital.trim(),
+        department: item.department?.trim() || null,
+      })),
+    hospital_relationships: profile.hospital_relationships
+      .filter((item) => item.hospital.trim())
+      .map((item) => ({
+        ...item,
+        hospital: item.hospital.trim(),
+        department: item.department?.trim() || null,
+      })),
+  }
+}
+
+function hasPartiallyFilledHospitalRow(profile: LocalCustomerProfile): boolean {
+  return profile.target_hospitals.some(
+    (item) => !item.hospital.trim() && Boolean(item.department?.trim()),
+  ) || profile.hospital_relationships.some(
+    (item) => !item.hospital.trim() && Boolean(item.department?.trim()),
+  )
+}
+
 export function PilotResourcesPage() {
+  const navigate = useNavigate()
   const { toast } = useToast()
   const [profile, setProfile] = useState<LocalCustomerProfile>(() => emptyLocalCustomerProfile())
   const [loading, setLoading] = useState(true)
@@ -64,30 +97,51 @@ export function PilotResourcesPage() {
         setProfile(value)
         setLoadError(false)
       })
-      .catch(() => {
-        if (active) setLoadError(true)
+      .catch((cause) => {
+        if (!active) return
+        if (isAuthRequiredError(cause)) {
+          navigate('/login', { replace: true })
+          return
+        }
+        setLoadError(true)
       })
       .finally(() => {
         if (active) setLoading(false)
       })
     return () => { active = false }
-  }, [])
+  }, [navigate])
 
   const save = async () => {
-    const ignoredGenericCount = profile.product_capabilities.filter(
-      (item) => item.keyword.trim() && !isSpecificCapabilityKeyword(item.keyword),
+    if (hasPartiallyFilledHospitalRow(profile)) {
+      toast('有目标医院或医院关系只填了科室、没有填写医院名称，请补全或删除该行')
+      return
+    }
+    const nextProfile = profileForSave(profile)
+    const ignoredGenericCount = nextProfile.product_capabilities.filter(
+      (item) => !isSpecificCapabilityKeyword(item.keyword),
     ).length
+    const removedBlankCount =
+      profile.product_capabilities.length - nextProfile.product_capabilities.length +
+      profile.target_hospitals.length - nextProfile.target_hospitals.length +
+      profile.hospital_relationships.length - nextProfile.hospital_relationships.length
+
     setSaving(true)
     try {
-      const saved = await saveCustomerProfile(profile)
+      const saved = await saveCustomerProfile(nextProfile)
       setProfile(saved)
+      const notes = [
+        ignoredGenericCount > 0 ? `${ignoredGenericCount} 个宽泛关键词不参与高分匹配` : null,
+        removedBlankCount > 0 ? `${removedBlankCount} 个空白新增行已忽略` : null,
+      ].filter(Boolean)
       toast(
-        ignoredGenericCount > 0
-          ? `资源已保存到私有账号；${ignoredGenericCount} 个宽泛关键词不会参与高分匹配`
-          : '资源已保存到私有账号',
+        notes.length ? `资源已保存到私有账号；${notes.join('；')}` : '资源已保存到私有账号',
         'success',
       )
-    } catch {
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
       toast('保存失败，服务器原数据未被本次失败操作替换')
     } finally {
       setSaving(false)
@@ -95,12 +149,20 @@ export function PilotResourcesPage() {
   }
 
   const clear = async () => {
+    const confirmed = window.confirm(
+      '确认清空当前账号的产品能力、目标医院、医院关系和合作能力？\n\n跟进记录、公开商机和账号本身不会删除。此操作不能撤销。',
+    )
+    if (!confirmed) return
     setSaving(true)
     try {
       const cleared = await clearCustomerProfile()
       setProfile(cleared)
-      toast('账号中的产品能力、目标医院和医院关系已清空', 'success')
-    } catch {
+      toast('账号中的产品能力、目标医院、医院关系和合作能力已清空', 'success')
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
       toast('清空失败，请检查网络后重试')
     } finally {
       setSaving(false)
@@ -150,7 +212,7 @@ export function PilotResourcesPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 className="text-[15px] font-semibold text-slate-900">产品 / 服务能力</h3>
-            <p className="mt-1 text-[12px] leading-5 text-slate-500">填写具体产品或能力，例如“生化分析仪”“DR”“病原微生物质谱”“医疗设备租赁”。</p>
+            <p className="mt-1 text-[12px] leading-5 text-slate-500">填写具体产品或能力，例如“生化分析仪”“DR”“病原微生物质谱”“医疗设备租赁”。空白新增行保存时会自动忽略。</p>
           </div>
           <button
             type="button"
@@ -368,7 +430,7 @@ export function PilotResourcesPage() {
       </section>
 
       <div className="flex flex-wrap justify-end gap-2">
-        <button type="button" disabled={saving} onClick={() => void clear()} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] text-slate-600 hover:bg-slate-50 disabled:opacity-50">清空账号资源</button>
+        <button type="button" disabled={saving} onClick={() => void clear()} className="rounded-lg border border-rose-200 bg-white px-4 py-2 text-[13px] text-rose-700 hover:bg-rose-50 disabled:opacity-50">清空账号资源</button>
         <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-4 py-2 text-[13px] font-medium text-white hover:bg-teal-800 disabled:opacity-50"><Save className="h-4 w-4" />{saving ? '保存中…' : '保存到账号'}</button>
       </div>
 
