@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Copy, Loader2 } from 'lucide-react'
 import { Drawer } from '@/components/ui/Drawer'
 import { todayActionsService } from '@/services'
-import { isAuthRequiredError } from '@/services/apiConfig'
+import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
+import { requestPilotOutreachDraft } from '@/services/pilotOutreachApi'
 import type { OutreachDraft } from '@/types'
 import { useToast } from '@/context/ToastContext'
 
@@ -19,6 +20,18 @@ function outreachErrorMessage(error: unknown): string {
   if (!(error instanceof Error)) return '沟通草稿生成失败，请稍后重试'
   if (error.message === 'OUTREACH_GROUNDING_INSUFFICIENT' || error.message === 'HTTP_409') {
     return '当前商机的公开依据不足，暂不能生成沟通草稿。'
+  }
+  if (error.message === 'OPPORTUNITY_WINDOW_CLOSED') {
+    return '当前项目的公开行动窗口已经结束，不再生成新的对外沟通草稿。'
+  }
+  if (error.message === 'VERIFIED_OPPORTUNITY_NOT_FOUND') {
+    return '当前商机已不在已核验可行动商机池中，请刷新页面后重试。'
+  }
+  if (error.message === 'PRIVATE_PROFILE_UNAVAILABLE') {
+    return '账号私有资源暂时无法读取，请稍后重试。'
+  }
+  if (error.message === 'PRIVATE_DATABASE_NOT_CONFIGURED') {
+    return '试用账号数据库尚未配置完成。'
   }
   if (error.message === 'HTTP_429') {
     return '当前请求较多，请稍后再次生成。'
@@ -174,8 +187,11 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
         // proceed with a neutral greeting if opportunity detail lookup is unavailable.
       })
 
-    todayActionsService
-      .requestOutreachDraft(opportunityId)
+    const draftRequest = isApiMode
+      ? requestPilotOutreachDraft(opportunityId)
+      : todayActionsService.requestOutreachDraft(opportunityId)
+
+    void draftRequest
       .then((res) => {
         if (!cancelled) setDraft(res)
       })
