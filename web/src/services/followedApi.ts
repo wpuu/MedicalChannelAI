@@ -1,6 +1,7 @@
 import { todayActionsService } from './index'
 import { apiBaseUrl, isApiMode } from './apiConfig'
 import { listStoredFollowups } from './localFollowupStore'
+import { isStableOpportunityId } from '@/utils/opportunityId'
 
 export interface FollowedOpportunity {
   opportunity_id: string
@@ -57,6 +58,16 @@ function nullableNumber(value: unknown): value is number | null {
   return value === null || (typeof value === 'number' && Number.isFinite(value))
 }
 
+async function responseError(response: Response): Promise<Error> {
+  try {
+    const root = asRecord(await response.json())
+    if (typeof root?.error === 'string') return new Error(root.error)
+  } catch {
+    // Fall through to the status-only error.
+  }
+  return new Error(`HTTP_${response.status}`)
+}
+
 function validateItem(value: unknown): FollowedOpportunity {
   const row = asRecord(value)
   if (
@@ -70,8 +81,7 @@ function validateItem(value: unknown): FollowedOpportunity {
       'facts',
       'evidence_source_urls',
     ]) ||
-    typeof row.opportunity_id !== 'string' ||
-    !/^opp_[0-9a-fA-F-]{36}$/.test(row.opportunity_id) ||
+    !isStableOpportunityId(row.opportunity_id) ||
     typeof row.followup_status !== 'string' ||
     !FOLLOWUP_STATUSES.has(row.followup_status) ||
     !nullableString(row.remind_at) ||
@@ -171,7 +181,7 @@ export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]>
     credentials: 'include',
     headers: { Accept: 'application/json' },
   })
-  if (!response.ok) throw new Error(`HTTP_${response.status}`)
+  if (!response.ok) throw await responseError(response)
   const value: unknown = await response.json()
   const root = asRecord(value)
   if (
