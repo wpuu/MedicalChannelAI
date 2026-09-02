@@ -75,6 +75,27 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         self.assertIn('明确标记为 rel=next / “下一页”', page)
         self.assertIn('最多2页', page)
 
+    def test_partial_second_page_does_not_overwrite_last_complete_result(self):
+        endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
+        service = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarApi.ts').read_text(encoding='utf-8')
+        page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
+        self.assertIn('OPTIONAL_PAGE_TIMEOUT_MS = 4_000', endpoint)
+        self.assertIn("pageIndex === 0 ? SOURCE_TIMEOUT_MS : OPTIONAL_PAGE_TIMEOUT_MS", endpoint)
+        self.assertIn('if (pageIndex === 0) throw error', endpoint)
+        self.assertIn('partial = true', endpoint)
+        self.assertIn('optionalCoverageErrorCode(error)', endpoint)
+        self.assertIn('reusablePreviousSnapshot(body, source)', endpoint)
+        self.assertIn("cacheStatus: 'REUSED_PARTIAL_COVERAGE'", endpoint)
+        self.assertIn('coverage_partial: coverage.partial', endpoint)
+        self.assertIn('coverage_error_code: coverage.errorCode', endpoint)
+        self.assertIn('coverage_scanned_anchor_count: coverage.scannedAnchorCount', endpoint)
+        self.assertIn("| 'REUSED_PARTIAL_COVERAGE'", service)
+        self.assertIn('coverage_partial: boolean', service)
+        self.assertIn('coverage_error_code: string | null', service)
+        self.assertIn('coverage_scanned_anchor_count: number', service)
+        self.assertIn('下一页失败，未用局部结果覆盖完整历史', page)
+        self.assertIn('不会用残缺的一页结果覆盖上次完整账本', page)
+
     def test_radar_reuses_saved_result_when_official_link_fingerprint_is_unchanged(self):
         endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
         service = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarApi.ts').read_text(encoding='utf-8')
@@ -172,6 +193,8 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         self.assertIn('AI_RADAR_RATE_LIMITED', endpoint)
         self.assertIn('MAX_ANCHORS = 80', endpoint)
         self.assertIn('PROVIDER_TIMEOUT_MS = 12_000', endpoint)
+        self.assertIn('SOURCE_TIMEOUT_MS = 8_000', endpoint)
+        self.assertIn('OPTIONAL_PAGE_TIMEOUT_MS = 4_000', endpoint)
         self.assertIn('MAX_REQUEST_BODY_BYTES = 262_144', endpoint)
 
     def test_radar_score_only_uses_gold_visible_to_current_scan(self):
