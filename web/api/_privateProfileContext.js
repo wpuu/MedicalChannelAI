@@ -254,6 +254,8 @@ export function privatePriorityPoints(context, facts) {
     (max, item) => Math.max(max, capabilityPoints(item.capability_type)),
     0,
   )
+  // Target-hospital interest is deliberately NOT relationship evidence and therefore
+  // contributes zero relationship points. Only a customer-confirmed relationship scores.
   const relationshipPoint = context.hospital_relationship
     ? relationshipPoints(context.hospital_relationship.relationship_strength)
     : 0

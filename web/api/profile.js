@@ -72,6 +72,15 @@ function validateProfile(body) {
     }
   }
 
+  const productCapabilityMap = new Map()
+  for (const item of productCapabilities) {
+    productCapabilityMap.set(item.keyword.toLowerCase(), item)
+  }
+  const relationshipMap = new Map()
+  for (const item of hospitalRelationships) {
+    relationshipMap.set(targetKey(item), item)
+  }
+
   const canFindManufacturer = triState(body.can_find_manufacturer)
   const canPartnerChannel = triState(body.can_partner_channel)
   const canHandleLease = triState(body.can_handle_lease)
@@ -82,8 +91,8 @@ function validateProfile(body) {
   ) return null
 
   return {
-    product_capabilities: productCapabilities,
-    hospital_relationships: hospitalRelationships,
+    product_capabilities: [...productCapabilityMap.values()],
+    hospital_relationships: [...relationshipMap.values()],
     target_hospitals: targetHospitalsProvided ? targetHospitals : null,
     can_find_manufacturer: canFindManufacturer,
     can_partner_channel: canPartnerChannel,
@@ -182,9 +191,9 @@ export default async function handler(request, response) {
 
     if (request.method === 'DELETE') {
       await sql.begin(async (tx) => {
-        await tx`DELETE FROM private_product_capabilities WHERE user_id = ${user.id}`
-        await tx`DELETE FROM private_hospital_relationships WHERE user_id = ${user.id}`
-        await tx`DELETE FROM private_target_hospitals WHERE user_id = ${user.id}`
+        await tx`DELETE FROM private_product_capabilities WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}`
+        await tx`DELETE FROM private_hospital_relationships WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}`
+        await tx`DELETE FROM private_target_hospitals WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}`
         await tx`DELETE FROM private_user_preferences WHERE user_id = ${user.id}`
       })
       return sendJson(response, 200, {
@@ -197,8 +206,8 @@ export default async function handler(request, response) {
     if (!profile) return sendJson(response, 400, { error: 'PROFILE_INVALID' })
 
     await sql.begin(async (tx) => {
-      await tx`DELETE FROM private_product_capabilities WHERE user_id = ${user.id}`
-      await tx`DELETE FROM private_hospital_relationships WHERE user_id = ${user.id}`
+      await tx`DELETE FROM private_product_capabilities WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}`
+      await tx`DELETE FROM private_hospital_relationships WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}`
 
       for (const item of profile.product_capabilities) {
         await tx`
@@ -220,7 +229,7 @@ export default async function handler(request, response) {
       }
 
       if (profile.target_hospitals !== null) {
-        await tx`DELETE FROM private_target_hospitals WHERE user_id = ${user.id}`
+        await tx`DELETE FROM private_target_hospitals WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}`
         for (const item of profile.target_hospitals) {
           await tx`
             INSERT INTO private_target_hospitals (

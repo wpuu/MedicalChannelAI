@@ -278,13 +278,15 @@ function validateMutation(body) {
   if (reason === undefined) return null
   if (status === 'NOT_FIT' && (!reason || !NOT_FIT_REASONS.has(reason))) return null
   if (status !== 'NOT_FIT' && reason) return null
+  const reminderSupplied = Object.prototype.hasOwnProperty.call(body, 'remind_at')
+  if (status !== 'MONITOR' && reminderSupplied && remindAt) return null
   return {
     status,
     mutation_id: mutationId,
     note,
     reason: status === 'NOT_FIT' ? reason : null,
     remind_at: remindAt,
-    reminder_supplied: Object.prototype.hasOwnProperty.call(body, 'remind_at'),
+    reminder_supplied: reminderSupplied,
   }
 }
 
@@ -590,6 +592,7 @@ async function dueReminderRows(sql, user, limit = 20) {
     FROM private_followups f
     WHERE f.user_id = ${user.id}
       AND f.organization_id = ${user.organization_id}
+      AND f.status = 'MONITOR'
       AND f.remind_at IS NOT NULL
       AND f.remind_at <= now()
     ORDER BY f.remind_at ASC, f.updated_at ASC
