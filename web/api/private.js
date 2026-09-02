@@ -70,13 +70,54 @@ async function todayFollowupMap(sql, user) {
   return new Map(rows.map((row) => [row.opportunity_id, row]))
 }
 
+async function todayFeedbackMap(sql, user) {
+  const rows = await sql`
+    SELECT opportunity_id, value
+    FROM private_recommendation_feedback
+    WHERE user_id = ${user.id}
+    LIMIT 500
+  `
+  return new Map(rows.map((row) => [row.opportunity_id, row.value]))
+}
+
+function hasActiveFollowup(followup) {
+  return Boolean(followup?.status && followup.status !== 'NEW')
+}
+
+function feedbackAttentionTier(followup, feedback) {
+  if (hasActiveFollowup(followup)) return 0
+  if (feedback === 'NEW_NOT_VALUABLE') return 2
+  if (feedback === 'ALREADY_KNOWN') return 1
+  return 0
+}
+
+function applyTodayAttention(pool, followups, feedback) {
+  return pool
+    .filter((card) => shouldAppearToday(followups.get(card.opportunity_id)))
+    .map((card, index) => ({
+      card,
+      index,
+      tier: feedbackAttentionTier(
+        followups.get(card.opportunity_id),
+        feedback.get(card.opportunity_id),
+      ),
+    }))
+    .filter((item) => item.tier < 2)
+    .sort((left, right) => left.tier - right.tier || left.index - right.index)
+    .map((item) => item.card)
+}
+
 async function todayRoute(request, response, user) {
   if (!allow(request, response, ['GET'])) return
   try {
     const snapshot = await loadVerifiedSnapshot()
     const pool = await personalizedOpportunityPoolForUser(user, snapshot)
-    const followups = await todayFollowupMap(privateDb(), user)
-    const todayPool = pool.filter((card) => shouldAppearToday(followups.get(card.opportunity_id)))
+    const sql = privateDb()
+    const [followups, feedback] = await Promise.all([
+      todayFollowupMap(sql, user),
+      todayFeedbackMap(sql, user),
+    ])
+    const todayPool = applyTodayAttention(pool, followups, feedback)
     const cards = todayPool.slice(0, 5)
     return sendJson(response, 200, {
       schema_version: '0.1',
