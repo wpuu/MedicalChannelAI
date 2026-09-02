@@ -3,17 +3,53 @@ import { privateDb } from './_privateDb.js'
 const GENERIC_KEYWORDS = new Set([
   '医疗', '设备', '医疗设备', '耗材', '服务', '医院', '采购', '项目', '系统', '软件', '产品', '仪器',
 ])
+const SHORT_MEDICAL_CAPABILITY_KEYWORDS = new Set([
+  'dr', 'ct', 'mr', 'cr', 'ivd', 'pcr', 'lis', 'his', 'mri', 'ecg', 'icu', 'gpu',
+])
+
+// Deliberately small, high-confidence equivalence groups. These are deterministic
+// taxonomy aliases, not model-generated guesses. A capability still comes only
+// from the user's self-reported profile.
+const CAPABILITY_ALIAS_GROUPS = [
+  ['dsa', '数字减影血管造影', '数字减影血管造影机', '血管造影机'],
+  ['dr', '数字x光机', '数字x线摄影', '数字化x线摄影', '数字化x射线摄影'],
+  ['ct', 'ct机', 'ct影像', '计算机断层扫描', '电子计算机断层扫描'],
+  ['mr', 'mri', '磁共振', '磁共振成像'],
+  ['cr', '计算机x线摄影'],
+  ['ivd', '体外诊断'],
+  ['pcr', '聚合酶链式反应', '核酸扩增'],
+  ['lis', '检验信息系统', '实验室信息系统'],
+  ['his', '医院信息系统'],
+  ['ecg', '心电图', '心电图机'],
+]
 
 function normalize(value) {
   return String(value || '').trim().toLowerCase().replace(/[\s\-_—–·,，。；;：:（）()【】\[\]]+/g, '')
 }
 
+const NORMALIZED_CAPABILITY_ALIAS_GROUPS = CAPABILITY_ALIAS_GROUPS.map((group) =>
+  group.map((item) => normalize(item)).filter(Boolean),
+)
+
 function specificKeyword(value) {
   const keyword = String(value || '').trim()
   const normalized = normalize(keyword)
   if (!normalized || GENERIC_KEYWORDS.has(normalized)) return false
+  if (SHORT_MEDICAL_CAPABILITY_KEYWORDS.has(normalized)) return true
   if (/^[a-z0-9]+$/.test(normalized)) return normalized.length >= 4
   return normalized.length >= 2
+}
+
+function capabilityMatchTerms(value) {
+  const keyword = normalize(value)
+  if (!keyword) return []
+  const group = NORMALIZED_CAPABILITY_ALIAS_GROUPS.find((items) => items.includes(keyword))
+  return group ?? [keyword]
+}
+
+function capabilityMatches(searchText, keyword) {
+  if (!specificKeyword(keyword)) return false
+  return capabilityMatchTerms(keyword).some((term) => searchText.includes(term))
 }
 
 function productTextItems(facts) {
@@ -134,7 +170,7 @@ export async function loadPrivateProfileForUser(user) {
 export function minimalPrivateContextFromProfile(profile, facts) {
   const searchText = searchableOpportunityText(facts)
   const matchingCapabilityRows = profile.capabilities
-    .filter((row) => specificKeyword(row.keyword) && searchText.includes(normalize(row.keyword)))
+    .filter((row) => capabilityMatches(searchText, row.keyword))
     .slice(0, 12)
   const matchingCapabilities = matchingCapabilityRows.map((row) => ({
     category: row.keyword,
