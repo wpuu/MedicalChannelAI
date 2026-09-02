@@ -90,6 +90,13 @@ export interface Facts {
   coverage_status: CoverageStatus
 }
 
+export interface TargetHospitalInterest {
+  hospital: string
+  department: string | null
+  watched_by_customer: true
+  updated_at: string | null
+}
+
 export interface HospitalRelationship {
   hospital: string
   department: string | null
@@ -113,6 +120,7 @@ export interface PartneringPolicy {
 }
 
 export interface CustomerContext {
+  target_hospital: TargetHospitalInterest | null
   hospital_relationship: HospitalRelationship | null
   matching_product_capabilities: MatchingProductCapability[]
   partnering_policy: PartneringPolicy
