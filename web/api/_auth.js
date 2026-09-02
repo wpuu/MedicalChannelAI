@@ -215,13 +215,13 @@ export async function registerUserWithInvite({ inviteCode, username, password })
   try {
     return await sql.begin(async (tx) => {
       const inviteRows = await tx`
-        SELECT code_hash, organization_id, expires_at, used_by
+        SELECT code_hash, organization_id, expires_at, used_by, used_at
         FROM private_pilot_invites
         WHERE code_hash = ${inviteHash}
         FOR UPDATE
       `
       const invitation = inviteRows[0] || null
-      if (invitation && (invitation.used_by || inviteExpired(invitation))) {
+      if (invitation && (invitation.used_at || invitation.used_by || inviteExpired(invitation))) {
         throw new Error('INVITE_INVALID_OR_EXPIRED')
       }
       if (!invitation && !bootstrapAllowed) {
@@ -259,6 +259,7 @@ export async function registerUserWithInvite({ inviteCode, username, password })
           UPDATE private_pilot_invites
           SET organization_id = ${organizationId}, used_by = ${userId}, used_at = now()
           WHERE code_hash = ${inviteHash}
+            AND used_at IS NULL
             AND used_by IS NULL
             AND (expires_at IS NULL OR expires_at > now())
           RETURNING code_hash
