@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Copy, Loader2 } from 'lucide-react'
 import { Drawer } from '@/components/ui/Drawer'
 import { todayActionsService } from '@/services'
-import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
-import { requestPilotOutreachDraft } from '@/services/pilotOutreachApi'
+import { isAuthRequiredError } from '@/services/apiConfig'
 import type { OutreachDraft } from '@/types'
 import { useToast } from '@/context/ToastContext'
 
@@ -59,12 +58,6 @@ function personGreeting(name: string): string {
   return `${cleaned}老师，您好：`
 }
 
-/**
- * A public notice can list several possible project contacts, but that field is
- * not evidence that the user will send one message to all of them. Multi-contact
- * notices therefore default to an unspecified greeting. The user can explicitly
- * choose one recipient or choose a group greeting before copying.
- */
 function normalizeGreetingLine(
   value: string,
   recipientSelection: string,
@@ -118,12 +111,6 @@ function normalizeFormalProcurementWording(value: string): string {
     )
 }
 
-/**
- * The sendable payload must contain only the message the user intends to copy.
- * Product/safety notes stay in UI chrome and are never mixed into clipboard text.
- * This also cleans legacy snapshot/server drafts so old wording cannot leak back
- * into a message after the frontend greeting rules are upgraded.
- */
 function toSendableDraft(
   value: string,
   recipientSelection: string,
@@ -183,15 +170,11 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
         if (names.length === 1) setRecipientSelection(names[0])
       })
       .catch(() => {
-        // Recipient resolution is a convenience layer. Draft generation can still
-        // proceed with a neutral greeting if opportunity detail lookup is unavailable.
+        // Recipient lookup is only a convenience layer. A neutral greeting remains safe.
       })
 
-    const draftRequest = isApiMode
-      ? requestPilotOutreachDraft(opportunityId)
-      : todayActionsService.requestOutreachDraft(opportunityId)
-
-    void draftRequest
+    void todayActionsService
+      .requestOutreachDraft(opportunityId)
       .then((res) => {
         if (!cancelled) setDraft(res)
       })
