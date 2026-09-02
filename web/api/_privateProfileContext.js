@@ -4,7 +4,7 @@ const GENERIC_KEYWORDS = new Set([
   '医疗', '设备', '医疗设备', '耗材', '服务', '医院', '采购', '项目', '系统', '软件', '产品', '仪器',
 ])
 const SHORT_MEDICAL_CAPABILITY_KEYWORDS = new Set([
-  'dr', 'ct', 'mr', 'cr', 'ivd', 'pcr', 'lis', 'his', 'mri', 'ecg', 'icu', 'gpu',
+  'dr', 'ct', 'mr', 'cr', 'dsa', 'ivd', 'pcr', 'lis', 'his', 'mri', 'ecg', 'icu', 'gpu',
 ])
 
 // Deliberately small, high-confidence equivalence groups. These are deterministic
@@ -246,8 +246,6 @@ export function privatePriorityPoints(context, facts) {
     (max, item) => Math.max(max, capabilityPoints(item.capability_type)),
     0,
   )
-  // Target-hospital interest is deliberately NOT relationship evidence and therefore
-  // contributes zero relationship points. Only a confirmed hospital_relationship scores.
   const relationshipPoint = context.hospital_relationship
     ? relationshipPoints(context.hospital_relationship.relationship_strength)
     : 0
