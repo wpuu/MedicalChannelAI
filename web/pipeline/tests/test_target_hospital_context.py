@@ -37,11 +37,15 @@ class TargetHospitalContextTests(unittest.TestCase):
         self.assertIn('重点关注绝不能冒充已有关系', contract)
 
     def test_frontend_shows_target_and_relationship_separately(self):
-        card = (WEB_ROOT / 'src' / 'components' / 'opportunity' / 'CustomerContextCard.tsx').read_text(encoding='utf-8')
+        detail = (WEB_ROOT / 'src' / 'components' / 'opportunity' / 'CustomerContextCard.tsx').read_text(encoding='utf-8')
+        today = (WEB_ROOT / 'src' / 'components' / 'today' / 'CustomerResourceBlock.tsx').read_text(encoding='utf-8')
         local = (WEB_ROOT / 'src' / 'services' / 'localCustomerProfile.ts').read_text(encoding='utf-8')
-        self.assertIn('重点关注', card)
-        self.assertIn('不代表已有关系', card)
-        self.assertIn('医院关系', card)
+        self.assertIn('重点关注', detail)
+        self.assertIn('不代表已有关系', detail)
+        self.assertIn('医院关系', detail)
+        self.assertIn('重点关注', today)
+        self.assertIn('不代表已有医院关系', today)
+        self.assertIn('当前不增加医院关系分', today)
         self.assertIn('targetForCard', local)
         self.assertIn('privatePoints > 0 || target', local)
 
