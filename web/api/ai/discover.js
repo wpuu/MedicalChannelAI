@@ -8,12 +8,13 @@ export const config = { maxDuration: 30 }
 const PUBLIC_FIRST_PARTY_ORIGIN = 'https://medicalai.qd.je'
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const MODEL_ID = 'agnes-2.5-flash'
-const ANALYSIS_VERSION = 'agnes-discovery-live-v2'
+const ANALYSIS_VERSION = 'agnes-discovery-live-v3-delta'
 const RATE_WINDOW_MS = 60 * 1000
 const RATE_MAX_PER_CLIENT = 30
 const PROVIDER_TIMEOUT_MS = 12_000
 const SOURCE_TIMEOUT_MS = 8_000
 const MAX_SOURCE_BYTES = 2_000_000
+const MAX_REQUEST_BODY_BYTES = 262_144
 const MAX_ANCHORS = 80
 const MAX_REDIRECTS = 3
 const rateBuckets = new Map()
@@ -88,7 +89,7 @@ function rateLimited(request) {
 
 function bodyObject(request) {
   if (request.body && typeof request.body === 'object' && !Array.isArray(request.body)) return request.body
-  if (typeof request.body === 'string' && request.body.length <= 65_536) {
+  if (typeof request.body === 'string' && request.body.length <= MAX_REQUEST_BODY_BYTES) {
     try {
       const parsed = JSON.parse(request.body)
       return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null
@@ -110,9 +111,7 @@ function privateIpv4(address) {
   if (parts.length !== 4 || parts.some((item) => !Number.isInteger(item) || item < 0 || item > 255)) return true
   const [a, b] = parts
   return (
-    a === 0 ||
-    a === 10 ||
-    a === 127 ||
+    a === 0 || a === 10 || a === 127 ||
     (a === 100 && b >= 64 && b <= 127) ||
     (a === 169 && b === 254) ||
     (a === 172 && b >= 16 && b <= 31) ||
@@ -148,9 +147,7 @@ async function assertPublicHostname(hostname) {
   } catch {
     throw new Error('SOURCE_DNS_UNRESOLVED')
   }
-  if (!records.length || records.some((item) => privateIp(item.address))) {
-    throw new Error('SOURCE_NETWORK_REJECTED')
-  }
+  if (!records.length || records.some((item) => privateIp(item.address))) throw new Error('SOURCE_NETWORK_REJECTED')
 }
 
 function canonicalSourceUrl(value) {
@@ -253,7 +250,7 @@ function decodeBody(buffer, declaredCharset) {
       const text = new TextDecoder(encoding, { fatal: false }).decode(buffer)
       decoded.push({ encoding: encoding.toLowerCase(), text, score: textQuality(text) })
     } catch {
-      // Try the next supported decoder.
+      // Try next decoder.
     }
   }
   decoded.sort((a, b) => b.score - a.score)
@@ -266,7 +263,6 @@ async function fetchOfficialIndex(source) {
     const parsed = new URL(currentUrl)
     if (!source.hosts.has(parsed.hostname.toLowerCase())) throw new Error('SOURCE_REDIRECT_REJECTED')
     await assertPublicHostname(parsed.hostname)
-
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), SOURCE_TIMEOUT_MS)
     let response
@@ -275,7 +271,7 @@ async function fetchOfficialIndex(source) {
         signal: controller.signal,
         redirect: 'manual',
         headers: {
-          'User-Agent': 'MedicalChannelAI/0.2 (+user-managed public source radar)',
+          'User-Agent': 'MedicalChannelAI/0.3 (+incremental public source radar)',
           Accept: 'text/html,application/xhtml+xml',
           'Accept-Language': 'zh-CN,zh;q=0.9',
         },
@@ -283,7 +279,6 @@ async function fetchOfficialIndex(source) {
     } finally {
       clearTimeout(timeout)
     }
-
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get('location')
       if (!location || redirectCount === MAX_REDIRECTS) throw new Error('SOURCE_REDIRECT_REJECTED')
@@ -293,7 +288,6 @@ async function fetchOfficialIndex(source) {
       continue
     }
     if (!response.ok) throw new Error(`SOURCE_HTTP_${response.status}`)
-
     const contentLength = Number(response.headers.get('content-length') || '0')
     if (Number.isFinite(contentLength) && contentLength > MAX_SOURCE_BYTES) throw new Error('SOURCE_TOO_LARGE')
     const contentType = response.headers.get('content-type') || ''
@@ -320,10 +314,10 @@ function stableIndex(text, length) {
 }
 
 function anchorFingerprint(anchors) {
-  return createHash('sha256')
-    .update(JSON.stringify(anchors.map((item) => [item.title, item.url])))
-    .digest('hex')
-    .slice(0, 32)
+  const stable = anchors
+    .map((item) => [item.url, item.title])
+    .sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]))
+  return createHash('sha256').update(JSON.stringify(stable)).digest('hex').slice(0, 32)
 }
 
 function buildMessages(source, anchors) {
@@ -419,13 +413,7 @@ function parseCandidateRows(rows, anchors, rawCount = rows.length) {
     }
     if (seen.has(rawUrl)) continue
     seen.add(rawUrl)
-    accepted.push({
-      title: anchor.title,
-      url: rawUrl,
-      signal_type: signalType,
-      confidence,
-      reason: reason.slice(0, 160),
-    })
+    accepted.push({ title: anchor.title, url: rawUrl, signal_type: signalType, confidence, reason: reason.slice(0, 160) })
   }
   return { candidates: accepted, rawCount, rejectedUngrounded, rejectedInvalid }
 }
@@ -437,28 +425,88 @@ function parseCandidates(content, anchors) {
   } catch {
     throw new Error('AI_RESPONSE_INVALID')
   }
-  if (!payload || typeof payload !== 'object' || !Array.isArray(payload.candidates)) {
-    throw new Error('AI_RESPONSE_INVALID')
-  }
+  if (!payload || typeof payload !== 'object' || !Array.isArray(payload.candidates)) throw new Error('AI_RESPONSE_INVALID')
   return parseCandidateRows(payload.candidates, anchors, payload.candidates.length)
 }
 
-function reusablePreviousScan(body, source, anchors, fingerprint) {
+function mergeParsed(reused, fresh) {
+  const byUrl = new Map()
+  for (const candidate of [...reused.candidates, ...fresh.candidates]) byUrl.set(candidate.url, candidate)
+  return {
+    candidates: Array.from(byUrl.values()),
+    rawCount: reused.rawCount + fresh.rawCount,
+    rejectedUngrounded: reused.rejectedUngrounded + fresh.rejectedUngrounded,
+    rejectedInvalid: reused.rejectedInvalid + fresh.rejectedInvalid,
+  }
+}
+
+function previousAnchorSnapshot(previous, source) {
+  if (!Array.isArray(previous?.anchor_snapshot) || previous.anchor_snapshot.length > MAX_ANCHORS) return null
+  const seen = new Set()
+  const rows = []
+  for (const row of previous.anchor_snapshot) {
+    if (!row || typeof row !== 'object') return null
+    const title = typeof row.title === 'string' ? row.title.replace(/\s+/g, ' ').trim().slice(0, 220) : ''
+    const rawUrl = typeof row.url === 'string' ? row.url.trim() : ''
+    const url = canonicalOfficialUrl(rawUrl, source.url, source.hosts)
+    if (!title || !url || url !== rawUrl || seen.has(url)) return null
+    seen.add(url)
+    rows.push({ title, url })
+  }
+  return rows
+}
+
+function previousScanContext(body, source, anchors, fingerprint) {
   if (body?.force_ai === true) return null
   const previous = body?.previous_scan
   if (!previous || typeof previous !== 'object' || Array.isArray(previous)) return null
-  if (previous.analysis_version !== ANALYSIS_VERSION || previous.content_fingerprint !== fingerprint) return null
-  if (canonicalSourceUrl(previous.source_url) !== source.url) return null
-  if (!Array.isArray(previous.candidates) || previous.candidates.length > 12) return null
+  if (previous.analysis_version !== ANALYSIS_VERSION || canonicalSourceUrl(previous.source_url) !== source.url) return null
+  if (!Array.isArray(previous.candidates) || previous.candidates.length > 60) return null
   const rawCount = Number(previous.raw_candidate_count)
-  if (!Number.isInteger(rawCount) || rawCount < previous.candidates.length || rawCount > 50) return null
-  const parsed = parseCandidateRows(previous.candidates, anchors, rawCount)
-  if (parsed.rejectedUngrounded || parsed.rejectedInvalid || parsed.candidates.length !== previous.candidates.length) return null
+  if (!Number.isInteger(rawCount) || rawCount < previous.candidates.length || rawCount > 200) return null
   const analyzedAt = typeof previous.analyzed_at === 'string' && Number.isFinite(Date.parse(previous.analyzed_at))
     ? previous.analyzed_at
     : null
   if (!analyzedAt) return null
-  return parsed
+  const oldAnchors = previousAnchorSnapshot(previous, source)
+  if (!oldAnchors) return null
+
+  const currentMap = new Map(anchors.map((item) => [item.url, item]))
+  const oldMap = new Map(oldAnchors.map((item) => [item.url, item]))
+  const newAnchors = anchors.filter((item) => !oldMap.has(item.url))
+  const changedAnchors = anchors.filter((item) => {
+    const old = oldMap.get(item.url)
+    return old && old.title !== item.title
+  })
+  const reusedAnchors = anchors.filter((item) => {
+    const old = oldMap.get(item.url)
+    return old && old.title === item.title
+  })
+  const removedAnchors = oldAnchors.filter((item) => !currentMap.has(item.url))
+  const reusableRows = previous.candidates.filter((row) => {
+    if (!row || typeof row !== 'object' || typeof row.url !== 'string') return false
+    const current = currentMap.get(row.url)
+    const old = oldMap.get(row.url)
+    return Boolean(current && old && current.title === old.title)
+  })
+  const reusedParsed = parseCandidateRows(reusableRows, anchors, reusableRows.length)
+  if (reusedParsed.rejectedUngrounded || reusedParsed.rejectedInvalid || reusedParsed.candidates.length !== reusableRows.length) return null
+
+  let exactParsed = null
+  if (previous.content_fingerprint === fingerprint) {
+    exactParsed = parseCandidateRows(previous.candidates, anchors, rawCount)
+    if (exactParsed.rejectedUngrounded || exactParsed.rejectedInvalid || exactParsed.candidates.length !== previous.candidates.length) return null
+  }
+  return {
+    analyzedAt,
+    exactParsed,
+    reusedParsed,
+    deltaAnchors: [...newAnchors, ...changedAnchors],
+    newCount: newAnchors.length,
+    changedCount: changedAnchors.length,
+    removedCount: removedAnchors.length,
+    reusedCount: reusedAnchors.length,
+  }
 }
 
 function verifiedOpportunityMapForSource(snapshot, source) {
@@ -494,7 +542,10 @@ async function benchmarkContext(source, anchors) {
   }
 }
 
-function resultPayload({ source, checkedAt, analyzedAt, allAnchors, anchors, fingerprint, parsed, benchmark, aiCalled }) {
+function resultPayload({
+  source, checkedAt, analyzedAt, allAnchors, anchors, fingerprint, parsed, benchmark,
+  aiCalled, cacheStatus, aiAnalyzedAnchorCount, delta,
+}) {
   const knownHits = parsed.candidates.filter((item) => benchmark.currentGold.has(item.url)).length
   const knownRecall = benchmark.currentGold.size ? knownHits / benchmark.currentGold.size : null
   const groundedRate = parsed.rawCount ? (parsed.rawCount - parsed.rejectedUngrounded) / parsed.rawCount : 1
@@ -506,7 +557,7 @@ function resultPayload({ source, checkedAt, analyzedAt, allAnchors, anchors, fin
     : Math.round((0.75 * knownRecall + 0.20 * groundedRate + 0.05 * validRate) * 1000) / 10
 
   return {
-    schema_version: '0.2',
+    schema_version: '0.3',
     mode: 'AI_DISCOVERY_SHADOW',
     analysis_version: ANALYSIS_VERSION,
     source_id: source.id,
@@ -516,12 +567,18 @@ function resultPayload({ source, checkedAt, analyzedAt, allAnchors, anchors, fin
     checked_at: checkedAt,
     scanned_at: checkedAt,
     analyzed_at: analyzedAt,
-    cache_status: aiCalled ? 'FRESH_AI' : 'REUSED_UNCHANGED',
+    cache_status: cacheStatus,
     ai_called: aiCalled,
     content_fingerprint: fingerprint,
     official_anchor_count: allAnchors.length,
     analyzed_anchor_count: anchors.length,
+    ai_analyzed_anchor_count: aiAnalyzedAnchorCount,
+    new_anchor_count: delta.newCount,
+    changed_anchor_count: delta.changedCount,
+    removed_anchor_count: delta.removedCount,
+    reused_anchor_count: delta.reusedCount,
     anchor_cap_applied: allAnchors.length > anchors.length,
+    anchor_snapshot: anchors,
     raw_candidate_count: parsed.rawCount,
     candidate_count: parsed.candidates.length,
     historical_known_verified_count: benchmark.map.size,
@@ -562,35 +619,43 @@ export default async function handler(request, response) {
 
     const fingerprint = anchorFingerprint(anchors)
     const benchmark = await benchmarkContext(source, anchors)
-    const cached = reusablePreviousScan(body, source, anchors, fingerprint)
-    if (cached) {
+    const previous = previousScanContext(body, source, anchors, fingerprint)
+
+    if (previous?.exactParsed) {
       return sendJson(response, 200, resultPayload({
-        source,
-        checkedAt,
-        analyzedAt: body.previous_scan.analyzed_at,
-        allAnchors,
-        anchors,
-        fingerprint,
-        parsed: cached,
-        benchmark,
-        aiCalled: false,
+        source, checkedAt, analyzedAt: previous.analyzedAt, allAnchors, anchors, fingerprint,
+        parsed: previous.exactParsed, benchmark, aiCalled: false, cacheStatus: 'REUSED_UNCHANGED',
+        aiAnalyzedAnchorCount: 0,
+        delta: { newCount: 0, changedCount: 0, removedCount: 0, reusedCount: anchors.length },
+      }))
+    }
+
+    if (previous && previous.deltaAnchors.length === 0) {
+      return sendJson(response, 200, resultPayload({
+        source, checkedAt, analyzedAt: previous.analyzedAt, allAnchors, anchors, fingerprint,
+        parsed: previous.reusedParsed, benchmark, aiCalled: false, cacheStatus: 'REUSED_NO_NEW_LINKS',
+        aiAnalyzedAnchorCount: 0, delta: previous,
       }))
     }
 
     const keys = getApiKeys()
     if (!keys.length) return sendJson(response, 503, { error: 'AI_RADAR_NOT_CONFIGURED' })
-    const content = await callProvider(source, anchors, keys)
-    const parsed = parseCandidates(content, anchors)
+    const aiAnchors = previous ? previous.deltaAnchors : anchors
+    const content = await callProvider(source, aiAnchors, keys)
+    const freshParsed = parseCandidates(content, aiAnchors)
+    const parsed = previous ? mergeParsed(previous.reusedParsed, freshParsed) : freshParsed
+    const delta = previous ?? {
+      newCount: anchors.length,
+      changedCount: 0,
+      removedCount: 0,
+      reusedCount: 0,
+    }
     return sendJson(response, 200, resultPayload({
-      source,
-      checkedAt,
-      analyzedAt: checkedAt,
-      allAnchors,
-      anchors,
-      fingerprint,
-      parsed,
-      benchmark,
+      source, checkedAt, analyzedAt: checkedAt, allAnchors, anchors, fingerprint, parsed, benchmark,
       aiCalled: true,
+      cacheStatus: previous ? 'FRESH_DELTA_AI' : 'FRESH_AI',
+      aiAnalyzedAnchorCount: aiAnchors.length,
+      delta,
     }))
   } catch (error) {
     console.error('AI discovery radar failed', {

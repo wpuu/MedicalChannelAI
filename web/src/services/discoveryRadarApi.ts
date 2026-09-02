@@ -9,13 +9,22 @@ export type DiscoverySourceKind =
   | 'OTHER_OFFICIAL'
 
 export type DiscoveryVerificationStatus = 'KNOWN_VERIFIED' | 'DISCOVERED_UNVERIFIED'
-export type DiscoveryCacheStatus = 'FRESH_AI' | 'REUSED_UNCHANGED'
+export type DiscoveryCacheStatus =
+  | 'FRESH_AI'
+  | 'FRESH_DELTA_AI'
+  | 'REUSED_UNCHANGED'
+  | 'REUSED_NO_NEW_LINKS'
 
 export interface DiscoverySourceInput {
   id: DiscoverySourceId
   name: string
   url: string
   kind: DiscoverySourceKind
+}
+
+export interface DiscoveryAnchorSnapshot {
+  title: string
+  url: string
 }
 
 export interface DiscoveryRadarCandidate {
@@ -29,7 +38,7 @@ export interface DiscoveryRadarCandidate {
 }
 
 export interface DiscoveryRadarResult {
-  schema_version: '0.2'
+  schema_version: '0.3'
   mode: 'AI_DISCOVERY_SHADOW'
   analysis_version: string
   source_id: DiscoverySourceId
@@ -44,7 +53,13 @@ export interface DiscoveryRadarResult {
   content_fingerprint: string
   official_anchor_count: number
   analyzed_anchor_count: number
+  ai_analyzed_anchor_count: number
+  new_anchor_count: number
+  changed_anchor_count: number
+  removed_anchor_count: number
+  reused_anchor_count: number
   anchor_cap_applied: boolean
+  anchor_snapshot: DiscoveryAnchorSnapshot[]
   raw_candidate_count: number
   candidate_count: number
   historical_known_verified_count: number
@@ -105,6 +120,7 @@ function previousScanPayload(result: DiscoveryRadarResult | undefined) {
     content_fingerprint: result.content_fingerprint,
     analyzed_at: result.analyzed_at,
     raw_candidate_count: result.raw_candidate_count,
+    anchor_snapshot: result.anchor_snapshot,
     candidates: result.candidates.map((item) => ({
       url: item.url,
       signal_type: item.signal_type,
@@ -139,12 +155,18 @@ export async function scanDiscoverySource(
     const body = await response.json() as DiscoveryRadarResult
     if (
       body?.mode !== 'AI_DISCOVERY_SHADOW' ||
-      body?.schema_version !== '0.2' ||
+      body?.schema_version !== '0.3' ||
       body?.source_id !== source.id ||
       body?.benchmark_scope !== 'CURRENT_ANALYZED_OFFICIAL_LINKS' ||
       !Array.isArray(body?.candidates) ||
+      !Array.isArray(body?.anchor_snapshot) ||
       typeof body?.content_fingerprint !== 'string' ||
       typeof body?.ai_called !== 'boolean' ||
+      typeof body?.new_anchor_count !== 'number' ||
+      typeof body?.changed_anchor_count !== 'number' ||
+      typeof body?.removed_anchor_count !== 'number' ||
+      typeof body?.reused_anchor_count !== 'number' ||
+      typeof body?.ai_analyzed_anchor_count !== 'number' ||
       body?.production_data_mutated !== false
     ) {
       throw new DiscoveryRadarError('AI_RADAR_RESPONSE_INVALID', 502)
