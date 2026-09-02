@@ -65,8 +65,10 @@ async function todayFollowupMap(sql, user) {
     SELECT opportunity_id, status, remind_at
     FROM private_followups
     WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
-    LIMIT 500
+    ORDER BY updated_at DESC, id DESC
+    LIMIT 5001
   `
+  if (rows.length > 5000) throw new Error('TODAY_FOLLOWUP_INDEX_TRUNCATED')
   return new Map(rows.map((row) => [row.opportunity_id, row]))
 }
 
@@ -75,8 +77,10 @@ async function todayFeedbackMap(sql, user) {
     SELECT opportunity_id, value
     FROM private_recommendation_feedback
     WHERE user_id = ${user.id}
-    LIMIT 500
+    ORDER BY updated_at DESC, opportunity_id ASC
+    LIMIT 5001
   `
+  if (rows.length > 5000) throw new Error('TODAY_FEEDBACK_INDEX_TRUNCATED')
   return new Map(rows.map((row) => [row.opportunity_id, row.value]))
 }
 
