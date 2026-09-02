@@ -25,10 +25,19 @@ export function findVerifiedSnapshotCard(snapshot, opportunityId) {
 }
 
 function publicCustomerContext(privateContext) {
+  const target = privateContext.target_hospital
   const relation = privateContext.hospital_relationship
   return {
     context_type: 'CUSTOMER_PRIVATE_FACTS',
     business_role: null,
+    target_hospital: target
+      ? {
+          hospital_name: target.hospital,
+          department: target.department,
+          watched_by_customer: true,
+          updated_at: target.updated_at,
+        }
+      : null,
     hospital_relationship: relation
       ? {
           hospital_name: relation.hospital,
@@ -103,11 +112,14 @@ export function personalizeSnapshotCardWithProfile(card, profile) {
   const privateResult = minimalPrivateContextFromProfile(profile, card.facts)
   const points = privatePriorityPoints(privateResult.context, card.facts)
   const privateTotal = points.capability + points.relationship + points.flexibility
+  const hasTargetFocus = Boolean(privateResult.context.target_hospital)
   return {
     ...card,
     customer_context: publicCustomerContext(privateResult.context),
     priority: personalizePriority(card.priority, points),
-    match_status: privateTotal > 0 ? 'MATCHED_PERSONALIZED' : 'MATCHED_CANDIDATE',
+    // A target hospital is a valid personalization match for filtering/attention,
+    // but intentionally does not inflate the relationship or total priority score.
+    match_status: privateTotal > 0 || hasTargetFocus ? 'MATCHED_PERSONALIZED' : 'MATCHED_CANDIDATE',
   }
 }
 
