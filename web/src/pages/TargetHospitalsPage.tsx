@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
-import { isAuthRequiredError } from '@/services/apiConfig'
+import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import {
   emptyLocalCustomerProfile,
   type LocalCustomerProfile,
@@ -11,7 +11,11 @@ import {
   type LocalTargetHospital,
 } from '@/services/localCustomerProfile'
 import { loadCustomerProfile } from '@/services/profileApi'
-import type { RelationshipStrength, TodayActionCard, TodayActionsResponse } from '@/types'
+import {
+  getTargetHospitalOpportunityPool,
+  type TargetHospitalOpportunity,
+} from '@/services/targetHospitalOpportunityApi'
+import type { PriorityScoreScope, RelationshipStrength, TodayActionCard } from '@/types'
 import { formatBudget, formatDateOnly, formatDateTime } from '@/utils/format'
 import { RELATIONSHIP_LABEL } from '@/utils/labels'
 
@@ -37,11 +41,31 @@ function fuzzySame(left: string | null | undefined, right: string | null | undef
   return Boolean(a && b && (a === b || a.includes(b) || b.includes(a)))
 }
 
-function targetMatchesOpportunity(target: LocalTargetHospital, card: TodayActionCard): boolean {
-  const hospital = card.facts.hospital || card.facts.buyer_name || null
+function fromTodayCard(card: TodayActionCard): TargetHospitalOpportunity {
+  return {
+    opportunity_id: card.opportunity_id,
+    rank: card.rank,
+    hospital: card.facts.hospital,
+    buyer_name: card.facts.buyer_name ?? null,
+    department: card.facts.department,
+    project_name: card.facts.project_name,
+    priority_score: card.priority.score,
+    score_scope: card.priority.score_scope ?? 'PUBLIC',
+    budget_cny: card.facts.budget,
+    registration_deadline: card.facts.registration_deadline,
+    registration_deadline_date: card.facts.registration_deadline_date ?? null,
+    bid_deadline: card.facts.bid_deadline,
+  }
+}
+
+function targetMatchesOpportunity(
+  target: LocalTargetHospital,
+  card: TargetHospitalOpportunity,
+): boolean {
+  const hospital = card.hospital || card.buyer_name || null
   if (!fuzzySame(target.hospital, hospital)) return false
   if (!target.department) return true
-  return fuzzySame(target.department, card.facts.department)
+  return fuzzySame(target.department, card.department)
 }
 
 function relationshipMatchesTarget(target: LocalTargetHospital, relation: LocalHospitalRelationship): boolean {
@@ -67,44 +91,51 @@ function targetKey(target: LocalTargetHospital): string {
   return `${normalize(target.hospital)}::${normalize(target.department)}`
 }
 
-function actionableDeadline(card: TodayActionCard): string | null {
-  if (card.facts.registration_deadline) {
-    const value = formatDateTime(card.facts.registration_deadline)
+function actionableDeadline(card: TargetHospitalOpportunity): string | null {
+  if (card.registration_deadline) {
+    const value = formatDateTime(card.registration_deadline)
     if (value) return `报名/资料截止 ${value}`
   }
-  if (card.facts.registration_deadline_date) {
-    const value = formatDateOnly(card.facts.registration_deadline_date)
+  if (card.registration_deadline_date) {
+    const value = formatDateOnly(card.registration_deadline_date)
     if (value) return `报名/资料截止 ${value}（未公布具体时间）`
   }
-  if (card.facts.bid_deadline) {
-    const value = formatDateTime(card.facts.bid_deadline)
+  if (card.bid_deadline) {
+    const value = formatDateTime(card.bid_deadline)
     if (value) return `投标/响应截止 ${value}`
   }
   return null
 }
 
-function scoreText(card: TodayActionCard): string {
-  const scope = card.priority.score_scope === 'PERSONALIZED' ? '个性化分' : '公开分'
-  const denominator = card.priority.score_scope === 'PERSONALIZED' ? 100 : 60
-  return `${card.priority.score}/${denominator} ${scope}`
+function scoreText(score: number, scope: PriorityScoreScope): string {
+  const label = scope === 'PERSONALIZED' ? '个性化分' : '公开分'
+  const denominator = scope === 'PERSONALIZED' ? 100 : 60
+  return `${score}/${denominator} ${label}`
 }
 
 export function TargetHospitalsPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [profile, setProfile] = useState<LocalCustomerProfile>(() => emptyLocalCustomerProfile())
-  const [actions, setActions] = useState<TodayActionsResponse | null>(null)
+  const [opportunityPool, setOpportunityPool] = useState<TargetHospitalOpportunity[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
   useEffect(() => {
     let active = true
     setLoading(true)
-    Promise.all([loadCustomerProfile(), todayActionsService.getTodayActions()])
-      .then(([nextProfile, nextActions]) => {
+
+    const opportunityRequest = isApiMode
+      ? getTargetHospitalOpportunityPool()
+      : todayActionsService.getTodayActions().then((actions) =>
+          (actions.opportunity_pool ?? actions.cards).map(fromTodayCard),
+        )
+
+    Promise.all([loadCustomerProfile(), opportunityRequest])
+      .then(([nextProfile, nextPool]) => {
         if (!active) return
         setProfile(nextProfile)
-        setActions(nextActions)
+        setOpportunityPool(nextPool)
         setError(false)
       })
       .catch((cause) => {
@@ -128,18 +159,17 @@ export function TargetHospitalsPage() {
       const key = targetKey(target)
       if (!uniqueTargets.has(key)) uniqueTargets.set(key, target)
     }
-    const pool = actions?.opportunity_pool ?? actions?.cards ?? []
     return [...uniqueTargets.values()].map((target) => {
-      const opportunities = pool
+      const opportunities = opportunityPool
         .filter((card) => targetMatchesOpportunity(target, card))
-        .sort((left, right) => right.priority.score - left.priority.score || left.rank - right.rank)
+        .sort((left, right) => right.priority_score - left.priority_score || left.rank - right.rank)
       return {
         target,
         relationship: bestRelationship(target, profile.hospital_relationships),
         opportunities,
       }
     })
-  }, [actions, profile.hospital_relationships, profile.target_hospitals])
+  }, [opportunityPool, profile.hospital_relationships, profile.target_hospitals])
 
   const metrics = useMemo(() => ({
     total: targetRows.length,
@@ -187,6 +217,11 @@ export function TargetHospitalsPage() {
         <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 text-[12px] leading-5 text-amber-900">
           目标医院名称不会自动推导官网地址。需要持续扫描时，请在 AI 雷达中显式添加并确认官方公开栏目，避免猜错来源。
         </div>
+        {isApiMode ? (
+          <div className="mt-2 rounded-xl border border-teal-100 bg-teal-50/70 px-3 py-2 text-[11px] leading-5 text-teal-900">
+            当前按完整个性化商机池匹配目标医院，不受“今日 Top5”截断影响。
+          </div>
+        ) : null}
       </section>
 
       <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -247,7 +282,7 @@ export function TargetHospitalsPage() {
                 ) : (
                   <div className="mt-2 space-y-2">
                     {opportunities.slice(0, 3).map((card) => {
-                      const budget = formatBudget(card.facts.budget)
+                      const budget = formatBudget(card.budget_cny)
                       const deadline = actionableDeadline(card)
                       return (
                         <Link
@@ -257,9 +292,9 @@ export function TargetHospitalsPage() {
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <p className="text-[13px] font-medium leading-5 text-slate-800">{card.facts.project_name ?? '未命名商机'}</p>
+                              <p className="text-[13px] font-medium leading-5 text-slate-800">{card.project_name ?? '未命名商机'}</p>
                               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500">
-                                <span>{scoreText(card)}</span>
+                                <span>{scoreText(card.priority_score, card.score_scope)}</span>
                                 {budget ? <span>预算 {budget}</span> : null}
                                 {deadline ? <span>{deadline}</span> : null}
                               </div>
