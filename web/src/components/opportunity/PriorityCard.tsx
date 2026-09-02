@@ -5,7 +5,7 @@ import { clampPercent } from '@/utils/format'
 import { PRIORITY_COMPONENT_LABEL } from '@/utils/labels'
 
 export function PriorityCard({ priority }: { priority: Priority }) {
-  const usePublicScale = priority.score_scope === 'PUBLIC'
+  const usePublicScale = priority.score_scope !== 'PERSONALIZED'
   const entries = Object.entries(priority.components) as [keyof Priority['components'], number][]
 
   return (
