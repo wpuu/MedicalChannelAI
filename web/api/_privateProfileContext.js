@@ -7,9 +7,6 @@ const SHORT_MEDICAL_CAPABILITY_KEYWORDS = new Set([
   'dr', 'ct', 'mr', 'cr', 'dsa', 'ivd', 'pcr', 'lis', 'his', 'mri', 'ecg', 'icu', 'gpu',
 ])
 
-// Deliberately small, high-confidence equivalence groups. These are deterministic
-// taxonomy aliases, not model-generated guesses. A capability still comes only
-// from the user's self-reported profile.
 const CAPABILITY_ALIAS_GROUPS = [
   ['dsa', '数字减影血管造影', '数字减影血管造影机', '血管造影机'],
   ['dr', '数字x光机', '数字x线摄影', '数字化x线摄影', '数字化x射线摄影'],
@@ -47,9 +44,19 @@ function capabilityMatchTerms(value) {
   return group ?? [keyword]
 }
 
+function shortAsciiTokenMatches(rawText, term) {
+  if (!/^[a-z0-9]{2,3}$/.test(term)) return false
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(^|[^a-z0-9])${escaped}(?=$|[^a-z0-9])`, 'i').test(rawText)
+}
+
 function capabilityMatches(searchText, keyword) {
   if (!specificKeyword(keyword)) return false
-  return capabilityMatchTerms(keyword).some((term) => searchText.includes(term))
+  return capabilityMatchTerms(keyword).some((term) =>
+    /^[a-z0-9]{2,3}$/.test(term)
+      ? shortAsciiTokenMatches(searchText.raw, term)
+      : searchText.normalized.includes(term),
+  )
 }
 
 function productTextItems(facts) {
@@ -75,8 +82,9 @@ function searchableOpportunityText(facts) {
     facts?.department,
     ...(Array.isArray(facts?.product_categories) ? facts.product_categories : []),
     ...productTextItems(facts),
-  ]
-  return normalize(values.filter(Boolean).join(' '))
+  ].filter(Boolean)
+  const raw = values.join(' | ').toLowerCase()
+  return { raw, normalized: normalize(raw) }
 }
 
 function hospitalScopeMatches(item, facts) {
