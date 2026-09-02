@@ -111,13 +111,18 @@ const SCHEMA_STATEMENTS = [
     id uuid PRIMARY KEY,
     followup_id uuid NOT NULL REFERENCES private_followups(id) ON DELETE CASCADE,
     user_id uuid NOT NULL REFERENCES private_users(id) ON DELETE CASCADE,
+    mutation_id text NULL,
     status text NOT NULL,
     note text NULL,
     reason text NULL,
     remind_at timestamptz NULL,
     created_at timestamptz NOT NULL DEFAULT now()
   )`,
+  `ALTER TABLE private_followup_events ADD COLUMN IF NOT EXISTS mutation_id text NULL`,
   `CREATE INDEX IF NOT EXISTS private_followup_events_idx ON private_followup_events(followup_id, created_at DESC)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS private_followup_events_mutation_idx
+    ON private_followup_events(user_id, mutation_id)
+    WHERE mutation_id IS NOT NULL`,
   `CREATE TABLE IF NOT EXISTS private_recommendation_feedback (
     user_id uuid NOT NULL REFERENCES private_users(id) ON DELETE CASCADE,
     opportunity_id text NOT NULL,
