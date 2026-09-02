@@ -7,11 +7,13 @@ import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
 
 export function CustomerResourceBlock({ context }: { context: CustomerContext }) {
+  const target = context.target_hospital
   const rel = context.hospital_relationship
   const capability = context.matching_product_capabilities[0]
   const policy = context.partnering_policy
   const hasResource = Boolean(
-    rel ||
+    target ||
+      rel ||
       capability ||
       policy.can_find_manufacturer !== null ||
       policy.can_partner_channel !== null ||
@@ -34,6 +36,16 @@ export function CustomerResourceBlock({ context }: { context: CustomerContext })
       </div>
       {hasResource ? (
         <div className="space-y-1.5 text-[13px] leading-6 text-slate-700">
+          {target ? (
+            <div className="rounded-lg border border-teal-100 bg-white/80 px-2.5 py-2">
+              <p>
+                重点关注：<span className="font-medium">{target.hospital}</span>
+              </p>
+              <p className="text-[11px] text-slate-500">
+                {target.department ? `重点科室：${target.department} · ` : ''}仅代表你主动关注，不代表已有医院关系
+              </p>
+            </div>
+          ) : null}
           {rel ? (
             <>
               <p>
@@ -48,6 +60,8 @@ export function CustomerResourceBlock({ context }: { context: CustomerContext })
                 </p>
               ) : null}
             </>
+          ) : target ? (
+            <p className="text-[12px] text-slate-500">院内关系：尚未确认</p>
           ) : null}
           {capability ? (
             <>
@@ -66,12 +80,12 @@ export function CustomerResourceBlock({ context }: { context: CustomerContext })
               ) : null}
             </>
           ) : null}
-          <p className="pt-1 text-[11px] text-teal-800/70">仅用于个性化排序和AI分析。</p>
+          <p className="pt-1 text-[11px] text-teal-800/70">目标关注用于个性化展示和AI上下文；当前不增加医院关系分。</p>
         </div>
       ) : (
         <div>
           <p className="text-[12px] leading-5 text-slate-500">
-            不填写也能看公开商机；填写后可优化排序和AI建议。
+            不填写也能看公开商机；填写后可优化关注范围和AI建议。
           </p>
           {isVerifiedPublicDemo && !isApiMode ? (
             <Link
