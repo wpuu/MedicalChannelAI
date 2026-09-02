@@ -1,7 +1,22 @@
 import { beginAiRequest, endAiRequest } from './aiRequestGate'
 
-export type DiscoverySourceId = 'TMUGH' | 'TJNOTHOP' | 'TEDA'
+export type DiscoverySourceId = string
+export type DiscoverySourceKind =
+  | 'HOSPITAL_OFFICIAL'
+  | 'GOVERNMENT_PROCUREMENT'
+  | 'PUBLIC_RESOURCE'
+  | 'HEALTH_AUTHORITY'
+  | 'OTHER_OFFICIAL'
+
 export type DiscoveryVerificationStatus = 'KNOWN_VERIFIED' | 'DISCOVERED_UNVERIFIED'
+export type DiscoveryCacheStatus = 'FRESH_AI' | 'REUSED_UNCHANGED'
+
+export interface DiscoverySourceInput {
+  id: DiscoverySourceId
+  name: string
+  url: string
+  kind: DiscoverySourceKind
+}
 
 export interface DiscoveryRadarCandidate {
   title: string
@@ -14,15 +29,23 @@ export interface DiscoveryRadarCandidate {
 }
 
 export interface DiscoveryRadarResult {
-  schema_version: '0.1'
+  schema_version: '0.2'
   mode: 'AI_DISCOVERY_SHADOW'
+  analysis_version: string
   source_id: DiscoverySourceId
   source_name: string
+  source_kind: DiscoverySourceKind
   source_url: string
+  checked_at: string
   scanned_at: string
+  analyzed_at: string
+  cache_status: DiscoveryCacheStatus
+  ai_called: boolean
+  content_fingerprint: string
   official_anchor_count: number
   analyzed_anchor_count: number
   anchor_cap_applied: boolean
+  raw_candidate_count: number
   candidate_count: number
   historical_known_verified_count: number
   known_verified_count: number
@@ -62,14 +85,40 @@ export function discoveryRadarErrorMessage(error: unknown): string {
   if (!(error instanceof DiscoveryRadarError)) return 'AI情报雷达暂时不可用，请稍后重试'
   if (error.code === 'AI_CLIENT_BUSY') return '已有AI任务正在执行，请稍候'
   if (error.code === 'AI_RADAR_NOT_CONFIGURED') return 'AI情报雷达尚未配置运行密钥'
-  if (error.code === 'AI_RADAR_RATE_LIMITED') return '扫描较频繁，请约1分钟后再试'
-  if (error.code === 'AI_RADAR_SOURCE_EMPTY') return '该官方入口暂未读取到可分析链接'
+  if (error.code === 'AI_RADAR_RATE_LIMITED') return '扫描较频繁，请稍后再试'
+  if (error.code === 'AI_RADAR_SOURCE_EMPTY') return '该公开渠道暂未读取到可分析链接，建议检查入口地址'
+  if (error.code === 'AI_RADAR_SOURCE_INVALID') return '渠道信息无效，请检查名称、类型和 HTTPS 官方地址'
+  if (error.code === 'SOURCE_HOST_REJECTED' || error.code === 'SOURCE_NETWORK_REJECTED') return '该地址未通过公网安全校验，请使用公开 HTTPS 官方网站'
+  if (error.code === 'SOURCE_DNS_UNRESOLVED') return '该渠道域名暂时无法解析，请检查地址'
+  if (error.code === 'SOURCE_REDIRECT_REJECTED') return '该渠道跳转到了未允许的域名，请直接填写最终官方入口'
+  if (error.code === 'SOURCE_TOO_LARGE') return '该页面过大，不适合作为列表入口，请换成更具体的采购/公告栏目页'
   if (error.code === 'SAME_ORIGIN_REQUIRED') return '请从正式演示站点打开AI情报雷达'
   if (error.code === 'AI_RADAR_RESPONSE_INVALID') return 'AI返回内容未通过安全校验，请重试'
   return 'AI情报雷达暂时不可用，请稍后重试'
 }
 
-export async function scanDiscoverySource(sourceId: DiscoverySourceId): Promise<DiscoveryRadarResult> {
+function previousScanPayload(result: DiscoveryRadarResult | undefined) {
+  if (!result) return undefined
+  return {
+    analysis_version: result.analysis_version,
+    source_url: result.source_url,
+    content_fingerprint: result.content_fingerprint,
+    analyzed_at: result.analyzed_at,
+    raw_candidate_count: result.raw_candidate_count,
+    candidates: result.candidates.map((item) => ({
+      url: item.url,
+      signal_type: item.signal_type,
+      confidence: item.confidence,
+      reason: item.reason,
+    })),
+  }
+}
+
+export async function scanDiscoverySource(
+  source: DiscoverySourceInput,
+  previousResult?: DiscoveryRadarResult,
+  forceAi = false,
+): Promise<DiscoveryRadarResult> {
   if (!beginAiRequest()) throw new DiscoveryRadarError('AI_CLIENT_BUSY', 409)
   try {
     const response = await fetch('/api/ai/discover', {
@@ -80,15 +129,22 @@ export async function scanDiscoverySource(sourceId: DiscoverySourceId): Promise<
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ source_id: sourceId }),
+      body: JSON.stringify({
+        source,
+        previous_scan: forceAi ? undefined : previousScanPayload(previousResult),
+        force_ai: forceAi || undefined,
+      }),
     })
     if (!response.ok) throw await radarError(response)
     const body = await response.json() as DiscoveryRadarResult
     if (
       body?.mode !== 'AI_DISCOVERY_SHADOW' ||
-      body?.source_id !== sourceId ||
+      body?.schema_version !== '0.2' ||
+      body?.source_id !== source.id ||
       body?.benchmark_scope !== 'CURRENT_ANALYZED_OFFICIAL_LINKS' ||
       !Array.isArray(body?.candidates) ||
+      typeof body?.content_fingerprint !== 'string' ||
+      typeof body?.ai_called !== 'boolean' ||
       body?.production_data_mutated !== false
     ) {
       throw new DiscoveryRadarError('AI_RADAR_RESPONSE_INVALID', 502)

@@ -1,3 +1,6 @@
+import { createHash } from 'node:crypto'
+import { lookup } from 'node:dns/promises'
+import { isIP } from 'node:net'
 import { loadVerifiedSnapshot } from '../_verifiedSnapshot.js'
 
 export const config = { maxDuration: 30 }
@@ -5,30 +8,23 @@ export const config = { maxDuration: 30 }
 const PUBLIC_FIRST_PARTY_ORIGIN = 'https://medicalai.qd.je'
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const MODEL_ID = 'agnes-2.5-flash'
+const ANALYSIS_VERSION = 'agnes-discovery-live-v2'
 const RATE_WINDOW_MS = 60 * 1000
-const RATE_MAX_PER_CLIENT = 6
+const RATE_MAX_PER_CLIENT = 30
 const PROVIDER_TIMEOUT_MS = 12_000
 const SOURCE_TIMEOUT_MS = 8_000
+const MAX_SOURCE_BYTES = 2_000_000
 const MAX_ANCHORS = 80
+const MAX_REDIRECTS = 3
 const rateBuckets = new Map()
 
-const SOURCES = {
-  TMUGH: {
-    name: '天津医科大学总医院',
-    url: 'https://www.tjmugh.com.cn/cgxxtzgg/index.shtml',
-    hosts: new Set(['www.tjmugh.com.cn', 'tjmugh.com.cn']),
-  },
-  TJNOTHOP: {
-    name: '天津市天津医院',
-    url: 'https://www.tjnothop.cn/xwzx/index.shtml',
-    hosts: new Set(['www.tjnothop.cn', 'tjnothop.cn']),
-  },
-  TEDA: {
-    name: '天津泰达医院',
-    url: 'https://www.tedahospital.com.cn/article/plist/9',
-    hosts: new Set(['www.tedahospital.com.cn', 'tedahospital.com.cn']),
-  },
-}
+const SOURCE_KINDS = new Set([
+  'HOSPITAL_OFFICIAL',
+  'GOVERNMENT_PROCUREMENT',
+  'PUBLIC_RESOURCE',
+  'HEALTH_AUTHORITY',
+  'OTHER_OFFICIAL',
+])
 
 const SIGNAL_TYPES = new Set([
   'DEMAND_RESEARCH',
@@ -92,7 +88,7 @@ function rateLimited(request) {
 
 function bodyObject(request) {
   if (request.body && typeof request.body === 'object' && !Array.isArray(request.body)) return request.body
-  if (typeof request.body === 'string' && request.body.length <= 4096) {
+  if (typeof request.body === 'string' && request.body.length <= 65_536) {
     try {
       const parsed = JSON.parse(request.body)
       return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null
@@ -103,9 +99,94 @@ function bodyObject(request) {
   return null
 }
 
-function sourceIdFromBody(body) {
-  const value = typeof body?.source_id === 'string' ? body.source_id.trim().toUpperCase() : ''
-  return Object.prototype.hasOwnProperty.call(SOURCES, value) ? value : null
+function blockedHostname(hostname) {
+  const host = hostname.toLowerCase().replace(/\.$/, '')
+  if (!host || host === 'localhost') return true
+  return ['.localhost', '.local', '.internal', '.test', '.invalid', '.example'].some((suffix) => host.endsWith(suffix))
+}
+
+function privateIpv4(address) {
+  const parts = address.split('.').map(Number)
+  if (parts.length !== 4 || parts.some((item) => !Number.isInteger(item) || item < 0 || item > 255)) return true
+  const [a, b] = parts
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 0) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    (a === 192 && b === 0 && parts[2] === 2) ||
+    (a === 198 && b === 51 && parts[2] === 100) ||
+    (a === 203 && b === 0 && parts[2] === 113) ||
+    a >= 224
+  )
+}
+
+function privateIp(address) {
+  const version = isIP(address)
+  if (version === 4) return privateIpv4(address)
+  if (version !== 6) return true
+  const value = address.toLowerCase()
+  if (value === '::' || value === '::1') return true
+  if (value.startsWith('fc') || value.startsWith('fd')) return true
+  if (/^fe[89ab]/.test(value)) return true
+  if (value.startsWith('ff')) return true
+  if (value.startsWith('2001:db8:')) return true
+  const mapped = value.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/)
+  return mapped ? privateIpv4(mapped[1]) : false
+}
+
+async function assertPublicHostname(hostname) {
+  if (blockedHostname(hostname) || isIP(hostname)) throw new Error('SOURCE_HOST_REJECTED')
+  let records
+  try {
+    records = await lookup(hostname, { all: true, verbatim: true })
+  } catch {
+    throw new Error('SOURCE_DNS_UNRESOLVED')
+  }
+  if (!records.length || records.some((item) => privateIp(item.address))) {
+    throw new Error('SOURCE_NETWORK_REJECTED')
+  }
+}
+
+function canonicalSourceUrl(value) {
+  let parsed
+  try {
+    parsed = new URL(value)
+  } catch {
+    return null
+  }
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password) return null
+  if (parsed.port && parsed.port !== '443') return null
+  if (blockedHostname(parsed.hostname) || isIP(parsed.hostname)) return null
+  parsed.hash = ''
+  if (parsed.pathname !== '/') parsed.pathname = parsed.pathname.replace(/\/+$/, '') || '/'
+  return parsed.toString()
+}
+
+function hostVariants(hostname) {
+  const host = hostname.toLowerCase()
+  const result = new Set([host])
+  if (host.startsWith('www.')) result.add(host.slice(4))
+  else result.add(`www.${host}`)
+  return result
+}
+
+function sourceFromBody(body) {
+  const raw = body?.source
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const id = typeof raw.id === 'string' ? raw.id.trim() : ''
+  const name = typeof raw.name === 'string' ? raw.name.replace(/\s+/g, ' ').trim() : ''
+  const kind = typeof raw.kind === 'string' ? raw.kind.trim().toUpperCase() : ''
+  const url = canonicalSourceUrl(typeof raw.url === 'string' ? raw.url.trim() : '')
+  if (!id || id.length > 96 || !/^[A-Za-z0-9._:-]+$/.test(id)) return null
+  if (!name || name.length > 100 || !url || !SOURCE_KINDS.has(kind)) return null
+  const parsed = new URL(url)
+  return { id, name, kind, url, hosts: hostVariants(parsed.hostname) }
 }
 
 function htmlText(value) {
@@ -134,7 +215,8 @@ function canonicalOfficialUrl(value, baseUrl, allowedHosts) {
   const host = parsed.hostname.toLowerCase()
   if (!allowedHosts.has(host)) return null
   if (parsed.protocol === 'http:') parsed.protocol = 'https:'
-  if (parsed.protocol !== 'https:') return null
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password) return null
+  if (parsed.port && parsed.port !== '443') return null
   parsed.hash = ''
   if (parsed.pathname !== '/') parsed.pathname = parsed.pathname.replace(/\/+$/, '') || '/'
   return parsed.toString()
@@ -179,28 +261,48 @@ function decodeBody(buffer, declaredCharset) {
 }
 
 async function fetchOfficialIndex(source) {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), SOURCE_TIMEOUT_MS)
-  try {
-    const response = await fetch(source.url, {
-      signal: controller.signal,
-      redirect: 'follow',
-      headers: {
-        'User-Agent': 'MedicalChannelAI/0.1 (+AI discovery radar)',
-        Accept: 'text/html,application/xhtml+xml',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
-      },
-    })
+  let currentUrl = source.url
+  for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
+    const parsed = new URL(currentUrl)
+    if (!source.hosts.has(parsed.hostname.toLowerCase())) throw new Error('SOURCE_REDIRECT_REJECTED')
+    await assertPublicHostname(parsed.hostname)
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), SOURCE_TIMEOUT_MS)
+    let response
+    try {
+      response = await fetch(currentUrl, {
+        signal: controller.signal,
+        redirect: 'manual',
+        headers: {
+          'User-Agent': 'MedicalChannelAI/0.2 (+user-managed public source radar)',
+          Accept: 'text/html,application/xhtml+xml',
+          'Accept-Language': 'zh-CN,zh;q=0.9',
+        },
+      })
+    } finally {
+      clearTimeout(timeout)
+    }
+
+    if ([301, 302, 303, 307, 308].includes(response.status)) {
+      const location = response.headers.get('location')
+      if (!location || redirectCount === MAX_REDIRECTS) throw new Error('SOURCE_REDIRECT_REJECTED')
+      const nextUrl = canonicalOfficialUrl(location, currentUrl, source.hosts)
+      if (!nextUrl) throw new Error('SOURCE_REDIRECT_REJECTED')
+      currentUrl = nextUrl
+      continue
+    }
     if (!response.ok) throw new Error(`SOURCE_HTTP_${response.status}`)
-    const finalUrl = canonicalOfficialUrl(response.url, source.url, source.hosts)
-    if (!finalUrl) throw new Error('SOURCE_REDIRECT_REJECTED')
+
+    const contentLength = Number(response.headers.get('content-length') || '0')
+    if (Number.isFinite(contentLength) && contentLength > MAX_SOURCE_BYTES) throw new Error('SOURCE_TOO_LARGE')
     const contentType = response.headers.get('content-type') || ''
     const declared = /charset\s*=\s*([^;\s]+)/i.exec(contentType)?.[1]?.replace(/["']/g, '') || null
     const buffer = await response.arrayBuffer()
+    if (buffer.byteLength > MAX_SOURCE_BYTES) throw new Error('SOURCE_TOO_LARGE')
     return decodeBody(buffer, declared)
-  } finally {
-    clearTimeout(timeout)
   }
+  throw new Error('SOURCE_REDIRECT_REJECTED')
 }
 
 function getApiKeys() {
@@ -217,12 +319,19 @@ function stableIndex(text, length) {
   return (hash >>> 0) % length
 }
 
+function anchorFingerprint(anchors) {
+  return createHash('sha256')
+    .update(JSON.stringify(anchors.map((item) => [item.title, item.url])))
+    .digest('hex')
+    .slice(0, 32)
+}
+
 function buildMessages(source, anchors) {
   return [
     {
       role: 'system',
       content:
-        '你是医疗采购前期商机发现器。只从输入的医院官方链接列表中挑选仍可能影响需求、测试、论证、方案或采购准备的前期窗口。' +
+        '你是医疗行业公开商机发现器。只从输入的官方公开来源链接列表中挑选仍可能影响需求、测试、论证、方案或采购准备的前期窗口。' +
         '优先：需求调研、供应商征集、测试企业征集、论证邀请、采购意向。' +
         '排除：正式招标公告、成交/中标结果、评分细则、招聘、人事、党建、新闻宣传、纯制度通知。' +
         '禁止补全、改写、猜测URL；只能原样返回输入URL。不要把判断说成已验证事实。严格输出JSON，不要Markdown。',
@@ -231,6 +340,7 @@ function buildMessages(source, anchors) {
       role: 'user',
       content: JSON.stringify({
         source: source.name,
+        source_kind: source.kind,
         anchors,
         max_candidates: 12,
         output_schema: {
@@ -247,8 +357,8 @@ function buildMessages(source, anchors) {
   ]
 }
 
-async function callProvider(sourceId, source, anchors, keys) {
-  const apiKey = keys[stableIndex(sourceId, keys.length)]
+async function callProvider(source, anchors, keys) {
+  const apiKey = keys[stableIndex(`${source.id}:${source.url}`, keys.length)]
   const baseUrl = String(process.env.AGNES_API_BASE_URL || DEFAULT_BASE_URL).trim().replace(/\/+$/, '')
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS)
@@ -283,22 +393,13 @@ function jsonContent(content) {
   return content.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
 }
 
-function parseCandidates(content, anchors) {
+function parseCandidateRows(rows, anchors, rawCount = rows.length) {
   const allowed = new Map(anchors.map((item) => [item.url, item]))
-  let payload
-  try {
-    payload = JSON.parse(jsonContent(content))
-  } catch {
-    throw new Error('AI_RESPONSE_INVALID')
-  }
-  if (!payload || typeof payload !== 'object' || !Array.isArray(payload.candidates)) {
-    throw new Error('AI_RESPONSE_INVALID')
-  }
   const accepted = []
   const seen = new Set()
   let rejectedUngrounded = 0
   let rejectedInvalid = 0
-  for (const row of payload.candidates) {
+  for (const row of rows) {
     if (!row || typeof row !== 'object') {
       rejectedInvalid += 1
       continue
@@ -326,12 +427,38 @@ function parseCandidates(content, anchors) {
       reason: reason.slice(0, 160),
     })
   }
-  return {
-    candidates: accepted,
-    rawCount: payload.candidates.length,
-    rejectedUngrounded,
-    rejectedInvalid,
+  return { candidates: accepted, rawCount, rejectedUngrounded, rejectedInvalid }
+}
+
+function parseCandidates(content, anchors) {
+  let payload
+  try {
+    payload = JSON.parse(jsonContent(content))
+  } catch {
+    throw new Error('AI_RESPONSE_INVALID')
   }
+  if (!payload || typeof payload !== 'object' || !Array.isArray(payload.candidates)) {
+    throw new Error('AI_RESPONSE_INVALID')
+  }
+  return parseCandidateRows(payload.candidates, anchors, payload.candidates.length)
+}
+
+function reusablePreviousScan(body, source, anchors, fingerprint) {
+  if (body?.force_ai === true) return null
+  const previous = body?.previous_scan
+  if (!previous || typeof previous !== 'object' || Array.isArray(previous)) return null
+  if (previous.analysis_version !== ANALYSIS_VERSION || previous.content_fingerprint !== fingerprint) return null
+  if (canonicalSourceUrl(previous.source_url) !== source.url) return null
+  if (!Array.isArray(previous.candidates) || previous.candidates.length > 12) return null
+  const rawCount = Number(previous.raw_candidate_count)
+  if (!Number.isInteger(rawCount) || rawCount < previous.candidates.length || rawCount > 50) return null
+  const parsed = parseCandidateRows(previous.candidates, anchors, rawCount)
+  if (parsed.rejectedUngrounded || parsed.rejectedInvalid || parsed.candidates.length !== previous.candidates.length) return null
+  const analyzedAt = typeof previous.analyzed_at === 'string' && Number.isFinite(Date.parse(previous.analyzed_at))
+    ? previous.analyzed_at
+    : null
+  if (!analyzedAt) return null
+  return parsed
 }
 
 function verifiedOpportunityMapForSource(snapshot, source) {
@@ -357,6 +484,63 @@ function currentBenchmarkUrls(verifiedUrls, anchors) {
   return new Set(Array.from(verifiedUrls).filter((url) => analyzedUrlSet.has(url)))
 }
 
+async function benchmarkContext(source, anchors) {
+  try {
+    const snapshot = await loadVerifiedSnapshot()
+    const map = verifiedOpportunityMapForSource(snapshot, source)
+    return { map, currentGold: currentBenchmarkUrls(map.keys(), anchors) }
+  } catch {
+    return { map: new Map(), currentGold: new Set() }
+  }
+}
+
+function resultPayload({ source, checkedAt, analyzedAt, allAnchors, anchors, fingerprint, parsed, benchmark, aiCalled }) {
+  const knownHits = parsed.candidates.filter((item) => benchmark.currentGold.has(item.url)).length
+  const knownRecall = benchmark.currentGold.size ? knownHits / benchmark.currentGold.size : null
+  const groundedRate = parsed.rawCount ? (parsed.rawCount - parsed.rejectedUngrounded) / parsed.rawCount : 1
+  const validRate = parsed.rawCount
+    ? (parsed.rawCount - parsed.rejectedUngrounded - parsed.rejectedInvalid) / parsed.rawCount
+    : 1
+  const discoveryScore = knownRecall === null
+    ? null
+    : Math.round((0.75 * knownRecall + 0.20 * groundedRate + 0.05 * validRate) * 1000) / 10
+
+  return {
+    schema_version: '0.2',
+    mode: 'AI_DISCOVERY_SHADOW',
+    analysis_version: ANALYSIS_VERSION,
+    source_id: source.id,
+    source_name: source.name,
+    source_kind: source.kind,
+    source_url: source.url,
+    checked_at: checkedAt,
+    scanned_at: checkedAt,
+    analyzed_at: analyzedAt,
+    cache_status: aiCalled ? 'FRESH_AI' : 'REUSED_UNCHANGED',
+    ai_called: aiCalled,
+    content_fingerprint: fingerprint,
+    official_anchor_count: allAnchors.length,
+    analyzed_anchor_count: anchors.length,
+    anchor_cap_applied: allAnchors.length > anchors.length,
+    raw_candidate_count: parsed.rawCount,
+    candidate_count: parsed.candidates.length,
+    historical_known_verified_count: benchmark.map.size,
+    known_verified_count: benchmark.currentGold.size,
+    known_verified_hit_count: knownHits,
+    known_recall: knownRecall === null ? null : Math.round(knownRecall * 1000) / 1000,
+    discovery_score: discoveryScore,
+    benchmark_scope: 'CURRENT_ANALYZED_OFFICIAL_LINKS',
+    rejected_ungrounded_count: parsed.rejectedUngrounded,
+    rejected_invalid_count: parsed.rejectedInvalid,
+    production_data_mutated: false,
+    candidates: parsed.candidates.map((item) => ({
+      ...item,
+      verification_status: benchmark.map.has(item.url) ? 'KNOWN_VERIFIED' : 'DISCOVERED_UNVERIFIED',
+      opportunity_id: benchmark.map.get(item.url) || null,
+    })),
+  }
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST')
@@ -366,77 +550,60 @@ export default async function handler(request, response) {
   if (rateLimited(request)) return sendJson(response, 429, { error: 'AI_RADAR_RATE_LIMITED' })
 
   const body = bodyObject(request)
-  const sourceId = sourceIdFromBody(body)
-  if (!sourceId) return sendJson(response, 400, { error: 'AI_RADAR_SOURCE_INVALID' })
-  const keys = getApiKeys()
-  if (!keys.length) return sendJson(response, 503, { error: 'AI_RADAR_NOT_CONFIGURED' })
+  const source = sourceFromBody(body)
+  if (!source) return sendJson(response, 400, { error: 'AI_RADAR_SOURCE_INVALID' })
+  const checkedAt = new Date().toISOString()
 
-  const source = SOURCES[sourceId]
-  const scannedAt = new Date().toISOString()
   try {
     const html = await fetchOfficialIndex(source)
     const allAnchors = extractAnchors(html, source)
     const anchors = allAnchors.slice(0, MAX_ANCHORS)
     if (!anchors.length) return sendJson(response, 503, { error: 'AI_RADAR_SOURCE_EMPTY' })
 
-    const content = await callProvider(sourceId, source, anchors, keys)
-    const parsed = parseCandidates(content, anchors)
-    let verifiedOpportunityByUrl = new Map()
-    try {
-      verifiedOpportunityByUrl = verifiedOpportunityMapForSource(await loadVerifiedSnapshot(), source)
-    } catch {
-      // Discovery remains useful even when the independent benchmark snapshot is temporarily unavailable.
+    const fingerprint = anchorFingerprint(anchors)
+    const benchmark = await benchmarkContext(source, anchors)
+    const cached = reusablePreviousScan(body, source, anchors, fingerprint)
+    if (cached) {
+      return sendJson(response, 200, resultPayload({
+        source,
+        checkedAt,
+        analyzedAt: body.previous_scan.analyzed_at,
+        allAnchors,
+        anchors,
+        fingerprint,
+        parsed: cached,
+        benchmark,
+        aiCalled: false,
+      }))
     }
-    const historicalVerifiedUrls = new Set(verifiedOpportunityByUrl.keys())
-    const benchmarkVerifiedUrls = currentBenchmarkUrls(historicalVerifiedUrls, anchors)
 
-    const knownHitCount = parsed.candidates.filter((item) => benchmarkVerifiedUrls.has(item.url)).length
-    const knownRecall = benchmarkVerifiedUrls.size ? knownHitCount / benchmarkVerifiedUrls.size : null
-    const groundedRate = parsed.rawCount ? (parsed.rawCount - parsed.rejectedUngrounded) / parsed.rawCount : 1
-    const validRate = parsed.rawCount
-      ? (parsed.rawCount - parsed.rejectedUngrounded - parsed.rejectedInvalid) / parsed.rawCount
-      : 1
-    const discoveryScore = knownRecall === null
-      ? null
-      : Math.round((0.75 * knownRecall + 0.20 * groundedRate + 0.05 * validRate) * 1000) / 10
-
-    return sendJson(response, 200, {
-      schema_version: '0.1',
-      mode: 'AI_DISCOVERY_SHADOW',
-      source_id: sourceId,
-      source_name: source.name,
-      source_url: source.url,
-      scanned_at: scannedAt,
-      official_anchor_count: allAnchors.length,
-      analyzed_anchor_count: anchors.length,
-      anchor_cap_applied: allAnchors.length > anchors.length,
-      candidate_count: parsed.candidates.length,
-      historical_known_verified_count: historicalVerifiedUrls.size,
-      known_verified_count: benchmarkVerifiedUrls.size,
-      known_verified_hit_count: knownHitCount,
-      known_recall: knownRecall === null ? null : Math.round(knownRecall * 1000) / 1000,
-      discovery_score: discoveryScore,
-      benchmark_scope: 'CURRENT_ANALYZED_OFFICIAL_LINKS',
-      rejected_ungrounded_count: parsed.rejectedUngrounded,
-      rejected_invalid_count: parsed.rejectedInvalid,
-      production_data_mutated: false,
-      candidates: parsed.candidates.map((item) => {
-        const opportunityId = verifiedOpportunityByUrl.get(item.url) || null
-        return {
-          ...item,
-          verification_status: opportunityId ? 'KNOWN_VERIFIED' : 'DISCOVERED_UNVERIFIED',
-          opportunity_id: opportunityId,
-        }
-      }),
-    })
+    const keys = getApiKeys()
+    if (!keys.length) return sendJson(response, 503, { error: 'AI_RADAR_NOT_CONFIGURED' })
+    const content = await callProvider(source, anchors, keys)
+    const parsed = parseCandidates(content, anchors)
+    return sendJson(response, 200, resultPayload({
+      source,
+      checkedAt,
+      analyzedAt: checkedAt,
+      allAnchors,
+      anchors,
+      fingerprint,
+      parsed,
+      benchmark,
+      aiCalled: true,
+    }))
   } catch (error) {
     console.error('AI discovery radar failed', {
-      source_id: sourceId,
+      source_id: source.id,
+      source_host: new URL(source.url).hostname,
       error: error instanceof Error ? error.message : 'UNKNOWN',
     })
-    const code = error instanceof Error && error.message === 'AI_RESPONSE_INVALID'
+    const message = error instanceof Error ? error.message : ''
+    const code = message === 'AI_RESPONSE_INVALID'
       ? 'AI_RADAR_RESPONSE_INVALID'
-      : 'AI_RADAR_UNAVAILABLE'
+      : message.startsWith('SOURCE_')
+        ? message
+        : 'AI_RADAR_UNAVAILABLE'
     return sendJson(response, 503, { error: code })
   }
 }

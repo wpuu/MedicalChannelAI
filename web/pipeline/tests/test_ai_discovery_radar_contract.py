@@ -1,42 +1,76 @@
 from __future__ import annotations
 
-import json
 import unittest
 from pathlib import Path
 
 
 WEB_ROOT = Path(__file__).resolve().parents[2]
-REPO_ROOT = WEB_ROOT.parent
 
 
 class AiDiscoveryRadarContractTests(unittest.TestCase):
-    def test_radar_uses_only_fixed_official_source_registry(self):
+    def test_live_radar_scope_is_user_managed_not_fixed_to_three_hospitals(self):
         endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
-        registry = json.loads((WEB_ROOT / 'pipeline' / 'data' / 'agnes_discovery_sources.json').read_text(encoding='utf-8'))
-        for source in registry['sources']:
-            self.assertIn(source['source_id'], endpoint)
-            for seed_url in source['seed_urls']:
-                self.assertIn(seed_url, endpoint)
-        self.assertIn("sourceIdFromBody(body)", endpoint)
-        self.assertNotIn('body.url', endpoint)
-        self.assertNotIn('body.seed_url', endpoint)
+        page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
+        store = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarStore.ts').read_text(encoding='utf-8')
+        self.assertIn('sourceFromBody(body)', endpoint)
+        self.assertIn("body?.source", endpoint)
+        self.assertNotIn('const SOURCES = {', endpoint)
+        self.assertIn('添加渠道', page)
+        self.assertIn('修改', page)
+        self.assertIn('停用', page)
+        self.assertIn('删除', page)
+        self.assertIn('STARTER_SOURCES', store)
+        self.assertIn("origin: 'STARTER'", store)
+
+    def test_user_managed_source_fetch_has_public_network_guards(self):
+        endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
+        self.assertIn("parsed.protocol !== 'https:'", endpoint)
+        self.assertIn('assertPublicHostname', endpoint)
+        self.assertIn('privateIp(', endpoint)
+        self.assertIn("redirect: 'manual'", endpoint)
+        self.assertIn('SOURCE_REDIRECT_REJECTED', endpoint)
+        self.assertIn('MAX_SOURCE_BYTES', endpoint)
+
+    def test_radar_reuses_saved_result_when_official_link_fingerprint_is_unchanged(self):
+        endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
+        service = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarApi.ts').read_text(encoding='utf-8')
+        store = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarStore.ts').read_text(encoding='utf-8')
+        page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
+        self.assertIn('anchorFingerprint(anchors)', endpoint)
+        self.assertIn('reusablePreviousScan', endpoint)
+        self.assertIn("cache_status: aiCalled ? 'FRESH_AI' : 'REUSED_UNCHANGED'", endpoint)
+        self.assertIn('ai_called: aiCalled', endpoint)
+        self.assertIn('previous_scan', service)
+        self.assertIn('medicalchannelai.discovery.workspace.v2', store)
+        self.assertIn('saveDiscoveryWorkspace', page)
+        self.assertIn('官网未变化 · 复用保存结果', page)
+
+    def test_source_health_metrics_support_channel_optimization(self):
+        store = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarStore.ts').read_text(encoding='utf-8')
+        page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
+        self.assertIn('consecutive_failure_count', store)
+        self.assertIn('consecutive_zero_candidate_count', store)
+        self.assertIn("return 'REVIEW'", store)
+        self.assertIn("return 'LOW_YIELD'", store)
+        self.assertIn('建议检查或停用', page)
+        self.assertIn('低价值渠道', page)
 
     def test_radar_is_shadow_only_and_rejects_ungrounded_model_urls(self):
         endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
-        self.assertIn("production_data_mutated: false", endpoint)
-        self.assertIn("DISCOVERED_UNVERIFIED", endpoint)
-        self.assertIn("const anchor = allowed.get(rawUrl)", endpoint)
-        self.assertIn("rejectedUngrounded += 1", endpoint)
+        self.assertIn('production_data_mutated: false', endpoint)
+        self.assertIn('DISCOVERED_UNVERIFIED', endpoint)
+        self.assertIn('const anchor = allowed.get(rawUrl)', endpoint)
+        self.assertIn('rejectedUngrounded += 1', endpoint)
         self.assertNotIn('publish_web_snapshot', endpoint)
         self.assertNotIn('private_followups', endpoint)
 
-    def test_radar_has_same_origin_and_rate_limit_cost_guards(self):
+    def test_radar_has_same_origin_rate_limit_and_cost_guards(self):
         endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
         self.assertIn('sameOriginAllowed(request)', endpoint)
         self.assertIn('rateLimited(request)', endpoint)
-        self.assertIn("AI_RADAR_RATE_LIMITED", endpoint)
-        self.assertIn("MAX_ANCHORS = 80", endpoint)
-        self.assertIn("PROVIDER_TIMEOUT_MS = 12_000", endpoint)
+        self.assertIn('AI_RADAR_RATE_LIMITED', endpoint)
+        self.assertIn('MAX_ANCHORS = 80', endpoint)
+        self.assertIn('PROVIDER_TIMEOUT_MS = 12_000', endpoint)
 
     def test_radar_score_only_uses_gold_visible_to_current_scan(self):
         endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
@@ -54,7 +88,7 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         service = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarApi.ts').read_text(encoding='utf-8')
         page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
         self.assertIn('verifiedOpportunityMapForSource', endpoint)
-        self.assertIn('opportunity_id: opportunityId', endpoint)
+        self.assertIn('opportunity_id: benchmark.map.get(item.url) || null', endpoint)
         self.assertIn('opportunity_id: string | null', service)
         self.assertIn('打开已核验商机', page)
         self.assertIn('AI发现分', page)
@@ -65,9 +99,9 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
         self.assertIn('path="/radar"', app)
         self.assertIn('to="/radar"', layout)
-        self.assertIn('不给AI预置商机', page)
-        self.assertIn('不会自动进入正式商机池', page)
-        self.assertIn('模型编造链接会被拒绝', page)
+        self.assertIn('用户控制扫描范围', page)
+        self.assertIn('新候选仍需独立官方事实核验', page)
+        self.assertIn('拒绝内网地址、跨域跳转和模型编造链接', page)
 
 
 if __name__ == '__main__':
