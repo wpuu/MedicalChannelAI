@@ -1,14 +1,16 @@
 import type {
+  DiscoveryRadarCandidate,
   DiscoveryRadarResult,
   DiscoverySourceInput,
   DiscoverySourceKind,
 } from './discoveryRadarApi'
 
-const STORAGE_KEY = 'medicalchannelai.discovery.workspace.v2'
+const STORAGE_KEY = 'medicalchannelai.discovery.workspace.v3'
+const LEGACY_STORAGE_KEY = 'medicalchannelai.discovery.workspace.v2'
 
 export interface SavedDiscoverySource extends DiscoverySourceInput {
   enabled: boolean
-  origin: 'STARTER' | 'USER'
+  origin: 'USER'
   created_at: string
   updated_at: string
 }
@@ -25,36 +27,24 @@ export interface DiscoverySourceStats {
   last_error: string | null
 }
 
+export interface DiscoveryFinding extends DiscoveryRadarCandidate {
+  finding_key: string
+  source_id: string
+  source_name: string
+  source_url: string
+  first_seen_at: string
+  last_seen_at: string
+  times_seen: number
+  active_in_latest_scan: boolean
+}
+
 export interface DiscoveryWorkspace {
-  schema_version: 2
+  schema_version: 3
   sources: SavedDiscoverySource[]
   results: Record<string, DiscoveryRadarResult>
   stats: Record<string, DiscoverySourceStats>
+  findings: Record<string, DiscoveryFinding>
 }
-
-const STARTER_SOURCES: Array<Pick<SavedDiscoverySource, 'id' | 'name' | 'url' | 'kind' | 'origin'>> = [
-  {
-    id: 'starter-tjmugh',
-    name: '天津医科大学总医院',
-    url: 'https://www.tjmugh.com.cn/cgxxtzgg/index.shtml',
-    kind: 'HOSPITAL_OFFICIAL',
-    origin: 'STARTER',
-  },
-  {
-    id: 'starter-tjnothop',
-    name: '天津市天津医院',
-    url: 'https://www.tjnothop.cn/xwzx/index.shtml',
-    kind: 'HOSPITAL_OFFICIAL',
-    origin: 'STARTER',
-  },
-  {
-    id: 'starter-teda',
-    name: '天津泰达医院',
-    url: 'https://www.tedahospital.com.cn/article/plist/9',
-    kind: 'HOSPITAL_OFFICIAL',
-    origin: 'STARTER',
-  },
-]
 
 function nowIso() {
   return new Date().toISOString()
@@ -74,18 +64,13 @@ function blankStats(): DiscoverySourceStats {
   }
 }
 
-function starterWorkspace(): DiscoveryWorkspace {
-  const now = nowIso()
+function emptyWorkspace(): DiscoveryWorkspace {
   return {
-    schema_version: 2,
-    sources: STARTER_SOURCES.map((item) => ({
-      ...item,
-      enabled: true,
-      created_at: now,
-      updated_at: now,
-    })),
+    schema_version: 3,
+    sources: [],
     results: {},
     stats: {},
+    findings: {},
   }
 }
 
@@ -101,38 +86,74 @@ function isKind(value: unknown): value is DiscoverySourceKind {
 
 function validSource(value: unknown): value is SavedDiscoverySource {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  const row = value as Partial<SavedDiscoverySource>
+  const row = value as Partial<SavedDiscoverySource> & { origin?: string }
   return (
     typeof row.id === 'string' && row.id.length > 0 && row.id.length <= 96 &&
     typeof row.name === 'string' && row.name.length > 0 && row.name.length <= 100 &&
     typeof row.url === 'string' && row.url.startsWith('https://') && row.url.length <= 1200 &&
     isKind(row.kind) &&
     typeof row.enabled === 'boolean' &&
-    (row.origin === 'STARTER' || row.origin === 'USER') &&
+    row.origin === 'USER' &&
     typeof row.created_at === 'string' &&
     typeof row.updated_at === 'string'
   )
 }
 
+function findingKey(sourceId: string, url: string) {
+  return `${sourceId}\u0000${url}`
+}
+
+function migrateLegacyWorkspace(): DiscoveryWorkspace | null {
+  if (typeof window === 'undefined') return null
+  const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY)
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw) as {
+      sources?: Array<Partial<SavedDiscoverySource> & { origin?: string }>
+      results?: Record<string, DiscoveryRadarResult>
+      stats?: Record<string, DiscoverySourceStats>
+    }
+    const sources = (parsed.sources ?? [])
+      .filter((source) => source.origin === 'USER')
+      .filter(validSource)
+    const allowedIds = new Set(sources.map((source) => source.id))
+    const results = Object.fromEntries(
+      Object.entries(parsed.results ?? {}).filter(([sourceId]) => allowedIds.has(sourceId)),
+    )
+    const stats = Object.fromEntries(
+      Object.entries(parsed.stats ?? {}).filter(([sourceId]) => allowedIds.has(sourceId)),
+    )
+    const workspace: DiscoveryWorkspace = { schema_version: 3, sources, results, stats, findings: {} }
+    for (const result of Object.values(results)) {
+      workspace.findings = mergeDiscoveryFindings(workspace.findings, result)
+    }
+    return workspace
+  } catch {
+    return null
+  }
+}
+
 export function loadDiscoveryWorkspace(): DiscoveryWorkspace {
-  if (typeof window === 'undefined') return starterWorkspace()
+  if (typeof window === 'undefined') return emptyWorkspace()
   const raw = window.localStorage.getItem(STORAGE_KEY)
   if (!raw) {
-    const fresh = starterWorkspace()
+    const migrated = migrateLegacyWorkspace()
+    const fresh = migrated ?? emptyWorkspace()
     saveDiscoveryWorkspace(fresh)
     return fresh
   }
   try {
     const parsed = JSON.parse(raw) as Partial<DiscoveryWorkspace>
-    if (parsed.schema_version !== 2 || !Array.isArray(parsed.sources)) throw new Error('WORKSPACE_INVALID')
+    if (parsed.schema_version !== 3 || !Array.isArray(parsed.sources)) throw new Error('WORKSPACE_INVALID')
     return {
-      schema_version: 2,
+      schema_version: 3,
       sources: parsed.sources.filter(validSource),
       results: parsed.results && typeof parsed.results === 'object' ? parsed.results : {},
       stats: parsed.stats && typeof parsed.stats === 'object' ? parsed.stats : {},
+      findings: parsed.findings && typeof parsed.findings === 'object' ? parsed.findings : {},
     }
   } catch {
-    const fresh = starterWorkspace()
+    const fresh = emptyWorkspace()
     saveDiscoveryWorkspace(fresh)
     return fresh
   }
@@ -148,6 +169,34 @@ export function newDiscoverySourceId() {
     return `src-${crypto.randomUUID()}`
   }
   return `src-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+export function mergeDiscoveryFindings(
+  current: Record<string, DiscoveryFinding>,
+  result: DiscoveryRadarResult,
+): Record<string, DiscoveryFinding> {
+  const next: Record<string, DiscoveryFinding> = {}
+  for (const [key, item] of Object.entries(current)) {
+    next[key] = item.source_id === result.source_id
+      ? { ...item, active_in_latest_scan: false }
+      : item
+  }
+  for (const candidate of result.candidates) {
+    const key = findingKey(result.source_id, candidate.url)
+    const existing = next[key]
+    next[key] = {
+      ...candidate,
+      finding_key: key,
+      source_id: result.source_id,
+      source_name: result.source_name,
+      source_url: result.source_url,
+      first_seen_at: existing?.first_seen_at ?? result.analyzed_at,
+      last_seen_at: result.checked_at,
+      times_seen: (existing?.times_seen ?? 0) + 1,
+      active_in_latest_scan: true,
+    }
+  }
+  return next
 }
 
 export function recordDiscoverySuccess(

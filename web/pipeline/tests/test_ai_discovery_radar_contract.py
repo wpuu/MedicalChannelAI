@@ -8,19 +8,29 @@ WEB_ROOT = Path(__file__).resolve().parents[2]
 
 
 class AiDiscoveryRadarContractTests(unittest.TestCase):
-    def test_live_radar_scope_is_user_managed_not_fixed_to_three_hospitals(self):
+    def test_live_radar_scope_is_user_managed_and_starts_empty(self):
         endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
         page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
         store = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarStore.ts').read_text(encoding='utf-8')
         self.assertIn('sourceFromBody(body)', endpoint)
         self.assertIn("body?.source", endpoint)
         self.assertNotIn('const SOURCES = {', endpoint)
+        self.assertIn('sources: []', store)
+        self.assertNotIn('STARTER_SOURCES', store)
+        self.assertIn('新工作区默认没有医院', page)
         self.assertIn('添加渠道', page)
         self.assertIn('修改', page)
         self.assertIn('停用', page)
         self.assertIn('删除', page)
-        self.assertIn('STARTER_SOURCES', store)
-        self.assertIn("origin: 'STARTER'", store)
+
+    def test_bulk_import_is_explicit_user_input_not_hidden_hospital_registry(self):
+        page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
+        self.assertIn('批量导入', page)
+        self.assertIn('医院/机构名称 | https://官方栏目地址', page)
+        self.assertIn('importBulkSources', page)
+        self.assertIn('导入并加入扫描范围', page)
+        self.assertNotIn('天津医科大学总医院', page)
+        self.assertNotIn('天津泰达医院', page)
 
     def test_user_managed_source_fetch_has_public_network_guards(self):
         endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
@@ -41,9 +51,29 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         self.assertIn("cache_status: aiCalled ? 'FRESH_AI' : 'REUSED_UNCHANGED'", endpoint)
         self.assertIn('ai_called: aiCalled', endpoint)
         self.assertIn('previous_scan', service)
-        self.assertIn('medicalchannelai.discovery.workspace.v2', store)
+        self.assertIn('medicalchannelai.discovery.workspace.v3', store)
         self.assertIn('saveDiscoveryWorkspace', page)
         self.assertIn('官网未变化 · 复用保存结果', page)
+
+    def test_saved_findings_survive_new_scans_and_are_deduplicated_by_source_and_url(self):
+        store = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarStore.ts').read_text(encoding='utf-8')
+        page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
+        self.assertIn('interface DiscoveryFinding', store)
+        self.assertIn('mergeDiscoveryFindings', store)
+        self.assertIn('first_seen_at', store)
+        self.assertIn('last_seen_at', store)
+        self.assertIn('times_seen', store)
+        self.assertIn('active_in_latest_scan', store)
+        self.assertIn('findingKey(result.source_id, candidate.url)', store)
+        self.assertIn('累计保存的AI发现', page)
+        self.assertIn('新一轮扫描不会覆盖旧发现', page)
+        self.assertIn('历史已保存', page)
+
+    def test_legacy_live_templates_are_not_migrated_into_new_user_scope(self):
+        store = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarStore.ts').read_text(encoding='utf-8')
+        self.assertIn('LEGACY_STORAGE_KEY', store)
+        self.assertIn("source.origin === 'USER'", store)
+        self.assertNotIn("origin: 'STARTER'", store)
 
     def test_source_health_metrics_support_channel_optimization(self):
         store = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarStore.ts').read_text(encoding='utf-8')
@@ -99,8 +129,8 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         page = (WEB_ROOT / 'src' / 'pages' / 'DiscoveryRadarPage.tsx').read_text(encoding='utf-8')
         self.assertIn('path="/radar"', app)
         self.assertIn('to="/radar"', layout)
-        self.assertIn('用户控制扫描范围', page)
-        self.assertIn('新候选仍需独立官方事实核验', page)
+        self.assertIn('扫描范围由用户维护', page)
+        self.assertIn('独立核验前不发布', page)
         self.assertIn('拒绝内网地址、跨域跳转和模型编造链接', page)
 
 
