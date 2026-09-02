@@ -18,6 +18,12 @@ def load_array(path: Path, *, label: str) -> list[dict]:
     return payload
 
 
+def load_optional_array(path: Path, *, label: str) -> list[dict]:
+    if not path.exists():
+        return []
+    return load_array(path, label=label)
+
+
 def _normalize_legacy_card(card: dict) -> dict:
     normalized = dict(card)
     facts = dict(normalized.get('facts') or {})
@@ -88,6 +94,10 @@ class PublishedWebSnapshotTests(unittest.TestCase):
             PIPELINE_ROOT / 'data' / 'tianjin_live_tjnothop_records.json',
             label='live Tianjin Hospital state',
         )
+        live_teda = load_optional_array(
+            PIPELINE_ROOT / 'data' / 'tianjin_live_teda_records.json',
+            label='live TEDA state',
+        )
 
         ccgp_source = live_ccgp if live_ccgp else load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_verified_seed.json', label='CCGP seed'
@@ -95,7 +105,7 @@ class PublishedWebSnapshotTests(unittest.TestCase):
         tmugh_source = live_tjmugh if live_tjmugh else load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_official_institution_seed.json', label='TMUGH seed'
         )
-        records = [*ccgp_source, *tmugh_source, *live_tjnothop]
+        records = [*ccgp_source, *tmugh_source, *live_tjnothop, *live_teda]
 
         notice_events = load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json', label='notice events'
