@@ -20,11 +20,13 @@ const OPTIONS: Array<{ value: OpportunityFeedback; label: string }> = [
 interface RecommendationFeedbackProps {
   opportunityId: string
   onWorthFollowing?: () => void
+  onFeedbackChanged?: (value: OpportunityFeedback | null) => Promise<void> | void
 }
 
 export function RecommendationFeedback({
   opportunityId,
   onWorthFollowing,
+  onFeedbackChanged,
 }: RecommendationFeedbackProps) {
   const localSelected = useSyncExternalStore(
     subscribeOpportunityFeedback,
@@ -69,6 +71,7 @@ export function RecommendationFeedback({
       if (next === 'NEW_WORTH_FOLLOWING' && previous !== 'NEW_WORTH_FOLLOWING') {
         onWorthFollowing?.()
       }
+      await onFeedbackChanged?.(next)
       return
     }
 
@@ -80,6 +83,7 @@ export function RecommendationFeedback({
       if (confirmed === 'NEW_WORTH_FOLLOWING' && previous !== 'NEW_WORTH_FOLLOWING') {
         onWorthFollowing?.()
       }
+      await onFeedbackChanged?.(confirmed)
     } catch {
       setRemoteSelected(previous)
       setError(true)
@@ -93,7 +97,7 @@ export function RecommendationFeedback({
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
           <p className="text-[11px] leading-5 text-slate-500">
-            这条推荐对你？反馈只用于改进推荐质量，不改变官方事实。
+            这条推荐对你？反馈不改变业务优先级分；尚未跟进的“没价值”项目会退出今日队列，“早就知道”会降低新发现优先级。
           </p>
           {isApiMode && !remoteLoaded ? (
             <p className="text-[10px] leading-4 text-slate-400">正在读取账号反馈…</p>
