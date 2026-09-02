@@ -1,5 +1,6 @@
 import { Plus, Save, ShieldCheck, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { AccountDataCard } from '@/components/profile/AccountDataCard'
 import { LocalProfileImportCard } from '@/components/profile/LocalProfileImportCard'
 import type { CapabilityType, RelationshipStrength } from '@/types'
 import { useToast } from '@/context/ToastContext'
@@ -303,10 +304,12 @@ export function PilotResourcesPage() {
         </div>
       </section>
 
-      <div className="flex flex-wrap justify-end gap-2 pb-4">
+      <div className="flex flex-wrap justify-end gap-2">
         <button type="button" disabled={saving} onClick={() => void clear()} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] text-slate-600 hover:bg-slate-50 disabled:opacity-50">清空账号资源</button>
         <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-4 py-2 text-[13px] font-medium text-white hover:bg-teal-800 disabled:opacity-50"><Save className="h-4 w-4" />{saving ? '保存中…' : '保存到账号'}</button>
       </div>
+
+      <AccountDataCard />
     </div>
   )
 }
