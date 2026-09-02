@@ -8,7 +8,7 @@ export const config = { maxDuration: 30 }
 const PUBLIC_FIRST_PARTY_ORIGIN = 'https://medicalai.qd.je'
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const MODEL_ID = 'agnes-2.5-flash'
-const ANALYSIS_VERSION = 'agnes-discovery-live-v3-delta'
+const ANALYSIS_VERSION = 'agnes-discovery-live-v4-safe-next-page'
 const RATE_WINDOW_MS = 60 * 1000
 const RATE_MAX_PER_CLIENT = 30
 const PROVIDER_TIMEOUT_MS = 12_000
@@ -17,6 +17,7 @@ const MAX_SOURCE_BYTES = 2_000_000
 const MAX_REQUEST_BODY_BYTES = 262_144
 const MAX_ANCHORS = 80
 const MAX_REDIRECTS = 3
+const MAX_COVERAGE_PAGES = 2
 const rateBuckets = new Map()
 
 const SOURCE_KINDS = new Set([
@@ -34,6 +35,14 @@ const SIGNAL_TYPES = new Set([
   'ARGUMENTATION_INVITATION',
   'PURCHASE_INTENTION',
   'OTHER_PREPROCUREMENT',
+])
+
+const NEXT_PAGE_LABELS = new Set([
+  '下一页',
+  '下页',
+  '下一頁',
+  'next',
+  'next page',
 ])
 
 function sendJson(response, status, payload) {
@@ -219,7 +228,7 @@ function canonicalOfficialUrl(value, baseUrl, allowedHosts) {
   return parsed.toString()
 }
 
-function extractAnchors(html, source) {
+function extractAnchors(html, source, baseUrl = source.url) {
   const regex = /<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi
   const seen = new Set()
   const rows = []
@@ -227,12 +236,43 @@ function extractAnchors(html, source) {
   while ((match = regex.exec(html)) !== null && rows.length < 400) {
     const title = htmlText(match[2]).slice(0, 220)
     if (!title) continue
-    const url = canonicalOfficialUrl(match[1], source.url, source.hosts)
+    const url = canonicalOfficialUrl(match[1], baseUrl, source.hosts)
     if (!url || seen.has(url)) continue
     seen.add(url)
     rows.push({ title, url })
   }
   return rows
+}
+
+function anchorAttribute(attributes, name) {
+  const pattern = new RegExp(`\\b${name}\\s*=\\s*["']([^"']+)["']`, 'i')
+  return pattern.exec(attributes)?.[1] ?? null
+}
+
+function extractNextPageUrl(html, source, baseUrl) {
+  const linkRegex = /<link\b([^>]*?)>/gi
+  let linkMatch
+  while ((linkMatch = linkRegex.exec(html)) !== null) {
+    const rel = (anchorAttribute(linkMatch[1], 'rel') || '').toLowerCase().split(/\s+/)
+    if (!rel.includes('next')) continue
+    const href = anchorAttribute(linkMatch[1], 'href')
+    const url = href ? canonicalOfficialUrl(href, baseUrl, source.hosts) : null
+    if (url && url !== baseUrl) return url
+  }
+
+  const anchorRegex = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi
+  let anchorMatch
+  while ((anchorMatch = anchorRegex.exec(html)) !== null) {
+    const attributes = anchorMatch[1]
+    const href = anchorAttribute(attributes, 'href')
+    if (!href) continue
+    const rel = (anchorAttribute(attributes, 'rel') || '').toLowerCase().split(/\s+/)
+    const label = htmlText(anchorMatch[2]).toLowerCase().replace(/\s+/g, ' ').trim()
+    if (!rel.includes('next') && !NEXT_PAGE_LABELS.has(label)) continue
+    const url = canonicalOfficialUrl(href, baseUrl, source.hosts)
+    if (url && url !== baseUrl) return url
+  }
+  return null
 }
 
 function textQuality(text) {
@@ -257,8 +297,8 @@ function decodeBody(buffer, declaredCharset) {
   return decoded[0]?.text || new TextDecoder('utf-8').decode(buffer)
 }
 
-async function fetchOfficialIndex(source) {
-  let currentUrl = source.url
+async function fetchOfficialPage(source, pageUrl) {
+  let currentUrl = pageUrl
   for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
     const parsed = new URL(currentUrl)
     if (!source.hosts.has(parsed.hostname.toLowerCase())) throw new Error('SOURCE_REDIRECT_REJECTED')
@@ -271,7 +311,7 @@ async function fetchOfficialIndex(source) {
         signal: controller.signal,
         redirect: 'manual',
         headers: {
-          'User-Agent': 'MedicalChannelAI/0.3 (+incremental public source radar)',
+          'User-Agent': 'MedicalChannelAI/0.4 (+incremental public source radar)',
           Accept: 'text/html,application/xhtml+xml',
           'Accept-Language': 'zh-CN,zh;q=0.9',
         },
@@ -294,9 +334,45 @@ async function fetchOfficialIndex(source) {
     const declared = /charset\s*=\s*([^;\s]+)/i.exec(contentType)?.[1]?.replace(/["']/g, '') || null
     const buffer = await response.arrayBuffer()
     if (buffer.byteLength > MAX_SOURCE_BYTES) throw new Error('SOURCE_TOO_LARGE')
-    return decodeBody(buffer, declared)
+    return { html: decodeBody(buffer, declared), url: currentUrl }
   }
   throw new Error('SOURCE_REDIRECT_REJECTED')
+}
+
+async function fetchOfficialCoverage(source) {
+  const seenPageUrls = new Set()
+  const anchorByUrl = new Map()
+  const pageUrls = []
+  let nextPageDetected = false
+  let pageLimitApplied = false
+  let currentUrl = source.url
+
+  for (let pageIndex = 0; pageIndex < MAX_COVERAGE_PAGES; pageIndex += 1) {
+    if (seenPageUrls.has(currentUrl)) break
+    seenPageUrls.add(currentUrl)
+    const page = await fetchOfficialPage(source, currentUrl)
+    pageUrls.push(page.url)
+    for (const anchor of extractAnchors(page.html, source, page.url)) {
+      if (!anchorByUrl.has(anchor.url)) anchorByUrl.set(anchor.url, anchor)
+    }
+    if (anchorByUrl.size >= MAX_ANCHORS) break
+
+    const nextUrl = extractNextPageUrl(page.html, source, page.url)
+    if (!nextUrl || seenPageUrls.has(nextUrl)) break
+    nextPageDetected = true
+    if (pageIndex + 1 >= MAX_COVERAGE_PAGES) {
+      pageLimitApplied = true
+      break
+    }
+    currentUrl = nextUrl
+  }
+
+  return {
+    anchors: Array.from(anchorByUrl.values()),
+    pageUrls,
+    nextPageDetected,
+    pageLimitApplied,
+  }
 }
 
 function getApiKeys() {
@@ -544,7 +620,7 @@ async function benchmarkContext(source, anchors) {
 
 function resultPayload({
   source, checkedAt, analyzedAt, allAnchors, anchors, fingerprint, parsed, benchmark,
-  aiCalled, cacheStatus, aiAnalyzedAnchorCount, delta,
+  aiCalled, cacheStatus, aiAnalyzedAnchorCount, delta, coverage,
 }) {
   const knownHits = parsed.candidates.filter((item) => benchmark.currentGold.has(item.url)).length
   const knownRecall = benchmark.currentGold.size ? knownHits / benchmark.currentGold.size : null
@@ -579,6 +655,10 @@ function resultPayload({
     reused_anchor_count: delta.reusedCount,
     anchor_cap_applied: allAnchors.length > anchors.length,
     anchor_snapshot: anchors,
+    coverage_page_count: coverage.pageUrls.length,
+    coverage_page_urls: coverage.pageUrls,
+    coverage_next_page_detected: coverage.nextPageDetected,
+    coverage_page_limit_applied: coverage.pageLimitApplied,
     raw_candidate_count: parsed.rawCount,
     candidate_count: parsed.candidates.length,
     historical_known_verified_count: benchmark.map.size,
@@ -612,8 +692,8 @@ export default async function handler(request, response) {
   const checkedAt = new Date().toISOString()
 
   try {
-    const html = await fetchOfficialIndex(source)
-    const allAnchors = extractAnchors(html, source)
+    const coverage = await fetchOfficialCoverage(source)
+    const allAnchors = coverage.anchors
     const anchors = allAnchors.slice(0, MAX_ANCHORS)
     if (!anchors.length) return sendJson(response, 503, { error: 'AI_RADAR_SOURCE_EMPTY' })
 
@@ -627,6 +707,7 @@ export default async function handler(request, response) {
         parsed: previous.exactParsed, benchmark, aiCalled: false, cacheStatus: 'REUSED_UNCHANGED',
         aiAnalyzedAnchorCount: 0,
         delta: { newCount: 0, changedCount: 0, removedCount: 0, reusedCount: anchors.length },
+        coverage,
       }))
     }
 
@@ -634,7 +715,7 @@ export default async function handler(request, response) {
       return sendJson(response, 200, resultPayload({
         source, checkedAt, analyzedAt: previous.analyzedAt, allAnchors, anchors, fingerprint,
         parsed: previous.reusedParsed, benchmark, aiCalled: false, cacheStatus: 'REUSED_NO_NEW_LINKS',
-        aiAnalyzedAnchorCount: 0, delta: previous,
+        aiAnalyzedAnchorCount: 0, delta: previous, coverage,
       }))
     }
 
@@ -656,6 +737,7 @@ export default async function handler(request, response) {
       cacheStatus: previous ? 'FRESH_DELTA_AI' : 'FRESH_AI',
       aiAnalyzedAnchorCount: aiAnchors.length,
       delta,
+      coverage,
     }))
   } catch (error) {
     console.error('AI discovery radar failed', {
