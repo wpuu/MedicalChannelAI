@@ -50,7 +50,8 @@ assert.match(reminders, /我的跟进/)
 assert.match(reminders, /onAcknowledge\(item\.reminder_id\)/)
 
 const actionCard = read('src/components/today/ActionCard.tsx')
-assert.match(actionCard, /为什么排前/)
+assert.match(actionCard, /主要匹配维度（完成度）/)
+assert.match(actionCard, /不是直接加分/)
 assert.match(actionCard, /公告公开联系人/)
 assert.match(actionCard, /PRODUCT_EXECUTION_CAPABILITY/)
 
