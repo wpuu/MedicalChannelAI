@@ -1,0 +1,38 @@
+{
+  "schema_version": "0.1",
+  "sources": [
+    {
+      "source_id": "TMUGH",
+      "display_name": "天津医科大学总医院",
+      "seed_urls": [
+        "https://www.tjmugh.com.cn/cgxxtzgg/index.shtml"
+      ],
+      "allowed_hosts": [
+        "www.tjmugh.com.cn",
+        "tjmugh.com.cn"
+      ]
+    },
+    {
+      "source_id": "TJNOTHOP",
+      "display_name": "天津市天津医院",
+      "seed_urls": [
+        "https://www.tjnothop.cn/xwzx/index.shtml"
+      ],
+      "allowed_hosts": [
+        "www.tjnothop.cn",
+        "tjnothop.cn"
+      ]
+    },
+    {
+      "source_id": "TEDA",
+      "display_name": "天津泰达医院",
+      "seed_urls": [
+        "https://www.tedahospital.com.cn/article/plist/9"
+      ],
+      "allowed_hosts": [
+        "www.tedahospital.com.cn",
+        "tedahospital.com.cn"
+      ]
+    }
+  ]
+}

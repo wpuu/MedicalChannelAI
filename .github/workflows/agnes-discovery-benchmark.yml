@@ -1,0 +1,46 @@
+name: Agnes Discovery Shadow Benchmark
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Unit tests
+        working-directory: web/pipeline
+        run: python -m unittest tests.test_agnes_discovery -v
+
+      - name: Run Agnes shadow mining benchmark
+        env:
+          AGNES_API_KEYS: ${{ secrets.AGNES_API_KEYS }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${AGNES_API_KEYS:-}" ]]; then
+            echo 'AGNES_API_KEYS GitHub Actions secret is not configured; refusing to fake a benchmark.' >&2
+            exit 2
+          fi
+          python web/pipeline/scripts/run_agnes_discovery_benchmark.py \
+            --output /tmp/agnes-discovery-benchmark.json
+
+      - name: Upload benchmark report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agnes-discovery-benchmark
+          path: /tmp/agnes-discovery-benchmark.json
+          if-no-files-found: warn
+          retention-days: 7
