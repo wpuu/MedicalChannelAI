@@ -4,6 +4,7 @@ import type {
   HospitalRelationship,
   MatchingProductCapability,
   RelationshipStrength,
+  TargetHospitalInterest,
   TodayActionCard,
 } from '@/types'
 
@@ -302,15 +303,15 @@ function hospitalNamesMatch(buyer: string, hospital: string): boolean {
   return buyer.includes(hospital) || hospital.includes(buyer)
 }
 
-function relationAppliesToCard(
-  relation: LocalHospitalRelationship,
+function hospitalScopeAppliesToCard(
+  item: Pick<LocalHospitalRelationship, 'hospital' | 'department'> | LocalTargetHospital,
   card: TodayActionCard,
 ): boolean {
   const buyer = normalizeForMatch(card.facts.hospital ?? card.facts.buyer_name)
-  const hospital = normalizeForMatch(relation.hospital)
+  const hospital = normalizeForMatch(item.hospital)
   if (!buyer || !hospital || !hospitalNamesMatch(buyer, hospital)) return false
 
-  const scopedDepartment = normalizeForMatch(relation.department)
+  const scopedDepartment = normalizeForMatch(item.department)
   if (!scopedDepartment) return true
 
   const cardDepartment = normalizeForMatch(card.facts.department)
@@ -328,12 +329,19 @@ function relationshipForCard(
 ): LocalHospitalRelationship | null {
   let best: LocalHospitalRelationship | null = null
   for (const relation of profile.hospital_relationships) {
-    if (!relationAppliesToCard(relation, card)) continue
+    if (!hospitalScopeAppliesToCard(relation, card)) continue
     if (!best || relationshipPoints(relation.relationship_strength) > relationshipPoints(best.relationship_strength)) {
       best = relation
     }
   }
   return best
+}
+
+function targetForCard(
+  card: TodayActionCard,
+  profile: LocalCustomerProfile,
+): LocalTargetHospital | null {
+  return profile.target_hospitals.find((target) => hospitalScopeAppliesToCard(target, card)) ?? null
 }
 
 function capabilitiesForCard(
@@ -399,10 +407,19 @@ function executionFlexibilityPoints(
 }
 
 function toCustomerContext(
+  target: LocalTargetHospital | null,
   relation: LocalHospitalRelationship | null,
   capabilities: LocalProductCapability[],
   profile: LocalCustomerProfile,
 ): CustomerContext {
+  const targetHospital: TargetHospitalInterest | null = target
+    ? {
+        hospital: target.hospital,
+        department: target.department,
+        watched_by_customer: true,
+        updated_at: profile.updated_at,
+      }
+    : null
   const hospitalRelationship: HospitalRelationship | null = relation
     ? {
         hospital: relation.hospital,
@@ -422,6 +439,7 @@ function toCustomerContext(
   }))
 
   return {
+    target_hospital: targetHospital,
     hospital_relationship: hospitalRelationship,
     matching_product_capabilities: matching,
     partnering_policy: {
@@ -437,6 +455,7 @@ export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard
   if (
     profile.product_capabilities.length === 0 &&
     profile.hospital_relationships.length === 0 &&
+    profile.target_hospitals.length === 0 &&
     profile.can_find_manufacturer === null &&
     profile.can_partner_channel === null &&
     profile.can_handle_lease === null
@@ -445,6 +464,7 @@ export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard
   }
 
   const personalized = cards.map((card) => {
+    const target = targetForCard(card, profile)
     const relation = relationshipForCard(card, profile)
     const capabilities = capabilitiesForCard(card, profile)
     const capabilityPoint = capabilities.reduce(
@@ -464,8 +484,8 @@ export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard
 
     return {
       ...card,
-      match_status: privatePoints > 0 ? 'MATCHED_PERSONALIZED' : card.match_status,
-      customer_context: toCustomerContext(relation, capabilities, profile),
+      match_status: privatePoints > 0 || target ? 'MATCHED_PERSONALIZED' : card.match_status,
+      customer_context: toCustomerContext(target, relation, capabilities, profile),
       priority: {
         score: Math.min(100, publicBase + privatePoints),
         score_scope: 'PERSONALIZED' as const,
