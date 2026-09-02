@@ -1,7 +1,7 @@
-import { API_BASE_URL } from './apiConfig'
+import { apiBaseUrl } from './apiConfig'
 
 async function accountRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
     credentials: 'include',
     headers: {
