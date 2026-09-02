@@ -4,7 +4,6 @@ import { ExternalLink, Loader2, RefreshCw, ScanSearch, ShieldCheck } from 'lucid
 import {
   discoveryContinuationErrorMessage,
   scanDiscoveryContinuation,
-  type DiscoveryContinuationSegment,
 } from '@/services/discoveryContinuationApi'
 import {
   appendContinuationSegment,
