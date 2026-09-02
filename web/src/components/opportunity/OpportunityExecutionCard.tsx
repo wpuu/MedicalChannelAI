@@ -22,12 +22,18 @@ const CAPABILITY_OPTIONS: CapabilityType[] = [
   'CAN_SOURCE_PARTNER',
   'SERVICE_ONLY',
 ]
+const OBVIOUS_MEDICAL_INSTITUTION = /(医院|卫生院|社区卫生服务中心|妇幼保健院|妇幼保健中心|疾病预防控制中心|疾控中心|血液中心|医学中心|急救中心|疗养院)/
 
 function normalize(value: string | null | undefined): string {
   return String(value || '')
     .trim()
     .toLowerCase()
     .replace(/[\s\-_—–·,，。；;：:（）()【】\[\]]+/g, '')
+}
+
+function medicalInstitutionBuyer(value: string | null | undefined): string | null {
+  const name = value?.trim() || ''
+  return name && OBVIOUS_MEDICAL_INSTITUTION.test(name) ? name : null
 }
 
 function sameScope(
@@ -132,7 +138,10 @@ export function OpportunityExecutionCard({
     }
   }, [navigate])
 
-  const hospital = card.facts.hospital?.trim() || null
+  const explicitHospital = card.facts.hospital?.trim() || null
+  const fallbackBuyerHospital = explicitHospital ? null : medicalInstitutionBuyer(card.facts.buyer_name)
+  const hospital = explicitHospital ?? fallbackBuyerHospital
+  const hospitalFromBuyer = Boolean(!explicitHospital && fallbackBuyerHospital)
   const department = card.facts.department?.trim() || null
   const contextTarget = card.customer_context.target_hospital ?? null
   const relationship = card.customer_context.hospital_relationship
@@ -273,8 +282,10 @@ export function OpportunityExecutionCard({
             hospital
               ? alreadyTargeted
                 ? '表示你想持续经营/监控，不代表已有院内关系。'
-                : '加入后可在“目标”页持续查看该医院的已核验机会。'
-              : '不会根据采购单位名称猜测目标医院。'
+                : hospitalFromBuyer
+                  ? '公告未单列医院字段，但采购单位名称明确包含医疗机构称谓；仍只作为重点关注，不代表已有关系。'
+                  : '加入后可在“目标”页持续查看该医院的已核验机会。'
+              : '不会把普通采购单位、代理机构或公司名称猜成目标医院。'
           }
         />
         <StatusRow
