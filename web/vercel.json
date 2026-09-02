@@ -34,6 +34,15 @@
     }
   ],
   "rewrites": [
+    { "source": "/api/auth/register", "destination": "/api/auth?route=register" },
+    { "source": "/api/auth/login", "destination": "/api/auth?route=login" },
+    { "source": "/api/auth/logout", "destination": "/api/auth?route=logout" },
+    { "source": "/api/auth/me", "destination": "/api/auth?route=me" },
+    { "source": "/api/today", "destination": "/api/private?route=today" },
+    { "source": "/api/opportunity/:id", "destination": "/api/private?route=opportunity&id=:id" },
+    { "source": "/api/followup/:id", "destination": "/api/private?route=followup&id=:id" },
+    { "source": "/api/followed", "destination": "/api/private?route=followed" },
+    { "source": "/api/feedback/:id", "destination": "/api/private?route=feedback&id=:id" },
     {
       "source": "/(.*)",
       "destination": "/index.html"
