@@ -23,6 +23,12 @@ class TedaSyncTests(unittest.TestCase):
         self.assertFalse(sync_teda.is_retryable_fetch_error(RuntimeError('TEDA_HTTP_404')))
         self.assertFalse(sync_teda.is_retryable_fetch_error(ValueError('TEDA_PRODUCT_SECTION_NOT_FOUND')))
 
+    def test_missing_official_publication_date_is_explicitly_unsupported(self) -> None:
+        self.assertIn(
+            'TEDA_OFFICIAL_PUBLISHED_DATE_NOT_AVAILABLE',
+            sync_teda.UNSUPPORTED_DETAIL_CODES,
+        )
+
     def test_transient_fetch_retries_once_then_succeeds(self) -> None:
         with (
             patch.object(
