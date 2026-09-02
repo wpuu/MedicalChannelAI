@@ -1,0 +1,33 @@
+name: One-time local score scope fix
+
+on:
+  push:
+    branches:
+      - chatgpt/opportunity-ranking-v2-final
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply exact one-line fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('web/src/services/localCustomerProfile.ts')
+          s = p.read_text(encoding='utf-8')
+          old = "        score_scope: 'PERSONALIZED',"
+          new = "        score_scope: 'PERSONALIZED' as const,"
+          if s.count(old) != 1:
+              raise SystemExit(f'expected exactly one target, found {s.count(old)}')
+          p.write_text(s.replace(old, new), encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/src/services/localCustomerProfile.ts
+          git commit -m "fix: preserve personalized score scope literal type"
+          git push
