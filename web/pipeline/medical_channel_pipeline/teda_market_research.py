@@ -110,7 +110,7 @@ def _resolve_published_at(text: str, index_published_at: str | None) -> tuple[st
         return detail_date, False
     if index_date:
         return index_date, True
-    raise TedaParseError('TEDA_PUBLISHED_DATE_NOT_FOUND')
+    raise TedaParseError('TEDA_OFFICIAL_PUBLISHED_DATE_NOT_AVAILABLE')
 
 
 def _parse_money(value: str, unit: str) -> int:
@@ -126,6 +126,27 @@ def _parse_money(value: str, unit: str) -> int:
     return int(integral)
 
 
+def _inside_parenthetical(text: str, position: int) -> bool:
+    depth = 0
+    for char in text[:position]:
+        if char in {'(', '（'}:
+            depth += 1
+        elif char in {')', '）'} and depth:
+            depth -= 1
+    return depth > 0
+
+
+def _split_trailing_specification(raw_name: str) -> tuple[str, str | None]:
+    match = re.fullmatch(r'(.+?)\s*[（(]\s*(.+?)\s*[）)]\s*', raw_name)
+    if not match:
+        return raw_name, None
+    name = match.group(1).strip(' ：:;；,，')
+    specification = match.group(2).strip(' ：:;；,，')
+    if not name or not specification:
+        return raw_name, None
+    return name, specification
+
+
 def _product_segment_to_item(segment: str) -> tuple[dict[str, Any], int | None]:
     segment = re.sub(r'\s+', ' ', segment).strip(' ;；,，')
     budget_match = re.search(
@@ -136,8 +157,16 @@ def _product_segment_to_item(segment: str) -> tuple[dict[str, Any], int | None]:
     if budget_match:
         unit = '万' if budget_match.group(2) in {'万', '万元'} else '元'
         budget = _parse_money(budget_match.group(1), unit)
-    quantity_match = re.search(r'([0-9]+(?:\.[0-9]+)?)\s*(台|套|个|批|件|组)', segment)
+
+    quantity_match = None
+    for match in re.finditer(r'([0-9]+(?:\.[0-9]+)?)\s*(台|套|个|批|件|组)', segment):
+        if budget_match and match.start() >= budget_match.start():
+            break
+        if not _inside_parenthetical(segment, match.start()):
+            quantity_match = match
+            break
     quantity = ''.join(quantity_match.groups()) if quantity_match else None
+
     name_end_candidates = [
         match.start()
         for match in (quantity_match, budget_match)
@@ -146,6 +175,7 @@ def _product_segment_to_item(segment: str) -> tuple[dict[str, Any], int | None]:
     name_end = min(name_end_candidates) if name_end_candidates else len(segment)
     raw_name = segment[:name_end].strip(' ：:;；,，')
     raw_name = re.sub(r'^设备明细\s*[：:]?\s*', '', raw_name).strip()
+    raw_name, specification = _split_trailing_specification(raw_name)
     if not raw_name or raw_name in {'设备明细', '其他需求'}:
         raise TedaParseError('TEDA_PRODUCT_NAME_EMPTY')
     return (
@@ -153,7 +183,7 @@ def _product_segment_to_item(segment: str) -> tuple[dict[str, Any], int | None]:
             'raw_name': raw_name,
             'category': None,
             'quantity': quantity,
-            'specification': None,
+            'specification': specification,
         },
         budget,
     )
