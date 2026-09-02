@@ -22,12 +22,12 @@ def deployable_function_files():
 
 
 class VercelHobbyBudgetTests(unittest.TestCase):
-    def test_serverless_function_count_stays_within_hobby_limit(self):
+    def test_serverless_function_count_keeps_one_spare_hobby_slot(self):
         routes = deployable_function_files()
         self.assertLessEqual(
             len(routes),
-            HOBBY_FUNCTION_LIMIT,
-            f"Vercel Hobby supports at most {HOBBY_FUNCTION_LIMIT} functions; found {len(routes)}: {routes}",
+            HOBBY_FUNCTION_LIMIT - 1,
+            f"Keep at least one spare Vercel Hobby function slot; found {len(routes)}: {routes}",
         )
 
     def test_private_api_routes_are_consolidated(self):
@@ -47,6 +47,12 @@ class VercelHobbyBudgetTests(unittest.TestCase):
         ]:
             self.assertNotIn(obsolete, routes)
 
+    def test_discovery_continuation_reuses_existing_discover_function(self):
+        routes = deployable_function_files()
+        self.assertIn("ai/discover.js", routes)
+        self.assertNotIn("ai/discover-continuation.js", routes)
+        self.assertTrue((API_ROOT / "ai" / "_discoverContinuation.js").is_file())
+
     def test_legacy_frontend_paths_rewrite_to_consolidated_routers(self):
         config = json.loads(VERCEL_CONFIG.read_text(encoding="utf-8"))
         rewrites = {
@@ -64,6 +70,7 @@ class VercelHobbyBudgetTests(unittest.TestCase):
             "/api/followup/:id": "/api/private?route=followup&id=:id",
             "/api/followed": "/api/private?route=followed",
             "/api/feedback/:id": "/api/private?route=feedback&id=:id",
+            "/api/ai/discover-continuation": "/api/ai/discover?route=continuation",
         }
         for source, destination in expected.items():
             self.assertEqual(rewrites.get(source), destination)
