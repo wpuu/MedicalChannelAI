@@ -16,6 +16,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
+import { useDiscoveryWorkspace } from '@/components/discovery/DiscoveryWorkspaceProvider'
 import {
   DiscoveryRadarError,
   discoveryRadarErrorMessage,
@@ -30,7 +31,6 @@ import {
 } from '@/services/discoveryCoverageRisk'
 import {
   discoverySourceHealth,
-  loadDiscoveryWorkspace,
   loadDiscoveryWorkspaceDurable,
   mergeDiscoveryFindings,
   newDiscoverySourceId,
@@ -38,7 +38,6 @@ import {
   recordDiscoverySuccess,
   requestDiscoveryStoragePersistence,
   saveDiscoveryWorkspace,
-  type DiscoveryStorageStatus,
   type SavedDiscoverySource,
 } from '@/services/discoveryRadarStore'
 import { formatDateTime } from '@/utils/format'
@@ -140,9 +139,14 @@ function coverageRiskLabel(code: DiscoveryCoverageRiskCode) {
 }
 
 export function DiscoveryRadarPage() {
-  const [workspace, setWorkspace] = useState(() => loadDiscoveryWorkspace())
-  const [storageReady, setStorageReady] = useState(false)
-  const [storageStatus, setStorageStatus] = useState<DiscoveryStorageStatus | null>(null)
+  const {
+    workspace,
+    setWorkspace,
+    storageReady,
+    setStorageReady,
+    storageStatus,
+    setStorageStatus,
+  } = useDiscoveryWorkspace()
   const [busySource, setBusySource] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -177,7 +181,7 @@ export function DiscoveryRadarPage() {
       if (active) setStorageStatus(status)
     })
     return () => { active = false }
-  }, [storageReady, workspace])
+  }, [storageReady, workspace, setStorageStatus])
 
   const enabledSources = useMemo(() => workspace.sources.filter((source) => source.enabled), [workspace.sources])
   const scopeNames = useMemo(
