@@ -383,8 +383,18 @@ export class ApiTodayActionsService implements TodayActionsService {
         ...(init?.headers ?? {}),
       },
     })
-    if (!response.ok) throw new Error(`HTTP_${response.status}`)
-    const payload: unknown = await response.json()
+
+    let payload: unknown
+    try {
+      payload = await response.json()
+    } catch {
+      throw new Error(response.ok ? 'API_RESPONSE_INVALID' : `HTTP_${response.status}`)
+    }
+
+    if (!response.ok) {
+      const root = asRecord(payload)
+      throw new Error(asString(root?.error) ?? `HTTP_${response.status}`)
+    }
     assertNoInternalFields(payload)
     return payload as T
   }
@@ -400,6 +410,7 @@ export class ApiTodayActionsService implements TodayActionsService {
 
   async getTodayActions(): Promise<TodayActionsResponse> {
     const data = await this.requestJson<TodayActionsPublicResponse>('/today')
+    const mappedPool = (data.opportunity_pool ?? data.cards).map(mapPublicCard)
     const cards = await Promise.all(
       data.cards.map(mapPublicCard).map((card) => this.enrichWithServerFollowup(card)),
     )
@@ -408,12 +419,14 @@ export class ApiTodayActionsService implements TodayActionsService {
       mode: data.mode,
       input_candidate_count: data.input_candidate_count,
       matched_count: data.matched_count,
-      card_count: data.card_count,
+      card_count: cards.length,
+      opportunity_pool_count: data.opportunity_pool_count ?? mappedPool.length,
       model_request_count: data.model_request_count,
       coverage_warning: COVERAGE_WARNING,
       generated_at: data.snapshot_as_of,
       refreshed_at: data.snapshot_as_of,
       cards,
+      opportunity_pool: mappedPool,
       model_requests: [],
     }
   }
@@ -425,7 +438,7 @@ export class ApiTodayActionsService implements TodayActionsService {
       )
       return await this.enrichWithServerFollowup(mapPublicCard(card))
     } catch (error) {
-      if (error instanceof Error && error.message === 'HTTP_404') return null
+      if (error instanceof Error && (error.message === 'HTTP_404' || error.message === 'VERIFIED_OPPORTUNITY_NOT_FOUND')) return null
       throw error
     }
   }
@@ -452,7 +465,11 @@ export class ApiTodayActionsService implements TodayActionsService {
     })
   }
 
-  async requestOutreachDraft(_id: string): Promise<OutreachDraft> {
-    throw new Error('OUTREACH_API_NOT_IMPLEMENTED')
+  async requestOutreachDraft(id: string): Promise<OutreachDraft> {
+    return this.requestJson<OutreachDraft>('/ai/analyze?route=outreach', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ opportunity_id: id }),
+    })
   }
 }
