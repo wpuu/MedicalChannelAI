@@ -35,7 +35,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Refresh bundled snapshot for pipeline self-check
+      # Keep the tracked snapshot structurally aligned with the current ranking
+      # code before the strict offline self-check. The network refresh below
+      # then replaces it with the authoritative current as-of timestamp.
+      - name: Refresh bundled snapshot for pre-network pipeline self-check
         working-directory: web/pipeline
         run: python scripts/refresh_bundled_snapshot.py
 
