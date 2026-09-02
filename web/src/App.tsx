@@ -3,6 +3,7 @@ import { RequirePilotSession } from '@/components/auth/RequirePilotSession'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ToastProvider } from '@/context/ToastContext'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
+import { DiscoveryRadarPage } from '@/pages/DiscoveryRadarPage'
 import { FollowedPage } from '@/pages/FollowedPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { OpportunityDetailPage } from '@/pages/OpportunityDetailPage'
@@ -26,6 +27,7 @@ export default function App() {
           <Route element={<RequirePilotSession />}>
             <Route element={<AppLayout />}>
               <Route path="/" element={<Navigate to="/today" replace />} />
+              <Route path="/radar" element={<DiscoveryRadarPage />} />
               <Route path="/today" element={<TodayPage />} />
               <Route
                 path="/opportunities"

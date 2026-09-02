@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Layers3,
   LogOut,
+  Radar,
   RotateCcw,
 } from 'lucide-react'
 import { APP_BUILD_LABEL } from '@/config/appVersion'
@@ -113,6 +114,7 @@ export function AppLayout() {
           </div>
 
           <nav className="hidden shrink-0 items-center gap-1 sm:flex">
+            <NavLink to="/radar" className={desktopNavClass}>AI雷达</NavLink>
             <NavLink to="/today" className={desktopNavClass}>今日行动</NavLink>
             {showPool ? <NavLink to="/opportunities" className={desktopNavClass}>商机池</NavLink> : null}
             <NavLink to="/followed" className={desktopNavClass}>我的跟进</NavLink>
@@ -153,6 +155,10 @@ export function AppLayout() {
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 px-2 pt-1.5 pb-[calc(env(safe-area-inset-bottom)+0.45rem)] shadow-[0_-8px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:hidden">
         <div className="mx-auto flex max-w-md gap-1">
+          <NavLink to="/radar" className={mobileNavClass}>
+            <Radar className="h-5 w-5" />
+            <span>雷达</span>
+          </NavLink>
           <NavLink to="/today" className={mobileNavClass}>
             <ClipboardList className="h-5 w-5" />
             <span>今日</span>
