@@ -136,6 +136,7 @@ function canonicalOfficialUrl(value, baseUrl, allowedHosts) {
   if (parsed.protocol === 'http:') parsed.protocol = 'https:'
   if (parsed.protocol !== 'https:') return null
   parsed.hash = ''
+  if (parsed.pathname !== '/') parsed.pathname = parsed.pathname.replace(/\/+$/, '') || '/'
   return parsed.toString()
 }
 
@@ -341,18 +342,17 @@ function verifiedUrlsForSource(snapshot, source) {
   for (const card of pool) {
     if (card?.facts?.verification_status !== 'VERIFIED') continue
     for (const raw of Array.isArray(card?.evidence_source_urls) ? card.evidence_source_urls : []) {
-      try {
-        const url = new URL(raw)
-        if (source.hosts.has(url.hostname.toLowerCase())) {
-          url.hash = ''
-          urls.add(url.toString())
-        }
-      } catch {
-        // Ignore malformed historical evidence URLs.
-      }
+      if (typeof raw !== 'string') continue
+      const url = canonicalOfficialUrl(raw, source.url, source.hosts)
+      if (url) urls.add(url)
     }
   }
   return urls
+}
+
+function currentBenchmarkUrls(verifiedUrls, anchors) {
+  const analyzedUrlSet = new Set(anchors.map((item) => item.url))
+  return new Set(Array.from(verifiedUrls).filter((url) => analyzedUrlSet.has(url)))
 }
 
 export default async function handler(request, response) {
@@ -379,15 +379,16 @@ export default async function handler(request, response) {
 
     const content = await callProvider(sourceId, source, anchors, keys)
     const parsed = parseCandidates(content, anchors)
-    let verifiedUrls = new Set()
+    let historicalVerifiedUrls = new Set()
     try {
-      verifiedUrls = verifiedUrlsForSource(await loadVerifiedSnapshot(), source)
+      historicalVerifiedUrls = verifiedUrlsForSource(await loadVerifiedSnapshot(), source)
     } catch {
       // Discovery remains useful even when the independent benchmark snapshot is temporarily unavailable.
     }
+    const benchmarkVerifiedUrls = currentBenchmarkUrls(historicalVerifiedUrls, anchors)
 
-    const knownHitCount = parsed.candidates.filter((item) => verifiedUrls.has(item.url)).length
-    const knownRecall = verifiedUrls.size ? knownHitCount / verifiedUrls.size : null
+    const knownHitCount = parsed.candidates.filter((item) => benchmarkVerifiedUrls.has(item.url)).length
+    const knownRecall = benchmarkVerifiedUrls.size ? knownHitCount / benchmarkVerifiedUrls.size : null
     const groundedRate = parsed.rawCount ? (parsed.rawCount - parsed.rejectedUngrounded) / parsed.rawCount : 1
     const validRate = parsed.rawCount
       ? (parsed.rawCount - parsed.rejectedUngrounded - parsed.rejectedInvalid) / parsed.rawCount
@@ -407,16 +408,18 @@ export default async function handler(request, response) {
       analyzed_anchor_count: anchors.length,
       anchor_cap_applied: allAnchors.length > anchors.length,
       candidate_count: parsed.candidates.length,
-      known_verified_count: verifiedUrls.size,
+      historical_known_verified_count: historicalVerifiedUrls.size,
+      known_verified_count: benchmarkVerifiedUrls.size,
       known_verified_hit_count: knownHitCount,
       known_recall: knownRecall === null ? null : Math.round(knownRecall * 1000) / 1000,
       discovery_score: discoveryScore,
+      benchmark_scope: 'CURRENT_ANALYZED_OFFICIAL_LINKS',
       rejected_ungrounded_count: parsed.rejectedUngrounded,
       rejected_invalid_count: parsed.rejectedInvalid,
       production_data_mutated: false,
       candidates: parsed.candidates.map((item) => ({
         ...item,
-        verification_status: verifiedUrls.has(item.url) ? 'KNOWN_VERIFIED' : 'DISCOVERED_UNVERIFIED',
+        verification_status: historicalVerifiedUrls.has(item.url) ? 'KNOWN_VERIFIED' : 'DISCOVERED_UNVERIFIED',
       })),
     })
   } catch (error) {

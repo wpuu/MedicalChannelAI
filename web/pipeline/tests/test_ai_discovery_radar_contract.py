@@ -38,6 +38,17 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         self.assertIn("MAX_ANCHORS = 80", endpoint)
         self.assertIn("PROVIDER_TIMEOUT_MS = 12_000", endpoint)
 
+    def test_radar_score_only_uses_gold_visible_to_current_scan(self):
+        endpoint = (WEB_ROOT / 'api' / 'ai' / 'discover.js').read_text(encoding='utf-8')
+        script = (WEB_ROOT / 'pipeline' / 'scripts' / 'run_agnes_discovery_benchmark.py').read_text(encoding='utf-8')
+        self.assertIn('function currentBenchmarkUrls(verifiedUrls, anchors)', endpoint)
+        self.assertIn('analyzedUrlSet.has(url)', endpoint)
+        self.assertIn("benchmark_scope: 'CURRENT_ANALYZED_OFFICIAL_LINKS'", endpoint)
+        self.assertIn('historical_known_verified_count', endpoint)
+        self.assertIn('current_anchor_urls = {item.url for item in anchors}', script)
+        self.assertIn('gold_urls = historical_gold_urls & current_anchor_urls', script)
+        self.assertIn('CURRENT_FETCHED_OFFICIAL_LINKS_WITH_KNOWN_VERIFIED_GOLD', script)
+
     def test_radar_page_is_reachable_and_explains_verification_boundary(self):
         app = (WEB_ROOT / 'src' / 'App.tsx').read_text(encoding='utf-8')
         layout = (WEB_ROOT / 'src' / 'components' / 'layout' / 'AppLayout.tsx').read_text(encoding='utf-8')

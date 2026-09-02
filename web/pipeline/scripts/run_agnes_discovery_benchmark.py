@@ -243,8 +243,12 @@ def main() -> int:
                     }
                 )
 
-        gold_urls = known_gold_urls_from_snapshot(snapshot, allowed_hosts=source["allowed_hosts"])
+        historical_gold_urls = known_gold_urls_from_snapshot(snapshot, allowed_hosts=source["allowed_hosts"])
+        current_anchor_urls = {item.url for item in anchors}
+        gold_urls = historical_gold_urls & current_anchor_urls
         metrics = discovery_benchmark_metrics(parse_results, gold_urls=gold_urls)
+        metrics["historical_gold_known_count"] = len(historical_gold_urls)
+        metrics["benchmark_scope"] = "CURRENT_FETCHED_OFFICIAL_LINKS"
         if isinstance(metrics["discovery_score"], (int, float)):
             all_scores.append(float(metrics["discovery_score"]))
         source_reports.append(
@@ -275,10 +279,11 @@ def main() -> int:
             "ungrounded_model_urls_are_rejected": True,
             "ai_candidates_remain_unverified": True,
             "verified_repository_snapshot_is_gold_only_for_benchmarking": True,
+            "benchmark_denominator_is_current_official_link_surface_only": True,
             "novel_candidates_require_independent_official_verification_before_publish": True,
         },
         "overall_discovery_score": overall,
-        "overall_score_scope": "KNOWN_VERIFIED_SET_ONLY",
+        "overall_score_scope": "CURRENT_FETCHED_OFFICIAL_LINKS_WITH_KNOWN_VERIFIED_GOLD",
         "sources": source_reports,
     }
     write_json(args.output, report)
