@@ -6,6 +6,7 @@ import { DecisionCard } from '@/components/opportunity/DecisionCard'
 import { EvidenceCard } from '@/components/opportunity/EvidenceCard'
 import { FactsCard } from '@/components/opportunity/FactsCard'
 import { FollowupCard } from '@/components/opportunity/FollowupCard'
+import { OpportunityExecutionCard } from '@/components/opportunity/OpportunityExecutionCard'
 import { PriorityCard } from '@/components/opportunity/PriorityCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
@@ -224,6 +225,7 @@ export function OpportunityDetailPage() {
       {!historical ? (
         <>
           <CustomerContextCard context={card.customer_context} />
+          <OpportunityExecutionCard card={card} onProfileChanged={() => load(true)} />
           <PriorityCard priority={card.priority} />
           <DecisionCard
             card={card}
