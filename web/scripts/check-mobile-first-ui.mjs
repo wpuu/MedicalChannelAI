@@ -37,7 +37,10 @@ const sessionGuard = read('src/components/auth/RequirePilotSession.tsx')
 assert.match(sessionGuard, /isAuthRequiredError/)
 assert.match(sessionGuard, /<Navigate to="\/login" replace \/>/)
 assert.match(sessionGuard, /系统不会降级为匿名模式/)
-assert.doesNotMatch(sessionGuard, /setState\('authorized'\).*catch/s)
+assert.match(
+  sessionGuard,
+  /setState\(isAuthRequiredError\(error\)[\s\S]*\? 'unauthorized'[\s\S]*: 'error'\)/,
+)
 
 const stages = read('src/components/shared/StageBadge.tsx')
 assert.match(stages, /BIDDING: '招标中'/)
@@ -71,7 +74,7 @@ assert.match(reminders, /到期跟进提醒/)
 assert.match(reminders, /站内提醒/)
 assert.match(reminders, /onOpenFollowed\(item\.opportunity_id\)/)
 assert.match(reminders, /当前不在今日 Top5 · 已保留在我的跟进/)
-assert.match(reminders, /pb|flex flex-wrap justify-end gap-2/)
+assert.match(reminders, /flex flex-wrap justify-end gap-2/)
 
 const followed = read('src/pages/FollowedPage.tsx')
 assert.match(followed, /useSearchParams/)
