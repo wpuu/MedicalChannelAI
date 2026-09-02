@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Archive, MessageSquareText } from 'lucide-react'
+import { ArrowLeft, Archive, MessageSquareText, ShieldCheck } from 'lucide-react'
 import { CustomerContextCard } from '@/components/opportunity/CustomerContextCard'
 import { DecisionCard } from '@/components/opportunity/DecisionCard'
 import { EvidenceCard } from '@/components/opportunity/EvidenceCard'
@@ -205,6 +205,15 @@ export function OpportunityDetailPage() {
                 重点 {card.rank}
               </span>
               <PriorityBadge score={card.priority.score} scoreScope={card.priority.score_scope} />
+              {card.facts.verification_status === 'VERIFIED' ? (
+                <a
+                  href="#official-evidence"
+                  className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-800 hover:bg-teal-100"
+                >
+                  <ShieldCheck className="h-3 w-3" />
+                  已核验官方事实 · {card.evidence_source_urls.length} 个依据
+                </a>
+              ) : null}
             </>
           )}
         </div>
@@ -217,20 +226,13 @@ export function OpportunityDetailPage() {
         <p className="mt-3 text-[12px] leading-5 text-slate-500">
           {historical
             ? '项目是否仍可介入请以当前官方信息为准。'
-            : '优先级用于安排跟进；详细公开依据见下方。'}
+            : '先决定怎么做，再按需查看官方事实、证据和评分解释。'}
         </p>
       </section>
 
-      <FactsCard facts={card.facts} />
-      <EvidenceCard
-        urls={card.evidence_source_urls}
-        verificationStatus={card.facts.verification_status}
-      />
       {!historical ? (
         <>
-          <CustomerContextCard context={card.customer_context} />
           <OpportunityExecutionCard card={card} onProfileChanged={() => load(true)} />
-          <PriorityCard priority={card.priority} />
           <DecisionCard
             card={card}
             analyzing={aiBusy}
@@ -241,15 +243,37 @@ export function OpportunityDetailPage() {
             }
             analysisUnavailableReason={aiUnavailableReason}
           />
+          <FollowupCard
+            card={card}
+            onChangeStatus={(status) => void updateStatus(status)}
+            onNotFit={() => setNotFitOpen(true)}
+            onRemind={() => setRemindOpen(true)}
+          />
         </>
       ) : null}
-      <FollowupCard
-        card={card}
-        readOnly={historical}
-        onChangeStatus={(status) => void updateStatus(status)}
-        onNotFit={() => setNotFitOpen(true)}
-        onRemind={() => setRemindOpen(true)}
-      />
+
+      <FactsCard facts={card.facts} />
+      <div id="official-evidence" className="scroll-mt-20">
+        <EvidenceCard
+          urls={card.evidence_source_urls}
+          verificationStatus={card.facts.verification_status}
+        />
+      </div>
+
+      {!historical ? (
+        <>
+          <PriorityCard priority={card.priority} />
+          <CustomerContextCard context={card.customer_context} />
+        </>
+      ) : (
+        <FollowupCard
+          card={card}
+          readOnly
+          onChangeStatus={() => undefined}
+          onNotFit={() => undefined}
+          onRemind={() => undefined}
+        />
+      )}
 
       {!historical ? (
         <>
