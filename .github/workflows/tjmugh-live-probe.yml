@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Diagnose TEDA index publication dates
+      - name: Diagnose TEDA detail metadata and product text
         shell: bash
         run: |
           set -euo pipefail
@@ -27,24 +27,53 @@ jobs:
           import re
           import sys
           import time
+          from html import unescape
           from pathlib import Path
 
           root = Path('web/pipeline')
           sys.path.insert(0, str(root))
-          from medical_channel_pipeline.teda_discovery import fetch_teda_page, index_page_url, parse_teda_index_html
+          from medical_channel_pipeline.teda_discovery import fetch_teda_page
+          from medical_channel_pipeline.teda_market_research import _visible_text
 
-          for page in range(1, 5):
-              if page > 1:
+          for article_id in ('895', '883'):
+              url = f'https://www.tedahospital.com.cn/article/show/9/{article_id}'
+              if article_id != '895':
                   time.sleep(3)
-              url = index_page_url(page)
               html = fetch_teda_page(url)
-              candidates = parse_teda_index_html(html, index_url=url)
-              print(f'PAGE={page} URL={url}')
-              for candidate in candidates:
-                  print(f'CANDIDATE title={candidate.title!r} date={candidate.published_at!r} url={candidate.detail_url}')
-              if '/895' in html:
-                  match = re.search(r'.{0,500}(?:/article/show/9/895|article/show/9/895).{0,800}', html, re.S)
-                  print('RAW_895_SNIPPET_START')
-                  print((match.group(0) if match else 'SNIPPET_NOT_FOUND').replace('\n', ' '))
-                  print('RAW_895_SNIPPET_END')
+              print(f'ARTICLE={article_id} URL={url}')
+
+              if article_id == '895':
+                  print('META_DATE_CANDIDATES_START')
+                  for tag in re.findall(r'<meta\b[^>]*>', html, flags=re.I):
+                      if re.search(r'date|time|publish|create|update|article|modified', tag, flags=re.I):
+                          print(unescape(re.sub(r'\s+', ' ', tag)).strip())
+                  print('META_DATE_CANDIDATES_END')
+
+                  print('SCRIPT_DATE_CANDIDATES_START')
+                  for match in re.finditer(r'.{0,180}(?:datePublished|published|publish_time|publishTime|create_time|createTime|updated_at|updateTime|20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}).{0,220}', html, flags=re.I | re.S):
+                      snippet = re.sub(r'\s+', ' ', unescape(match.group(0))).strip()
+                      print(snippet[:500])
+                  print('SCRIPT_DATE_CANDIDATES_END')
+
+                  text = _visible_text(html)
+                  print('VISIBLE_DATE_CONTEXT_START')
+                  seen = set()
+                  for match in re.finditer(r'20\d{2}\s*(?:年|[-/.])\s*\d{1,2}\s*(?:月|[-/.])\s*\d{1,2}\s*日?', text):
+                      start = max(0, match.start() - 160)
+                      end = min(len(text), match.end() + 220)
+                      snippet = re.sub(r'\s+', ' ', text[start:end]).strip()
+                      if snippet not in seen:
+                          seen.add(snippet)
+                          print(snippet)
+                  print('VISIBLE_DATE_CONTEXT_END')
+
+              if article_id == '883':
+                  text = _visible_text(html)
+                  compact = re.sub(r'\s+', ' ', text)
+                  print('PRODUCT_TEXT_CONTEXT_START')
+                  for needle in ('拟采购设备项目', '设备明细', '电子内窥镜系统', '男性生理多参数检测仪'):
+                      pos = compact.find(needle)
+                      if pos >= 0:
+                          print(f'NEEDLE={needle!r}: {compact[max(0,pos-180):pos+900]}')
+                  print('PRODUCT_TEXT_CONTEXT_END')
           PY
