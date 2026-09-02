@@ -4,6 +4,20 @@ import { todayActionsService } from './index'
 import { apiBaseUrl, isApiMode } from './apiConfig'
 import { listStoredFollowups } from './localFollowupStore'
 
+interface FollowedProductItem {
+  name: string
+  category: string | null
+  quantity: string | null
+  specification: string | null
+}
+
+interface FollowedPublicContact {
+  name: string | null
+  title: string | null
+  phone: string | null
+  email: string | null
+}
+
 export interface FollowedOpportunity {
   opportunity_id: string
   followup_status: string
@@ -16,11 +30,21 @@ export interface FollowedOpportunity {
     buyer_name: string | null
     hospital_name: string | null
     department: string | null
+    region: string | null
     lifecycle_state: string | null
+    notice_type: string | null
     published_at: string | null
+    registration_deadline: string | null
+    registration_deadline_date: string | null
     bid_deadline: string | null
     expected_procurement_at: string | null
     budget_cny: number | null
+    procurement_method: string | null
+    product_categories: string[]
+    product_items: FollowedProductItem[]
+    public_contact: FollowedPublicContact | null
+    verification_status: string | null
+    coverage_status: string | null
   }
   evidence_source_urls: string[]
 }
@@ -86,6 +110,51 @@ async function responseError(response: Response): Promise<Error> {
   return new Error(`HTTP_${response.status}`)
 }
 
+function validateProducts(value: unknown): FollowedProductItem[] {
+  if (!Array.isArray(value)) throw new Error('FOLLOWED_RESPONSE_INVALID')
+  return value.map((item) => {
+    const row = asRecord(item)
+    if (
+      !row ||
+      !exactKeys(row, ['name', 'category', 'quantity', 'specification']) ||
+      typeof row.name !== 'string' ||
+      !row.name.trim() ||
+      !nullableString(row.category) ||
+      !nullableString(row.quantity) ||
+      !nullableString(row.specification)
+    ) {
+      throw new Error('FOLLOWED_RESPONSE_INVALID')
+    }
+    return {
+      name: row.name,
+      category: row.category,
+      quantity: row.quantity,
+      specification: row.specification,
+    }
+  })
+}
+
+function validateContact(value: unknown): FollowedPublicContact | null {
+  if (value === null) return null
+  const row = asRecord(value)
+  if (
+    !row ||
+    !exactKeys(row, ['name', 'title', 'phone', 'email']) ||
+    !nullableString(row.name) ||
+    !nullableString(row.title) ||
+    !nullableString(row.phone) ||
+    !nullableString(row.email)
+  ) {
+    throw new Error('FOLLOWED_RESPONSE_INVALID')
+  }
+  return {
+    name: row.name,
+    title: row.title,
+    phone: row.phone,
+    email: row.email,
+  }
+}
+
 function validateItem(value: unknown): FollowedOpportunity {
   const row = asRecord(value)
   if (
@@ -120,22 +189,41 @@ function validateItem(value: unknown): FollowedOpportunity {
       'buyer_name',
       'hospital_name',
       'department',
+      'region',
       'lifecycle_state',
+      'notice_type',
       'published_at',
+      'registration_deadline',
+      'registration_deadline_date',
       'bid_deadline',
       'expected_procurement_at',
       'budget_cny',
+      'procurement_method',
+      'product_categories',
+      'product_items',
+      'public_contact',
+      'verification_status',
+      'coverage_status',
     ]) ||
     !nullableString(facts.project_number) ||
     !nullableString(facts.project_name) ||
     !nullableString(facts.buyer_name) ||
     !nullableString(facts.hospital_name) ||
     !nullableString(facts.department) ||
+    !nullableString(facts.region) ||
     !nullableString(facts.lifecycle_state) ||
+    !nullableString(facts.notice_type) ||
     !nullableString(facts.published_at) ||
+    !nullableString(facts.registration_deadline) ||
+    !nullableString(facts.registration_deadline_date) ||
     !nullableString(facts.bid_deadline) ||
     !nullableString(facts.expected_procurement_at) ||
-    !nullableNumber(facts.budget_cny)
+    !nullableNumber(facts.budget_cny) ||
+    !nullableString(facts.procurement_method) ||
+    !Array.isArray(facts.product_categories) ||
+    facts.product_categories.some((item) => typeof item !== 'string') ||
+    !nullableString(facts.verification_status) ||
+    !nullableString(facts.coverage_status)
   ) {
     throw new Error('FOLLOWED_RESPONSE_INVALID')
   }
@@ -152,11 +240,21 @@ function validateItem(value: unknown): FollowedOpportunity {
       buyer_name: facts.buyer_name,
       hospital_name: facts.hospital_name,
       department: facts.department,
+      region: facts.region,
       lifecycle_state: facts.lifecycle_state,
+      notice_type: facts.notice_type,
       published_at: facts.published_at,
+      registration_deadline: facts.registration_deadline,
+      registration_deadline_date: facts.registration_deadline_date,
       bid_deadline: facts.bid_deadline,
       expected_procurement_at: facts.expected_procurement_at,
       budget_cny: facts.budget_cny,
+      procurement_method: facts.procurement_method,
+      product_categories: [...facts.product_categories] as string[],
+      product_items: validateProducts(facts.product_items),
+      public_contact: validateContact(facts.public_contact),
+      verification_status: facts.verification_status,
+      coverage_status: facts.coverage_status,
     },
     evidence_source_urls: [...row.evidence_source_urls] as string[],
   }
@@ -215,8 +313,6 @@ function validateHistoricalFollowupState(value: unknown, opportunityId: string):
 }
 
 async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
-  // Loading the current feed also migrates older v1 follow-up entries by attaching
-  // a minimal public snapshot before those opportunities rotate out of Today Top5.
   await todayActionsService.getTodayActions()
 
   return listStoredFollowups()
@@ -233,7 +329,28 @@ async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
           latest_note: latestNote,
           followup_updated_at:
             latestRecord?.at ?? entry.remind_at ?? '1970-01-01T00:00:00.000Z',
-          facts: { ...snapshot.facts },
+          facts: {
+            project_number: snapshot.facts.project_number,
+            project_name: snapshot.facts.project_name,
+            buyer_name: snapshot.facts.buyer_name,
+            hospital_name: snapshot.facts.hospital_name,
+            department: snapshot.facts.department,
+            region: null,
+            lifecycle_state: snapshot.facts.lifecycle_state,
+            notice_type: null,
+            published_at: snapshot.facts.published_at,
+            registration_deadline: null,
+            registration_deadline_date: null,
+            bid_deadline: snapshot.facts.bid_deadline,
+            expected_procurement_at: snapshot.facts.expected_procurement_at,
+            budget_cny: snapshot.facts.budget_cny,
+            procurement_method: null,
+            product_categories: [],
+            product_items: [],
+            public_contact: null,
+            verification_status: null,
+            coverage_status: null,
+          },
           evidence_source_urls: [...snapshot.evidence_source_urls],
         },
       ]
@@ -271,6 +388,18 @@ export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]>
   return items
 }
 
+function verificationStatus(value: string | null): TodayActionCard['facts']['verification_status'] {
+  if (value === 'VERIFIED') return 'VERIFIED'
+  if (value === 'UNVERIFIED') return 'UNVERIFIED'
+  return 'PARTIAL'
+}
+
+function coverageStatus(value: string | null): TodayActionCard['facts']['coverage_status'] {
+  if (value === 'FULL') return 'FULL'
+  if (value === 'NONE') return 'NONE'
+  return 'PARTIAL'
+}
+
 export async function getHistoricalFollowedOpportunityCard(
   opportunityId: string,
 ): Promise<TodayActionCard | null> {
@@ -297,22 +426,26 @@ export async function getHistoricalFollowedOpportunityCard(
       hospital: item.facts.hospital_name,
       buyer_name: item.facts.buyer_name,
       department: item.facts.department,
-      region: null,
+      region: item.facts.region,
       lifecycle_stage: item.facts.lifecycle_state,
-      notice_type: null,
+      notice_type: item.facts.notice_type,
       publish_date: item.facts.published_at,
-      registration_deadline: null,
-      registration_deadline_date: null,
-      registration_deadline_precision: null,
+      registration_deadline: item.facts.registration_deadline,
+      registration_deadline_date: item.facts.registration_deadline_date,
+      registration_deadline_precision: item.facts.registration_deadline
+        ? 'MINUTE'
+        : item.facts.registration_deadline_date
+          ? 'DAY'
+          : null,
       bid_deadline: item.facts.bid_deadline,
       expected_purchase_date: item.facts.expected_procurement_at,
       budget: item.facts.budget_cny,
-      procurement_method: null,
-      product_categories: [],
-      products: null,
-      official_contact: null,
-      verification_status: 'PARTIAL',
-      coverage_status: 'PARTIAL',
+      procurement_method: item.facts.procurement_method,
+      product_categories: [...item.facts.product_categories],
+      products: item.facts.product_items.length ? item.facts.product_items.map((product) => ({ ...product })) : null,
+      official_contact: item.facts.public_contact ? { ...item.facts.public_contact } : null,
+      verification_status: verificationStatus(item.facts.verification_status),
+      coverage_status: coverageStatus(item.facts.coverage_status),
     },
     evidence_source_urls: [...item.evidence_source_urls],
     customer_context: {
