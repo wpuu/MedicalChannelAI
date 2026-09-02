@@ -77,6 +77,8 @@ export interface PublicPriority {
   schema_version: string
   score: number
   score_type: string
+  /** PUBLIC = official/open facts only; PERSONALIZED = authenticated private profile was applied. */
+  score_scope?: 'PUBLIC' | 'PERSONALIZED'
   components: PublicPriorityComponent[]
   warnings: string[]
   interpretation: 'BUSINESS_PRIORITY_NOT_WIN_PROBABILITY'
