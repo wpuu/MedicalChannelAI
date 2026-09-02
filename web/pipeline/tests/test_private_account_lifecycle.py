@@ -13,6 +13,29 @@ class PrivateAccountLifecycleTests(unittest.TestCase):
         self.assertEqual(rewrites['/api/account/export'], '/api/auth?route=export')
         self.assertEqual(rewrites['/api/account/delete'], '/api/auth?route=delete')
 
+    def test_auth_responses_include_frontend_required_display_name(self):
+        source = (WEB_ROOT / 'api' / 'auth.js').read_text(encoding='utf-8')
+        register_source = source[source.index('async function register'):source.index('async function login')]
+        login_source = source[source.index('async function login'):source.index('async function logout')]
+        frontend = (WEB_ROOT / 'src' / 'services' / 'apiConfig.ts').read_text(encoding='utf-8')
+
+        self.assertIn(
+            'user: { username: user.username, display_name: user.display_name ?? null, role: user.role }',
+            register_source,
+        )
+        self.assertIn(
+            'SELECT id, username_display, display_name, password_salt, password_hash, role',
+            login_source,
+        )
+        self.assertIn(
+            'user: { username: user.username_display, display_name: user.display_name, role: user.role }',
+            login_source,
+        )
+        self.assertIn(
+            "!(row.display_name === null || typeof row.display_name === 'string')",
+            frontend,
+        )
+
     def test_export_does_not_select_password_or_session_secret(self):
         source = (WEB_ROOT / 'api' / 'auth.js').read_text(encoding='utf-8')
         export_start = source.index('async function exportAccount')
