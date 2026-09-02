@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  AlertTriangle,
   Database,
   ExternalLink,
   Loader2,
@@ -22,6 +23,11 @@ import {
   type DiscoveryRadarResult,
   type DiscoverySourceKind,
 } from '@/services/discoveryRadarApi'
+import {
+  discoveryCoverageRisks,
+  summarizeDiscoveryCoverageRisks,
+  type DiscoveryCoverageRiskCode,
+} from '@/services/discoveryCoverageRisk'
 import {
   discoverySourceHealth,
   loadDiscoveryWorkspace,
@@ -127,6 +133,12 @@ function coverageStatusText(result: DiscoveryRadarResult) {
   return '检查入口页 · 未检测到明确下一页'
 }
 
+function coverageRiskLabel(code: DiscoveryCoverageRiskCode) {
+  if (code === 'OPTIONAL_PAGE_INCOMPLETE') return '分页读取不完整'
+  if (code === 'DEEP_PAGINATION_REMAINS') return '仍有更深分页'
+  return '80条窗口已截断'
+}
+
 export function DiscoveryRadarPage() {
   const [workspace, setWorkspace] = useState(() => loadDiscoveryWorkspace())
   const [storageReady, setStorageReady] = useState(false)
@@ -178,6 +190,13 @@ export function DiscoveryRadarPage() {
       .filter(Boolean) as DiscoveryRadarResult[],
     [workspace.results, workspace.sources],
   )
+  const coverageRows = useMemo(
+    () => enabledSources
+      .map((source) => workspace.results[source.id])
+      .filter(Boolean) as DiscoveryRadarResult[],
+    [enabledSources, workspace.results],
+  )
+  const coverageSummary = useMemo(() => summarizeDiscoveryCoverageRisks(coverageRows), [coverageRows])
   const findings = useMemo(
     () => Object.values(workspace.findings).sort((a, b) => Date.parse(b.last_seen_at) - Date.parse(a.last_seen_at)),
     [workspace.findings],
@@ -438,6 +457,28 @@ export function DiscoveryRadarPage() {
         ))}
       </section>
 
+      {coverageRows.length ? (
+        <section className={`rounded-2xl border p-3.5 shadow-sm sm:p-4 ${coverageSummary.affected_source_count ? 'border-amber-200 bg-amber-50/50' : 'border-emerald-100 bg-emerald-50/40'}`}>
+          <div className="flex items-start gap-2">
+            {coverageSummary.affected_source_count ? <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" /> : <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />}
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[14px] font-semibold text-slate-900">公开渠道覆盖缺口</h3>
+              <p className="mt-1 text-[11px] leading-5 text-slate-600">覆盖完整度与AI发现分分开计算。AI发现分高，不代表该公开渠道已经扫完整；这里专门检查分页失败、深分页剩余和80条窗口截断。</p>
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="rounded-xl bg-white px-3 py-2.5 ring-1 ring-slate-200/70"><p className="text-[9px] text-slate-400">覆盖缺口来源</p><p className="mt-1 text-xl font-semibold tabular-nums text-slate-900">{coverageSummary.affected_source_count}</p></div>
+            <div className="rounded-xl bg-white px-3 py-2.5 ring-1 ring-slate-200/70"><p className="text-[9px] text-slate-400">高风险需重试</p><p className="mt-1 text-xl font-semibold tabular-nums text-slate-900">{coverageSummary.high_risk_source_count}</p></div>
+            <div className="rounded-xl bg-white px-3 py-2.5 ring-1 ring-slate-200/70"><p className="text-[9px] text-slate-400">需续扫来源</p><p className="mt-1 text-xl font-semibold tabular-nums text-slate-900">{coverageSummary.continuation_candidate_source_count}</p></div>
+          </div>
+          {coverageSummary.affected_source_count ? (
+            <p className="mt-2 text-[10px] leading-4 text-amber-800">分页读取失败 {coverageSummary.partial_source_count} 个 · 到达2页安全上限 {coverageSummary.deep_pagination_source_count} 个 · 80条窗口截断 {coverageSummary.anchor_cap_source_count} 个。具体原因和处理动作见下方对应渠道。</p>
+          ) : (
+            <p className="mt-2 text-[10px] leading-4 text-emerald-700">最近一次已扫描的启用渠道暂未检测到明确覆盖缺口；这仍不是“全网无遗漏”保证。</p>
+          )}
+        </section>
+      ) : null}
+
       {error ? <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12px] text-amber-900">{error}</div> : null}
 
       <section className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-3.5 sm:p-4">
@@ -567,6 +608,7 @@ export function DiscoveryRadarPage() {
               const health = HEALTH_LABELS[discoverySourceHealth(stats)]
               const scope = sourceScope(source)
               const busy = busySource === source.id || busySource === 'ALL' || busySource === `SCOPE:${scope}`
+              const coverageRisks = result ? discoveryCoverageRisks(result) : []
               return (
                 <article key={source.id} className={`rounded-2xl border p-3.5 ${source.enabled ? 'border-slate-200 bg-white' : 'border-slate-200 bg-slate-50 opacity-75'}`}>
                   <div className="flex items-start justify-between gap-3">
@@ -599,6 +641,24 @@ export function DiscoveryRadarPage() {
                   ) : (
                     <p className="mt-3 text-[10px] leading-5 text-slate-400">首次扫描保存当前链接快照；以后逐链接比较，新链接和标题变化才交给AI，旧链接不重复分析。明确的同域“下一页”会额外检查1页。</p>
                   )}
+
+                  {coverageRisks.length ? (
+                    <div className="mt-2 space-y-2">
+                      {coverageRisks.map((risk) => (
+                        <div key={risk.code} className={`rounded-xl border px-3 py-2.5 ${risk.severity === 'HIGH' ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}`}>
+                          <div className="flex items-center gap-1.5">
+                            <AlertTriangle className={`h-3.5 w-3.5 shrink-0 ${risk.severity === 'HIGH' ? 'text-rose-600' : 'text-amber-700'}`} />
+                            <span className={`text-[10px] font-semibold ${risk.severity === 'HIGH' ? 'text-rose-800' : 'text-amber-900'}`}>{coverageRiskLabel(risk.code)}</span>
+                            {risk.continuation_candidate ? <span className="rounded-full bg-white/70 px-1.5 py-0.5 text-[9px] text-amber-800">需续扫</span> : <span className="rounded-full bg-white/70 px-1.5 py-0.5 text-[9px] text-rose-700">先重试</span>}
+                          </div>
+                          <p className="mt-1 text-[10px] leading-4 text-slate-700">{risk.reason}</p>
+                          <p className="mt-1 text-[9px] leading-4 text-slate-500">建议：{risk.recommended_action}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : result ? (
+                    <p className="mt-2 text-[9px] text-emerald-700">覆盖状态：最近一次扫描未发现明确分页/窗口缺口。</p>
+                  ) : null}
 
                   {stats ? (
                     <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[9px] text-slate-400">
