@@ -1,0 +1,137 @@
+name: PR6 private data invariant patch
+
+on:
+  push:
+    branches:
+      - chatgpt/opportunity-ranking-v2-final
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/opportunity-ranking-v2-final
+          fetch-depth: 0
+      - name: Apply private data invariant patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          # Restore the explicit target-vs-relationship scoring boundary that CI locks.
+          path = Path('web/api/_privateProfileContext.js')
+          text = path.read_text(encoding='utf-8')
+          old = '''  const relationshipPoint = context.hospital_relationship
+            ? relationshipPoints(context.hospital_relationship.relationship_strength)
+            : 0
+          '''
+          new = '''  // Target-hospital interest is deliberately NOT relationship evidence and therefore
+            // contributes zero relationship points. Only a customer-confirmed relationship scores.
+            const relationshipPoint = context.hospital_relationship
+              ? relationshipPoints(context.hospital_relationship.relationship_strength)
+              : 0
+          '''
+          if old not in text:
+              raise SystemExit('_privateProfileContext.js target block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          # Enforce reminder/status consistency and ignore stale non-MONITOR reminders.
+          path = Path('web/api/private.js')
+          text = path.read_text(encoding='utf-8')
+          old = '''  if (status === 'NOT_FIT' && (!reason || !NOT_FIT_REASONS.has(reason))) return null
+            if (status !== 'NOT_FIT' && reason) return null
+            return {
+              status,
+              mutation_id: mutationId,
+              note,
+              reason: status === 'NOT_FIT' ? reason : null,
+              remind_at: remindAt,
+              reminder_supplied: Object.prototype.hasOwnProperty.call(body, 'remind_at'),
+            }
+          '''
+          new = '''  if (status === 'NOT_FIT' && (!reason || !NOT_FIT_REASONS.has(reason))) return null
+            if (status !== 'NOT_FIT' && reason) return null
+            const reminderSupplied = Object.prototype.hasOwnProperty.call(body, 'remind_at')
+            if (status !== 'MONITOR' && reminderSupplied && remindAt) return null
+            return {
+              status,
+              mutation_id: mutationId,
+              note,
+              reason: status === 'NOT_FIT' ? reason : null,
+              remind_at: remindAt,
+              reminder_supplied: reminderSupplied,
+            }
+          '''
+          if old not in text:
+              raise SystemExit('private.js mutation validation block not found')
+          text = text.replace(old, new, 1)
+          old_due = '''      AND f.remind_at IS NOT NULL
+              AND f.remind_at <= now()
+          '''
+          new_due = '''      AND f.status = 'MONITOR'
+              AND f.remind_at IS NOT NULL
+              AND f.remind_at <= now()
+          '''
+          if old_due not in text:
+              raise SystemExit('private.js due reminder block not found')
+          path.write_text(text.replace(old_due, new_due, 1), encoding='utf-8')
+
+          # Normalize duplicate private resources server-side; last submitted row wins per logical scope.
+          path = Path('web/api/profile.js')
+          text = path.read_text(encoding='utf-8')
+          old = '''  const canFindManufacturer = triState(body.can_find_manufacturer)
+            const canPartnerChannel = triState(body.can_partner_channel)
+            const canHandleLease = triState(body.can_handle_lease)
+          '''
+          new = '''  const productCapabilityMap = new Map()
+            for (const item of productCapabilities) {
+              productCapabilityMap.set(item.keyword.toLowerCase(), item)
+            }
+            const relationshipMap = new Map()
+            for (const item of hospitalRelationships) {
+              relationshipMap.set(targetKey(item), item)
+            }
+
+            const canFindManufacturer = triState(body.can_find_manufacturer)
+            const canPartnerChannel = triState(body.can_partner_channel)
+            const canHandleLease = triState(body.can_handle_lease)
+          '''
+          if old not in text:
+              raise SystemExit('profile.js dedupe insertion point not found')
+          text = text.replace(old, new, 1)
+          text = text.replace('''    product_capabilities: productCapabilities,
+              hospital_relationships: hospitalRelationships,
+          ''', '''    product_capabilities: [...productCapabilityMap.values()],
+              hospital_relationships: [...relationshipMap.values()],
+          ''', 1)
+
+          replacements = {
+            'DELETE FROM private_product_capabilities WHERE user_id = ${user.id}': 'DELETE FROM private_product_capabilities WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}',
+            'DELETE FROM private_hospital_relationships WHERE user_id = ${user.id}': 'DELETE FROM private_hospital_relationships WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}',
+            'DELETE FROM private_target_hospitals WHERE user_id = ${user.id}': 'DELETE FROM private_target_hospitals WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}',
+          }
+          for old_value, new_value in replacements.items():
+              if old_value not in text:
+                  raise SystemExit(f'profile.js scoped delete not found: {old_value}')
+              text = text.replace(old_value, new_value)
+          path.write_text(text, encoding='utf-8')
+
+          test = Path('web/pipeline/tests/test_private_data_invariants.py')
+          test.write_text('''import unittest\nfrom pathlib import Path\n\n\nWEB_ROOT = Path(__file__).resolve().parents[2]\n\n\nclass PrivateDataInvariantTests(unittest.TestCase):\n    def test_non_monitor_status_cannot_keep_future_reminder(self):\n        source = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")\n        self.assertIn("status !== 'MONITOR' && reminderSupplied && remindAt", source)\n        self.assertIn("AND f.status = 'MONITOR'", source)\n\n    def test_profile_write_deduplicates_logical_resource_scopes(self):\n        source = (WEB_ROOT / "api" / "profile.js").read_text(encoding="utf-8")\n        self.assertIn("productCapabilityMap.set(item.keyword.toLowerCase(), item)", source)\n        self.assertIn("relationshipMap.set(targetKey(item), item)", source)\n        self.assertIn("product_capabilities: [...productCapabilityMap.values()]", source)\n        self.assertIn("hospital_relationships: [...relationshipMap.values()]", source)\n\n    def test_profile_destructive_writes_are_scoped_to_current_organization(self):\n        source = (WEB_ROOT / "api" / "profile.js").read_text(encoding="utf-8")\n        self.assertIn("DELETE FROM private_product_capabilities WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}", source)\n        self.assertIn("DELETE FROM private_hospital_relationships WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}", source)\n        self.assertIn("DELETE FROM private_target_hospitals WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}", source)\n\n\nif __name__ == "__main__":\n    unittest.main()\n''', encoding='utf-8')
+          PY
+      - name: Commit patch
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/api/_privateProfileContext.js web/api/private.js web/api/profile.js web/pipeline/tests/test_private_data_invariants.py
+          git commit -m "fix: enforce private CRM data invariants"
+          git push origin HEAD:chatgpt/opportunity-ranking-v2-final
