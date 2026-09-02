@@ -101,11 +101,16 @@ export function OpportunityDetailPage() {
     status: FollowupStatus,
     extra?: { reason?: string; note?: string; remind_at?: string },
   ) => {
-    if (!card || historical) return
+    if (!card) return
     try {
       await todayActionsService.updateFollowup(card.opportunity_id, { status, ...extra })
       await load(true)
-      toast('跟进状态已更新', 'success')
+      toast(
+        historical
+          ? '历史商机的私有跟进状态已更新；公开快照保持不变'
+          : '跟进状态已更新',
+        'success',
+      )
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
@@ -192,7 +197,7 @@ export function OpportunityDetailPage() {
       {historical ? (
         <section className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-5 text-amber-900">
           <Archive className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>这是你当时保存的跟进快照。项目已不在当前可行动商机池，不重新计算优先级，也不生成新的 AI 建议；是否仍可介入请重新核对官方信息。</p>
+          <p>这是你当时保存的跟进快照。公开事实已经冻结，不重新计算优先级，也不生成新的 AI 建议；但你的私有跟进状态、结果和提醒仍可继续维护。</p>
         </section>
       ) : null}
 
@@ -228,7 +233,7 @@ export function OpportunityDetailPage() {
         </p>
         <p className="mt-3 text-[12px] leading-5 text-slate-500">
           {historical
-            ? '以下公开字段和官方链接来自你进入跟进流程时保存的快照，不代表当前项目状态。'
+            ? '以下公开字段和官方链接来自进入跟进流程时保存的快照，不代表当前项目状态。'
             : '先决定怎么做，再按需查看官方事实、证据和评分解释。'}
         </p>
       </section>
@@ -246,14 +251,15 @@ export function OpportunityDetailPage() {
             }
             analysisUnavailableReason={aiUnavailableReason}
           />
-          <FollowupCard
-            card={card}
-            onChangeStatus={(status) => void updateStatus(status)}
-            onNotFit={() => setNotFitOpen(true)}
-            onRemind={() => setRemindOpen(true)}
-          />
         </>
       ) : null}
+
+      <FollowupCard
+        card={card}
+        onChangeStatus={(status) => void updateStatus(status)}
+        onNotFit={() => setNotFitOpen(true)}
+        onRemind={() => setRemindOpen(true)}
+      />
 
       <FactsCard facts={card.facts} />
       <div id="official-evidence" className="scroll-mt-20">
@@ -268,40 +274,30 @@ export function OpportunityDetailPage() {
           <PriorityCard priority={card.priority} />
           <CustomerContextCard context={card.customer_context} />
         </>
-      ) : (
-        <FollowupCard
-          card={card}
-          readOnly
-          onChangeStatus={() => undefined}
-          onNotFit={() => undefined}
-          onRemind={() => undefined}
-        />
-      )}
+      ) : null}
 
+      <NotFitModal
+        open={notFitOpen}
+        onClose={() => setNotFitOpen(false)}
+        onConfirm={(reason: NotFitReason) => {
+          setNotFitOpen(false)
+          void updateStatus('NOT_FIT', { reason })
+        }}
+      />
+      <RemindModal
+        open={remindOpen}
+        onClose={() => setRemindOpen(false)}
+        onConfirm={(remindAt) => {
+          setRemindOpen(false)
+          void updateStatus('MONITOR', { remind_at: remindAt })
+        }}
+      />
       {!historical ? (
-        <>
-          <NotFitModal
-            open={notFitOpen}
-            onClose={() => setNotFitOpen(false)}
-            onConfirm={(reason: NotFitReason) => {
-              setNotFitOpen(false)
-              void updateStatus('NOT_FIT', { reason })
-            }}
-          />
-          <RemindModal
-            open={remindOpen}
-            onClose={() => setRemindOpen(false)}
-            onConfirm={(remindAt) => {
-              setRemindOpen(false)
-              void updateStatus('MONITOR', { remind_at: remindAt })
-            }}
-          />
-          <OutreachDrawer
-            open={outreachOpen}
-            opportunityId={card.opportunity_id}
-            onClose={() => setOutreachOpen(false)}
-          />
-        </>
+        <OutreachDrawer
+          open={outreachOpen}
+          opportunityId={card.opportunity_id}
+          onClose={() => setOutreachOpen(false)}
+        />
       ) : null}
     </div>
   )
