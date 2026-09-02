@@ -431,7 +431,7 @@ export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard
       customer_context: toCustomerContext(relation, capabilities, profile),
       priority: {
         score: Math.min(100, publicBase + privatePoints),
-        score_scope: 'PERSONALIZED',
+        score_scope: 'PERSONALIZED' as const,
         components: {
           ...card.priority.components,
           PRODUCT_EXECUTION_CAPABILITY: Math.round((capabilityPoint / 25) * 100),
