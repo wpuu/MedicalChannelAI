@@ -116,7 +116,7 @@ class AiDiscoveryRadarContractTests(unittest.TestCase):
         self.assertIn('storageReady', page)
         self.assertIn('本地发现账本', page)
         self.assertIn('IndexedDB', page)
-        self.assertIn('localStorage只保留轻量启动信息', page)
+        self.assertIn('localStorage 只保留轻量启动信息', page)
 
     def test_legacy_live_templates_are_not_migrated_into_new_user_scope(self):
         store = (WEB_ROOT / 'src' / 'services' / 'discoveryRadarStore.ts').read_text(encoding='utf-8')
