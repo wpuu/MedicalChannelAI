@@ -237,7 +237,7 @@ export function TodayPage() {
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>{userCoverageWarning(data.coverage_warning)}</span>
           </div>
-          {!isApiMode && isVerifiedPublicDemo && poolCount > visibleCards.length ? (
+          {(isApiMode || isVerifiedPublicDemo) && poolCount > visibleCards.length ? (
             <button
               type="button"
               onClick={() => navigate('/opportunities')}
