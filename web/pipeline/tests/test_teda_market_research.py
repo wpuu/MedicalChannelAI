@@ -7,6 +7,8 @@ from medical_channel_pipeline.teda_market_research import (
     parse_teda_market_research,
 )
 
+INDEX_URL = 'https://www.tedahospital.com.cn/article/plist/9/2'
+
 DEMAND_FIXTURE = """
 <html><body>
 <h2>天津市泰达医院生物安全柜设备需求调研</h2>
@@ -38,14 +40,34 @@ ARGUMENT_FIXTURE = """
 """
 
 
+def parse_fixture(
+    html: str,
+    *,
+    source_url: str,
+    expected_title: str,
+    observed_at: str = '2026-09-01T18:00:00Z',
+    opportunity_id: str,
+    index_published_at: str,
+):
+    return parse_teda_market_research(
+        html,
+        source_url=source_url,
+        index_url=INDEX_URL,
+        index_published_at=index_published_at,
+        expected_title=expected_title,
+        observed_at=observed_at,
+        opportunity_id=opportunity_id,
+    )
+
+
 class TedaMarketResearchTests(unittest.TestCase):
     def test_demand_research_becomes_verified_date_only_record(self) -> None:
-        record = parse_teda_market_research(
+        record = parse_fixture(
             DEMAND_FIXTURE,
             source_url='https://www.tedahospital.com.cn/article/show/9/901',
             expected_title='天津市泰达医院生物安全柜设备需求调研',
-            observed_at='2026-09-01T18:00:00Z',
             opportunity_id='teda_901',
+            index_published_at='2026-07-22',
         )
         facts = record['facts']
         self.assertEqual(facts['lifecycle_state'], 'MARKET_RESEARCH')
@@ -62,12 +84,12 @@ class TedaMarketResearchTests(unittest.TestCase):
         self.assertIn('DEADLINE_TIME_NOT_PUBLISHED', record['quality_flags'])
 
     def test_argument_notice_preserves_exact_afternoon_deadline(self) -> None:
-        record = parse_teda_market_research(
+        record = parse_fixture(
             ARGUMENT_FIXTURE,
             source_url='https://tedahospital.com.cn/article/show/9/999',
             expected_title='天津市泰达医院 高压氧舱介绍论证邀请公告',
-            observed_at='2026-09-01T18:00:00Z',
             opportunity_id='teda_999',
+            index_published_at='2026-09-01',
         )
         facts = record['facts']
         self.assertEqual(facts['notice_type'], '医疗设备论证邀请')
@@ -78,44 +100,69 @@ class TedaMarketResearchTests(unittest.TestCase):
     def test_nonmedical_early_signal_title_cannot_enter_fact_layer(self) -> None:
         html = DEMAND_FIXTURE.replace('医疗设备采购需求调研', '弱电设备采购需求调研')
         with self.assertRaisesRegex(TedaParseError, 'MEDICAL_EARLY_SIGNAL_NOT_VERIFIED'):
-            parse_teda_market_research(
+            parse_fixture(
                 html,
                 source_url='https://www.tedahospital.com.cn/article/show/9/901',
                 expected_title='天津市泰达医院生物安全柜设备需求调研',
-                observed_at='2026-09-01T18:00:00Z',
                 opportunity_id='teda_901',
+                index_published_at='2026-07-22',
             )
 
     def test_missing_deadline_fails_closed(self) -> None:
         html = DEMAND_FIXTURE.replace('四、报名截止时间：2026年7月29日', '四、报名截止时间：另行通知')
         with self.assertRaisesRegex(TedaParseError, 'REGISTRATION_DEADLINE_NOT_FOUND'):
-            parse_teda_market_research(
+            parse_fixture(
                 html,
                 source_url='https://www.tedahospital.com.cn/article/show/9/901',
                 expected_title='天津市泰达医院生物安全柜设备需求调研',
-                observed_at='2026-09-01T18:00:00Z',
                 opportunity_id='teda_901',
+                index_published_at='2026-07-22',
             )
 
     def test_title_mismatch_fails_closed(self) -> None:
         with self.assertRaisesRegex(TedaParseError, 'TITLE_MISMATCH'):
-            parse_teda_market_research(
+            parse_fixture(
                 DEMAND_FIXTURE,
                 source_url='https://www.tedahospital.com.cn/article/show/9/901',
                 expected_title='天津市泰达医院其他设备需求调研',
-                observed_at='2026-09-01T18:00:00Z',
                 opportunity_id='teda_901',
+                index_published_at='2026-07-22',
             )
 
     def test_unapproved_url_is_rejected(self) -> None:
         with self.assertRaisesRegex(TedaParseError, 'SOURCE_URL_REJECTED'):
-            parse_teda_market_research(
+            parse_fixture(
                 DEMAND_FIXTURE,
                 source_url='https://example.com/article/show/9/901',
                 expected_title='天津市泰达医院生物安全柜设备需求调研',
-                observed_at='2026-09-01T18:00:00Z',
                 opportunity_id='teda_901',
+                index_published_at='2026-07-22',
             )
+
+    def test_detail_and_index_publication_dates_must_agree(self) -> None:
+        with self.assertRaisesRegex(TedaParseError, 'PUBLISHED_DATE_MISMATCH'):
+            parse_fixture(
+                DEMAND_FIXTURE,
+                source_url='https://www.tedahospital.com.cn/article/show/9/901',
+                expected_title='天津市泰达医院生物安全柜设备需求调研',
+                opportunity_id='teda_901',
+                index_published_at='2026-07-23',
+            )
+
+    def test_index_publication_date_is_allowed_when_detail_has_no_footer_date(self) -> None:
+        html = DEMAND_FIXTURE.replace('<p>天津市泰达医院</p><p>2026年7月22日</p>', '')
+        record = parse_fixture(
+            html,
+            source_url='https://www.tedahospital.com.cn/article/show/9/901',
+            expected_title='天津市泰达医院生物安全柜设备需求调研',
+            opportunity_id='teda_901',
+            index_published_at='2026-07-22',
+        )
+        published_evidence = [
+            item for item in record['evidence'] if item['field_path'] == 'facts.published_at'
+        ][0]
+        self.assertEqual(record['facts']['published_at'], '2026-07-22')
+        self.assertEqual(published_evidence['source_url'], INDEX_URL)
 
 
 if __name__ == '__main__':
