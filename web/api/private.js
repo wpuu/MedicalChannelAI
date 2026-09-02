@@ -522,10 +522,54 @@ function sanitizeStoredSnapshot(value) {
   return { facts, evidence_source_urls: evidenceSourceUrls }
 }
 
+function followedItemFromRow(row) {
+  if (!FOLLOWUP_STATUSES.has(row.status)) return null
+  const snapshot = sanitizeStoredSnapshot(row.public_snapshot)
+  if (!snapshot) return null
+  return {
+    opportunity_id: row.opportunity_id,
+    followup_status: row.status,
+    remind_at: row.remind_at ? new Date(row.remind_at).toISOString() : null,
+    latest_note: nullableText(row.latest_note),
+    followup_updated_at: new Date(row.updated_at).toISOString(),
+    facts: snapshot.facts,
+    evidence_source_urls: snapshot.evidence_source_urls,
+  }
+}
+
 async function followedRoute(request, response, user) {
   if (!allow(request, response, ['GET'])) return
+  const rawRequestedId = firstQuery(request, 'id')
+  const requestedId = rawRequestedId === undefined ? null : opportunityId(request)
+  if (rawRequestedId !== undefined && !requestedId) {
+    return sendJson(response, 400, { error: 'OPPORTUNITY_ID_INVALID' })
+  }
+
   const sql = privateDb()
   try {
+    if (requestedId) {
+      const rows = await sql`
+        SELECT
+          f.opportunity_id, f.status, f.remind_at, f.public_snapshot, f.updated_at,
+          (
+            SELECT e.note FROM private_followup_events e
+            WHERE e.followup_id = f.id AND e.user_id = ${user.id}
+              AND e.note IS NOT NULL AND length(trim(e.note)) > 0
+            ORDER BY e.created_at DESC, e.id DESC LIMIT 1
+          ) AS latest_note
+        FROM private_followups f
+        WHERE f.user_id = ${user.id}
+          AND f.organization_id = ${user.organization_id}
+          AND f.opportunity_id = ${requestedId}
+        LIMIT 1
+      `
+      const item = rows[0] ? followedItemFromRow(rows[0]) : null
+      if (!item) return sendJson(response, 404, { error: 'FOLLOWED_OPPORTUNITY_NOT_FOUND' })
+      return sendJson(response, 200, {
+        schema_version: '0.1', mode: 'FOLLOWED_OPPORTUNITY', item,
+      })
+    }
+
     const rows = await sql`
       SELECT
         f.opportunity_id, f.status, f.remind_at, f.public_snapshot, f.updated_at,
@@ -540,26 +584,15 @@ async function followedRoute(request, response, user) {
       ORDER BY f.updated_at DESC, f.id DESC
       LIMIT 100
     `
-    const items = []
-    for (const row of rows) {
-      if (!FOLLOWUP_STATUSES.has(row.status)) continue
-      const snapshot = sanitizeStoredSnapshot(row.public_snapshot)
-      if (!snapshot) continue
-      items.push({
-        opportunity_id: row.opportunity_id,
-        followup_status: row.status,
-        remind_at: row.remind_at ? new Date(row.remind_at).toISOString() : null,
-        latest_note: nullableText(row.latest_note),
-        followup_updated_at: new Date(row.updated_at).toISOString(),
-        facts: snapshot.facts,
-        evidence_source_urls: snapshot.evidence_source_urls,
-      })
-    }
+    const items = rows.map(followedItemFromRow).filter(Boolean)
     return sendJson(response, 200, {
       schema_version: '0.1', mode: 'FOLLOWED_OPPORTUNITIES', count: items.length, items,
     })
   } catch (error) {
-    console.error('private followed list failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })
+    console.error('private followed request failed', {
+      opportunity_id: requestedId,
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
     return sendJson(response, 500, { error: 'FOLLOWED_REQUEST_FAILED' })
   }
 }

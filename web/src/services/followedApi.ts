@@ -388,6 +388,25 @@ export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]>
   return items
 }
 
+async function getFollowedOpportunityById(opportunityId: string): Promise<FollowedOpportunity | null> {
+  const response = await fetch(`${apiBaseUrl}/followed?id=${encodeURIComponent(opportunityId)}`, {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  })
+  if (response.status === 404) return null
+  if (!response.ok) throw await responseError(response)
+  const root = asRecord(await response.json())
+  if (
+    !root ||
+    !exactKeys(root, ['schema_version', 'mode', 'item']) ||
+    root.schema_version !== '0.1' ||
+    root.mode !== 'FOLLOWED_OPPORTUNITY'
+  ) {
+    throw new Error('FOLLOWED_RESPONSE_INVALID')
+  }
+  return validateItem(root.item)
+}
+
 function verificationStatus(value: string | null): TodayActionCard['facts']['verification_status'] {
   if (value === 'VERIFIED') return 'VERIFIED'
   if (value === 'UNVERIFIED') return 'UNVERIFIED'
@@ -406,8 +425,7 @@ export async function getHistoricalFollowedOpportunityCard(
   if (!isApiMode) return null
   if (!isStableOpportunityId(opportunityId)) throw new Error('OPPORTUNITY_ID_INVALID')
 
-  const followed = await getFollowedOpportunities()
-  const item = followed.find((row) => row.opportunity_id === opportunityId)
+  const item = await getFollowedOpportunityById(opportunityId)
   if (!item) return null
 
   const response = await fetch(`${apiBaseUrl}/followup/${encodeURIComponent(opportunityId)}`, {
