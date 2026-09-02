@@ -22,6 +22,7 @@ const STATUS_OPTIONS: FollowupStatus[] = [
 interface FollowupCardProps {
   card: TodayActionCard
   onChangeStatus: (status: FollowupStatus) => void
+  onAddNote?: (note: string) => Promise<boolean>
   onNotFit: () => void
   onRemind: () => void
   readOnly?: boolean
@@ -30,15 +31,30 @@ interface FollowupCardProps {
 export function FollowupCard({
   card,
   onChangeStatus,
+  onAddNote,
   onNotFit,
   onRemind,
   readOnly = false,
 }: FollowupCardProps) {
   const [status, setStatus] = useState<FollowupStatus>(card.followup_status)
+  const [note, setNote] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
 
   useEffect(() => {
     setStatus(card.followup_status)
   }, [card.followup_status])
+
+  const saveNote = async () => {
+    const value = note.trim()
+    if (!value || !onAddNote || savingNote) return
+    setSavingNote(true)
+    try {
+      const saved = await onAddNote(value)
+      if (saved) setNote('')
+    } finally {
+      setSavingNote(false)
+    }
+  }
 
   return (
     <SectionCard
@@ -52,38 +68,68 @@ export function FollowupCard({
       }
     >
       {!readOnly ? (
-        <div className="mb-4">
-          <label className="text-[12px] text-slate-500">更新跟进状态</label>
-          <div className="mt-2 flex gap-2">
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as FollowupStatus)}
-              className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-teal-700"
-            >
-              {STATUS_OPTIONS.map((item) => (
-                <option key={item} value={item}>
-                  {FOLLOWUP_STATUS_LABEL[item]}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => {
-                if (status === 'NOT_FIT') {
-                  onNotFit()
-                  return
-                }
-                if (status === 'MONITOR') {
-                  onRemind()
-                  return
-                }
-                onChangeStatus(status)
-              }}
-              className="shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-[13px] text-white"
-            >
-              保存
-            </button>
+        <div className="mb-4 space-y-3">
+          <div>
+            <label className="text-[12px] text-slate-500">更新跟进状态</label>
+            <div className="mt-2 flex gap-2">
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as FollowupStatus)}
+                className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-teal-700"
+              >
+                {STATUS_OPTIONS.map((item) => (
+                  <option key={item} value={item}>
+                    {FOLLOWUP_STATUS_LABEL[item]}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => {
+                  if (status === 'NOT_FIT') {
+                    onNotFit()
+                    return
+                  }
+                  if (status === 'MONITOR') {
+                    onRemind()
+                    return
+                  }
+                  onChangeStatus(status)
+                }}
+                className="shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-[13px] text-white"
+              >
+                保存状态
+              </button>
+            </div>
           </div>
+
+          {onAddNote ? (
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+              <label htmlFor={`followup-note-${card.opportunity_id}`} className="text-[12px] font-medium text-slate-600">
+                记录本次跟进
+              </label>
+              <textarea
+                id={`followup-note-${card.opportunity_id}`}
+                value={note}
+                maxLength={2000}
+                rows={3}
+                placeholder="例如：已电话联系设备科，对方建议周四再联系；下一步确认参数和厂家授权。"
+                onChange={(event) => setNote(event.target.value)}
+                className="mt-2 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] leading-5 text-slate-700 outline-none focus:border-teal-600"
+              />
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <span className="text-[11px] text-slate-400">{note.length}/2000 · 备注属于当前账号私有数据</span>
+                <button
+                  type="button"
+                  disabled={!note.trim() || savingNote}
+                  onClick={() => void saveNote()}
+                  className="shrink-0 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-[12px] font-medium text-teal-800 hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {savingNote ? '保存中…' : '保存备注'}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -120,7 +166,7 @@ export function FollowupCard({
                   <p className="mt-1 text-[12px] text-slate-600">原因：{item.reason}</p>
                 ) : null}
                 {item.note ? (
-                  <p className="mt-1 text-[12px] text-slate-600">{item.note}</p>
+                  <p className="mt-1 whitespace-pre-wrap text-[12px] leading-5 text-slate-600">{item.note}</p>
                 ) : null}
                 {item.remind_at ? (
                   <p className="mt-1 text-[12px] text-slate-600">
