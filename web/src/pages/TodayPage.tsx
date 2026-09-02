@@ -153,7 +153,7 @@ export function TodayPage() {
 
   const analyzeOpportunity = async (id: string) => {
     const card = data?.cards.find((item) => item.opportunity_id === id)
-    if (!card || !isVerifiedPublicDemo || isApiMode) return
+    if (!card || (!isApiMode && !isVerifiedPublicDemo)) return
     setAiBusyId(id)
     try {
       const decision = await requestAiDecision(card)
@@ -172,6 +172,10 @@ export function TodayPage() {
       })
       toast('AI行动建议已生成', 'success')
     } catch (cause) {
+      if (cause instanceof AiDecisionError && cause.code === 'AUTH_REQUIRED') {
+        navigate('/login', { replace: true })
+        return
+      }
       if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
         setRuntimeStatus((current) => current ? { ...current, ai: { configured: false } } : current)
       }
@@ -284,7 +288,7 @@ export function TodayPage() {
               onNotFit={() => setNotFitId(card.opportunity_id)}
               onRemind={() => setRemindId(card.opportunity_id)}
               onOutreach={() => setOutreachId(card.opportunity_id)}
-              onAnalyze={isVerifiedPublicDemo && !isApiMode ? () => void analyzeOpportunity(card.opportunity_id) : undefined}
+              onAnalyze={isApiMode || isVerifiedPublicDemo ? () => void analyzeOpportunity(card.opportunity_id) : undefined}
               analysisUnavailableReason={aiUnavailableReason}
             />
           ))}
