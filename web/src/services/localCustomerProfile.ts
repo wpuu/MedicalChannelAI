@@ -272,7 +272,13 @@ function capabilityMatchTerms(value: string): string[] {
   return group ?? [keyword]
 }
 
-function cardSearchText(card: TodayActionCard): string {
+function shortAsciiTokenMatches(rawText: string, term: string): boolean {
+  if (!/^[a-z0-9]{2,3}$/.test(term)) return false
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(^|[^a-z0-9])${escaped}(?=$|[^a-z0-9])`, 'i').test(rawText)
+}
+
+function cardSearchText(card: TodayActionCard): { raw: string; normalized: string } {
   const values = [
     card.facts.project_name,
     card.facts.department,
@@ -282,8 +288,9 @@ function cardSearchText(card: TodayActionCard): string {
       item.category,
       item.specification,
     ]),
-  ]
-  return normalizeForMatch(values.filter(Boolean).join('|'))
+  ].filter(Boolean)
+  const raw = values.join(' | ').toLowerCase()
+  return { raw, normalized: normalizeForMatch(raw) }
 }
 
 function capabilityPoints(type: CapabilityType): number {
@@ -374,10 +381,14 @@ function capabilitiesForCard(
   profile: LocalCustomerProfile,
 ): LocalProductCapability[] {
   const haystack = cardSearchText(card)
-  if (!haystack) return []
+  if (!haystack.raw && !haystack.normalized) return []
   return profile.product_capabilities.filter((capability) => {
     if (!isSpecificCapabilityKeyword(capability.keyword)) return false
-    return capabilityMatchTerms(capability.keyword).some((term) => haystack.includes(term))
+    return capabilityMatchTerms(capability.keyword).some((term) =>
+      /^[a-z0-9]{2,3}$/.test(term)
+        ? shortAsciiTokenMatches(haystack.raw, term)
+        : haystack.normalized.includes(term),
+    )
   })
 }
 
