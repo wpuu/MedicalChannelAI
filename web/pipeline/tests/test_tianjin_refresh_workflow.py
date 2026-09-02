@@ -1,0 +1,58 @@
+from __future__ import annotations
+
+import re
+import unittest
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+WORKFLOW_PATH = REPO_ROOT / '.github' / 'workflows' / 'tianjin-medical-refresh.yml'
+TEMP_PROBE_PATH = REPO_ROOT / '.github' / 'workflows' / 'tjmugh-live-probe.yml'
+
+
+class TianjinRefreshWorkflowTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.workflow = WORKFLOW_PATH.read_text(encoding='utf-8')
+
+    def test_teda_uses_shared_authoritative_refresh_clock(self) -> None:
+        match = re.search(
+            r'- name: Sync verified TEDA Hospital early-demand state\n(?P<body>.*?)(?=\n      - name:)',
+            self.workflow,
+            flags=re.S,
+        )
+        self.assertIsNotNone(match)
+        body = match.group('body') if match else ''
+        self.assertIn("--as-of '${{ steps.clock.outputs.as_of }}'", body)
+        self.assertIn('--lookback-days 90', body)
+        self.assertIn('--index-pages 4', body)
+        self.assertIn('--max-candidates 20', body)
+        self.assertIn('--delay-seconds 3', body)
+
+    def test_teda_records_feed_public_snapshot_and_refresh_commit(self) -> None:
+        self.assertIn(
+            '--records-output web/pipeline/data/tianjin_live_teda_records.json',
+            self.workflow,
+        )
+        self.assertIn(
+            '--report-output web/pipeline/data/tianjin_teda_sync_report.json',
+            self.workflow,
+        )
+        self.assertIn(
+            '--input web/pipeline/data/tianjin_live_teda_records.json',
+            self.workflow,
+        )
+        self.assertGreaterEqual(
+            self.workflow.count('web/pipeline/data/tianjin_live_teda_records.json'),
+            4,
+        )
+        self.assertIn(
+            'web/pipeline/data/tianjin_teda_sync_report.json',
+            self.workflow,
+        )
+
+    def test_temporary_teda_probe_workflow_is_removed(self) -> None:
+        self.assertFalse(TEMP_PROBE_PATH.exists())
+
+
+if __name__ == '__main__':
+    unittest.main()
