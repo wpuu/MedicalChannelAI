@@ -43,19 +43,19 @@ function searchableOpportunityText(facts) {
   return normalize(values.filter(Boolean).join(' '))
 }
 
-function hospitalMatches(relation, facts) {
-  const relationHospital = normalize(relation.hospital)
+function hospitalScopeMatches(item, facts) {
+  const itemHospital = normalize(item.hospital)
   const factHospital = normalize(facts?.hospital || facts?.hospital_name || facts?.buyer_name)
-  if (!relationHospital || !factHospital) return false
-  if (!(relationHospital === factHospital || relationHospital.includes(factHospital) || factHospital.includes(relationHospital))) {
+  if (!itemHospital || !factHospital) return false
+  if (!(itemHospital === factHospital || itemHospital.includes(factHospital) || factHospital.includes(itemHospital))) {
     return false
   }
-  const relationDepartment = normalize(relation.department)
-  if (!relationDepartment) return true
+  const itemDepartment = normalize(item.department)
+  if (!itemDepartment) return true
   const factDepartment = normalize(facts?.department)
   return Boolean(
     factDepartment &&
-    (relationDepartment === factDepartment || relationDepartment.includes(factDepartment) || factDepartment.includes(relationDepartment)),
+    (itemDepartment === factDepartment || itemDepartment.includes(factDepartment) || factDepartment.includes(itemDepartment)),
   )
 }
 
@@ -94,7 +94,7 @@ function cardLooksLikeLease(facts) {
 
 export async function loadPrivateProfileForUser(user) {
   const sql = privateDb()
-  const [capabilities, relationships, preferences] = await Promise.all([
+  const [capabilities, relationships, targets, preferences] = await Promise.all([
     sql`
       SELECT keyword, capability_type, updated_at
       FROM private_product_capabilities
@@ -110,6 +110,13 @@ export async function loadPrivateProfileForUser(user) {
       LIMIT 100
     `,
     sql`
+      SELECT hospital, department, updated_at
+      FROM private_target_hospitals
+      WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+      ORDER BY updated_at DESC, created_at ASC
+      LIMIT 100
+    `,
+    sql`
       SELECT can_find_manufacturer, can_partner_channel, can_handle_lease, updated_at
       FROM private_user_preferences
       WHERE user_id = ${user.id}
@@ -119,6 +126,7 @@ export async function loadPrivateProfileForUser(user) {
   return {
     capabilities: [...capabilities],
     relationships: [...relationships],
+    targets: [...targets],
     preferences: preferences[0] || null,
   }
 }
@@ -137,11 +145,13 @@ export function minimalPrivateContextFromProfile(profile, facts) {
 
   let matchingRelationship = null
   for (const relation of profile.relationships) {
-    if (!hospitalMatches(relation, facts)) continue
+    if (!hospitalScopeMatches(relation, facts)) continue
     if (!matchingRelationship || relationshipPoints(relation.relationship_strength) > relationshipPoints(matchingRelationship.relationship_strength)) {
       matchingRelationship = relation
     }
   }
+
+  const matchingTarget = profile.targets.find((target) => hospitalScopeMatches(target, facts)) || null
 
   const preference = profile.preferences
   const partneringPolicy = {
@@ -152,6 +162,16 @@ export function minimalPrivateContextFromProfile(profile, facts) {
 
   const context = {
     context_type: 'CUSTOMER_SELF_REPORTED_CONTEXT',
+    target_hospital: matchingTarget
+      ? {
+          hospital: matchingTarget.hospital,
+          department: matchingTarget.department,
+          watched_by_customer: true,
+          updated_at: matchingTarget.updated_at
+            ? new Date(matchingTarget.updated_at).toISOString()
+            : null,
+        }
+      : null,
     hospital_relationship: matchingRelationship
       ? {
           hospital: matchingRelationship.hospital,
@@ -169,12 +189,14 @@ export function minimalPrivateContextFromProfile(profile, facts) {
   const timestamps = [
     ...matchingCapabilityRows.map((row) => row.updated_at ? new Date(row.updated_at).getTime() : null),
     matchingRelationship?.updated_at ? new Date(matchingRelationship.updated_at).getTime() : null,
+    matchingTarget?.updated_at ? new Date(matchingTarget.updated_at).getTime() : null,
     preference?.updated_at ? new Date(preference.updated_at).getTime() : null,
   ].filter((value) => typeof value === 'number' && Number.isFinite(value))
 
   return {
     context,
     has_context: Boolean(
+      context.target_hospital ||
       context.hospital_relationship ||
       context.matching_product_capabilities.length ||
       Object.values(context.partnering_policy).some((value) => value !== null),
@@ -188,6 +210,8 @@ export function privatePriorityPoints(context, facts) {
     (max, item) => Math.max(max, capabilityPoints(item.capability_type)),
     0,
   )
+  // Target-hospital interest is deliberately NOT relationship evidence and therefore
+  // contributes zero relationship points. Only a confirmed hospital_relationship scores.
   const relationshipPoint = context.hospital_relationship
     ? relationshipPoints(context.hospital_relationship.relationship_strength)
     : 0
