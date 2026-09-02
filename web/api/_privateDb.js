@@ -87,6 +87,16 @@ const SCHEMA_STATEMENTS = [
     updated_at timestamptz NOT NULL DEFAULT now()
   )`,
   `CREATE INDEX IF NOT EXISTS private_hospital_relationships_scope_idx ON private_hospital_relationships(organization_id, user_id)`,
+  `CREATE TABLE IF NOT EXISTS private_target_hospitals (
+    id uuid PRIMARY KEY,
+    organization_id uuid NOT NULL REFERENCES private_organizations(id) ON DELETE CASCADE,
+    user_id uuid NOT NULL REFERENCES private_users(id) ON DELETE CASCADE,
+    hospital text NOT NULL,
+    department text NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS private_target_hospitals_scope_idx ON private_target_hospitals(organization_id, user_id)`,
   `CREATE TABLE IF NOT EXISTS private_user_preferences (
     user_id uuid PRIMARY KEY REFERENCES private_users(id) ON DELETE CASCADE,
     can_find_manufacturer boolean NULL,
