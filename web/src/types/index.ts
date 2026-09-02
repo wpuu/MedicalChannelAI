@@ -120,7 +120,8 @@ export interface PartneringPolicy {
 }
 
 export interface CustomerContext {
-  target_hospital: TargetHospitalInterest | null
+  /** Optional only for legacy demo fixtures; real Pilot adapters set it explicitly. */
+  target_hospital?: TargetHospitalInterest | null
   hospital_relationship: HospitalRelationship | null
   matching_product_capabilities: MatchingProductCapability[]
   partnering_policy: PartneringPolicy
