@@ -113,7 +113,7 @@ export function OpportunityDetailPage() {
   }
 
   const analyze = async () => {
-    if (!card || historical || isApiMode || !isVerifiedPublicDemo) return
+    if (!card || historical || (!isApiMode && !isVerifiedPublicDemo)) return
     setAiBusy(true)
     try {
       const decision = await requestAiDecision(card)
@@ -128,6 +128,10 @@ export function OpportunityDetailPage() {
       })
       toast('AI行动建议已生成', 'success')
     } catch (cause) {
+      if (cause instanceof AiDecisionError && cause.code === 'AUTH_REQUIRED') {
+        navigate('/login', { replace: true })
+        return
+      }
       if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
         setRuntimeStatus((current) =>
           current ? { ...current, ai: { configured: false } } : current,
@@ -231,7 +235,7 @@ export function OpportunityDetailPage() {
             card={card}
             analyzing={aiBusy}
             onAnalyze={
-              !isApiMode && isVerifiedPublicDemo
+              isApiMode || isVerifiedPublicDemo
                 ? () => void analyze()
                 : undefined
             }
