@@ -449,7 +449,7 @@ export function DiscoveryRadarPage() {
           ['公开渠道', summary.channels, '可随时增删'],
           ['当前链接', summary.anchors, '最近一次官网窗口'],
           ['当前候选', summary.currentCandidates, '最近扫描仍可见'],
-          ['累计保存', summary.savedFindings, `界面显示最近 ${Math.min(summary.savedFindings, FINDINGS_RENDER_LIMIT)}`],
+          ['累计发现', summary.savedFindings, `界面显示最近 ${Math.min(summary.savedFindings, FINDINGS_RENDER_LIMIT)}`],
           ['AI新候选', summary.novel, '独立核验前不发布'],
           ['AI发现分', summary.score ?? '—', '仅当前可见已知样本'],
         ].map(([label, value, hint]) => (
@@ -690,7 +690,7 @@ export function DiscoveryRadarPage() {
           <div className="flex items-start gap-2">
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
             <div>
-              <h3 className="text-[14px] font-semibold text-slate-900">累计保存的AI发现</h3>
+              <h3 className="text-[14px] font-semibold text-slate-900">累计发现（已保存）</h3>
               <p className="mt-0.5 text-[11px] leading-5 text-slate-500">新一轮扫描不会覆盖旧发现；同一链接自动去重。为避免大量历史拖慢手机界面，这里最多渲染最近 {FINDINGS_RENDER_LIMIT} 条，但本地账本仍保存全部记录。</p>
             </div>
           </div>
