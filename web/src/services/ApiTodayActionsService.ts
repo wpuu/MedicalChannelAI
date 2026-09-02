@@ -296,6 +296,9 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
     },
     priority: {
       score: card.priority.score,
+      score_scope:
+        card.priority.score_scope ??
+        (card.priority.score_type === 'BUSINESS_PRIORITY_PERSONALIZED_V2' ? 'PERSONALIZED' : 'PUBLIC'),
       components: {
         PRODUCT_EXECUTION_CAPABILITY: componentPercent(
           card,

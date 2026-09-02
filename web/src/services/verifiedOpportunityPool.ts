@@ -133,6 +133,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
     },
     priority: {
       score: card.priority.score,
+      score_scope: 'PUBLIC',
       components: {
         PRODUCT_EXECUTION_CAPABILITY: componentPercent(card, 'PRODUCT_EXECUTION_CAPABILITY'),
         RELATIONSHIP: componentPercent(card, 'RELATIONSHIP'),
