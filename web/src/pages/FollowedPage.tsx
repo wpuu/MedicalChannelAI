@@ -91,7 +91,7 @@ export function FollowedPage() {
       }
       setItems(nextItems)
       setStatusIndex(index)
-      setNextOffset(page.items.length)
+      setNextOffset(page.offset + 100)
       setHasMore(page.has_more)
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
@@ -113,7 +113,7 @@ export function FollowedPage() {
         const seen = new Set(current.map((item) => item.opportunity_id))
         return [...current, ...page.items.filter((item) => !seen.has(item.opportunity_id))]
       })
-      setNextOffset(nextOffset + page.items.length)
+      setNextOffset(page.offset + 100)
       setHasMore(page.has_more)
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
@@ -204,7 +204,7 @@ export function FollowedPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="搜索医院、项目、产品、备注..."
+              placeholder="搜索已加载的医院、项目、产品、备注..."
               className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-[13px] outline-none focus:border-teal-500 focus:bg-white"
             />
           </label>
@@ -230,7 +230,7 @@ export function FollowedPage() {
             ))}
           </div>
         </div>
-        <p className="mt-2 px-1 text-[11px] text-slate-400">当前显示 {orderedItems.length} 条 · 已加载详情 {items.length} / 全部 {statusIndex.length} 条{hasMore ? ' · 可继续加载更早记录' : ''}</p>
+        <p className="mt-2 px-1 text-[11px] text-slate-400">当前显示 {orderedItems.length} 条 · 已加载详情 {items.length} / 全部 {statusIndex.length} 条{hasMore ? ' · 搜索仅覆盖已加载详情，可继续加载更早记录' : ''}</p>
       </section>
 
       {orderedItems.length === 0 ? (
