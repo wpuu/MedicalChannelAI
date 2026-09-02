@@ -7,6 +7,35 @@ const pipelineDir = resolve(scriptDir, '../pipeline')
 const unittestArgs = ['-m', 'unittest', 'discover', '-s', 'tests', '-v']
 const refreshArgs = ['scripts/refresh_bundled_snapshot.py']
 
+function verifyPilotDeploymentEnvironment() {
+  const buildMode = String(process.env.VITE_BUILD_MODE || '').trim().toLowerCase()
+  if (buildMode !== 'pilot') return
+
+  const missing = []
+  const apiBaseUrl = String(process.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '')
+  if (apiBaseUrl !== '/api') missing.push('VITE_API_BASE_URL=/api')
+  if (String(process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED || '').trim() !== '1') {
+    missing.push('PILOT_PRIVATE_ACCOUNTS_ENABLED=1')
+  }
+  if (!String(process.env.DATABASE_URL || process.env.POSTGRES_URL || '').trim()) {
+    missing.push('DATABASE_URL_OR_POSTGRES_URL')
+  }
+  const inviteCodes = String(process.env.PILOT_INVITE_CODES || '')
+    .split(/[\n,;]+/)
+    .map((value) => value.trim())
+    .filter(Boolean)
+  if (!inviteCodes.some((value) => value.length >= 24)) {
+    missing.push('PILOT_INVITE_CODES')
+  }
+
+  if (missing.length > 0) {
+    throw new Error(`PILOT_DEPLOYMENT_ENV_INCOMPLETE:${missing.join(',')}`)
+  }
+  console.log('Pilot deployment environment contract: PASS')
+}
+
+verifyPilotDeploymentEnvironment()
+
 const candidates = []
 if (process.env.PYTHON) candidates.push([process.env.PYTHON, []])
 candidates.push(
