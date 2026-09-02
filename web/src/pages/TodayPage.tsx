@@ -18,6 +18,7 @@ import {
   requestAiDecision,
 } from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
+import { getOpportunityFeedback } from '@/services/opportunityFeedbackStore'
 import {
   acknowledgeDueReminder,
   getDueReminders,
@@ -48,6 +49,16 @@ function shouldHideFromVerifiedTrialToday(card: TodayActionCard): boolean {
   if (card.followup_status !== 'MONITOR' || !card.remind_at) return false
   const remindAt = new Date(card.remind_at).getTime()
   return !Number.isNaN(remindAt) && remindAt > Date.now()
+}
+
+function localDiscoveryFeedbackBucket(card: TodayActionCard): number {
+  if (card.followup_status !== 'NEW') return 0
+  return getOpportunityFeedback(card.opportunity_id) === 'ALREADY_KNOWN' ? 1 : 0
+}
+
+function localFeedbackHidesFromToday(card: TodayActionCard): boolean {
+  return card.followup_status === 'NEW' &&
+    getOpportunityFeedback(card.opportunity_id) === 'NEW_NOT_VALUABLE'
 }
 
 function userCoverageWarning(value: string): string {
@@ -86,7 +97,14 @@ export function TodayPage() {
         const hydratedPool = await hydrateCachedAiDecisions(pool)
         const cards = hydratedPool
           .filter((card) => !shouldHideFromVerifiedTrialToday(card))
+          .filter((card) => !localFeedbackHidesFromToday(card))
+          .sort((left, right) =>
+            localDiscoveryFeedbackBucket(left) - localDiscoveryFeedbackBucket(right) ||
+            right.priority.score - left.priority.score ||
+            left.rank - right.rank,
+          )
           .slice(0, MAX_TODAY_CARDS)
+          .map((card, index) => ({ ...card, rank: index + 1 }))
         setData({
           ...res,
           matched_count: hydratedPool.length,
@@ -289,6 +307,7 @@ export function TodayPage() {
               onRemind={() => setRemindId(card.opportunity_id)}
               onOutreach={() => setOutreachId(card.opportunity_id)}
               onAnalyze={isApiMode || isVerifiedPublicDemo ? () => void analyzeOpportunity(card.opportunity_id) : undefined}
+              onFeedbackChanged={() => load(true)}
               analysisUnavailableReason={aiUnavailableReason}
             />
           ))}
