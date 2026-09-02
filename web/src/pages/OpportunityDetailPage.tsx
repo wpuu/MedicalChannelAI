@@ -120,6 +120,32 @@ export function OpportunityDetailPage() {
     }
   }
 
+  const addNote = async (note: string): Promise<boolean> => {
+    if (!card) return false
+    const latestNotFitReason = card.followup_history.find(
+      (item) => item.status === 'NOT_FIT' && Boolean(item.reason),
+    )?.reason
+    try {
+      await todayActionsService.updateFollowup(card.opportunity_id, {
+        status: card.followup_status,
+        note,
+        ...(card.followup_status === 'NOT_FIT' && latestNotFitReason
+          ? { reason: latestNotFitReason }
+          : {}),
+      })
+      await load(true)
+      toast('跟进备注已保存', 'success')
+      return true
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return false
+      }
+      toast('备注保存失败，请重试')
+      return false
+    }
+  }
+
   const analyze = async () => {
     if (!card || historical || (!isApiMode && !isVerifiedPublicDemo)) return
     setAiBusy(true)
@@ -197,7 +223,7 @@ export function OpportunityDetailPage() {
       {historical ? (
         <section className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-5 text-amber-900">
           <Archive className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>这是你当时保存的跟进快照。公开事实已经冻结，不重新计算优先级，也不生成新的 AI 建议；但你的私有跟进状态、结果和提醒仍可继续维护。</p>
+          <p>这是你当时保存的跟进快照。公开事实已经冻结，不重新计算优先级，也不生成新的 AI 建议；但你的私有跟进状态、结果、备注和提醒仍可继续维护。</p>
         </section>
       ) : null}
 
@@ -257,6 +283,7 @@ export function OpportunityDetailPage() {
       <FollowupCard
         card={card}
         onChangeStatus={(status) => void updateStatus(status)}
+        onAddNote={addNote}
         onNotFit={() => setNotFitOpen(true)}
         onRemind={() => setRemindOpen(true)}
       />
