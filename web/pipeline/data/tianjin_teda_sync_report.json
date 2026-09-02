@@ -1,0 +1,47 @@
+{
+  "schema_version": "0.1",
+  "observed_at": "2026-09-02T22:08:27.889779+00:00",
+  "source": "TEDA_HOSPITAL_PROCUREMENT_INDEX",
+  "start_date": "2026-06-06",
+  "end_date": "2026-09-03",
+  "index_pages": 4,
+  "discovered_early_title_count": 6,
+  "considered_candidate_count": 6,
+  "new_verified_record_count": 5,
+  "out_of_window_count": 0,
+  "unsupported_candidate_count": 1,
+  "unsupported_nonmedical_count": 0,
+  "unsupported_missing_official_published_date_count": 1,
+  "unsupported_reason_counts": {
+    "TEDA_MEDICAL_EARLY_SIGNAL_NOT_VERIFIED": 0,
+    "TEDA_OFFICIAL_PUBLISHED_DATE_NOT_AVAILABLE": 1
+  },
+  "unsupported_candidates": [
+    {
+      "title": "天津市泰达医院眼底血管造影系统 医疗设备介绍论证邀请公告",
+      "url": "https://www.tedahospital.com.cn/article/show/9/895",
+      "reason": "TEDA_OFFICIAL_PUBLISHED_DATE_NOT_AVAILABLE"
+    }
+  ],
+  "existing_record_count": 0,
+  "merged_record_count": 5,
+  "failure_count": 0,
+  "failures": [],
+  "publish_allowed": true,
+  "publish_gate_reason": "PASS",
+  "policy": {
+    "official_index_required": true,
+    "bounded_index_pages": 4,
+    "official_index_publication_date_is_evidence_when_present": true,
+    "detail_publication_date_must_match_index_when_both_exist": true,
+    "missing_official_publication_date_is_explicitly_unsupported": true,
+    "early_signal_title_prefilter_only": true,
+    "medical_early_signal_must_be_verified_in_detail": true,
+    "detail_must_pass_canonical_validation": true,
+    "candidate_parse_failures_block_publish": true,
+    "retry_transient_index_and_detail_fetch_errors": true,
+    "fetch_attempts": 2,
+    "rate_limit_bypass": false,
+    "minimum_request_delay_seconds": 3.0
+  }
+}
