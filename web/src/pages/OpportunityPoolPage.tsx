@@ -6,6 +6,7 @@ import {
   ChevronRight,
   ExternalLink,
   Filter,
+  Loader2,
   Search,
   SlidersHorizontal,
 } from 'lucide-react'
@@ -14,15 +15,18 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageSt
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { StageBadge } from '@/components/shared/StageBadge'
 import { useToast } from '@/context/ToastContext'
+import { todayActionsService } from '@/services'
 import { AiDecisionError, requestAiDecision } from '@/services/aiDecisionApi'
+import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
+import { getFollowedOpportunities } from '@/services/followedApi'
 import { persistLocalFollowup } from '@/services/localFollowupStore'
 import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
 import { getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
-import type { TodayActionCard } from '@/types'
+import type { FollowupStatus, TodayActionCard } from '@/types'
 import { formatBudget, formatDateTime, uid } from '@/utils/format'
 
 type WindowFilter = 'ALL' | 'OPEN' | 'LATE_WINDOW'
-const AI_UNCONFIGURED_REASON = 'AI运行配置尚未完成；商机检索、官方依据和本地跟进仍可正常使用。'
+const AI_UNCONFIGURED_REASON = 'AI运行配置尚未完成；商机检索、官方依据和跟进功能仍可正常使用。'
 
 function normalizedSearchText(card: TodayActionCard): string {
   return [
@@ -73,6 +77,7 @@ function aiErrorMessage(cause: unknown): string {
 function PoolCard({
   card,
   aiBusy,
+  followBusy,
   onAnalyze,
   onFollow,
   onOpen,
@@ -80,6 +85,7 @@ function PoolCard({
 }: {
   card: TodayActionCard
   aiBusy: boolean
+  followBusy: boolean
   onAnalyze?: () => void
   onFollow: () => void
   onOpen: () => void
@@ -99,7 +105,7 @@ function PoolCard({
             <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-white">
               #{card.rank}
             </span>
-            <PriorityBadge score={card.priority.score} />
+            <PriorityBadge score={card.priority.score} scoreScope={card.priority.score_scope} />
             <StageBadge stage={card.facts.lifecycle_stage} />
             {late ? (
               <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
@@ -119,12 +125,18 @@ function PoolCard({
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              disabled={followed}
+              disabled={followed || followBusy}
               onClick={onFollow}
               className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-[12px] font-medium text-teal-800 transition hover:bg-teal-100 disabled:cursor-default disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
             >
-              {followed ? <Check className="h-3.5 w-3.5" /> : <BookmarkPlus className="h-3.5 w-3.5" />}
-              {followed ? '已在我的跟进' : '加入我的跟进'}
+              {followBusy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : followed ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : (
+                <BookmarkPlus className="h-3.5 w-3.5" />
+              )}
+              {followBusy ? '正在加入…' : followed ? '已在我的跟进' : '加入我的跟进'}
             </button>
             <button
               type="button"
@@ -138,7 +150,9 @@ function PoolCard({
         </div>
         <div className="shrink-0 text-right">
           <div className="text-2xl font-semibold tabular-nums text-slate-900">{card.priority.score}</div>
-          <div className="text-[11px] text-slate-400">经营优先级</div>
+          <div className="text-[11px] text-slate-400">
+            {card.priority.score_scope === 'PERSONALIZED' ? '个性化优先级' : '公开优先级'}
+          </div>
         </div>
       </div>
 
@@ -214,31 +228,62 @@ export function OpportunityPoolPage() {
   const [query, setQuery] = useState('')
   const [windowFilter, setWindowFilter] = useState<WindowFilter>('ALL')
   const [aiBusyId, setAiBusyId] = useState<string | null>(null)
+  const [followBusyId, setFollowBusyId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    void getVerifiedOpportunityPool()
+
+    const loadPool = async () => {
+      if (isApiMode) {
+        const [data, followed] = await Promise.all([
+          todayActionsService.getTodayActions(),
+          getFollowedOpportunities(),
+        ])
+        const followedById = new Map(followed.map((item) => [item.opportunity_id, item]))
+        const pool = (data.opportunity_pool ?? data.cards).map((card) => {
+          const existing = followedById.get(card.opportunity_id)
+          return existing
+            ? {
+                ...card,
+                followup_status: existing.followup_status as FollowupStatus,
+                remind_at: existing.remind_at,
+              }
+            : card
+        })
+        return { cards: pool, snapshot_as_of: data.refreshed_at }
+      }
+      const result = await getVerifiedOpportunityPool()
+      return { cards: result.cards, snapshot_as_of: result.snapshot_as_of }
+    }
+
+    void loadPool()
       .then((result) => {
         if (cancelled) return
         setCards(result.cards)
         setSnapshotAsOf(result.snapshot_as_of)
         setError(false)
       })
-      .catch(() => {
-        if (!cancelled) setError(true)
+      .catch((cause) => {
+        if (cancelled) return
+        if (isAuthRequiredError(cause)) {
+          navigate('/login', { replace: true })
+          return
+        }
+        setError(true)
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
+
     void getRuntimeStatus().then((status) => {
       if (!cancelled && status) setRuntimeStatus(status)
     })
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [navigate])
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -250,10 +295,22 @@ export function OpportunityPoolPage() {
     })
   }, [cards, query, windowFilter])
 
-  const addToFollowups = (id: string) => {
-    setCards((current) =>
-      current.map((card) => {
-        if (card.opportunity_id !== id || card.followup_status !== 'NEW') return card
+  const addToFollowups = async (id: string) => {
+    const card = cards.find((item) => item.opportunity_id === id)
+    if (!card || card.followup_status !== 'NEW') return
+    setFollowBusyId(id)
+    try {
+      if (isApiMode) {
+        await todayActionsService.updateFollowup(id, {
+          status: 'REVIEWING',
+          note: '从商机池加入跟进',
+        })
+        setCards((current) =>
+          current.map((item) =>
+            item.opportunity_id === id ? { ...item, followup_status: 'REVIEWING' } : item,
+          ),
+        )
+      } else {
         const record = {
           id: uid('fu'),
           status: 'REVIEWING' as const,
@@ -267,10 +324,18 @@ export function OpportunityPoolPage() {
           followup_history: [record, ...card.followup_history],
         }
         persistLocalFollowup(next)
-        return next
-      }),
-    )
-    toast('已加入“我的跟进”', 'success')
+        setCards((current) => current.map((item) => item.opportunity_id === id ? next : item))
+      }
+      toast('已加入“我的跟进”', 'success')
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
+      toast('加入跟进失败，请稍后重试')
+    } finally {
+      setFollowBusyId(null)
+    }
   }
 
   const analyze = async (id: string) => {
@@ -291,8 +356,17 @@ export function OpportunityPoolPage() {
             : item,
         ),
       )
-      toast('AI已基于已核验公开事实给出行动建议', 'success')
+      toast(
+        isApiMode
+          ? 'AI已结合已核验公开事实和当前账号资源给出行动建议'
+          : 'AI已基于已核验公开事实给出行动建议',
+        'success',
+      )
     } catch (cause) {
+      if (cause instanceof AiDecisionError && cause.code === 'AUTH_REQUIRED') {
+        navigate('/login', { replace: true })
+        return
+      }
       if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
         setRuntimeStatus((current) =>
           current ? { ...current, ai: { configured: false } } : current,
@@ -319,7 +393,7 @@ export function OpportunityPoolPage() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900">全部已核验商机</h2>
             <p className="mt-1 text-[13px] leading-6 text-slate-500">
-              今日行动只展示 Top 5；这里保留同一事实快照中全部仍有效的公开机会，可直接加入跟进或按需AI分析。
+              今日行动只展示 Top 5；这里保留同一事实快照中全部仍有效机会。真实账号下使用完整个性化排序，并与“我的跟进”同步。
             </p>
           </div>
           <div className="flex flex-col items-end gap-1 text-[12px] text-slate-500">
@@ -376,11 +450,12 @@ export function OpportunityPoolPage() {
               key={card.opportunity_id}
               card={card}
               aiBusy={aiBusyId === card.opportunity_id}
+              followBusy={followBusyId === card.opportunity_id}
               onAnalyze={
                 aiUnavailableReason ? undefined : () => void analyze(card.opportunity_id)
               }
               analysisUnavailableReason={aiUnavailableReason}
-              onFollow={() => addToFollowups(card.opportunity_id)}
+              onFollow={() => void addToFollowups(card.opportunity_id)}
               onOpen={() => navigate(`/opportunity/${card.opportunity_id}`)}
             />
           ))}
