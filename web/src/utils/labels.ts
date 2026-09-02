@@ -72,8 +72,8 @@ export const MODEL_STATUS_COPY: Record<
     hint: '基于已提供的公开事实与客户自有资源生成，不代表中标预测。',
   },
   AWAITING_MODEL: {
-    title: 'AI分析排队中',
-    hint: '系统正在等待分析完成，完成后将给出可执行的下一步建议。',
+    title: '可按需进行AI分析',
+    hint: '尚未发起AI请求。需要时由你主动分析这条商机，不会在后台自动消耗额度。',
   },
   BLOCKED_GROUNDING: {
     title: '公开依据不足，暂不生成AI建议',
