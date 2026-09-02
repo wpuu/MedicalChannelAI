@@ -27,7 +27,7 @@ export function PriorityCard({ priority }: { priority: Priority }) {
           <div key={key}>
             <div className="mb-1 flex items-center justify-between text-[12px]">
               <span className="text-slate-600">{PRIORITY_COMPONENT_LABEL[key]}</span>
-              <span className="tabular-nums text-slate-500">{value}%</span>
+              <span className="tabular-nums text-slate-500">完成度 {value}%</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-slate-100">
               <div
@@ -40,8 +40,8 @@ export function PriorityCard({ priority }: { priority: Priority }) {
       </div>
       <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-[12px] leading-5 text-slate-500">
         {usePublicScale
-          ? '当前为公开事实0–60分，不包含账号私有产品能力和医院关系。分项为各维度得分占比，不可直接相加。'
-          : '当前为个性化0–100分，服务端已将当前账号与该商机相关的私有资源纳入排序。分项为各维度得分占比；总分用于安排销售资源优先级，不代表中标概率。'}
+          ? '当前总分为公开事实0–60分，不包含账号私有产品能力和医院关系。上方百分比表示各维度在自身满分中的完成度，不能直接相加，也不是中标概率。'
+          : '当前总分为个性化0–100分，服务端已将当前账号与该商机相关的私有资源纳入排序。上方百分比表示各维度在自身满分中的完成度，不能直接相加；总分只用于安排销售资源优先级，不代表中标概率。'}
       </p>
     </SectionCard>
   )
