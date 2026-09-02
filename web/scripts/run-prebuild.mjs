@@ -34,7 +34,21 @@ function verifyPilotDeploymentEnvironment() {
   console.log('Pilot deployment environment contract: PASS')
 }
 
+function verifyPreviewSmokeSyntax() {
+  const scriptPath = resolve(scriptDir, 'pilot-preview-smoke.mjs')
+  const result = spawnSync(process.execPath, ['--check', scriptPath], {
+    stdio: 'inherit',
+    env: process.env,
+  })
+  if (result.error) throw result.error
+  if (result.status !== 0) {
+    throw new Error(`PILOT_PREVIEW_SMOKE_SYNTAX_FAILED:exit_${result.status}`)
+  }
+  console.log('Pilot Preview smoke syntax: PASS')
+}
+
 verifyPilotDeploymentEnvironment()
+verifyPreviewSmokeSyntax()
 
 const candidates = []
 if (process.env.PYTHON) candidates.push([process.env.PYTHON, []])
