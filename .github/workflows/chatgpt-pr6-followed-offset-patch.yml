@@ -1,0 +1,57 @@
+name: PR6 followed pagination cursor patch
+
+on:
+  push:
+    branches:
+      - chatgpt/opportunity-ranking-v2-final
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/opportunity-ranking-v2-final
+          fetch-depth: 0
+      - name: Fix pagination cursor and loaded-search copy
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('web/src/pages/FollowedPage.tsx')
+          text = path.read_text(encoding='utf-8')
+          replacements = {
+              'setNextOffset(page.items.length)': 'setNextOffset(page.offset + 100)',
+              'setNextOffset(nextOffset + page.items.length)': 'setNextOffset(page.offset + 100)',
+              'placeholder="搜索医院、项目、产品、备注..."': 'placeholder="搜索已加载的医院、项目、产品、备注..."',
+              "当前显示 {orderedItems.length} 条 · 已加载详情 {items.length} / 全部 {statusIndex.length} 条{hasMore ? ' · 可继续加载更早记录' : ''}": "当前显示 {orderedItems.length} 条 · 已加载详情 {items.length} / 全部 {statusIndex.length} 条{hasMore ? ' · 搜索仅覆盖已加载详情，可继续加载更早记录' : ''}",
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'target not found: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+
+          test = Path('web/pipeline/tests/test_followed_scaling.py')
+          test_text = test.read_text(encoding='utf-8')
+          marker = '        self.assertIn("statusIndex.length", page)\n'
+          addition = '        self.assertIn("setNextOffset(page.offset + 100)", page)\n        self.assertIn("搜索仅覆盖已加载详情", page)\n'
+          if marker not in test_text:
+              raise SystemExit('test insertion marker not found')
+          test.write_text(test_text.replace(marker, marker + addition, 1), encoding='utf-8')
+          PY
+      - name: Commit patch
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/src/pages/FollowedPage.tsx web/pipeline/tests/test_followed_scaling.py
+          git commit -m "fix: advance followed pagination by consumed page window"
+          git push origin HEAD:chatgpt/opportunity-ranking-v2-final
