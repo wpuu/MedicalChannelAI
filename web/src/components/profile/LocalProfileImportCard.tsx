@@ -28,6 +28,7 @@ export function LocalProfileImportCard({
 
   const counts = useMemo(() => ({
     products: localProfile?.product_capabilities.length ?? 0,
+    targets: localProfile?.target_hospitals.length ?? 0,
     relationships: localProfile?.hospital_relationships.length ?? 0,
     preferences: localProfile
       ? [
@@ -69,10 +70,10 @@ export function LocalProfileImportCard({
         <div className="min-w-0 flex-1">
           <h3 className="text-[14px] font-semibold text-slate-900">检测到这台设备上的旧试用资源</h3>
           <p className="mt-1 text-[12px] leading-5 text-slate-600">
-            本机有 {counts.products} 条产品/服务能力、{counts.relationships} 条医院关系、{counts.preferences} 项合作能力设置。系统不会自动上传这些数据。
+            本机有 {counts.products} 条产品/服务能力、{counts.targets} 个目标医院、{counts.relationships} 条医院关系、{counts.preferences} 项合作能力设置。系统不会自动上传这些数据。
           </p>
           <p className="mt-1 text-[11px] leading-5 text-slate-500">
-            点击导入后才会发送到当前登录账号。合并时以账号现有数据优先：同一产品关键词、同一医院+科室关系不会被旧本机记录覆盖；账号里已经回答过的合作能力也不会被旧值覆盖。
+            点击导入后才会发送到当前登录账号。合并时以账号现有数据优先：同一产品关键词、同一目标医院+科室、同一医院+科室关系不会被旧本机记录覆盖；账号里已经回答过的合作能力也不会被旧值覆盖。
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
