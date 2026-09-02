@@ -1,0 +1,160 @@
+name: PR6 feedback attention patch
+
+on:
+  push:
+    branches:
+      - chatgpt/opportunity-ranking-v2-final
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/opportunity-ranking-v2-final
+          fetch-depth: 0
+      - name: Apply feedback attention patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('web/api/private.js')
+          text = path.read_text(encoding='utf-8')
+          old = '''async function todayFollowupMap(sql, user) {
+            const rows = await sql`
+              SELECT opportunity_id, status, remind_at
+              FROM private_followups
+              WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+              LIMIT 500
+            `
+            return new Map(rows.map((row) => [row.opportunity_id, row]))
+          }
+
+          async function todayRoute(request, response, user) {
+            if (!allow(request, response, ['GET'])) return
+            try {
+              const snapshot = await loadVerifiedSnapshot()
+              const pool = await personalizedOpportunityPoolForUser(user, snapshot)
+              const followups = await todayFollowupMap(privateDb(), user)
+              const todayPool = pool.filter((card) => shouldAppearToday(followups.get(card.opportunity_id)))
+              const cards = todayPool.slice(0, 5)
+              return sendJson(response, 200, {
+                schema_version: '0.1',
+                mode: 'TODAY_ACTIONS',
+                snapshot_as_of: snapshot.snapshot_as_of,
+                input_candidate_count: Number(snapshot.input_candidate_count || pool.length),
+                matched_count: pool.length,
+                card_count: cards.length,
+                opportunity_pool_count: pool.length,
+                model_request_count: 0,
+                coverage_warning: 'PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY',
+                cards,
+                opportunity_pool: pool,
+              })
+            } catch (error) {
+              console.error('pilot today request failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })
+              return sendJson(response, 503, { error: 'TODAY_DATA_UNAVAILABLE' })
+            }
+          }
+          '''
+          new = '''async function todayFollowupMap(sql, user) {
+            const rows = await sql`
+              SELECT opportunity_id, status, remind_at
+              FROM private_followups
+              WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+              LIMIT 500
+            `
+            return new Map(rows.map((row) => [row.opportunity_id, row]))
+          }
+
+          async function todayFeedbackMap(sql, user) {
+            const rows = await sql`
+              SELECT opportunity_id, value
+              FROM private_recommendation_feedback
+              WHERE user_id = ${user.id}
+              LIMIT 500
+            `
+            return new Map(rows.map((row) => [row.opportunity_id, row.value]))
+          }
+
+          function hasActiveFollowup(followup) {
+            return Boolean(followup?.status && followup.status !== 'NEW')
+          }
+
+          function feedbackAttentionTier(followup, feedback) {
+            if (hasActiveFollowup(followup)) return 0
+            if (feedback === 'NEW_NOT_VALUABLE') return 2
+            if (feedback === 'ALREADY_KNOWN') return 1
+            return 0
+          }
+
+          function applyTodayAttention(pool, followups, feedback) {
+            return pool
+              .filter((card) => shouldAppearToday(followups.get(card.opportunity_id)))
+              .map((card, index) => ({
+                card,
+                index,
+                tier: feedbackAttentionTier(
+                  followups.get(card.opportunity_id),
+                  feedback.get(card.opportunity_id),
+                ),
+              }))
+              .filter((item) => item.tier < 2)
+              .sort((left, right) => left.tier - right.tier || left.index - right.index)
+              .map((item) => item.card)
+          }
+
+          async function todayRoute(request, response, user) {
+            if (!allow(request, response, ['GET'])) return
+            try {
+              const snapshot = await loadVerifiedSnapshot()
+              const pool = await personalizedOpportunityPoolForUser(user, snapshot)
+              const sql = privateDb()
+              const [followups, feedback] = await Promise.all([
+                todayFollowupMap(sql, user),
+                todayFeedbackMap(sql, user),
+              ])
+              const todayPool = applyTodayAttention(pool, followups, feedback)
+              const cards = todayPool.slice(0, 5)
+              return sendJson(response, 200, {
+                schema_version: '0.1',
+                mode: 'TODAY_ACTIONS',
+                snapshot_as_of: snapshot.snapshot_as_of,
+                input_candidate_count: Number(snapshot.input_candidate_count || pool.length),
+                matched_count: pool.length,
+                card_count: cards.length,
+                opportunity_pool_count: pool.length,
+                model_request_count: 0,
+                coverage_warning: 'PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY',
+                cards,
+                opportunity_pool: pool,
+              })
+            } catch (error) {
+              console.error('pilot today request failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })
+              return sendJson(response, 503, { error: 'TODAY_DATA_UNAVAILABLE' })
+            }
+          }
+          '''
+          if old not in text:
+              raise SystemExit('private.js target block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          test = Path('web/pipeline/tests/test_today_feedback_attention.py')
+          test.write_text('''import unittest\nfrom pathlib import Path\n\n\nWEB_ROOT = Path(__file__).resolve().parents[2]\n\n\nclass TodayFeedbackAttentionTests(unittest.TestCase):\n    def test_feedback_changes_today_attention_without_mutating_full_pool(self):\n        source = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")\n        start = source.index("async function todayFeedbackMap")\n        end = source.index("async function opportunityRoute")\n        today_source = source[start:end]\n\n        self.assertIn("FROM private_recommendation_feedback", today_source)\n        self.assertIn("feedback === 'NEW_NOT_VALUABLE'", today_source)\n        self.assertIn("feedback === 'ALREADY_KNOWN'", today_source)\n        self.assertIn("if (hasActiveFollowup(followup)) return 0", today_source)\n        self.assertIn(".filter((item) => item.tier < 2)", today_source)\n        self.assertIn("opportunity_pool: pool", today_source)\n        self.assertNotIn("priority.score =", today_source)\n        self.assertNotIn("priority: {", today_source)\n\n    def test_attention_sort_is_stable_inside_each_feedback_tier(self):\n        source = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")\n        self.assertIn("left.tier - right.tier || left.index - right.index", source)\n\n\nif __name__ == "__main__":\n    unittest.main()\n''', encoding='utf-8')
+          PY
+      - name: Commit patch
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/api/private.js web/pipeline/tests/test_today_feedback_attention.py
+          git commit -m "feat: apply recommendation feedback to Today attention"
+          git push origin HEAD:chatgpt/opportunity-ranking-v2-final
