@@ -5,8 +5,8 @@ import unittest
 from medical_channel_pipeline.tjfch_procurement import TjfchParseError, parse_tjfch_procurement_notice
 
 
-SOURCE_URL = 'https://www.tj-fch.com/system/2026/05/06/030189759.shtml'
-INDEX_URL = 'https://www.tj-fch.com/ywgk/ynbx/index.shtml'
+SOURCE_URL = 'https://www.tjfch.com.cn/system/2026/05/06/030189759.shtml'
+INDEX_URL = 'https://www.tjfch.com.cn/ywgk/ynbx/index.shtml'
 TITLE = '天津市第一中心医院手术无影灯采购项目院内比选公告'
 
 
@@ -71,6 +71,18 @@ class TjfchProcurementTests(unittest.TestCase):
     def test_afternoon_deadline_is_normalized_to_24_hour_time(self) -> None:
         record = self.parse(verified_html(deadline='2026年5月13日下午2:30'))
         self.assertEqual(record['facts']['bid_deadline'], '2026-05-13T14:30:00+08:00')
+
+    def test_legacy_domain_is_rejected_even_with_valid_detail_shape(self) -> None:
+        with self.assertRaisesRegex(TjfchParseError, 'TJFCH_SOURCE_HOST_REJECTED'):
+            parse_tjfch_procurement_notice(
+                verified_html(),
+                source_url='https://www.tj-fch.com/system/2026/05/06/030189759.shtml',
+                index_url=INDEX_URL,
+                index_published_at='2026-05-06',
+                expected_title=TITLE,
+                observed_at='2026-05-06T08:00:00+00:00',
+                opportunity_id='tjfch_20260506_030189759',
+            )
 
 
 if __name__ == '__main__':
