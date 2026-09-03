@@ -9,8 +9,8 @@ from medical_channel_pipeline.tjfch_test_recruitment import parse_tjfch_test_rec
 
 TIANJIN = ZoneInfo("Asia/Shanghai")
 TITLE = "天津市第一中心医院共享设备调度系统项目测试企业征集公告"
-URL = "https://www.tj-fch.com/system/2026/06/09/030192069.shtml"
-INDEX = "https://www.tj-fch.com/ywgk/"
+URL = "https://www.tjfch.com.cn/system/2026/06/09/030192069.shtml"
+INDEX = "https://www.tjfch.com.cn/ywgk/"
 
 
 def record() -> dict:
