@@ -21,6 +21,7 @@ from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
     REGION_ZONE_IDS,
     build_search_url,
     fetch_search_page,
+    is_primary_opportunity_candidate,
     parse_search_html,
 )
 from medical_channel_pipeline.ccgp_events import parse_ccgp_event_html  # noqa: E402
@@ -194,6 +195,8 @@ def discover_candidates(
             )
             candidates = []
         for candidate in candidates:
+            if not is_primary_opportunity_candidate(candidate):
+                continue
             if candidate.detail_url in seen_urls:
                 continue
             seen_urls.add(candidate.detail_url)
@@ -349,6 +352,7 @@ def main() -> int:
             'active_old_projects_continue_event_monitoring': True,
             'event_watch_over_cap_fails_closed': True,
             'discovery_only_never_becomes_verified_without_detail': True,
+            'primary_candidate_budget_excludes_result_and_event_notices': True,
             'only_notice_types_with_explicit_verified_adapter_are_collected': True,
             'rate_limit_bypass': False,
             'minimum_request_delay_seconds': args.delay_seconds,
