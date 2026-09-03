@@ -4,6 +4,7 @@ import type {
   TodayActionCard,
   TodayActionsResponse,
 } from '@/types'
+import { outreachBudgetFactText } from '@/utils/outreachBudgetFact'
 import type { TodayActionsService } from './TodayActionsService'
 
 const MAX_TODAY_CARDS = 5
@@ -147,6 +148,15 @@ function rerank(cards: TodayActionCard[], now: number): TodayActionCard[] {
     .map((card, index) => ({ ...card, rank: index + 1 }))
 }
 
+function normalizeTrialOutreachBudget(draft: OutreachDraft, card: TodayActionCard | null): OutreachDraft {
+  const budgetFact = outreachBudgetFactText(card?.facts.budget)
+  if (!budgetFact) return draft
+  return {
+    ...draft,
+    draft: draft.draft.replace(/项目预算约\d+(?:\.\d+)?万元/, budgetFact),
+  }
+}
+
 export class RuntimeTrialTodayActionsService implements TodayActionsService {
   constructor(private readonly delegate: TodayActionsService) {}
 
@@ -175,6 +185,8 @@ export class RuntimeTrialTodayActionsService implements TodayActionsService {
   }
 
   async requestOutreachDraft(id: string): Promise<OutreachDraft> {
-    return this.delegate.requestOutreachDraft(id)
+    const draft = await this.delegate.requestOutreachDraft(id)
+    const card = await this.delegate.getOpportunity(id)
+    return normalizeTrialOutreachBudget(draft, card)
   }
 }
