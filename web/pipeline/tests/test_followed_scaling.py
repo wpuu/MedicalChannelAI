@@ -18,10 +18,18 @@ class FollowedScalingTests(unittest.TestCase):
         self.assertIn("has_more: hasMore", followed)
         self.assertIn("organization_id = ${user.organization_id}", followed)
 
-    def test_opportunity_pool_uses_status_index_not_recent_detailed_page(self):
+    def test_opportunity_pool_reuses_followup_summary_already_batched_into_today(self):
         page = (WEB_ROOT / "src" / "pages" / "OpportunityPoolPage.tsx").read_text(encoding="utf-8")
-        self.assertIn("getFollowedStatusIndex", page)
+        service = (WEB_ROOT / "src" / "services" / "ApiTodayActionsService.ts").read_text(encoding="utf-8")
+        backend = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
+
+        self.assertIn("todayActionsService.getTodayActions({ hydrateFollowups: false })", page)
+        self.assertNotIn("getFollowedStatusIndex", page)
         self.assertNotIn("getFollowedOpportunities", page)
+        self.assertNotIn("'/followed?view=status-index'", service)
+        self.assertIn("normalizeFollowupStatus(card.followup_status)", service)
+        self.assertIn("decorateCardWithFollowup", backend)
+        self.assertIn("opportunity_pool: decoratedPool", backend)
 
     def test_followed_page_can_load_older_records_and_recover_focused_item_exactly(self):
         page = (WEB_ROOT / "src" / "pages" / "FollowedPage.tsx").read_text(encoding="utf-8")

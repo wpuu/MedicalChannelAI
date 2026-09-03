@@ -78,6 +78,7 @@ class SharedPublicIntelligenceArchitectureTests(unittest.TestCase):
 
 class ProductNeutralLanguageTests(unittest.TestCase):
     def test_runtime_product_does_not_embed_first_customer_nickname(self) -> None:
+        nickname = '\u8001\u6768'
         roots = [WEB_ROOT / 'src', WEB_ROOT / 'api', WEB_ROOT / 'pipeline']
         violations: list[str] = []
         for root in roots:
@@ -90,7 +91,7 @@ class ProductNeutralLanguageTests(unittest.TestCase):
                     text = path.read_text(encoding='utf-8')
                 except UnicodeDecodeError:
                     continue
-                if '老杨' in text:
+                if nickname in text:
                     violations.append(str(path.relative_to(WEB_ROOT)))
         self.assertEqual(violations, [])
 
