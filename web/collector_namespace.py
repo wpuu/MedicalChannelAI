@@ -8,6 +8,7 @@ QUEUE_TOPIC_NAME = "medicalchannelai-refresh-v2"
 META_KEY = "medicalchannelai:collector-runtime-state:v2"
 ACTIVE_CYCLE_KEY = "medicalchannelai:collector-active-cycle:v2"
 INCREMENTAL_ACTIVE_KEY = "medicalchannelai:collector-incremental-active:v2"
+INCREMENTAL_CHAIN_KEY = "medicalchannelai:collector-incremental-chain:v2"
 CCGP_RECORDS_KEY = "medicalchannelai:collector-ccgp-records:v2"
 CCGP_EVENTS_KEY = "medicalchannelai:collector-ccgp-events:v2"
 CCGP_WATCH_KEY = "medicalchannelai:collector-ccgp-watch-projects:v2"
@@ -19,6 +20,7 @@ LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v2"
 LEGACY_LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 ACTIVE_CYCLE_TTL_SECONDS = 2 * 24 * 60 * 60
 INCREMENTAL_ACTIVE_TTL_SECONDS = 15 * 60
+INCREMENTAL_CHAIN_TTL_SECONDS = 2 * 24 * 60 * 60
 
 _RUNTIME_KEY_ASSIGNMENTS = {
     "META_KEY": META_KEY,
