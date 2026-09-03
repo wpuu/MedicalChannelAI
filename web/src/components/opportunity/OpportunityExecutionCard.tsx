@@ -169,13 +169,14 @@ export function OpportunityExecutionCard({
     if (!capabilityKeyword && hint) setCapabilityKeyword(hint)
   }, [capabilityKeyword, hint])
 
-  const alreadyTargeted = useMemo(() => {
-    if (contextTarget) return true
-    if (!hospital) return false
-    return profile.target_hospitals.some((item) =>
+  const matchedTarget = useMemo(() => {
+    if (contextTarget) return contextTarget
+    if (!hospital) return null
+    return profile.target_hospitals.find((item) =>
       sameScope(item.hospital, item.department, hospital, department),
-    )
+    ) ?? null
   }, [contextTarget, department, hospital, profile.target_hospitals])
+  const alreadyTargeted = Boolean(matchedTarget)
 
   const persistProfile = async (
     nextProfile: LocalCustomerProfile,
@@ -208,13 +209,11 @@ export function OpportunityExecutionCard({
         ...profile,
         target_hospitals: [
           ...profile.target_hospitals,
-          { hospital, department },
+          { hospital, department: null },
         ],
       },
       'target',
-      department
-        ? `已把 ${hospital} / ${department} 加入重点关注`
-        : `已把 ${hospital} 加入重点关注`,
+      `已把 ${hospital} 加入重点关注（全院）`,
     )
   }
 
@@ -290,18 +289,20 @@ export function OpportunityExecutionCard({
           ready={alreadyTargeted}
           value={
             hospital
-              ? alreadyTargeted
-                ? `${hospital}${department ? ` / ${department}` : ''}`
+              ? matchedTarget
+                ? `${matchedTarget.hospital}${matchedTarget.department ? ` / ${matchedTarget.department}` : ' · 全院'}`
                 : '当前还未加入重点关注'
               : '公告未明确到具体医院'
           }
           detail={
             hospital
-              ? alreadyTargeted
-                ? '表示你想持续经营/监控，不代表已有院内关系。'
+              ? matchedTarget
+                ? matchedTarget.department
+                  ? '当前按重点科室关注；表示经营/监控意图，不代表已有院内关系。'
+                  : '当前关注范围为全院；表示经营/监控意图，不代表已有院内关系。'
                 : hospitalFromBuyer
                   ? '公告未单列医院字段，但采购单位名称明确包含医疗机构称谓；仍只作为重点关注，不代表已有关系。'
-                  : '加入后可在“目标”页持续查看该医院的已核验机会。'
+                  : '加入后默认关注全院，可在“我的资源”中再细化重点科室。'
               : '不会把普通采购单位、代理机构或公司名称猜成目标医院。'
           }
         />

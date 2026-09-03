@@ -42,6 +42,14 @@ class TargetHospitalContextTests(unittest.TestCase):
         self.assertIn('const useLocalContext = !isApiMode', source)
         self.assertIn('const customerContext = useLocalContext ? customerContextPayload(card) : null', source)
 
+    def test_detail_one_click_target_defaults_to_whole_hospital(self):
+        source = (WEB_ROOT / 'src' / 'components' / 'opportunity' / 'OpportunityExecutionCard.tsx').read_text(encoding='utf-8')
+        self.assertIn('const matchedTarget = useMemo(() => {', source)
+        self.assertIn('{ hospital, department: null }', source)
+        self.assertIn('加入重点关注（全院）', source)
+        self.assertIn('加入后默认关注全院，可在“我的资源”中再细化重点科室。', source)
+        self.assertIn("matchedTarget.department ? ` / ${matchedTarget.department}` : ' · 全院'", source)
+
     def test_frontend_shows_target_and_relationship_separately(self):
         detail = (WEB_ROOT / 'src' / 'components' / 'opportunity' / 'CustomerContextCard.tsx').read_text(encoding='utf-8')
         today = (WEB_ROOT / 'src' / 'components' / 'today' / 'CustomerResourceBlock.tsx').read_text(encoding='utf-8')
