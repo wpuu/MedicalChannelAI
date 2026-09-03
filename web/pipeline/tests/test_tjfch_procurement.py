@@ -30,16 +30,20 @@ def verified_html(*, title: str = TITLE, deadline: str = '2026年5月13日14:00'
 
 
 def igm_html(*, title: str = IGM_FULL_TITLE) -> str:
+    # The current live TJFCH detail template exposes the full notice title in the
+    # document <title> and does not emit an <h1>. Keep this fixture aligned with it.
     return f'''
-    <html><body>
-      <h1>{title}</h1>
-      <div>2026-08-31 16:10</div>
-      <p>天津市第一中心医院将以院内比选方式，对甲型肝炎病毒IgM抗体质控品等实施采购。</p>
-      <p>项目预算：4588元。</p>
-      <p>院内比选响应文件递交截止时间：2026年9月7日17:00。</p>
-      <p>联系电话：022-23628323</p>
-      <p>联系人：王老师</p>
-    </body></html>
+    <html>
+      <head><title>{title}</title></head>
+      <body>
+        <div>2026-08-31 16:10</div>
+        <p>天津市第一中心医院将以院内比选方式，对甲型肝炎病毒IgM抗体质控品等实施采购。</p>
+        <p>项目预算：4588元。</p>
+        <p>院内比选响应文件递交截止时间：2026年9月7日17:00。</p>
+        <p>联系电话：022-23628323</p>
+        <p>联系人：王老师</p>
+      </body>
+    </html>
     '''
 
 
@@ -82,7 +86,7 @@ class TjfchProcurementTests(unittest.TestCase):
         self.assertEqual(facts['public_contact']['phone'], '022-23628323')
         self.assertEqual(facts['public_contact']['email'], 'sdyzxsbwzcsbk@tj.gov.cn')
 
-    def test_truncated_index_title_recovers_full_medical_procurement_title_from_detail_h1(self) -> None:
+    def test_truncated_index_title_recovers_full_medical_procurement_title_from_detail_title(self) -> None:
         record = self.parse_igm(igm_html())
         facts = record['facts']
         self.assertEqual(facts['project_name'], IGM_FULL_TITLE)
@@ -97,7 +101,7 @@ class TjfchProcurementTests(unittest.TestCase):
         with self.assertRaisesRegex(TjfchParseError, 'TJFCH_NOTICE_TYPE_UNSUPPORTED'):
             self.parse_igm(igm_html(title=result_title))
 
-    def test_truncated_candidate_requires_matching_detail_h1(self) -> None:
+    def test_truncated_candidate_requires_matching_detail_title(self) -> None:
         with self.assertRaisesRegex(TjfchParseError, 'TJFCH_TITLE_MISMATCH'):
             self.parse_igm(igm_html(title='天津市第一中心医院其他采购项目院内比选公告'))
 
