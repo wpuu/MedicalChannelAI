@@ -13,6 +13,7 @@ from vercel.functions import RuntimeCache
 from vercel.queue import send
 
 from collector_incremental import SOURCE_POLICIES, scan_bucket_id
+from collector_incremental_scheduler import choose_due_incremental_source
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
     ACTIVE_CYCLE_TTL_SECONDS,
@@ -185,7 +186,30 @@ class handler(BaseHTTPRequestHandler):
             return self._send_json(400, {"error": "COLLECTOR_MODE_INVALID"})
 
         if mode == "incremental":
-            source_id = _first_query(query, "source")
+            requested_source = _first_query(query, "source")
+            auto_decision = None
+            if not requested_source or requested_source == "auto":
+                auto_decision = choose_due_incremental_source(RuntimeCache())
+                if auto_decision.source_id is None:
+                    return self._send_json(
+                        200,
+                        {
+                            "schema_version": "0.1",
+                            "service": "MedicalChannelAI",
+                            "trigger_source": trigger_source,
+                            "collector": {
+                                "action": "NO_SOURCE_DUE",
+                                "execution_plane": "VERCEL_QUEUE_V2",
+                                "mode": "INCREMENTAL_AUTO",
+                                "evaluated_at": auto_decision.evaluated_at,
+                                "next_due_at": auto_decision.next_due_at,
+                            },
+                        },
+                    )
+                source_id = auto_decision.source_id
+            else:
+                source_id = requested_source
+
             if source_id not in INCREMENTAL_SOURCE_IDS:
                 return self._send_json(
                     400,
@@ -221,10 +245,11 @@ class handler(BaseHTTPRequestHandler):
                     "collector": {
                         "action": "QUEUED",
                         "execution_plane": "VERCEL_QUEUE_V2",
-                        "mode": "INCREMENTAL",
+                        "mode": "INCREMENTAL_AUTO" if auto_decision else "INCREMENTAL",
                         "source_id": source_id,
                         "scan_bucket_id": bucket_id,
                         "observed_at": observed_at,
+                        "due_source_count": len(auto_decision.due_sources) if auto_decision else None,
                         "message_id": message_id,
                     },
                 },
