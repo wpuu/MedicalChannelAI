@@ -38,10 +38,13 @@ class VercelTedaRuntimeTests(unittest.TestCase):
         cls.runtime = RUNTIME_PATH.read_text(encoding="utf-8")
         cls.namespace = NAMESPACE_PATH.read_text(encoding="utf-8")
 
-    def test_teda_is_a_first_class_runtime_stage_before_publish(self) -> None:
+    def test_teda_is_a_first_class_runtime_stage_before_downstream_publish(self) -> None:
         order = _tuple_assignment(self.runtime, "STAGE_ORDER")
         self.assertIn("teda", order)
-        self.assertEqual(order[-2:], ("teda", "publish"))
+        self.assertIn("tjfch", order)
+        self.assertIn("publish", order)
+        self.assertLess(order.index("teda"), order.index("tjfch"))
+        self.assertLess(order.index("tjfch"), order.index("publish"))
         dispatch = _function_source(self.runtime, "run_stage")
         self.assertIn('elif stage == "teda":', dispatch)
         self.assertIn("result = _run_teda(cache, state)", dispatch)
