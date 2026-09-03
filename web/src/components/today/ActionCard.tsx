@@ -91,6 +91,11 @@ export function ActionCard({
   const outreachDisabledReason = automationUnavailableReason ||
     (groundingUnavailable ? '公开依据不足，暂不安全生成沟通话术' : null)
   const isLateWindow = card.recommendation_mode === 'LATE_WINDOW'
+  const isRelativeTestRecruitment =
+    card.facts.notice_type?.includes('测试企业征集公告') === true &&
+    !card.facts.registration_deadline &&
+    !card.facts.registration_deadline_date &&
+    !card.facts.bid_deadline
   const priorityDimensions = priorityDimensionText(card)
   const contact = card.facts.official_contact
   const contactIdentity = [contact?.name, contact?.title].filter(
@@ -158,6 +163,11 @@ export function ActionCard({
                 {dateInfo ? `${dateInfo.label} ${dateInfo.value}` : <OfficialText value={null} />}
               </span>
             </div>
+            {isRelativeTestRecruitment ? (
+              <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-900">
+                官方仅公布“自公告发布之日起7天”的相对报名窗口，未公布精确截止时刻。系统不会把推算日期当作官方截止；联系或报名时请先确认是否仍开放。
+              </p>
+            ) : null}
             {priorityDimensions ? (
               <p className="mt-2 rounded-lg bg-slate-50 px-2.5 py-2 text-[11px] leading-5 text-slate-600">
                 主要匹配维度（完成度）：{priorityDimensions}。维度百分比不是直接加分，也不代表中标概率。
