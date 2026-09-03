@@ -1,3 +1,10 @@
+export type RuntimeSnapshotSourceMode =
+  | 'BUNDLED'
+  | 'RUNTIME_CACHE'
+  | 'REMOTE'
+  | 'BUNDLED_FALLBACK'
+  | 'UNAVAILABLE'
+
 export interface RuntimeStatus {
   schema_version: '0.1'
   service: 'MedicalChannelAI'
@@ -9,7 +16,7 @@ export interface RuntimeStatus {
   }
   snapshot: {
     available: boolean
-    source_mode: 'BUNDLED' | 'REMOTE' | 'UNAVAILABLE'
+    source_mode: RuntimeSnapshotSourceMode
     snapshot_as_of: string | null
     freshness: 'FRESH' | 'STALE' | 'INVALID' | 'UNAVAILABLE'
     age_minutes: number | null
@@ -21,6 +28,13 @@ export interface RuntimeStatus {
 
 const STATUS_URL = '/api/status'
 const CACHE_TTL_MS = 60_000
+const SNAPSHOT_SOURCE_MODES = new Set<RuntimeSnapshotSourceMode>([
+  'BUNDLED',
+  'RUNTIME_CACHE',
+  'REMOTE',
+  'BUNDLED_FALLBACK',
+  'UNAVAILABLE',
+])
 
 let cached: { expiresAt: number; value: RuntimeStatus } | null = null
 let inFlight: Promise<RuntimeStatus | null> | null = null
@@ -40,7 +54,7 @@ function isRuntimeStatus(value: unknown): value is RuntimeStatus {
     typeof ai?.configured === 'boolean' &&
     Boolean(snapshot) &&
     typeof snapshot?.available === 'boolean' &&
-    ['BUNDLED', 'REMOTE', 'UNAVAILABLE'].includes(String(snapshot?.source_mode)) &&
+    SNAPSHOT_SOURCE_MODES.has(String(snapshot?.source_mode) as RuntimeSnapshotSourceMode) &&
     (snapshot?.snapshot_as_of === null || typeof snapshot?.snapshot_as_of === 'string') &&
     ['FRESH', 'STALE', 'INVALID', 'UNAVAILABLE'].includes(String(snapshot?.freshness)) &&
     (snapshot?.age_minutes === null || typeof snapshot?.age_minutes === 'number') &&
