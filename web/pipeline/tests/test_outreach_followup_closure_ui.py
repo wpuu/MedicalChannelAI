@@ -27,7 +27,8 @@ class OutreachFollowupClosureUiTests(unittest.TestCase):
         self.assertIn('todayActionsService.updateFollowup(opportunityId', block)
         self.assertIn("status: 'CONTACTED'", block)
         self.assertIn('从沟通草稿入口确认已完成联系。', block)
-        self.assertIn('navigate(`/followed?focus=${encodeURIComponent(opportunityId)}`)', block)
+        self.assertIn("navigate('/followed')", block)
+        self.assertNotIn('/followed?focus=', block)
         self.assertIn('已联系，已记入“我的跟进”', block)
 
     def test_drawer_explains_copy_and_contact_confirmation_are_separate(self) -> None:
