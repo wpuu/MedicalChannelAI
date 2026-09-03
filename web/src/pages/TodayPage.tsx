@@ -24,7 +24,12 @@ import {
   getDueReminders,
   type DueReminder,
 } from '@/services/reminderApi'
-import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
+import {
+  getRuntimeStatus,
+  runtimeAutomationUnavailableReason,
+  runtimeSnapshotWarning,
+  type RuntimeStatus,
+} from '@/services/runtimeStatusApi'
 import type {
   FollowupStatus,
   NotFitReason,
@@ -70,33 +75,12 @@ function userCoverageWarning(value: string): string {
     .split('天津 Pilot').join('天津公开采购')
 }
 
-function runtimeSnapshotWarning(status: RuntimeStatus | null): string | null {
-  if (!status) return null
-  if (status.snapshot.source_mode === 'BUNDLED_FALLBACK') {
-    return '实时数据读取异常，当前使用最近一次内置已核验快照。联系或报价前请先打开官方依据再次核对。'
-  }
-  if (status.snapshot.freshness === 'STALE') {
-    const hours = status.snapshot.age_minutes === null
-      ? null
-      : Math.max(1, Math.floor(status.snapshot.age_minutes / 60))
-    return hours === null
-      ? '公开商机快照已超过正常刷新窗口。联系或报价前请先打开官方依据再次核对。'
-      : `公开商机快照已约 ${hours} 小时未成功刷新。联系或报价前请先打开官方依据再次核对。`
-  }
-  if (status.snapshot.freshness === 'INVALID') {
-    return '公开商机快照时间异常，当前结果不应作为最新商机判断。请先核对官方依据。'
-  }
-  if (status.snapshot.freshness === 'UNAVAILABLE' || !status.snapshot.available) {
-    return '当前无法确认公开商机快照状态。联系或报价前请先核对官方依据。'
-  }
-  return null
-}
-
 export function TodayPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [data, setData] = useState<TodayActionsResponse | null>(null)
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
+  const [runtimeStatusChecked, setRuntimeStatusChecked] = useState(false)
   const [reminders, setReminders] = useState<DueReminder[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -141,7 +125,8 @@ export function TodayPage() {
 
       if (isApiMode || isVerifiedPublicDemo) {
         void getRuntimeStatus().then((status) => {
-          if (status) setRuntimeStatus(status)
+          setRuntimeStatus(status)
+          setRuntimeStatusChecked(true)
         })
       }
 
@@ -196,7 +181,11 @@ export function TodayPage() {
 
   const analyzeOpportunity = async (id: string) => {
     const card = data?.cards.find((item) => item.opportunity_id === id)
-    if (!card || (!isApiMode && !isVerifiedPublicDemo)) return
+    const automationUnavailableReason = runtimeAutomationUnavailableReason(
+      runtimeStatus,
+      runtimeStatusChecked,
+    )
+    if (!card || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
     setAiBusyId(id)
     try {
       const decision = await requestAiDecision(card)
@@ -255,11 +244,16 @@ export function TodayPage() {
       : data.cards
   const visibleData = { ...data, card_count: visibleCards.length, cards: visibleCards }
   const poolCount = data.opportunity_pool_count ?? data.opportunity_pool?.length ?? data.matched_count
-  const aiUnavailableReason =
+  const automationUnavailableReason = runtimeAutomationUnavailableReason(
+    runtimeStatus,
+    runtimeStatusChecked,
+  )
+  const aiUnavailableReason = automationUnavailableReason || (
     (isApiMode || isVerifiedPublicDemo) && runtimeStatus?.ai.configured === false
       ? AI_UNCONFIGURED_REASON
       : null
-  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus)
+  )
+  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -338,10 +332,13 @@ export function TodayPage() {
               onFollow={() => void updateStatus(card.opportunity_id, 'REVIEWING')}
               onNotFit={() => setNotFitId(card.opportunity_id)}
               onRemind={() => setRemindId(card.opportunity_id)}
-              onOutreach={() => setOutreachId(card.opportunity_id)}
+              onOutreach={() => {
+                if (!automationUnavailableReason) setOutreachId(card.opportunity_id)
+              }}
               onAnalyze={isApiMode || isVerifiedPublicDemo ? () => void analyzeOpportunity(card.opportunity_id) : undefined}
               onFeedbackChanged={() => load(true)}
               analysisUnavailableReason={aiUnavailableReason}
+              automationUnavailableReason={automationUnavailableReason}
             />
           ))}
         </div>
