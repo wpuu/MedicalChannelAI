@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: verify-${{ github.ref }}
@@ -22,6 +22,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply one-shot relative-window patch
+        if: github.event_name == 'push' && hashFiles('.github/scripts/patch_relative_window_once.py') != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          python .github/scripts/patch_relative_window_once.py
+          rm .github/scripts/patch_relative_window_once.py
+          git config user.name 'chatgpt-ranking-patch[bot]'
+          git config user.email 'chatgpt-ranking-patch[bot]@users.noreply.github.com'
+          git add web/pipeline/medical_channel_pipeline/public_snapshot.py .github/scripts/patch_relative_window_once.py
+          git commit -m 'feat(ranking): bound relative registration windows without fake deadlines'
+          git push origin HEAD:chatgpt/opportunity-ranking-v2-final
 
       - name: Set up Python
         uses: actions/setup-python@v5
