@@ -199,9 +199,6 @@ def _verify_teda(candidate: Any, observed_at: str, now: datetime) -> dict[str, A
         )
     except runtime.TedaParseError as exc:
         if str(exc) in runtime.TEDA_UNSUPPORTED_DETAIL_CODES:
-            # Unsupported format is still a completed verification attempt. Marking
-            # the discovery fingerprint as checked avoids hammering the same detail
-            # every scan; metadata change or the periodic recheck will revisit it.
             return None
         raise
     local_date = now.astimezone(runtime.SHANGHAI).date()
@@ -298,8 +295,6 @@ def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime) -> tuple[bool
     try:
         result = runtime._run_publish(cache, {"cycle_as_of": now.isoformat()})
     except runtime.CollectorPrecondition:
-        # A brand-new environment may not have all source caches bootstrapped yet.
-        # The daily deep collector remains the bootstrap/authority in that case.
         return False, None
     return True, result
 
@@ -408,19 +403,7 @@ def run_incremental_source(
     else:
         merged = existing_records
 
-    try:
-        snapshot_refreshed, publish_result = _publish_snapshot_if_ready(cache, observed)
-    except Exception as exc:
-        return 503, {
-            "action": "FAILED",
-            "source_id": source,
-            "bucket_id": bucket_id,
-            "error": f"INCREMENTAL_SNAPSHOT_REFRESH_FAILED:{type(exc).__name__}:{str(exc)[:180]}",
-            "verified_record_count": len(verified_records),
-            "verification_failure_count": len(failures),
-        }
-
-    result = {
+    base_result = {
         "source_id": source,
         "bucket_id": bucket_id,
         "discovered_candidate_count": len(discovered),
@@ -431,21 +414,39 @@ def run_incremental_source(
         "verified_nonfact_count": nonfact_verified_count,
         "verification_failure_count": len(failures),
         "canonical_record_count": len(merged),
-        "snapshot_refreshed": snapshot_refreshed,
-        "snapshot_as_of": publish_result.get("snapshot_as_of") if publish_result else None,
     }
 
     if failures:
-        # Leave this bucket incomplete so the queue redelivery can retry only the
-        # failed fingerprints. Successful details are already marked VERIFIED and
-        # will be skipped on the retry, avoiding duplicate official requests.
+        # Keep successful verified facts in the private canonical cache so Queue
+        # redelivery does not hit those official detail pages again. However, the
+        # public snapshot is fail-closed for the whole source scan: one unresolved
+        # selected detail means users keep seeing the last fully verified public
+        # version until the retry completes every selected fingerprint.
         return 503, {
             "action": "FAILED",
-            **result,
+            **base_result,
+            "snapshot_refreshed": False,
+            "snapshot_as_of": None,
             "error": "INCREMENTAL_DETAIL_VERIFICATION_INCOMPLETE",
             "failures": failures[:5],
         }
 
+    try:
+        snapshot_refreshed, publish_result = _publish_snapshot_if_ready(cache, observed)
+    except Exception as exc:
+        return 503, {
+            "action": "FAILED",
+            **base_result,
+            "snapshot_refreshed": False,
+            "snapshot_as_of": None,
+            "error": f"INCREMENTAL_SNAPSHOT_REFRESH_FAILED:{type(exc).__name__}:{str(exc)[:180]}",
+        }
+
+    result = {
+        **base_result,
+        "snapshot_refreshed": snapshot_refreshed,
+        "snapshot_as_of": publish_result.get("snapshot_as_of") if publish_result else None,
+    }
     _mark_bucket_completed(
         cache,
         source_id=source,
