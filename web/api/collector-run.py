@@ -16,6 +16,7 @@ from collector_incremental import scan_bucket_id
 from collector_incremental_scheduler import (
     SCHEDULED_INCREMENTAL_SOURCES,
     choose_due_incremental_source,
+    mark_incremental_source_attempt,
 )
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
@@ -164,6 +165,11 @@ async def _enqueue_incremental(source: str, trigger_source: str) -> tuple[str, s
         retention=MESSAGE_RETENTION,
         idempotency_key=f"{QUEUE_TOPIC_NAME}:{bucket_id}",
     )
+    # A scheduler attempt means Queue accepted a real source job. Do not write it
+    # before send(): a transient queue-start failure must remain immediately
+    # eligible for the next auto-selection tick rather than consuming 1-2 hours
+    # of source backoff without any scan having run.
+    mark_incremental_source_attempt(cache, source_id, now=now)
     return str(message_id), bucket_id, now.isoformat()
 
 
