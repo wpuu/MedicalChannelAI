@@ -374,6 +374,18 @@ def run_incremental_source(
             "error": f"INCREMENTAL_DISCOVERY_FAILED:{type(exc).__name__}:{str(exc)[:180]}",
         }
 
+    # Bootstrap is an optimization for a brand-new ledger, but it must reuse the
+    # exact discovery rows from this real scan. Local import avoids the bootstrap
+    # module's runtime reference becoming an import-time cycle.
+    from collector_incremental_bootstrap import bootstrap_incremental_ledger_from_canonical
+
+    bootstrap_incremental_ledger_from_canonical(
+        source,
+        now=observed,
+        cache=cache,
+        discovered=discovered,
+    )
+
     ledger = _load_ledger(cache, source)
     policy = SOURCE_POLICIES[source]
     plan = plan_detail_verification(
