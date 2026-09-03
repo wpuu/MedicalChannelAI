@@ -125,8 +125,12 @@ function splitContactNames(value) {
 
 function outreachGreeting(facts) {
   const names = splitContactNames(publicContactName(facts))
-  if (names.length === 1) return `${names[0]}老师，您好：`
-  return '您好：'
+  if (names.length !== 1) return '您好：'
+  const name = names[0]
+  const addressedName = /(老师|主任|院长|教授|医生|医师|经理|先生|女士)$/.test(name)
+    ? name
+    : `${name}老师`
+  return `${addressedName}，您好：`
 }
 
 function dateTimeText(value) {
@@ -222,6 +226,15 @@ function normalizeBudget(value) {
   return null
 }
 
+function budgetFactText(value) {
+  const budget = normalizeBudget(value)
+  if (budget === null || budget <= 0) return null
+  if (budget < 10_000) return `项目预算约${Math.round(budget)}元`
+  const wan = budget / 10_000
+  const decimals = wan < 10 ? 2 : wan < 100 ? 1 : 0
+  return `项目预算约${Number(wan.toFixed(decimals))}万元`
+}
+
 function isMarketResearch(facts) {
   const text = `${facts?.lifecycle_state ?? facts?.lifecycle_stage ?? ''}|${facts?.notice_type ?? ''}|${facts?.project_name ?? ''}`
   return /MARKET_RESEARCH|调研|需求调查|需求征集|意向征集/.test(text)
@@ -261,12 +274,11 @@ export function buildGroundedOutreachDraft(card, privateContext, now = Date.now(
   const registration = dateTimeText(facts.registration_deadline)
   const registrationDate = dateOnlyText(facts.registration_deadline_date)
   const bid = dateTimeText(facts.bid_deadline)
-  const budget = normalizeBudget(facts.budget)
   const relativeWindowFact = window.relative
     ? '官方公告写明测试企业报名期为“自公告发布之日起7天”，未公布精确截止时刻'
     : null
   const factLines = [
-    budget ? `项目预算约${Math.round(budget / 10000)}万元` : null,
+    budgetFactText(facts.budget),
     relativeWindowFact,
     registration
       ? `${marketResearch ? '资料提交/报名' : '招标文件获取'}截至${registration}`
