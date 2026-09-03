@@ -14,6 +14,7 @@ from collector_incremental_ticks import (  # noqa: E402
     first_tick_after_deep,
     next_tick_after,
     parse_tick_schedule,
+    same_china_business_date,
     tick_delay_seconds,
     tick_from_payload,
 )
@@ -65,6 +66,22 @@ class IncrementalTickChainTests(unittest.TestCase):
         nxt = next_tick_after(first, delivered_at=delayed)
         self.assertIsNotNone(nxt)
         self.assertEqual(nxt.scheduled_for, "2026-09-04T04:10:00+00:00")  # 12:10 CST
+
+    def test_business_date_guard_uses_china_date_not_utc_date(self) -> None:
+        queued = datetime(2026, 9, 4, 11, 0, tzinfo=timezone.utc)  # 19:00 China Sep 4
+        same_day = datetime(2026, 9, 4, 15, 50, tzinfo=timezone.utc)  # 23:50 China Sep 4
+        next_day = datetime(2026, 9, 4, 16, 5, tzinfo=timezone.utc)  # 00:05 China Sep 5
+        self.assertTrue(same_china_business_date(queued, same_day))
+        self.assertFalse(same_china_business_date(queued, next_day))
+
+    def test_incremental_source_redelivery_checks_business_date_before_lease(self) -> None:
+        source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
+        start = source.index("def _process_incremental_payload")
+        end = source.index("async def _process_incremental_tick_payload", start)
+        block = source[start:end]
+        date_guard = block.index("same_china_business_date(observed_at, delivered_at)")
+        lease = block.index("_acquire_incremental_lease(")
+        self.assertLess(date_guard, lease)
 
     def test_tick_payload_is_self_authenticating_by_schedule_contract(self) -> None:
         tick = first_tick_after_deep(datetime(2026, 9, 4, 3, 5, tzinfo=timezone.utc))
