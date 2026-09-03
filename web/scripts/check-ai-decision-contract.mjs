@@ -73,7 +73,7 @@ const relativeFacts = {
 }
 const relativeMessages = buildDecisionMessages(
   relativeFacts,
-  ['https://www.tj-fch.com/example.shtml'],
+  ['https://www.tjfch.com.cn/example.shtml'],
   null,
   'RELATIVE_WINDOW',
   '2026-09-03T02:00:00.000Z',
