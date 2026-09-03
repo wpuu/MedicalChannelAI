@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from copy import deepcopy
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -12,6 +12,7 @@ from .validation import validate_records
 MAX_TODAY_CARDS = 5
 TIANJIN_TZ = ZoneInfo("Asia/Shanghai")
 SOURCE_CATEGORY_TITLE_CONFLICT = "SOURCE_CATEGORY_TITLE_CONFLICT"
+RELATIVE_REGISTRATION_WINDOW_7_DAYS = "RELATIVE_REGISTRATION_WINDOW_7_DAYS"
 
 _SPECIFIC_PRODUCT_ACRONYM_RE = re.compile(
     r"(?<![A-Za-z0-9])(?:CT|DR|MRI|DSA|PCR|POCT|IVD|LIS|PACS|RIS|HIS|GPU)(?![A-Za-z0-9])",
@@ -39,7 +40,31 @@ def _as_date(value: str | None) -> date | None:
     return date.fromisoformat(value)
 
 
-def _actionability(facts: dict[str, Any], as_of: datetime) -> tuple[str, int, str]:
+def _relative_registration_deadline(
+    facts: dict[str, Any],
+    quality_flags: list[str] | None = None,
+) -> datetime | None:
+    if RELATIVE_REGISTRATION_WINDOW_7_DAYS not in set(quality_flags or []):
+        return None
+    published = facts.get("published_at")
+    if not published:
+        return None
+    try:
+        published_date = date.fromisoformat(str(published)[:10])
+    except ValueError:
+        return None
+    # Operational bound only. The public fact fields intentionally keep the
+    # official deadline empty because the notice does not publish an exact
+    # cutoff timestamp. Using end-of-day after seven days is conservative
+    # for action ranking and must never be rendered as an official deadline.
+    return datetime.combine(published_date + timedelta(days=7), time.max, tzinfo=TIANJIN_TZ)
+
+
+def _actionability(
+    facts: dict[str, Any],
+    as_of: datetime,
+    quality_flags: list[str] | None = None,
+) -> tuple[str, int, str]:
     bid = _as_datetime(facts.get("bid_deadline"))
     registration = _as_datetime(facts.get("registration_deadline"))
     registration_date = _as_date(facts.get("registration_deadline_date"))
@@ -55,10 +80,17 @@ def _actionability(facts: dict[str, Any], as_of: datetime) -> tuple[str, int, st
             if not bid:
                 return "ARCHIVE", 0, "NOT_ELIGIBLE"
             return "LATE_WINDOW", 8, "AWAITING_MODEL"
+    relative_deadline = _relative_registration_deadline(facts, quality_flags)
+    if relative_deadline is not None and relative_deadline <= as_of:
+        return "ARCHIVE", 0, "NOT_ELIGIBLE"
     return "PUBLIC_OPPORTUNITY", 25, "AWAITING_MODEL"
 
 
-def _next_action_deadline(facts: dict[str, Any], as_of: datetime) -> datetime | None:
+def _next_action_deadline(
+    facts: dict[str, Any],
+    as_of: datetime,
+    quality_flags: list[str] | None = None,
+) -> datetime | None:
     registration = _as_datetime(facts.get("registration_deadline"))
     if registration and registration > as_of:
         return registration
@@ -72,11 +104,18 @@ def _next_action_deadline(facts: dict[str, Any], as_of: datetime) -> datetime | 
     bid = _as_datetime(facts.get("bid_deadline"))
     if bid and bid > as_of:
         return bid
+    relative_deadline = _relative_registration_deadline(facts, quality_flags)
+    if relative_deadline is not None and relative_deadline > as_of:
+        return relative_deadline
     return None
 
 
-def _deadline_urgency_points(facts: dict[str, Any], as_of: datetime) -> int:
-    deadline = _next_action_deadline(facts, as_of)
+def _deadline_urgency_points(
+    facts: dict[str, Any],
+    as_of: datetime,
+    quality_flags: list[str] | None = None,
+) -> int:
+    deadline = _next_action_deadline(facts, as_of, quality_flags)
     if deadline is None:
         return 0
     hours_left = (deadline - as_of).total_seconds() / 3600
@@ -176,10 +215,10 @@ def _public_score_components(
     as_of: datetime,
     quality_flags: list[str] | None = None,
 ) -> dict[str, int]:
-    _, intervention_points, _ = _actionability(facts, as_of)
+    _, intervention_points, _ = _actionability(facts, as_of, quality_flags)
     return {
         "INTERVENTION_STAGE": intervention_points,
-        "DEADLINE_URGENCY": _deadline_urgency_points(facts, as_of),
+        "DEADLINE_URGENCY": _deadline_urgency_points(facts, as_of, quality_flags),
         "PROJECT_AMOUNT": _amount_points(facts.get("budget_cny")),
         "PRODUCT_SPECIFICITY": _product_specificity_points(facts, quality_flags),
         "PUBLICATION_FRESHNESS": _publication_freshness_points(facts, as_of),
@@ -289,7 +328,7 @@ def _public_card(
 ) -> dict[str, Any]:
     facts = record["facts"]
     quality_flags = list(record.get("quality_flags") or [])
-    mode, _, model_status = _actionability(facts, as_of)
+    mode, _, model_status = _actionability(facts, as_of, quality_flags)
     components = _public_score_components(facts, as_of, quality_flags)
     public_score = sum(components.values())
     public_facts = {
@@ -473,7 +512,8 @@ def build_public_snapshot(
             continue
 
         effective_facts = effective_record["facts"]
-        mode, _, _ = _actionability(effective_facts, as_of)
+        effective_flags = list(effective_record.get("quality_flags") or [])
+        mode, _, _ = _actionability(effective_facts, as_of, effective_flags)
         if mode == "ARCHIVE":
             continue
         score = sum(
@@ -483,7 +523,7 @@ def build_public_snapshot(
                 list(effective_record.get("quality_flags") or []),
             ).values()
         )
-        deadline = _next_action_deadline(effective_facts, as_of)
+        deadline = _next_action_deadline(effective_facts, as_of, effective_flags)
         deadline_sort = deadline.timestamp() if deadline else float("inf")
         published_sort = -_published_sort_timestamp(effective_facts)
         sortable.append(
