@@ -8,6 +8,7 @@ WEB_ROOT = Path(__file__).resolve().parents[2]
 PROFILE_API = WEB_ROOT / 'api' / 'profile.js'
 PRIVATE_CONTEXT = WEB_ROOT / 'api' / '_privateProfileContext.js'
 AI_ANALYZE = WEB_ROOT / 'api' / 'ai' / 'analyze.js'
+LOCAL_PROFILE = WEB_ROOT / 'src' / 'services' / 'localCustomerProfile.ts'
 
 
 class LegacyDirectCapabilityTests(unittest.TestCase):
@@ -23,6 +24,20 @@ class LegacyDirectCapabilityTests(unittest.TestCase):
         self.assertIn("case 'DIRECT':\n    case 'DIRECT_UNCONFIRMED': return 18", source)
         self.assertIn("CASE WHEN capability_type = 'DIRECT' THEN 'DIRECT_UNCONFIRMED'", source)
         self.assertNotIn("case 'DIRECT': return 25", source)
+
+    def test_trial_scoring_matches_private_legacy_direct_semantics(self) -> None:
+        source = LOCAL_PROFILE.read_text(encoding='utf-8')
+        self.assertIn("case 'DIRECT_AUTHORIZED':\n      return 25", source)
+        self.assertIn("case 'DIRECT':\n    case 'DIRECT_UNCONFIRMED':\n      return 18", source)
+        self.assertNotIn("case 'DIRECT_AUTHORIZED':\n    case 'DIRECT':", source)
+
+    def test_trial_ivd_aliases_cover_quality_controls_without_generic_antibody(self) -> None:
+        source = LOCAL_PROFILE.read_text(encoding='utf-8')
+        self.assertIn(
+            "['ivd', '体外诊断', '体外诊断试剂', '检测试剂', '质控品', '校准品']",
+            source,
+        )
+        self.assertNotIn("['ivd', '体外诊断', '抗体'", source)
 
     def test_outreach_never_words_legacy_direct_as_authorized(self) -> None:
         source = AI_ANALYZE.read_text(encoding='utf-8')
