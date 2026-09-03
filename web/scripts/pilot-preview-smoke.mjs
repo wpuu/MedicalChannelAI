@@ -6,6 +6,7 @@ const bypassSecret = String(process.env.VERCEL_AUTOMATION_BYPASS_SECRET || '').t
 const testAi = ['1', 'true', 'yes', 'on'].includes(
   String(process.env.PILOT_SMOKE_AI || '').trim().toLowerCase(),
 )
+const OBVIOUS_MEDICAL_INSTITUTION = /(医院|卫生院|社区卫生服务中心|妇幼保健院|妇幼保健中心|疾病预防控制中心|疾控中心|血液中心|医学中心|急救中心|疗养院)/
 
 if (!baseUrl) throw new Error('PILOT_SMOKE_BASE_URL_REQUIRED')
 if (inviteCode.length < 24) throw new Error('PILOT_SMOKE_INVITE_CODE_REQUIRED')
@@ -112,6 +113,11 @@ function findComponent(card, code) {
   return components.find((item) => item?.code === code) || null
 }
 
+function medicalInstitutionName(value) {
+  const name = typeof value === 'string' ? value.trim() : ''
+  return name && OBVIOUS_MEDICAL_INSTITUTION.test(name) ? name : null
+}
+
 function scanForbiddenKeys(value, path = '$') {
   const forbidden = new Set(['password_hash', 'password_salt', 'token_hash', 'private_sessions'])
   if (Array.isArray(value)) {
@@ -185,13 +191,18 @@ async function main() {
     : initialToday.payload?.cards
   assert(Array.isArray(initialPool) && initialPool.length > 0, 'TODAY_POOL_EMPTY')
   const target = initialPool.find((item) => {
-    const value = item?.facts?.hospital_name || item?.facts?.buyer_name
-    return typeof value === 'string' && value.trim()
+    const explicitHospital = typeof item?.facts?.hospital_name === 'string'
+      ? item.facts.hospital_name.trim()
+      : ''
+    return Boolean(explicitHospital || medicalInstitutionName(item?.facts?.buyer_name))
   })
   assert(target, 'TODAY_HOSPITAL_TARGET_MISSING')
   const opportunityId = target?.opportunity_id
   const projectName = target?.facts?.project_name
-  const hospital = String(target?.facts?.hospital_name || target?.facts?.buyer_name || '').trim()
+  const explicitHospital = typeof target?.facts?.hospital_name === 'string'
+    ? target.facts.hospital_name.trim()
+    : ''
+  const hospital = explicitHospital || medicalInstitutionName(target?.facts?.buyer_name) || ''
   const targetHospital = hospital
   assert(typeof opportunityId === 'string' && opportunityId, 'TARGET_OPPORTUNITY_ID_MISSING')
   assert(typeof projectName === 'string' && projectName.trim(), 'TARGET_PROJECT_NAME_MISSING')
@@ -200,7 +211,7 @@ async function main() {
   const savedTargetOnlyProfile = await request('/api/profile', {
     method: 'PUT',
     body: {
-      product_capabilities: [{ keyword: projectName, capability_type: 'DIRECT' }],
+      product_capabilities: [{ keyword: projectName, capability_type: 'DIRECT_UNCONFIRMED' }],
       hospital_relationships: [],
       target_hospitals: [{ hospital: targetHospital, department: null }],
       can_find_manufacturer: true,
@@ -209,6 +220,10 @@ async function main() {
     },
   })
   assert(savedTargetOnlyProfile.payload?.profile?.product_capabilities?.length === 1, 'PROFILE_SAVE_FAILED')
+  assert(
+    savedTargetOnlyProfile.payload?.profile?.product_capabilities?.[0]?.capability_type === 'DIRECT_UNCONFIRMED',
+    'PROFILE_CAPABILITY_TYPE_DRIFTED',
+  )
   assert(
     savedTargetOnlyProfile.payload?.profile?.target_hospitals?.some((item) => item?.hospital === targetHospital),
     'TARGET_HOSPITAL_SAVE_FAILED',
@@ -238,7 +253,7 @@ async function main() {
   const savedRelationshipProfile = await request('/api/profile', {
     method: 'PUT',
     body: {
-      product_capabilities: [{ keyword: projectName, capability_type: 'DIRECT' }],
+      product_capabilities: [{ keyword: projectName, capability_type: 'DIRECT_UNCONFIRMED' }],
       hospital_relationships: [{ hospital, department: null, relationship_strength: 'STRONG' }],
       target_hospitals: [{ hospital: targetHospital, department: null }],
       can_find_manufacturer: true,
@@ -408,7 +423,9 @@ async function main() {
   assertPilotUser(loggedIn.payload, 'LOGIN_USER_CONTRACT_INVALID')
   const persistedProfile = await request('/api/profile')
   assert(
-    persistedProfile.payload?.profile?.product_capabilities?.some((item) => item?.keyword === projectName.slice(0, 160)),
+    persistedProfile.payload?.profile?.product_capabilities?.some(
+      (item) => item?.keyword === projectName.slice(0, 160) && item?.capability_type === 'DIRECT_UNCONFIRMED',
+    ),
     'CROSS_SESSION_PROFILE_PERSISTENCE_FAILED',
   )
   assert(
