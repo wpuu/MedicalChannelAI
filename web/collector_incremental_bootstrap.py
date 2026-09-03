@@ -97,9 +97,10 @@ def bootstrap_incremental_ledger_from_canonical(
 
     Discovery is deliberately supplied by the caller. This helper never performs
     an official index request. On a brand-new ledger it bootstraps recent deep
-    VERIFIED facts; on an existing ledger it repairs FAILED/UNVERIFIED rows that
-    a recent authoritative deep/incremental canonical verification already
-    resolved, avoiding duplicate detail fetches after the daily deep cycle.
+    VERIFIED facts; on an existing ledger it may repair FAILED/UNVERIFIED rows
+    only when the canonical verification is not older than the incremental state
+    that says the row still needs verification. Safety wins over avoiding an
+    occasional redundant detail fetch.
     """
     source = str(source_id or "").strip().lower()
     if source not in incremental_runtime.SUPPORTED_INCREMENTAL_SOURCES:
@@ -111,6 +112,7 @@ def bootstrap_incremental_ledger_from_canonical(
     existing_ledger = incremental_runtime._load_ledger(cache, source)
     normalized_existing = normalize_ledger(existing_ledger)
     existing_entries = normalized_existing["entries"]
+    existing_updated_at = _parsed_at(normalized_existing.get("updated_at"))
     discovered_rows = list(discovered)
 
     policy = SOURCE_POLICIES[source]
@@ -133,7 +135,12 @@ def bootstrap_incremental_ledger_from_canonical(
     seeded = 0
     stale = 0
     metadata_mismatch = 0
+    metadata_changed_pending = 0
+    newer_incremental_state = 0
+    already_newer_verified = 0
     tracked_fingerprint_bridge = 0
+    bridge_too_old = 0
+
     for candidate in discovered_rows:
         observation = candidate_observation(source, candidate)
         record = canonical_by_url.get(observation.detail_url)
@@ -147,6 +154,39 @@ def bootstrap_incremental_ledger_from_canonical(
             continue
 
         previous = existing_entries.get(ledger_key(observation))
+        if isinstance(previous, dict):
+            previous_fingerprint = str(previous.get("fingerprint") or "")
+            if previous_fingerprint != observation.fingerprint:
+                # A changed index fingerprint is itself a reason to fetch the
+                # detail again. An older canonical row must never erase that
+                # requirement merely because title/date happen to still match.
+                metadata_changed_pending += 1
+                continue
+
+            previous_last_verified = _parsed_at(previous.get("last_verified_at"))
+            previous_is_current_verified = bool(
+                previous.get("verification_status") == "VERIFIED"
+                and previous.get("last_verification_fingerprint") == observation.fingerprint
+                and previous_last_verified is not None
+            )
+            if previous_is_current_verified and previous_last_verified >= verified_at:
+                already_newer_verified += 1
+                continue
+
+            previous_needs_verification = not previous_is_current_verified
+            if (
+                previous_needs_verification
+                and existing_updated_at is not None
+                and existing_updated_at >= verified_at
+            ):
+                # The ledger was updated at or after this canonical verification
+                # and still says the candidate is unresolved/failed. The exact
+                # per-entry failure time is not persisted in schema v0.1, so use
+                # the source-level timestamp conservatively rather than allowing
+                # stale canonical data to overwrite a newer failed attempt.
+                newer_incremental_state += 1
+                continue
+
         tracked_fingerprint_matches = bool(
             isinstance(previous, dict)
             and previous.get("fingerprint") == observation.fingerprint
@@ -155,12 +195,15 @@ def bootstrap_incremental_ledger_from_canonical(
         if not strict_metadata_match and not tracked_fingerprint_matches:
             metadata_mismatch += 1
             continue
+
         if tracked_fingerprint_matches and not strict_metadata_match:
-            # This bridge is safe without title equality because the same current
-            # index fingerprint was already tracked by the ledger and a recent
-            # canonical record proves the exact official detail URL was verified.
-            # It primarily avoids redundant TJFCH refetches where index titles are
-            # truncated relative to detail titles.
+            previous_seen_at = _parsed_at(previous.get("last_seen_at")) if isinstance(previous, dict) else None
+            if previous_seen_at is None or verified_at < previous_seen_at:
+                # TJFCH can bridge a deliberate index-title/detail-title
+                # mismatch only when canonical verification happened after the
+                # same persisted index fingerprint had already been observed.
+                bridge_too_old += 1
+                continue
             tracked_fingerprint_bridge += 1
 
         ledger = record_verification_success(
@@ -170,6 +213,12 @@ def bootstrap_incremental_ledger_from_canonical(
         )
         seeded += 1
 
+    # record_verification_success() intentionally records the fact verification
+    # clock. Reconciliation itself happened at `current`, and planning already
+    # refreshed discovery last_seen_at at that clock, so preserve a monotonic
+    # source-level ledger update timestamp instead of moving it backward to the
+    # older canonical observation time.
+    ledger["updated_at"] = current.isoformat()
     incremental_runtime._save_ledger(cache, source, ledger)
     return {
         "action": "RECONCILED" if existing_entries else "BOOTSTRAPPED",
@@ -178,5 +227,9 @@ def bootstrap_incremental_ledger_from_canonical(
         "seeded_verified_count": seeded,
         "stale_canonical_count": stale,
         "metadata_mismatch_count": metadata_mismatch,
+        "metadata_changed_pending_count": metadata_changed_pending,
+        "newer_incremental_state_count": newer_incremental_state,
+        "already_newer_verified_count": already_newer_verified,
         "tracked_fingerprint_bridge_count": tracked_fingerprint_bridge,
+        "bridge_too_old_count": bridge_too_old,
     }
