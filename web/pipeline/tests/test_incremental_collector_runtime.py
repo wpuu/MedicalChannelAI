@@ -49,9 +49,10 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
             self.assertIn(f'"{source}"', block.group(1))
             self.assertIn(f'"{source}"', scheduled.group(1))
 
-    def test_incremental_ledgers_are_public_source_scoped_not_account_scoped(self) -> None:
+    def test_incremental_ledgers_and_staging_are_public_source_scoped_not_account_scoped(self) -> None:
         self.assertIn('collector-incremental-ledger:{source_id}:v2', self.runtime)
         self.assertIn('collector-incremental-bucket:{source_id}:v2', self.runtime)
+        self.assertIn('collector-incremental-pending:{source_id}:v2', self.runtime)
         self.assertNotIn('user_id', self.runtime)
         self.assertNotIn('organization_id', self.runtime)
         self.assertNotIn('local_scope', self.runtime)
@@ -90,13 +91,28 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
 
     def test_incremental_detail_failure_cannot_publish_partial_public_snapshot(self) -> None:
         failure_index = self.runtime.index('if failures:')
+        canonical_write = self.runtime.index('runtime._cache_set(\n            cache,\n            cache_key,', failure_index)
         publish_index = self.runtime.index('_publish_snapshot_if_ready(cache, observed)', failure_index)
-        failure_block = self.runtime[failure_index:publish_index]
-        self.assertLess(failure_index, publish_index)
+        failure_block = self.runtime[failure_index:canonical_write]
+        self.assertLess(failure_index, canonical_write)
+        self.assertLess(canonical_write, publish_index)
+        self.assertIn('_save_pending_records(cache, source, staged_records)', failure_block)
         self.assertIn('"snapshot_refreshed": False', failure_block)
         self.assertIn('"snapshot_as_of": None', failure_block)
         self.assertIn('INCREMENTAL_DETAIL_VERIFICATION_INCOMPLETE', failure_block)
+        self.assertNotIn('cache_key', failure_block)
         self.assertNotIn('_publish_snapshot_if_ready(', failure_block)
+
+    def test_staged_partial_records_commit_only_after_source_scan_is_clean(self) -> None:
+        failure_index = self.runtime.index('if failures:')
+        commit_index = self.runtime.index('if staged_records:', failure_index)
+        clear_index = self.runtime.index('_save_pending_records(cache, source, [])', commit_index)
+        publish_index = self.runtime.index('_publish_snapshot_if_ready(cache, observed)', clear_index)
+        self.assertLess(failure_index, commit_index)
+        self.assertLess(commit_index, clear_index)
+        self.assertLess(clear_index, publish_index)
+        self.assertIn('runtime.merge_canonical_records(existing_records, staged_records)', self.runtime)
+        self.assertIn('pending_record_count', self.runtime)
 
     def test_incremental_status_is_aggregate_only(self) -> None:
         for field in (
