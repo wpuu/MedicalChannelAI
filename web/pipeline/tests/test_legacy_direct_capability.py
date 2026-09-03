@@ -9,6 +9,7 @@ PROFILE_API = WEB_ROOT / 'api' / 'profile.js'
 PRIVATE_CONTEXT = WEB_ROOT / 'api' / '_privateProfileContext.js'
 AI_ANALYZE = WEB_ROOT / 'api' / 'ai' / 'analyze.js'
 LOCAL_PROFILE = WEB_ROOT / 'src' / 'services' / 'localCustomerProfile.ts'
+LABELS = WEB_ROOT / 'src' / 'utils' / 'labels.ts'
 
 
 class LegacyDirectCapabilityTests(unittest.TestCase):
@@ -30,6 +31,13 @@ class LegacyDirectCapabilityTests(unittest.TestCase):
         self.assertIn("case 'DIRECT_AUTHORIZED':\n      return 25", source)
         self.assertIn("case 'DIRECT':\n    case 'DIRECT_UNCONFIRMED':\n      return 18", source)
         self.assertNotIn("case 'DIRECT_AUTHORIZED':\n    case 'DIRECT':", source)
+
+    def test_legacy_direct_label_does_not_claim_authorization(self) -> None:
+        source = LABELS.read_text(encoding='utf-8')
+        self.assertIn("DIRECT: '有直接产品能力，授权待确认'", source)
+        self.assertIn("DIRECT_UNCONFIRMED: '有直接产品能力，授权待确认'", source)
+        self.assertIn("DIRECT_AUTHORIZED: '已授权，可直接参与'", source)
+        self.assertNotIn("DIRECT: '可直接参与'", source)
 
     def test_trial_ivd_aliases_cover_quality_controls_without_generic_antibody(self) -> None:
         source = LOCAL_PROFILE.read_text(encoding='utf-8')
