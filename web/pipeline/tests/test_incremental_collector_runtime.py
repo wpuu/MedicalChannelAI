@@ -88,6 +88,16 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.assertIn('record_verification_success(', self.runtime)
         self.assertIn('record_verification_failure(', self.runtime)
 
+    def test_incremental_detail_failure_cannot_publish_partial_public_snapshot(self) -> None:
+        failure_index = self.runtime.index('if failures:')
+        publish_index = self.runtime.index('_publish_snapshot_if_ready(cache, observed)', failure_index)
+        failure_block = self.runtime[failure_index:publish_index]
+        self.assertLess(failure_index, publish_index)
+        self.assertIn('"snapshot_refreshed": False', failure_block)
+        self.assertIn('"snapshot_as_of": None', failure_block)
+        self.assertIn('INCREMENTAL_DETAIL_VERIFICATION_INCOMPLETE', failure_block)
+        self.assertNotIn('_publish_snapshot_if_ready(', failure_block)
+
     def test_incremental_status_is_aggregate_only(self) -> None:
         for field in (
             'candidate_count',
