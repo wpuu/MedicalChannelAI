@@ -23,6 +23,7 @@ const facts = {
   procurement_method: '公开招标',
   product_categories: ['医疗设备'],
   products: [],
+  quality_flags: [],
   official_contact: null,
   verification_status: 'VERIFIED',
   coverage_status: 'PARTIAL',
@@ -55,6 +56,64 @@ const safe = parseDecisionContent(JSON.stringify({
   risks: ['产品参数和资格条件以官方附件为准，未核实前不要向客户承诺。'],
 }))
 assert.equal(safe.requires_human_confirmation, true)
+
+const relativeFacts = {
+  ...facts,
+  project_code: null,
+  project_name: '医疗器械精细化管理项目测试企业征集公告',
+  lifecycle_stage: 'MARKET_RESEARCH',
+  notice_type: '采购前期测试企业征集公告',
+  publish_date: '2026-09-01',
+  registration_deadline: null,
+  registration_deadline_date: null,
+  registration_deadline_precision: null,
+  bid_deadline: null,
+  procurement_method: '采购前期测试企业征集',
+  quality_flags: ['RELATIVE_REGISTRATION_WINDOW_7_DAYS'],
+}
+const relativeMessages = buildDecisionMessages(
+  relativeFacts,
+  ['https://www.tj-fch.com/example.shtml'],
+  null,
+  'RELATIVE_WINDOW',
+  '2026-09-03T02:00:00.000Z',
+)
+const relativeInput = JSON.stringify(relativeMessages)
+assert.equal(relativeInput.includes('官方仅公布“自公告发布之日起7天”的相对报名窗口'), true)
+assert.equal(relativeInput.includes('不得把系统内部推算日期或时刻写成官方截止时间'), true)
+assert.equal(relativeInput.includes('根据已核验公开截止时间，当前仍在报名或获取文件窗口内'), false)
+assert.equal(relativeInput.includes('RELATIVE_REGISTRATION_WINDOW_7_DAYS'), false)
+assert.equal(relativeInput.includes('RELATIVE_WINDOW'), false)
+
+const relativeSafe = parseDecisionContent(JSON.stringify({
+  action: '今天先联系公告公开联系人，确认测试企业报名是否仍开放，并按官方要求准备产品资料。',
+  reasons: ['官方采用发布日起7天的相对报名窗口，当前应优先人工确认实际开放状态。'],
+  risks: ['官方未公布精确截止时刻，不要把系统内部行动窗口当作官方截止时间。'],
+}), { relativeRegistrationWindow: true })
+assert.equal(relativeSafe.requires_human_confirmation, true)
+
+for (const inventedDeadline of [
+  {
+    action: '请在2026年9月8日前完成报名。',
+    reasons: ['报名截止为2026年9月8日。'],
+    risks: [],
+  },
+  {
+    action: '今天联系医院确认资料。',
+    reasons: ['9月8日是官方报名截止日。'],
+    risks: [],
+  },
+  {
+    action: '今天联系医院确认资料。',
+    reasons: ['报名窗口仍开放。'],
+    risks: ['官方截止时间为17:00。'],
+  },
+]) {
+  assert.throws(
+    () => parseDecisionContent(JSON.stringify(inventedDeadline), { relativeRegistrationWindow: true }),
+    (error) => error?.code === 'AI_RESPONSE_INVALID',
+  )
+}
 
 for (const leaked of [
   {
