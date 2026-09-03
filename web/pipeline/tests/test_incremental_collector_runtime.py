@@ -15,6 +15,7 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.queue = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
         self.trigger = (WEB_ROOT / "api" / "collector-run.py").read_text(encoding="utf-8")
         self.status = (WEB_ROOT / "api" / "collector-status.py").read_text(encoding="utf-8")
+        self.scheduler = (WEB_ROOT / "collector_incremental_scheduler.py").read_text(encoding="utf-8")
         self.namespace = (WEB_ROOT / "collector_namespace.py").read_text(encoding="utf-8")
         self.vercel = json.loads((WEB_ROOT / "vercel.json").read_text(encoding="utf-8"))
 
@@ -28,17 +29,25 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.assertNotIn('user_id', self.trigger)
         self.assertNotIn('organization_id', self.trigger)
 
-    def test_ccgp_is_intentionally_not_enabled_for_incremental_runtime_yet(self) -> None:
-        self.assertIn('source != "ccgp"', self.trigger)
+    def test_trigger_only_activates_explicitly_implemented_incremental_sources(self) -> None:
+        self.assertIn('INCREMENTAL_SOURCE_IDS = SCHEDULED_INCREMENTAL_SOURCES', self.trigger)
         block = re.search(
             r"SUPPORTED_INCREMENTAL_SOURCES\s*=\s*\((.*?)\)\n\n",
             self.runtime,
             re.DOTALL,
         )
+        scheduled = re.search(
+            r"SCHEDULED_INCREMENTAL_SOURCES\s*=\s*\((.*?)\)\n\n",
+            self.scheduler,
+            re.DOTALL,
+        )
         self.assertIsNotNone(block)
+        self.assertIsNotNone(scheduled)
         self.assertNotIn('"ccgp"', block.group(1))
+        self.assertNotIn('"ccgp"', scheduled.group(1))
         for source in ('tjmugh', 'tjnothop', 'teda', 'tjfch', 'tjfch_test'):
             self.assertIn(f'"{source}"', block.group(1))
+            self.assertIn(f'"{source}"', scheduled.group(1))
 
     def test_incremental_ledgers_are_public_source_scoped_not_account_scoped(self) -> None:
         self.assertIn('collector-incremental-ledger:{source_id}:v2', self.runtime)
