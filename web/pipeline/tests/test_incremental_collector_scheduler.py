@@ -25,6 +25,9 @@ class FakeCache:
     def get(self, key: str):
         return self.values.get(key)
 
+    def set(self, key: str, value: object, options: object | None = None) -> None:
+        self.values[key] = value
+
     def set_completed(self, source_id: str, when: datetime) -> None:
         self.values[f"medicalchannelai:collector-incremental-bucket:{source_id}:v2"] = {
             "schema_version": "0.1",
@@ -52,9 +55,22 @@ class IncrementalCollectorSchedulerTests(unittest.TestCase):
 
     def test_never_scanned_sources_are_bootstrapped_fairly_across_ticks(self) -> None:
         cache = FakeCache()
-        cache.set_completed("tjmugh", NOW)
-        decision = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=1))
-        self.assertEqual(decision.source_id, "tjnothop")
+        first = choose_due_incremental_source(cache, now=NOW)
+        second = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=10))
+        third = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=20))
+        self.assertEqual(first.source_id, "tjmugh")
+        self.assertEqual(second.source_id, "tjnothop")
+        self.assertEqual(third.source_id, "tjfch")
+
+    def test_failed_never_completed_source_backs_off_instead_of_starving_others(self) -> None:
+        cache = FakeCache()
+        first = choose_due_incremental_source(cache, now=NOW)
+        self.assertEqual(first.source_id, "tjmugh")
+        # Simulate a discovery/detail failure: no completed bucket is written.
+        # The next scheduler tick must still advance to another source.
+        second = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=10))
+        self.assertEqual(second.source_id, "tjnothop")
+        self.assertNotIn("tjmugh", second.due_sources)
 
     def test_no_source_is_queued_before_its_interval_is_due(self) -> None:
         cache = FakeCache()
@@ -72,6 +88,16 @@ class IncrementalCollectorSchedulerTests(unittest.TestCase):
         decision = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=181))
         self.assertEqual(decision.source_id, "tjmugh")
         self.assertGreater(len(decision.due_sources), 1)
+
+    def test_recent_failed_attempt_on_completed_source_does_not_repeat_every_tick(self) -> None:
+        cache = FakeCache()
+        for source in SCHEDULED_INCREMENTAL_SOURCES:
+            cache.set_completed(source, NOW)
+        first = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=181))
+        self.assertEqual(first.source_id, "tjmugh")
+        # No new completion is recorded for tjmugh, representing a failed scan.
+        second = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=191))
+        self.assertNotEqual(second.source_id, "tjmugh")
 
     def test_current_bucket_is_not_requeued_even_if_completed_at_is_malformed_old(self) -> None:
         cache = FakeCache()
