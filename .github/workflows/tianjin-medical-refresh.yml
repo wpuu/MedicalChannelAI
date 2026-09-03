@@ -2,9 +2,10 @@ name: Tianjin Medical Refresh
 
 on:
   schedule:
-    # Legacy GitHub scheduler. Keep as a fallback until the Vercel-native collector is accepted.
+    # Legacy GitHub scheduler. Keep one daily deep reconciliation as a fallback
+    # until the Vercel-native collector is runtime-accepted; intraday freshness
+    # belongs to the bounded incremental chain, not a second full deep scrape.
     - cron: '20 0 * * *'
-    - cron: '20 8 * * 1-5'
   workflow_dispatch:
 
 permissions:
