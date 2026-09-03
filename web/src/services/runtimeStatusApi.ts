@@ -111,7 +111,7 @@ export function runtimeAutomationUnavailableReason(
   status: RuntimeStatus | null,
   checked = true,
 ): string | null {
-  if (!checked) return null
+  if (!checked) return '正在确认公开商机快照状态，自动分析与沟通草稿暂不可用。'
   if (!status) return '暂时无法确认商机数据新鲜度，已暂停自动分析与沟通草稿。'
   if (!status.snapshot.available || status.snapshot.freshness === 'UNAVAILABLE') {
     return '当前无法确认公开商机快照，已暂停自动分析与沟通草稿。'
