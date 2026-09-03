@@ -50,13 +50,21 @@ class IncrementalTickChainTests(unittest.TestCase):
         self.assertEqual(ticks[-1].scheduled_for, "2026-09-04T11:00:00+00:00")  # 19:00 CST
         self.assertTrue(all(item.business_date == "2026-09-04" for item in ticks))
 
-    def test_late_delivery_skips_backlog_instead_of_bursting_old_ticks(self) -> None:
+    def test_small_delivery_delay_does_not_double_tick_interval(self) -> None:
+        first = first_tick_after_deep(datetime(2026, 9, 4, 3, 5, tzinfo=timezone.utc))
+        self.assertIsNotNone(first)
+        delivered = datetime(2026, 9, 4, 3, 30, 5, tzinfo=timezone.utc)  # 11:30:05 CST
+        nxt = next_tick_after(first, delivered_at=delivered)
+        self.assertIsNotNone(nxt)
+        self.assertEqual(nxt.scheduled_for, "2026-09-04T03:40:00+00:00")  # 11:40 CST
+
+    def test_late_delivery_skips_backlog_to_first_future_aligned_tick(self) -> None:
         first = first_tick_after_deep(datetime(2026, 9, 4, 3, 5, tzinfo=timezone.utc))
         self.assertIsNotNone(first)
         delayed = datetime(2026, 9, 4, 4, 7, tzinfo=timezone.utc)  # 12:07 CST
         nxt = next_tick_after(first, delivered_at=delayed)
         self.assertIsNotNone(nxt)
-        self.assertEqual(nxt.scheduled_for, "2026-09-04T04:20:00+00:00")  # 12:20 CST
+        self.assertEqual(nxt.scheduled_for, "2026-09-04T04:10:00+00:00")  # 12:10 CST
 
     def test_tick_payload_is_self_authenticating_by_schedule_contract(self) -> None:
         tick = first_tick_after_deep(datetime(2026, 9, 4, 3, 5, tzinfo=timezone.utc))
