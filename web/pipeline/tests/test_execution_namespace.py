@@ -13,6 +13,7 @@ from collector_namespace import (  # noqa: E402
     CCGP_EVENTS_KEY,
     CCGP_RECORDS_KEY,
     CCGP_WATCH_KEY,
+    INCREMENTAL_ACTIVE_KEY,
     LATEST_RUNTIME_SNAPSHOT_KEY,
     META_KEY,
     QUEUE_TOPIC_NAME,
@@ -21,6 +22,7 @@ from collector_namespace import (  # noqa: E402
     TJMUGH_RECORDS_KEY,
     TJNOTHOP_RECORDS_KEY,
     active_cycle_id,
+    active_incremental_id,
     apply_runtime_namespace,
     cycle_has_running_stage,
 )
@@ -31,6 +33,7 @@ class ExecutionNamespaceTests(unittest.TestCase):
         keys = [
             META_KEY,
             ACTIVE_CYCLE_KEY,
+            INCREMENTAL_ACTIVE_KEY,
             CCGP_RECORDS_KEY,
             CCGP_EVENTS_KEY,
             CCGP_WATCH_KEY,
@@ -59,7 +62,13 @@ class ExecutionNamespaceTests(unittest.TestCase):
     def test_active_cycle_helpers_fail_closed(self) -> None:
         self.assertIsNone(active_cycle_id(None))
         self.assertIsNone(active_cycle_id({"cycle_id": ""}))
-        self.assertEqual(active_cycle_id({"cycle_id": "accept:2026-09-01:abc"}), "accept:2026-09-01:abc")
+        self.assertEqual(active_cycle_id({"cycle_id": "prod:2026-09-01"}), "prod:2026-09-01")
+        self.assertIsNone(active_incremental_id(None))
+        self.assertIsNone(active_incremental_id({"scan_id": ""}))
+        self.assertEqual(
+            active_incremental_id({"scan_id": "scan:tjmugh:20260904T0100Z:60m:run"}),
+            "scan:tjmugh:20260904T0100Z:60m:run",
+        )
         self.assertFalse(cycle_has_running_stage({"stages": {"ccgp": {"status": "FAILED"}}}))
         self.assertTrue(cycle_has_running_stage({"stages": {"ccgp": {"status": "RUNNING"}}}))
 
@@ -69,6 +78,11 @@ class ExecutionNamespaceTests(unittest.TestCase):
         run_stage = source.index("runtime.run_stage(stage, now=cycle_as_of)")
         self.assertLess(first_fence, run_stage)
         self.assertGreaterEqual(source.count("if not _active_cycle_matches(cycle_id):"), 2)
+
+    def test_queue_consumer_serializes_all_mutating_messages(self) -> None:
+        source = (WEB_ROOT / "api" / "collector-queue.py").read_text(encoding="utf-8")
+        self.assertIn("max_concurrency=1", source)
+        self.assertIn('Topic[dict[str, object]]("medicalchannelai-refresh-v2")', source)
 
     def test_snapshot_reader_migrates_v1_only_into_v2(self) -> None:
         source = (WEB_ROOT / "api" / "_verifiedSnapshot.js").read_text(encoding="utf-8")
