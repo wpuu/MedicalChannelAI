@@ -16,6 +16,7 @@ from collector_namespace import (  # noqa: E402
     LATEST_RUNTIME_SNAPSHOT_KEY,
     META_KEY,
     QUEUE_TOPIC_NAME,
+    TEDA_RECORDS_KEY,
     TJMUGH_RECORDS_KEY,
     TJNOTHOP_RECORDS_KEY,
     active_cycle_id,
@@ -34,6 +35,7 @@ class ExecutionNamespaceTests(unittest.TestCase):
             CCGP_WATCH_KEY,
             TJMUGH_RECORDS_KEY,
             TJNOTHOP_RECORDS_KEY,
+            TEDA_RECORDS_KEY,
             LATEST_RUNTIME_SNAPSHOT_KEY,
         ]
         self.assertTrue(all(value.endswith(":v2") for value in keys))
@@ -48,6 +50,7 @@ class ExecutionNamespaceTests(unittest.TestCase):
         self.assertEqual(runtime.CCGP_WATCH_KEY, CCGP_WATCH_KEY)
         self.assertEqual(runtime.TJMUGH_RECORDS_KEY, TJMUGH_RECORDS_KEY)
         self.assertEqual(runtime.TJNOTHOP_RECORDS_KEY, TJNOTHOP_RECORDS_KEY)
+        self.assertEqual(runtime.TEDA_RECORDS_KEY, TEDA_RECORDS_KEY)
         self.assertEqual(runtime.LATEST_RUNTIME_SNAPSHOT_KEY, LATEST_RUNTIME_SNAPSHOT_KEY)
 
     def test_active_cycle_helpers_fail_closed(self) -> None:
