@@ -14,6 +14,7 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.runtime = (WEB_ROOT / "collector_incremental_runtime.py").read_text(encoding="utf-8")
         self.queue = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
         self.trigger = (WEB_ROOT / "api" / "collector-run.py").read_text(encoding="utf-8")
+        self.status = (WEB_ROOT / "api" / "collector-status.py").read_text(encoding="utf-8")
         self.namespace = (WEB_ROOT / "collector_namespace.py").read_text(encoding="utf-8")
         self.vercel = json.loads((WEB_ROOT / "vercel.json").read_text(encoding="utf-8"))
 
@@ -77,6 +78,24 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.assertLess(failure_index, mark_index)
         self.assertIn('record_verification_success(', self.runtime)
         self.assertIn('record_verification_failure(', self.runtime)
+
+    def test_incremental_status_is_aggregate_only(self) -> None:
+        for field in (
+            'candidate_count',
+            'verified_count',
+            'failed_count',
+            'unverified_count',
+            'selected_detail_count',
+            'skipped_unchanged_count',
+            'active_scan_id',
+        ):
+            self.assertIn(f'"{field}"', self.status)
+        self.assertNotIn('detail_url', self.status)
+        self.assertNotIn('project_name', self.status)
+        self.assertNotIn('title', self.status)
+        self.assertNotIn('user_id', self.status)
+        self.assertNotIn('organization_id', self.status)
+        self.assertNotIn('local_scope', self.status)
 
     def test_high_frequency_crons_are_not_enabled_yet(self) -> None:
         crons = self.vercel.get('crons') or []
