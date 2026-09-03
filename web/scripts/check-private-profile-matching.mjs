@@ -57,6 +57,8 @@ const outreach = buildGroundedOutreachDraft(
   Date.parse('2026-09-03T06:00:00.000Z'),
 )
 assert.match(outreach, /王老师，您好/)
+assert.match(outreach, /项目预算约4588元/)
+assert.doesNotMatch(outreach, /0万元/)
 assert.match(outreach, /正在确认IVD相关供货条件/)
 assert.doesNotMatch(outreach, /STRONG|强关系|院内关系/)
 assert.doesNotMatch(outreach, /已获授权|厂家授权|授权代理/)
