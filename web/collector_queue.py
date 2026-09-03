@@ -234,9 +234,6 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
         return
 
     delivered_at = datetime.now(timezone.utc)
-    # A source message may be redelivered by Queue, but it must never cross the
-    # China business-date boundary and then publish using yesterday's observed_at.
-    # Next-day freshness belongs to the next authoritative/deep cycle.
     if not same_china_business_date(observed_at, delivered_at):
         return
 
@@ -252,14 +249,18 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
         observed_at=observed_at,
     )
     try:
+        # The payload clock identifies the idempotency bucket only. Official fetch,
+        # ledger verification timestamps, completion time and snapshot as-of must
+        # use the real execution clock so Queue delay cannot make freshness appear
+        # earlier than the website was actually checked.
         bootstrap_incremental_ledger_from_canonical(
             source_id,
-            now=observed_at,
+            now=delivered_at,
             cache=cache,
         )
         status, result = incremental_runtime.run_incremental_source(
             source_id,
-            now=observed_at,
+            now=delivered_at,
             cache=cache,
         )
     finally:
@@ -378,9 +379,6 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if stage not in STAGE_ORDER or not cycle_id or cycle_as_of is None:
         return
 
-    # At-least-once duplicates from a fully completed/released cycle or a cycle
-    # already superseded by a newer business date are harmless and acknowledged.
-    # Missing lease during an unfinished same-day cycle is still a hard failure.
     if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
         return
 
