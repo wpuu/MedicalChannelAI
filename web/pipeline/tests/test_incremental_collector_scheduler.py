@@ -12,6 +12,7 @@ from collector_incremental import scan_bucket_id  # noqa: E402
 from collector_incremental_scheduler import (  # noqa: E402
     SCHEDULED_INCREMENTAL_SOURCES,
     choose_due_incremental_source,
+    mark_incremental_source_attempt,
 )
 
 
@@ -46,6 +47,17 @@ class IncrementalCollectorSchedulerTests(unittest.TestCase):
             ("tjmugh", "tjnothop", "tjfch", "tjfch_test", "teda"),
         )
 
+    def test_selection_is_side_effect_free_until_queue_accepts_source(self) -> None:
+        cache = FakeCache()
+        first = choose_due_incremental_source(cache, now=NOW)
+        second = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=10))
+        self.assertEqual(first.source_id, "tjmugh")
+        self.assertEqual(second.source_id, "tjmugh")
+        self.assertFalse(
+            any("collector-incremental-attempt" in key for key in cache.values),
+            "selection alone must not consume a source attempt",
+        )
+
     def test_first_activation_releases_only_one_never_scanned_source(self) -> None:
         cache = FakeCache()
         decision = choose_due_incremental_source(cache, now=NOW)
@@ -53,24 +65,39 @@ class IncrementalCollectorSchedulerTests(unittest.TestCase):
         self.assertEqual(decision.reason, "SOURCE_DUE")
         self.assertEqual(len(decision.due_sources), len(SCHEDULED_INCREMENTAL_SOURCES))
 
-    def test_never_scanned_sources_are_bootstrapped_fairly_across_ticks(self) -> None:
+    def test_never_scanned_sources_are_bootstrapped_fairly_across_queued_ticks(self) -> None:
         cache = FakeCache()
         first = choose_due_incremental_source(cache, now=NOW)
-        second = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=10))
-        third = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=20))
         self.assertEqual(first.source_id, "tjmugh")
+        mark_incremental_source_attempt(cache, first.source_id, now=NOW)
+
+        second_at = NOW + timedelta(minutes=10)
+        second = choose_due_incremental_source(cache, now=second_at)
         self.assertEqual(second.source_id, "tjnothop")
+        mark_incremental_source_attempt(cache, second.source_id, now=second_at)
+
+        third_at = NOW + timedelta(minutes=20)
+        third = choose_due_incremental_source(cache, now=third_at)
         self.assertEqual(third.source_id, "tjfch")
 
-    def test_failed_never_completed_source_backs_off_instead_of_starving_others(self) -> None:
+    def test_failed_queued_never_completed_source_backs_off_instead_of_starving_others(self) -> None:
         cache = FakeCache()
         first = choose_due_incremental_source(cache, now=NOW)
         self.assertEqual(first.source_id, "tjmugh")
-        # Simulate a discovery/detail failure: no completed bucket is written.
-        # The next scheduler tick must still advance to another source.
+        # Queue accepted the source, then discovery/detail failed: mark the real
+        # attempt but do not write a completed bucket.
+        mark_incremental_source_attempt(cache, first.source_id, now=NOW)
         second = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=10))
         self.assertEqual(second.source_id, "tjnothop")
         self.assertNotIn("tjmugh", second.due_sources)
+
+    def test_queue_start_failure_does_not_back_off_unqueued_source(self) -> None:
+        cache = FakeCache()
+        first = choose_due_incremental_source(cache, now=NOW)
+        self.assertEqual(first.source_id, "tjmugh")
+        # Simulate send() raising: no mark_incremental_source_attempt call.
+        retry = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=10))
+        self.assertEqual(retry.source_id, "tjmugh")
 
     def test_no_source_is_queued_before_its_interval_is_due(self) -> None:
         cache = FakeCache()
@@ -89,13 +116,15 @@ class IncrementalCollectorSchedulerTests(unittest.TestCase):
         self.assertEqual(decision.source_id, "tjmugh")
         self.assertGreater(len(decision.due_sources), 1)
 
-    def test_recent_failed_attempt_on_completed_source_does_not_repeat_every_tick(self) -> None:
+    def test_recent_failed_queued_attempt_on_completed_source_does_not_repeat_every_tick(self) -> None:
         cache = FakeCache()
         for source in SCHEDULED_INCREMENTAL_SOURCES:
             cache.set_completed(source, NOW)
-        first = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=181))
+        first_at = NOW + timedelta(minutes=181)
+        first = choose_due_incremental_source(cache, now=first_at)
         self.assertEqual(first.source_id, "tjmugh")
-        # No new completion is recorded for tjmugh, representing a failed scan.
+        mark_incremental_source_attempt(cache, first.source_id, now=first_at)
+        # No new completion is recorded for tjmugh, representing a real failed scan.
         second = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=191))
         self.assertNotEqual(second.source_id, "tjmugh")
 
@@ -111,12 +140,26 @@ class IncrementalCollectorSchedulerTests(unittest.TestCase):
         decision = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=20))
         self.assertNotEqual(decision.source_id, "tjmugh")
 
+    def test_attempt_marker_rejects_unknown_sources(self) -> None:
+        cache = FakeCache()
+        with self.assertRaisesRegex(ValueError, "INCREMENTAL_SCHEDULER_SOURCE_UNSUPPORTED"):
+            mark_incremental_source_attempt(cache, "ccgp", now=NOW)
+
     def test_trigger_supports_auto_selection_without_activating_cron(self) -> None:
         source = (WEB_ROOT / "api" / "collector-run.py").read_text(encoding="utf-8")
         self.assertIn("choose_due_incremental_source(RuntimeCache())", source)
         self.assertIn('requested_source == "auto"', source)
         self.assertIn('"action": "NO_SOURCE_DUE"', source)
         self.assertIn('"mode": "INCREMENTAL_AUTO"', source)
+
+    def test_api_attempt_is_marked_only_after_queue_send_returns(self) -> None:
+        source = (WEB_ROOT / "api" / "collector-run.py").read_text(encoding="utf-8")
+        start = source.index("async def _enqueue_incremental")
+        end = source.index("class handler", start)
+        block = source[start:end]
+        send_index = block.index("message_id = await send(")
+        mark_index = block.index("mark_incremental_source_attempt(cache, source_id, now=now)")
+        self.assertLess(send_index, mark_index)
 
 
 if __name__ == "__main__":
