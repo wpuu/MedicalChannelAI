@@ -6,6 +6,7 @@ const GENERIC_KEYWORDS = new Set([
 const SHORT_MEDICAL_CAPABILITY_KEYWORDS = new Set([
   'dr', 'ct', 'mr', 'cr', 'dsa', 'ivd', 'pcr', 'lis', 'his', 'mri', 'ecg', 'icu', 'gpu',
 ])
+const SOURCE_CATEGORY_TITLE_CONFLICT = 'SOURCE_CATEGORY_TITLE_CONFLICT'
 
 const CAPABILITY_ALIAS_GROUPS = [
   ['dsa', '数字减影血管造影', '数字减影血管造影机', '血管造影机'],
@@ -59,7 +60,11 @@ function capabilityMatches(searchText, keyword) {
   )
 }
 
-function productTextItems(facts) {
+function hasSourceCategoryTitleConflict(facts) {
+  return Array.isArray(facts?.quality_flags) && facts.quality_flags.includes(SOURCE_CATEGORY_TITLE_CONFLICT)
+}
+
+function productTextItems(facts, includeCategories = true) {
   const items = Array.isArray(facts?.products)
     ? facts.products
     : Array.isArray(facts?.product_items)
@@ -68,20 +73,21 @@ function productTextItems(facts) {
   return items.flatMap((item) => [
     item?.name,
     item?.raw_name,
-    item?.category,
+    ...(includeCategories ? [item?.category] : []),
     item?.specification,
   ])
 }
 
 function searchableOpportunityText(facts) {
+  const includeCategories = !hasSourceCategoryTitleConflict(facts)
   const values = [
     facts?.project_name,
     facts?.hospital,
     facts?.hospital_name,
     facts?.buyer_name,
     facts?.department,
-    ...(Array.isArray(facts?.product_categories) ? facts.product_categories : []),
-    ...productTextItems(facts),
+    ...(includeCategories && Array.isArray(facts?.product_categories) ? facts.product_categories : []),
+    ...productTextItems(facts, includeCategories),
   ].filter(Boolean)
   const raw = values.join(' | ').toLowerCase()
   return { raw, normalized: normalize(raw) }
@@ -128,10 +134,15 @@ function capabilityPoints(type) {
 }
 
 function cardLooksLikeLease(facts) {
+  const categories = hasSourceCategoryTitleConflict(facts)
+    ? []
+    : Array.isArray(facts?.product_categories)
+      ? facts.product_categories
+      : []
   const text = normalize([
     facts?.project_name,
     facts?.procurement_method,
-    ...(Array.isArray(facts?.product_categories) ? facts.product_categories : []),
+    ...categories,
   ].filter(Boolean).join(' '))
   return text.includes('租赁') || text.includes('租用') || text.includes('租机')
 }

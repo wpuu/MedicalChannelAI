@@ -51,14 +51,17 @@ class EvidencePipelineTests(unittest.TestCase):
         self.assertEqual(cdc["recommendation_mode"], "LATE_WINDOW")
         self.assertEqual(gpu["recommendation_mode"], "PUBLIC_OPPORTUNITY")
 
-    def test_source_category_conflict_is_preserved_as_warning(self) -> None:
+    def test_source_category_conflict_is_preserved_but_not_rewarded(self) -> None:
         payload = build_public_snapshot(
             copy.deepcopy(self.records),
             datetime.fromisoformat("2026-08-31T16:42:00+08:00"),
         )
         card = next(item for item in payload["cards"] if item["opportunity_id"] == "verified_zybfy_2026_a_517")
+        components = {item["code"]: item for item in card["priority"]["components"]}
         self.assertIn("SOURCE_CATEGORY_TITLE_CONFLICT", card["priority"]["warnings"])
+        self.assertIn("SOURCE_CATEGORY_TITLE_CONFLICT", card["facts"]["quality_flags"])
         self.assertEqual(card["facts"]["product_categories"], ["医用磁共振设备"])
+        self.assertEqual(components["PRODUCT_SPECIFICITY"]["points"], 5)
 
     def test_public_snapshot_has_no_demo_customer_relationship(self) -> None:
         payload = build_public_snapshot(copy.deepcopy(self.records), datetime.fromisoformat("2026-08-31T16:42:00+08:00"))
@@ -118,6 +121,20 @@ class EvidencePipelineTests(unittest.TestCase):
             "procurement_method": "公开招标",
         }
         self.assertEqual(_product_specificity_points(facts), 5)
+
+    def test_product_specificity_does_not_reward_conflicted_category(self) -> None:
+        facts = {
+            "project_name": "天津市职业病防治院采购X线移动业务用车项目",
+            "product_items": [{"raw_name": "X线移动业务用车"}],
+            "product_categories": ["医用磁共振设备"],
+            "department": None,
+            "procurement_method": "公开招标",
+        }
+        self.assertEqual(
+            _product_specificity_points(facts, ["SOURCE_CATEGORY_TITLE_CONFLICT"]),
+            5,
+        )
+        self.assertEqual(_product_specificity_points(facts), 7)
 
     def test_product_specificity_does_not_reward_generic_equipment_title(self) -> None:
         facts = {

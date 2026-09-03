@@ -11,6 +11,7 @@ from .validation import validate_records
 
 MAX_TODAY_CARDS = 5
 TIANJIN_TZ = ZoneInfo("Asia/Shanghai")
+SOURCE_CATEGORY_TITLE_CONFLICT = "SOURCE_CATEGORY_TITLE_CONFLICT"
 
 _SPECIFIC_PRODUCT_ACRONYM_RE = re.compile(
     r"(?<![A-Za-z0-9])(?:CT|DR|MRI|DSA|PCR|POCT|IVD|LIS|PACS|RIS|HIS|GPU)(?![A-Za-z0-9])",
@@ -119,10 +120,14 @@ def _project_title_has_specific_product_signal(project_name: Any) -> bool:
     return bool(_SPECIFIC_PRODUCT_ACRONYM_RE.search(title) or _SPECIFIC_PRODUCT_TERM_RE.search(title))
 
 
-def _product_specificity_points(facts: dict[str, Any]) -> int:
+def _product_specificity_points(
+    facts: dict[str, Any],
+    quality_flags: list[str] | None = None,
+) -> int:
     points = 0
     items = facts.get("product_items") or []
     categories = facts.get("product_categories") or []
+    flags = set(quality_flags or [])
     if isinstance(items, list) and items:
         points += 4
     elif _project_title_has_specific_product_signal(facts.get("project_name")):
@@ -130,7 +135,9 @@ def _product_specificity_points(facts: dict[str, Any]) -> int:
         # when the parser has not extracted a structured line item. This is a
         # deterministic fallback, not an AI inference.
         points += 4
-    if isinstance(categories, list) and categories:
+    # Preserve source categories for audit/display, but an explicit conflict
+    # with the verified project title must never increase automated ranking.
+    if SOURCE_CATEGORY_TITLE_CONFLICT not in flags and isinstance(categories, list) and categories:
         points += 2
     if facts.get("department"):
         points += 1
@@ -164,13 +171,17 @@ def _publication_freshness_points(facts: dict[str, Any], as_of: datetime) -> int
     return 0
 
 
-def _public_score_components(facts: dict[str, Any], as_of: datetime) -> dict[str, int]:
+def _public_score_components(
+    facts: dict[str, Any],
+    as_of: datetime,
+    quality_flags: list[str] | None = None,
+) -> dict[str, int]:
     _, intervention_points, _ = _actionability(facts, as_of)
     return {
         "INTERVENTION_STAGE": intervention_points,
         "DEADLINE_URGENCY": _deadline_urgency_points(facts, as_of),
         "PROJECT_AMOUNT": _amount_points(facts.get("budget_cny")),
-        "PRODUCT_SPECIFICITY": _product_specificity_points(facts),
+        "PRODUCT_SPECIFICITY": _product_specificity_points(facts, quality_flags),
         "PUBLICATION_FRESHNESS": _publication_freshness_points(facts, as_of),
     }
 
@@ -277,8 +288,9 @@ def _public_card(
     correction_evidence_urls: list[str] | None = None,
 ) -> dict[str, Any]:
     facts = record["facts"]
+    quality_flags = list(record.get("quality_flags") or [])
     mode, _, model_status = _actionability(facts, as_of)
-    components = _public_score_components(facts, as_of)
+    components = _public_score_components(facts, as_of, quality_flags)
     public_score = sum(components.values())
     public_facts = {
         "project_number": facts.get("project_number"),
@@ -304,6 +316,7 @@ def _public_card(
         "product_categories": facts.get("product_categories") or [],
         "product_items": facts.get("product_items") or [],
         "public_contact": facts.get("public_contact"),
+        "quality_flags": quality_flags,
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL",
     }
@@ -412,7 +425,7 @@ def _public_card(
                     "opportunity_paths": ["facts.published_at"],
                 },
             ],
-            "warnings": ["ZERO_CONFIG_PUBLIC_FACTS_ONLY", *(record.get("quality_flags") or [])],
+            "warnings": ["ZERO_CONFIG_PUBLIC_FACTS_ONLY", *quality_flags],
             "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY",
         },
         "match_status": "MATCHED_CANDIDATE",
@@ -463,7 +476,13 @@ def build_public_snapshot(
         mode, _, _ = _actionability(effective_facts, as_of)
         if mode == "ARCHIVE":
             continue
-        score = sum(_public_score_components(effective_facts, as_of).values())
+        score = sum(
+            _public_score_components(
+                effective_facts,
+                as_of,
+                list(effective_record.get("quality_flags") or []),
+            ).values()
+        )
         deadline = _next_action_deadline(effective_facts, as_of)
         deadline_sort = deadline.timestamp() if deadline else float("inf")
         published_sort = -_published_sort_timestamp(effective_facts)
