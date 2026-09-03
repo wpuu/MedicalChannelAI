@@ -16,6 +16,7 @@ interface DecisionBlockProps {
   onAnalyze?: () => void
   analyzing?: boolean
   analysisUnavailableReason?: string | null
+  analysisDisabled?: boolean
 }
 
 export function DecisionBlock({
@@ -23,6 +24,7 @@ export function DecisionBlock({
   onAnalyze,
   analyzing,
   analysisUnavailableReason,
+  analysisDisabled,
 }: DecisionBlockProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
   const hasCustomerContext = hasUserCustomerContext(card.customer_context)
@@ -102,7 +104,7 @@ export function DecisionBlock({
           {onAnalyze ? (
             <button
               type="button"
-              disabled={Boolean(analyzing) || globalAiBusy}
+              disabled={Boolean(analyzing) || globalAiBusy || analysisDisabled}
               onClick={onAnalyze}
               className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-500 disabled:opacity-70"
             >
@@ -113,13 +115,15 @@ export function DecisionBlock({
               )}
               {analyzing
                 ? 'AI分析中'
-                : anotherAiRequestBusy
-                  ? '已有AI任务处理中'
-                  : hasCustomerContext
-                    ? '结合我的资源分析'
-                    : analysisUnavailableReason
-                      ? '重试AI分析'
-                      : '用AI分析这条'}
+                : analysisDisabled
+                  ? '暂不能AI分析'
+                  : anotherAiRequestBusy
+                    ? '已有AI任务处理中'
+                    : hasCustomerContext
+                      ? '结合我的资源分析'
+                      : analysisUnavailableReason
+                        ? '重试AI分析'
+                        : '用AI分析这条'}
             </button>
           ) : null}
           {anotherAiRequestBusy ? (
