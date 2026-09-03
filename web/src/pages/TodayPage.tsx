@@ -70,6 +70,28 @@ function userCoverageWarning(value: string): string {
     .split('天津 Pilot').join('天津公开采购')
 }
 
+function runtimeSnapshotWarning(status: RuntimeStatus | null): string | null {
+  if (!status) return null
+  if (status.snapshot.source_mode === 'BUNDLED_FALLBACK') {
+    return '实时数据读取异常，当前使用最近一次内置已核验快照。联系或报价前请先打开官方依据再次核对。'
+  }
+  if (status.snapshot.freshness === 'STALE') {
+    const hours = status.snapshot.age_minutes === null
+      ? null
+      : Math.max(1, Math.floor(status.snapshot.age_minutes / 60))
+    return hours === null
+      ? '公开商机快照已超过正常刷新窗口。联系或报价前请先打开官方依据再次核对。'
+      : `公开商机快照已约 ${hours} 小时未成功刷新。联系或报价前请先打开官方依据再次核对。`
+  }
+  if (status.snapshot.freshness === 'INVALID') {
+    return '公开商机快照时间异常，当前结果不应作为最新商机判断。请先核对官方依据。'
+  }
+  if (status.snapshot.freshness === 'UNAVAILABLE' || !status.snapshot.available) {
+    return '当前无法确认公开商机快照状态。联系或报价前请先核对官方依据。'
+  }
+  return null
+}
+
 export function TodayPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -113,11 +135,14 @@ export function TodayPage() {
           cards,
           opportunity_pool: hydratedPool,
         })
+      } else {
+        setData(res)
+      }
+
+      if (isApiMode || isVerifiedPublicDemo) {
         void getRuntimeStatus().then((status) => {
           if (status) setRuntimeStatus(status)
         })
-      } else {
-        setData(res)
       }
 
       try {
@@ -231,9 +256,10 @@ export function TodayPage() {
   const visibleData = { ...data, card_count: visibleCards.length, cards: visibleCards }
   const poolCount = data.opportunity_pool_count ?? data.opportunity_pool?.length ?? data.matched_count
   const aiUnavailableReason =
-    !isApiMode && isVerifiedPublicDemo && runtimeStatus?.ai.configured === false
+    (isApiMode || isVerifiedPublicDemo) && runtimeStatus?.ai.configured === false
       ? AI_UNCONFIGURED_REASON
       : null
+  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus)
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -266,6 +292,13 @@ export function TodayPage() {
           ) : null}
         </div>
       </section>
+
+      {snapshotWarning ? (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12px] leading-5 text-amber-900">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{snapshotWarning}</span>
+        </div>
+      ) : null}
 
       {!isApiMode && isVerifiedPublicDemo ? (
         <div className="flex flex-wrap items-center gap-2 px-1 text-[11px] text-slate-500">
