@@ -249,10 +249,6 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
         observed_at=observed_at,
     )
     try:
-        # The payload clock identifies the idempotency bucket only. Official fetch,
-        # ledger verification timestamps, completion time and snapshot as-of must
-        # use the real execution clock so Queue delay cannot make freshness appear
-        # earlier than the website was actually checked.
         bootstrap_incremental_ledger_from_canonical(
             source_id,
             now=delivered_at,
@@ -391,6 +387,10 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
                 return
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         else:
+            # The completed deep cycle is authoritative for every source. Any
+            # incremental partial staging from before this publish is obsolete and
+            # must not later overwrite the freshly reconciled canonical state.
+            incremental_runtime.clear_incremental_pending(RuntimeCache())
             await _start_intraday_chain_after_deep()
             _release_active_cycle_if_owned(cycle_id)
         return
