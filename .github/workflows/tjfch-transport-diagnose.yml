@@ -1,4 +1,4 @@
-name: TJFCH Transport Diagnose
+name: TJFCH Production Live Validate
 
 on:
   push:
@@ -12,71 +12,117 @@ permissions:
   contents: read
 
 jobs:
-  diagnose:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate new First Central Hospital official HTTPS domain
+
+      - name: Compute validation timestamp
+        id: clock
         shell: bash
         run: |
           set -euo pipefail
+          AS_OF="$(python - <<'PY'
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          print(datetime.now(ZoneInfo('Asia/Shanghai')).isoformat())
+          PY
+          )"
+          echo "as_of=${AS_OF}" >> "$GITHUB_OUTPUT"
+          echo "TJFCH validation as-of: ${AS_OF}"
+
+      - name: Run production procurement sync against new official domain
+        shell: bash
+        run: |
+          set -euo pipefail
+          python web/pipeline/scripts/sync_tjfch_procurement.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 45 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            --existing-records-input web/pipeline/data/tianjin_live_tjfch_records.json \
+            --records-output /tmp/tjfch-procurement-records.json \
+            --report-output /tmp/tjfch-procurement-report.json
           python - <<'PY'
-          import re
-          import urllib.request
-          from html.parser import HTMLParser
+          import json
+          report = json.load(open('/tmp/tjfch-procurement-report.json', encoding='utf-8'))
+          records = json.load(open('/tmp/tjfch-procurement-records.json', encoding='utf-8'))
+          live = [r for r in records if (r.get('source') or {}).get('url', '').startswith('https://www.tjfch.com.cn/')]
+          print(json.dumps({
+              'source': report.get('source'),
+              'index_url': report.get('index_url'),
+              'discovered': report.get('discovered_supported_count'),
+              'selected': report.get('selected_candidate_count'),
+              'verified': report.get('new_verified_record_count'),
+              'failures': report.get('failure_count'),
+              'gate': report.get('publish_gate_reason'),
+              'new_domain_records': len(live),
+              'projects': [
+                  {
+                      'id': row.get('opportunity_id'),
+                      'project': (row.get('facts') or {}).get('project_name'),
+                      'published_at': (row.get('facts') or {}).get('published_at'),
+                      'bid_deadline': (row.get('facts') or {}).get('bid_deadline'),
+                      'url': (row.get('source') or {}).get('url'),
+                  }
+                  for row in live[:10]
+              ],
+          }, ensure_ascii=False))
+          if report.get('publish_gate_reason') != 'PASS':
+              raise SystemExit('TJFCH procurement publish gate did not pass')
+          PY
 
-          class Links(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.rows=[]
-                  self.href=None
-                  self.text=[]
-              def handle_starttag(self, tag, attrs):
-                  if tag == 'a':
-                      self.href=dict(attrs).get('href')
-                      self.text=[]
-              def handle_data(self, data):
-                  if self.href is not None and data.strip():
-                      self.text.append(data.strip())
-              def handle_endtag(self, tag):
-                  if tag == 'a' and self.href is not None:
-                      title=re.sub(r'\s+',' ',' '.join(self.text)).strip()
-                      self.rows.append((self.href,title))
-                      self.href=None
-                      self.text=[]
-
-          urls = [
-              'https://www.tjfch.com.cn/',
-              'https://www.tjfch.com.cn/ywgk/ynbx/index.shtml',
-              'https://www.tjfch.com.cn/ywgk/',
-              'https://www.tjfch.com.cn/system/2026/06/18/030192813.shtml',
+      - name: Run production test-recruitment sync against new official domain
+        shell: bash
+        run: |
+          set -euo pipefail
+          python web/pipeline/scripts/sync_tjfch_test_recruitment.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 14 \
+            --max-candidates 30 \
+            --delay-seconds 3 \
+            --existing-records-input /tmp/tjfch-procurement-records.json \
+            --records-output /tmp/tjfch-combined-records.json \
+            --report-output /tmp/tjfch-test-report.json
+          python - <<'PY'
+          import json
+          report = json.load(open('/tmp/tjfch-test-report.json', encoding='utf-8'))
+          records = json.load(open('/tmp/tjfch-combined-records.json', encoding='utf-8'))
+          relative = [
+              row for row in records
+              if 'RELATIVE_REGISTRATION_WINDOW_7_DAYS' in (row.get('quality_flags') or [])
           ]
-          headers={
-              'User-Agent':'MedicalChannelAI/0.1 (+official hospital evidence collection)',
-              'Accept':'text/html,application/xhtml+xml',
-              'Accept-Language':'zh-CN,zh;q=0.9',
-          }
-          for url in urls:
-              print(f'--- url={url}')
-              req=urllib.request.Request(url,headers=headers)
-              try:
-                  with urllib.request.urlopen(req,timeout=20) as resp:
-                      body=resp.read()
-                      charset=resp.headers.get_content_charset() or 'utf-8'
-                      text=body.decode(charset,errors='replace')
-                      print('status=',resp.status,'final=',resp.geturl(),'chars=',len(text))
-                      print('markers=',{
-                          'hospital': '天津市第一中心医院' in text,
-                          'procurement': '院内比选' in text,
-                          'test_recruitment': '测试企业征集' in text,
-                          'ssl_project': 'SSL域名证书安全运维项目' in text,
-                      })
-                      parser=Links(); parser.feed(text)
-                      interesting=[(h,t) for h,t in parser.rows if ('院内比选' in t or '测试企业征集' in t or '/ywgk/' in (h or ''))]
-                      for row in interesting[:20]: print('link=',row)
-              except Exception as exc:
-                  print('FAIL',type(exc).__name__,repr(exc))
+          print(json.dumps({
+              'source': report.get('source'),
+              'index_url': report.get('index_url'),
+              'discovered': report.get('discovered_candidate_count'),
+              'verified_in_14d': report.get('new_verified_record_count'),
+              'out_of_window': report.get('out_of_window_count'),
+              'unsupported': report.get('unsupported_candidate_count'),
+              'failures': report.get('failure_count'),
+              'gate': report.get('publish_gate_reason'),
+              'relative_records_after_merge': len(relative),
+              'relative_projects': [
+                  {
+                      'id': row.get('opportunity_id'),
+                      'project': (row.get('facts') or {}).get('project_name'),
+                      'published_at': (row.get('facts') or {}).get('published_at'),
+                      'registration_deadline': (row.get('facts') or {}).get('registration_deadline'),
+                      'registration_deadline_date': (row.get('facts') or {}).get('registration_deadline_date'),
+                      'bid_deadline': (row.get('facts') or {}).get('bid_deadline'),
+                      'url': (row.get('source') or {}).get('url'),
+                  }
+                  for row in relative[:10]
+              ],
+          }, ensure_ascii=False))
+          if report.get('publish_gate_reason') != 'PASS':
+              raise SystemExit('TJFCH test-recruitment publish gate did not pass')
+          for row in relative:
+              facts = row.get('facts') or {}
+              if facts.get('registration_deadline') or facts.get('registration_deadline_date') or facts.get('bid_deadline'):
+                  raise SystemExit('relative-window record contains invented exact deadline')
           PY
