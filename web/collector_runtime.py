@@ -26,6 +26,17 @@ from medical_channel_pipeline.state import (  # noqa: E402
     merge_canonical_records,
     merge_notice_events,
 )
+from medical_channel_pipeline.tjfch_discovery import (  # noqa: E402
+    INDEX_URL as TJFCH_INDEX_URL,
+    fetch_tjfch_page,
+    parse_tjfch_index_html,
+    select_candidates_since as select_tjfch_candidates,
+    stable_opportunity_id as tjfch_opportunity_id,
+)
+from medical_channel_pipeline.tjfch_procurement import (  # noqa: E402
+    TjfchParseError,
+    parse_tjfch_procurement_notice,
+)
 from medical_channel_pipeline.teda_discovery import stable_opportunity_id as teda_opportunity_id  # noqa: E402
 from medical_channel_pipeline.teda_market_research import (  # noqa: E402
     TedaParseError,
@@ -65,6 +76,9 @@ TEDA_LOOKBACK_DAYS = 90
 TEDA_INDEX_PAGES = 4
 TEDA_MAX_CANDIDATES = 20
 TEDA_REQUEST_DELAY_SECONDS = 3.0
+TJFCH_LOOKBACK_DAYS = 45
+TJFCH_MAX_CANDIDATES = 20
+TJFCH_REQUEST_DELAY_SECONDS = 3.0
 
 META_KEY = "medicalchannelai:collector-runtime-state:v1"
 CCGP_RECORDS_KEY = "medicalchannelai:collector-ccgp-records:v1"
@@ -73,6 +87,7 @@ CCGP_WATCH_KEY = "medicalchannelai:collector-ccgp-watch-projects:v1"
 TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v1"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v1"
 TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v1"
+TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v1"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 
 STAGE_ORDER = (
@@ -86,6 +101,7 @@ STAGE_ORDER = (
     "tjmugh",
     "tjnothop",
     "teda",
+    "tjfch",
     "publish",
 )
 EXPECTED_SCHEDULES = {
@@ -99,7 +115,8 @@ EXPECTED_SCHEDULES = {
     "tjmugh": "5 2 * * *",
     "tjnothop": "20 2 * * *",
     "teda": "35 2 * * *",
-    "publish": "50 2 * * *",
+    "tjfch": "50 2 * * *",
+    "publish": "5 3 * * *",
 }
 
 
@@ -154,6 +171,10 @@ def _bootstrap_tjnothop_records() -> list[dict[str, Any]]:
 
 def _bootstrap_teda_records() -> list[dict[str, Any]]:
     return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_teda_records.json"))
+
+
+def _bootstrap_tjfch_records() -> list[dict[str, Any]]:
+    return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_tjfch_records.json"))
 
 
 def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[str, Any]], bool]:
@@ -655,6 +676,98 @@ def _run_teda(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def _run_tjfch(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
+    as_of = _cycle_as_of(state)
+    local_date = as_of.astimezone(SHANGHAI).date()
+    start_date = local_date - timedelta(days=TJFCH_LOOKBACK_DAYS - 1)
+    observed_at = as_of.astimezone(timezone.utc).isoformat()
+    existing_records, bootstrapped = _cached_list(cache, TJFCH_RECORDS_KEY, _bootstrap_tjfch_records)
+
+    try:
+        index_html = fetch_tjfch_page(TJFCH_INDEX_URL)
+        discovered = parse_tjfch_index_html(index_html)
+    except Exception as exc:
+        raise CollectorStageBlocked(f"TJFCH_INDEX_DISCOVERY_FAILED:{type(exc).__name__}") from exc
+
+    selected = select_tjfch_candidates(
+        discovered,
+        start_date=start_date,
+        end_date=local_date,
+        max_candidates=TJFCH_MAX_CANDIDATES,
+    )
+    new_records: list[dict[str, Any]] = []
+    failures: list[dict[str, Any]] = []
+    unsupported: list[dict[str, Any]] = []
+
+    for candidate in selected:
+        time.sleep(TJFCH_REQUEST_DELAY_SECONDS)
+        try:
+            detail_html = fetch_tjfch_page(candidate.detail_url)
+            new_records.append(
+                parse_tjfch_procurement_notice(
+                    detail_html,
+                    source_url=candidate.detail_url,
+                    index_url=TJFCH_INDEX_URL,
+                    index_published_at=candidate.published_at,
+                    expected_title=candidate.title,
+                    observed_at=observed_at,
+                    opportunity_id=tjfch_opportunity_id(candidate.detail_url),
+                )
+            )
+        except TjfchParseError as exc:
+            if str(exc) == "TJFCH_BID_DEADLINE_NOT_EXACT":
+                unsupported.append(
+                    {
+                        "title": candidate.title,
+                        "url": candidate.detail_url,
+                        "reason": str(exc),
+                    }
+                )
+                continue
+            failures.append(
+                {
+                    "stage": "verified_detail",
+                    "title": candidate.title,
+                    "url": candidate.detail_url,
+                    "error": type(exc).__name__,
+                    "message": str(exc)[:300],
+                }
+            )
+        except Exception as exc:
+            failures.append(
+                {
+                    "stage": "verified_detail",
+                    "title": candidate.title,
+                    "url": candidate.detail_url,
+                    "error": type(exc).__name__,
+                    "message": str(exc)[:300],
+                }
+            )
+
+    if failures:
+        diagnostic = ";".join(
+            f"{item.get('error')}:{item.get('message')}"
+            for item in failures[:3]
+        )
+        raise CollectorStageBlocked(
+            f"TJFCH_CANDIDATE_VERIFICATION_INCOMPLETE:{len(failures)}:{diagnostic}"
+        )
+
+    merged = merge_canonical_records(existing_records, new_records)
+    _cache_set(cache, TJFCH_RECORDS_KEY, merged, tag="medicalchannelai-collector-canonical")
+    return {
+        "discovered_supported_count": len(discovered),
+        "selected_candidate_count": len(selected),
+        "new_verified_record_count": len(new_records),
+        "unsupported_candidate_count": len(unsupported),
+        "merged_record_count": len(merged),
+        "failure_count": 0,
+        "bootstrapped_records": bootstrapped,
+        "publish_gate_reason": "PASS",
+    }
+
+
 def _digest(value: Any) -> str:
     encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
@@ -666,13 +779,20 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     tjmugh_records = cache.get(TJMUGH_RECORDS_KEY)
     tjnothop_records = cache.get(TJNOTHOP_RECORDS_KEY)
     teda_records = cache.get(TEDA_RECORDS_KEY)
+    tjfch_records = cache.get(TJFCH_RECORDS_KEY)
     if not all(
         isinstance(value, list)
-        for value in (ccgp_records, events, tjmugh_records, tjnothop_records, teda_records)
+        for value in (ccgp_records, events, tjmugh_records, tjnothop_records, teda_records, tjfch_records)
     ):
         raise CollectorPrecondition("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
 
-    records = list(ccgp_records) + list(tjmugh_records) + list(tjnothop_records) + list(teda_records)
+    records = (
+        list(ccgp_records)
+        + list(tjmugh_records)
+        + list(tjnothop_records)
+        + list(teda_records)
+        + list(tjfch_records)
+    )
     as_of = _cycle_as_of(state)
     snapshot = build_public_snapshot(records, as_of, list(events))
     digest = _digest(snapshot)
@@ -726,6 +846,8 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             result = _run_tjnothop(cache, state)
         elif stage == "teda":
             result = _run_teda(cache, state)
+        elif stage == "tjfch":
+            result = _run_tjfch(cache, state)
         elif stage == "publish":
             result = _run_publish(cache, state)
         else:
