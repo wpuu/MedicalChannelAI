@@ -121,9 +121,9 @@ function relationshipPoints(strength) {
 
 function capabilityPoints(type) {
   switch (type) {
-    case 'DIRECT_AUTHORIZED':
-    case 'DIRECT': return 25
+    case 'DIRECT_AUTHORIZED': return 25
     case 'RENTAL_CAPABLE': return 22
+    case 'DIRECT':
     case 'DIRECT_UNCONFIRMED': return 18
     case 'NEED_MANUFACTURER':
     case 'CAN_SOURCE_PARTNER': return 14
@@ -151,7 +151,9 @@ export async function loadPrivateProfileForUser(user) {
   const sql = privateDb()
   const [capabilities, relationships, targets, preferences] = await Promise.all([
     sql`
-      SELECT keyword, capability_type, updated_at
+      SELECT keyword,
+             CASE WHEN capability_type = 'DIRECT' THEN 'DIRECT_UNCONFIRMED' ELSE capability_type END AS capability_type,
+             updated_at
       FROM private_product_capabilities
       WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
       ORDER BY updated_at DESC, created_at ASC
