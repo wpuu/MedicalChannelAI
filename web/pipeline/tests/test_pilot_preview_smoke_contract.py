@@ -30,6 +30,7 @@ class PilotPreviewSmokeContractTests(unittest.TestCase):
             source.index("HOSPITAL_RELATIONSHIP_SAVE_FAILED"),
         )
         self.assertIn("PERSONALIZED_RELATIONSHIP_POINTS_MISSING", source)
+        self.assertIn("CROSS_SESSION_HOSPITAL_RELATIONSHIP_PERSISTENCE_FAILED", source)
 
     def test_smoke_persists_reminder_across_idempotency_session_and_export(self):
         source = (WEB_ROOT / 'scripts' / 'pilot-preview-smoke.mjs').read_text(encoding='utf-8')
