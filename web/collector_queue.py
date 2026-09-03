@@ -22,6 +22,7 @@ from collector_incremental_ticks import (
     first_tick_after_deep,
     next_tick_after,
     parse_tick_schedule,
+    same_china_business_date,
     tick_delay_seconds,
     tick_from_payload,
 )
@@ -230,6 +231,13 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
         or observed_at is None
         or not expected_bucket
     ):
+        return
+
+    delivered_at = datetime.now(timezone.utc)
+    # A source message may be redelivered by Queue, but it must never cross the
+    # China business-date boundary and then publish using yesterday's observed_at.
+    # Next-day freshness belongs to the next authoritative/deep cycle.
+    if not same_china_business_date(observed_at, delivered_at):
         return
 
     actual_bucket = incremental_runtime.scan_bucket_id(source_id, now=observed_at)
