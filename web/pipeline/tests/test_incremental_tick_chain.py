@@ -113,6 +113,15 @@ class IncrementalTickChainTests(unittest.TestCase):
         self.assertLess(next_enqueue, selection)
         self.assertLess(selection, source_enqueue)
 
+    def test_intraday_attempt_is_marked_only_after_source_queue_accepts(self) -> None:
+        source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
+        start = source.index('async def _process_incremental_tick_payload')
+        end = source.index('async def _start_intraday_chain_after_deep', start)
+        block = source[start:end]
+        source_enqueue = block.index('await _enqueue_incremental_source(decision.source_id, observed_at=now)')
+        attempt_mark = block.index('mark_incremental_source_attempt(cache, decision.source_id, now=now)')
+        self.assertLess(source_enqueue, attempt_mark)
+
     def test_tick_payload_never_contains_customer_private_context(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
         tick_start = source.index('async def _enqueue_incremental_tick')
