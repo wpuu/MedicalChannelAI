@@ -1,4 +1,4 @@
-name: TJFCH Production Live Validate
+name: TJFCH Index Completeness Diagnose
 
 on:
   push:
@@ -12,117 +12,54 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  diagnose:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
-      - name: Compute validation timestamp
-        id: clock
+      - name: Print official procurement index anchors and parser decisions
         shell: bash
         run: |
           set -euo pipefail
-          AS_OF="$(python - <<'PY'
-          from datetime import datetime
-          from zoneinfo import ZoneInfo
-          print(datetime.now(ZoneInfo('Asia/Shanghai')).isoformat())
-          PY
-          )"
-          echo "as_of=${AS_OF}" >> "$GITHUB_OUTPUT"
-          echo "TJFCH validation as-of: ${AS_OF}"
-
-      - name: Run production procurement sync against new official domain
-        shell: bash
-        run: |
-          set -euo pipefail
-          python web/pipeline/scripts/sync_tjfch_procurement.py \
-            --as-of '${{ steps.clock.outputs.as_of }}' \
-            --lookback-days 45 \
-            --max-candidates 20 \
-            --delay-seconds 3 \
-            --existing-records-input web/pipeline/data/tianjin_live_tjfch_records.json \
-            --records-output /tmp/tjfch-procurement-records.json \
-            --report-output /tmp/tjfch-procurement-report.json
           python - <<'PY'
-          import json
-          report = json.load(open('/tmp/tjfch-procurement-report.json', encoding='utf-8'))
-          records = json.load(open('/tmp/tjfch-procurement-records.json', encoding='utf-8'))
-          live = [r for r in records if (r.get('source') or {}).get('url', '').startswith('https://www.tjfch.com.cn/')]
-          print(json.dumps({
-              'source': report.get('source'),
-              'index_url': report.get('index_url'),
-              'discovered': report.get('discovered_supported_count'),
-              'selected': report.get('selected_candidate_count'),
-              'verified': report.get('new_verified_record_count'),
-              'failures': report.get('failure_count'),
-              'gate': report.get('publish_gate_reason'),
-              'new_domain_records': len(live),
-              'projects': [
-                  {
-                      'id': row.get('opportunity_id'),
-                      'project': (row.get('facts') or {}).get('project_name'),
-                      'published_at': (row.get('facts') or {}).get('published_at'),
-                      'bid_deadline': (row.get('facts') or {}).get('bid_deadline'),
-                      'url': (row.get('source') or {}).get('url'),
-                  }
-                  for row in live[:10]
-              ],
-          }, ensure_ascii=False))
-          if report.get('publish_gate_reason') != 'PASS':
-              raise SystemExit('TJFCH procurement publish gate did not pass')
-          PY
+          import sys
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urljoin
 
-      - name: Run production test-recruitment sync against new official domain
-        shell: bash
-        run: |
-          set -euo pipefail
-          python web/pipeline/scripts/sync_tjfch_test_recruitment.py \
-            --as-of '${{ steps.clock.outputs.as_of }}' \
-            --lookback-days 14 \
-            --max-candidates 30 \
-            --delay-seconds 3 \
-            --existing-records-input /tmp/tjfch-procurement-records.json \
-            --records-output /tmp/tjfch-combined-records.json \
-            --report-output /tmp/tjfch-test-report.json
-          python - <<'PY'
-          import json
-          report = json.load(open('/tmp/tjfch-test-report.json', encoding='utf-8'))
-          records = json.load(open('/tmp/tjfch-combined-records.json', encoding='utf-8'))
-          relative = [
-              row for row in records
-              if 'RELATIVE_REGISTRATION_WINDOW_7_DAYS' in (row.get('quality_flags') or [])
-          ]
-          print(json.dumps({
-              'source': report.get('source'),
-              'index_url': report.get('index_url'),
-              'discovered': report.get('discovered_candidate_count'),
-              'verified_in_14d': report.get('new_verified_record_count'),
-              'out_of_window': report.get('out_of_window_count'),
-              'unsupported': report.get('unsupported_candidate_count'),
-              'failures': report.get('failure_count'),
-              'gate': report.get('publish_gate_reason'),
-              'relative_records_after_merge': len(relative),
-              'relative_projects': [
-                  {
-                      'id': row.get('opportunity_id'),
-                      'project': (row.get('facts') or {}).get('project_name'),
-                      'published_at': (row.get('facts') or {}).get('published_at'),
-                      'registration_deadline': (row.get('facts') or {}).get('registration_deadline'),
-                      'registration_deadline_date': (row.get('facts') or {}).get('registration_deadline_date'),
-                      'bid_deadline': (row.get('facts') or {}).get('bid_deadline'),
-                      'url': (row.get('source') or {}).get('url'),
-                  }
-                  for row in relative[:10]
-              ],
-          }, ensure_ascii=False))
-          if report.get('publish_gate_reason') != 'PASS':
-              raise SystemExit('TJFCH test-recruitment publish gate did not pass')
-          for row in relative:
-              facts = row.get('facts') or {}
-              if facts.get('registration_deadline') or facts.get('registration_deadline_date') or facts.get('bid_deadline'):
-                  raise SystemExit('relative-window record contains invented exact deadline')
+          sys.path.insert(0, str(Path('web/pipeline')))
+          from medical_channel_pipeline.tjfch_discovery import INDEX_URL, fetch_tjfch_page, parse_tjfch_index_html
+
+          class Parser(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.href = None
+                  self.text = []
+                  self.rows = []
+              def handle_starttag(self, tag, attrs):
+                  if tag == 'a':
+                      self.href = dict(attrs).get('href')
+                      self.text = []
+              def handle_data(self, data):
+                  if self.href is not None and data.strip():
+                      self.text.append(data.strip())
+              def handle_endtag(self, tag):
+                  if tag == 'a' and self.href is not None:
+                      self.rows.append((self.href, ' '.join(self.text).strip()))
+                      self.href = None
+                      self.text = []
+
+          html = fetch_tjfch_page(INDEX_URL)
+          raw = Parser(); raw.feed(html)
+          print('INDEX_URL=', INDEX_URL)
+          for href, title in raw.rows:
+              full = urljoin(INDEX_URL, href or '')
+              if '/system/2026/08/' in full or '院内比选' in title or 'IgM' in title or '科教处' in title:
+                  print('RAW', repr(title), full)
+          print('--- DISCOVERED ---')
+          for item in parse_tjfch_index_html(html):
+              print('DISCOVERED', item.published_at, repr(item.title), item.detail_url)
           PY
