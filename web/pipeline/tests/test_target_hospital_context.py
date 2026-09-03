@@ -36,6 +36,12 @@ class TargetHospitalContextTests(unittest.TestCase):
         self.assertIn('不代表已经认识院内人员', contract)
         self.assertIn('重点关注绝不能冒充已有关系', contract)
 
+    def test_trial_ai_keeps_target_focus_as_context_without_affecting_score(self):
+        source = (WEB_ROOT / 'src' / 'services' / 'aiDecisionApi.ts').read_text(encoding='utf-8')
+        self.assertIn('context.target_hospital ||', source)
+        self.assertIn('const useLocalContext = !isApiMode', source)
+        self.assertIn('const customerContext = useLocalContext ? customerContextPayload(card) : null', source)
+
     def test_frontend_shows_target_and_relationship_separately(self):
         detail = (WEB_ROOT / 'src' / 'components' / 'opportunity' / 'CustomerContextCard.tsx').read_text(encoding='utf-8')
         today = (WEB_ROOT / 'src' / 'components' / 'today' / 'CustomerResourceBlock.tsx').read_text(encoding='utf-8')
