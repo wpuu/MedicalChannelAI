@@ -1,4 +1,4 @@
-name: TJFCH Index Completeness Diagnose
+name: TJFCH Truncated Opportunity Live Validate
 
 on:
   push:
@@ -12,54 +12,61 @@ permissions:
   contents: read
 
 jobs:
-  diagnose:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Print official procurement index anchors and parser decisions
+      - name: Run production TJFCH procurement sync and require current IgM opportunity
         shell: bash
         run: |
           set -euo pipefail
+          AS_OF="$(python - <<'PY'
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          print(datetime.now(ZoneInfo('Asia/Shanghai')).isoformat())
+          PY
+          )"
+          python web/pipeline/scripts/sync_tjfch_procurement.py \
+            --as-of "$AS_OF" \
+            --lookback-days 45 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            --existing-records-input web/pipeline/data/tianjin_live_tjfch_records.json \
+            --records-output /tmp/tjfch-records.json \
+            --report-output /tmp/tjfch-report.json
           python - <<'PY'
-          import sys
-          from html.parser import HTMLParser
-          from pathlib import Path
-          from urllib.parse import urljoin
+          import json
 
-          sys.path.insert(0, str(Path('web/pipeline')))
-          from medical_channel_pipeline.tjfch_discovery import INDEX_URL, fetch_tjfch_page, parse_tjfch_index_html
-
-          class Parser(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.href = None
-                  self.text = []
-                  self.rows = []
-              def handle_starttag(self, tag, attrs):
-                  if tag == 'a':
-                      self.href = dict(attrs).get('href')
-                      self.text = []
-              def handle_data(self, data):
-                  if self.href is not None and data.strip():
-                      self.text.append(data.strip())
-              def handle_endtag(self, tag):
-                  if tag == 'a' and self.href is not None:
-                      self.rows.append((self.href, ' '.join(self.text).strip()))
-                      self.href = None
-                      self.text = []
-
-          html = fetch_tjfch_page(INDEX_URL)
-          raw = Parser(); raw.feed(html)
-          print('INDEX_URL=', INDEX_URL)
-          for href, title in raw.rows:
-              full = urljoin(INDEX_URL, href or '')
-              if '/system/2026/08/' in full or '院内比选' in title or 'IgM' in title or '科教处' in title:
-                  print('RAW', repr(title), full)
-          print('--- DISCOVERED ---')
-          for item in parse_tjfch_index_html(html):
-              print('DISCOVERED', item.published_at, repr(item.title), item.detail_url)
+          report = json.load(open('/tmp/tjfch-report.json', encoding='utf-8'))
+          records = json.load(open('/tmp/tjfch-records.json', encoding='utf-8'))
+          target_id = 'tjfch_20260831_030197537'
+          target = next((row for row in records if row.get('opportunity_id') == target_id), None)
+          print(json.dumps({
+              'discovered': report.get('discovered_supported_count'),
+              'selected': report.get('selected_candidate_count'),
+              'verified': report.get('new_verified_record_count'),
+              'unsupported': report.get('unsupported_candidate_count'),
+              'failures': report.get('failure_count'),
+              'gate': report.get('publish_gate_reason'),
+              'target': target,
+          }, ensure_ascii=False))
+          if report.get('publish_gate_reason') != 'PASS':
+              raise SystemExit('TJFCH publish gate did not pass')
+          if report.get('failure_count') != 0:
+              raise SystemExit('TJFCH live validation has verification failures')
+          if target is None:
+              raise SystemExit('current IgM opportunity still missing')
+          facts = target.get('facts') or {}
+          if facts.get('project_name') != '天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选公告':
+              raise SystemExit(f"unexpected full title: {facts.get('project_name')!r}")
+          if facts.get('budget_cny') != 4588:
+              raise SystemExit(f"unexpected budget: {facts.get('budget_cny')!r}")
+          if facts.get('bid_deadline') != '2026-09-07T17:00:00+08:00':
+              raise SystemExit(f"unexpected bid deadline: {facts.get('bid_deadline')!r}")
+          if (target.get('source') or {}).get('url') != 'https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml':
+              raise SystemExit('target did not use the current official HTTPS domain')
           PY
