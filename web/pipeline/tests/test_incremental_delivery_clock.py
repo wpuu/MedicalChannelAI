@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import sys
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 
 WEB_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(WEB_ROOT))
+
+from collector_incremental_ticks import first_tick_after_deep, next_tick_after  # noqa: E402
 
 
 class IncrementalDeliveryClockTests(unittest.TestCase):
@@ -34,6 +39,16 @@ class IncrementalDeliveryClockTests(unittest.TestCase):
         self.assertLess(guard, lease)
         self.assertLess(lease, bootstrap)
         self.assertLess(bootstrap, runtime)
+
+    def test_materially_late_tick_on_aligned_boundary_schedules_strictly_after_delivery(self) -> None:
+        first = first_tick_after_deep(datetime(2026, 9, 4, 3, 5, tzinfo=timezone.utc))
+        self.assertIsNotNone(first)
+        # The 11:30 China tick arrives very late at exactly 12:10. It must not
+        # enqueue another 12:10 tick with zero delay; the next slot is 12:20.
+        delivered = datetime(2026, 9, 4, 4, 10, tzinfo=timezone.utc)
+        nxt = next_tick_after(first, delivered_at=delivered)
+        self.assertIsNotNone(nxt)
+        self.assertEqual(nxt.scheduled_for, "2026-09-04T04:20:00+00:00")
 
 
 if __name__ == "__main__":
