@@ -46,17 +46,22 @@ class VercelTjfchRuntimeTests(unittest.TestCase):
         self.assertIn('elif stage == "tjfch":', dispatch)
         self.assertIn("result = _run_tjfch(cache, state)", dispatch)
 
-    def test_tjfch_reuses_verified_official_discovery_and_parser(self) -> None:
+    def test_tjfch_reuses_verified_procurement_and_early_signal_parsers(self) -> None:
         self.assertIn("INDEX_URL as TJFCH_INDEX_URL", self.runtime)
         self.assertIn("fetch_tjfch_page", self.runtime)
         self.assertIn("parse_tjfch_index_html", self.runtime)
         self.assertIn("select_candidates_since as select_tjfch_candidates", self.runtime)
         self.assertIn("parse_tjfch_procurement_notice", self.runtime)
+        self.assertIn("INDEX_URL as TJFCH_TEST_INDEX_URL", self.runtime)
+        self.assertIn("parse_tjfch_test_index_html", self.runtime)
+        self.assertIn("parse_tjfch_test_recruitment", self.runtime)
         self.assertIn("TJFCH_REQUEST_DELAY_SECONDS = 3.0", self.runtime)
         self.assertIn("TJFCH_MAX_CANDIDATES = 20", self.runtime)
+        self.assertIn("TJFCH_TEST_MAX_CANDIDATES = 30", self.runtime)
+        self.assertIn("TJFCH_TEST_LOOKBACK_DAYS = 14", self.runtime)
         self.assertIn("TJFCH_LOOKBACK_DAYS = 45", self.runtime)
 
-    def test_tjfch_true_failure_blocks_before_canonical_cache_write(self) -> None:
+    def test_tjfch_true_failure_from_either_feed_blocks_before_cache_write(self) -> None:
         body = _function_source(self.runtime, "_run_tjfch")
         failure_gate = body.index("if failures:")
         blocked = body.index("TJFCH_CANDIDATE_VERIFICATION_INCOMPLETE")
@@ -64,6 +69,9 @@ class VercelTjfchRuntimeTests(unittest.TestCase):
         self.assertLess(failure_gate, blocked)
         self.assertLess(blocked, cache_write)
         self.assertIn('str(exc) == "TJFCH_BID_DEADLINE_NOT_EXACT"', body)
+        self.assertIn('str(exc) == "TJFCH_TEST_REGISTRATION_WINDOW_UNSUPPORTED"', body)
+        self.assertIn("early_discovered", body)
+        self.assertIn("early_new_verified_record_count", body)
         self.assertIn("unsupported.append", body)
 
     def test_publish_requires_tjfch_and_uses_authoritative_cycle_clock(self) -> None:
