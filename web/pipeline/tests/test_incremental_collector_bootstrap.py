@@ -33,7 +33,41 @@ class IncrementalCollectorBootstrapTests(unittest.TestCase):
         self.assertIn('if verified_at is None or verified_at > current:', self.bootstrap)
         self.assertIn('current - verified_at > RECENT_DEEP_VERIFICATION_MAX_AGE', self.bootstrap)
 
-    def test_existing_failed_or_unverified_ledger_can_be_repaired_by_recent_canonical_fact(self) -> None:
+    def test_changed_index_fingerprint_can_never_be_erased_by_older_canonical_state(self) -> None:
+        fingerprint_guard = self.bootstrap.index('if previous_fingerprint != observation.fingerprint:')
+        strict_match = self.bootstrap.index('strict_metadata_match = _canonical_matches_discovery', fingerprint_guard)
+        seed = self.bootstrap.index('ledger = record_verification_success(', strict_match)
+        block = self.bootstrap[fingerprint_guard:strict_match]
+        self.assertIn('metadata_changed_pending += 1', block)
+        self.assertIn('continue', block)
+        self.assertLess(fingerprint_guard, strict_match)
+        self.assertLess(strict_match, seed)
+
+    def test_newer_failed_or_unverified_incremental_state_blocks_stale_canonical_repair(self) -> None:
+        self.assertIn('existing_updated_at = _parsed_at(normalized_existing.get("updated_at"))', self.bootstrap)
+        self.assertIn('previous_needs_verification = not previous_is_current_verified', self.bootstrap)
+        self.assertIn('existing_updated_at >= verified_at', self.bootstrap)
+        self.assertIn('newer_incremental_state += 1', self.bootstrap)
+        self.assertIn('already_newer_verified += 1', self.bootstrap)
+        self.assertIn('newer_incremental_state_count', self.bootstrap)
+
+    def test_tjfch_tracked_fingerprint_bridge_requires_canonical_after_prior_index_observation(self) -> None:
+        start = self.bootstrap.index('if tracked_fingerprint_matches and not strict_metadata_match:')
+        end = self.bootstrap.index('ledger = record_verification_success(', start)
+        block = self.bootstrap[start:end]
+        self.assertIn('previous_seen_at = _parsed_at(previous.get("last_seen_at"))', block)
+        self.assertIn('verified_at < previous_seen_at', block)
+        self.assertIn('bridge_too_old += 1', block)
+        self.assertIn('tracked_fingerprint_bridge += 1', block)
+
+    def test_reconcile_keeps_source_level_ledger_clock_monotonic(self) -> None:
+        seed = self.bootstrap.index('ledger = record_verification_success(')
+        clock = self.bootstrap.index('ledger["updated_at"] = current.isoformat()', seed)
+        save = self.bootstrap.index('incremental_runtime._save_ledger(cache, source, ledger)', clock)
+        self.assertLess(seed, clock)
+        self.assertLess(clock, save)
+
+    def test_existing_failed_or_unverified_ledger_can_still_be_repaired_by_newer_canonical_fact(self) -> None:
         self.assertIn('existing_entries = normalized_existing["entries"]', self.bootstrap)
         self.assertIn('tracked_fingerprint_bridge_count', self.bootstrap)
         self.assertNotIn('LEDGER_ALREADY_INITIALIZED', self.bootstrap)
