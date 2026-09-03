@@ -2,6 +2,7 @@ name: Tianjin Medical Refresh
 
 on:
   push:
+    # Temporary branch self-trigger for the current validation refresh; remove after success.
     branches:
       - chatgpt/opportunity-ranking-v2-final
     paths:
