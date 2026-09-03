@@ -47,10 +47,17 @@ class TjfchDiscoveryTests(unittest.TestCase):
 
     def test_stable_id_rejects_non_official_detail_shape(self) -> None:
         with self.assertRaisesRegex(TjfchDiscoveryError, 'TJFCH_DETAIL_URL_ID_NOT_FOUND'):
-            stable_opportunity_id('https://www.tj-fch.com/ywgk/ynbx/index.shtml')
+            stable_opportunity_id('https://www.tjfch.com.cn/ywgk/ynbx/index.shtml')
 
-    def test_index_url_is_the_official_procurement_column(self) -> None:
-        self.assertEqual(INDEX_URL, 'https://www.tj-fch.com/ywgk/ynbx/index.shtml')
+    def test_index_url_is_the_current_official_procurement_column(self) -> None:
+        self.assertEqual(INDEX_URL, 'https://www.tjfch.com.cn/ywgk/ynbx/index.shtml')
+
+    def test_legacy_broken_tls_domain_is_not_accepted_as_official_index(self) -> None:
+        with self.assertRaisesRegex(TjfchDiscoveryError, 'TJFCH_INDEX_HOST_REJECTED'):
+            parse_tjfch_index_html(
+                '<a href="/system/2026/08/31/030197542.shtml">天津市第一中心医院科教处工服采购项目院内比选公告</a>',
+                index_url='https://www.tj-fch.com/ywgk/ynbx/index.shtml',
+            )
 
 
 if __name__ == '__main__':
