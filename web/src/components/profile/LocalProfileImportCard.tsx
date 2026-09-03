@@ -46,8 +46,13 @@ export function LocalProfileImportCard({
     try {
       const merged = mergeLocalProfileIntoAccount(accountProfile, localProfile)
       const saved = await saveCustomerProfile(merged)
+      // The local trial profile is unowned legacy device data. Once the user has
+      // explicitly migrated it into one authenticated account, consume the local
+      // copy so a later account on the same browser cannot import it again.
+      clearImportedLocalProfile()
+      setLocalProfile(null)
       onImported(saved)
-      toast('本机试用资源已合并到当前账号；账号里已有的同项数据保持不变', 'success')
+      toast('本机试用资源已合并到当前账号；旧本机副本已清除', 'success')
     } catch {
       toast('导入失败；本机数据和账号原数据都未被删除')
     } finally {
@@ -73,7 +78,7 @@ export function LocalProfileImportCard({
             本机有 {counts.products} 条产品/服务能力、{counts.targets} 个目标医院、{counts.relationships} 条医院关系、{counts.preferences} 项合作能力设置。系统不会自动上传这些数据。
           </p>
           <p className="mt-1 text-[11px] leading-5 text-slate-500">
-            点击导入后才会发送到当前登录账号。合并时以账号现有数据优先：同一产品关键词、同一目标医院+科室、同一医院+科室关系不会被旧本机记录覆盖；账号里已经回答过的合作能力也不会被旧值覆盖。
+            仅在确认这些旧试用资源属于你时导入。点击导入后才会发送到当前登录账号；云端保存成功后，本机旧副本会自动清除，避免以后被其他账号重复导入。合并时以账号现有数据优先。
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
