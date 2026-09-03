@@ -11,7 +11,7 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_ROOT = PROJECT_ROOT / 'pipeline'
 BUNDLED_SNAPSHOT_PATH = PROJECT_ROOT / 'public' / 'data' / 'today-actions.public.json'
-MAX_VERIFIED_SNAPSHOT_AGE_SECONDS = 36 * 60 * 60
+MAX_VERIFIED_SNAPSHOT_AGE_SECONDS = 30 * 60 * 60
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(PIPELINE_ROOT))
 
