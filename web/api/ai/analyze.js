@@ -9,6 +9,7 @@ export { config }
 const PUBLIC_FIRST_PARTY_ORIGIN = 'https://medicalai.qd.je'
 const MAX_VERIFIED_SNAPSHOT_AGE_MS = 30 * 60 * 60 * 1000
 const MAX_VERIFIED_SNAPSHOT_FUTURE_SKEW_MS = 10 * 60 * 1000
+const RELATIVE_WINDOW_FLAG = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
 
 function firstHeaderValue(value) {
   if (Array.isArray(value)) return value[0] ?? null
@@ -159,15 +160,28 @@ function chinaDateKey(now = Date.now()) {
   return `${values.year}-${values.month}-${values.day}`
 }
 
-function outreachWindow(facts) {
-  const now = Date.now()
+function hasRelativeRegistrationWindow(facts) {
+  return Array.isArray(facts?.quality_flags) && facts.quality_flags.includes(RELATIVE_WINDOW_FLAG)
+}
+
+function addDaysDateKey(value, days) {
+  const match = typeof value === 'string' ? value.match(/^(20\d{2})-(\d{2})-(\d{2})/) : null
+  if (!match) return null
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])))
+  if (Number.isNaN(date.getTime())) return null
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+
+export function outreachWindow(facts, now = Date.now()) {
   const bid = parsedTime(facts?.bid_deadline)
   const registration = parsedTime(facts?.registration_deadline)
   const registrationDate = typeof facts?.registration_deadline_date === 'string'
     ? facts.registration_deadline_date
     : null
+  const currentDate = chinaDateKey(now)
   const registrationDateClosed = Boolean(
-    registrationDate && /^\d{4}-\d{2}-\d{2}$/.test(registrationDate) && registrationDate < chinaDateKey(now),
+    registrationDate && /^\d{4}-\d{2}-\d{2}$/.test(registrationDate) && registrationDate < currentDate,
   )
   if (bid !== null && bid <= now) return { open: false, late: false }
   if (bid === null && ((registration !== null && registration <= now) || registrationDateClosed)) {
@@ -177,7 +191,20 @@ function outreachWindow(facts) {
     bid !== null && bid > now &&
     ((registration !== null && registration <= now) || registrationDateClosed),
   )
-  return { open: true, late }
+  if (late) return { open: true, late: true }
+
+  if (
+    bid === null &&
+    registration === null &&
+    !registrationDate &&
+    hasRelativeRegistrationWindow(facts)
+  ) {
+    const relativeEndDate = addDaysDateKey(facts?.published_at, 7)
+    if (!relativeEndDate) return { open: false, late: false, relative: true }
+    return { open: currentDate <= relativeEndDate, late: false, relative: true }
+  }
+
+  return { open: true, late: false }
 }
 
 function normalizeBudget(value) {
@@ -226,17 +253,21 @@ function capabilitySentence(context) {
   return null
 }
 
-function buildGroundedOutreachDraft(card, privateContext) {
+export function buildGroundedOutreachDraft(card, privateContext, now = Date.now()) {
   const facts = asObject(card?.facts) || {}
   const marketResearch = isMarketResearch(facts)
-  const window = outreachWindow(facts)
+  const window = outreachWindow(facts, now)
   const project = cleanText(facts.project_name) || '相关项目'
   const registration = dateTimeText(facts.registration_deadline)
   const registrationDate = dateOnlyText(facts.registration_deadline_date)
   const bid = dateTimeText(facts.bid_deadline)
   const budget = normalizeBudget(facts.budget)
+  const relativeWindowFact = window.relative
+    ? '官方公告写明测试企业报名期为“自公告发布之日起7天”，未公布精确截止时刻'
+    : null
   const factLines = [
     budget ? `项目预算约${Math.round(budget / 10000)}万元` : null,
+    relativeWindowFact,
     registration
       ? `${marketResearch ? '资料提交/报名' : '招标文件获取'}截至${registration}`
       : registrationDate
@@ -245,11 +276,13 @@ function buildGroundedOutreachDraft(card, privateContext) {
     bid ? `投标/响应截止${bid}` : null,
   ].filter(Boolean)
 
-  const closing = window.late
-    ? '注意到前期报名或文件获取时间已过，想确认后续是否还有公开答疑或公告允许的资料对接窗口；如无，我们将按公告安排关注后续进展。'
-    : marketResearch
-      ? '想确认目前是否仍接受产品资料、技术交流或需求反馈；如方便，我们可以按公开要求准备相关资料。'
-      : '想确认目前是否还有公开答疑或公告允许的资料对接窗口；如方便，我们可以按项目要求准备相关资料。'
+  const closing = window.relative
+    ? '想确认目前测试企业报名是否仍开放；如仍开放，我们可以按公开要求准备产品资料和技术说明。'
+    : window.late
+      ? '注意到前期报名或文件获取时间已过，想确认后续是否还有公开答疑或公告允许的资料对接窗口；如无，我们将按公告安排关注后续进展。'
+      : marketResearch
+        ? '想确认目前是否仍接受产品资料、技术交流或需求反馈；如方便，我们可以按公开要求准备相关资料。'
+        : '想确认目前是否还有公开答疑或公告允许的资料对接窗口；如方便，我们可以按项目要求准备相关资料。'
   const capability = capabilitySentence(privateContext?.context)
 
   return [
@@ -277,7 +310,10 @@ function outreachResponse(card, privateContext) {
       opportunity_id: card.opportunity_id,
       generated_at: new Date().toISOString(),
       draft: buildGroundedOutreachDraft(card, privateContext),
-      disclaimer: '发送前请核对公开信息与实际情况；院内关系仅用于内部判断，不会写入外发话术，也不会推断厂家授权或中标概率。',
+      disclaimer: [
+        '发送前请核对公开信息与实际情况；院内关系仅用于内部判断，不会写入外发话术，也不会推断厂家授权或中标概率。',
+        window.relative ? '公告若仅给相对报名窗口，系统不会把内部推算日期作为官方截止日期。' : null,
+      ].filter(Boolean).join(''),
     },
   }
 }

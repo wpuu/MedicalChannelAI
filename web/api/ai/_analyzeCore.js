@@ -22,6 +22,7 @@ const PROVIDER_ATTEMPT_TIMEOUT_MS = 12_000
 const PROVIDER_RETRY_DELAY_MS = 250
 const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
 const SOURCE_CATEGORY_TITLE_CONFLICT = 'SOURCE_CATEGORY_TITLE_CONFLICT'
+const RELATIVE_WINDOW_FLAG = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
 
 const resultCache = new Map()
 const inFlight = new Map()
@@ -282,14 +283,28 @@ function shanghaiDateString(nowMs) {
   return `${values.year}-${values.month}-${values.day}`
 }
 
+function hasRelativeRegistrationWindow(facts) {
+  return Array.isArray(facts?.quality_flags) && facts.quality_flags.includes(RELATIVE_WINDOW_FLAG)
+}
+
+function addDaysDateString(value, days) {
+  const match = typeof value === 'string' ? value.match(/^(20\d{2})-(\d{2})-(\d{2})/) : null
+  if (!match) return null
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])))
+  if (Number.isNaN(date.getTime())) return null
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+
 export function runtimeWindowStatus(facts, nowMs = Date.now()) {
   const registrationDeadline = parsedTime(facts.registration_deadline)
   const registrationDate = /^\d{4}-\d{2}-\d{2}$/.test(facts.registration_deadline_date || '')
     ? facts.registration_deadline_date
     : null
   const bidDeadline = parsedTime(facts.bid_deadline)
+  const currentShanghaiDate = shanghaiDateString(nowMs)
   const dateOnlyRegistrationClosed = registrationDate
-    ? shanghaiDateString(nowMs) > registrationDate
+    ? currentShanghaiDate > registrationDate
     : false
   const exactRegistrationClosed = registrationDeadline !== null && registrationDeadline <= nowMs
 
@@ -302,6 +317,18 @@ export function runtimeWindowStatus(facts, nowMs = Date.now()) {
   ) {
     return 'LATE_WINDOW'
   }
+
+  if (
+    registrationDeadline === null &&
+    registrationDate === null &&
+    bidDeadline === null &&
+    hasRelativeRegistrationWindow(facts)
+  ) {
+    const relativeEndDate = addDaysDateString(facts.publish_date, 7)
+    if (!relativeEndDate) return 'CLOSED'
+    return currentShanghaiDate > relativeEndDate ? 'CLOSED' : 'RELATIVE_WINDOW'
+  }
+
   return 'OPEN'
 }
 
@@ -380,7 +407,9 @@ async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerCont
     const payload = await response.json()
     const content = payload?.choices?.[0]?.message?.content
     if (typeof content !== 'string' || !content.trim()) throw new Error('UPSTREAM_CONTENT_EMPTY')
-    return parseDecisionContent(content)
+    return parseDecisionContent(content, {
+      relativeRegistrationWindow: windowStatus === 'RELATIVE_WINDOW',
+    })
   } finally {
     clearTimeout(timeout)
   }
