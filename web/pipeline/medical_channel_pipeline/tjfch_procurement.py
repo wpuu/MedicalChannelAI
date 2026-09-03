@@ -8,9 +8,9 @@ from typing import Any
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
+from .tjfch_discovery import ALLOWED_HOSTS
 from .validation import validate_record
 
-ALLOWED_HOSTS = {"tj-fch.com", "www.tj-fch.com"}
 TIANJIN = ZoneInfo("Asia/Shanghai")
 
 
@@ -164,8 +164,6 @@ def parse_tjfch_procurement_notice(
     if "院内比选" not in _normalize(expected_title) or "公告" not in _normalize(expected_title):
         raise TjfchParseError("TJFCH_NOTICE_TYPE_UNSUPPORTED")
     if index_published_at not in text and index_published_at.replace("-", "年", 1).replace("-", "月", 1) not in text:
-        # The official URL itself establishes the date candidate, but the detail
-        # page must independently expose the same date before we publish it.
         chinese_date = date.fromisoformat(index_published_at)
         date_markers = {
             f"{chinese_date.year}年{chinese_date.month}月{chinese_date.day}日",
