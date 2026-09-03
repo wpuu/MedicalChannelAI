@@ -9,6 +9,7 @@ WEB_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(WEB_ROOT))
 
 from collector_incremental import (  # noqa: E402
+    PENDING_CARRYOVER_MAX_AGE_HOURS,
     SOURCE_POLICIES,
     candidate_observation,
     empty_ledger,
@@ -136,6 +137,84 @@ class IncrementalCollectorPlannerTests(unittest.TestCase):
             [item.candidate.detail_url for item in plan.deferred],
             ["https://hospital.example/old"],
         )
+
+    def test_deferred_candidate_survives_later_discovery_truncation(self) -> None:
+        first = plan_detail_verification(
+            "tjmugh",
+            [
+                candidate("https://hospital.example/old", published_at="2026-09-02"),
+                candidate("https://hospital.example/newest", published_at="2026-09-04"),
+                candidate("https://hospital.example/middle", published_at="2026-09-03"),
+            ],
+            empty_ledger(),
+            now=NOW,
+            max_details=2,
+        )
+        ledger = first.next_ledger
+        for decision in first.selected:
+            ledger = record_verification_success(ledger, decision.candidate, verified_at=NOW)
+
+        second = plan_detail_verification(
+            "tjmugh",
+            [
+                candidate("https://hospital.example/fresh-b", published_at="2026-09-04"),
+                candidate("https://hospital.example/fresh-a", published_at="2026-09-04"),
+            ],
+            ledger,
+            now=NOW + timedelta(hours=1),
+            max_details=2,
+        )
+
+        self.assertEqual(len(second.selected), 2)
+        self.assertEqual(second.selected[0].reason, "NEW_CANDIDATE")
+        self.assertEqual(second.selected[1].reason, "PENDING_CARRYOVER")
+        self.assertEqual(
+            second.selected[1].candidate.detail_url,
+            "https://hospital.example/old",
+        )
+        self.assertEqual(
+            [item.reason for item in second.deferred],
+            ["NEW_CANDIDATE"],
+        )
+
+    def test_carryover_is_bounded_and_eventually_left_to_daily_deep_reconciliation(self) -> None:
+        first = plan_detail_verification(
+            "tjmugh",
+            [
+                candidate("https://hospital.example/old", published_at="2026-09-02"),
+                candidate("https://hospital.example/new", published_at="2026-09-04"),
+            ],
+            empty_ledger(),
+            now=NOW,
+            max_details=1,
+        )
+        ledger = record_verification_success(
+            first.next_ledger,
+            first.selected[0].candidate,
+            verified_at=NOW,
+        )
+        later = plan_detail_verification(
+            "tjmugh",
+            [],
+            ledger,
+            now=NOW + timedelta(hours=PENDING_CARRYOVER_MAX_AGE_HOURS + 1),
+            max_details=1,
+        )
+        self.assertEqual(later.selected, ())
+        self.assertEqual(later.deferred, ())
+
+    def test_verified_candidate_that_leaves_index_is_not_carried_over(self) -> None:
+        row = candidate("https://hospital.example/a")
+        observation = candidate_observation("tjmugh", row)
+        ledger = record_verification_success(empty_ledger(), observation, verified_at=NOW)
+        plan = plan_detail_verification(
+            "tjmugh",
+            [],
+            ledger,
+            now=NOW + timedelta(hours=1),
+        )
+        self.assertEqual(plan.selected, ())
+        self.assertEqual(plan.deferred, ())
 
     def test_failure_is_retried_even_when_index_metadata_is_unchanged(self) -> None:
         row = candidate("https://hospital.example/a")
