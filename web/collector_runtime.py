@@ -26,6 +26,11 @@ from medical_channel_pipeline.state import (  # noqa: E402
     merge_canonical_records,
     merge_notice_events,
 )
+from medical_channel_pipeline.teda_discovery import stable_opportunity_id as teda_opportunity_id  # noqa: E402
+from medical_channel_pipeline.teda_market_research import (  # noqa: E402
+    TedaParseError,
+    parse_teda_market_research,
+)
 from medical_channel_pipeline.tjmugh_discovery import (  # noqa: E402
     INDEX_URL as TJMUGH_INDEX_URL,
     fetch_tjmugh_page,
@@ -43,6 +48,11 @@ from medical_channel_pipeline.tjnothop_discovery import (  # noqa: E402
 )
 from medical_channel_pipeline.tjnothop_market_research import parse_tjnothop_market_research  # noqa: E402
 from sync_ccgp_query import VERIFIED_NOTICE_ADAPTERS, discover_candidates, scan_events, stable_id  # noqa: E402
+from sync_teda_market_research import (  # noqa: E402
+    UNSUPPORTED_DETAIL_CODES as TEDA_UNSUPPORTED_DETAIL_CODES,
+    discover_candidates as discover_teda_candidates,
+    fetch_page_with_retry as fetch_teda_page_with_retry,
+)
 from sync_tianjin_plan import load_plan, plan_date_window, publish_gate as ccgp_publish_gate  # noqa: E402
 
 SCHEMA_VERSION = "0.1"
@@ -51,6 +61,10 @@ STATE_TTL_SECONDS = 14 * 24 * 60 * 60
 SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
 MAX_STAGE_ATTEMPTS_PER_DAY = 2
 EVENT_BATCH_SIZE = 5
+TEDA_LOOKBACK_DAYS = 90
+TEDA_INDEX_PAGES = 4
+TEDA_MAX_CANDIDATES = 20
+TEDA_REQUEST_DELAY_SECONDS = 3.0
 
 META_KEY = "medicalchannelai:collector-runtime-state:v1"
 CCGP_RECORDS_KEY = "medicalchannelai:collector-ccgp-records:v1"
@@ -58,6 +72,7 @@ CCGP_EVENTS_KEY = "medicalchannelai:collector-ccgp-events:v1"
 CCGP_WATCH_KEY = "medicalchannelai:collector-ccgp-watch-projects:v1"
 TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v1"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v1"
+TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v1"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 
 STAGE_ORDER = (
@@ -70,6 +85,7 @@ STAGE_ORDER = (
     "event6",
     "tjmugh",
     "tjnothop",
+    "teda",
     "publish",
 )
 EXPECTED_SCHEDULES = {
@@ -82,7 +98,8 @@ EXPECTED_SCHEDULES = {
     "event6": "50 1 * * *",
     "tjmugh": "5 2 * * *",
     "tjnothop": "20 2 * * *",
-    "publish": "35 2 * * *",
+    "teda": "35 2 * * *",
+    "publish": "50 2 * * *",
 }
 
 
@@ -133,6 +150,10 @@ def _bootstrap_tjmugh_records() -> list[dict[str, Any]]:
 
 def _bootstrap_tjnothop_records() -> list[dict[str, Any]]:
     return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_tjnothop_records.json"))
+
+
+def _bootstrap_teda_records() -> list[dict[str, Any]]:
+    return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_teda_records.json"))
 
 
 def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[str, Any]], bool]:
@@ -535,6 +556,105 @@ def _run_tjnothop(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _run_teda(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
+    as_of = _cycle_as_of(state)
+    local_date = as_of.astimezone(SHANGHAI).date()
+    start_date = local_date - timedelta(days=TEDA_LOOKBACK_DAYS - 1)
+    observed_at = as_of.astimezone(timezone.utc).isoformat()
+    existing_records, bootstrapped = _cached_list(cache, TEDA_RECORDS_KEY, _bootstrap_teda_records)
+
+    try:
+        discovered = discover_teda_candidates(
+            index_pages=TEDA_INDEX_PAGES,
+            delay_seconds=TEDA_REQUEST_DELAY_SECONDS,
+        )
+    except Exception as exc:
+        raise CollectorStageBlocked(f"TEDA_INDEX_DISCOVERY_FAILED:{type(exc).__name__}") from exc
+
+    new_records: list[dict[str, Any]] = []
+    failures: list[dict[str, Any]] = []
+    unsupported: list[dict[str, Any]] = []
+    out_of_window_count = 0
+    considered = discovered[:TEDA_MAX_CANDIDATES]
+
+    for candidate in considered:
+        time.sleep(TEDA_REQUEST_DELAY_SECONDS)
+        try:
+            detail_html = fetch_teda_page_with_retry(
+                candidate.detail_url,
+                delay_seconds=TEDA_REQUEST_DELAY_SECONDS,
+            )
+            record = parse_teda_market_research(
+                detail_html,
+                source_url=candidate.detail_url,
+                index_url=candidate.index_url,
+                index_published_at=candidate.published_at,
+                expected_title=candidate.title,
+                observed_at=observed_at,
+                opportunity_id=teda_opportunity_id(candidate.detail_url),
+            )
+            published_at = datetime.fromisoformat(record["facts"]["published_at"]).date()
+            if not start_date <= published_at <= local_date:
+                out_of_window_count += 1
+                continue
+            new_records.append(record)
+        except TedaParseError as exc:
+            if str(exc) in TEDA_UNSUPPORTED_DETAIL_CODES:
+                unsupported.append(
+                    {
+                        "title": candidate.title,
+                        "url": candidate.detail_url,
+                        "reason": str(exc),
+                    }
+                )
+                continue
+            failures.append(
+                {
+                    "stage": "verified_detail",
+                    "title": candidate.title,
+                    "url": candidate.detail_url,
+                    "error": type(exc).__name__,
+                    "message": str(exc)[:300],
+                }
+            )
+        except Exception as exc:
+            failures.append(
+                {
+                    "stage": "verified_detail",
+                    "title": candidate.title,
+                    "url": candidate.detail_url,
+                    "error": type(exc).__name__,
+                    "message": str(exc)[:300],
+                }
+            )
+
+    # Match the verified GitHub refresh policy: an unsupported candidate is an
+    # explicit non-fact, but any true parse/fetch failure blocks this stage. Do
+    # not update TEDA canonical state when the current verification is partial.
+    if failures:
+        diagnostic = ";".join(
+            f"{item.get('error')}:{item.get('message')}"
+            for item in failures[:3]
+        )
+        raise CollectorStageBlocked(
+            f"TEDA_CANDIDATE_VERIFICATION_INCOMPLETE:{len(failures)}:{diagnostic}"
+        )
+
+    merged = merge_canonical_records(existing_records, new_records)
+    _cache_set(cache, TEDA_RECORDS_KEY, merged, tag="medicalchannelai-collector-canonical")
+    return {
+        "discovered_early_title_count": len(discovered),
+        "considered_candidate_count": len(considered),
+        "new_verified_record_count": len(new_records),
+        "out_of_window_count": out_of_window_count,
+        "unsupported_candidate_count": len(unsupported),
+        "merged_record_count": len(merged),
+        "failure_count": 0,
+        "bootstrapped_records": bootstrapped,
+        "publish_gate_reason": "PASS",
+    }
+
+
 def _digest(value: Any) -> str:
     encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
@@ -545,11 +665,15 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     events = cache.get(CCGP_EVENTS_KEY)
     tjmugh_records = cache.get(TJMUGH_RECORDS_KEY)
     tjnothop_records = cache.get(TJNOTHOP_RECORDS_KEY)
-    if not all(isinstance(value, list) for value in (ccgp_records, events, tjmugh_records, tjnothop_records)):
+    teda_records = cache.get(TEDA_RECORDS_KEY)
+    if not all(
+        isinstance(value, list)
+        for value in (ccgp_records, events, tjmugh_records, tjnothop_records, teda_records)
+    ):
         raise CollectorPrecondition("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
 
-    records = list(ccgp_records) + list(tjmugh_records) + list(tjnothop_records)
-    as_of = _now_utc()
+    records = list(ccgp_records) + list(tjmugh_records) + list(tjnothop_records) + list(teda_records)
+    as_of = _cycle_as_of(state)
     snapshot = build_public_snapshot(records, as_of, list(events))
     digest = _digest(snapshot)
     _cache_set(
@@ -600,6 +724,8 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             result = _run_tjmugh(cache, state)
         elif stage == "tjnothop":
             result = _run_tjnothop(cache, state)
+        elif stage == "teda":
+            result = _run_teda(cache, state)
         elif stage == "publish":
             result = _run_publish(cache, state)
         else:
