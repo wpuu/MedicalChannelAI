@@ -5,11 +5,6 @@ on:
     # Legacy GitHub scheduler. Keep as a fallback until the Vercel-native collector is accepted.
     - cron: '20 0 * * *'
     - cron: '20 8 * * 1-5'
-  push:
-    branches:
-      - chatgpt/opportunity-ranking-v2-final
-    paths:
-      - .github/workflows/tianjin-medical-refresh.yml
   workflow_dispatch:
 
 permissions:
