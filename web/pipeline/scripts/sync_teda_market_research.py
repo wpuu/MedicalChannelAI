@@ -28,7 +28,7 @@ from medical_channel_pipeline.teda_market_research import (  # noqa: E402
 
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 MIN_REQUEST_DELAY_SECONDS = 3.0
-FETCH_ATTEMPTS = 2
+FETCH_ATTEMPTS = 3
 RETRYABLE_HTTP_CODES = {408, 425, 429, 500, 502, 503, 504}
 UNSUPPORTED_DETAIL_CODES = {
     'TEDA_MEDICAL_EARLY_SIGNAL_NOT_VERIFIED',
@@ -97,8 +97,14 @@ def discover_candidates(
         if page > 1:
             time.sleep(delay_seconds)
         url = index_page_url(page)
-        html = fetch_page_with_retry(url, delay_seconds=delay_seconds)
-        for candidate in parse_teda_index_html(html, index_url=url):
+        try:
+            html = fetch_page_with_retry(url, delay_seconds=delay_seconds)
+            parsed = parse_teda_index_html(html, index_url=url)
+        except Exception as exc:
+            raise RuntimeError(
+                f'TEDA_INDEX_PAGE_FAILED:{page}:{url}:{type(exc).__name__}:{str(exc)[:180]}'
+            ) from exc
+        for candidate in parsed:
             opportunity_id = stable_opportunity_id(candidate.detail_url)
             if opportunity_id in seen:
                 continue
@@ -154,12 +160,15 @@ def main() -> int:
                 {
                     'stage': 'index_discovery',
                     'error': type(exc).__name__,
-                    'message': str(exc)[:300],
+                    'message': str(exc)[:500],
                 }
             ],
         }
         write_json(args.report_output, report)
-        print('TEDA index discovery failed; refusing to mark hospital-source state fresh', file=sys.stderr)
+        print(
+            f'TEDA index discovery failed; refusing to mark hospital-source state fresh: {type(exc).__name__}:{str(exc)[:300]}',
+            file=sys.stderr,
+        )
         return 2
 
     new_records: list[dict] = []
@@ -251,6 +260,7 @@ def main() -> int:
         'policy': {
             'official_index_required': True,
             'bounded_index_pages': args.index_pages,
+            'all_requested_index_pages_required': True,
             'official_index_publication_date_is_evidence_when_present': True,
             'detail_publication_date_must_match_index_when_both_exist': True,
             'missing_official_publication_date_is_explicitly_unsupported': True,
