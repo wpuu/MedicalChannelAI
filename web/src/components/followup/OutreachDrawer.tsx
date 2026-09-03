@@ -1,16 +1,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, Copy, Loader2 } from 'lucide-react'
+import { CheckCircle2, Copy, Loader2, Mail, Phone } from 'lucide-react'
 import { Drawer } from '@/components/ui/Drawer'
 import { todayActionsService } from '@/services'
 import { isAuthRequiredError } from '@/services/apiConfig'
 import type { OutreachDraft } from '@/types'
 import { useToast } from '@/context/ToastContext'
+import { safeTelephoneHref } from '@/utils/safeTelephoneLinks'
 
 interface OutreachDrawerProps {
   open: boolean
   opportunityId: string | null
   onClose: () => void
+}
+
+interface PublicContactQuickView {
+  names: string[]
+  phones: string[]
+  email: string | null
 }
 
 const GROUP_RECIPIENT = '__GROUP__'
@@ -52,6 +59,21 @@ function contactNames(value: string): string[] {
     .split(/[、，,；;／/]+/)
     .map((item) => item.trim())
     .filter(Boolean)
+}
+
+function contactPhones(value: string): string[] {
+  return value
+    .split(/[、，,；;／/]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 8)
+}
+
+function safeEmailHref(value: string | null | undefined): string | null {
+  const email = String(value || '').trim()
+  if (!email || email.length > 320 || /[\r\n]/.test(email)) return null
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null
+  return `mailto:${email}`
 }
 
 function personGreeting(name: string): string {
@@ -155,6 +177,7 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
   const [draft, setDraft] = useState<OutreachDraft | null>(null)
   const [availableRecipients, setAvailableRecipients] = useState<string[]>([])
   const [recipientSelection, setRecipientSelection] = useState('')
+  const [publicContact, setPublicContact] = useState<PublicContactQuickView | null>(null)
 
   useEffect(() => {
     if (!open || !opportunityId) return
@@ -165,17 +188,25 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     setDraft(null)
     setAvailableRecipients([])
     setRecipientSelection('')
+    setPublicContact(null)
 
     todayActionsService
       .getOpportunity(opportunityId)
       .then((card) => {
         if (cancelled) return
-        const names = contactNames(card?.facts.official_contact?.name ?? '')
+        const contact = card?.facts.official_contact
+        const names = contactNames(contact?.name ?? '')
+        const phones = contactPhones(contact?.phone ?? '')
+        const email = contact?.email?.trim() || null
         setAvailableRecipients(names)
         if (names.length === 1) setRecipientSelection(names[0])
+        if (names.length || phones.length || email) {
+          setPublicContact({ names, phones, email })
+        }
       })
       .catch(() => {
-        // Recipient lookup is only a convenience layer. A neutral greeting remains safe.
+        // Contact lookup is only a convenience layer. Draft generation has its
+        // own verified grounding gate and a neutral greeting remains safe.
       })
 
     void todayActionsService
@@ -293,8 +324,65 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
         </div>
       ) : null}
       {error ? <p className="mt-6 text-[13px] text-rose-700">{error}</p> : null}
+
+      {publicContact ? (
+        <div className="mt-3 rounded-xl border border-teal-100 bg-teal-50/60 p-3">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="text-[12px] font-medium text-teal-900">公告公开联系方式</p>
+              {publicContact.names.length ? (
+                <p className="mt-1 text-[12px] leading-5 text-teal-800">
+                  联系人：{publicContact.names.join('、')}
+                </p>
+              ) : null}
+            </div>
+            <span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-teal-700 ring-1 ring-teal-100">
+              官方公开信息
+            </span>
+          </div>
+          {publicContact.phones.length ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {publicContact.phones.map((phone) => {
+                const href = safeTelephoneHref(phone)
+                return href ? (
+                  <a
+                    key={phone}
+                    href={href}
+                    className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-teal-200 bg-white px-2.5 py-1 text-[12px] font-medium text-teal-800"
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                    {phone}
+                  </a>
+                ) : (
+                  <span
+                    key={phone}
+                    className="inline-flex min-h-8 items-center rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[12px] text-slate-600"
+                  >
+                    {phone}
+                  </span>
+                )
+              })}
+            </div>
+          ) : null}
+          {safeEmailHref(publicContact.email) ? (
+            <a
+              href={safeEmailHref(publicContact.email) ?? undefined}
+              className="mt-2 inline-flex min-h-8 max-w-full items-center gap-1 rounded-lg border border-teal-200 bg-white px-2.5 py-1 text-[12px] font-medium text-teal-800"
+            >
+              <Mail className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{publicContact.email}</span>
+            </a>
+          ) : publicContact.email ? (
+            <p className="mt-2 break-all text-[12px] text-slate-600">邮箱：{publicContact.email}</p>
+          ) : null}
+          <p className="mt-2 text-[10px] leading-4 text-teal-700/80">
+            仅表示公告公开了这些联系方式，不代表你与联系人或医院存在私人关系。
+          </p>
+        </div>
+      ) : null}
+
       {draft ? (
-        <div className="mt-2">
+        <div className="mt-3">
           {availableRecipients.length > 1 ? (
             <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-[12px] font-medium text-slate-700">称呼对象</p>
