@@ -65,3 +65,42 @@ def cycle_has_running_stage(value: Any) -> bool:
         isinstance(stage_state, dict) and stage_state.get("status") == "RUNNING"
         for stage_state in stages.values()
     )
+
+
+def deep_message_lease_disposition(
+    active_value: Any,
+    runtime_state: Any,
+    *,
+    cycle_id: str,
+    cycle_local_date: str,
+    current_local_date: str,
+) -> str:
+    """Classify a deep-collector queue delivery against the mutation lease.
+
+    Queue delivery is at-least-once. A missing active lease is normal only after
+    the whole authoritative cycle has completed and publish was marked COMPLETED,
+    or when the message is clearly from an older date that has been superseded.
+    Missing lease during an unfinished same-day cycle remains unsafe and must be
+    retried/fail closed instead of being silently acknowledged.
+    """
+    current = active_cycle_id(active_value)
+    if current is not None:
+        return "MATCH" if current == cycle_id else "SUPERSEDED"
+
+    local_date = str(cycle_local_date or "").strip()
+    today = str(current_local_date or "").strip()
+    if local_date and today and local_date < today:
+        return "EXPIRED_STALE"
+
+    if isinstance(runtime_state, dict):
+        state_date = str(runtime_state.get("local_date") or "").strip()
+        if state_date and local_date and state_date > local_date:
+            return "SUPERSEDED"
+        if state_date == local_date:
+            stages = runtime_state.get("stages")
+            if isinstance(stages, dict):
+                publish = stages.get("publish")
+                if isinstance(publish, dict) and publish.get("status") == "COMPLETED":
+                    return "COMPLETED_CYCLE"
+
+    return "MISSING_UNSAFE"
