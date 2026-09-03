@@ -112,10 +112,9 @@ export async function publicOpportunityHistory(opportunityId, limit = MAX_HISTOR
   for (let index = visibleStart; index < windowRows.length; index += 1) {
     const row = windowRows[index]
     const previous = index > 0 ? windowRows[index - 1] : null
-    const fields = Number(row.version) === 1
-      ? ['INITIAL']
-      : changedFields(row)
-    const changes = fields === ['INITIAL']
+    const isInitial = Number(row.version) === 1
+    const fields = isInitial ? ['INITIAL'] : changedFields(row)
+    const changes = isInitial
       ? []
       : fields.map((field) => ({
           field,
@@ -125,7 +124,7 @@ export async function publicOpportunityHistory(opportunityId, limit = MAX_HISTOR
     versions.push({
       version: Number(row.version),
       observed_at: new Date(row.observed_at).toISOString(),
-      change_type: Number(row.version) === 1 ? 'INITIAL' : 'UPDATED',
+      change_type: isInitial ? 'INITIAL' : 'UPDATED',
       changed_fields: fields,
       changes,
       summary: publicSummary(row.payload),
