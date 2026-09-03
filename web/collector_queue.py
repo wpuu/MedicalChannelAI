@@ -6,6 +6,7 @@ from typing import Any
 from vercel.functions import RuntimeCache
 from vercel.queue import send
 
+import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
@@ -22,7 +23,7 @@ NEXT_STAGE_DELAY_SECONDS = 2
 
 
 def _parse_cycle_as_of(payload: dict[str, Any]) -> datetime | None:
-    raw = str(payload.get("cycle_as_of") or "").strip()
+    raw = str(payload.get("cycle_as_of") or payload.get("observed_at") or "").strip()
     if not raw:
         return None
     try:
@@ -64,8 +65,45 @@ async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) ->
     return str(message_id)
 
 
+def _is_incremental_payload(payload: dict[str, Any]) -> bool:
+    return str(payload.get("mode") or "").strip().lower() == "incremental"
+
+
+def _process_incremental_payload(payload: dict[str, Any]) -> None:
+    source_id = str(payload.get("source_id") or "").strip().lower()
+    observed_at = _parse_cycle_as_of(payload)
+    expected_bucket = str(payload.get("scan_bucket_id") or "").strip()
+    if (
+        source_id not in incremental_runtime.SUPPORTED_INCREMENTAL_SOURCES
+        or observed_at is None
+        or not expected_bucket
+    ):
+        return
+
+    actual_bucket = incremental_runtime.scan_bucket_id(source_id, now=observed_at)
+    if actual_bucket != expected_bucket:
+        return
+
+    status, result = incremental_runtime.run_incremental_source(source_id, now=observed_at)
+    action = str(result.get("action") or "")
+    if status == 200 and action in {"COMPLETED", "ALREADY_SCANNED_BUCKET"}:
+        return
+
+    error = str(result.get("error") or "UNKNOWN")
+    # 409 means the authoritative daily deep collector is currently writing its
+    # own source caches. Raising lets the queue redeliver later instead of racing.
+    # 503 covers discovery/detail/snapshot failures and is likewise retriable.
+    raise RuntimeError(
+        f"INCREMENTAL_QUEUE_SCAN_FAILED:{source_id}:{status}:{error[:180]}"
+    )
+
+
 async def process_collector_payload(payload: dict[str, Any]) -> None:
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
+        return
+
+    if _is_incremental_payload(payload):
+        _process_incremental_payload(payload)
         return
 
     stage = str(payload.get("stage") or "").strip().lower()
