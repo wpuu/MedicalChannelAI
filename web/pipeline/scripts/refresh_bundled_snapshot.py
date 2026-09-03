@@ -39,6 +39,10 @@ def main() -> int:
         PIPELINE_ROOT / "data" / "tianjin_live_tjnothop_records.json",
         label="live Tianjin Hospital state",
     )
+    live_teda = load_array(
+        PIPELINE_ROOT / "data" / "tianjin_live_teda_records.json",
+        label="live TEDA Hospital state",
+    )
 
     ccgp_source = live_ccgp if live_ccgp else load_array(
         PIPELINE_ROOT / "data" / "tianjin_verified_seed.json",
@@ -54,7 +58,7 @@ def main() -> int:
     )
 
     payload = build_public_snapshot(
-        [*ccgp_source, *tmugh_source, *live_tjnothop],
+        [*ccgp_source, *tmugh_source, *live_tjnothop, *live_teda],
         published_as_of,
         notice_events,
     )
