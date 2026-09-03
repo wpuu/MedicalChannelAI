@@ -26,6 +26,13 @@ def _aware_utc(value: datetime) -> datetime:
     return value.astimezone(timezone.utc)
 
 
+def same_china_business_date(left: datetime, right: datetime) -> bool:
+    return (
+        _aware_utc(left).astimezone(SHANGHAI).date()
+        == _aware_utc(right).astimezone(SHANGHAI).date()
+    )
+
+
 def _business_bounds(day: date) -> tuple[datetime, datetime]:
     start = datetime.combine(day, BUSINESS_WINDOW_START, tzinfo=SHANGHAI)
     end = datetime.combine(day, BUSINESS_WINDOW_END, tzinfo=SHANGHAI)
