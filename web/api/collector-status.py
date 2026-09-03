@@ -36,8 +36,11 @@ _INCREMENTAL_RESULT_FIELDS = (
     "verified_nonfact_count",
     "verification_failure_count",
     "canonical_record_count",
+    "pending_record_count",
+    "pending_barrier_count",
     "snapshot_refreshed",
     "snapshot_as_of",
+    "deferred_reason",
 )
 _CHAIN_FIELDS = (
     "state",
@@ -56,6 +59,18 @@ def _incremental_ledger_key(source_id: str) -> str:
 
 def _incremental_bucket_key(source_id: str) -> str:
     return f"medicalchannelai:collector-incremental-bucket:{source_id}:v2"
+
+
+def _incremental_pending_key(source_id: str) -> str:
+    return f"medicalchannelai:collector-incremental-pending:{source_id}:v2"
+
+
+def _incremental_pending_barrier_key(source_id: str) -> str:
+    return f"medicalchannelai:collector-incremental-pending-barrier:{source_id}:v2"
+
+
+def _safe_list_count(value: Any) -> int:
+    return len(value) if isinstance(value, list) else 0
 
 
 def _safe_bucket_result(value: Any) -> dict[str, Any] | None:
@@ -96,6 +111,12 @@ def _incremental_status(cache: RuntimeCache) -> dict[str, Any]:
                 "failed_count": failed,
                 "unverified_count": unverified,
                 "updated_at": ledger.get("updated_at"),
+            },
+            "staging": {
+                "record_count": _safe_list_count(cache.get(_incremental_pending_key(source_id))),
+                "barrier_count": _safe_list_count(
+                    cache.get(_incremental_pending_barrier_key(source_id))
+                ),
             },
             "last_completed_scan": {
                 "bucket_id": bucket.get("bucket_id"),
