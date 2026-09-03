@@ -1,5 +1,9 @@
 import type { DiscoveryRadarResult, DiscoverySourceInput } from './discoveryRadarApi'
 import type { DiscoveryContinuationSegment } from './discoveryContinuationApi'
+import {
+  discoveryWorkspaceDbKey,
+  discoveryWorkspaceIsAccountScoped,
+} from './discoveryWorkspaceAccountIsolation'
 
 const DB_NAME = 'medicalchannelai.discovery.continuation.local'
 const DB_VERSION = 1
@@ -12,6 +16,18 @@ export interface DiscoveryContinuationLedger {
   source_url: string
   root_content_fingerprint: string
   segments: DiscoveryContinuationSegment[]
+}
+
+function continuationRecordKey(sourceId: string): string {
+  return discoveryWorkspaceIsAccountScoped()
+    ? `${discoveryWorkspaceDbKey()}::${sourceId}`
+    : sourceId
+}
+
+function activeAccountRecordPrefix(): string | null {
+  return discoveryWorkspaceIsAccountScoped()
+    ? `${discoveryWorkspaceDbKey()}::`
+    : null
 }
 
 function openDb(): Promise<IDBDatabase> {
@@ -92,12 +108,12 @@ function normalizeLedger(value: unknown): DiscoveryContinuationLedger | null {
   }
 }
 
-async function readLedger(sourceId: string): Promise<DiscoveryContinuationLedger | null> {
+async function readLedger(recordKey: string): Promise<DiscoveryContinuationLedger | null> {
   const db = await openDb()
   try {
     return await new Promise((resolve, reject) => {
       const transaction = db.transaction(DB_STORE, 'readonly')
-      const request = transaction.objectStore(DB_STORE).get(sourceId)
+      const request = transaction.objectStore(DB_STORE).get(recordKey)
       request.onsuccess = () => resolve(normalizeLedger(request.result))
       request.onerror = () => reject(request.error ?? new Error('CONTINUATION_DB_READ_FAILED'))
     })
@@ -106,12 +122,12 @@ async function readLedger(sourceId: string): Promise<DiscoveryContinuationLedger
   }
 }
 
-async function writeLedger(ledger: DiscoveryContinuationLedger): Promise<void> {
+async function writeLedger(ledger: DiscoveryContinuationLedger, recordKey: string): Promise<void> {
   const db = await openDb()
   try {
     await new Promise<void>((resolve, reject) => {
       const transaction = db.transaction(DB_STORE, 'readwrite')
-      transaction.objectStore(DB_STORE).put(ledger, ledger.source_id)
+      transaction.objectStore(DB_STORE).put(ledger, recordKey)
       transaction.oncomplete = () => resolve()
       transaction.onerror = () => reject(transaction.error ?? new Error('CONTINUATION_DB_WRITE_FAILED'))
       transaction.onabort = () => reject(transaction.error ?? new Error('CONTINUATION_DB_WRITE_ABORTED'))
@@ -133,8 +149,9 @@ export async function loadContinuationLedger(
   root: DiscoveryRadarResult,
 ): Promise<DiscoveryContinuationLedger> {
   if (!continuationEligible(root)) return blankLedger(source, root)
+  const recordKey = continuationRecordKey(source.id)
   try {
-    const stored = await readLedger(source.id)
+    const stored = await readLedger(recordKey)
     if (
       stored &&
       stored.source_url === source.url &&
@@ -169,17 +186,21 @@ export async function appendContinuationSegment(
     ...ledger,
     segments: [...ledger.segments, segment],
   }
-  await writeLedger(next)
+  // Capture the account namespace before the asynchronous IndexedDB write. A
+  // late segment from a previous account can never land in the next account.
+  const recordKey = continuationRecordKey(ledger.source_id)
+  await writeLedger(next, recordKey)
   return next
 }
 
 export async function clearContinuationLedger(sourceId: string): Promise<void> {
+  const recordKey = continuationRecordKey(sourceId)
   try {
     const db = await openDb()
     try {
       await new Promise<void>((resolve, reject) => {
         const transaction = db.transaction(DB_STORE, 'readwrite')
-        transaction.objectStore(DB_STORE).delete(sourceId)
+        transaction.objectStore(DB_STORE).delete(recordKey)
         transaction.oncomplete = () => resolve()
         transaction.onerror = () => reject(transaction.error ?? new Error('CONTINUATION_DB_DELETE_FAILED'))
         transaction.onabort = () => reject(transaction.error ?? new Error('CONTINUATION_DB_DELETE_ABORTED'))
@@ -189,6 +210,36 @@ export async function clearContinuationLedger(sourceId: string): Promise<void> {
     }
   } catch {
     // Clearing optional continuation state must not break the root radar workspace.
+  }
+}
+
+export async function clearActiveContinuationLedgersForAccount(): Promise<void> {
+  const prefix = activeAccountRecordPrefix()
+  if (!prefix) return
+  try {
+    const db = await openDb()
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const transaction = db.transaction(DB_STORE, 'readwrite')
+        const store = transaction.objectStore(DB_STORE)
+        const request = store.openCursor()
+        request.onsuccess = () => {
+          const cursor = request.result
+          if (!cursor) return
+          if (typeof cursor.key === 'string' && cursor.key.startsWith(prefix)) cursor.delete()
+          cursor.continue()
+        }
+        request.onerror = () => reject(request.error ?? new Error('CONTINUATION_DB_CURSOR_FAILED'))
+        transaction.oncomplete = () => resolve()
+        transaction.onerror = () => reject(transaction.error ?? new Error('CONTINUATION_DB_CLEAR_FAILED'))
+        transaction.onabort = () => reject(transaction.error ?? new Error('CONTINUATION_DB_CLEAR_ABORTED'))
+      })
+    } finally {
+      db.close()
+    }
+  } catch {
+    // Account deletion already succeeded on the server. Orphaned records remain
+    // scoped to the deleted account token and cannot be read by another account.
   }
 }
 

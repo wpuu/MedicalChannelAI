@@ -1,4 +1,5 @@
 import { apiBaseUrl, signalPilotSessionChanged } from './apiConfig'
+import { clearActiveContinuationLedgersForAccount } from './discoveryContinuationLedger'
 import { clearActiveDiscoveryWorkspaceAccount } from './discoveryWorkspaceAccountIsolation'
 
 async function accountRequest<T>(path: string, init?: RequestInit): Promise<T> {
@@ -27,6 +28,11 @@ export async function deletePilotAccount(password: string): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),
   })
+  try {
+    await clearActiveContinuationLedgersForAccount()
+  } catch {
+    // Server deletion already succeeded; local continuation cleanup is best-effort.
+  }
   try {
     await clearActiveDiscoveryWorkspaceAccount()
   } catch {
