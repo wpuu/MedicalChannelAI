@@ -32,14 +32,24 @@ class PilotPreviewSmokeContractTests(unittest.TestCase):
         self.assertIn("PERSONALIZED_RELATIONSHIP_POINTS_MISSING", source)
         self.assertIn("CROSS_SESSION_HOSPITAL_RELATIONSHIP_PERSISTENCE_FAILED", source)
 
-    def test_smoke_persists_reminder_across_idempotency_session_and_export(self):
+    def test_smoke_exercises_due_reminder_inbox_ack_and_future_persistence(self):
         source = (WEB_ROOT / 'scripts' / 'pilot-preview-smoke.mjs').read_text(encoding='utf-8')
+        self.assertIn("status: 'MONITOR'", source)
+        self.assertIn("const dueRemindAt = new Date(Date.now() - 60 * 1000).toISOString()", source)
+        self.assertIn("const reminderInbox = await request('/api/reminders')", source)
+        self.assertIn("/^mrem_[0-9a-f]{64}$/", source)
+        self.assertIn("/api/reminders/${encodeURIComponent(dueReminder.reminder_id)}/ack", source)
+        self.assertIn("DUE_REMINDER_ACK_FAILED", source)
+        self.assertIn("DUE_REMINDER_ACK_NOT_CLEARED", source)
+        self.assertIn("DUE_REMINDER_STILL_IN_INBOX_AFTER_ACK", source)
+        self.assertIn("const remindAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()", source)
         self.assertIn("remind_at: remindAt", source)
         self.assertIn("FOLLOWUP_REMINDER_SAVE_FAILED", source)
         self.assertIn("FOLLOWUP_REMINDER_IDEMPOTENCY_FAILED", source)
         self.assertIn("FOLLOWED_REMINDER_MISSING", source)
         self.assertIn("CROSS_SESSION_REMINDER_PERSISTENCE_FAILED", source)
         self.assertIn("ACCOUNT_EXPORT_REMINDER_MISSING", source)
+        self.assertNotIn("status: 'REVIEWING',\n    mutation_id: mutationId,\n    note: 'Pilot Preview automated smoke test',\n    remind_at: remindAt", source)
 
     def test_smoke_proves_deleted_account_credentials_stop_working(self):
         source = (WEB_ROOT / 'scripts' / 'pilot-preview-smoke.mjs').read_text(encoding='utf-8')
