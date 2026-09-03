@@ -52,8 +52,12 @@ function priorityDimensionText(card: TodayActionCard): string | null {
 }
 
 function telHref(value: string | null | undefined): string | null {
-  const normalized = String(value || '').replace(/[^\d+]/g, '')
-  return normalized.replace('+', '').length >= 5 ? `tel:${normalized}` : null
+  const raw = String(value || '').trim()
+  if (!raw || /[、,，;；/]/.test(raw)) return null
+  const leadingPlus = raw.startsWith('+')
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length < 5) return null
+  return `tel:${leadingPlus ? '+' : ''}${digits}`
 }
 
 function mailtoHref(value: string | null | undefined): string | null {
