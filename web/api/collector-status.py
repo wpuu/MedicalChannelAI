@@ -8,9 +8,16 @@ from vercel.functions import RuntimeCache
 
 import collector_runtime as runtime
 from collector_incremental import SOURCE_POLICIES, normalize_ledger
+from collector_incremental_scheduler import SCHEDULED_INCREMENTAL_SOURCES
+from collector_incremental_ticks import (
+    BUSINESS_WINDOW_END,
+    BUSINESS_WINDOW_START,
+    TICK_INTERVAL_MINUTES,
+)
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
     INCREMENTAL_ACTIVE_KEY,
+    INCREMENTAL_CHAIN_KEY,
     active_cycle_id,
     active_incremental_id,
     apply_runtime_namespace,
@@ -18,7 +25,7 @@ from collector_namespace import (
 
 apply_runtime_namespace(runtime)
 STAGE_ORDER = runtime.STAGE_ORDER
-INCREMENTAL_SOURCE_IDS = tuple(source for source in SOURCE_POLICIES if source != "ccgp")
+INCREMENTAL_SOURCE_IDS = SCHEDULED_INCREMENTAL_SOURCES
 
 _INCREMENTAL_RESULT_FIELDS = (
     "discovered_candidate_count",
@@ -31,6 +38,15 @@ _INCREMENTAL_RESULT_FIELDS = (
     "canonical_record_count",
     "snapshot_refreshed",
     "snapshot_as_of",
+)
+_CHAIN_FIELDS = (
+    "state",
+    "business_date",
+    "tick_id",
+    "next_tick_id",
+    "selected_source",
+    "detail",
+    "updated_at",
 )
 
 
@@ -49,6 +65,12 @@ def _safe_bucket_result(value: Any) -> dict[str, Any] | None:
     if not isinstance(result, dict):
         return None
     return {field: result.get(field) for field in _INCREMENTAL_RESULT_FIELDS}
+
+
+def _safe_chain_state(value: Any) -> dict[str, Any] | None:
+    if not isinstance(value, dict):
+        return None
+    return {field: value.get(field) for field in _CHAIN_FIELDS}
 
 
 def _incremental_status(cache: RuntimeCache) -> dict[str, Any]:
@@ -83,6 +105,13 @@ def _incremental_status(cache: RuntimeCache) -> dict[str, Any]:
         }
     return {
         "active_scan_id": active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)),
+        "tick_policy": {
+            "timezone": "Asia/Shanghai",
+            "business_window_start": BUSINESS_WINDOW_START.strftime("%H:%M"),
+            "business_window_end": BUSINESS_WINDOW_END.strftime("%H:%M"),
+            "tick_interval_minutes": TICK_INTERVAL_MINUTES,
+        },
+        "chain": _safe_chain_state(cache.get(INCREMENTAL_CHAIN_KEY)),
         "sources": sources,
     }
 
