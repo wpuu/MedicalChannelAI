@@ -14,6 +14,7 @@ SCHEDULED_INCREMENTAL_SOURCES = (
     "tjfch_test",
     "teda",
 )
+ATTEMPT_TTL_SECONDS = 3 * 24 * 60 * 60
 
 
 @dataclass(frozen=True)
@@ -34,6 +35,10 @@ def _utc(value: datetime | None = None) -> datetime:
 
 def _bucket_key(source_id: str) -> str:
     return f"medicalchannelai:collector-incremental-bucket:{source_id}:v2"
+
+
+def _attempt_key(source_id: str) -> str:
+    return f"medicalchannelai:collector-incremental-attempt:{source_id}:v2"
 
 
 def _parsed_at(value: Any) -> datetime | None:
@@ -57,6 +62,29 @@ def _last_completed(cache: Any, source_id: str) -> tuple[str | None, datetime | 
     return bucket_id, completed_at
 
 
+def _last_attempted(cache: Any, source_id: str) -> datetime | None:
+    value = cache.get(_attempt_key(source_id))
+    if not isinstance(value, dict):
+        return None
+    return _parsed_at(value.get("attempted_at"))
+
+
+def _mark_attempt(cache: Any, source_id: str, *, now: datetime) -> None:
+    cache.set(
+        _attempt_key(source_id),
+        {
+            "schema_version": "0.1",
+            "source_id": source_id,
+            "attempted_at": now.isoformat(),
+            "bucket_id": scan_bucket_id(source_id, now=now),
+        },
+        {
+            "ttl": ATTEMPT_TTL_SECONDS,
+            "tags": ["medicalchannelai-collector-incremental-attempt"],
+        },
+    )
+
+
 def choose_due_incremental_source(
     cache: Any,
     *,
@@ -70,16 +98,34 @@ def choose_due_incremental_source(
         policy = SOURCE_POLICIES[source_id]
         interval = timedelta(minutes=int(policy["scan_interval_minutes"]))
         last_bucket, completed_at = _last_completed(cache, source_id)
+        attempted_at = _last_attempted(cache, source_id)
         current_bucket = scan_bucket_id(source_id, now=current)
 
-        # No successful scan has ever completed for this source. Admit exactly one
-        # such source per scheduler tick; deterministic source order prevents a
-        # thundering herd on first activation.
+        # A selected source is marked as attempted before it is returned. The
+        # Queue itself still performs its bounded retries, but a source that keeps
+        # failing cannot be selected again by every 10-minute scheduler tick and
+        # starve all later sources. After one source interval it becomes eligible
+        # again in a new bucket.
         if completed_at is None:
-            due.append((order, float("inf"), source_id))
+            if attempted_at is None:
+                due.append((order, float("inf"), source_id))
+                continue
+            retry_due = attempted_at + interval
+            next_due_times.append(retry_due)
+            if current >= retry_due:
+                due.append(
+                    (
+                        order,
+                        max(0.0, (current - retry_due).total_seconds()),
+                        source_id,
+                    )
+                )
             continue
 
-        next_due = completed_at + interval
+        baseline = completed_at
+        if attempted_at is not None and attempted_at > baseline:
+            baseline = attempted_at
+        next_due = baseline + interval
         next_due_times.append(next_due)
         bucket_advanced = last_bucket != current_bucket
         if bucket_advanced and current >= next_due:
@@ -87,11 +133,12 @@ def choose_due_incremental_source(
             due.append((order, overdue_seconds, source_id))
 
     if due:
-        # Never-scanned sources have infinite overdue and are introduced one at a
-        # time in deterministic order. Otherwise pick the most overdue source;
+        # Never-attempted sources have infinite overdue and are introduced one at
+        # a time in deterministic order. Otherwise pick the most overdue source;
         # source order only breaks ties.
         due.sort(key=lambda item: (-item[1], item[0]))
         selected = due[0][2]
+        _mark_attempt(cache, selected, now=current)
         return IncrementalScheduleDecision(
             source_id=selected,
             reason="SOURCE_DUE",
