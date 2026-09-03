@@ -234,10 +234,6 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
         observed_at=observed_at,
     )
     try:
-        # On the first incremental scan, bridge only very recent deep-collector
-        # facts whose URL + index metadata still match. This prevents immediately
-        # re-fetching details that the daily authoritative cycle just verified,
-        # while metadata changes remain eligible for a fresh detail check.
         bootstrap_incremental_ledger_from_canonical(
             source_id,
             now=observed_at,
@@ -256,9 +252,6 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
         return
 
     error = str(result.get("error") or "UNKNOWN")
-    # 409 means the authoritative daily deep collector is currently writing its
-    # own source caches. Raising lets the queue redeliver later instead of racing.
-    # 503 covers discovery/detail/snapshot failures and is likewise retriable.
     raise RuntimeError(
         f"INCREMENTAL_QUEUE_SCAN_FAILED:{source_id}:{status}:{error[:180]}"
     )
@@ -312,9 +305,6 @@ async def _process_incremental_tick_payload(payload: dict[str, Any]) -> None:
         return
 
     await _enqueue_incremental_source(decision.source_id, observed_at=now)
-    # The attempt fence is written only after Queue accepts the source job. If
-    # send raises, the next tick can select the source again instead of treating
-    # an unqueued job as a real failed scan.
     mark_incremental_source_attempt(cache, decision.source_id, now=now)
     _write_chain_state(
         cache,
@@ -340,17 +330,17 @@ async def _start_intraday_chain_after_deep() -> None:
     try:
         await _enqueue_incremental_tick(first_tick, now=now)
     except Exception as exc:
-        # Incremental freshness is an optional side-plane. A queue scheduling
-        # failure must never retroactively turn a verified deep publish into a
-        # failed authoritative collection cycle.
+        # The authoritative publish has already succeeded, so this failure must
+        # not rewrite verified public data. Re-raise only to ask Queue to redeliver
+        # the already-completed publish message and retry scheduling the side-plane.
         _write_chain_state(
             cache,
-            state="SCHEDULE_FAILED",
+            state="SCHEDULE_RETRY_PENDING",
             business_date=first_tick.business_date,
             tick_id=first_tick.tick_id,
             detail=f"{type(exc).__name__}:{str(exc)[:140]}",
         )
-        return
+        raise
     _write_chain_state(
         cache,
         state="SCHEDULED",
@@ -387,25 +377,22 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
         next_stage = _next_stage(stage)
         if next_stage is not None:
-            # Do not extend a cycle that was superseded while this stage ran.
             if not _active_cycle_matches(cycle_id):
                 return
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         else:
-            # Publish is the terminal authoritative stage. Release the deep lease
-            # first, then schedule the optional intraday freshness side-plane.
-            _release_active_cycle_if_owned(cycle_id)
+            # Publish is already authoritative at this point. Keep the deep lease
+            # until the first intraday tick is actually accepted by Queue. If that
+            # scheduling send fails, this handler raises and the publish message is
+            # safely redelivered; run_stage then returns ALREADY_COMPLETED_TODAY and
+            # only the side-plane scheduling is retried.
             await _start_intraday_chain_after_deep()
+            _release_active_cycle_if_owned(cycle_id)
         return
 
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
     if status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error:
-        # Two real attempts have already failed. Acknowledge this queue message,
-        # release the mutation lease, and leave the status FAILED for diagnostics.
-        # Failed deep collection intentionally does NOT start an intraday chain.
         _release_active_cycle_if_owned(cycle_id)
         return
 
-    # Raising asks Vercel Queues to redeliver. The active-cycle fence above makes
-    # delayed retries harmless after a newer cycle becomes authoritative.
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")
