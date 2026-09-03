@@ -68,6 +68,16 @@ function deadlineLabel(card: TodayActionCard): string | null {
   return null
 }
 
+function telHref(value: string | null | undefined): string | null {
+  const normalized = String(value || '').replace(/[^\d+]/g, '')
+  return normalized.replace('+', '').length >= 5 ? `tel:${normalized}` : null
+}
+
+function mailtoHref(value: string | null | undefined): string | null {
+  const email = String(value || '').trim()
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? `mailto:${email}` : null
+}
+
 function aiErrorMessage(cause: unknown): string {
   if (!(cause instanceof AiDecisionError)) return 'AI分析暂时不可用，请稍后重试'
   if (cause.code === 'AI_NOT_CONFIGURED') return 'AI服务端运行配置尚未完成'
@@ -103,6 +113,11 @@ function PoolCard({
   const deadline = deadlineLabel(card)
   const late = card.recommendation_mode === 'LATE_WINDOW'
   const followed = card.followup_status !== 'NEW'
+  const contact = card.facts.official_contact
+  const contactPhone = contact?.phone?.trim() || null
+  const contactEmail = contact?.email?.trim() || null
+  const contactPhoneHref = telHref(contactPhone)
+  const contactEmailHref = mailtoHref(contactEmail)
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -187,12 +202,30 @@ function PoolCard({
           </div>
           <div>
             <p className="font-medium text-slate-800">公开联系人</p>
-            {card.facts.official_contact ? (
-              <div className="mt-1 space-y-0.5">
-                {card.facts.official_contact.name ? <p>{card.facts.official_contact.name}</p> : null}
-                {card.facts.official_contact.title ? <p>{card.facts.official_contact.title}</p> : null}
-                {card.facts.official_contact.phone ? <p>{card.facts.official_contact.phone}</p> : null}
-                {card.facts.official_contact.email ? <p>{card.facts.official_contact.email}</p> : null}
+            {contact ? (
+              <div className="mt-1 space-y-1">
+                {contact.name ? <p>{contact.name}</p> : null}
+                {contact.title ? <p>{contact.title}</p> : null}
+                {contactPhone ? (
+                  contactPhoneHref ? (
+                    <a
+                      href={contactPhoneHref}
+                      className="block font-medium text-teal-700 underline decoration-teal-200 underline-offset-2"
+                    >
+                      电话 {contactPhone}
+                    </a>
+                  ) : <p>电话 {contactPhone}</p>
+                ) : null}
+                {contactEmail ? (
+                  contactEmailHref ? (
+                    <a
+                      href={contactEmailHref}
+                      className="block break-all font-medium text-teal-700 underline decoration-teal-200 underline-offset-2"
+                    >
+                      {contactEmail}
+                    </a>
+                  ) : <p className="break-all">{contactEmail}</p>
+                ) : null}
               </div>
             ) : (
               <p className="mt-1 text-slate-400">当前公开事实未提供联系人</p>
