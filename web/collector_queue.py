@@ -10,8 +10,11 @@ import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
+    INCREMENTAL_ACTIVE_KEY,
+    INCREMENTAL_ACTIVE_TTL_SECONDS,
     QUEUE_TOPIC_NAME,
     active_cycle_id,
+    active_incremental_id,
     apply_runtime_namespace,
 )
 
@@ -49,6 +52,12 @@ def _active_cycle_matches(cycle_id: str) -> bool:
     return current == cycle_id
 
 
+def _release_active_cycle_if_owned(cycle_id: str) -> None:
+    cache = RuntimeCache()
+    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) == cycle_id:
+        cache.delete(ACTIVE_CYCLE_KEY)
+
+
 async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) -> str:
     message_id = await send(
         QUEUE_TOPIC_NAME,
@@ -69,6 +78,50 @@ def _is_incremental_payload(payload: dict[str, Any]) -> bool:
     return str(payload.get("mode") or "").strip().lower() == "incremental"
 
 
+def _acquire_incremental_lease(
+    cache: RuntimeCache,
+    *,
+    source_id: str,
+    bucket_id: str,
+    observed_at: datetime,
+) -> str:
+    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) is not None:
+        raise RuntimeError("INCREMENTAL_BLOCKED_BY_DEEP_CYCLE")
+    if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) is not None:
+        raise RuntimeError("INCREMENTAL_SCAN_ALREADY_RUNNING")
+
+    scan_id = f"{bucket_id}:{observed_at.isoformat()}"
+    cache.set(
+        INCREMENTAL_ACTIVE_KEY,
+        {
+            "schema_version": "0.1",
+            "scan_id": scan_id,
+            "source_id": source_id,
+            "bucket_id": bucket_id,
+            "observed_at": observed_at.isoformat(),
+        },
+        {
+            "ttl": INCREMENTAL_ACTIVE_TTL_SECONDS,
+            "tags": ["medicalchannelai-collector-incremental-active"],
+        },
+    )
+    if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) != scan_id:
+        raise RuntimeError("INCREMENTAL_LEASE_READBACK_FAILED")
+
+    # Deep collection has priority. Recheck after acquiring our lease so a deep
+    # cycle that started in the small gap above forces this scan to back out.
+    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) is not None:
+        if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) == scan_id:
+            cache.delete(INCREMENTAL_ACTIVE_KEY)
+        raise RuntimeError("INCREMENTAL_BLOCKED_BY_DEEP_CYCLE")
+    return scan_id
+
+
+def _release_incremental_lease(cache: RuntimeCache, scan_id: str) -> None:
+    if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) == scan_id:
+        cache.delete(INCREMENTAL_ACTIVE_KEY)
+
+
 def _process_incremental_payload(payload: dict[str, Any]) -> None:
     source_id = str(payload.get("source_id") or "").strip().lower()
     observed_at = _parse_cycle_as_of(payload)
@@ -84,7 +137,22 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
     if actual_bucket != expected_bucket:
         return
 
-    status, result = incremental_runtime.run_incremental_source(source_id, now=observed_at)
+    cache = RuntimeCache()
+    scan_id = _acquire_incremental_lease(
+        cache,
+        source_id=source_id,
+        bucket_id=expected_bucket,
+        observed_at=observed_at,
+    )
+    try:
+        status, result = incremental_runtime.run_incremental_source(
+            source_id,
+            now=observed_at,
+            cache=cache,
+        )
+    finally:
+        _release_incremental_lease(cache, scan_id)
+
     action = str(result.get("action") or "")
     if status == 200 and action in {"COMPLETED", "ALREADY_SCANNED_BUCKET"}:
         return
@@ -126,12 +194,17 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
             if not _active_cycle_matches(cycle_id):
                 return
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+        else:
+            # Publish is the terminal stage. Releasing the lease here makes the
+            # completed deep cycle stop blocking later incremental scans.
+            _release_active_cycle_if_owned(cycle_id)
         return
 
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
     if status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error:
-        # Two real attempts have already failed. Acknowledge this queue message and
-        # leave the collector status FAILED instead of retrying forever.
+        # Two real attempts have already failed. Acknowledge this queue message,
+        # release the mutation lease, and leave the status FAILED for diagnostics.
+        _release_active_cycle_if_owned(cycle_id)
         return
 
     # Raising asks Vercel Queues to redeliver. The active-cycle fence above makes
