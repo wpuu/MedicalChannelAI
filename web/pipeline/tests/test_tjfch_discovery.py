@@ -31,6 +31,23 @@ class TjfchDiscoveryTests(unittest.TestCase):
             'tjfch_20260506_030189759',
         )
 
+    def test_officially_truncated_announcement_is_admitted_for_detail_verification(self) -> None:
+        html = '''
+        <html><body>
+          <a href="/system/2026/08/31/030197537.shtml">天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选...</a>
+          <a href="/system/2026/07/13/030194386.shtml">天津市第一中心医院26-27年度SSL域名证书安全运维项目院内比选结...</a>
+        </body></html>
+        '''
+        candidates = parse_tjfch_index_html(html)
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0].published_at, '2026-08-31')
+        self.assertEqual(
+            candidates[0].title,
+            '天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选...',
+        )
+        self.assertEqual(candidates[0].detail_url, 'https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml')
+        self.assertEqual(stable_opportunity_id(candidates[0].detail_url), 'tjfch_20260831_030197537')
+
     def test_candidate_window_is_bounded_by_official_url_date(self) -> None:
         html = '''
         <a href="/system/2026/05/06/030189759.shtml">手术无影灯采购项目院内比选公告</a>
