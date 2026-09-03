@@ -228,7 +228,11 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
       })
       toast('已联系，已记入“我的跟进”', 'success')
       onClose()
-      navigate(`/followed?focus=${encodeURIComponent(opportunityId)}`)
+      // Both local and server followed lists are ordered by latest followup
+      // update descending, so this freshly confirmed contact is naturally first.
+      // Avoid the `focus` query because FollowedPage currently reserves it for
+      // reminder-driven navigation and labels it accordingly.
+      navigate('/followed')
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         onClose()
