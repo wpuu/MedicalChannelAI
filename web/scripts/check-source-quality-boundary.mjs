@@ -3,6 +3,7 @@ import {
   minimalPrivateContextFromProfile,
   privatePriorityPoints,
 } from '../api/_privateProfileContext.js'
+import { sanitizeSnapshotFacts } from '../api/ai/_analyzeCore.js'
 
 const emptyProfile = {
   relationships: [],
@@ -65,5 +66,23 @@ assert.equal(
   1,
   'non-conflicted official categories must remain eligible for capability matching',
 )
+
+const aiFacts = sanitizeSnapshotFacts(conflictedFacts)
+assert.deepEqual(
+  aiFacts.product_categories,
+  [],
+  'AI facts must exclude source-conflicted category labels',
+)
+assert.equal(aiFacts.products[0]?.name, 'X线移动业务用车')
+assert.equal(
+  aiFacts.products[0]?.category,
+  null,
+  'AI product rows must exclude source-conflicted category labels',
+)
+assert.deepEqual(aiFacts.quality_flags, ['SOURCE_CATEGORY_TITLE_CONFLICT'])
+
+const normalAiFacts = sanitizeSnapshotFacts(nonConflictedFacts)
+assert.deepEqual(normalAiFacts.product_categories, ['医用磁共振设备'])
+assert.equal(normalAiFacts.products[0]?.category, '医用磁共振设备')
 
 console.log('Source-quality matching boundary checks: PASS')

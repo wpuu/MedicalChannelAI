@@ -21,6 +21,7 @@ const RATE_MAX_PER_CLIENT = 10
 const PROVIDER_ATTEMPT_TIMEOUT_MS = 12_000
 const PROVIDER_RETRY_DELAY_MS = 250
 const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
+const SOURCE_CATEGORY_TITLE_CONFLICT = 'SOURCE_CATEGORY_TITLE_CONFLICT'
 
 const resultCache = new Map()
 const inFlight = new Map()
@@ -133,9 +134,11 @@ function normalizeSnapshotBudget(value) {
   return typeof amount === 'number' && Number.isFinite(amount) ? amount : null
 }
 
-function sanitizeSnapshotFacts(raw) {
+export function sanitizeSnapshotFacts(raw) {
   const facts = asObject(raw) ?? {}
   const contact = asObject(facts.public_contact)
+  const qualityFlags = cleanArray(facts.quality_flags, (item) => cleanString(item, 120))
+  const sourceCategoryConflict = qualityFlags.includes(SOURCE_CATEGORY_TITLE_CONFLICT)
   return {
     project_code: cleanString(facts.project_number, 120),
     project_name: cleanString(facts.project_name, 500),
@@ -153,7 +156,9 @@ function sanitizeSnapshotFacts(raw) {
     expected_purchase_date: cleanString(facts.expected_procurement_at, 80),
     budget: normalizeSnapshotBudget(facts.budget),
     procurement_method: cleanString(facts.procurement_method, 100),
-    product_categories: cleanArray(facts.product_categories, (item) => cleanString(item, 200)),
+    product_categories: sourceCategoryConflict
+      ? []
+      : cleanArray(facts.product_categories, (item) => cleanString(item, 200)),
     products: cleanArray(facts.product_items, (item) => {
       const product = asObject(item)
       if (!product) return null
@@ -161,11 +166,12 @@ function sanitizeSnapshotFacts(raw) {
       if (!name) return null
       return {
         name,
-        category: cleanString(product.category, 200),
+        category: sourceCategoryConflict ? null : cleanString(product.category, 200),
         quantity: cleanString(product.quantity, 100),
         specification: cleanString(product.specification, 500),
       }
     }),
+    quality_flags: qualityFlags,
     official_contact: contact
       ? {
           name: cleanString(contact.name, 150),
