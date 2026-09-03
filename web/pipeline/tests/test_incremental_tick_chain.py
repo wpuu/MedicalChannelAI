@@ -91,16 +91,25 @@ class IncrementalTickChainTests(unittest.TestCase):
             0,
         )
 
-    def test_queue_chain_starts_only_after_successful_terminal_publish(self) -> None:
+    def test_queue_chain_is_accepted_before_terminal_deep_lease_is_released(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
         terminal = source.index('await _start_intraday_chain_after_deep()')
-        release = source.rfind('_release_active_cycle_if_owned(cycle_id)', 0, terminal)
-        retry_limit = source.index('COLLECTOR_STAGE_RETRY_LIMIT', terminal)
-        self.assertGreater(release, 0)
-        self.assertLess(release, terminal)
-        self.assertGreater(retry_limit, terminal)
+        release = source.index('_release_active_cycle_if_owned(cycle_id)', terminal)
+        retry_limit = source.index('COLLECTOR_STAGE_RETRY_LIMIT', release)
+        self.assertLess(terminal, release)
+        self.assertLess(release, retry_limit)
         failure_branch = source[retry_limit:]
         self.assertNotIn('_start_intraday_chain_after_deep()', failure_branch)
+
+    def test_chain_start_send_failure_is_retriable_instead_of_silently_stopping_day(self) -> None:
+        source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
+        start = source.index('async def _start_intraday_chain_after_deep')
+        end = source.index('async def process_collector_payload', start)
+        block = source[start:end]
+        self.assertIn('state="SCHEDULE_RETRY_PENDING"', block)
+        self.assertIn('await _enqueue_incremental_tick(first_tick, now=now)', block)
+        self.assertIn('raise', block)
+        self.assertNotIn('state="SCHEDULE_FAILED"', block)
 
     def test_tick_schedules_next_before_selecting_or_running_source(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
