@@ -114,6 +114,15 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.assertIn('runtime.merge_canonical_records(existing_records, staged_records)', self.runtime)
         self.assertIn('pending_record_count', self.runtime)
 
+    def test_only_explicit_carryover_can_bypass_current_discovery_lookup(self) -> None:
+        start = self.runtime.index('def _candidate_from_decision(')
+        end = self.runtime.index('\n\ndef _publish_snapshot_if_ready', start)
+        block = self.runtime[start:end]
+        self.assertIn('if candidate is not None:', block)
+        self.assertIn('if decision.reason == "PENDING_CARRYOVER":', block)
+        self.assertIn('return decision.candidate', block)
+        self.assertIn('raise RuntimeError("INCREMENTAL_SELECTED_CANDIDATE_MISSING")', block)
+
     def test_authoritative_deep_publish_discards_all_older_incremental_staging(self) -> None:
         self.assertIn('def clear_incremental_pending(cache: RuntimeCache)', self.runtime)
         start = self.queue.index('else:\n            # The completed deep cycle is authoritative')
