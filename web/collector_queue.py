@@ -10,7 +10,10 @@ import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
 from collector_incremental import scan_bucket_id
 from collector_incremental_bootstrap import bootstrap_incremental_ledger_from_canonical
-from collector_incremental_scheduler import choose_due_incremental_source
+from collector_incremental_scheduler import (
+    choose_due_incremental_source,
+    mark_incremental_source_attempt,
+)
 from collector_incremental_ticks import (
     BUSINESS_WINDOW_END,
     BUSINESS_WINDOW_START,
@@ -309,6 +312,10 @@ async def _process_incremental_tick_payload(payload: dict[str, Any]) -> None:
         return
 
     await _enqueue_incremental_source(decision.source_id, observed_at=now)
+    # The attempt fence is written only after Queue accepts the source job. If
+    # send raises, the next tick can select the source again instead of treating
+    # an unqueued job as a real failed scan.
+    mark_incremental_source_attempt(cache, decision.source_id, now=now)
     _write_chain_state(
         cache,
         state="SOURCE_QUEUED",
