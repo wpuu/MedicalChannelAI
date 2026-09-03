@@ -20,7 +20,6 @@ from collector_namespace import (
     cycle_has_running_stage,
 )
 
-CRON_SCHEDULE = "20 0 * * *"
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 MESSAGE_RETENTION = timedelta(days=2)
 
@@ -30,15 +29,17 @@ class CollectorStartConflict(RuntimeError):
 
 
 def _authorized(request: BaseHTTPRequestHandler) -> tuple[bool, str]:
-    schedule = str(request.headers.get("x-vercel-cron-schedule") or "").strip()
-    if schedule != CRON_SCHEDULE:
+    # Vercel Cron authenticates scheduled invocations with
+    # Authorization: Bearer $CRON_SECRET. A schedule/header marker is not a
+    # credential and can be forged by any public caller, so fail closed when
+    # the secret is absent or does not match.
+    cron_secret = str(os.environ.get("CRON_SECRET") or "").strip()
+    if not cron_secret:
         return False, "NONE"
 
-    cron_secret = str(os.environ.get("CRON_SECRET") or "").strip()
-    if cron_secret:
-        authorization = str(request.headers.get("authorization") or "")
-        if not hmac.compare_digest(authorization, f"Bearer {cron_secret}"):
-            return False, "NONE"
+    authorization = str(request.headers.get("authorization") or "")
+    if not hmac.compare_digest(authorization, f"Bearer {cron_secret}"):
+        return False, "NONE"
     return True, "VERCEL_CRON"
 
 
