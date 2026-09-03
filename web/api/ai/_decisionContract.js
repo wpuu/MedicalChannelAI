@@ -1,6 +1,9 @@
 const INTERNAL_FIELD_RE = /\b[a-z][a-z0-9]*_[a-z0-9_]+\b/i
-const INTERNAL_ENUM_RE = /\b(?:OPEN|BIDDING|PARTIAL|VERIFIED|LATE_WINDOW|CLOSED|AWAITING_MODEL|NOT_ELIGIBLE|BLOCKED_GROUNDING)\b/i
+const INTERNAL_ENUM_RE = /\b(?:OPEN|BIDDING|PARTIAL|VERIFIED|LATE_WINDOW|RELATIVE_WINDOW|CLOSED|AWAITING_MODEL|NOT_ELIGIBLE|BLOCKED_GROUNDING)\b/i
 const UNSUPPORTED_CHANGE_INFERENCE_RE = /(?:参数|评分标准|采购要求).{0,24}(?:后续|可能|存在).{0,16}(?:调整|变更|修改)|(?:可能|存在).{0,16}(?:补充通知|更正公告|参数调整|评分标准调整)/
+const CONCRETE_DATE_OR_TIME_RE = /(?:20\d{2}[年\/-]\d{1,2}(?:[月\/-]\d{1,2}日?)?|\d{1,2}月\d{1,2}日|\d{1,2}:\d{2})/
+const RELATIVE_DEADLINE_ASSERTION_RE = /(?:截止|截至|截止日|截止时间|官方截止|前完成报名|前报名|之前报名)/
+const RELATIVE_WINDOW_FLAG = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
 
 function asObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : null
@@ -27,7 +30,11 @@ function userVisibleTextIsClean(value) {
   return !INTERNAL_FIELD_RE.test(value) && !INTERNAL_ENUM_RE.test(value) && !UNSUPPORTED_CHANGE_INFERENCE_RE.test(value)
 }
 
-export function parseDecisionContent(rawText) {
+function relativeWindowTextIsGrounded(value) {
+  return !(CONCRETE_DATE_OR_TIME_RE.test(value) && RELATIVE_DEADLINE_ASSERTION_RE.test(value))
+}
+
+export function parseDecisionContent(rawText, constraints = {}) {
   const cleaned = String(rawText || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
   const first = cleaned.indexOf('{')
   const last = cleaned.lastIndexOf('}')
@@ -52,9 +59,16 @@ export function parseDecisionContent(rawText) {
 
   for (const visible of [action, ...reasons, ...risks]) {
     if (!userVisibleTextIsClean(visible)) throw invalid('AI_DECISION_INTERNAL_LANGUAGE')
+    if (constraints.relativeRegistrationWindow === true && !relativeWindowTextIsGrounded(visible)) {
+      throw invalid('AI_DECISION_RELATIVE_WINDOW_DEADLINE_INVENTED')
+    }
   }
 
   return { action, reasons, risks, requires_human_confirmation: true }
+}
+
+function hasRelativeRegistrationWindow(facts) {
+  return Array.isArray(facts?.quality_flags) && facts.quality_flags.includes(RELATIVE_WINDOW_FLAG)
 }
 
 function modelFacts(facts) {
@@ -69,6 +83,9 @@ function modelFacts(facts) {
     发布日期: facts.publish_date,
     报名或文件获取截止时间: facts.registration_deadline,
     仅公布截止日期: facts.registration_deadline_date,
+    相对报名窗口原文: hasRelativeRegistrationWindow(facts)
+      ? '官方原文：自公告发布之日起7天；未公布精确截止日期或时刻'
+      : null,
     投标截止时间: facts.bid_deadline,
     预计采购时间: facts.expected_purchase_date,
     预算金额元: facts.budget,
@@ -93,6 +110,9 @@ function windowGuidance(status) {
   if (status === 'LATE_WINDOW') {
     return '根据已核验公开截止时间，报名或获取文件窗口已经结束，但投标截止时间尚未到。只能建议人工核实后续合作、供货或投标可行性，不得写成正常早期介入。'
   }
+  if (status === 'RELATIVE_WINDOW') {
+    return '官方仅公布“自公告发布之日起7天”的相对报名窗口，没有公布精确截止日期或时刻。系统只将该相对窗口用于内部行动紧迫度判断；不得把系统内部推算日期或时刻写成官方截止时间。建议先联系官方确认测试企业报名是否仍开放。'
+  }
   return '根据已核验公开截止时间，当前仍在报名或获取文件窗口内。应优先给出今天可执行的核实、联系和准备动作。'
 }
 
@@ -108,6 +128,7 @@ export function buildDecisionMessages(facts, evidenceUrls, customerContext, wind
         '输入中没有提供的信息必须视为未知。字段缺失只表示当前没有足够事实，不代表官方公告不完整，更不能据此推断参数、评分标准、采购要求以后会调整或一定会发布补充通知。',
         '只有输入事实明确提供更正、终止或其他变化证据时，才能陈述相应变化；否则只能建议“核实官方附件/后续公告”。',
         '官方只公布截止日期而没有具体时刻时，不得推测成 00:00、17:00、23:59 等具体时间。',
+        '官方若只公布“自公告发布之日起若干天”的相对报名窗口，不得把系统内部用于排序或过期判断的推算日期、时刻写成官方截止事实。',
         '客户自有信息如果存在，是用户自己提供的业务资源，不是医院官方事实；只能按“用户自述/客户自有信息”使用。',
         '“用户重点关注医院”只表示用户主动想监控、开发或经营该医院，不代表已经认识院内人员、不代表存在渠道关系，也绝不能当作医院关系强度、内部可达性或中标优势。',
         '只有“用户自述医院关系”中明确提供的关系，才能作为已有医院关系使用；重点关注医院即使完全没有关系也属于正常状态。',
