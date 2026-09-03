@@ -8,8 +8,8 @@ from medical_channel_pipeline.tjfch_test_recruitment import (
     parse_tjfch_test_recruitment,
 )
 
-SOURCE_URL = "https://www.tj-fch.com/system/2026/06/09/030192069.shtml"
-INDEX_URL = "https://www.tj-fch.com/ywgk/"
+SOURCE_URL = "https://www.tjfch.com.cn/system/2026/06/09/030192069.shtml"
+INDEX_URL = "https://www.tjfch.com.cn/ywgk/"
 TITLE = "天津市第一中心医院共享设备调度系统项目测试企业征集公告"
 
 
@@ -98,6 +98,15 @@ class TjfchTestRecruitmentTests(unittest.TestCase):
             parse_tjfch_test_recruitment(
                 page(),
                 source_url="https://evil.example/system/2026/06/09/030192069.shtml",
+                index_url=INDEX_URL,
+                expected_title=TITLE,
+                observed_at="2026-06-11T02:00:00+00:00",
+                opportunity_id="tjfch_20260609_030192069",
+            )
+        with self.assertRaisesRegex(TjfchTestParseError, "SOURCE_HOST_REJECTED"):
+            parse_tjfch_test_recruitment(
+                page(),
+                source_url="https://www.tj-fch.com/system/2026/06/09/030192069.shtml",
                 index_url=INDEX_URL,
                 expected_title=TITLE,
                 observed_at="2026-06-11T02:00:00+00:00",
