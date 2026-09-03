@@ -90,6 +90,12 @@ def _save_pending_records(
     )
 
 
+def clear_incremental_pending(cache: RuntimeCache) -> None:
+    """Discard staging superseded by a fully completed authoritative deep cycle."""
+    for source_id in SUPPORTED_INCREMENTAL_SOURCES:
+        cache.delete(_pending_cache_key(source_id))
+
+
 def _last_completed_bucket(cache: RuntimeCache, source_id: str) -> str | None:
     value = cache.get(_bucket_cache_key(source_id))
     if not isinstance(value, dict):
@@ -446,11 +452,6 @@ def run_incremental_source(
     }
 
     if failures:
-        # Successful details from a partial source scan are isolated from the
-        # canonical caches consumed by _run_publish. Another source may publish in
-        # the meantime, but it cannot leak this source's half-complete scan. Queue
-        # redelivery reuses the ledger and these staged records, so successful
-        # official detail requests are not repeated.
         _save_pending_records(cache, source, staged_records)
         return 503, {
             "action": "FAILED",
