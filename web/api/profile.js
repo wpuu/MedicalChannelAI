@@ -30,6 +30,11 @@ function targetKey(item) {
   return `${item.hospital.toLowerCase()}|${String(item.department || '').toLowerCase()}`
 }
 
+function normalizeCapabilityType(value) {
+  if (typeof value !== 'string' || !CAPABILITY_TYPES.has(value)) return null
+  return value === 'DIRECT' ? 'DIRECT_UNCONFIRMED' : value
+}
+
 function validateProfile(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null
   if (!Array.isArray(body.product_capabilities) || body.product_capabilities.length > 50) return null
@@ -41,8 +46,8 @@ function validateProfile(body) {
   for (const value of body.product_capabilities) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return null
     const keyword = cleanText(value.keyword, 160)
-    const capabilityType = value.capability_type
-    if (!keyword || typeof capabilityType !== 'string' || !CAPABILITY_TYPES.has(capabilityType)) return null
+    const capabilityType = normalizeCapabilityType(value.capability_type)
+    if (!keyword || !capabilityType) return null
     productCapabilities.push({ keyword, capability_type: capabilityType })
   }
 
@@ -117,7 +122,9 @@ async function getProfile(user) {
   const sql = privateDb()
   const [capabilities, relationships, targets, preferences] = await Promise.all([
     sql`
-      SELECT keyword, capability_type, updated_at
+      SELECT keyword,
+             CASE WHEN capability_type = 'DIRECT' THEN 'DIRECT_UNCONFIRMED' ELSE capability_type END AS capability_type,
+             updated_at
       FROM private_product_capabilities
       WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
       ORDER BY created_at ASC
