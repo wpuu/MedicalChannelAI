@@ -8,6 +8,7 @@ WEB_ROOT = Path(__file__).resolve().parents[2]
 STATUS_API = WEB_ROOT / 'src' / 'services' / 'runtimeStatusApi.ts'
 TODAY_PAGE = WEB_ROOT / 'src' / 'pages' / 'TodayPage.tsx'
 DETAIL_PAGE = WEB_ROOT / 'src' / 'pages' / 'OpportunityDetailPage.tsx'
+POOL_PAGE = WEB_ROOT / 'src' / 'pages' / 'OpportunityPoolPage.tsx'
 SERVER_STATUS = WEB_ROOT / 'api' / 'status.js'
 
 
@@ -25,6 +26,7 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
         helper = STATUS_API.read_text(encoding='utf-8')
         today = TODAY_PAGE.read_text(encoding='utf-8')
         detail = DETAIL_PAGE.read_text(encoding='utf-8')
+        pool = POOL_PAGE.read_text(encoding='utf-8')
 
         # Keep source-mode/freshness policy in one shared helper instead of
         # duplicating fragile comparisons inside individual pages.
@@ -36,9 +38,9 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
         self.assertIn('暂停自动分析与沟通草稿', helper)
         self.assertIn('官方依据', helper)
 
-        # Today and direct detail navigation must both consume the same runtime
-        # boundary so a stale snapshot cannot be bypassed through a deep link.
-        for source in [today, detail]:
+        # Today, full pool, and direct detail navigation must all consume the
+        # same runtime boundary so stale data cannot be bypassed by another UI.
+        for source in [today, detail, pool]:
             self.assertIn('getRuntimeStatus()', source)
             self.assertIn('runtimeSnapshotWarning', source)
             self.assertIn('runtimeAutomationUnavailableReason', source)
@@ -47,10 +49,13 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
         self.assertIn('if (!automationUnavailableReason) setOutreachId', today)
         self.assertIn('analysisDisabled={Boolean(automationUnavailableReason)}', detail)
         self.assertIn('Boolean(automationUnavailableReason)', detail)
+        self.assertIn('aiUnavailableReason ? undefined : () => void analyze', pool)
+        self.assertIn('analysisUnavailableReason={aiUnavailableReason}', pool)
 
     def test_stale_snapshot_blocks_only_automation_not_manual_crm_actions(self) -> None:
         today = TODAY_PAGE.read_text(encoding='utf-8')
         detail = DETAIL_PAGE.read_text(encoding='utf-8')
+        pool = POOL_PAGE.read_text(encoding='utf-8')
 
         # Manual CRM actions must remain available for already-known facts even
         # when fresh automated recommendations are paused.
@@ -60,6 +65,8 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
         self.assertIn('onChangeStatus=', detail)
         self.assertIn('onAddNote=', detail)
         self.assertIn('onRemind=', detail)
+        self.assertIn('onFollow={() => void addToFollowups', pool)
+        self.assertIn('官方依据', pool)
 
 
 if __name__ == '__main__':
