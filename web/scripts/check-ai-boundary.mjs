@@ -271,24 +271,45 @@ try {
     throw new Error('AI_NETWORK_RETRY_SECRET_LEAK')
   }
 
-  process.env.AGNES_API_KEYS = ''
-  globalThis.fetch = savedFetch
-
+  // Rate limiting protects actual provider work. Cache hits and requests that
+  // stop before a provider call must not consume this scarce budget.
+  providerAttempt = 0
+  globalThis.fetch = async () => {
+    providerAttempt += 1
+    return successfulProviderResponse()
+  }
   for (let index = 0; index < 10; index += 1) {
     response = await invoke({
       origin: 'https://trial.example',
-      body: { opportunity_id: knownOpportunityId },
+      body: {
+        opportunity_id: knownOpportunityId,
+        customer_context: {
+          matching_product_capabilities: [{
+            category: `rate-limit-provider-call-${index}`,
+            capability_type: 'DIRECT_UNCONFIRMED',
+          }],
+        },
+      },
       ip: '198.51.100.5',
     })
-    expectStatus(response, 503, `AI_BOUNDARY_RATE_PRE_${index}`)
+    expectStatus(response, 200, `AI_BOUNDARY_RATE_PROVIDER_PRE_${index}`)
   }
   response = await invoke({
     origin: 'https://trial.example',
-    body: { opportunity_id: knownOpportunityId },
+    body: {
+      opportunity_id: knownOpportunityId,
+      customer_context: {
+        matching_product_capabilities: [{
+          category: 'rate-limit-provider-call-10',
+          capability_type: 'DIRECT_UNCONFIRMED',
+        }],
+      },
+    },
     ip: '198.51.100.5',
   })
   expectStatus(response, 429, 'AI_BOUNDARY_RATE_LIMIT')
   if (response.body?.error !== 'AI_RATE_LIMITED') throw new Error('AI_BOUNDARY_RATE_LIMIT_CODE')
+  if (providerAttempt !== 10) throw new Error(`AI_BOUNDARY_RATE_PROVIDER_CALL_COUNT:${providerAttempt}`)
 
   console.log('AI boundary checks: PASS')
 } finally {
