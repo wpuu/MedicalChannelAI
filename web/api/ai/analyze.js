@@ -7,6 +7,8 @@ import { loadVerifiedSnapshot } from '../_verifiedSnapshot.js'
 export { config }
 
 const PUBLIC_FIRST_PARTY_ORIGIN = 'https://medicalai.qd.je'
+const MAX_VERIFIED_SNAPSHOT_AGE_MS = 30 * 60 * 60 * 1000
+const MAX_VERIFIED_SNAPSHOT_FUTURE_SKEW_MS = 10 * 60 * 1000
 
 function firstHeaderValue(value) {
   if (Array.isArray(value)) return value[0] ?? null
@@ -58,6 +60,19 @@ function pilotSameOriginAllowed(request) {
     .filter(Boolean)
     .map((value) => value.toLowerCase())
   return hosts.includes(originUrl.host.toLowerCase())
+}
+
+function verifiedSnapshotAutomationError(snapshot, now = Date.now()) {
+  const raw = typeof snapshot?.snapshot_as_of === 'string'
+    ? snapshot.snapshot_as_of.trim()
+    : ''
+  const parsed = raw ? Date.parse(raw) : Number.NaN
+  if (!raw || Number.isNaN(parsed)) return 'VERIFIED_SNAPSHOT_NOT_FRESH'
+  const age = now - parsed
+  if (age > MAX_VERIFIED_SNAPSHOT_AGE_MS || age < -MAX_VERIFIED_SNAPSHOT_FUTURE_SKEW_MS) {
+    return 'VERIFIED_SNAPSHOT_NOT_FRESH'
+  }
+  return null
 }
 
 function rawVerifiedCard(snapshot, opportunityId) {
@@ -316,6 +331,9 @@ export default async function handler(request, response) {
 
   try {
     const snapshot = await loadVerifiedSnapshot()
+    const snapshotError = verifiedSnapshotAutomationError(snapshot)
+    if (snapshotError) return sendJson(response, 409, { error: snapshotError })
+
     const card = rawVerifiedCard(snapshot, opportunityId)
     const facts = asObject(card?.facts) || rawVerifiedFacts(snapshot, opportunityId)
 
