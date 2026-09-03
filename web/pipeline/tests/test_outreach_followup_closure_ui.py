@@ -31,6 +31,35 @@ class OutreachFollowupClosureUiTests(unittest.TestCase):
         self.assertNotIn('/followed?focus=', block)
         self.assertIn('已联系，已记入“我的跟进”', block)
 
+    def test_public_contact_quick_actions_only_use_verified_card_contact_fields(self) -> None:
+        lookup_start = self.source.index('todayActionsService\n      .getOpportunity(opportunityId)')
+        draft_start = self.source.index('void todayActionsService\n      .requestOutreachDraft', lookup_start)
+        block = self.source[lookup_start:draft_start]
+        self.assertIn('const contact = card?.facts.official_contact', block)
+        self.assertIn("contactNames(contact?.name ?? '')", block)
+        self.assertIn("contactPhones(contact?.phone ?? '')", block)
+        self.assertIn("contact?.email?.trim() || null", block)
+        for forbidden in ('hospital_relationship', 'customer_context', 'target_hospital', 'matching_product_capabilities'):
+            self.assertNotIn(forbidden, block)
+
+    def test_phone_and_email_actions_do_not_claim_contact_happened(self) -> None:
+        render_start = self.source.index('{publicContact ? (')
+        render_end = self.source.index('{draft ? (', render_start)
+        block = self.source[render_start:render_end]
+        self.assertIn('safeTelephoneHref(phone)', block)
+        self.assertIn('safeEmailHref(publicContact.email)', block)
+        self.assertIn('href={href}', block)
+        self.assertIn('mailto:', self.source)
+        self.assertNotIn('updateFollowup', block)
+        self.assertNotIn("status: 'CONTACTED'", block)
+
+    def test_public_contact_never_implies_private_relationship(self) -> None:
+        self.assertIn('公告公开联系方式', self.source)
+        self.assertIn('官方公开信息', self.source)
+        self.assertIn('不代表你与联系人或医院存在私人关系', self.source)
+        self.assertIn('safeTelephoneHref', self.source)
+        self.assertIn('/[\\r\\n]/.test(email)', self.source)
+
     def test_drawer_explains_copy_and_contact_confirmation_are_separate(self) -> None:
         self.assertIn('实际联系后再确认写入跟进台账', self.source)
         self.assertIn('复制内容', self.source)
