@@ -20,6 +20,9 @@ function outreachErrorMessage(error: unknown): string {
   if (error.message === 'OUTREACH_GROUNDING_INSUFFICIENT' || error.message === 'HTTP_409') {
     return '当前商机的公开依据不足，暂不能生成沟通草稿。'
   }
+  if (error.message === 'VERIFIED_SNAPSHOT_NOT_FRESH') {
+    return '公开商机快照已超过安全刷新窗口，请先核对官方依据，待数据刷新后再生成沟通草稿。'
+  }
   if (error.message === 'OPPORTUNITY_WINDOW_CLOSED') {
     return '当前项目的公开行动窗口已经结束，不再生成新的对外沟通草稿。'
   }
