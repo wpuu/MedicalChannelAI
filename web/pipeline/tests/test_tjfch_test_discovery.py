@@ -4,6 +4,7 @@ import unittest
 
 from medical_channel_pipeline.tjfch_test_discovery import (
     INDEX_URL,
+    TjfchTestDiscoveryError,
     parse_tjfch_test_index_html,
 )
 
@@ -19,7 +20,7 @@ class TjfchTestDiscoveryTests(unittest.TestCase):
         </body></html>
         '''
         items = parse_tjfch_test_index_html(html)
-        self.assertEqual(INDEX_URL, "https://www.tj-fch.com/ywgk/")
+        self.assertEqual(INDEX_URL, "https://www.tjfch.com.cn/ywgk/")
         self.assertEqual([item.title for item in items], [
             "天津市第一中心医院共享设备调度系统项目测试企业征集公告",
             "天津市第一中心医院项目成本和DRG成本核算系统测试企业征集公告",
@@ -41,7 +42,7 @@ class TjfchTestDiscoveryTests(unittest.TestCase):
         '''
         items = parse_tjfch_test_index_html(html)
         self.assertEqual(len(items), 1)
-        self.assertEqual(items[0].detail_url, "https://www.tj-fch.com/system/2026/06/09/030192069.shtml")
+        self.assertEqual(items[0].detail_url, "https://www.tjfch.com.cn/system/2026/06/09/030192069.shtml")
 
     def test_candidate_cap_is_bounded(self) -> None:
         html = ''.join(
@@ -49,6 +50,13 @@ class TjfchTestDiscoveryTests(unittest.TestCase):
             for i in range(3)
         )
         self.assertEqual(len(parse_tjfch_test_index_html(html, max_candidates=2)), 2)
+
+    def test_legacy_broken_tls_domain_is_rejected_as_test_index(self) -> None:
+        with self.assertRaisesRegex(TjfchTestDiscoveryError, "TJFCH_TEST_INDEX_HOST_REJECTED"):
+            parse_tjfch_test_index_html(
+                '<a href="/system/2026/07/07/030193968.shtml">天津市第一中心医院出生缺陷防控系统项目测试企业征集公告</a>',
+                index_url="https://www.tj-fch.com/ywgk/",
+            )
 
 
 if __name__ == "__main__":
