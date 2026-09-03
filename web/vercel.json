@@ -42,6 +42,7 @@
     { "source": "/api/account/delete", "destination": "/api/auth?route=delete" },
     { "source": "/api/today", "destination": "/api/private?route=today" },
     { "source": "/api/opportunity/:id", "destination": "/api/private?route=opportunity&id=:id" },
+    { "source": "/api/public-history/:id", "destination": "/api/profile?route=public-history&id=:id" },
     { "source": "/api/followup/:id", "destination": "/api/private?route=followup&id=:id" },
     { "source": "/api/followed", "destination": "/api/private?route=followed" },
     { "source": "/api/reminders", "destination": "/api/private?route=reminders" },
