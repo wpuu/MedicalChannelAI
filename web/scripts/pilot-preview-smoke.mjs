@@ -269,12 +269,67 @@ async function main() {
   const feedback = await request(`/api/feedback/${encodeURIComponent(opportunityId)}`)
   assert(feedback.payload?.value === 'NEW_WORTH_FOLLOWING', 'FEEDBACK_PERSISTENCE_FAILED')
 
+  const dueMutationId = `followup:${randomUUID()}`
+  const dueRemindAt = new Date(Date.now() - 60 * 1000).toISOString()
+  const dueFollowupBody = {
+    status: 'MONITOR',
+    mutation_id: dueMutationId,
+    note: 'Pilot Preview due reminder smoke test',
+    remind_at: dueRemindAt,
+  }
+  const firstDueFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`, {
+    method: 'POST',
+    body: dueFollowupBody,
+  })
+  assert(firstDueFollowup.payload?.mutation_inserted === true, 'DUE_REMINDER_FOLLOWUP_INSERT_FAILED')
+  assert(firstDueFollowup.payload?.current_status === 'MONITOR', 'DUE_REMINDER_STATUS_INVALID')
+  assert(
+    Date.parse(firstDueFollowup.payload?.remind_at) === Date.parse(dueRemindAt),
+    'DUE_REMINDER_SAVE_FAILED',
+  )
+
+  const repeatedDueFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`, {
+    method: 'POST',
+    body: dueFollowupBody,
+  })
+  assert(repeatedDueFollowup.payload?.mutation_inserted === false, 'DUE_REMINDER_IDEMPOTENCY_FAILED')
+  assert(repeatedDueFollowup.payload?.current_status === 'MONITOR', 'DUE_REMINDER_STATUS_DRIFTED')
+  assert(
+    Date.parse(repeatedDueFollowup.payload?.remind_at) === Date.parse(dueRemindAt),
+    'DUE_REMINDER_IDEMPOTENCY_TIME_DRIFTED',
+  )
+
+  const reminderInbox = await request('/api/reminders')
+  const dueReminder = Array.isArray(reminderInbox.payload?.reminders)
+    ? reminderInbox.payload.reminders.find((item) => item?.opportunity_id === opportunityId)
+    : null
+  assert(dueReminder, 'DUE_REMINDER_INBOX_MISSING')
+  assert(/^mrem_[0-9a-f]{64}$/.test(String(dueReminder.reminder_id || '')), 'DUE_REMINDER_ID_INVALID')
+  assert(Date.parse(dueReminder.remind_at) === Date.parse(dueRemindAt), 'DUE_REMINDER_INBOX_TIME_MISMATCH')
+
+  const acknowledgedReminder = await request(
+    `/api/reminders/${encodeURIComponent(dueReminder.reminder_id)}/ack`,
+    { method: 'POST', body: {} },
+  )
+  assert(acknowledgedReminder.payload?.acknowledged === true, 'DUE_REMINDER_ACK_FAILED')
+  assert(acknowledgedReminder.payload?.reminder_id === dueReminder.reminder_id, 'DUE_REMINDER_ACK_ID_MISMATCH')
+
+  const afterReminderAck = await request(`/api/followup/${encodeURIComponent(opportunityId)}`)
+  assert(afterReminderAck.payload?.current_status === 'MONITOR', 'DUE_REMINDER_ACK_STATUS_CHANGED')
+  assert(afterReminderAck.payload?.remind_at === null, 'DUE_REMINDER_ACK_NOT_CLEARED')
+  const inboxAfterAck = await request('/api/reminders')
+  assert(
+    !Array.isArray(inboxAfterAck.payload?.reminders)
+      || !inboxAfterAck.payload.reminders.some((item) => item?.opportunity_id === opportunityId),
+    'DUE_REMINDER_STILL_IN_INBOX_AFTER_ACK',
+  )
+
   const mutationId = `followup:${randomUUID()}`
   const remindAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
   const followupBody = {
-    status: 'REVIEWING',
+    status: 'MONITOR',
     mutation_id: mutationId,
-    note: 'Pilot Preview automated smoke test',
+    note: 'Pilot Preview future reminder smoke test',
     remind_at: remindAt,
   }
   const firstFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`, {
@@ -282,6 +337,7 @@ async function main() {
     body: followupBody,
   })
   assert(firstFollowup.payload?.mutation_inserted === true, 'FOLLOWUP_INSERT_FAILED')
+  assert(firstFollowup.payload?.current_status === 'MONITOR', 'FOLLOWUP_STATUS_INVALID')
   assert(
     Date.parse(firstFollowup.payload?.remind_at) === Date.parse(remindAt),
     'FOLLOWUP_REMINDER_SAVE_FAILED',
@@ -291,7 +347,7 @@ async function main() {
     body: followupBody,
   })
   assert(repeatedFollowup.payload?.mutation_inserted === false, 'FOLLOWUP_IDEMPOTENCY_FAILED')
-  assert(repeatedFollowup.payload?.current_status === 'REVIEWING', 'FOLLOWUP_STATUS_INVALID')
+  assert(repeatedFollowup.payload?.current_status === 'MONITOR', 'FOLLOWUP_STATUS_DRIFTED')
   assert(
     Date.parse(repeatedFollowup.payload?.remind_at) === Date.parse(remindAt),
     'FOLLOWUP_REMINDER_IDEMPOTENCY_FAILED',
@@ -302,6 +358,7 @@ async function main() {
     ? followed.payload.items.find((item) => item?.opportunity_id === opportunityId)
     : null
   assert(followedTarget, 'FOLLOWED_LIST_MISSING_TARGET')
+  assert(followedTarget?.followup_status === 'MONITOR', 'FOLLOWED_STATUS_INVALID')
   assert(
     Date.parse(followedTarget?.remind_at) === Date.parse(remindAt),
     'FOLLOWED_REMINDER_MISSING',
@@ -363,6 +420,7 @@ async function main() {
     'CROSS_SESSION_HOSPITAL_RELATIONSHIP_PERSISTENCE_FAILED',
   )
   const persistedFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`)
+  assert(persistedFollowup.payload?.current_status === 'MONITOR', 'CROSS_SESSION_FOLLOWUP_STATUS_DRIFTED')
   assert(
     Date.parse(persistedFollowup.payload?.remind_at) === Date.parse(remindAt),
     'CROSS_SESSION_REMINDER_PERSISTENCE_FAILED',
