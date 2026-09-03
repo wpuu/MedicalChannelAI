@@ -8,6 +8,7 @@ from vercel.queue import send
 
 import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
+from collector_incremental_bootstrap import bootstrap_incremental_ledger_from_canonical
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
     INCREMENTAL_ACTIVE_KEY,
@@ -145,6 +146,15 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
         observed_at=observed_at,
     )
     try:
+        # On the first incremental scan, bridge only very recent deep-collector
+        # facts whose URL + index metadata still match. This prevents immediately
+        # re-fetching details that the daily authoritative cycle just verified,
+        # while metadata changes remain eligible for a fresh detail check.
+        bootstrap_incremental_ledger_from_canonical(
+            source_id,
+            now=observed_at,
+            cache=cache,
+        )
         status, result = incremental_runtime.run_incremental_source(
             source_id,
             now=observed_at,
