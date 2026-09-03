@@ -103,7 +103,7 @@ const CAPABILITY_ALIAS_GROUPS = [
   ['ct', 'ct机', 'ct影像', '计算机断层扫描', '电子计算机断层扫描'],
   ['mr', 'mri', '磁共振', '磁共振成像'],
   ['cr', '计算机x线摄影'],
-  ['ivd', '体外诊断', '体外诊断试剂', '检测试剂', '质控品', '校准品'],
+  ['ivd', '体外诊断'],
   ['pcr', '聚合酶链式反应', '核酸扩增'],
   ['lis', '检验信息系统', '实验室信息系统'],
   ['his', '医院信息系统'],
@@ -296,10 +296,10 @@ function cardSearchText(card: TodayActionCard): { raw: string; normalized: strin
 function capabilityPoints(type: CapabilityType): number {
   switch (type) {
     case 'DIRECT_AUTHORIZED':
+    case 'DIRECT':
       return 25
     case 'RENTAL_CAPABLE':
       return 22
-    case 'DIRECT':
     case 'DIRECT_UNCONFIRMED':
       return 18
     case 'NEED_MANUFACTURER':
@@ -376,101 +376,77 @@ function targetForCard(
   return profile.target_hospitals.find((target) => hospitalScopeAppliesToCard(target, card)) ?? null
 }
 
-function capabilityForCard(
+function capabilitiesForCard(
   card: TodayActionCard,
   profile: LocalCustomerProfile,
-): LocalProductCapability | null {
-  const searchText = cardSearchText(card)
-  let best: LocalProductCapability | null = null
-  for (const capability of profile.product_capabilities) {
-    if (!isSpecificCapabilityKeyword(capability.keyword)) continue
-    const matches = capabilityMatchTerms(capability.keyword).some((term) =>
+): LocalProductCapability[] {
+  const haystack = cardSearchText(card)
+  if (!haystack.raw && !haystack.normalized) return []
+  return profile.product_capabilities.filter((capability) => {
+    if (!isSpecificCapabilityKeyword(capability.keyword)) return false
+    return capabilityMatchTerms(capability.keyword).some((term) =>
       /^[a-z0-9]{2,3}$/.test(term)
-        ? shortAsciiTokenMatches(searchText.raw, term)
-        : searchText.normalized.includes(term),
+        ? shortAsciiTokenMatches(haystack.raw, term)
+        : haystack.normalized.includes(term),
     )
-    if (!matches) continue
-    if (!best || capabilityPoints(capability.capability_type) > capabilityPoints(best.capability_type)) {
-      best = capability
-    }
-  }
-  return best
+  })
 }
 
-function flexibilityPoints(
+function cardLooksLikeLease(card: TodayActionCard): boolean {
+  const text = normalizeForMatch(
+    [
+      card.facts.project_name,
+      card.facts.procurement_method,
+      ...(card.facts.product_categories ?? []),
+    ]
+      .filter(Boolean)
+      .join('|'),
+  )
+  return text.includes('租赁') || text.includes('租用') || text.includes('租机')
+}
+
+function executionFlexibilityPoints(
   card: TodayActionCard,
-  capability: LocalProductCapability | null,
+  capabilities: LocalProductCapability[],
   profile: LocalCustomerProfile,
 ): number {
-  if (!capability) return 0
-  const projectText = normalizeForMatch(
-    [card.facts.project_name, card.facts.procurement_method].filter(Boolean).join(' '),
-  )
-  let score = 0
-  if (projectText.includes('租赁') && profile.can_handle_lease) score = 5
-  if (capability.capability_type === 'RENTAL_CAPABLE' && profile.can_handle_lease) score = 5
-  if (
-    (capability.capability_type === 'NEED_MANUFACTURER' || capability.capability_type === 'CAN_SOURCE_PARTNER') &&
-    profile.can_find_manufacturer
-  ) {
-    score = Math.max(score, 3)
+  let points = 0
+  const types = new Set(capabilities.map((item) => item.capability_type))
+
+  if (cardLooksLikeLease(card) && profile.can_handle_lease === true) {
+    return 5
+  }
+  if (types.has('RENTAL_CAPABLE') && profile.can_handle_lease === true) {
+    points = Math.max(points, 5)
   }
   if (
-    (capability.capability_type === 'PARTNER' || capability.capability_type === 'CAN_SOURCE_PARTNER') &&
-    profile.can_partner_channel
+    (types.has('NEED_MANUFACTURER') || types.has('CAN_SOURCE_PARTNER')) &&
+    profile.can_find_manufacturer === true
   ) {
-    score = Math.max(score, 3)
+    points = Math.max(points, 3)
   }
   if (
-    capability.capability_type === 'CAN_SOURCE_PARTNER' &&
-    profile.can_find_manufacturer &&
-    profile.can_partner_channel
+    (types.has('PARTNER') || types.has('CAN_SOURCE_PARTNER')) &&
+    profile.can_partner_channel === true
   ) {
-    score = 5
+    points = Math.max(points, 3)
   }
-  return score
+  if (
+    types.has('CAN_SOURCE_PARTNER') &&
+    profile.can_find_manufacturer === true &&
+    profile.can_partner_channel === true
+  ) {
+    points = 5
+  }
+  return Math.min(5, points)
 }
 
-function priorityBaseScore(card: TodayActionCard): number {
-  const privateComponentCodes = new Set([
-    'PRODUCT_EXECUTION_CAPABILITY',
-    'RELATIONSHIP',
-    'EXECUTION_FLEXIBILITY',
-  ])
-  const components = card.priority.raw_components ?? []
-  if (components.length) {
-    return components.reduce(
-      (sum, component) => privateComponentCodes.has(component.code) ? sum : sum + component.points,
-      0,
-    )
-  }
-  // The public ranking contract is 60 points; never reuse a previously personalized
-  // score as the base for another personalization pass.
-  return Math.min(60, card.priority.score)
-}
-
-export function applyLocalCustomerProfile(
-  card: TodayActionCard,
+function toCustomerContext(
+  target: LocalTargetHospital | null,
+  relation: LocalHospitalRelationship | null,
+  capabilities: LocalProductCapability[],
   profile: LocalCustomerProfile,
-): TodayActionCard {
-  const relationship = relationshipForCard(card, profile)
-  const target = targetForCard(card, profile)
-  const capability = capabilityForCard(card, profile)
-  const relationshipScore = relationship ? relationshipPoints(relationship.relationship_strength) : 0
-  const capabilityScore = capability ? capabilityPoints(capability.capability_type) : 0
-  const flexibilityScore = flexibilityPoints(card, capability, profile)
-  const baseScore = priorityBaseScore(card)
-
-  const hospitalRelationship: HospitalRelationship | null = relationship
-    ? {
-        hospital: relationship.hospital,
-        department: relationship.department,
-        relationship_strength: relationship.relationship_strength,
-        owner: '当前用户',
-        last_confirmed_at: profile.updated_at,
-      }
-    : null
-
+): CustomerContext {
   const targetHospital: TargetHospitalInterest | null = target
     ? {
         hospital: target.hospital,
@@ -479,41 +455,86 @@ export function applyLocalCustomerProfile(
         updated_at: profile.updated_at,
       }
     : null
-
-  const matchingCapability: MatchingProductCapability | null = capability
+  const hospitalRelationship: HospitalRelationship | null = relation
     ? {
-        category: capability.keyword,
-        subcategory: null,
-        matched_taxonomy_ids: [],
-        brands: [],
-        capability_type: capability.capability_type,
+        hospital: relation.hospital,
+        department: relation.department,
+        relationship_strength: relation.relationship_strength,
+        owner: null,
+        last_confirmed_at: profile.updated_at,
       }
     : null
 
-  const customerContext: CustomerContext = {
+  const matching: MatchingProductCapability[] = capabilities.map((item) => ({
+    category: item.keyword,
+    subcategory: null,
+    matched_taxonomy_ids: [],
+    brands: [],
+    capability_type: item.capability_type,
+  }))
+
+  return {
     target_hospital: targetHospital,
     hospital_relationship: hospitalRelationship,
-    matching_product_capabilities: matchingCapability ? [matchingCapability] : [],
+    matching_product_capabilities: matching,
     partnering_policy: {
       can_find_manufacturer: profile.can_find_manufacturer,
       can_partner_channel: profile.can_partner_channel,
       can_handle_lease: profile.can_handle_lease,
     },
   }
+}
 
-  return {
-    ...card,
-    customer_context: customerContext,
-    priority: {
-      ...card.priority,
-      score: Math.min(100, baseScore + relationshipScore + capabilityScore + flexibilityScore),
-      score_scope: 'PERSONALIZED',
-      components: {
-        ...card.priority.components,
-        PRODUCT_EXECUTION_CAPABILITY: Math.round((capabilityScore / 25) * 100),
-        RELATIONSHIP: Math.round((relationshipScore / 10) * 100),
-        EXECUTION_FLEXIBILITY: Math.round((flexibilityScore / 5) * 100),
-      },
-    },
+export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard[] {
+  const profile = loadLocalCustomerProfile()
+  if (
+    profile.product_capabilities.length === 0 &&
+    profile.hospital_relationships.length === 0 &&
+    profile.target_hospitals.length === 0 &&
+    profile.can_find_manufacturer === null &&
+    profile.can_partner_channel === null &&
+    profile.can_handle_lease === null
+  ) {
+    return cards
   }
+
+  const personalized = cards.map((card) => {
+    const target = targetForCard(card, profile)
+    const relation = relationshipForCard(card, profile)
+    const capabilities = capabilitiesForCard(card, profile)
+    const capabilityPoint = capabilities.reduce(
+      (max, item) => Math.max(max, capabilityPoints(item.capability_type)),
+      0,
+    )
+    const relationPoint = relation ? relationshipPoints(relation.relationship_strength) : 0
+    const flexibilityPoint = executionFlexibilityPoints(card, capabilities, profile)
+    const publicBase = Math.max(
+      0,
+      card.priority.score -
+        Math.round((card.priority.components.PRODUCT_EXECUTION_CAPABILITY / 100) * 25) -
+        Math.round((card.priority.components.RELATIONSHIP / 100) * 10) -
+        Math.round(((card.priority.components.EXECUTION_FLEXIBILITY ?? 0) / 100) * 5),
+    )
+    const privatePoints = capabilityPoint + relationPoint + flexibilityPoint
+
+    return {
+      ...card,
+      match_status: privatePoints > 0 || target ? 'MATCHED_PERSONALIZED' : card.match_status,
+      customer_context: toCustomerContext(target, relation, capabilities, profile),
+      priority: {
+        score: Math.min(100, publicBase + privatePoints),
+        score_scope: 'PERSONALIZED' as const,
+        components: {
+          ...card.priority.components,
+          PRODUCT_EXECUTION_CAPABILITY: Math.round((capabilityPoint / 25) * 100),
+          RELATIONSHIP: relationPoint * 10,
+          EXECUTION_FLEXIBILITY: flexibilityPoint * 20,
+        },
+      },
+    }
+  })
+
+  return personalized
+    .sort((a, b) => b.priority.score - a.priority.score || a.rank - b.rank)
+    .map((card, index) => ({ ...card, rank: index + 1 }))
 }
