@@ -338,11 +338,12 @@ function outreachResponse(card, privateContext) {
  * continues through the strict core validation unchanged.
  *
  * Private Pilot adds a second boundary: the browser may submit only the
- * opportunity id. Customer-private context is resolved from the authenticated
- * user session and reduced to facts relevant to that opportunity before the
- * grounded AI core sees it. The same authenticated wrapper also serves a
- * deterministic, evidence-grounded outreach draft through route=outreach so the
- * Pilot does not need another Serverless Function.
+ * opportunity id. Customer-private facts are resolved from the authenticated
+ * session, but the upstream model receives only verified public facts. Private
+ * target/relationship/capability facts are applied afterwards by a deterministic
+ * server-side overlay, so common public analysis can be reused across accounts.
+ * The same authenticated wrapper serves a deterministic grounded outreach draft
+ * through route=outreach without adding another Serverless Function.
  */
 export default async function handler(request, response) {
   const normalizedRequest = normalizeProxyOrigin(request)
@@ -395,11 +396,13 @@ export default async function handler(request, response) {
 
     if (!facts) return coreHandler(normalizedRequest, response)
     const privateContext = await minimalPrivateContextForOpportunity(user, facts)
-    const serverBody = {
-      opportunity_id: opportunityId,
-      ...(privateContext.has_context ? { customer_context: privateContext.context } : {}),
-    }
-    return coreHandler({ ...normalizedRequest, body: serverBody }, response)
+    return coreHandler({
+      ...normalizedRequest,
+      body: { opportunity_id: opportunityId },
+      __medicalChannelPrivateDecisionOverlay: privateContext.has_context
+        ? privateContext.context
+        : null,
+    }, response)
   } catch (error) {
     console.error('pilot private AI context resolution failed', {
       opportunity_id: opportunityId,

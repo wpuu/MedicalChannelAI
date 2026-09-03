@@ -3,6 +3,10 @@ import {
   verifiedSnapshotSourceMode,
 } from '../_verifiedSnapshot.js'
 import {
+  getOrCreateSharedPublicAiBrief,
+  publicAiFactHash,
+} from '../_publicIntelligenceDb.js'
+import {
   buildDecisionMessages,
   parseDecisionContent,
 } from './_decisionContract.js'
@@ -12,6 +16,7 @@ export const config = { maxDuration: 30 }
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const DEFAULT_ALTERNATE_BASE_URL = 'https://apihub.agnes-ai.cn/v1'
 const MODEL_ID = 'agnes-2.5-flash'
+const PUBLIC_AI_PROMPT_VERSION = 'decision-contract-v2-public-v1'
 const MAX_FACT_TEXT = 1200
 const MAX_ARRAY_ITEMS = 30
 const RESULT_CACHE_TTL_MS = 10 * 60 * 1000
@@ -93,6 +98,12 @@ function warmRateLimitExceeded(request) {
     }
   }
   return current.count > RATE_MAX_PER_CLIENT
+}
+
+function rateLimitError() {
+  const error = new Error('AI_RATE_LIMITED')
+  error.status = 429
+  return error
 }
 
 function fingerprint(value) {
@@ -332,6 +343,43 @@ export function runtimeWindowStatus(facts, nowMs = Date.now()) {
   return 'OPEN'
 }
 
+function endOfShanghaiDayMs(dateKey) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateKey || '')
+    ? Date.parse(`${dateKey}T23:59:59+08:00`)
+    : null
+}
+
+function nextActionDeadlineMs(facts, windowStatus, nowMs) {
+  if (windowStatus === 'LATE_WINDOW') return parsedTime(facts.bid_deadline)
+  if (windowStatus === 'RELATIVE_WINDOW') {
+    const relativeEnd = addDaysDateString(facts.publish_date, 7)
+    return relativeEnd ? endOfShanghaiDayMs(relativeEnd) : null
+  }
+  const registration = parsedTime(facts.registration_deadline)
+  if (registration !== null && registration > nowMs) return registration
+  const registrationDate = /^\d{4}-\d{2}-\d{2}$/.test(facts.registration_deadline_date || '')
+    ? endOfShanghaiDayMs(facts.registration_deadline_date)
+    : null
+  if (registrationDate !== null && registrationDate > nowMs) return registrationDate
+  const bid = parsedTime(facts.bid_deadline)
+  return bid !== null && bid > nowMs ? bid : null
+}
+
+function urgencyBucket(deadlineMs, nowMs) {
+  if (deadlineMs === null) return 'NO_DEADLINE'
+  const hours = Math.max(0, (deadlineMs - nowMs) / (60 * 60 * 1000))
+  if (hours <= 24) return 'H24'
+  if (hours <= 72) return 'H72'
+  if (hours <= 7 * 24) return 'D7'
+  if (hours <= 14 * 24) return 'D14'
+  if (hours <= 30 * 24) return 'D30'
+  return 'GT30D'
+}
+
+export function publicWindowCacheState(facts, windowStatus, nowMs = Date.now()) {
+  return `${windowStatus}:${urgencyBucket(nextActionDeadlineMs(facts, windowStatus, nowMs), nowMs)}`
+}
+
 function getApiKeys() {
   const raw = process.env.AGNES_API_KEYS || process.env.AGNES_API_KEY || ''
   return raw.split(/[\n,;]+/).map((item) => item.trim()).filter(Boolean)
@@ -437,11 +485,12 @@ async function callProviderWithTransientRetry(providerArgs, keys, opportunityId)
   }
 }
 
-async function getOrCreateDecision(cacheKey, providerArgs, keys, opportunityId) {
+async function getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request) {
   const cached = getWarmCachedDecision(cacheKey)
   if (cached) return cached
   const pending = inFlight.get(cacheKey)
   if (pending) return pending
+  if (warmRateLimitExceeded(request)) throw rateLimitError()
   const promise = callProviderWithTransientRetry(providerArgs, keys, opportunityId)
     .then((decision) => {
       cacheWarmDecision(cacheKey, decision)
@@ -452,13 +501,93 @@ async function getOrCreateDecision(cacheKey, providerArgs, keys, opportunityId) 
   return promise
 }
 
+async function getOrCreateDecision({
+  cacheKey,
+  providerArgs,
+  keys,
+  opportunityId,
+  request,
+  sharedPublic,
+}) {
+  const createResult = () => getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request)
+  if (!sharedPublic) {
+    return {
+      decision: await createResult(),
+      cache: { cache_hit: false, durable: false, generated_at: providerArgs.analysisAsOf },
+    }
+  }
+  const cached = await getOrCreateSharedPublicAiBrief({
+    opportunityId,
+    factHash: sharedPublic.factHash,
+    windowState: sharedPublic.windowState,
+    briefType: 'PUBLIC_ACTION_DECISION',
+    promptVersion: PUBLIC_AI_PROMPT_VERSION,
+    createResult,
+  })
+  return { decision: cached.result, cache: cached }
+}
+
+function relationshipStrengthLabel(value) {
+  if (value === 'STRONG') return '较强'
+  if (value === 'MEDIUM') return '中等'
+  if (value === 'HISTORICAL') return '历史'
+  if (value === 'WEAK') return '较弱'
+  return '已确认'
+}
+
+function capabilityTypeLabel(value) {
+  if (value === 'DIRECT_AUTHORIZED') return '已确认直接授权/供货能力'
+  if (value === 'RENTAL_CAPABLE') return '可执行租赁项目'
+  if (value === 'SERVICE_ONLY') return '可提供相关服务'
+  if (value === 'PARTNER' || value === 'CAN_SOURCE_PARTNER') return '可组织合作渠道'
+  if (value === 'NEED_MANUFACTURER') return '仍需匹配厂家'
+  if (value === 'DIRECT' || value === 'DIRECT_UNCONFIRMED') return '直接供货条件仍需确认'
+  return '已录入相关执行能力'
+}
+
+function appendUnique(items, values, max = 5) {
+  const result = [...items]
+  for (const value of values) {
+    if (!value || result.includes(value)) continue
+    result.push(value)
+    if (result.length >= max) break
+  }
+  return result
+}
+
+export function applyPrivateDecisionOverlay(decision, customerContext) {
+  if (!customerContext) return decision
+  const reasons = []
+  const risks = []
+  const target = customerContext.target_hospital
+  if (target?.hospital && target.watched_by_customer) {
+    reasons.push(`当前账号已将${target.hospital}${target.department ? `${target.department}` : ''}列为重点关注对象；这只表示经营目标，不代表已有院内关系。`)
+  }
+  const relationship = customerContext.hospital_relationship
+  if (relationship?.hospital) {
+    reasons.push(`当前账号已确认与${relationship.hospital}${relationship.department ? `${relationship.department}` : ''}存在${relationshipStrengthLabel(relationship.relationship_strength)}关系，可优先通过已确认关系核实真实需求和执行窗口。`)
+  }
+  const capability = customerContext.matching_product_capabilities?.[0]
+  if (capability?.category) {
+    reasons.push(`当前账号在${capability.subcategory || capability.category}方向的执行条件为“${capabilityTypeLabel(capability.capability_type)}”，可据此决定是否继续投入。`)
+    if (['NEED_MANUFACTURER', 'DIRECT', 'DIRECT_UNCONFIRMED'].includes(capability.capability_type)) {
+      risks.push('当前账号的厂家、授权或最终供货条件仍需在投入投标或正式承诺前确认。')
+    }
+  }
+  return {
+    ...decision,
+    reasons: appendUnique(decision.reasons || [], reasons),
+    risks: appendUnique(decision.risks || [], risks),
+    requires_human_confirmation: true,
+  }
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST')
     return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
   }
   if (!sameOriginAllowed(request)) return sendJson(response, 403, { error: 'SAME_ORIGIN_REQUIRED' })
-  if (warmRateLimitExceeded(request)) return sendJson(response, 429, { error: 'AI_RATE_LIMITED' })
 
   const body = asObject(request.body)
   if (!body) return sendJson(response, 400, { error: 'JSON_BODY_REQUIRED' })
@@ -477,9 +606,12 @@ export default async function handler(request, response) {
   const grounded = findVerifiedOpportunity(snapshot, opportunityId)
   if (!grounded) return sendJson(response, 404, { error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' })
 
-  const customerContext = sanitizeCustomerContext(body.customer_context)
+  const clientCustomerContext = sanitizeCustomerContext(body.customer_context)
+  const privateOverlayContext = sanitizeCustomerContext(request.__medicalChannelPrivateDecisionOverlay)
+  const modelCustomerContext = privateOverlayContext ? null : clientCustomerContext
   const analysisAsOf = new Date().toISOString()
-  const windowStatus = runtimeWindowStatus(grounded.facts, Date.parse(analysisAsOf))
+  const nowMs = Date.parse(analysisAsOf)
+  const windowStatus = runtimeWindowStatus(grounded.facts, nowMs)
   if (windowStatus === 'CLOSED') {
     return sendJson(response, 409, { error: 'OPPORTUNITY_WINDOW_CLOSED', analysis_as_of: analysisAsOf })
   }
@@ -489,28 +621,53 @@ export default async function handler(request, response) {
 
   const baseUrl = (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim()
   const snapshotAsOf = cleanString(snapshot.snapshot_as_of, 100)
-  const cacheKey = snapshotCacheKey(snapshotAsOf, opportunityId, customerContext, windowStatus)
+  const windowCacheState = publicWindowCacheState(grounded.facts, windowStatus, nowMs)
+  const factHash = publicAiFactHash(grounded.facts, grounded.evidenceUrls)
+  const cacheKey = modelCustomerContext
+    ? snapshotCacheKey(snapshotAsOf, opportunityId, modelCustomerContext, windowCacheState)
+    : `shared-public:${PUBLIC_AI_PROMPT_VERSION}:${opportunityId}:${factHash}:${windowCacheState}`
 
   try {
-    const decision = await getOrCreateDecision(cacheKey, {
-      baseUrl,
-      facts: grounded.facts,
-      evidenceUrls: grounded.evidenceUrls,
-      customerContext,
-      windowStatus,
-      analysisAsOf,
-    }, keys, opportunityId)
+    const result = await getOrCreateDecision({
+      cacheKey,
+      providerArgs: {
+        baseUrl,
+        facts: grounded.facts,
+        evidenceUrls: grounded.evidenceUrls,
+        customerContext: modelCustomerContext,
+        windowStatus,
+        analysisAsOf,
+      },
+      keys,
+      opportunityId,
+      request,
+      sharedPublic: modelCustomerContext
+        ? null
+        : { factHash, windowState: windowCacheState },
+    })
+    const decision = applyPrivateDecisionOverlay(result.decision, privateOverlayContext)
     return sendJson(response, 200, {
       schema_version: '0.1',
       opportunity_id: opportunityId,
       snapshot_as_of: snapshotAsOf,
       snapshot_source_mode: verifiedSnapshotSourceMode(),
       generated_at: analysisAsOf,
+      decision_generated_at: result.cache.generated_at,
       runtime_window_status: windowStatus,
+      public_cache_window_state: windowCacheState,
       decision,
-      decision_source: customerContext
-        ? 'GROUNDED_AI_PUBLIC_FACTS_PLUS_CUSTOMER_CONTEXT'
-        : 'GROUNDED_AI_PUBLIC_FACTS_ONLY',
+      decision_source: privateOverlayContext
+        ? 'SHARED_PUBLIC_AI_PLUS_PRIVATE_RULE_OVERLAY'
+        : modelCustomerContext
+          ? 'GROUNDED_AI_PUBLIC_FACTS_PLUS_CUSTOMER_CONTEXT'
+          : 'SHARED_GROUNDED_AI_PUBLIC_FACTS_ONLY',
+      shared_public_cache: modelCustomerContext
+        ? null
+        : {
+            cache_hit: result.cache.cache_hit === true,
+            durable: result.cache.durable === true,
+            prompt_version: PUBLIC_AI_PROMPT_VERSION,
+          },
     })
   } catch (error) {
     const status = Number(error?.status)

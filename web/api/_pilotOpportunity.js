@@ -3,6 +3,7 @@ import {
   minimalPrivateContextFromProfile,
   privatePriorityPoints,
 } from './_privateProfileContext.js'
+import { materializeVerifiedSnapshot } from './_publicIntelligenceDb.js'
 import { runtimeRefreshSnapshotPool } from './_runtimeOpportunityTime.js'
 
 const PRIVATE_COMPONENT_CODES = new Set([
@@ -10,6 +11,8 @@ const PRIVATE_COMPONENT_CODES = new Set([
   'RELATIONSHIP',
   'EXECUTION_FLEXIBILITY',
 ])
+const MATERIALIZED_SNAPSHOT_KEYS_MAX = 20
+const materializedSnapshotKeys = new Set()
 
 export function snapshotOpportunityPool(snapshot) {
   if (Array.isArray(snapshot?.opportunity_pool) && snapshot.opportunity_pool.length) {
@@ -27,6 +30,26 @@ export function findVerifiedSnapshotCard(snapshot, opportunityId) {
     (item) => item?.opportunity_id === opportunityId,
   )
   return card?.facts?.verification_status === 'VERIFIED' ? card : null
+}
+
+async function materializePublicSnapshotBestEffort(snapshot) {
+  const key = typeof snapshot?.snapshot_as_of === 'string' ? snapshot.snapshot_as_of.trim() : ''
+  if (!key || materializedSnapshotKeys.has(key)) return
+  try {
+    await materializeVerifiedSnapshot(snapshot)
+    materializedSnapshotKeys.add(key)
+    if (materializedSnapshotKeys.size > MATERIALIZED_SNAPSHOT_KEYS_MAX) {
+      const oldest = materializedSnapshotKeys.values().next().value
+      if (oldest) materializedSnapshotKeys.delete(oldest)
+    }
+  } catch (error) {
+    // The verified snapshot remains the serving authority. Public history is a
+    // durable side-store and retries on a later request rather than breaking Today.
+    console.warn('public intelligence materialization deferred', {
+      snapshot_as_of: key,
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
+  }
 }
 
 function publicCustomerContext(privateContext) {
@@ -129,6 +152,7 @@ export function personalizeSnapshotCardWithProfile(card, profile) {
 }
 
 export async function personalizedOpportunityPoolForUser(user, snapshot) {
+  await materializePublicSnapshotBestEffort(snapshot)
   const profile = await loadPrivateProfileForUser(user)
   return runtimeSnapshotOpportunityPool(snapshot)
     .filter((card) => card?.facts?.verification_status === 'VERIFIED')
