@@ -7,6 +7,7 @@ from pathlib import Path
 WEB_ROOT = Path(__file__).resolve().parents[2]
 PROFILE_API = WEB_ROOT / 'api' / 'profile.js'
 PRIVATE_CONTEXT = WEB_ROOT / 'api' / '_privateProfileContext.js'
+AI_ANALYZE = WEB_ROOT / 'api' / 'ai' / 'analyze.js'
 
 
 class LegacyDirectCapabilityTests(unittest.TestCase):
@@ -22,6 +23,13 @@ class LegacyDirectCapabilityTests(unittest.TestCase):
         self.assertIn("case 'DIRECT':\n    case 'DIRECT_UNCONFIRMED': return 18", source)
         self.assertIn("CASE WHEN capability_type = 'DIRECT' THEN 'DIRECT_UNCONFIRMED'", source)
         self.assertNotIn("case 'DIRECT': return 25", source)
+
+    def test_outreach_never_words_legacy_direct_as_authorized(self) -> None:
+        source = AI_ANALYZE.read_text(encoding='utf-8')
+        self.assertIn("if (type === 'DIRECT_AUTHORIZED')", source)
+        self.assertIn("if (type === 'DIRECT' || type === 'DIRECT_UNCONFIRMED')", source)
+        self.assertIn('我们正在确认${category}相关供货条件', source)
+        self.assertNotIn("type === 'DIRECT_AUTHORIZED' || type === 'DIRECT'", source)
 
 
 if __name__ == '__main__':
