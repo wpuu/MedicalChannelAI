@@ -45,6 +45,10 @@ def _pending_cache_key(source_id: str) -> str:
     return f"medicalchannelai:collector-incremental-pending:{source_id}:v2"
 
 
+def _pending_barrier_cache_key(source_id: str) -> str:
+    return f"medicalchannelai:collector-incremental-pending-barrier:{source_id}:v2"
+
+
 def _cache_set(cache: RuntimeCache, key: str, value: Any, *, ttl: int, tag: str) -> None:
     cache.set(key, value, {"ttl": ttl, "tags": [tag]})
 
@@ -90,10 +94,35 @@ def _save_pending_records(
     )
 
 
+def _load_pending_barrier(cache: RuntimeCache, source_id: str) -> set[str]:
+    value = cache.get(_pending_barrier_cache_key(source_id))
+    if value is None:
+        return set()
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise RuntimeError("INCREMENTAL_PENDING_BARRIER_CORRUPT")
+    return {item.strip() for item in value if item.strip()}
+
+
+def _save_pending_barrier(cache: RuntimeCache, source_id: str, urls: set[str]) -> None:
+    key = _pending_barrier_cache_key(source_id)
+    normalized = sorted({str(item).strip() for item in urls if str(item).strip()})
+    if not normalized:
+        cache.delete(key)
+        return
+    _cache_set(
+        cache,
+        key,
+        normalized,
+        ttl=PENDING_TTL_SECONDS,
+        tag="medicalchannelai-collector-incremental-pending-barrier",
+    )
+
+
 def clear_incremental_pending(cache: RuntimeCache) -> None:
     """Discard staging superseded by a fully completed authoritative deep cycle."""
     for source_id in SUPPORTED_INCREMENTAL_SOURCES:
         cache.delete(_pending_cache_key(source_id))
+        cache.delete(_pending_barrier_cache_key(source_id))
 
 
 def _last_completed_bucket(cache: RuntimeCache, source_id: str) -> str | None:
@@ -406,6 +435,7 @@ def run_incremental_source(
     verified_records: list[dict[str, Any]] = []
     nonfact_verified_count = 0
     failures: list[dict[str, str]] = []
+    successful_urls: set[str] = set()
     observed_at = observed.isoformat()
     delay_seconds = _source_delay_seconds(source)
 
@@ -420,6 +450,7 @@ def run_incremental_source(
                 decision.candidate,
                 verified_at=observed,
             )
+            successful_urls.add(decision.candidate.detail_url)
             if record is None:
                 nonfact_verified_count += 1
             else:
@@ -443,6 +474,9 @@ def run_incremental_source(
 
     existing_records, cache_key = _existing_records(cache, source)
     pending_records = _load_pending_records(cache, source)
+    pending_barrier = _load_pending_barrier(cache, source)
+    pending_barrier.difference_update(successful_urls)
+    pending_barrier.update(item["url"] for item in failures)
     staged_records = (
         runtime.merge_canonical_records(pending_records, verified_records)
         if pending_records or verified_records
@@ -461,10 +495,12 @@ def run_incremental_source(
         "verification_failure_count": len(failures),
         "canonical_record_count": len(existing_records),
         "pending_record_count": len(staged_records),
+        "pending_barrier_count": len(pending_barrier),
     }
 
     if failures:
         _save_pending_records(cache, source, staged_records)
+        _save_pending_barrier(cache, source, pending_barrier)
         return 503, {
             "action": "FAILED",
             **base_result,
@@ -473,6 +509,29 @@ def run_incremental_source(
             "error": "INCREMENTAL_DETAIL_VERIFICATION_INCOMPLETE",
             "failures": failures[:5],
         }
+
+    if pending_barrier:
+        # A detail that failed in an earlier attempt disappeared from this scan's
+        # discovery set. Do not infer that the failure was resolved. Keep all
+        # successful sibling records isolated, finish this bucket without a public
+        # refresh, and let the normal source interval recheck the unresolved URL.
+        # A successful authoritative deep cycle also clears this staging.
+        _save_pending_records(cache, source, staged_records)
+        _save_pending_barrier(cache, source, pending_barrier)
+        result = {
+            **base_result,
+            "snapshot_refreshed": False,
+            "snapshot_as_of": None,
+            "deferred_reason": "PENDING_VERIFICATION_BARRIER",
+        }
+        _mark_bucket_completed(
+            cache,
+            source_id=source,
+            bucket_id=bucket_id,
+            completed_at=observed,
+            result=result,
+        )
+        return 200, {"action": "COMPLETED", **result}
 
     if staged_records:
         merged = runtime.merge_canonical_records(existing_records, staged_records)
@@ -485,11 +544,13 @@ def run_incremental_source(
     else:
         merged = existing_records
     _save_pending_records(cache, source, [])
+    _save_pending_barrier(cache, source, set())
 
     completed_result = {
         **base_result,
         "canonical_record_count": len(merged),
         "pending_record_count": 0,
+        "pending_barrier_count": 0,
     }
     try:
         snapshot_refreshed, publish_result = _publish_snapshot_if_ready(cache, observed)
