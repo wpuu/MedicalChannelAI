@@ -353,9 +353,16 @@ _VERIFICATION: dict[str, Callable[[Any, str, datetime], dict[str, Any] | None]] 
 
 def _candidate_from_decision(decision: VerificationDecision, discovered_by_url: dict[str, Any]) -> Any:
     candidate = discovered_by_url.get(decision.candidate.detail_url)
-    if candidate is None:
-        raise RuntimeError("INCREMENTAL_SELECTED_CANDIDATE_MISSING")
-    return candidate
+    if candidate is not None:
+        return candidate
+    # Carryover candidates were discovered on an earlier bounded index scan and
+    # are intentionally absent from today's truncated discovery set. Their
+    # CandidateObservation contains the exact official URL/index metadata whose
+    # fingerprint was persisted in the source ledger. Only this explicit reason
+    # may bypass the current-discovery lookup; all other misses remain bugs.
+    if decision.reason == "PENDING_CARRYOVER":
+        return decision.candidate
+    raise RuntimeError("INCREMENTAL_SELECTED_CANDIDATE_MISSING")
 
 
 def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime) -> tuple[bool, dict[str, Any] | None]:
