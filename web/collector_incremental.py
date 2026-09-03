@@ -8,6 +8,7 @@ from typing import Any, Iterable
 
 
 LEDGER_SCHEMA_VERSION = "0.1"
+LEDGER_ENTRY_RETENTION_DAYS = 45
 PENDING_CARRYOVER_MAX_AGE_HOURS = 48
 
 # Shared intraday planner defaults. The daily deep collector remains the
@@ -173,6 +174,17 @@ def _parsed_at(value: Any) -> datetime | None:
     return parsed.astimezone(timezone.utc)
 
 
+def _prune_entries(entries: dict[str, dict[str, Any]], *, now: datetime) -> dict[str, dict[str, Any]]:
+    cutoff = now - timedelta(days=LEDGER_ENTRY_RETENTION_DAYS)
+    retained: dict[str, dict[str, Any]] = {}
+    for key, entry in entries.items():
+        last_seen = _parsed_at(entry.get("last_seen_at"))
+        if last_seen is None or last_seen < cutoff or last_seen > now:
+            continue
+        retained[key] = entry
+    return retained
+
+
 def _verification_reason(
     entry: dict[str, Any] | None,
     observation: CandidateObservation,
@@ -266,7 +278,7 @@ def plan_detail_verification(
         raise ValueError("INCREMENTAL_COLLECTOR_POLICY_INVALID")
 
     normalized = normalize_ledger(ledger)
-    entries = dict(normalized["entries"])
+    entries = _prune_entries(dict(normalized["entries"]), now=observed)
     seen_urls: set[str] = set()
     decisions: list[VerificationDecision] = []
     carryover: list[VerificationDecision] = []
@@ -297,7 +309,7 @@ def plan_detail_verification(
     # ledger rows across that truncation boundary. This is bounded to 48 hours;
     # the daily deep collector remains the long-tail reconciliation authority.
     carryover_cutoff = observed - timedelta(hours=PENDING_CARRYOVER_MAX_AGE_HOURS)
-    for entry in normalized["entries"].values():
+    for entry in entries.values():
         detail_url = _text(entry.get("detail_url"), max_length=2000)
         if not detail_url or detail_url in seen_urls:
             continue
@@ -360,9 +372,11 @@ def record_verification_success(
     verified_at: datetime | None = None,
 ) -> dict[str, Any]:
     current = normalize_ledger(ledger)
-    when = _utc(verified_at).isoformat()
+    current_time = _utc(verified_at)
+    when = current_time.isoformat()
+    entries = _prune_entries(dict(current["entries"]), now=current_time)
     key = ledger_key(observation)
-    entry = current["entries"].get(key)
+    entry = entries.get(key)
     if entry is None:
         entry = _observed_entry(None, observation, when)
     entry = dict(entry)
@@ -376,7 +390,6 @@ def record_verification_success(
             "last_error": None,
         }
     )
-    entries = dict(current["entries"])
     entries[key] = entry
     return {
         "schema_version": LEDGER_SCHEMA_VERSION,
@@ -393,9 +406,11 @@ def record_verification_failure(
     failed_at: datetime | None = None,
 ) -> dict[str, Any]:
     current = normalize_ledger(ledger)
-    when = _utc(failed_at).isoformat()
+    current_time = _utc(failed_at)
+    when = current_time.isoformat()
+    entries = _prune_entries(dict(current["entries"]), now=current_time)
     key = ledger_key(observation)
-    entry = current["entries"].get(key)
+    entry = entries.get(key)
     if entry is None:
         entry = _observed_entry(None, observation, when)
     entry = dict(entry)
@@ -409,7 +424,6 @@ def record_verification_failure(
             "last_error": _text(error, max_length=300),
         }
     )
-    entries = dict(current["entries"])
     entries[key] = entry
     return {
         "schema_version": LEDGER_SCHEMA_VERSION,
