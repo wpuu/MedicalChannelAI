@@ -12,6 +12,7 @@ from .tjfch_discovery import ALLOWED_HOSTS
 from .validation import validate_record
 
 TIANJIN = ZoneInfo("Asia/Shanghai")
+RESULT_MARKERS = ("结果", "成交", "中标", "废标", "终止", "更正", "变更", "公示")
 
 
 class TjfchParseError(ValueError):
@@ -37,14 +38,81 @@ class _VisibleTextParser(HTMLParser):
             self.parts.append(data.strip())
 
 
+class _H1Parser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self._depth = 0
+        self._parts: list[str] = []
+        self.titles: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "h1":
+            if self._depth == 0:
+                self._parts = []
+            self._depth += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "h1" and self._depth:
+            self._depth -= 1
+            if self._depth == 0:
+                title = re.sub(r"\s+", " ", "".join(self._parts)).strip()
+                if title:
+                    self.titles.append(title)
+                self._parts = []
+
+    def handle_data(self, data: str) -> None:
+        if self._depth and data.strip():
+            self._parts.append(data.strip())
+
+
 def _visible_text(html: str) -> str:
     parser = _VisibleTextParser()
     parser.feed(html)
     return " ".join(parser.parts)
 
 
+def _extract_h1_title(html: str) -> str | None:
+    parser = _H1Parser()
+    parser.feed(html)
+    return parser.titles[0] if parser.titles else None
+
+
 def _normalize(text: str) -> str:
     return re.sub(r"\s+", "", text)
+
+
+def _is_truncated_title(normalized: str) -> bool:
+    return normalized.endswith("...") or normalized.endswith("…")
+
+
+def _strip_truncation(normalized: str) -> str:
+    return re.sub(r"(?:\.{3,}|…)+$", "", normalized)
+
+
+def _resolve_notice_title(html: str, text: str, expected_title: str) -> str:
+    expected_normalized = _normalize(expected_title)
+    detail_h1 = _extract_h1_title(html)
+
+    if _is_truncated_title(expected_normalized):
+        if not detail_h1:
+            raise TjfchParseError("TJFCH_TITLE_MISMATCH")
+        prefix = _strip_truncation(expected_normalized)
+        if not _normalize(detail_h1).startswith(prefix):
+            raise TjfchParseError("TJFCH_TITLE_MISMATCH")
+        resolved = detail_h1
+    elif detail_h1 and _normalize(detail_h1) == expected_normalized:
+        resolved = detail_h1
+    elif expected_normalized in _normalize(text):
+        resolved = expected_title.strip()
+    else:
+        raise TjfchParseError("TJFCH_TITLE_MISMATCH")
+
+    resolved_normalized = _normalize(resolved)
+    if "院内比选" not in resolved_normalized or "公告" not in resolved_normalized:
+        raise TjfchParseError("TJFCH_NOTICE_TYPE_UNSUPPORTED")
+    if any(marker in resolved_normalized for marker in RESULT_MARKERS):
+        raise TjfchParseError("TJFCH_NOTICE_TYPE_UNSUPPORTED")
+    return resolved
 
 
 def _assert_url(url: str, *, code: str) -> None:
@@ -159,10 +227,7 @@ def parse_tjfch_procurement_notice(
         raise TjfchParseError("TJFCH_INDEX_PUBLISHED_DATE_INVALID") from exc
 
     text = _visible_text(html)
-    if _normalize(expected_title) not in _normalize(text):
-        raise TjfchParseError("TJFCH_TITLE_MISMATCH")
-    if "院内比选" not in _normalize(expected_title) or "公告" not in _normalize(expected_title):
-        raise TjfchParseError("TJFCH_NOTICE_TYPE_UNSUPPORTED")
+    resolved_title = _resolve_notice_title(html, text, expected_title)
     if index_published_at not in text and index_published_at.replace("-", "年", 1).replace("-", "月", 1) not in text:
         chinese_date = date.fromisoformat(index_published_at)
         date_markers = {
@@ -179,7 +244,7 @@ def parse_tjfch_procurement_notice(
 
     facts: dict[str, Any] = {
         "project_number": project_number,
-        "project_name": expected_title.strip(),
+        "project_name": resolved_title,
         "buyer_name": "天津市第一中心医院",
         "hospital_name": "天津市第一中心医院",
         "department": None,
@@ -200,15 +265,15 @@ def parse_tjfch_procurement_notice(
     }
 
     evidence: list[dict[str, str]] = [
-        {"field_path": "facts.project_name", "source_url": source_url, "locator": "详情页标题与官方列表标题一致"},
+        {"field_path": "facts.project_name", "source_url": source_url, "locator": "详情页完整H1与官方列表标题/截断前缀一致"},
         {"field_path": "facts.buyer_name", "source_url": source_url, "locator": "天津市第一中心医院官方院内比选页面主体"},
         {"field_path": "facts.hospital_name", "source_url": source_url, "locator": "天津市第一中心医院官方院内比选页面主体"},
         {"field_path": "facts.region", "source_url": source_url, "locator": "天津市第一中心医院官方页面主体"},
-        {"field_path": "facts.lifecycle_state", "source_url": source_url, "locator": "标题/正文=院内比选采购公告；确定性映射为BIDDING"},
-        {"field_path": "facts.notice_type", "source_url": source_url, "locator": "官方栏目=院内比选采购信息；标题含院内比选公告"},
+        {"field_path": "facts.lifecycle_state", "source_url": source_url, "locator": "详情页完整标题=院内比选采购公告；确定性映射为BIDDING"},
+        {"field_path": "facts.notice_type", "source_url": source_url, "locator": "官方栏目=院内比选采购信息；详情页完整标题含院内比选公告"},
         {"field_path": "facts.published_at", "source_url": source_url, "locator": "详情页发布日期与/system/YYYY/MM/DD/路径日期一致"},
         {"field_path": "facts.bid_deadline", "source_url": source_url, "locator": "响应/投标文件递交截止时间，原文含明确日期和时分"},
-        {"field_path": "facts.procurement_method", "source_url": source_url, "locator": "标题/正文明确采用院内比选"},
+        {"field_path": "facts.procurement_method", "source_url": source_url, "locator": "详情页标题/正文明确采用院内比选"},
     ]
     if project_number:
         evidence.append({"field_path": "facts.project_number", "source_url": source_url, "locator": "项目编号"})
