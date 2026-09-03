@@ -369,7 +369,6 @@ def record_verification_success(
     entry.update(
         {
             "fingerprint": observation.fingerprint,
-            "last_seen_at": max(entry.get("last_seen_at") or when, when),
             "last_verified_at": when,
             "last_verification_fingerprint": observation.fingerprint,
             "verification_status": "VERIFIED",
@@ -403,7 +402,6 @@ def record_verification_failure(
     entry.update(
         {
             "fingerprint": observation.fingerprint,
-            "last_seen_at": max(entry.get("last_seen_at") or when, when),
             "verification_status": "FAILED",
             "verification_failure_count": max(
                 0, int(entry.get("verification_failure_count") or 0)
