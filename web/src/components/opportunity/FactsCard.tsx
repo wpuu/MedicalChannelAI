@@ -14,6 +14,16 @@ function registrationDeadlineDisplay(facts: Facts): string | null {
   return null
 }
 
+function telHref(value: string | null | undefined): string | null {
+  const normalized = String(value || '').replace(/[^\d+]/g, '')
+  return normalized.replace('+', '').length >= 5 ? `tel:${normalized}` : null
+}
+
+function mailtoHref(value: string | null | undefined): string | null {
+  const email = String(value || '').trim()
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? `mailto:${email}` : null
+}
+
 export function FactsCard({ facts }: { facts: Facts }) {
   const subtitle = isApiMode
     ? '官方/已验证事实 · 空值不会自行补全'
@@ -25,6 +35,10 @@ export function FactsCard({ facts }: { facts: Facts }) {
     : isVerifiedPublicDemo
       ? '真实公开事实'
       : '演示公开字段'
+  const contactPhone = facts.official_contact?.phone?.trim() || null
+  const contactEmail = facts.official_contact?.email?.trim() || null
+  const contactPhoneHref = telHref(contactPhone)
+  const contactEmailHref = mailtoHref(contactEmail)
 
   return (
     <SectionCard
@@ -77,11 +91,42 @@ export function FactsCard({ facts }: { facts: Facts }) {
         {!facts.official_contact ? (
           <OfficialText value={null} />
         ) : (
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <p>姓名：<OfficialText value={facts.official_contact.name} /></p>
             <p>职务：<OfficialText value={facts.official_contact.title} /></p>
-            <p>电话：<OfficialText value={facts.official_contact.phone} /></p>
-            <p>邮箱：<OfficialText value={facts.official_contact.email} /></p>
+            <p>
+              电话：{contactPhone ? (
+                contactPhoneHref ? (
+                  <a
+                    href={contactPhoneHref}
+                    className="font-medium text-teal-700 underline decoration-teal-200 underline-offset-2"
+                  >
+                    {contactPhone}
+                  </a>
+                ) : (
+                  <span>{contactPhone}</span>
+                )
+              ) : <OfficialText value={null} />}
+            </p>
+            <p>
+              邮箱：{contactEmail ? (
+                contactEmailHref ? (
+                  <a
+                    href={contactEmailHref}
+                    className="font-medium text-teal-700 underline decoration-teal-200 underline-offset-2"
+                  >
+                    {contactEmail}
+                  </a>
+                ) : (
+                  <span>{contactEmail}</span>
+                )
+              ) : <OfficialText value={null} />}
+            </p>
+            {(contactPhoneHref || contactEmailHref) ? (
+              <p className="pt-1 text-[11px] leading-5 text-slate-400">
+                点击仅打开系统拨号或邮件应用，不会自动把商机标记为“已联系”。
+              </p>
+            ) : null}
           </div>
         )}
       </FactRow>
