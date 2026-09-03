@@ -600,7 +600,10 @@ def _run_teda(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             delay_seconds=TEDA_REQUEST_DELAY_SECONDS,
         )
     except Exception as exc:
-        raise CollectorStageBlocked(f"TEDA_INDEX_DISCOVERY_FAILED:{type(exc).__name__}") from exc
+        message = str(exc)[:180]
+        raise CollectorStageBlocked(
+            f"TEDA_INDEX_DISCOVERY_FAILED:{type(exc).__name__}:{message}"
+        ) from exc
 
     new_records: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
