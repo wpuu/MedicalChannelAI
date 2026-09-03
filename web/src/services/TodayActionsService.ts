@@ -5,8 +5,12 @@ import type {
   TodayActionsResponse,
 } from '@/types'
 
+export interface TodayActionsLoadOptions {
+  hydrateFollowups?: boolean
+}
+
 export interface TodayActionsService {
-  getTodayActions(): Promise<TodayActionsResponse>
+  getTodayActions(options?: TodayActionsLoadOptions): Promise<TodayActionsResponse>
   getOpportunity(id: string): Promise<TodayActionCard | null>
   updateFollowup(id: string, input: FollowupInput): Promise<void>
   requestOutreachDraft(id: string): Promise<OutreachDraft>
