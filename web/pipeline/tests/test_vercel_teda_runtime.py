@@ -58,6 +58,15 @@ class VercelTedaRuntimeTests(unittest.TestCase):
         self.assertIn("TEDA_MAX_CANDIDATES = 20", self.runtime)
         self.assertIn("TEDA_LOOKBACK_DAYS = 90", self.runtime)
 
+    def test_teda_index_failure_keeps_bounded_page_level_diagnostics(self) -> None:
+        body = _function_source(self.runtime, "_run_teda")
+        self.assertIn('message = str(exc)[:180]', body)
+        self.assertIn(
+            'f"TEDA_INDEX_DISCOVERY_FAILED:{type(exc).__name__}:{message}"',
+            body,
+        )
+        self.assertIn("discover_teda_candidates", body)
+
     def test_teda_failure_blocks_before_canonical_cache_write(self) -> None:
         body = _function_source(self.runtime, "_run_teda")
         failure_gate = body.index("if failures:")
