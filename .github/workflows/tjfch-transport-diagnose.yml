@@ -16,26 +16,67 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Inspect First Central Hospital TLS certificate chain
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate new First Central Hospital official HTTPS domain
         shell: bash
         run: |
-          set -uo pipefail
-          HOST='www.tj-fch.com'
-          echo '=== DNS ==='
-          getent ahosts "$HOST" || true
-          echo '=== OpenSSL chain summary ==='
-          openssl s_client -connect "$HOST:443" -servername "$HOST" -showcerts </dev/null > /tmp/tjfch-sclient.out 2>/tmp/tjfch-sclient.err || true
-          grep -E '^(depth=|verify error:|Verify return code:|CONNECTED|Certificate chain)' /tmp/tjfch-sclient.out /tmp/tjfch-sclient.err || true
-          echo "certificate_count=$(grep -c 'BEGIN CERTIFICATE' /tmp/tjfch-sclient.out || true)"
-          echo '=== Leaf certificate ==='
-          awk '/BEGIN CERTIFICATE/{p=1} p{print} /END CERTIFICATE/{exit}' /tmp/tjfch-sclient.out > /tmp/tjfch-leaf.pem
-          if [ -s /tmp/tjfch-leaf.pem ]; then
-            openssl x509 -in /tmp/tjfch-leaf.pem -noout \
-              -subject -issuer -serial -dates -fingerprint -sha256 \
-              -ext subjectAltName -ext authorityInfoAccess || true
-          else
-            echo 'leaf_certificate_missing'
-          fi
-          echo '=== Verification result ==='
-          tail -n 25 /tmp/tjfch-sclient.out || true
-          cat /tmp/tjfch-sclient.err || true
+          set -euo pipefail
+          python - <<'PY'
+          import re
+          import urllib.request
+          from html.parser import HTMLParser
+
+          class Links(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.rows=[]
+                  self.href=None
+                  self.text=[]
+              def handle_starttag(self, tag, attrs):
+                  if tag == 'a':
+                      self.href=dict(attrs).get('href')
+                      self.text=[]
+              def handle_data(self, data):
+                  if self.href is not None and data.strip():
+                      self.text.append(data.strip())
+              def handle_endtag(self, tag):
+                  if tag == 'a' and self.href is not None:
+                      title=re.sub(r'\s+',' ',' '.join(self.text)).strip()
+                      self.rows.append((self.href,title))
+                      self.href=None
+                      self.text=[]
+
+          urls = [
+              'https://www.tjfch.com.cn/',
+              'https://www.tjfch.com.cn/ywgk/ynbx/index.shtml',
+              'https://www.tjfch.com.cn/ywgk/',
+              'https://www.tjfch.com.cn/system/2026/06/18/030192813.shtml',
+          ]
+          headers={
+              'User-Agent':'MedicalChannelAI/0.1 (+official hospital evidence collection)',
+              'Accept':'text/html,application/xhtml+xml',
+              'Accept-Language':'zh-CN,zh;q=0.9',
+          }
+          for url in urls:
+              print(f'--- url={url}')
+              req=urllib.request.Request(url,headers=headers)
+              try:
+                  with urllib.request.urlopen(req,timeout=20) as resp:
+                      body=resp.read()
+                      charset=resp.headers.get_content_charset() or 'utf-8'
+                      text=body.decode(charset,errors='replace')
+                      print('status=',resp.status,'final=',resp.geturl(),'chars=',len(text))
+                      print('markers=',{
+                          'hospital': '天津市第一中心医院' in text,
+                          'procurement': '院内比选' in text,
+                          'test_recruitment': '测试企业征集' in text,
+                          'ssl_project': 'SSL域名证书安全运维项目' in text,
+                      })
+                      parser=Links(); parser.feed(text)
+                      interesting=[(h,t) for h,t in parser.rows if ('院内比选' in t or '测试企业征集' in t or '/ywgk/' in (h or ''))]
+                      for row in interesting[:20]: print('link=',row)
+              except Exception as exc:
+                  print('FAIL',type(exc).__name__,repr(exc))
+          PY
