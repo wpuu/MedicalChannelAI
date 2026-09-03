@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Copy, Loader2 } from 'lucide-react'
+import { CheckCircle2, Copy, Loader2 } from 'lucide-react'
 import { Drawer } from '@/components/ui/Drawer'
 import { todayActionsService } from '@/services'
 import { isAuthRequiredError } from '@/services/apiConfig'
@@ -150,6 +150,7 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
   const navigate = useNavigate()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [recordingContact, setRecordingContact] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [draft, setDraft] = useState<OutreachDraft | null>(null)
   const [availableRecipients, setAvailableRecipients] = useState<string[]>([])
@@ -159,6 +160,7 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     if (!open || !opportunityId) return
     let cancelled = false
     setLoading(true)
+    setRecordingContact(false)
     setError(null)
     setDraft(null)
     setAvailableRecipients([])
@@ -216,29 +218,66 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     }
   }
 
+  const recordContacted = async () => {
+    if (!opportunityId || recordingContact) return
+    setRecordingContact(true)
+    try {
+      await todayActionsService.updateFollowup(opportunityId, {
+        status: 'CONTACTED',
+        note: '从沟通草稿入口确认已完成联系。',
+      })
+      toast('已联系，已记入“我的跟进”', 'success')
+      onClose()
+      navigate(`/followed?focus=${encodeURIComponent(opportunityId)}`)
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        onClose()
+        navigate('/login', { replace: true })
+        return
+      }
+      toast('联系状态保存失败，请重试')
+    } finally {
+      setRecordingContact(false)
+    }
+  }
+
   return (
     <Drawer
       open={open}
       onClose={onClose}
       title="沟通草稿"
-      subtitle="可直接复制，发送前按实际情况修改"
+      subtitle="可直接复制；实际联系后再确认写入跟进台账"
       footer={
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-[13px] text-slate-600"
+            disabled={recordingContact}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-[13px] text-slate-600 disabled:opacity-50"
           >
             关闭
           </button>
           <button
             type="button"
-            disabled={!sendableDraft}
+            disabled={!sendableDraft || recordingContact}
             onClick={copyDraft}
-            className="inline-flex items-center gap-1 rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] text-white disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[13px] font-medium text-indigo-800 disabled:opacity-50"
           >
             <Copy className="h-3.5 w-3.5" />
             复制内容
+          </button>
+          <button
+            type="button"
+            disabled={loading || recordingContact || !opportunityId}
+            onClick={() => void recordContacted()}
+            className="inline-flex items-center gap-1 rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] font-medium text-white disabled:opacity-50"
+          >
+            {recordingContact ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-3.5 w-3.5" />
+            )}
+            {recordingContact ? '正在记录…' : '已联系，记入跟进'}
           </button>
         </div>
       }
