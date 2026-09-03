@@ -98,6 +98,10 @@ class PublishedWebSnapshotTests(unittest.TestCase):
             PIPELINE_ROOT / 'data' / 'tianjin_live_teda_records.json',
             label='live TEDA state',
         )
+        live_tjfch = load_optional_array(
+            PIPELINE_ROOT / 'data' / 'tianjin_live_tjfch_records.json',
+            label='live First Central Hospital state',
+        )
 
         ccgp_source = live_ccgp if live_ccgp else load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_verified_seed.json', label='CCGP seed'
@@ -105,7 +109,7 @@ class PublishedWebSnapshotTests(unittest.TestCase):
         tmugh_source = live_tjmugh if live_tjmugh else load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_official_institution_seed.json', label='TMUGH seed'
         )
-        records = [*ccgp_source, *tmugh_source, *live_tjnothop, *live_teda]
+        records = [*ccgp_source, *tmugh_source, *live_tjnothop, *live_teda, *live_tjfch]
 
         notice_events = load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json', label='notice events'
