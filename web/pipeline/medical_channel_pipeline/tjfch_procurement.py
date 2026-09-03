@@ -201,11 +201,17 @@ def _extract_bid_deadline(text: str) -> str:
 
 def _extract_contact(text: str) -> dict[str, str | None] | None:
     name_match = re.search(r"联系人\s*[：:]\s*([^\s，,。；;]{1,15})", text)
-    phone_match = re.search(r"(?:联系电话|电话)\s*[：:]\s*([0-9][0-9\-\s]{6,24})", text)
+    phone_match = re.search(
+        r"(?:联系电话|电话)\s*[：:]\s*"
+        r"((?:1[3-9]\d{9})|(?:0\d{2,3}\s*[-－]\s*\d{7,8})|(?:0\d{9,11})|(?:\d{7,8}))",
+        text,
+    )
     email_match = re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
     if not (name_match or phone_match or email_match):
         return None
-    phone = re.sub(r"\s+", "", phone_match.group(1)).strip() if phone_match else None
+    phone = None
+    if phone_match:
+        phone = re.sub(r"\s+", "", phone_match.group(1)).replace("－", "-").strip()
     return {
         "name": name_match.group(1).strip() if name_match else None,
         "title": None,
