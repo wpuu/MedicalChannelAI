@@ -10,6 +10,7 @@ interface ActionButtonsProps {
   onOutreach: () => void
   busy?: boolean
   outreachDisabled?: boolean
+  outreachDisabledReason?: string | null
 }
 
 export function ActionButtons({
@@ -21,6 +22,7 @@ export function ActionButtons({
   onOutreach,
   busy,
   outreachDisabled,
+  outreachDisabledReason,
 }: ActionButtonsProps) {
   const btn =
     'inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border px-2.5 py-1.5 text-[12px] font-medium transition disabled:opacity-50'
@@ -73,7 +75,7 @@ export function ActionButtons({
       <button
         type="button"
         disabled={busy || outreachDisabled}
-        title={outreachDisabled ? '公开依据不足，暂不安全生成沟通话术' : undefined}
+        title={outreachDisabled ? outreachDisabledReason || '公开依据不足，暂不安全生成沟通话术' : undefined}
         onClick={onOutreach}
         className={cn(
           btn,
@@ -81,7 +83,7 @@ export function ActionButtons({
         )}
       >
         <MessageSquareText className="h-3.5 w-3.5" />
-        {outreachDisabled ? '依据不足' : '生成沟通话术'}
+        {outreachDisabled ? '暂不能生成' : '生成沟通话术'}
       </button>
     </div>
   )
