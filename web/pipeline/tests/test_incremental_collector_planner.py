@@ -116,6 +116,27 @@ class IncrementalCollectorPlannerTests(unittest.TestCase):
         )
         self.assertEqual([item.reason for item in plan.deferred], ["PERIODIC_REVERIFY_DUE"])
 
+    def test_detail_budget_prioritizes_newest_candidate_within_same_priority(self) -> None:
+        plan = plan_detail_verification(
+            "tjmugh",
+            [
+                candidate("https://hospital.example/old", published_at="2026-09-02"),
+                candidate("https://hospital.example/newest", published_at="2026-09-04"),
+                candidate("https://hospital.example/middle", published_at="2026-09-03"),
+            ],
+            empty_ledger(),
+            now=NOW,
+            max_details=2,
+        )
+        self.assertEqual(
+            [item.candidate.detail_url for item in plan.selected],
+            ["https://hospital.example/newest", "https://hospital.example/middle"],
+        )
+        self.assertEqual(
+            [item.candidate.detail_url for item in plan.deferred],
+            ["https://hospital.example/old"],
+        )
+
     def test_failure_is_retried_even_when_index_metadata_is_unchanged(self) -> None:
         row = candidate("https://hospital.example/a")
         observation = candidate_observation("tjmugh", row)
