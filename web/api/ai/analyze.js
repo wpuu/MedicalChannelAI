@@ -193,10 +193,10 @@ function capabilitySentence(context) {
   const type = capability?.capability_type
   if (!category || !type) return null
 
-  if (type === 'DIRECT_AUTHORIZED' || type === 'DIRECT') {
+  if (type === 'DIRECT_AUTHORIZED') {
     return `我们目前有${category}相关产品/方案资源，可按公开要求进一步准备资质和技术资料。`
   }
-  if (type === 'DIRECT_UNCONFIRMED') {
+  if (type === 'DIRECT' || type === 'DIRECT_UNCONFIRMED') {
     return `我们正在确认${category}相关供货条件，如项目仍有公开对接窗口，可先按要求准备技术资料。`
   }
   if (type === 'RENTAL_CAPABLE') {
