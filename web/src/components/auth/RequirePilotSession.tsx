@@ -5,6 +5,7 @@ import {
   isApiMode,
   isAuthRequiredError,
 } from '@/services/apiConfig'
+import { activateDiscoveryWorkspaceForAccount } from '@/services/discoveryWorkspaceAccountIsolation'
 
 type State = 'loading' | 'authorized' | 'unauthorized' | 'error'
 
@@ -15,7 +16,8 @@ export function RequirePilotSession() {
     if (!isApiMode) return
     let active = true
     void getPilotSession()
-      .then(() => {
+      .then(async (user) => {
+        await activateDiscoveryWorkspaceForAccount(user.username)
         if (active) setState('authorized')
       })
       .catch((error) => {
@@ -37,7 +39,7 @@ export function RequirePilotSession() {
         <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
           <h1 className="text-base font-semibold text-slate-900">账号服务暂时不可用</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            无法确认当前登录状态。为避免把私有数据错误地加载到其他账号，系统不会降级为匿名模式。
+            无法确认当前登录状态或安全隔离本机私有工作区。为避免把私有数据错误地加载到其他账号，系统不会降级为匿名模式。
           </p>
           <button
             type="button"

@@ -1,4 +1,5 @@
 import { apiBaseUrl } from './apiConfig'
+import { clearActiveDiscoveryWorkspaceAccount } from './discoveryWorkspaceAccountIsolation'
 
 async function accountRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
@@ -26,6 +27,11 @@ export async function deletePilotAccount(password: string): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),
   })
+  try {
+    await clearActiveDiscoveryWorkspaceAccount()
+  } catch {
+    // Server deletion already succeeded; local Radar cleanup is best-effort here.
+  }
 }
 
 export function downloadAccountExport(payload: Record<string, unknown>): void {
