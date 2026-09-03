@@ -20,7 +20,12 @@ import { AiDecisionError, requestAiDecision } from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { getFollowedStatusIndex } from '@/services/followedApi'
 import { persistLocalFollowup } from '@/services/localFollowupStore'
-import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
+import {
+  getRuntimeStatus,
+  runtimeAutomationUnavailableReason,
+  runtimeSnapshotWarning,
+  type RuntimeStatus,
+} from '@/services/runtimeStatusApi'
 import { getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
 import type { FollowupStatus, TodayActionCard } from '@/types'
 import { formatBudget, formatDateTime, uid } from '@/utils/format'
@@ -69,6 +74,8 @@ function aiErrorMessage(cause: unknown): string {
   if (cause.code === 'AI_RATE_LIMITED') return 'AI服务当前限流，请稍后再试'
   if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') return 'AI服务端当前不可用'
   if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，请稍后重试'
+  if (cause.code === 'VERIFIED_SNAPSHOT_NOT_FRESH') return '公开商机快照已超过安全刷新窗口，请先核对官方依据，待数据刷新后再分析'
+  if (cause.code === 'VERIFIED_SNAPSHOT_UNAVAILABLE') return '当前无法确认公开商机快照，请先核对官方依据，待数据恢复后再分析'
   if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
   if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机不在服务端已核验商机池中'
   return 'AI分析暂时不可用，请稍后重试'
@@ -225,6 +232,7 @@ export function OpportunityPoolPage() {
   const [cards, setCards] = useState<TodayActionCard[]>([])
   const [snapshotAsOf, setSnapshotAsOf] = useState<string | null>(null)
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
+  const [runtimeStatusChecked, setRuntimeStatusChecked] = useState(false)
   const [query, setQuery] = useState('')
   const [windowFilter, setWindowFilter] = useState<WindowFilter>('ALL')
   const [aiBusyId, setAiBusyId] = useState<string | null>(null)
@@ -278,7 +286,9 @@ export function OpportunityPoolPage() {
       })
 
     void getRuntimeStatus().then((status) => {
-      if (!cancelled && status) setRuntimeStatus(status)
+      if (cancelled) return
+      setRuntimeStatus(status)
+      setRuntimeStatusChecked(true)
     })
     return () => {
       cancelled = true
@@ -339,8 +349,12 @@ export function OpportunityPoolPage() {
   }
 
   const analyze = async (id: string) => {
+    const automationUnavailableReason = runtimeAutomationUnavailableReason(
+      runtimeStatus,
+      runtimeStatusChecked,
+    )
     const card = cards.find((item) => item.opportunity_id === id)
-    if (!card) return
+    if (!card || automationUnavailableReason) return
     setAiBusyId(id)
     try {
       const decision = await requestAiDecision(card)
@@ -383,8 +397,14 @@ export function OpportunityPoolPage() {
     return <ErrorState message="商机池加载失败，请稍后重试。" onRetry={() => window.location.reload()} />
   }
 
-  const aiUnavailableReason =
+  const automationUnavailableReason = runtimeAutomationUnavailableReason(
+    runtimeStatus,
+    runtimeStatusChecked,
+  )
+  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
+  const aiUnavailableReason = automationUnavailableReason || (
     runtimeStatus?.ai.configured === false ? AI_UNCONFIGURED_REASON : null
+  )
 
   return (
     <div className="space-y-4">
@@ -405,6 +425,12 @@ export function OpportunityPoolPage() {
             ) : null}
           </div>
         </div>
+
+        {snapshotWarning ? (
+          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-900">
+            {snapshotWarning}
+          </div>
+        ) : null}
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <label className="relative min-w-0 flex-1">
