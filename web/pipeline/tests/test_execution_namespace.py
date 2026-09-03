@@ -26,6 +26,7 @@ from collector_namespace import (  # noqa: E402
     active_incremental_id,
     apply_runtime_namespace,
     cycle_has_running_stage,
+    deep_message_lease_disposition,
 )
 
 
@@ -74,12 +75,74 @@ class ExecutionNamespaceTests(unittest.TestCase):
         self.assertFalse(cycle_has_running_stage({"stages": {"ccgp": {"status": "FAILED"}}}))
         self.assertTrue(cycle_has_running_stage({"stages": {"ccgp": {"status": "RUNNING"}}}))
 
+    def test_deep_message_with_matching_active_lease_may_run(self) -> None:
+        disposition = deep_message_lease_disposition(
+            {"cycle_id": "prod:2026-09-04"},
+            {},
+            cycle_id="prod:2026-09-04",
+            cycle_local_date="2026-09-04",
+            current_local_date="2026-09-04",
+        )
+        self.assertEqual(disposition, "MATCH")
+
+    def test_completed_cycle_duplicate_is_acknowledged_after_lease_release(self) -> None:
+        disposition = deep_message_lease_disposition(
+            None,
+            {
+                "local_date": "2026-09-04",
+                "stages": {"publish": {"status": "COMPLETED"}},
+            },
+            cycle_id="prod:2026-09-04",
+            cycle_local_date="2026-09-04",
+            current_local_date="2026-09-04",
+        )
+        self.assertEqual(disposition, "COMPLETED_CYCLE")
+
+    def test_missing_lease_during_unfinished_same_day_cycle_remains_unsafe(self) -> None:
+        disposition = deep_message_lease_disposition(
+            None,
+            {
+                "local_date": "2026-09-04",
+                "stages": {
+                    "ccgp": {"status": "COMPLETED"},
+                    "event1": {"status": "RUNNING"},
+                },
+            },
+            cycle_id="prod:2026-09-04",
+            cycle_local_date="2026-09-04",
+            current_local_date="2026-09-04",
+        )
+        self.assertEqual(disposition, "MISSING_UNSAFE")
+
+    def test_older_cycle_message_is_acknowledged_after_newer_cycle_supersedes_it(self) -> None:
+        disposition = deep_message_lease_disposition(
+            None,
+            {"local_date": "2026-09-05", "stages": {}},
+            cycle_id="prod:2026-09-04",
+            cycle_local_date="2026-09-04",
+            current_local_date="2026-09-05",
+        )
+        self.assertIn(disposition, {"EXPIRED_STALE", "SUPERSEDED"})
+
+    def test_different_active_cycle_supersedes_old_queue_message(self) -> None:
+        disposition = deep_message_lease_disposition(
+            {"cycle_id": "prod:2026-09-05"},
+            {"local_date": "2026-09-05", "stages": {}},
+            cycle_id="prod:2026-09-04",
+            cycle_local_date="2026-09-04",
+            current_local_date="2026-09-05",
+        )
+        self.assertEqual(disposition, "SUPERSEDED")
+
     def test_worker_checks_active_cycle_before_running_stage(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
-        first_fence = source.index("if not _active_cycle_matches(cycle_id):")
+        first_fence = source.index("if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):")
         run_stage = source.index("runtime.run_stage(stage, now=cycle_as_of)")
         self.assertLess(first_fence, run_stage)
-        self.assertGreaterEqual(source.count("if not _active_cycle_matches(cycle_id):"), 2)
+        self.assertGreaterEqual(
+            source.count("if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):"),
+            2,
+        )
 
     def test_queue_consumer_serializes_all_mutating_messages(self) -> None:
         source = (WEB_ROOT / "api" / "collector-queue.py").read_text(encoding="utf-8")
