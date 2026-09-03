@@ -43,6 +43,11 @@ export function FactsCard({ facts }: { facts: Facts }) {
   const contactEmail = facts.official_contact?.email?.trim() || null
   const contactPhoneHref = telHref(contactPhone)
   const contactEmailHref = mailtoHref(contactEmail)
+  const isRelativeTestRecruitment =
+    facts.notice_type?.includes('测试企业征集公告') === true &&
+    !facts.registration_deadline &&
+    !facts.registration_deadline_date &&
+    !facts.bid_deadline
 
   return (
     <SectionCard
@@ -56,6 +61,11 @@ export function FactsCard({ facts }: { facts: Facts }) {
         </div>
       }
     >
+      {isRelativeTestRecruitment ? (
+        <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12px] leading-5 text-amber-900">
+          官方原文仅公布“自公告发布之日起7天”的相对报名窗口，没有公布精确截止时刻。系统内部可据此判断行动紧迫度，但不会把推算日期展示成官方截止；实际联系或报名请先向官方确认是否仍开放。
+        </div>
+      ) : null}
       <FactRow label="项目编号"><OfficialText value={facts.project_code} /></FactRow>
       <FactRow label="项目名称"><OfficialText value={facts.project_name} /></FactRow>
       {isApiMode || isVerifiedPublicDemo || facts.buyer_name ? (
