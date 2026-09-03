@@ -18,7 +18,7 @@ export function RequirePilotSession() {
     let active = true
     void getPilotSession()
       .then(async (user) => {
-        await activateDiscoveryWorkspaceForAccount(user.username)
+        await activateDiscoveryWorkspaceForAccount(user.local_scope)
         if (active) setState('authorized')
       })
       .catch((error) => {

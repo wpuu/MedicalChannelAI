@@ -8,6 +8,7 @@ import {
   readJsonBody,
   registerUserWithInvite,
   sendJson,
+  sha256,
   validatePassword,
   verifyPassword,
 } from './_auth.js'
@@ -20,6 +21,10 @@ import {
 function routeName(request) {
   const raw = Array.isArray(request.query?.route) ? request.query.route[0] : request.query?.route
   return typeof raw === 'string' ? raw.trim() : ''
+}
+
+function localScope(userId) {
+  return sha256(`pilot-local-scope:v1:${userId}`).slice(0, 32)
 }
 
 async function register(request, response) {
@@ -39,7 +44,12 @@ async function register(request, response) {
     await createSession(user.id, request, response)
     return sendJson(response, 201, {
       schema_version: '0.1',
-      user: { username: user.username, display_name: user.display_name ?? null, role: user.role },
+      user: {
+        username: user.username,
+        display_name: user.display_name ?? null,
+        role: user.role,
+        local_scope: localScope(user.id),
+      },
     })
   } catch (error) {
     const code = error instanceof Error ? error.message : 'REGISTRATION_FAILED'
@@ -81,7 +91,12 @@ async function login(request, response) {
     await createSession(user.id, request, response)
     return sendJson(response, 200, {
       schema_version: '0.1',
-      user: { username: user.username_display, display_name: user.display_name, role: user.role },
+      user: {
+        username: user.username_display,
+        display_name: user.display_name,
+        role: user.role,
+        local_scope: localScope(user.id),
+      },
     })
   } catch (error) {
     console.error('pilot login failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })
@@ -113,7 +128,12 @@ async function me(request, response) {
     if (!user) return sendJson(response, 401, { error: 'AUTH_REQUIRED' })
     return sendJson(response, 200, {
       schema_version: '0.1',
-      user: { username: user.username, display_name: user.display_name, role: user.role },
+      user: {
+        username: user.username,
+        display_name: user.display_name,
+        role: user.role,
+        local_scope: localScope(user.id),
+      },
     })
   } catch (error) {
     console.error('session lookup failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })

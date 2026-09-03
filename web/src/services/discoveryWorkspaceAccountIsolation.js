@@ -15,19 +15,10 @@ const UNOWNED_DB_KEY = 'legacy-unowned-v2'
 
 let activeAccountToken = null
 
-function hash32(text, seed) {
-  let hash = seed >>> 0
-  for (let index = 0; index < text.length; index += 1) {
-    hash ^= text.charCodeAt(index)
-    hash = Math.imul(hash, 16777619)
-  }
-  return (hash >>> 0).toString(16).padStart(8, '0')
-}
-
-export function discoveryAccountToken(username) {
-  const normalized = String(username || '').trim().toLowerCase()
-  if (!normalized) throw new Error('DISCOVERY_ACCOUNT_SCOPE_INVALID')
-  return `${hash32(normalized, 2166136261)}${hash32(normalized, 2246822519)}`
+export function discoveryAccountToken(accountScope) {
+  const normalized = String(accountScope || '').trim().toLowerCase()
+  if (!/^[0-9a-f]{32}$/.test(normalized)) throw new Error('DISCOVERY_ACCOUNT_SCOPE_INVALID')
+  return normalized
 }
 
 export function discoveryWorkspaceIsAccountScoped() {
@@ -136,12 +127,14 @@ async function deleteDbValue(key) {
   }
 }
 
-export async function activateDiscoveryWorkspaceForAccount(username) {
-  const token = discoveryAccountToken(username)
+export async function activateDiscoveryWorkspaceForAccount(accountScope) {
+  const token = discoveryAccountToken(accountScope)
   const storage = browserLocalStorage()
 
   // Pre-account Radar data has no trustworthy owner. Preserve it for audit/recovery
-  // but never assign it to the first authenticated account.
+  // but never assign it to the first authenticated account. Earlier username-keyed
+  // account slots are also never auto-migrated because a reused username cannot
+  // prove ownership of an orphaned local workspace.
   archiveLocal(storage, LEGACY_BOOTSTRAP_KEY, UNOWNED_BOOTSTRAP_KEY)
   archiveLocal(storage, LEGACY_V3_KEY, UNOWNED_V3_KEY)
   archiveLocal(storage, LEGACY_V2_KEY, UNOWNED_V2_KEY)
@@ -162,12 +155,12 @@ export async function clearActiveDiscoveryWorkspaceAccount() {
     }
   } catch {
     // Server deletion has already succeeded. Failure to remove the local fallback
-    // does not expose it because no future account uses this account-scoped key.
+    // does not expose it because a new account receives a different opaque scope.
   }
 
   try {
     await deleteDbValue(`${ACCOUNT_DB_PREFIX}${token}`)
   } catch {
-    // Same boundary as above: the orphan remains keyed only to the deleted token.
+    // Same boundary as above: the orphan remains keyed only to the deleted scope.
   }
 }

@@ -19,7 +19,7 @@ assert(guard.includes('PILOT_SESSION_CHANGE_KEY'))
 assert(guard.includes("window.addEventListener('storage', handleStorage)"))
 assert(guard.includes('if (event.key !== PILOT_SESSION_CHANGE_KEY) return'))
 assert(guard.includes('window.location.reload()'))
-assert(guard.indexOf('await activateDiscoveryWorkspaceForAccount(user.username)') < guard.indexOf("setState('authorized')"))
+assert(guard.indexOf('await activateDiscoveryWorkspaceForAccount(user.local_scope)') < guard.indexOf("setState('authorized')"))
 
 assert(accountApi.includes("import { apiBaseUrl, signalPilotSessionChanged } from './apiConfig'"))
 assert(accountApi.includes('await clearActiveDiscoveryWorkspaceAccount()'))

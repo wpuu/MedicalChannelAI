@@ -23,6 +23,7 @@ export interface PilotUser {
   username: string
   display_name: string | null
   role: 'OWNER' | 'ADMIN' | 'MEMBER'
+  local_scope: string
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -37,7 +38,9 @@ function parsePilotUser(value: unknown): PilotUser {
     !row ||
     typeof row.username !== 'string' ||
     !(row.display_name === null || typeof row.display_name === 'string') ||
-    !['OWNER', 'ADMIN', 'MEMBER'].includes(String(row.role))
+    !['OWNER', 'ADMIN', 'MEMBER'].includes(String(row.role)) ||
+    typeof row.local_scope !== 'string' ||
+    !/^[0-9a-f]{32}$/.test(row.local_scope)
   ) {
     throw new Error('AUTH_RESPONSE_INVALID')
   }
@@ -45,6 +48,7 @@ function parsePilotUser(value: unknown): PilotUser {
     username: row.username,
     display_name: row.display_name,
     role: row.role as PilotUser['role'],
+    local_scope: row.local_scope,
   }
 }
 

@@ -13,28 +13,39 @@ class PrivateAccountLifecycleTests(unittest.TestCase):
         self.assertEqual(rewrites['/api/account/export'], '/api/auth?route=export')
         self.assertEqual(rewrites['/api/account/delete'], '/api/auth?route=delete')
 
-    def test_auth_responses_include_frontend_required_display_name(self):
+    def test_auth_responses_include_frontend_required_identity_fields(self):
         source = (WEB_ROOT / 'api' / 'auth.js').read_text(encoding='utf-8')
         register_source = source[source.index('async function register'):source.index('async function login')]
         login_source = source[source.index('async function login'):source.index('async function logout')]
+        me_source = source[source.index('async function me'):source.index('async function requireUser')]
         frontend = (WEB_ROOT / 'src' / 'services' / 'apiConfig.ts').read_text(encoding='utf-8')
 
-        self.assertIn(
-            'user: { username: user.username, display_name: user.display_name ?? null, role: user.role }',
-            register_source,
-        )
+        self.assertIn('username: user.username', register_source)
+        self.assertIn('display_name: user.display_name ?? null', register_source)
+        self.assertIn('role: user.role', register_source)
+        self.assertIn('local_scope: localScope(user.id)', register_source)
         self.assertIn(
             'SELECT id, username_display, display_name, password_salt, password_hash, role',
             login_source,
         )
-        self.assertIn(
-            'user: { username: user.username_display, display_name: user.display_name, role: user.role }',
-            login_source,
-        )
+        self.assertIn('username: user.username_display', login_source)
+        self.assertIn('display_name: user.display_name', login_source)
+        self.assertIn('local_scope: localScope(user.id)', login_source)
+        self.assertIn('local_scope: localScope(user.id)', me_source)
         self.assertIn(
             "!(row.display_name === null || typeof row.display_name === 'string')",
             frontend,
         )
+        self.assertIn("typeof row.local_scope !== 'string'", frontend)
+        self.assertIn('!/^[0-9a-f]{32}$/.test(row.local_scope)', frontend)
+
+    def test_local_scope_is_opaque_stable_account_identity_not_username(self):
+        source = (WEB_ROOT / 'api' / 'auth.js').read_text(encoding='utf-8')
+        self.assertIn('function localScope(userId)', source)
+        self.assertIn('sha256(`pilot-local-scope:v1:${userId}`).slice(0, 32)', source)
+        self.assertEqual(source.count('local_scope: localScope(user.id)'), 3)
+        export_source = source[source.index('async function exportAccount'):source.index('async function deleteAccount')]
+        self.assertNotIn('local_scope', export_source)
 
     def test_export_does_not_select_password_or_session_secret(self):
         source = (WEB_ROOT / 'api' / 'auth.js').read_text(encoding='utf-8')
