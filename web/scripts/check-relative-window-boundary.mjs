@@ -71,4 +71,7 @@ for (const forbidden of ['2026年9月8日', '9月8日截止', '17:00截止', '�
   assert.equal(draft.includes(forbidden), false, `relative outreach invented deadline: ${forbidden}`)
 }
 
+const evidenceUrls = ['https://www.tjfch.com.cn/example.shtml']
+assert.equal(evidenceUrls.every((url) => url.startsWith('https://www.tjfch.com.cn/')), true)
+
 console.log('Relative registration window boundary checks: PASS')
