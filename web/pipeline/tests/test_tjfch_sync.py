@@ -42,6 +42,26 @@ class TjfchSyncTests(unittest.TestCase):
         self.assertFalse(allowed)
         self.assertEqual(reason, "ALL_SELECTED_DETAILS_FAILED_VERIFICATION")
 
+    def test_publish_gate_allows_all_ambiguous_candidates_to_resolve_as_unsupported(self) -> None:
+        allowed, reason = sync_tjfch.publish_gate(
+            index_discovery_succeeded=True,
+            selected_candidate_count=2,
+            new_verified_record_count=0,
+            unsupported_candidate_count=2,
+        )
+        self.assertTrue(allowed)
+        self.assertEqual(reason, "PASS")
+
+    def test_publish_gate_still_blocks_true_failure_when_other_candidate_is_unsupported(self) -> None:
+        allowed, reason = sync_tjfch.publish_gate(
+            index_discovery_succeeded=True,
+            selected_candidate_count=2,
+            new_verified_record_count=0,
+            unsupported_candidate_count=1,
+        )
+        self.assertFalse(allowed)
+        self.assertEqual(reason, "ALL_SELECTED_DETAILS_FAILED_VERIFICATION")
+
     def test_publish_gate_allows_partial_verified_details(self) -> None:
         allowed, reason = sync_tjfch.publish_gate(
             index_discovery_succeeded=True,
