@@ -74,11 +74,27 @@ def stable_opportunity_id(detail_url: str) -> str:
     return f"tjfch_{url_date.replace('-', '')}_{item_id}"
 
 
+def _is_truncated_title(normalized: str) -> bool:
+    return normalized.endswith("...") or normalized.endswith("…")
+
+
 def _supported_title(title: str) -> bool:
     normalized = re.sub(r"\s+", "", title)
-    if "院内比选" not in normalized or "公告" not in normalized:
+    if "院内比选" not in normalized:
         return False
     if any(marker in normalized for marker in ("结果", "成交", "中标", "废标", "终止", "更正", "变更", "公示")):
+        return False
+    if "公告" in normalized:
+        return True
+    if not _is_truncated_title(normalized):
+        return False
+
+    # The official index truncates some long announcement titles before the final
+    # “公告”. Admit only ambiguous index rows that already reached “院内比选”; the
+    # detail page must recover and verify the complete H1 before publication.
+    prefix = re.sub(r"(?:\.{3,}|…)+$", "", normalized)
+    suffix = prefix.split("院内比选", 1)[1]
+    if suffix.startswith(("结", "成", "中", "废", "终", "更", "变")):
         return False
     return True
 
