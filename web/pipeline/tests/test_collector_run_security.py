@@ -11,9 +11,23 @@ class CollectorRunSecurityTests(unittest.TestCase):
     def test_temporary_acceptance_probe_is_removed(self) -> None:
         source = COLLECTOR_RUN.read_text(encoding="utf-8")
         self.assertNotIn("ACCEPTANCE_PROBE", source)
-        self.assertNotIn("parse_qs", source)
-        self.assertNotIn("urlsplit", source)
         self.assertNotIn('cycle_id = f"accept:', source)
+        self.assertNotIn('mode == "acceptance"', source)
+        # Query parsing is now a production feature for authenticated incremental
+        # source scans; it must never become an alternate authentication path.
+        self.assertIn("parse_qs", source)
+        self.assertIn("urlsplit", source)
+        self.assertIn('mode == "incremental"', source)
+
+    def test_trigger_requires_cron_secret_before_reading_incremental_query(self) -> None:
+        source = COLLECTOR_RUN.read_text(encoding="utf-8")
+        auth_call = source.index("allowed, trigger_source = _authorized(self)")
+        auth_reject = source.index('COLLECTOR_TRIGGER_FORBIDDEN', auth_call)
+        query_read = source.index("query = _request_query(self)", auth_call)
+        self.assertLess(auth_call, auth_reject)
+        self.assertLess(auth_reject, query_read)
+        self.assertIn('INCREMENTAL_SOURCE_UNSUPPORTED', source)
+        self.assertIn('COLLECTOR_MODE_INVALID', source)
 
     def test_trigger_requires_cron_secret_and_bearer_auth_fail_closed(self) -> None:
         source = COLLECTOR_RUN.read_text(encoding="utf-8")
