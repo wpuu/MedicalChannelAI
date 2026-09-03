@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { authenticatedUser, readJsonBody, sendJson } from './_auth.js'
 import { privateDatabaseConfigured, privateDb } from './_privateDb.js'
+import { publicOpportunityHistory } from './_publicIntelligenceHistory.js'
 
 const CAPABILITY_TYPES = new Set([
   'DIRECT',
@@ -20,6 +21,22 @@ function cleanText(value, max) {
   if (typeof value !== 'string') return null
   const text = value.trim().replace(/\s+/g, ' ')
   return text ? text.slice(0, max) : null
+}
+
+function firstQuery(request, key) {
+  const raw = request.query?.[key]
+  return Array.isArray(raw) ? raw[0] : raw
+}
+
+function routeName(request) {
+  const value = firstQuery(request, 'route')
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function historyOpportunityId(request) {
+  const value = firstQuery(request, 'id')
+  const id = typeof value === 'string' ? value.trim() : ''
+  return id && id.length <= 200 ? id : null
 }
 
 function triState(value) {
@@ -177,7 +194,29 @@ async function getProfile(user) {
   }
 }
 
+async function publicHistoryRoute(request, response) {
+  if (request.method !== 'GET') {
+    response.setHeader('Allow', 'GET')
+    return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
+  }
+  const user = await requireUser(request, response)
+  if (!user) return
+  const id = historyOpportunityId(request)
+  if (!id) return sendJson(response, 400, { error: 'OPPORTUNITY_ID_INVALID' })
+  try {
+    return sendJson(response, 200, await publicOpportunityHistory(id))
+  } catch (error) {
+    console.error('public opportunity history request failed', {
+      opportunity_id: id,
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
+    return sendJson(response, 500, { error: 'PUBLIC_HISTORY_REQUEST_FAILED' })
+  }
+}
+
 export default async function handler(request, response) {
+  if (routeName(request) === 'public-history') return publicHistoryRoute(request, response)
+
   if (!['GET', 'PUT', 'DELETE'].includes(request.method)) {
     response.setHeader('Allow', 'GET, PUT, DELETE')
     return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
