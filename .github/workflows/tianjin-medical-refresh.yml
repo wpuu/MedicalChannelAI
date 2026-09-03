@@ -1,12 +1,6 @@
 name: Tianjin Medical Refresh
 
 on:
-  push:
-    # Temporary branch self-trigger for the current validation refresh; remove after success.
-    branches:
-      - chatgpt/opportunity-ranking-v2-final
-    paths:
-      - .github/workflows/tianjin-medical-refresh.yml
   schedule:
     # Legacy GitHub scheduler. Keep as a fallback until the Vercel-native collector is accepted.
     - cron: '20 0 * * *'
