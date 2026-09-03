@@ -28,7 +28,7 @@ const PROJECT_CAPABILITY_HINTS = [
   { keyword: 'DR', terms: ['数字X光机', '数字X线摄影', '数字化X线摄影', '数字化X射线摄影'] },
   { keyword: 'CT', terms: ['CT机', 'CT影像', '计算机断层扫描', '电子计算机断层扫描'] },
   { keyword: 'MRI', terms: ['磁共振', '磁共振成像'] },
-  { keyword: 'IVD', terms: ['体外诊断'] },
+  { keyword: 'IVD', terms: ['体外诊断', '体外诊断试剂', '检测试剂', '质控品', '校准品'] },
   { keyword: 'PCR', terms: ['聚合酶链式反应', '核酸扩增'] },
   { keyword: 'ECG', terms: ['心电图机'] },
 ] as const
@@ -345,102 +345,101 @@ export function OpportunityExecutionCard({
             <Target className="h-3.5 w-3.5" /> 查看目标医院
           </Link>
         ) : null}
-        {hospital && !relationship ? (
+        {hospital && !relationship && !relationshipEditor ? (
           <button
             type="button"
             disabled={!profileReady || Boolean(saving)}
-            onClick={() => setRelationshipEditor((value) => !value)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+            onClick={() => setRelationshipEditor(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Users className="h-3.5 w-3.5" /> 记录真实院内关系
+            <Users className="h-3.5 w-3.5" /> 我确实有院内关系
           </button>
         ) : null}
-        {!capability ? (
+        {!capability && !capabilityEditor ? (
           <button
             type="button"
             disabled={!profileReady || Boolean(saving)}
-            onClick={() => setCapabilityEditor((value) => !value)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-[12px] font-medium text-indigo-800 hover:bg-indigo-100 disabled:opacity-50"
+            onClick={() => setCapabilityEditor(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <PackageSearch className="h-3.5 w-3.5" /> 补充产品能力
+            <PackageSearch className="h-3.5 w-3.5" /> 我能做这个产品/服务
           </button>
         ) : null}
       </div>
 
-      {relationshipEditor && hospital && !relationship ? (
-        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
-          <div className="flex items-start justify-between gap-2">
+      {relationshipEditor ? (
+        <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[12px] font-semibold text-amber-950">确认你真实掌握的医院关系</p>
-              <p className="mt-1 text-[11px] leading-5 text-amber-800">
-                {hospital}{department ? ` / ${department}` : ''}。这里只记录你自己确认过的关系，不读取公告联系人进行推断。
-              </p>
+              <p className="text-[12px] font-medium text-slate-800">确认你的真实院内关系</p>
+              <p className="mt-1 text-[11px] leading-5 text-slate-500">只保存你本人确认的信息。公开联系人不会自动转成关系。</p>
             </div>
-            <button type="button" onClick={() => setRelationshipEditor(false)} className="rounded p-1 text-amber-700 hover:bg-amber-100">
-              <X className="h-4 w-4" />
-            </button>
+            <button type="button" onClick={() => setRelationshipEditor(false)} className="rounded-md p-1 text-slate-400 hover:bg-white hover:text-slate-600"><X className="h-4 w-4" /></button>
           </div>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-            <select
-              value={relationshipStrength}
-              onChange={(event) => setRelationshipStrength(event.target.value as RelationshipStrength)}
-              className="min-w-0 flex-1 rounded-lg border border-amber-200 bg-white px-3 py-2 text-[12px] text-slate-700 outline-none focus:border-amber-500"
-            >
-              {RELATIONSHIP_OPTIONS.map((value) => (
-                <option key={value} value={value}>{RELATIONSHIP_LABEL[value]}</option>
-              ))}
-            </select>
-            <button
-              type="button"
-              disabled={Boolean(saving)}
-              onClick={() => void saveRelationship()}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-700 px-3 py-2 text-[12px] font-medium text-white hover:bg-amber-800 disabled:opacity-50"
-            >
-              <Save className="h-3.5 w-3.5" />
-              {saving === 'relationship' ? '保存中…' : '确认并保存关系'}
-            </button>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {RELATIONSHIP_OPTIONS.map((strength) => (
+              <button
+                key={strength}
+                type="button"
+                onClick={() => setRelationshipStrength(strength)}
+                className={`rounded-lg border px-2.5 py-2 text-[11px] font-medium ${relationshipStrength === strength ? 'border-teal-300 bg-teal-50 text-teal-800' : 'border-slate-200 bg-white text-slate-600'}`}
+              >
+                {RELATIONSHIP_LABEL[strength]}
+              </button>
+            ))}
           </div>
+          <button
+            type="button"
+            disabled={saving === 'relationship'}
+            onClick={() => void saveRelationship()}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-2 text-[12px] font-medium text-white disabled:opacity-50"
+          >
+            <Save className="h-3.5 w-3.5" />
+            {saving === 'relationship' ? '正在保存…' : '确认并保存真实关系'}
+          </button>
         </div>
       ) : null}
 
-      {capabilityEditor && !capability ? (
-        <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/60 p-3">
-          <div className="flex items-start justify-between gap-2">
+      {capabilityEditor ? (
+        <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[12px] font-semibold text-indigo-950">确认你能执行的产品 / 服务能力</p>
-              <p className="mt-1 text-[11px] leading-5 text-indigo-800">
-                {hint ? `下面关键词仅由公告产品字段或标题中的确定性医疗术语提示为“${hint}”，不是系统认定你有这项资源。` : '请填写你实际能够执行的具体产品或服务。'}
-              </p>
+              <p className="text-[12px] font-medium text-slate-800">确认你能执行的产品/服务能力</p>
+              <p className="mt-1 text-[11px] leading-5 text-slate-500">系统只给出公开项目提示，不会自动把公告产品当成你的资源。请按真实情况确认。</p>
             </div>
-            <button type="button" onClick={() => setCapabilityEditor(false)} className="rounded p-1 text-indigo-700 hover:bg-indigo-100">
-              <X className="h-4 w-4" />
-            </button>
+            <button type="button" onClick={() => setCapabilityEditor(false)} className="rounded-md p-1 text-slate-400 hover:bg-white hover:text-slate-600"><X className="h-4 w-4" /></button>
           </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_220px_auto]">
-            <input
-              value={capabilityKeyword}
-              onChange={(event) => setCapabilityKeyword(event.target.value)}
-              placeholder="具体产品 / 服务关键词"
-              className="min-w-0 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-[12px] text-slate-700 outline-none focus:border-indigo-500"
-            />
-            <select
-              value={capabilityType}
-              onChange={(event) => setCapabilityType(event.target.value as CapabilityType)}
-              className="rounded-lg border border-indigo-200 bg-white px-3 py-2 text-[12px] text-slate-700 outline-none focus:border-indigo-500"
-            >
-              {CAPABILITY_OPTIONS.map((value) => (
-                <option key={value} value={value}>{CAPABILITY_LABEL[value]}</option>
-              ))}
-            </select>
+          <input
+            value={capabilityKeyword}
+            onChange={(event) => setCapabilityKeyword(event.target.value)}
+            placeholder="具体产品/服务，例如 DR、DSA、生化分析仪"
+            className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-[12px] outline-none focus:border-teal-500"
+          />
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {CAPABILITY_OPTIONS.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setCapabilityType(type)}
+                className={`rounded-lg border px-2.5 py-2 text-left text-[11px] font-medium ${capabilityType === type ? 'border-teal-300 bg-teal-50 text-teal-800' : 'border-slate-200 bg-white text-slate-600'}`}
+              >
+                {CAPABILITY_LABEL[type]}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              disabled={Boolean(saving)}
+              disabled={saving === 'capability'}
               onClick={() => void saveCapability()}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-700 px-3 py-2 text-[12px] font-medium text-white hover:bg-indigo-800 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-2 text-[12px] font-medium text-white disabled:opacity-50"
             >
               <Save className="h-3.5 w-3.5" />
-              {saving === 'capability' ? '保存中…' : '确认并保存能力'}
+              {saving === 'capability' ? '正在保存…' : '确认并保存能力'}
             </button>
+            {hint && normalize(capabilityKeyword) !== normalize(hint) ? (
+              <button type="button" onClick={() => setCapabilityKeyword(hint)} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-600">使用公告提示：{hint}</button>
+            ) : null}
           </div>
         </div>
       ) : null}
