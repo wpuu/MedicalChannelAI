@@ -97,11 +97,18 @@ def next_tick_after(
         return None
     current_local = current_scheduled.astimezone(SHANGHAI)
 
-    # Keep the nominal 10-minute cadence when delivery is only slightly late.
-    # When Queue delivery is materially delayed, jump to the first aligned slot
-    # at or after delivery instead of replaying missed ticks in a burst.
+    # Preserve the nominal cadence while delivery remains before the next slot.
+    # Once a tick is materially late, skip backlog and schedule the first aligned
+    # slot strictly after the actual delivery time. This avoids both replay bursts
+    # and a zero-delay duplicate when a late delivery lands exactly on an aligned
+    # 10-minute boundary.
     nominal_next = current_local + timedelta(minutes=TICK_INTERVAL_MINUTES)
-    scheduled = _ceil_to_tick(max(nominal_next, delivered_local, start), start)
+    if delivered_local <= nominal_next:
+        scheduled = nominal_next
+    else:
+        scheduled = _ceil_to_tick(delivered_local, start)
+        if scheduled <= delivered_local:
+            scheduled += timedelta(minutes=TICK_INTERVAL_MINUTES)
     return _build_tick(scheduled) if scheduled <= end else None
 
 
