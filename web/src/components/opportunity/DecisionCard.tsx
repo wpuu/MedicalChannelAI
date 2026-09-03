@@ -12,6 +12,7 @@ interface DecisionCardProps {
   onAnalyze?: () => void
   analyzing?: boolean
   analysisUnavailableReason?: string | null
+  analysisDisabled?: boolean
 }
 
 export function DecisionCard({
@@ -19,6 +20,7 @@ export function DecisionCard({
   onAnalyze,
   analyzing,
   analysisUnavailableReason,
+  analysisDisabled,
 }: DecisionCardProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
   const hasCustomerContext = hasUserCustomerContext(card.customer_context)
@@ -98,7 +100,7 @@ export function DecisionCard({
           {onAnalyze ? (
             <button
               type="button"
-              disabled={analyzing}
+              disabled={Boolean(analyzing) || analysisDisabled}
               onClick={onAnalyze}
               className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -109,11 +111,13 @@ export function DecisionCard({
               )}
               {analyzing
                 ? 'AI分析中'
-                : hasCustomerContext
-                  ? '结合我的资源分析'
-                  : analysisUnavailableReason
-                    ? '重试AI分析'
-                    : '用AI分析这条'}
+                : analysisDisabled
+                  ? '暂不能AI分析'
+                  : hasCustomerContext
+                    ? '结合我的资源分析'
+                    : analysisUnavailableReason
+                      ? '重试AI分析'
+                      : '用AI分析这条'}
             </button>
           ) : null}
           {analysisUnavailableReason ? (
