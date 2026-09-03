@@ -18,7 +18,6 @@ import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { AiDecisionError, requestAiDecision } from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
-import { getFollowedStatusIndex } from '@/services/followedApi'
 import { persistLocalFollowup } from '@/services/localFollowupStore'
 import {
   getRuntimeStatus,
@@ -27,7 +26,7 @@ import {
   type RuntimeStatus,
 } from '@/services/runtimeStatusApi'
 import { getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
-import type { FollowupStatus, TodayActionCard } from '@/types'
+import type { TodayActionCard } from '@/types'
 import { formatBudget, formatDateTime, uid } from '@/utils/format'
 
 type WindowFilter = 'ALL' | 'OPEN' | 'LATE_WINDOW'
@@ -282,22 +281,11 @@ export function OpportunityPoolPage() {
 
     const loadPool = async () => {
       if (isApiMode) {
-        const [data, followed] = await Promise.all([
-          todayActionsService.getTodayActions(),
-          getFollowedStatusIndex(),
-        ])
-        const followedById = new Map(followed.map((item) => [item.opportunity_id, item]))
-        const pool = (data.opportunity_pool ?? data.cards).map((card) => {
-          const existing = followedById.get(card.opportunity_id)
-          return existing
-            ? {
-                ...card,
-                followup_status: existing.followup_status as FollowupStatus,
-                remind_at: existing.remind_at,
-              }
-            : card
-        })
-        return { cards: pool, snapshot_as_of: data.refreshed_at }
+        const data = await todayActionsService.getTodayActions({ hydrateFollowups: false })
+        return {
+          cards: data.opportunity_pool ?? data.cards,
+          snapshot_as_of: data.refreshed_at,
+        }
       }
       const result = await getVerifiedOpportunityPool()
       return { cards: result.cards, snapshot_as_of: result.snapshot_as_of }
@@ -450,7 +438,7 @@ export function OpportunityPoolPage() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900">全部已核验商机</h2>
             <p className="mt-1 text-[13px] leading-6 text-slate-500">
-              今日行动只展示 Top 5；这里保留同一事实快照中全部仍有效机会。真实账号下使用完整个性化排序，并与“我的跟进”同步。
+              首页按账号设置展示今日重点；这里保留同一事实快照中全部仍有效机会。真实账号下使用完整个性化排序，并与“我的跟进”同步。
             </p>
           </div>
           <div className="flex flex-col items-end gap-1 text-[12px] text-slate-500">

@@ -14,7 +14,7 @@ import type {
   PublicTodayActionCard,
   TodayActionsPublicResponse,
 } from '@/types/public'
-import type { TodayActionsService } from './TodayActionsService'
+import type { TodayActionsLoadOptions, TodayActionsService } from './TodayActionsService'
 
 const COVERAGE_WARNING = '当前处于天津 Pilot 阶段，公开数据覆盖持续扩展中。'
 
@@ -40,6 +40,20 @@ const FORBIDDEN_PUBLIC_PREFIXES = [
   'api_key_',
   'upstream_model_',
 ]
+
+const FOLLOWUP_STATUSES = new Set<FollowupStatus>([
+  'NEW',
+  'REVIEWING',
+  'CONTACTED',
+  'RELATIONSHIP_VERIFIED',
+  'PREPARING',
+  'BID_SUBMITTED',
+  'WON',
+  'LOST',
+  'NOT_FIT',
+  'MONITOR',
+  'ARCHIVED',
+])
 
 const NOT_FIT_REASON_TO_CODE: Record<NotFitReason, string> = {
   没有对应产品: 'NO_PRODUCT_CAPABILITY',
@@ -180,6 +194,12 @@ function normalizeCapabilityType(value: string | null): CapabilityType | null {
     'SERVICE_ONLY',
   ]
   return allowed.find((item) => item === value) ?? null
+}
+
+function normalizeFollowupStatus(value: string | null | undefined): FollowupStatus {
+  return value && FOLLOWUP_STATUSES.has(value as FollowupStatus)
+    ? value as FollowupStatus
+    : 'NEW'
 }
 
 function normalizeProductItems(items: unknown[]): TodayActionCard['facts']['products'] {
@@ -337,9 +357,9 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
             : [],
         }
       : null,
-    followup_status: 'NEW',
+    followup_status: normalizeFollowupStatus(card.followup_status),
     followup_history: [],
-    remind_at: null,
+    remind_at: typeof card.remind_at === 'string' && card.remind_at.trim() ? card.remind_at : null,
   }
 }
 
@@ -408,12 +428,10 @@ export class ApiTodayActionsService implements TodayActionsService {
     return applyFollowupState(card, state)
   }
 
-  async getTodayActions(): Promise<TodayActionsResponse> {
+  async getTodayActions(_options?: TodayActionsLoadOptions): Promise<TodayActionsResponse> {
     const data = await this.requestJson<TodayActionsPublicResponse>('/today')
     const mappedPool = (data.opportunity_pool ?? data.cards).map(mapPublicCard)
-    const cards = await Promise.all(
-      data.cards.map(mapPublicCard).map((card) => this.enrichWithServerFollowup(card)),
-    )
+    const cards = data.cards.map(mapPublicCard)
     return {
       schema_version: data.schema_version,
       mode: data.mode,
@@ -425,6 +443,9 @@ export class ApiTodayActionsService implements TodayActionsService {
       coverage_warning: COVERAGE_WARNING,
       generated_at: data.snapshot_as_of,
       refreshed_at: data.snapshot_as_of,
+      today_limit: data.today_limit,
+      today_limit_options: data.today_limit_options,
+      recommendation_feedback_summary: data.recommendation_feedback_summary,
       cards,
       opportunity_pool: mappedPool,
       model_requests: [],

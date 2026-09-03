@@ -17,7 +17,9 @@ class TodayFeedbackAttentionTests(unittest.TestCase):
         self.assertIn("feedback === 'ALREADY_KNOWN'", today_source)
         self.assertIn("if (hasActiveFollowup(followup)) return 0", today_source)
         self.assertIn(".filter((item) => item.tier < 2)", today_source)
-        self.assertIn("opportunity_pool: pool", today_source)
+        self.assertIn("const decoratedPool = pool.map", today_source)
+        self.assertIn("opportunity_pool: decoratedPool", today_source)
+        self.assertIn("recommendation_feedback_summary", today_source)
         self.assertNotIn("priority.score =", today_source)
         self.assertNotIn("priority: {", today_source)
 

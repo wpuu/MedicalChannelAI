@@ -17,6 +17,10 @@ import {
   privateDatabaseConfigured,
   privateDb,
 } from './_privateDb.js'
+import {
+  DEFAULT_TODAY_LIMIT,
+  ensureTodayDisplayPreferenceSchema,
+} from './_todayDisplayPreference.js'
 
 function routeName(request) {
   const raw = Array.isArray(request.query?.route) ? request.query.route[0] : request.query?.route
@@ -159,7 +163,18 @@ async function exportAccount(request, response) {
     const user = await requireUser(request, response)
     if (!user) return
     const sql = privateDb()
-    const [accountRows, capabilities, relationships, targetHospitals, preferences, followups, events, feedback] = await Promise.all([
+    await ensureTodayDisplayPreferenceSchema(sql)
+    const [
+      accountRows,
+      capabilities,
+      relationships,
+      targetHospitals,
+      preferences,
+      uiPreferences,
+      followups,
+      events,
+      feedback,
+    ] = await Promise.all([
       sql`
         SELECT username_display, display_name, role, status, created_at, updated_at
         FROM private_users WHERE id = ${user.id} LIMIT 1
@@ -185,6 +200,10 @@ async function exportAccount(request, response) {
       sql`
         SELECT can_find_manufacturer, can_partner_channel, can_handle_lease, updated_at
         FROM private_user_preferences WHERE user_id = ${user.id} LIMIT 1
+      `,
+      sql`
+        SELECT today_limit, updated_at
+        FROM private_user_ui_preferences WHERE user_id = ${user.id} LIMIT 1
       `,
       sql`
         SELECT id, opportunity_id, status, remind_at, public_snapshot, created_at, updated_at
@@ -223,6 +242,10 @@ async function exportAccount(request, response) {
         hospital_relationships: relationships,
         target_hospitals: targetHospitals,
         preferences: preferences[0] || null,
+      },
+      ui_preferences: {
+        today_limit: Number(uiPreferences[0]?.today_limit || DEFAULT_TODAY_LIMIT),
+        updated_at: uiPreferences[0]?.updated_at || null,
       },
       followups,
       followup_events: events,

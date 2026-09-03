@@ -113,12 +113,21 @@ export interface PublicTodayActionCard {
   model_decision_status: PublicModelDecisionStatus
   model_block_reason: string | null
   decision: PublicDecision | null
+  /** Authenticated Pilot Today endpoint may inline the user's current follow-up summary. */
+  followup_status?: string | null
+  remind_at?: string | null
+}
+
+export interface PublicRecommendationFeedbackSummary {
+  responded: number
+  effective_surprises: number
+  effective_surprise_rate: number | null
 }
 
 /**
- * Exact H5-safe response returned by the verified public snapshot boundary.
- * `cards` is the Top5 Today Actions surface; `opportunity_pool` retains all
- * currently actionable verified opportunities from the same snapshot version.
+ * Exact H5-safe response returned by the verified boundary. The authenticated
+ * Pilot endpoint may choose the account's configured number of Today cards;
+ * `opportunity_pool` retains the full currently actionable pool.
  */
 export interface TodayActionsPublicResponse {
   schema_version: '0.1'
@@ -130,6 +139,9 @@ export interface TodayActionsPublicResponse {
   opportunity_pool_count?: number
   model_request_count: number
   coverage_warning: 'PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY'
+  today_limit?: number
+  today_limit_options?: number[]
+  recommendation_feedback_summary?: PublicRecommendationFeedbackSummary
   cards: PublicTodayActionCard[]
   opportunity_pool?: PublicTodayActionCard[]
 }

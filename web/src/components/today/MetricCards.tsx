@@ -1,16 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CheckCircle2, ClipboardList, Layers3, Sparkles, Target } from 'lucide-react'
-import type { TodayActionsResponse } from '@/types'
+import type { RecommendationFeedbackSummary, TodayActionsResponse } from '@/types'
 import { isApiMode } from '@/services/apiConfig'
-import {
-  loadRecommendationFeedback,
-  subscribeRemoteRecommendationFeedback,
-} from '@/services/recommendationFeedbackApi'
 import {
   recommendationFeedbackSummary,
   subscribeOpportunityFeedback,
-  type OpportunityFeedback,
 } from '@/services/opportunityFeedbackStore'
+import { updateTodayLimit } from '@/services/todayDisplayPreferenceApi'
 
 const items = [
   {
@@ -44,69 +40,17 @@ const items = [
   },
 ]
 
-interface SurpriseSummary {
-  responded: number
-  effective_surprises: number
-  effective_surprise_rate: number | null
-}
+type SurpriseSummary = RecommendationFeedbackSummary
 
-function summarize(values: Array<OpportunityFeedback | null>): SurpriseSummary {
-  const responded = values.filter((value): value is OpportunityFeedback => value !== null)
-  const effective = responded.filter((value) => value === 'NEW_WORTH_FOLLOWING').length
-  return {
-    responded: responded.length,
-    effective_surprises: effective,
-    effective_surprise_rate:
-      responded.length > 0 ? Math.round((effective / responded.length) * 100) : null,
-  }
-}
-
-function EffectiveSurpriseMetric({ opportunityIds }: { opportunityIds: string[] }) {
-  const key = useMemo(() => [...new Set(opportunityIds)].sort().join('\n'), [opportunityIds])
-  const ids = useMemo(() => key ? key.split('\n') : [], [key])
-  const [summary, setSummary] = useState<SurpriseSummary>(() =>
-    isApiMode ? { responded: 0, effective_surprises: 0, effective_surprise_rate: null } : recommendationFeedbackSummary(ids),
-  )
-  const [loading, setLoading] = useState(isApiMode)
-  const [error, setError] = useState(false)
-
-  useEffect(() => {
-    let active = true
-    let requestVersion = 0
-
-    const refresh = () => {
-      const version = ++requestVersion
-      if (!isApiMode) {
-        setSummary(recommendationFeedbackSummary(ids))
-        setLoading(false)
-        setError(false)
-        return
-      }
-      setLoading(true)
-      setError(false)
-      void Promise.all(ids.map((id) => loadRecommendationFeedback(id)))
-        .then((values) => {
-          if (!active || version !== requestVersion) return
-          setSummary(summarize(values))
-          setLoading(false)
-        })
-        .catch(() => {
-          if (!active || version !== requestVersion) return
-          setError(true)
-          setLoading(false)
-        })
-    }
-
-    refresh()
-    const unsubscribe = isApiMode
-      ? subscribeRemoteRecommendationFeedback(refresh)
-      : subscribeOpportunityFeedback(refresh)
-    return () => {
-      active = false
-      unsubscribe()
-    }
-  }, [ids, key])
-
+function SurpriseMetricView({
+  summary,
+  loading = false,
+  error = false,
+}: {
+  summary: SurpriseSummary
+  loading?: boolean
+  error?: boolean
+}) {
   const display = loading
     ? '…'
     : error || summary.effective_surprise_rate === null
@@ -132,6 +76,84 @@ function EffectiveSurpriseMetric({ opportunityIds }: { opportunityIds: string[] 
   )
 }
 
+function LocalEffectiveSurpriseMetric({ opportunityIds }: { opportunityIds: string[] }) {
+  const key = useMemo(() => [...new Set(opportunityIds)].sort().join('\n'), [opportunityIds])
+  const ids = useMemo(() => key ? key.split('\n') : [], [key])
+  const [summary, setSummary] = useState<SurpriseSummary>(() => recommendationFeedbackSummary(ids))
+
+  useEffect(() => {
+    const refresh = () => setSummary(recommendationFeedbackSummary(ids))
+    refresh()
+    return subscribeOpportunityFeedback(refresh)
+  }, [ids, key])
+
+  return <SurpriseMetricView summary={summary} />
+}
+
+function EffectiveSurpriseMetric({
+  opportunityIds,
+  serverSummary,
+}: {
+  opportunityIds: string[]
+  serverSummary?: RecommendationFeedbackSummary
+}) {
+  if (isApiMode) {
+    return (
+      <SurpriseMetricView
+        summary={serverSummary ?? {
+          responded: 0,
+          effective_surprises: 0,
+          effective_surprise_rate: null,
+        }}
+        error={!serverSummary}
+      />
+    )
+  }
+  return <LocalEffectiveSurpriseMetric opportunityIds={opportunityIds} />
+}
+
+function TodayLimitControl({ data }: { data: TodayActionsResponse }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(false)
+  const current = data.today_limit
+  const options = data.today_limit_options?.filter((value) => Number.isInteger(value) && value > 0) ?? []
+
+  if (!isApiMode || !current || options.length === 0) return null
+
+  const changeLimit = async (value: number) => {
+    if (value === current || busy) return
+    setBusy(true)
+    setError(false)
+    try {
+      await updateTodayLimit(value)
+      window.location.reload()
+    } catch {
+      setError(true)
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="mt-2 border-t border-slate-100 pt-2">
+      <label className="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+        <span>首页显示</span>
+        <select
+          value={current}
+          disabled={busy}
+          onChange={(event) => void changeLimit(Number(event.target.value))}
+          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-700 disabled:opacity-60"
+          aria-label="今日重点显示数量"
+        >
+          {options.map((value) => (
+            <option key={value} value={value}>{value} 条</option>
+          ))}
+        </select>
+      </label>
+      {error ? <p className="mt-1 text-[10px] text-rose-600">保存失败，请重试</p> : null}
+    </div>
+  )
+}
+
 export function MetricCards({ data }: { data: TodayActionsResponse }) {
   const opportunityIds = (data.opportunity_pool?.length ? data.opportunity_pool : data.cards)
     .map((card) => card.opportunity_id)
@@ -153,10 +175,14 @@ export function MetricCards({ data }: { data: TodayActionsResponse }) {
               {item.value(data)}
             </div>
             <p className="mt-0.5 text-[11px] leading-4 text-slate-400">{item.hint}</p>
+            {item.key === 'card_count' ? <TodayLimitControl data={data} /> : null}
           </div>
         )
       })}
-      <EffectiveSurpriseMetric opportunityIds={opportunityIds} />
+      <EffectiveSurpriseMetric
+        opportunityIds={opportunityIds}
+        serverSummary={data.recommendation_feedback_summary}
+      />
     </div>
   )
 }

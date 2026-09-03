@@ -5,6 +5,11 @@ import {
   findVerifiedSnapshotCard,
   personalizedOpportunityPoolForUser,
 } from './_pilotOpportunity.js'
+import {
+  ALLOWED_TODAY_LIMITS,
+  setTodayLimitForUser,
+  todayLimitForUser,
+} from './_todayDisplayPreference.js'
 import { loadVerifiedSnapshot } from './_verifiedSnapshot.js'
 
 const FOLLOWUP_STATUSES = new Set([
@@ -111,18 +116,63 @@ function applyTodayAttention(pool, followups, feedback) {
     .map((item) => item.card)
 }
 
+function decorateCardWithFollowup(card, followup) {
+  return {
+    ...card,
+    followup_status: FOLLOWUP_STATUSES.has(followup?.status) ? followup.status : 'NEW',
+    remind_at: followup?.remind_at ? new Date(followup.remind_at).toISOString() : null,
+  }
+}
+
+function recommendationFeedbackSummary(pool, feedback) {
+  const values = pool
+    .map((card) => feedback.get(card.opportunity_id))
+    .filter((value) => FEEDBACK_VALUES.has(value))
+  const effectiveSurprises = values.filter((value) => value === 'NEW_WORTH_FOLLOWING').length
+  return {
+    responded: values.length,
+    effective_surprises: effectiveSurprises,
+    effective_surprise_rate:
+      values.length > 0 ? Math.round((effectiveSurprises / values.length) * 100) : null,
+  }
+}
+
 async function todayRoute(request, response, user) {
-  if (!allow(request, response, ['GET'])) return
+  if (!allow(request, response, ['GET', 'PUT'])) return
+  const sql = privateDb()
+
+  if (request.method === 'PUT') {
+    try {
+      const body = readJsonBody(request)
+      const todayLimit = await setTodayLimitForUser(sql, user, body?.today_limit)
+      if (todayLimit === null) return sendJson(response, 400, { error: 'TODAY_LIMIT_INVALID' })
+      return sendJson(response, 200, {
+        schema_version: '0.1',
+        mode: 'TODAY_DISPLAY_PREFERENCE',
+        today_limit: todayLimit,
+        today_limit_options: ALLOWED_TODAY_LIMITS,
+      })
+    } catch (error) {
+      console.error('pilot today preference update failed', {
+        error: error instanceof Error ? error.message : 'UNKNOWN',
+      })
+      return sendJson(response, 500, { error: 'TODAY_PREFERENCE_UPDATE_FAILED' })
+    }
+  }
+
   try {
     const snapshot = await loadVerifiedSnapshot()
     const pool = await personalizedOpportunityPoolForUser(user, snapshot)
-    const sql = privateDb()
-    const [followups, feedback] = await Promise.all([
+    const [followups, feedback, todayLimit] = await Promise.all([
       todayFollowupMap(sql, user),
       todayFeedbackMap(sql, user),
+      todayLimitForUser(sql, user),
     ])
-    const todayPool = applyTodayAttention(pool, followups, feedback)
-    const cards = todayPool.slice(0, 5)
+    const decoratedPool = pool.map((card) =>
+      decorateCardWithFollowup(card, followups.get(card.opportunity_id)),
+    )
+    const todayPool = applyTodayAttention(decoratedPool, followups, feedback)
+    const cards = todayPool.slice(0, todayLimit)
     return sendJson(response, 200, {
       schema_version: '0.1',
       mode: 'TODAY_ACTIONS',
@@ -133,8 +183,11 @@ async function todayRoute(request, response, user) {
       opportunity_pool_count: pool.length,
       model_request_count: 0,
       coverage_warning: 'PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY',
+      today_limit: todayLimit,
+      today_limit_options: ALLOWED_TODAY_LIMITS,
+      recommendation_feedback_summary: recommendationFeedbackSummary(decoratedPool, feedback),
       cards,
-      opportunity_pool: pool,
+      opportunity_pool: decoratedPool,
     })
   } catch (error) {
     console.error('pilot today request failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })

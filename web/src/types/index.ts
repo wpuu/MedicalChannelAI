@@ -86,6 +86,7 @@ export interface Facts {
   product_categories?: string[]
   products: ProductItem[] | null
   official_contact: OfficialContact | null
+  quality_flags?: string[]
   verification_status: VerificationStatus
   coverage_status: CoverageStatus
 }
@@ -195,6 +196,12 @@ export interface ModelRequest {
   requested_at: string
 }
 
+export interface RecommendationFeedbackSummary {
+  responded: number
+  effective_surprises: number
+  effective_surprise_rate: number | null
+}
+
 /** UI response after Mock or Public View adapter enrichment. */
 export interface TodayActionsResponse {
   schema_version: '0.1'
@@ -207,6 +214,9 @@ export interface TodayActionsResponse {
   coverage_warning: string
   generated_at: string
   refreshed_at: string
+  today_limit?: number
+  today_limit_options?: number[]
+  recommendation_feedback_summary?: RecommendationFeedbackSummary
   cards: TodayActionCard[]
   opportunity_pool?: TodayActionCard[]
   model_requests?: ModelRequest[]
