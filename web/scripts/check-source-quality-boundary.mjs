@@ -30,7 +30,7 @@ const conflictedFacts = {
 
 const mriProfile = {
   ...emptyProfile,
-  capabilities: [{ keyword: 'MRI', capability_type: 'DIRECT', updated_at: null }],
+  capabilities: [{ keyword: 'MRI', capability_type: 'DIRECT_UNCONFIRMED', updated_at: null }],
 }
 const mriContext = minimalPrivateContextFromProfile(mriProfile, conflictedFacts)
 assert.equal(
@@ -46,7 +46,7 @@ assert.equal(
 
 const xrayProfile = {
   ...emptyProfile,
-  capabilities: [{ keyword: 'X线', capability_type: 'DIRECT', updated_at: null }],
+  capabilities: [{ keyword: 'X线', capability_type: 'DIRECT_UNCONFIRMED', updated_at: null }],
 }
 const xrayContext = minimalPrivateContextFromProfile(xrayProfile, conflictedFacts)
 assert.equal(
@@ -54,7 +54,7 @@ assert.equal(
   1,
   'verified project title/raw product text must remain usable after category suppression',
 )
-assert.equal(privatePriorityPoints(xrayContext.context, conflictedFacts).capability, 25)
+assert.equal(privatePriorityPoints(xrayContext.context, conflictedFacts).capability, 18)
 
 const nonConflictedFacts = {
   ...conflictedFacts,
@@ -65,6 +65,11 @@ assert.equal(
   normalMriContext.context.matching_product_capabilities.length,
   1,
   'non-conflicted official categories must remain eligible for capability matching',
+)
+assert.equal(
+  privatePriorityPoints(normalMriContext.context, nonConflictedFacts).capability,
+  18,
+  'unconfirmed direct capability must retain conservative private scoring',
 )
 
 const aiFacts = sanitizeSnapshotFacts(conflictedFacts)
