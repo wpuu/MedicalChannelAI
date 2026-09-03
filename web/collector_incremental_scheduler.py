@@ -69,14 +69,23 @@ def _last_attempted(cache: Any, source_id: str) -> datetime | None:
     return _parsed_at(value.get("attempted_at"))
 
 
-def _mark_attempt(cache: Any, source_id: str, *, now: datetime) -> None:
+def mark_incremental_source_attempt(
+    cache: Any,
+    source_id: str,
+    *,
+    now: datetime | None = None,
+) -> None:
+    source = str(source_id or "").strip().lower()
+    if source not in SCHEDULED_INCREMENTAL_SOURCES:
+        raise ValueError("INCREMENTAL_SCHEDULER_SOURCE_UNSUPPORTED")
+    current = _utc(now)
     cache.set(
-        _attempt_key(source_id),
+        _attempt_key(source),
         {
             "schema_version": "0.1",
-            "source_id": source_id,
-            "attempted_at": now.isoformat(),
-            "bucket_id": scan_bucket_id(source_id, now=now),
+            "source_id": source,
+            "attempted_at": current.isoformat(),
+            "bucket_id": scan_bucket_id(source, now=current),
         },
         {
             "ttl": ATTEMPT_TTL_SECONDS,
@@ -101,11 +110,10 @@ def choose_due_incremental_source(
         attempted_at = _last_attempted(cache, source_id)
         current_bucket = scan_bucket_id(source_id, now=current)
 
-        # A selected source is marked as attempted before it is returned. The
-        # Queue itself still performs its bounded retries, but a source that keeps
-        # failing cannot be selected again by every 10-minute scheduler tick and
-        # starve all later sources. After one source interval it becomes eligible
-        # again in a new bucket.
+        # Attempt state only represents a source job that was successfully put on
+        # the Queue. Selection itself is intentionally side-effect free: if Queue
+        # send fails, the next scheduler tick may select the source again instead
+        # of falsely backing it off for a full source interval.
         if completed_at is None:
             if attempted_at is None:
                 due.append((order, float("inf"), source_id))
@@ -135,10 +143,10 @@ def choose_due_incremental_source(
     if due:
         # Never-attempted sources have infinite overdue and are introduced one at
         # a time in deterministic order. Otherwise pick the most overdue source;
-        # source order only breaks ties.
+        # source order only breaks ties. The caller records the attempt only after
+        # queue send succeeds.
         due.sort(key=lambda item: (-item[1], item[0]))
         selected = due[0][2]
-        _mark_attempt(cache, selected, now=current)
         return IncrementalScheduleDecision(
             source_id=selected,
             reason="SOURCE_DUE",
