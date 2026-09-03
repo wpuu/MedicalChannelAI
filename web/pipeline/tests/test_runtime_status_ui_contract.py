@@ -37,6 +37,7 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
         self.assertIn('runtimeAutomationUnavailableReason', helper)
         self.assertIn('暂停自动分析与沟通草稿', helper)
         self.assertIn('官方依据', helper)
+        self.assertIn("if (!checked) return '正在确认公开商机快照状态，自动分析与沟通草稿暂不可用。'", helper)
 
         # Today, full pool, and direct detail navigation must all consume the
         # same runtime boundary so stale data cannot be bypassed by another UI.
@@ -49,6 +50,7 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
         self.assertIn('if (!automationUnavailableReason) setOutreachId', today)
         self.assertIn('analysisDisabled={Boolean(automationUnavailableReason)}', detail)
         self.assertIn('Boolean(automationUnavailableReason)', detail)
+        self.assertIn('runtimeStatusChecked', pool)
         self.assertIn('aiUnavailableReason ? undefined : () => void analyze', pool)
         self.assertIn('analysisUnavailableReason={aiUnavailableReason}', pool)
 
