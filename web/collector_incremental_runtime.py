@@ -30,6 +30,7 @@ SUPPORTED_INCREMENTAL_SOURCES = (
 
 LEDGER_TTL_SECONDS = 45 * 24 * 60 * 60
 BUCKET_TTL_SECONDS = 7 * 24 * 60 * 60
+PENDING_TTL_SECONDS = 3 * 24 * 60 * 60
 
 
 def _ledger_cache_key(source_id: str) -> str:
@@ -38,6 +39,10 @@ def _ledger_cache_key(source_id: str) -> str:
 
 def _bucket_cache_key(source_id: str) -> str:
     return f"medicalchannelai:collector-incremental-bucket:{source_id}:v2"
+
+
+def _pending_cache_key(source_id: str) -> str:
+    return f"medicalchannelai:collector-incremental-pending:{source_id}:v2"
 
 
 def _cache_set(cache: RuntimeCache, key: str, value: Any, *, ttl: int, tag: str) -> None:
@@ -55,6 +60,33 @@ def _save_ledger(cache: RuntimeCache, source_id: str, ledger: dict[str, Any]) ->
         ledger,
         ttl=LEDGER_TTL_SECONDS,
         tag="medicalchannelai-collector-incremental-ledger",
+    )
+
+
+def _load_pending_records(cache: RuntimeCache, source_id: str) -> list[dict[str, Any]]:
+    value = cache.get(_pending_cache_key(source_id))
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise RuntimeError("INCREMENTAL_PENDING_RECORDS_CORRUPT")
+    return runtime.merge_canonical_records([], value)
+
+
+def _save_pending_records(
+    cache: RuntimeCache,
+    source_id: str,
+    records: list[dict[str, Any]],
+) -> None:
+    key = _pending_cache_key(source_id)
+    if not records:
+        cache.delete(key)
+        return
+    _cache_set(
+        cache,
+        key,
+        records,
+        ttl=PENDING_TTL_SECONDS,
+        tag="medicalchannelai-collector-incremental-pending",
     )
 
 
@@ -392,16 +424,12 @@ def run_incremental_source(
             _save_ledger(cache, source, ledger)
 
     existing_records, cache_key = _existing_records(cache, source)
-    if verified_records:
-        merged = runtime.merge_canonical_records(existing_records, verified_records)
-        runtime._cache_set(
-            cache,
-            cache_key,
-            merged,
-            tag="medicalchannelai-collector-canonical",
-        )
-    else:
-        merged = existing_records
+    pending_records = _load_pending_records(cache, source)
+    staged_records = (
+        runtime.merge_canonical_records(pending_records, verified_records)
+        if pending_records or verified_records
+        else []
+    )
 
     base_result = {
         "source_id": source,
@@ -413,15 +441,17 @@ def run_incremental_source(
         "verified_record_count": len(verified_records),
         "verified_nonfact_count": nonfact_verified_count,
         "verification_failure_count": len(failures),
-        "canonical_record_count": len(merged),
+        "canonical_record_count": len(existing_records),
+        "pending_record_count": len(staged_records),
     }
 
     if failures:
-        # Keep successful verified facts in the private canonical cache so Queue
-        # redelivery does not hit those official detail pages again. However, the
-        # public snapshot is fail-closed for the whole source scan: one unresolved
-        # selected detail means users keep seeing the last fully verified public
-        # version until the retry completes every selected fingerprint.
+        # Successful details from a partial source scan are isolated from the
+        # canonical caches consumed by _run_publish. Another source may publish in
+        # the meantime, but it cannot leak this source's half-complete scan. Queue
+        # redelivery reuses the ledger and these staged records, so successful
+        # official detail requests are not repeated.
+        _save_pending_records(cache, source, staged_records)
         return 503, {
             "action": "FAILED",
             **base_result,
@@ -431,19 +461,36 @@ def run_incremental_source(
             "failures": failures[:5],
         }
 
+    if staged_records:
+        merged = runtime.merge_canonical_records(existing_records, staged_records)
+        runtime._cache_set(
+            cache,
+            cache_key,
+            merged,
+            tag="medicalchannelai-collector-canonical",
+        )
+    else:
+        merged = existing_records
+    _save_pending_records(cache, source, [])
+
+    completed_result = {
+        **base_result,
+        "canonical_record_count": len(merged),
+        "pending_record_count": 0,
+    }
     try:
         snapshot_refreshed, publish_result = _publish_snapshot_if_ready(cache, observed)
     except Exception as exc:
         return 503, {
             "action": "FAILED",
-            **base_result,
+            **completed_result,
             "snapshot_refreshed": False,
             "snapshot_as_of": None,
             "error": f"INCREMENTAL_SNAPSHOT_REFRESH_FAILED:{type(exc).__name__}:{str(exc)[:180]}",
         }
 
     result = {
-        **base_result,
+        **completed_result,
         "snapshot_refreshed": snapshot_refreshed,
         "snapshot_as_of": publish_result.get("snapshot_as_of") if publish_result else None,
     }
