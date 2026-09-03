@@ -103,7 +103,7 @@ const CAPABILITY_ALIAS_GROUPS = [
   ['ct', 'ct机', 'ct影像', '计算机断层扫描', '电子计算机断层扫描'],
   ['mr', 'mri', '磁共振', '磁共振成像'],
   ['cr', '计算机x线摄影'],
-  ['ivd', '体外诊断'],
+  ['ivd', '体外诊断', '体外诊断试剂', '检测试剂', '质控品', '校准品'],
   ['pcr', '聚合酶链式反应', '核酸扩增'],
   ['lis', '检验信息系统', '实验室信息系统'],
   ['his', '医院信息系统'],
@@ -296,12 +296,12 @@ function cardSearchText(card: TodayActionCard): { raw: string; normalized: strin
 function capabilityPoints(type: CapabilityType): number {
   switch (type) {
     case 'DIRECT_AUTHORIZED':
-    case 'DIRECT':
       return 25
-    case 'RENTAL_CAPABLE':
-      return 22
+    case 'DIRECT':
     case 'DIRECT_UNCONFIRMED':
       return 18
+    case 'RENTAL_CAPABLE':
+      return 22
     case 'NEED_MANUFACTURER':
     case 'CAN_SOURCE_PARTNER':
       return 14
