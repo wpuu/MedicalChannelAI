@@ -53,7 +53,7 @@ export const RELATIONSHIP_LABEL: Record<RelationshipStrength, string> = {
 }
 
 export const CAPABILITY_LABEL: Record<CapabilityType, string> = {
-  DIRECT: '可直接参与',
+  DIRECT: '有直接产品能力，授权待确认',
   NEED_MANUFACTURER: '需临时寻找厂家',
   PARTNER: '可联合其他渠道商',
   DIRECT_AUTHORIZED: '已授权，可直接参与',
