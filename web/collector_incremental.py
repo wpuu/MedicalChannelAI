@@ -372,11 +372,9 @@ def record_verification_success(
     verified_at: datetime | None = None,
 ) -> dict[str, Any]:
     current = normalize_ledger(ledger)
-    current_time = _utc(verified_at)
-    when = current_time.isoformat()
-    entries = _prune_entries(dict(current["entries"]), now=current_time)
+    when = _utc(verified_at).isoformat()
     key = ledger_key(observation)
-    entry = entries.get(key)
+    entry = current["entries"].get(key)
     if entry is None:
         entry = _observed_entry(None, observation, when)
     entry = dict(entry)
@@ -390,6 +388,7 @@ def record_verification_success(
             "last_error": None,
         }
     )
+    entries = dict(current["entries"])
     entries[key] = entry
     return {
         "schema_version": LEDGER_SCHEMA_VERSION,
@@ -406,11 +405,9 @@ def record_verification_failure(
     failed_at: datetime | None = None,
 ) -> dict[str, Any]:
     current = normalize_ledger(ledger)
-    current_time = _utc(failed_at)
-    when = current_time.isoformat()
-    entries = _prune_entries(dict(current["entries"]), now=current_time)
+    when = _utc(failed_at).isoformat()
     key = ledger_key(observation)
-    entry = entries.get(key)
+    entry = current["entries"].get(key)
     if entry is None:
         entry = _observed_entry(None, observation, when)
     entry = dict(entry)
@@ -424,6 +421,7 @@ def record_verification_failure(
             "last_error": _text(error, max_length=300),
         }
     )
+    entries = dict(current["entries"])
     entries[key] = entry
     return {
         "schema_version": LEDGER_SCHEMA_VERSION,
