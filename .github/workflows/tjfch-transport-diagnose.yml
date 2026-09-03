@@ -1,4 +1,4 @@
-name: TJFCH Truncated Detail Diagnose
+name: TJFCH Current Opportunity Live Validate
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  diagnose:
+  validate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Print production failure and official detail title structure
+      - name: Require verified current IgM opportunity from production sync
         shell: bash
         run: |
           set -euo pipefail
@@ -40,47 +40,32 @@ jobs:
             --report-output /tmp/tjfch-report.json
           python - <<'PY'
           import json
-          import re
-          import sys
-          from html.parser import HTMLParser
-          from pathlib import Path
-
-          sys.path.insert(0, str(Path('web/pipeline')))
-          from medical_channel_pipeline.tjfch_discovery import fetch_tjfch_page
 
           report = json.load(open('/tmp/tjfch-report.json', encoding='utf-8'))
-          print('REPORT_FAILURES=', json.dumps(report.get('failures'), ensure_ascii=False))
-          print('REPORT_UNSUPPORTED=', json.dumps(report.get('unsupported'), ensure_ascii=False))
-
-          url = 'https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml'
-          html = fetch_tjfch_page(url)
-
-          class Titles(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.stack = []
-                  self.rows = []
-              def handle_starttag(self, tag, attrs):
-                  if tag in {'title', 'h1', 'h2', 'h3'}:
-                      self.stack.append([tag, []])
-              def handle_data(self, data):
-                  if self.stack and data.strip():
-                      self.stack[-1][1].append(data.strip())
-              def handle_endtag(self, tag):
-                  if self.stack and self.stack[-1][0] == tag:
-                      name, parts = self.stack.pop()
-                      text = re.sub(r'\s+', ' ', ' '.join(parts)).strip()
-                      if text:
-                          self.rows.append((name, text))
-
-          parser = Titles(); parser.feed(html)
-          for row in parser.rows:
-              print('TITLE_NODE=', repr(row))
-
-          text = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', html))
-          marker = '甲型肝炎病毒IgM抗体质控品'
-          pos = text.find(marker)
-          print('MARKER_POS=', pos)
-          if pos >= 0:
-              print('MARKER_CONTEXT=', repr(text[max(0, pos-120):pos+260]))
+          records = json.load(open('/tmp/tjfch-records.json', encoding='utf-8'))
+          target = next((r for r in records if r.get('opportunity_id') == 'tjfch_20260831_030197537'), None)
+          print(json.dumps({
+              'discovered': report.get('discovered_supported_count'),
+              'selected': report.get('selected_candidate_count'),
+              'verified': report.get('new_verified_record_count'),
+              'unsupported': report.get('unsupported_candidate_count'),
+              'failures': report.get('failures'),
+              'gate': report.get('publish_gate_reason'),
+              'target': target,
+          }, ensure_ascii=False))
+          if report.get('publish_gate_reason') != 'PASS' or report.get('failure_count') != 0:
+              raise SystemExit('TJFCH production sync did not fully verify selected actionable details')
+          if target is None:
+              raise SystemExit('current IgM opportunity missing')
+          facts = target.get('facts') or {}
+          expected = {
+              'project_name': '天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选公告',
+              'budget_cny': 4588,
+              'bid_deadline': '2026-09-07T17:00:00+08:00',
+          }
+          for key, value in expected.items():
+              if facts.get(key) != value:
+                  raise SystemExit(f'{key} mismatch: {facts.get(key)!r}')
+          if (target.get('source') or {}).get('url') != 'https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml':
+              raise SystemExit('official source URL mismatch')
           PY
