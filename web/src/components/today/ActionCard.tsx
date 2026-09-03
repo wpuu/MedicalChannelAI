@@ -1,4 +1,4 @@
-import { Building2, Calendar, Phone, Wallet } from 'lucide-react'
+import { Building2, Calendar, Mail, Phone, Wallet } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import type { OpportunityFeedback } from '@/services/opportunityFeedbackStore'
 import { formatBudget, pickDisplayDate } from '@/utils/format'
@@ -51,6 +51,16 @@ function priorityDimensionText(card: TodayActionCard): string | null {
   return ranked.map((item) => `${item.label} ${item.percent}%`).join(' · ')
 }
 
+function telHref(value: string | null | undefined): string | null {
+  const normalized = String(value || '').replace(/[^\d+]/g, '')
+  return normalized.replace('+', '').length >= 5 ? `tel:${normalized}` : null
+}
+
+function mailtoHref(value: string | null | undefined): string | null {
+  const email = String(value || '').trim()
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? `mailto:${email}` : null
+}
+
 export function ActionCard({
   card,
   busy,
@@ -79,9 +89,14 @@ export function ActionCard({
   const isLateWindow = card.recommendation_mode === 'LATE_WINDOW'
   const priorityDimensions = priorityDimensionText(card)
   const contact = card.facts.official_contact
-  const contactParts = [contact?.name, contact?.title, contact?.phone].filter(
+  const contactIdentity = [contact?.name, contact?.title].filter(
     (value): value is string => Boolean(value),
   )
+  const contactPhone = contact?.phone?.trim() || null
+  const contactEmail = contact?.email?.trim() || null
+  const contactPhoneHref = telHref(contactPhone)
+  const contactEmailHref = mailtoHref(contactEmail)
+  const hasPublicContact = contactIdentity.length > 0 || Boolean(contactPhone) || Boolean(contactEmail)
 
   const publicFactLabel = isApiMode
     ? '官方/已验证事实'
@@ -144,12 +159,41 @@ export function ActionCard({
                 主要匹配维度（完成度）：{priorityDimensions}。维度百分比不是直接加分，也不代表中标概率。
               </p>
             ) : null}
-            {contactParts.length > 0 ? (
-              <div className="mt-2 flex items-start gap-1.5 text-[11px] leading-5 text-slate-600">
-                <Phone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
-                <span className="break-words">
-                  公告公开联系人：{contactParts.join(' · ')}
-                </span>
+            {hasPublicContact ? (
+              <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50/70 px-2.5 py-2 text-[11px] leading-5 text-slate-600">
+                <div className="flex items-start gap-1.5">
+                  <Phone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  <div className="min-w-0">
+                    <span>公告公开联系人{contactIdentity.length ? `：${contactIdentity.join(' · ')}` : ''}</span>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                      {contactPhone ? (
+                        contactPhoneHref ? (
+                          <a
+                            href={contactPhoneHref}
+                            className="font-medium text-teal-700 underline decoration-teal-200 underline-offset-2"
+                          >
+                            电话 {contactPhone}
+                          </a>
+                        ) : (
+                          <span>电话 {contactPhone}</span>
+                        )
+                      ) : null}
+                      {contactEmail ? (
+                        contactEmailHref ? (
+                          <a
+                            href={contactEmailHref}
+                            className="inline-flex items-center gap-1 font-medium text-teal-700 underline decoration-teal-200 underline-offset-2"
+                          >
+                            <Mail className="h-3 w-3" />
+                            {contactEmail}
+                          </a>
+                        ) : (
+                          <span>{contactEmail}</span>
+                        )
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : null}
             {isLateWindow ? (
