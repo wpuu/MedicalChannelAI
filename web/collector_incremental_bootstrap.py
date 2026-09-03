@@ -7,6 +7,7 @@ import collector_incremental_runtime as incremental_runtime
 from collector_incremental import (
     SOURCE_POLICIES,
     candidate_observation,
+    ledger_key,
     normalize_ledger,
     plan_detail_verification,
     record_verification_success,
@@ -66,10 +67,9 @@ def _clean(value: Any) -> str | None:
 
 def _canonical_matches_discovery(source_id: str, candidate: Any, record: dict[str, Any]) -> bool:
     # Never infer a current fingerprint merely from URL equality. We only bridge
-    # a recent deep verification when the index metadata we fingerprint now still
-    # agrees with the verified canonical facts. TJFCH procurement intentionally
-    # stays out because its index titles may be officially truncated while detail
-    # verification recovers a fuller title.
+    # a recent canonical verification when the index metadata we fingerprint now
+    # still agrees with the verified canonical facts. TJFCH procurement stays out
+    # of this strict path because its index titles may be officially truncated.
     if source_id == "tjfch":
         return False
     facts = record.get("facts")
@@ -93,25 +93,26 @@ def bootstrap_incremental_ledger_from_canonical(
     cache: Any,
     discovered: Iterable[Any] | None = None,
 ) -> dict[str, Any]:
-    """Seed a brand-new incremental ledger from recent deep VERIFIED facts.
+    """Reconcile incremental discovery state with recent canonical verification.
 
-    Discovery is deliberately supplied by the caller. This helper must never
-    perform its own official index request: the real incremental run owns the
-    single discovery fetch and reuses those candidates here before planning
-    detail verification.
+    Discovery is deliberately supplied by the caller. This helper never performs
+    an official index request. On a brand-new ledger it bootstraps recent deep
+    VERIFIED facts; on an existing ledger it repairs FAILED/UNVERIFIED rows that
+    a recent authoritative deep/incremental canonical verification already
+    resolved, avoiding duplicate detail fetches after the daily deep cycle.
     """
     source = str(source_id or "").strip().lower()
     if source not in incremental_runtime.SUPPORTED_INCREMENTAL_SOURCES:
         return {"action": "UNSUPPORTED_SOURCE", "source_id": source}
-
-    current = _utc(now)
-    existing_ledger = incremental_runtime._load_ledger(cache, source)
-    if normalize_ledger(existing_ledger)["entries"]:
-        return {"action": "LEDGER_ALREADY_INITIALIZED", "source_id": source}
     if discovered is None:
         return {"action": "DISCOVERY_REQUIRED", "source_id": source}
 
+    current = _utc(now)
+    existing_ledger = incremental_runtime._load_ledger(cache, source)
+    normalized_existing = normalize_ledger(existing_ledger)
+    existing_entries = normalized_existing["entries"]
     discovered_rows = list(discovered)
+
     policy = SOURCE_POLICIES[source]
     plan = plan_detail_verification(
         source,
@@ -132,6 +133,7 @@ def bootstrap_incremental_ledger_from_canonical(
     seeded = 0
     stale = 0
     metadata_mismatch = 0
+    tracked_fingerprint_bridge = 0
     for candidate in discovered_rows:
         observation = candidate_observation(source, candidate)
         record = canonical_by_url.get(observation.detail_url)
@@ -143,9 +145,24 @@ def bootstrap_incremental_ledger_from_canonical(
         if current - verified_at > RECENT_DEEP_VERIFICATION_MAX_AGE:
             stale += 1
             continue
-        if not _canonical_matches_discovery(source, candidate, record):
+
+        previous = existing_entries.get(ledger_key(observation))
+        tracked_fingerprint_matches = bool(
+            isinstance(previous, dict)
+            and previous.get("fingerprint") == observation.fingerprint
+        )
+        strict_metadata_match = _canonical_matches_discovery(source, candidate, record)
+        if not strict_metadata_match and not tracked_fingerprint_matches:
             metadata_mismatch += 1
             continue
+        if tracked_fingerprint_matches and not strict_metadata_match:
+            # This bridge is safe without title equality because the same current
+            # index fingerprint was already tracked by the ledger and a recent
+            # canonical record proves the exact official detail URL was verified.
+            # It primarily avoids redundant TJFCH refetches where index titles are
+            # truncated relative to detail titles.
+            tracked_fingerprint_bridge += 1
+
         ledger = record_verification_success(
             ledger,
             observation,
@@ -155,10 +172,11 @@ def bootstrap_incremental_ledger_from_canonical(
 
     incremental_runtime._save_ledger(cache, source, ledger)
     return {
-        "action": "BOOTSTRAPPED",
+        "action": "RECONCILED" if existing_entries else "BOOTSTRAPPED",
         "source_id": source,
         "discovered_candidate_count": len(discovered_rows),
         "seeded_verified_count": seeded,
         "stale_canonical_count": stale,
         "metadata_mismatch_count": metadata_mismatch,
+        "tracked_fingerprint_bridge_count": tracked_fingerprint_bridge,
     }
