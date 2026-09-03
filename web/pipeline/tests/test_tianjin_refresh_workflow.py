@@ -29,26 +29,11 @@ class TianjinRefreshWorkflowTests(unittest.TestCase):
         self.assertIn('--delay-seconds 3', body)
 
     def test_teda_records_feed_public_snapshot_and_refresh_commit(self) -> None:
-        self.assertIn(
-            '--records-output web/pipeline/data/tianjin_live_teda_records.json',
-            self.workflow,
-        )
-        self.assertIn(
-            '--report-output web/pipeline/data/tianjin_teda_sync_report.json',
-            self.workflow,
-        )
-        self.assertIn(
-            '--input web/pipeline/data/tianjin_live_teda_records.json',
-            self.workflow,
-        )
-        self.assertGreaterEqual(
-            self.workflow.count('web/pipeline/data/tianjin_live_teda_records.json'),
-            4,
-        )
-        self.assertIn(
-            'web/pipeline/data/tianjin_teda_sync_report.json',
-            self.workflow,
-        )
+        self.assertIn('--records-output web/pipeline/data/tianjin_live_teda_records.json', self.workflow)
+        self.assertIn('--report-output web/pipeline/data/tianjin_teda_sync_report.json', self.workflow)
+        self.assertIn('--input web/pipeline/data/tianjin_live_teda_records.json', self.workflow)
+        self.assertGreaterEqual(self.workflow.count('web/pipeline/data/tianjin_live_teda_records.json'), 4)
+        self.assertIn('web/pipeline/data/tianjin_teda_sync_report.json', self.workflow)
 
     def test_first_central_hospital_uses_shared_clock_and_bounded_verified_sync(self) -> None:
         match = re.search(
@@ -67,16 +52,34 @@ class TianjinRefreshWorkflowTests(unittest.TestCase):
         self.assertIn('--records-output web/pipeline/data/tianjin_live_tjfch_records.json', body)
         self.assertIn('--report-output web/pipeline/data/tianjin_tjfch_sync_report.json', body)
 
-    def test_first_central_hospital_records_feed_public_snapshot_and_refresh_commit(self) -> None:
-        self.assertIn(
-            '--input web/pipeline/data/tianjin_live_tjfch_records.json',
+    def test_first_central_hospital_early_test_recruitment_runs_after_procurement(self) -> None:
+        procurement = self.workflow.index('Sync verified First Central Hospital in-hospital procurement state')
+        early = self.workflow.index('Sync verified First Central Hospital pre-procurement test recruitment')
+        publish = self.workflow.index('Publish H5-safe verified snapshot')
+        self.assertLess(procurement, early)
+        self.assertLess(early, publish)
+
+        match = re.search(
+            r'- name: Sync verified First Central Hospital pre-procurement test recruitment\n(?P<body>.*?)(?=\n      - name:)',
             self.workflow,
+            flags=re.S,
         )
-        self.assertGreaterEqual(
-            self.workflow.count('web/pipeline/data/tianjin_live_tjfch_records.json'),
-            4,
-        )
+        self.assertIsNotNone(match)
+        body = match.group('body') if match else ''
+        self.assertIn('sync_tjfch_test_recruitment.py', body)
+        self.assertIn("--as-of '${{ steps.clock.outputs.as_of }}'", body)
+        self.assertIn('--lookback-days 14', body)
+        self.assertIn('--max-candidates 30', body)
+        self.assertIn('--delay-seconds 3', body)
+        self.assertIn('--existing-records-input web/pipeline/data/tianjin_live_tjfch_records.json', body)
+        self.assertIn('--records-output web/pipeline/data/tianjin_live_tjfch_records.json', body)
+        self.assertIn('--report-output web/pipeline/data/tianjin_tjfch_test_sync_report.json', body)
+
+    def test_first_central_hospital_records_feed_public_snapshot_and_refresh_commit(self) -> None:
+        self.assertIn('--input web/pipeline/data/tianjin_live_tjfch_records.json', self.workflow)
+        self.assertGreaterEqual(self.workflow.count('web/pipeline/data/tianjin_live_tjfch_records.json'), 6)
         self.assertIn('web/pipeline/data/tianjin_tjfch_sync_report.json', self.workflow)
+        self.assertIn('web/pipeline/data/tianjin_tjfch_test_sync_report.json', self.workflow)
 
     def test_temporary_teda_probe_workflow_is_removed(self) -> None:
         self.assertFalse(TEMP_PROBE_PATH.exists())
