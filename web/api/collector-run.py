@@ -16,14 +16,17 @@ from collector_incremental import SOURCE_POLICIES, scan_bucket_id
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
     ACTIVE_CYCLE_TTL_SECONDS,
+    INCREMENTAL_ACTIVE_KEY,
     META_KEY,
     QUEUE_TOPIC_NAME,
     active_cycle_id,
+    active_incremental_id,
     cycle_has_running_stage,
 )
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 MESSAGE_RETENTION = timedelta(days=2)
+DEEP_START_DELAY_WHEN_INCREMENTAL_SECONDS = 300
 # CCGP has correction/event-watch semantics that need their own incremental
 # adapter. Keep it on the authoritative daily collector until that is explicit.
 INCREMENTAL_SOURCE_IDS = tuple(source for source in SOURCE_POLICIES if source != "ccgp")
@@ -87,7 +90,7 @@ def _activate_cycle(
         raise RuntimeError("COLLECTOR_ACTIVE_CYCLE_READBACK_FAILED")
 
 
-async def _enqueue_start(source: str) -> tuple[str, str, str]:
+async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
     now = datetime.now(timezone.utc)
     local_date = now.astimezone(SHANGHAI).date().isoformat()
     cycle_id = f"prod:{local_date}"
@@ -101,6 +104,15 @@ async def _enqueue_start(source: str) -> tuple[str, str, str]:
         source=source,
     )
 
+    # Deep collection owns the authoritative mutation lease from this point.
+    # If an incremental invocation was already in flight, delay the first deep
+    # queue message long enough for that bounded function to finish/abort. New
+    # incremental scans will see ACTIVE_CYCLE_KEY and will not enter.
+    delay_seconds = (
+        DEEP_START_DELAY_WHEN_INCREMENTAL_SECONDS
+        if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) is not None
+        else 0
+    )
     message_id = await send(
         QUEUE_TOPIC_NAME,
         {
@@ -110,9 +122,10 @@ async def _enqueue_start(source: str) -> tuple[str, str, str]:
             "cycle_id": cycle_id,
         },
         retention=MESSAGE_RETENTION,
+        delay=delay_seconds,
         idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:ccgp",
     )
-    return str(message_id), local_date, cycle_id
+    return str(message_id), local_date, cycle_id, delay_seconds
 
 
 async def _enqueue_incremental(source: str, trigger_source: str) -> tuple[str, str, str]:
@@ -122,10 +135,16 @@ async def _enqueue_incremental(source: str, trigger_source: str) -> tuple[str, s
 
     now = datetime.now(timezone.utc)
     cache = RuntimeCache()
-    # Do not even enqueue a lightweight scan while the authoritative daily cycle
-    # is actively mutating canonical caches. A later cron/bucket can try again.
-    if cycle_has_running_stage(cache.get(META_KEY)):
+    # The deep-cycle lease is written before its first queue message is delivered,
+    # closing the old gap where an incremental scan could slip in before META_KEY
+    # had a RUNNING stage. Also keep one incremental source active at a time.
+    if (
+        active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) is not None
+        or cycle_has_running_stage(cache.get(META_KEY))
+    ):
         raise CollectorStartConflict("INCREMENTAL_BLOCKED_BY_DEEP_CYCLE")
+    if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) is not None:
+        raise CollectorStartConflict("INCREMENTAL_SCAN_ALREADY_RUNNING")
 
     bucket_id = scan_bucket_id(source_id, now=now)
     message_id = await send(
@@ -179,11 +198,9 @@ class handler(BaseHTTPRequestHandler):
                 message_id, bucket_id, observed_at = asyncio.run(
                     _enqueue_incremental(source_id, trigger_source)
                 )
-            except CollectorStartConflict:
-                return self._send_json(
-                    409,
-                    {"error": "INCREMENTAL_BLOCKED_BY_DEEP_CYCLE", "source_id": source_id},
-                )
+            except CollectorStartConflict as exc:
+                error = str(exc) or "INCREMENTAL_SCAN_CONFLICT"
+                return self._send_json(409, {"error": error, "source_id": source_id})
             except Exception as exc:
                 return self._send_json(
                     503,
@@ -214,7 +231,9 @@ class handler(BaseHTTPRequestHandler):
             )
 
         try:
-            message_id, local_date, cycle_id = asyncio.run(_enqueue_start(trigger_source))
+            message_id, local_date, cycle_id, start_delay_seconds = asyncio.run(
+                _enqueue_start(trigger_source)
+            )
         except CollectorStartConflict:
             return self._send_json(409, {"error": "COLLECTOR_CYCLE_ALREADY_RUNNING"})
         except Exception as exc:
@@ -240,6 +259,7 @@ class handler(BaseHTTPRequestHandler):
                     "local_date": local_date,
                     "cycle_id": cycle_id,
                     "stage": "ccgp",
+                    "start_delay_seconds": start_delay_seconds,
                     "message_id": message_id,
                 },
             },
