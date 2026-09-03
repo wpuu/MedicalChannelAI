@@ -1,0 +1,50 @@
+name: TEDA Live Diagnose
+
+on:
+  push:
+    branches:
+      - chatgpt/opportunity-ranking-v2-final
+    paths:
+      - .github/workflows/teda-live-diagnose.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Probe TEDA pages independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+
+          root = Path('web/pipeline')
+          sys.path.insert(0, str(root))
+          sys.path.insert(0, str(root / 'scripts'))
+
+          from medical_channel_pipeline.teda_discovery import index_page_url, parse_teda_index_html
+          from sync_teda_market_research import fetch_page_with_retry
+
+          for page in range(1, 5):
+              url = index_page_url(page)
+              print(f'--- page={page} url={url}')
+              try:
+                  html = fetch_page_with_retry(url, delay_seconds=3, attempts=2)
+                  print(f'fetch=OK chars={len(html)}')
+                  rows = parse_teda_index_html(html, index_url=url)
+                  print(f'parse=OK supported={len(rows)}')
+                  for row in rows[:5]:
+                      print(f'candidate={row.title} | {row.detail_url} | published={row.published_at}')
+              except Exception as exc:
+                  print(f'fetch_or_parse=FAIL type={type(exc).__name__} message={exc!s}')
+          PY
