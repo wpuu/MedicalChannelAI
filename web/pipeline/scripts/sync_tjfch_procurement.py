@@ -58,14 +58,14 @@ def publish_gate(
     *,
     index_discovery_succeeded: bool,
     selected_candidate_count: int,
-    unsupported_candidate_count: int,
     new_verified_record_count: int,
+    unsupported_candidate_count: int = 0,
 ) -> tuple[bool, str]:
     if not index_discovery_succeeded:
         return False, "INDEX_DISCOVERY_FAILED"
     actionable_candidate_count = max(0, selected_candidate_count - unsupported_candidate_count)
     if actionable_candidate_count > 0 and new_verified_record_count <= 0:
-        return False, "ALL_ACTIONABLE_DETAILS_FAILED_VERIFICATION"
+        return False, "ALL_SELECTED_DETAILS_FAILED_VERIFICATION"
     return True, "PASS"
 
 
@@ -171,8 +171,8 @@ def main() -> int:
     publish_allowed, publish_gate_reason = publish_gate(
         index_discovery_succeeded=True,
         selected_candidate_count=len(selected),
-        unsupported_candidate_count=len(unsupported),
         new_verified_record_count=len(new_records),
+        unsupported_candidate_count=len(unsupported),
     )
     report = {
         "schema_version": "0.1",
@@ -194,7 +194,7 @@ def main() -> int:
         "publish_gate_reason": publish_gate_reason,
         "policy": {
             "official_procurement_index_required": True,
-            "truncated_index_title_requires_full_detail_h1_verification": True,
+            "truncated_index_title_requires_full_detail_title_verification": True,
             "result_and_award_notices_excluded": True,
             "ambiguous_result_detail_is_unsupported_not_opportunity": True,
             "index_and_detail_title_or_prefix_must_match": True,
