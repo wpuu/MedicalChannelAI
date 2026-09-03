@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-02T22:08:27.889779+00:00",
+  "observed_at": "2026-09-03T05:18:05.888031+00:00",
   "region": "天津",
   "start_date": "2026-09-01",
   "end_date": "2026-09-03",
@@ -24,7 +24,7 @@
   "event_watch_project_count": 11,
   "new_notice_event_count": 0,
   "merged_event_count": 0,
-  "failure_count": 6,
+  "failure_count": 7,
   "failures": [
     {
       "stage": "verified_detail",
@@ -97,6 +97,14 @@
       "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260902_27255241.htm",
       "error": "CcgpDetailParseError",
       "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
+    },
+    {
+      "stage": "event_search",
+      "region": "天津",
+      "project_number": "TGPC-2026-A-0240",
+      "notice_type": "更正公告",
+      "error": "TimeoutError",
+      "message": "The read operation timed out"
     }
   ],
   "publish_allowed": true,

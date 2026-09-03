@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-02T22:08:27.889779+00:00",
+  "observed_at": "2026-09-03T05:18:05.888031+00:00",
   "source": "TEDA_HOSPITAL_PROCUREMENT_INDEX",
   "start_date": "2026-06-06",
   "end_date": "2026-09-03",
@@ -23,7 +23,7 @@
       "reason": "TEDA_OFFICIAL_PUBLISHED_DATE_NOT_AVAILABLE"
     }
   ],
-  "existing_record_count": 0,
+  "existing_record_count": 5,
   "merged_record_count": 5,
   "failure_count": 0,
   "failures": [],
@@ -32,6 +32,7 @@
   "policy": {
     "official_index_required": true,
     "bounded_index_pages": 4,
+    "all_requested_index_pages_required": true,
     "official_index_publication_date_is_evidence_when_present": true,
     "detail_publication_date_must_match_index_when_both_exist": true,
     "missing_official_publication_date_is_explicitly_unsupported": true,
@@ -40,7 +41,7 @@
     "detail_must_pass_canonical_validation": true,
     "candidate_parse_failures_block_publish": true,
     "retry_transient_index_and_detail_fetch_errors": true,
-    "fetch_attempts": 2,
+    "fetch_attempts": 3,
     "rate_limit_bypass": false,
     "minimum_request_delay_seconds": 3.0
   }

@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-02T22:08:27.889779+00:00",
+  "observed_at": "2026-09-03T05:18:05.888031+00:00",
   "source": "TJMUGH_PROCUREMENT_INDEX",
   "index_url": "https://www.tjmugh.com.cn/cgxxtzgg/index.shtml",
   "start_date": "2026-08-28",
@@ -8,7 +8,7 @@
   "discovered_supported_count": 4,
   "selected_candidate_count": 1,
   "new_verified_record_count": 1,
-  "existing_record_count": 2,
+  "existing_record_count": 3,
   "merged_record_count": 2,
   "missing_selected_count": 0,
   "missing_selected_opportunity_ids": [],
