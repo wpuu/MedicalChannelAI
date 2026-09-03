@@ -12,6 +12,14 @@ class PilotPreviewSmokeContractTests(unittest.TestCase):
         self.assertIn("CONTINUATION_REWRITE_INVALID", source)
         self.assertIn("METHOD_NOT_ALLOWED", source)
 
+    def test_smoke_uses_obvious_medical_institution_and_real_ui_capability(self):
+        source = (WEB_ROOT / 'scripts' / 'pilot-preview-smoke.mjs').read_text(encoding='utf-8')
+        self.assertIn('OBVIOUS_MEDICAL_INSTITUTION', source)
+        self.assertIn('medicalInstitutionName', source)
+        self.assertIn("capability_type: 'DIRECT_UNCONFIRMED'", source)
+        self.assertIn('PROFILE_CAPABILITY_TYPE_DRIFTED', source)
+        self.assertNotIn("capability_type: 'DIRECT'", source)
+
     def test_smoke_persists_target_hospital_across_session_and_export(self):
         source = (WEB_ROOT / 'scripts' / 'pilot-preview-smoke.mjs').read_text(encoding='utf-8')
         self.assertIn("target_hospitals: [{ hospital: targetHospital, department: null }]", source)
