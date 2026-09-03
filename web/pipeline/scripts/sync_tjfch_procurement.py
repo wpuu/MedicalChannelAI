@@ -21,11 +21,13 @@ from medical_channel_pipeline.tjfch_discovery import (  # noqa: E402
     stable_opportunity_id,
 )
 from medical_channel_pipeline.tjfch_procurement import (  # noqa: E402
+    TjfchParseError,
     parse_tjfch_procurement_notice,
 )
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 MIN_DETAIL_DELAY_SECONDS = 3.0
+UNSUPPORTED_DETAIL_CODES = {"TJFCH_NOTICE_TYPE_UNSUPPORTED"}
 
 
 def parse_as_of(value: str | None) -> datetime:
@@ -56,12 +58,14 @@ def publish_gate(
     *,
     index_discovery_succeeded: bool,
     selected_candidate_count: int,
+    unsupported_candidate_count: int,
     new_verified_record_count: int,
 ) -> tuple[bool, str]:
     if not index_discovery_succeeded:
         return False, "INDEX_DISCOVERY_FAILED"
-    if selected_candidate_count > 0 and new_verified_record_count <= 0:
-        return False, "ALL_SELECTED_DETAILS_FAILED_VERIFICATION"
+    actionable_candidate_count = max(0, selected_candidate_count - unsupported_candidate_count)
+    if actionable_candidate_count > 0 and new_verified_record_count <= 0:
+        return False, "ALL_ACTIONABLE_DETAILS_FAILED_VERIFICATION"
     return True, "PASS"
 
 
@@ -91,6 +95,7 @@ def main() -> int:
     observed_at = as_of.astimezone(timezone.utc).isoformat()
     existing_records = load_json_arrays(args.existing_records_input)
     failures: list[dict] = []
+    unsupported: list[dict] = []
 
     try:
         index_html = fetch_tjfch_page(INDEX_URL)
@@ -135,6 +140,23 @@ def main() -> int:
                 opportunity_id=stable_opportunity_id(candidate.detail_url),
             )
             new_records.append(record)
+        except TjfchParseError as exc:
+            if str(exc) in UNSUPPORTED_DETAIL_CODES:
+                unsupported.append({
+                    "title": candidate.title,
+                    "published_at": candidate.published_at,
+                    "url": candidate.detail_url,
+                    "reason": str(exc),
+                })
+                continue
+            failures.append({
+                "stage": "verified_detail",
+                "title": candidate.title,
+                "published_at": candidate.published_at,
+                "url": candidate.detail_url,
+                "error": type(exc).__name__,
+                "message": str(exc)[:300],
+            })
         except Exception as exc:
             failures.append({
                 "stage": "verified_detail",
@@ -149,6 +171,7 @@ def main() -> int:
     publish_allowed, publish_gate_reason = publish_gate(
         index_discovery_succeeded=True,
         selected_candidate_count=len(selected),
+        unsupported_candidate_count=len(unsupported),
         new_verified_record_count=len(new_records),
     )
     report = {
@@ -161,21 +184,25 @@ def main() -> int:
         "discovered_supported_count": len(discovered),
         "selected_candidate_count": len(selected),
         "new_verified_record_count": len(new_records),
+        "unsupported_candidate_count": len(unsupported),
         "existing_record_count": len(existing_records),
         "merged_record_count": len(merged_records),
         "failure_count": len(failures),
         "failures": failures,
+        "unsupported": unsupported,
         "publish_allowed": publish_allowed,
         "publish_gate_reason": publish_gate_reason,
         "policy": {
             "official_procurement_index_required": True,
+            "truncated_index_title_requires_full_detail_h1_verification": True,
             "result_and_award_notices_excluded": True,
-            "index_and_detail_title_must_match": True,
+            "ambiguous_result_detail_is_unsupported_not_opportunity": True,
+            "index_and_detail_title_or_prefix_must_match": True,
             "detail_published_date_must_confirm_url_date": True,
             "exact_bid_deadline_required": True,
             "relative_workday_deadline_not_invented": True,
             "failed_detail_never_replaces_existing_verified_record": True,
-            "all_selected_details_failed_verification_blocks_publish": True,
+            "all_actionable_details_failed_verification_blocks_publish": True,
             "rate_limit_bypass": False,
             "minimum_detail_delay_seconds": args.delay_seconds,
         },
@@ -184,7 +211,7 @@ def main() -> int:
     write_json(args.report_output, report)
     print(
         f"discovered={len(discovered)} selected={len(selected)} verified={len(new_records)} "
-        f"records={len(merged_records)} failures={len(failures)} gate={publish_gate_reason}"
+        f"unsupported={len(unsupported)} records={len(merged_records)} failures={len(failures)} gate={publish_gate_reason}"
     )
     if not publish_allowed:
         print(f"TJFCH refresh publish blocked: {publish_gate_reason}", file=sys.stderr)
