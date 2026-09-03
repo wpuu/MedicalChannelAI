@@ -78,7 +78,8 @@ function customerContextPayload(card: TodayActionCard): CustomerContext | null {
   const context = card.customer_context
   const policy = context.partnering_policy
   const hasContext = Boolean(
-    context.hospital_relationship ||
+    context.target_hospital ||
+      context.hospital_relationship ||
       context.matching_product_capabilities.length > 0 ||
       policy.can_find_manufacturer !== null ||
       policy.can_partner_channel !== null ||
