@@ -56,6 +56,9 @@ async function continuationError(response: Response): Promise<DiscoveryRadarErro
 export function discoveryContinuationErrorMessage(error: unknown): string {
   if (!(error instanceof DiscoveryRadarError)) return '续扫暂时不可用，请稍后重试'
   if (error.code === 'AI_CLIENT_BUSY') return '已有AI任务正在执行，请稍候'
+  if (error.code === 'AUTH_REQUIRED') return '登录状态已失效，请重新登录后再续扫'
+  if (error.code === 'PRIVATE_DATABASE_NOT_CONFIGURED') return '试用账号数据库尚未配置完成'
+  if (error.code === 'SESSION_LOOKUP_FAILED') return '暂时无法确认账号登录状态，请刷新后重试'
   if (error.code === 'AI_RADAR_CONTINUATION_NOT_ELIGIBLE') return '当前渠道不满足安全续扫条件，请先重新检查根入口'
   if (error.code === 'AI_RADAR_CONTINUATION_LEDGER_INVALID') return '续扫账本与当前根扫描不一致，请重新检查根入口后再续扫'
   if (error.code === 'AI_RADAR_CONTINUATION_LIMIT_REACHED') return '当前根扫描已达到安全续扫段上限，请改用更具体的官方栏目入口'
