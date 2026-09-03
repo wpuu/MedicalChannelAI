@@ -184,50 +184,83 @@ async function main() {
     ? initialToday.payload.opportunity_pool
     : initialToday.payload?.cards
   assert(Array.isArray(initialPool) && initialPool.length > 0, 'TODAY_POOL_EMPTY')
-  const target = initialPool[0]
+  const target = initialPool.find((item) => {
+    const value = item?.facts?.hospital_name || item?.facts?.buyer_name
+    return typeof value === 'string' && value.trim()
+  })
+  assert(target, 'TODAY_HOSPITAL_TARGET_MISSING')
   const opportunityId = target?.opportunity_id
   const projectName = target?.facts?.project_name
-  const hospital = target?.facts?.hospital_name || target?.facts?.buyer_name
-  const targetHospital = hospital || 'Preview Smoke Target Hospital'
+  const hospital = String(target?.facts?.hospital_name || target?.facts?.buyer_name || '').trim()
+  const targetHospital = hospital
   assert(typeof opportunityId === 'string' && opportunityId, 'TARGET_OPPORTUNITY_ID_MISSING')
   assert(typeof projectName === 'string' && projectName.trim(), 'TARGET_PROJECT_NAME_MISSING')
+  assert(hospital, 'TARGET_HOSPITAL_MISSING')
 
-  const savedProfile = await request('/api/profile', {
+  const savedTargetOnlyProfile = await request('/api/profile', {
     method: 'PUT',
     body: {
       product_capabilities: [{ keyword: projectName, capability_type: 'DIRECT' }],
-      hospital_relationships: hospital
-        ? [{ hospital, department: null, relationship_strength: 'STRONG' }]
-        : [],
+      hospital_relationships: [],
       target_hospitals: [{ hospital: targetHospital, department: null }],
       can_find_manufacturer: true,
       can_partner_channel: true,
       can_handle_lease: true,
     },
   })
-  assert(savedProfile.payload?.profile?.product_capabilities?.length === 1, 'PROFILE_SAVE_FAILED')
+  assert(savedTargetOnlyProfile.payload?.profile?.product_capabilities?.length === 1, 'PROFILE_SAVE_FAILED')
   assert(
-    savedProfile.payload?.profile?.target_hospitals?.some((item) => item?.hospital === targetHospital),
+    savedTargetOnlyProfile.payload?.profile?.target_hospitals?.some((item) => item?.hospital === targetHospital),
     'TARGET_HOSPITAL_SAVE_FAILED',
   )
-
-  const personalizedToday = await request('/api/today')
-  const personalizedPool = Array.isArray(personalizedToday.payload?.opportunity_pool)
-    ? personalizedToday.payload.opportunity_pool
-    : personalizedToday.payload?.cards
-  const personalized = personalizedPool.find((item) => item?.opportunity_id === opportunityId)
-  assert(personalized, 'PERSONALIZED_TARGET_MISSING')
-  assert(personalized.priority?.score_scope === 'PERSONALIZED', 'PERSONALIZED_SCORE_SCOPE_INVALID')
   assert(
-    Number(findComponent(personalized, 'PRODUCT_EXECUTION_CAPABILITY')?.points || 0) > 0,
+    Array.isArray(savedTargetOnlyProfile.payload?.profile?.hospital_relationships)
+      && savedTargetOnlyProfile.payload.profile.hospital_relationships.length === 0,
+    'TARGET_ONLY_PROFILE_RELATIONSHIP_NOT_EMPTY',
+  )
+
+  const targetOnlyToday = await request('/api/today')
+  const targetOnlyPool = Array.isArray(targetOnlyToday.payload?.opportunity_pool)
+    ? targetOnlyToday.payload.opportunity_pool
+    : targetOnlyToday.payload?.cards
+  const targetOnlyPersonalized = targetOnlyPool.find((item) => item?.opportunity_id === opportunityId)
+  assert(targetOnlyPersonalized, 'TARGET_ONLY_PERSONALIZED_TARGET_MISSING')
+  assert(targetOnlyPersonalized.priority?.score_scope === 'PERSONALIZED', 'PERSONALIZED_SCORE_SCOPE_INVALID')
+  assert(
+    Number(findComponent(targetOnlyPersonalized, 'PRODUCT_EXECUTION_CAPABILITY')?.points || 0) > 0,
     'PERSONALIZED_PRODUCT_POINTS_MISSING',
   )
-  if (hospital) {
-    assert(
-      Number(findComponent(personalized, 'RELATIONSHIP')?.points || 0) > 0,
-      'PERSONALIZED_RELATIONSHIP_POINTS_MISSING',
-    )
-  }
+  assert(
+    Number(findComponent(targetOnlyPersonalized, 'RELATIONSHIP')?.points || 0) === 0,
+    'TARGET_HOSPITAL_INFLATED_RELATIONSHIP_POINTS',
+  )
+
+  const savedRelationshipProfile = await request('/api/profile', {
+    method: 'PUT',
+    body: {
+      product_capabilities: [{ keyword: projectName, capability_type: 'DIRECT' }],
+      hospital_relationships: [{ hospital, department: null, relationship_strength: 'STRONG' }],
+      target_hospitals: [{ hospital: targetHospital, department: null }],
+      can_find_manufacturer: true,
+      can_partner_channel: true,
+      can_handle_lease: true,
+    },
+  })
+  assert(
+    savedRelationshipProfile.payload?.profile?.hospital_relationships?.some((item) => item?.hospital === hospital),
+    'HOSPITAL_RELATIONSHIP_SAVE_FAILED',
+  )
+
+  const relationshipToday = await request('/api/today')
+  const relationshipPool = Array.isArray(relationshipToday.payload?.opportunity_pool)
+    ? relationshipToday.payload.opportunity_pool
+    : relationshipToday.payload?.cards
+  const relationshipPersonalized = relationshipPool.find((item) => item?.opportunity_id === opportunityId)
+  assert(relationshipPersonalized, 'RELATIONSHIP_PERSONALIZED_TARGET_MISSING')
+  assert(
+    Number(findComponent(relationshipPersonalized, 'RELATIONSHIP')?.points || 0) > 0,
+    'PERSONALIZED_RELATIONSHIP_POINTS_MISSING',
+  )
 
   await request(`/api/feedback/${encodeURIComponent(opportunityId)}`, {
     method: 'PUT',
@@ -325,6 +358,10 @@ async function main() {
     persistedProfile.payload?.profile?.target_hospitals?.some((item) => item?.hospital === targetHospital),
     'CROSS_SESSION_TARGET_HOSPITAL_PERSISTENCE_FAILED',
   )
+  assert(
+    persistedProfile.payload?.profile?.hospital_relationships?.some((item) => item?.hospital === hospital),
+    'CROSS_SESSION_HOSPITAL_RELATIONSHIP_PERSISTENCE_FAILED',
+  )
   const persistedFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`)
   assert(
     Date.parse(persistedFollowup.payload?.remind_at) === Date.parse(remindAt),
@@ -340,6 +377,13 @@ async function main() {
 
   const afterDelete = await request('/api/auth/me', { expected: [401] })
   assert(afterDelete.payload?.error === 'AUTH_REQUIRED', 'DELETED_SESSION_STILL_ACTIVE')
+
+  const deletedLogin = await request('/api/auth/login', {
+    method: 'POST',
+    body: { username, password },
+    expected: [401],
+  })
+  assert(deletedLogin.payload?.error === 'INVALID_CREDENTIALS', 'DELETED_ACCOUNT_LOGIN_SUCCEEDED')
 
   const reusedInvite = await request('/api/auth/register', {
     method: 'POST',
