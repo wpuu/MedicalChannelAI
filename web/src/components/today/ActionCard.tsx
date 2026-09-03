@@ -26,6 +26,7 @@ interface ActionCardProps {
   onAnalyze?: () => void
   onFeedbackChanged?: (value: OpportunityFeedback | null) => Promise<void> | void
   analysisUnavailableReason?: string | null
+  automationUnavailableReason?: string | null
 }
 
 const PRIORITY_DIMENSION_LABELS = [
@@ -63,14 +64,18 @@ export function ActionCard({
   onAnalyze,
   onFeedbackChanged,
   analysisUnavailableReason,
+  automationUnavailableReason,
 }: ActionCardProps) {
   const dateInfo = pickDisplayDate(card.facts)
   const budget = formatBudget(card.facts.budget)
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
-  const outreachDisabled =
+  const groundingUnavailable =
     card.model_decision_status === 'BLOCKED_GROUNDING' ||
     card.model_decision_status === 'NOT_ELIGIBLE' ||
     card.evidence_source_urls.length === 0
+  const outreachDisabled = groundingUnavailable || Boolean(automationUnavailableReason)
+  const outreachDisabledReason = automationUnavailableReason ||
+    (groundingUnavailable ? '公开依据不足，暂不安全生成沟通话术' : null)
   const isLateWindow = card.recommendation_mode === 'LATE_WINDOW'
   const priorityDimensions = priorityDimensionText(card)
   const contact = card.facts.official_contact
@@ -159,7 +164,8 @@ export function ActionCard({
           card={card}
           onAnalyze={onAnalyze}
           analyzing={aiBusy}
-          analysisUnavailableReason={analysisUnavailableReason}
+          analysisUnavailableReason={automationUnavailableReason || analysisUnavailableReason}
+          analysisDisabled={Boolean(automationUnavailableReason)}
         />
       </div>
 
@@ -173,6 +179,7 @@ export function ActionCard({
         <ActionButtons
           busy={busy}
           outreachDisabled={outreachDisabled}
+          outreachDisabledReason={outreachDisabledReason}
           onDetail={onDetail}
           onContacted={onContacted}
           onFollow={onFollow}
