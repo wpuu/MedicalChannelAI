@@ -4,14 +4,17 @@ import type {
   DiscoverySourceInput,
   DiscoverySourceKind,
 } from './discoveryRadarApi'
+import {
+  discoveryWorkspaceDbKey,
+  discoveryWorkspaceIsAccountScoped,
+  discoveryWorkspaceStorageKey,
+} from './discoveryWorkspaceAccountIsolation'
 
-const STORAGE_KEY = 'medicalchannelai.discovery.workspace.bootstrap.v4'
 const V3_STORAGE_KEY = 'medicalchannelai.discovery.workspace.v3'
 const LEGACY_STORAGE_KEY = 'medicalchannelai.discovery.workspace.v2'
 const DB_NAME = 'medicalchannelai.discovery.local'
 const DB_VERSION = 1
 const DB_STORE = 'workspace'
-const DB_KEY = 'current'
 const LOCAL_WARNING_BYTES = 25 * 1024 * 1024
 
 export interface SavedDiscoverySource extends DiscoverySourceInput {
@@ -152,7 +155,7 @@ function parseStored(raw: string | null) {
 }
 
 function migrateLegacyWorkspace(): DiscoveryWorkspace | null {
-  if (typeof window === 'undefined') return null
+  if (typeof window === 'undefined' || discoveryWorkspaceIsAccountScoped()) return null
   const v3 = parseStored(window.localStorage.getItem(V3_STORAGE_KEY))
   if (v3) return v3
   const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY)
@@ -186,7 +189,8 @@ function migrateLegacyWorkspace(): DiscoveryWorkspace | null {
 
 export function loadDiscoveryWorkspace(): DiscoveryWorkspace {
   if (typeof window === 'undefined') return emptyWorkspace()
-  const bootstrap = parseStored(window.localStorage.getItem(STORAGE_KEY))
+  const storageKey = discoveryWorkspaceStorageKey()
+  const bootstrap = parseStored(window.localStorage.getItem(storageKey))
   if (bootstrap) return bootstrap
   return migrateLegacyWorkspace() ?? emptyWorkspace()
 }
@@ -205,12 +209,12 @@ function openDiscoveryDb(): Promise<IDBDatabase> {
   })
 }
 
-async function readIndexedWorkspace(): Promise<DiscoveryWorkspace | null> {
+async function readIndexedWorkspace(dbKey: string): Promise<DiscoveryWorkspace | null> {
   const db = await openDiscoveryDb()
   try {
     return await new Promise((resolve, reject) => {
       const transaction = db.transaction(DB_STORE, 'readonly')
-      const request = transaction.objectStore(DB_STORE).get(DB_KEY)
+      const request = transaction.objectStore(DB_STORE).get(dbKey)
       request.onsuccess = () => resolve(normalizeWorkspace(request.result))
       request.onerror = () => reject(request.error ?? new Error('INDEXED_DB_READ_FAILED'))
     })
@@ -219,12 +223,12 @@ async function readIndexedWorkspace(): Promise<DiscoveryWorkspace | null> {
   }
 }
 
-async function writeIndexedWorkspace(workspace: DiscoveryWorkspace): Promise<void> {
+async function writeIndexedWorkspace(workspace: DiscoveryWorkspace, dbKey: string): Promise<void> {
   const db = await openDiscoveryDb()
   try {
     await new Promise<void>((resolve, reject) => {
       const transaction = db.transaction(DB_STORE, 'readwrite')
-      transaction.objectStore(DB_STORE).put(workspace, DB_KEY)
+      transaction.objectStore(DB_STORE).put(workspace, dbKey)
       transaction.oncomplete = () => resolve()
       transaction.onerror = () => reject(transaction.error ?? new Error('INDEXED_DB_WRITE_FAILED'))
       transaction.onabort = () => reject(transaction.error ?? new Error('INDEXED_DB_WRITE_ABORTED'))
@@ -282,23 +286,25 @@ function bootstrapWorkspace(workspace: DiscoveryWorkspace): DiscoveryWorkspace {
   }
 }
 
-function writeBootstrap(workspace: DiscoveryWorkspace, full = false) {
+function writeBootstrap(workspace: DiscoveryWorkspace, full: boolean, storageKey: string) {
   if (typeof window === 'undefined') return
   const value = full ? workspace : bootstrapWorkspace(workspace)
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
+  window.localStorage.setItem(storageKey, JSON.stringify(value))
 }
 
 export async function loadDiscoveryWorkspaceDurable(
   fallback: DiscoveryWorkspace = loadDiscoveryWorkspace(),
 ): Promise<{ workspace: DiscoveryWorkspace; status: DiscoveryStorageStatus }> {
+  const storageKey = discoveryWorkspaceStorageKey()
+  const dbKey = discoveryWorkspaceDbKey()
   try {
-    const stored = await readIndexedWorkspace()
+    const stored = await readIndexedWorkspace(dbKey)
     const workspace = stored ?? fallback
-    if (!stored) await writeIndexedWorkspace(workspace)
-    writeBootstrap(workspace)
+    if (!stored) await writeIndexedWorkspace(workspace, dbKey)
+    writeBootstrap(workspace, false, storageKey)
     return { workspace, status: await browserStorageStatus(workspace, 'INDEXED_DB') }
   } catch {
-    try { writeBootstrap(fallback, true) } catch { /* Keep in-memory state if quota is exhausted. */ }
+    try { writeBootstrap(fallback, true, storageKey) } catch { /* Keep in-memory state if quota is exhausted. */ }
     return { workspace: fallback, status: await browserStorageStatus(fallback, 'LOCAL_STORAGE_FALLBACK') }
   }
 }
@@ -313,13 +319,18 @@ let saveChain: Promise<DiscoveryStorageStatus> = Promise.resolve({
 })
 
 export function saveDiscoveryWorkspace(workspace: DiscoveryWorkspace): Promise<DiscoveryStorageStatus> {
+  // Capture the account namespace when the save is requested. An older account's
+  // queued IndexedDB write can therefore finish after a new login without ever
+  // writing into the new account's slot.
+  const storageKey = discoveryWorkspaceStorageKey()
+  const dbKey = discoveryWorkspaceDbKey()
   saveChain = saveChain.then(async () => {
     try {
-      await writeIndexedWorkspace(workspace)
-      try { writeBootstrap(workspace) } catch { /* IndexedDB remains authoritative. */ }
+      await writeIndexedWorkspace(workspace, dbKey)
+      try { writeBootstrap(workspace, false, storageKey) } catch { /* IndexedDB remains authoritative. */ }
       return browserStorageStatus(workspace, 'INDEXED_DB')
     } catch {
-      try { writeBootstrap(workspace, true) } catch { /* Surface fallback warning via status. */ }
+      try { writeBootstrap(workspace, true, storageKey) } catch { /* Surface fallback warning via status. */ }
       return browserStorageStatus(workspace, 'LOCAL_STORAGE_FALLBACK')
     }
   })
