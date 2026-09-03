@@ -31,10 +31,12 @@ from collector_namespace import (
     INCREMENTAL_ACTIVE_TTL_SECONDS,
     INCREMENTAL_CHAIN_KEY,
     INCREMENTAL_CHAIN_TTL_SECONDS,
+    META_KEY,
     QUEUE_TOPIC_NAME,
     active_cycle_id,
     active_incremental_id,
     apply_runtime_namespace,
+    deep_message_lease_disposition,
 )
 
 apply_runtime_namespace(runtime)
@@ -63,12 +65,22 @@ def _next_stage(stage: str) -> str | None:
     return STAGE_ORDER[index + 1] if index + 1 < len(STAGE_ORDER) else None
 
 
-def _active_cycle_matches(cycle_id: str) -> bool:
-    value = RuntimeCache().get(ACTIVE_CYCLE_KEY)
-    current = active_cycle_id(value)
-    if current is None:
-        raise RuntimeError("COLLECTOR_ACTIVE_CYCLE_MISSING")
-    return current == cycle_id
+def _active_cycle_matches(cycle_id: str, *, cycle_as_of: datetime) -> bool:
+    cache = RuntimeCache()
+    cycle_local_date = cycle_as_of.astimezone(TICK_SHANGHAI).date().isoformat()
+    current_local_date = datetime.now(timezone.utc).astimezone(TICK_SHANGHAI).date().isoformat()
+    disposition = deep_message_lease_disposition(
+        cache.get(ACTIVE_CYCLE_KEY),
+        cache.get(META_KEY),
+        cycle_id=cycle_id,
+        cycle_local_date=cycle_local_date,
+        current_local_date=current_local_date,
+    )
+    if disposition == "MATCH":
+        return True
+    if disposition in {"SUPERSEDED", "COMPLETED_CYCLE", "EXPIRED_STALE"}:
+        return False
+    raise RuntimeError("COLLECTOR_ACTIVE_CYCLE_MISSING")
 
 
 def _release_active_cycle_if_owned(cycle_id: str) -> None:
@@ -197,8 +209,6 @@ def _acquire_incremental_lease(
     if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) != scan_id:
         raise RuntimeError("INCREMENTAL_LEASE_READBACK_FAILED")
 
-    # Deep collection has priority. Recheck after acquiring our lease so a deep
-    # cycle that started in the small gap above forces this scan to back out.
     if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) is not None:
         if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) == scan_id:
             cache.delete(INCREMENTAL_ACTIVE_KEY)
@@ -275,10 +285,6 @@ async def _process_incremental_tick_payload(payload: dict[str, Any]) -> None:
         raise RuntimeError("INCREMENTAL_TICK_DELIVERED_EARLY")
 
     cache = RuntimeCache()
-
-    # Preserve the day chain before doing any source work. If a source later
-    # fails/retries, the next scheduler tick still exists and other sources are
-    # not starved by one problematic official site.
     next_tick = next_tick_after(tick, delivered_at=now)
     if next_tick is not None:
         await _enqueue_incremental_tick(next_tick, now=now)
@@ -330,9 +336,6 @@ async def _start_intraday_chain_after_deep() -> None:
     try:
         await _enqueue_incremental_tick(first_tick, now=now)
     except Exception as exc:
-        # The authoritative publish has already succeeded, so this failure must
-        # not rewrite verified public data. Re-raise only to ask Queue to redeliver
-        # the already-completed publish message and retry scheduling the side-plane.
         _write_chain_state(
             cache,
             state="SCHEDULE_RETRY_PENDING",
@@ -367,9 +370,10 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if stage not in STAGE_ORDER or not cycle_id or cycle_as_of is None:
         return
 
-    # Vercel Queues are at-least-once. A redelivery from an older accepted cycle
-    # must be acknowledged without touching the current collector namespace.
-    if not _active_cycle_matches(cycle_id):
+    # At-least-once duplicates from a fully completed/released cycle or a cycle
+    # already superseded by a newer business date are harmless and acknowledged.
+    # Missing lease during an unfinished same-day cycle is still a hard failure.
+    if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
         return
 
     status, result = runtime.run_stage(stage, now=cycle_as_of)
@@ -377,15 +381,10 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
         next_stage = _next_stage(stage)
         if next_stage is not None:
-            if not _active_cycle_matches(cycle_id):
+            if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
                 return
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         else:
-            # Publish is already authoritative at this point. Keep the deep lease
-            # until the first intraday tick is actually accepted by Queue. If that
-            # scheduling send fails, this handler raises and the publish message is
-            # safely redelivered; run_stage then returns ALREADY_COMPLETED_TODAY and
-            # only the side-plane scheduling is retried.
             await _start_intraday_chain_after_deep()
             _release_active_cycle_if_owned(cycle_id)
         return
