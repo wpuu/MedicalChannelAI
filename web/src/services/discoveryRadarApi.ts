@@ -107,6 +107,9 @@ async function radarError(response: Response): Promise<DiscoveryRadarError> {
 export function discoveryRadarErrorMessage(error: unknown): string {
   if (!(error instanceof DiscoveryRadarError)) return 'AI情报雷达暂时不可用，请稍后重试'
   if (error.code === 'AI_CLIENT_BUSY') return '已有AI任务正在执行，请稍候'
+  if (error.code === 'AUTH_REQUIRED') return '登录状态已失效，请重新登录后再扫描'
+  if (error.code === 'PRIVATE_DATABASE_NOT_CONFIGURED') return '试用账号数据库尚未配置完成'
+  if (error.code === 'SESSION_LOOKUP_FAILED') return '暂时无法确认账号登录状态，请刷新后重试'
   if (error.code === 'AI_RADAR_NOT_CONFIGURED') return 'AI情报雷达尚未配置运行密钥'
   if (error.code === 'AI_RADAR_RATE_LIMITED') return '扫描较频繁，请稍后再试'
   if (error.code === 'AI_RADAR_SOURCE_EMPTY') return '该公开渠道暂未读取到可分析链接，建议检查入口地址'
