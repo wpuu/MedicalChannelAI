@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-03T05:18:05.888031+00:00",
+  "observed_at": "2026-09-03T05:31:21.991132+00:00",
   "source": "TJFCH_IN_HOSPITAL_PROCUREMENT",
   "index_url": "https://www.tjfch.com.cn/ywgk/ynbx/index.shtml",
   "start_date": "2026-07-21",
@@ -9,7 +9,7 @@
   "selected_candidate_count": 2,
   "new_verified_record_count": 2,
   "unsupported_candidate_count": 0,
-  "existing_record_count": 0,
+  "existing_record_count": 2,
   "merged_record_count": 2,
   "failure_count": 0,
   "failures": [],

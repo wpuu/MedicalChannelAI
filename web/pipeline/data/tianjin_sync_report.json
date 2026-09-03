@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-03T05:18:05.888031+00:00",
+  "observed_at": "2026-09-03T05:31:21.991132+00:00",
   "region": "天津",
   "start_date": "2026-09-01",
   "end_date": "2026-09-03",
@@ -17,96 +17,15 @@
   ],
   "planned_discovery_query_count": 10,
   "discovery_success_count": 10,
-  "unique_discovered_candidate_count": 33,
+  "unique_discovered_candidate_count": 20,
   "selected_candidate_count": 12,
-  "new_verified_record_count": 6,
-  "merged_record_count": 18,
-  "event_watch_project_count": 11,
+  "new_verified_record_count": 12,
+  "merged_record_count": 24,
+  "event_watch_project_count": 17,
   "new_notice_event_count": 0,
   "merged_event_count": 0,
-  "failure_count": 7,
-  "failures": [
-    {
-      "stage": "verified_detail",
-      "region": "天津",
-      "notice_type": "竞争性磋商",
-      "keywords": [
-        "医院"
-      ],
-      "title": "天津市胸科医院 天津市胸科医院物业及保安服务项目 (项目编号:TGPC-2026-D-0910)中标公告",
-      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260902_27255291.htm",
-      "error": "CcgpDetailParseError",
-      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
-    },
-    {
-      "stage": "verified_detail",
-      "region": "天津",
-      "notice_type": "竞争性磋商",
-      "keywords": [
-        "医院"
-      ],
-      "title": "天津市第一中心医院 天津市第一中心医院水西院区大型设备维保服务项目 (项目编号:TGPC-2026-D-0873)中标公告",
-      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260902_27255285.htm",
-      "error": "CcgpDetailParseError",
-      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
-    },
-    {
-      "stage": "verified_detail",
-      "region": "天津",
-      "notice_type": "竞争性磋商",
-      "keywords": [
-        "医院"
-      ],
-      "title": "天津市肿瘤医院 天津市肿瘤医院滨海院区制冷系统维修保养项目 (项目编号:XCSD-2026-A-686)中标公告",
-      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260902_27255284.htm",
-      "error": "CcgpDetailParseError",
-      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
-    },
-    {
-      "stage": "verified_detail",
-      "region": "天津",
-      "notice_type": "竞争性磋商",
-      "keywords": [
-        "疾病预防控制"
-      ],
-      "title": "天津市疾病预防控制中心 天津市疾病预防控制中心宣传品采购项目 (项目编号:TGPC-2026-A-0233)中标公告",
-      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260902_27255260.htm",
-      "error": "CcgpDetailParseError",
-      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
-    },
-    {
-      "stage": "verified_detail",
-      "region": "天津",
-      "notice_type": "竞争性磋商",
-      "keywords": [
-        "医院"
-      ],
-      "title": "天津市南开区中医医院 天津市南开区中医医院职工配餐及体检人早餐配送服务项目 (项目编号:YHCG2026-N-005)中标公告",
-      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260902_27255244.htm",
-      "error": "CcgpDetailParseError",
-      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
-    },
-    {
-      "stage": "verified_detail",
-      "region": "天津",
-      "notice_type": "竞争性磋商",
-      "keywords": [
-        "医院"
-      ],
-      "title": "天津市人民医院 天津市人民医院采购家具项目 (项目编号:TGPC-2026-A-0234)中标公告",
-      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260902_27255241.htm",
-      "error": "CcgpDetailParseError",
-      "message": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION"
-    },
-    {
-      "stage": "event_search",
-      "region": "天津",
-      "project_number": "TGPC-2026-A-0240",
-      "notice_type": "更正公告",
-      "error": "TimeoutError",
-      "message": "The read operation timed out"
-    }
-  ],
+  "failure_count": 0,
+  "failures": [],
   "publish_allowed": true,
   "publish_gate_reason": "PASS",
   "policy": {
