@@ -8,6 +8,7 @@ import { FactsCard } from '@/components/opportunity/FactsCard'
 import { FollowupCard } from '@/components/opportunity/FollowupCard'
 import { OpportunityExecutionCard } from '@/components/opportunity/OpportunityExecutionCard'
 import { PriorityCard } from '@/components/opportunity/PriorityCard'
+import { PublicHistoryCard } from '@/components/opportunity/PublicHistoryCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { NotFitModal } from '@/components/followup/NotFitModal'
@@ -27,6 +28,10 @@ import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { getHistoricalFollowedOpportunityCard } from '@/services/followedApi'
 import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStore'
 import {
+  getPublicOpportunityHistory,
+  type PublicOpportunityHistory,
+} from '@/services/publicOpportunityHistoryApi'
+import {
   getRuntimeStatus,
   runtimeAutomationUnavailableReason,
   runtimeSnapshotWarning,
@@ -42,6 +47,9 @@ export function OpportunityDetailPage() {
   const { toast } = useToast()
   const [card, setCard] = useState<TodayActionCard | null>(null)
   const [historical, setHistorical] = useState(false)
+  const [publicHistory, setPublicHistory] = useState<PublicOpportunityHistory | null>(null)
+  const [publicHistoryLoading, setPublicHistoryLoading] = useState(false)
+  const [publicHistoryError, setPublicHistoryError] = useState(false)
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
   const [runtimeStatusChecked, setRuntimeStatusChecked] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -51,6 +59,27 @@ export function OpportunityDetailPage() {
   const [remindOpen, setRemindOpen] = useState(false)
   const [outreachOpen, setOutreachOpen] = useState(false)
   const [aiBusy, setAiBusy] = useState(false)
+
+  const loadPublicHistory = useCallback((opportunityId: string) => {
+    if (!isApiMode) {
+      setPublicHistory(null)
+      setPublicHistoryLoading(false)
+      setPublicHistoryError(false)
+      return
+    }
+    setPublicHistoryLoading(true)
+    setPublicHistoryError(false)
+    void getPublicOpportunityHistory(opportunityId)
+      .then((history) => setPublicHistory(history))
+      .catch((cause) => {
+        if (isAuthRequiredError(cause)) {
+          navigate('/login', { replace: true })
+          return
+        }
+        setPublicHistoryError(true)
+      })
+      .finally(() => setPublicHistoryLoading(false))
+  }, [navigate])
 
   const load = useCallback(async (silent = false) => {
     if (!id) {
@@ -75,9 +104,11 @@ export function OpportunityDetailPage() {
         if (stored) {
           setHistorical(true)
           setCard(stored)
+          loadPublicHistory(id)
         } else {
           setNotFound(true)
           setCard(null)
+          setPublicHistory(null)
         }
       } else {
         if (!isApiMode && isVerifiedPublicDemo) {
@@ -86,6 +117,7 @@ export function OpportunityDetailPage() {
         } else {
           setCard(res)
         }
+        loadPublicHistory(id)
         if (isApiMode || isVerifiedPublicDemo) {
           void getRuntimeStatus().then((status) => {
             setRuntimeStatus(status)
@@ -102,7 +134,7 @@ export function OpportunityDetailPage() {
     } finally {
       setLoading(false)
     }
-  }, [id, navigate])
+  }, [id, loadPublicHistory, navigate])
 
   useEffect(() => {
     void load()
@@ -323,6 +355,13 @@ export function OpportunityDetailPage() {
       />
 
       <FactsCard facts={card.facts} />
+      {isApiMode ? (
+        <PublicHistoryCard
+          history={publicHistory}
+          loading={publicHistoryLoading}
+          error={publicHistoryError}
+        />
+      ) : null}
       <div id="official-evidence" className="scroll-mt-20">
         <EvidenceCard
           urls={card.evidence_source_urls}
