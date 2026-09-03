@@ -114,6 +114,17 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.assertIn('runtime.merge_canonical_records(existing_records, staged_records)', self.runtime)
         self.assertIn('pending_record_count', self.runtime)
 
+    def test_authoritative_deep_publish_discards_all_older_incremental_staging(self) -> None:
+        self.assertIn('def clear_incremental_pending(cache: RuntimeCache)', self.runtime)
+        start = self.queue.index('else:\n            # The completed deep cycle is authoritative')
+        end = self.queue.index('        return', start)
+        terminal = self.queue[start:end]
+        clear = terminal.index('incremental_runtime.clear_incremental_pending(RuntimeCache())')
+        schedule = terminal.index('await _start_intraday_chain_after_deep()')
+        release = terminal.index('_release_active_cycle_if_owned(cycle_id)')
+        self.assertLess(clear, schedule)
+        self.assertLess(schedule, release)
+
     def test_incremental_status_is_aggregate_only(self) -> None:
         for field in (
             'candidate_count',
