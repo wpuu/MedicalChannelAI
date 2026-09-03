@@ -12,8 +12,11 @@ from zoneinfo import ZoneInfo
 from vercel.functions import RuntimeCache
 from vercel.queue import send
 
-from collector_incremental import SOURCE_POLICIES, scan_bucket_id
-from collector_incremental_scheduler import choose_due_incremental_source
+from collector_incremental import scan_bucket_id
+from collector_incremental_scheduler import (
+    SCHEDULED_INCREMENTAL_SOURCES,
+    choose_due_incremental_source,
+)
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
     ACTIVE_CYCLE_TTL_SECONDS,
@@ -28,9 +31,9 @@ from collector_namespace import (
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 MESSAGE_RETENTION = timedelta(days=2)
 DEEP_START_DELAY_WHEN_INCREMENTAL_SECONDS = 300
-# CCGP has correction/event-watch semantics that need their own incremental
-# adapter. Keep it on the authoritative daily collector until that is explicit.
-INCREMENTAL_SOURCE_IDS = tuple(source for source in SOURCE_POLICIES if source != "ccgp")
+# This is an explicit allowlist of implemented source adapters. Merely adding a
+# policy must never activate a new collector without an adapter and tests.
+INCREMENTAL_SOURCE_IDS = SCHEDULED_INCREMENTAL_SOURCES
 
 
 class CollectorStartConflict(RuntimeError):
