@@ -74,7 +74,7 @@ jobs:
             'OUTREACH_INTERNAL_RELATIONSHIP_DISCLAIMER_MISSING',
           )
 
-'''
+          '''
           path.write_text(text.replace(marker, insert + marker), encoding='utf-8')
           PY
 
