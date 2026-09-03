@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from vercel.functions import RuntimeCache
@@ -8,11 +8,26 @@ from vercel.queue import send
 
 import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
+from collector_incremental import scan_bucket_id
 from collector_incremental_bootstrap import bootstrap_incremental_ledger_from_canonical
+from collector_incremental_scheduler import choose_due_incremental_source
+from collector_incremental_ticks import (
+    BUSINESS_WINDOW_END,
+    BUSINESS_WINDOW_START,
+    SHANGHAI as TICK_SHANGHAI,
+    IncrementalTick,
+    first_tick_after_deep,
+    next_tick_after,
+    parse_tick_schedule,
+    tick_delay_seconds,
+    tick_from_payload,
+)
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
     INCREMENTAL_ACTIVE_KEY,
     INCREMENTAL_ACTIVE_TTL_SECONDS,
+    INCREMENTAL_CHAIN_KEY,
+    INCREMENTAL_CHAIN_TTL_SECONDS,
     QUEUE_TOPIC_NAME,
     active_cycle_id,
     active_incremental_id,
@@ -59,6 +74,35 @@ def _release_active_cycle_if_owned(cycle_id: str) -> None:
         cache.delete(ACTIVE_CYCLE_KEY)
 
 
+def _write_chain_state(
+    cache: RuntimeCache,
+    *,
+    state: str,
+    business_date: str | None,
+    tick_id: str | None = None,
+    next_tick_id: str | None = None,
+    selected_source: str | None = None,
+    detail: str | None = None,
+) -> None:
+    cache.set(
+        INCREMENTAL_CHAIN_KEY,
+        {
+            "schema_version": "0.1",
+            "state": state,
+            "business_date": business_date,
+            "tick_id": tick_id,
+            "next_tick_id": next_tick_id,
+            "selected_source": selected_source,
+            "detail": str(detail or "")[:180] or None,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        },
+        {
+            "ttl": INCREMENTAL_CHAIN_TTL_SECONDS,
+            "tags": ["medicalchannelai-collector-incremental-chain"],
+        },
+    )
+
+
 async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) -> str:
     message_id = await send(
         QUEUE_TOPIC_NAME,
@@ -75,8 +119,49 @@ async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) ->
     return str(message_id)
 
 
+async def _enqueue_incremental_tick(tick: IncrementalTick, *, now: datetime) -> str:
+    delay_seconds = tick_delay_seconds(tick, now=now)
+    message_id = await send(
+        QUEUE_TOPIC_NAME,
+        {
+            "schema_version": "0.1",
+            "mode": "incremental_tick",
+            "business_date": tick.business_date,
+            "scheduled_for": tick.scheduled_for,
+            "tick_id": tick.tick_id,
+            "sequence": tick.sequence,
+        },
+        retention=MESSAGE_RETENTION,
+        delay=delay_seconds,
+        idempotency_key=f"{QUEUE_TOPIC_NAME}:{tick.tick_id}",
+    )
+    return str(message_id)
+
+
+async def _enqueue_incremental_source(source_id: str, *, observed_at: datetime) -> str:
+    bucket_id = scan_bucket_id(source_id, now=observed_at)
+    message_id = await send(
+        QUEUE_TOPIC_NAME,
+        {
+            "schema_version": "0.1",
+            "mode": "incremental",
+            "source_id": source_id,
+            "observed_at": observed_at.isoformat(),
+            "scan_bucket_id": bucket_id,
+            "trigger_source": "INTRADAY_TICK",
+        },
+        retention=MESSAGE_RETENTION,
+        idempotency_key=f"{QUEUE_TOPIC_NAME}:{bucket_id}",
+    )
+    return str(message_id)
+
+
 def _is_incremental_payload(payload: dict[str, Any]) -> bool:
     return str(payload.get("mode") or "").strip().lower() == "incremental"
+
+
+def _is_incremental_tick_payload(payload: dict[str, Any]) -> bool:
+    return str(payload.get("mode") or "").strip().lower() == "incremental_tick"
 
 
 def _acquire_incremental_lease(
@@ -176,8 +261,103 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
     )
 
 
+async def _process_incremental_tick_payload(payload: dict[str, Any]) -> None:
+    tick = tick_from_payload(payload)
+    if tick is None:
+        return
+    scheduled = parse_tick_schedule(tick)
+    if scheduled is None:
+        return
+
+    now = datetime.now(timezone.utc)
+    now_local = now.astimezone(TICK_SHANGHAI)
+    if now_local.date().isoformat() != tick.business_date:
+        return
+    if now_local.time() < BUSINESS_WINDOW_START or now_local.time() > BUSINESS_WINDOW_END:
+        return
+    if now + timedelta(seconds=30) < scheduled:
+        raise RuntimeError("INCREMENTAL_TICK_DELIVERED_EARLY")
+
+    cache = RuntimeCache()
+
+    # Preserve the day chain before doing any source work. If a source later
+    # fails/retries, the next scheduler tick still exists and other sources are
+    # not starved by one problematic official site.
+    next_tick = next_tick_after(tick, delivered_at=now)
+    if next_tick is not None:
+        await _enqueue_incremental_tick(next_tick, now=now)
+
+    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) is not None:
+        _write_chain_state(
+            cache,
+            state="DEFERRED_BY_DEEP_CYCLE",
+            business_date=tick.business_date,
+            tick_id=tick.tick_id,
+            next_tick_id=next_tick.tick_id if next_tick else None,
+        )
+        return
+
+    decision = choose_due_incremental_source(cache, now=now)
+    if decision.source_id is None:
+        _write_chain_state(
+            cache,
+            state="NO_SOURCE_DUE",
+            business_date=tick.business_date,
+            tick_id=tick.tick_id,
+            next_tick_id=next_tick.tick_id if next_tick else None,
+        )
+        return
+
+    await _enqueue_incremental_source(decision.source_id, observed_at=now)
+    _write_chain_state(
+        cache,
+        state="SOURCE_QUEUED",
+        business_date=tick.business_date,
+        tick_id=tick.tick_id,
+        next_tick_id=next_tick.tick_id if next_tick else None,
+        selected_source=decision.source_id,
+    )
+
+
+async def _start_intraday_chain_after_deep() -> None:
+    cache = RuntimeCache()
+    now = datetime.now(timezone.utc)
+    first_tick = first_tick_after_deep(now)
+    if first_tick is None:
+        _write_chain_state(
+            cache,
+            state="WINDOW_CLOSED",
+            business_date=now.astimezone(TICK_SHANGHAI).date().isoformat(),
+        )
+        return
+    try:
+        await _enqueue_incremental_tick(first_tick, now=now)
+    except Exception as exc:
+        # Incremental freshness is an optional side-plane. A queue scheduling
+        # failure must never retroactively turn a verified deep publish into a
+        # failed authoritative collection cycle.
+        _write_chain_state(
+            cache,
+            state="SCHEDULE_FAILED",
+            business_date=first_tick.business_date,
+            tick_id=first_tick.tick_id,
+            detail=f"{type(exc).__name__}:{str(exc)[:140]}",
+        )
+        return
+    _write_chain_state(
+        cache,
+        state="SCHEDULED",
+        business_date=first_tick.business_date,
+        next_tick_id=first_tick.tick_id,
+    )
+
+
 async def process_collector_payload(payload: dict[str, Any]) -> None:
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
+        return
+
+    if _is_incremental_tick_payload(payload):
+        await _process_incremental_tick_payload(payload)
         return
 
     if _is_incremental_payload(payload):
@@ -205,15 +385,17 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
                 return
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         else:
-            # Publish is the terminal stage. Releasing the lease here makes the
-            # completed deep cycle stop blocking later incremental scans.
+            # Publish is the terminal authoritative stage. Release the deep lease
+            # first, then schedule the optional intraday freshness side-plane.
             _release_active_cycle_if_owned(cycle_id)
+            await _start_intraday_chain_after_deep()
         return
 
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
     if status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error:
         # Two real attempts have already failed. Acknowledge this queue message,
         # release the mutation lease, and leave the status FAILED for diagnostics.
+        # Failed deep collection intentionally does NOT start an intraday chain.
         _release_active_cycle_if_owned(cycle_id)
         return
 
