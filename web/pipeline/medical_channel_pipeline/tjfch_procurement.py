@@ -38,30 +38,33 @@ class _VisibleTextParser(HTMLParser):
             self.parts.append(data.strip())
 
 
-class _H1Parser(HTMLParser):
+class _DetailTitleParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
-        self._depth = 0
+        self.h1_titles: list[str] = []
+        self.document_titles: list[str] = []
+        self._capture_tag: str | None = None
         self._parts: list[str] = []
-        self.titles: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag == "h1":
-            if self._depth == 0:
-                self._parts = []
-            self._depth += 1
+        if self._capture_tag is None and tag in {"h1", "title"}:
+            self._capture_tag = tag
+            self._parts = []
 
     def handle_endtag(self, tag: str) -> None:
-        if tag == "h1" and self._depth:
-            self._depth -= 1
-            if self._depth == 0:
-                title = re.sub(r"\s+", " ", "".join(self._parts)).strip()
-                if title:
-                    self.titles.append(title)
-                self._parts = []
+        if self._capture_tag != tag:
+            return
+        title = re.sub(r"\s+", " ", "".join(self._parts)).strip()
+        if title:
+            if tag == "h1":
+                self.h1_titles.append(title)
+            else:
+                self.document_titles.append(title)
+        self._capture_tag = None
+        self._parts = []
 
     def handle_data(self, data: str) -> None:
-        if self._depth and data.strip():
+        if self._capture_tag is not None and data.strip():
             self._parts.append(data.strip())
 
 
@@ -71,10 +74,14 @@ def _visible_text(html: str) -> str:
     return " ".join(parser.parts)
 
 
-def _extract_h1_title(html: str) -> str | None:
-    parser = _H1Parser()
+def _extract_detail_title(html: str) -> str | None:
+    parser = _DetailTitleParser()
     parser.feed(html)
-    return parser.titles[0] if parser.titles else None
+    if parser.h1_titles:
+        return parser.h1_titles[0]
+    if parser.document_titles:
+        return parser.document_titles[0]
+    return None
 
 
 def _normalize(text: str) -> str:
@@ -91,17 +98,17 @@ def _strip_truncation(normalized: str) -> str:
 
 def _resolve_notice_title(html: str, text: str, expected_title: str) -> str:
     expected_normalized = _normalize(expected_title)
-    detail_h1 = _extract_h1_title(html)
+    detail_title = _extract_detail_title(html)
 
     if _is_truncated_title(expected_normalized):
-        if not detail_h1:
+        if not detail_title:
             raise TjfchParseError("TJFCH_TITLE_MISMATCH")
         prefix = _strip_truncation(expected_normalized)
-        if not _normalize(detail_h1).startswith(prefix):
+        if not _normalize(detail_title).startswith(prefix):
             raise TjfchParseError("TJFCH_TITLE_MISMATCH")
-        resolved = detail_h1
-    elif detail_h1 and _normalize(detail_h1) == expected_normalized:
-        resolved = detail_h1
+        resolved = detail_title
+    elif detail_title and _normalize(detail_title) == expected_normalized:
+        resolved = detail_title
     elif expected_normalized in _normalize(text):
         resolved = expected_title.strip()
     else:
@@ -265,7 +272,7 @@ def parse_tjfch_procurement_notice(
     }
 
     evidence: list[dict[str, str]] = [
-        {"field_path": "facts.project_name", "source_url": source_url, "locator": "详情页完整H1与官方列表标题/截断前缀一致"},
+        {"field_path": "facts.project_name", "source_url": source_url, "locator": "详情页完整标题（H1优先、文档title兜底）与官方列表标题/截断前缀一致"},
         {"field_path": "facts.buyer_name", "source_url": source_url, "locator": "天津市第一中心医院官方院内比选页面主体"},
         {"field_path": "facts.hospital_name", "source_url": source_url, "locator": "天津市第一中心医院官方院内比选页面主体"},
         {"field_path": "facts.region", "source_url": source_url, "locator": "天津市第一中心医院官方页面主体"},
