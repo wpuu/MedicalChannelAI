@@ -1,4 +1,4 @@
-name: TJFCH Truncated Opportunity Live Validate
+name: TJFCH Truncated Detail Diagnose
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  diagnose:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run production TJFCH procurement sync and require current IgM opportunity
+      - name: Print production failure and official detail title structure
         shell: bash
         run: |
           set -euo pipefail
@@ -40,33 +40,47 @@ jobs:
             --report-output /tmp/tjfch-report.json
           python - <<'PY'
           import json
+          import re
+          import sys
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          sys.path.insert(0, str(Path('web/pipeline')))
+          from medical_channel_pipeline.tjfch_discovery import fetch_tjfch_page
 
           report = json.load(open('/tmp/tjfch-report.json', encoding='utf-8'))
-          records = json.load(open('/tmp/tjfch-records.json', encoding='utf-8'))
-          target_id = 'tjfch_20260831_030197537'
-          target = next((row for row in records if row.get('opportunity_id') == target_id), None)
-          print(json.dumps({
-              'discovered': report.get('discovered_supported_count'),
-              'selected': report.get('selected_candidate_count'),
-              'verified': report.get('new_verified_record_count'),
-              'unsupported': report.get('unsupported_candidate_count'),
-              'failures': report.get('failure_count'),
-              'gate': report.get('publish_gate_reason'),
-              'target': target,
-          }, ensure_ascii=False))
-          if report.get('publish_gate_reason') != 'PASS':
-              raise SystemExit('TJFCH publish gate did not pass')
-          if report.get('failure_count') != 0:
-              raise SystemExit('TJFCH live validation has verification failures')
-          if target is None:
-              raise SystemExit('current IgM opportunity still missing')
-          facts = target.get('facts') or {}
-          if facts.get('project_name') != '天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选公告':
-              raise SystemExit(f"unexpected full title: {facts.get('project_name')!r}")
-          if facts.get('budget_cny') != 4588:
-              raise SystemExit(f"unexpected budget: {facts.get('budget_cny')!r}")
-          if facts.get('bid_deadline') != '2026-09-07T17:00:00+08:00':
-              raise SystemExit(f"unexpected bid deadline: {facts.get('bid_deadline')!r}")
-          if (target.get('source') or {}).get('url') != 'https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml':
-              raise SystemExit('target did not use the current official HTTPS domain')
+          print('REPORT_FAILURES=', json.dumps(report.get('failures'), ensure_ascii=False))
+          print('REPORT_UNSUPPORTED=', json.dumps(report.get('unsupported'), ensure_ascii=False))
+
+          url = 'https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml'
+          html = fetch_tjfch_page(url)
+
+          class Titles(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.stack = []
+                  self.rows = []
+              def handle_starttag(self, tag, attrs):
+                  if tag in {'title', 'h1', 'h2', 'h3'}:
+                      self.stack.append([tag, []])
+              def handle_data(self, data):
+                  if self.stack and data.strip():
+                      self.stack[-1][1].append(data.strip())
+              def handle_endtag(self, tag):
+                  if self.stack and self.stack[-1][0] == tag:
+                      name, parts = self.stack.pop()
+                      text = re.sub(r'\s+', ' ', ' '.join(parts)).strip()
+                      if text:
+                          self.rows.append((name, text))
+
+          parser = Titles(); parser.feed(html)
+          for row in parser.rows:
+              print('TITLE_NODE=', repr(row))
+
+          text = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', html))
+          marker = '甲型肝炎病毒IgM抗体质控品'
+          pos = text.find(marker)
+          print('MARKER_POS=', pos)
+          if pos >= 0:
+              print('MARKER_CONTEXT=', repr(text[max(0, pos-120):pos+260]))
           PY
