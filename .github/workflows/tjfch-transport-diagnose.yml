@@ -1,4 +1,4 @@
-name: TJFCH Contact Boundary Diagnose
+name: TJFCH Contact Live Validate
 
 on:
   push:
@@ -12,36 +12,68 @@ permissions:
   contents: read
 
 jobs:
-  diagnose:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Print official contact text around phone label
+      - name: Require exact verified TJFCH contact and current medical opportunity
         shell: bash
         run: |
           set -euo pipefail
+          AS_OF="$(python - <<'PY'
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          print(datetime.now(ZoneInfo('Asia/Shanghai')).isoformat())
+          PY
+          )"
+          python web/pipeline/scripts/sync_tjfch_procurement.py \
+            --as-of "$AS_OF" \
+            --lookback-days 45 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            --existing-records-input web/pipeline/data/tianjin_live_tjfch_records.json \
+            --records-output /tmp/tjfch-records.json \
+            --report-output /tmp/tjfch-report.json
           python - <<'PY'
-          import re
-          import sys
-          from pathlib import Path
+          import json
 
-          sys.path.insert(0, str(Path('web/pipeline')))
-          from medical_channel_pipeline.tjfch_discovery import fetch_tjfch_page
-          from medical_channel_pipeline.tjfch_procurement import _visible_text
-
-          url = 'https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml'
-          text = _visible_text(fetch_tjfch_page(url))
-          for marker in ('联系电话', '联系人', '政务邮箱', '地址'):
-              start = 0
-              while True:
-                  pos = text.find(marker, start)
-                  if pos < 0:
-                      break
-                  print(marker, repr(text[max(0, pos-90):pos+220]))
-                  start = pos + len(marker)
-          print('PHONE_PATTERN_REGION=', repr(re.search(r'(?:联系电话|电话)\s*[：:]\s*([0-9][0-9\-\s]{6,24})', text).group(1) if re.search(r'(?:联系电话|电话)\s*[：:]\s*([0-9][0-9\-\s]{6,24})', text) else None))
+          report = json.load(open('/tmp/tjfch-report.json', encoding='utf-8'))
+          records = json.load(open('/tmp/tjfch-records.json', encoding='utf-8'))
+          target = next((r for r in records if r.get('opportunity_id') == 'tjfch_20260831_030197537'), None)
+          if report.get('publish_gate_reason') != 'PASS' or report.get('failure_count') != 0:
+              raise SystemExit(f"TJFCH sync not clean: {report}")
+          if target is None:
+              raise SystemExit('current IgM opportunity missing')
+          facts = target.get('facts') or {}
+          contact = facts.get('public_contact') or {}
+          expected = {
+              'project_name': '天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选公告',
+              'budget_cny': 4588,
+              'bid_deadline': '2026-09-07T17:00:00+08:00',
+          }
+          for key, value in expected.items():
+              if facts.get(key) != value:
+                  raise SystemExit(f'{key} mismatch: {facts.get(key)!r}')
+          if contact.get('phone') != '23628323':
+              raise SystemExit(f"phone mismatch: {contact.get('phone')!r}")
+          if contact.get('name') != '王老师':
+              raise SystemExit(f"contact name mismatch: {contact.get('name')!r}")
+          if contact.get('email') != 'sdyzxsbwzcsbk@tj.gov.cn':
+              raise SystemExit(f"email mismatch: {contact.get('email')!r}")
+          print(json.dumps({
+              'gate': report.get('publish_gate_reason'),
+              'selected': report.get('selected_candidate_count'),
+              'verified': report.get('new_verified_record_count'),
+              'opportunity_id': target.get('opportunity_id'),
+              'project_name': facts.get('project_name'),
+              'phone': contact.get('phone'),
+              'contact_name': contact.get('name'),
+              'email': contact.get('email'),
+              'budget_cny': facts.get('budget_cny'),
+              'bid_deadline': facts.get('bid_deadline'),
+          }, ensure_ascii=False))
           PY
