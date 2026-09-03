@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto'
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
+import { authenticatedUser } from '../_auth.js'
+import { privateDatabaseConfigured } from '../_privateDb.js'
 import { loadVerifiedSnapshot } from '../_verifiedSnapshot.js'
 import continuationDiscoveryHandler from './_discoverContinuation.js'
 
@@ -53,6 +55,32 @@ function sendJson(response, status, payload) {
   response.setHeader('X-Content-Type-Options', 'nosniff')
   response.setHeader('Referrer-Policy', 'no-referrer')
   response.status(status).json(payload)
+}
+
+function privatePilotEnabled() {
+  return ['1', 'true', 'yes', 'on'].includes(
+    String(process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED || '').trim().toLowerCase(),
+  )
+}
+
+async function requirePrivatePilotSession(request, response) {
+  if (!privatePilotEnabled()) return true
+  if (!privateDatabaseConfigured()) {
+    sendJson(response, 503, { error: 'PRIVATE_DATABASE_NOT_CONFIGURED' })
+    return false
+  }
+  try {
+    const user = await authenticatedUser(request)
+    if (user) return true
+    sendJson(response, 401, { error: 'AUTH_REQUIRED' })
+    return false
+  } catch (error) {
+    console.error('pilot radar session lookup failed', {
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
+    sendJson(response, 503, { error: 'SESSION_LOOKUP_FAILED' })
+    return false
+  }
 }
 
 function firstHeader(value) {
@@ -732,13 +760,15 @@ function resultPayload({
 export default async function handler(request, response) {
   const route = request.query?.route
   const routeName = Array.isArray(route) ? route[0] : typeof route === 'string' ? route : null
-  if (routeName === 'continuation') return continuationDiscoveryHandler(request, response)
 
   if (request.method !== 'POST') {
+    if (routeName === 'continuation') return continuationDiscoveryHandler(request, response)
     response.setHeader('Allow', 'POST')
     return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
   }
   if (!sameOriginAllowed(request)) return sendJson(response, 403, { error: 'SAME_ORIGIN_REQUIRED' })
+  if (!await requirePrivatePilotSession(request, response)) return
+  if (routeName === 'continuation') return continuationDiscoveryHandler(request, response)
   if (rateLimited(request)) return sendJson(response, 429, { error: 'AI_RADAR_RATE_LIMITED' })
 
   const body = bodyObject(request)
