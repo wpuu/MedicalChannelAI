@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Iterable
 
 import collector_incremental_runtime as incremental_runtime
 from collector_incremental import (
@@ -91,7 +91,15 @@ def bootstrap_incremental_ledger_from_canonical(
     *,
     now: datetime,
     cache: Any,
+    discovered: Iterable[Any] | None = None,
 ) -> dict[str, Any]:
+    """Seed a brand-new incremental ledger from recent deep VERIFIED facts.
+
+    Discovery is deliberately supplied by the caller. This helper must never
+    perform its own official index request: the real incremental run owns the
+    single discovery fetch and reuses those candidates here before planning
+    detail verification.
+    """
     source = str(source_id or "").strip().lower()
     if source not in incremental_runtime.SUPPORTED_INCREMENTAL_SOURCES:
         return {"action": "UNSUPPORTED_SOURCE", "source_id": source}
@@ -100,18 +108,14 @@ def bootstrap_incremental_ledger_from_canonical(
     existing_ledger = incremental_runtime._load_ledger(cache, source)
     if normalize_ledger(existing_ledger)["entries"]:
         return {"action": "LEDGER_ALREADY_INITIALIZED", "source_id": source}
+    if discovered is None:
+        return {"action": "DISCOVERY_REQUIRED", "source_id": source}
 
-    try:
-        discovered = incremental_runtime._DISCOVERY[source](current)
-    except Exception:
-        # This helper is only an optimization. The authoritative incremental run
-        # that follows still owns discovery errors/retries and must not be masked.
-        return {"action": "BOOTSTRAP_DISCOVERY_UNAVAILABLE", "source_id": source}
-
+    discovered_rows = list(discovered)
     policy = SOURCE_POLICIES[source]
     plan = plan_detail_verification(
         source,
-        discovered,
+        discovered_rows,
         existing_ledger,
         now=current,
         reverify_after_hours=policy["reverify_after_hours"],
@@ -128,7 +132,7 @@ def bootstrap_incremental_ledger_from_canonical(
     seeded = 0
     stale = 0
     metadata_mismatch = 0
-    for candidate in discovered:
+    for candidate in discovered_rows:
         observation = candidate_observation(source, candidate)
         record = canonical_by_url.get(observation.detail_url)
         if not isinstance(record, dict):
@@ -153,7 +157,7 @@ def bootstrap_incremental_ledger_from_canonical(
     return {
         "action": "BOOTSTRAPPED",
         "source_id": source,
-        "discovered_candidate_count": len(discovered),
+        "discovered_candidate_count": len(discovered_rows),
         "seeded_verified_count": seeded,
         "stale_canonical_count": stale,
         "metadata_mismatch_count": metadata_mismatch,
