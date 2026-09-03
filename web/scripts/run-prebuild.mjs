@@ -91,6 +91,7 @@ if (!pythonRan) {
 await import('./check-serverless-entrypoints.mjs')
 await import('./check-verified-snapshot.mjs')
 await import('./check-medical-channel-scope.mjs')
+await import('./check-private-profile-matching.mjs')
 await import('./check-ai-decision-contract.mjs')
 await import('./check-relative-window-boundary.mjs')
 await import('./check-mobile-first-ui.mjs')
