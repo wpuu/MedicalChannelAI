@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
@@ -38,6 +39,12 @@ def cache_roundtrip() -> bool:
         return False
 
 
+def cron_secret_state() -> tuple[bool, bool]:
+    configured = bool(str(os.environ.get('CRON_SECRET') or '').strip())
+    required = str(os.environ.get('VERCEL_ENV') or '').strip().lower() == 'production'
+    return configured, required
+
+
 class handler(BaseHTTPRequestHandler):
     def _send_json(self, status: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode('utf-8')
@@ -51,7 +58,9 @@ class handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         cache_ok = cache_roundtrip()
-        ready = bool(_IMPORT_OK and _DATA_OK and cache_ok)
+        cron_secret_configured, cron_secret_required = cron_secret_state()
+        cron_ready = cron_secret_configured or not cron_secret_required
+        ready = bool(_IMPORT_OK and _DATA_OK and cache_ok and cron_ready)
         self._send_json(
             200 if ready else 503,
             {
@@ -62,6 +71,8 @@ class handler(BaseHTTPRequestHandler):
                     'module_import': bool(_IMPORT_OK),
                     'data_bundle': bool(_DATA_OK),
                     'runtime_cache': cache_ok,
+                    'cron_secret_configured': cron_secret_configured,
+                    'cron_secret_required': cron_secret_required,
                 },
             },
         )
