@@ -9,11 +9,10 @@ from typing import Any, Iterable
 
 LEDGER_SCHEMA_VERSION = "0.1"
 
-# These are planning defaults, not an active schedule yet. The current daily
-# collector remains authoritative until its queue/cycle model is switched to
-# consume this planner. The point is to make future higher-frequency scans cheap:
-# index/discovery work may run often, while detail verification is only triggered
-# by a new/changed candidate or by a bounded periodic recheck.
+# Shared intraday planner defaults. The daily deep collector remains the
+# authoritative bootstrap/reconciliation path, while higher-frequency scans keep
+# discovery cheap: detail verification is only triggered by a new/changed
+# candidate or by a bounded periodic recheck.
 SOURCE_POLICIES: dict[str, dict[str, int]] = {
     "ccgp": {"scan_interval_minutes": 180, "reverify_after_hours": 24, "max_details_per_scan": 12},
     "tjmugh": {"scan_interval_minutes": 60, "reverify_after_hours": 24, "max_details_per_scan": 12},
@@ -269,13 +268,14 @@ def plan_detail_verification(
         else:
             decisions.append(VerificationDecision(observation, reason, priority))
 
-    decisions.sort(
-        key=lambda item: (
-            item.priority,
-            item.candidate.published_at or "",
-            item.candidate.detail_url,
-        )
-    )
+    # Priority class remains authoritative, but within the same class verify the
+    # newest official notices first. Source adapters normalize published_at to an
+    # ISO-like value, so descending lexical order preserves recency; blank dates
+    # stay behind dated candidates. Stable passes keep URL tie-breaking
+    # deterministic without weakening the priority ordering.
+    decisions.sort(key=lambda item: item.candidate.detail_url)
+    decisions.sort(key=lambda item: item.candidate.published_at or "", reverse=True)
+    decisions.sort(key=lambda item: item.priority)
     selected = tuple(decisions[:detail_cap])
     deferred = tuple(decisions[detail_cap:])
     return VerificationPlan(
