@@ -20,7 +20,7 @@ class PipelineHealthCronSecretTests(unittest.TestCase):
 
     def test_production_health_requires_recent_verified_snapshot(self) -> None:
         source = HEALTH_PATH.read_text(encoding='utf-8')
-        self.assertIn('MAX_VERIFIED_SNAPSHOT_AGE_SECONDS = 36 * 60 * 60', source)
+        self.assertIn('MAX_VERIFIED_SNAPSHOT_AGE_SECONDS = 30 * 60 * 60', source)
         self.assertIn('LATEST_RUNTIME_SNAPSHOT_KEY', source)
         self.assertIn("BUNDLED_SNAPSHOT_PATH = PROJECT_ROOT / 'public' / 'data' / 'today-actions.public.json'", source)
         self.assertIn("candidates.append(('RUNTIME_CACHE_V2', runtime_time))", source)
@@ -33,6 +33,7 @@ class PipelineHealthCronSecretTests(unittest.TestCase):
         self.assertIn('verified_snapshot_fresh', source)
         self.assertIn('verified_snapshot_age_seconds', source)
         self.assertIn('verified_snapshot_max_age_seconds', source)
+        self.assertIn('sys.path.insert(0, str(PROJECT_ROOT))', source)
 
     def test_health_never_exposes_cron_secret_value(self) -> None:
         source = HEALTH_PATH.read_text(encoding='utf-8')
