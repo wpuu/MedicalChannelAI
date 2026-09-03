@@ -30,9 +30,6 @@ jobs:
         with:
           python-version: '3.12'
 
-      # Keep the tracked snapshot structurally aligned with the current ranking
-      # code before the strict offline self-check. The network refresh below
-      # then replaces it with the authoritative current as-of timestamp.
       - name: Refresh bundled snapshot for pre-network pipeline self-check
         working-directory: web/pipeline
         run: python scripts/refresh_bundled_snapshot.py
@@ -120,6 +117,19 @@ jobs:
             --records-output web/pipeline/data/tianjin_live_tjfch_records.json \
             --report-output web/pipeline/data/tianjin_tjfch_sync_report.json
 
+      - name: Sync verified First Central Hospital pre-procurement test recruitment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python web/pipeline/scripts/sync_tjfch_test_recruitment.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 14 \
+            --max-candidates 30 \
+            --delay-seconds 3 \
+            --existing-records-input web/pipeline/data/tianjin_live_tjfch_records.json \
+            --records-output web/pipeline/data/tianjin_live_tjfch_records.json \
+            --report-output web/pipeline/data/tianjin_tjfch_test_sync_report.json
+
       - name: Publish H5-safe verified snapshot
         shell: bash
         run: |
@@ -198,6 +208,7 @@ jobs:
             web/pipeline/data/tianjin_tjnothop_sync_report.json \
             web/pipeline/data/tianjin_teda_sync_report.json \
             web/pipeline/data/tianjin_tjfch_sync_report.json \
+            web/pipeline/data/tianjin_tjfch_test_sync_report.json \
             web/public/data/today-actions.public.json
           if git diff --cached --quiet; then
             echo 'No verified state change to commit.'
