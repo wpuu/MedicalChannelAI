@@ -1,0 +1,67 @@
+name: TJFCH Live Diagnose
+
+on:
+  push:
+    branches:
+      - chatgpt/opportunity-ranking-v2-final
+    paths:
+      - .github/workflows/tjfch-live-diagnose.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Probe First Central Hospital official endpoints independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sys
+          import time
+          from pathlib import Path
+
+          root = Path('web/pipeline')
+          sys.path.insert(0, str(root))
+
+          from medical_channel_pipeline.tjfch_discovery import (
+              INDEX_URL as PROCUREMENT_INDEX,
+              fetch_tjfch_page,
+              parse_tjfch_index_html,
+          )
+          from medical_channel_pipeline.tjfch_test_discovery import (
+              INDEX_URL as TEST_INDEX,
+              parse_tjfch_test_index_html,
+          )
+
+          for label, url, parser in (
+              ('procurement', PROCUREMENT_INDEX, parse_tjfch_index_html),
+              ('test-recruitment', TEST_INDEX, parse_tjfch_test_index_html),
+          ):
+              print(f'--- source={label} url={url}')
+              success = False
+              for attempt in range(1, 4):
+                  try:
+                      html = fetch_tjfch_page(url)
+                      print(f'attempt={attempt} fetch=OK chars={len(html)}')
+                      rows = parser(html)
+                      print(f'attempt={attempt} parse=OK supported={len(rows)}')
+                      for row in rows[:8]:
+                          print(f'candidate={row.title} | {row.detail_url}')
+                      success = True
+                      break
+                  except Exception as exc:
+                      print(f'attempt={attempt} FAIL type={type(exc).__name__} message={exc!s}')
+                      if attempt < 3:
+                          time.sleep(3)
+              if not success:
+                  raise SystemExit(f'{label} failed after 3 diagnostic attempts')
+          PY
