@@ -79,6 +79,52 @@ async function fetchRuntimeStatus(): Promise<RuntimeStatus | null> {
   }
 }
 
+export function runtimeSnapshotWarning(
+  status: RuntimeStatus | null,
+  checked = true,
+): string | null {
+  if (!checked) return null
+  if (!status) {
+    return '当前无法确认公开商机快照状态。联系或报价前请先核对官方依据。'
+  }
+  if (status.snapshot.source_mode === 'BUNDLED_FALLBACK') {
+    return '实时数据读取异常，当前使用最近一次内置已核验快照。联系或报价前请先打开官方依据再次核对。'
+  }
+  if (status.snapshot.freshness === 'STALE') {
+    const hours = status.snapshot.age_minutes === null
+      ? null
+      : Math.max(1, Math.floor(status.snapshot.age_minutes / 60))
+    return hours === null
+      ? '公开商机快照已超过正常刷新窗口。联系或报价前请先打开官方依据再次核对。'
+      : `公开商机快照已约 ${hours} 小时未成功刷新。联系或报价前请先打开官方依据再次核对。`
+  }
+  if (status.snapshot.freshness === 'INVALID') {
+    return '公开商机快照时间异常，当前结果不应作为最新商机判断。请先核对官方依据。'
+  }
+  if (status.snapshot.freshness === 'UNAVAILABLE' || !status.snapshot.available) {
+    return '当前无法确认公开商机快照状态。联系或报价前请先核对官方依据。'
+  }
+  return null
+}
+
+export function runtimeAutomationUnavailableReason(
+  status: RuntimeStatus | null,
+  checked = true,
+): string | null {
+  if (!checked) return null
+  if (!status) return '暂时无法确认商机数据新鲜度，已暂停自动分析与沟通草稿。'
+  if (!status.snapshot.available || status.snapshot.freshness === 'UNAVAILABLE') {
+    return '当前无法确认公开商机快照，已暂停自动分析与沟通草稿。'
+  }
+  if (status.snapshot.freshness === 'INVALID') {
+    return '公开商机快照时间异常，已暂停自动分析与沟通草稿。'
+  }
+  if (status.snapshot.freshness === 'STALE') {
+    return '公开商机快照已超过正常刷新窗口，已暂停自动分析与沟通草稿；请先核对官方依据。'
+  }
+  return null
+}
+
 export async function getRuntimeStatus(force = false): Promise<RuntimeStatus | null> {
   const now = Date.now()
   if (!force && cached && cached.expiresAt > now) return cached.value
