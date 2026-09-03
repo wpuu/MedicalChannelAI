@@ -125,8 +125,23 @@ assert.equal(reranked[1].opportunity_id, 'runtime_boundary_demo')
 assert.equal(reranked[1].rank, 2)
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
+const pilot = readFileSync(resolve(scriptDir, '../api/_pilotOpportunity.js'), 'utf8')
+assert(pilot.includes("import { runtimeRefreshSnapshotPool } from './_runtimeOpportunityTime.js'"))
+assert(pilot.includes('runtimeSnapshotOpportunityPool(snapshot)'))
+assert(pilot.includes('return runtimeRefreshSnapshotPool(snapshotOpportunityPool(snapshot), now)'))
+
 const staticService = readFileSync(resolve(scriptDir, '../src/services/StaticSnapshotTodayActionsService.ts'), 'utf8')
 assert(staticService.includes('applyRuntimeActionability('), 'verified trial must keep runtime deadline handling')
 assert(staticService.includes('LATE_WINDOW_POINTS = 8'), 'trial and API must share the same late-window intervention points')
+
+const trialRuntime = readFileSync(resolve(scriptDir, '../src/services/RuntimeTrialTodayActionsService.ts'), 'utf8')
+assert(trialRuntime.includes('DEADLINE_URGENCY_MAX_POINTS = 10'))
+assert(trialRuntime.includes('PUBLICATION_FRESHNESS_MAX_POINTS = 7'))
+assert(trialRuntime.includes('nextActionDeadline(card, now)'))
+assert(trialRuntime.includes('card.priority.score - oldUrgency - oldFreshness + newUrgency + newFreshness'))
+
+const serviceIndex = readFileSync(resolve(scriptDir, '../src/services/index.ts'), 'utf8')
+assert(serviceIndex.includes('new RuntimeTrialTodayActionsService('))
+assert(serviceIndex.includes('new StaticSnapshotTodayActionsService(verifiedSnapshotUrl)'))
 
 console.log('Runtime opportunity time boundary: PASS')

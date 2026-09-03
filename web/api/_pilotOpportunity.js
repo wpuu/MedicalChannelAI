@@ -3,6 +3,7 @@ import {
   minimalPrivateContextFromProfile,
   privatePriorityPoints,
 } from './_privateProfileContext.js'
+import { runtimeRefreshSnapshotPool } from './_runtimeOpportunityTime.js'
 
 const PRIVATE_COMPONENT_CODES = new Set([
   'PRODUCT_EXECUTION_CAPABILITY',
@@ -17,8 +18,12 @@ export function snapshotOpportunityPool(snapshot) {
   return Array.isArray(snapshot?.cards) ? snapshot.cards : []
 }
 
+export function runtimeSnapshotOpportunityPool(snapshot, now = Date.now()) {
+  return runtimeRefreshSnapshotPool(snapshotOpportunityPool(snapshot), now)
+}
+
 export function findVerifiedSnapshotCard(snapshot, opportunityId) {
-  const card = snapshotOpportunityPool(snapshot).find(
+  const card = runtimeSnapshotOpportunityPool(snapshot).find(
     (item) => item?.opportunity_id === opportunityId,
   )
   return card?.facts?.verification_status === 'VERIFIED' ? card : null
@@ -125,7 +130,7 @@ export function personalizeSnapshotCardWithProfile(card, profile) {
 
 export async function personalizedOpportunityPoolForUser(user, snapshot) {
   const profile = await loadPrivateProfileForUser(user)
-  return snapshotOpportunityPool(snapshot)
+  return runtimeSnapshotOpportunityPool(snapshot)
     .filter((card) => card?.facts?.verification_status === 'VERIFIED')
     .map((card) => personalizeSnapshotCardWithProfile(card, profile))
     .sort((a, b) => Number(b.priority?.score || 0) - Number(a.priority?.score || 0) || Number(a.rank || 0) - Number(b.rank || 0))
