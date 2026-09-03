@@ -7,6 +7,7 @@ from pathlib import Path
 WEB_ROOT = Path(__file__).resolve().parents[2]
 STATUS_API = WEB_ROOT / 'src' / 'services' / 'runtimeStatusApi.ts'
 TODAY_PAGE = WEB_ROOT / 'src' / 'pages' / 'TodayPage.tsx'
+DETAIL_PAGE = WEB_ROOT / 'src' / 'pages' / 'OpportunityDetailPage.tsx'
 SERVER_STATUS = WEB_ROOT / 'api' / 'status.js'
 
 
@@ -20,16 +21,45 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
         self.assertIn("lastSourceMode = 'BUNDLED_FALLBACK'", (WEB_ROOT / 'api' / '_verifiedSnapshot.js').read_text(encoding='utf-8'))
         self.assertIn('SNAPSHOT_STALE_AFTER_MINUTES = 30 * 60', server)
 
-    def test_real_pilot_today_surfaces_stale_fallback_and_unavailable_snapshot(self) -> None:
-        source = TODAY_PAGE.read_text(encoding='utf-8')
-        self.assertIn('if (isApiMode || isVerifiedPublicDemo)', source)
-        self.assertIn('getRuntimeStatus()', source)
-        self.assertIn("status.snapshot.source_mode === 'BUNDLED_FALLBACK'", source)
-        self.assertIn("status.snapshot.freshness === 'STALE'", source)
-        self.assertIn("status.snapshot.freshness === 'INVALID'", source)
-        self.assertIn("status.snapshot.freshness === 'UNAVAILABLE'", source)
-        self.assertIn('官方依据', source)
-        self.assertIn('snapshotWarning', source)
+    def test_shared_runtime_helpers_surface_stale_fallback_and_unavailable_snapshot(self) -> None:
+        helper = STATUS_API.read_text(encoding='utf-8')
+        today = TODAY_PAGE.read_text(encoding='utf-8')
+        detail = DETAIL_PAGE.read_text(encoding='utf-8')
+
+        # Keep source-mode/freshness policy in one shared helper instead of
+        # duplicating fragile comparisons inside individual pages.
+        self.assertIn("status.snapshot.source_mode === 'BUNDLED_FALLBACK'", helper)
+        for freshness in ['STALE', 'INVALID', 'UNAVAILABLE']:
+            self.assertIn(f"status.snapshot.freshness === '{freshness}'", helper)
+        self.assertIn('runtimeSnapshotWarning', helper)
+        self.assertIn('runtimeAutomationUnavailableReason', helper)
+        self.assertIn('暂停自动分析与沟通草稿', helper)
+        self.assertIn('官方依据', helper)
+
+        # Today and direct detail navigation must both consume the same runtime
+        # boundary so a stale snapshot cannot be bypassed through a deep link.
+        for source in [today, detail]:
+            self.assertIn('getRuntimeStatus()', source)
+            self.assertIn('runtimeSnapshotWarning', source)
+            self.assertIn('runtimeAutomationUnavailableReason', source)
+
+        self.assertIn('automationUnavailableReason={automationUnavailableReason}', today)
+        self.assertIn('if (!automationUnavailableReason) setOutreachId', today)
+        self.assertIn('analysisDisabled={Boolean(automationUnavailableReason)}', detail)
+        self.assertIn('Boolean(automationUnavailableReason)', detail)
+
+    def test_stale_snapshot_blocks_only_automation_not_manual_crm_actions(self) -> None:
+        today = TODAY_PAGE.read_text(encoding='utf-8')
+        detail = DETAIL_PAGE.read_text(encoding='utf-8')
+
+        # Manual CRM actions must remain available for already-known facts even
+        # when fresh automated recommendations are paused.
+        for marker in ["onContacted", "onFollow", "onNotFit", "onRemind"]:
+            self.assertIn(marker, today)
+        self.assertIn('<FollowupCard', detail)
+        self.assertIn('onChangeStatus=', detail)
+        self.assertIn('onAddNote=', detail)
+        self.assertIn('onRemind=', detail)
 
 
 if __name__ == '__main__':
