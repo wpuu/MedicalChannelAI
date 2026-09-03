@@ -15,11 +15,16 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertNotIn("urlsplit", source)
         self.assertNotIn('cycle_id = f"accept:', source)
 
-    def test_trigger_is_limited_to_vercel_cron_contract(self) -> None:
+    def test_trigger_requires_cron_secret_and_bearer_auth_fail_closed(self) -> None:
         source = COLLECTOR_RUN.read_text(encoding="utf-8")
-        self.assertIn('x-vercel-cron-schedule', source)
-        self.assertIn('CRON_SECRET', source)
+        self.assertIn('os.environ.get("CRON_SECRET")', source)
+        self.assertIn("if not cron_secret:", source)
+        self.assertIn('request.headers.get("authorization")', source)
+        self.assertIn('hmac.compare_digest(authorization, f"Bearer {cron_secret}")', source)
         self.assertIn('return True, "VERCEL_CRON"', source)
+        self.assertNotIn('x-vercel-cron-schedule', source)
+        self.assertLess(source.index("if not cron_secret:"), source.index('return True, "VERCEL_CRON"'))
+        self.assertLess(source.index("hmac.compare_digest"), source.index('return True, "VERCEL_CRON"'))
         self.assertIn('cycle_id = f"prod:{local_date}"', source)
 
 
