@@ -10,6 +10,7 @@ export const webBuildMode: WebBuildMode =
 
 export const apiBaseUrl = env?.VITE_API_BASE_URL?.trim()?.replace(/\/+$/, '') ?? ''
 export const isApiMode = apiBaseUrl.length > 0
+export const PILOT_SESSION_CHANGE_KEY = 'medicalchannelai.pilot.session-change.v1'
 
 if (webBuildMode === 'demo' && isApiMode) {
   throw new Error('WEB_BUILD_MODE_MISMATCH: demo build must not configure VITE_API_BASE_URL')
@@ -44,6 +45,19 @@ function parsePilotUser(value: unknown): PilotUser {
     username: row.username,
     display_name: row.display_name,
     role: row.role as PilotUser['role'],
+  }
+}
+
+export function signalPilotSessionChanged(): void {
+  if (typeof window === 'undefined') return
+  try {
+    const nonce = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2)
+    window.localStorage.setItem(PILOT_SESSION_CHANGE_KEY, `${Date.now()}:${nonce}`)
+  } catch {
+    // Cross-tab coordination is a defense-in-depth signal. The server session
+    // remains authoritative even when browser storage is unavailable.
   }
 }
 
@@ -83,7 +97,9 @@ export async function registerPilotAccount(input: {
   })
   if (!response.ok) throw await authError(response)
   const root = asRecord(await response.json())
-  return parsePilotUser(root?.user)
+  const user = parsePilotUser(root?.user)
+  signalPilotSessionChanged()
+  return user
 }
 
 export async function loginPilotAccount(input: {
@@ -103,7 +119,9 @@ export async function loginPilotAccount(input: {
   if (!response.ok) throw await authError(response)
   const root = asRecord(await response.json())
   const user = asRecord(root?.user)
-  return parsePilotUser({ ...user, display_name: user?.display_name ?? null })
+  const parsed = parsePilotUser({ ...user, display_name: user?.display_name ?? null })
+  signalPilotSessionChanged()
+  return parsed
 }
 
 export async function getPilotSession(): Promise<PilotUser> {
@@ -125,4 +143,5 @@ export async function logoutPilot(): Promise<void> {
     headers: { Accept: 'application/json' },
   })
   if (!response.ok) throw await authError(response)
+  signalPilotSessionChanged()
 }

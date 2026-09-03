@@ -1,4 +1,4 @@
-import { apiBaseUrl } from './apiConfig'
+import { apiBaseUrl, signalPilotSessionChanged } from './apiConfig'
 import { clearActiveDiscoveryWorkspaceAccount } from './discoveryWorkspaceAccountIsolation'
 
 async function accountRequest<T>(path: string, init?: RequestInit): Promise<T> {
@@ -32,6 +32,7 @@ export async function deletePilotAccount(password: string): Promise<void> {
   } catch {
     // Server deletion already succeeded; local Radar cleanup is best-effort here.
   }
+  signalPilotSessionChanged()
 }
 
 export function downloadAccountExport(payload: Record<string, unknown>): void {

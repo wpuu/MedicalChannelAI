@@ -4,6 +4,7 @@ import {
   getPilotSession,
   isApiMode,
   isAuthRequiredError,
+  PILOT_SESSION_CHANGE_KEY,
 } from '@/services/apiConfig'
 import { activateDiscoveryWorkspaceForAccount } from '@/services/discoveryWorkspaceAccountIsolation'
 
@@ -29,6 +30,16 @@ export function RequirePilotSession() {
     return () => {
       active = false
     }
+  }, [])
+
+  useEffect(() => {
+    if (!isApiMode || typeof window === 'undefined') return
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== PILOT_SESSION_CHANGE_KEY) return
+      window.location.reload()
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
   }, [])
 
   if (state === 'unauthorized') return <Navigate to="/login" replace />
