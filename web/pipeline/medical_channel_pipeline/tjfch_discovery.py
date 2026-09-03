@@ -8,8 +8,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 
-INDEX_URL = "https://www.tj-fch.com/ywgk/ynbx/index.shtml"
-ALLOWED_HOSTS = {"tj-fch.com", "www.tj-fch.com"}
+INDEX_URL = "https://www.tjfch.com.cn/ywgk/ynbx/index.shtml"
+ALLOWED_HOSTS = {"tjfch.com.cn", "www.tjfch.com.cn"}
 
 
 class TjfchDiscoveryError(ValueError):
