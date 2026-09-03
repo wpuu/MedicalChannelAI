@@ -7,7 +7,7 @@ from urllib.parse import urljoin, urlparse
 
 from .tjfch_discovery import ALLOWED_HOSTS, fetch_tjfch_page, stable_opportunity_id
 
-INDEX_URL = "https://www.tj-fch.com/ywgk/"
+INDEX_URL = "https://www.tjfch.com.cn/ywgk/"
 
 
 class TjfchTestDiscoveryError(ValueError):
