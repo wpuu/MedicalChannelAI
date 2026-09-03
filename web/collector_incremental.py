@@ -8,6 +8,7 @@ from typing import Any, Iterable
 
 
 LEDGER_SCHEMA_VERSION = "0.1"
+PENDING_CARRYOVER_MAX_AGE_HOURS = 48
 
 # Shared intraday planner defaults. The daily deep collector remains the
 # authoritative bootstrap/reconciliation path, while higher-frequency scans keep
@@ -220,6 +221,27 @@ def _observed_entry(
     }
 
 
+def _carryover_observation(source_id: str, entry: dict[str, Any]) -> CandidateObservation | None:
+    try:
+        observation = candidate_observation(source_id, entry)
+    except ValueError:
+        return None
+    if observation.fingerprint != entry.get("fingerprint"):
+        return None
+    return observation
+
+
+def _sort_decisions(decisions: list[VerificationDecision]) -> None:
+    # Priority class remains authoritative, but within the same class verify the
+    # newest official notices first. Source adapters normalize published_at to an
+    # ISO-like value, so descending lexical order preserves recency; blank dates
+    # stay behind dated candidates. Stable passes keep URL tie-breaking
+    # deterministic without weakening the priority ordering.
+    decisions.sort(key=lambda item: item.candidate.detail_url)
+    decisions.sort(key=lambda item: item.candidate.published_at or "", reverse=True)
+    decisions.sort(key=lambda item: item.priority)
+
+
 def plan_detail_verification(
     source_id: str,
     candidates: Iterable[Any],
@@ -247,6 +269,7 @@ def plan_detail_verification(
     entries = dict(normalized["entries"])
     seen_urls: set[str] = set()
     decisions: list[VerificationDecision] = []
+    carryover: list[VerificationDecision] = []
     skipped: list[CandidateObservation] = []
 
     for candidate in candidates:
@@ -268,16 +291,54 @@ def plan_detail_verification(
         else:
             decisions.append(VerificationDecision(observation, reason, priority))
 
-    # Priority class remains authoritative, but within the same class verify the
-    # newest official notices first. Source adapters normalize published_at to an
-    # ISO-like value, so descending lexical order preserves recency; blank dates
-    # stay behind dated candidates. Stable passes keep URL tie-breaking
-    # deterministic without weakening the priority ordering.
-    decisions.sort(key=lambda item: item.candidate.detail_url)
-    decisions.sort(key=lambda item: item.candidate.published_at or "", reverse=True)
-    decisions.sort(key=lambda item: item.priority)
-    selected = tuple(decisions[:detail_cap])
-    deferred = tuple(decisions[detail_cap:])
+    # Discovery adapters intentionally cap each index scan. A newly observed URL
+    # may therefore be deferred by the detail budget and disappear from the next
+    # capped index window before it is verified. Carry unresolved, recently seen
+    # ledger rows across that truncation boundary. This is bounded to 48 hours;
+    # the daily deep collector remains the long-tail reconciliation authority.
+    carryover_cutoff = observed - timedelta(hours=PENDING_CARRYOVER_MAX_AGE_HOURS)
+    for entry in normalized["entries"].values():
+        detail_url = _text(entry.get("detail_url"), max_length=2000)
+        if not detail_url or detail_url in seen_urls:
+            continue
+        if entry.get("verification_status") == "VERIFIED" and (
+            entry.get("last_verification_fingerprint") == entry.get("fingerprint")
+        ):
+            continue
+        last_seen = _parsed_at(entry.get("last_seen_at"))
+        if last_seen is None or last_seen < carryover_cutoff or last_seen > observed:
+            continue
+        observation = _carryover_observation(source_id, entry)
+        if observation is None:
+            continue
+        carryover.append(VerificationDecision(observation, "PENDING_CARRYOVER", 2))
+
+    _sort_decisions(decisions)
+    _sort_decisions(carryover)
+
+    # Preserve freshness while guaranteeing bounded backlog progress. With the
+    # default 12-detail budget, at most 3 slots are reserved for carryover. If
+    # current discovery needs fewer slots, unused capacity is immediately given
+    # back to carryover so an idle source drains its backlog as quickly as safe.
+    reserved_carryover = min(len(carryover), max(1, detail_cap // 4)) if carryover else 0
+    current_budget = max(0, detail_cap - reserved_carryover)
+    selected_current = decisions[:current_budget]
+    selected_carryover = carryover[:reserved_carryover]
+    remaining_capacity = detail_cap - len(selected_current) - len(selected_carryover)
+    if remaining_capacity > 0:
+        selected_carryover.extend(carryover[reserved_carryover:reserved_carryover + remaining_capacity])
+    selected_carryover_count = len(selected_carryover)
+    remaining_capacity = detail_cap - len(selected_current) - selected_carryover_count
+    if remaining_capacity > 0:
+        selected_current.extend(decisions[current_budget:current_budget + remaining_capacity])
+
+    selected = tuple([*selected_current, *selected_carryover])
+    selected_urls = {item.candidate.detail_url for item in selected}
+    deferred = tuple(
+        item
+        for item in [*decisions, *carryover]
+        if item.candidate.detail_url not in selected_urls
+    )
     return VerificationPlan(
         source_id=source_id,
         observed_at=observed_at,
@@ -318,7 +379,11 @@ def record_verification_success(
     )
     entries = dict(current["entries"])
     entries[key] = entry
-    return {"schema_version": LEDGER_SCHEMA_VERSION, "entries": entries, "updated_at": when}
+    return {
+        "schema_version": LEDGER_SCHEMA_VERSION,
+        "entries": entries,
+        "updated_at": when,
+    }
 
 
 def record_verification_failure(
@@ -348,7 +413,11 @@ def record_verification_failure(
     )
     entries = dict(current["entries"])
     entries[key] = entry
-    return {"schema_version": LEDGER_SCHEMA_VERSION, "entries": entries, "updated_at": when}
+    return {
+        "schema_version": LEDGER_SCHEMA_VERSION,
+        "entries": entries,
+        "updated_at": when,
+    }
 
 
 def scan_bucket_id(
@@ -359,15 +428,11 @@ def scan_bucket_id(
 ) -> str:
     current = _utc(now)
     policy = SOURCE_POLICIES.get(source_id, {})
-    interval = int(
-        interval_minutes
-        if interval_minutes is not None
-        else policy.get("scan_interval_minutes", 60)
+    minutes = int(
+        interval_minutes if interval_minutes is not None else policy.get("scan_interval_minutes", 60)
     )
-    if interval < 1 or interval > 24 * 60:
-        raise ValueError("INCREMENTAL_COLLECTOR_INTERVAL_INVALID")
-    minute_of_day = current.hour * 60 + current.minute
-    bucket_minute = (minute_of_day // interval) * interval
-    bucket_hour, minute = divmod(bucket_minute, 60)
-    day = current.date().isoformat().replace("-", "")
-    return f"scan:{source_id}:{day}T{bucket_hour:02d}{minute:02d}Z:{interval}m"
+    if minutes < 1:
+        raise ValueError("INCREMENTAL_SCAN_INTERVAL_INVALID")
+    epoch_minutes = int(current.timestamp() // 60)
+    bucket = epoch_minutes // minutes
+    return f"{source_id}:{minutes}m:{bucket}"
