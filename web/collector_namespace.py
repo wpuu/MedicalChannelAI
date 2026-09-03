@@ -7,6 +7,7 @@ QUEUE_TOPIC_NAME = "medicalchannelai-refresh-v2"
 
 META_KEY = "medicalchannelai:collector-runtime-state:v2"
 ACTIVE_CYCLE_KEY = "medicalchannelai:collector-active-cycle:v2"
+INCREMENTAL_ACTIVE_KEY = "medicalchannelai:collector-incremental-active:v2"
 CCGP_RECORDS_KEY = "medicalchannelai:collector-ccgp-records:v2"
 CCGP_EVENTS_KEY = "medicalchannelai:collector-ccgp-events:v2"
 CCGP_WATCH_KEY = "medicalchannelai:collector-ccgp-watch-projects:v2"
@@ -17,6 +18,7 @@ TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v2"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v2"
 LEGACY_LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 ACTIVE_CYCLE_TTL_SECONDS = 2 * 24 * 60 * 60
+INCREMENTAL_ACTIVE_TTL_SECONDS = 15 * 60
 
 _RUNTIME_KEY_ASSIGNMENTS = {
     "META_KEY": META_KEY,
@@ -42,6 +44,13 @@ def active_cycle_id(value: Any) -> str | None:
         return None
     cycle_id = str(value.get("cycle_id") or "").strip()
     return cycle_id or None
+
+
+def active_incremental_id(value: Any) -> str | None:
+    if not isinstance(value, dict):
+        return None
+    scan_id = str(value.get("scan_id") or "").strip()
+    return scan_id or None
 
 
 def cycle_has_running_stage(value: Any) -> bool:
