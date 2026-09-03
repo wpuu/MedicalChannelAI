@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Archive, MessageSquareText, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Archive, Info, MessageSquareText, ShieldCheck } from 'lucide-react'
 import { CustomerContextCard } from '@/components/opportunity/CustomerContextCard'
 import { DecisionCard } from '@/components/opportunity/DecisionCard'
 import { EvidenceCard } from '@/components/opportunity/EvidenceCard'
@@ -26,7 +26,12 @@ import {
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { getHistoricalFollowedOpportunityCard } from '@/services/followedApi'
 import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStore'
-import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
+import {
+  getRuntimeStatus,
+  runtimeAutomationUnavailableReason,
+  runtimeSnapshotWarning,
+  type RuntimeStatus,
+} from '@/services/runtimeStatusApi'
 import type { FollowupStatus, NotFitReason, TodayActionCard } from '@/types'
 
 const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；其他功能正常。'
@@ -38,6 +43,7 @@ export function OpportunityDetailPage() {
   const [card, setCard] = useState<TodayActionCard | null>(null)
   const [historical, setHistorical] = useState(false)
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
+  const [runtimeStatusChecked, setRuntimeStatusChecked] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
@@ -73,14 +79,19 @@ export function OpportunityDetailPage() {
           setNotFound(true)
           setCard(null)
         }
-      } else if (!isApiMode && isVerifiedPublicDemo) {
-        const [hydrated] = await hydrateCachedAiDecisions([res])
-        setCard(hydrated ?? res)
-        void getRuntimeStatus().then((status) => {
-          if (status) setRuntimeStatus(status)
-        })
       } else {
-        setCard(res)
+        if (!isApiMode && isVerifiedPublicDemo) {
+          const [hydrated] = await hydrateCachedAiDecisions([res])
+          setCard(hydrated ?? res)
+        } else {
+          setCard(res)
+        }
+        if (isApiMode || isVerifiedPublicDemo) {
+          void getRuntimeStatus().then((status) => {
+            setRuntimeStatus(status)
+            setRuntimeStatusChecked(true)
+          })
+        }
       }
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
@@ -147,7 +158,11 @@ export function OpportunityDetailPage() {
   }
 
   const analyze = async () => {
-    if (!card || historical || (!isApiMode && !isVerifiedPublicDemo)) return
+    const automationUnavailableReason = runtimeAutomationUnavailableReason(
+      runtimeStatus,
+      runtimeStatusChecked,
+    )
+    if (!card || historical || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
     setAiBusy(true)
     try {
       const decision = await requestAiDecision(card)
@@ -186,15 +201,24 @@ export function OpportunityDetailPage() {
   }
 
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
-  const outreachDisabled =
-    historical ||
+  const automationUnavailableReason = historical
+    ? null
+    : runtimeAutomationUnavailableReason(runtimeStatus, runtimeStatusChecked)
+  const snapshotWarning = historical
+    ? null
+    : runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
+  const groundingUnavailable =
     card.model_decision_status === 'BLOCKED_GROUNDING' ||
     card.model_decision_status === 'NOT_ELIGIBLE' ||
     card.evidence_source_urls.length === 0
-  const aiUnavailableReason =
-    !historical && !isApiMode && isVerifiedPublicDemo && runtimeStatus?.ai.configured === false
+  const outreachDisabled = historical || groundingUnavailable || Boolean(automationUnavailableReason)
+  const outreachDisabledReason = automationUnavailableReason ||
+    (groundingUnavailable ? '公开依据不足，暂不能生成沟通草稿' : null)
+  const aiUnavailableReason = automationUnavailableReason || (
+    !historical && (isApiMode || isVerifiedPublicDemo) && runtimeStatus?.ai.configured === false
       ? AI_UNCONFIGURED_REASON
       : null
+  )
 
   return (
     <div className="space-y-4">
@@ -210,8 +234,10 @@ export function OpportunityDetailPage() {
           <button
             type="button"
             disabled={outreachDisabled}
-            title={outreachDisabled ? '公开依据不足，暂不能生成沟通草稿' : undefined}
-            onClick={() => setOutreachOpen(true)}
+            title={outreachDisabled ? outreachDisabledReason || '暂不能生成沟通草稿' : undefined}
+            onClick={() => {
+              if (!outreachDisabled) setOutreachOpen(true)
+            }}
             className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <MessageSquareText className="h-3.5 w-3.5" />
@@ -224,6 +250,13 @@ export function OpportunityDetailPage() {
         <section className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-5 text-amber-900">
           <Archive className="mt-0.5 h-4 w-4 shrink-0" />
           <p>这是你当时保存的跟进快照。公开事实已经冻结，不重新计算优先级，也不生成新的 AI 建议；但你的私有跟进状态、结果、备注和提醒仍可继续维护。</p>
+        </section>
+      ) : null}
+
+      {snapshotWarning ? (
+        <section className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-5 text-amber-900">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{snapshotWarning}</p>
         </section>
       ) : null}
 
@@ -276,6 +309,7 @@ export function OpportunityDetailPage() {
                 : undefined
             }
             analysisUnavailableReason={aiUnavailableReason}
+            analysisDisabled={Boolean(automationUnavailableReason)}
           />
         </>
       ) : null}
