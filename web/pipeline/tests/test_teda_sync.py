@@ -29,12 +29,17 @@ class TedaSyncTests(unittest.TestCase):
             sync_teda.UNSUPPORTED_DETAIL_CODES,
         )
 
-    def test_transient_fetch_retries_once_then_succeeds(self) -> None:
+    def test_default_transient_fetch_can_retry_twice_then_succeed(self) -> None:
+        self.assertEqual(sync_teda.FETCH_ATTEMPTS, 3)
         with (
             patch.object(
                 sync_teda,
                 'fetch_teda_page',
-                side_effect=[RuntimeError('TEDA_NETWORK_ERROR'), '<html>ok</html>'],
+                side_effect=[
+                    RuntimeError('TEDA_NETWORK_ERROR'),
+                    RuntimeError('TEDA_HTTP_503'),
+                    '<html>ok</html>',
+                ],
             ) as fetch,
             patch.object(sync_teda.time, 'sleep') as sleep,
         ):
@@ -43,8 +48,9 @@ class TedaSyncTests(unittest.TestCase):
                 delay_seconds=3.0,
             )
         self.assertEqual(result, '<html>ok</html>')
-        self.assertEqual(fetch.call_count, 2)
-        sleep.assert_called_once_with(3.0)
+        self.assertEqual(fetch.call_count, 3)
+        self.assertEqual(sleep.call_count, 2)
+        sleep.assert_any_call(3.0)
 
     def test_non_retryable_fetch_fails_without_sleep(self) -> None:
         with (
@@ -76,6 +82,22 @@ class TedaSyncTests(unittest.TestCase):
             candidates = sync_teda.discover_candidates(index_pages=2, delay_seconds=3.0)
         self.assertEqual(len(candidates), 1)
         self.assertEqual(sync_teda.stable_opportunity_id(candidates[0].detail_url), 'teda_901')
+
+    def test_one_required_index_page_failure_still_blocks_full_discovery_with_diagnostics(self) -> None:
+        page = '<html><body></body></html>'
+        with (
+            patch.object(
+                sync_teda,
+                'fetch_page_with_retry',
+                side_effect=[page, RuntimeError('TEDA_NETWORK_ERROR')],
+            ),
+            patch.object(sync_teda.time, 'sleep'),
+            self.assertRaisesRegex(
+                RuntimeError,
+                r'TEDA_INDEX_PAGE_FAILED:2:https://www\.tedahospital\.com\.cn/article/plist/9/2:RuntimeError:TEDA_NETWORK_ERROR',
+            ),
+        ):
+            sync_teda.discover_candidates(index_pages=4, delay_seconds=3.0)
 
     def test_parse_as_of_requires_timezone(self) -> None:
         with self.assertRaisesRegex(ValueError, 'timezone'):
