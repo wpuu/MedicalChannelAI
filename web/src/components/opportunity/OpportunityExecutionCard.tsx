@@ -45,20 +45,25 @@ function medicalInstitutionBuyer(value: string | null | undefined): string | nul
   return name && OBVIOUS_MEDICAL_INSTITUTION.test(name) ? name : null
 }
 
-function sameScope(
-  leftHospital: string,
-  leftDepartment: string | null,
-  rightHospital: string,
-  rightDepartment: string | null,
+function targetScopeMatchesCard(
+  targetHospital: string,
+  targetDepartment: string | null,
+  cardHospital: string,
+  cardDepartment: string | null,
 ): boolean {
-  const left = normalize(leftHospital)
-  const right = normalize(rightHospital)
-  if (!left || !right || !(left === right || left.includes(right) || right.includes(left))) return false
+  const target = normalize(targetHospital)
+  const card = normalize(cardHospital)
+  if (!target || !card || !(target === card || target.includes(card) || card.includes(target))) return false
 
-  const leftDept = normalize(leftDepartment)
-  const rightDept = normalize(rightDepartment)
-  if (!leftDept || !rightDept) return true
-  return leftDept === rightDept || leftDept.includes(rightDept) || rightDept.includes(leftDept)
+  const scopedDepartment = normalize(targetDepartment)
+  if (!scopedDepartment) return true
+  const opportunityDepartment = normalize(cardDepartment)
+  if (!opportunityDepartment) return false
+  return (
+    scopedDepartment === opportunityDepartment ||
+    scopedDepartment.includes(opportunityDepartment) ||
+    opportunityDepartment.includes(scopedDepartment)
+  )
 }
 
 function sameExactScope(
@@ -173,7 +178,7 @@ export function OpportunityExecutionCard({
     if (contextTarget) return contextTarget
     if (!hospital) return null
     return profile.target_hospitals.find((item) =>
-      sameScope(item.hospital, item.department, hospital, department),
+      targetScopeMatchesCard(item.hospital, item.department, hospital, department),
     ) ?? null
   }, [contextTarget, department, hospital, profile.target_hospitals])
   const alreadyTargeted = Boolean(matchedTarget)

@@ -50,6 +50,13 @@ class TargetHospitalContextTests(unittest.TestCase):
         self.assertIn('加入后默认关注全院，可在“我的资源”中再细化重点科室。', source)
         self.assertIn("matchedTarget.department ? ` / ${matchedTarget.department}` : ' · 全院'", source)
 
+    def test_detail_target_scope_matches_server_department_semantics(self):
+        source = (WEB_ROOT / 'src' / 'components' / 'opportunity' / 'OpportunityExecutionCard.tsx').read_text(encoding='utf-8')
+        self.assertIn('function targetScopeMatchesCard(', source)
+        self.assertIn('if (!scopedDepartment) return true', source)
+        self.assertIn('if (!opportunityDepartment) return false', source)
+        self.assertIn('targetScopeMatchesCard(item.hospital, item.department, hospital, department)', source)
+
     def test_frontend_shows_target_and_relationship_separately(self):
         detail = (WEB_ROOT / 'src' / 'components' / 'opportunity' / 'CustomerContextCard.tsx').read_text(encoding='utf-8')
         today = (WEB_ROOT / 'src' / 'components' / 'today' / 'CustomerResourceBlock.tsx').read_text(encoding='utf-8')
