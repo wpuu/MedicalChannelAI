@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { NOT_FIT_REASONS } from '@/utils/labels'
+import { isApiMode } from '@/services/apiConfig'
 import type { NotFitReason } from '@/types'
 
 interface NotFitModalProps {
@@ -37,7 +38,9 @@ export function NotFitModal({ open, onClose, onConfirm }: NotFitModalProps) {
       }
     >
       <p className="mb-3 text-[13px] leading-6 text-slate-500">
-        请选择原因。该操作仅保存在本地演示状态，不会写入服务器。
+        {isApiMode
+          ? '请选择原因。原因属于当前账号私有跟进数据，会保存到服务器，不会写入公开商机事实。'
+          : '请选择原因。演示模式下只保存在当前浏览器，不会写入公开商机事实。'}
       </p>
       <div className="space-y-1.5">
         {NOT_FIT_REASONS.map((item) => (
