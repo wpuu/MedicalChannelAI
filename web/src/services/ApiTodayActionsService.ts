@@ -461,11 +461,6 @@ export class ApiTodayActionsService implements TodayActionsService {
     return this.requestJson<ServerFollowupState>(`/followup/${encodeURIComponent(id)}`)
   }
 
-  private async enrichWithServerFollowup(card: TodayActionCard): Promise<TodayActionCard> {
-    const state = await this.getFollowupState(card.opportunity_id)
-    return applyFollowupState(card, state)
-  }
-
   async getTodayActions(_options?: TodayActionsLoadOptions): Promise<TodayActionsResponse> {
     const pending = this.pendingTodayAfterMutation
     this.pendingTodayAfterMutation = null
@@ -501,10 +496,12 @@ export class ApiTodayActionsService implements TodayActionsService {
 
   async getOpportunity(id: string): Promise<TodayActionCard | null> {
     try {
-      const card = await this.requestJson<PublicTodayActionCard>(
-        `/opportunity/${encodeURIComponent(id)}`,
-      )
-      return await this.enrichWithServerFollowup(mapPublicCard(card))
+      const encodedId = encodeURIComponent(id)
+      const [card, state] = await Promise.all([
+        this.requestJson<PublicTodayActionCard>(`/opportunity/${encodedId}`),
+        this.getFollowupState(id),
+      ])
+      return applyFollowupState(mapPublicCard(card), state)
     } catch (error) {
       if (error instanceof Error && (error.message === 'HTTP_404' || error.message === 'VERIFIED_OPPORTUNITY_NOT_FOUND')) return null
       throw error
