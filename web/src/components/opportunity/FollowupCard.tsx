@@ -18,6 +18,12 @@ const STATUS_OPTIONS: FollowupStatus[] = [
   'MONITOR',
   'ARCHIVED',
 ]
+const REMINDER_TERMINAL_STATUSES = new Set<FollowupStatus>([
+  'WON',
+  'LOST',
+  'NOT_FIT',
+  'ARCHIVED',
+])
 
 interface FollowupCardProps {
   card: TodayActionCard
@@ -39,6 +45,7 @@ export function FollowupCard({
   const [status, setStatus] = useState<FollowupStatus>(card.followup_status)
   const [note, setNote] = useState('')
   const [savingNote, setSavingNote] = useState(false)
+  const reminderAllowed = !REMINDER_TERMINAL_STATUSES.has(card.followup_status)
 
   useEffect(() => {
     setStatus(card.followup_status)
@@ -99,15 +106,19 @@ export function FollowupCard({
             </div>
             <div className="mt-2 flex items-center justify-between gap-2">
               <p className="text-[11px] leading-5 text-slate-400">
-                “持续观察”只是销售阶段；提醒时间独立保存，不会自动改写当前阶段。
+                {reminderAllowed
+                  ? '“持续观察”只是销售阶段；提醒时间独立保存，不会自动改写当前阶段。'
+                  : '当前项目已结束，不再新增后续提醒。'}
               </p>
-              <button
-                type="button"
-                onClick={onRemind}
-                className="shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-medium text-amber-800 hover:bg-amber-100"
-              >
-                设置提醒
-              </button>
+              {reminderAllowed ? (
+                <button
+                  type="button"
+                  onClick={onRemind}
+                  className="shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-medium text-amber-800 hover:bg-amber-100"
+                >
+                  设置提醒
+                </button>
+              ) : null}
             </div>
           </div>
 
