@@ -28,6 +28,25 @@ class GithubCiPressureTests(unittest.TestCase):
         self.assertIn("npm run build", self.workflow)
         self.assertIn("Print verified ranking summary", self.workflow)
 
+    def test_live_intent_probe_is_explicit_read_only_and_bounded(self) -> None:
+        self.assertIn('"[live-intent-probe]"', self.workflow)
+        self.assertIn("Run read-only live procurement-intent probe", self.workflow)
+        self.assertIn("if: steps.verify_mode.outputs.live_intent == 'true'", self.workflow)
+        self.assertIn("sync_tjzyefy_procurement_intent.py", self.workflow)
+        self.assertIn("--lookback-days 30", self.workflow)
+        self.assertIn("--max-candidates 20", self.workflow)
+        self.assertIn("--delay-seconds 3", self.workflow)
+        self.assertIn("mktemp -d", self.workflow)
+        self.assertIn("LIVE_INTENT_PROBE_REPORT=", self.workflow)
+        self.assertIn("LIVE_INTENT_VERIFIED_RECORD=", self.workflow)
+        self.assertIn("git diff --exit-code", self.workflow)
+        probe_start = self.workflow.index("Run read-only live procurement-intent probe")
+        probe_end = self.workflow.index("Install web dependencies", probe_start)
+        probe = self.workflow[probe_start:probe_end]
+        self.assertNotIn("git push", probe)
+        self.assertNotIn("VERIFIED_SNAPSHOT_PUBLISH", probe)
+        self.assertNotIn("vercel", probe.lower())
+
     def test_runner_cleanup_and_docs_skip_remain_enabled(self) -> None:
         self.assertIn("cancel-in-progress: true", self.workflow)
         self.assertIn("'docs/**'", self.workflow)
