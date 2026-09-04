@@ -418,34 +418,48 @@ export default async function handler(request, response) {
       await tx`DELETE FROM private_product_capabilities WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}`
       await tx`DELETE FROM private_hospital_relationships WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}`
 
-      for (const item of profile.product_capabilities) {
+      const capabilityRows = profile.product_capabilities.map((item) => ({
+        id: randomUUID(),
+        organization_id: user.organization_id,
+        user_id: user.id,
+        keyword: item.keyword,
+        capability_type: item.capability_type,
+      }))
+      if (capabilityRows.length) {
         await tx`
-          INSERT INTO private_product_capabilities (
-            id, organization_id, user_id, keyword, capability_type
-          ) VALUES (
-            ${randomUUID()}, ${user.organization_id}, ${user.id}, ${item.keyword}, ${item.capability_type}
-          )
+          INSERT INTO private_product_capabilities
+          ${tx(capabilityRows, 'id', 'organization_id', 'user_id', 'keyword', 'capability_type')}
         `
       }
-      for (const item of profile.hospital_relationships) {
+
+      const relationshipRows = profile.hospital_relationships.map((item) => ({
+        id: randomUUID(),
+        organization_id: user.organization_id,
+        user_id: user.id,
+        hospital: item.hospital,
+        department: item.department,
+        relationship_strength: item.relationship_strength,
+      }))
+      if (relationshipRows.length) {
         await tx`
-          INSERT INTO private_hospital_relationships (
-            id, organization_id, user_id, hospital, department, relationship_strength
-          ) VALUES (
-            ${randomUUID()}, ${user.organization_id}, ${user.id}, ${item.hospital}, ${item.department}, ${item.relationship_strength}
-          )
+          INSERT INTO private_hospital_relationships
+          ${tx(relationshipRows, 'id', 'organization_id', 'user_id', 'hospital', 'department', 'relationship_strength')}
         `
       }
 
       if (profile.target_hospitals !== null) {
         await tx`DELETE FROM private_target_hospitals WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}`
-        for (const item of profile.target_hospitals) {
+        const targetRows = profile.target_hospitals.map((item) => ({
+          id: randomUUID(),
+          organization_id: user.organization_id,
+          user_id: user.id,
+          hospital: item.hospital,
+          department: item.department,
+        }))
+        if (targetRows.length) {
           await tx`
-            INSERT INTO private_target_hospitals (
-              id, organization_id, user_id, hospital, department
-            ) VALUES (
-              ${randomUUID()}, ${user.organization_id}, ${user.id}, ${item.hospital}, ${item.department}
-            )
+            INSERT INTO private_target_hospitals
+            ${tx(targetRows, 'id', 'organization_id', 'user_id', 'hospital', 'department')}
           `
         }
       }
