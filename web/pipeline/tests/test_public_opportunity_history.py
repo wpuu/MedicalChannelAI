@@ -55,14 +55,20 @@ class PublicOpportunityHistoryTests(unittest.TestCase):
         self.assertIn("'facts.public_contact'", source)
         self.assertIn("'evidence_source_urls'", source)
 
-    def test_detail_history_is_non_blocking_and_separate_from_private_followup(self) -> None:
+    def test_detail_history_is_on_demand_and_separate_from_private_followup(self) -> None:
         page = (WEB_ROOT / 'src' / 'pages' / 'OpportunityDetailPage.tsx').read_text(encoding='utf-8')
         card = (WEB_ROOT / 'src' / 'components' / 'opportunity' / 'PublicHistoryCard.tsx').read_text(encoding='utf-8')
         service = (WEB_ROOT / 'src' / 'services' / 'publicOpportunityHistoryApi.ts').read_text(encoding='utf-8')
-        self.assertIn('loadPublicHistory(id)', page)
+        load_start = page.index('const load = useCallback')
+        load_end = page.index('useEffect(() =>', load_start)
+        initial_load = page[load_start:load_end]
+        self.assertNotIn('loadPublicHistory(id)', initial_load)
         self.assertIn('<PublicHistoryCard', page)
+        self.assertIn('onLoad={() => loadPublicHistory(card.opportunity_id)}', page)
         self.assertIn('void getPublicOpportunityHistory(opportunityId)', page)
         self.assertIn('setPublicHistoryError(true)', page)
+        self.assertIn('查看更新记录', card)
+        self.assertIn('重试读取', card)
         self.assertIn('当前商机事实和官方依据不受影响', card)
         self.assertIn('不包含你的医院关系或产品资源', card)
         self.assertIn('/public-history/${encodeURIComponent(opportunityId)}', service)
