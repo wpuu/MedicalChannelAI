@@ -25,6 +25,8 @@ assert.match(pool, /windowFilter === 'OPEN' && \(card\.recommendation_mode === '
 assert.match(pool, /windowFilter === 'PRE_MARKET_SIGNAL' && !preMarket/)
 assert.match(pool, /\['PRE_MARKET_SIGNAL', '提前布局'\]/)
 assert.match(pool, /尚未进入正式报名\/投标窗口的采购意向/)
+assert.match(pool, /<PreMarketSignalNotice/)
+assert.match(pool, /qualityFlags=\{card\.facts\.quality_flags\}/)
 
 const actionCard = read('src/components/today/ActionCard.tsx')
 assert.match(actionCard, /<PreMarketSignalNotice/)
