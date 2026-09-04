@@ -154,6 +154,7 @@ function PoolCard({
               <PreMarketSignalNotice
                 lifecycleStage={card.facts.lifecycle_stage}
                 recommendationMode={card.recommendation_mode}
+                qualityFlags={card.facts.quality_flags}
                 compact
               />
             </div>
