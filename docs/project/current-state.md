@@ -21,19 +21,19 @@ Fixed rules:
 
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
-- Latest fully code-validated HEAD: `59248d06a2bb6f4153a5d45575beb51a2593bacd`
+- Latest fully code-validated HEAD: `1ccc219e13fc215b1bea25dbfc0016b1d366a935`
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
-- PR is open, Draft, unmerged and mergeable.
+- PR remains open, Draft and unmerged.
 - `web/vercel.json` explicitly disables automatic Vercel deployments for the active PR branch.
 - The user explicitly requires **no Preview generation and no Production changes/deployments** until that boundary is changed again.
-- Vercel was rechecked after the CRM/reminder work. No new deployment exists for this branch; the newest Vercel deployment still points to old commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` and is not current-HEAD validation.
+- Vercel was rechecked after the latest CRM/action-queue work. No new deployment exists for this branch; the newest Vercel deployment still points to old commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` and is not current-HEAD validation.
 - The reachable custom demo/production surfaces must not be treated as containing current branch changes.
 
 Do not merge PR #6, enable the branch Preview, call Vercel deploy, or modify/promote Production without explicit product-owner approval.
 
 ## Current executable validation evidence
 
-GitHub Actions `Verify MedicalChannelAI` run **#1259** completed successfully for HEAD `59248d06a2bb6f4153a5d45575beb51a2593bacd`.
+GitHub Actions `Verify MedicalChannelAI` run **#1281** completed successfully for HEAD `1ccc219e13fc215b1bea25dbfc0016b1d366a935`.
 
 The successful job includes:
 
@@ -85,7 +85,7 @@ No Preview/runtime claims should be made for this architecture until Preview exe
 
 The current branch now covers the main pilot loop:
 
-**discover opportunity → inspect official evidence → personalize with confirmed resources → generate grounded outreach → contact → record follow-up → schedule next action/reminder → track result → record private loss reason**.
+**discover opportunity → inspect official evidence → personalize with confirmed resources → generate grounded outreach → contact → explicitly record contact → optionally arrange a concrete next action → work due-action queue → track result → record private loss reason**.
 
 Recent closure work:
 
@@ -94,19 +94,22 @@ Recent closure work:
 - public phone/email actions do not automatically claim the customer was contacted;
 - copying outreach text does not mutate CRM state;
 - only the explicit `已联系，记入跟进` action writes `CONTACTED`;
-- after explicit confirmation, the user is taken to `我的跟进`;
+- after contact is explicitly recorded, the drawer no longer forces an immediate navigation; it offers `先去我的跟进` or `安排下一步`;
+- choosing `安排下一步` reuses the same private reminder flow and preserves the sales stage as `CONTACTED`;
 - reminders are independent from sales stage: e.g. `CONTACTED + future reminder` remains `CONTACTED`;
+- every new UI-created reminder now requires a concrete `下一步行动`; common action presets reduce input cost and prevent empty-purpose reminders;
 - `MONITOR` remains a normal `持续观察` sales stage rather than being the only way to have a reminder;
 - non-terminal stages may preserve reminders;
 - terminal results `WON / LOST / NOT_FIT / ARCHIVED` clear/reject future reminders and do not offer a new-reminder action;
 - due reminder acknowledgement clears the reminder only, not the underlying sales stage;
-- reminder creation can optionally capture a private `下一步行动`, and due-reminder UI surfaces it directly as `下一步：…`;
-- `LOST` now requires a private review reason selection instead of recording only an empty `未成交` state;
+- due-reminder UI surfaces the saved private next action directly as `下一步：…`;
+- `我的跟进` is now an action view: due items first, then future scheduled items, then other active/monitor/closed records;
+- `我的跟进` exposes a `待处理` count and filter based on private `remind_at`, marks due items `已到期`, future items `已安排`, and displays `到期时间/下次时间` separately;
+- structured private notes are displayed semantically: `下次行动` as `下一步`, LOST review as `未成交复盘（私有）`, while the old generic system reminder note is hidden from the action view;
+- `LOST` requires a private review reason selection instead of recording only an empty `未成交` state;
 - loss-review copy explicitly states that the reason is the current user's private commercial judgment, not a hospital/procurement public fact;
-- the existing follow-up event/note path is reused, so these CRM improvements require no database schema migration;
-- `NotFitModal` persistence copy now reflects actual API-mode server persistence rather than incorrectly claiming local-only storage.
-
-The reminder-stage migration requires no database schema migration because `remind_at` already exists independently on private follow-up state.
+- the existing follow-up event/note path and `remind_at` are reused, so these CRM improvements require no database schema migration;
+- `NotFitModal` persistence copy reflects actual API-mode server persistence rather than incorrectly claiming local-only storage.
 
 ## Grounded AI boundary
 
@@ -131,11 +134,12 @@ When the user explicitly allows Preview again, the next runtime acceptance shoul
 
 1. deploy the exact then-current PR HEAD to Preview only;
 2. verify Today / Opportunity Pool / detail / Resources / Followups interactively;
-3. run the protected Pilot smoke against the Preview, updated to prove a non-MONITOR stage such as `CONTACTED` can retain a reminder;
-4. verify due-reminder acknowledgement preserves the sales stage and surfaces the saved next action;
-5. verify private loss-review data persists across session/export without leaking into public facts;
-6. verify collector runtime/queue/deep-to-incremental behavior and snapshot freshness on real Vercel runtime state;
-7. verify a real same-origin grounded AI POST only if Preview runtime AI configuration is intentionally supplied;
-8. inspect custom-domain/Production promotion path separately before any production action.
+3. run the protected Pilot smoke against the Preview, updated to prove a non-MONITOR stage such as `CONTACTED` can retain a concrete next-action reminder;
+4. verify the post-contact two-step flow: explicit CONTACTED first, optional next action second;
+5. verify due-reminder acknowledgement preserves the sales stage and removes the item from the due-action queue;
+6. verify private loss-review data persists across session/export without leaking into public facts;
+7. verify collector runtime/queue/deep-to-incremental behavior and snapshot freshness on real Vercel runtime state;
+8. verify a real same-origin grounded AI POST only if Preview runtime AI configuration is intentionally supplied;
+9. inspect custom-domain/Production promotion path separately before any production action.
 
 PR #6 must remain Draft until those gates and product-owner acceptance are complete.
