@@ -3,6 +3,81 @@ import { privateDatabaseConfigured, privateDb } from './_privateDb.js'
 
 let schemaPromise = null
 
+const PUBLIC_SCHEMA_KEY = 'medicalchannelai-public-intelligence'
+const PUBLIC_SCHEMA_VERSION = '2026-09-04-public-intelligence-v1'
+const PUBLIC_SCHEMA_LOCK_KEY = 'medicalchannelai-public-intelligence-schema-migration'
+
+const PUBLIC_SCHEMA_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS public_schema_meta (
+    schema_key text PRIMARY KEY,
+    schema_version text NOT NULL,
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`,
+  `CREATE TABLE IF NOT EXISTS public_collector_runs (
+    id TEXT PRIMARY KEY,
+    region_code TEXT NOT NULL,
+    source_id TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('RUNNING', 'COMPLETED', 'FAILED')),
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ,
+    summary JSONB NOT NULL DEFAULT '{}'::jsonb
+  )`,
+  `CREATE INDEX IF NOT EXISTS public_collector_runs_region_started_idx
+    ON public_collector_runs (region_code, started_at DESC)`,
+  `CREATE TABLE IF NOT EXISTS public_opportunities (
+    opportunity_id TEXT PRIMARY KEY,
+    region_code TEXT NOT NULL,
+    source_id TEXT NOT NULL,
+    source_url TEXT NOT NULL,
+    current_version INTEGER NOT NULL CHECK (current_version >= 1),
+    current_fact_hash TEXT NOT NULL CHECK (length(current_fact_hash) = 64),
+    current_payload JSONB NOT NULL,
+    lifecycle_state TEXT,
+    first_seen_at TIMESTAMPTZ NOT NULL,
+    last_seen_at TIMESTAMPTZ NOT NULL,
+    last_changed_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS public_opportunities_region_state_idx
+    ON public_opportunities (region_code, lifecycle_state, last_changed_at DESC)`,
+  `CREATE TABLE IF NOT EXISTS public_opportunity_versions (
+    opportunity_id TEXT NOT NULL REFERENCES public_opportunities(opportunity_id) ON DELETE CASCADE,
+    version INTEGER NOT NULL CHECK (version >= 1),
+    fact_hash TEXT NOT NULL CHECK (length(fact_hash) = 64),
+    payload JSONB NOT NULL,
+    changed_fields JSONB NOT NULL DEFAULT '[]'::jsonb,
+    observed_at TIMESTAMPTZ NOT NULL,
+    collector_run_id TEXT REFERENCES public_collector_runs(id) ON DELETE SET NULL,
+    PRIMARY KEY (opportunity_id, version),
+    UNIQUE (opportunity_id, fact_hash)
+  )`,
+  `CREATE INDEX IF NOT EXISTS public_opportunity_versions_observed_idx
+    ON public_opportunity_versions (opportunity_id, observed_at DESC)`,
+  `CREATE TABLE IF NOT EXISTS public_snapshot_materializations (
+    region_code TEXT NOT NULL,
+    snapshot_hash TEXT NOT NULL CHECK (length(snapshot_hash) = 64),
+    snapshot_as_of TIMESTAMPTZ NOT NULL,
+    opportunity_count INTEGER NOT NULL CHECK (opportunity_count >= 0),
+    materialized_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (region_code, snapshot_hash)
+  )`,
+  `CREATE INDEX IF NOT EXISTS public_snapshot_materializations_region_time_idx
+    ON public_snapshot_materializations (region_code, snapshot_as_of DESC)`,
+  `CREATE TABLE IF NOT EXISTS public_ai_briefs (
+    opportunity_id TEXT NOT NULL,
+    fact_hash TEXT NOT NULL CHECK (length(fact_hash) = 64),
+    window_state TEXT NOT NULL,
+    brief_type TEXT NOT NULL,
+    prompt_version TEXT NOT NULL,
+    result JSONB NOT NULL,
+    generated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (opportunity_id, fact_hash, window_state, brief_type, prompt_version)
+  )`,
+  `ALTER TABLE public_ai_briefs DROP CONSTRAINT IF EXISTS public_ai_briefs_opportunity_id_fkey`,
+  `CREATE INDEX IF NOT EXISTS public_ai_briefs_lookup_idx
+    ON public_ai_briefs (opportunity_id, fact_hash, generated_at DESC)`,
+]
+
 export function publicIntelligenceDatabaseConfigured() {
   return privateDatabaseConfigured()
 }
@@ -197,93 +272,38 @@ async function upsertObservationTx(tx, observation, collectorRunId = null) {
   return { created: false, changed: true, stale: false, version: nextVersion, changed_fields: fields }
 }
 
+async function publicSchemaVersionCurrent(sql) {
+  const relation = await sql`SELECT to_regclass('public_schema_meta')::text AS table_name`
+  if (!relation[0]?.table_name) return false
+  const rows = await sql`
+    SELECT schema_version
+    FROM public_schema_meta
+    WHERE schema_key = ${PUBLIC_SCHEMA_KEY}
+    LIMIT 1
+  `
+  return rows[0]?.schema_version === PUBLIC_SCHEMA_VERSION
+}
+
 export async function ensurePublicIntelligenceSchema() {
   if (schemaPromise) return schemaPromise
   schemaPromise = (async () => {
     const sql = publicIntelligenceDb()
-    await sql`
-      CREATE TABLE IF NOT EXISTS public_collector_runs (
-        id TEXT PRIMARY KEY,
-        region_code TEXT NOT NULL,
-        source_id TEXT NOT NULL,
-        status TEXT NOT NULL CHECK (status IN ('RUNNING', 'COMPLETED', 'FAILED')),
-        started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-        completed_at TIMESTAMPTZ,
-        summary JSONB NOT NULL DEFAULT '{}'::jsonb
-      )
-    `
-    await sql`
-      CREATE INDEX IF NOT EXISTS public_collector_runs_region_started_idx
-      ON public_collector_runs (region_code, started_at DESC)
-    `
-    await sql`
-      CREATE TABLE IF NOT EXISTS public_opportunities (
-        opportunity_id TEXT PRIMARY KEY,
-        region_code TEXT NOT NULL,
-        source_id TEXT NOT NULL,
-        source_url TEXT NOT NULL,
-        current_version INTEGER NOT NULL CHECK (current_version >= 1),
-        current_fact_hash TEXT NOT NULL CHECK (length(current_fact_hash) = 64),
-        current_payload JSONB NOT NULL,
-        lifecycle_state TEXT,
-        first_seen_at TIMESTAMPTZ NOT NULL,
-        last_seen_at TIMESTAMPTZ NOT NULL,
-        last_changed_at TIMESTAMPTZ NOT NULL,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      )
-    `
-    await sql`
-      CREATE INDEX IF NOT EXISTS public_opportunities_region_state_idx
-      ON public_opportunities (region_code, lifecycle_state, last_changed_at DESC)
-    `
-    await sql`
-      CREATE TABLE IF NOT EXISTS public_opportunity_versions (
-        opportunity_id TEXT NOT NULL REFERENCES public_opportunities(opportunity_id) ON DELETE CASCADE,
-        version INTEGER NOT NULL CHECK (version >= 1),
-        fact_hash TEXT NOT NULL CHECK (length(fact_hash) = 64),
-        payload JSONB NOT NULL,
-        changed_fields JSONB NOT NULL DEFAULT '[]'::jsonb,
-        observed_at TIMESTAMPTZ NOT NULL,
-        collector_run_id TEXT REFERENCES public_collector_runs(id) ON DELETE SET NULL,
-        PRIMARY KEY (opportunity_id, version),
-        UNIQUE (opportunity_id, fact_hash)
-      )
-    `
-    await sql`
-      CREATE INDEX IF NOT EXISTS public_opportunity_versions_observed_idx
-      ON public_opportunity_versions (opportunity_id, observed_at DESC)
-    `
-    await sql`
-      CREATE TABLE IF NOT EXISTS public_snapshot_materializations (
-        region_code TEXT NOT NULL,
-        snapshot_hash TEXT NOT NULL CHECK (length(snapshot_hash) = 64),
-        snapshot_as_of TIMESTAMPTZ NOT NULL,
-        opportunity_count INTEGER NOT NULL CHECK (opportunity_count >= 0),
-        materialized_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-        PRIMARY KEY (region_code, snapshot_hash)
-      )
-    `
-    await sql`
-      CREATE INDEX IF NOT EXISTS public_snapshot_materializations_region_time_idx
-      ON public_snapshot_materializations (region_code, snapshot_as_of DESC)
-    `
-    await sql`
-      CREATE TABLE IF NOT EXISTS public_ai_briefs (
-        opportunity_id TEXT NOT NULL,
-        fact_hash TEXT NOT NULL CHECK (length(fact_hash) = 64),
-        window_state TEXT NOT NULL,
-        brief_type TEXT NOT NULL,
-        prompt_version TEXT NOT NULL,
-        result JSONB NOT NULL,
-        generated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-        PRIMARY KEY (opportunity_id, fact_hash, window_state, brief_type, prompt_version)
-      )
-    `
-    await sql`ALTER TABLE public_ai_briefs DROP CONSTRAINT IF EXISTS public_ai_briefs_opportunity_id_fkey`
-    await sql`
-      CREATE INDEX IF NOT EXISTS public_ai_briefs_lookup_idx
-      ON public_ai_briefs (opportunity_id, fact_hash, generated_at DESC)
-    `
+    if (await publicSchemaVersionCurrent(sql)) return
+
+    await sql.begin(async (tx) => {
+      await tx`SELECT pg_advisory_xact_lock(hashtext(${PUBLIC_SCHEMA_LOCK_KEY}))`
+      if (await publicSchemaVersionCurrent(tx)) return
+      for (const statement of PUBLIC_SCHEMA_STATEMENTS) {
+        await tx.unsafe(statement)
+      }
+      await tx`
+        INSERT INTO public_schema_meta (schema_key, schema_version, updated_at)
+        VALUES (${PUBLIC_SCHEMA_KEY}, ${PUBLIC_SCHEMA_VERSION}, now())
+        ON CONFLICT (schema_key) DO UPDATE SET
+          schema_version = EXCLUDED.schema_version,
+          updated_at = now()
+      `
+    })
   })().catch((error) => {
     schemaPromise = null
     throw error
