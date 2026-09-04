@@ -16,7 +16,6 @@ import { useToast } from '@/context/ToastContext'
 import { isApiMode, logoutPilot } from '@/services/apiConfig'
 import { clearLocalCustomerProfile } from '@/services/localCustomerProfile'
 import { resetLocalFollowups } from '@/services/localFollowupStore'
-import { resetMockDemoState } from '@/services/MockTodayActionsService'
 import { cn } from '@/utils/cn'
 
 const GROUNDED_AI_CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
@@ -65,7 +64,10 @@ export function AppLayout() {
     }
   }
 
-  const handleResetTrial = () => {
+  const handleResetTrial = async () => {
+    // Mock reset is a demo-only action. Keep the synthetic service out of the
+    // authenticated Pilot shell and load it only when the user actually resets.
+    const { resetMockDemoState } = await import('@/services/MockTodayActionsService')
     resetMockDemoState()
     resetLocalFollowups()
     if (isVerifiedPublicDemo) clearLocalCustomerProfile()
@@ -127,7 +129,7 @@ export function AppLayout() {
             {!isApiMode ? (
               <button
                 type="button"
-                onClick={handleResetTrial}
+                onClick={() => void handleResetTrial()}
                 title={isVerifiedPublicDemo ? '清除本机试用状态' : '恢复演示初始状态'}
                 aria-label={isVerifiedPublicDemo ? '清除本机试用状态' : '恢复演示初始状态'}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 sm:h-auto sm:w-auto sm:gap-1 sm:px-2.5 sm:py-1.5 sm:text-[12px]"
