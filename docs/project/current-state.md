@@ -23,7 +23,7 @@ Fixed rules:
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
 - Latest fully code-validated runtime HEAD: `1ccc219e13fc215b1bea25dbfc0016b1d366a935`
-- Current unvalidated runtime candidate HEAD: `bacdc0fa9e1b711acb901a262e81358aea22650b`
+- Current unvalidated runtime/test candidate HEAD: `315ce5fd97aab1994cf22c7b22a6fdd30a213713`
 - Documentation-only commits may exist above the runtime candidate; they must not be confused with a newer runtime validation point.
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR remains open, Draft and unmerged.
@@ -52,16 +52,18 @@ This is the latest code point that may be called fully CI-validated.
 
 ### Current runtime candidate is not yet executable-validated
 
-Runtime candidate `bacdc0fa9e1b711acb901a262e81358aea22650b` contains the newer private outcome-review / terminal-state work described below.
+Candidate `315ce5fd97aab1994cf22c7b22a6fdd30a213713` contains the newer private outcome-review / terminal-state work plus follow-up static hardening described below.
 
-Observed GitHub Actions runs after the last green point — including **#1297, #1299, #1303, #1307 and #1327**, plus explicit reruns — failed before executing repository steps. The jobs showed `steps=[]` and no assigned runner (`runner_id=0` where exposed). Therefore:
+Observed GitHub Actions runs after the last green point — including **#1297, #1299, #1303, #1307, #1327, #1331, #1338 and #1340**, plus explicit reruns where applicable — failed before executing repository steps. The jobs showed `steps=[]` and no assigned runner (`runner_id=0` where exposed). Therefore:
 
 - those failures are **not evidence that the code tests failed**;
 - they are also **not evidence that the current runtime candidate passed**;
 - no Checkout / Python / Node / TypeScript / Vite step actually ran in those attempts;
 - the current runtime candidate remains **pending executable CI validation**.
 
-Do not upgrade `bacdc0f…` to a validated head until a real Verify run executes the repository steps and succeeds.
+The Verify workflow previously triggered both on branch push and PR update, producing duplicate runs for the same commit (for example push #1326 + PR #1327). Commit `33eef600e44361d438c35398f7c022efd1f624ce` removed the branch-push trigger and retained `pull_request` + `workflow_dispatch`. Subsequent commits generate one PR Verify instead of two. This reduces wasted Actions usage but did not by itself resolve the missing-runner condition.
+
+Do not upgrade `315ce5f…` to a validated head until a real Verify run executes the repository steps and succeeds.
 
 Preview generation remains intentionally disabled, so even a future CI green result will not by itself prove Vercel runtime behavior.
 
@@ -124,7 +126,7 @@ Established closure behavior:
 - every new UI-created reminder requires a concrete next action, with common presets to reduce input cost;
 - due reminder acknowledgement clears the reminder only, not the underlying sales stage;
 - `我的跟进` prioritizes due items, then future scheduled items, then other active/monitor/closed records;
-- private structured notes are displayed semantically (`下次行动` / `未成交复盘（私有）`) while old generic reminder notes do not occupy the action view.
+- private structured notes are displayed semantically where implemented, while old generic reminder notes do not occupy the action view.
 
 ### Private terminal outcome review — current runtime candidate
 
@@ -134,17 +136,31 @@ The newer runtime candidate adds a private result-review layer without adding a 
 - summary reads only current-account `private_followups` / `private_followup_events` rows and never reads public opportunity facts to infer why a result happened;
 - `WON / LOST / NOT_FIT` counts and decided win rate are available in `我的跟进` as a non-blocking private card;
 - the summary fails closed instead of returning truncated statistics if the terminal-result index exceeds the bounded 5000-record limit;
-- `LOST` requires a bounded private loss-reason selection and explicitly states that it is the user's commercial judgment, not a hospital/procurement public fact;
-- `WON` now requires a bounded private win-review factor through an explicit confirmation modal; the selected factor is saved atomically with `WON` through the existing follow-up event/note path;
+- frontend parsing also fails closed if reason codes are duplicated or if `structured reason counts + unclassified` do not exactly equal the corresponding WON/LOST/NOT_FIT total;
+- `LOST` requires a bounded private loss-reason selection in the UI and explicitly states that it is the user's commercial judgment, not a hospital/procurement public fact;
+- `WON` requires a bounded private win-review factor in the UI; the selected factor is saved atomically with `WON` through the existing follow-up event/note path;
 - historical WON/LOST records whose reason cannot be safely reconstructed are counted as `历史未结构化` rather than guessed;
 - outcome parsing recognizes only fixed private prefixes / bounded labels and does not mine arbitrary free-form notes for supposed causes;
 - `NOT_FIT` continues to use its existing structured reason field;
-- terminal states `WON / LOST / NOT_FIT / ARCHIVED` are protected from casual dropdown overwrite; reopening requires an explicit `更正结果 / 重新打开` flow and a second confirmation, then records a new `REVIEWING` event while preserving old history;
+- terminal states `WON / LOST / NOT_FIT / ARCHIVED` are protected from casual dropdown overwrite; reopening requires explicit confirmation and records a new `REVIEWING` event while preserving old history;
+- `ARCHIVED` is locked for reminder/dropdown purposes but is **not** presented as an outcome and is **not** counted in private outcome statistics;
+- reopening an outcome removes it from current terminal statistics because the summary reads current `private_followups.status`, not historical event count;
 - account export already includes follow-up event `reason`/notes, and account deletion cascades through the same private follow-up/event ownership chain;
 - the result-review card treats fewer than **5 decided outcomes** as insufficient to infer a business pattern; larger samples still generate only an artificial-review prompt, never a causal claim;
 - private outcome statistics do **not** write into public facts and do **not** automatically modify public opportunity ranking.
 
-This private outcome-review implementation is currently **pending real CI execution** because GitHub Actions did not obtain a runner after `#1281`.
+### Known server-side hardening gap
+
+The core mutation API in `web/api/private.js` already validates `NOT_FIT` reason server-side, but WON/LOST review requirements are currently enforced primarily by the UI. An authenticated caller could still craft a direct follow-up POST that enters `WON` or `LOST` without the controlled private review note.
+
+This is a **known incomplete invariant**, not considered finished. The intended hardening is:
+
+- require a recognized WON/LOST private review only when transitioning into that terminal status;
+- continue allowing later same-status free-form notes;
+- require a new matching review when changing between terminal outcome types;
+- preserve mutation idempotency, reminders, history and historical-snapshot behavior.
+
+Because `private.js` is a large core write route and current GitHub Actions cannot execute any repository steps, this server mutation rewrite is intentionally deferred until executable CI is available or an equivalently safe validation path exists.
 
 ## Grounded AI boundary
 
@@ -167,8 +183,9 @@ While the no-Preview boundary remains active:
 
 1. obtain a real GitHub Actions runner and execute the full Verify workflow against the current runtime candidate or a descendant containing the same runtime code;
 2. fix any actual test/type/build regression found by that real run;
-3. only after a real success may the latest fully code-validated runtime HEAD advance beyond `1ccc219…`;
-4. continue code/test/data-boundary/business-closure work without making Vercel runtime claims.
+3. after executable CI is restored, harden server-side WON/LOST transition review validation in `private.js` and re-run the full regression suite;
+4. only after a real success may the latest fully code-validated runtime HEAD advance beyond `1ccc219…`;
+5. continue code/test/data-boundary/business-closure work without making Vercel runtime claims.
 
 When the user explicitly allows Preview again, the runtime acceptance should include:
 
