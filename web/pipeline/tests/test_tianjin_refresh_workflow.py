@@ -65,6 +65,29 @@ class TianjinRefreshWorkflowTests(unittest.TestCase):
         self.assertGreaterEqual(self.workflow.count('web/pipeline/data/tianjin_live_tjzxfc_records.json'), 5)
         self.assertIn('web/pipeline/data/tianjin_tjzxfc_sync_report.json', self.workflow)
 
+    def test_tjzyefy_daily_deep_uses_shared_clock_and_bounded_verified_sync(self) -> None:
+        match = re.search(
+            r'- name: Sync verified TCM Second Affiliated Hospital medical-research state\n(?P<body>.*?)(?=\n      - name:)',
+            self.workflow,
+            flags=re.S,
+        )
+        self.assertIsNotNone(match)
+        body = match.group('body') if match else ''
+        self.assertIn('sync_tjzyefy_market_research.py', body)
+        self.assertIn("--as-of '${{ steps.clock.outputs.as_of }}'", body)
+        self.assertIn('--lookback-days 30', body)
+        self.assertIn('--max-candidates 20', body)
+        self.assertIn('--delay-seconds 3', body)
+        self.assertIn('if [[ -f web/pipeline/data/tianjin_live_tjzyefy_records.json ]]', body)
+        self.assertIn('--existing-records-input web/pipeline/data/tianjin_live_tjzyefy_records.json', body)
+        self.assertIn('--records-output web/pipeline/data/tianjin_live_tjzyefy_records.json', body)
+        self.assertIn('--report-output web/pipeline/data/tianjin_tjzyefy_sync_report.json', body)
+
+    def test_tjzyefy_records_feed_public_snapshot_and_refresh_commit(self) -> None:
+        self.assertIn('--input web/pipeline/data/tianjin_live_tjzyefy_records.json', self.workflow)
+        self.assertGreaterEqual(self.workflow.count('web/pipeline/data/tianjin_live_tjzyefy_records.json'), 5)
+        self.assertIn('web/pipeline/data/tianjin_tjzyefy_sync_report.json', self.workflow)
+
     def test_first_central_hospital_uses_shared_clock_and_bounded_verified_sync(self) -> None:
         match = re.search(
             r'- name: Sync verified First Central Hospital in-hospital procurement state\n(?P<body>.*?)(?=\n      - name:)',
