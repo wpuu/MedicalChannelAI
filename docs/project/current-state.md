@@ -21,19 +21,19 @@ Fixed rules:
 
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
-- Latest fully code-validated runtime/test HEAD: `b4b41579d70648167566175c307df0a1a49f79b7`
-- Latest successful Verify: GitHub Actions **#1351 SUCCESS**
+- Latest fully code-validated executable/runtime HEAD: `4626eb6f9f799de412ea118d48b920e0f1d8a398`
+- Latest successful full validation: GitHub Actions **Verify #1413 SUCCESS**
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR remains open, Draft and unmerged.
 - `web/vercel.json` disables automatic Vercel deployments for this branch.
 - User boundary remains: **no Preview generation, no Production changes/deployments, no merge** until explicitly changed.
-- Latest observed Vercel deployment remains old commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` / `dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre` (ERROR); no GCP-CI/private-outcome commit produced a Preview.
+- Latest observed Vercel deployment remains historical commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` / `dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre` (ERROR); the current performance/CRM work produced no Preview.
 
 ## Executable validation state
 
 ### Active CI path: GCP self-hosted runner
 
-Private GitHub-hosted runner attempts repeatedly failed before Checkout (`steps=[]`, no runner assignment). The same symptom occurred in another private repository while a temporary public runner probe succeeded. MedicalChannelAI therefore remains private and now uses:
+MedicalChannelAI remains private and uses the repository-scoped GCP self-hosted runner after private GitHub-hosted jobs repeatedly failed before Checkout.
 
 - runner: `medicalchannelai-gcp-1`
 - labels: `self-hosted`, `linux`, `x64`, `medicalchannelai-ci`
@@ -44,19 +44,19 @@ Private GitHub-hosted runner attempts repeatedly failed before Checkout (`steps=
 - duplicate branch-push Verify removed;
 - npm Actions cache upload disabled; persistent VM local cache is used instead.
 
-`actions/setup-python` was removed because Ubuntu 25.10 had no matching Python 3.12 toolcache build; project prebuild already supports system `python3`.
+The GCP instance is **CI infrastructure only**. It is not in the user request path and therefore does not by itself make China user access slower.
 
 ### Latest green validation
 
-Verify **#1351** completed successfully for `b4b41579d70648167566175c307df0a1a49f79b7` and executed:
+Verify **#1413** completed successfully for `4626eb6f9f799de412ea118d48b920e0f1d8a398` and executed:
 
 - Checkout;
 - system Python verification;
 - Node 24 setup;
 - `npm ci`;
 - bundled snapshot refresh;
-- **475 Python pipeline/contract tests — all PASS**;
-- serverless entrypoint checks;
+- **508 Python pipeline/contract tests — all PASS**;
+- serverless entrypoint checks (`11/12` configured slots);
 - verified snapshot / medical-channel / private-profile / AI-boundary / runtime checks;
 - full prebuild;
 - TypeScript `tsc --noEmit`;
@@ -64,6 +64,53 @@ Verify **#1351** completed successfully for `b4b41579d70648167566175c307df0a1a49
 - ranking summary.
 
 This is code/build validation only. It does **not** constitute current-HEAD Vercel runtime acceptance because Preview is intentionally disabled.
+
+## China-access / runtime latency work
+
+The current optimization principle is to reduce cross-border round trips before changing regions. Current Neon is on **AWS `us-east-2` (Ohio)**. `vercel.json` does not force a Function region. Do not move only Vercel Functions to Asia while the database remains in Ohio; that can turn one user-side cross-border hop into repeated Function-to-database cross-region hops. Any future regional change should be based on measured China TTFB/P95 and preferably move the dynamic API and database together.
+
+Validated performance work now includes:
+
+- `/today` customer-private profile reads reduced from four SQL queries to **one bounded aggregate query**;
+- `/today` follow-up + recommendation feedback + `today_limit` reads reduced from three SQL queries to **one query**; the Today private-data path is roughly reduced from ~7 DB round trips to ~2;
+- private and public schema bootstrap use schema-version fast paths; full DDL/migration runs only when the schema version changes and is serialized;
+- public history materialization is side storage scheduled with Vercel `waitUntil()` on Vercel runtime, so it no longer blocks the main `/today` response; same-snapshot duplicate materialization is suppressed within a warm instance;
+- detail page initial opportunity and follow-up reads are parallel rather than serial;
+- public fact-version history on detail is **on demand**, not fetched on every detail open;
+- confirmed follow-up mutations use a bounded one-shot server-confirmed response reuse path, avoiding immediate redundant GETs on Today/detail;
+- Today runtime status and due reminders are auxiliary/non-blocking; the main Today data no longer waits for `/reminders`;
+- login/register now has a **10-second, one-shot, in-memory-only authenticated-user handoff** so the same SPA navigation does not immediately repeat `/auth/me`; refresh/new tab/cross-tab flows remain server-authoritative;
+- `viteSingleFile()` was removed, restoring normal hashed JS/CSS assets and Vercel `/assets/*` immutable caching;
+- secondary routes are lazy-loaded; Login is lazy-loaded while Today remains eager;
+- Runtime Trial / Static Snapshot / Mock service implementations are deferred and do not statically ride the real Pilot service path;
+- Mock reset is also dynamically loaded only when a non-API user explicitly resets the demo/trial.
+
+### Production build delivery result
+
+Historical single-file build:
+
+- `index.html`: **659.76 kB**, gzip **192.66 kB**.
+
+Full Verify #1413 production build:
+
+- `index.html`: **0.62 kB**, gzip **0.38 kB**;
+- CSS: **41.30 kB**, gzip **8.09 kB**;
+- main JS: **382.56 kB**, gzip **122.48 kB**;
+- Login: **6.58 kB**, gzip **2.68 kB**;
+- Opportunity Pool: **18.31 kB**, gzip **6.91 kB**;
+- Followed: **20.95 kB**, gzip **7.37 kB**;
+- Pilot Resources: **23.04 kB**, gzip **6.71 kB**;
+- Opportunity Detail: **50.19 kB**, gzip **15.78 kB**;
+- Radar: **57.59 kB**, gzip **17.29 kB**;
+- Runtime Trial / Static Snapshot / Mock are separate chunks rather than part of the real Pilot main shell.
+
+Compared with the first split build at #1402, the main JS was further reduced from `415.64 kB / gzip 132.15 kB` to `382.56 kB / gzip 122.48 kB`.
+
+## Not yet implemented
+
+The proposed **Today light response / full Opportunity Pool response split** is not implemented yet. The current core route lives in the large `web/api/private.js`; GitHub's current file-write path replaces the whole file and available reads can be truncated, so the change was deliberately not forced through a risky whole-file rewrite. It also should not be implemented as an extra Vercel Function merely to avoid the edit, because the project currently uses 11/12 configured serverless slots and an extra proxy would add latency rather than remove it.
+
+`TodayPage` also still statically imports the AI client module; deferring AI client code until explicit user analysis remains a possible measured bundle optimization, but is not part of the #1413 baseline.
 
 ## Public intelligence and collector boundary
 
@@ -89,51 +136,30 @@ Established behavior:
 
 ## Private outcome review
 
-The current branch includes private result review without adding a database table or Vercel Function:
+The current branch includes current-account private result review without adding a new database table or Vercel Function:
 
 - `profile.js?route=outcome-summary` reads current-account `private_followups` / `private_followup_events` only;
 - reports WON / LOST / NOT_FIT counts and decided win rate;
 - >5000 terminal records fail closed;
 - client rejects duplicate reason codes and inconsistent reason totals;
-- WON / LOST UI require bounded private review factors and clearly label them current-user commercial judgments, not hospital/procurement facts;
-- historical free-form/unrecognized records remain `历史未结构化` rather than guessed;
+- WON / LOST require bounded private review factors and clearly label them current-user commercial judgments, not hospital/procurement facts;
+- historical free-form/unrecognized records remain unclassified rather than guessed;
 - NOT_FIT keeps structured reason;
 - reopened outcomes leave current terminal statistics while old history is preserved;
 - export/delete lifecycle includes outcome events;
 - fewer than 5 decided outcomes do not generate a claimed business rule;
 - private outcome statistics do not alter public facts/ranking.
 
-### Server-side WON/LOST transition invariant — completed
-
-`web/api/private.js` now enforces the controlled review server-side, not only in UI:
-
-- entering WON requires an exact recognized `成交复盘（当前用户判断）：...` factor;
-- entering LOST requires an exact recognized `未成交原因（当前用户判断）：...` factor;
-- the current follow-up row is selected `FOR UPDATE` with its status before the guard runs;
-- same-status WON→WON or LOST→LOST later free-form notes remain allowed;
-- switching WON↔LOST requires a new controlled review matching the new outcome;
-- invalid direct terminal transition returns `400 FOLLOWUP_OUTCOME_REVIEW_REQUIRED`;
-- the guard runs before event insertion/status update, so transaction rollback prevents a partial terminal write;
-- existing mutation-id idempotency short-circuits before the guard and remains intact.
-
-New contract file: `web/pipeline/tests/test_private_outcome_transition_guard.py`.
-
-Verify #1351 confirms all five new server-guard tests plus the entire 475-test suite, TypeScript and Vite build pass.
-
-## Grounded AI boundary
-
-The server owns verified public facts used for AI actions. Browser-provided procurement facts are not trusted. Customer-private context is account scoped and must not become public fact.
-
-Current-HEAD real same-origin AI POST on Vercel is not re-accepted because branch Preview remains disabled.
+`web/api/private.js` also enforces controlled WON/LOST transition review server-side before event/status mutation while preserving idempotency and same-terminal free-form note behavior.
 
 ## Remaining acceptance gates
 
-While no-Preview remains active, continue code/test/data-boundary/business-closure work without making Vercel runtime claims.
+While no-Preview remains active, continue only code/test/data-boundary/business-closure work without making Vercel runtime claims.
 
 When the user explicitly allows Preview again:
 
 1. deploy the exact then-current PR HEAD to Preview only;
-2. verify Today / Opportunity Pool / detail / Resources / Followups interactively;
+2. verify Today / Opportunity Pool / detail / Resources / Followups interactively from China and record TTFB/P95 and user-perceived loading;
 3. run protected Pilot smoke: explicit CONTACTED first, optional next action second;
 4. verify reminder acknowledgement preserves sales stage and clears only reminder state;
 5. verify private WON/LOST/NOT_FIT review persistence/export and no public leakage;
