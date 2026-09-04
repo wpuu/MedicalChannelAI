@@ -30,6 +30,18 @@ export type NotFitReason =
   | '不做租赁项目'
   | '其他'
 
+export type LostReason =
+  | '价格/报价竞争失败'
+  | '产品或参数不匹配'
+  | '厂家/授权资源不足'
+  | '医院关系不足'
+  | '介入时间太晚'
+  | '竞争对手优势明显'
+  | '投标/响应执行失败'
+  | '客户需求或项目变化'
+  | '主动放弃'
+  | '其他'
+
 export type RelationshipStrength =
   | 'STRONG'
   | 'MEDIUM'
