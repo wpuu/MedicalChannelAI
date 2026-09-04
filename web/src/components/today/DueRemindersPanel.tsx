@@ -12,6 +12,16 @@ interface DueRemindersPanelProps {
   onAcknowledge: (reminderId: string) => void
 }
 
+function reminderNote(value: string | null): { label: string; text: string } | null {
+  const text = value?.trim()
+  if (!text) return null
+  if (text.startsWith('下次行动：')) {
+    const action = text.slice('下次行动：'.length).trim()
+    return action ? { label: '下一步', text: action } : null
+  }
+  return { label: '备注', text }
+}
+
 export function DueRemindersPanel({
   reminders,
   currentOpportunityIds,
@@ -45,6 +55,7 @@ export function DueRemindersPanel({
               const project = item.facts.project_name ?? '项目名称暂无公开信息'
               const busy = busyId === item.reminder_id
               const isToday = currentIds.has(item.opportunity_id)
+              const note = reminderNote(item.note)
               return (
                 <div
                   key={item.reminder_id}
@@ -54,7 +65,7 @@ export function DueRemindersPanel({
                   <p className="mt-0.5 text-[13px] leading-5 text-slate-700">{project}</p>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500">
                     <span>到期：{formatDateTime(item.remind_at) ?? item.remind_at}</span>
-                    {item.note ? <span>备注：{item.note}</span> : null}
+                    {note ? <span>{note.label}：{note.text}</span> : null}
                     {!isToday ? <span>当前不在今日 Top5 · 已保留在我的跟进</span> : null}
                   </div>
                   <div className="mt-3 flex flex-wrap justify-end gap-2">
