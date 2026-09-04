@@ -11,12 +11,6 @@ import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
-import {
-  AiDecisionError,
-  aiDecisionErrorMessage,
-  hydrateCachedAiDecisions,
-  requestAiDecision,
-} from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { getOpportunityFeedback } from '@/services/opportunityFeedbackStore'
 import {
@@ -127,6 +121,10 @@ export function TodayPage() {
     try {
       const res = await todayActionsService.getTodayActions()
       if (!isApiMode && isVerifiedPublicDemo) {
+        // Only the public demo reuses browser-side AI decisions on initial load.
+        // Keep the AI client out of the authenticated Pilot Today bundle until
+        // a Pilot user explicitly asks for analysis.
+        const { hydrateCachedAiDecisions } = await import('@/services/aiDecisionApi')
         const pool = res.opportunity_pool ?? res.cards
         const hydratedPool = await hydrateCachedAiDecisions(pool)
         const cards = hydratedPool
@@ -197,9 +195,11 @@ export function TodayPage() {
       runtimeStatusChecked,
     )
     if (!card || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
+    let aiApi: typeof import('@/services/aiDecisionApi') | null = null
     setAiBusyId(id)
     try {
-      const decision = await requestAiDecision(card)
+      aiApi = await import('@/services/aiDecisionApi')
+      const decision = await aiApi.requestAiDecision(card)
       setRuntimeStatus((current) => current ? { ...current, ai: { configured: true } } : current)
       setData((current) => {
         if (!current) return current
@@ -215,14 +215,14 @@ export function TodayPage() {
       })
       toast('AI行动建议已生成', 'success')
     } catch (cause) {
-      if (cause instanceof AiDecisionError && cause.code === 'AUTH_REQUIRED') {
+      if (aiApi && cause instanceof aiApi.AiDecisionError && cause.code === 'AUTH_REQUIRED') {
         navigate('/login', { replace: true })
         return
       }
-      if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
+      if (aiApi && cause instanceof aiApi.AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
         setRuntimeStatus((current) => current ? { ...current, ai: { configured: false } } : current)
       }
-      toast(aiDecisionErrorMessage(cause))
+      toast(aiApi ? aiApi.aiDecisionErrorMessage(cause) : 'AI分析模块加载失败，请重试')
     } finally {
       setAiBusyId(null)
     }
