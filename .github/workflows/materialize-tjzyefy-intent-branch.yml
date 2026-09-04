@@ -84,20 +84,27 @@ jobs:
           with urllib.request.urlopen(location, timeout=30) as response:
               log_text = response.read().decode('utf-8-sig', errors='strict')
 
-          def extract(prefix: str) -> bytes:
-              matches = []
+          def extract_json_payload(prefix: str) -> tuple[bytes, object]:
+              valid = []
               for line in log_text.splitlines():
-                  if prefix in line:
-                      matches.append(line.split(prefix, 1)[1].strip())
-              if len(matches) != 1:
-                  raise RuntimeError(f'ACCEPTED_PROBE_PAYLOAD_{prefix}_COUNT={len(matches)}')
-              return base64.b64decode(matches[0], validate=True)
+                  if prefix not in line:
+                      continue
+                  encoded = line.split(prefix, 1)[1].strip()
+                  try:
+                      decoded = base64.b64decode(encoded, validate=True)
+                      parsed = json.loads(decoded.decode('utf-8'))
+                  except Exception:
+                      continue
+                  valid.append((decoded, parsed))
+              if len(valid) != 1:
+                  raise RuntimeError(f'ACCEPTED_PROBE_VALID_PAYLOAD_{prefix}_COUNT={len(valid)}')
+              return valid[0]
 
-          records_bytes = extract('LIVE_INTENT_RECORDS_B64=')
-          report_bytes = extract('LIVE_INTENT_REPORT_B64=')
-          records = json.loads(records_bytes.decode('utf-8'))
-          report = json.loads(report_bytes.decode('utf-8'))
+          records_bytes, records = extract_json_payload('LIVE_INTENT_RECORDS_B64=')
+          report_bytes, report = extract_json_payload('LIVE_INTENT_REPORT_B64=')
 
+          assert isinstance(records, list), type(records)
+          assert isinstance(report, dict), type(report)
           assert report['observed_at'] == '2026-09-04T15:19:41.874251+00:00', report['observed_at']
           assert report['new_verified_record_count'] == 4, report
           assert report['unsupported_non_medical_count'] == 3, report
