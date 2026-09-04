@@ -402,11 +402,13 @@ export function OpportunityDetailPage() {
       <RemindModal
         open={remindOpen}
         onClose={() => setRemindOpen(false)}
-        onConfirm={(remindAt) => {
+        onConfirm={(remindAt, nextAction) => {
           setRemindOpen(false)
           void updateStatus(card.followup_status, {
             remind_at: remindAt,
-            note: '设置下次跟进提醒；销售阶段保持不变。',
+            note: nextAction
+              ? `下次行动：${nextAction}`
+              : '设置下次跟进提醒；销售阶段保持不变。',
           })
         }}
       />
