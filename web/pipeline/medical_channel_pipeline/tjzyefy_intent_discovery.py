@@ -6,7 +6,6 @@ from datetime import date
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
 
-from .channel_scope import is_medical_channel_relevant_text
 from .tjzyefy_discovery import ALLOWED_HOSTS, INDEX_URL, fetch_tjzyefy_page
 
 
@@ -76,11 +75,11 @@ def _normalize_detail_url(index_url: str, href: str) -> str | None:
     return detail_url if _detail_identity(detail_url) else None
 
 
-def _is_supported_intent_title(title: str) -> bool:
-    compact = re.sub(r'\s+', '', title)
-    if '采购意向公告' not in compact:
-        return False
-    return is_medical_channel_relevant_text(compact)
+def _is_intent_title(title: str) -> bool:
+    # Deliberately broad at discovery time. Titles such as “脉动真空灭菌器等设备”
+    # are medically relevant but do not contain a generic “医疗设备” marker.
+    # The detail parser performs the strict medical-channel scope check.
+    return '采购意向公告' in re.sub(r'\s+', '', title)
 
 
 def stable_intent_opportunity_id(detail_url: str) -> str:
@@ -102,7 +101,7 @@ def parse_tjzyefy_intent_index_html(
     candidates: list[TjzyefyIntentCandidate] = []
     seen: set[str] = set()
     for href, title in parser.links:
-        if not _is_supported_intent_title(title):
+        if not _is_intent_title(title):
             continue
         detail_url = _normalize_detail_url(index_url, href)
         if not detail_url or detail_url in seen:
