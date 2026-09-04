@@ -28,6 +28,7 @@ from medical_channel_pipeline.tjzyefy_procurement_intent import (  # noqa: E402
 
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 MIN_DETAIL_DELAY_SECONDS = 3.0
+BOOTSTRAP_LOOKBACK_DAYS = 60
 FETCH_ATTEMPTS = 2
 RETRYABLE_HTTP_CODES = {408, 425, 429, 500, 502, 503, 504}
 UNSUPPORTED_DETAIL_CODES = {'TJZYEFY_INTENT_NON_MEDICAL'}
@@ -55,6 +56,13 @@ def load_json_arrays(paths: list[Path]) -> list[dict]:
 def write_json(path: Path, payload: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def effective_lookback_days(requested_days: int, existing_records: list[dict]) -> int:
+    """Backfill a bounded 60-day window only while the source has no verified state yet."""
+    if not existing_records and requested_days < BOOTSTRAP_LOOKBACK_DAYS:
+        return BOOTSTRAP_LOOKBACK_DAYS
+    return requested_days
 
 
 def is_retryable_fetch_error(exc: Exception) -> bool:
@@ -108,9 +116,10 @@ def main() -> int:
 
     as_of = parse_as_of(args.as_of)
     local_date = as_of.astimezone(SHANGHAI).date()
-    start_date = local_date - timedelta(days=args.lookback_days - 1)
     observed_at = as_of.astimezone(timezone.utc).isoformat()
     existing_records = load_json_arrays(args.existing_records_input)
+    lookback_days = effective_lookback_days(args.lookback_days, existing_records)
+    start_date = local_date - timedelta(days=lookback_days - 1)
 
     try:
         index_html = fetch_page_with_retry(INDEX_URL, delay_seconds=args.delay_seconds)
@@ -121,6 +130,9 @@ def main() -> int:
             'observed_at': observed_at,
             'source': 'TJZYEFY_OFFICIAL_PROCUREMENT_INTENT',
             'index_url': INDEX_URL,
+            'requested_lookback_days': args.lookback_days,
+            'effective_lookback_days': lookback_days,
+            'bootstrap_backfill_applied': lookback_days != args.lookback_days,
             'publish_allowed': False,
             'publish_gate_reason': 'INDEX_DISCOVERY_FAILED',
             'failure_count': 1,
@@ -199,6 +211,9 @@ def main() -> int:
         'observed_at': observed_at,
         'source': 'TJZYEFY_OFFICIAL_PROCUREMENT_INTENT',
         'index_url': INDEX_URL,
+        'requested_lookback_days': args.lookback_days,
+        'effective_lookback_days': lookback_days,
+        'bootstrap_backfill_applied': lookback_days != args.lookback_days,
         'start_date': start_date.isoformat(),
         'end_date': local_date.isoformat(),
         'discovered_intent_count': len(discovered),
@@ -220,6 +235,8 @@ def main() -> int:
             'lifecycle_is_procurement_intent_not_market_research': True,
             'registration_deadline_never_invented': True,
             'expected_month_window_never_converted_to_exact_date': True,
+            'first_sync_uses_bounded_bootstrap_backfill': True,
+            'bootstrap_lookback_days': BOOTSTRAP_LOOKBACK_DAYS,
             'failed_detail_never_replaces_existing_verified_record': True,
             'minimum_detail_delay_seconds': args.delay_seconds,
             'fetch_attempts': FETCH_ATTEMPTS,
@@ -231,7 +248,7 @@ def main() -> int:
     print(
         f'discovered={len(discovered)} selected={len(selected)} verified={len(new_records)} '
         f'unsupported={len(unsupported)} failures={len(failures)} unresolved={len(unresolved_failure_ids)} '
-        f'gate={publish_gate_reason}'
+        f'lookback={lookback_days} bootstrap={lookback_days != args.lookback_days} gate={publish_gate_reason}'
     )
     return 0 if publish_allowed else 2
 
