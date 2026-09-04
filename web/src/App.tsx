@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { RequirePilotSession } from '@/components/auth/RequirePilotSession'
 import { AppLayout } from '@/components/layout/AppLayout'
@@ -31,7 +31,7 @@ const TargetHospitalsPage = lazy(() =>
   import('@/pages/TargetHospitalsPage').then((module) => ({ default: module.TargetHospitalsPage })),
 )
 
-function lazyPage(element: React.ReactNode) {
+function lazyPage(element: ReactNode) {
   return <Suspense fallback={<LoadingState />}>{element}</Suspense>
 }
 
