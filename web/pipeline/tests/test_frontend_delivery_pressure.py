@@ -72,6 +72,22 @@ class FrontendDeliveryPressureTests(unittest.TestCase):
         self.assertIn("aiApi.aiDecisionErrorMessage(cause)", today)
         self.assertIn("if (!isApiMode && isVerifiedPublicDemo)", today)
 
+    def test_today_outreach_drawer_is_loaded_only_after_user_opens_it(self) -> None:
+        today = (WEB_ROOT / "src" / "pages" / "TodayPage.tsx").read_text(encoding="utf-8")
+        self.assertNotIn(
+            "import { OutreachDrawer } from '@/components/followup/OutreachDrawer'",
+            today,
+        )
+        self.assertIn("const OutreachDrawer = lazy(() =>", today)
+        self.assertIn("import('@/components/followup/OutreachDrawer')", today)
+        self.assertIn("{outreachId ? (", today)
+        self.assertIn("<Suspense fallback={null}>", today)
+        self.assertIn(
+            '<OutreachDrawer open opportunityId={outreachId} onClose={() => setOutreachId(null)} />',
+            today,
+        )
+        self.assertIn("if (!automationUnavailableReason) setOutreachId(card.opportunity_id)", today)
+
 
 if __name__ == "__main__":
     unittest.main()
