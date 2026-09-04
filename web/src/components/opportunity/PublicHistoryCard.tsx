@@ -69,10 +69,12 @@ export function PublicHistoryCard({
   history,
   loading,
   error,
+  onLoad,
 }: {
   history: PublicOpportunityHistory | null
   loading: boolean
   error: boolean
+  onLoad: () => void
 }) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
@@ -99,10 +101,28 @@ export function PublicHistoryCard({
           正在读取版本记录…
         </div>
       ) : error ? (
-        <p className="mt-3 text-[12px] leading-5 text-slate-500">
-          更新记录暂时不可用；当前商机事实和官方依据不受影响。
-        </p>
-      ) : !history || history.versions.length === 0 ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] leading-5 text-slate-500">
+          <span>更新记录暂时不可用；当前商机事实和官方依据不受影响。</span>
+          <button
+            type="button"
+            onClick={onLoad}
+            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-700 hover:bg-slate-50"
+          >
+            重试读取
+          </button>
+        </div>
+      ) : !history ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] leading-5 text-slate-500">
+          <span>版本历史按需读取，不影响当前商机事实、官方依据和跟进操作。</span>
+          <button
+            type="button"
+            onClick={onLoad}
+            className="rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 font-medium text-teal-800 hover:bg-teal-100"
+          >
+            查看更新记录
+          </button>
+        </div>
+      ) : history.versions.length === 0 ? (
         <p className="mt-3 text-[12px] leading-5 text-slate-500">
           当前尚未形成可展示的版本历史。后续同一商机的已核验公开事实发生变化时，会在这里保留记录。
         </p>
