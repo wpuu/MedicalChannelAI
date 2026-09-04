@@ -427,6 +427,12 @@ export class ApiTodayActionsService implements TodayActionsService {
     value: TodayActionsResponse
     expiresAt: number
   } | null = null
+  private latestOpportunity: TodayActionCard | null = null
+  private pendingOpportunityAfterMutation: {
+    opportunityId: string
+    value: TodayActionCard
+    expiresAt: number
+  } | null = null
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl.replace(/\/+$/, '')
@@ -495,13 +501,24 @@ export class ApiTodayActionsService implements TodayActionsService {
   }
 
   async getOpportunity(id: string): Promise<TodayActionCard | null> {
+    const pending = this.pendingOpportunityAfterMutation
+    if (pending?.opportunityId === id) {
+      this.pendingOpportunityAfterMutation = null
+      if (pending.expiresAt >= Date.now()) {
+        this.latestOpportunity = pending.value
+        return pending.value
+      }
+    }
+
     try {
       const encodedId = encodeURIComponent(id)
       const [card, state] = await Promise.all([
         this.requestJson<PublicTodayActionCard>(`/opportunity/${encodedId}`),
         this.getFollowupState(id),
       ])
-      return applyFollowupState(mapPublicCard(card), state)
+      const result = applyFollowupState(mapPublicCard(card), state)
+      this.latestOpportunity = result
+      return result
     } catch (error) {
       if (error instanceof Error && (error.message === 'HTTP_404' || error.message === 'VERIFIED_OPPORTUNITY_NOT_FOUND')) return null
       throw error
@@ -533,6 +550,16 @@ export class ApiTodayActionsService implements TodayActionsService {
       const next = applyMutationToToday(this.latestToday, state)
       this.latestToday = next
       this.pendingTodayAfterMutation = {
+        value: next,
+        expiresAt: Date.now() + MUTATION_REUSE_TTL_MS,
+      }
+    }
+
+    if (this.latestOpportunity?.opportunity_id === id) {
+      const next = applyFollowupState(this.latestOpportunity, state)
+      this.latestOpportunity = next
+      this.pendingOpportunityAfterMutation = {
+        opportunityId: id,
         value: next,
         expiresAt: Date.now() + MUTATION_REUSE_TTL_MS,
       }
