@@ -37,13 +37,17 @@ class GithubCiPressureTests(unittest.TestCase):
         self.assertIn("--max-candidates 20", self.workflow)
         self.assertIn("--delay-seconds 3", self.workflow)
         self.assertIn("mktemp -d", self.workflow)
+        self.assertIn("hashlib.sha256()", self.workflow)
+        self.assertIn("web/pipeline/data", self.workflow)
+        self.assertIn("web/public/data", self.workflow)
         self.assertIn("LIVE_INTENT_PROBE_REPORT=", self.workflow)
         self.assertIn("LIVE_INTENT_VERIFIED_RECORD=", self.workflow)
-        self.assertIn("git diff --exit-code", self.workflow)
+        self.assertIn('cmp "$probe_dir/before.sha256" "$probe_dir/after.sha256"', self.workflow)
         probe_start = self.workflow.index("Run read-only live procurement-intent probe")
         probe_end = self.workflow.index("Install web dependencies", probe_start)
         probe = self.workflow[probe_start:probe_end]
         self.assertNotIn("git push", probe)
+        self.assertNotIn("git diff", probe)
         self.assertNotIn("VERIFIED_SNAPSHOT_PUBLISH", probe)
         self.assertNotIn("vercel", probe.lower())
 
