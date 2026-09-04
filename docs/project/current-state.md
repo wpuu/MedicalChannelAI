@@ -21,9 +21,8 @@ Fixed rules:
 
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
-- Latest fully code-validated executable/runtime HEAD: `325dd59cd4e6c9c243516b6d248b742a9be98cef`
-- Latest successful full validation: GitHub Actions **Verify #1452 SUCCESS**
-- Current branch HEAD after that validation contains only state-document updates; it must not be treated as a newer executable validation point.
+- Latest fully code-validated executable/runtime HEAD: `c91c48b28ee16f748045ff56749b7ceae3daa17f`
+- Latest successful full validation: GitHub Actions **Verify #1457 SUCCESS**
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR remains open, Draft and unmerged.
 - `web/vercel.json` disables automatic Vercel deployments for this branch.
@@ -34,7 +33,7 @@ Fixed rules:
 
 MedicalChannelAI remains private and uses repository-scoped GCP self-hosted runner `medicalchannelai-gcp-1` with labels `self-hosted`, `linux`, `x64`, `medicalchannelai-ci`.
 
-Verify **#1452** completed successfully for executable HEAD `325dd59cd4e6c9c243516b6d248b742a9be98cef` and executed:
+Verify **#1457** completed successfully for `c91c48b28ee16f748045ff56749b7ceae3daa17f` and executed:
 
 - system Python 3.13.7 and Node 24.20.0;
 - `npm ci` and bundled snapshot refresh;
@@ -45,6 +44,8 @@ Verify **#1452** completed successfully for executable HEAD `325dd59cd4e6c9c2435
 - TypeScript `tsc --noEmit`;
 - Vite production build;
 - ranking summary.
+
+This rerun validates the same current executable source tree plus the intervening state-document updates; no new executable behavior was introduced by the full-verify marker itself.
 
 Production build remains unchanged:
 
@@ -126,7 +127,7 @@ The corrected implementation therefore:
 - retries only transient fetch failures and uses a minimum 3-second detail interval;
 - remains outside the intraday scheduler.
 
-The corrected adapter passed Fast Verify #1449 and Full Verify #1450 with 556 tests. Daily-deep wiring then passed Fast #1451 and **Full #1452 with 558 tests**.
+The corrected adapter passed Fast Verify #1449 and Full Verify #1450 with 556 tests. Daily-deep wiring then passed Fast #1451 / Full #1452 with 558 tests, and the complete current tree was reconfirmed by **Full #1457 with 558 tests**.
 
 ### `tjzyefy` daily-deep wiring
 
