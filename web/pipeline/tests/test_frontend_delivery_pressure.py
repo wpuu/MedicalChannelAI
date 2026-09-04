@@ -38,6 +38,7 @@ class FrontendDeliveryPressureTests(unittest.TestCase):
 
     def test_pilot_bundle_does_not_eagerly_import_trial_and_mock_services(self) -> None:
         services = (WEB_ROOT / "src" / "services" / "index.ts").read_text(encoding="utf-8")
+        layout = (WEB_ROOT / "src" / "components" / "layout" / "AppLayout.tsx").read_text(encoding="utf-8")
         self.assertIn("import { GroundedApiTodayActionsService }", services)
         self.assertIn("import('./RuntimeTrialTodayActionsService')", services)
         self.assertIn("import('./StaticSnapshotTodayActionsService')", services)
@@ -46,6 +47,8 @@ class FrontendDeliveryPressureTests(unittest.TestCase):
         self.assertNotIn("import { RuntimeTrialTodayActionsService }", services)
         self.assertNotIn("import { StaticSnapshotTodayActionsService }", services)
         self.assertIn("class DeferredTodayActionsService implements TodayActionsService", services)
+        self.assertIn("await import('@/services/MockTodayActionsService')", layout)
+        self.assertNotIn("import { resetMockDemoState } from '@/services/MockTodayActionsService'", layout)
 
 
 if __name__ == "__main__":
