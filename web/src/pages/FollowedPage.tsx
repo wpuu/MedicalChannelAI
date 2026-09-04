@@ -30,11 +30,53 @@ const ACTIVE_STATUSES = new Set([
   'NEW', 'REVIEWING', 'CONTACTED', 'RELATIONSHIP_VERIFIED', 'PREPARING', 'BID_SUBMITTED',
 ])
 const CLOSED_STATUSES = new Set(['WON', 'LOST', 'NOT_FIT', 'ARCHIVED'])
+const NEXT_ACTION_PREFIX = '下次行动：'
+const LOST_REASON_PREFIX = '未成交原因（当前用户判断）：'
+const GENERIC_REMINDER_NOTE = '设置下次跟进提醒；销售阶段保持不变。'
 
 type PipelineFilter = 'ALL' | 'ACTIVE' | 'MONITOR' | 'WON' | 'CLOSED'
 
+interface NotePresentation {
+  label: string
+  text: string
+}
+
 function buyerLabel(item: FollowedOpportunity): string {
   return item.facts.hospital_name ?? item.facts.buyer_name ?? '采购单位暂无公开信息'
+}
+
+function notePresentation(item: FollowedOpportunity): NotePresentation | null {
+  const note = item.latest_note?.trim()
+  if (!note || note === GENERIC_REMINDER_NOTE) return null
+  if (note.startsWith(NEXT_ACTION_PREFIX)) {
+    const text = note.slice(NEXT_ACTION_PREFIX.length).trim()
+    return text ? { label: '下一步', text } : null
+  }
+  if (item.followup_status === 'LOST' && note.startsWith(LOST_REASON_PREFIX)) {
+    const text = note.slice(LOST_REASON_PREFIX.length).trim()
+    return text ? { label: '未成交复盘（私有）', text } : null
+  }
+  return { label: '最近备注', text: note }
+}
+
+function actionTier(item: FollowedOpportunity): number {
+  if (!CLOSED_STATUSES.has(item.followup_status) && item.remind_at) return 0
+  if (ACTIVE_STATUSES.has(item.followup_status)) return 1
+  if (item.followup_status === 'MONITOR') return 2
+  return 3
+}
+
+function compareForActionView(left: FollowedOpportunity, right: FollowedOpportunity): number {
+  const tierDiff = actionTier(left) - actionTier(right)
+  if (tierDiff !== 0) return tierDiff
+
+  if (actionTier(left) === 0) {
+    const leftReminder = left.remind_at ? Date.parse(left.remind_at) : Number.POSITIVE_INFINITY
+    const rightReminder = right.remind_at ? Date.parse(right.remind_at) : Number.POSITIVE_INFINITY
+    if (leftReminder !== rightReminder) return leftReminder - rightReminder
+  }
+
+  return Date.parse(right.followup_updated_at) - Date.parse(left.followup_updated_at)
 }
 
 function searchText(item: FollowedOpportunity): string {
@@ -145,10 +187,11 @@ export function FollowedPage() {
   }, [filter, items, query])
 
   const orderedItems = useMemo(() => {
-    if (!focusedId) return filteredItems
-    const focused = filteredItems.find((item) => item.opportunity_id === focusedId)
-    if (!focused) return filteredItems
-    return [focused, ...filteredItems.filter((item) => item.opportunity_id !== focusedId)]
+    const actionOrdered = [...filteredItems].sort(compareForActionView)
+    if (!focusedId) return actionOrdered
+    const focused = actionOrdered.find((item) => item.opportunity_id === focusedId)
+    if (!focused) return actionOrdered
+    return [focused, ...actionOrdered.filter((item) => item.opportunity_id !== focusedId)]
   }, [filteredItems, focusedId])
 
   if (loading) return <LoadingState />
@@ -169,7 +212,7 @@ export function FollowedPage() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900">我的跟进</h2>
             <p className="mt-1 max-w-3xl text-[13px] leading-6 text-slate-500">
-              把正在推进、观察、已投标和已结束的项目放在同一条销售时间线上。即使商机退出当前公开机会池，私有跟进记录仍会保留并可继续更新。
+              优先显示已安排下一步的进行中项目，再看其他推进、观察和已结束项目。即使商机退出当前公开机会池，私有跟进记录仍会保留并可继续更新。
             </p>
           </div>
           <button
@@ -204,7 +247,7 @@ export function FollowedPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="搜索已加载的医院、项目、产品、备注..."
+              placeholder="搜索已加载的医院、项目、产品、下一步、备注..."
               className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-[13px] outline-none focus:border-teal-500 focus:bg-white"
             />
           </label>
@@ -230,7 +273,7 @@ export function FollowedPage() {
             ))}
           </div>
         </div>
-        <p className="mt-2 px-1 text-[11px] text-slate-400">当前显示 {orderedItems.length} 条 · 已加载详情 {items.length} / 全部 {statusIndex.length} 条{hasMore ? ' · 搜索仅覆盖已加载详情，可继续加载更早记录' : ''}</p>
+        <p className="mt-2 px-1 text-[11px] text-slate-400">当前显示 {orderedItems.length} 条 · 已加载详情 {items.length} / 全部 {statusIndex.length} 条{hasMore ? ' · 搜索与行动排序仅覆盖已加载详情，可继续加载更早记录' : ''}</p>
       </section>
 
       {orderedItems.length === 0 ? (
@@ -240,6 +283,7 @@ export function FollowedPage() {
           {orderedItems.map((item) => {
             const focused = item.opportunity_id === focusedId
             const keyDate = item.facts.bid_deadline ?? item.facts.expected_procurement_at
+            const privateNote = notePresentation(item)
             return (
               <article
                 key={item.opportunity_id}
@@ -303,18 +347,20 @@ export function FollowedPage() {
                   </div>
                 </div>
 
-                {item.remind_at || item.latest_note ? (
+                {item.remind_at || privateNote ? (
                   <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[12px] leading-5 text-slate-600">
                     {item.remind_at ? (
-                      <p>提醒时间：{formatDateTime(item.remind_at) ?? item.remind_at}</p>
+                      <p><span className="font-medium text-slate-700">下次时间：</span>{formatDateTime(item.remind_at) ?? item.remind_at}</p>
                     ) : null}
-                    {item.latest_note ? <p className="whitespace-pre-wrap">最近备注：{item.latest_note}</p> : null}
+                    {privateNote ? (
+                      <p className="whitespace-pre-wrap"><span className="font-medium text-slate-700">{privateNote.label}：</span>{privateNote.text}</p>
+                    ) : null}
                   </div>
                 ) : null}
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                   <p className="text-[11px] text-slate-400">
-                    公开快照与当前账号私有跟进分开保存；历史项目仍可维护结果和备注。
+                    公开快照与当前账号私有跟进分开保存；下一步、结果与复盘均属于私有跟进数据。
                   </p>
                   {item.evidence_source_urls.length ? (
                     <div className="flex flex-wrap gap-2">
