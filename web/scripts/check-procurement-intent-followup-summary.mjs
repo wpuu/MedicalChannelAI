@@ -5,6 +5,7 @@ import {
   procurementIntentFollowupSummary,
   procurementIntentSuccessorPairs,
 } from '../api/_procurementIntentFollowup.js'
+import { countFormalCandidatesNeedingAction } from '../api/_procurementIntentFollowupDisplay.js'
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 const dataDir = resolve(scriptDir, '../pipeline/data')
@@ -56,6 +57,30 @@ if (
   summary.candidate_pair_count !== 1
 ) {
   throw new Error(`PROCUREMENT_INTENT_SUMMARY_INVALID:${JSON.stringify(summary)}`)
+}
+
+const newCandidate = { ...formal, followup_status: 'NEW', remind_at: null }
+if (countFormalCandidatesNeedingAction([intent, newCandidate], pairs) !== 1) {
+  throw new Error('NEW_FORMAL_CANDIDATE_SHOULD_NEED_ACTION')
+}
+
+const followedCandidate = { ...formal, followup_status: 'REVIEWING', remind_at: null }
+if (countFormalCandidatesNeedingAction([intent, followedCandidate], pairs) !== 0) {
+  throw new Error('FOLLOWED_FORMAL_CANDIDATE_SHOULD_NOT_REPEAT_NUDGE')
+}
+
+const scheduledCandidate = {
+  ...formal,
+  followup_status: 'NEW',
+  remind_at: '2026-09-08T09:00:00+08:00',
+}
+if (countFormalCandidatesNeedingAction([intent, scheduledCandidate], pairs) !== 0) {
+  throw new Error('SCHEDULED_FORMAL_CANDIDATE_SHOULD_NOT_REPEAT_NUDGE')
+}
+
+const summaryAfterPrivateHandling = procurementIntentFollowupSummary([intent, followedCandidate])
+if (JSON.stringify(summaryAfterPrivateHandling) !== JSON.stringify(summary)) {
+  throw new Error('PRIVATE_HANDLING_MUST_NOT_CHANGE_PUBLIC_LINEAGE_SUMMARY')
 }
 
 console.log('Procurement intent followup summary: PASS')
