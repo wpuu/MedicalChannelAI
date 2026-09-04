@@ -83,6 +83,33 @@ class TjzyefyProcurementIntentTests(unittest.TestCase):
             record['quality_flags'],
         )
 
+    def test_air_pressure_therapy_device_is_medical_without_generic_equipment_words(self) -> None:
+        title = '采购意向公告（2026年44号）-空气压力治疗仪（淋巴水肿专用）采购项目'
+        html = page(
+            title,
+            '我院将于近期对天津中医药大学第二附属医院空气压力治疗仪（淋巴水肿专用）采购项目进行采购，'
+            '欢迎各位有资质的供应商咨询。预计采购时间2026年9-10月。'
+            '联系电话：022-60637522 联系人：潘老师。',
+            published='2026-08-04',
+        )
+        record = parse_tjzyefy_procurement_intent(
+            html,
+            source_url='https://www.tjzyefy.com/system/2026/08/04/030195900.shtml',
+            index_url=INDEX_URL,
+            index_published_at='2026-08-04',
+            expected_title=title,
+            observed_at=OBSERVED_AT,
+            opportunity_id='test_air_pressure_therapy_device',
+        )
+        self.assertEqual(
+            record['facts']['product_items'][0]['raw_name'],
+            '空气压力治疗仪（淋巴水肿专用）',
+        )
+        self.assertIn(
+            f'{EXPECTED_PROCUREMENT_WINDOW_TEXT_PREFIX}2026年9-10月',
+            record['quality_flags'],
+        )
+
     def test_nonmedical_intent_is_rejected_after_broad_discovery(self) -> None:
         title = '采购意向公告（2026年25号）-2026年景区年票采购项目'
         html = page(
