@@ -1,3 +1,4 @@
+import { waitUntil } from '@vercel/functions'
 import {
   loadPrivateProfileForUser,
   minimalPrivateContextFromProfile,
@@ -13,6 +14,7 @@ const PRIVATE_COMPONENT_CODES = new Set([
 ])
 const MATERIALIZED_SNAPSHOT_KEYS_MAX = 20
 const materializedSnapshotKeys = new Set()
+const materializingSnapshotKeys = new Set()
 
 export function snapshotOpportunityPool(snapshot) {
   if (Array.isArray(snapshot?.opportunity_pool) && snapshot.opportunity_pool.length) {
@@ -32,16 +34,18 @@ export function findVerifiedSnapshotCard(snapshot, opportunityId) {
   return card?.facts?.verification_status === 'VERIFIED' ? card : null
 }
 
-async function materializePublicSnapshotBestEffort(snapshot) {
-  const key = typeof snapshot?.snapshot_as_of === 'string' ? snapshot.snapshot_as_of.trim() : ''
-  if (!key || materializedSnapshotKeys.has(key)) return
+function rememberMaterializedSnapshot(key) {
+  materializedSnapshotKeys.add(key)
+  if (materializedSnapshotKeys.size > MATERIALIZED_SNAPSHOT_KEYS_MAX) {
+    const oldest = materializedSnapshotKeys.values().next().value
+    if (oldest) materializedSnapshotKeys.delete(oldest)
+  }
+}
+
+async function materializePublicSnapshotTask(snapshot, key) {
   try {
     await materializeVerifiedSnapshot(snapshot)
-    materializedSnapshotKeys.add(key)
-    if (materializedSnapshotKeys.size > MATERIALIZED_SNAPSHOT_KEYS_MAX) {
-      const oldest = materializedSnapshotKeys.values().next().value
-      if (oldest) materializedSnapshotKeys.delete(oldest)
-    }
+    rememberMaterializedSnapshot(key)
   } catch (error) {
     // The verified snapshot remains the serving authority. Public history is a
     // durable side-store and retries on a later request rather than breaking Today.
@@ -49,7 +53,29 @@ async function materializePublicSnapshotBestEffort(snapshot) {
       snapshot_as_of: key,
       error: error instanceof Error ? error.message : 'UNKNOWN',
     })
+  } finally {
+    materializingSnapshotKeys.delete(key)
   }
+}
+
+async function materializePublicSnapshotBestEffort(snapshot) {
+  const key = typeof snapshot?.snapshot_as_of === 'string' ? snapshot.snapshot_as_of.trim() : ''
+  if (!key || materializedSnapshotKeys.has(key) || materializingSnapshotKeys.has(key)) return
+  materializingSnapshotKeys.add(key)
+  const task = materializePublicSnapshotTask(snapshot, key)
+
+  if (process.env.VERCEL) {
+    try {
+      waitUntil(task)
+      return
+    } catch (error) {
+      console.warn('public intelligence background scheduling unavailable; using request path', {
+        snapshot_as_of: key,
+        error: error instanceof Error ? error.message : 'UNKNOWN',
+      })
+    }
+  }
+  await task
 }
 
 function publicCustomerContext(privateContext) {
