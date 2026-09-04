@@ -12,6 +12,7 @@ class FollowupOutcomeLearningUiTests(unittest.TestCase):
         cls.types = (WEB_ROOT / "src" / "types" / "index.ts").read_text(encoding="utf-8")
         cls.labels = (WEB_ROOT / "src" / "utils" / "labels.ts").read_text(encoding="utf-8")
         cls.card = (WEB_ROOT / "src" / "components" / "opportunity" / "FollowupCard.tsx").read_text(encoding="utf-8")
+        cls.won_modal = (WEB_ROOT / "src" / "components" / "followup" / "WonModal.tsx").read_text(encoding="utf-8")
         cls.lost_modal = (WEB_ROOT / "src" / "components" / "followup" / "LostModal.tsx").read_text(encoding="utf-8")
         cls.not_fit_modal = (WEB_ROOT / "src" / "components" / "followup" / "NotFitModal.tsx").read_text(encoding="utf-8")
         cls.detail = (WEB_ROOT / "src" / "pages" / "OpportunityDetailPage.tsx").read_text(encoding="utf-8")
@@ -36,6 +37,22 @@ class FollowupOutcomeLearningUiTests(unittest.TestCase):
         self.assertIn('未成交原因（当前用户判断）：${reason}', self.detail)
         self.assertNotIn('facts.', self.lost_modal)
         self.assertNotIn('public_snapshot', self.lost_modal)
+
+    def test_won_status_requires_private_review_before_persisting(self) -> None:
+        self.assertIn('export type WonReason =', self.types)
+        self.assertIn('WON_REASONS', self.labels)
+        self.assertIn("if (status === 'WON')", self.card)
+        self.assertIn('onWon()', self.card)
+        self.assertIn('onWon={() => setWonOpen(true)}', self.detail)
+        self.assertIn('<WonModal', self.detail)
+        self.assertIn("void updateStatus('WON', {", self.detail)
+        self.assertIn('成交复盘（当前用户判断）：${reason}', self.detail)
+
+    def test_won_review_is_private_judgment_not_public_win_cause(self) -> None:
+        self.assertIn('当前账号私有商业判断', self.won_modal)
+        self.assertIn('不是医院或采购方公开确认的中标原因', self.won_modal)
+        self.assertNotIn('facts.', self.won_modal)
+        self.assertNotIn('public_snapshot', self.won_modal)
 
     def test_not_fit_persistence_copy_matches_runtime_mode(self) -> None:
         self.assertIn('isApiMode', self.not_fit_modal)
