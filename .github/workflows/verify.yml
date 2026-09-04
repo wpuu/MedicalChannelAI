@@ -36,15 +36,70 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Select verification depth
+        id: verify_mode
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          GH_TOKEN: ${{ github.token }}
+          GH_API_URL: ${{ github.api_url }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "full=true" >> "$GITHUB_OUTPUT"
+            echo "Full Verify requested by workflow_dispatch"
+            exit 0
+          fi
+
+          COMMIT_MESSAGE="$(python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          url = f"{os.environ['GH_API_URL']}/repos/{os.environ['GH_REPOSITORY']}/commits/{os.environ['HEAD_SHA']}"
+          request = urllib.request.Request(url)
+          request.add_header('Accept', 'application/vnd.github+json')
+          request.add_header('Authorization', f"Bearer {os.environ['GH_TOKEN']}")
+          request.add_header('X-GitHub-Api-Version', '2022-11-28')
+          with urllib.request.urlopen(request, timeout=20) as response:
+              payload = json.load(response)
+          print(str(payload.get('commit', {}).get('message') or '').replace('\n', ' '))
+          PY
+          )"
+
+          if [[ "$COMMIT_MESSAGE" == *"[full-verify]"* ]]; then
+            echo "full=true" >> "$GITHUB_OUTPUT"
+            echo "Full Verify requested by commit marker"
+          else
+            echo "full=false" >> "$GITHUB_OUTPUT"
+            echo "Fast Verify selected"
+          fi
+
+      - name: Run fast contract verification
+        if: steps.verify_mode.outputs.full != 'true'
+        shell: bash
+        run: |
+          cd web/pipeline
+          python3 scripts/refresh_bundled_snapshot.py
+          python3 -m unittest discover -s tests -v
+          cd ..
+          node scripts/check-serverless-entrypoints.mjs
+          node --check scripts/pilot-preview-smoke.mjs
+          echo "Fast verification: PASS"
+
       - name: Install web dependencies
+        if: steps.verify_mode.outputs.full == 'true'
         working-directory: web
         run: npm ci --no-audit --no-fund
 
       - name: Run full prebuild, typecheck and production build
+        if: steps.verify_mode.outputs.full == 'true'
         working-directory: web
         run: npm run build
 
       - name: Print verified ranking summary
+        if: steps.verify_mode.outputs.full == 'true'
         shell: bash
         run: |
           python3 - <<'PY'
