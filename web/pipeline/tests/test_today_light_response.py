@@ -22,13 +22,16 @@ class TodayLightResponseTests(unittest.TestCase):
         cls.pool_page = POOL_PAGE.read_text(encoding="utf-8")
         cls.vercel = json.loads(VERCEL_CONFIG.read_text(encoding="utf-8"))
 
-    def test_default_today_projects_out_full_pool_without_touching_core_routes(self) -> None:
+    def test_default_today_projects_out_full_pool_and_keeps_only_intent_summary(self) -> None:
         self.assertIn("import privateCoreHandler from './_privateCore.js'", self.entry)
+        self.assertIn("import { procurementIntentFollowupSummary } from './_procurementIntentFollowup.js'", self.entry)
         self.assertIn("request.method !== 'GET'", self.entry)
         self.assertIn("firstQuery(request, 'route') !== 'today'", self.entry)
         self.assertIn("firstQuery(request, 'include_pool') !== '1'", self.entry)
-        self.assertIn("const { opportunity_pool: _fullPool, ...lightPayload } = payload", self.entry)
+        self.assertIn("const { opportunity_pool: fullPool, ...lightPayload } = payload", self.entry)
+        self.assertIn("procurement_intent_followup_summary: procurementIntentFollowupSummary(fullPool)", self.entry)
         self.assertIn("return await privateCoreHandler(request, response)", self.entry)
+        self.assertNotIn("opportunity_pool: fullPool", self.entry)
         self.assertNotIn("privateDb", self.entry)
         self.assertNotIn("loadVerifiedSnapshot", self.entry)
 
