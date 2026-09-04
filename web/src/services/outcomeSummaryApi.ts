@@ -87,6 +87,7 @@ function parseReasonCounts(
   labels: Record<string, string>,
 ): OutcomeReasonCount[] {
   if (!Array.isArray(value)) throw new Error('OUTCOME_SUMMARY_INVALID')
+  const seen = new Set<string>()
   return value.map((item) => {
     const row = asRecord(item)
     if (
@@ -94,13 +95,19 @@ function parseReasonCounts(
       Object.keys(row).length !== 2 ||
       typeof row.code !== 'string' ||
       !labels[row.code] ||
+      seen.has(row.code) ||
       !nonNegativeInteger(row.count) ||
       row.count === 0
     ) {
       throw new Error('OUTCOME_SUMMARY_INVALID')
     }
+    seen.add(row.code)
     return { code: row.code, label: labels[row.code], count: row.count }
   })
+}
+
+function reasonCountTotal(items: OutcomeReasonCount[]): number {
+  return items.reduce((total, item) => total + item.count, 0)
 }
 
 function parseSummary(value: unknown): PrivateOutcomeSummary {
@@ -130,6 +137,17 @@ function parseSummary(value: unknown): PrivateOutcomeSummary {
     throw new Error('OUTCOME_SUMMARY_INVALID')
   }
 
+  const wonReasonCounts = parseReasonCounts(root.won_reason_counts, WON_CODE_TO_LABEL)
+  const lostReasonCounts = parseReasonCounts(root.lost_reason_counts, LOST_CODE_TO_LABEL)
+  const notFitReasonCounts = parseReasonCounts(root.not_fit_reason_counts, NOT_FIT_CODE_TO_LABEL)
+  if (
+    reasonCountTotal(wonReasonCounts) + root.unclassified_won !== root.won ||
+    reasonCountTotal(lostReasonCounts) + root.unclassified_lost !== root.lost ||
+    reasonCountTotal(notFitReasonCounts) + root.unclassified_not_fit !== root.not_fit
+  ) {
+    throw new Error('OUTCOME_SUMMARY_INVALID')
+  }
+
   return {
     total_terminal: root.total_terminal,
     won: root.won,
@@ -137,9 +155,9 @@ function parseSummary(value: unknown): PrivateOutcomeSummary {
     not_fit: root.not_fit,
     decided_count: root.decided_count,
     win_rate_percent: root.win_rate_percent as number | null,
-    won_reason_counts: parseReasonCounts(root.won_reason_counts, WON_CODE_TO_LABEL),
-    lost_reason_counts: parseReasonCounts(root.lost_reason_counts, LOST_CODE_TO_LABEL),
-    not_fit_reason_counts: parseReasonCounts(root.not_fit_reason_counts, NOT_FIT_CODE_TO_LABEL),
+    won_reason_counts: wonReasonCounts,
+    lost_reason_counts: lostReasonCounts,
+    not_fit_reason_counts: notFitReasonCounts,
     unclassified_won: root.unclassified_won,
     unclassified_lost: root.unclassified_lost,
     unclassified_not_fit: root.unclassified_not_fit,
