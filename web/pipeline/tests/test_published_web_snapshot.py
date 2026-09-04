@@ -9,6 +9,16 @@ from medical_channel_pipeline import build_public_snapshot
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]
 WEB_ROOT = PIPELINE_ROOT.parent
+REPO_ROOT = WEB_ROOT.parent
+
+OPTIONAL_LIVE_SOURCES = (
+    ('tianjin_live_tjnothop_records.json', 'live Tianjin Hospital state'),
+    ('tianjin_live_tjzxfc_records.json', 'live Central Obstetrics and Gynecology Hospital state'),
+    ('tianjin_live_tjzyefy_records.json', 'live TJZYEFY state'),
+    ('tianjin_live_tjzyefy_intent_records.json', 'live TJZYEFY procurement-intent state'),
+    ('tianjin_live_teda_records.json', 'live TEDA state'),
+    ('tianjin_live_tjfch_records.json', 'live First Central Hospital state'),
+)
 
 
 def load_array(path: Path, *, label: str) -> list[dict]:
@@ -90,18 +100,6 @@ class PublishedWebSnapshotTests(unittest.TestCase):
             PIPELINE_ROOT / 'data' / 'tianjin_live_tjmugh_records.json',
             label='live TMUGH state',
         )
-        live_tjnothop = load_array(
-            PIPELINE_ROOT / 'data' / 'tianjin_live_tjnothop_records.json',
-            label='live Tianjin Hospital state',
-        )
-        live_teda = load_optional_array(
-            PIPELINE_ROOT / 'data' / 'tianjin_live_teda_records.json',
-            label='live TEDA state',
-        )
-        live_tjfch = load_optional_array(
-            PIPELINE_ROOT / 'data' / 'tianjin_live_tjfch_records.json',
-            label='live First Central Hospital state',
-        )
 
         ccgp_source = live_ccgp if live_ccgp else load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_verified_seed.json', label='CCGP seed'
@@ -109,13 +107,37 @@ class PublishedWebSnapshotTests(unittest.TestCase):
         tmugh_source = live_tjmugh if live_tjmugh else load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_official_institution_seed.json', label='TMUGH seed'
         )
-        records = [*ccgp_source, *tmugh_source, *live_tjnothop, *live_teda, *live_tjfch]
+        records = [*ccgp_source, *tmugh_source]
+        for filename, label in OPTIONAL_LIVE_SOURCES:
+            records.extend(load_optional_array(PIPELINE_ROOT / 'data' / filename, label=label))
 
         notice_events = load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json', label='notice events'
         )
         expected = build_public_snapshot(records, published_as_of, notice_events)
         self.assertEqual(actual, expected)
+
+    def test_local_refresh_source_set_matches_daily_deep_snapshot_inputs(self) -> None:
+        refresh_source = (PIPELINE_ROOT / 'scripts' / 'refresh_bundled_snapshot.py').read_text(
+            encoding='utf-8'
+        )
+        daily_workflow = (REPO_ROOT / '.github' / 'workflows' / 'tianjin-medical-refresh.yml').read_text(
+            encoding='utf-8'
+        )
+        filenames = (
+            'tianjin_live_ccgp_records.json',
+            'tianjin_live_tjmugh_records.json',
+            'tianjin_live_tjnothop_records.json',
+            'tianjin_live_tjzxfc_records.json',
+            'tianjin_live_tjzyefy_records.json',
+            'tianjin_live_tjzyefy_intent_records.json',
+            'tianjin_live_teda_records.json',
+            'tianjin_live_tjfch_records.json',
+        )
+        for filename in filenames:
+            with self.subTest(filename=filename):
+                self.assertIn(filename, refresh_source)
+                self.assertIn(f'--input web/pipeline/data/{filename}', daily_workflow)
 
 
 if __name__ == '__main__':
