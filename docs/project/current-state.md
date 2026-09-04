@@ -21,8 +21,8 @@ Fixed rules:
 
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
-- Latest fully code-validated executable/runtime HEAD: `27f0eacdb16784c66115f1fa42b3c1047eb797c7`
-- Latest successful full validation: GitHub Actions **Verify #1418 SUCCESS**
+- Latest fully code-validated executable/runtime HEAD: `968cb674c6d543bba0f0bbef00aa4b444a314e88`
+- Latest successful full validation: GitHub Actions **Verify #1426 SUCCESS**
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR remains open, Draft and unmerged.
 - `web/vercel.json` disables automatic Vercel deployments for this branch.
@@ -48,14 +48,14 @@ The GCP instance is **CI infrastructure only**. It is not in the user request pa
 
 ### Latest green validation
 
-Verify **#1418** completed successfully for `27f0eacdb16784c66115f1fa42b3c1047eb797c7` and executed:
+Verify **#1426** completed successfully for `968cb674c6d543bba0f0bbef00aa4b444a314e88` and executed:
 
 - Checkout;
 - system Python verification;
 - Node 24 setup;
 - `npm ci`;
 - bundled snapshot refresh;
-- **508 Python pipeline/contract tests — all PASS**;
+- **510 Python pipeline/contract tests — all PASS**;
 - serverless entrypoint checks (`11/12` configured slots);
 - verified snapshot / medical-channel / private-profile / AI-boundary / runtime checks;
 - full prebuild;
@@ -83,7 +83,10 @@ Validated performance work now includes:
 - `viteSingleFile()` was removed, restoring normal hashed JS/CSS assets and Vercel `/assets/*` immutable caching;
 - secondary routes are lazy-loaded; Login is lazy-loaded while Today remains eager;
 - Runtime Trial / Static Snapshot / Mock service implementations are deferred and do not statically ride the real Pilot service path;
-- demo reset dependencies are requested only on the non-API reset action; `localCustomerProfile` now builds as its own deferred chunk.
+- demo reset dependencies are requested only on the non-API reset action; `localCustomerProfile` builds as its own deferred chunk;
+- `aiDecisionApi` is no longer part of the authenticated Pilot Today initial bundle; public-demo cache hydration loads it only in demo mode, and real Pilot loads it only after explicit AI analysis;
+- `OutreachDrawer` is no longer part of Today initial delivery; it loads only after the user explicitly opens the communication-draft action;
+- NotFit/Remind remain eager inside Today intentionally to avoid over-fragmenting common CRM actions into too many small static requests.
 
 ### Production build delivery result
 
@@ -91,33 +94,36 @@ Historical single-file build:
 
 - `index.html`: **659.76 kB**, gzip **192.66 kB**.
 
-Full Verify #1418 production build:
+Full Verify #1426 production build:
 
 - `index.html`: **0.62 kB**, gzip **0.38 kB**;
 - CSS: **41.30 kB**, gzip **8.09 kB**;
-- main JS: **375.20 kB**, gzip **119.58 kB**;
+- main JS: **358.43 kB**, gzip **115.16 kB**;
+- `aiDecisionApi`: **5.43 kB**, gzip **2.66 kB**;
 - Login: **6.58 kB**, gzip **2.68 kB**;
 - `localCustomerProfile`: **7.99 kB**, gzip **3.11 kB**;
-- Opportunity Pool: **18.38 kB**, gzip **6.95 kB**;
+- OutreachDrawer: **12.16 kB**, gzip **4.72 kB**;
+- Opportunity Pool: **18.45 kB**, gzip **6.97 kB**;
 - Followed: **20.95 kB**, gzip **7.37 kB**;
 - Pilot Resources: **23.18 kB**, gzip **6.76 kB**;
-- Opportunity Detail: **50.28 kB**, gzip **15.82 kB**;
-- Radar: **57.59 kB**, gzip **17.29 kB**;
-- Runtime Trial / Static Snapshot / Mock remain separate chunks rather than part of the real Pilot service path.
+- Opportunity Detail: **50.45 kB**, gzip **15.88 kB**;
+- Radar: **57.59 kB**, gzip **17.29 kB**.
 
 Progressive main-bundle reduction:
 
 - first split build #1402: `415.64 kB / gzip 132.15 kB`;
 - #1413: `382.56 kB / gzip 122.48 kB`;
-- #1418: **`375.20 kB / gzip 119.58 kB`**.
+- #1418: `375.20 kB / gzip 119.58 kB`;
+- #1423 (AI client on demand): `370.34 kB / gzip 118.27 kB`;
+- #1426 (Outreach on demand): **`358.43 kB / gzip 115.16 kB`**.
 
-The #1418 Vite report also correctly notes that `localFollowupStore` cannot be isolated by the AppLayout dynamic import alone because it is still statically referenced by other lazy route/service modules. No claim is made that this module itself became a separate chunk.
+The Vite report still correctly notes that `localFollowupStore` cannot be isolated by the AppLayout dynamic import alone because it is also statically referenced from other lazy route/service modules. No claim is made that this module itself became a separate chunk.
 
 ## Not yet implemented
 
-The proposed **Today light response / full Opportunity Pool response split** is not implemented yet. The current core route lives in the large `web/api/private.js`; GitHub's current file-write path replaces the whole file and available reads can be truncated, so the change was deliberately not forced through a risky whole-file rewrite. It also should not be implemented as an extra Vercel Function merely to avoid the edit, because the project currently uses 11/12 configured serverless slots and an extra proxy would add latency rather than remove it.
+The proposed **Today light response / full Opportunity Pool response split** is still not implemented. The current core route lives in the large `web/api/private.js`; the GitHub contents write API replaces the whole file, and earlier connector reads could be truncated, so the change was deliberately not forced through a risky whole-file rewrite. It also should not be implemented as an extra Vercel Function merely to avoid the edit, because the project currently uses 11/12 configured serverless slots and an extra proxy would add latency rather than remove it.
 
-`TodayPage` also still statically imports the AI client module; deferring AI client code until explicit user analysis remains the next measured bundle optimization candidate and is not part of the #1418 baseline.
+After #1426, further tiny Today chunk splitting is intentionally paused. The next performance target is the **response payload / backend path**, not another modal-sized client split.
 
 ## Public intelligence and collector boundary
 
