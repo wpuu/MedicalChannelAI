@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock, Info } from 'lucide-react'
 import { ActionCard } from '@/components/today/ActionCard'
@@ -7,7 +7,6 @@ import { MetricCards } from '@/components/today/MetricCards'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { NotFitModal } from '@/components/followup/NotFitModal'
 import { RemindModal } from '@/components/followup/RemindModal'
-import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
@@ -31,6 +30,10 @@ import type {
   TodayActionsResponse,
 } from '@/types'
 import { formatDateTime } from '@/utils/format'
+
+const OutreachDrawer = lazy(() =>
+  import('@/components/followup/OutreachDrawer').then((module) => ({ default: module.OutreachDrawer })),
+)
 
 const DONE_FOR_TODAY = new Set<FollowupStatus>([
   'CONTACTED',
@@ -383,7 +386,11 @@ export function TodayPage() {
           })
         }}
       />
-      <OutreachDrawer open={Boolean(outreachId)} opportunityId={outreachId} onClose={() => setOutreachId(null)} />
+      {outreachId ? (
+        <Suspense fallback={null}>
+          <OutreachDrawer open opportunityId={outreachId} onClose={() => setOutreachId(null)} />
+        </Suspense>
+      ) : null}
     </div>
   )
 }
