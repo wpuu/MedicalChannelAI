@@ -1,134 +1,135 @@
 # MedicalChannelAI current state
 
-Updated: 2026-08-31
+Updated: 2026-09-04
 
 ## Product state
 
-MedicalChannelAI is a medical-channel commercial intelligence / sales-agent pilot for medical devices, IVD and consumables. The first pilot region is Tianjin.
+MedicalChannelAI is a Tianjin-first medical-channel commercial intelligence / sales-assistant pilot for medical devices, IVD and consumables.
 
-The fixed product rule is **evidence first**:
+Fixed rules:
 
-- procurement facts must come from traceable official-source evidence;
+- **evidence first**: public medical/procurement facts must come from traceable official evidence;
 - unsupported critical facts stay empty instead of being guessed;
-- models may classify, match, explain and recommend actions, but they may not invent hospitals, projects, budgets, dates, contacts, suppliers, brands, model numbers, customer relationships or win probability;
-- customer-owned resources are explicitly separated from public procurement facts.
+- models may classify, match, explain and recommend actions, but may not invent hospitals, projects, budgets, dates, contacts, suppliers, brands, customer relationships or win probability;
+- public intelligence and customer-private resources are separate layers;
+- target hospitals mean customer watch/focus only and never add relationship points;
+- hospital relationships and product capabilities are used only after customer confirmation.
 
 `production_ready=false`.
 
-## User-facing deployment boundary
+## Current source-control and deployment boundary
 
-- Custom demo URL: `https://medicalai.qd.je/` is reachable.
-- `web/` is the current H5 product implementation.
-- The product flow is **zero-config first**: users can see verified public opportunities before entering customer resources.
-- Today Actions exposes at most **5 priority cards** while retaining the total actionable-opportunity count separately.
-- `我的资源` is optional personalization. Product capabilities, hospital relationships and cooperation policies are stored locally in the current trial and are never presented as hospital/public facts.
-- `我的跟进` and local reminder lifecycle are usable in the verified trial.
-- The custom domain being reachable does **not** mean the newest branch commits are already promoted there. Production/custom-domain promotion remains separate from branch/Preview validation.
+- Active branch: `chatgpt/opportunity-ranking-v2-final`
+- Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
+- Current documented branch HEAD: `c38a6c3e763c4f3922856ebc06e6821c6d7dfa01`
+- PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
+- PR is open, Draft, unmerged and mergeable.
+- `web/vercel.json` explicitly disables automatic Vercel deployments for the active PR branch.
+- The user explicitly requires **no Preview generation and no Production changes/deployments** until that boundary is changed again.
+- Vercel was rechecked after the current CRM/reminder work. No new deployment exists for this branch; the newest Vercel deployment still points to old commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` and is not current-HEAD validation.
+- The reachable custom demo/production surfaces must not be treated as containing current branch changes.
 
-## Source and evidence pipeline on the active branch
+Do not merge PR #6, enable the branch Preview, call Vercel deploy, or modify/promote Production without explicit product-owner approval.
 
-Active branch: `chatgpt/m1-evidence-pipeline-v1`
+## Current executable validation evidence
 
-Draft PR: `#3` — `M1: evidence-first Tianjin pipeline and grounded AI trial`
+GitHub Actions `Verify MedicalChannelAI` run **#1229** completed successfully for HEAD `c38a6c3e763c4f3922856ebc06e6821c6d7dfa01`.
 
-Main base remains `6221925212bbb663793d7e0305e2b98f440c0513`. Do not treat the active branch as merged production state.
+The successful job includes:
 
-Implemented on the branch:
+- full prebuild verification;
+- Python pipeline/contract regression suite;
+- TypeScript `tsc --noEmit`;
+- Vite production build;
+- verified ranking summary.
 
-1. canonical evidence/fact validation with fail-closed critical facts;
-2. CCGP discovery-only search adapter;
-3. verified CCGP detail adapters for public tender and competitive consultation notices;
-4. correction / termination event reconciliation;
-5. Tianjin Medical University General Hospital market-research discovery + verified detail source;
-6. deterministic Today Actions public snapshot generation with Top5 output;
-7. pipeline-generated `web/public/data/today-actions.public.json` consumed by the verified trial;
-8. runtime deadline protection so stale static snapshots cannot keep expired projects actionable;
-9. `LATE_WINDOW` handling when registration/file acquisition has closed but bid/response deadline is still future;
-10. optional customer-resource personalization without changing the public fact base;
-11. grounded on-demand AI analysis through same-origin `/api/ai/analyze`;
-12. local follow-up persistence and reminders;
-13. dual-source Tianjin refresh orchestration for CCGP + hospital market research;
-14. optional externally refreshed verified-snapshot loading, with fail-closed remote-source behavior.
+This proves the current branch compiles and passes repository CI. It does **not** prove current-HEAD Vercel runtime behavior, because Preview generation is intentionally disabled.
+
+Historical Vercel Preview evidence from older commits remains useful only as historical runtime evidence and must not be represented as current-HEAD acceptance.
+
+## Public intelligence architecture
+
+Public regional intelligence is shared by source/region/opportunity version rather than recomputed per customer. Current architecture includes:
+
+- official-source discovery and detail verification;
+- canonical VERIFIED fact state;
+- correction / termination reconciliation where supported;
+- public opportunity ranking with no private relationship/product points;
+- shared public snapshot and version/history boundaries;
+- customer-private personalization layered after public facts;
+- public and private persistence separated by scope.
+
+Current Tianjin official-source families include CCGP and multiple hospital/institution feeds, including Tianjin Medical University General Hospital, Tianjin Hospital, TEDA Hospital and Tianjin First Central Hospital feeds. Source failures remain fail-closed.
+
+## Incremental collection state
+
+The active branch contains the Vercel-native daily-deep + bounded intraday incremental architecture, but it is **not accepted as running Production infrastructure** while current-HEAD runtime Preview acceptance is intentionally deferred.
+
+Important implemented guarantees:
+
+1. same-priority incremental candidates verify newest official notices first;
+2. any selected-detail verification failure blocks public snapshot publication for that source scan;
+3. successful detail work may remain internally staged so retry does not re-hit already verified official pages;
+4. a bounded 48-hour carryover backlog prevents deferred URLs from disappearing forever when capped index windows move forward;
+5. carryover receives only bounded detail capacity so fresh notices remain dominant;
+6. ledger entries are individually retained/pruned instead of growing forever with a hot cache key;
+7. `last_seen_at` means actual index discovery, not detail retry time;
+8. recent canonical deep verification may reconcile incremental ledger only when metadata/fingerprint and time ordering are safe;
+9. stale canonical verification cannot erase newer FAILED/UNVERIFIED or changed-index state;
+10. deep and incremental mutation paths are serialized and deep remains authoritative reconciliation;
+11. the legacy GitHub deep fallback is reduced to one automatic daily run plus manual dispatch.
+
+No Preview/runtime claims should be made for this architecture until Preview execution is explicitly allowed again and the runtime path is exercised.
+
+## User-facing business closure
+
+The current branch now covers the main pilot loop:
+
+**discover opportunity → inspect official evidence → personalize with confirmed resources → generate grounded outreach → contact → record follow-up → schedule next reminder → track result**.
+
+Recent closure work:
+
+- outreach drawer shows verified public contact information together with the grounded draft;
+- phone dialing uses the existing safe telephone normalization, including extension handling;
+- public phone/email actions do not automatically claim the customer was contacted;
+- copying outreach text does not mutate CRM state;
+- only the explicit `已联系，记入跟进` action writes `CONTACTED`;
+- after explicit confirmation, the user is taken to `我的跟进`;
+- reminders are now independent from sales stage: e.g. `CONTACTED + future reminder` remains `CONTACTED`;
+- `MONITOR` remains a normal `持续观察` sales stage rather than being the only way to have a reminder;
+- non-terminal stages may preserve reminders;
+- terminal results `WON / LOST / NOT_FIT / ARCHIVED` clear/reject future reminders and do not offer a new-reminder action;
+- due reminder acknowledgement clears the reminder only, not the underlying sales stage.
+
+The reminder-stage migration requires no database schema migration because `remind_at` already exists independently on private follow-up state.
 
 ## Grounded AI boundary
 
-The browser sends an opportunity ID and, only when present, user-entered customer context.
+The server owns verified public facts used for AI actions. Browser-provided procurement facts are not trusted. Customer-private context is account scoped, server-side sanitized and does not become public fact.
 
-The server function:
+The server/runtime guards include:
 
-- retrieves verified public facts by opportunity ID from the configured verified snapshot source;
-- uses the bundled snapshot by default and can optionally use an HTTPS remote snapshot;
-- does not silently fall back to the bundled snapshot if a configured remote snapshot fails;
-- rejects browser-supplied fake procurement facts;
-- sanitizes customer context and labels it as self-reported/customer-owned context;
-- keeps provider/model/API key details server-side;
-- enforces same-origin access and a warm-instance request limit;
-- independently recalculates `OPEN`, `LATE_WINDOW` or `CLOSED` from official deadlines at request time;
-- refuses AI analysis after the actionable window is closed;
-- invalidates AI caches when customer context or the runtime window changes.
+- verified opportunity lookup;
+- runtime deadline/actionability checks;
+- stale/invalid snapshot automation guards;
+- provider/model/key details kept server-side;
+- output grounding checks;
+- no inference of private relationship from public contacts or target hospitals.
 
-Preview POST execution with a real configured Agnes key is still unverified. Do not claim AI runtime success until a real POST returns a grounded result.
+Current-HEAD real same-origin AI POST on a Vercel runtime is **not re-accepted**, because current branch Preview is intentionally disabled. Do not infer runtime success from CI compilation.
 
-## Executable validation evidence
+## Remaining acceptance gates
 
-Latest fully verified Vercel Preview commit:
+While the no-Preview boundary remains active, continue code/test/data-boundary/business-closure work only.
 
-`00bc0d6bfc0ecffb106cc8b0c40b34f3202c26d6`
+When the user explicitly allows Preview again, the next runtime acceptance should include:
 
-Deployment:
+1. deploy the exact then-current PR HEAD to Preview only;
+2. verify Today / Opportunity Pool / detail / Resources / Followups interactively;
+3. run the protected Pilot smoke against the Preview, updated to prove a non-MONITOR stage such as `CONTACTED` can retain a reminder;
+4. verify due-reminder acknowledgement preserves the sales stage;
+5. verify collector runtime/queue/deep-to-incremental behavior and snapshot freshness on real Vercel runtime state;
+6. verify a real same-origin grounded AI POST only if Preview runtime AI configuration is intentionally supplied;
+7. inspect custom-domain/Production promotion path separately before any production action.
 
-`dpl_7wzRnZfgvi29sHn34poykwVkAyTf`
-
-That Vercel build log proves all of the following for that commit:
-
-- Pipeline tests: **60 / 60 PASS**;
-- AI boundary checks: **PASS**;
-- prebuild verification: **PASS**;
-- `tsc --noEmit`: **PASS**;
-- Vite production build: **PASS**;
-- one Node.js server function was packaged in the Preview.
-
-This verified point already includes runtime deadline/late-window hardening, AI-window enforcement, dual-source automatic-refresh architecture and the Pipeline Top5 implementation.
-
-Current PR HEAD is newer than that verified point. At the time of this update it includes additional dedicated Top5 regression coverage plus dynamic verified-snapshot fail-closed checks. Those newest commits are **implemented but still require a newer successful Preview** before being called executable-validated.
-
-GitHub Actions runner execution remains unverified. Repository Actions and scheduled refresh must not be represented as PASS until an actual workflow run receives a runner and completes successfully.
-
-## Automatic refresh architecture
-
-Implemented but **not currently running in production**:
-
-- CCGP query plan: `pipeline/data/tianjin_query_plan.json`;
-- durable CCGP state: `pipeline/data/tianjin_live_ccgp_records.json`;
-- durable hospital-source state: `pipeline/data/tianjin_live_tjmugh_records.json`;
-- CCGP plan orchestrator: `pipeline/scripts/sync_tianjin_plan.py`;
-- hospital-source sync: `pipeline/scripts/sync_tjmugh_market_research.py`;
-- publisher: `pipeline/scripts/publish_web_snapshot.py`;
-- workflow: `.github/workflows/tianjin-medical-refresh.yml`.
-
-The refresh layer:
-
-- locks the Pilot to Tianjin;
-- uses multiple medical-channel CCGP keywords;
-- deduplicates official detail URLs before detail verification;
-- retains minimum request delays and performs no rate-limit bypass;
-- runs the old-project correction/termination watch only once after all CCGP keywords;
-- blocks CCGP publication if all discovery queries fail;
-- blocks CCGP publication when candidates are discovered but every selected detail fails verification;
-- blocks the hospital-source refresh if its official index fails;
-- blocks the hospital-source refresh when candidates are selected but every selected detail fails verification;
-- publishes only after both source refresh stages and the regression suite succeed.
-
-The workflow is scheduled in code for 08:20 China time daily and 16:20 China time on weekdays. Scheduled GitHub workflows only operate from the default branch, and current runner availability remains unverified, so this remains **IMPLEMENTED_NOT_RUNNING** until after merge and a successful real run.
-
-The default frontend deployment still uses the bundled snapshot. Optional external snapshot support is an optimization path, not proof that an external public data store has been configured.
-
-## Current blockers / next gates
-
-1. Obtain a successful Vercel Preview for the current PR HEAD, including the newest Top5 and verified-snapshot checks.
-2. Verify Preview Today / Followups / Resources behavior with an executable browser path.
-3. Verify a real same-origin POST to `/api/ai/analyze` with server-side Agnes runtime configuration, without exposing the key/model to the browser.
-4. Execute the Tianjin refresh workflow successfully on a real runner and inspect both source sync reports before calling automatic refresh active.
-5. Only after those gates, request product-owner approval before merging PR #3 or promoting to the custom domain.
-
-Do not merge or mark `production_ready=true` merely because the custom domain opens.
+PR #6 must remain Draft until those gates and product-owner acceptance are complete.
