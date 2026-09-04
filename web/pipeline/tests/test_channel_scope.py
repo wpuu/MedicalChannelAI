@@ -25,6 +25,7 @@ class MedicalChannelScopeTests(unittest.TestCase):
             "天津市第三中心医院数字彩色超声诊断系统采购项目",
             "天津市滨海新区海滨人民医院采购人工智能GPU（8卡）算力服务器项目",
             "天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选公告",
+            "天津中医药大学第二附属医院高分辨液质联用系统三年期维保项目",
         ]
         for title in titles:
             with self.subTest(title=title):
