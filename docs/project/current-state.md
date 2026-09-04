@@ -21,31 +21,29 @@ Fixed rules:
 
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
-- Latest fully code-validated executable/runtime HEAD: `c91c48b28ee16f748045ff56749b7ceae3daa17f`
-- Latest successful full validation: GitHub Actions **Verify #1457 SUCCESS**
+- Latest fully code-validated executable/runtime HEAD: `3663507b13dc57ca8d8179c51ae5b94303e936da`
+- Latest successful full validation: GitHub Actions **Verify #1472 SUCCESS**
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR remains open, Draft and unmerged.
 - `web/vercel.json` disables automatic Vercel deployments for this branch.
 - User boundary remains: **no Preview generation, no Production changes/deployments, no merge** until explicitly changed.
 - Latest observed Vercel deployment remains historical commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` / `dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre` (ERROR); no current source-expansion work is deployed.
 
-## Executable validation state
+## Latest executable validation
 
 MedicalChannelAI remains private and uses repository-scoped GCP self-hosted runner `medicalchannelai-gcp-1` with labels `self-hosted`, `linux`, `x64`, `medicalchannelai-ci`.
 
-Verify **#1457** completed successfully for `c91c48b28ee16f748045ff56749b7ceae3daa17f` and executed:
+Verify **#1472** completed successfully for `3663507b13dc57ca8d8179c51ae5b94303e936da` and executed:
 
-- system Python 3.13.7 and Node 24.20.0;
+- system Python **3.13.7** and Node **24.20.0**;
 - `npm ci` and bundled snapshot refresh;
-- **558 Python pipeline/contract tests — all PASS**;
+- **581 Python pipeline/contract tests — all PASS**;
 - serverless entrypoint checks **11/12**;
-- verified snapshot / medical scope / private profile / AI / runtime boundary checks;
+- verified snapshot / medical scope / private profile / AI / runtime / collector boundaries;
 - full prebuild;
 - TypeScript `tsc --noEmit`;
 - Vite production build;
 - ranking summary.
-
-This rerun validates the same current executable source tree plus the intervening state-document updates; no new executable behavior was introduced by the full-verify marker itself.
 
 Production build remains unchanged:
 
@@ -57,6 +55,8 @@ Production build remains unchanged:
 - Opportunity Pool: **18.45 / gzip 6.97 kB**
 - Opportunity Detail: **50.45 / gzip 15.89 kB**
 - Radar: **57.59 / gzip 17.29 kB**
+
+The bundled ranking snapshot used by CI is still the historical verified snapshot dated `2026-09-03T13:31:21.991132+08:00` with 19 opportunities. The new procurement-intent source is code-validated, but CI does not perform its live network collection and therefore does not prove live intent data is already present in the snapshot.
 
 This is code/build validation only. Preview is intentionally disabled, so no current-HEAD Vercel runtime acceptance or China TTFB/P95 claim is made.
 
@@ -84,7 +84,7 @@ Official source:
 
 - domain: `www.tjzxfc.cn`
 - index: `https://www.tjzxfc.cn/ywgk/zbgg/index.shtml`
-- lifecycle currently supported: `MARKET_RESEARCH`
+- lifecycle: `MARKET_RESEARCH`
 
 Validated behavior:
 
@@ -95,59 +95,105 @@ Validated behavior:
 - exact deadline time is stored only when official text publishes it; otherwise date-only remains date-only;
 - true verification/network failures fail closed;
 - minimum detail interval 3 seconds;
-- 30-day / max-20 daily-deep wiring feeds unified snapshot and verified data commit;
+- PR daily-deep wiring uses 30-day lookback / max 20 candidates / 3-second minimum delay;
 - intentionally not in intraday scheduler.
 
 Adapter Fast #1434 / Full #1435 passed; daily-deep integration Fast #1437 / Full #1438 passed.
 
-## Official early-signal source: 天津中医药大学第二附属医院 (`tjzyefy`)
+## Official source: 天津中医药大学第二附属医院 (`tjzyefy`) — market research
 
 Official source:
 
 - domain: `www.tjzyefy.com`
 - announcement index: `https://www.tjzyefy.com/xwgg/ggtz/`
-- supported lifecycle in this adapter: `MARKET_RESEARCH`
+- lifecycle: `MARKET_RESEARCH`
 
-Implemented and validated files include discovery, strict detail parser, standalone sync and dedicated tests.
+Validated behavior includes:
 
-### Medical recall and grounding boundary
+- research notice discovery excludes procurement-intent notices;
+- shared medical-channel taxonomy is used rather than only a few generic title words;
+- `液质联用` / `液相色谱` / `色谱` are supported medical-channel signals;
+- strict official detail verification for hospital identity, title, publication date, product/service object and registration window;
+- a generic `医疗设备` category is not invented for a specific LC-MS maintenance notice whose title does not state that category;
+- date-only deadlines stay date-only;
+- only transient network failures are retried;
+- minimum detail interval 3 seconds;
+- PR daily-deep wiring uses 30-day lookback / max 20 candidates / 3-second minimum delay;
+- intentionally not in intraday scheduler.
 
-The initial adapter only admitted titles containing generic markers such as `医疗设备` / `医用耗材` / `试剂`. Real official pages showed this would miss valid medical-channel opportunities such as `高分辨液质联用系统三年期维保项目`.
+Corrected adapter passed Fast #1449 / Full #1450; market-research daily-deep passed Fast #1451 / Full #1452 and was reconfirmed by later full validations.
 
-The corrected implementation therefore:
+## Official source: 天津中医药大学第二附属医院 — procurement intent
 
-- still requires a research notice and explicitly excludes `采购意向公告`;
-- uses the shared medical-channel taxonomy at discovery time rather than a few generic words;
-- extends the shared laboratory scope with `液质联用` / `液相色谱` / `色谱` while preserving the rule that the hospital name itself is not relevance evidence;
-- keeps strict official detail verification for hospital identity, title, publication date, product/service object and registration window;
-- does not invent a generic `医疗设备` category for an LC-MS maintenance notice whose title does not state that category;
-- keeps `product_categories=[]` when the official page only proves specific equipment/service objects;
-- rejects procurement-intent notices rather than relabeling them as market research;
-- preserves date-only deadlines without invented times;
-- retries only transient fetch failures and uses a minimum 3-second detail interval;
-- remains outside the intraday scheduler.
+The same official announcement stream also contains medical `采购意向公告`. This is now represented by a separate validated lifecycle rather than being relabelled as market research.
 
-The corrected adapter passed Fast Verify #1449 and Full Verify #1450 with 556 tests. Daily-deep wiring then passed Fast #1451 / Full #1452 with 558 tests, and the complete current tree was reconfirmed by **Full #1457 with 558 tests**.
+### Lifecycle and ranking semantics
 
-### `tjzyefy` daily-deep wiring
+- canonical lifecycle: `PROCUREMENT_INTENT`
+- public recommendation mode: `PRE_MARKET_SIGNAL`
+- `INTERVENTION_STAGE`: **12/25**
+- no published registration/bid deadline means `DEADLINE_URGENCY=0`
+- `model_decision_status=AWAITING_MODEL`, allowing an explicit advance-layout analysis without implying a formal tender is open
+- ordinary `MARKET_RESEARCH` keeps the existing `PUBLIC_OPPORTUNITY` / **25/25** intervention-stage contract
 
-The PR version of `.github/workflows/tianjin-medical-refresh.yml` now runs the source with:
+This prevents a supplier-consultation intent from being ranked as if registration or bidding were already open.
 
-- one shared authoritative China-time refresh clock;
-- **30-day lookback**;
-- **max 20 candidates**;
-- **minimum 3-second delay**;
-- safe first-run behavior when no prior `tianjin_live_tjzyefy_records.json` exists;
-- unified public snapshot input;
-- verified live-record/report data commit.
+### Discovery and evidence boundary
 
-**Important runtime boundary:** PR #6 is unmerged. GitHub scheduled workflows execute from the default branch, so the `tjzxfc` and `tjzyefy` daily-deep definitions are **code-validated but are not yet active main-branch schedules**. No claim is made that either new source is already being collected every day.
+Procurement-intent discovery is deliberately broad across official `采购意向公告` titles, because medically valid titles such as `脉动真空灭菌器等设备采购项目` may not contain the generic phrase `医疗设备`.
 
-## Procurement-intent boundary
+The detail layer then decides scope using the actual procurement object. It verifies:
 
-The same `tjzyefy` official announcement stream contains `采购意向公告`, including medical-equipment purchase intentions. These can occur earlier than supplier-facing market research, but they are intentionally **not supported yet**.
+- official hospital domain and same-host index/detail identity;
+- hospital identity;
+- title identity;
+- official publication date;
+- explicit `采购意向公告` semantics;
+- supplier/service-provider consultation wording;
+- specific product/service objects;
+- medical-channel relevance independent of hospital identity.
 
-Reason: the current pipeline does not yet have a separately validated procurement-intent actionability contract. Simply mapping such records to `MARKET_RESEARCH` would misstate the official lifecycle, and treating a no-registration-window intent as a normal immediate opportunity could over-rank it. The next architecture step is to determine whether existing `PRE_MARKET_SIGNAL` semantics can safely represent procurement intent or whether a distinct lifecycle/action mode is required.
+Non-medical procurement intents are `unsupported`, not public opportunities and not source-fatal errors. True verification/network failures remain fail closed.
+
+The shared medical scope was narrowly extended with `流式细胞仪` and `灭菌器`; generic words such as `干燥箱` were intentionally not added solely because a hospital published them.
+
+### Timing and contact grounding
+
+- no registration deadline/date is invented;
+- no bid deadline is invented;
+- official expected procurement wording such as a month or month range is **not converted to an exact date**;
+- such month/range language is recorded only through `EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED` while the official source remains auditable;
+- public contact is used only when the official page explicitly publishes it.
+
+### Sync and daily-deep
+
+The procurement-intent feed has a separate fail-closed sync path:
+
+- default 30-day lookback;
+- max 20 candidates;
+- minimum 3-second detail delay;
+- only transient network/408/425/429/5xx failures retry;
+- non-medical intent = unsupported;
+- unresolved supported/unknown detail failure blocks publish unless an older VERIFIED record covers the same opportunity;
+- separate live records/report files;
+- records feed the unified public snapshot;
+- intentionally not in intraday scheduler.
+
+The PR daily-deep definition includes this source on the existing self-hosted GCP runner.
+
+Validation progression:
+
+- procurement-intent actionability Fast #1461 passed;
+- discovery/detail parser Fast #1467 passed;
+- sync Fast #1469 passed;
+- daily-deep integration Fast #1471 passed;
+- **Full Verify #1472 passed with 581 tests**.
+
+## Daily-deep runtime boundary
+
+The PR version of `.github/workflows/tianjin-medical-refresh.yml` includes `tjzxfc`, `tjzyefy` market research and `tjzyefy` procurement intent, all on the self-hosted runner with a shared China-time refresh clock.
+
+**Important:** PR #6 remains unmerged. GitHub scheduled workflows execute from the default branch, so these new daily-deep definitions are **code-validated but not active default-branch schedules**. No claim is made that the new sources are already being collected every day or that current Production contains them.
 
 ## Public intelligence / collector invariants
 
@@ -163,13 +209,13 @@ Existing guarantees remain:
 - one official discovery pass per runtime scan;
 - unresolved verification barrier;
 - once-daily legacy deep fallback definition;
-- `tjzxfc` and `tjzyefy` are not silently added to intraday collection.
+- `tjzxfc`, `tjzyefy` market research and `tjzyefy` procurement intent are not silently added to intraday collection.
 
 ## Business-closure loop
 
 Current pilot loop remains:
 
-**discover opportunity → official evidence → confirmed private resource match → grounded outreach → explicit contact record → optional concrete next action → due-action queue → terminal result → private outcome review**.
+**discover opportunity/early signal → official evidence → confirmed private resource match → grounded outreach → explicit contact record → optional concrete next action → due-action queue → terminal result → private outcome review**.
 
 Key private-state guarantees remain:
 
@@ -191,11 +237,12 @@ When the user explicitly allows Preview again:
 1. deploy the exact then-current PR HEAD to Preview only;
 2. verify Today / Opportunity Pool / detail / Resources / Followups interactively from China and record TTFB/P95, response sizes and perceived loading;
 3. verify normal Today omits the full pool while Opportunity Pool receives all current opportunities from the same Function;
-4. run protected CONTACTED → optional next-action → reminder acknowledgement flow;
-5. verify private WON/LOST/NOT_FIT review persistence/export and no public leakage;
-6. verify collector Queue / daily-deep / intraday runtime behavior and snapshot freshness;
-7. verify `tjzxfc` / `tjzyefy` real network parsing on an allowed runtime before claiming those sources operational;
-8. run one same-origin grounded AI POST only if Preview AI configuration is intentionally supplied;
-9. inspect custom-domain/Production promotion separately before any Production action.
+4. verify `PRE_MARKET_SIGNAL` UI clearly communicates “采购意向/提前布局” rather than formal open tender;
+5. run protected CONTACTED → optional next-action → reminder acknowledgement flow;
+6. verify private WON/LOST/NOT_FIT review persistence/export and no public leakage;
+7. verify collector Queue / daily-deep / intraday runtime behavior and snapshot freshness;
+8. verify `tjzxfc` / `tjzyefy` real network parsing on an allowed runtime before claiming those sources operational;
+9. run one same-origin grounded AI POST only if Preview AI configuration is intentionally supplied;
+10. inspect custom-domain/Production promotion separately before any Production action.
 
 PR #6 must remain Draft until those gates and product-owner acceptance are complete.
