@@ -23,7 +23,7 @@ import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { isAuthRequiredError } from '@/services/apiConfig'
 import type { TodayActionCard } from '@/types'
-import { formatDateTime } from '@/utils/format'
+import { formatDateTime, isoDaysFromNow } from '@/utils/format'
 
 const GENERIC_PRODUCT_TERMS = new Set([
   '医疗设备',
@@ -208,6 +208,84 @@ function formalDeadlineSummary(card: TodayActionCard): string | null {
   return labels.length > 0 ? labels.join(' · ') : null
 }
 
+function shanghaiDateFromTimestamp(value: string): string | null {
+  const parsed = Date.parse(value)
+  if (Number.isNaN(parsed)) return null
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(parsed))
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  return values.year && values.month && values.day
+    ? `${values.year}-${values.month}-${values.day}`
+    : null
+}
+
+function previousIsoDate(value: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return null
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])))
+  if (
+    date.getUTCFullYear() !== Number(match[1]) ||
+    date.getUTCMonth() + 1 !== Number(match[2]) ||
+    date.getUTCDate() !== Number(match[3])
+  ) return null
+  date.setUTCDate(date.getUTCDate() - 1)
+  return [
+    date.getUTCFullYear(),
+    String(date.getUTCMonth() + 1).padStart(2, '0'),
+    String(date.getUTCDate()).padStart(2, '0'),
+  ].join('-')
+}
+
+type FormalReminderConstraint = {
+  maxDate: string
+  deadlineHint: string
+  canSchedule: boolean
+}
+
+function formalReminderConstraint(card: TodayActionCard, now = Date.now()): FormalReminderConstraint | null {
+  const candidates: Array<{ at: number; date: string; hint: string }> = []
+  const addExact = (value: string | null | undefined, label: string) => {
+    if (!value) return
+    const at = Date.parse(value)
+    const date = shanghaiDateFromTimestamp(value)
+    if (Number.isNaN(at) || at <= now || !date) return
+    candidates.push({
+      at,
+      date,
+      hint: `${label} ${formatDateTime(value) ?? value}`,
+    })
+  }
+  addExact(card.facts.registration_deadline, '报名截止')
+  addExact(card.facts.bid_deadline, '投标/响应截止')
+
+  const registrationDate = card.facts.registration_deadline_date
+  if (registrationDate && /^\d{4}-\d{2}-\d{2}$/.test(registrationDate)) {
+    const at = Date.parse(`${registrationDate}T23:59:59+08:00`)
+    if (!Number.isNaN(at) && at > now) {
+      candidates.push({
+        at,
+        date: registrationDate,
+        hint: `报名截止日期 ${registrationDate}（官方未公布具体时间）`,
+      })
+    }
+  }
+
+  candidates.sort((left, right) => left.at - right.at)
+  const earliest = candidates[0]
+  if (!earliest) return null
+  const maxDate = previousIsoDate(earliest.date)
+  if (!maxDate) return null
+  return {
+    maxDate,
+    deadlineHint: earliest.hint,
+    canSchedule: maxDate >= isoDaysFromNow(1),
+  }
+}
+
 function reminderSummary(card: TodayActionCard): string | null {
   if (!card.remind_at) return null
   const when = formatDateTime(card.remind_at) ?? card.remind_at
@@ -338,6 +416,17 @@ export function ProcurementIntentFollowupPage() {
     return <EmptyState title="当前没有可跟进的采购意向" hint="后续核验到新的采购意向后，会在这里自动进入跟进视图。" />
   }
 
+  const reminderCard = remindId
+    ? cards.find((item) => item.opportunity_id === remindId) ?? null
+    : null
+  const reminderIsFormal = Boolean(
+    reminderCard &&
+    !isPreMarketSignal(reminderCard.facts.lifecycle_stage, reminderCard.recommendation_mode),
+  )
+  const reminderConstraint = reminderCard && reminderIsFormal
+    ? formalReminderConstraint(reminderCard)
+    : null
+
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
@@ -464,6 +553,7 @@ export function ProcurementIntentFollowupPage() {
                     const formalFollowed = card.followup_status !== 'NEW'
                     const formalBusy = followBusyId === card.opportunity_id
                     const formalReminder = reminderSummary(card)
+                    const formalConstraint = formalReminderConstraint(card)
                     return (
                       <div
                         key={card.opportunity_id}
@@ -513,7 +603,7 @@ export function ProcurementIntentFollowupPage() {
                             )}
                             {formalBusy ? '正在加入…' : formalFollowed ? '正式项目已在跟进' : '加入正式项目跟进'}
                           </button>
-                          {formalFollowed ? (
+                          {formalFollowed && formalConstraint?.canSchedule !== false ? (
                             <button
                               type="button"
                               disabled={Boolean(followBusyId)}
@@ -525,6 +615,11 @@ export function ProcurementIntentFollowupPage() {
                             </button>
                           ) : null}
                         </div>
+                        {formalFollowed && formalConstraint?.canSchedule === false ? (
+                          <p className="mt-2 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-[10px] leading-4 text-rose-800">
+                            最早仍未到的官方节点已临近（{formalConstraint.deadlineHint}），没有安全的未来提醒日；请现在处理，不再延后安排。
+                          </p>
+                        ) : null}
                         <p className="mt-2 text-[10px] leading-4 text-slate-400">
                           把正式公告加入跟进，只表示你决定跟这条已核验公开商机；不会把候选关联自动升级为“官方确认同一项目”。
                         </p>
@@ -544,6 +639,8 @@ export function ProcurementIntentFollowupPage() {
 
       <RemindModal
         open={Boolean(remindId)}
+        maxDate={reminderConstraint?.canSchedule ? reminderConstraint.maxDate : null}
+        deadlineHint={reminderConstraint?.canSchedule ? reminderConstraint.deadlineHint : null}
         onClose={() => setRemindId(null)}
         onConfirm={(remindAt, nextAction) => {
           if (!remindId) return
