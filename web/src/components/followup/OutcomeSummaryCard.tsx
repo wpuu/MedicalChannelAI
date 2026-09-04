@@ -5,6 +5,8 @@ import {
   type PrivateOutcomeSummary,
 } from '@/services/outcomeSummaryApi'
 
+const MIN_REVIEW_SAMPLE = 5
+
 function ReasonList({
   title,
   items,
@@ -32,6 +34,31 @@ function ReasonList({
           </div>
         ) : null}
       </div>
+    </div>
+  )
+}
+
+function ReviewSignal({ summary }: { summary: PrivateOutcomeSummary }) {
+  if (summary.decided_count < MIN_REVIEW_SAMPLE) {
+    return (
+      <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-[11px] leading-5 text-slate-500">
+        已决样本 {summary.decided_count} 个，暂不足以判断成交规律。先继续积累真实结果；当前数字只用于记录，不用于调整公共机会排序。
+      </div>
+    )
+  }
+
+  const topLost = summary.lost_reason_counts[0]
+  if (!topLost) {
+    return (
+      <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-[11px] leading-5 text-slate-500">
+        已决样本 {summary.decided_count} 个。当前没有足够结构化的未成交原因可形成复盘提示，继续记录结果即可。
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-[11px] leading-5 text-slate-600">
+      当前私有记录里最常见的未成交原因是“{topLost.label}”（{topLost.count} 次）。它只作为人工复盘入口，不代表因果关系，也不会自动修改公开事实或公共机会排序。
     </div>
   )
 }
@@ -112,8 +139,10 @@ export function OutcomeSummaryCard() {
         ))}
       </div>
       <p className="mt-2 text-[10px] leading-4 text-slate-400">
-        “已决成交率”仅按 已成交 ÷（已成交 + 未成交）计算；“不适合”不进入该分母。
+        “已决成交率”仅按 已成交 ÷（已成交 + 未成交）计算，共 {summary.decided_count} 个已决样本；“不适合”不进入该分母。
       </p>
+
+      <ReviewSignal summary={summary} />
 
       {summary.lost_reason_counts.length ||
       summary.not_fit_reason_counts.length ||
