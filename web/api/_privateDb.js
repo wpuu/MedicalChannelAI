@@ -3,6 +3,10 @@ import postgres from 'postgres'
 let sqlClient = null
 let schemaPromise = null
 
+const PRIVATE_SCHEMA_KEY = 'medicalchannelai-private'
+const PRIVATE_SCHEMA_VERSION = '2026-09-04-outcome-index-v1'
+const PRIVATE_SCHEMA_LOCK_KEY = 'medicalchannelai-private-schema-migration'
+
 function databaseUrl() {
   return String(process.env.DATABASE_URL || process.env.POSTGRES_URL || '').trim()
 }
@@ -28,6 +32,11 @@ export function privateDb() {
 }
 
 const SCHEMA_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS private_schema_meta (
+    schema_key text PRIMARY KEY,
+    schema_version text NOT NULL,
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`,
   `CREATE TABLE IF NOT EXISTS private_organizations (
     id uuid PRIMARY KEY,
     name text NOT NULL,
@@ -149,13 +158,38 @@ const SCHEMA_STATEMENTS = [
   )`,
 ]
 
+async function schemaVersionCurrent(sql) {
+  const relation = await sql`SELECT to_regclass('private_schema_meta')::text AS table_name`
+  if (!relation[0]?.table_name) return false
+  const rows = await sql`
+    SELECT schema_version
+    FROM private_schema_meta
+    WHERE schema_key = ${PRIVATE_SCHEMA_KEY}
+    LIMIT 1
+  `
+  return rows[0]?.schema_version === PRIVATE_SCHEMA_VERSION
+}
+
 export async function ensurePrivateSchema() {
   if (schemaPromise) return schemaPromise
   schemaPromise = (async () => {
     const sql = privateDb()
-    for (const statement of SCHEMA_STATEMENTS) {
-      await sql.unsafe(statement)
-    }
+    if (await schemaVersionCurrent(sql)) return
+
+    await sql.begin(async (tx) => {
+      await tx`SELECT pg_advisory_xact_lock(hashtext(${PRIVATE_SCHEMA_LOCK_KEY}))`
+      if (await schemaVersionCurrent(tx)) return
+      for (const statement of SCHEMA_STATEMENTS) {
+        await tx.unsafe(statement)
+      }
+      await tx`
+        INSERT INTO private_schema_meta (schema_key, schema_version, updated_at)
+        VALUES (${PRIVATE_SCHEMA_KEY}, ${PRIVATE_SCHEMA_VERSION}, now())
+        ON CONFLICT (schema_key) DO UPDATE SET
+          schema_version = EXCLUDED.schema_version,
+          updated_at = now()
+      `
+    })
   })().catch((error) => {
     schemaPromise = null
     throw error
