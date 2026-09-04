@@ -7,6 +7,7 @@ import {
   Check,
   ExternalLink,
   Loader2,
+  Phone,
   Radar,
   SearchCheck,
 } from 'lucide-react'
@@ -102,9 +103,12 @@ function successorCandidates(intent: TodayActionCard, cards: TodayActionCard[]) 
     .slice(0, 3)
 }
 
+function procurementPhase(card: TodayActionCard) {
+  return expectedProcurementWindowPhase(expectedProcurementWindowText(card.facts.quality_flags))
+}
+
 function phaseOrder(card: TodayActionCard): number {
-  const window = expectedProcurementWindowText(card.facts.quality_flags)
-  const phase = expectedProcurementWindowPhase(window)
+  const phase = procurementPhase(card)
   if (phase === 'AFTER') return 0
   if (phase === 'ACTIVE') return 1
   if (phase === 'BEFORE') return 2
@@ -112,12 +116,50 @@ function phaseOrder(card: TodayActionCard): number {
 }
 
 function phaseLabel(card: TodayActionCard): string {
-  const window = expectedProcurementWindowText(card.facts.quality_flags)
-  const phase = expectedProcurementWindowPhase(window)
+  const phase = procurementPhase(card)
   if (phase === 'AFTER') return '预计采购月份已过，优先核查后续公告'
   if (phase === 'ACTIVE') return '已进入预计采购月份，重点盯正式公告'
   if (phase === 'BEFORE') return '预计采购月份未到，继续提前布局'
   return '未结构化出预计采购月份，持续观察'
+}
+
+function phaseActions(card: TodayActionCard): string[] {
+  const phase = procurementPhase(card)
+  if (phase === 'AFTER') {
+    return [
+      '先查医院官网、政府采购/招标等已核验公开源，看是否已经出现正式采购、招标、调研或延期公告。',
+      '公开源仍未发现时，可使用公告公开电话确认项目是否延期、调整或已进入其他采购流程；只记录对方明确回复。',
+      '根据核查结果决定继续跟进、设置下一次检查节点或人工归档，不把“没有搜到”解释成项目取消。',
+    ]
+  }
+  if (phase === 'ACTIVE') {
+    return [
+      '把正式公告核查提升为当前任务，优先确认是否已经开放报名、响应或投标窗口。',
+      '同步确认厂家/渠道资源、可供产品或服务能力，以及是否需要授权、维保资质或配套实施资源。',
+      '整理与官方采购对象直接相关的参数、品牌/型号替代路线和院内确认问题，避免等正式公告后再从零准备。',
+    ]
+  }
+  if (phase === 'BEFORE') {
+    return [
+      '先确认可合作厂家、渠道和产品/服务匹配，不把采购意向当成已经开放的订单。',
+      '整理需要向院方或厂家确认的参数、使用场景和实施条件，只保留有公开依据或用户确认的事实。',
+      '设置接近预计采购月份的下一次检查节点，届时优先核查正式公告。',
+    ]
+  }
+  return [
+    '先核对官方原文与采购对象，确认当前公开信息能支持哪些准备动作。',
+    '确认厂家/渠道资源和产品匹配，但不要自行推断正式采购时间。',
+    '持续观察后续正式公告，并由用户决定是否设置下一次检查节点。',
+  ]
+}
+
+function telHref(value: string | null | undefined): string | null {
+  const raw = String(value || '').trim()
+  if (!raw || /[、,，;；/]/.test(raw)) return null
+  const leadingPlus = raw.startsWith('+')
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length < 5) return null
+  return `tel:${leadingPlus ? '+' : ''}${digits}`
 }
 
 export function ProcurementIntentFollowupPage() {
@@ -219,6 +261,9 @@ export function ProcurementIntentFollowupPage() {
         const expectedWindow = expectedProcurementWindowText(intent.facts.quality_flags)
         const followed = intent.followup_status !== 'NEW'
         const followBusy = followBusyId === intent.opportunity_id
+        const actions = phaseActions(intent)
+        const publicPhone = intent.facts.official_contact?.phone?.trim() || null
+        const phoneHref = telHref(publicPhone)
         return (
           <section key={intent.opportunity_id} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -250,6 +295,16 @@ export function ProcurementIntentFollowupPage() {
                   )}
                   {followBusy ? '正在加入…' : followed ? '已在我的跟进' : '加入我的跟进'}
                 </button>
+                {phoneHref && publicPhone ? (
+                  <a
+                    href={phoneHref}
+                    className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50"
+                    title="拨号只打开电话，不会自动记录为已联系"
+                  >
+                    <Phone className="h-3 w-3" />
+                    公告公开电话 {publicPhone}
+                  </a>
+                ) : null}
                 <Link
                   to={`/opportunity/${encodeURIComponent(intent.opportunity_id)}`}
                   className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50"
@@ -258,6 +313,20 @@ export function ProcurementIntentFollowupPage() {
                   <ExternalLink className="h-3 w-3" />
                 </Link>
               </div>
+            </div>
+
+            <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-3">
+              <p className="text-[12px] font-semibold text-amber-950">当前建议动作</p>
+              <ol className="mt-1.5 space-y-1 text-[11px] leading-5 text-amber-950">
+                {actions.map((action, index) => (
+                  <li key={action}>{index + 1}. {action}</li>
+                ))}
+              </ol>
+              {phoneHref ? (
+                <p className="mt-2 text-[10px] leading-4 text-amber-800">
+                  “公告公开电话”仅来自已核验公开页面。点击拨号不会自动把跟进状态改成“已联系”；实际沟通结果仍由用户明确确认。
+                </p>
+              ) : null}
             </div>
 
             <div className="mt-3 rounded-xl bg-slate-50 px-3 py-3">
