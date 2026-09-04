@@ -7,6 +7,7 @@ on:
       - '.github/workflows/materialize-tjzyefy-intent-branch.yml'
 
 permissions:
+  actions: read
   contents: write
   pull-requests: read
 
@@ -36,16 +37,65 @@ jobs:
         shell: bash
         run: python3 --version
 
-      - name: Generate canonical records from official source
+      - name: Recover exact parser output from accepted live probe
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_API_URL: ${{ github.api_url }}
+          GH_REPOSITORY: ${{ github.repository }}
+          ACCEPTED_PROBE_JOB_ID: '101075174900'
         run: |
           set -euo pipefail
-          python3 web/pipeline/scripts/sync_tjzyefy_procurement_intent.py \
-            --lookback-days 30 \
-            --max-candidates 20 \
-            --delay-seconds 3 \
-            --records-output web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
-            --report-output web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          import urllib.request
+          from pathlib import Path
+
+          api = os.environ['GH_API_URL'].rstrip('/')
+          repository = os.environ['GH_REPOSITORY']
+          job_id = os.environ['ACCEPTED_PROBE_JOB_ID']
+          token = os.environ['GH_TOKEN']
+          url = f'{api}/repos/{repository}/actions/jobs/{job_id}/logs'
+          request = urllib.request.Request(url)
+          request.add_header('Accept', 'application/vnd.github+json')
+          request.add_header('Authorization', f'Bearer {token}')
+          request.add_header('X-GitHub-Api-Version', '2022-11-28')
+          with urllib.request.urlopen(request, timeout=30) as response:
+              log_text = response.read().decode('utf-8-sig', errors='strict')
+
+          def extract(prefix: str) -> bytes:
+              matches = []
+              for line in log_text.splitlines():
+                  if prefix in line:
+                      matches.append(line.split(prefix, 1)[1].strip())
+              if len(matches) != 1:
+                  raise RuntimeError(f'ACCEPTED_PROBE_PAYLOAD_{prefix}_COUNT={len(matches)}')
+              return base64.b64decode(matches[0], validate=True)
+
+          records_bytes = extract('LIVE_INTENT_RECORDS_B64=')
+          report_bytes = extract('LIVE_INTENT_REPORT_B64=')
+          records = json.loads(records_bytes.decode('utf-8'))
+          report = json.loads(report_bytes.decode('utf-8'))
+
+          assert report['observed_at'] == '2026-09-04T15:19:41.874251+00:00', report['observed_at']
+          assert report['new_verified_record_count'] == 4, report
+          assert report['unsupported_non_medical_count'] == 3, report
+          assert report['failure_count'] == 0, report
+          assert report['unresolved_failure_count'] == 0, report
+          assert report['publish_allowed'] is True, report
+          assert report['publish_gate_reason'] == 'PASS', report
+          assert report['effective_lookback_days'] == 60, report
+          assert report['bootstrap_backfill_applied'] is True, report
+          assert len(records) == 4, len(records)
+
+          records_path = Path('web/pipeline/data/tianjin_live_tjzyefy_intent_records.json')
+          report_path = Path('web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json')
+          records_path.write_bytes(records_bytes)
+          report_path.write_bytes(report_bytes)
+          print('Recovered exact canonical payload from Verify #1496 read-only live acceptance')
+          PY
 
       - name: Build bundled snapshot from the same verified source set
         shell: bash
@@ -129,7 +179,7 @@ jobs:
         shell: bash
         run: python3 -m unittest discover -s tests -v
 
-      - name: Write parser outputs to PR branch through GitHub API
+      - name: Write accepted parser outputs to PR branch through GitHub API
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
