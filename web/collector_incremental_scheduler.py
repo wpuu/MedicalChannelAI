@@ -15,6 +15,7 @@ SCHEDULED_INCREMENTAL_SOURCES = (
     "teda",
 )
 ATTEMPT_TTL_SECONDS = 3 * 24 * 60 * 60
+QUIET_SCAN_INTERVAL_MULTIPLIER = 2
 
 
 @dataclass(frozen=True)
@@ -53,13 +54,17 @@ def _parsed_at(value: Any) -> datetime | None:
     return parsed.astimezone(timezone.utc)
 
 
-def _last_completed(cache: Any, source_id: str) -> tuple[str | None, datetime | None]:
+def _last_completed(
+    cache: Any,
+    source_id: str,
+) -> tuple[str | None, datetime | None, dict[str, Any] | None]:
     value = cache.get(_bucket_key(source_id))
     if not isinstance(value, dict):
-        return None, None
+        return None, None, None
     bucket_id = str(value.get("bucket_id") or "").strip() or None
     completed_at = _parsed_at(value.get("completed_at"))
-    return bucket_id, completed_at
+    result = value.get("result")
+    return bucket_id, completed_at, result if isinstance(result, dict) else None
 
 
 def _last_attempted(cache: Any, source_id: str) -> datetime | None:
@@ -67,6 +72,33 @@ def _last_attempted(cache: Any, source_id: str) -> datetime | None:
     if not isinstance(value, dict):
         return None
     return _parsed_at(value.get("attempted_at"))
+
+
+def _quiet_completed_scan(result: dict[str, Any] | None) -> bool:
+    if not isinstance(result, dict):
+        return False
+    try:
+        selected = int(result.get("selected_detail_count", -1))
+        failures = int(result.get("verification_failure_count", -1))
+        pending_barrier = int(result.get("pending_barrier_count", -1))
+    except (TypeError, ValueError):
+        return False
+    return selected == 0 and failures == 0 and pending_barrier == 0
+
+
+def _source_interval(
+    source_id: str,
+    *,
+    completed_result: dict[str, Any] | None,
+    newer_attempt_pending: bool,
+) -> timedelta:
+    base_minutes = int(SOURCE_POLICIES[source_id]["scan_interval_minutes"])
+    multiplier = (
+        QUIET_SCAN_INTERVAL_MULTIPLIER
+        if _quiet_completed_scan(completed_result) and not newer_attempt_pending
+        else 1
+    )
+    return timedelta(minutes=base_minutes * multiplier)
 
 
 def mark_incremental_source_attempt(
@@ -104,9 +136,7 @@ def choose_due_incremental_source(
     next_due_times: list[datetime] = []
 
     for order, source_id in enumerate(SCHEDULED_INCREMENTAL_SOURCES):
-        policy = SOURCE_POLICIES[source_id]
-        interval = timedelta(minutes=int(policy["scan_interval_minutes"]))
-        last_bucket, completed_at = _last_completed(cache, source_id)
+        last_bucket, completed_at, completed_result = _last_completed(cache, source_id)
         attempted_at = _last_attempted(cache, source_id)
         current_bucket = scan_bucket_id(source_id, now=current)
 
@@ -115,6 +145,11 @@ def choose_due_incremental_source(
         # send fails, the next scheduler tick may select the source again instead
         # of falsely backing it off for a full source interval.
         if completed_at is None:
+            interval = _source_interval(
+                source_id,
+                completed_result=None,
+                newer_attempt_pending=attempted_at is not None,
+            )
             if attempted_at is None:
                 due.append((order, float("inf"), source_id))
                 continue
@@ -130,8 +165,14 @@ def choose_due_incremental_source(
                 )
             continue
 
+        newer_attempt_pending = attempted_at is not None and attempted_at > completed_at
+        interval = _source_interval(
+            source_id,
+            completed_result=completed_result,
+            newer_attempt_pending=newer_attempt_pending,
+        )
         baseline = completed_at
-        if attempted_at is not None and attempted_at > baseline:
+        if newer_attempt_pending:
             baseline = attempted_at
         next_due = baseline + interval
         next_due_times.append(next_due)
