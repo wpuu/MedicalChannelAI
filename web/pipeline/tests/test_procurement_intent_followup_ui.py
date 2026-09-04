@@ -4,6 +4,7 @@ import unittest
 
 
 WEB_ROOT = Path(__file__).resolve().parents[2]
+DATA_ROOT = WEB_ROOT / "pipeline" / "data"
 
 
 class ProcurementIntentFollowupUiTests(unittest.TestCase):
@@ -29,6 +30,25 @@ class ProcurementIntentFollowupUiTests(unittest.TestCase):
         self.assertNotIn("getTodayActions({ hydrateFollowups: false })", today)
         self.assertNotIn("getTodayActions({ loadProfile: 'FULL_POOL'", today)
 
+    def test_today_light_summary_surfaces_formal_window_without_private_context(self):
+        helper = (WEB_ROOT / "api/_procurementIntentFollowup.js").read_text(encoding="utf-8")
+        entry = (WEB_ROOT / "api/private.js").read_text(encoding="utf-8")
+        adapter = (WEB_ROOT / "src/services/ApiTodayActionsService.ts").read_text(encoding="utf-8")
+        metric = (WEB_ROOT / "src/components/today/MetricCards.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("procurementIntentFollowupSummary(fullPool)", entry)
+        self.assertIn("procurement_intent_followup_summary", entry)
+        self.assertIn("procurement_intent_followup_summary: data.procurement_intent_followup_summary", adapter)
+        self.assertIn("intents_with_formal_successor", metric)
+        self.assertIn("条采购意向已出现可能的正式窗口", metric)
+        self.assertIn("只依据公开事实自动提示", metric)
+        self.assertIn("不代表官方确认同一项目", metric)
+        self.assertNotIn("customer_context", helper)
+        self.assertNotIn("hospital_relationship", helper)
+        self.assertNotIn("target_hospital", helper)
+        self.assertNotIn("matching_product_capabilities", helper)
+        self.assertNotIn("priority", helper)
+
     def test_successor_linkage_is_conservative_and_explained_as_candidate_only(self):
         page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
 
@@ -48,15 +68,21 @@ class ProcurementIntentFollowupUiTests(unittest.TestCase):
         self.assertIn("这不代表项目取消或没有后续", page)
         self.assertIn("不要把“未发现关联”当成业务结论", page)
 
-    def test_real_lung_function_intent_has_exact_subject_formal_successor_even_without_items(self):
+    def test_real_lung_function_lineage_uses_verified_canonical_history_not_active_pool(self):
         page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
-        snapshot = json.loads(
-            (WEB_ROOT / "public/data/today-actions.public.json").read_text(encoding="utf-8")
+        intent_records = json.loads(
+            (DATA_ROOT / "tianjin_live_tjzyefy_intent_records.json").read_text(encoding="utf-8")
         )
-        pool = {card["opportunity_id"]: card for card in snapshot["opportunity_pool"]}
-        intent = pool["tjzyefy_intent_20260804_030195986"]
-        formal = pool["ccgp_bf77073fba23504b"]
+        ccgp_records = json.loads(
+            (DATA_ROOT / "tianjin_live_ccgp_records.json").read_text(encoding="utf-8")
+        )
+        intents = {record["opportunity_id"]: record for record in intent_records}
+        formal_records = {record["opportunity_id"]: record for record in ccgp_records}
+        intent = intents["tjzyefy_intent_20260804_030195986"]
+        formal = formal_records["ccgp_bf77073fba23504b"]
 
+        self.assertEqual(intent["source"]["url"], "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml")
+        self.assertEqual(formal["source"]["url"], "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260902_27255226.htm")
         self.assertEqual(intent["facts"]["buyer_name"], "天津中医药大学第二附属医院")
         self.assertEqual(formal["facts"]["buyer_name"], "天津中医药大学第二附属医院")
         self.assertEqual(intent["facts"]["published_at"], "2026-08-04")
