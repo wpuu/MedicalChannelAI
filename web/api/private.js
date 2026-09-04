@@ -19,6 +19,7 @@ const FOLLOWUP_STATUSES = new Set([
 const DONE_FOR_TODAY = new Set([
   'CONTACTED', 'NOT_FIT', 'BID_SUBMITTED', 'WON', 'LOST', 'ARCHIVED',
 ])
+const REMINDER_TERMINAL_STATUSES = new Set(['WON', 'LOST', 'NOT_FIT', 'ARCHIVED'])
 const NOT_FIT_REASONS = new Set([
   'NO_PRODUCT_CAPABILITY', 'NO_MANUFACTURER_ACCESS', 'RELATIONSHIP_TOO_WEAK',
   'AMOUNT_TOO_SMALL', 'PROJECT_TOO_LATE', 'COMPETITOR_LOCKED_CUSTOMER_JUDGMENT',
@@ -60,7 +61,7 @@ function allow(request, response, methods) {
 function shouldAppearToday(followup) {
   if (!followup) return true
   if (DONE_FOR_TODAY.has(followup.status)) return false
-  if (followup.status !== 'MONITOR' || !followup.remind_at) return true
+  if (!followup.remind_at) return true
   const remindAt = new Date(followup.remind_at).getTime()
   return Number.isNaN(remindAt) || remindAt <= Date.now()
 }
@@ -90,7 +91,10 @@ async function todayFeedbackMap(sql, user) {
 }
 
 function hasActiveFollowup(followup) {
-  return Boolean(followup?.status && followup.status !== 'NEW')
+  return Boolean(
+    followup &&
+    ((followup.status && followup.status !== 'NEW') || followup.remind_at),
+  )
 }
 
 function feedbackAttentionTier(followup, feedback) {
@@ -336,7 +340,7 @@ function validateMutation(body) {
   if (status === 'NOT_FIT' && (!reason || !NOT_FIT_REASONS.has(reason))) return null
   if (status !== 'NOT_FIT' && reason) return null
   const reminderSupplied = Object.prototype.hasOwnProperty.call(body, 'remind_at')
-  if (status !== 'MONITOR' && reminderSupplied && remindAt) return null
+  if (REMINDER_TERMINAL_STATUSES.has(status) && reminderSupplied && remindAt) return null
   return {
     status,
     mutation_id: mutationId,
@@ -473,7 +477,7 @@ async function followupRoute(request, response, user) {
 
       let nextReminder = followup.remind_at ? new Date(followup.remind_at).toISOString() : null
       if (mutation.reminder_supplied) nextReminder = mutation.remind_at
-      else if (mutation.status !== 'MONITOR') nextReminder = null
+      else if (REMINDER_TERMINAL_STATUSES.has(mutation.status)) nextReminder = null
 
       const inserted = await tx`
         INSERT INTO private_followup_events (
@@ -730,7 +734,7 @@ async function dueReminderRows(sql, user, limit = 20) {
     FROM private_followups f
     WHERE f.user_id = ${user.id}
       AND f.organization_id = ${user.organization_id}
-      AND f.status = 'MONITOR'
+      AND f.status NOT IN ('WON', 'LOST', 'NOT_FIT', 'ARCHIVED')
       AND f.remind_at IS NOT NULL
       AND f.remind_at <= now()
     ORDER BY f.remind_at ASC, f.updated_at ASC
