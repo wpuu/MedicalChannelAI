@@ -10,8 +10,8 @@
   "verified_snapshot_at": "2026-08-31T17:56:00+08:00",
   "vercel_branch_preview_enabled": false,
   "latest_code_validated_head": "1ccc219e13fc215b1bea25dbfc0016b1d366a935",
-  "current_runtime_candidate_head": "bacdc0fa9e1b711acb901a262e81358aea22650b",
-  "github_actions_status": "VERIFY_1281_SUCCESS_LAST_EXECUTED_GREEN; CURRENT_RUNTIME_CANDIDATE_PENDING_RUNNER",
+  "current_runtime_candidate_head": "315ce5fd97aab1994cf22c7b22a6fdd30a213713",
+  "github_actions_status": "VERIFY_1281_SUCCESS_LAST_EXECUTED_GREEN; VERIFY_DEDUPED_TO_PR_ONLY; CURRENT_RUNTIME_CANDIDATE_PENDING_RUNNER",
   "last_green_validation": {
     "provider": "GITHUB_ACTIONS",
     "workflow": "Verify MedicalChannelAI",
@@ -26,14 +26,20 @@
     "vercel_preview_generated": false
   },
   "current_runtime_candidate_validation": {
-    "head": "bacdc0fa9e1b711acb901a262e81358aea22650b",
+    "head": "315ce5fd97aab1994cf22c7b22a6fdd30a213713",
     "result": "PENDING_EXECUTABLE_CI",
-    "observed_failed_start_runs": [1297, 1299, 1303, 1307, 1327],
+    "observed_failed_start_runs": [1297, 1299, 1303, 1307, 1327, 1331, 1338, 1340],
     "reruns_attempted": true,
     "repository_steps_executed": false,
     "observed_job_steps": [],
     "observed_runner_id": 0,
     "interpretation": "GitHub Actions attempts failed before Checkout/Python/Node steps. This is neither code-failure evidence nor code-success evidence. Keep 1ccc219... as the latest validated runtime head until a real Verify job executes and succeeds."
+  },
+  "github_actions_efficiency": {
+    "duplicate_push_and_pr_runs_removed": true,
+    "workflow_change_commit": "33eef600e44361d438c35398f7c022efd1f624ce",
+    "current_triggers": ["pull_request", "workflow_dispatch"],
+    "note": "The PR branch no longer runs both push and pull_request Verify for the same commit. This reduced duplicate usage but did not resolve the missing-runner condition."
   },
   "vercel_latest_observed_deployment": {
     "commit": "ddd965f132343b0885f91e30e13a6b8fc2157afa",
@@ -58,13 +64,17 @@
     "current_head_real_http_post_verified": false,
     "note": "Historical AI runtime evidence is not current-HEAD acceptance. Current branch Preview is intentionally disabled."
   },
-  "latest_changes_validation_status": "RUNTIME_CANDIDATE_PENDING_GITHUB_RUNNER_EXECUTION; PREVIEW_INTENTIONALLY_DISABLED",
+  "latest_changes_validation_status": "RUNTIME_CANDIDATE_PENDING_GITHUB_RUNNER_EXECUTION; STATIC_REVIEW_HARDENED; PREVIEW_INTENTIONALLY_DISABLED",
   "production_observation": {
     "vercel_default_domain": "https://medicalchannelai.vercel.app/",
     "vercel_project_live": false,
     "custom_domain_observation": "The reachable custom demo/production surface must not be assumed to contain current PR changes. Production promotion remains separately controlled."
   },
   "milestone": "V0_4_1_NO_PREVIEW_PRIVATE_OUTCOME_REVIEW_PENDING_CI",
+  "known_incomplete_invariants": {
+    "server_won_lost_transition_review_enforced": false,
+    "detail": "UI requires bounded WON/LOST private review, but authenticated direct POST to the core follow-up mutation API can still enter WON/LOST without that review. Harden after executable CI is available, while preserving same-status free-form notes and mutation idempotency."
+  },
   "gates": {
     "canonical_fact_schema": true,
     "ccgp_verified_detail_and_events": true,
@@ -94,18 +104,22 @@
     "followed_due_vs_scheduled_labels": true,
     "terminal_results_clear_or_reject_reminders": true,
     "due_reminder_ack_preserves_sales_stage": true,
-    "lost_requires_private_review_reason": true,
+    "lost_requires_private_review_reason_in_ui": true,
     "lost_review_never_claimed_as_public_fact": true,
-    "won_requires_private_review_factor": true,
+    "won_requires_private_review_factor_in_ui": true,
     "won_review_never_claimed_as_public_fact": true,
+    "server_won_lost_transition_review_enforced": false,
     "not_fit_persistence_copy_matches_runtime_mode": true,
     "private_outcome_summary": true,
     "private_outcome_summary_current_account_only": true,
     "private_outcome_summary_fails_closed_on_truncation": true,
+    "private_outcome_reason_totals_fail_closed": true,
+    "private_outcome_duplicate_reason_codes_rejected": true,
     "private_outcome_unstructured_history_not_guessed": true,
     "private_outcome_small_sample_guard": true,
     "private_outcome_does_not_auto_change_public_ranking": true,
     "terminal_result_explicit_reopen_guard": true,
+    "archived_locked_but_excluded_from_outcome_statistics": true,
     "account_export_includes_outcome_events": true,
     "account_delete_cascades_outcome_events": true,
     "same_origin_public_snapshot_api": true,
@@ -132,6 +146,7 @@
     "legacy_deep_refresh_once_daily": true,
     "scheduled_refresh_defined": true,
     "scheduled_refresh_default_branch_execution": false,
+    "github_verify_duplicate_pr_branch_runs_removed": true,
     "github_ci_has_historical_green_evidence": true,
     "current_runtime_candidate_ci_green": false,
     "latest_consolidated_preview_verified": false,
@@ -141,6 +156,7 @@
     "Do not generate Preview while the user's no-Preview instruction remains active.",
     "Obtain a real GitHub Actions runner and execute the full Verify workflow against the current runtime candidate or a descendant containing the same runtime code.",
     "Fix any actual pipeline/type/build regression found by that executable Verify run before advancing latest_code_validated_head.",
+    "After executable CI is available, harden server-side WON/LOST transition review validation in web/api/private.js and run full regression.",
     "When Preview is explicitly re-enabled, deploy the exact then-current PR HEAD to Preview only and run interactive Today, Opportunity Pool, Resources and Followups acceptance.",
     "Verify explicit CONTACTED first, optional next-action reminder second, while CONTACTED remains the sales stage.",
     "Verify due-reminder acknowledgement clears only remind_at, preserves the underlying sales stage and removes the item from the due-action queue on real Preview persistence.",
