@@ -228,6 +228,8 @@ export interface ProcurementIntentFollowupSummary {
   intent_count: number
   intents_with_formal_successor: number
   candidate_pair_count: number
+  /** Authenticated Today display hint; does not alter the public successor counts above. */
+  formal_candidates_needing_action?: number
 }
 
 /** UI response after Mock or Public View adapter enrichment. */
