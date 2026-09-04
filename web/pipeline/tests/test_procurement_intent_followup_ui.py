@@ -64,6 +64,8 @@ class ProcurementIntentFollowupUiTests(unittest.TestCase):
         self.assertIn("肺功能仪等医疗设备采购项目", intent["facts"]["project_name"])
         self.assertIn("肺功能仪等医疗设备采购项目", formal["facts"]["project_name"])
         self.assertEqual(formal["facts"]["product_items"], [])
+        self.assertEqual(formal["facts"]["registration_deadline"], "2026-09-09T17:00:00+08:00")
+        self.assertEqual(formal["facts"]["bid_deadline"], "2026-09-23T08:30:00+08:00")
         self.assertIn("subject.replace(/^采购意向公告", page)
         self.assertIn("intentSubject === candidateSubject", page)
         self.assertIn("项目主题精确一致", page)
@@ -149,6 +151,31 @@ class ProcurementIntentFollowupUiTests(unittest.TestCase):
         self.assertIn("安排正式项目下一步", page)
         self.assertIn("open={Boolean(remindId)}", page)
         self.assertNotIn("status: 'CONTACTED'", page)
+
+    def test_formal_reminder_uses_earliest_future_verified_deadline_and_stays_before_it(self):
+        page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("function formalReminderConstraint", page)
+        self.assertIn("addExact(card.facts.registration_deadline, '报名截止')", page)
+        self.assertIn("addExact(card.facts.bid_deadline, '投标/响应截止')", page)
+        self.assertIn("candidates.sort((left, right) => left.at - right.at)", page)
+        self.assertIn("const maxDate = previousIsoDate(earliest.date)", page)
+        self.assertIn("canSchedule: maxDate >= isoDaysFromNow(1)", page)
+        self.assertIn("maxDate={reminderConstraint?.canSchedule ? reminderConstraint.maxDate : null}", page)
+        self.assertIn("没有安全的未来提醒日；请现在处理，不再延后安排", page)
+        self.assertIn("Asia/Shanghai", page)
+
+    def test_shared_reminder_modal_bounds_only_callers_that_supply_verified_max_date(self):
+        modal = (WEB_ROOT / "src/components/followup/RemindModal.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("maxDate?: string | null", modal)
+        self.assertIn("deadlineHint?: string | null", modal)
+        self.assertIn(".filter((item) => isOnOrBefore(item.value, maxDate))", modal)
+        self.assertIn("max={maxDate ?? undefined}", modal)
+        self.assertIn("selectedWithinDeadline", modal)
+        self.assertIn("disabled={!remindAt || !normalizedNextAction}", modal)
+        self.assertIn("避免把下一步安排到已核验正式窗口之后", modal)
+        self.assertIn("只使用已核验官方截止时间，不会自行推算新的官方截止日期", modal)
 
 
 if __name__ == "__main__":
