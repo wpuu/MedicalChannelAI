@@ -9,20 +9,20 @@
   "demo_mode": "verified_public_intelligence_with_private_crm_overlay",
   "verified_snapshot_at": "2026-08-31T17:56:00+08:00",
   "vercel_branch_preview_enabled": false,
-  "runtime_implementation_head": "315ce5fd97aab1994cf22c7b22a6fdd30a213713",
-  "latest_code_validated_head": "e68cff21c2f2b55f70efe4817af685f1c8b68ffc",
-  "current_runtime_candidate_head": "e68cff21c2f2b55f70efe4817af685f1c8b68ffc",
-  "github_actions_status": "GCP_SELF_HOSTED_VERIFY_1345_SUCCESS; PRIVATE_GITHUB_HOSTED_RUNNER_BILLING_BLOCK_BYPASSED",
+  "runtime_implementation_head": "b4b41579d70648167566175c307df0a1a49f79b7",
+  "latest_code_validated_head": "b4b41579d70648167566175c307df0a1a49f79b7",
+  "current_runtime_candidate_head": "b4b41579d70648167566175c307df0a1a49f79b7",
+  "github_actions_status": "GCP_SELF_HOSTED_VERIFY_1351_SUCCESS; PRIVATE_GITHUB_HOSTED_RUNNER_BILLING_BLOCK_BYPASSED",
   "last_green_validation": {
     "provider": "GITHUB_ACTIONS_SELF_HOSTED_GCP",
     "workflow": "Verify MedicalChannelAI",
-    "run_number": 1345,
-    "head": "e68cff21c2f2b55f70efe4817af685f1c8b68ffc",
+    "run_number": 1351,
+    "head": "b4b41579d70648167566175c307df0a1a49f79b7",
     "result": "SUCCESS",
     "runner_name": "medicalchannelai-gcp-1",
     "system_python": "3.13.7",
     "node": "24.20.0",
-    "python_contract_tests": 470,
+    "python_contract_tests": 475,
     "prebuild": true,
     "pipeline_and_contract_tests": true,
     "typescript_typecheck": true,
@@ -31,11 +31,11 @@
     "vercel_preview_generated": false
   },
   "current_runtime_candidate_validation": {
-    "head": "e68cff21c2f2b55f70efe4817af685f1c8b68ffc",
+    "head": "b4b41579d70648167566175c307df0a1a49f79b7",
     "result": "SUCCESS",
-    "run_number": 1345,
+    "run_number": 1351,
     "repository_steps_executed": true,
-    "interpretation": "The GCP self-hosted runner executed Checkout, system Python, Node setup, npm ci, full prebuild, 470 Python contract tests, TypeScript typecheck, Vite production build and ranking summary successfully."
+    "interpretation": "The GCP self-hosted runner executed Checkout, system Python, Node setup, npm ci, full prebuild, 475 Python contract tests, TypeScript typecheck, Vite production build and ranking summary successfully, including the new server-side WON/LOST transition review guard."
   },
   "historical_github_hosted_runner_block": {
     "observed_failed_start_runs": [1297, 1299, 1303, 1307, 1327, 1331, 1338, 1340, 1342],
@@ -51,7 +51,7 @@
     "self_hosted_runner_labels": ["self-hosted", "linux", "x64", "medicalchannelai-ci"],
     "setup_python_removed_for_ubuntu_25_10": true,
     "npm_actions_cache_upload_disabled": true,
-    "note": "The GCP VM uses its system Python because actions/setup-python had no Python 3.12 build for Ubuntu 25.10. Node 24 remains installed through actions/setup-node."
+    "note": "The GCP VM uses system Python because actions/setup-python had no Python 3.12 build for Ubuntu 25.10. Node 24 remains installed through actions/setup-node. The runner workspace is cleaned by actions/checkout before each job."
   },
   "vercel_latest_observed_deployment": {
     "commit": "ddd965f132343b0885f91e30e13a6b8fc2157afa",
@@ -76,17 +76,14 @@
     "current_head_real_http_post_verified": false,
     "note": "Historical AI runtime evidence is not current-HEAD acceptance. Current branch Preview is intentionally disabled."
   },
-  "latest_changes_validation_status": "FULL_VERIFY_GREEN_ON_GCP_SELF_HOSTED_RUNNER; PREVIEW_INTENTIONALLY_DISABLED",
+  "latest_changes_validation_status": "FULL_VERIFY_1351_GREEN_ON_GCP_SELF_HOSTED_RUNNER; SERVER_OUTCOME_GUARD_GREEN; PREVIEW_INTENTIONALLY_DISABLED",
   "production_observation": {
     "vercel_default_domain": "https://medicalchannelai.vercel.app/",
     "vercel_project_live": false,
     "custom_domain_observation": "The reachable custom demo/production surface must not be assumed to contain current PR changes. Production promotion remains separately controlled."
   },
-  "milestone": "V0_4_1_NO_PREVIEW_GCP_SELF_HOSTED_CI_GREEN",
-  "known_incomplete_invariants": {
-    "server_won_lost_transition_review_enforced": false,
-    "detail": "UI requires bounded WON/LOST private review, but authenticated direct POST to the core follow-up mutation API can still enter WON/LOST without that review. CI is now available to harden this safely while preserving same-status free-form notes and mutation idempotency."
-  },
+  "milestone": "V0_4_1_NO_PREVIEW_PRIVATE_OUTCOME_SERVER_GUARD_GREEN",
+  "known_incomplete_invariants": {},
   "gates": {
     "canonical_fact_schema": true,
     "ccgp_verified_detail_and_events": true,
@@ -120,7 +117,10 @@
     "lost_review_never_claimed_as_public_fact": true,
     "won_requires_private_review_factor_in_ui": true,
     "won_review_never_claimed_as_public_fact": true,
-    "server_won_lost_transition_review_enforced": false,
+    "server_won_lost_transition_review_enforced": true,
+    "server_won_lost_same_status_freeform_note_allowed": true,
+    "server_won_lost_switch_requires_new_review": true,
+    "server_outcome_guard_preserves_idempotency_order": true,
     "not_fit_persistence_copy_matches_runtime_mode": true,
     "private_outcome_summary": true,
     "private_outcome_summary_current_account_only": true,
@@ -166,11 +166,11 @@
   },
   "final_validation_required": [
     "Do not generate Preview while the user's no-Preview instruction remains active.",
-    "Harden server-side WON/LOST transition review validation in web/api/private.js and run full regression on the GCP self-hosted runner.",
     "When Preview is explicitly re-enabled, deploy the exact then-current PR HEAD to Preview only and run interactive Today, Opportunity Pool, Resources and Followups acceptance.",
     "Verify explicit CONTACTED first, optional next-action reminder second, while CONTACTED remains the sales stage.",
     "Verify due-reminder acknowledgement clears only remind_at, preserves the underlying sales stage and removes the item from the due-action queue on real Preview persistence.",
     "Verify private WON/LOST/NOT_FIT review data persists across session/export without leaking into public facts or automatically altering public ranking.",
+    "Verify server-side WON/LOST transition guard rejects direct terminal writes without controlled private review on real Preview persistence.",
     "Verify terminal-result explicit reopen preserves history and removes the reopened item from current terminal statistics.",
     "Exercise Vercel collector queue, daily deep and intraday incremental runtime behavior before claiming dynamic refresh operational.",
     "Execute one real same-origin grounded AI POST only if Preview runtime AI configuration is intentionally supplied.",
