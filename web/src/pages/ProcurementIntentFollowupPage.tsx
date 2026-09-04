@@ -21,6 +21,7 @@ import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { isAuthRequiredError } from '@/services/apiConfig'
 import type { TodayActionCard } from '@/types'
+import { formatDateTime } from '@/utils/format'
 
 const GENERIC_PRODUCT_TERMS = new Set([
   '医疗设备',
@@ -33,6 +34,14 @@ const GENERIC_PRODUCT_TERMS = new Set([
   '设备采购项目',
   '医疗设备采购项目',
   '医疗器械采购项目',
+])
+
+const GENERIC_PROJECT_SUBJECTS = new Set([
+  '采购项目',
+  '医疗设备采购项目',
+  '医疗器械采购项目',
+  '设备采购项目',
+  '服务项目',
 ])
 
 function normalizeText(value: string | null | undefined): string {
@@ -62,6 +71,16 @@ function productTerms(card: TodayActionCard): string[] {
   return [...result]
 }
 
+function projectSubject(card: TodayActionCard): string | null {
+  const institution = institutionKey(card)
+  let subject = normalizeText(card.facts.project_name)
+  if (!subject) return null
+  if (institution && subject.includes(institution)) subject = subject.replace(institution, '')
+  subject = subject.replace(/^采购意向公告(?:20\d{2}年)?第?\d+号?/, '')
+  if (subject.length < 6 || GENERIC_PROJECT_SUBJECTS.has(subject)) return null
+  return subject
+}
+
 function publicationTime(card: TodayActionCard): number | null {
   if (!card.facts.publish_date) return null
   const parsed = Date.parse(card.facts.publish_date)
@@ -84,6 +103,16 @@ function matchedTerms(left: TodayActionCard, right: TodayActionCard): string[] {
   return [...matches].slice(0, 3)
 }
 
+function successorEvidence(intent: TodayActionCard, candidate: TodayActionCard) {
+  const terms = matchedTerms(intent, candidate)
+  const intentSubject = projectSubject(intent)
+  const candidateSubject = projectSubject(candidate)
+  const subjectMatch = Boolean(
+    intentSubject && candidateSubject && intentSubject === candidateSubject,
+  )
+  return { terms, subjectMatch, subject: subjectMatch ? intentSubject : null }
+}
+
 function successorCandidates(intent: TodayActionCard, cards: TodayActionCard[]) {
   const institution = institutionKey(intent)
   const intentPublished = publicationTime(intent)
@@ -96,9 +125,13 @@ function successorCandidates(intent: TodayActionCard, cards: TodayActionCard[]) 
     .map((candidate) => ({
       card: candidate,
       published: publicationTime(candidate),
-      terms: matchedTerms(intent, candidate),
+      ...successorEvidence(intent, candidate),
     }))
-    .filter((item) => item.published !== null && item.published >= intentPublished && item.terms.length > 0)
+    .filter((item) => (
+      item.published !== null &&
+      item.published >= intentPublished &&
+      (item.terms.length > 0 || item.subjectMatch)
+    ))
     .sort((left, right) => (left.published ?? 0) - (right.published ?? 0))
     .slice(0, 3)
 }
@@ -123,7 +156,14 @@ function phaseLabel(card: TodayActionCard): string {
   return '未结构化出预计采购月份，持续观察'
 }
 
-function phaseActions(card: TodayActionCard): string[] {
+function phaseActions(card: TodayActionCard, hasSuccessor: boolean): string[] {
+  if (hasSuccessor) {
+    return [
+      '已出现满足保守关联规则的后续正式商机候选，先打开正式公告核对采购单位、项目主题、项目编号和截止时间。',
+      '核对可参与条件、厂家/渠道资源、授权或维保资质、文件获取方式，并按正式公告的报名/响应/投标窗口执行。',
+      '只有人工核对确认后再记录实际业务动作；候选关联本身不等于官方确认“采购意向与正式项目为同一项目”。',
+    ]
+  }
   const phase = procurementPhase(card)
   if (phase === 'AFTER') {
     return [
@@ -151,6 +191,19 @@ function phaseActions(card: TodayActionCard): string[] {
     '确认厂家/渠道资源和产品匹配，但不要自行推断正式采购时间。',
     '持续观察后续正式公告，并由用户决定是否设置下一次检查节点。',
   ]
+}
+
+function formalDeadlineSummary(card: TodayActionCard): string | null {
+  const labels: string[] = []
+  if (card.facts.registration_deadline) {
+    labels.push(`报名截止 ${formatDateTime(card.facts.registration_deadline) ?? card.facts.registration_deadline}`)
+  } else if (card.facts.registration_deadline_date) {
+    labels.push(`报名截止日期 ${card.facts.registration_deadline_date}（未公布具体时间）`)
+  }
+  if (card.facts.bid_deadline) {
+    labels.push(`投标/响应截止 ${formatDateTime(card.facts.bid_deadline) ?? card.facts.bid_deadline}`)
+  }
+  return labels.length > 0 ? labels.join(' · ') : null
 }
 
 function telHref(value: string | null | undefined): string | null {
@@ -199,6 +252,8 @@ export function ProcurementIntentFollowupPage() {
       .filter((card) => isPreMarketSignal(card.facts.lifecycle_stage, card.recommendation_mode))
       .map((intent) => ({ intent, successors: successorCandidates(intent, cards) }))
       .sort((left, right) => {
+        const successorDiff = Number(right.successors.length > 0) - Number(left.successors.length > 0)
+        if (successorDiff !== 0) return successorDiff
         const phaseDiff = phaseOrder(left.intent) - phaseOrder(right.intent)
         if (phaseDiff !== 0) return phaseDiff
         return (publicationTime(right.intent) ?? 0) - (publicationTime(left.intent) ?? 0)
@@ -250,7 +305,7 @@ export function ProcurementIntentFollowupPage() {
           <div>
             <h1 className="text-lg font-semibold text-slate-900">采购意向跟进</h1>
             <p className="mt-1 text-[12px] leading-5 text-slate-600">
-              系统只用已核验公开事实做保守关联：同一采购单位、明确产品重合、后续公告发布时间不早于采购意向。关联结果只是“可能承接的后续项目”，不是官方声明为同一项目，最终仍需人工核对项目编号、科室、产品和公告原文。关联候选不会改变公开优先级或中标判断。
+              系统只用已核验公开事实做保守关联：同一采购单位、后续公告发布时间不早于采购意向，并且结构化产品重合，或去掉采购单位和采购意向公告前缀后的项目主题精确一致。关联结果只是“可能承接的后续项目”，不是官方声明为同一项目，最终仍需人工核对项目编号、科室、产品和公告原文。关联候选不会改变公开优先级或中标判断。
             </p>
           </div>
         </div>
@@ -261,7 +316,7 @@ export function ProcurementIntentFollowupPage() {
         const expectedWindow = expectedProcurementWindowText(intent.facts.quality_flags)
         const followed = intent.followup_status !== 'NEW'
         const followBusy = followBusyId === intent.opportunity_id
-        const actions = phaseActions(intent)
+        const actions = phaseActions(intent, successors.length > 0)
         const publicPhone = intent.facts.official_contact?.phone?.trim() || null
         const phoneHref = telHref(publicPhone)
         return (
@@ -278,6 +333,11 @@ export function ProcurementIntentFollowupPage() {
                 <p className="mt-1 text-[12px] leading-5 text-slate-600">
                   {expectedWindow ? `官方预计采购时间：${expectedWindow} · ` : ''}{phaseLabel(intent)}
                 </p>
+                {successors.length > 0 ? (
+                  <p className="mt-1 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                    已出现可能的正式窗口 · 需人工核对
+                  </p>
+                ) : null}
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -315,14 +375,14 @@ export function ProcurementIntentFollowupPage() {
               </div>
             </div>
 
-            <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-3">
-              <p className="text-[12px] font-semibold text-amber-950">当前建议动作</p>
-              <ol className="mt-1.5 space-y-1 text-[11px] leading-5 text-amber-950">
+            <div className={`mt-3 rounded-xl border px-3 py-3 ${successors.length > 0 ? 'border-emerald-100 bg-emerald-50/60' : 'border-amber-100 bg-amber-50/60'}`}>
+              <p className={`text-[12px] font-semibold ${successors.length > 0 ? 'text-emerald-950' : 'text-amber-950'}`}>当前建议动作</p>
+              <ol className={`mt-1.5 space-y-1 text-[11px] leading-5 ${successors.length > 0 ? 'text-emerald-950' : 'text-amber-950'}`}>
                 {actions.map((action, index) => (
                   <li key={action}>{index + 1}. {action}</li>
                 ))}
               </ol>
-              {phoneHref ? (
+              {phoneHref && successors.length === 0 ? (
                 <p className="mt-2 text-[10px] leading-4 text-amber-800">
                   “公告公开电话”仅来自已核验公开页面。点击拨号不会自动把跟进状态改成“已联系”；实际沟通结果仍由用户明确确认。
                 </p>
@@ -334,34 +394,43 @@ export function ProcurementIntentFollowupPage() {
                 <SearchCheck className="h-4 w-4 text-teal-700" />
                 <p className="text-[12px] font-semibold text-slate-800">
                   {successors.length > 0
-                    ? `发现 ${successors.length} 条可能的后续正式商机`
+                    ? `已出现 ${successors.length} 条可能的正式窗口（需核对）`
                     : '当前未发现满足保守关联规则的后续正式商机'}
                 </p>
               </div>
               {successors.length > 0 ? (
                 <div className="mt-2 space-y-2">
-                  {successors.map(({ card, terms }) => (
-                    <Link
-                      key={card.opportunity_id}
-                      to={`/opportunity/${encodeURIComponent(card.opportunity_id)}`}
-                      className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-200 hover:bg-teal-50/40"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-medium leading-5 text-slate-900">
-                          {card.facts.project_name ?? '正式项目名称未提供'}
-                        </p>
-                        <p className="mt-1 text-[11px] leading-5 text-slate-500">
-                          匹配依据：同一采购单位 · 产品重合 {terms.join('、')}
-                          {card.facts.publish_date ? ` · 发布 ${card.facts.publish_date}` : ''}
-                        </p>
-                      </div>
-                      <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-teal-700" />
-                    </Link>
-                  ))}
+                  {successors.map(({ card, terms, subjectMatch, subject }) => {
+                    const deadline = formalDeadlineSummary(card)
+                    const basis = subjectMatch
+                      ? `项目主题精确一致${subject ? `「${subject}」` : ''}`
+                      : `产品重合 ${terms.join('、')}`
+                    return (
+                      <Link
+                        key={card.opportunity_id}
+                        to={`/opportunity/${encodeURIComponent(card.opportunity_id)}`}
+                        className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-200 hover:bg-teal-50/40"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-medium leading-5 text-slate-900">
+                            {card.facts.project_name ?? '正式项目名称未提供'}
+                          </p>
+                          <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                            匹配依据：同一采购单位 · {basis}
+                            {card.facts.publish_date ? ` · 发布 ${card.facts.publish_date}` : ''}
+                          </p>
+                          {deadline ? (
+                            <p className="mt-1 text-[11px] font-semibold leading-5 text-rose-700">{deadline}</p>
+                          ) : null}
+                        </div>
+                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-teal-700" />
+                      </Link>
+                    )
+                  })}
                 </div>
               ) : (
                 <p className="mt-2 text-[11px] leading-5 text-slate-500">
-                  这不代表项目取消或没有后续。可能是正式公告尚未发布、当前公开源尚未覆盖，或后续公告产品字段不足以安全自动关联。继续监控时不要把“未发现关联”当成业务结论。
+                  这不代表项目取消或没有后续。可能是正式公告尚未发布、当前公开源尚未覆盖，或后续公告产品字段不足且项目主题也无法精确一致。继续监控时不要把“未发现关联”当成业务结论。
                 </p>
               )}
             </div>
