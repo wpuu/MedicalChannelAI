@@ -30,6 +30,7 @@ interface FollowupCardProps {
   onChangeStatus: (status: FollowupStatus) => void
   onAddNote?: (note: string) => Promise<boolean>
   onNotFit: () => void
+  onLost: () => void
   onRemind: () => void
   readOnly?: boolean
 }
@@ -39,6 +40,7 @@ export function FollowupCard({
   onChangeStatus,
   onAddNote,
   onNotFit,
+  onLost,
   onRemind,
   readOnly = false,
 }: FollowupCardProps) {
@@ -95,6 +97,10 @@ export function FollowupCard({
                 onClick={() => {
                   if (status === 'NOT_FIT') {
                     onNotFit()
+                    return
+                  }
+                  if (status === 'LOST') {
+                    onLost()
                     return
                   }
                   onChangeStatus(status)
