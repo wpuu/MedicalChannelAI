@@ -39,7 +39,7 @@ class FollowedScalingTests(unittest.TestCase):
         self.assertIn("加载更早跟进", page)
         self.assertIn("statusIndex.length", page)
         self.assertIn("setNextOffset(page.offset + 100)", page)
-        self.assertIn("搜索仅覆盖已加载详情", page)
+        self.assertIn("搜索与行动排序仅覆盖已加载详情", page)
 
 
 if __name__ == "__main__":
