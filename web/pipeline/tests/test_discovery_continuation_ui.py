@@ -17,8 +17,9 @@ class DiscoveryContinuationUiTests(unittest.TestCase):
         self.findings = (WEB_ROOT / 'src' / 'services' / 'discoveryContinuationFindings.ts').read_text(encoding='utf-8')
 
     def test_radar_route_mounts_shared_workspace_around_both_surfaces(self):
-        self.assertIn('DiscoveryRadarRoute', self.app)
-        self.assertIn('path="/radar" element={<DiscoveryRadarRoute />}', self.app)
+        self.assertIn('const DiscoveryRadarRoute = lazy(() =>', self.app)
+        self.assertIn("import('@/pages/DiscoveryRadarRoute')", self.app)
+        self.assertIn('path="/radar" element={lazyPage(<DiscoveryRadarRoute />)}', self.app)
         self.assertIn('<DiscoveryWorkspaceProvider>', self.route)
         self.assertIn('<DiscoveryRadarPage />', self.route)
         self.assertIn('<DiscoveryContinuationDashboard />', self.route)
