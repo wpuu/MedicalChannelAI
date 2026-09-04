@@ -32,6 +32,17 @@ class FrontendDeliveryPressureTests(unittest.TestCase):
         self.assertIn("<Suspense fallback={<LoadingState />}", app)
         self.assertNotIn("import { OpportunityPoolPage } from '@/pages/OpportunityPoolPage'", app)
 
+    def test_pilot_bundle_does_not_eagerly_import_trial_and_mock_services(self) -> None:
+        services = (WEB_ROOT / "src" / "services" / "index.ts").read_text(encoding="utf-8")
+        self.assertIn("import { GroundedApiTodayActionsService }", services)
+        self.assertIn("import('./RuntimeTrialTodayActionsService')", services)
+        self.assertIn("import('./StaticSnapshotTodayActionsService')", services)
+        self.assertIn("import('./MockTodayActionsService')", services)
+        self.assertNotIn("import { MockTodayActionsService }", services)
+        self.assertNotIn("import { RuntimeTrialTodayActionsService }", services)
+        self.assertNotIn("import { StaticSnapshotTodayActionsService }", services)
+        self.assertIn("class DeferredTodayActionsService implements TodayActionsService", services)
+
 
 if __name__ == "__main__":
     unittest.main()
