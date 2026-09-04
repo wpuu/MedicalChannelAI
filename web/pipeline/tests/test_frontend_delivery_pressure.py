@@ -6,6 +6,8 @@ from pathlib import Path
 
 WEB_ROOT = Path(__file__).resolve().parents[2]
 
+# Keep this suite lightweight: production bundle size itself is measured by Full Verify.
+
 
 class FrontendDeliveryPressureTests(unittest.TestCase):
     def test_production_build_keeps_hashed_assets_instead_of_single_html(self) -> None:
