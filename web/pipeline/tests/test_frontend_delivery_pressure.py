@@ -21,15 +21,17 @@ class FrontendDeliveryPressureTests(unittest.TestCase):
         values = {item["key"].lower(): item["value"] for item in asset_headers.get("headers", [])}
         self.assertIn("immutable", values.get("cache-control", "").lower())
 
-    def test_heavy_secondary_routes_are_lazy_but_today_stays_eager(self) -> None:
+    def test_heavy_secondary_routes_and_login_are_lazy_but_today_stays_eager(self) -> None:
         app = (WEB_ROOT / "src" / "App.tsx").read_text(encoding="utf-8")
         self.assertIn("import { TodayPage } from '@/pages/TodayPage'", app)
+        self.assertIn("const LoginPage = lazy(() =>", app)
         self.assertIn("const DiscoveryRadarRoute = lazy(() =>", app)
         self.assertIn("const OpportunityPoolPage = lazy(() =>", app)
         self.assertIn("const OpportunityDetailPage = lazy(() =>", app)
         self.assertIn("const PilotResourcesPage = lazy(() =>", app)
         self.assertIn("const FollowedPage = lazy(() =>", app)
         self.assertIn("<Suspense fallback={<LoadingState />}", app)
+        self.assertNotIn("import { LoginPage } from '@/pages/LoginPage'", app)
         self.assertNotIn("import { OpportunityPoolPage } from '@/pages/OpportunityPoolPage'", app)
 
     def test_pilot_bundle_does_not_eagerly_import_trial_and_mock_services(self) -> None:
