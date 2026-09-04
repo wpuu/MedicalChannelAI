@@ -17,6 +17,7 @@ import type {
 import type { TodayActionsLoadOptions, TodayActionsService } from './TodayActionsService'
 
 const COVERAGE_WARNING = '当前处于天津 Pilot 阶段，公开数据覆盖持续扩展中。'
+const MUTATION_REUSE_TTL_MS = 5_000
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
   'model_requests',
@@ -422,7 +423,10 @@ function applyMutationToToday(
 export class ApiTodayActionsService implements TodayActionsService {
   private readonly baseUrl: string
   private latestToday: TodayActionsResponse | null = null
-  private pendingTodayAfterMutation: TodayActionsResponse | null = null
+  private pendingTodayAfterMutation: {
+    value: TodayActionsResponse
+    expiresAt: number
+  } | null = null
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl.replace(/\/+$/, '')
@@ -463,11 +467,11 @@ export class ApiTodayActionsService implements TodayActionsService {
   }
 
   async getTodayActions(_options?: TodayActionsLoadOptions): Promise<TodayActionsResponse> {
-    if (this.pendingTodayAfterMutation) {
-      const pending = this.pendingTodayAfterMutation
-      this.pendingTodayAfterMutation = null
-      this.latestToday = pending
-      return pending
+    const pending = this.pendingTodayAfterMutation
+    this.pendingTodayAfterMutation = null
+    if (pending && pending.expiresAt >= Date.now()) {
+      this.latestToday = pending.value
+      return pending.value
     }
 
     const data = await this.requestJson<TodayActionsPublicResponse>('/today')
@@ -531,7 +535,10 @@ export class ApiTodayActionsService implements TodayActionsService {
     if (this.latestToday) {
       const next = applyMutationToToday(this.latestToday, state)
       this.latestToday = next
-      this.pendingTodayAfterMutation = next
+      this.pendingTodayAfterMutation = {
+        value: next,
+        expiresAt: Date.now() + MUTATION_REUSE_TTL_MS,
+      }
     }
   }
 
