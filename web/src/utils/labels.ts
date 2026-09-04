@@ -45,6 +45,17 @@ export const LOST_REASONS = [
   '其他',
 ] as const
 
+export const WON_REASONS = [
+  '产品或参数匹配',
+  '厂家/授权资源有优势',
+  '医院关系或沟通推进有效',
+  '价格或商务条件有优势',
+  '介入时机合适',
+  '投标/响应执行到位',
+  '方案与客户需求匹配',
+  '其他',
+] as const
+
 export const PRIORITY_COMPONENT_LABEL: Record<string, string> = {
   PRODUCT_EXECUTION_CAPABILITY: '产品执行能力',
   RELATIONSHIP: '医院关系',
