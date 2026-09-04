@@ -72,8 +72,11 @@ class TodayLightResponseTests(unittest.TestCase):
             "options?.hydrateFollowups === false ? this.fullPool : this.primary",
             self.services,
         )
-        self.assertIn("return this.primary.updateFollowup(id, input)", self.services)
+        self.assertIn("await this.primary.updateFollowup(id, input)", self.services)
         self.assertIn("return this.primary.getOpportunity(id)", self.services)
+        self.assertIn("private primaryHasFormalNudge = false", self.services)
+        self.assertIn("formal_candidates_needing_action", self.services)
+        self.assertIn("this.primary = new GroundedApiTodayActionsService(this.normalizedBaseUrl)", self.services)
 
     def test_opportunity_pool_keeps_explicit_full_pool_load_profile(self) -> None:
         self.assertIn(
