@@ -5,10 +5,12 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { LoadingState } from '@/components/shared/PageStates'
 import { ToastProvider } from '@/context/ToastContext'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
-import { LoginPage } from '@/pages/LoginPage'
 import { TodayPage } from '@/pages/TodayPage'
 import { isApiMode } from '@/services/apiConfig'
 
+const LoginPage = lazy(() =>
+  import('@/pages/LoginPage').then((module) => ({ default: module.LoginPage })),
+)
 const DiscoveryRadarRoute = lazy(() =>
   import('@/pages/DiscoveryRadarRoute').then((module) => ({ default: module.DiscoveryRadarRoute })),
 )
@@ -45,7 +47,7 @@ export default function App() {
         <Routes>
           <Route
             path="/login"
-            element={isApiMode ? <LoginPage /> : <Navigate to="/today" replace />}
+            element={isApiMode ? lazyPage(<LoginPage />) : <Navigate to="/today" replace />}
           />
           <Route element={<RequirePilotSession />}>
             <Route element={<AppLayout />}>
