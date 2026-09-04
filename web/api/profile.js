@@ -21,6 +21,18 @@ const NOT_FIT_REASON_CODES = new Set([
   'AMOUNT_TOO_SMALL', 'PROJECT_TOO_LATE', 'COMPETITOR_LOCKED_CUSTOMER_JUDGMENT',
   'DEPARTMENT_OUT_OF_SCOPE', 'REGION_OUT_OF_SCOPE', 'RENTAL_NOT_SUPPORTED', 'OTHER',
 ])
+const WON_REASON_LABEL_TO_CODE = new Map([
+  ['产品或参数匹配', 'PRODUCT_OR_SPEC_MATCH'],
+  ['厂家/授权资源有优势', 'MANUFACTURER_OR_AUTHORIZATION_ADVANTAGE'],
+  ['医院关系或沟通推进有效', 'RELATIONSHIP_OR_COMMUNICATION_EFFECTIVE'],
+  ['价格或商务条件有优势', 'PRICE_OR_COMMERCIAL_ADVANTAGE'],
+  ['介入时机合适', 'INTERVENTION_TIMING_GOOD'],
+  ['投标/响应执行到位', 'BID_OR_RESPONSE_EXECUTION_STRONG'],
+  ['方案与客户需求匹配', 'SOLUTION_DEMAND_MATCH'],
+  ['其他', 'OTHER'],
+])
+const WON_REASON_CODES = new Set(WON_REASON_LABEL_TO_CODE.values())
+const WON_REASON_NOTE_PREFIX = '成交复盘（当前用户判断）：'
 const LOST_REASON_LABEL_TO_CODE = new Map([
   ['价格/报价竞争失败', 'PRICE_OR_QUOTE_LOST'],
   ['产品或参数不匹配', 'PRODUCT_OR_SPEC_MISMATCH'],
@@ -218,6 +230,13 @@ function recognizedOutcomeReason(status, reason, note) {
   if (status === 'NOT_FIT') {
     return structured && NOT_FIT_REASON_CODES.has(structured) ? structured : null
   }
+  if (status === 'WON') {
+    if (structured && WON_REASON_CODES.has(structured)) return structured
+    const winNote = cleanText(note, 2000)
+    if (!winNote || !winNote.startsWith(WON_REASON_NOTE_PREFIX)) return null
+    const label = winNote.slice(WON_REASON_NOTE_PREFIX.length).trim()
+    return WON_REASON_LABEL_TO_CODE.get(label) ?? null
+  }
   if (status !== 'LOST') return null
   if (structured && LOST_REASON_CODES.has(structured)) return structured
 
@@ -247,6 +266,8 @@ async function outcomeSummaryRoute(request, response) {
 
   try {
     const sql = privateDb()
+    const wonNotePattern = `${WON_REASON_NOTE_PREFIX}%`
+    const lostNotePattern = `${LOST_REASON_NOTE_PREFIX}%`
     const rows = await sql`
       SELECT
         f.status,
@@ -258,8 +279,11 @@ async function outcomeSummaryRoute(request, response) {
         ) AS latest_reason,
         (
           SELECT e.note FROM private_followup_events e
-          WHERE e.followup_id = f.id AND e.user_id = ${user.id} AND e.status = 'LOST'
-            AND e.note LIKE ${`${LOST_REASON_NOTE_PREFIX}%`}
+          WHERE e.followup_id = f.id AND e.user_id = ${user.id} AND e.status = f.status
+            AND (
+              (f.status = 'WON' AND e.note LIKE ${wonNotePattern}) OR
+              (f.status = 'LOST' AND e.note LIKE ${lostNotePattern})
+            )
           ORDER BY e.created_at DESC, e.id DESC LIMIT 1
         ) AS latest_note
       FROM private_followups f
@@ -276,14 +300,19 @@ async function outcomeSummaryRoute(request, response) {
     let won = 0
     let lost = 0
     let notFit = 0
+    let unclassifiedWon = 0
     let unclassifiedLost = 0
     let unclassifiedNotFit = 0
+    const wonReasons = new Map()
     const lostReasons = new Map()
     const notFitReasons = new Map()
 
     for (const row of rows) {
       if (row.status === 'WON') {
         won += 1
+        const reason = recognizedOutcomeReason('WON', row.latest_reason, row.latest_note)
+        if (reason) incrementReason(wonReasons, reason)
+        else unclassifiedWon += 1
         continue
       }
       if (row.status === 'LOST') {
@@ -311,8 +340,10 @@ async function outcomeSummaryRoute(request, response) {
       not_fit: notFit,
       decided_count: decidedCount,
       win_rate_percent: decidedCount ? Math.round((won / decidedCount) * 100) : null,
+      won_reason_counts: sortedReasonCounts(wonReasons),
       lost_reason_counts: sortedReasonCounts(lostReasons),
       not_fit_reason_counts: sortedReasonCounts(notFitReasons),
+      unclassified_won: unclassifiedWon,
       unclassified_lost: unclassifiedLost,
       unclassified_not_fit: unclassifiedNotFit,
     })
