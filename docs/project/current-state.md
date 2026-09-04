@@ -12,60 +12,66 @@ Fixed rules:
 - unsupported critical facts stay empty instead of being guessed;
 - models may classify, match, explain and recommend actions, but may not invent hospitals, projects, budgets, dates, contacts, suppliers, brands, customer relationships or win probability;
 - public intelligence and customer-private resources are separate layers;
-- target hospitals mean customer watch/focus only and never add relationship points;
+- target hospitals are watch/focus objects only and never add relationship points;
 - hospital relationships and product capabilities are used only after customer confirmation;
 - customer-private outcomes may support private review, but must not be rewritten as public facts or automatically alter public opportunity ranking.
 
 `production_ready=false`.
 
-## Current source-control and deployment boundary
+## Source-control and deployment boundary
 
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
-- Latest fully code-validated runtime HEAD: `1ccc219e13fc215b1bea25dbfc0016b1d366a935`
-- Current unvalidated runtime/test candidate HEAD: `315ce5fd97aab1994cf22c7b22a6fdd30a213713`
-- Documentation-only commits may exist above the runtime candidate; they must not be confused with a newer runtime validation point.
+- Runtime implementation baseline containing the current private outcome-review behavior: `315ce5fd97aab1994cf22c7b22a6fdd30a213713`
+- Latest fully code-validated branch HEAD: `e68cff21c2f2b55f70efe4817af685f1c8b68ffc`
+- Latest successful Verify: GitHub Actions **#1345 SUCCESS**
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR remains open, Draft and unmerged.
 - `web/vercel.json` explicitly disables automatic Vercel deployments for the active PR branch.
 - The user explicitly requires **no Preview generation and no Production changes/deployments** until that boundary is changed again.
-- Vercel was rechecked after the private outcome-review work. No deployment exists for the new result-review commits; the newest visible branch deployment still points to old commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` and is not current-HEAD validation.
-- The reachable custom demo/production surfaces must not be treated as containing current branch changes.
+- Vercel was rechecked after GCP CI migration. The newest visible deployment still points to old commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` (`dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre`, ERROR). No GCP-CI/private-outcome commits produced a Preview.
 
-Do not merge PR #6, enable the branch Preview, call Vercel deploy, or modify/promote Production without explicit product-owner approval.
+Do not merge PR #6, enable branch Preview, call Vercel deploy, or modify/promote Production without explicit product-owner approval.
 
 ## Executable validation state
 
-### Last known green code validation
+### GCP self-hosted runner is now the active private-repository CI path
 
-GitHub Actions `Verify MedicalChannelAI` run **#1281** completed successfully for runtime HEAD `1ccc219e13fc215b1bea25dbfc0016b1d366a935`.
+Private GitHub-hosted runner attempts after #1281 repeatedly failed before repository execution (`steps=[]`, no runner assignment). The same symptom was observed in another private repository, while a temporary public repository runner probe succeeded on 2026-09-04. Rather than making MedicalChannelAI public, the repository now uses a repository-scoped GCP self-hosted runner:
 
-That successful job includes:
+- runner: `medicalchannelai-gcp-1`
+- labels: `self-hosted`, `linux`, `x64`, `medicalchannelai-ci`
+- VM OS: Ubuntu 25.10 / x86_64
+- system Python used by CI: Python 3.13.7
+- Node: 24.20.0
+- Verify triggers remain `pull_request` + `workflow_dispatch`; the earlier duplicate branch-push Verify was removed.
+- GitHub Actions npm cache upload is disabled; the persistent VM can reuse its own local npm cache.
 
+`actions/setup-python` was removed because it had no Python 3.12 binary for Ubuntu 25.10. The project prebuild already supports `python3` as its first Python runtime candidate.
+
+### Latest real green validation
+
+GitHub Actions `Verify MedicalChannelAI` run **#1345** completed successfully for branch HEAD `e68cff21c2f2b55f70efe4817af685f1c8b68ffc` on the GCP self-hosted runner.
+
+The successful job executed:
+
+- Checkout;
+- system Python verification;
+- Node 24 setup;
+- `npm ci`;
+- bundled snapshot refresh;
+- **470 Python pipeline/contract tests**;
 - full prebuild verification;
-- Python pipeline/contract regression suite;
 - TypeScript `tsc --noEmit`;
 - Vite production build;
 - verified ranking summary.
 
-This is the latest code point that may be called fully CI-validated.
+The first real GCP run exposed two non-business-code problems and both were corrected before #1345:
 
-### Current runtime candidate is not yet executable-validated
+1. `actions/setup-python@v5` could not supply Python 3.12 for Ubuntu 25.10, so CI now uses the VM's system `python3`;
+2. one reminder contract test still expected a pre-refactor source-code expression even though behavior was correct; the test was updated to assert the equivalent `terminal` + `reminderAllowed` contract.
 
-Candidate `315ce5fd97aab1994cf22c7b22a6fdd30a213713` contains the newer private outcome-review / terminal-state work plus follow-up static hardening described below.
-
-Observed GitHub Actions runs after the last green point — including **#1297, #1299, #1303, #1307, #1327, #1331, #1338 and #1340**, plus explicit reruns where applicable — failed before executing repository steps. The jobs showed `steps=[]` and no assigned runner (`runner_id=0` where exposed). Therefore:
-
-- those failures are **not evidence that the code tests failed**;
-- they are also **not evidence that the current runtime candidate passed**;
-- no Checkout / Python / Node / TypeScript / Vite step actually ran in those attempts;
-- the current runtime candidate remains **pending executable CI validation**.
-
-The Verify workflow previously triggered both on branch push and PR update, producing duplicate runs for the same commit (for example push #1326 + PR #1327). Commit `33eef600e44361d438c35398f7c022efd1f624ce` removed the branch-push trigger and retained `pull_request` + `workflow_dispatch`. Subsequent commits generate one PR Verify instead of two. This reduces wasted Actions usage but did not by itself resolve the missing-runner condition.
-
-Do not upgrade `315ce5f…` to a validated head until a real Verify run executes the repository steps and succeeds.
-
-Preview generation remains intentionally disabled, so even a future CI green result will not by itself prove Vercel runtime behavior.
+Current code may therefore be called fully CI-validated at `e68cff2…`. This is build/test validation only; it does **not** constitute current-HEAD Vercel runtime acceptance because Preview remains intentionally disabled.
 
 ## Public intelligence architecture
 
@@ -79,124 +85,102 @@ Public regional intelligence is shared by source/region/opportunity version rath
 - customer-private personalization layered after public facts;
 - public and private persistence separated by scope.
 
-Current Tianjin official-source families include CCGP and multiple hospital/institution feeds, including Tianjin Medical University General Hospital, Tianjin Hospital, TEDA Hospital and Tianjin First Central Hospital feeds. Source failures remain fail-closed.
+Current Tianjin source families include CCGP and multiple hospital/institution feeds, including Tianjin Medical University General Hospital, Tianjin Hospital, TEDA Hospital and Tianjin First Central Hospital. Source failures remain fail-closed.
 
 ## Incremental collection state
 
-The active branch contains the Vercel-native daily-deep + bounded intraday incremental architecture, but it is **not accepted as running Production infrastructure** while current-HEAD runtime Preview acceptance is intentionally deferred.
+The branch contains the Vercel-native daily-deep + bounded intraday incremental architecture. Important implemented guarantees include:
 
-Important implemented guarantees include:
+1. newest same-priority official notices are verified first;
+2. selected-detail verification failure blocks partial public snapshot publication;
+3. successful partial detail work can remain source-scoped staged for retry;
+4. unresolved failed URLs remain behind a source-scoped verification barrier;
+5. authoritative deep success clears stale incremental pending/barrier state;
+6. the first incremental execution reuses one discovery pass;
+7. bounded 48-hour carryover prevents deferred URLs from disappearing forever while preserving fresh-item priority;
+8. ledger entries are individually retained/pruned and `last_seen_at` means actual index discovery;
+9. actual Queue delivery time drives verification timestamps;
+10. cross-China-business-day stale redeliveries are discarded before network fetch;
+11. deep at-least-once duplicates are classified instead of retrying forever;
+12. first intraday-chain scheduling is recoverable;
+13. source attempts are marked only after Queue acceptance;
+14. tick cadence preserves the next nominal slot and avoids backlog bursts;
+15. deep and incremental mutation paths are serialized;
+16. legacy GitHub deep fallback remains once daily plus manual dispatch.
 
-1. same-priority incremental candidates verify newest official notices first;
-2. any selected-detail verification failure blocks public snapshot publication for that source scan;
-3. successful detail work may remain internally staged so retry does not re-hit already verified official pages;
-4. unresolved failed detail URLs remain behind a source-scoped pending verification barrier and cannot leak through another source's later publish;
-5. deep authoritative success clears stale incremental pending records/barriers;
-6. first incremental execution reuses one discovery pass rather than fetching the same official index twice;
-7. a bounded 48-hour carryover backlog prevents deferred URLs from disappearing forever when capped index windows move forward;
-8. carryover receives only bounded detail capacity so fresh notices remain dominant;
-9. ledger entries are individually retained/pruned instead of growing forever with a hot cache key;
-10. `last_seen_at` means actual index discovery, not detail retry time;
-11. actual Queue delivery time, not enqueue trigger time, drives real verification timestamps;
-12. cross-China-business-day incremental source redeliveries are discarded before network fetch;
-13. deep at-least-once duplicate messages are classified as completed/superseded/stale/unsafe instead of retrying forever after a legitimate lease release;
-14. initial intraday-chain scheduling is recoverable through Queue redelivery if the first tick enqueue fails;
-15. incremental source attempts are marked only after Queue acceptance;
-16. tick cadence preserves the next nominal ten-minute slot under small Queue delivery jitter and skips backlog bursts after material delay;
-17. deep and incremental mutation paths are serialized and deep remains authoritative reconciliation;
-18. the legacy GitHub deep fallback is reduced to one automatic daily run plus manual dispatch.
-
-No Preview/runtime claims should be made for this architecture until Preview execution is explicitly allowed again and the runtime path is exercised.
+These are code/contract guarantees, not current Production-runtime acceptance while Preview is disabled.
 
 ## User-facing business closure
 
-The branch covers the main pilot loop:
+The current pilot loop is:
 
 **discover opportunity → inspect official evidence → personalize with confirmed resources → generate grounded outreach → contact → explicitly record contact → optionally arrange a concrete next action → work due-action queue → track terminal result → private outcome review**.
 
-Established closure behavior:
+Established behavior:
 
-- outreach drawer shows verified public contact information together with the grounded draft;
-- phone dialing uses safe telephone normalization, including extension handling;
-- public phone/email actions and copying outreach text do not automatically claim the customer was contacted;
-- only the explicit `已联系，记入跟进` action writes `CONTACTED`;
-- after contact is explicitly recorded, the drawer offers `先去我的跟进` or `安排下一步` rather than forcing navigation;
-- arranging a next action preserves the current sales stage and stores private `remind_at + 下次行动`;
-- reminders are independent from sales stage;
-- every new UI-created reminder requires a concrete next action, with common presets to reduce input cost;
-- due reminder acknowledgement clears the reminder only, not the underlying sales stage;
-- `我的跟进` prioritizes due items, then future scheduled items, then other active/monitor/closed records;
-- private structured notes are displayed semantically where implemented, while old generic reminder notes do not occupy the action view.
+- copying outreach, tapping phone or tapping email does not automatically write `CONTACTED`;
+- only explicit `已联系，记入跟进` writes CONTACTED;
+- after contact, the user may go to `我的跟进` or explicitly arrange a next action;
+- reminders are independent from sales stage and new UI reminders require a concrete next action;
+- reminder acknowledgement clears the reminder only;
+- `我的跟进` prioritizes due → scheduled → other active → monitor → closed items;
+- `WON`, `LOST`, `NOT_FIT`, `ARCHIVED` are protected from casual dropdown overwrite and require explicit reopen confirmation;
+- `ARCHIVED` is a workflow terminal state but is not counted as a WON/LOST/NOT_FIT outcome.
 
-### Private terminal outcome review — current runtime candidate
+### Private outcome review
 
-The newer runtime candidate adds a private result-review layer without adding a database table or a new Vercel Function:
+The branch contains a private result-review layer without a new database table or new Vercel Function:
 
-- outcome summary reuses the existing `profile.js` serverless function via `profile?route=outcome-summary`;
-- summary reads only current-account `private_followups` / `private_followup_events` rows and never reads public opportunity facts to infer why a result happened;
-- `WON / LOST / NOT_FIT` counts and decided win rate are available in `我的跟进` as a non-blocking private card;
-- the summary fails closed instead of returning truncated statistics if the terminal-result index exceeds the bounded 5000-record limit;
-- frontend parsing also fails closed if reason codes are duplicated or if `structured reason counts + unclassified` do not exactly equal the corresponding WON/LOST/NOT_FIT total;
-- `LOST` requires a bounded private loss-reason selection in the UI and explicitly states that it is the user's commercial judgment, not a hospital/procurement public fact;
-- `WON` requires a bounded private win-review factor in the UI; the selected factor is saved atomically with `WON` through the existing follow-up event/note path;
-- historical WON/LOST records whose reason cannot be safely reconstructed are counted as `历史未结构化` rather than guessed;
-- outcome parsing recognizes only fixed private prefixes / bounded labels and does not mine arbitrary free-form notes for supposed causes;
-- `NOT_FIT` continues to use its existing structured reason field;
-- terminal states `WON / LOST / NOT_FIT / ARCHIVED` are protected from casual dropdown overwrite; reopening requires explicit confirmation and records a new `REVIEWING` event while preserving old history;
-- `ARCHIVED` is locked for reminder/dropdown purposes but is **not** presented as an outcome and is **not** counted in private outcome statistics;
-- reopening an outcome removes it from current terminal statistics because the summary reads current `private_followups.status`, not historical event count;
-- account export already includes follow-up event `reason`/notes, and account deletion cascades through the same private follow-up/event ownership chain;
-- the result-review card treats fewer than **5 decided outcomes** as insufficient to infer a business pattern; larger samples still generate only an artificial-review prompt, never a causal claim;
-- private outcome statistics do **not** write into public facts and do **not** automatically modify public opportunity ranking.
+- outcome summary reuses `profile.js?route=outcome-summary`;
+- summary reads current-account `private_followups` / `private_followup_events` only;
+- it reports WON / LOST / NOT_FIT counts and decided win rate;
+- over 5000 terminal records fails closed rather than returning truncated statistics;
+- client parsing rejects duplicate reason codes and inconsistent reason totals;
+- WON and LOST UI flows require bounded private review factors and explicitly state these are current-user commercial judgments, not hospital/procurement public facts;
+- historical free-form/unrecognized records remain `历史未结构化` rather than being guessed;
+- NOT_FIT uses its existing structured reason field;
+- reopened outcomes stop counting as current terminal outcomes because the summary reads current follow-up state;
+- account export includes follow-up event reason/note and account deletion cascades through the private event chain;
+- fewer than 5 decided outcomes are treated as too small a sample to infer a business rule;
+- private outcome statistics do not write public facts and do not automatically alter public opportunity ranking.
 
-### Known server-side hardening gap
+### Known incomplete server invariant
 
-The core mutation API in `web/api/private.js` already validates `NOT_FIT` reason server-side, but WON/LOST review requirements are currently enforced primarily by the UI. An authenticated caller could still craft a direct follow-up POST that enters `WON` or `LOST` without the controlled private review note.
+`web/api/private.js` validates NOT_FIT reason server-side, but WON/LOST controlled-review requirements are still primarily UI-enforced. An authenticated caller can currently craft a direct follow-up POST that transitions into WON or LOST without the controlled private review note.
 
-This is a **known incomplete invariant**, not considered finished. The intended hardening is:
+This remains an explicit incomplete item. The intended hardening is:
 
-- require a recognized WON/LOST private review only when transitioning into that terminal status;
-- continue allowing later same-status free-form notes;
-- require a new matching review when changing between terminal outcome types;
-- preserve mutation idempotency, reminders, history and historical-snapshot behavior.
+- require a recognized WON/LOST private review when transitioning into or switching to that terminal outcome;
+- allow later same-status free-form notes;
+- require a new matching review when switching WON ↔ LOST;
+- preserve mutation idempotency, reminder clearing, history and historical public snapshot behavior.
 
-Because `private.js` is a large core write route and current GitHub Actions cannot execute any repository steps, this server mutation rewrite is intentionally deferred until executable CI is available or an equivalently safe validation path exists.
+CI is now available to validate this change safely; the next core-code gate is to implement this invariant and rerun the full GCP Verify.
 
 ## Grounded AI boundary
 
 The server owns verified public facts used for AI actions. Browser-provided procurement facts are not trusted. Customer-private context is account scoped, server-side sanitized and does not become public fact.
 
-The server/runtime guards include:
-
-- verified opportunity lookup;
-- runtime deadline/actionability checks;
-- stale/invalid snapshot automation guards;
-- provider/model/key details kept server-side;
-- output grounding checks;
-- no inference of private relationship from public contacts or target hospitals.
-
-Current-HEAD real same-origin AI POST on a Vercel runtime is **not re-accepted**, because current branch Preview is intentionally disabled. Do not infer runtime success from CI compilation.
+Current-HEAD real same-origin AI POST on Vercel is not re-accepted because current branch Preview is intentionally disabled. Do not infer runtime success from CI compilation.
 
 ## Remaining acceptance gates
 
 While the no-Preview boundary remains active:
 
-1. obtain a real GitHub Actions runner and execute the full Verify workflow against the current runtime candidate or a descendant containing the same runtime code;
-2. fix any actual test/type/build regression found by that real run;
-3. after executable CI is restored, harden server-side WON/LOST transition review validation in `private.js` and re-run the full regression suite;
-4. only after a real success may the latest fully code-validated runtime HEAD advance beyond `1ccc219…`;
-5. continue code/test/data-boundary/business-closure work without making Vercel runtime claims.
+1. harden server-side WON/LOST transition-review validation in `web/api/private.js`;
+2. run the full GCP self-hosted Verify and keep the branch green;
+3. continue code/test/data-boundary/business-closure work without making Vercel runtime claims.
 
-When the user explicitly allows Preview again, the runtime acceptance should include:
+When the user explicitly allows Preview again:
 
 1. deploy the exact then-current PR HEAD to Preview only;
 2. verify Today / Opportunity Pool / detail / Resources / Followups interactively;
-3. run the protected Pilot smoke against Preview, proving explicit CONTACTED first and optional next-action reminder second;
-4. verify due-reminder acknowledgement preserves sales stage and removes the item from the due-action queue;
-5. verify private WON/LOST/NOT_FIT outcome review persists across session/export and never leaks into public facts;
-6. verify terminal-result reopen preserves history while removing the item from current terminal statistics;
-7. verify collector runtime/queue/deep-to-incremental behavior and snapshot freshness on real Vercel runtime state;
-8. verify one real same-origin grounded AI POST only if Preview runtime AI configuration is intentionally supplied;
-9. inspect custom-domain/Production promotion path separately before any production action.
+3. run protected Pilot smoke: explicit CONTACTED first, optional next action second;
+4. verify reminder acknowledgement preserves sales stage and clears only reminder state;
+5. verify private WON/LOST/NOT_FIT outcome review persists and never leaks into public facts;
+6. verify terminal reopen preserves history and updates current outcome statistics correctly;
+7. verify collector Queue/daily-deep/intraday runtime behavior and snapshot freshness;
+8. verify one real same-origin grounded AI POST only if Preview AI configuration is intentionally supplied;
+9. inspect custom-domain/Production promotion separately before any production action.
 
 PR #6 must remain Draft until those gates and product-owner acceptance are complete.
