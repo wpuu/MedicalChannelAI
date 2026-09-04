@@ -1,5 +1,8 @@
 import privateCoreHandler from './_privateCore.js'
-import { procurementIntentFollowupSummary } from './_procurementIntentFollowup.js'
+import {
+  procurementIntentFollowupSummary,
+  procurementIntentSuccessorPairs,
+} from './_procurementIntentFollowup.js'
 
 function firstQuery(request, key) {
   const raw = request.query?.[key]
@@ -12,6 +15,36 @@ function shouldProjectLightToday(request) {
   return firstQuery(request, 'include_pool') !== '1'
 }
 
+function hasExplicitUserHandling(card) {
+  if (!card || typeof card !== 'object' || Array.isArray(card)) return false
+  const status = typeof card.followup_status === 'string' ? card.followup_status.trim() : ''
+  return Boolean((status && status !== 'NEW') || card.remind_at)
+}
+
+function procurementIntentDisplaySummary(fullPool) {
+  const publicSummary = procurementIntentFollowupSummary(fullPool)
+  const pairs = procurementIntentSuccessorPairs(fullPool)
+  const cardsById = new Map(
+    (Array.isArray(fullPool) ? fullPool : [])
+      .filter((card) => card && typeof card === 'object' && !Array.isArray(card))
+      .map((card) => [String(card.opportunity_id || ''), card]),
+  )
+  const formalCandidatesNeedingAction = new Set()
+  for (const pair of pairs) {
+    const candidateId = String(pair.candidate_opportunity_id || '')
+    if (!candidateId) continue
+    if (!hasExplicitUserHandling(cardsById.get(candidateId))) {
+      formalCandidatesNeedingAction.add(candidateId)
+    }
+  }
+  return {
+    ...publicSummary,
+    // Account-private display state only. It suppresses repeated homepage nudges
+    // after an explicit follow-up decision, but never changes public lineage.
+    formal_candidates_needing_action: formalCandidatesNeedingAction.size,
+  }
+}
+
 function projectLightTodayPayload(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return payload
   if (payload.mode !== 'TODAY_ACTIONS') return payload
@@ -19,7 +52,7 @@ function projectLightTodayPayload(payload) {
   const { opportunity_pool: fullPool, ...lightPayload } = payload
   return {
     ...lightPayload,
-    procurement_intent_followup_summary: procurementIntentFollowupSummary(fullPool),
+    procurement_intent_followup_summary: procurementIntentDisplaySummary(fullPool),
   }
 }
 
