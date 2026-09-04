@@ -149,9 +149,11 @@ export function OpportunityDetailPage() {
       await todayActionsService.updateFollowup(card.opportunity_id, { status, ...extra })
       await load(true)
       toast(
-        historical
-          ? '历史商机的私有跟进状态已更新；公开快照保持不变'
-          : '跟进状态已更新',
+        extra?.remind_at
+          ? '提醒已设置，当前销售阶段保持不变'
+          : historical
+            ? '历史商机的私有跟进状态已更新；公开快照保持不变'
+            : '跟进状态已更新',
         'success',
       )
     } catch (cause) {
@@ -389,7 +391,10 @@ export function OpportunityDetailPage() {
         onClose={() => setRemindOpen(false)}
         onConfirm={(remindAt) => {
           setRemindOpen(false)
-          void updateStatus('MONITOR', { remind_at: remindAt })
+          void updateStatus(card.followup_status, {
+            remind_at: remindAt,
+            note: '设置下次跟进提醒；销售阶段保持不变。',
+          })
         }}
       />
       {!historical ? (
