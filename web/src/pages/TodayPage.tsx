@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Clock, Info } from 'lucide-react'
+import { Clock, Info, Radar } from 'lucide-react'
 import { ActionCard } from '@/components/today/ActionCard'
 import { DueRemindersPanel } from '@/components/today/DueRemindersPanel'
 import { MetricCards } from '@/components/today/MetricCards'
@@ -289,15 +289,28 @@ export function TodayPage() {
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>{userCoverageWarning(data.coverage_warning)}</span>
           </div>
-          {(isApiMode || isVerifiedPublicDemo) && poolCount > visibleCards.length ? (
-            <button
-              type="button"
-              onClick={() => navigate('/opportunities')}
-              className="self-start rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[12px] font-medium text-teal-800 hover:bg-teal-100"
-            >
-              查看全部 {poolCount} 条
-            </button>
-          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {(isApiMode || isVerifiedPublicDemo) ? (
+              <button
+                type="button"
+                onClick={() => navigate('/intent-followup')}
+                title="按需加载完整商机池，核查采购意向及可能的后续正式公告"
+                className="inline-flex self-start items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[12px] font-medium text-amber-800 hover:bg-amber-100"
+              >
+                <Radar className="h-3.5 w-3.5" />
+                采购意向跟进
+              </button>
+            ) : null}
+            {(isApiMode || isVerifiedPublicDemo) && poolCount > visibleCards.length ? (
+              <button
+                type="button"
+                onClick={() => navigate('/opportunities')}
+                className="self-start rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[12px] font-medium text-teal-800 hover:bg-teal-100"
+              >
+                查看全部 {poolCount} 条
+              </button>
+            ) : null}
+          </div>
         </div>
       </section>
 
