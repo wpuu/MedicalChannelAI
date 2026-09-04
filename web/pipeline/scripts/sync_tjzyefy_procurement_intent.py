@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+import time
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+PIPELINE_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PIPELINE_ROOT))
+
+from medical_channel_pipeline.state import merge_canonical_records  # noqa: E402
+from medical_channel_pipeline.tjzyefy_intent_discovery import (  # noqa: E402
+    INDEX_URL,
+    fetch_tjzyefy_page,
+    parse_tjzyefy_intent_index_html,
+    select_intent_candidates_since,
+    stable_intent_opportunity_id,
+)
+from medical_channel_pipeline.tjzyefy_procurement_intent import (  # noqa: E402
+    TjzyefyIntentParseError,
+    parse_tjzyefy_procurement_intent,
+)
+
+SHANGHAI = ZoneInfo('Asia/Shanghai')
+MIN_DETAIL_DELAY_SECONDS = 3.0
+FETCH_ATTEMPTS = 2
+RETRYABLE_HTTP_CODES = {408, 425, 429, 500, 502, 503, 504}
+UNSUPPORTED_DETAIL_CODES = {'TJZYEFY_INTENT_NON_MEDICAL'}
+
+
+def parse_as_of(value: str | None) -> datetime:
+    if not value:
+        return datetime.now(timezone.utc)
+    parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    if parsed.tzinfo is None:
+        raise ValueError('--as-of must include timezone')
+    return parsed
+
+
+def load_json_arrays(paths: list[Path]) -> list[dict]:
+    records: list[dict] = []
+    for path in paths:
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        if not isinstance(payload, list):
+            raise ValueError(f'input must contain a JSON array: {path}')
+        records.extend(payload)
+    return records
+
+
+def write_json(path: Path, payload: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def is_retryable_fetch_error(exc: Exception) -> bool:
+    message = str(exc)
+    if message == 'TJZYEFY_NETWORK_ERROR':
+        return True
+    match = re.fullmatch(r'TJZYEFY_HTTP_(\d{3})', message)
+    return bool(match and int(match.group(1)) in RETRYABLE_HTTP_CODES)
+
+
+def fetch_page_with_retry(url: str, *, delay_seconds: float, attempts: int = FETCH_ATTEMPTS) -> str:
+    if attempts < 1:
+        raise ValueError('attempts must be >= 1')
+    for attempt in range(1, attempts + 1):
+        try:
+            return fetch_tjzyefy_page(url)
+        except RuntimeError as exc:
+            if attempt >= attempts or not is_retryable_fetch_error(exc):
+                raise
+            time.sleep(delay_seconds)
+    raise AssertionError('unreachable')
+
+
+def publish_gate(*, index_discovery_succeeded: bool, unresolved_failure_count: int) -> tuple[bool, str]:
+    if not index_discovery_succeeded:
+        return False, 'INDEX_DISCOVERY_FAILED'
+    if unresolved_failure_count:
+        return False, 'SUPPORTED_OR_UNKNOWN_DETAILS_INCOMPLETE'
+    return True, 'PASS'
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description='Sync Tianjin University of Traditional Chinese Medicine Second Affiliated Hospital medical procurement-intent notices.'
+    )
+    parser.add_argument('--as-of', default=None, help='ISO-8601 timestamp with timezone; defaults to now.')
+    parser.add_argument('--lookback-days', type=int, default=30)
+    parser.add_argument('--max-candidates', type=int, default=20)
+    parser.add_argument('--delay-seconds', type=float, default=MIN_DETAIL_DELAY_SECONDS)
+    parser.add_argument('--existing-records-input', action='append', type=Path, default=[])
+    parser.add_argument('--records-output', required=True, type=Path)
+    parser.add_argument('--report-output', required=True, type=Path)
+    args = parser.parse_args()
+
+    if not 1 <= args.lookback_days <= 60:
+        raise ValueError('--lookback-days must be between 1 and 60')
+    if not 1 <= args.max_candidates <= 50:
+        raise ValueError('--max-candidates must be between 1 and 50')
+    if args.delay_seconds < MIN_DETAIL_DELAY_SECONDS:
+        raise ValueError(f'--delay-seconds must be >= {MIN_DETAIL_DELAY_SECONDS:g}')
+
+    as_of = parse_as_of(args.as_of)
+    local_date = as_of.astimezone(SHANGHAI).date()
+    start_date = local_date - timedelta(days=args.lookback_days - 1)
+    observed_at = as_of.astimezone(timezone.utc).isoformat()
+    existing_records = load_json_arrays(args.existing_records_input)
+
+    try:
+        index_html = fetch_page_with_retry(INDEX_URL, delay_seconds=args.delay_seconds)
+        discovered = parse_tjzyefy_intent_index_html(index_html)
+    except Exception as exc:
+        report = {
+            'schema_version': '0.1',
+            'observed_at': observed_at,
+            'source': 'TJZYEFY_OFFICIAL_PROCUREMENT_INTENT',
+            'index_url': INDEX_URL,
+            'publish_allowed': False,
+            'publish_gate_reason': 'INDEX_DISCOVERY_FAILED',
+            'failure_count': 1,
+            'failures': [{'stage': 'index_discovery', 'error': type(exc).__name__, 'message': str(exc)[:300]}],
+        }
+        write_json(args.report_output, report)
+        return 2
+
+    selected = select_intent_candidates_since(
+        discovered,
+        start_date=start_date,
+        end_date=local_date,
+        max_candidates=args.max_candidates,
+    )
+    new_records: list[dict] = []
+    failures: list[dict] = []
+    unsupported: list[dict] = []
+    failed_ids: list[str] = []
+
+    for candidate in selected:
+        opportunity_id = stable_intent_opportunity_id(candidate.detail_url)
+        time.sleep(args.delay_seconds)
+        try:
+            detail_html = fetch_page_with_retry(candidate.detail_url, delay_seconds=args.delay_seconds)
+            record = parse_tjzyefy_procurement_intent(
+                detail_html,
+                source_url=candidate.detail_url,
+                index_url=INDEX_URL,
+                index_published_at=candidate.published_at,
+                expected_title=candidate.title,
+                observed_at=observed_at,
+                opportunity_id=opportunity_id,
+            )
+            new_records.append(record)
+        except TjzyefyIntentParseError as exc:
+            if str(exc) in UNSUPPORTED_DETAIL_CODES:
+                unsupported.append({
+                    'opportunity_id': opportunity_id,
+                    'title': candidate.title,
+                    'url': candidate.detail_url,
+                    'reason': str(exc),
+                })
+                continue
+            failed_ids.append(opportunity_id)
+            failures.append({
+                'stage': 'verified_detail',
+                'opportunity_id': opportunity_id,
+                'title': candidate.title,
+                'url': candidate.detail_url,
+                'error': type(exc).__name__,
+                'message': str(exc)[:300],
+            })
+        except Exception as exc:
+            failed_ids.append(opportunity_id)
+            failures.append({
+                'stage': 'verified_detail',
+                'opportunity_id': opportunity_id,
+                'title': candidate.title,
+                'url': candidate.detail_url,
+                'error': type(exc).__name__,
+                'message': str(exc)[:300],
+            })
+
+    merged_records = merge_canonical_records(existing_records, new_records)
+    merged_ids = {
+        record.get('opportunity_id') for record in merged_records
+        if isinstance(record, dict) and isinstance(record.get('opportunity_id'), str)
+    }
+    unresolved_failure_ids = [opportunity_id for opportunity_id in failed_ids if opportunity_id not in merged_ids]
+    publish_allowed, publish_gate_reason = publish_gate(
+        index_discovery_succeeded=True,
+        unresolved_failure_count=len(unresolved_failure_ids),
+    )
+    report = {
+        'schema_version': '0.1',
+        'observed_at': observed_at,
+        'source': 'TJZYEFY_OFFICIAL_PROCUREMENT_INTENT',
+        'index_url': INDEX_URL,
+        'start_date': start_date.isoformat(),
+        'end_date': local_date.isoformat(),
+        'discovered_intent_count': len(discovered),
+        'selected_candidate_count': len(selected),
+        'new_verified_record_count': len(new_records),
+        'unsupported_non_medical_count': len(unsupported),
+        'unsupported': unsupported,
+        'failure_count': len(failures),
+        'failures': failures,
+        'unresolved_failure_count': len(unresolved_failure_ids),
+        'unresolved_failure_opportunity_ids': unresolved_failure_ids,
+        'merged_record_count': len(merged_records),
+        'publish_allowed': publish_allowed,
+        'publish_gate_reason': publish_gate_reason,
+        'policy': {
+            'official_index_required': True,
+            'broad_intent_discovery_then_strict_medical_detail_scope': True,
+            'non_medical_procurement_intent_is_unsupported_not_failure': True,
+            'lifecycle_is_procurement_intent_not_market_research': True,
+            'registration_deadline_never_invented': True,
+            'expected_month_window_never_converted_to_exact_date': True,
+            'failed_detail_never_replaces_existing_verified_record': True,
+            'minimum_detail_delay_seconds': args.delay_seconds,
+            'fetch_attempts': FETCH_ATTEMPTS,
+            'intraday_scheduler_enabled': False,
+        },
+    }
+    write_json(args.records_output, merged_records)
+    write_json(args.report_output, report)
+    print(
+        f'discovered={len(discovered)} selected={len(selected)} verified={len(new_records)} '
+        f'unsupported={len(unsupported)} failures={len(failures)} unresolved={len(unresolved_failure_ids)} '
+        f'gate={publish_gate_reason}'
+    )
+    return 0 if publish_allowed else 2
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
