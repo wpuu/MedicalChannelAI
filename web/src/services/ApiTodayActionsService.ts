@@ -493,6 +493,7 @@ export class ApiTodayActionsService implements TodayActionsService {
       today_limit: data.today_limit,
       today_limit_options: data.today_limit_options,
       recommendation_feedback_summary: data.recommendation_feedback_summary,
+      procurement_intent_followup_summary: data.procurement_intent_followup_summary,
       cards,
       opportunity_pool: mappedPool,
       model_requests: [],
