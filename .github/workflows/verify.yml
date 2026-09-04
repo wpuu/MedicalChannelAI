@@ -3,9 +3,6 @@ name: Verify MedicalChannelAI
 on:
   pull_request:
     branches: [main]
-  push:
-    branches:
-      - chatgpt/opportunity-ranking-v2-final
   workflow_dispatch:
 
 permissions:
