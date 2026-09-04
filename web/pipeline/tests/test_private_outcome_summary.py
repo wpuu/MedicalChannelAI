@@ -49,6 +49,14 @@ class PrivateOutcomeSummaryTests(unittest.TestCase):
         self.assertIn("if (!isApiMode) return localSummary()", self.client)
         self.assertIn("/profile?route=outcome-summary", self.client)
 
+    def test_client_rejects_duplicate_or_internally_inconsistent_reason_counts(self) -> None:
+        self.assertIn("const seen = new Set<string>()", self.client)
+        self.assertIn("seen.has(row.code)", self.client)
+        self.assertIn("function reasonCountTotal", self.client)
+        self.assertIn("reasonCountTotal(wonReasonCounts) + root.unclassified_won !== root.won", self.client)
+        self.assertIn("reasonCountTotal(lostReasonCounts) + root.unclassified_lost !== root.lost", self.client)
+        self.assertIn("reasonCountTotal(notFitReasonCounts) + root.unclassified_not_fit !== root.not_fit", self.client)
+
     def test_followed_page_surfaces_private_review_without_claiming_public_learning(self) -> None:
         self.assertIn("<OutcomeSummaryCard />", self.followed)
         self.assertIn("只统计当前账号已结束的私有跟进结果", self.card)
