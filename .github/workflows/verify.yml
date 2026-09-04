@@ -128,7 +128,6 @@ jobs:
             --report-output "$probe_dir/report.json"
 
           python3 - "$probe_dir/records.json" "$probe_dir/report.json" <<'PY'
-          import base64
           import json
           import sys
           from pathlib import Path
@@ -168,8 +167,6 @@ jobs:
                   'source_url': (record.get('source') or {}).get('url'),
               }
               print('LIVE_INTENT_VERIFIED_RECORD=' + json.dumps(public_record, ensure_ascii=False))
-          print('LIVE_INTENT_RECORDS_B64=' + base64.b64encode(records_path.read_bytes()).decode('ascii'))
-          print('LIVE_INTENT_REPORT_B64=' + base64.b64encode(report_path.read_bytes()).decode('ascii'))
           PY
 
           python3 - "$probe_dir/after.sha256" <<'PY'
