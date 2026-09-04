@@ -1,12 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Building2, ExternalLink, Loader2, Radar, SearchCheck } from 'lucide-react'
+import {
+  ArrowRight,
+  BookmarkPlus,
+  Building2,
+  Check,
+  ExternalLink,
+  Loader2,
+  Radar,
+  SearchCheck,
+} from 'lucide-react'
 import {
   expectedProcurementWindowPhase,
   expectedProcurementWindowText,
   isPreMarketSignal,
 } from '@/components/shared/PreMarketSignalNotice'
 import { EmptyState, ErrorState } from '@/components/shared/PageStates'
+import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { isAuthRequiredError } from '@/services/apiConfig'
 import type { TodayActionCard } from '@/types'
@@ -112,9 +122,11 @@ function phaseLabel(card: TodayActionCard): string {
 
 export function ProcurementIntentFollowupPage() {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [cards, setCards] = useState<TodayActionCard[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [followBusyId, setFollowBusyId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -151,6 +163,28 @@ export function ProcurementIntentFollowupPage() {
       })
   }, [cards])
 
+  const startFollowup = async (intent: TodayActionCard) => {
+    if (intent.followup_status !== 'NEW' || followBusyId) return
+    setFollowBusyId(intent.opportunity_id)
+    try {
+      await todayActionsService.updateFollowup(intent.opportunity_id, { status: 'REVIEWING' })
+      setCards((current) => current.map((card) =>
+        card.opportunity_id === intent.opportunity_id
+          ? { ...card, followup_status: 'REVIEWING' }
+          : card,
+      ))
+      toast('已加入我的跟进；提醒时间和下一步行动由你确认后再设置。', 'success')
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
+      toast('加入跟进失败，请重试')
+    } finally {
+      setFollowBusyId(null)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-56 items-center justify-center text-sm text-slate-500">
@@ -174,7 +208,7 @@ export function ProcurementIntentFollowupPage() {
           <div>
             <h1 className="text-lg font-semibold text-slate-900">采购意向跟进</h1>
             <p className="mt-1 text-[12px] leading-5 text-slate-600">
-              系统只用已核验公开事实做保守关联：同一采购单位、明确产品重合、后续公告发布时间不早于采购意向。关联结果只是“可能承接的后续项目”，不是官方声明为同一项目，最终仍需人工核对项目编号、科室、产品和公告原文。
+              系统只用已核验公开事实做保守关联：同一采购单位、明确产品重合、后续公告发布时间不早于采购意向。关联结果只是“可能承接的后续项目”，不是官方声明为同一项目，最终仍需人工核对项目编号、科室、产品和公告原文。关联候选不会改变公开优先级或中标判断。
             </p>
           </div>
         </div>
@@ -183,6 +217,8 @@ export function ProcurementIntentFollowupPage() {
       {rows.map(({ intent, successors }) => {
         const buyer = intent.facts.hospital ?? intent.facts.buyer_name ?? '采购单位未提供'
         const expectedWindow = expectedProcurementWindowText(intent.facts.quality_flags)
+        const followed = intent.followup_status !== 'NEW'
+        const followBusy = followBusyId === intent.opportunity_id
         return (
           <section key={intent.opportunity_id} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -198,13 +234,30 @@ export function ProcurementIntentFollowupPage() {
                   {expectedWindow ? `官方预计采购时间：${expectedWindow} · ` : ''}{phaseLabel(intent)}
                 </p>
               </div>
-              <Link
-                to={`/opportunity/${encodeURIComponent(intent.opportunity_id)}`}
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50"
-              >
-                查看意向原文与详情
-                <ExternalLink className="h-3 w-3" />
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={followed || Boolean(followBusyId)}
+                  onClick={() => void startFollowup(intent)}
+                  className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[11px] font-medium text-teal-800 hover:bg-teal-100 disabled:cursor-default disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
+                >
+                  {followBusy ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : followed ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <BookmarkPlus className="h-3 w-3" />
+                  )}
+                  {followBusy ? '正在加入…' : followed ? '已在我的跟进' : '加入我的跟进'}
+                </button>
+                <Link
+                  to={`/opportunity/${encodeURIComponent(intent.opportunity_id)}`}
+                  className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  查看意向原文与详情
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
+              </div>
             </div>
 
             <div className="mt-3 rounded-xl bg-slate-50 px-3 py-3">
