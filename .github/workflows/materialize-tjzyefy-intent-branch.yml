@@ -1,0 +1,207 @@
+name: Materialize verified TJZYEFY intent data on PR branch
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/materialize-tjzyefy-intent-branch.yml'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: materialize-tjzyefy-intent-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  materialize:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'chatgpt/opportunity-ranking-v2-final'
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Verify system Python
+        shell: bash
+        run: python3 --version
+
+      - name: Generate canonical records from official source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/sync_tjzyefy_procurement_intent.py \
+            --lookback-days 30 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            --records-output web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
+            --report-output web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json
+
+      - name: Build bundled snapshot from the same verified source set
+        shell: bash
+        run: |
+          set -euo pipefail
+          as_of="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json').read_text(encoding='utf-8'))
+          print(report['observed_at'])
+          PY
+          )"
+          python3 web/pipeline/scripts/refresh_bundled_snapshot.py --as-of "$as_of"
+
+      - name: Validate real intent materialization boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          records = json.loads(Path('web/pipeline/data/tianjin_live_tjzyefy_intent_records.json').read_text(encoding='utf-8'))
+          report = json.loads(Path('web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json').read_text(encoding='utf-8'))
+          snapshot = json.loads(Path('web/public/data/today-actions.public.json').read_text(encoding='utf-8'))
+
+          expected_windows = {
+              'tjzyefy_intent_20260804_030195992': 'EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月',
+              'tjzyefy_intent_20260804_030195991': 'EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月',
+              'tjzyefy_intent_20260804_030195988': 'EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年8月',
+              'tjzyefy_intent_20260804_030195986': 'EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月',
+          }
+          expected_ids = set(expected_windows)
+          record_by_id = {record['opportunity_id']: record for record in records}
+          assert set(record_by_id) == expected_ids, set(record_by_id)
+          assert report['discovered_intent_count'] == 7, report
+          assert report['selected_candidate_count'] == 7, report
+          assert report['new_verified_record_count'] == 4, report
+          assert report['unsupported_non_medical_count'] == 3, report
+          assert report['failure_count'] == 0, report
+          assert report['unresolved_failure_count'] == 0, report
+          assert report['publish_allowed'] is True, report
+          assert report['publish_gate_reason'] == 'PASS', report
+          assert report['effective_lookback_days'] == 60, report
+          assert report['bootstrap_backfill_applied'] is True, report
+
+          for opportunity_id, expected_window in expected_windows.items():
+              record = record_by_id[opportunity_id]
+              assert record['facts']['lifecycle_state'] == 'PROCUREMENT_INTENT', opportunity_id
+              assert record['facts']['registration_deadline'] is None, opportunity_id
+              assert record['facts']['registration_deadline_date'] is None, opportunity_id
+              assert record['facts']['expected_procurement_at'] is None, opportunity_id
+              assert expected_window in record['quality_flags'], (opportunity_id, record['quality_flags'])
+
+          pool_by_id = {card['opportunity_id']: card for card in snapshot['opportunity_pool']}
+          missing = expected_ids - set(pool_by_id)
+          assert not missing, missing
+          for opportunity_id, expected_window in expected_windows.items():
+              card = pool_by_id[opportunity_id]
+              assert card['recommendation_mode'] == 'PRE_MARKET_SIGNAL', opportunity_id
+              assert card['facts']['lifecycle_state'] == 'PROCUREMENT_INTENT', opportunity_id
+              assert expected_window in card['facts']['quality_flags'], opportunity_id
+              assert card['facts']['registration_deadline'] is None, opportunity_id
+              assert card['facts']['bid_deadline'] is None, opportunity_id
+
+          unsupported_ids = {item['opportunity_id'] for item in report['unsupported']}
+          assert unsupported_ids == {
+              'tjzyefy_intent_20260804_030195990',
+              'tjzyefy_intent_20260804_030195989',
+              'tjzyefy_intent_20260804_030195987',
+          }, unsupported_ids
+          print(
+              f"MATERIALIZED_INTENTS={len(records)} "
+              f"SNAPSHOT_POOL={snapshot['opportunity_pool_count']} "
+              f"SNAPSHOT_AS_OF={snapshot['snapshot_as_of']}"
+          )
+          PY
+
+      - name: Run pipeline regression suite before branch write
+        working-directory: web/pipeline
+        shell: bash
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Write parser outputs to PR branch through GitHub API
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_API_URL: ${{ github.api_url }}
+          GH_REPOSITORY: ${{ github.repository }}
+          TARGET_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          api = os.environ['GH_API_URL'].rstrip('/')
+          repository = os.environ['GH_REPOSITORY']
+          branch = os.environ['TARGET_BRANCH']
+          token = os.environ['GH_TOKEN']
+
+          def request(url: str, *, method: str = 'GET', payload: dict | None = None):
+              data = None if payload is None else json.dumps(payload).encode('utf-8')
+              req = urllib.request.Request(url, data=data, method=method)
+              req.add_header('Accept', 'application/vnd.github+json')
+              req.add_header('Authorization', f'Bearer {token}')
+              req.add_header('X-GitHub-Api-Version', '2022-11-28')
+              if data is not None:
+                  req.add_header('Content-Type', 'application/json')
+              return urllib.request.urlopen(req, timeout=30)
+
+          def current_sha(path: str) -> str | None:
+              encoded_path = urllib.parse.quote(path, safe='/')
+              encoded_ref = urllib.parse.quote(branch, safe='')
+              url = f'{api}/repos/{repository}/contents/{encoded_path}?ref={encoded_ref}'
+              try:
+                  with request(url) as response:
+                      payload = json.load(response)
+                  return payload.get('sha')
+              except urllib.error.HTTPError as exc:
+                  if exc.code == 404:
+                      return None
+                  raise
+
+          def upsert(path: str, message: str) -> None:
+              raw = Path(path).read_bytes()
+              payload = {
+                  'message': message,
+                  'content': base64.b64encode(raw).decode('ascii'),
+                  'branch': branch,
+              }
+              sha = current_sha(path)
+              if sha:
+                  payload['sha'] = sha
+              encoded_path = urllib.parse.quote(path, safe='/')
+              url = f'{api}/repos/{repository}/contents/{encoded_path}'
+              with request(url, method='PUT', payload=payload) as response:
+                  result = json.load(response)
+              commit_sha = (result.get('commit') or {}).get('sha')
+              print(f'UPSERTED {path} commit={commit_sha}')
+
+          upsert(
+              'web/pipeline/data/tianjin_live_tjzyefy_intent_records.json',
+              'data: materialize verified TJZYEFY procurement intents',
+          )
+          upsert(
+              'web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json',
+              'data: record TJZYEFY procurement-intent live verification report',
+          )
+          upsert(
+              'web/public/data/today-actions.public.json',
+              'data: include verified procurement intents in bundled snapshot [full-verify]',
+          )
+          PY
