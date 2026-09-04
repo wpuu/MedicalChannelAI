@@ -6,7 +6,7 @@ from pathlib import Path
 
 WEB_ROOT = Path(__file__).resolve().parents[2]
 
-# Keep this suite lightweight: production bundle size itself is measured by Full Verify.
+# Keep this suite lightweight; Full Verify measures production bundle output at stage boundaries.
 
 
 class FrontendDeliveryPressureTests(unittest.TestCase):
