@@ -19,6 +19,16 @@ class ProcurementIntentFollowupUiTests(unittest.TestCase):
         self.assertIn('to="/intent-followup"', notice)
         self.assertIn("核查可能的后续正式项目", notice)
 
+    def test_today_exposes_intent_followup_without_loading_full_pool(self):
+        today = (WEB_ROOT / "src/pages/TodayPage.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("navigate('/intent-followup')", today)
+        self.assertIn("采购意向跟进", today)
+        self.assertIn("按需加载完整商机池，核查采购意向及可能的后续正式公告", today)
+        self.assertIn("todayActionsService.getTodayActions()", today)
+        self.assertNotIn("getTodayActions({ hydrateFollowups: false })", today)
+        self.assertNotIn("getTodayActions({ loadProfile: 'FULL_POOL'", today)
+
     def test_successor_linkage_is_conservative_and_explained_as_candidate_only(self):
         page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
 
