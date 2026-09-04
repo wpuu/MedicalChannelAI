@@ -8,7 +8,7 @@ WEB_ROOT = Path(__file__).resolve().parents[2]
 class TodayFeedbackAttentionTests(unittest.TestCase):
     def test_feedback_changes_today_attention_without_mutating_full_pool(self):
         source = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
-        start = source.index("async function todayFeedbackMap")
+        start = source.index("async function todayPrivateState")
         end = source.index("async function opportunityRoute")
         today_source = source[start:end]
 
@@ -25,13 +25,23 @@ class TodayFeedbackAttentionTests(unittest.TestCase):
 
     def test_today_private_state_indexes_fail_closed_instead_of_silently_truncating(self):
         source = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
-        start = source.index("async function todayFollowupMap")
+        start = source.index("async function todayPrivateState")
         end = source.index("function hasActiveFollowup", start)
         index_source = source[start:end]
         self.assertEqual(index_source.count("LIMIT 5001"), 2)
         self.assertIn("TODAY_FOLLOWUP_INDEX_TRUNCATED", index_source)
         self.assertIn("TODAY_FEEDBACK_INDEX_TRUNCATED", index_source)
         self.assertNotIn("LIMIT 500\n", index_source)
+
+    def test_today_private_state_uses_one_database_roundtrip(self):
+        source = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
+        start = source.index("async function todayPrivateState")
+        end = source.index("function hasActiveFollowup", start)
+        block = source[start:end]
+        self.assertEqual(block.count("await sql`"), 1)
+        self.assertIn("private_followups", block)
+        self.assertIn("private_recommendation_feedback", block)
+        self.assertIn("private_user_ui_preferences", block)
 
     def test_attention_sort_is_stable_inside_each_feedback_tier(self):
         source = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
