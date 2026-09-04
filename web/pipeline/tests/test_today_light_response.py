@@ -31,7 +31,7 @@ class TodayLightResponseTests(unittest.TestCase):
         self.assertIn("const { opportunity_pool: fullPool, ...lightPayload } = payload", self.entry)
         self.assertIn("procurement_intent_followup_summary: procurementIntentFollowupSummary(fullPool)", self.entry)
         self.assertIn("return await privateCoreHandler(request, response)", self.entry)
-        self.assertNotIn("opportunity_pool: fullPool", self.entry)
+        self.assertNotIn("return {\n    ...lightPayload,\n    opportunity_pool:", self.entry)
         self.assertNotIn("privateDb", self.entry)
         self.assertNotIn("loadVerifiedSnapshot", self.entry)
 
