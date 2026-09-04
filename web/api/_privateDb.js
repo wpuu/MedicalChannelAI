@@ -117,6 +117,9 @@ const SCHEMA_STATEMENTS = [
     UNIQUE(user_id, opportunity_id)
   )`,
   `CREATE INDEX IF NOT EXISTS private_followups_scope_idx ON private_followups(organization_id, user_id, updated_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS private_followups_outcome_idx
+    ON private_followups(user_id, organization_id, updated_at DESC)
+    WHERE status IN ('WON', 'LOST', 'NOT_FIT')`,
   `CREATE TABLE IF NOT EXISTS private_followup_events (
     id uuid PRIMARY KEY,
     followup_id uuid NOT NULL REFERENCES private_followups(id) ON DELETE CASCADE,
@@ -130,6 +133,8 @@ const SCHEMA_STATEMENTS = [
   )`,
   `ALTER TABLE private_followup_events ADD COLUMN IF NOT EXISTS mutation_id text NULL`,
   `CREATE INDEX IF NOT EXISTS private_followup_events_idx ON private_followup_events(followup_id, created_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS private_followup_events_outcome_idx
+    ON private_followup_events(followup_id, user_id, status, created_at DESC)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS private_followup_events_mutation_idx
     ON private_followup_events(user_id, mutation_id)
     WHERE mutation_id IS NOT NULL`,
