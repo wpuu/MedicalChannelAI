@@ -9,7 +9,7 @@ WEB_ROOT = Path(__file__).resolve().parents[2]
 class ReminderStageIndependenceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.private_api = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
+        cls.private_api = (WEB_ROOT / "api" / "_privateCore.js").read_text(encoding="utf-8")
         cls.today = (WEB_ROOT / "src" / "pages" / "TodayPage.tsx").read_text(encoding="utf-8")
         cls.detail = (WEB_ROOT / "src" / "pages" / "OpportunityDetailPage.tsx").read_text(encoding="utf-8")
         cls.followup_card = (WEB_ROOT / "src" / "components" / "opportunity" / "FollowupCard.tsx").read_text(encoding="utf-8")

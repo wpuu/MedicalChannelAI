@@ -7,7 +7,7 @@ WEB_ROOT = Path(__file__).resolve().parents[2]
 
 class FollowedScalingTests(unittest.TestCase):
     def test_followed_route_supports_bounded_pagination_and_compact_status_index(self):
-        backend = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
+        backend = (WEB_ROOT / "api" / "_privateCore.js").read_text(encoding="utf-8")
         start = backend.index("async function followedRoute")
         end = backend.index("function reminderPublicFacts", start)
         followed = backend[start:end]
@@ -21,7 +21,7 @@ class FollowedScalingTests(unittest.TestCase):
     def test_opportunity_pool_reuses_followup_summary_already_batched_into_today(self):
         page = (WEB_ROOT / "src" / "pages" / "OpportunityPoolPage.tsx").read_text(encoding="utf-8")
         service = (WEB_ROOT / "src" / "services" / "ApiTodayActionsService.ts").read_text(encoding="utf-8")
-        backend = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
+        backend = (WEB_ROOT / "api" / "_privateCore.js").read_text(encoding="utf-8")
 
         self.assertIn("todayActionsService.getTodayActions({ hydrateFollowups: false })", page)
         self.assertNotIn("getFollowedStatusIndex", page)

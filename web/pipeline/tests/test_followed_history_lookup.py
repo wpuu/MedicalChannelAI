@@ -15,7 +15,7 @@ class FollowedHistoryLookupTests(unittest.TestCase):
         self.assertIn("/followed?id=${encodeURIComponent(opportunityId)}", frontend)
 
     def test_exact_lookup_is_user_and_organization_scoped(self):
-        backend = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
+        backend = (WEB_ROOT / "api" / "_privateCore.js").read_text(encoding="utf-8")
         start = backend.index("async function followedRoute")
         end = backend.index("function reminderPublicFacts", start)
         followed = backend[start:end]

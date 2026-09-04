@@ -7,7 +7,7 @@ WEB_ROOT = Path(__file__).resolve().parents[2]
 
 class PrivateDataInvariantTests(unittest.TestCase):
     def test_reminder_is_independent_from_non_terminal_sales_stage(self):
-        source = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
+        source = (WEB_ROOT / "api" / "_privateCore.js").read_text(encoding="utf-8")
         self.assertIn(
             "const REMINDER_TERMINAL_STATUSES = new Set(['WON', 'LOST', 'NOT_FIT', 'ARCHIVED'])",
             source,

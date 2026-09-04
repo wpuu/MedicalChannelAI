@@ -6,7 +6,7 @@ from pathlib import Path
 WEB_ROOT = Path(__file__).resolve().parents[2]
 PUBLIC_DB = WEB_ROOT / 'api' / '_publicIntelligenceDb.js'
 TODAY_PREF = WEB_ROOT / 'api' / '_todayDisplayPreference.js'
-PRIVATE_API = WEB_ROOT / 'api' / 'private.js'
+PRIVATE_API = WEB_ROOT / 'api' / '_privateCore.js'
 AUTH_API = WEB_ROOT / 'api' / 'auth.js'
 AI_CORE = WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js'
 PRIVATE_CONTEXT = WEB_ROOT / 'api' / '_privateProfileContext.js'

@@ -9,7 +9,7 @@ WEB_ROOT = Path(__file__).resolve().parents[2]
 class PrivateOutcomeTransitionGuardTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.private_api = (WEB_ROOT / "api" / "private.js").read_text(encoding="utf-8")
+        cls.private_api = (WEB_ROOT / "api" / "_privateCore.js").read_text(encoding="utf-8")
 
     def test_server_has_exact_controlled_win_and_loss_review_labels(self) -> None:
         self.assertIn("const WON_REVIEW_NOTE_PREFIX = '成交复盘（当前用户判断）：'", self.private_api)
