@@ -21,19 +21,19 @@ Fixed rules:
 
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
-- Current documented branch HEAD: `c38a6c3e763c4f3922856ebc06e6821c6d7dfa01`
+- Latest fully code-validated HEAD: `59248d06a2bb6f4153a5d45575beb51a2593bacd`
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR is open, Draft, unmerged and mergeable.
 - `web/vercel.json` explicitly disables automatic Vercel deployments for the active PR branch.
 - The user explicitly requires **no Preview generation and no Production changes/deployments** until that boundary is changed again.
-- Vercel was rechecked after the current CRM/reminder work. No new deployment exists for this branch; the newest Vercel deployment still points to old commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` and is not current-HEAD validation.
+- Vercel was rechecked after the CRM/reminder work. No new deployment exists for this branch; the newest Vercel deployment still points to old commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` and is not current-HEAD validation.
 - The reachable custom demo/production surfaces must not be treated as containing current branch changes.
 
 Do not merge PR #6, enable the branch Preview, call Vercel deploy, or modify/promote Production without explicit product-owner approval.
 
 ## Current executable validation evidence
 
-GitHub Actions `Verify MedicalChannelAI` run **#1229** completed successfully for HEAD `c38a6c3e763c4f3922856ebc06e6821c6d7dfa01`.
+GitHub Actions `Verify MedicalChannelAI` run **#1259** completed successfully for HEAD `59248d06a2bb6f4153a5d45575beb51a2593bacd`.
 
 The successful job includes:
 
@@ -43,7 +43,7 @@ The successful job includes:
 - Vite production build;
 - verified ranking summary.
 
-This proves the current branch compiles and passes repository CI. It does **not** prove current-HEAD Vercel runtime behavior, because Preview generation is intentionally disabled.
+This proves the latest code validation point compiles and passes repository CI. It does **not** prove current-HEAD Vercel runtime behavior, because Preview generation is intentionally disabled.
 
 Historical Vercel Preview evidence from older commits remains useful only as historical runtime evidence and must not be represented as current-HEAD acceptance.
 
@@ -85,7 +85,7 @@ No Preview/runtime claims should be made for this architecture until Preview exe
 
 The current branch now covers the main pilot loop:
 
-**discover opportunity → inspect official evidence → personalize with confirmed resources → generate grounded outreach → contact → record follow-up → schedule next reminder → track result**.
+**discover opportunity → inspect official evidence → personalize with confirmed resources → generate grounded outreach → contact → record follow-up → schedule next action/reminder → track result → record private loss reason**.
 
 Recent closure work:
 
@@ -95,11 +95,16 @@ Recent closure work:
 - copying outreach text does not mutate CRM state;
 - only the explicit `已联系，记入跟进` action writes `CONTACTED`;
 - after explicit confirmation, the user is taken to `我的跟进`;
-- reminders are now independent from sales stage: e.g. `CONTACTED + future reminder` remains `CONTACTED`;
+- reminders are independent from sales stage: e.g. `CONTACTED + future reminder` remains `CONTACTED`;
 - `MONITOR` remains a normal `持续观察` sales stage rather than being the only way to have a reminder;
 - non-terminal stages may preserve reminders;
 - terminal results `WON / LOST / NOT_FIT / ARCHIVED` clear/reject future reminders and do not offer a new-reminder action;
-- due reminder acknowledgement clears the reminder only, not the underlying sales stage.
+- due reminder acknowledgement clears the reminder only, not the underlying sales stage;
+- reminder creation can optionally capture a private `下一步行动`, and due-reminder UI surfaces it directly as `下一步：…`;
+- `LOST` now requires a private review reason selection instead of recording only an empty `未成交` state;
+- loss-review copy explicitly states that the reason is the current user's private commercial judgment, not a hospital/procurement public fact;
+- the existing follow-up event/note path is reused, so these CRM improvements require no database schema migration;
+- `NotFitModal` persistence copy now reflects actual API-mode server persistence rather than incorrectly claiming local-only storage.
 
 The reminder-stage migration requires no database schema migration because `remind_at` already exists independently on private follow-up state.
 
@@ -127,9 +132,10 @@ When the user explicitly allows Preview again, the next runtime acceptance shoul
 1. deploy the exact then-current PR HEAD to Preview only;
 2. verify Today / Opportunity Pool / detail / Resources / Followups interactively;
 3. run the protected Pilot smoke against the Preview, updated to prove a non-MONITOR stage such as `CONTACTED` can retain a reminder;
-4. verify due-reminder acknowledgement preserves the sales stage;
-5. verify collector runtime/queue/deep-to-incremental behavior and snapshot freshness on real Vercel runtime state;
-6. verify a real same-origin grounded AI POST only if Preview runtime AI configuration is intentionally supplied;
-7. inspect custom-domain/Production promotion path separately before any production action.
+4. verify due-reminder acknowledgement preserves the sales stage and surfaces the saved next action;
+5. verify private loss-review data persists across session/export without leaking into public facts;
+6. verify collector runtime/queue/deep-to-incremental behavior and snapshot freshness on real Vercel runtime state;
+7. verify a real same-origin grounded AI POST only if Preview runtime AI configuration is intentionally supplied;
+8. inspect custom-domain/Production promotion path separately before any production action.
 
 PR #6 must remain Draft until those gates and product-owner acceptance are complete.
