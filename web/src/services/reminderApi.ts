@@ -40,6 +40,7 @@ const FOLLOWUP_STATUSES = new Set([
   'MONITOR',
   'ARCHIVED',
 ])
+const REMINDER_TERMINAL_STATUSES = new Set(['WON', 'LOST', 'NOT_FIT', 'ARCHIVED'])
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -137,7 +138,11 @@ function getLocalDueReminders(): DueReminder[] {
   const now = Date.now()
   return listStoredFollowups()
     .flatMap(({ opportunity_id, entry }) => {
-      if (!entry.remind_at || !entry.public_snapshot) return []
+      if (
+        REMINDER_TERMINAL_STATUSES.has(entry.status) ||
+        !entry.remind_at ||
+        !entry.public_snapshot
+      ) return []
       const dueAt = new Date(entry.remind_at).getTime()
       if (Number.isNaN(dueAt) || dueAt > now) return []
       const latestNote = entry.history.find((record) => Boolean(record.note?.trim()))?.note ?? null
