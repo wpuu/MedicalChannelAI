@@ -11,6 +11,7 @@ import { ensurePrivateSchema, privateDb } from './_privateDb.js'
 const scrypt = promisify(scryptCallback)
 const SESSION_COOKIE = 'medopp_session'
 const SESSION_DAYS = 30
+const SESSION_TOUCH_INTERVAL_MS = 10 * 60 * 1000
 
 export function sendJson(response, status, payload) {
   response.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -156,7 +157,8 @@ export async function authenticatedUser(request) {
       u.username_display,
       u.role,
       u.display_name,
-      s.id AS session_id
+      s.id AS session_id,
+      s.last_seen_at
     FROM private_sessions s
     JOIN private_users u ON u.id = s.user_id
     WHERE s.token_hash = ${tokenHash}
@@ -166,12 +168,18 @@ export async function authenticatedUser(request) {
   `
   const user = rows[0]
   if (!user) return null
-  await sql`
-    UPDATE private_sessions
-    SET last_seen_at = now()
-    WHERE id = ${user.session_id}
-      AND last_seen_at < now() - interval '10 minutes'
-  `
+
+  const lastSeenAt = new Date(user.last_seen_at).getTime()
+  const touchDue = !Number.isFinite(lastSeenAt) || lastSeenAt < Date.now() - SESSION_TOUCH_INTERVAL_MS
+  if (touchDue) {
+    await sql`
+      UPDATE private_sessions
+      SET last_seen_at = now()
+      WHERE id = ${user.session_id}
+        AND last_seen_at < now() - interval '10 minutes'
+    `
+  }
+
   return {
     id: user.id,
     organization_id: user.organization_id,
