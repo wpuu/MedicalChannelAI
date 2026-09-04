@@ -224,6 +224,12 @@ export interface RecommendationFeedbackSummary {
   effective_surprise_rate: number | null
 }
 
+export interface ProcurementIntentFollowupSummary {
+  intent_count: number
+  intents_with_formal_successor: number
+  candidate_pair_count: number
+}
+
 /** UI response after Mock or Public View adapter enrichment. */
 export interface TodayActionsResponse {
   schema_version: '0.1'
@@ -239,6 +245,7 @@ export interface TodayActionsResponse {
   today_limit?: number
   today_limit_options?: number[]
   recommendation_feedback_summary?: RecommendationFeedbackSummary
+  procurement_intent_followup_summary?: ProcurementIntentFollowupSummary
   cards: TodayActionCard[]
   opportunity_pool?: TodayActionCard[]
   model_requests?: ModelRequest[]
