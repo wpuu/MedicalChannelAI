@@ -112,7 +112,7 @@ export function FollowupCard({
                       onClick={() => setReopenConfirm(true)}
                       className="shrink-0 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-700"
                     >
-                      更正结果 / 重新打开
+                      {outcomeTerminal ? '更正结果 / 重新打开' : '重新打开'}
                     </button>
                   ) : null}
                 </div>
