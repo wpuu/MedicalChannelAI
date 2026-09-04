@@ -125,6 +125,12 @@ export interface PublicRecommendationFeedbackSummary {
   effective_surprise_rate: number | null
 }
 
+export interface PublicProcurementIntentFollowupSummary {
+  intent_count: number
+  intents_with_formal_successor: number
+  candidate_pair_count: number
+}
+
 /**
  * Exact H5-safe response returned by the verified boundary. The authenticated
  * Pilot endpoint may choose the account's configured number of Today cards;
@@ -143,6 +149,7 @@ export interface TodayActionsPublicResponse {
   today_limit?: number
   today_limit_options?: number[]
   recommendation_feedback_summary?: PublicRecommendationFeedbackSummary
+  procurement_intent_followup_summary?: PublicProcurementIntentFollowupSummary
   cards: PublicTodayActionCard[]
   opportunity_pool?: PublicTodayActionCard[]
 }
