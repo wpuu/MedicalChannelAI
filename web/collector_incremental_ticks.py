@@ -6,10 +6,10 @@ from zoneinfo import ZoneInfo
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
-TICK_INTERVAL_MINUTES = 10
+TICK_INTERVAL_MINUTES = 15
 BUSINESS_WINDOW_START = time(11, 30)
 BUSINESS_WINDOW_END = time(19, 0)
-MAX_TICKS_PER_DAY = 46
+MAX_TICKS_PER_DAY = 31
 
 
 @dataclass(frozen=True)
@@ -101,7 +101,7 @@ def next_tick_after(
     # Once a tick is materially late, skip backlog and schedule the first aligned
     # slot strictly after the actual delivery time. This avoids both replay bursts
     # and a zero-delay duplicate when a late delivery lands exactly on an aligned
-    # 10-minute boundary.
+    # tick boundary.
     nominal_next = current_local + timedelta(minutes=TICK_INTERVAL_MINUTES)
     if delivered_local <= nominal_next:
         scheduled = nominal_next
