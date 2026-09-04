@@ -11,6 +11,7 @@ export const webBuildMode: WebBuildMode =
 export const apiBaseUrl = env?.VITE_API_BASE_URL?.trim()?.replace(/\/+$/, '') ?? ''
 export const isApiMode = apiBaseUrl.length > 0
 export const PILOT_SESSION_CHANGE_KEY = 'medicalchannelai.pilot.session-change.v1'
+const AUTH_HANDOFF_TTL_MS = 10_000
 
 if (webBuildMode === 'demo' && isApiMode) {
   throw new Error('WEB_BUILD_MODE_MISMATCH: demo build must not configure VITE_API_BASE_URL')
@@ -24,6 +25,22 @@ export interface PilotUser {
   display_name: string | null
   role: 'OWNER' | 'ADMIN' | 'MEMBER'
   local_scope: string
+}
+
+let recentAuthenticatedUser: { user: PilotUser; expiresAt: number } | null = null
+
+function rememberAuthenticatedUser(user: PilotUser): void {
+  recentAuthenticatedUser = {
+    user,
+    expiresAt: Date.now() + AUTH_HANDOFF_TTL_MS,
+  }
+}
+
+export function consumeRecentlyAuthenticatedPilotUser(): PilotUser | null {
+  const pending = recentAuthenticatedUser
+  recentAuthenticatedUser = null
+  if (!pending || pending.expiresAt < Date.now()) return null
+  return pending.user
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -102,6 +119,7 @@ export async function registerPilotAccount(input: {
   if (!response.ok) throw await authError(response)
   const root = asRecord(await response.json())
   const user = parsePilotUser(root?.user)
+  rememberAuthenticatedUser(user)
   signalPilotSessionChanged()
   return user
 }
@@ -124,6 +142,7 @@ export async function loginPilotAccount(input: {
   const root = asRecord(await response.json())
   const user = asRecord(root?.user)
   const parsed = parsePilotUser({ ...user, display_name: user?.display_name ?? null })
+  rememberAuthenticatedUser(parsed)
   signalPilotSessionChanged()
   return parsed
 }
@@ -140,6 +159,7 @@ export async function getPilotSession(): Promise<PilotUser> {
 }
 
 export async function logoutPilot(): Promise<void> {
+  recentAuthenticatedUser = null
   if (!isApiMode) return
   const response = await fetch(`${apiBaseUrl}/auth/logout`, {
     method: 'POST',
