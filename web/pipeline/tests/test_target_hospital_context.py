@@ -11,7 +11,9 @@ class TargetHospitalContextTests(unittest.TestCase):
     def test_private_context_loads_target_hospitals_separately(self):
         source = (WEB_ROOT / 'api' / '_privateProfileContext.js').read_text(encoding='utf-8')
         self.assertIn('FROM private_target_hospitals', source)
-        self.assertIn('targets: [...targets]', source)
+        self.assertIn('AS targets', source)
+        self.assertIn('targets: Array.isArray(row.targets) ? row.targets : []', source)
+        self.assertIn('relationships: Array.isArray(row.relationships) ? row.relationships : []', source)
         self.assertIn('target_hospital: matchingTarget', source)
         self.assertIn('context.target_hospital ||', source)
 
