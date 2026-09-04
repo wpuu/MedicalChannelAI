@@ -1,4 +1,5 @@
 name: Verify MedicalChannelAI
+# PR verification is read-only; one-time branch materializers must not be retained.
 
 on:
   pull_request:
