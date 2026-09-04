@@ -10,6 +10,7 @@ sys.path.insert(0, str(WEB_ROOT))
 
 from collector_incremental import scan_bucket_id  # noqa: E402
 from collector_incremental_scheduler import (  # noqa: E402
+    QUIET_SCAN_INTERVAL_MULTIPLIER,
     SCHEDULED_INCREMENTAL_SOURCES,
     choose_due_incremental_source,
     mark_incremental_source_attempt,
@@ -29,13 +30,19 @@ class FakeCache:
     def set(self, key: str, value: object, options: object | None = None) -> None:
         self.values[key] = value
 
-    def set_completed(self, source_id: str, when: datetime) -> None:
+    def set_completed(
+        self,
+        source_id: str,
+        when: datetime,
+        *,
+        result: dict[str, object] | None = None,
+    ) -> None:
         self.values[f"medicalchannelai:collector-incremental-bucket:{source_id}:v2"] = {
             "schema_version": "0.1",
             "source_id": source_id,
             "bucket_id": scan_bucket_id(source_id, now=when),
             "completed_at": when.isoformat(),
-            "result": {},
+            "result": result or {},
         }
 
 
@@ -107,6 +114,67 @@ class IncrementalCollectorSchedulerTests(unittest.TestCase):
         self.assertIsNone(decision.source_id)
         self.assertEqual(decision.reason, "NO_SOURCE_DUE")
         self.assertIsNotNone(decision.next_due_at)
+
+    def test_quiet_completed_scan_doubles_next_interval(self) -> None:
+        cache = FakeCache()
+        quiet = {
+            "selected_detail_count": 0,
+            "verification_failure_count": 0,
+            "pending_barrier_count": 0,
+        }
+        for source in SCHEDULED_INCREMENTAL_SOURCES:
+            cache.set_completed(source, NOW, result=quiet)
+        self.assertEqual(QUIET_SCAN_INTERVAL_MULTIPLIER, 2)
+
+        before_backoff_due = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=61))
+        self.assertIsNone(before_backoff_due.source_id)
+        self.assertEqual(before_backoff_due.reason, "NO_SOURCE_DUE")
+
+        after_backoff_due = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=121))
+        self.assertEqual(after_backoff_due.source_id, "tjmugh")
+        self.assertIn("tjmugh", after_backoff_due.due_sources)
+
+    def test_pending_verification_barrier_never_gets_quiet_backoff(self) -> None:
+        cache = FakeCache()
+        quiet = {
+            "selected_detail_count": 0,
+            "verification_failure_count": 0,
+            "pending_barrier_count": 0,
+        }
+        for source in SCHEDULED_INCREMENTAL_SOURCES:
+            cache.set_completed(source, NOW, result=quiet)
+        cache.set_completed(
+            "tjmugh",
+            NOW,
+            result={
+                "selected_detail_count": 0,
+                "verification_failure_count": 0,
+                "pending_barrier_count": 1,
+            },
+        )
+        decision = choose_due_incremental_source(cache, now=NOW + timedelta(minutes=61))
+        self.assertEqual(decision.source_id, "tjmugh")
+
+    def test_failed_attempt_after_quiet_scan_restores_base_retry_interval(self) -> None:
+        cache = FakeCache()
+        quiet = {
+            "selected_detail_count": 0,
+            "verification_failure_count": 0,
+            "pending_barrier_count": 0,
+        }
+        for source in SCHEDULED_INCREMENTAL_SOURCES:
+            cache.set_completed(source, NOW, result=quiet)
+
+        first_at = NOW + timedelta(minutes=121)
+        first = choose_due_incremental_source(cache, now=first_at)
+        self.assertEqual(first.source_id, "tjmugh")
+        mark_incremental_source_attempt(cache, first.source_id, now=first_at)
+
+        too_early = choose_due_incremental_source(cache, now=first_at + timedelta(minutes=50))
+        self.assertNotIn("tjmugh", too_early.due_sources)
+
+        retry_due = choose_due_incremental_source(cache, now=first_at + timedelta(minutes=61))
+        self.assertIn("tjmugh", retry_due.due_sources)
 
     def test_most_overdue_source_wins_but_only_one_is_selected(self) -> None:
         cache = FakeCache()
