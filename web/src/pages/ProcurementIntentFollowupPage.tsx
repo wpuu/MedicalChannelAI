@@ -4,6 +4,7 @@ import {
   ArrowRight,
   BookmarkPlus,
   Building2,
+  CalendarClock,
   Check,
   ExternalLink,
   Loader2,
@@ -11,6 +12,7 @@ import {
   Radar,
   SearchCheck,
 } from 'lucide-react'
+import { RemindModal } from '@/components/followup/RemindModal'
 import {
   expectedProcurementWindowPhase,
   expectedProcurementWindowText,
@@ -206,6 +208,12 @@ function formalDeadlineSummary(card: TodayActionCard): string | null {
   return labels.length > 0 ? labels.join(' · ') : null
 }
 
+function reminderSummary(card: TodayActionCard): string | null {
+  if (!card.remind_at) return null
+  const when = formatDateTime(card.remind_at) ?? card.remind_at
+  return `下一步提醒 ${when}`
+}
+
 function telHref(value: string | null | undefined): string | null {
   const raw = String(value || '').trim()
   if (!raw || /[、,，;；/]/.test(raw)) return null
@@ -222,6 +230,12 @@ export function ProcurementIntentFollowupPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [followBusyId, setFollowBusyId] = useState<string | null>(null)
+  const [remindId, setRemindId] = useState<string | null>(null)
+
+  const loadCards = async () => {
+    const data = await todayActionsService.getTodayActions({ hydrateFollowups: false })
+    setCards(data.opportunity_pool ?? data.cards)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -260,23 +274,50 @@ export function ProcurementIntentFollowupPage() {
       })
   }, [cards])
 
-  const startFollowup = async (intent: TodayActionCard) => {
-    if (intent.followup_status !== 'NEW' || followBusyId) return
-    setFollowBusyId(intent.opportunity_id)
+  const startFollowup = async (card: TodayActionCard, kind: 'INTENT' | 'FORMAL') => {
+    if (card.followup_status !== 'NEW' || followBusyId) return
+    setFollowBusyId(card.opportunity_id)
     try {
-      await todayActionsService.updateFollowup(intent.opportunity_id, { status: 'REVIEWING' })
-      setCards((current) => current.map((card) =>
-        card.opportunity_id === intent.opportunity_id
-          ? { ...card, followup_status: 'REVIEWING' }
-          : card,
+      await todayActionsService.updateFollowup(card.opportunity_id, { status: 'REVIEWING' })
+      setCards((current) => current.map((item) =>
+        item.opportunity_id === card.opportunity_id
+          ? { ...item, followup_status: 'REVIEWING' }
+          : item,
       ))
-      toast('已加入我的跟进；提醒时间和下一步行动由你确认后再设置。', 'success')
+      toast(
+        kind === 'FORMAL'
+          ? '正式项目已加入我的跟进；这不会把采购意向与正式项目自动认定为同一项目。'
+          : '采购意向已加入我的跟进；提醒时间和下一步行动由你确认后再设置。',
+        'success',
+      )
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
         return
       }
       toast('加入跟进失败，请重试')
+    } finally {
+      setFollowBusyId(null)
+    }
+  }
+
+  const saveNextAction = async (card: TodayActionCard, remindAt: string, nextAction: string) => {
+    if (card.followup_status === 'NEW' || followBusyId) return
+    setFollowBusyId(card.opportunity_id)
+    try {
+      await todayActionsService.updateFollowup(card.opportunity_id, {
+        status: card.followup_status,
+        remind_at: remindAt,
+        note: `下次行动：${nextAction}`,
+      })
+      await loadCards()
+      toast('下一步和提醒已保存；当前销售阶段保持不变。', 'success')
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
+      toast('下一步保存失败，请重试')
     } finally {
       setFollowBusyId(null)
     }
@@ -319,6 +360,7 @@ export function ProcurementIntentFollowupPage() {
         const actions = phaseActions(intent, successors.length > 0)
         const publicPhone = intent.facts.official_contact?.phone?.trim() || null
         const phoneHref = telHref(publicPhone)
+        const intentReminder = reminderSummary(intent)
         return (
           <section key={intent.opportunity_id} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -338,12 +380,15 @@ export function ProcurementIntentFollowupPage() {
                     已出现可能的正式窗口 · 需人工核对
                   </p>
                 ) : null}
+                {intentReminder ? (
+                  <p className="mt-1 text-[11px] font-medium text-teal-700">{intentReminder}</p>
+                ) : null}
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   disabled={followed || Boolean(followBusyId)}
-                  onClick={() => void startFollowup(intent)}
+                  onClick={() => void startFollowup(intent, 'INTENT')}
                   className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[11px] font-medium text-teal-800 hover:bg-teal-100 disabled:cursor-default disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
                 >
                   {followBusy ? (
@@ -353,8 +398,19 @@ export function ProcurementIntentFollowupPage() {
                   ) : (
                     <BookmarkPlus className="h-3 w-3" />
                   )}
-                  {followBusy ? '正在加入…' : followed ? '已在我的跟进' : '加入我的跟进'}
+                  {followBusy ? '正在加入…' : followed ? '已在我的跟进' : '加入采购意向跟进'}
                 </button>
+                {followed ? (
+                  <button
+                    type="button"
+                    disabled={Boolean(followBusyId)}
+                    onClick={() => setRemindId(intent.opportunity_id)}
+                    className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    <CalendarClock className="h-3 w-3" />
+                    安排下一步
+                  </button>
+                ) : null}
                 {phoneHref && publicPhone ? (
                   <a
                     href={phoneHref}
@@ -405,26 +461,74 @@ export function ProcurementIntentFollowupPage() {
                     const basis = subjectMatch
                       ? `项目主题精确一致${subject ? `「${subject}」` : ''}`
                       : `产品重合 ${terms.join('、')}`
+                    const formalFollowed = card.followup_status !== 'NEW'
+                    const formalBusy = followBusyId === card.opportunity_id
+                    const formalReminder = reminderSummary(card)
                     return (
-                      <Link
+                      <div
                         key={card.opportunity_id}
-                        to={`/opportunity/${encodeURIComponent(card.opportunity_id)}`}
-                        className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 hover:border-teal-200 hover:bg-teal-50/40"
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-2.5"
                       >
-                        <div className="min-w-0">
-                          <p className="text-[13px] font-medium leading-5 text-slate-900">
-                            {card.facts.project_name ?? '正式项目名称未提供'}
-                          </p>
-                          <p className="mt-1 text-[11px] leading-5 text-slate-500">
-                            匹配依据：同一采购单位 · {basis}
-                            {card.facts.publish_date ? ` · 发布 ${card.facts.publish_date}` : ''}
-                          </p>
-                          {deadline ? (
-                            <p className="mt-1 text-[11px] font-semibold leading-5 text-rose-700">{deadline}</p>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <Link
+                              to={`/opportunity/${encodeURIComponent(card.opportunity_id)}`}
+                              className="inline-flex items-start gap-1 text-[13px] font-medium leading-5 text-slate-900 hover:text-teal-800"
+                            >
+                              {card.facts.project_name ?? '正式项目名称未提供'}
+                              <ArrowRight className="mt-1 h-3.5 w-3.5 shrink-0 text-teal-700" />
+                            </Link>
+                            <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                              匹配依据：同一采购单位 · {basis}
+                              {card.facts.publish_date ? ` · 发布 ${card.facts.publish_date}` : ''}
+                            </p>
+                            {deadline ? (
+                              <p className="mt-1 text-[11px] font-semibold leading-5 text-rose-700">{deadline}</p>
+                            ) : null}
+                            {formalReminder ? (
+                              <p className="mt-1 text-[11px] font-medium text-teal-700">{formalReminder}</p>
+                            ) : null}
+                          </div>
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Link
+                            to={`/opportunity/${encodeURIComponent(card.opportunity_id)}`}
+                            className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50"
+                          >
+                            核对正式公告
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                          <button
+                            type="button"
+                            disabled={formalFollowed || Boolean(followBusyId)}
+                            onClick={() => void startFollowup(card, 'FORMAL')}
+                            className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[11px] font-medium text-teal-800 hover:bg-teal-100 disabled:cursor-default disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500"
+                          >
+                            {formalBusy ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : formalFollowed ? (
+                              <Check className="h-3 w-3" />
+                            ) : (
+                              <BookmarkPlus className="h-3 w-3" />
+                            )}
+                            {formalBusy ? '正在加入…' : formalFollowed ? '正式项目已在跟进' : '加入正式项目跟进'}
+                          </button>
+                          {formalFollowed ? (
+                            <button
+                              type="button"
+                              disabled={Boolean(followBusyId)}
+                              onClick={() => setRemindId(card.opportunity_id)}
+                              className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                            >
+                              <CalendarClock className="h-3 w-3" />
+                              安排正式项目下一步
+                            </button>
                           ) : null}
                         </div>
-                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-teal-700" />
-                      </Link>
+                        <p className="mt-2 text-[10px] leading-4 text-slate-400">
+                          把正式公告加入跟进，只表示你决定跟这条已核验公开商机；不会把候选关联自动升级为“官方确认同一项目”。
+                        </p>
+                      </div>
                     )
                   })}
                 </div>
@@ -437,6 +541,18 @@ export function ProcurementIntentFollowupPage() {
           </section>
         )
       })}
+
+      <RemindModal
+        open={Boolean(remindId)}
+        onClose={() => setRemindId(null)}
+        onConfirm={(remindAt, nextAction) => {
+          if (!remindId) return
+          const card = cards.find((item) => item.opportunity_id === remindId)
+          setRemindId(null)
+          if (!card || card.followup_status === 'NEW') return
+          void saveNextAction(card, remindAt, nextAction)
+        }}
+      />
     </div>
   )
 }
