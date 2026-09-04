@@ -44,6 +44,18 @@ class FollowedActionViewUiTests(unittest.TestCase):
         self.assertNotIn('最近备注：{item.latest_note}', self.page)
         self.assertIn('搜索已加载的医院、项目、产品、下一步、备注...', self.page)
 
+    def test_active_followup_without_reminder_is_visibly_pending_but_not_due(self) -> None:
+        self.assertIn("function needsNextAction", self.page)
+        self.assertIn("return ACTIVE_STATUSES.has(item.followup_status) && !item.remind_at", self.page)
+        self.assertIn("const pendingNextAction = needsNextAction(item)", self.page)
+        self.assertIn("待安排下一步", self.page)
+        self.assertIn("系统不会自动替你生成", self.page)
+        self.assertIn(") : pendingNextAction ? (", self.page)
+        self.assertIn("if (filter === 'DUE') return reminderIsDue(item)", self.page)
+        self.assertIn("due: statusIndex.filter((item) => reminderIsDue(item)).length", self.page)
+        self.assertNotIn("updateFollowup", self.page)
+        self.assertNotIn("remind_at:", self.page)
+
 
 if __name__ == '__main__':
     unittest.main()
