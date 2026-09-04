@@ -61,6 +61,20 @@ class PrivateAccountLifecycleTests(unittest.TestCase):
         self.assertIn('private_followups', export_source)
         self.assertIn('private_recommendation_feedback', export_source)
 
+    def test_private_outcome_review_is_exported_and_deleted_with_account(self):
+        auth_source = (WEB_ROOT / 'api' / 'auth.js').read_text(encoding='utf-8')
+        schema = (WEB_ROOT / 'api' / '_privateDb.js').read_text(encoding='utf-8')
+        export_source = auth_source[
+            auth_source.index('async function exportAccount'):auth_source.index('async function deleteAccount')
+        ]
+        self.assertIn(
+            'SELECT followup_id, mutation_id, status, note, reason, remind_at, created_at',
+            export_source,
+        )
+        self.assertIn('followup_events: events', export_source)
+        self.assertIn('user_id uuid NOT NULL REFERENCES private_users(id) ON DELETE CASCADE', schema)
+        self.assertIn('followup_id uuid NOT NULL REFERENCES private_followups(id) ON DELETE CASCADE', schema)
+
     def test_account_deletion_requires_current_password(self):
         source = (WEB_ROOT / 'api' / 'auth.js').read_text(encoding='utf-8')
         delete_source = source[source.index('async function deleteAccount'):]
