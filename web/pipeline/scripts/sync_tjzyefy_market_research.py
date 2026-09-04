@@ -218,7 +218,7 @@ def main() -> int:
         'publish_gate_reason': publish_gate_reason,
         'policy': {
             'official_index_required': True,
-            'only_medical_equipment_consumables_reagent_research_titles': True,
+            'shared_medical_scope_title_filter': True,
             'procurement_intent_lifecycle_not_claimed': True,
             'strict_detail_verification': True,
             'deadline_time_never_invented': True,
