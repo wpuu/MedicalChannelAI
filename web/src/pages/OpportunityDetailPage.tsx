@@ -94,6 +94,9 @@ export function OpportunityDetailPage() {
     if (!silent) {
       setLoading(true)
       setError(null)
+      setPublicHistory(null)
+      setPublicHistoryLoading(false)
+      setPublicHistoryError(false)
     }
     setNotFound(false)
     setHistorical(false)
@@ -108,11 +111,10 @@ export function OpportunityDetailPage() {
         if (stored) {
           setHistorical(true)
           setCard(stored)
-          loadPublicHistory(id)
         } else {
           setNotFound(true)
           setCard(null)
-          setPublicHistory(null)
+          if (!silent) setPublicHistory(null)
         }
       } else {
         if (!isApiMode && isVerifiedPublicDemo) {
@@ -121,7 +123,6 @@ export function OpportunityDetailPage() {
         } else {
           setCard(res)
         }
-        loadPublicHistory(id)
         if (isApiMode || isVerifiedPublicDemo) {
           void getRuntimeStatus().then((status) => {
             setRuntimeStatus(status)
@@ -138,7 +139,7 @@ export function OpportunityDetailPage() {
     } finally {
       setLoading(false)
     }
-  }, [id, loadPublicHistory, navigate])
+  }, [id, navigate])
 
   useEffect(() => {
     void load()
@@ -368,6 +369,7 @@ export function OpportunityDetailPage() {
           history={publicHistory}
           loading={publicHistoryLoading}
           error={publicHistoryError}
+          onLoad={() => loadPublicHistory(card.opportunity_id)}
         />
       ) : null}
       <div id="official-evidence" className="scroll-mt-20">
