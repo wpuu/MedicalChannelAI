@@ -42,6 +42,19 @@ class FollowupOutcomeLearningUiTests(unittest.TestCase):
         self.assertIn('会保存到服务器，不会写入公开商机事实', self.not_fit_modal)
         self.assertIn('演示模式下只保存在当前浏览器', self.not_fit_modal)
 
+    def test_terminal_results_require_explicit_two_step_reopen(self) -> None:
+        self.assertIn('const terminal = REMINDER_TERMINAL_STATUSES.has(card.followup_status)', self.card)
+        self.assertIn('更正结果 / 重新打开', self.card)
+        self.assertIn('确认重新打开', self.card)
+        self.assertIn("setStatus('REVIEWING')", self.card)
+        self.assertIn("onChangeStatus('REVIEWING')", self.card)
+        self.assertIn('保留原有结果和复盘历史', self.card)
+        self.assertIn('当前结果将不再计入终态统计', self.card)
+        terminal_start = self.card.index('{terminal ? (')
+        normal_select = self.card.index('<select', terminal_start)
+        reopen_copy = self.card.index('更正结果 / 重新打开', terminal_start)
+        self.assertLess(reopen_copy, normal_select)
+
 
 if __name__ == '__main__':
     unittest.main()
