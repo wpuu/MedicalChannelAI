@@ -9,15 +9,15 @@
   "demo_mode": "verified_public_intelligence_with_private_crm_overlay",
   "verified_snapshot_at": "2026-09-03T13:31:21.991132+08:00",
   "vercel_branch_preview_enabled": false,
-  "runtime_implementation_head": "4626eb6f9f799de412ea118d48b920e0f1d8a398",
-  "latest_code_validated_head": "4626eb6f9f799de412ea118d48b920e0f1d8a398",
-  "current_runtime_candidate_head": "4626eb6f9f799de412ea118d48b920e0f1d8a398",
-  "github_actions_status": "FULL_VERIFY_1413_SUCCESS_GCP_SELF_HOSTED",
+  "runtime_implementation_head": "27f0eacdb16784c66115f1fa42b3c1047eb797c7",
+  "latest_code_validated_head": "27f0eacdb16784c66115f1fa42b3c1047eb797c7",
+  "current_runtime_candidate_head": "27f0eacdb16784c66115f1fa42b3c1047eb797c7",
+  "github_actions_status": "FULL_VERIFY_1418_SUCCESS_GCP_SELF_HOSTED",
   "last_green_validation": {
     "provider": "GITHUB_ACTIONS_SELF_HOSTED_GCP",
     "workflow": "Verify MedicalChannelAI",
-    "run_number": 1413,
-    "head": "4626eb6f9f799de412ea118d48b920e0f1d8a398",
+    "run_number": 1418,
+    "head": "27f0eacdb16784c66115f1fa42b3c1047eb797c7",
     "result": "SUCCESS",
     "runner_name": "medicalchannelai-gcp-1",
     "system_python": "3.13.7",
@@ -35,22 +35,24 @@
       "index_html_gzip_kb": 0.38,
       "css_kb": 41.30,
       "css_gzip_kb": 8.09,
-      "main_js_kb": 382.56,
-      "main_js_gzip_kb": 122.48,
+      "main_js_kb": 375.20,
+      "main_js_gzip_kb": 119.58,
       "login_js_kb": 6.58,
-      "opportunity_pool_js_kb": 18.31,
+      "local_customer_profile_js_kb": 7.99,
+      "local_customer_profile_js_gzip_kb": 3.11,
+      "opportunity_pool_js_kb": 18.38,
       "followed_js_kb": 20.95,
-      "pilot_resources_js_kb": 23.04,
-      "opportunity_detail_js_kb": 50.19,
+      "pilot_resources_js_kb": 23.18,
+      "opportunity_detail_js_kb": 50.28,
       "radar_js_kb": 57.59
     }
   },
   "current_runtime_candidate_validation": {
-    "head": "4626eb6f9f799de412ea118d48b920e0f1d8a398",
+    "head": "27f0eacdb16784c66115f1fa42b3c1047eb797c7",
     "result": "SUCCESS",
-    "run_number": 1413,
+    "run_number": 1418,
     "repository_steps_executed": true,
-    "interpretation": "The GCP self-hosted runner executed Checkout, system Python, Node setup, npm ci, full prebuild, 508 Python contract tests, TypeScript typecheck, Vite production build and ranking summary successfully. The validated batch includes China-latency database/request reductions, schema fast paths, non-blocking auxiliary work, one-shot auth/mutation reuse and hashed/lazy frontend delivery."
+    "interpretation": "The GCP self-hosted runner executed Checkout, system Python, Node setup, npm ci, full prebuild, 508 Python contract tests, TypeScript typecheck, Vite production build and ranking summary successfully. The validated batch additionally defers demo reset dependencies from the real Pilot shell; localCustomerProfile is emitted as a separate chunk and the main bundle fell to 375.20 kB / gzip 119.58 kB."
   },
   "historical_github_hosted_runner_block": {
     "observed_failed_start_runs": [1297, 1299, 1303, 1307, 1327, 1331, 1338, 1340, 1342],
@@ -99,16 +101,17 @@
     "current_head_real_http_post_verified": false,
     "note": "Historical AI runtime evidence is not current-HEAD acceptance. Current branch Preview is intentionally disabled."
   },
-  "latest_changes_validation_status": "FULL_VERIFY_1413_GREEN_ON_GCP_SELF_HOSTED_RUNNER; 508_CONTRACT_TESTS_TSC_VITE_GREEN; PREVIEW_INTENTIONALLY_DISABLED",
+  "latest_changes_validation_status": "FULL_VERIFY_1418_GREEN_ON_GCP_SELF_HOSTED_RUNNER; 508_CONTRACT_TESTS_TSC_VITE_GREEN; MAIN_JS_GZIP_119_58_KB; PREVIEW_INTENTIONALLY_DISABLED",
   "production_observation": {
     "vercel_default_domain": "https://medicalchannelai.vercel.app/",
     "vercel_project_live": false,
     "custom_domain_observation": "The reachable custom demo/production surface must not be assumed to contain current PR changes. Production promotion remains separately controlled."
   },
-  "milestone": "V0_4_1_NO_PREVIEW_CHINA_LATENCY_AND_FRONTEND_DELIVERY_FULL_GREEN",
+  "milestone": "V0_4_1_NO_PREVIEW_CHINA_LATENCY_AND_MAIN_BUNDLE_119_58_GZIP_GREEN",
   "known_incomplete_invariants": {
     "today_light_response_split": "NOT_IMPLEMENTED: Today still shares the response shape that can include the full opportunity pool. Core private.js is intentionally not whole-file rewritten through a truncated connector read.",
-    "ai_client_on_demand_bundle_split": "NOT_IMPLEMENTED: Today still statically imports the AI client module; this is a possible later measured bundle optimization."
+    "ai_client_on_demand_bundle_split": "NOT_IMPLEMENTED: Today still statically imports the AI client module; this is the next measured bundle optimization candidate.",
+    "local_followup_store_isolated_chunk": "NOT_CLAIMED: AppLayout requests it dynamically for reset, but Vite reports static references from other lazy route/service modules, so that dynamic import alone cannot isolate the module."
   },
   "gates": {
     "canonical_fact_schema": true,
@@ -202,6 +205,8 @@
     "login_route_lazy_loaded": true,
     "non_pilot_services_deferred": true,
     "mock_reset_deferred_from_pilot_shell": true,
+    "demo_reset_imports_on_action": true,
+    "local_customer_profile_deferred_chunk": true,
     "today_light_response_split": false,
     "ai_client_on_demand_bundle_split": false,
     "latest_consolidated_preview_verified": false,
