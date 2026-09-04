@@ -11,6 +11,7 @@ import { PriorityCard } from '@/components/opportunity/PriorityCard'
 import { PublicHistoryCard } from '@/components/opportunity/PublicHistoryCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
+import { LostModal } from '@/components/followup/LostModal'
 import { NotFitModal } from '@/components/followup/NotFitModal'
 import { RemindModal } from '@/components/followup/RemindModal'
 import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
@@ -37,7 +38,7 @@ import {
   runtimeSnapshotWarning,
   type RuntimeStatus,
 } from '@/services/runtimeStatusApi'
-import type { FollowupStatus, NotFitReason, TodayActionCard } from '@/types'
+import type { FollowupStatus, LostReason, NotFitReason, TodayActionCard } from '@/types'
 
 const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；其他功能正常。'
 
@@ -56,6 +57,7 @@ export function OpportunityDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [notFitOpen, setNotFitOpen] = useState(false)
+  const [lostOpen, setLostOpen] = useState(false)
   const [remindOpen, setRemindOpen] = useState(false)
   const [outreachOpen, setOutreachOpen] = useState(false)
   const [aiBusy, setAiBusy] = useState(false)
@@ -353,6 +355,7 @@ export function OpportunityDetailPage() {
         onChangeStatus={(status) => void updateStatus(status)}
         onAddNote={addNote}
         onNotFit={() => setNotFitOpen(true)}
+        onLost={() => setLostOpen(true)}
         onRemind={() => setRemindOpen(true)}
       />
 
@@ -384,6 +387,16 @@ export function OpportunityDetailPage() {
         onConfirm={(reason: NotFitReason) => {
           setNotFitOpen(false)
           void updateStatus('NOT_FIT', { reason })
+        }}
+      />
+      <LostModal
+        open={lostOpen}
+        onClose={() => setLostOpen(false)}
+        onConfirm={(reason: LostReason) => {
+          setLostOpen(false)
+          void updateStatus('LOST', {
+            note: `未成交原因（当前用户判断）：${reason}`,
+          })
         }}
       />
       <RemindModal
