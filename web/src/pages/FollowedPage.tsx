@@ -34,7 +34,7 @@ const NEXT_ACTION_PREFIX = '下次行动：'
 const LOST_REASON_PREFIX = '未成交原因（当前用户判断）：'
 const GENERIC_REMINDER_NOTE = '设置下次跟进提醒；销售阶段保持不变。'
 
-type PipelineFilter = 'ALL' | 'ACTIVE' | 'MONITOR' | 'WON' | 'CLOSED'
+type PipelineFilter = 'ALL' | 'DUE' | 'ACTIVE' | 'MONITOR' | 'WON' | 'CLOSED'
 
 interface NotePresentation {
   label: string
@@ -43,6 +43,12 @@ interface NotePresentation {
 
 function buyerLabel(item: FollowedOpportunity): string {
   return item.facts.hospital_name ?? item.facts.buyer_name ?? '采购单位暂无公开信息'
+}
+
+function reminderIsDue(item: Pick<FollowedOpportunity, 'followup_status' | 'remind_at'>): boolean {
+  if (!item.remind_at || CLOSED_STATUSES.has(item.followup_status)) return false
+  const timestamp = Date.parse(item.remind_at)
+  return !Number.isNaN(timestamp) && timestamp <= Date.now()
 }
 
 function notePresentation(item: FollowedOpportunity): NotePresentation | null {
@@ -60,17 +66,18 @@ function notePresentation(item: FollowedOpportunity): NotePresentation | null {
 }
 
 function actionTier(item: FollowedOpportunity): number {
-  if (!CLOSED_STATUSES.has(item.followup_status) && item.remind_at) return 0
-  if (ACTIVE_STATUSES.has(item.followup_status)) return 1
-  if (item.followup_status === 'MONITOR') return 2
-  return 3
+  if (reminderIsDue(item)) return 0
+  if (!CLOSED_STATUSES.has(item.followup_status) && item.remind_at) return 1
+  if (ACTIVE_STATUSES.has(item.followup_status)) return 2
+  if (item.followup_status === 'MONITOR') return 3
+  return 4
 }
 
 function compareForActionView(left: FollowedOpportunity, right: FollowedOpportunity): number {
   const tierDiff = actionTier(left) - actionTier(right)
   if (tierDiff !== 0) return tierDiff
 
-  if (actionTier(left) === 0) {
+  if (actionTier(left) <= 1) {
     const leftReminder = left.remind_at ? Date.parse(left.remind_at) : Number.POSITIVE_INFINITY
     const rightReminder = right.remind_at ? Date.parse(right.remind_at) : Number.POSITIVE_INFINITY
     if (leftReminder !== rightReminder) return leftReminder - rightReminder
@@ -97,6 +104,7 @@ function searchText(item: FollowedOpportunity): string {
 }
 
 function matchesFilter(item: FollowedOpportunity, filter: PipelineFilter): boolean {
+  if (filter === 'DUE') return reminderIsDue(item)
   if (filter === 'ACTIVE') return ACTIVE_STATUSES.has(item.followup_status)
   if (filter === 'MONITOR') return item.followup_status === 'MONITOR'
   if (filter === 'WON') return item.followup_status === 'WON'
@@ -175,7 +183,7 @@ export function FollowedPage() {
   const metrics = useMemo(() => ({
     total: statusIndex.length,
     active: statusIndex.filter((item) => ACTIVE_STATUSES.has(item.followup_status)).length,
-    reminders: statusIndex.filter((item) => Boolean(item.remind_at)).length,
+    due: statusIndex.filter((item) => reminderIsDue(item)).length,
     won: statusIndex.filter((item) => item.followup_status === 'WON').length,
   }), [statusIndex])
 
@@ -200,7 +208,7 @@ export function FollowedPage() {
     return (
       <EmptyState
         title="暂无跟进中的商机"
-        hint="在今日行动或商机池中加入跟进、标记已联系或设置提醒后，会进入这里。"
+        hint="在今日行动或商机池中加入跟进、标记已联系或安排下一步后，会进入这里。"
       />
     )
   }
@@ -212,7 +220,7 @@ export function FollowedPage() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900">我的跟进</h2>
             <p className="mt-1 max-w-3xl text-[13px] leading-6 text-slate-500">
-              优先显示已安排下一步的进行中项目，再看其他推进、观察和已结束项目。即使商机退出当前公开机会池，私有跟进记录仍会保留并可继续更新。
+              已到期和近期安排的下一步优先显示，再看其他推进、观察和已结束项目。即使商机退出当前公开机会池，私有跟进记录仍会保留并可继续更新。
             </p>
           </div>
           <button
@@ -230,7 +238,7 @@ export function FollowedPage() {
         {[
           ['全部跟进', metrics.total],
           ['正在推进', metrics.active],
-          ['已设提醒', metrics.reminders],
+          ['待处理', metrics.due],
           ['已成交', metrics.won],
         ].map(([label, value]) => (
           <div key={String(label)} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
@@ -255,6 +263,7 @@ export function FollowedPage() {
             <Filter className="ml-2 h-3.5 w-3.5 shrink-0 text-slate-400" />
             {([
               ['ALL', '全部'],
+              ['DUE', '待处理'],
               ['ACTIVE', '推进中'],
               ['MONITOR', '观察'],
               ['WON', '成交'],
@@ -284,6 +293,7 @@ export function FollowedPage() {
             const focused = item.opportunity_id === focusedId
             const keyDate = item.facts.bid_deadline ?? item.facts.expected_procurement_at
             const privateNote = notePresentation(item)
+            const due = reminderIsDue(item)
             return (
               <article
                 key={item.opportunity_id}
@@ -302,8 +312,10 @@ export function FollowedPage() {
                       {focused ? (
                         <span className="text-[11px] font-medium text-amber-800">来自到期提醒</span>
                       ) : null}
-                      {item.remind_at ? (
-                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-800 ring-1 ring-amber-100">已设提醒</span>
+                      {due ? (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-900 ring-1 ring-amber-200">已到期</span>
+                      ) : item.remind_at ? (
+                        <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[11px] text-slate-600 ring-1 ring-slate-200">已安排</span>
                       ) : null}
                     </div>
                     <h3 className="mt-2 text-[14px] font-semibold leading-6 text-slate-900">
@@ -348,12 +360,12 @@ export function FollowedPage() {
                 </div>
 
                 {item.remind_at || privateNote ? (
-                  <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[12px] leading-5 text-slate-600">
+                  <div className={due ? 'mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-900' : 'mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[12px] leading-5 text-slate-600'}>
                     {item.remind_at ? (
-                      <p><span className="font-medium text-slate-700">下次时间：</span>{formatDateTime(item.remind_at) ?? item.remind_at}</p>
+                      <p><span className="font-medium">{due ? '到期时间' : '下次时间'}：</span>{formatDateTime(item.remind_at) ?? item.remind_at}</p>
                     ) : null}
                     {privateNote ? (
-                      <p className="whitespace-pre-wrap"><span className="font-medium text-slate-700">{privateNote.label}：</span>{privateNote.text}</p>
+                      <p className="whitespace-pre-wrap"><span className="font-medium">{privateNote.label}：</span>{privateNote.text}</p>
                     ) : null}
                   </div>
                 ) : null}
