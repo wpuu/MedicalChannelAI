@@ -51,18 +51,19 @@ const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；公开商�
 
 function shouldHideFromVerifiedTrialToday(card: TodayActionCard): boolean {
   if (DONE_FOR_TODAY.has(card.followup_status)) return true
-  if (card.followup_status !== 'MONITOR' || !card.remind_at) return false
+  if (!card.remind_at) return false
   const remindAt = new Date(card.remind_at).getTime()
   return !Number.isNaN(remindAt) && remindAt > Date.now()
 }
 
 function localDiscoveryFeedbackBucket(card: TodayActionCard): number {
-  if (card.followup_status !== 'NEW') return 0
+  if (card.followup_status !== 'NEW' || card.remind_at) return 0
   return getOpportunityFeedback(card.opportunity_id) === 'ALREADY_KNOWN' ? 1 : 0
 }
 
 function localFeedbackHidesFromToday(card: TodayActionCard): boolean {
   return card.followup_status === 'NEW' &&
+    !card.remind_at &&
     getOpportunityFeedback(card.opportunity_id) === 'NEW_NOT_VALUABLE'
 }
 
@@ -163,10 +164,10 @@ export function TodayPage() {
     try {
       await todayActionsService.updateFollowup(id, { status, ...extra })
       await load(true)
-      if (isApiMode) toast('跟进状态已同步服务器', 'success')
+      if (extra?.remind_at) toast('提醒已设置，当前销售阶段保持不变', 'success')
+      else if (isApiMode) toast('跟进状态已同步服务器', 'success')
       else if (status === 'CONTACTED') toast('已联系，商机已移入“我的跟进”', 'success')
       else if (status === 'NOT_FIT') toast('已标记不适合，记录已保留在“我的跟进”', 'success')
-      else if (status === 'MONITOR' && extra?.remind_at) toast('提醒已设置，提醒前暂不占用今日重点', 'success')
       else toast('跟进状态已更新', 'success')
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
@@ -358,10 +359,16 @@ export function TodayPage() {
         open={Boolean(remindId)}
         onClose={() => setRemindId(null)}
         onConfirm={(remindAt) => {
-          if (!remindId) return
+          if (!remindId || !data) return
           const id = remindId
+          const currentCard = (data.opportunity_pool ?? data.cards).find(
+            (item) => item.opportunity_id === id,
+          )
           setRemindId(null)
-          void updateStatus(id, 'MONITOR', { remind_at: remindAt, note: '稍后提醒' })
+          void updateStatus(id, currentCard?.followup_status ?? 'NEW', {
+            remind_at: remindAt,
+            note: '设置下次跟进提醒；销售阶段保持不变。',
+          })
         }}
       />
       <OutreachDrawer open={Boolean(outreachId)} opportunityId={outreachId} onClose={() => setOutreachId(null)} />
