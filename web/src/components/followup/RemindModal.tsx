@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { isApiMode } from '@/services/apiConfig'
 import { isoDaysFromNow } from '@/utils/format'
@@ -6,7 +6,7 @@ import { isoDaysFromNow } from '@/utils/format'
 interface RemindModalProps {
   open: boolean
   onClose: () => void
-  onConfirm: (remindAt: string) => void
+  onConfirm: (remindAt: string, nextAction: string | null) => void
 }
 
 function localDateAtNineToIso(localDate: string): string | null {
@@ -26,7 +26,14 @@ export function RemindModal({ open, onClose, onConfirm }: RemindModalProps) {
     [],
   )
   const [selected, setSelected] = useState(presets[0].value)
+  const [nextAction, setNextAction] = useState('')
   const remindAt = localDateAtNineToIso(selected)
+
+  useEffect(() => {
+    if (!open) return
+    setSelected(presets[0].value)
+    setNextAction('')
+  }, [open, presets])
 
   return (
     <Modal
@@ -45,7 +52,7 @@ export function RemindModal({ open, onClose, onConfirm }: RemindModalProps) {
           <button
             type="button"
             disabled={!remindAt}
-            onClick={() => remindAt && onConfirm(remindAt)}
+            onClick={() => remindAt && onConfirm(remindAt, nextAction.trim() || null)}
             className="rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] text-white disabled:opacity-50"
           >
             设置提醒
@@ -81,6 +88,21 @@ export function RemindModal({ open, onClose, onConfirm }: RemindModalProps) {
         onChange={(e) => setSelected(e.target.value)}
         className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-[13px] outline-none focus:border-teal-700"
       />
+      <label htmlFor="reminder-next-action" className="mt-4 block text-[12px] font-medium text-slate-600">
+        到时要做什么（可选）
+      </label>
+      <textarea
+        id="reminder-next-action"
+        value={nextAction}
+        maxLength={500}
+        rows={3}
+        placeholder="例如：再联系设备科，确认参数要求和厂家授权情况。"
+        onChange={(event) => setNextAction(event.target.value)}
+        className="mt-1 w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-[13px] leading-5 text-slate-700 outline-none focus:border-teal-700"
+      />
+      <p className="mt-1 text-[11px] leading-5 text-slate-400">
+        填写后会作为当前账号私有跟进备注保存，并在到期提醒里直接显示。
+      </p>
     </Modal>
   )
 }
