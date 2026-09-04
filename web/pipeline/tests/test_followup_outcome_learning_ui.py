@@ -61,6 +61,8 @@ class FollowupOutcomeLearningUiTests(unittest.TestCase):
 
     def test_terminal_results_require_explicit_two_step_reopen(self) -> None:
         self.assertIn('const terminal = REMINDER_TERMINAL_STATUSES.has(card.followup_status)', self.card)
+        self.assertIn("const OUTCOME_TERMINAL_STATUSES = new Set<FollowupStatus>(['WON', 'LOST', 'NOT_FIT'])", self.card)
+        self.assertIn('const outcomeTerminal = OUTCOME_TERMINAL_STATUSES.has(card.followup_status)', self.card)
         self.assertIn('更正结果 / 重新打开', self.card)
         self.assertIn('确认重新打开', self.card)
         self.assertIn("setStatus('REVIEWING')", self.card)
@@ -71,6 +73,17 @@ class FollowupOutcomeLearningUiTests(unittest.TestCase):
         normal_select = self.card.index('<select', terminal_start)
         reopen_copy = self.card.index('更正结果 / 重新打开', terminal_start)
         self.assertLess(reopen_copy, normal_select)
+
+    def test_archived_is_locked_but_never_claimed_as_outcome_statistics(self) -> None:
+        self.assertIn("'ARCHIVED',", self.card)
+        self.assertIn("{outcomeTerminal ? '更正结果 / 重新打开' : '重新打开'}", self.card)
+        self.assertIn('项目已归档。普通状态下不直接开放下拉修改', self.card)
+        self.assertIn('保留原有归档历史；项目将重新进入推进流程', self.card)
+        outcome_set = self.card[
+            self.card.index('const OUTCOME_TERMINAL_STATUSES'):
+            self.card.index('interface FollowupCardProps')
+        ]
+        self.assertNotIn('ARCHIVED', outcome_set)
 
 
 if __name__ == '__main__':
