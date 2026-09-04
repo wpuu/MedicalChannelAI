@@ -59,6 +59,19 @@ class FrontendDeliveryPressureTests(unittest.TestCase):
         self.assertNotIn("import { clearLocalCustomerProfile } from '@/services/localCustomerProfile'", layout)
         self.assertIn("const [mockModule, followupModule, profileModule] = await Promise.all([", layout)
 
+    def test_today_ai_client_is_loaded_only_for_demo_cache_or_explicit_analysis(self) -> None:
+        today = (WEB_ROOT / "src" / "pages" / "TodayPage.tsx").read_text(encoding="utf-8")
+        self.assertNotIn("from '@/services/aiDecisionApi'", today)
+        self.assertIn(
+            "const { hydrateCachedAiDecisions } = await import('@/services/aiDecisionApi')",
+            today,
+        )
+        self.assertIn("aiApi = await import('@/services/aiDecisionApi')", today)
+        self.assertIn("const decision = await aiApi.requestAiDecision(card)", today)
+        self.assertIn("cause instanceof aiApi.AiDecisionError", today)
+        self.assertIn("aiApi.aiDecisionErrorMessage(cause)", today)
+        self.assertIn("if (!isApiMode && isVerifiedPublicDemo)", today)
+
 
 if __name__ == "__main__":
     unittest.main()
