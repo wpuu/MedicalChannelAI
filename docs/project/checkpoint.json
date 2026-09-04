@@ -12,6 +12,7 @@
   "runtime_implementation_head": "325dd59cd4e6c9c243516b6d248b742a9be98cef",
   "latest_code_validated_head": "325dd59cd4e6c9c243516b6d248b742a9be98cef",
   "current_runtime_candidate_head": "325dd59cd4e6c9c243516b6d248b742a9be98cef",
+  "branch_head_is_docs_only_after_validated_executable": true,
   "github_actions_status": "FULL_VERIFY_1452_SUCCESS_GCP_SELF_HOSTED",
   "last_green_validation": {
     "provider": "GITHUB_ACTIONS_SELF_HOSTED_GCP",
