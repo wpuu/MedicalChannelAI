@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import {
+  consumeRecentlyAuthenticatedPilotUser,
   getPilotSession,
   isApiMode,
   isAuthRequiredError,
   PILOT_SESSION_CHANGE_KEY,
+  type PilotUser,
 } from '@/services/apiConfig'
 import { activateDiscoveryWorkspaceForAccount } from '@/services/discoveryWorkspaceAccountIsolation'
 
@@ -16,11 +18,16 @@ export function RequirePilotSession() {
   useEffect(() => {
     if (!isApiMode) return
     let active = true
-    void getPilotSession()
-      .then(async (user) => {
-        await activateDiscoveryWorkspaceForAccount(user.local_scope)
-        if (active) setState('authorized')
-      })
+
+    const authorize = async (user: PilotUser) => {
+      await activateDiscoveryWorkspaceForAccount(user.local_scope)
+      if (active) setState('authorized')
+    }
+
+    const recentUser = consumeRecentlyAuthenticatedPilotUser()
+    const session = recentUser ? Promise.resolve(recentUser) : getPilotSession()
+    void session
+      .then(authorize)
       .catch((error) => {
         if (!active) return
         setState(isAuthRequiredError(error) || (error instanceof Error && error.message === 'AUTH_REQUIRED')
