@@ -52,6 +52,10 @@ function reminderIsDue(item: Pick<FollowedOpportunity, 'followup_status' | 'remi
   return !Number.isNaN(timestamp) && timestamp <= Date.now()
 }
 
+function needsNextAction(item: Pick<FollowedOpportunity, 'followup_status' | 'remind_at'>): boolean {
+  return ACTIVE_STATUSES.has(item.followup_status) && !item.remind_at
+}
+
 function notePresentation(item: FollowedOpportunity): NotePresentation | null {
   const note = item.latest_note?.trim()
   if (!note || note === GENERIC_REMINDER_NOTE) return null
@@ -221,7 +225,7 @@ export function FollowedPage() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900">我的跟进</h2>
             <p className="mt-1 max-w-3xl text-[13px] leading-6 text-slate-500">
-              已到期和近期安排的下一步优先显示，再看其他推进、观察和已结束项目。即使商机退出当前公开机会池，私有跟进记录仍会保留并可继续更新。
+              已到期和近期安排的下一步优先显示，再看其他推进、观察和已结束项目。标记“待安排下一步”的推进项目还没有私有提醒时间，需要你明确决定后续动作；系统不会自动替你生成。即使商机退出当前公开机会池，私有跟进记录仍会保留并可继续更新。
             </p>
           </div>
           <button
@@ -297,6 +301,7 @@ export function FollowedPage() {
             const keyDate = item.facts.bid_deadline ?? item.facts.expected_procurement_at
             const privateNote = notePresentation(item)
             const due = reminderIsDue(item)
+            const pendingNextAction = needsNextAction(item)
             return (
               <article
                 key={item.opportunity_id}
@@ -319,6 +324,8 @@ export function FollowedPage() {
                         <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-900 ring-1 ring-amber-200">已到期</span>
                       ) : item.remind_at ? (
                         <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[11px] text-slate-600 ring-1 ring-slate-200">已安排</span>
+                      ) : pendingNextAction ? (
+                        <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-700 ring-1 ring-rose-200">待安排下一步</span>
                       ) : null}
                     </div>
                     <h3 className="mt-2 text-[14px] font-semibold leading-6 text-slate-900">
