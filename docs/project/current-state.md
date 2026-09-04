@@ -23,6 +23,7 @@ Fixed rules:
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
 - Latest fully code-validated executable/runtime HEAD: `325dd59cd4e6c9c243516b6d248b742a9be98cef`
 - Latest successful full validation: GitHub Actions **Verify #1452 SUCCESS**
+- Current branch HEAD after that validation contains only state-document updates; it must not be treated as a newer executable validation point.
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR remains open, Draft and unmerged.
 - `web/vercel.json` disables automatic Vercel deployments for this branch.
