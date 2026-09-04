@@ -15,6 +15,7 @@ import { LostModal } from '@/components/followup/LostModal'
 import { NotFitModal } from '@/components/followup/NotFitModal'
 import { RemindModal } from '@/components/followup/RemindModal'
 import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
+import { WonModal } from '@/components/followup/WonModal'
 import { OfficialText } from '@/components/shared/EmptyValue'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
@@ -38,7 +39,7 @@ import {
   runtimeSnapshotWarning,
   type RuntimeStatus,
 } from '@/services/runtimeStatusApi'
-import type { FollowupStatus, LostReason, NotFitReason, TodayActionCard } from '@/types'
+import type { FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
 
 const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；其他功能正常。'
 
@@ -56,6 +57,7 @@ export function OpportunityDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
+  const [wonOpen, setWonOpen] = useState(false)
   const [notFitOpen, setNotFitOpen] = useState(false)
   const [lostOpen, setLostOpen] = useState(false)
   const [remindOpen, setRemindOpen] = useState(false)
@@ -354,6 +356,7 @@ export function OpportunityDetailPage() {
         card={card}
         onChangeStatus={(status) => void updateStatus(status)}
         onAddNote={addNote}
+        onWon={() => setWonOpen(true)}
         onNotFit={() => setNotFitOpen(true)}
         onLost={() => setLostOpen(true)}
         onRemind={() => setRemindOpen(true)}
@@ -381,6 +384,16 @@ export function OpportunityDetailPage() {
         </>
       ) : null}
 
+      <WonModal
+        open={wonOpen}
+        onClose={() => setWonOpen(false)}
+        onConfirm={(reason: WonReason) => {
+          setWonOpen(false)
+          void updateStatus('WON', {
+            note: `成交复盘（当前用户判断）：${reason}`,
+          })
+        }}
+      />
       <NotFitModal
         open={notFitOpen}
         onClose={() => setNotFitOpen(false)}
