@@ -9,16 +9,16 @@
   "demo_mode": "verified_public_intelligence_with_private_crm_overlay",
   "verified_snapshot_at": "2026-09-03T13:31:21.991132+08:00",
   "vercel_branch_preview_enabled": false,
-  "runtime_implementation_head": "325dd59cd4e6c9c243516b6d248b742a9be98cef",
-  "latest_code_validated_head": "325dd59cd4e6c9c243516b6d248b742a9be98cef",
-  "current_runtime_candidate_head": "325dd59cd4e6c9c243516b6d248b742a9be98cef",
+  "runtime_implementation_head": "c91c48b28ee16f748045ff56749b7ceae3daa17f",
+  "latest_code_validated_head": "c91c48b28ee16f748045ff56749b7ceae3daa17f",
+  "current_runtime_candidate_head": "c91c48b28ee16f748045ff56749b7ceae3daa17f",
   "branch_head_is_docs_only_after_validated_executable": true,
-  "github_actions_status": "FULL_VERIFY_1452_SUCCESS_GCP_SELF_HOSTED",
+  "github_actions_status": "FULL_VERIFY_1457_SUCCESS_GCP_SELF_HOSTED",
   "last_green_validation": {
     "provider": "GITHUB_ACTIONS_SELF_HOSTED_GCP",
     "workflow": "Verify MedicalChannelAI",
-    "run_number": 1452,
-    "head": "325dd59cd4e6c9c243516b6d248b742a9be98cef",
+    "run_number": 1457,
+    "head": "c91c48b28ee16f748045ff56749b7ceae3daa17f",
     "result": "SUCCESS",
     "runner_name": "medicalchannelai-gcp-1",
     "system_python": "3.13.7",
@@ -51,11 +51,11 @@
     }
   },
   "current_runtime_candidate_validation": {
-    "head": "325dd59cd4e6c9c243516b6d248b742a9be98cef",
+    "head": "c91c48b28ee16f748045ff56749b7ceae3daa17f",
     "result": "SUCCESS",
-    "run_number": 1452,
+    "run_number": 1457,
     "repository_steps_executed": true,
-    "interpretation": "Full Verify #1452 executed 558 contract tests, prebuild, TypeScript typecheck, Vite production build and ranking summary successfully. It validates the corrected tjzyefy adapter and its daily-deep wiring. Scheduled execution is not claimed because PR #6 is not on the default branch."
+    "interpretation": "Full Verify #1457 executed 558 contract tests, prebuild, TypeScript typecheck, Vite production build and ranking summary successfully. It reconfirms the corrected tjzyefy adapter and daily-deep wiring on the complete current PR tree. Scheduled execution is not claimed because PR #6 is not on the default branch."
   },
   "today_light_response": {
     "implemented": true,
@@ -96,7 +96,7 @@
     "implemented": true,
     "adapter_initial_commit": "2d7410798280c19dfb7fcf8437d8a045f58214d2",
     "corrected_adapter_validated_head": "6d83a8cae735bceb4cf5bb182bba4a073afc73fd",
-    "daily_deep_validated_head": "325dd59cd4e6c9c243516b6d248b742a9be98cef",
+    "daily_deep_validated_head": "c91c48b28ee16f748045ff56749b7ceae3daa17f",
     "official_domain": "www.tjzyefy.com",
     "official_index": "https://www.tjzyefy.com/xwgg/ggtz/",
     "source_type": "OFFICIAL_INSTITUTION_NOTICE",
@@ -139,7 +139,7 @@
     "is_current_head": false,
     "note": "Current PR branch automatic Preview remains disabled. No current source-expansion deployment is accepted or claimed."
   },
-  "latest_changes_validation_status": "FULL_VERIFY_1452_GREEN_ON_GCP_SELF_HOSTED; 558_TESTS; TJZYEFY_CORRECTED_RECALL_AND_DAILY_DEEP_WIRING_GREEN; 11_OF_12_FUNCTIONS; MAIN_JS_GZIP_115_27_KB; PREVIEW_DISABLED",
+  "latest_changes_validation_status": "FULL_VERIFY_1457_GREEN_ON_GCP_SELF_HOSTED; 558_TESTS; TJZYEFY_CORRECTED_RECALL_AND_DAILY_DEEP_WIRING_RECONFIRMED; 11_OF_12_FUNCTIONS; MAIN_JS_GZIP_115_27_KB; PREVIEW_DISABLED",
   "milestone": "V0_4_1_NO_PREVIEW_TJZYEFY_MARKET_RESEARCH_DAILY_DEEP_GREEN",
   "known_incomplete_invariants": {
     "today_server_compute_split": "NOT_IMPLEMENTED: default Today omits the full pool from the wire response, but the private core still constructs and personalizes the full pool before projection.",
