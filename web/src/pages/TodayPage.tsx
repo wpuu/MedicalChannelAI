@@ -92,11 +92,38 @@ export function TodayPage() {
   const [remindId, setRemindId] = useState<string | null>(null)
   const [outreachId, setOutreachId] = useState<string | null>(null)
 
+  const loadReminders = useCallback(async () => {
+    try {
+      setReminders(await getDueReminders())
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
+      setReminders([])
+    }
+  }, [navigate])
+
+  const loadRuntimeStatus = useCallback(() => {
+    if (!isApiMode && !isVerifiedPublicDemo) return
+    void getRuntimeStatus().then((status) => {
+      setRuntimeStatus(status)
+      setRuntimeStatusChecked(true)
+    })
+  }, [])
+
   const load = useCallback(async (silent = false) => {
     if (!silent) {
       setLoading(true)
       setError(null)
     }
+
+    // Reminders and runtime health are auxiliary surfaces. Start them with the
+    // main Today request, but never keep the primary page spinner waiting for
+    // an extra cross-network round trip.
+    void loadReminders()
+    loadRuntimeStatus()
+
     try {
       const res = await todayActionsService.getTodayActions()
       if (!isApiMode && isVerifiedPublicDemo) {
@@ -123,23 +150,6 @@ export function TodayPage() {
       } else {
         setData(res)
       }
-
-      if (isApiMode || isVerifiedPublicDemo) {
-        void getRuntimeStatus().then((status) => {
-          setRuntimeStatus(status)
-          setRuntimeStatusChecked(true)
-        })
-      }
-
-      try {
-        setReminders(await getDueReminders())
-      } catch (cause) {
-        if (isAuthRequiredError(cause)) {
-          navigate('/login', { replace: true })
-          return
-        }
-        setReminders([])
-      }
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
@@ -149,7 +159,7 @@ export function TodayPage() {
     } finally {
       setLoading(false)
     }
-  }, [navigate])
+  }, [loadReminders, loadRuntimeStatus, navigate])
 
   useEffect(() => {
     void load()
