@@ -52,6 +52,14 @@ class PrivateOutcomeSummaryTests(unittest.TestCase):
         self.assertIn("已决成交率", self.card)
         self.assertIn("已成交 ÷（已成交 + 未成交）", self.card)
 
+    def test_small_sample_is_recorded_without_claiming_a_business_rule(self) -> None:
+        self.assertIn("const MIN_REVIEW_SAMPLE = 5", self.card)
+        self.assertIn("summary.decided_count < MIN_REVIEW_SAMPLE", self.card)
+        self.assertIn("暂不足以判断成交规律", self.card)
+        self.assertIn("当前数字只用于记录", self.card)
+        self.assertIn("不代表因果关系", self.card)
+        self.assertIn("不会自动修改公开事实或公共机会排序", self.card)
+
 
 if __name__ == "__main__":
     unittest.main()
