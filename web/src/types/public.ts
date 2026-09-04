@@ -129,6 +129,8 @@ export interface PublicProcurementIntentFollowupSummary {
   intent_count: number
   intents_with_formal_successor: number
   candidate_pair_count: number
+  /** Authenticated Today only: unique formal candidates not yet explicitly handled by this account. */
+  formal_candidates_needing_action?: number
 }
 
 /**
