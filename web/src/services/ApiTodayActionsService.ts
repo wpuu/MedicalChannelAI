@@ -55,6 +55,15 @@ const FOLLOWUP_STATUSES = new Set<FollowupStatus>([
   'ARCHIVED',
 ])
 
+const DONE_FOR_TODAY = new Set<FollowupStatus>([
+  'CONTACTED',
+  'NOT_FIT',
+  'BID_SUBMITTED',
+  'WON',
+  'LOST',
+  'ARCHIVED',
+])
+
 const NOT_FIT_REASON_TO_CODE: Record<NotFitReason, string> = {
   没有对应产品: 'NO_PRODUCT_CAPABILITY',
   暂无厂家资源: 'NO_MANUFACTURER_ACCESS',
@@ -387,8 +396,33 @@ function applyFollowupState(card: TodayActionCard, state: ServerFollowupState): 
   }
 }
 
+function shouldAppearToday(card: TodayActionCard): boolean {
+  if (DONE_FOR_TODAY.has(card.followup_status)) return false
+  if (!card.remind_at) return true
+  const remindAt = new Date(card.remind_at).getTime()
+  return Number.isNaN(remindAt) || remindAt <= Date.now()
+}
+
+function applyMutationToToday(
+  current: TodayActionsResponse,
+  state: ServerFollowupState,
+): TodayActionsResponse {
+  const updateCard = (card: TodayActionCard) =>
+    card.opportunity_id === state.opportunity_id ? applyFollowupState(card, state) : card
+  const opportunityPool = (current.opportunity_pool ?? current.cards).map(updateCard)
+  const cards = current.cards.map(updateCard).filter(shouldAppearToday)
+  return {
+    ...current,
+    card_count: cards.length,
+    cards,
+    opportunity_pool: opportunityPool,
+  }
+}
+
 export class ApiTodayActionsService implements TodayActionsService {
   private readonly baseUrl: string
+  private latestToday: TodayActionsResponse | null = null
+  private pendingTodayAfterMutation: TodayActionsResponse | null = null
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl.replace(/\/+$/, '')
@@ -429,10 +463,17 @@ export class ApiTodayActionsService implements TodayActionsService {
   }
 
   async getTodayActions(_options?: TodayActionsLoadOptions): Promise<TodayActionsResponse> {
+    if (this.pendingTodayAfterMutation) {
+      const pending = this.pendingTodayAfterMutation
+      this.pendingTodayAfterMutation = null
+      this.latestToday = pending
+      return pending
+    }
+
     const data = await this.requestJson<TodayActionsPublicResponse>('/today')
     const mappedPool = (data.opportunity_pool ?? data.cards).map(mapPublicCard)
     const cards = data.cards.map(mapPublicCard)
-    return {
+    const result: TodayActionsResponse = {
       schema_version: data.schema_version,
       mode: data.mode,
       input_candidate_count: data.input_candidate_count,
@@ -450,6 +491,8 @@ export class ApiTodayActionsService implements TodayActionsService {
       opportunity_pool: mappedPool,
       model_requests: [],
     }
+    this.latestToday = result
+    return result
   }
 
   async getOpportunity(id: string): Promise<TodayActionCard | null> {
@@ -479,11 +522,17 @@ export class ApiTodayActionsService implements TodayActionsService {
       payload.reason = NOT_FIT_REASON_TO_CODE[reason]
     }
 
-    await this.requestJson<ServerFollowupState>(`/followup/${encodeURIComponent(id)}`, {
+    const state = await this.requestJson<ServerFollowupState>(`/followup/${encodeURIComponent(id)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
+
+    if (this.latestToday) {
+      const next = applyMutationToToday(this.latestToday, state)
+      this.latestToday = next
+      this.pendingTodayAfterMutation = next
+    }
   }
 
   async requestOutreachDraft(id: string): Promise<OutreachDraft> {
