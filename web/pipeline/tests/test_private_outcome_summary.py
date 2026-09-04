@@ -31,9 +31,12 @@ class PrivateOutcomeSummaryTests(unittest.TestCase):
         self.assertIn("OUTCOME_SUMMARY_TRUNCATED", self.profile_api)
         self.assertIn("rows.length > 5000", self.profile_api)
 
-    def test_loss_reason_survives_later_freeform_notes(self) -> None:
+    def test_controlled_win_and_loss_reviews_survive_later_freeform_notes(self) -> None:
+        self.assertIn("const WON_REASON_NOTE_PREFIX = '成交复盘（当前用户判断）：'", self.profile_api)
         self.assertIn("const LOST_REASON_NOTE_PREFIX = '未成交原因（当前用户判断）：'", self.profile_api)
-        self.assertIn("e.note LIKE ${`${LOST_REASON_NOTE_PREFIX}%`}", self.profile_api)
+        self.assertIn("const wonNotePattern = `${WON_REASON_NOTE_PREFIX}%`", self.profile_api)
+        self.assertIn("const lostNotePattern = `${LOST_REASON_NOTE_PREFIX}%`", self.profile_api)
+        self.assertIn("WON_REASON_LABEL_TO_CODE.get(label)", self.profile_api)
         self.assertIn("LOST_REASON_LABEL_TO_CODE.get(label)", self.profile_api)
         self.assertIn("历史未结构化", self.card)
 
@@ -41,6 +44,8 @@ class PrivateOutcomeSummaryTests(unittest.TestCase):
         self.assertIn("PRIVATE_OUTCOME_SUMMARY", self.client)
         self.assertIn("root.total_terminal !== root.won + root.lost + root.not_fit", self.client)
         self.assertIn("root.decided_count !== root.won + root.lost", self.client)
+        self.assertIn("won_reason_counts", self.client)
+        self.assertIn("unclassified_won", self.client)
         self.assertIn("if (!isApiMode) return localSummary()", self.client)
         self.assertIn("/profile?route=outcome-summary", self.client)
 
@@ -51,6 +56,8 @@ class PrivateOutcomeSummaryTests(unittest.TestCase):
         self.assertIn("不自动改变公共机会排序", self.card)
         self.assertIn("已决成交率", self.card)
         self.assertIn("已成交 ÷（已成交 + 未成交）", self.card)
+        self.assertIn("成交常见因素（私有判断）", self.card)
+        self.assertIn("未成交主要原因", self.card)
 
     def test_small_sample_is_recorded_without_claiming_a_business_rule(self) -> None:
         self.assertIn("const MIN_REVIEW_SAMPLE = 5", self.card)
