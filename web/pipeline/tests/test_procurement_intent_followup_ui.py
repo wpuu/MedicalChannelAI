@@ -115,15 +115,39 @@ class ProcurementIntentFollowupUiTests(unittest.TestCase):
         self.assertIn("实际沟通结果仍由用户明确确认", page)
         self.assertNotIn("status: 'CONTACTED'", page)
 
-    def test_followup_requires_explicit_user_action_and_does_not_invent_reminder(self):
+    def test_intent_followup_requires_explicit_user_action(self):
         page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
 
         self.assertIn("const startFollowup = async", page)
-        self.assertIn("onClick={() => void startFollowup(intent)}", page)
-        self.assertIn("updateFollowup(intent.opportunity_id, { status: 'REVIEWING' })", page)
-        self.assertIn("加入我的跟进", page)
+        self.assertIn("onClick={() => void startFollowup(intent, 'INTENT')}", page)
+        self.assertIn("updateFollowup(card.opportunity_id, { status: 'REVIEWING' })", page)
+        self.assertIn("加入采购意向跟进", page)
         self.assertIn("提醒时间和下一步行动由你确认后再设置", page)
-        self.assertNotIn("remind_at:", page)
+        self.assertNotIn("status: 'CONTACTED'", page)
+
+    def test_formal_candidate_can_be_explicitly_followed_without_confirming_lineage(self):
+        page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("onClick={() => void startFollowup(card, 'FORMAL')}", page)
+        self.assertIn("加入正式项目跟进", page)
+        self.assertIn("正式项目已加入我的跟进", page)
+        self.assertIn("不会把采购意向与正式项目自动认定为同一项目", page)
+        self.assertIn("只表示你决定跟这条已核验公开商机", page)
+        self.assertIn("不会把候选关联自动升级为“官方确认同一项目”", page)
+        self.assertNotIn("status: 'CONTACTED'", page)
+
+    def test_next_action_reuses_existing_reminder_and_preserves_current_stage(self):
+        page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("import { RemindModal }", page)
+        self.assertIn("const [remindId, setRemindId]", page)
+        self.assertIn("const saveNextAction = async", page)
+        self.assertIn("status: card.followup_status", page)
+        self.assertIn("remind_at: remindAt", page)
+        self.assertIn("note: `下次行动：${nextAction}`", page)
+        self.assertIn("当前销售阶段保持不变", page)
+        self.assertIn("安排正式项目下一步", page)
+        self.assertIn("open={Boolean(remindId)}", page)
         self.assertNotIn("status: 'CONTACTED'", page)
 
 
