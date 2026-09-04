@@ -25,6 +25,30 @@ const NOT_FIT_REASONS = new Set([
   'AMOUNT_TOO_SMALL', 'PROJECT_TOO_LATE', 'COMPETITOR_LOCKED_CUSTOMER_JUDGMENT',
   'DEPARTMENT_OUT_OF_SCOPE', 'REGION_OUT_OF_SCOPE', 'RENTAL_NOT_SUPPORTED', 'OTHER',
 ])
+const WON_REVIEW_NOTE_PREFIX = '成交复盘（当前用户判断）：'
+const WON_REVIEW_LABELS = new Set([
+  '产品或参数匹配',
+  '厂家/授权资源有优势',
+  '医院关系或沟通推进有效',
+  '价格或商务条件有优势',
+  '介入时机合适',
+  '投标/响应执行到位',
+  '方案与客户需求匹配',
+  '其他',
+])
+const LOST_REVIEW_NOTE_PREFIX = '未成交原因（当前用户判断）：'
+const LOST_REVIEW_LABELS = new Set([
+  '价格/报价竞争失败',
+  '产品或参数不匹配',
+  '厂家/授权资源不足',
+  '医院关系不足',
+  '介入时间太晚',
+  '竞争对手优势明显',
+  '投标/响应执行失败',
+  '客户需求或项目变化',
+  '主动放弃',
+  '其他',
+])
 const FEEDBACK_VALUES = new Set([
   'ALREADY_KNOWN', 'NEW_NOT_VALUABLE', 'NEW_WORTH_FOLLOWING',
 ])
@@ -325,6 +349,20 @@ function parseReminder(value) {
   return Number.isNaN(timestamp) ? undefined : new Date(timestamp).toISOString()
 }
 
+function hasControlledOutcomeReview(status, note) {
+  if (typeof note !== 'string') return false
+  const config = status === 'WON'
+    ? [WON_REVIEW_NOTE_PREFIX, WON_REVIEW_LABELS]
+    : status === 'LOST'
+      ? [LOST_REVIEW_NOTE_PREFIX, LOST_REVIEW_LABELS]
+      : null
+  if (!config) return false
+  const [prefix, labels] = config
+  if (!note.startsWith(prefix)) return false
+  const label = note.slice(prefix.length).trim()
+  return labels.has(label)
+}
+
 function validateMutation(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null
   const status = typeof body.status === 'string' ? body.status : ''
@@ -466,7 +504,7 @@ async function followupRoute(request, response, user) {
           public_snapshot = EXCLUDED.public_snapshot
       `
       const followupRows = await tx`
-        SELECT id, remind_at FROM private_followups
+        SELECT id, status, remind_at FROM private_followups
         WHERE user_id = ${user.id}
           AND organization_id = ${user.organization_id}
           AND opportunity_id = ${id}
@@ -474,6 +512,14 @@ async function followupRoute(request, response, user) {
       `
       const followup = followupRows[0]
       if (!followup) throw new Error('FOLLOWUP_UPSERT_FAILED')
+
+      if (
+        (mutation.status === 'WON' || mutation.status === 'LOST') &&
+        followup.status !== mutation.status &&
+        !hasControlledOutcomeReview(mutation.status, mutation.note)
+      ) {
+        throw new Error('FOLLOWUP_OUTCOME_REVIEW_REQUIRED')
+      }
 
       let nextReminder = followup.remind_at ? new Date(followup.remind_at).toISOString() : null
       if (mutation.reminder_supplied) nextReminder = mutation.remind_at
@@ -504,6 +550,9 @@ async function followupRoute(request, response, user) {
 
     return sendJson(response, 200, await followupState(sql, user, id, mutationInserted))
   } catch (error) {
+    if (error instanceof Error && error.message === 'FOLLOWUP_OUTCOME_REVIEW_REQUIRED') {
+      return sendJson(response, 400, { error: 'FOLLOWUP_OUTCOME_REVIEW_REQUIRED' })
+    }
     console.error('private followup request failed', {
       opportunity_id: id,
       error: error instanceof Error ? error.message : 'UNKNOWN',
