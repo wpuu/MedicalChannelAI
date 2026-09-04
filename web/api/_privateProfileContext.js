@@ -149,42 +149,85 @@ function cardLooksLikeLease(facts) {
 
 export async function loadPrivateProfileForUser(user) {
   const sql = privateDb()
-  const [capabilities, relationships, targets, preferences] = await Promise.all([
-    sql`
-      SELECT keyword,
-             CASE WHEN capability_type = 'DIRECT' THEN 'DIRECT_UNCONFIRMED' ELSE capability_type END AS capability_type,
-             updated_at
-      FROM private_product_capabilities
-      WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
-      ORDER BY updated_at DESC, created_at ASC
-      LIMIT 50
-    `,
-    sql`
-      SELECT hospital, department, relationship_strength, updated_at
-      FROM private_hospital_relationships
-      WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
-      ORDER BY updated_at DESC, created_at ASC
-      LIMIT 100
-    `,
-    sql`
-      SELECT hospital, department, updated_at
-      FROM private_target_hospitals
-      WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
-      ORDER BY updated_at DESC, created_at ASC
-      LIMIT 100
-    `,
-    sql`
-      SELECT can_find_manufacturer, can_partner_channel, can_handle_lease, updated_at
-      FROM private_user_preferences
-      WHERE user_id = ${user.id}
-      LIMIT 1
-    `,
-  ])
+  const rows = await sql`
+    SELECT
+      COALESCE((
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'keyword', capability.keyword,
+            'capability_type', capability.capability_type,
+            'updated_at', capability.updated_at
+          )
+          ORDER BY capability.updated_at DESC, capability.created_at ASC
+        )
+        FROM (
+          SELECT
+            keyword,
+            CASE WHEN capability_type = 'DIRECT' THEN 'DIRECT_UNCONFIRMED' ELSE capability_type END AS capability_type,
+            updated_at,
+            created_at
+          FROM private_product_capabilities
+          WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+          ORDER BY updated_at DESC, created_at ASC
+          LIMIT 50
+        ) capability
+      ), '[]'::jsonb) AS capabilities,
+      COALESCE((
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'hospital', relationship.hospital,
+            'department', relationship.department,
+            'relationship_strength', relationship.relationship_strength,
+            'updated_at', relationship.updated_at
+          )
+          ORDER BY relationship.updated_at DESC, relationship.created_at ASC
+        )
+        FROM (
+          SELECT hospital, department, relationship_strength, updated_at, created_at
+          FROM private_hospital_relationships
+          WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+          ORDER BY updated_at DESC, created_at ASC
+          LIMIT 100
+        ) relationship
+      ), '[]'::jsonb) AS relationships,
+      COALESCE((
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'hospital', target.hospital,
+            'department', target.department,
+            'updated_at', target.updated_at
+          )
+          ORDER BY target.updated_at DESC, target.created_at ASC
+        )
+        FROM (
+          SELECT hospital, department, updated_at, created_at
+          FROM private_target_hospitals
+          WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+          ORDER BY updated_at DESC, created_at ASC
+          LIMIT 100
+        ) target
+      ), '[]'::jsonb) AS targets,
+      (
+        SELECT jsonb_build_object(
+          'can_find_manufacturer', preference.can_find_manufacturer,
+          'can_partner_channel', preference.can_partner_channel,
+          'can_handle_lease', preference.can_handle_lease,
+          'updated_at', preference.updated_at
+        )
+        FROM (
+          SELECT can_find_manufacturer, can_partner_channel, can_handle_lease, updated_at
+          FROM private_user_preferences
+          WHERE user_id = ${user.id}
+          LIMIT 1
+        ) preference
+      ) AS preferences
+  `
+  const row = rows[0] || {}
   return {
-    capabilities: [...capabilities],
-    relationships: [...relationships],
-    targets: [...targets],
-    preferences: preferences[0] || null,
+    capabilities: Array.isArray(row.capabilities) ? row.capabilities : [],
+    relationships: Array.isArray(row.relationships) ? row.relationships : [],
+    targets: Array.isArray(row.targets) ? row.targets : [],
+    preferences: row.preferences || null,
   }
 }
 
