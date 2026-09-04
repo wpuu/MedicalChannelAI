@@ -29,6 +29,7 @@ export interface PublicFacts {
   product_categories: string[]
   product_items: unknown[]
   public_contact: unknown
+  quality_flags?: string[]
   verification_status: string | null
   coverage_status: string | null
 }

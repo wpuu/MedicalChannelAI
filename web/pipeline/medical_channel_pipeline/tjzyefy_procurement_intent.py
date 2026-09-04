@@ -12,6 +12,7 @@ from .validation import validate_record
 
 HOSPITAL_NAME = '天津中医药大学第二附属医院'
 EXPECTED_PROCUREMENT_WINDOW_UNSTRUCTURED = 'EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED'
+EXPECTED_PROCUREMENT_WINDOW_TEXT_PREFIX = 'EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT='
 
 
 class TjzyefyIntentParseError(ValueError):
@@ -107,13 +108,14 @@ def _extract_contact(text: str) -> dict[str, str | None] | None:
     }
 
 
-def _has_expected_procurement_month_window(text: str) -> bool:
-    return bool(
-        re.search(
-            r'预计采购时间\s*(?:为|[:：])?\s*20\d{2}\s*年\s*\d{1,2}(?:\s*[-—至]\s*\d{1,2})?\s*月',
-            text,
-        )
+def _extract_expected_procurement_month_window(text: str) -> str | None:
+    match = re.search(
+        r'预计采购时间\s*(?:为|[:：])?\s*(20\d{2}\s*年\s*\d{1,2}(?:\s*[-—至]\s*\d{1,2})?\s*月)',
+        text,
     )
+    if not match:
+        return None
+    return re.sub(r'\s+', '', match.group(1))
 
 
 def _product_categories(title: str) -> list[str]:
@@ -170,11 +172,13 @@ def parse_tjzyefy_procurement_intent(
 
     public_contact = _extract_contact(text)
     flags: list[str] = []
-    if _has_expected_procurement_month_window(text):
-        # Month or month-range language is official evidence of timing, but the
-        # current canonical schema only has an exact datetime field. Keep the
-        # raw source auditable and do not invent first/last-day timestamps.
+    expected_window = _extract_expected_procurement_month_window(text)
+    if expected_window:
+        # Preserve the exact official month/month-range wording for display and
+        # audit. Do not convert it into an invented day or timestamp because
+        # the canonical exact-datetime field is intentionally left empty.
         flags.append(EXPECTED_PROCUREMENT_WINDOW_UNSTRUCTURED)
+        flags.append(f'{EXPECTED_PROCUREMENT_WINDOW_TEXT_PREFIX}{expected_window}')
 
     facts: dict[str, Any] = {
         'project_number': None,

@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from medical_channel_pipeline.tjzyefy_procurement_intent import (
+    EXPECTED_PROCUREMENT_WINDOW_TEXT_PREFIX,
     EXPECTED_PROCUREMENT_WINDOW_UNSTRUCTURED,
     TjzyefyIntentParseError,
     parse_tjzyefy_procurement_intent,
@@ -51,6 +52,10 @@ class TjzyefyProcurementIntentTests(unittest.TestCase):
         self.assertIsNone(facts['registration_deadline_date'])
         self.assertIsNone(facts['expected_procurement_at'])
         self.assertIn(EXPECTED_PROCUREMENT_WINDOW_UNSTRUCTURED, record['quality_flags'])
+        self.assertIn(
+            f'{EXPECTED_PROCUREMENT_WINDOW_TEXT_PREFIX}2026年7-8月',
+            record['quality_flags'],
+        )
         self.assertEqual(facts['public_contact']['phone'], '022-60637953')
         self.assertEqual(facts['public_contact']['name'], '孙老师')
 
@@ -73,6 +78,10 @@ class TjzyefyProcurementIntentTests(unittest.TestCase):
         )
         self.assertEqual(record['facts']['product_items'][0]['raw_name'], '脉动真空灭菌器')
         self.assertEqual(record['facts']['product_categories'], [])
+        self.assertIn(
+            f'{EXPECTED_PROCUREMENT_WINDOW_TEXT_PREFIX}2026年7月',
+            record['quality_flags'],
+        )
 
     def test_nonmedical_intent_is_rejected_after_broad_discovery(self) -> None:
         title = '采购意向公告（2026年25号）-2026年景区年票采购项目'

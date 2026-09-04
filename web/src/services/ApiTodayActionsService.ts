@@ -299,6 +299,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       product_categories: card.facts.product_categories,
       products: normalizeProductItems(card.facts.product_items),
       official_contact: normalizePublicContact(card.facts.public_contact),
+      quality_flags: card.facts.quality_flags ?? [],
       verification_status: normalizeVerification(card.facts.verification_status),
       coverage_status: normalizeCoverage(card.facts.coverage_status),
     },

@@ -161,6 +161,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       product_categories: card.facts.product_categories,
       products: normalizeProducts(card.facts.product_items),
       official_contact: normalizeContact(card.facts.public_contact),
+      quality_flags: card.facts.quality_flags ?? [],
       verification_status:
         card.facts.verification_status === 'VERIFIED'
           ? 'VERIFIED'
