@@ -50,6 +50,7 @@ jobs:
           import base64
           import json
           import os
+          import urllib.error
           import urllib.request
           from pathlib import Path
 
@@ -58,11 +59,29 @@ jobs:
           job_id = os.environ['ACCEPTED_PROBE_JOB_ID']
           token = os.environ['GH_TOKEN']
           url = f'{api}/repos/{repository}/actions/jobs/{job_id}/logs'
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+
           request = urllib.request.Request(url)
           request.add_header('Accept', 'application/vnd.github+json')
           request.add_header('Authorization', f'Bearer {token}')
           request.add_header('X-GitHub-Api-Version', '2022-11-28')
-          with urllib.request.urlopen(request, timeout=30) as response:
+          opener = urllib.request.build_opener(NoRedirect)
+          try:
+              opener.open(request, timeout=30)
+              raise RuntimeError('ACTIONS_LOG_ENDPOINT_DID_NOT_REDIRECT')
+          except urllib.error.HTTPError as exc:
+              if exc.code not in (301, 302, 303, 307, 308):
+                  raise
+              location = exc.headers.get('Location')
+              if not location:
+                  raise RuntimeError('ACTIONS_LOG_REDIRECT_LOCATION_MISSING')
+
+          # The temporary Blob URL is pre-authorized. Never forward the GitHub
+          # Authorization header to that second host.
+          with urllib.request.urlopen(location, timeout=30) as response:
               log_text = response.read().decode('utf-8-sig', errors='strict')
 
           def extract(prefix: str) -> bytes:
