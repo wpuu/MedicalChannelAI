@@ -22,15 +22,25 @@ class FollowedActionViewUiTests(unittest.TestCase):
         self.assertIn("const GENERIC_REMINDER_NOTE = '设置下次跟进提醒；销售阶段保持不变。'", self.page)
         self.assertIn("if (!note || note === GENERIC_REMINDER_NOTE) return null", self.page)
 
-    def test_action_view_prioritizes_non_terminal_reminders(self) -> None:
-        self.assertIn("if (!CLOSED_STATUSES.has(item.followup_status) && item.remind_at) return 0", self.page)
-        self.assertIn("if (ACTIVE_STATUSES.has(item.followup_status)) return 1", self.page)
-        self.assertIn("if (item.followup_status === 'MONITOR') return 2", self.page)
+    def test_action_view_prioritizes_due_then_scheduled_followups(self) -> None:
+        self.assertIn("if (reminderIsDue(item)) return 0", self.page)
+        self.assertIn("if (!CLOSED_STATUSES.has(item.followup_status) && item.remind_at) return 1", self.page)
+        self.assertIn("if (ACTIVE_STATUSES.has(item.followup_status)) return 2", self.page)
+        self.assertIn("if (item.followup_status === 'MONITOR') return 3", self.page)
         self.assertIn("return leftReminder - rightReminder", self.page)
         self.assertIn("[...filteredItems].sort(compareForActionView)", self.page)
 
-    def test_followed_card_exposes_next_time_not_ambiguous_reminder_copy(self) -> None:
-        self.assertIn('下次时间：', self.page)
+    def test_due_filter_and_metric_use_same_private_reminder_semantics(self) -> None:
+        self.assertIn("type PipelineFilter = 'ALL' | 'DUE'", self.page)
+        self.assertIn("if (filter === 'DUE') return reminderIsDue(item)", self.page)
+        self.assertIn("due: statusIndex.filter((item) => reminderIsDue(item)).length", self.page)
+        self.assertIn("['DUE', '待处理']", self.page)
+        self.assertIn("['待处理', metrics.due]", self.page)
+
+    def test_followed_card_distinguishes_due_and_future_next_time(self) -> None:
+        self.assertIn('已到期', self.page)
+        self.assertIn('已安排', self.page)
+        self.assertIn("{due ? '到期时间' : '下次时间'}", self.page)
         self.assertNotIn('最近备注：{item.latest_note}', self.page)
         self.assertIn('搜索已加载的医院、项目、产品、下一步、备注...', self.page)
 
