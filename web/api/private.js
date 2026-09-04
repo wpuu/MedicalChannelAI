@@ -1,4 +1,5 @@
 import privateCoreHandler from './_privateCore.js'
+import { procurementIntentFollowupSummary } from './_procurementIntentFollowup.js'
 
 function firstQuery(request, key) {
   const raw = request.query?.[key]
@@ -15,8 +16,11 @@ function projectLightTodayPayload(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return payload
   if (payload.mode !== 'TODAY_ACTIONS') return payload
   if (!Object.prototype.hasOwnProperty.call(payload, 'opportunity_pool')) return payload
-  const { opportunity_pool: _fullPool, ...lightPayload } = payload
-  return lightPayload
+  const { opportunity_pool: fullPool, ...lightPayload } = payload
+  return {
+    ...lightPayload,
+    procurement_intent_followup_summary: procurementIntentFollowupSummary(fullPool),
+  }
 }
 
 export default async function handler(request, response) {
