@@ -13,19 +13,24 @@ from medical_channel_pipeline.tjzyefy_discovery import (
 
 
 class TjzyefyDiscoveryTests(unittest.TestCase):
-    def test_discovers_medical_equipment_and_consumables_research_only(self) -> None:
+    def test_discovers_shared_medical_scope_research_but_not_generic_admin_or_intent(self) -> None:
         html = '''
         <a href="/system/2026/07/31/030195805.shtml">医用耗材（试剂）调研公告（2026年13号）-脱脂棉纱布耗材采购项目</a>
+        <a href="/system/2026/07/17/030194635.shtml">院内调研公告（2026年17号）-高分辨液质联用系统三年期维保项目</a>
         <a href="/system/2026/07/01/030193522.shtml">院内调研公告（2026年14号）-多导睡眠监测系统等医疗设备采购项目</a>
         <a href="/system/2026/06/01/030191557.shtml">天津中医药大学第二附属医院院内调研公告--医院招标代理服务项目</a>
+        <a href="/system/2026/06/02/030191558.shtml">病种成本核算服务系统调研公告</a>
         <a href="/system/2026/08/01/030200001.shtml">采购意向公告（2026年24号）-流式细胞仪等医疗设备采购项目</a>
         '''
         result = parse_tjzyefy_index_html(html)
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0].published_at, '2026-07-31')
-        self.assertIn('脱脂棉纱布', result[0].title)
-        self.assertEqual(result[1].published_at, '2026-07-01')
-        self.assertIn('多导睡眠监测系统', result[1].title)
+        self.assertEqual(len(result), 3)
+        titles = [item.title for item in result]
+        self.assertTrue(any('脱脂棉纱布' in title for title in titles))
+        self.assertTrue(any('高分辨液质联用系统' in title for title in titles))
+        self.assertTrue(any('多导睡眠监测系统' in title for title in titles))
+        self.assertFalse(any('招标代理' in title for title in titles))
+        self.assertFalse(any('病种成本核算' in title for title in titles))
+        self.assertFalse(any('采购意向公告' in title for title in titles))
 
     def test_rejects_foreign_detail_host_and_deduplicates(self) -> None:
         html = '''
