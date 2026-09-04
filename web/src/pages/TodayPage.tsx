@@ -358,7 +358,7 @@ export function TodayPage() {
       <RemindModal
         open={Boolean(remindId)}
         onClose={() => setRemindId(null)}
-        onConfirm={(remindAt) => {
+        onConfirm={(remindAt, nextAction) => {
           if (!remindId || !data) return
           const id = remindId
           const currentCard = (data.opportunity_pool ?? data.cards).find(
@@ -367,7 +367,9 @@ export function TodayPage() {
           setRemindId(null)
           void updateStatus(id, currentCard?.followup_status ?? 'NEW', {
             remind_at: remindAt,
-            note: '设置下次跟进提醒；销售阶段保持不变。',
+            note: nextAction
+              ? `下次行动：${nextAction}`
+              : '设置下次跟进提醒；销售阶段保持不变。',
           })
         }}
       />
