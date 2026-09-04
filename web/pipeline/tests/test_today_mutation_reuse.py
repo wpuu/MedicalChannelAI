@@ -20,10 +20,22 @@ class TodayMutationReuseTests(unittest.TestCase):
         self.assertIn("const state = await this.requestJson<ServerFollowupState>", self.service)
         self.assertIn("applyMutationToToday(this.latestToday, state)", self.service)
 
+    def test_detail_mutation_response_reuses_server_confirmed_state_once(self) -> None:
+        self.assertIn("private latestOpportunity: TodayActionCard | null = null", self.service)
+        self.assertIn("private pendingOpportunityAfterMutation:", self.service)
+        self.assertIn("const pending = this.pendingOpportunityAfterMutation", self.service)
+        self.assertIn("pending?.opportunityId === id", self.service)
+        self.assertIn("this.pendingOpportunityAfterMutation = null", self.service)
+        self.assertIn("applyFollowupState(this.latestOpportunity, state)", self.service)
+        self.assertIn("opportunityId: id", self.service)
+
     def test_mutation_reuse_expires_quickly_instead_of_becoming_long_lived_cache(self) -> None:
         self.assertIn("const MUTATION_REUSE_TTL_MS = 5_000", self.service)
         self.assertIn("pending.expiresAt >= Date.now()", self.service)
-        self.assertIn("expiresAt: Date.now() + MUTATION_REUSE_TTL_MS", self.service)
+        self.assertGreaterEqual(
+            self.service.count("expiresAt: Date.now() + MUTATION_REUSE_TTL_MS"),
+            2,
+        )
         self.assertNotIn("CACHE_TTL_MS", self.service)
 
     def test_local_today_visibility_matches_server_followup_rules(self) -> None:
