@@ -43,7 +43,7 @@ class SharedPublicIntelligenceArchitectureTests(unittest.TestCase):
 
         private_api = PRIVATE_API.read_text(encoding='utf-8')
         self.assertIn("['GET', 'PUT']", private_api)
-        self.assertIn('todayLimitForUser', private_api)
+        self.assertIn('todayPrivateState', private_api)
         self.assertIn('setTodayLimitForUser', private_api)
         self.assertIn('today_limit_options', private_api)
 
@@ -56,6 +56,7 @@ class SharedPublicIntelligenceArchitectureTests(unittest.TestCase):
         self.assertIn('decorateCardWithFollowup', private_api)
         self.assertIn('recommendation_feedback_summary', private_api)
         self.assertIn('followup_status', private_api)
+        self.assertIn('async function todayPrivateState', private_api)
 
         api_service = API_SERVICE.read_text(encoding='utf-8')
         self.assertNotIn("'/followed?view=status-index'", api_service)
