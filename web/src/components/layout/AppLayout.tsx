@@ -14,8 +14,6 @@ import { APP_BUILD_LABEL } from '@/config/appVersion'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { isApiMode, logoutPilot } from '@/services/apiConfig'
-import { clearLocalCustomerProfile } from '@/services/localCustomerProfile'
-import { resetLocalFollowups } from '@/services/localFollowupStore'
 import { cn } from '@/utils/cn'
 
 const GROUNDED_AI_CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
@@ -65,12 +63,16 @@ export function AppLayout() {
   }
 
   const handleResetTrial = async () => {
-    // Mock reset is a demo-only action. Keep the synthetic service out of the
-    // authenticated Pilot shell and load it only when the user actually resets.
-    const { resetMockDemoState } = await import('@/services/MockTodayActionsService')
-    resetMockDemoState()
-    resetLocalFollowups()
-    if (isVerifiedPublicDemo) clearLocalCustomerProfile()
+    // These stores exist only for local demo/trial reset. Real Pilot users should
+    // not download them as part of the authenticated shell.
+    const [mockModule, followupModule, profileModule] = await Promise.all([
+      import('@/services/MockTodayActionsService'),
+      import('@/services/localFollowupStore'),
+      import('@/services/localCustomerProfile'),
+    ])
+    mockModule.resetMockDemoState()
+    followupModule.resetLocalFollowups()
+    if (isVerifiedPublicDemo) profileModule.clearLocalCustomerProfile()
     try {
       localStorage.removeItem(GROUNDED_AI_CACHE_KEY)
     } catch {
