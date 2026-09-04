@@ -1,4 +1,4 @@
-import type { LostReason, NotFitReason } from '@/types'
+import type { LostReason, NotFitReason, WonReason } from '@/types'
 import { apiBaseUrl, isApiMode } from './apiConfig'
 import { listStoredFollowups } from './localFollowupStore'
 
@@ -15,10 +15,23 @@ export interface PrivateOutcomeSummary {
   not_fit: number
   decided_count: number
   win_rate_percent: number | null
+  won_reason_counts: OutcomeReasonCount[]
   lost_reason_counts: OutcomeReasonCount[]
   not_fit_reason_counts: OutcomeReasonCount[]
+  unclassified_won: number
   unclassified_lost: number
   unclassified_not_fit: number
+}
+
+const WON_CODE_TO_LABEL: Record<string, WonReason> = {
+  PRODUCT_OR_SPEC_MATCH: '产品或参数匹配',
+  MANUFACTURER_OR_AUTHORIZATION_ADVANTAGE: '厂家/授权资源有优势',
+  RELATIONSHIP_OR_COMMUNICATION_EFFECTIVE: '医院关系或沟通推进有效',
+  PRICE_OR_COMMERCIAL_ADVANTAGE: '价格或商务条件有优势',
+  INTERVENTION_TIMING_GOOD: '介入时机合适',
+  BID_OR_RESPONSE_EXECUTION_STRONG: '投标/响应执行到位',
+  SOLUTION_DEMAND_MATCH: '方案与客户需求匹配',
+  OTHER: '其他',
 }
 
 const NOT_FIT_CODE_TO_LABEL: Record<string, NotFitReason> = {
@@ -47,12 +60,16 @@ const LOST_CODE_TO_LABEL: Record<string, LostReason> = {
   OTHER: '其他',
 }
 
+const WON_LABEL_TO_CODE = new Map(
+  Object.entries(WON_CODE_TO_LABEL).map(([code, label]) => [label, code]),
+)
 const NOT_FIT_LABEL_TO_CODE = new Map(
   Object.entries(NOT_FIT_CODE_TO_LABEL).map(([code, label]) => [label, code]),
 )
 const LOST_LABEL_TO_CODE = new Map(
   Object.entries(LOST_CODE_TO_LABEL).map(([code, label]) => [label, code]),
 )
+const WON_NOTE_PREFIX = '成交复盘（当前用户判断）：'
 const LOST_NOTE_PREFIX = '未成交原因（当前用户判断）：'
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -99,6 +116,7 @@ function parseSummary(value: unknown): PrivateOutcomeSummary {
     !nonNegativeInteger(root.decided_count) ||
     !(root.win_rate_percent === null ||
       (nonNegativeInteger(root.win_rate_percent) && root.win_rate_percent <= 100)) ||
+    !nonNegativeInteger(root.unclassified_won) ||
     !nonNegativeInteger(root.unclassified_lost) ||
     !nonNegativeInteger(root.unclassified_not_fit)
   ) {
@@ -119,15 +137,17 @@ function parseSummary(value: unknown): PrivateOutcomeSummary {
     not_fit: root.not_fit,
     decided_count: root.decided_count,
     win_rate_percent: root.win_rate_percent as number | null,
+    won_reason_counts: parseReasonCounts(root.won_reason_counts, WON_CODE_TO_LABEL),
     lost_reason_counts: parseReasonCounts(root.lost_reason_counts, LOST_CODE_TO_LABEL),
     not_fit_reason_counts: parseReasonCounts(root.not_fit_reason_counts, NOT_FIT_CODE_TO_LABEL),
+    unclassified_won: root.unclassified_won,
     unclassified_lost: root.unclassified_lost,
     unclassified_not_fit: root.unclassified_not_fit,
   }
 }
 
 function localReasonCode(
-  status: 'LOST' | 'NOT_FIT',
+  status: 'WON' | 'LOST' | 'NOT_FIT',
   history: ReturnType<typeof listStoredFollowups>[number]['entry']['history'],
 ): string | null {
   if (status === 'NOT_FIT') {
@@ -136,6 +156,22 @@ function localReasonCode(
       const direct = NOT_FIT_LABEL_TO_CODE.get(event.reason as NotFitReason)
       if (direct) return direct
       if (NOT_FIT_CODE_TO_LABEL[event.reason]) return event.reason
+    }
+    return null
+  }
+
+  if (status === 'WON') {
+    for (const event of history) {
+      if (event.status !== 'WON') continue
+      if (event.reason) {
+        const direct = WON_LABEL_TO_CODE.get(event.reason as WonReason)
+        if (direct) return direct
+        if (WON_CODE_TO_LABEL[event.reason]) return event.reason
+      }
+      const note = event.note?.trim()
+      if (!note?.startsWith(WON_NOTE_PREFIX)) continue
+      const code = WON_LABEL_TO_CODE.get(note.slice(WON_NOTE_PREFIX.length).trim() as WonReason)
+      if (code) return code
     }
     return null
   }
@@ -159,14 +195,19 @@ function localSummary(): PrivateOutcomeSummary {
   let won = 0
   let lost = 0
   let notFit = 0
+  let unclassifiedWon = 0
   let unclassifiedLost = 0
   let unclassifiedNotFit = 0
+  const wonReasons = new Map<string, number>()
   const lostReasons = new Map<string, number>()
   const notFitReasons = new Map<string, number>()
 
   for (const { entry } of listStoredFollowups()) {
     if (entry.status === 'WON') {
       won += 1
+      const code = localReasonCode('WON', entry.history)
+      if (code) wonReasons.set(code, (wonReasons.get(code) ?? 0) + 1)
+      else unclassifiedWon += 1
       continue
     }
     if (entry.status === 'LOST') {
@@ -198,8 +239,10 @@ function localSummary(): PrivateOutcomeSummary {
     not_fit: notFit,
     decided_count: decidedCount,
     win_rate_percent: decidedCount ? Math.round((won / decidedCount) * 100) : null,
+    won_reason_counts: toCounts(wonReasons, WON_CODE_TO_LABEL),
     lost_reason_counts: toCounts(lostReasons, LOST_CODE_TO_LABEL),
     not_fit_reason_counts: toCounts(notFitReasons, NOT_FIT_CODE_TO_LABEL),
+    unclassified_won: unclassifiedWon,
     unclassified_lost: unclassifiedLost,
     unclassified_not_fit: unclassifiedNotFit,
   }
