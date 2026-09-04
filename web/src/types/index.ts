@@ -42,6 +42,16 @@ export type LostReason =
   | '主动放弃'
   | '其他'
 
+export type WonReason =
+  | '产品或参数匹配'
+  | '厂家/授权资源有优势'
+  | '医院关系或沟通推进有效'
+  | '价格或商务条件有优势'
+  | '介入时机合适'
+  | '投标/响应执行到位'
+  | '方案与客户需求匹配'
+  | '其他'
+
 export type RelationshipStrength =
   | 'STRONG'
   | 'MEDIUM'
