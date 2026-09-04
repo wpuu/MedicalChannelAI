@@ -45,6 +45,28 @@ class ProcurementIntentFollowupUiTests(unittest.TestCase):
         self.assertIn("已进入预计采购月份，重点盯正式公告", page)
         self.assertIn("预计采购月份未到，继续提前布局", page)
 
+    def test_phase_actions_are_operational_but_do_not_invent_business_outcomes(self):
+        page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("function phaseActions", page)
+        self.assertIn("先查医院官网、政府采购/招标等已核验公开源", page)
+        self.assertIn("公开源仍未发现时，可使用公告公开电话确认项目是否延期", page)
+        self.assertIn("把正式公告核查提升为当前任务", page)
+        self.assertIn("同步确认厂家/渠道资源", page)
+        self.assertIn("不把采购意向当成已经开放的订单", page)
+        self.assertIn("不把“没有搜到”解释成项目取消", page)
+        self.assertIn("只记录对方明确回复", page)
+
+    def test_public_phone_is_one_tap_but_never_auto_marks_contacted(self):
+        page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("function telHref", page)
+        self.assertIn("intent.facts.official_contact?.phone", page)
+        self.assertIn("公告公开电话", page)
+        self.assertIn("拨号只打开电话，不会自动记录为已联系", page)
+        self.assertIn("实际沟通结果仍由用户明确确认", page)
+        self.assertNotIn("status: 'CONTACTED'", page)
+
     def test_followup_requires_explicit_user_action_and_does_not_invent_reminder(self):
         page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
 
