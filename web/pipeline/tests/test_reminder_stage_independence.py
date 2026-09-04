@@ -51,7 +51,8 @@ class ReminderStageIndependenceTests(unittest.TestCase):
 
     def test_terminal_sales_results_do_not_offer_new_reminders(self) -> None:
         self.assertIn('const REMINDER_TERMINAL_STATUSES = new Set<FollowupStatus>', self.followup_card)
-        self.assertIn('const reminderAllowed = !REMINDER_TERMINAL_STATUSES.has(card.followup_status)', self.followup_card)
+        self.assertIn('const terminal = REMINDER_TERMINAL_STATUSES.has(card.followup_status)', self.followup_card)
+        self.assertIn('const reminderAllowed = !terminal', self.followup_card)
         self.assertIn('当前项目已结束，不再新增后续提醒。', self.followup_card)
         self.assertIn('{reminderAllowed ? (', self.followup_card)
 
