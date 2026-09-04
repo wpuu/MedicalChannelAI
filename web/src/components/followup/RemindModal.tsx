@@ -55,8 +55,8 @@ export function RemindModal({ open, onClose, onConfirm }: RemindModalProps) {
     >
       <p className="mb-3 text-[13px] leading-6 text-slate-500">
         {isApiMode
-          ? '提醒时间会保存到服务器，默认按所选日期当地时间 09:00 到期。当前 Pilot 先提供站内到期提醒，尚未接入微信、短信或系统 Push。'
-          : '演示模式：提醒只保存在当前浏览器，不会发送通知。'}
+          ? '提醒时间会保存到服务器，默认按所选日期当地时间 09:00 到期；设置提醒不会改变当前销售阶段。当前 Pilot 先提供站内到期提醒，尚未接入微信、短信或系统 Push。'
+          : '演示模式：提醒只保存在当前浏览器，不会发送通知，也不会改变当前销售阶段。'}
       </p>
       <div className="flex flex-wrap gap-2">
         {presets.map((item) => (
