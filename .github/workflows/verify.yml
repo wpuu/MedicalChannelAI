@@ -48,6 +48,7 @@ jobs:
         run: |
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo "full=true" >> "$GITHUB_OUTPUT"
+            echo "live_intent=false" >> "$GITHUB_OUTPUT"
             echo "Full Verify requested by workflow_dispatch"
             exit 0
           fi
@@ -68,6 +69,13 @@ jobs:
           PY
           )"
 
+          if [[ "$COMMIT_MESSAGE" == *"[live-intent-probe]"* ]]; then
+            echo "live_intent=true" >> "$GITHUB_OUTPUT"
+            echo "Read-only live procurement-intent probe requested by commit marker"
+          else
+            echo "live_intent=false" >> "$GITHUB_OUTPUT"
+          fi
+
           if [[ "$COMMIT_MESSAGE" == *"[full-verify]"* ]]; then
             echo "full=true" >> "$GITHUB_OUTPUT"
             echo "Full Verify requested by commit marker"
@@ -87,6 +95,66 @@ jobs:
           node scripts/check-serverless-entrypoints.mjs
           node --check scripts/pilot-preview-smoke.mjs
           echo "Fast verification: PASS"
+
+      - name: Run read-only live procurement-intent probe
+        if: steps.verify_mode.outputs.live_intent == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe_dir="$(mktemp -d)"
+          trap 'rm -rf "$probe_dir"' EXIT
+
+          python3 web/pipeline/scripts/sync_tjzyefy_procurement_intent.py \
+            --lookback-days 30 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            --records-output "$probe_dir/records.json" \
+            --report-output "$probe_dir/report.json"
+
+          python3 - "$probe_dir/records.json" "$probe_dir/report.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          records = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          report = json.loads(Path(sys.argv[2]).read_text(encoding='utf-8'))
+          summary = {
+              'observed_at': report.get('observed_at'),
+              'requested_lookback_days': report.get('requested_lookback_days'),
+              'effective_lookback_days': report.get('effective_lookback_days'),
+              'bootstrap_backfill_applied': report.get('bootstrap_backfill_applied'),
+              'discovered_intent_count': report.get('discovered_intent_count'),
+              'selected_candidate_count': report.get('selected_candidate_count'),
+              'new_verified_record_count': report.get('new_verified_record_count'),
+              'unsupported_non_medical_count': report.get('unsupported_non_medical_count'),
+              'failure_count': report.get('failure_count'),
+              'unresolved_failure_count': report.get('unresolved_failure_count'),
+              'publish_allowed': report.get('publish_allowed'),
+              'publish_gate_reason': report.get('publish_gate_reason'),
+          }
+          print('LIVE_INTENT_PROBE_REPORT=' + json.dumps(summary, ensure_ascii=False))
+          for record in records:
+              facts = record.get('facts') or {}
+              products = [
+                  item.get('raw_name')
+                  for item in (facts.get('product_items') or [])
+                  if isinstance(item, dict) and item.get('raw_name')
+              ]
+              public_record = {
+                  'opportunity_id': record.get('opportunity_id'),
+                  'project_name': facts.get('project_name'),
+                  'published_at': facts.get('published_at'),
+                  'products': products,
+                  'quality_flags': record.get('quality_flags') or [],
+                  'source_url': (record.get('source') or {}).get('url'),
+              }
+              print('LIVE_INTENT_VERIFIED_RECORD=' + json.dumps(public_record, ensure_ascii=False))
+          PY
+
+          # The acceptance probe may read the public web only. It must never
+          # mutate tracked data, create a deployment, or write back to GitHub.
+          git diff --exit-code
+          echo "Read-only live procurement-intent probe: PASS"
 
       - name: Install web dependencies
         if: steps.verify_mode.outputs.full == 'true'
