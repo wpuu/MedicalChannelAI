@@ -36,7 +36,7 @@ class FrontendDeliveryPressureTests(unittest.TestCase):
         self.assertNotIn("import { LoginPage } from '@/pages/LoginPage'", app)
         self.assertNotIn("import { OpportunityPoolPage } from '@/pages/OpportunityPoolPage'", app)
 
-    def test_pilot_bundle_does_not_eagerly_import_trial_and_mock_services(self) -> None:
+    def test_pilot_bundle_does_not_eagerly_import_trial_or_local_demo_services(self) -> None:
         services = (WEB_ROOT / "src" / "services" / "index.ts").read_text(encoding="utf-8")
         layout = (WEB_ROOT / "src" / "components" / "layout" / "AppLayout.tsx").read_text(encoding="utf-8")
         self.assertIn("import { GroundedApiTodayActionsService }", services)
@@ -47,8 +47,17 @@ class FrontendDeliveryPressureTests(unittest.TestCase):
         self.assertNotIn("import { RuntimeTrialTodayActionsService }", services)
         self.assertNotIn("import { StaticSnapshotTodayActionsService }", services)
         self.assertIn("class DeferredTodayActionsService implements TodayActionsService", services)
-        self.assertIn("await import('@/services/MockTodayActionsService')", layout)
+
+        for module in (
+            "@/services/MockTodayActionsService",
+            "@/services/localFollowupStore",
+            "@/services/localCustomerProfile",
+        ):
+            self.assertIn(f"import('{module}')", layout)
         self.assertNotIn("import { resetMockDemoState } from '@/services/MockTodayActionsService'", layout)
+        self.assertNotIn("import { resetLocalFollowups } from '@/services/localFollowupStore'", layout)
+        self.assertNotIn("import { clearLocalCustomerProfile } from '@/services/localCustomerProfile'", layout)
+        self.assertIn("const [mockModule, followupModule, profileModule] = await Promise.all([", layout)
 
 
 if __name__ == "__main__":
