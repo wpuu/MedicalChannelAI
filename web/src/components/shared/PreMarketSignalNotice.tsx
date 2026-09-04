@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const EXPECTED_WINDOW_PREFIX = 'EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT='
 
@@ -128,6 +129,12 @@ export function PreMarketSignalNotice({
           这是采购意向/供应商征询类早期信号，不能按“已经可以报名或投标”处理。{copy.action}
           {expectedWindow ? ' 系统不会把预计月份换算成具体截止日期。' : ''}
         </p>
+        <Link
+          to="/intent-followup"
+          className="mt-1.5 inline-flex font-medium text-amber-950 underline decoration-amber-300 underline-offset-2"
+        >
+          进入采购意向跟进，核查可能的后续正式项目
+        </Link>
       </div>
     </div>
   )
