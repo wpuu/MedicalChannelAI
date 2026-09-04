@@ -21,8 +21,8 @@ Fixed rules:
 
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
-- Latest fully code-validated executable/runtime HEAD: `4626eb6f9f799de412ea118d48b920e0f1d8a398`
-- Latest successful full validation: GitHub Actions **Verify #1413 SUCCESS**
+- Latest fully code-validated executable/runtime HEAD: `27f0eacdb16784c66115f1fa42b3c1047eb797c7`
+- Latest successful full validation: GitHub Actions **Verify #1418 SUCCESS**
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR remains open, Draft and unmerged.
 - `web/vercel.json` disables automatic Vercel deployments for this branch.
@@ -48,7 +48,7 @@ The GCP instance is **CI infrastructure only**. It is not in the user request pa
 
 ### Latest green validation
 
-Verify **#1413** completed successfully for `4626eb6f9f799de412ea118d48b920e0f1d8a398` and executed:
+Verify **#1418** completed successfully for `27f0eacdb16784c66115f1fa42b3c1047eb797c7` and executed:
 
 - Checkout;
 - system Python verification;
@@ -79,11 +79,11 @@ Validated performance work now includes:
 - public fact-version history on detail is **on demand**, not fetched on every detail open;
 - confirmed follow-up mutations use a bounded one-shot server-confirmed response reuse path, avoiding immediate redundant GETs on Today/detail;
 - Today runtime status and due reminders are auxiliary/non-blocking; the main Today data no longer waits for `/reminders`;
-- login/register now has a **10-second, one-shot, in-memory-only authenticated-user handoff** so the same SPA navigation does not immediately repeat `/auth/me`; refresh/new tab/cross-tab flows remain server-authoritative;
+- login/register has a **10-second, one-shot, in-memory-only authenticated-user handoff** so the same SPA navigation does not immediately repeat `/auth/me`; refresh/new tab/cross-tab flows remain server-authoritative;
 - `viteSingleFile()` was removed, restoring normal hashed JS/CSS assets and Vercel `/assets/*` immutable caching;
 - secondary routes are lazy-loaded; Login is lazy-loaded while Today remains eager;
 - Runtime Trial / Static Snapshot / Mock service implementations are deferred and do not statically ride the real Pilot service path;
-- Mock reset is also dynamically loaded only when a non-API user explicitly resets the demo/trial.
+- demo reset dependencies are requested only on the non-API reset action; `localCustomerProfile` now builds as its own deferred chunk.
 
 ### Production build delivery result
 
@@ -91,26 +91,33 @@ Historical single-file build:
 
 - `index.html`: **659.76 kB**, gzip **192.66 kB**.
 
-Full Verify #1413 production build:
+Full Verify #1418 production build:
 
 - `index.html`: **0.62 kB**, gzip **0.38 kB**;
 - CSS: **41.30 kB**, gzip **8.09 kB**;
-- main JS: **382.56 kB**, gzip **122.48 kB**;
+- main JS: **375.20 kB**, gzip **119.58 kB**;
 - Login: **6.58 kB**, gzip **2.68 kB**;
-- Opportunity Pool: **18.31 kB**, gzip **6.91 kB**;
+- `localCustomerProfile`: **7.99 kB**, gzip **3.11 kB**;
+- Opportunity Pool: **18.38 kB**, gzip **6.95 kB**;
 - Followed: **20.95 kB**, gzip **7.37 kB**;
-- Pilot Resources: **23.04 kB**, gzip **6.71 kB**;
-- Opportunity Detail: **50.19 kB**, gzip **15.78 kB**;
+- Pilot Resources: **23.18 kB**, gzip **6.76 kB**;
+- Opportunity Detail: **50.28 kB**, gzip **15.82 kB**;
 - Radar: **57.59 kB**, gzip **17.29 kB**;
-- Runtime Trial / Static Snapshot / Mock are separate chunks rather than part of the real Pilot main shell.
+- Runtime Trial / Static Snapshot / Mock remain separate chunks rather than part of the real Pilot service path.
 
-Compared with the first split build at #1402, the main JS was further reduced from `415.64 kB / gzip 132.15 kB` to `382.56 kB / gzip 122.48 kB`.
+Progressive main-bundle reduction:
+
+- first split build #1402: `415.64 kB / gzip 132.15 kB`;
+- #1413: `382.56 kB / gzip 122.48 kB`;
+- #1418: **`375.20 kB / gzip 119.58 kB`**.
+
+The #1418 Vite report also correctly notes that `localFollowupStore` cannot be isolated by the AppLayout dynamic import alone because it is still statically referenced by other lazy route/service modules. No claim is made that this module itself became a separate chunk.
 
 ## Not yet implemented
 
 The proposed **Today light response / full Opportunity Pool response split** is not implemented yet. The current core route lives in the large `web/api/private.js`; GitHub's current file-write path replaces the whole file and available reads can be truncated, so the change was deliberately not forced through a risky whole-file rewrite. It also should not be implemented as an extra Vercel Function merely to avoid the edit, because the project currently uses 11/12 configured serverless slots and an extra proxy would add latency rather than remove it.
 
-`TodayPage` also still statically imports the AI client module; deferring AI client code until explicit user analysis remains a possible measured bundle optimization, but is not part of the #1413 baseline.
+`TodayPage` also still statically imports the AI client module; deferring AI client code until explicit user analysis remains the next measured bundle optimization candidate and is not part of the #1418 baseline.
 
 ## Public intelligence and collector boundary
 
