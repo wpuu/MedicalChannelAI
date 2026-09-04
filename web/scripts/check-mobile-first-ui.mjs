@@ -54,6 +54,28 @@ assert.match(actionCard, /主要匹配维度（完成度）/)
 assert.match(actionCard, /不是直接加分/)
 assert.match(actionCard, /公告公开联系人/)
 assert.match(actionCard, /PRODUCT_EXECUTION_CAPABILITY/)
+assert.match(actionCard, /PreMarketSignalNotice/)
+assert.match(actionCard, /recommendationMode=\{card\.recommendation_mode\}/)
+
+const preMarketSignal = read('src/components/shared/PreMarketSignalNotice.tsx')
+assert.match(preMarketSignal, /PRE_MARKET_SIGNAL/)
+assert.match(preMarketSignal, /PROCUREMENT_INTENT/)
+assert.match(preMarketSignal, /提前布局信号，不是正式招标窗口/)
+assert.match(preMarketSignal, /不能按“已经可以报名或投标”处理/)
+
+const stageBadge = read('src/components/shared/StageBadge.tsx')
+assert.match(stageBadge, /PROCUREMENT_INTENT: '采购意向 · 提前布局'/)
+assert.match(stageBadge, /border-amber-200/)
+
+const opportunityPool = read('src/pages/OpportunityPoolPage.tsx')
+assert.match(opportunityPool, /'PRE_MARKET_SIGNAL', '提前布局'/)
+assert.match(opportunityPool, /windowFilter === 'OPEN' && \(card\.recommendation_mode === 'LATE_WINDOW' \|\| preMarket\)/)
+assert.match(opportunityPool, /windowFilter === 'PRE_MARKET_SIGNAL' && !preMarket/)
+assert.match(opportunityPool, /全部已核验机会与早期信号/)
+assert.match(opportunityPool, /PreMarketSignalNotice/)
+
+const factsCard = read('src/components/opportunity/FactsCard.tsx')
+assert.match(factsCard, /PreMarketSignalNotice lifecycleStage=\{facts\.lifecycle_stage\}/)
 
 const resourceBlock = read('src/components/today/CustomerResourceBlock.tsx')
 assert.match(resourceBlock, /补充我的资源/)

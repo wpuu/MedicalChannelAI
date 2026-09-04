@@ -1,5 +1,6 @@
 import type { Facts } from '@/types'
 import { OfficialText } from '@/components/shared/EmptyValue'
+import { PreMarketSignalNotice } from '@/components/shared/PreMarketSignalNotice'
 import { FactRow, SectionCard } from '@/components/shared/SectionCard'
 import { SourceTag, StageBadge, VerifiedBadge } from '@/components/shared/StageBadge'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
@@ -61,6 +62,7 @@ export function FactsCard({ facts }: { facts: Facts }) {
         </div>
       }
     >
+      <PreMarketSignalNotice lifecycleStage={facts.lifecycle_stage} />
       {isRelativeTestRecruitment ? (
         <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12px] leading-5 text-amber-900">
           官方原文仅公布“自公告发布之日起7天”的相对报名窗口，没有公布精确截止时刻。系统内部可据此判断行动紧迫度，但不会把推算日期展示成官方截止；实际联系或报名请先向官方确认是否仍开放。

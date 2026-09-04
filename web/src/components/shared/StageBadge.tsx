@@ -6,7 +6,7 @@ const STAGE_LABELS: Record<string, string> = {
   MARKET_RESEARCH: '采购调研',
   PRE_MARKET_RESEARCH: '采购调研',
   PROCUREMENT_RESEARCH: '采购调研',
-  PROCUREMENT_INTENT: '采购意向',
+  PROCUREMENT_INTENT: '采购意向 · 提前布局',
   PLANNING: '采购计划',
   ANNOUNCED: '已公告',
   AWARDED: '已中标/成交',
@@ -29,11 +29,15 @@ export function lifecycleStageLabel(stage: string | null): string | null {
 export function StageBadge({ stage }: { stage: string | null }) {
   const label = lifecycleStageLabel(stage)
   if (!label) return <EmptyValue />
+  const normalizedStage = stage?.trim().toUpperCase() ?? ''
+  const preMarket = normalizedStage === 'PROCUREMENT_INTENT'
   return (
     <span
       className={cn(
         'inline-flex items-center rounded-md border px-1.5 py-0.5 text-[12px]',
-        'border-slate-200 bg-slate-50 text-slate-700',
+        preMarket
+          ? 'border-amber-200 bg-amber-50 font-medium text-amber-900'
+          : 'border-slate-200 bg-slate-50 text-slate-700',
       )}
     >
       {label}

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { DecisionBlock } from '@/components/today/DecisionBlock'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
+import { PreMarketSignalNotice, isPreMarketSignal } from '@/components/shared/PreMarketSignalNotice'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { StageBadge } from '@/components/shared/StageBadge'
 import { useToast } from '@/context/ToastContext'
@@ -29,7 +30,7 @@ import { getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
 import type { TodayActionCard } from '@/types'
 import { formatBudget, formatDateTime, uid } from '@/utils/format'
 
-type WindowFilter = 'ALL' | 'OPEN' | 'LATE_WINDOW'
+type WindowFilter = 'ALL' | 'OPEN' | 'PRE_MARKET_SIGNAL' | 'LATE_WINDOW'
 const AI_UNCONFIGURED_REASON = 'AI运行配置尚未完成；商机检索、官方依据和跟进功能仍可正常使用。'
 
 function normalizedSearchText(card: TodayActionCard): string {
@@ -115,6 +116,7 @@ function PoolCard({
   const budget = formatBudget(card.facts.budget)
   const deadline = deadlineLabel(card)
   const late = card.recommendation_mode === 'LATE_WINDOW'
+  const preMarket = isPreMarketSignal(card.facts.lifecycle_stage, card.recommendation_mode)
   const followed = card.followup_status !== 'NEW'
   const contact = card.facts.official_contact
   const contactPhone = contact?.phone?.trim() || null
@@ -147,6 +149,15 @@ function PoolCard({
             {deadline ? <span>{deadline}</span> : null}
             {card.facts.region ? <span>{card.facts.region}</span> : null}
           </div>
+          {preMarket ? (
+            <div className="mt-2">
+              <PreMarketSignalNotice
+                lifecycleStage={card.facts.lifecycle_stage}
+                recommendationMode={card.recommendation_mode}
+                compact
+              />
+            </div>
+          ) : null}
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
@@ -323,7 +334,9 @@ export function OpportunityPoolPage() {
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
     return cards.filter((card) => {
-      if (windowFilter === 'OPEN' && card.recommendation_mode === 'LATE_WINDOW') return false
+      const preMarket = isPreMarketSignal(card.facts.lifecycle_stage, card.recommendation_mode)
+      if (windowFilter === 'OPEN' && (card.recommendation_mode === 'LATE_WINDOW' || preMarket)) return false
+      if (windowFilter === 'PRE_MARKET_SIGNAL' && !preMarket) return false
       if (windowFilter === 'LATE_WINDOW' && card.recommendation_mode !== 'LATE_WINDOW') return false
       if (!needle) return true
       return normalizedSearchText(card).includes(needle)
@@ -436,9 +449,9 @@ export function OpportunityPoolPage() {
       <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">全部已核验商机</h2>
+            <h2 className="text-lg font-semibold text-slate-900">全部已核验机会与早期信号</h2>
             <p className="mt-1 text-[13px] leading-6 text-slate-500">
-              首页按账号设置展示今日重点；这里保留同一事实快照中全部仍有效机会。真实账号下使用完整个性化排序，并与“我的跟进”同步。
+              首页按账号设置展示今日重点；这里保留同一事实快照中全部仍有效正式机会，以及可提前布局但尚未进入正式报名/投标窗口的采购意向。真实账号下使用完整个性化排序，并与“我的跟进”同步。
             </p>
           </div>
           <div className="flex flex-col items-end gap-1 text-[12px] text-slate-500">
@@ -472,6 +485,7 @@ export function OpportunityPoolPage() {
             {([
               ['ALL', '全部'],
               ['OPEN', '窗口开放'],
+              ['PRE_MARKET_SIGNAL', '提前布局'],
               ['LATE_WINDOW', '晚窗口'],
             ] as const).map(([value, label]) => (
               <button
@@ -512,7 +526,7 @@ export function OpportunityPoolPage() {
           ))}
         </div>
       ) : (
-        <EmptyState title="没有符合条件的商机" hint="可以清空搜索词或切换筛选条件。" />
+        <EmptyState title="没有符合条件的机会" hint="可以清空搜索词或切换筛选条件。" />
       )}
     </div>
   )

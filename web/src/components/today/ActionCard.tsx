@@ -4,6 +4,7 @@ import type { OpportunityFeedback } from '@/services/opportunityFeedbackStore'
 import { formatBudget, pickDisplayDate } from '@/utils/format'
 import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
 import { OfficialText } from '@/components/shared/EmptyValue'
+import { PreMarketSignalNotice } from '@/components/shared/PreMarketSignalNotice'
 import { PriorityBadge, PriorityScore } from '@/components/shared/PriorityBadge'
 import { FollowupChip, SourceTag, StageBadge } from '@/components/shared/StageBadge'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
@@ -162,6 +163,13 @@ export function ActionCard({
                 <Calendar className="h-3.5 w-3.5 text-slate-400" />
                 {dateInfo ? `${dateInfo.label} ${dateInfo.value}` : <OfficialText value={null} />}
               </span>
+            </div>
+            <div className="mt-2">
+              <PreMarketSignalNotice
+                lifecycleStage={card.facts.lifecycle_stage}
+                recommendationMode={card.recommendation_mode}
+                compact
+              />
             </div>
             {isRelativeTestRecruitment ? (
               <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-900">
