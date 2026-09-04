@@ -124,6 +124,23 @@ jobs:
             --records-output web/pipeline/data/tianjin_live_tjzyefy_records.json \
             --report-output web/pipeline/data/tianjin_tjzyefy_sync_report.json
 
+      - name: Sync verified TCM Second Affiliated Hospital procurement-intent signals
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing_args=()
+          if [[ -f web/pipeline/data/tianjin_live_tjzyefy_intent_records.json ]]; then
+            existing_args+=(--existing-records-input web/pipeline/data/tianjin_live_tjzyefy_intent_records.json)
+          fi
+          python3 web/pipeline/scripts/sync_tjzyefy_procurement_intent.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 30 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            "${existing_args[@]}" \
+            --records-output web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
+            --report-output web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json
+
       - name: Sync verified TEDA Hospital early-demand state
         shell: bash
         run: |
@@ -179,6 +196,7 @@ jobs:
             --input web/pipeline/data/tianjin_live_tjnothop_records.json \
             --input web/pipeline/data/tianjin_live_tjzxfc_records.json \
             --input web/pipeline/data/tianjin_live_tjzyefy_records.json \
+            --input web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
             --input web/pipeline/data/tianjin_live_teda_records.json \
             --input web/pipeline/data/tianjin_live_tjfch_records.json \
             --event-input web/pipeline/data/tianjin_notice_events.json \
@@ -242,6 +260,7 @@ jobs:
             web/pipeline/data/tianjin_live_tjnothop_records.json \
             web/pipeline/data/tianjin_live_tjzxfc_records.json \
             web/pipeline/data/tianjin_live_tjzyefy_records.json \
+            web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
             web/pipeline/data/tianjin_live_teda_records.json \
             web/pipeline/data/tianjin_live_tjfch_records.json \
             web/pipeline/data/tianjin_notice_events.json \
@@ -250,6 +269,7 @@ jobs:
             web/pipeline/data/tianjin_tjnothop_sync_report.json \
             web/pipeline/data/tianjin_tjzxfc_sync_report.json \
             web/pipeline/data/tianjin_tjzyefy_sync_report.json \
+            web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json \
             web/pipeline/data/tianjin_teda_sync_report.json \
             web/pipeline/data/tianjin_tjfch_sync_report.json \
             web/pipeline/data/tianjin_tjfch_test_sync_report.json \
