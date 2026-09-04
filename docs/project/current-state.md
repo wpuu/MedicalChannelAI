@@ -2,13 +2,13 @@
 
 Updated: 2026-09-04
 
-## Product state
+## Product and safety boundary
 
 MedicalChannelAI is a Tianjin-first medical-channel commercial intelligence / sales-assistant pilot for medical devices, IVD and consumables.
 
 Fixed rules:
 
-- public medical/procurement facts require traceable official evidence; unsupported critical facts remain empty;
+- public medical/procurement facts require traceable official evidence; unsupported critical facts fail closed;
 - models may classify, match, explain and recommend actions, but may not invent hospitals, projects, budgets, dates, contacts, suppliers, brands, relationships or win probability;
 - public intelligence and customer-private resources are separate layers;
 - target hospitals are watch/focus objects only and never add relationship points;
@@ -21,163 +21,145 @@ Fixed rules:
 
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
-- Latest fully code-validated executable/runtime HEAD: `72a9ffd3d368fdd11b671f0ceb381d62b0d5e86c`
-- Latest successful full validation: GitHub Actions **Verify #1431 SUCCESS**
+- Latest fully code-validated executable/runtime HEAD: `d344e1169484152fb408e985d55885b72b76ff75`
+- Latest successful full validation: GitHub Actions **Verify #1438 SUCCESS**
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR remains open, Draft and unmerged.
 - `web/vercel.json` disables automatic Vercel deployments for this branch.
 - User boundary remains: **no Preview generation, no Production changes/deployments, no merge** until explicitly changed.
-- Latest observed Vercel deployment remains historical commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` / `dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre` (ERROR); current performance/CRM work produced no Preview.
+- Latest observed Vercel deployment remains historical commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` / `dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre` (ERROR); no current performance/CRM/tjzxfc work is deployed.
 
 ## Executable validation state
 
-### Active CI path: GCP self-hosted runner
-
-MedicalChannelAI remains private and uses the repository-scoped GCP self-hosted runner after private GitHub-hosted jobs repeatedly failed before Checkout.
+MedicalChannelAI remains private and uses the repository-scoped GCP self-hosted runner:
 
 - runner: `medicalchannelai-gcp-1`
 - labels: `self-hosted`, `linux`, `x64`, `medicalchannelai-ci`
-- VM: Ubuntu 25.10 / x86_64
 - system Python: 3.13.7
 - Node: 24.20.0
-- Verify triggers: `pull_request` + `workflow_dispatch`
-- duplicate branch-push Verify removed;
-- npm Actions cache upload disabled; persistent VM local cache is used instead.
+- GCP runner is CI/collector infrastructure only and is not in the end-user request path.
 
-The GCP instance is CI infrastructure only. It is not in the user request path and therefore does not by itself make China user access slower.
+Verify **#1438** completed successfully for `d344e1169484152fb408e985d55885b72b76ff75` and executed:
 
-### Latest green validation
-
-Verify **#1431** completed successfully for `72a9ffd3d368fdd11b671f0ceb381d62b0d5e86c` and executed:
-
-- Checkout;
-- system Python verification;
-- Node 24 setup;
-- `npm ci`;
+- Checkout and system Python verification;
+- Node 24 / `npm ci`;
 - bundled snapshot refresh;
-- **515 Python pipeline/contract tests — all PASS**;
-- serverless entrypoint checks (`11/12` configured slots);
-- verified snapshot / medical-channel / private-profile / AI-boundary / runtime checks;
+- **535 Python pipeline/contract tests — all PASS**;
+- serverless entrypoint checks **11/12**;
+- verified snapshot / medical-channel / private-profile / AI / runtime boundary checks;
 - full prebuild;
 - TypeScript `tsc --noEmit`;
 - Vite production build;
 - ranking summary.
 
-Verify #1429 was a real Fast Verify failure after the private router core was moved: seven static contract tests still inspected `web/api/private.js`. They were corrected to inspect the actual unchanged core at `web/api/_privateCore.js`, without removing or weakening their assertions. Verify #1430 then passed Fast Verify, and #1431 passed the complete Full Verify.
+This is code/build validation only. Preview is intentionally disabled, so no current-HEAD Vercel runtime acceptance is claimed.
 
-This remains code/build validation only. It does not constitute current-HEAD Vercel runtime acceptance because Preview is intentionally disabled.
+## China-access / Today performance
 
-## China-access / runtime latency work
+Validated work includes:
 
-The current optimization principle is to reduce cross-border round trips and bytes before changing regions. Current Neon is on AWS `us-east-2` (Ohio). `vercel.json` does not force a Function region. Do not move only Vercel Functions to Asia while the database remains in Ohio; that can turn one user-side cross-border hop into repeated Function-to-database cross-region hops. Any future regional change should be based on measured China TTFB/P95 and preferably move the dynamic API and database together.
+- Today customer-private profile reads reduced from four SQL queries to one bounded aggregate query;
+- Today follow-up + recommendation feedback + `today_limit` reads reduced from three SQL queries to one query; private Today path is roughly ~7 DB round trips → ~2;
+- private/public schema bootstrap use version fast paths;
+- public history materialization is after-response side storage;
+- detail initial opportunity/follow-up reads are parallel and public history is on demand;
+- confirmed follow-up mutations use bounded one-shot server-confirmed response reuse;
+- Today runtime status/reminders are auxiliary and non-blocking;
+- login/register uses a 10-second one-shot in-memory auth handoff while refresh/new-tab stays server-authoritative;
+- normal hashed assets and immutable caching restored; secondary routes/Login/demo-only services are deferred;
+- AI client and OutreachDrawer are on demand;
+- normal `/api/today` omits the full `opportunity_pool` while preserving Top-N cards and `opportunity_pool_count`;
+- `/api/opportunity-pool/today` explicitly requests the complete pool through the **same** private Function using `include_pool=1`; no extra Function slot or DB request was introduced;
+- separate primary/full-pool service delegates prevent short mutation reuse state from being mistaken for the full pool.
 
-Validated performance work includes:
+The Today response split reduces serialization and cross-border response bytes. `_privateCore.js` still constructs/personalizes the full pool before projection, so no additional DB/CPU reduction is claimed from this split.
 
-- `/today` customer-private profile reads reduced from four SQL queries to one bounded aggregate query;
-- `/today` follow-up + recommendation feedback + `today_limit` reads reduced from three SQL queries to one query; the Today private-data path is roughly reduced from ~7 DB round trips to ~2;
-- private and public schema bootstrap use schema-version fast paths; full DDL/migration runs only when the schema version changes and is serialized;
-- public history materialization is side storage scheduled with Vercel `waitUntil()` on Vercel runtime, so it no longer blocks the main `/today` response; same-snapshot duplicate materialization is suppressed within a warm instance;
-- detail page initial opportunity and follow-up reads are parallel rather than serial;
-- public fact-version history on detail is on demand, not fetched on every detail open;
-- confirmed follow-up mutations use a bounded one-shot server-confirmed response reuse path, avoiding immediate redundant GETs on Today/detail;
-- Today runtime status and due reminders are auxiliary/non-blocking; the main Today data no longer waits for `/reminders`;
-- login/register has a 10-second, one-shot, in-memory-only authenticated-user handoff so the same SPA navigation does not immediately repeat `/auth/me`; refresh/new tab/cross-tab flows remain server-authoritative;
-- `viteSingleFile()` was removed, restoring normal hashed JS/CSS assets and Vercel `/assets/*` immutable caching;
-- secondary routes are lazy-loaded; Login is lazy-loaded while Today remains eager;
-- Runtime Trial / Static Snapshot / Mock service implementations are deferred and do not statically ride the real Pilot service path;
-- demo reset dependencies are requested only on the non-API reset action; `localCustomerProfile` builds as its own deferred chunk;
-- `aiDecisionApi` is no longer part of the authenticated Pilot Today initial bundle; real Pilot loads it only after explicit AI analysis;
-- `OutreachDrawer` is no longer part of Today initial delivery; it loads only after the user explicitly opens the communication-draft action;
-- NotFit/Remind remain eager inside Today intentionally to avoid over-fragmenting common CRM actions into too many small static requests;
-- **Today light response is implemented:** normal authenticated `/api/today` no longer sends the full `opportunity_pool`; it still returns the configured Top-N Today cards plus `opportunity_pool_count` and the other Today metadata;
-- **Opportunity Pool keeps the full response explicitly:** `/api/opportunity-pool/today` rewrites to the same existing `/api/private?route=today&include_pool=1` Function. No new Vercel Function or DB request is introduced;
-- the real Pilot service keeps separate primary and full-pool delegates, so the short one-shot Today mutation reuse state cannot be mistaken for a complete Opportunity Pool response.
+### #1438 production build
 
-### Today light-response implementation boundary
+- `index.html`: **0.62 / gzip 0.38 kB**
+- CSS: **41.30 / gzip 8.09 kB**
+- main JS: **358.88 / gzip 115.27 kB**
+- AI client: **5.43 / gzip 2.66 kB**
+- OutreachDrawer: **12.16 / gzip 4.72 kB**
+- Opportunity Pool: **18.45 / gzip 6.97 kB**
+- Opportunity Detail: **50.45 / gzip 15.89 kB**
+- Radar: **57.59 / gzip 17.29 kB**
 
-The original business router was moved byte-for-byte from `web/api/private.js` into the internal module `web/api/_privateCore.js`. At the split point the internal file reuses the original Git blob exactly; the business SQL, authentication, follow-up, reminder, feedback and outcome rules were not hand-rewritten.
+No frontend bundle increase came from the new Python collector source or daily-deep workflow integration.
 
-`web/api/private.js` is now a thin entry adapter. For default `GET route=today` it removes only `opportunity_pool` from the successful `TODAY_ACTIONS` payload. `include_pool=1`, PUT requests, all other private routes and error payloads pass through unchanged.
+## New official early-signal source: 天津市中心妇产科医院 (`tjzxfc`)
 
-This first stage reduces response serialization/network bytes, which is especially relevant to a China client crossing borders. **It does not yet reduce the server-side work used to construct/personalize the full pool**: `_privateCore.js` still builds `decoratedPool` before the thin adapter projects the response. Therefore no CPU/DB latency reduction is claimed from this split yet, and no China TTFB/P95 improvement is claimed before a real permitted Preview measurement.
+The branch now contains a verified-adapter implementation for the official hospital domain `www.tjzxfc.cn` and procurement/notice index `https://www.tjzxfc.cn/ywgk/zbgg/index.shtml`.
 
-### Production build delivery result
+Implemented files:
 
-Historical single-file build:
+- `web/pipeline/medical_channel_pipeline/tjzxfc_discovery.py`
+- `web/pipeline/medical_channel_pipeline/tjzxfc_market_research.py`
+- `web/pipeline/scripts/sync_tjzxfc_market_research.py`
+- dedicated discovery/detail/sync tests.
 
-- `index.html`: 659.76 kB, gzip 192.66 kB.
+Boundary rules:
 
-Full Verify #1431 production build:
+- index discovery may admit official market-research candidates without prematurely guessing medical scope;
+- detail verification must prove medical-channel relevance from the project title, extracted equipment/product names or explicit medical department/category evidence;
+- hospital identity alone is never enough;
+- generic facility/IT/meeting-room research is rejected rather than entering public opportunity facts;
+- title and official publication-date identity must agree;
+- exact deadline time is stored only if published; date-only deadlines remain date-only;
+- unsupported non-medical research is recorded as unsupported rather than making the whole hospital-source refresh fail;
+- true network, title/date or supported-detail verification failures remain fail closed;
+- minimum detail delay is 3 seconds.
 
-- `index.html`: **0.62 kB**, gzip **0.38 kB**;
-- CSS: **41.30 kB**, gzip **8.09 kB**;
-- main JS: **358.88 kB**, gzip **115.27 kB**;
-- `aiDecisionApi`: **5.43 kB**, gzip **2.66 kB**;
-- Login: **6.58 kB**, gzip **2.69 kB**;
-- `localCustomerProfile`: **7.99 kB**, gzip **3.11 kB**;
-- OutreachDrawer: **12.16 kB**, gzip **4.72 kB**;
-- Opportunity Pool: **18.45 kB**, gzip **6.97 kB**;
-- Followed: **20.95 kB**, gzip **7.37 kB**;
-- Pilot Resources: **23.18 kB**, gzip **6.76 kB**;
-- Opportunity Detail: **50.45 kB**, gzip **15.89 kB**;
-- Radar: **57.59 kB**, gzip **17.29 kB**.
+The original adapter feature was introduced at `7283ac65f3194b30cbb26252d577711f75907c88`; Fast Verify #1434 and Full Verify #1435 validated the adapter itself. Full #1438 additionally validates its daily-deep integration.
 
-Progressive main-bundle result:
+## Daily-deep integration
 
-- #1402: `415.64 / gzip 132.15 kB`;
-- #1413: `382.56 / gzip 122.48 kB`;
-- #1418: `375.20 / gzip 119.58 kB`;
-- #1423: `370.34 / gzip 118.27 kB`;
-- #1426: `358.43 / gzip 115.16 kB`;
-- #1431: **`358.88 / gzip 115.27 kB`** after adding the isolated full-pool delegate.
+The PR version of `.github/workflows/tianjin-medical-refresh.yml` now:
 
-The light-response service wrapper costs only about 0.45 kB raw / 0.11 kB gzip in the main bundle relative to #1426. The Vite report still correctly notes that `localFollowupStore` cannot be isolated by the AppLayout dynamic import alone because it is also statically referenced from other lazy route/service modules.
+- runs on the already validated `medicalchannelai-gcp-1` self-hosted labels rather than private `ubuntu-latest` hosted capacity;
+- uses system `python3`, avoiding the known Ubuntu 25.10 `setup-python` compatibility problem;
+- runs `sync_tjzxfc_market_research.py` with a **30-day lookback, max 20 candidates and 3-second minimum delay**;
+- safely handles the first run when no `tianjin_live_tjzxfc_records.json` exists;
+- feeds verified `tjzxfc` records into `publish_web_snapshot.py`;
+- includes the live records and sync report in the verified data commit;
+- keeps the existing once-daily schedule only.
 
-## Next performance boundary
+**Important runtime boundary:** PR #6 is still Draft and unmerged. GitHub scheduled workflows execute from the default branch, so this new daily-deep definition is **code-validated but not yet the active main-branch schedule**. No claim is made that `tjzxfc` is already being collected every day.
 
-Further tiny Today chunk splitting remains intentionally paused. The next high-value backend step, if pursued without Preview, is to determine whether the private core can avoid constructing/personalizing full-pool-only response material for the default Today request while preserving ranking, recommendation-feedback summary, counts and all private-state boundaries. That would be a server-compute optimization, distinct from the now-validated response-byte split.
+`tjzxfc` is intentionally **not** in the intraday incremental scheduler. Tests lock this boundary. Higher-frequency collection should only be considered after real runtime evidence shows daily deep is insufficient and the source can tolerate the extra load.
 
-Do not claim runtime benefit until such a change is code-validated and later measured on an explicitly permitted Preview.
+## Public intelligence / collector invariants
 
-## Public intelligence and collector boundary
+Existing guarantees remain:
 
-Public regional intelligence is shared/versioned independently from customer-private context. Existing guarantees include official-source discovery/detail verification, canonical VERIFIED facts, correction/termination reconciliation, public ranking without private relationship/product points, source-scoped incremental staging/barriers, 48-hour bounded carryover, ledger retention, actual Queue delivery clocks, stale cross-China-day rejection, deep/incremental serialization, and once-daily legacy deep fallback.
+- official-source discovery/detail verification and canonical VERIFIED facts;
+- correction/termination reconciliation;
+- public ranking without private relationship/product points;
+- source-scoped incremental staging/barriers;
+- bounded carryover and ledger retention;
+- actual Queue delivery clock and stale cross-China-day rejection;
+- deep/incremental serialization;
+- one official discovery pass per runtime scan;
+- unresolved verification barrier;
+- once-daily legacy deep fallback definition;
+- current intraday sources remain explicitly bounded and `tjzxfc` is not silently added.
 
-These remain code/contract guarantees, not current Production-runtime acceptance while Preview is disabled.
+## Business-closure loop
 
-## User-facing business closure
-
-Current pilot loop:
+Current pilot loop remains:
 
 **discover opportunity → official evidence → confirmed private resource match → grounded outreach → explicit contact record → optional concrete next action → due-action queue → terminal result → private outcome review**.
 
-Established behavior:
+Key private-state guarantees remain:
 
 - copying outreach / tapping phone / tapping email never auto-writes `CONTACTED`;
 - only explicit `已联系，记入跟进` records contact;
 - reminders are independent from sales stage and require a concrete next action;
 - reminder acknowledgement clears reminder only;
-- `我的跟进` prioritizes due → scheduled → active → monitor → closed;
 - WON / LOST / NOT_FIT / ARCHIVED require explicit reopen confirmation;
-- ARCHIVED is workflow-terminal but excluded from WON/LOST/NOT_FIT statistics.
-
-## Private outcome review
-
-The current branch includes current-account private result review without adding a new database table or Vercel Function:
-
-- `profile.js?route=outcome-summary` reads current-account `private_followups` / `private_followup_events` only;
-- reports WON / LOST / NOT_FIT counts and decided win rate;
-- >5000 terminal records fail closed;
-- client rejects duplicate reason codes and inconsistent reason totals;
-- WON / LOST require bounded private review factors and clearly label them current-user commercial judgments, not hospital/procurement facts;
-- historical free-form/unrecognized records remain unclassified rather than guessed;
-- NOT_FIT keeps structured reason;
-- reopened outcomes leave current terminal statistics while old history is preserved;
-- export/delete lifecycle includes outcome events;
-- fewer than 5 decided outcomes do not generate a claimed business rule;
-- private outcome statistics do not alter public facts/ranking.
-
-`web/api/_privateCore.js` enforces controlled WON/LOST transition review server-side before event/status mutation while preserving idempotency and same-terminal free-form note behavior.
+- ARCHIVED is workflow-terminal but excluded from outcome statistics;
+- WON/LOST terminal transitions require controlled private review server-side;
+- private outcome statistics remain current-account-only and do not alter public facts/ranking.
 
 ## Remaining acceptance gates
 
@@ -186,15 +168,13 @@ While no-Preview remains active, continue only code/test/data-boundary/business-
 When the user explicitly allows Preview again:
 
 1. deploy the exact then-current PR HEAD to Preview only;
-2. verify Today / Opportunity Pool / detail / Resources / Followups interactively from China and record TTFB/P95, response sizes and user-perceived loading;
-3. verify normal Today omits the full pool while Opportunity Pool receives all current opportunities from the same private Function;
-4. run protected Pilot smoke: explicit CONTACTED first, optional next action second;
-5. verify reminder acknowledgement preserves sales stage and clears only reminder state;
-6. verify private WON/LOST/NOT_FIT review persistence/export and no public leakage;
-7. verify real API rejects direct WON/LOST terminal writes without controlled review;
-8. verify terminal reopen preserves history and current statistics;
-9. verify collector Queue/daily-deep/intraday runtime behavior and snapshot freshness;
-10. verify one real same-origin grounded AI POST only if Preview AI configuration is intentionally supplied;
-11. inspect custom-domain/Production promotion separately before any Production action.
+2. verify Today / Opportunity Pool / detail / Resources / Followups interactively from China and record TTFB/P95, response sizes and perceived loading;
+3. verify normal Today omits the full pool while Opportunity Pool receives all current opportunities from the same Function;
+4. run protected CONTACTED → optional next-action → reminder acknowledgement flow;
+5. verify private WON/LOST/NOT_FIT review persistence/export and no public leakage;
+6. verify collector Queue / daily-deep / intraday runtime behavior and snapshot freshness;
+7. verify `tjzxfc` real network parsing on an allowed runtime before claiming that source operational;
+8. run one same-origin grounded AI POST only if Preview AI configuration is intentionally supplied;
+9. inspect custom-domain/Production promotion separately before any Production action.
 
 PR #6 must remain Draft until those gates and product-owner acceptance are complete.
