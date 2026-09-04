@@ -8,9 +8,10 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 
+from .channel_scope import is_medical_channel_relevant_text
+
 INDEX_URL = 'https://www.tjzyefy.com/xwgg/ggtz/'
 ALLOWED_HOSTS = {'tjzyefy.com', 'www.tjzyefy.com'}
-MEDICAL_TITLE_MARKERS = ('医疗设备', '医疗器械', '医用耗材', '耗材', '试剂')
 
 
 class TjzyefyDiscoveryError(ValueError):
@@ -83,7 +84,10 @@ def _is_supported_research_title(title: str) -> bool:
     compact = re.sub(r'\s+', '', title)
     if '调研' not in compact or '采购意向' in compact:
         return False
-    return any(marker in compact for marker in MEDICAL_TITLE_MARKERS)
+    # Discovery may use the shared public medical-channel taxonomy, but the
+    # hospital name itself is deliberately absent from that taxonomy. Detail
+    # parsing still verifies the official body, products and deadline.
+    return is_medical_channel_relevant_text(compact)
 
 
 def stable_opportunity_id(detail_url: str) -> str:
