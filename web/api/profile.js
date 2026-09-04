@@ -253,11 +253,13 @@ async function outcomeSummaryRoute(request, response) {
         (
           SELECT e.reason FROM private_followup_events e
           WHERE e.followup_id = f.id AND e.user_id = ${user.id} AND e.status = f.status
+            AND e.reason IS NOT NULL AND length(trim(e.reason)) > 0
           ORDER BY e.created_at DESC, e.id DESC LIMIT 1
         ) AS latest_reason,
         (
           SELECT e.note FROM private_followup_events e
-          WHERE e.followup_id = f.id AND e.user_id = ${user.id} AND e.status = f.status
+          WHERE e.followup_id = f.id AND e.user_id = ${user.id} AND e.status = 'LOST'
+            AND e.note LIKE ${`${LOST_REASON_NOTE_PREFIX}%`}
           ORDER BY e.created_at DESC, e.id DESC LIMIT 1
         ) AS latest_note
       FROM private_followups f
