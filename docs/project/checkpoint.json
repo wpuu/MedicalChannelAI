@@ -7,35 +7,50 @@
   "production_ready": false,
   "deployed_demo_url": "https://medicalai.qd.je/",
   "demo_mode": "verified_public_intelligence_with_private_crm_overlay",
-  "verified_snapshot_at": "2026-08-31T17:56:00+08:00",
+  "verified_snapshot_at": "2026-09-03T13:31:21.991132+08:00",
   "vercel_branch_preview_enabled": false,
-  "runtime_implementation_head": "b4b41579d70648167566175c307df0a1a49f79b7",
-  "latest_code_validated_head": "b4b41579d70648167566175c307df0a1a49f79b7",
-  "current_runtime_candidate_head": "b4b41579d70648167566175c307df0a1a49f79b7",
-  "github_actions_status": "GCP_SELF_HOSTED_VERIFY_1351_SUCCESS; PRIVATE_GITHUB_HOSTED_RUNNER_BILLING_BLOCK_BYPASSED",
+  "runtime_implementation_head": "4626eb6f9f799de412ea118d48b920e0f1d8a398",
+  "latest_code_validated_head": "4626eb6f9f799de412ea118d48b920e0f1d8a398",
+  "current_runtime_candidate_head": "4626eb6f9f799de412ea118d48b920e0f1d8a398",
+  "github_actions_status": "FULL_VERIFY_1413_SUCCESS_GCP_SELF_HOSTED",
   "last_green_validation": {
     "provider": "GITHUB_ACTIONS_SELF_HOSTED_GCP",
     "workflow": "Verify MedicalChannelAI",
-    "run_number": 1351,
-    "head": "b4b41579d70648167566175c307df0a1a49f79b7",
+    "run_number": 1413,
+    "head": "4626eb6f9f799de412ea118d48b920e0f1d8a398",
     "result": "SUCCESS",
     "runner_name": "medicalchannelai-gcp-1",
     "system_python": "3.13.7",
     "node": "24.20.0",
-    "python_contract_tests": 475,
+    "python_contract_tests": 508,
     "prebuild": true,
     "pipeline_and_contract_tests": true,
     "typescript_typecheck": true,
     "vite_production_build": true,
     "ranking_summary": true,
-    "vercel_preview_generated": false
+    "serverless_entrypoints": "11/12",
+    "vercel_preview_generated": false,
+    "bundle": {
+      "index_html_kb": 0.62,
+      "index_html_gzip_kb": 0.38,
+      "css_kb": 41.30,
+      "css_gzip_kb": 8.09,
+      "main_js_kb": 382.56,
+      "main_js_gzip_kb": 122.48,
+      "login_js_kb": 6.58,
+      "opportunity_pool_js_kb": 18.31,
+      "followed_js_kb": 20.95,
+      "pilot_resources_js_kb": 23.04,
+      "opportunity_detail_js_kb": 50.19,
+      "radar_js_kb": 57.59
+    }
   },
   "current_runtime_candidate_validation": {
-    "head": "b4b41579d70648167566175c307df0a1a49f79b7",
+    "head": "4626eb6f9f799de412ea118d48b920e0f1d8a398",
     "result": "SUCCESS",
-    "run_number": 1351,
+    "run_number": 1413,
     "repository_steps_executed": true,
-    "interpretation": "The GCP self-hosted runner executed Checkout, system Python, Node setup, npm ci, full prebuild, 475 Python contract tests, TypeScript typecheck, Vite production build and ranking summary successfully, including the new server-side WON/LOST transition review guard."
+    "interpretation": "The GCP self-hosted runner executed Checkout, system Python, Node setup, npm ci, full prebuild, 508 Python contract tests, TypeScript typecheck, Vite production build and ranking summary successfully. The validated batch includes China-latency database/request reductions, schema fast paths, non-blocking auxiliary work, one-shot auth/mutation reuse and hashed/lazy frontend delivery."
   },
   "historical_github_hosted_runner_block": {
     "observed_failed_start_runs": [1297, 1299, 1303, 1307, 1327, 1331, 1338, 1340, 1342],
@@ -48,17 +63,25 @@
     "workflow_change_commit": "33eef600e44361d438c35398f7c022efd1f624ce",
     "current_triggers": ["pull_request", "workflow_dispatch"],
     "self_hosted_runner_enabled": true,
+    "self_hosted_runner_name": "medicalchannelai-gcp-1",
     "self_hosted_runner_labels": ["self-hosted", "linux", "x64", "medicalchannelai-ci"],
     "setup_python_removed_for_ubuntu_25_10": true,
     "npm_actions_cache_upload_disabled": true,
-    "note": "The GCP VM uses system Python because actions/setup-python had no Python 3.12 build for Ubuntu 25.10. Node 24 remains installed through actions/setup-node. The runner workspace is cleaned by actions/checkout before each job."
+    "gcp_runner_is_user_request_path": false,
+    "note": "The GCP VM is CI-only infrastructure. It uses system Python because actions/setup-python had no Python 3.12 build for Ubuntu 25.10. Node 24 remains installed through actions/setup-node. The runner does not serve end-user web traffic."
+  },
+  "runtime_geography": {
+    "neon_region": "aws-us-east-2",
+    "vercel_function_region_override": false,
+    "china_access_strategy": "Keep dynamic API close to Ohio Neon until measured China TTFB/P95 justifies moving API and database together; do not move only Vercel Functions to Asia.",
+    "gcp_runner_affects_user_latency": false
   },
   "vercel_latest_observed_deployment": {
     "commit": "ddd965f132343b0885f91e30e13a6b8fc2157afa",
     "deployment": "dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre",
     "state": "ERROR",
     "is_current_head": false,
-    "note": "Current PR branch automatic Preview remains disabled. GCP CI work and private outcome-review commits did not create a Vercel deployment."
+    "note": "Current PR branch automatic Preview remains disabled. GCP CI, CRM and performance commits did not create a Vercel deployment."
   },
   "vercel_last_fully_verified_preview_commit": "7a8823029000573720daa337c0263da5be140cff",
   "vercel_last_fully_verified_preview_deployment": "dpl_5pCCJuEfHU4TCnNjvbFeDW2eVdXc",
@@ -76,14 +99,17 @@
     "current_head_real_http_post_verified": false,
     "note": "Historical AI runtime evidence is not current-HEAD acceptance. Current branch Preview is intentionally disabled."
   },
-  "latest_changes_validation_status": "FULL_VERIFY_1351_GREEN_ON_GCP_SELF_HOSTED_RUNNER; SERVER_OUTCOME_GUARD_GREEN; PREVIEW_INTENTIONALLY_DISABLED",
+  "latest_changes_validation_status": "FULL_VERIFY_1413_GREEN_ON_GCP_SELF_HOSTED_RUNNER; 508_CONTRACT_TESTS_TSC_VITE_GREEN; PREVIEW_INTENTIONALLY_DISABLED",
   "production_observation": {
     "vercel_default_domain": "https://medicalchannelai.vercel.app/",
     "vercel_project_live": false,
     "custom_domain_observation": "The reachable custom demo/production surface must not be assumed to contain current PR changes. Production promotion remains separately controlled."
   },
-  "milestone": "V0_4_1_NO_PREVIEW_PRIVATE_OUTCOME_SERVER_GUARD_GREEN",
-  "known_incomplete_invariants": {},
+  "milestone": "V0_4_1_NO_PREVIEW_CHINA_LATENCY_AND_FRONTEND_DELIVERY_FULL_GREEN",
+  "known_incomplete_invariants": {
+    "today_light_response_split": "NOT_IMPLEMENTED: Today still shares the response shape that can include the full opportunity pool. Core private.js is intentionally not whole-file rewritten through a truncated connector read.",
+    "ai_client_on_demand_bundle_split": "NOT_IMPLEMENTED: Today still statically imports the AI client module; this is a possible later measured bundle optimization."
+  },
   "gates": {
     "canonical_fact_schema": true,
     "ccgp_verified_detail_and_events": true,
@@ -161,12 +187,31 @@
     "github_verify_duplicate_pr_branch_runs_removed": true,
     "github_self_hosted_runner_available": true,
     "current_runtime_candidate_ci_green": true,
+    "today_private_profile_single_roundtrip": true,
+    "today_private_state_single_roundtrip": true,
+    "private_schema_fast_path": true,
+    "public_schema_fast_path": true,
+    "public_history_materialization_after_response": true,
+    "detail_parallel_initial_reads": true,
+    "detail_public_history_on_demand": true,
+    "followup_mutation_one_shot_reuse": true,
+    "today_auxiliary_requests_non_blocking": true,
+    "post_login_auth_one_shot_handoff": true,
+    "vite_hashed_asset_delivery": true,
+    "secondary_routes_lazy_loaded": true,
+    "login_route_lazy_loaded": true,
+    "non_pilot_services_deferred": true,
+    "mock_reset_deferred_from_pilot_shell": true,
+    "today_light_response_split": false,
+    "ai_client_on_demand_bundle_split": false,
     "latest_consolidated_preview_verified": false,
+    "vercel_preview_runtime_acceptance": false,
     "custom_domain_promotion_path_verified": false
   },
   "final_validation_required": [
     "Do not generate Preview while the user's no-Preview instruction remains active.",
     "When Preview is explicitly re-enabled, deploy the exact then-current PR HEAD to Preview only and run interactive Today, Opportunity Pool, Resources and Followups acceptance.",
+    "Measure China-side TTFB/P95 and user-perceived loading before changing Vercel or Neon regions; do not move only the Function layer away from Ohio Neon.",
     "Verify explicit CONTACTED first, optional next-action reminder second, while CONTACTED remains the sales stage.",
     "Verify due-reminder acknowledgement clears only remind_at, preserves the underlying sales stage and removes the item from the due-action queue on real Preview persistence.",
     "Verify private WON/LOST/NOT_FIT review data persists across session/export without leaking into public facts or automatically altering public ranking.",
