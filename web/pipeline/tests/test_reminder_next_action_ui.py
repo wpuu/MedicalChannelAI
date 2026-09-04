@@ -13,6 +13,7 @@ class ReminderNextActionUiTests(unittest.TestCase):
         cls.today = (WEB_ROOT / "src" / "pages" / "TodayPage.tsx").read_text(encoding="utf-8")
         cls.detail = (WEB_ROOT / "src" / "pages" / "OpportunityDetailPage.tsx").read_text(encoding="utf-8")
         cls.reminder_api = (WEB_ROOT / "src" / "services" / "reminderApi.ts").read_text(encoding="utf-8")
+        cls.panel = (WEB_ROOT / "src" / "components" / "today" / "DueRemindersPanel.tsx").read_text(encoding="utf-8")
 
     def test_reminder_collects_optional_next_action(self) -> None:
         self.assertIn('onConfirm: (remindAt: string, nextAction: string | null) => void', self.modal)
@@ -34,6 +35,11 @@ class ReminderNextActionUiTests(unittest.TestCase):
     def test_due_reminder_already_surfaces_latest_private_note(self) -> None:
         self.assertIn('note: latestNote', self.reminder_api)
         self.assertIn("entry.history.find((record) => Boolean(record.note?.trim()))", self.reminder_api)
+
+    def test_due_panel_promotes_action_note_to_next_step(self) -> None:
+        self.assertIn("text.startsWith('下次行动：')", self.panel)
+        self.assertIn("{ label: '下一步', text: action }", self.panel)
+        self.assertIn('{note.label}：{note.text}', self.panel)
 
 
 if __name__ == '__main__':
