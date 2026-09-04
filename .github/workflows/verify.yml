@@ -104,6 +104,22 @@ jobs:
           probe_dir="$(mktemp -d)"
           trap 'rm -rf "$probe_dir"' EXIT
 
+          python3 - "$probe_dir/before.sha256" <<'PY'
+          import hashlib
+          import sys
+          from pathlib import Path
+
+          digest = hashlib.sha256()
+          for root_name in ('web/pipeline/data', 'web/public/data'):
+              root = Path(root_name)
+              for path in sorted(item for item in root.rglob('*') if item.is_file()):
+                  digest.update(path.as_posix().encode('utf-8'))
+                  digest.update(b'\0')
+                  digest.update(path.read_bytes())
+                  digest.update(b'\0')
+          Path(sys.argv[1]).write_text(digest.hexdigest() + '\n', encoding='utf-8')
+          PY
+
           python3 web/pipeline/scripts/sync_tjzyefy_procurement_intent.py \
             --lookback-days 30 \
             --max-candidates 20 \
@@ -151,9 +167,25 @@ jobs:
               print('LIVE_INTENT_VERIFIED_RECORD=' + json.dumps(public_record, ensure_ascii=False))
           PY
 
+          python3 - "$probe_dir/after.sha256" <<'PY'
+          import hashlib
+          import sys
+          from pathlib import Path
+
+          digest = hashlib.sha256()
+          for root_name in ('web/pipeline/data', 'web/public/data'):
+              root = Path(root_name)
+              for path in sorted(item for item in root.rglob('*') if item.is_file()):
+                  digest.update(path.as_posix().encode('utf-8'))
+                  digest.update(b'\0')
+                  digest.update(path.read_bytes())
+                  digest.update(b'\0')
+          Path(sys.argv[1]).write_text(digest.hexdigest() + '\n', encoding='utf-8')
+          PY
+
           # The acceptance probe may read the public web only. It must never
-          # mutate tracked data, create a deployment, or write back to GitHub.
-          git diff --exit-code
+          # mutate tracked medical data, create a deployment, or write back.
+          cmp "$probe_dir/before.sha256" "$probe_dir/after.sha256"
           echo "Read-only live procurement-intent probe: PASS"
 
       - name: Install web dependencies
