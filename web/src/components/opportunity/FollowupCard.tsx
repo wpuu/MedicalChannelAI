@@ -29,6 +29,7 @@ interface FollowupCardProps {
   card: TodayActionCard
   onChangeStatus: (status: FollowupStatus) => void
   onAddNote?: (note: string) => Promise<boolean>
+  onWon: () => void
   onNotFit: () => void
   onLost: () => void
   onRemind: () => void
@@ -39,6 +40,7 @@ export function FollowupCard({
   card,
   onChangeStatus,
   onAddNote,
+  onWon,
   onNotFit,
   onLost,
   onRemind,
@@ -150,6 +152,10 @@ export function FollowupCard({
                 <button
                   type="button"
                   onClick={() => {
+                    if (status === 'WON') {
+                      onWon()
+                      return
+                    }
                     if (status === 'NOT_FIT') {
                       onNotFit()
                       return
