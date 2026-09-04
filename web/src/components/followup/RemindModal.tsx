@@ -6,8 +6,15 @@ import { isoDaysFromNow } from '@/utils/format'
 interface RemindModalProps {
   open: boolean
   onClose: () => void
-  onConfirm: (remindAt: string, nextAction: string | null) => void
+  onConfirm: (remindAt: string, nextAction: string) => void
 }
+
+const NEXT_ACTION_PRESETS = [
+  '再次联系采购/设备科',
+  '确认产品参数与匹配情况',
+  '确认厂家/授权/供货能力',
+  '查看项目最新进展',
+] as const
 
 function localDateAtNineToIso(localDate: string): string | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(localDate)) return null
@@ -28,6 +35,7 @@ export function RemindModal({ open, onClose, onConfirm }: RemindModalProps) {
   const [selected, setSelected] = useState(presets[0].value)
   const [nextAction, setNextAction] = useState('')
   const remindAt = localDateAtNineToIso(selected)
+  const normalizedNextAction = nextAction.trim()
 
   useEffect(() => {
     if (!open) return
@@ -38,7 +46,7 @@ export function RemindModal({ open, onClose, onConfirm }: RemindModalProps) {
   return (
     <Modal
       open={open}
-      title="稍后提醒"
+      title="安排下一步"
       onClose={onClose}
       footer={
         <div className="flex justify-end gap-2">
@@ -51,19 +59,21 @@ export function RemindModal({ open, onClose, onConfirm }: RemindModalProps) {
           </button>
           <button
             type="button"
-            disabled={!remindAt}
-            onClick={() => remindAt && onConfirm(remindAt, nextAction.trim() || null)}
-            className="rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] text-white disabled:opacity-50"
+            disabled={!remindAt || !normalizedNextAction}
+            onClick={() => {
+              if (remindAt && normalizedNextAction) onConfirm(remindAt, normalizedNextAction)
+            }}
+            className="rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            设置提醒
+            保存下一步
           </button>
         </div>
       }
     >
       <p className="mb-3 text-[13px] leading-6 text-slate-500">
         {isApiMode
-          ? '提醒时间会保存到服务器，默认按所选日期当地时间 09:00 到期；设置提醒不会改变当前销售阶段。当前 Pilot 先提供站内到期提醒，尚未接入微信、短信或系统 Push。'
-          : '演示模式：提醒只保存在当前浏览器，不会发送通知，也不会改变当前销售阶段。'}
+          ? '下一步和提醒时间会保存到当前账号私有跟进数据；不会改变当前销售阶段。到期后在站内提醒中直接告诉你要做什么，当前尚未接入微信、短信或系统 Push。'
+          : '演示模式：下一步和提醒只保存在当前浏览器，不会发送系统通知，也不会改变当前销售阶段。'}
       </p>
       <div className="flex flex-wrap gap-2">
         {presets.map((item) => (
@@ -88,8 +98,29 @@ export function RemindModal({ open, onClose, onConfirm }: RemindModalProps) {
         onChange={(e) => setSelected(e.target.value)}
         className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-[13px] outline-none focus:border-teal-700"
       />
-      <label htmlFor="reminder-next-action" className="mt-4 block text-[12px] font-medium text-slate-600">
-        到时要做什么（可选）
+
+      <div className="mt-4">
+        <p className="text-[12px] font-medium text-slate-600">下一步行动</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {NEXT_ACTION_PRESETS.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setNextAction(item)}
+              className={
+                nextAction === item
+                  ? 'rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] text-white'
+                  : 'rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] text-slate-600 hover:bg-slate-100'
+              }
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <label htmlFor="reminder-next-action" className="mt-3 block text-[12px] text-slate-500">
+        具体说明（必填，可直接修改快捷选项）
       </label>
       <textarea
         id="reminder-next-action"
@@ -101,7 +132,7 @@ export function RemindModal({ open, onClose, onConfirm }: RemindModalProps) {
         className="mt-1 w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-[13px] leading-5 text-slate-700 outline-none focus:border-teal-700"
       />
       <p className="mt-1 text-[11px] leading-5 text-slate-400">
-        填写后会作为当前账号私有跟进备注保存，并在到期提醒里直接显示。
+        每个提醒都必须对应一个明确动作，避免只留下日期却不知道到时要做什么。
       </p>
     </Modal>
   )
