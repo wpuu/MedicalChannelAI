@@ -33,8 +33,8 @@ class IncrementalTickChainTests(unittest.TestCase):
         deep_done = datetime(2026, 9, 4, 11, 30, tzinfo=timezone.utc)  # 19:30 CST
         self.assertIsNone(first_tick_after_deep(deep_done))
 
-    def test_chain_runs_every_ten_minutes_and_stops_same_day(self) -> None:
-        self.assertEqual(TICK_INTERVAL_MINUTES, 10)
+    def test_chain_runs_every_fifteen_minutes_and_stops_same_day(self) -> None:
+        self.assertEqual(TICK_INTERVAL_MINUTES, 15)
         first = first_tick_after_deep(datetime(2026, 9, 4, 3, 5, tzinfo=timezone.utc))
         self.assertIsNotNone(first)
         current = first
@@ -47,6 +47,7 @@ class IncrementalTickChainTests(unittest.TestCase):
                 break
             ticks.append(nxt)
             current = nxt
+        self.assertEqual(MAX_TICKS_PER_DAY, 31)
         self.assertEqual(len(ticks), MAX_TICKS_PER_DAY)
         self.assertEqual(ticks[-1].scheduled_for, "2026-09-04T11:00:00+00:00")  # 19:00 CST
         self.assertTrue(all(item.business_date == "2026-09-04" for item in ticks))
@@ -57,7 +58,7 @@ class IncrementalTickChainTests(unittest.TestCase):
         delivered = datetime(2026, 9, 4, 3, 30, 5, tzinfo=timezone.utc)  # 11:30:05 CST
         nxt = next_tick_after(first, delivered_at=delivered)
         self.assertIsNotNone(nxt)
-        self.assertEqual(nxt.scheduled_for, "2026-09-04T03:40:00+00:00")  # 11:40 CST
+        self.assertEqual(nxt.scheduled_for, "2026-09-04T03:45:00+00:00")  # 11:45 CST
 
     def test_late_delivery_skips_backlog_to_first_future_aligned_tick(self) -> None:
         first = first_tick_after_deep(datetime(2026, 9, 4, 3, 5, tzinfo=timezone.utc))
@@ -65,7 +66,7 @@ class IncrementalTickChainTests(unittest.TestCase):
         delayed = datetime(2026, 9, 4, 4, 7, tzinfo=timezone.utc)  # 12:07 CST
         nxt = next_tick_after(first, delivered_at=delayed)
         self.assertIsNotNone(nxt)
-        self.assertEqual(nxt.scheduled_for, "2026-09-04T04:10:00+00:00")  # 12:10 CST
+        self.assertEqual(nxt.scheduled_for, "2026-09-04T04:15:00+00:00")  # 12:15 CST
 
     def test_business_date_guard_uses_china_date_not_utc_date(self) -> None:
         queued = datetime(2026, 9, 4, 11, 0, tzinfo=timezone.utc)  # 19:00 China Sep 4
