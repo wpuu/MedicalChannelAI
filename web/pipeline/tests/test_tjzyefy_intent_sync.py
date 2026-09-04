@@ -32,6 +32,15 @@ class TjzyefyIntentSyncTests(unittest.TestCase):
             (True, 'PASS'),
         )
 
+    def test_first_sync_expands_to_bounded_sixty_day_backfill_only(self) -> None:
+        self.assertEqual(sync_intent.BOOTSTRAP_LOOKBACK_DAYS, 60)
+        self.assertEqual(sync_intent.effective_lookback_days(30, []), 60)
+        self.assertEqual(sync_intent.effective_lookback_days(60, []), 60)
+        self.assertEqual(
+            sync_intent.effective_lookback_days(30, [{'opportunity_id': 'already_verified'}]),
+            30,
+        )
+
     def test_nonmedical_intent_is_explicitly_unsupported(self) -> None:
         self.assertEqual(sync_intent.UNSUPPORTED_DETAIL_CODES, {'TJZYEFY_INTENT_NON_MEDICAL'})
 
