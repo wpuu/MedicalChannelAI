@@ -8,7 +8,6 @@ import {
 import {
   ALLOWED_TODAY_LIMITS,
   setTodayLimitForUser,
-  todayLimitForUser,
 } from './_todayDisplayPreference.js'
 import { loadVerifiedSnapshot } from './_verifiedSnapshot.js'
 
@@ -90,28 +89,61 @@ function shouldAppearToday(followup) {
   return Number.isNaN(remindAt) || remindAt <= Date.now()
 }
 
-async function todayFollowupMap(sql, user) {
+async function todayPrivateState(sql, user) {
   const rows = await sql`
-    SELECT opportunity_id, status, remind_at
-    FROM private_followups
-    WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
-    ORDER BY updated_at DESC, id DESC
-    LIMIT 5001
+    SELECT
+      COALESCE((
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'opportunity_id', followup.opportunity_id,
+            'status', followup.status,
+            'remind_at', followup.remind_at
+          )
+          ORDER BY followup.updated_at DESC, followup.id DESC
+        )
+        FROM (
+          SELECT opportunity_id, status, remind_at, updated_at, id
+          FROM private_followups
+          WHERE user_id = ${user.id} AND organization_id = ${user.organization_id}
+          ORDER BY updated_at DESC, id DESC
+          LIMIT 5001
+        ) followup
+      ), '[]'::jsonb) AS followups,
+      COALESCE((
+        SELECT jsonb_agg(
+          jsonb_build_object(
+            'opportunity_id', feedback.opportunity_id,
+            'value', feedback.value
+          )
+          ORDER BY feedback.updated_at DESC, feedback.opportunity_id ASC
+        )
+        FROM (
+          SELECT opportunity_id, value, updated_at
+          FROM private_recommendation_feedback
+          WHERE user_id = ${user.id}
+          ORDER BY updated_at DESC, opportunity_id ASC
+          LIMIT 5001
+        ) feedback
+      ), '[]'::jsonb) AS feedback,
+      COALESCE((
+        SELECT today_limit
+        FROM private_user_ui_preferences
+        WHERE user_id = ${user.id}
+        LIMIT 1
+      ), 5)::int AS today_limit
   `
-  if (rows.length > 5000) throw new Error('TODAY_FOLLOWUP_INDEX_TRUNCATED')
-  return new Map(rows.map((row) => [row.opportunity_id, row]))
-}
-
-async function todayFeedbackMap(sql, user) {
-  const rows = await sql`
-    SELECT opportunity_id, value
-    FROM private_recommendation_feedback
-    WHERE user_id = ${user.id}
-    ORDER BY updated_at DESC, opportunity_id ASC
-    LIMIT 5001
-  `
-  if (rows.length > 5000) throw new Error('TODAY_FEEDBACK_INDEX_TRUNCATED')
-  return new Map(rows.map((row) => [row.opportunity_id, row.value]))
+  const row = rows[0] || {}
+  const followupRows = Array.isArray(row.followups) ? row.followups : []
+  const feedbackRows = Array.isArray(row.feedback) ? row.feedback : []
+  if (followupRows.length > 5000) throw new Error('TODAY_FOLLOWUP_INDEX_TRUNCATED')
+  if (feedbackRows.length > 5000) throw new Error('TODAY_FEEDBACK_INDEX_TRUNCATED')
+  const todayLimitValue = Number(row.today_limit)
+  const todayLimit = ALLOWED_TODAY_LIMITS.includes(todayLimitValue) ? todayLimitValue : 5
+  return {
+    followups: new Map(followupRows.map((item) => [item.opportunity_id, item])),
+    feedback: new Map(feedbackRows.map((item) => [item.opportunity_id, item.value])),
+    todayLimit,
+  }
 }
 
 function hasActiveFollowup(followup) {
@@ -191,11 +223,7 @@ async function todayRoute(request, response, user) {
   try {
     const snapshot = await loadVerifiedSnapshot()
     const pool = await personalizedOpportunityPoolForUser(user, snapshot)
-    const [followups, feedback, todayLimit] = await Promise.all([
-      todayFollowupMap(sql, user),
-      todayFeedbackMap(sql, user),
-      todayLimitForUser(sql, user),
-    ])
+    const { followups, feedback, todayLimit } = await todayPrivateState(sql, user)
     const decoratedPool = pool.map((card) =>
       decorateCardWithFollowup(card, followups.get(card.opportunity_id)),
     )
