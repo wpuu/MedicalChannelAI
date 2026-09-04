@@ -16,6 +16,25 @@ const CAPABILITY_TYPES = new Set([
 const RELATIONSHIP_STRENGTHS = new Set([
   'STRONG', 'MEDIUM', 'HISTORICAL', 'WEAK', 'UNKNOWN', 'NONE',
 ])
+const NOT_FIT_REASON_CODES = new Set([
+  'NO_PRODUCT_CAPABILITY', 'NO_MANUFACTURER_ACCESS', 'RELATIONSHIP_TOO_WEAK',
+  'AMOUNT_TOO_SMALL', 'PROJECT_TOO_LATE', 'COMPETITOR_LOCKED_CUSTOMER_JUDGMENT',
+  'DEPARTMENT_OUT_OF_SCOPE', 'REGION_OUT_OF_SCOPE', 'RENTAL_NOT_SUPPORTED', 'OTHER',
+])
+const LOST_REASON_LABEL_TO_CODE = new Map([
+  ['价格/报价竞争失败', 'PRICE_OR_QUOTE_LOST'],
+  ['产品或参数不匹配', 'PRODUCT_OR_SPEC_MISMATCH'],
+  ['厂家/授权资源不足', 'MANUFACTURER_OR_AUTHORIZATION_GAP'],
+  ['医院关系不足', 'HOSPITAL_RELATIONSHIP_GAP'],
+  ['介入时间太晚', 'INTERVENTION_TOO_LATE'],
+  ['竞争对手优势明显', 'COMPETITOR_ADVANTAGE'],
+  ['投标/响应执行失败', 'BID_OR_RESPONSE_EXECUTION_FAILED'],
+  ['客户需求或项目变化', 'CUSTOMER_OR_PROJECT_CHANGED'],
+  ['主动放弃', 'WITHDRAWN_BY_USER'],
+  ['其他', 'OTHER'],
+])
+const LOST_REASON_CODES = new Set(LOST_REASON_LABEL_TO_CODE.values())
+const LOST_REASON_NOTE_PREFIX = '未成交原因（当前用户判断）：'
 
 function cleanText(value, max) {
   if (typeof value !== 'string') return null
@@ -194,6 +213,115 @@ async function getProfile(user) {
   }
 }
 
+function recognizedOutcomeReason(status, reason, note) {
+  const structured = cleanText(reason, 100)
+  if (status === 'NOT_FIT') {
+    return structured && NOT_FIT_REASON_CODES.has(structured) ? structured : null
+  }
+  if (status !== 'LOST') return null
+  if (structured && LOST_REASON_CODES.has(structured)) return structured
+
+  const legacyNote = cleanText(note, 2000)
+  if (!legacyNote || !legacyNote.startsWith(LOST_REASON_NOTE_PREFIX)) return null
+  const label = legacyNote.slice(LOST_REASON_NOTE_PREFIX.length).trim()
+  return LOST_REASON_LABEL_TO_CODE.get(label) ?? null
+}
+
+function incrementReason(counter, code) {
+  counter.set(code, (counter.get(code) ?? 0) + 1)
+}
+
+function sortedReasonCounts(counter) {
+  return [...counter.entries()]
+    .map(([code, count]) => ({ code, count }))
+    .sort((left, right) => right.count - left.count || left.code.localeCompare(right.code))
+}
+
+async function outcomeSummaryRoute(request, response) {
+  if (request.method !== 'GET') {
+    response.setHeader('Allow', 'GET')
+    return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
+  }
+  const user = await requireUser(request, response)
+  if (!user) return
+
+  try {
+    const sql = privateDb()
+    const rows = await sql`
+      SELECT
+        f.status,
+        (
+          SELECT e.reason FROM private_followup_events e
+          WHERE e.followup_id = f.id AND e.user_id = ${user.id} AND e.status = f.status
+          ORDER BY e.created_at DESC, e.id DESC LIMIT 1
+        ) AS latest_reason,
+        (
+          SELECT e.note FROM private_followup_events e
+          WHERE e.followup_id = f.id AND e.user_id = ${user.id} AND e.status = f.status
+          ORDER BY e.created_at DESC, e.id DESC LIMIT 1
+        ) AS latest_note
+      FROM private_followups f
+      WHERE f.user_id = ${user.id}
+        AND f.organization_id = ${user.organization_id}
+        AND f.status IN ('WON', 'LOST', 'NOT_FIT')
+      ORDER BY f.updated_at DESC, f.id DESC
+      LIMIT 5001
+    `
+    if (rows.length > 5000) {
+      return sendJson(response, 409, { error: 'OUTCOME_SUMMARY_TRUNCATED' })
+    }
+
+    let won = 0
+    let lost = 0
+    let notFit = 0
+    let unclassifiedLost = 0
+    let unclassifiedNotFit = 0
+    const lostReasons = new Map()
+    const notFitReasons = new Map()
+
+    for (const row of rows) {
+      if (row.status === 'WON') {
+        won += 1
+        continue
+      }
+      if (row.status === 'LOST') {
+        lost += 1
+        const reason = recognizedOutcomeReason('LOST', row.latest_reason, row.latest_note)
+        if (reason) incrementReason(lostReasons, reason)
+        else unclassifiedLost += 1
+        continue
+      }
+      if (row.status === 'NOT_FIT') {
+        notFit += 1
+        const reason = recognizedOutcomeReason('NOT_FIT', row.latest_reason, row.latest_note)
+        if (reason) incrementReason(notFitReasons, reason)
+        else unclassifiedNotFit += 1
+      }
+    }
+
+    const decidedCount = won + lost
+    return sendJson(response, 200, {
+      schema_version: '0.1',
+      mode: 'PRIVATE_OUTCOME_SUMMARY',
+      total_terminal: won + lost + notFit,
+      won,
+      lost,
+      not_fit: notFit,
+      decided_count: decidedCount,
+      win_rate_percent: decidedCount ? Math.round((won / decidedCount) * 100) : null,
+      lost_reason_counts: sortedReasonCounts(lostReasons),
+      not_fit_reason_counts: sortedReasonCounts(notFitReasons),
+      unclassified_lost: unclassifiedLost,
+      unclassified_not_fit: unclassifiedNotFit,
+    })
+  } catch (error) {
+    console.error('private outcome summary request failed', {
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
+    return sendJson(response, 500, { error: 'OUTCOME_SUMMARY_REQUEST_FAILED' })
+  }
+}
+
 async function publicHistoryRoute(request, response) {
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET')
@@ -215,7 +343,9 @@ async function publicHistoryRoute(request, response) {
 }
 
 export default async function handler(request, response) {
-  if (routeName(request) === 'public-history') return publicHistoryRoute(request, response)
+  const route = routeName(request)
+  if (route === 'public-history') return publicHistoryRoute(request, response)
+  if (route === 'outcome-summary') return outcomeSummaryRoute(request, response)
 
   if (!['GET', 'PUT', 'DELETE'].includes(request.method)) {
     response.setHeader('Allow', 'GET, PUT, DELETE')
