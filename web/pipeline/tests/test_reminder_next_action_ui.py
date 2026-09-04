@@ -15,12 +15,19 @@ class ReminderNextActionUiTests(unittest.TestCase):
         cls.reminder_api = (WEB_ROOT / "src" / "services" / "reminderApi.ts").read_text(encoding="utf-8")
         cls.panel = (WEB_ROOT / "src" / "components" / "today" / "DueRemindersPanel.tsx").read_text(encoding="utf-8")
 
-    def test_reminder_collects_optional_next_action(self) -> None:
-        self.assertIn('onConfirm: (remindAt: string, nextAction: string | null) => void', self.modal)
-        self.assertIn('到时要做什么（可选）', self.modal)
-        self.assertIn('再联系设备科，确认参数要求和厂家授权情况', self.modal)
+    def test_reminder_requires_explicit_next_action(self) -> None:
+        self.assertIn('onConfirm: (remindAt: string, nextAction: string) => void', self.modal)
+        self.assertIn('const NEXT_ACTION_PRESETS = [', self.modal)
+        self.assertIn('再次联系采购/设备科', self.modal)
+        self.assertIn('确认产品参数与匹配情况', self.modal)
+        self.assertIn('确认厂家/授权/供货能力', self.modal)
+        self.assertIn('查看项目最新进展', self.modal)
+        self.assertIn('disabled={!remindAt || !normalizedNextAction}', self.modal)
+        self.assertIn('具体说明（必填，可直接修改快捷选项）', self.modal)
+        self.assertIn('每个提醒都必须对应一个明确动作', self.modal)
         self.assertIn('maxLength={500}', self.modal)
-        self.assertIn('nextAction.trim() || null', self.modal)
+        self.assertNotIn('nextAction: string | null', self.modal)
+        self.assertNotIn('到时要做什么（可选）', self.modal)
 
     def test_today_persists_next_action_as_private_followup_note(self) -> None:
         self.assertIn('onConfirm={(remindAt, nextAction) => {', self.today)
