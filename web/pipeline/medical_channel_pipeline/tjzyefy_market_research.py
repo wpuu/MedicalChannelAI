@@ -218,9 +218,10 @@ def parse_tjzyefy_market_research(
         {'field_path': 'facts.lifecycle_state', 'source_url': source_url, 'locator': '正文明确为院内调研；确定性生命周期映射'},
         {'field_path': 'facts.notice_type', 'source_url': source_url, 'locator': '详情页标题明确调研公告类型'},
         {'field_path': 'facts.published_at', 'source_url': source_url, 'locator': '详情页官方发布时间，并与详情URL日期一致'},
-        {'field_path': 'facts.product_categories', 'source_url': source_url, 'locator': '详情页标题明确医疗设备或医用耗材/试剂类别'},
-        {'field_path': 'facts.product_items', 'source_url': source_url, 'locator': '正文“我院拟对…进行院内调研”明确产品/设备名称'},
+        {'field_path': 'facts.product_items', 'source_url': source_url, 'locator': '正文“我院拟对…进行院内调研”明确产品/设备/维保对象'},
     ]
+    if categories:
+        evidence.append({'field_path': 'facts.product_categories', 'source_url': source_url, 'locator': '详情页标题明确医疗设备或医用耗材/试剂类别'})
     if registration_deadline:
         evidence.append({'field_path': 'facts.registration_deadline', 'source_url': source_url, 'locator': '正文报名时间结束日期及官方具体时分'})
     else:
