@@ -90,15 +90,23 @@ export function FollowupCard({
                     onNotFit()
                     return
                   }
-                  if (status === 'MONITOR') {
-                    onRemind()
-                    return
-                  }
                   onChangeStatus(status)
                 }}
                 className="shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-[13px] text-white"
               >
                 保存状态
+              </button>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <p className="text-[11px] leading-5 text-slate-400">
+                “持续观察”只是销售阶段；提醒时间独立保存，不会自动改写当前阶段。
+              </p>
+              <button
+                type="button"
+                onClick={onRemind}
+                className="shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-medium text-amber-800 hover:bg-amber-100"
+              >
+                设置提醒
               </button>
             </div>
           </div>
