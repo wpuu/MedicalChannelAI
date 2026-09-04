@@ -23,6 +23,11 @@ const OpportunityDetailPage = lazy(() =>
 const OpportunityPoolPage = lazy(() =>
   import('@/pages/OpportunityPoolPage').then((module) => ({ default: module.OpportunityPoolPage })),
 )
+const ProcurementIntentFollowupPage = lazy(() =>
+  import('@/pages/ProcurementIntentFollowupPage').then((module) => ({
+    default: module.ProcurementIntentFollowupPage,
+  })),
+)
 const PilotResourcesPage = lazy(() =>
   import('@/pages/PilotResourcesPage').then((module) => ({ default: module.PilotResourcesPage })),
 )
@@ -67,6 +72,14 @@ export default function App() {
                 element={
                   authenticatedOrTrial
                     ? lazyPage(<OpportunityPoolPage />)
+                    : <Navigate to="/today" replace />
+                }
+              />
+              <Route
+                path="/intent-followup"
+                element={
+                  authenticatedOrTrial
+                    ? lazyPage(<ProcurementIntentFollowupPage />)
                     : <Navigate to="/today" replace />
                 }
               />
