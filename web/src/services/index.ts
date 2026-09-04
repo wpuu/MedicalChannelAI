@@ -33,11 +33,14 @@ class DeferredTodayActionsService implements TodayActionsService {
 }
 
 class PilotApiTodayActionsService implements TodayActionsService {
-  private readonly primary: GroundedApiTodayActionsService
+  private primary: GroundedApiTodayActionsService
   private readonly fullPool: GroundedApiTodayActionsService
+  private readonly normalizedBaseUrl: string
+  private primaryHasFormalNudge = false
 
   constructor(baseUrl: string) {
     const normalized = baseUrl.replace(/\/+$/, '')
+    this.normalizedBaseUrl = normalized
     this.primary = new GroundedApiTodayActionsService(normalized)
     // The Opportunity Pool already requests hydrateFollowups:false as its load profile.
     // Route that one read through a same-function alias which keeps the full pool,
@@ -47,7 +50,12 @@ class PilotApiTodayActionsService implements TodayActionsService {
 
   async getTodayActions(options?: TodayActionsLoadOptions): Promise<TodayActionsResponse> {
     const service = options?.hydrateFollowups === false ? this.fullPool : this.primary
-    return service.getTodayActions(options)
+    const result = await service.getTodayActions(options)
+    if (service === this.primary) {
+      this.primaryHasFormalNudge =
+        (result.procurement_intent_followup_summary?.formal_candidates_needing_action ?? 0) > 0
+    }
+    return result
   }
 
   async getOpportunity(id: string): Promise<TodayActionCard | null> {
@@ -55,7 +63,14 @@ class PilotApiTodayActionsService implements TodayActionsService {
   }
 
   async updateFollowup(id: string, input: FollowupInput): Promise<void> {
-    return this.primary.updateFollowup(id, input)
+    await this.primary.updateFollowup(id, input)
+    if (this.primaryHasFormalNudge) {
+      // The account-private formal-window count is derived across the whole pool.
+      // A local card mutation cannot safely recompute it, so force only the next
+      // primary Today read back to the authenticated server for an authoritative count.
+      this.primary = new GroundedApiTodayActionsService(this.normalizedBaseUrl)
+      this.primaryHasFormalNudge = false
+    }
   }
 
   async requestOutreachDraft(id: string): Promise<OutreachDraft> {
