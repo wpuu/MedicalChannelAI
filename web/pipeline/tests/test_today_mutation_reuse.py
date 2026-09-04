@@ -10,6 +10,7 @@ class TodayMutationReuseTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.service = (WEB_ROOT / "src" / "services" / "ApiTodayActionsService.ts").read_text(encoding="utf-8")
+        cls.pilot = (WEB_ROOT / "src" / "services" / "index.ts").read_text(encoding="utf-8")
 
     def test_confirmed_followup_response_is_reused_only_once(self) -> None:
         self.assertIn("private latestToday: TodayActionsResponse | null = null", self.service)
@@ -46,6 +47,16 @@ class TodayMutationReuseTests(unittest.TestCase):
         self.assertIn("remindAt <= Date.now()", self.service)
         self.assertIn("current.cards.map(updateCard).filter(shouldAppearToday)", self.service)
         self.assertIn("opportunity_pool: opportunityPool", self.service)
+
+    def test_formal_window_nudge_forces_only_next_primary_today_read_authoritative(self) -> None:
+        self.assertIn("private primaryHasFormalNudge = false", self.pilot)
+        self.assertIn("formal_candidates_needing_action ?? 0", self.pilot)
+        self.assertIn("if (this.primaryHasFormalNudge)", self.pilot)
+        self.assertIn("this.primary = new GroundedApiTodayActionsService(this.normalizedBaseUrl)", self.pilot)
+        self.assertIn("this.primaryHasFormalNudge = false", self.pilot)
+        self.assertIn("await this.primary.updateFollowup(id, input)", self.pilot)
+        self.assertIn("options?.hydrateFollowups === false ? this.fullPool : this.primary", self.pilot)
+        self.assertNotIn("this.fullPool = new GroundedApiTodayActionsService(this.normalizedBaseUrl)", self.pilot)
 
 
 if __name__ == "__main__":
