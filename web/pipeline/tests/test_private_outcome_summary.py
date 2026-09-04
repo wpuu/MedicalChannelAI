@@ -10,6 +10,7 @@ class PrivateOutcomeSummaryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.profile_api = (WEB_ROOT / "api" / "profile.js").read_text(encoding="utf-8")
+        cls.private_db = (WEB_ROOT / "api" / "_privateDb.js").read_text(encoding="utf-8")
         cls.client = (WEB_ROOT / "src" / "services" / "outcomeSummaryApi.ts").read_text(encoding="utf-8")
         cls.card = (WEB_ROOT / "src" / "components" / "followup" / "OutcomeSummaryCard.tsx").read_text(encoding="utf-8")
         cls.followed = (WEB_ROOT / "src" / "pages" / "FollowedPage.tsx").read_text(encoding="utf-8")
@@ -30,6 +31,19 @@ class PrivateOutcomeSummaryTests(unittest.TestCase):
         self.assertIn("LIMIT 5001", self.profile_api)
         self.assertIn("OUTCOME_SUMMARY_TRUNCATED", self.profile_api)
         self.assertIn("rows.length > 5000", self.profile_api)
+
+    def test_outcome_summary_hot_paths_have_bounded_private_indexes(self) -> None:
+        self.assertIn("private_followups_outcome_idx", self.private_db)
+        self.assertIn(
+            "ON private_followups(user_id, organization_id, updated_at DESC)",
+            self.private_db,
+        )
+        self.assertIn("WHERE status IN ('WON', 'LOST', 'NOT_FIT')", self.private_db)
+        self.assertIn("private_followup_events_outcome_idx", self.private_db)
+        self.assertIn(
+            "ON private_followup_events(followup_id, user_id, status, created_at DESC)",
+            self.private_db,
+        )
 
     def test_controlled_win_and_loss_reviews_survive_later_freeform_notes(self) -> None:
         self.assertIn("const WON_REASON_NOTE_PREFIX = '成交复盘（当前用户判断）：'", self.profile_api)
