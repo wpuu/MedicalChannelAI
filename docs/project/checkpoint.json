@@ -9,15 +9,20 @@
   "demo_mode": "verified_public_intelligence_with_private_crm_overlay",
   "verified_snapshot_at": "2026-08-31T17:56:00+08:00",
   "vercel_branch_preview_enabled": false,
-  "latest_code_validated_head": "1ccc219e13fc215b1bea25dbfc0016b1d366a935",
-  "current_runtime_candidate_head": "315ce5fd97aab1994cf22c7b22a6fdd30a213713",
-  "github_actions_status": "VERIFY_1281_SUCCESS_LAST_EXECUTED_GREEN; VERIFY_DEDUPED_TO_PR_ONLY; CURRENT_RUNTIME_CANDIDATE_PENDING_RUNNER",
+  "runtime_implementation_head": "315ce5fd97aab1994cf22c7b22a6fdd30a213713",
+  "latest_code_validated_head": "e68cff21c2f2b55f70efe4817af685f1c8b68ffc",
+  "current_runtime_candidate_head": "e68cff21c2f2b55f70efe4817af685f1c8b68ffc",
+  "github_actions_status": "GCP_SELF_HOSTED_VERIFY_1345_SUCCESS; PRIVATE_GITHUB_HOSTED_RUNNER_BILLING_BLOCK_BYPASSED",
   "last_green_validation": {
-    "provider": "GITHUB_ACTIONS",
+    "provider": "GITHUB_ACTIONS_SELF_HOSTED_GCP",
     "workflow": "Verify MedicalChannelAI",
-    "run_number": 1281,
-    "head": "1ccc219e13fc215b1bea25dbfc0016b1d366a935",
+    "run_number": 1345,
+    "head": "e68cff21c2f2b55f70efe4817af685f1c8b68ffc",
     "result": "SUCCESS",
+    "runner_name": "medicalchannelai-gcp-1",
+    "system_python": "3.13.7",
+    "node": "24.20.0",
+    "python_contract_tests": 470,
     "prebuild": true,
     "pipeline_and_contract_tests": true,
     "typescript_typecheck": true,
@@ -26,27 +31,34 @@
     "vercel_preview_generated": false
   },
   "current_runtime_candidate_validation": {
-    "head": "315ce5fd97aab1994cf22c7b22a6fdd30a213713",
-    "result": "PENDING_EXECUTABLE_CI",
-    "observed_failed_start_runs": [1297, 1299, 1303, 1307, 1327, 1331, 1338, 1340],
-    "reruns_attempted": true,
-    "repository_steps_executed": false,
-    "observed_job_steps": [],
-    "observed_runner_id": 0,
-    "interpretation": "GitHub Actions attempts failed before Checkout/Python/Node steps. This is neither code-failure evidence nor code-success evidence. Keep 1ccc219... as the latest validated runtime head until a real Verify job executes and succeeds."
+    "head": "e68cff21c2f2b55f70efe4817af685f1c8b68ffc",
+    "result": "SUCCESS",
+    "run_number": 1345,
+    "repository_steps_executed": true,
+    "interpretation": "The GCP self-hosted runner executed Checkout, system Python, Node setup, npm ci, full prebuild, 470 Python contract tests, TypeScript typecheck, Vite production build and ranking summary successfully."
+  },
+  "historical_github_hosted_runner_block": {
+    "observed_failed_start_runs": [1297, 1299, 1303, 1307, 1327, 1331, 1338, 1340, 1342],
+    "symptom": "Private-repository GitHub-hosted jobs ended before Checkout with steps=[] / no runner assignment.",
+    "cross_repo_evidence": "OpportunityJudge showed the same private-repository zero-step failure while a public repository runner probe succeeded on 2026-09-04.",
+    "resolution": "Keep MedicalChannelAI private and use the repository-scoped GCP self-hosted runner instead of changing repository visibility."
   },
   "github_actions_efficiency": {
     "duplicate_push_and_pr_runs_removed": true,
     "workflow_change_commit": "33eef600e44361d438c35398f7c022efd1f624ce",
     "current_triggers": ["pull_request", "workflow_dispatch"],
-    "note": "The PR branch no longer runs both push and pull_request Verify for the same commit. This reduced duplicate usage but did not resolve the missing-runner condition."
+    "self_hosted_runner_enabled": true,
+    "self_hosted_runner_labels": ["self-hosted", "linux", "x64", "medicalchannelai-ci"],
+    "setup_python_removed_for_ubuntu_25_10": true,
+    "npm_actions_cache_upload_disabled": true,
+    "note": "The GCP VM uses its system Python because actions/setup-python had no Python 3.12 build for Ubuntu 25.10. Node 24 remains installed through actions/setup-node."
   },
   "vercel_latest_observed_deployment": {
     "commit": "ddd965f132343b0885f91e30e13a6b8fc2157afa",
     "deployment": "dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre",
     "state": "ERROR",
     "is_current_head": false,
-    "note": "Current PR branch automatic Preview remains disabled. The newer private outcome-review commits did not create a Vercel deployment."
+    "note": "Current PR branch automatic Preview remains disabled. GCP CI work and private outcome-review commits did not create a Vercel deployment."
   },
   "vercel_last_fully_verified_preview_commit": "7a8823029000573720daa337c0263da5be140cff",
   "vercel_last_fully_verified_preview_deployment": "dpl_5pCCJuEfHU4TCnNjvbFeDW2eVdXc",
@@ -64,16 +76,16 @@
     "current_head_real_http_post_verified": false,
     "note": "Historical AI runtime evidence is not current-HEAD acceptance. Current branch Preview is intentionally disabled."
   },
-  "latest_changes_validation_status": "RUNTIME_CANDIDATE_PENDING_GITHUB_RUNNER_EXECUTION; STATIC_REVIEW_HARDENED; PREVIEW_INTENTIONALLY_DISABLED",
+  "latest_changes_validation_status": "FULL_VERIFY_GREEN_ON_GCP_SELF_HOSTED_RUNNER; PREVIEW_INTENTIONALLY_DISABLED",
   "production_observation": {
     "vercel_default_domain": "https://medicalchannelai.vercel.app/",
     "vercel_project_live": false,
     "custom_domain_observation": "The reachable custom demo/production surface must not be assumed to contain current PR changes. Production promotion remains separately controlled."
   },
-  "milestone": "V0_4_1_NO_PREVIEW_PRIVATE_OUTCOME_REVIEW_PENDING_CI",
+  "milestone": "V0_4_1_NO_PREVIEW_GCP_SELF_HOSTED_CI_GREEN",
   "known_incomplete_invariants": {
     "server_won_lost_transition_review_enforced": false,
-    "detail": "UI requires bounded WON/LOST private review, but authenticated direct POST to the core follow-up mutation API can still enter WON/LOST without that review. Harden after executable CI is available, while preserving same-status free-form notes and mutation idempotency."
+    "detail": "UI requires bounded WON/LOST private review, but authenticated direct POST to the core follow-up mutation API can still enter WON/LOST without that review. CI is now available to harden this safely while preserving same-status free-form notes and mutation idempotency."
   },
   "gates": {
     "canonical_fact_schema": true,
@@ -147,16 +159,14 @@
     "scheduled_refresh_defined": true,
     "scheduled_refresh_default_branch_execution": false,
     "github_verify_duplicate_pr_branch_runs_removed": true,
-    "github_ci_has_historical_green_evidence": true,
-    "current_runtime_candidate_ci_green": false,
+    "github_self_hosted_runner_available": true,
+    "current_runtime_candidate_ci_green": true,
     "latest_consolidated_preview_verified": false,
     "custom_domain_promotion_path_verified": false
   },
   "final_validation_required": [
     "Do not generate Preview while the user's no-Preview instruction remains active.",
-    "Obtain a real GitHub Actions runner and execute the full Verify workflow against the current runtime candidate or a descendant containing the same runtime code.",
-    "Fix any actual pipeline/type/build regression found by that executable Verify run before advancing latest_code_validated_head.",
-    "After executable CI is available, harden server-side WON/LOST transition review validation in web/api/private.js and run full regression.",
+    "Harden server-side WON/LOST transition review validation in web/api/private.js and run full regression on the GCP self-hosted runner.",
     "When Preview is explicitly re-enabled, deploy the exact then-current PR HEAD to Preview only and run interactive Today, Opportunity Pool, Resources and Followups acceptance.",
     "Verify explicit CONTACTED first, optional next-action reminder second, while CONTACTED remains the sales stage.",
     "Verify due-reminder acknowledgement clears only remind_at, preserves the underlying sales stage and removes the item from the due-action queue on real Preview persistence.",
