@@ -4,7 +4,7 @@ let sqlClient = null
 let schemaPromise = null
 
 const PRIVATE_SCHEMA_KEY = 'medicalchannelai-private'
-const PRIVATE_SCHEMA_VERSION = '2026-09-04-outcome-index-v1'
+const PRIVATE_SCHEMA_VERSION = '2026-09-04-ui-preference-v1'
 const PRIVATE_SCHEMA_LOCK_KEY = 'medicalchannelai-private-schema-migration'
 
 function databaseUrl() {
@@ -112,6 +112,11 @@ const SCHEMA_STATEMENTS = [
     can_partner_channel boolean NULL,
     can_handle_lease boolean NULL,
     updated_at timestamptz NOT NULL DEFAULT now()
+  )`,
+  `CREATE TABLE IF NOT EXISTS private_user_ui_preferences (
+    user_id UUID PRIMARY KEY REFERENCES private_users(id) ON DELETE CASCADE,
+    today_limit SMALLINT NOT NULL DEFAULT 5 CHECK (today_limit IN (3, 5, 8, 10, 15)),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
   `CREATE TABLE IF NOT EXISTS private_followups (
     id uuid PRIMARY KEY,
