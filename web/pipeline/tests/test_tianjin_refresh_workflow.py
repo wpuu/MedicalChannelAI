@@ -14,6 +14,13 @@ class TianjinRefreshWorkflowTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW_PATH.read_text(encoding='utf-8')
 
+    def test_daily_deep_uses_validated_self_hosted_runner_and_system_python(self) -> None:
+        self.assertIn('      - self-hosted', self.workflow)
+        self.assertIn('      - medicalchannelai-ci', self.workflow)
+        self.assertIn('- name: Verify system Python', self.workflow)
+        self.assertIn('run: python3 --version', self.workflow)
+        self.assertNotIn('actions/setup-python', self.workflow)
+
     def test_teda_uses_shared_authoritative_refresh_clock(self) -> None:
         match = re.search(
             r'- name: Sync verified TEDA Hospital early-demand state\n(?P<body>.*?)(?=\n      - name:)',
@@ -34,6 +41,29 @@ class TianjinRefreshWorkflowTests(unittest.TestCase):
         self.assertIn('--input web/pipeline/data/tianjin_live_teda_records.json', self.workflow)
         self.assertGreaterEqual(self.workflow.count('web/pipeline/data/tianjin_live_teda_records.json'), 4)
         self.assertIn('web/pipeline/data/tianjin_teda_sync_report.json', self.workflow)
+
+    def test_tjzxfc_daily_deep_uses_shared_clock_and_bounded_verified_sync(self) -> None:
+        match = re.search(
+            r'- name: Sync verified Central Gynecology Obstetrics Hospital early-demand state\n(?P<body>.*?)(?=\n      - name:)',
+            self.workflow,
+            flags=re.S,
+        )
+        self.assertIsNotNone(match)
+        body = match.group('body') if match else ''
+        self.assertIn('sync_tjzxfc_market_research.py', body)
+        self.assertIn("--as-of '${{ steps.clock.outputs.as_of }}'", body)
+        self.assertIn('--lookback-days 30', body)
+        self.assertIn('--max-candidates 20', body)
+        self.assertIn('--delay-seconds 3', body)
+        self.assertIn('if [[ -f web/pipeline/data/tianjin_live_tjzxfc_records.json ]]', body)
+        self.assertIn('--existing-records-input web/pipeline/data/tianjin_live_tjzxfc_records.json', body)
+        self.assertIn('--records-output web/pipeline/data/tianjin_live_tjzxfc_records.json', body)
+        self.assertIn('--report-output web/pipeline/data/tianjin_tjzxfc_sync_report.json', body)
+
+    def test_tjzxfc_records_feed_public_snapshot_and_refresh_commit(self) -> None:
+        self.assertIn('--input web/pipeline/data/tianjin_live_tjzxfc_records.json', self.workflow)
+        self.assertGreaterEqual(self.workflow.count('web/pipeline/data/tianjin_live_tjzxfc_records.json'), 5)
+        self.assertIn('web/pipeline/data/tianjin_tjzxfc_sync_report.json', self.workflow)
 
     def test_first_central_hospital_uses_shared_clock_and_bounded_verified_sync(self) -> None:
         match = re.search(
