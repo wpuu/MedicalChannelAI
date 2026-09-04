@@ -77,6 +77,36 @@ class TjzyefyMarketResearchTests(unittest.TestCase):
         self.assertEqual([item['raw_name'] for item in facts['product_items']], ['脱脂棉纱布'])
         self.assertEqual(facts['registration_deadline'], '2026-08-04T16:00:00+08:00')
 
+    def test_parses_lc_ms_maintenance_without_inventing_generic_category(self) -> None:
+        title = '院内调研公告（2026年17号）-高分辨液质联用系统三年期维保项目'
+        html = detail_html(
+            title,
+            '2026-07-17',
+            '我院拟对高分辨液质联用系统三年期维保项目（维保期：三年）进行院内调研。'
+            '现有设备包括高分辨质谱仪、超高压液相色谱仪、纳升液相泵。'
+            '报名方式：国有资产管理科电子邮箱tjzyefygzk2026@126.com。'
+            '报名时间：2026年7月17日-2026年7月22日16:00。'
+            '联系人：王老师 联系电话：022-60637812。',
+        )
+        record = parse_tjzyefy_market_research(
+            html,
+            source_url='https://www.tjzyefy.com/system/2026/07/17/030194635.shtml',
+            index_url=INDEX_URL,
+            index_published_at='2026-07-17',
+            expected_title=title,
+            observed_at=OBSERVED_AT,
+            opportunity_id='tjzyefy_20260717_030194635',
+        )
+        facts = record['facts']
+        self.assertEqual(facts['lifecycle_state'], 'MARKET_RESEARCH')
+        self.assertEqual(facts['registration_deadline'], '2026-07-22T16:00:00+08:00')
+        self.assertEqual(facts['product_categories'], [])
+        self.assertTrue(any('高分辨液质联用系统' in item['raw_name'] for item in facts['product_items']))
+        self.assertEqual(facts['public_contact']['name'], '王老师')
+        self.assertEqual(facts['public_contact']['phone'], '022-60637812')
+        self.assertEqual(facts['public_contact']['email'], 'tjzyefygzk2026@126.com')
+        self.assertFalse(any(item['field_path'] == 'facts.product_categories' for item in record['evidence']))
+
     def test_date_only_deadline_does_not_invent_time(self) -> None:
         title = '院内调研公告（2026年12号）-除颤仪医疗设备采购项目'
         html = detail_html(
