@@ -32,6 +32,19 @@ export const NOT_FIT_REASONS = [
   '其他',
 ] as const
 
+export const LOST_REASONS = [
+  '价格/报价竞争失败',
+  '产品或参数不匹配',
+  '厂家/授权资源不足',
+  '医院关系不足',
+  '介入时间太晚',
+  '竞争对手优势明显',
+  '投标/响应执行失败',
+  '客户需求或项目变化',
+  '主动放弃',
+  '其他',
+] as const
+
 export const PRIORITY_COMPONENT_LABEL: Record<string, string> = {
   PRODUCT_EXECUTION_CAPABILITY: '产品执行能力',
   RELATIONSHIP: '医院关系',
