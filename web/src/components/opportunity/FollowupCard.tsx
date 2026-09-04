@@ -47,10 +47,13 @@ export function FollowupCard({
   const [status, setStatus] = useState<FollowupStatus>(card.followup_status)
   const [note, setNote] = useState('')
   const [savingNote, setSavingNote] = useState(false)
-  const reminderAllowed = !REMINDER_TERMINAL_STATUSES.has(card.followup_status)
+  const [reopenConfirm, setReopenConfirm] = useState(false)
+  const terminal = REMINDER_TERMINAL_STATUSES.has(card.followup_status)
+  const reminderAllowed = !terminal
 
   useEffect(() => {
     setStatus(card.followup_status)
+    setReopenConfirm(false)
   }, [card.followup_status])
 
   const saveNote = async () => {
@@ -63,6 +66,12 @@ export function FollowupCard({
     } finally {
       setSavingNote(false)
     }
+  }
+
+  const reopenFollowup = () => {
+    setReopenConfirm(false)
+    setStatus('REVIEWING')
+    onChangeStatus('REVIEWING')
   }
 
   return (
@@ -80,36 +89,83 @@ export function FollowupCard({
         <div className="mb-4 space-y-3">
           <div>
             <label className="text-[12px] text-slate-500">更新跟进状态</label>
-            <div className="mt-2 flex gap-2">
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as FollowupStatus)}
-                className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-teal-700"
-              >
-                {STATUS_OPTIONS.map((item) => (
-                  <option key={item} value={item}>
-                    {FOLLOWUP_STATUS_LABEL[item]}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => {
-                  if (status === 'NOT_FIT') {
-                    onNotFit()
-                    return
-                  }
-                  if (status === 'LOST') {
-                    onLost()
-                    return
-                  }
-                  onChangeStatus(status)
-                }}
-                className="shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-[13px] text-white"
-              >
-                保存状态
-              </button>
-            </div>
+            {terminal ? (
+              <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[13px] font-medium text-slate-800">
+                      当前结果：{FOLLOWUP_STATUS_LABEL[card.followup_status]}
+                    </p>
+                    <p className="mt-0.5 text-[11px] leading-5 text-slate-500">
+                      结果已结束并进入私有复盘统计。普通状态下不直接开放下拉修改，避免误操作覆盖成交结论。
+                    </p>
+                  </div>
+                  {!reopenConfirm ? (
+                    <button
+                      type="button"
+                      onClick={() => setReopenConfirm(true)}
+                      className="shrink-0 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-700"
+                    >
+                      更正结果 / 重新打开
+                    </button>
+                  ) : null}
+                </div>
+                {reopenConfirm ? (
+                  <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5">
+                    <p className="text-[11px] leading-5 text-amber-900">
+                      确认后会新增一条“正在评估”私有跟进事件，保留原有结果和复盘历史；当前结果将不再计入终态统计。
+                    </p>
+                    <div className="mt-2 flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setReopenConfirm(false)}
+                        className="rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[11px] text-amber-800"
+                      >
+                        取消
+                      </button>
+                      <button
+                        type="button"
+                        onClick={reopenFollowup}
+                        className="rounded-lg bg-amber-800 px-2.5 py-1.5 text-[11px] font-medium text-white"
+                      >
+                        确认重新打开
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="mt-2 flex gap-2">
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as FollowupStatus)}
+                  className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-teal-700"
+                >
+                  {STATUS_OPTIONS.map((item) => (
+                    <option key={item} value={item}>
+                      {FOLLOWUP_STATUS_LABEL[item]}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (status === 'NOT_FIT') {
+                      onNotFit()
+                      return
+                    }
+                    if (status === 'LOST') {
+                      onLost()
+                      return
+                    }
+                    onChangeStatus(status)
+                  }}
+                  className="shrink-0 rounded-lg bg-slate-900 px-3 py-2 text-[13px] text-white"
+                >
+                  保存状态
+                </button>
+              </div>
+            )}
             <div className="mt-2 flex items-center justify-between gap-2">
               <p className="text-[11px] leading-5 text-slate-400">
                 {reminderAllowed
