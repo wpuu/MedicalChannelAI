@@ -30,6 +30,7 @@ class ProcurementIntentFollowupUiTests(unittest.TestCase):
         self.assertIn("同一采购单位、明确产品重合、后续公告发布时间不早于采购意向", page)
         self.assertIn("不是官方声明为同一项目", page)
         self.assertIn("最终仍需人工核对项目编号、科室、产品和公告原文", page)
+        self.assertIn("关联候选不会改变公开优先级或中标判断", page)
         self.assertIn("这不代表项目取消或没有后续", page)
         self.assertIn("不要把“未发现关联”当成业务结论", page)
 
@@ -43,6 +44,17 @@ class ProcurementIntentFollowupUiTests(unittest.TestCase):
         self.assertIn("预计采购月份已过，优先核查后续公告", page)
         self.assertIn("已进入预计采购月份，重点盯正式公告", page)
         self.assertIn("预计采购月份未到，继续提前布局", page)
+
+    def test_followup_requires_explicit_user_action_and_does_not_invent_reminder(self):
+        page = (WEB_ROOT / "src/pages/ProcurementIntentFollowupPage.tsx").read_text(encoding="utf-8")
+
+        self.assertIn("const startFollowup = async", page)
+        self.assertIn("onClick={() => void startFollowup(intent)}", page)
+        self.assertIn("updateFollowup(intent.opportunity_id, { status: 'REVIEWING' })", page)
+        self.assertIn("加入我的跟进", page)
+        self.assertIn("提醒时间和下一步行动由你确认后再设置", page)
+        self.assertNotIn("remind_at:", page)
+        self.assertNotIn("status: 'CONTACTED'", page)
 
 
 if __name__ == "__main__":
