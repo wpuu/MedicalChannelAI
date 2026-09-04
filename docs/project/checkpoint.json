@@ -9,20 +9,20 @@
   "demo_mode": "verified_public_intelligence_with_private_crm_overlay",
   "verified_snapshot_at": "2026-09-03T13:31:21.991132+08:00",
   "vercel_branch_preview_enabled": false,
-  "runtime_implementation_head": "72a9ffd3d368fdd11b671f0ceb381d62b0d5e86c",
-  "latest_code_validated_head": "72a9ffd3d368fdd11b671f0ceb381d62b0d5e86c",
-  "current_runtime_candidate_head": "72a9ffd3d368fdd11b671f0ceb381d62b0d5e86c",
-  "github_actions_status": "FULL_VERIFY_1431_SUCCESS_GCP_SELF_HOSTED",
+  "runtime_implementation_head": "d344e1169484152fb408e985d55885b72b76ff75",
+  "latest_code_validated_head": "d344e1169484152fb408e985d55885b72b76ff75",
+  "current_runtime_candidate_head": "d344e1169484152fb408e985d55885b72b76ff75",
+  "github_actions_status": "FULL_VERIFY_1438_SUCCESS_GCP_SELF_HOSTED",
   "last_green_validation": {
     "provider": "GITHUB_ACTIONS_SELF_HOSTED_GCP",
     "workflow": "Verify MedicalChannelAI",
-    "run_number": 1431,
-    "head": "72a9ffd3d368fdd11b671f0ceb381d62b0d5e86c",
+    "run_number": 1438,
+    "head": "d344e1169484152fb408e985d55885b72b76ff75",
     "result": "SUCCESS",
     "runner_name": "medicalchannelai-gcp-1",
     "system_python": "3.13.7",
     "node": "24.20.0",
-    "python_contract_tests": 515,
+    "python_contract_tests": 535,
     "prebuild": true,
     "pipeline_and_contract_tests": true,
     "typescript_typecheck": true,
@@ -49,13 +49,6 @@
       "radar_js_gzip_kb": 17.29
     }
   },
-  "current_runtime_candidate_validation": {
-    "head": "72a9ffd3d368fdd11b671f0ceb381d62b0d5e86c",
-    "result": "SUCCESS",
-    "run_number": 1431,
-    "repository_steps_executed": true,
-    "interpretation": "Full Verify #1431 executed 515 contract tests, prebuild, TypeScript typecheck, Vite production build and ranking summary successfully. Default Today omits the full opportunity_pool while Opportunity Pool requests it explicitly through the same private Function. The core still constructs the full personalized pool, so this validates response-byte and serialization reduction, not a DB or CPU reduction."
-  },
   "today_light_response": {
     "implemented": true,
     "default_route": "/api/today",
@@ -67,27 +60,39 @@
     "extra_serverless_function_added": false,
     "private_entry": "web/api/private.js",
     "private_core": "web/api/_privateCore.js",
-    "core_split_original_blob": "fa3565afbc55ba4f78eea94930beca38c0e60bce",
-    "separate_primary_and_full_pool_service_instances": true,
     "reduces_network_payload": true,
     "reduces_db_roundtrips": false,
     "reduces_personalization_compute": false,
     "runtime_china_latency_measured": false
   },
-  "ci_history": {
-    "fast_failure_1429": "REAL_TEST_FAILURE_AFTER_CORE_MOVE: seven static tests still inspected private.js; business core itself was unchanged.",
-    "fast_success_1430": true,
-    "full_success_1431": true,
-    "historical_github_hosted_runner_issue": "Private-repository GitHub-hosted jobs previously ended before Checkout; repository now uses medicalchannelai-gcp-1."
+  "tjzxfc_early_signal_source": {
+    "implemented": true,
+    "feature_commit": "7283ac65f3194b30cbb26252d577711f75907c88",
+    "validated_head": "d344e1169484152fb408e985d55885b72b76ff75",
+    "official_domain": "www.tjzxfc.cn",
+    "official_index": "https://www.tjzxfc.cn/ywgk/zbgg/index.shtml",
+    "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+    "lifecycle": "MARKET_RESEARCH",
+    "strict_medical_detail_scope": true,
+    "non_medical_market_research_is_unsupported_not_failure": true,
+    "deadline_time_never_invented": true,
+    "minimum_detail_delay_seconds": 3,
+    "daily_deep_code_integrated": true,
+    "daily_deep_lookback_days": 30,
+    "daily_deep_max_candidates": 20,
+    "daily_deep_runner": "medicalchannelai-gcp-1",
+    "intraday_scheduler_enabled": false,
+    "default_branch_schedule_effective": false,
+    "note": "PR #6 is unmerged. Scheduled GitHub workflows execute from the default branch, so this daily-deep integration is code-validated but not yet an active main-branch schedule."
   },
   "github_actions_efficiency": {
-    "current_triggers": ["pull_request", "workflow_dispatch"],
-    "self_hosted_runner_enabled": true,
-    "self_hosted_runner_name": "medicalchannelai-gcp-1",
+    "verify_runner": "medicalchannelai-gcp-1",
+    "daily_deep_pr_definition_runner": "medicalchannelai-gcp-1",
     "self_hosted_runner_labels": ["self-hosted", "linux", "x64", "medicalchannelai-ci"],
     "duplicate_push_and_pr_runs_removed": true,
     "npm_actions_cache_upload_disabled": true,
-    "gcp_runner_is_user_request_path": false
+    "gcp_runner_is_user_request_path": false,
+    "historical_private_github_hosted_runner_issue": true
   },
   "runtime_geography": {
     "neon_region": "aws-us-east-2",
@@ -100,21 +105,13 @@
     "deployment": "dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre",
     "state": "ERROR",
     "is_current_head": false,
-    "note": "Current PR branch automatic Preview remains disabled. Current CRM and performance commits did not create a Vercel deployment."
+    "note": "Current PR branch automatic Preview remains disabled. No deployment from current CRM, performance or tjzxfc work is accepted or claimed."
   },
-  "ai_validation_evidence": {
-    "historical_test_key_validated": true,
-    "historical_exact_grounded_handler_build_smoke_http_200": true,
-    "temporary_smoke_code_present_in_current_tree": false,
-    "current_head_preview_runtime_verified": false,
-    "current_head_real_http_post_verified": false,
-    "note": "Historical AI runtime evidence is not current-HEAD acceptance. Current branch Preview is intentionally disabled."
-  },
-  "latest_changes_validation_status": "FULL_VERIFY_1431_GREEN_ON_GCP_SELF_HOSTED_RUNNER; 515_CONTRACT_TESTS_TSC_VITE_GREEN; TODAY_LIGHT_RESPONSE_SPLIT_GREEN; 11_OF_12_FUNCTIONS; MAIN_JS_GZIP_115_27_KB; PREVIEW_INTENTIONALLY_DISABLED",
-  "milestone": "V0_4_1_NO_PREVIEW_TODAY_LIGHT_RESPONSE_AND_MAIN_BUNDLE_115_27_GZIP_GREEN",
   "known_incomplete_invariants": {
-    "today_server_compute_split": "NOT_IMPLEMENTED: default Today omits the full pool from the wire response, but the private core still constructs and personalizes decoratedPool before the entry adapter projects it out.",
-    "local_followup_store_isolated_chunk": "NOT_CLAIMED: Vite still reports static references from lazy route/service modules, so AppLayout dynamic import alone cannot isolate it."
+    "today_server_compute_split": "NOT_IMPLEMENTED: default Today omits the full pool from the wire response, but the private core still constructs and personalizes the full pool before projection.",
+    "tjzxfc_daily_deep_runtime": "NOT_ACTIVE_ON_DEFAULT_BRANCH: PR #6 remains Draft and unmerged; the scheduled workflow definition validated here is not yet the main-branch schedule.",
+    "tjzxfc_intraday": "INTENTIONALLY_DISABLED: source is daily-deep only until runtime evidence justifies higher frequency.",
+    "current_head_preview_runtime": "NOT_VERIFIED: Preview is intentionally disabled by user instruction."
   },
   "gates": {
     "canonical_fact_schema": true,
@@ -137,8 +134,6 @@
     "incremental_pending_verification_barrier": true,
     "incremental_one_discovery_pass": true,
     "incremental_cross_china_day_guard": true,
-    "github_self_hosted_runner_available": true,
-    "current_runtime_candidate_ci_green": true,
     "today_private_profile_single_roundtrip": true,
     "today_private_state_single_roundtrip": true,
     "private_schema_fast_path": true,
@@ -156,16 +151,22 @@
     "today_light_response_split": true,
     "opportunity_pool_full_response_alias": true,
     "today_light_response_same_function_no_extra_slot": true,
-    "today_light_response_mutation_cache_isolated": true,
-    "today_server_compute_split": false,
-    "current_head_ai_runtime_post_verified": false,
+    "tjzxfc_official_early_signal_adapter": true,
+    "tjzxfc_non_medical_rejected": true,
+    "tjzxfc_date_only_deadline_no_fake_time": true,
+    "tjzxfc_daily_deep_code_integrated": true,
+    "tjzxfc_daily_deep_self_hosted_runner": true,
+    "tjzxfc_intraday_scheduler_enabled": false,
     "scheduled_refresh_default_branch_execution": false,
+    "current_runtime_candidate_ci_green": true,
+    "current_head_ai_runtime_post_verified": false,
     "latest_consolidated_preview_verified": false,
     "vercel_preview_runtime_acceptance": false,
     "custom_domain_promotion_path_verified": false
   },
   "final_validation_required": [
     "Do not generate Preview while the user's no-Preview instruction remains active.",
+    "Do not claim tjzxfc daily-deep is operational until the scheduled definition is on the default branch and an actual run is observed.",
     "When Preview is explicitly re-enabled, deploy the exact then-current PR HEAD to Preview only and run interactive Today, Opportunity Pool, Resources and Followups acceptance.",
     "Measure China-side TTFB/P95, response bytes and user-perceived loading before changing Vercel or Neon regions.",
     "Verify normal Today omits the full opportunity_pool and Opportunity Pool still receives the complete personalized pool from the same private Function.",
