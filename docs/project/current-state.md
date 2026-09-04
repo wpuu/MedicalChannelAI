@@ -21,60 +21,31 @@ Fixed rules:
 
 - Active branch: `chatgpt/opportunity-ranking-v2-final`
 - Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
-- Latest fully code-validated executable/runtime HEAD: `d344e1169484152fb408e985d55885b72b76ff75`
-- Latest successful full validation: GitHub Actions **Verify #1438 SUCCESS**
+- Latest fully code-validated executable/runtime HEAD: `325dd59cd4e6c9c243516b6d248b742a9be98cef`
+- Latest successful full validation: GitHub Actions **Verify #1452 SUCCESS**
 - PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
 - PR remains open, Draft and unmerged.
 - `web/vercel.json` disables automatic Vercel deployments for this branch.
 - User boundary remains: **no Preview generation, no Production changes/deployments, no merge** until explicitly changed.
-- Latest observed Vercel deployment remains historical commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` / `dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre` (ERROR); no current performance/CRM/tjzxfc work is deployed.
+- Latest observed Vercel deployment remains historical commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` / `dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre` (ERROR); no current source-expansion work is deployed.
 
 ## Executable validation state
 
-MedicalChannelAI remains private and uses the repository-scoped GCP self-hosted runner:
+MedicalChannelAI remains private and uses repository-scoped GCP self-hosted runner `medicalchannelai-gcp-1` with labels `self-hosted`, `linux`, `x64`, `medicalchannelai-ci`.
 
-- runner: `medicalchannelai-gcp-1`
-- labels: `self-hosted`, `linux`, `x64`, `medicalchannelai-ci`
-- system Python: 3.13.7
-- Node: 24.20.0
-- GCP runner is CI/collector infrastructure only and is not in the end-user request path.
+Verify **#1452** completed successfully for executable HEAD `325dd59cd4e6c9c243516b6d248b742a9be98cef` and executed:
 
-Verify **#1438** completed successfully for `d344e1169484152fb408e985d55885b72b76ff75` and executed:
-
-- Checkout and system Python verification;
-- Node 24 / `npm ci`;
-- bundled snapshot refresh;
-- **535 Python pipeline/contract tests — all PASS**;
+- system Python 3.13.7 and Node 24.20.0;
+- `npm ci` and bundled snapshot refresh;
+- **558 Python pipeline/contract tests — all PASS**;
 - serverless entrypoint checks **11/12**;
-- verified snapshot / medical-channel / private-profile / AI / runtime boundary checks;
+- verified snapshot / medical scope / private profile / AI / runtime boundary checks;
 - full prebuild;
 - TypeScript `tsc --noEmit`;
 - Vite production build;
 - ranking summary.
 
-This is code/build validation only. Preview is intentionally disabled, so no current-HEAD Vercel runtime acceptance is claimed.
-
-## China-access / Today performance
-
-Validated work includes:
-
-- Today customer-private profile reads reduced from four SQL queries to one bounded aggregate query;
-- Today follow-up + recommendation feedback + `today_limit` reads reduced from three SQL queries to one query; private Today path is roughly ~7 DB round trips → ~2;
-- private/public schema bootstrap use version fast paths;
-- public history materialization is after-response side storage;
-- detail initial opportunity/follow-up reads are parallel and public history is on demand;
-- confirmed follow-up mutations use bounded one-shot server-confirmed response reuse;
-- Today runtime status/reminders are auxiliary and non-blocking;
-- login/register uses a 10-second one-shot in-memory auth handoff while refresh/new-tab stays server-authoritative;
-- normal hashed assets and immutable caching restored; secondary routes/Login/demo-only services are deferred;
-- AI client and OutreachDrawer are on demand;
-- normal `/api/today` omits the full `opportunity_pool` while preserving Top-N cards and `opportunity_pool_count`;
-- `/api/opportunity-pool/today` explicitly requests the complete pool through the **same** private Function using `include_pool=1`; no extra Function slot or DB request was introduced;
-- separate primary/full-pool service delegates prevent short mutation reuse state from being mistaken for the full pool.
-
-The Today response split reduces serialization and cross-border response bytes. `_privateCore.js` still constructs/personalizes the full pool before projection, so no additional DB/CPU reduction is claimed from this split.
-
-### #1438 production build
+Production build remains unchanged:
 
 - `index.html`: **0.62 / gzip 0.38 kB**
 - CSS: **41.30 / gzip 8.09 kB**
@@ -85,48 +56,96 @@ The Today response split reduces serialization and cross-border response bytes. 
 - Opportunity Detail: **50.45 / gzip 15.89 kB**
 - Radar: **57.59 / gzip 17.29 kB**
 
-No frontend bundle increase came from the new Python collector source or daily-deep workflow integration.
+This is code/build validation only. Preview is intentionally disabled, so no current-HEAD Vercel runtime acceptance or China TTFB/P95 claim is made.
 
-## New official early-signal source: 天津市中心妇产科医院 (`tjzxfc`)
+## China-access / Today performance
 
-The branch now contains a verified-adapter implementation for the official hospital domain `www.tjzxfc.cn` and procurement/notice index `https://www.tjzxfc.cn/ywgk/zbgg/index.shtml`.
+Validated work remains:
 
-Implemented files:
+- Today private profile and private-state reads are bounded/aggregated, reducing the main private data path from roughly ~7 DB round trips to ~2;
+- schema bootstrap uses version fast paths;
+- public history materialization is after-response side storage;
+- detail initial reads are parallel and public history is on demand;
+- follow-up mutations use bounded one-shot server-confirmed response reuse;
+- Today runtime status/reminders are auxiliary and non-blocking;
+- login/register uses a short one-shot in-memory auth handoff while refresh/new-tab remains server-authoritative;
+- hashed assets and lazy secondary routes are restored;
+- AI client and OutreachDrawer are on demand;
+- normal `/api/today` omits full `opportunity_pool` while preserving Top-N and `opportunity_pool_count`;
+- `/api/opportunity-pool/today` requests the full pool through the same private Function with `include_pool=1` and no extra Function slot.
 
-- `web/pipeline/medical_channel_pipeline/tjzxfc_discovery.py`
-- `web/pipeline/medical_channel_pipeline/tjzxfc_market_research.py`
-- `web/pipeline/scripts/sync_tjzxfc_market_research.py`
-- dedicated discovery/detail/sync tests.
+The Today response split reduces response serialization/network bytes only. `_privateCore.js` still constructs/personalizes the full pool before projection, so no further DB/CPU reduction is claimed.
 
-Boundary rules:
+## Official early-signal source: 天津市中心妇产科医院 (`tjzxfc`)
 
-- index discovery may admit official market-research candidates without prematurely guessing medical scope;
-- detail verification must prove medical-channel relevance from the project title, extracted equipment/product names or explicit medical department/category evidence;
-- hospital identity alone is never enough;
-- generic facility/IT/meeting-room research is rejected rather than entering public opportunity facts;
-- title and official publication-date identity must agree;
-- exact deadline time is stored only if published; date-only deadlines remain date-only;
-- unsupported non-medical research is recorded as unsupported rather than making the whole hospital-source refresh fail;
-- true network, title/date or supported-detail verification failures remain fail closed;
-- minimum detail delay is 3 seconds.
+Official source:
 
-The original adapter feature was introduced at `7283ac65f3194b30cbb26252d577711f75907c88`; Fast Verify #1434 and Full Verify #1435 validated the adapter itself. Full #1438 additionally validates its daily-deep integration.
+- domain: `www.tjzxfc.cn`
+- index: `https://www.tjzxfc.cn/ywgk/zbgg/index.shtml`
+- lifecycle currently supported: `MARKET_RESEARCH`
 
-## Daily-deep integration
+Validated behavior:
 
-The PR version of `.github/workflows/tianjin-medical-refresh.yml` now:
+- broad official market-research discovery with strict detail medical-scope verification;
+- hospital identity alone never makes a record relevant;
+- non-medical facility/IT research is unsupported rather than published;
+- title and official publication date must agree;
+- exact deadline time is stored only when official text publishes it; otherwise date-only remains date-only;
+- true verification/network failures fail closed;
+- minimum detail interval 3 seconds;
+- 30-day / max-20 daily-deep wiring feeds unified snapshot and verified data commit;
+- intentionally not in intraday scheduler.
 
-- runs on the already validated `medicalchannelai-gcp-1` self-hosted labels rather than private `ubuntu-latest` hosted capacity;
-- uses system `python3`, avoiding the known Ubuntu 25.10 `setup-python` compatibility problem;
-- runs `sync_tjzxfc_market_research.py` with a **30-day lookback, max 20 candidates and 3-second minimum delay**;
-- safely handles the first run when no `tianjin_live_tjzxfc_records.json` exists;
-- feeds verified `tjzxfc` records into `publish_web_snapshot.py`;
-- includes the live records and sync report in the verified data commit;
-- keeps the existing once-daily schedule only.
+Adapter Fast #1434 / Full #1435 passed; daily-deep integration Fast #1437 / Full #1438 passed.
 
-**Important runtime boundary:** PR #6 is still Draft and unmerged. GitHub scheduled workflows execute from the default branch, so this new daily-deep definition is **code-validated but not yet the active main-branch schedule**. No claim is made that `tjzxfc` is already being collected every day.
+## Official early-signal source: 天津中医药大学第二附属医院 (`tjzyefy`)
 
-`tjzxfc` is intentionally **not** in the intraday incremental scheduler. Tests lock this boundary. Higher-frequency collection should only be considered after real runtime evidence shows daily deep is insufficient and the source can tolerate the extra load.
+Official source:
+
+- domain: `www.tjzyefy.com`
+- announcement index: `https://www.tjzyefy.com/xwgg/ggtz/`
+- supported lifecycle in this adapter: `MARKET_RESEARCH`
+
+Implemented and validated files include discovery, strict detail parser, standalone sync and dedicated tests.
+
+### Medical recall and grounding boundary
+
+The initial adapter only admitted titles containing generic markers such as `医疗设备` / `医用耗材` / `试剂`. Real official pages showed this would miss valid medical-channel opportunities such as `高分辨液质联用系统三年期维保项目`.
+
+The corrected implementation therefore:
+
+- still requires a research notice and explicitly excludes `采购意向公告`;
+- uses the shared medical-channel taxonomy at discovery time rather than a few generic words;
+- extends the shared laboratory scope with `液质联用` / `液相色谱` / `色谱` while preserving the rule that the hospital name itself is not relevance evidence;
+- keeps strict official detail verification for hospital identity, title, publication date, product/service object and registration window;
+- does not invent a generic `医疗设备` category for an LC-MS maintenance notice whose title does not state that category;
+- keeps `product_categories=[]` when the official page only proves specific equipment/service objects;
+- rejects procurement-intent notices rather than relabeling them as market research;
+- preserves date-only deadlines without invented times;
+- retries only transient fetch failures and uses a minimum 3-second detail interval;
+- remains outside the intraday scheduler.
+
+The corrected adapter passed Fast Verify #1449 and Full Verify #1450 with 556 tests. Daily-deep wiring then passed Fast #1451 and **Full #1452 with 558 tests**.
+
+### `tjzyefy` daily-deep wiring
+
+The PR version of `.github/workflows/tianjin-medical-refresh.yml` now runs the source with:
+
+- one shared authoritative China-time refresh clock;
+- **30-day lookback**;
+- **max 20 candidates**;
+- **minimum 3-second delay**;
+- safe first-run behavior when no prior `tianjin_live_tjzyefy_records.json` exists;
+- unified public snapshot input;
+- verified live-record/report data commit.
+
+**Important runtime boundary:** PR #6 is unmerged. GitHub scheduled workflows execute from the default branch, so the `tjzxfc` and `tjzyefy` daily-deep definitions are **code-validated but are not yet active main-branch schedules**. No claim is made that either new source is already being collected every day.
+
+## Procurement-intent boundary
+
+The same `tjzyefy` official announcement stream contains `采购意向公告`, including medical-equipment purchase intentions. These can occur earlier than supplier-facing market research, but they are intentionally **not supported yet**.
+
+Reason: the current pipeline does not yet have a separately validated procurement-intent actionability contract. Simply mapping such records to `MARKET_RESEARCH` would misstate the official lifecycle, and treating a no-registration-window intent as a normal immediate opportunity could over-rank it. The next architecture step is to determine whether existing `PRE_MARKET_SIGNAL` semantics can safely represent procurement intent or whether a distinct lifecycle/action mode is required.
 
 ## Public intelligence / collector invariants
 
@@ -142,7 +161,7 @@ Existing guarantees remain:
 - one official discovery pass per runtime scan;
 - unresolved verification barrier;
 - once-daily legacy deep fallback definition;
-- current intraday sources remain explicitly bounded and `tjzxfc` is not silently added.
+- `tjzxfc` and `tjzyefy` are not silently added to intraday collection.
 
 ## Business-closure loop
 
@@ -173,7 +192,7 @@ When the user explicitly allows Preview again:
 4. run protected CONTACTED → optional next-action → reminder acknowledgement flow;
 5. verify private WON/LOST/NOT_FIT review persistence/export and no public leakage;
 6. verify collector Queue / daily-deep / intraday runtime behavior and snapshot freshness;
-7. verify `tjzxfc` real network parsing on an allowed runtime before claiming that source operational;
+7. verify `tjzxfc` / `tjzyefy` real network parsing on an allowed runtime before claiming those sources operational;
 8. run one same-origin grounded AI POST only if Preview AI configuration is intentionally supplied;
 9. inspect custom-domain/Production promotion separately before any Production action.
 
