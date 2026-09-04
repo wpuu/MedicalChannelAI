@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronRight, ExternalLink, Filter, RefreshCw, Search } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { OutcomeSummaryCard } from '@/components/followup/OutcomeSummaryCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { isAuthRequiredError } from '@/services/apiConfig'
 import {
@@ -247,6 +248,8 @@ export function FollowedPage() {
           </div>
         ))}
       </section>
+
+      <OutcomeSummaryCard />
 
       <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
