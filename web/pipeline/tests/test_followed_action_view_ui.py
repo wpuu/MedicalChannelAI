@@ -49,6 +49,7 @@ class FollowedActionViewUiTests(unittest.TestCase):
         self.assertIn("return ACTIVE_STATUSES.has(item.followup_status) && !item.remind_at", self.page)
         self.assertIn("const pendingNextAction = needsNextAction(item)", self.page)
         self.assertIn("待安排下一步", self.page)
+        self.assertIn("标记“待安排下一步”的推进项目还没有私有提醒时间", self.page)
         self.assertIn("系统不会自动替你生成", self.page)
         self.assertIn(") : pendingNextAction ? (", self.page)
         self.assertIn("if (filter === 'DUE') return reminderIsDue(item)", self.page)
