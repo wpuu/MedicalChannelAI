@@ -63,7 +63,7 @@ function ProcurementIntentFormalAlert({ data }: { data: TodayActionsResponse }) 
             {pendingCount} 个可能的正式窗口待核查
           </p>
           <p className="mt-0.5 text-[11px] leading-5 text-emerald-800">
-            当前 {summary.intent_count} 条采购意向中发现 {summary.candidate_pair_count} 组保守关联候选；这里只提醒尚未显式处理的正式候选。公开关联结论不因私有跟进状态改变，仍需人工核对，也不代表官方确认同一项目。
+            {summary.intents_with_formal_successor} 条采购意向已出现可能的正式窗口，当前共发现 {summary.candidate_pair_count} 组保守关联候选；这里只提醒尚未显式处理的正式候选。关联只依据公开事实自动提示，公开关联结论不因私有跟进状态改变，仍需人工核对，不代表官方确认同一项目。
           </p>
         </div>
       </div>
