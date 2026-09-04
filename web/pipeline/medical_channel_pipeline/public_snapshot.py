@@ -13,6 +13,7 @@ MAX_TODAY_CARDS = 5
 TIANJIN_TZ = ZoneInfo("Asia/Shanghai")
 SOURCE_CATEGORY_TITLE_CONFLICT = "SOURCE_CATEGORY_TITLE_CONFLICT"
 RELATIVE_REGISTRATION_WINDOW_7_DAYS = "RELATIVE_REGISTRATION_WINDOW_7_DAYS"
+PROCUREMENT_INTENT_LIFECYCLE = "PROCUREMENT_INTENT"
 
 _SPECIFIC_PRODUCT_ACRONYM_RE = re.compile(
     r"(?<![A-Za-z0-9])(?:CT|DR|MRI|DSA|PCR|POCT|IVD|LIS|PACS|RIS|HIS|GPU)(?![A-Za-z0-9])",
@@ -65,6 +66,13 @@ def _actionability(
     as_of: datetime,
     quality_flags: list[str] | None = None,
 ) -> tuple[str, int, str]:
+    # Procurement-intent notices are earlier than supplier-facing market
+    # research or tender registration. They are useful for advance supplier
+    # preparation, but the absence of a registration deadline must never make
+    # them look like a fully actionable open opportunity.
+    if facts.get("lifecycle_state") == PROCUREMENT_INTENT_LIFECYCLE:
+        return "PRE_MARKET_SIGNAL", 12, "AWAITING_MODEL"
+
     bid = _as_datetime(facts.get("bid_deadline"))
     registration = _as_datetime(facts.get("registration_deadline"))
     registration_date = _as_date(facts.get("registration_deadline_date"))
@@ -416,6 +424,7 @@ def _public_card(
                     "basis": mode,
                     "profile_paths": [],
                     "opportunity_paths": [
+                        "facts.lifecycle_state",
                         "facts.registration_deadline",
                         "facts.registration_deadline_date",
                         "facts.bid_deadline",
