@@ -24,6 +24,7 @@ const REMINDER_TERMINAL_STATUSES = new Set<FollowupStatus>([
   'NOT_FIT',
   'ARCHIVED',
 ])
+const OUTCOME_TERMINAL_STATUSES = new Set<FollowupStatus>(['WON', 'LOST', 'NOT_FIT'])
 
 interface FollowupCardProps {
   card: TodayActionCard
@@ -51,6 +52,7 @@ export function FollowupCard({
   const [savingNote, setSavingNote] = useState(false)
   const [reopenConfirm, setReopenConfirm] = useState(false)
   const terminal = REMINDER_TERMINAL_STATUSES.has(card.followup_status)
+  const outcomeTerminal = OUTCOME_TERMINAL_STATUSES.has(card.followup_status)
   const reminderAllowed = !terminal
 
   useEffect(() => {
@@ -96,10 +98,12 @@ export function FollowupCard({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="text-[13px] font-medium text-slate-800">
-                      当前结果：{FOLLOWUP_STATUS_LABEL[card.followup_status]}
+                      当前{outcomeTerminal ? '结果' : '状态'}：{FOLLOWUP_STATUS_LABEL[card.followup_status]}
                     </p>
                     <p className="mt-0.5 text-[11px] leading-5 text-slate-500">
-                      结果已结束并进入私有复盘统计。普通状态下不直接开放下拉修改，避免误操作覆盖成交结论。
+                      {outcomeTerminal
+                        ? '结果已结束并进入私有复盘统计。普通状态下不直接开放下拉修改，避免误操作覆盖结果结论。'
+                        : '项目已归档。普通状态下不直接开放下拉修改，避免误操作重新进入推进流程。'}
                     </p>
                   </div>
                   {!reopenConfirm ? (
@@ -115,7 +119,9 @@ export function FollowupCard({
                 {reopenConfirm ? (
                   <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5">
                     <p className="text-[11px] leading-5 text-amber-900">
-                      确认后会新增一条“正在评估”私有跟进事件，保留原有结果和复盘历史；当前结果将不再计入终态统计。
+                      {outcomeTerminal
+                        ? '确认后会新增一条“正在评估”私有跟进事件，保留原有结果和复盘历史；当前结果将不再计入终态统计。'
+                        : '确认后会新增一条“正在评估”私有跟进事件，保留原有归档历史；项目将重新进入推进流程。'}
                     </p>
                     <div className="mt-2 flex justify-end gap-2">
                       <button
