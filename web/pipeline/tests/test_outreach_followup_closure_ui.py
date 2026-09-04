@@ -14,22 +14,49 @@ class OutreachFollowupClosureUiTests(unittest.TestCase):
 
     def test_copying_draft_never_fakes_contacted_business_state(self) -> None:
         start = self.source.index('const copyDraft = async () => {')
-        end = self.source.index('\n\n  const recordContacted = async () => {', start)
+        end = self.source.index('\n\n  const goToFollowed = () => {', start)
         block = self.source[start:end]
         self.assertIn('navigator.clipboard.writeText(sendableDraft)', block)
         self.assertNotIn('updateFollowup', block)
         self.assertNotIn("status: 'CONTACTED'", block)
 
-    def test_contacted_state_requires_explicit_user_action_and_persists_followup(self) -> None:
+    def test_contacted_state_requires_explicit_user_action_and_does_not_auto_schedule(self) -> None:
         start = self.source.index('const recordContacted = async () => {')
-        end = self.source.index('\n\n  return (', start)
+        end = self.source.index('\n\n  const scheduleNextAction = async', start)
         block = self.source[start:end]
         self.assertIn('todayActionsService.updateFollowup(opportunityId', block)
         self.assertIn("status: 'CONTACTED'", block)
         self.assertIn('从沟通草稿入口确认已完成联系。', block)
-        self.assertIn("navigate('/followed')", block)
-        self.assertNotIn('/followed?focus=', block)
+        self.assertIn('setContactRecorded(true)', block)
         self.assertIn('已联系，已记入“我的跟进”', block)
+        self.assertNotIn('remind_at:', block)
+        self.assertNotIn('setRemindOpen(true)', block)
+        self.assertNotIn("navigate('/followed')", block)
+
+    def test_after_contact_user_can_choose_followed_or_explicit_next_action(self) -> None:
+        self.assertIn('contactRecorded ? (', self.source)
+        self.assertIn('先去我的跟进', self.source)
+        self.assertIn('安排下一步', self.source)
+        self.assertIn('onClick={() => setRemindOpen(true)}', self.source)
+        self.assertIn("navigate('/followed')", self.source)
+        self.assertNotIn('/followed?focus=', self.source)
+
+    def test_scheduled_next_action_keeps_contacted_stage(self) -> None:
+        start = self.source.index('const scheduleNextAction = async')
+        end = self.source.index('\n\n  return (', start)
+        block = self.source[start:end]
+        self.assertIn("status: 'CONTACTED'", block)
+        self.assertIn('remind_at: remindAt', block)
+        self.assertIn('note: `下次行动：${nextAction}`', block)
+        self.assertIn('下一步已安排，销售阶段仍为“已联系”', block)
+        self.assertIn('goToFollowed()', block)
+        self.assertIn('!contactRecorded', block)
+
+    def test_contacted_bridge_reuses_required_next_action_modal(self) -> None:
+        self.assertIn("import { RemindModal } from '@/components/followup/RemindModal'", self.source)
+        self.assertIn('open={open && remindOpen && Boolean(opportunityId)}', self.source)
+        self.assertIn('onConfirm={(remindAt, nextAction) => void scheduleNextAction(remindAt, nextAction)}', self.source)
+        self.assertIn('只会增加私有下一步和提醒时间，不会再次改变销售阶段', self.source)
 
     def test_public_contact_quick_actions_only_use_verified_card_contact_fields(self) -> None:
         lookup_start = self.source.index('todayActionsService\n      .getOpportunity(opportunityId)')
