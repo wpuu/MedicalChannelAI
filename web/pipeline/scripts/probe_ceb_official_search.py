@@ -6,34 +6,69 @@ import sys
 import time
 from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
+from http.cookiejar import CookieJar
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode, urljoin, urlparse, urlunparse
-from urllib.request import Request, urlopen
+from urllib.parse import quote, urlencode, urlparse
+from urllib.request import HTTPCookieProcessor, Request, build_opener
+from zoneinfo import ZoneInfo
 
 PRODUCTION_HOST = 'bulletin.cebpubservice.com'
+VIEWER_HOST = 'ctbpsp.com'
+HOMEPAGE_URL = f'https://{PRODUCTION_HOST}/'
 SEARCH_PATH = '/xxfbcmses/search/bulletin.html'
-DETAIL_PATH_RE = re.compile(r'^/biddingBulletin/20\d{2}-\d{2}-\d{2}/[0-9a-fA-F]{32}\.html$')
-TIANJIN_AREA_CODE = '120000'
 TENDER_CATEGORY_ID = '88'
+TIANJIN_AREA = '天津'
 LOOKBACK_DAYS = 45
-MAX_SEARCH_REQUESTS = 4
-MAX_DETAIL_REQUESTS = 2
+MAX_NETWORK_REQUESTS = 4
+MAX_SEARCH_REQUESTS = 3
 MIN_REQUEST_DELAY_SECONDS = 3.0
+SHANGHAI = ZoneInfo('Asia/Shanghai')
 TARGET_KEYWORDS = (
     '空气压力治疗仪',
     '高分辨液质联用系统维保服务',
 )
+UUID_RE = re.compile(
+    r'^(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$'
+)
+URL_OPEN_RE = re.compile(r"urlOpen\(['\"]([^'\"]+)['\"]\)")
 
 
 def _normalize(value: str) -> str:
     return re.sub(r'\s+', '', value or '')
 
 
-def build_search_url(*, keyword: str, search_date: str, area: str = TIANJIN_AREA_CODE) -> str:
+def build_baseline_url() -> str:
     params = {
-        'searchDate': search_date,
-        'dates': '300',
-        'word': keyword,
+        'dates': '7',
+        'categoryId': TENDER_CATEGORY_ID,
+        'page': '1',
+        'showStatus': '1',
+    }
+    return f'https://{PRODUCTION_HOST}{SEARCH_PATH}?{urlencode(params)}'
+
+
+def build_search_url(
+    *,
+    keyword: str,
+    start_date: str,
+    end_date: str,
+    area: str = TIANJIN_AREA,
+    page: int = 1,
+) -> str:
+    start = datetime.fromisoformat(start_date).date()
+    end = datetime.fromisoformat(end_date).date()
+    if end < start:
+        raise ValueError('CEB_SEARCH_DATE_RANGE_INVALID')
+    if not 1 <= page <= 500:
+        raise ValueError('CEB_SEARCH_PAGE_OUT_OF_RANGE')
+    dates = max(1, min(300, (end - start).days + 1))
+    # The public list page's own script double-URI-encodes the keyword. quote()
+    # performs the inner encoding; urlencode() below performs the outer layer.
+    encoded_keyword = quote(keyword, safe='')
+    params = {
+        'searchDate': start.isoformat(),
+        'dates': str(dates),
+        'word': encoded_keyword,
         'categoryId': TENDER_CATEGORY_ID,
         'industryName': '',
         'area': area,
@@ -41,170 +76,274 @@ def build_search_url(*, keyword: str, search_date: str, area: str = TIANJIN_AREA
         'publishMedia': '',
         'sourceInfo': '',
         'showStatus': '1',
-        'page': '1',
+        'startcheckDate': start.isoformat(),
+        'endcheckDate': f'{end.isoformat()} 23:59:59',
+        'page': str(page),
     }
     return f'https://{PRODUCTION_HOST}{SEARCH_PATH}?{urlencode(params)}'
 
 
-def normalize_detail_url(href: str, *, base_url: str) -> str | None:
-    absolute = urljoin(base_url, href)
-    parsed = urlparse(absolute)
-    if parsed.hostname != PRODUCTION_HOST:
+def build_viewer_url(bulletin_id: str, *, keyword: str = '') -> str | None:
+    bulletin_id = bulletin_id.strip()
+    if not UUID_RE.fullmatch(bulletin_id):
         return None
-    if parsed.scheme not in {'http', 'https'}:
-        return None
-    if not DETAIL_PATH_RE.fullmatch(parsed.path):
-        return None
-    return urlunparse(('https', PRODUCTION_HOST, parsed.path, '', '', ''))
+    params = urlencode(
+        {
+            'uuid': bulletin_id,
+            'inpvalue': keyword,
+            'dataSource': '0',
+            'tenderAgency': '',
+        }
+    )
+    return f'https://{VIEWER_HOST}/#/bulletinDetail?{params}'
 
 
-class _AnchorParser(HTMLParser):
+class _TableParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
-        self.links: list[tuple[str, str]] = []
-        self._href: str | None = None
-        self._text: list[str] = []
+        self.rows: list[list[dict[str, str | None]]] = []
+        self._row: list[dict[str, str | None]] | None = None
+        self._cell_text: list[str] | None = None
+        self._cell_uuid: str | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag.lower() != 'a' or self._href is not None:
+        lowered = tag.lower()
+        if lowered == 'tr':
+            self._row = []
             return
-        href = dict(attrs).get('href')
-        if href:
-            self._href = href
-            self._text = []
+        if lowered == 'td' and self._row is not None:
+            self._cell_text = []
+            self._cell_uuid = None
+            return
+        if lowered == 'a' and self._cell_text is not None:
+            values = dict(attrs)
+            candidate = values.get('href') or values.get('onclick') or ''
+            match = URL_OPEN_RE.search(candidate)
+            if match:
+                self._cell_uuid = match.group(1).strip()
 
     def handle_data(self, data: str) -> None:
-        if self._href is not None and data.strip():
-            self._text.append(data.strip())
+        if self._cell_text is not None and data.strip():
+            self._cell_text.append(data.strip())
 
     def handle_endtag(self, tag: str) -> None:
-        if tag.lower() == 'a' and self._href is not None:
-            self.links.append((self._href, ' '.join(self._text)))
-            self._href = None
-            self._text = []
+        lowered = tag.lower()
+        if lowered == 'td' and self._row is not None and self._cell_text is not None:
+            self._row.append(
+                {
+                    'text': ' '.join(self._cell_text).strip(),
+                    'uuid': self._cell_uuid,
+                }
+            )
+            self._cell_text = None
+            self._cell_uuid = None
+            return
+        if lowered == 'tr' and self._row is not None:
+            if self._row:
+                self.rows.append(self._row)
+            self._row = None
 
 
-def extract_matching_detail_links(html: str, *, base_url: str, keyword: str) -> list[dict[str, str]]:
-    parser = _AnchorParser()
+def parse_list_rows(html: str) -> list[dict[str, str]]:
+    parser = _TableParser()
     parser.feed(html)
-    needle = _normalize(keyword)
     result: list[dict[str, str]] = []
     seen: set[str] = set()
-    for href, title in parser.links:
-        if needle not in _normalize(title):
+    for cells in parser.rows:
+        if len(cells) < 5:
             continue
-        detail_url = normalize_detail_url(href, base_url=base_url)
-        if not detail_url or detail_url in seen:
+        bulletin_id = str(cells[0].get('uuid') or '').strip()
+        title = str(cells[0].get('text') or '').strip()
+        viewer_url = build_viewer_url(bulletin_id)
+        if not viewer_url or not title or bulletin_id in seen:
             continue
-        seen.add(detail_url)
-        result.append({'title': title, 'url': detail_url})
+        seen.add(bulletin_id)
+        result.append(
+            {
+                'bulletin_id': bulletin_id,
+                'title': title,
+                'industry': str(cells[1].get('text') or '').strip(),
+                'region': str(cells[2].get('text') or '').strip().strip('【】[]'),
+                'publisher': str(cells[3].get('text') or '').strip(),
+                'published_at': str(cells[4].get('text') or '').strip(),
+                'viewer_url': viewer_url,
+            }
+        )
     return result
 
 
-def _fetch(url: str) -> tuple[int, str, str]:
+def matching_rows(rows: list[dict[str, str]], keyword: str) -> list[dict[str, str]]:
+    needle = _normalize(keyword)
+    return [row for row in rows if needle and needle in _normalize(row.get('title', ''))]
+
+
+def looks_like_challenge(body: str) -> bool:
+    lowered = body.lower()
+    markers = ('vaptcha', 'verificationcode', '验证码', '人机验证')
+    return any(marker in lowered for marker in markers)
+
+
+def _page_signature(body: str) -> dict[str, object]:
+    title_match = re.search(r'<title[^>]*>(.*?)</title>', body, flags=re.I | re.S)
+    title = re.sub(r'\s+', ' ', title_match.group(1)).strip() if title_match else None
+    return {
+        'title': title,
+        'has_table': '<table' in body.lower(),
+        'has_url_open': bool(URL_OPEN_RE.search(body)),
+        'challenge_detected': looks_like_challenge(body),
+        'response_bytes': len(body.encode('utf-8')),
+    }
+
+
+def _make_session() -> tuple[object, CookieJar]:
+    jar = CookieJar()
+    opener = build_opener(HTTPCookieProcessor(jar))
+    return opener, jar
+
+
+def _fetch(opener: object, url: str, *, referer: str | None = None) -> tuple[int, str, str, str | None]:
     request = Request(url, method='GET')
-    request.add_header('User-Agent', 'Mozilla/5.0 (compatible; MedicalChannelAI-ReadOnly-Probe/1.0)')
+    request.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36')
     request.add_header('Accept', 'text/html,application/xhtml+xml')
     request.add_header('Accept-Language', 'zh-CN,zh;q=0.9')
-    request.add_header('Referer', f'https://{PRODUCTION_HOST}/')
+    if referer:
+        request.add_header('Referer', referer)
     try:
-        with urlopen(request, timeout=20) as response:
+        with opener.open(request, timeout=20) as response:
             body = response.read().decode('utf-8', errors='replace')
-            return int(response.status), response.geturl(), body
+            return int(response.status), response.geturl(), body, response.headers.get('Content-Type')
     except HTTPError as exc:
         body = exc.read().decode('utf-8', errors='replace')
-        return int(exc.code), exc.geturl(), body
+        return int(exc.code), exc.geturl(), body, exc.headers.get('Content-Type')
     except URLError as exc:
-        return 0, url, f'{type(exc.reason).__name__}: {exc.reason}'
+        return 0, url, f'{type(exc.reason).__name__}: {exc.reason}', None
+
+
+def _official_list_response(status: int, final_url: str, body: str) -> bool:
+    parsed = urlparse(final_url)
+    signature = _page_signature(body)
+    return bool(
+        status == 200
+        and parsed.hostname == PRODUCTION_HOST
+        and signature['has_table'] is True
+        and signature['challenge_detected'] is False
+    )
 
 
 def _probe() -> dict[str, object]:
     now = datetime.now(timezone.utc)
-    search_date = (now - timedelta(days=LOOKBACK_DAYS)).date().isoformat()
-    search_request_count = 0
-    detail_request_count = 0
+    local_end = now.astimezone(SHANGHAI).date()
+    local_start = local_end - timedelta(days=LOOKBACK_DAYS - 1)
+    opener, jar = _make_session()
+    network_request_count = 0
+
+    homepage_status, homepage_final, homepage_body, homepage_type = _fetch(opener, HOMEPAGE_URL)
+    network_request_count += 1
+    homepage = {
+        'status': homepage_status,
+        'same_official_host': urlparse(homepage_final).hostname == PRODUCTION_HOST,
+        'content_type': homepage_type,
+        'cookie_names': sorted({cookie.name for cookie in jar}),
+        **_page_signature(homepage_body),
+    }
+
+    time.sleep(MIN_REQUEST_DELAY_SECONDS)
+    baseline_url = build_baseline_url()
+    baseline_status, baseline_final, baseline_body, baseline_type = _fetch(
+        opener,
+        baseline_url,
+        referer=HOMEPAGE_URL,
+    )
+    network_request_count += 1
+    baseline_rows = (
+        parse_list_rows(baseline_body)
+        if _official_list_response(baseline_status, baseline_final, baseline_body)
+        else []
+    )
+    baseline = {
+        'status': baseline_status,
+        'same_official_host': urlparse(baseline_final).hostname == PRODUCTION_HOST,
+        'content_type': baseline_type,
+        'row_count': len(baseline_rows),
+        **_page_signature(baseline_body),
+    }
+
     targets: list[dict[str, object]] = []
-
-    for target_index, keyword in enumerate(TARGET_KEYWORDS):
-        attempts: list[dict[str, object]] = []
-        matches: list[dict[str, str]] = []
-        for area in (TIANJIN_AREA_CODE, ''):
-            if search_request_count >= MAX_SEARCH_REQUESTS:
-                break
-            if search_request_count:
-                time.sleep(MIN_REQUEST_DELAY_SECONDS)
-            url = build_search_url(keyword=keyword, search_date=search_date, area=area)
-            status, final_url, body = _fetch(url)
-            search_request_count += 1
-            parsed_final = urlparse(final_url)
-            same_official_host = parsed_final.hostname == PRODUCTION_HOST
-            if status == 200 and same_official_host:
-                matches = extract_matching_detail_links(body, base_url=final_url, keyword=keyword)
-            attempts.append({
-                'area': area or 'ALL',
+    for keyword in TARGET_KEYWORDS:
+        if network_request_count >= MAX_NETWORK_REQUESTS:
+            break
+        time.sleep(MIN_REQUEST_DELAY_SECONDS)
+        search_url = build_search_url(
+            keyword=keyword,
+            start_date=local_start.isoformat(),
+            end_date=local_end.isoformat(),
+        )
+        status, final_url, body, content_type = _fetch(
+            opener,
+            search_url,
+            referer=HOMEPAGE_URL,
+        )
+        network_request_count += 1
+        usable = _official_list_response(status, final_url, body)
+        rows = parse_list_rows(body) if usable else []
+        matches = matching_rows(rows, keyword)
+        targets.append(
+            {
+                'keyword': keyword,
                 'status': status,
-                'same_official_host': same_official_host,
-                'response_bytes': len(body.encode('utf-8')),
-                'matching_detail_count': len(matches),
-            })
-            if matches:
-                break
-
-        detail: dict[str, object] | None = None
-        if matches and detail_request_count < MAX_DETAIL_REQUESTS:
-            if search_request_count or detail_request_count:
-                time.sleep(MIN_REQUEST_DELAY_SECONDS)
-            detail_url = matches[0]['url']
-            status, final_url, body = _fetch(detail_url)
-            detail_request_count += 1
-            parsed_final = urlparse(final_url)
-            detail = {
-                'status': status,
-                'same_official_host': parsed_final.hostname == PRODUCTION_HOST,
-                'expected_detail_shape': normalize_detail_url(final_url, base_url=detail_url) is not None,
-                'keyword_visible': _normalize(keyword) in _normalize(body),
-                'url': detail_url,
-                'title': matches[0]['title'],
+                'same_official_host': urlparse(final_url).hostname == PRODUCTION_HOST,
+                'content_type': content_type,
+                'row_count': len(rows),
+                'matching_row_count': len(matches),
+                'matches': matches[:3],
+                **_page_signature(body),
             }
+        )
 
-        targets.append({
-            'keyword': keyword,
-            'search_attempts': attempts,
-            'matching_details': matches[:3],
-            'detail_probe': detail,
-        })
-
-    usable_targets = sum(
-        1
-        for target in targets
-        if target['matching_details']
-        and isinstance(target.get('detail_probe'), dict)
-        and target['detail_probe'].get('status') == 200
-        and target['detail_probe'].get('same_official_host') is True
-        and target['detail_probe'].get('expected_detail_shape') is True
+    usable_target_count = sum(1 for target in targets if target['matching_row_count'])
+    public_list_contract_usable = bool(
+        baseline['status'] == 200
+        and baseline['same_official_host'] is True
+        and baseline['has_table'] is True
+        and baseline['challenge_detected'] is False
     )
     return {
         'observed_at': now.isoformat(),
         'official_host': PRODUCTION_HOST,
+        'viewer_host': VIEWER_HOST,
         'search_path': SEARCH_PATH,
-        'search_date': search_date,
         'lookback_days': LOOKBACK_DAYS,
+        'search_start_date': local_start.isoformat(),
+        'search_end_date': local_end.isoformat(),
+        'max_network_requests': MAX_NETWORK_REQUESTS,
         'max_search_requests': MAX_SEARCH_REQUESTS,
-        'max_detail_requests': MAX_DETAIL_REQUESTS,
-        'search_request_count': search_request_count,
-        'detail_request_count': detail_request_count,
-        'usable_target_count': usable_targets,
+        'network_request_count': network_request_count,
+        'homepage': homepage,
+        'baseline_list': baseline,
         'target_count': len(TARGET_KEYWORDS),
+        'usable_target_count': usable_target_count,
+        'public_list_contract_usable': public_list_contract_usable,
+        'detail_contract_verified': False,
+        'adapter_promotion_allowed': False,
         'targets': targets,
+        'policy': {
+            'normal_same_origin_cookie_session_only': True,
+            'cookie_values_never_logged': True,
+            'captcha_or_challenge_never_bypassed': True,
+            'ctbpsp_internal_detail_api_never_called': True,
+            'list_rows_are_discovery_evidence_only': True,
+            'no_canonical_write': True,
+            'no_lineage_write': True,
+            'no_crm_write': True,
+        },
     }
 
 
 def main() -> int:
     result = _probe()
     print('LIVE_CEB_PROBE=' + json.dumps(result, ensure_ascii=False, sort_keys=True))
-    # This probe is intentionally diagnostic. A production site may reject an
-    # automated GET even when the public browser page exists; that is evidence
-    # about the adapter contract, not permission to fall back to third parties.
+    # Diagnostic only. Even a usable public list is not enough to promote CEB
+    # into the verified fact adapter because the detail contract remains unverified.
     return 0
 
 
