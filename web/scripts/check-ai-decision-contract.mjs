@@ -49,6 +49,8 @@ for (const forbidden of [
   assert.equal(modelInput.includes(forbidden), false, `machine token leaked into model prompt: ${forbidden}`)
 }
 assert.equal(modelInput.includes('当前仍在报名或获取文件窗口内'), true)
+assert.equal(modelInput.includes('不得声称联系、致电或沟通后可获得完整需求'), true)
+assert.equal(modelInput.includes('当前输入未提供相关客户自有信息、既往经营信息或竞争情况'), true)
 
 const safe = parseDecisionContent(JSON.stringify({
   action: '今天先联系采购代理确认文件获取方式，并下载官方附件核对技术需求。',
@@ -56,6 +58,13 @@ const safe = parseDecisionContent(JSON.stringify({
   risks: ['产品参数和资格条件以官方附件为准，未核实前不要向客户承诺。'],
 }))
 assert.equal(safe.requires_human_confirmation, true)
+
+const groundedContactSafe = parseDecisionContent(JSON.stringify({
+  action: '今天致电公告公开联系人，核实招标文件获取方式和技术要求。',
+  reasons: ['当前仍在公开报名或文件获取窗口内，应先核实官方要求。'],
+  risks: ['当前输入未提供该医院既往经营信息或竞争情况，需人工补充。'],
+}))
+assert.equal(groundedContactSafe.requires_human_confirmation, true)
 
 const relativeFacts = {
   ...facts,
@@ -135,6 +144,16 @@ for (const leaked of [
     action: '建议今天联系采购人。',
     reasons: ['现有信息有限。'],
     risks: ['参数后续可能调整，需要提前留意。'],
+  },
+  {
+    action: '今天主动联系采购人。',
+    reasons: ['主动联系采购人可获取完整采购需求，避免投标材料遗漏。'],
+    risks: [],
+  },
+  {
+    action: '建议补充客户经营信息。',
+    reasons: ['当前客户信息为空。'],
+    risks: ['暂无该医院既往采购规律及竞争格局数据。'],
   },
 ]) {
   assert.throws(
