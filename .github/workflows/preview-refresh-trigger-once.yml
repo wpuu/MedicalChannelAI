@@ -1,0 +1,21 @@
+name: Preview Verified Refresh Trigger Once
+
+on:
+  push:
+    branches:
+      - chatgpt/preview-54495b1
+    paths:
+      - .github/workflows/preview-refresh-trigger-once.yml
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch verified refresh on preview branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run tianjin-medical-refresh.yml --ref chatgpt/preview-54495b1
