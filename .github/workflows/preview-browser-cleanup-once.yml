@@ -1,0 +1,98 @@
+name: Preview Browser Interrupted Account Cleanup Once
+
+on:
+  push:
+    branches:
+      - chatgpt/preview-54495b1
+    paths:
+      - .github/workflows/preview-browser-cleanup-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Delete only the interrupted browser acceptance account
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE=.github/workflows/preview-browser-e2e-once.yml
+          export PREVIEW_ORIGIN="$(sed -n 's/^[[:space:]]*PREVIEW_ORIGIN:[[:space:]]*//p' "$SOURCE" | head -n1)"
+          export PREVIEW_SHARE_URL="$(sed -n 's/^[[:space:]]*PREVIEW_SHARE_URL:[[:space:]]*//p' "$SOURCE" | head -n1)"
+          export TEST_USERNAME="$(sed -n 's/^[[:space:]]*TEST_USERNAME:[[:space:]]*//p' "$SOURCE" | head -n1)"
+          export TEST_PASSWORD="$(sed -n 's/^[[:space:]]*TEST_PASSWORD:[[:space:]]*//p' "$SOURCE" | head -n1)"
+          test -n "$PREVIEW_ORIGIN"
+          test -n "$PREVIEW_SHARE_URL"
+          test -n "$TEST_USERNAME"
+          test -n "$TEST_PASSWORD"
+
+          rm -rf /tmp/medicalchannelai-browser-cleanup
+          mkdir -p /tmp/medicalchannelai-browser-cleanup
+          cd /tmp/medicalchannelai-browser-cleanup
+          npm init -y >/dev/null
+          npm install playwright@1.55.0 --no-audit --no-fund >/dev/null
+          ./node_modules/.bin/playwright install chromium >/dev/null
+
+          cat > cleanup.cjs <<'NODE'
+          const assert = require('node:assert/strict')
+          const { chromium } = require('playwright')
+
+          ;(async () => {
+            const origin = process.env.PREVIEW_ORIGIN
+            const shareUrl = process.env.PREVIEW_SHARE_URL
+            const username = process.env.TEST_USERNAME
+            const password = process.env.TEST_PASSWORD
+            const browser = await chromium.launch({ headless: true })
+            const context = await browser.newContext({ viewport: { width: 390, height: 844 } })
+            const page = await context.newPage()
+            try {
+              await page.goto(shareUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 })
+              await page.waitForURL((url) => url.pathname === '/login', { timeout: 45_000 })
+              await page.getByLabel('账号名').fill(username)
+              await page.getByLabel('密码', { exact: true }).fill(password)
+              await page.getByRole('button', { name: '登录' }).click()
+              await page.waitForURL((url) => url.pathname === '/today', { timeout: 45_000 })
+
+              const deleted = await page.evaluate(async (passwordValue) => {
+                const response = await fetch('/api/auth/delete', {
+                  method: 'POST',
+                  credentials: 'include',
+                  headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ password: passwordValue }),
+                })
+                return { status: response.status, body: await response.text() }
+              }, password)
+              assert.equal(deleted.status, 200, `cleanup delete failed: ${deleted.body}`)
+
+              await page.goto(`${origin}/login`, { waitUntil: 'domcontentloaded', timeout: 60_000 })
+              await page.getByLabel('账号名').fill(username)
+              await page.getByLabel('密码', { exact: true }).fill(password)
+              await page.getByRole('button', { name: '登录' }).click()
+              await page.getByText('账号或密码不正确。').waitFor({ state: 'visible', timeout: 30_000 })
+              console.log('INTERRUPTED_BROWSER_ACCOUNT_CLEANUP: PASS')
+            } finally {
+              await context.close().catch(() => {})
+              await browser.close().catch(() => {})
+            }
+          })().catch((error) => {
+            console.error(error?.stack || error)
+            process.exitCode = 1
+          })
+          NODE
+          node cleanup.cjs
+          rm -rf /tmp/medicalchannelai-browser-cleanup
