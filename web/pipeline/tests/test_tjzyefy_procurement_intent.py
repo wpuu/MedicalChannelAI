@@ -5,6 +5,9 @@ import unittest
 from medical_channel_pipeline.tjzyefy_procurement_intent import (
     EXPECTED_PROCUREMENT_WINDOW_TEXT_PREFIX,
     EXPECTED_PROCUREMENT_WINDOW_UNSTRUCTURED,
+    OFFICIAL_FOLLOWUP_SOURCE_CEB,
+    OFFICIAL_FOLLOWUP_SOURCE_PREFIX,
+    OFFICIAL_FOLLOWUP_SOURCE_TIANJIN_GPC,
     TjzyefyIntentParseError,
     parse_tjzyefy_procurement_intent,
 )
@@ -56,8 +59,61 @@ class TjzyefyProcurementIntentTests(unittest.TestCase):
             f'{EXPECTED_PROCUREMENT_WINDOW_TEXT_PREFIX}2026年7-8月',
             record['quality_flags'],
         )
+        self.assertIn(
+            f'{OFFICIAL_FOLLOWUP_SOURCE_PREFIX}{OFFICIAL_FOLLOWUP_SOURCE_TIANJIN_GPC}',
+            record['quality_flags'],
+        )
         self.assertEqual(facts['public_contact']['phone'], '022-60637953')
         self.assertEqual(facts['public_contact']['name'], '孙老师')
+
+    def test_explicit_ceb_followup_instruction_is_preserved(self) -> None:
+        title = '采购意向公告（2026年26号）-超声治疗仪医疗设备采购项目'
+        html = page(
+            title,
+            '我院将于近期对天津中医药大学第二附属医院超声治疗仪医疗设备采购项目进行采购，'
+            '欢迎各位有资质的供应商咨询。预计采购时间2026年8月。'
+            '本项目具体招标信息请于近期关注：中国招标投标公共服务平台'
+            '（http://www.cebpubservice.com/NewIndex/index.shtml）。'
+            '联系电话：022-60637522 联系人：潘老师。',
+        )
+        record = parse_tjzyefy_procurement_intent(
+            html,
+            source_url='https://www.tjzyefy.com/system/2026/06/19/030192702.shtml',
+            index_url=INDEX_URL,
+            index_published_at='2026-06-19',
+            expected_title=title,
+            observed_at=OBSERVED_AT,
+            opportunity_id='tjzyefy_intent_ceb_followup',
+        )
+        self.assertIn(
+            f'{OFFICIAL_FOLLOWUP_SOURCE_PREFIX}{OFFICIAL_FOLLOWUP_SOURCE_CEB}',
+            record['quality_flags'],
+        )
+
+    def test_platform_name_without_project_followup_instruction_is_not_preserved(self) -> None:
+        title = '采购意向公告（2026年27号）-超声治疗仪医疗设备采购项目'
+        html = page(
+            title,
+            '我院将于近期对天津中医药大学第二附属医院超声治疗仪医疗设备采购项目进行采购，'
+            '欢迎各位有资质的供应商咨询。预计采购时间2026年8月。'
+            '页面导航：中国招标投标公共服务平台。'
+            '联系电话：022-60637522 联系人：潘老师。',
+        )
+        record = parse_tjzyefy_procurement_intent(
+            html,
+            source_url='https://www.tjzyefy.com/system/2026/06/19/030192703.shtml',
+            index_url=INDEX_URL,
+            index_published_at='2026-06-19',
+            expected_title=title,
+            observed_at=OBSERVED_AT,
+            opportunity_id='tjzyefy_intent_no_followup_instruction',
+        )
+        self.assertFalse(
+            any(
+                flag.startswith(OFFICIAL_FOLLOWUP_SOURCE_PREFIX)
+                for flag in record.get('quality_flags', [])
+            )
+        )
 
     def test_sterilizer_title_is_medical_without_generic_medical_equipment_words(self) -> None:
         title = '采购意向公告（2026年23号）-脉动真空灭菌器等设备采购项目'
