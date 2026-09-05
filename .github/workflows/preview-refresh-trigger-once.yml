@@ -18,4 +18,5 @@ jobs:
       - name: Dispatch verified refresh on preview branch
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: gh workflow run tianjin-medical-refresh.yml --ref chatgpt/preview-54495b1
