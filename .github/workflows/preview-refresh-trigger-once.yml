@@ -35,15 +35,21 @@ jobs:
           print(datetime.now(ZoneInfo('Asia/Shanghai')).isoformat())
           PY
           )"
+          existing_args=()
+          if [[ -f web/pipeline/data/tianjin_live_tjzyefy_records.json ]]; then
+            existing_args+=(--existing-records-input web/pipeline/data/tianjin_live_tjzyefy_records.json)
+          fi
+          set +e
           python3 web/pipeline/scripts/sync_tjzyefy_market_research.py \
             --as-of "${AS_OF}" \
             --lookback-days 30 \
             --max-candidates 20 \
             --delay-seconds 3 \
-            --existing-records-input web/pipeline/data/tianjin_live_tjzyefy_records.json \
+            "${existing_args[@]}" \
             --records-output diagnostics/tjzyefy-records.json \
             --report-output diagnostics/tjzyefy-report.json
           code=$?
+          set -e
           echo "exit_code=${code}" >> "$GITHUB_OUTPUT"
           cat diagnostics/tjzyefy-report.json || true
           exit 0
@@ -55,7 +61,6 @@ jobs:
           path: diagnostics/
           if-no-files-found: error
 
-      - name: Assert expected diagnostic completion
+      - name: Report diagnostic source exit code
         shell: bash
-        run: |
-          echo "TJZYEFY diagnostic source exit code: ${{ steps.probe.outputs.exit_code }}"
+        run: echo "TJZYEFY diagnostic source exit code: ${{ steps.probe.outputs.exit_code }}"
