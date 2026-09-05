@@ -47,6 +47,27 @@ function verifyPreviewSmokeSyntax() {
   console.log('Pilot Preview smoke syntax: PASS')
 }
 
+async function verifyAiBoundaryWithoutDatabaseSideEffects() {
+  // check-ai-boundary.mjs validates provider retry/rate-limit behavior using a
+  // global fetch stub. A configured Neon/Postgres environment enables the
+  // optional durable shared-public cache first; its database transport then
+  // consumes the same fetch stub and makes provider-attempt assertions depend
+  // on the build environment. The durable-cache path has its own contract
+  // tests, so isolate this provider-boundary check from database configuration.
+  const savedDatabaseUrl = process.env.DATABASE_URL
+  const savedPostgresUrl = process.env.POSTGRES_URL
+  process.env.DATABASE_URL = ''
+  process.env.POSTGRES_URL = ''
+  try {
+    await import('./check-ai-boundary.mjs')
+  } finally {
+    if (savedDatabaseUrl === undefined) delete process.env.DATABASE_URL
+    else process.env.DATABASE_URL = savedDatabaseUrl
+    if (savedPostgresUrl === undefined) delete process.env.POSTGRES_URL
+    else process.env.POSTGRES_URL = savedPostgresUrl
+  }
+}
+
 verifyPilotDeploymentEnvironment()
 verifyPreviewSmokeSyntax()
 
@@ -106,6 +127,6 @@ await import('./check-account-session-isolation.mjs')
 await import('./check-account-local-scope.mjs')
 await import('./check-local-profile-migration-safety.mjs')
 await import('./check-runtime-status.mjs')
-await import('./check-ai-boundary.mjs')
+await verifyAiBoundaryWithoutDatabaseSideEffects()
 await import('./check-source-quality-boundary.mjs')
 console.log('Prebuild verification: PASS')
