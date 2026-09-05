@@ -63,4 +63,5 @@ jobs:
 
       - name: Report diagnostic source exit code
         shell: bash
-        run: echo "TJZYEFY diagnostic source exit code: ${{ steps.probe.outputs.exit_code }}"
+        run: |
+          echo "TJZYEFY diagnostic source exit code: ${{ steps.probe.outputs.exit_code }}"
