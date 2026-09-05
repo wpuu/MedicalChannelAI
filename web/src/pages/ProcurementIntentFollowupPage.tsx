@@ -12,6 +12,7 @@ import {
   Radar,
   SearchCheck,
 } from 'lucide-react'
+import { OfficialFollowupSourceNotice } from '@/components/followup/OfficialFollowupSourceNotice'
 import { RemindModal } from '@/components/followup/RemindModal'
 import {
   expectedProcurementWindowPhase,
@@ -464,6 +465,11 @@ export function ProcurementIntentFollowupPage() {
                 <p className="mt-1 text-[12px] leading-5 text-slate-600">
                   {expectedWindow ? `官方预计采购时间：${expectedWindow} · ` : ''}{phaseLabel(intent)}
                 </p>
+                <OfficialFollowupSourceNotice
+                  qualityFlags={intent.facts.quality_flags}
+                  projectName={intent.facts.project_name}
+                  productNames={(intent.facts.products ?? []).map((item) => item.name)}
+                />
                 {successors.length > 0 ? (
                   <p className="mt-1 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
                     已出现可能的正式窗口 · 需人工核对
