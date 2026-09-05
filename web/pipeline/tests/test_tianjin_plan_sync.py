@@ -88,6 +88,21 @@ class TianjinPlanSyncTests(unittest.TestCase):
         self.assertEqual(start_date, '2026-08-30')
         self.assertEqual(end_date, '2026-09-01')
 
+    def test_directed_followup_window_is_bounded_but_can_recover_missed_formal_notice(self) -> None:
+        as_of = sync_tianjin_plan.parse_as_of('2026-09-05T09:00:00+08:00')
+        start_date, end_date = sync_tianjin_plan.directed_followup_date_window(as_of)
+        self.assertEqual(sync_tianjin_plan.DIRECTED_FOLLOWUP_LOOKBACK_DAYS, 45)
+        self.assertEqual(start_date, '2026-07-23')
+        self.assertEqual(end_date, '2026-09-05')
+        self.assertLessEqual(sync_tianjin_plan.DIRECTED_FOLLOWUP_LOOKBACK_DAYS, 60)
+
+    def test_default_verified_intent_file_feeds_daily_followup_planner(self) -> None:
+        self.assertEqual(
+            sync_tianjin_plan.DEFAULT_INTENT_RECORDS,
+            PIPELINE_ROOT / 'data' / 'tianjin_live_tjzyefy_intent_records.json',
+        )
+        self.assertTrue(sync_tianjin_plan.DEFAULT_INTENT_RECORDS.exists())
+
     def test_parse_as_of_rejects_naive_timestamp(self) -> None:
         with self.assertRaisesRegex(ValueError, 'timezone'):
             sync_tianjin_plan.parse_as_of('2026-08-31T12:00:00')
