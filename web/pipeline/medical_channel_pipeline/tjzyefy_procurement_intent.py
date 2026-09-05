@@ -13,6 +13,9 @@ from .validation import validate_record
 HOSPITAL_NAME = '天津中医药大学第二附属医院'
 EXPECTED_PROCUREMENT_WINDOW_UNSTRUCTURED = 'EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED'
 EXPECTED_PROCUREMENT_WINDOW_TEXT_PREFIX = 'EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT='
+OFFICIAL_FOLLOWUP_SOURCE_PREFIX = 'OFFICIAL_FOLLOWUP_SOURCE='
+OFFICIAL_FOLLOWUP_SOURCE_CEB = 'CEB_PUBLIC_SERVICE'
+OFFICIAL_FOLLOWUP_SOURCE_TIANJIN_GPC = 'TIANJIN_GPC'
 
 
 class TjzyefyIntentParseError(ValueError):
@@ -118,6 +121,30 @@ def _extract_expected_procurement_month_window(text: str) -> str | None:
     return re.sub(r'\s+', '', match.group(1))
 
 
+def _extract_official_followup_sources(text: str) -> list[str]:
+    # Only trust a platform reference when it is bound to the hospital's
+    # explicit project-specific follow-up sentence. A platform name elsewhere
+    # in navigation/footer text is not a procurement-source instruction.
+    match = re.search(
+        r'本项目具体招标信息请于近期关注\s*[：:]?\s*(.{1,220}?)(?=联系电话|联系人|$)',
+        text,
+    )
+    if not match:
+        return []
+    instruction = _normalize(match.group(1)).lower()
+    result: list[str] = []
+    if '中国招标投标公共服务平台' in instruction or 'cebpubservice.com' in instruction:
+        result.append(OFFICIAL_FOLLOWUP_SOURCE_CEB)
+    if (
+        '天津市政采网' in instruction
+        or '天津市政采中心' in instruction
+        or '天津市政府采购中心' in instruction
+        or 'tjgpc.zwfwb.tj.gov.cn' in instruction
+    ):
+        result.append(OFFICIAL_FOLLOWUP_SOURCE_TIANJIN_GPC)
+    return result
+
+
 def _product_categories(title: str) -> list[str]:
     compact = _normalize(title)
     if '医用耗材' in compact or '耗材' in compact or '试剂' in compact:
@@ -179,6 +206,8 @@ def parse_tjzyefy_procurement_intent(
         # the canonical exact-datetime field is intentionally left empty.
         flags.append(EXPECTED_PROCUREMENT_WINDOW_UNSTRUCTURED)
         flags.append(f'{EXPECTED_PROCUREMENT_WINDOW_TEXT_PREFIX}{expected_window}')
+    for followup_source in _extract_official_followup_sources(text):
+        flags.append(f'{OFFICIAL_FOLLOWUP_SOURCE_PREFIX}{followup_source}')
 
     facts: dict[str, Any] = {
         'project_number': None,
