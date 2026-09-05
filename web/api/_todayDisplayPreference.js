@@ -6,15 +6,9 @@ export function normalizeTodayLimit(value) {
   return ALLOWED_TODAY_LIMITS.includes(number) ? number : null
 }
 
-export async function ensureTodayDisplayPreferenceSchema(sql) {
-  await sql`
-    CREATE TABLE IF NOT EXISTS private_user_ui_preferences (
-      user_id UUID PRIMARY KEY REFERENCES private_users(id) ON DELETE CASCADE,
-      today_limit SMALLINT NOT NULL DEFAULT 5 CHECK (today_limit IN (3, 5, 8, 10, 15)),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `
-}
+// Compatibility shim for callers that previously ensured this table locally.
+// The table is owned exclusively by ensurePrivateSchema() in _privateDb.js.
+export async function ensureTodayDisplayPreferenceSchema() {}
 
 export async function todayLimitForUser(sql, user) {
   const rows = await sql`
