@@ -125,8 +125,9 @@ def _extract_official_followup_sources(text: str) -> list[str]:
     # Only trust a platform reference when it is bound to the hospital's
     # explicit project-specific follow-up sentence. A platform name elsewhere
     # in navigation/footer text is not a procurement-source instruction.
+    # The hospital currently uses both “请关注” and “请于近期关注”.
     match = re.search(
-        r'本项目具体招标信息请于近期关注\s*[：:]?\s*(.{1,220}?)(?=联系电话|联系人|$)',
+        r'本项目具体招标信息请(?:于近期)?关注\s*[：:]?\s*(.{1,220}?)(?=联系电话|联系人|$)',
         text,
     )
     if not match:
