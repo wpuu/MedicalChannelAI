@@ -1,0 +1,32 @@
+name: Preview AI Envelope Once
+
+on:
+  push:
+    branches:
+      - chatgpt/preview-54495b1
+    paths:
+      - .github/workflows/preview-ai-envelope-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 5
+    steps:
+      - name: Generate ephemeral runner RSA keypair
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY_DIR="$HOME/.medicalchannelai-preview-ai-envelope"
+          mkdir -p "$KEY_DIR"
+          chmod 700 "$KEY_DIR"
+          rm -f "$KEY_DIR/private.pem" "$KEY_DIR/public.pem"
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "$KEY_DIR/private.pem" >/dev/null 2>&1
+          chmod 600 "$KEY_DIR/private.pem"
+          openssl pkey -in "$KEY_DIR/private.pem" -pubout -out "$KEY_DIR/public.pem" >/dev/null 2>&1
+          echo 'RUNNER_PUBLIC_KEY_B64_BEGIN'
+          base64 -w0 "$KEY_DIR/public.pem"
+          echo
+          echo 'RUNNER_PUBLIC_KEY_B64_END'
