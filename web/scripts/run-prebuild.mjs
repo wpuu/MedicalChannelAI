@@ -1,4 +1,6 @@
 import { spawnSync } from 'node:child_process'
+import { generateKeyPairSync } from 'node:crypto'
+import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -6,6 +8,31 @@ const scriptDir = dirname(fileURLToPath(import.meta.url))
 const pipelineDir = resolve(scriptDir, '../pipeline')
 const unittestArgs = ['-m', 'unittest', 'discover', '-s', 'tests', '-v']
 const refreshArgs = ['scripts/refresh_bundled_snapshot.py']
+
+function preparePreviewAiSelftestEnvelope() {
+  const isValidationPreview =
+    String(process.env.VERCEL_ENV || '').trim() === 'preview' &&
+    String(process.env.VERCEL_GIT_COMMIT_REF || '').trim() === 'chatgpt/preview-54495b1'
+  if (!isValidationPreview) return
+
+  const { privateKey, publicKey } = generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+  })
+  const modulePath = resolve(scriptDir, '../api/_previewAiSelftestKey.js')
+  writeFileSync(
+    modulePath,
+    [
+      '// Generated only inside the temporary protected Preview build workspace.',
+      `export const previewAiSelftestPrivateKey = ${JSON.stringify(privateKey)}`,
+      `export const previewAiSelftestPublicKey = ${JSON.stringify(publicKey)}`,
+      '',
+    ].join('\n'),
+    { mode: 0o600 },
+  )
+  console.log('Preview AI selftest envelope: PREPARED')
+}
 
 function verifyPilotDeploymentEnvironment() {
   const buildMode = String(process.env.VITE_BUILD_MODE || '').trim().toLowerCase()
@@ -68,6 +95,7 @@ async function verifyAiBoundaryWithoutDatabaseSideEffects() {
   }
 }
 
+preparePreviewAiSelftestEnvelope()
 verifyPilotDeploymentEnvironment()
 verifyPreviewSmokeSyntax()
 
