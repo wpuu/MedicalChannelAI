@@ -48,10 +48,7 @@ function successfulProviderResponse() {
     status: 200,
     json: async () => ({
       choices: [{ message: { content: JSON.stringify({
-        action: '联系采购方核实当前窗口',
-        reasons: ['基于已核验公开事实进行下一步人工确认'],
-        risks: ['不得把未知客户关系写成事实'],
-        requires_human_confirmation: true,
+        action_codes: ['VERIFY_REQUIREMENTS'],
       }) } }],
     }),
   }
