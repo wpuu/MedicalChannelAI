@@ -1,4 +1,4 @@
-name: Preview Verified Refresh Once
+name: Preview Verified Refresh Artifact Once
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - .github/workflows/preview-refresh-trigger-once.yml
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: preview-verified-refresh-once
@@ -204,35 +204,35 @@ jobs:
         working-directory: web/pipeline
         run: python3 -m unittest discover -s tests -v
 
-      - name: Commit verified Preview refresh
+      - name: Stage verified refresh artifact
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name 'medicalchannel-refresh[bot]'
-          git config user.email 'medicalchannel-refresh[bot]@users.noreply.github.com'
-          git add \
-            web/pipeline/data/tianjin_live_ccgp_records.json \
-            web/pipeline/data/tianjin_live_tjmugh_records.json \
-            web/pipeline/data/tianjin_live_tjnothop_records.json \
-            web/pipeline/data/tianjin_live_tjzxfc_records.json \
-            web/pipeline/data/tianjin_live_tjzyefy_records.json \
-            web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
-            web/pipeline/data/tianjin_live_teda_records.json \
-            web/pipeline/data/tianjin_live_tjfch_records.json \
-            web/pipeline/data/tianjin_notice_events.json \
-            web/pipeline/data/tianjin_sync_report.json \
-            web/pipeline/data/tianjin_tjmugh_sync_report.json \
-            web/pipeline/data/tianjin_tjnothop_sync_report.json \
-            web/pipeline/data/tianjin_tjzxfc_sync_report.json \
-            web/pipeline/data/tianjin_tjzyefy_sync_report.json \
-            web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json \
-            web/pipeline/data/tianjin_teda_sync_report.json \
-            web/pipeline/data/tianjin_tjfch_sync_report.json \
-            web/pipeline/data/tianjin_tjfch_test_sync_report.json \
-            web/public/data/today-actions.public.json
-          if git diff --cached --quiet; then
-            echo 'No verified state change to commit.'
-            exit 0
-          fi
-          git commit -m 'data: refresh Tianjin verified opportunities [preview]'
-          git push origin HEAD:chatgpt/preview-54495b1
+          mkdir -p verified-refresh/web/pipeline/data verified-refresh/web/public/data
+          cp web/pipeline/data/tianjin_live_ccgp_records.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_live_tjmugh_records.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_live_tjnothop_records.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_live_tjzxfc_records.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_live_tjzyefy_records.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_live_tjzyefy_intent_records.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_live_teda_records.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_live_tjfch_records.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_notice_events.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_sync_report.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_tjmugh_sync_report.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_tjnothop_sync_report.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_tjzxfc_sync_report.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_tjzyefy_sync_report.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_teda_sync_report.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_tjfch_sync_report.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_tjfch_test_sync_report.json verified-refresh/web/pipeline/data/
+          cp web/public/data/today-actions.public.json verified-refresh/web/public/data/
+
+      - name: Upload verified refresh artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-preview-refresh-${{ github.run_id }}
+          path: verified-refresh/
+          if-no-files-found: error
+          retention-days: 1
