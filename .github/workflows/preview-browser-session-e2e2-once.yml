@@ -1,0 +1,100 @@
+name: Preview Browser Session Acceptance Two
+
+on:
+  push:
+    branches:
+      - chatgpt/preview-54495b1
+    paths:
+      - .github/workflows/preview-browser-session-e2e2-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Real browser session and route acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE=.github/workflows/preview-browser-e2e-once.yml
+          export PREVIEW_ORIGIN="$(sed -n 's/^[[:space:]]*PREVIEW_ORIGIN:[[:space:]]*//p' "$SOURCE" | head -n1)"
+          export PREVIEW_SHARE_URL="$(sed -n 's/^[[:space:]]*PREVIEW_SHARE_URL:[[:space:]]*//p' "$SOURCE" | head -n1)"
+          export TEST_USERNAME="$(sed -n 's/^[[:space:]]*TEST_USERNAME:[[:space:]]*//p' "$SOURCE" | head -n1)"
+          export TEST_PASSWORD="$(sed -n 's/^[[:space:]]*TEST_PASSWORD:[[:space:]]*//p' "$SOURCE" | head -n1)"
+          D=/tmp/medicalchannelai-browser-session2
+          rm -rf "$D" && mkdir -p "$D/artifacts" && cd "$D"
+          npm init -y >/dev/null
+          npm install playwright@1.55.0 --no-audit --no-fund >/dev/null
+          ./node_modules/.bin/playwright install chromium >/dev/null
+          cat > run.cjs <<'NODE'
+          const assert = require('node:assert/strict')
+          const { chromium } = require('playwright')
+          const origin = process.env.PREVIEW_ORIGIN
+          async function waitToday(page) {
+            await page.waitForURL(u=>u.pathname==='/today',{timeout:45000})
+            await page.getByRole('heading',{name:'今天值得跟的医疗商机'}).waitFor({state:'visible',timeout:45000})
+          }
+          ;(async()=>{
+            const browser=await chromium.launch({headless:true})
+            const context=await browser.newContext({viewport:{width:390,height:844}})
+            const errors=[]
+            const bind=p=>p.on('pageerror',e=>errors.push(String(e?.stack||e)))
+            const page=await context.newPage(); bind(page)
+            try {
+              await page.goto(process.env.PREVIEW_SHARE_URL,{waitUntil:'domcontentloaded',timeout:60000})
+              await page.waitForURL(u=>u.pathname==='/login',{timeout:45000})
+              await page.getByText('医疗商机助手').first().waitFor({state:'visible',timeout:30000})
+              await page.screenshot({path:'artifacts/01-login.png',fullPage:true})
+              await page.getByLabel('账号名').fill(process.env.TEST_USERNAME)
+              await page.getByLabel('密码',{exact:true}).fill(process.env.TEST_PASSWORD)
+              await page.getByRole('button',{name:'登录'}).click()
+              await waitToday(page)
+              let cookies=await context.cookies(origin)
+              let session=cookies.find(c=>c.name==='medopp_session')
+              assert.ok(session,'session cookie missing')
+              assert.equal(session.httpOnly,true)
+              assert.equal(session.secure,true)
+              assert.equal(session.sameSite,'Lax')
+              await page.screenshot({path:'artifacts/02-today.png',fullPage:true})
+              await page.reload({waitUntil:'domcontentloaded',timeout:60000})
+              await waitToday(page)
+              await page.screenshot({path:'artifacts/03-today-refresh.png',fullPage:true})
+              const second=await context.newPage(); bind(second)
+              await second.goto(`${origin}/opportunities`,{waitUntil:'domcontentloaded',timeout:60000})
+              await second.getByRole('heading',{name:'全部已核验机会与早期信号'}).waitFor({state:'visible',timeout:45000})
+              await second.getByText(/当前显示 \d+ \/ \d+ 条/).waitFor({state:'visible',timeout:30000})
+              await second.screenshot({path:'artifacts/04-pool.png',fullPage:true})
+              await second.goto(`${origin}/intent-followup`,{waitUntil:'domcontentloaded',timeout:60000})
+              await second.getByRole('heading',{name:'采购意向跟进'}).waitFor({state:'visible',timeout:45000})
+              await second.screenshot({path:'artifacts/05-intent.png',fullPage:true})
+              const out=await second.evaluate(async()=>{const r=await fetch('/api/auth/logout',{method:'POST',credentials:'include',headers:{Accept:'application/json'}});return {status:r.status,body:await r.text()}})
+              assert.equal(out.status,200,`logout ${out.status}: ${out.body}`)
+              await page.goto(`${origin}/today`,{waitUntil:'domcontentloaded',timeout:60000})
+              await page.waitForURL(u=>u.pathname==='/login',{timeout:45000})
+              assert.deepEqual(errors,[],`uncaught errors: ${errors.join('\n')}`)
+              console.log('REAL_PREVIEW_BROWSER_SESSION_ACCEPTANCE: PASS')
+            } finally {await context.close().catch(()=>{});await browser.close().catch(()=>{})}
+          })().catch(e=>{console.error('REAL_PREVIEW_BROWSER_SESSION_ACCEPTANCE: FAIL');console.error(e?.stack||e);process.exitCode=1})
+          NODE
+          set +e
+          node run.cjs
+          STATUS=$?
+          set -e
+          cp -R artifacts "$GITHUB_WORKSPACE/browser-session2-artifacts"
+          rm -rf "$D"
+          exit "$STATUS"
+      - name: Upload browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-browser-session2-acceptance
+          path: browser-session2-artifacts
+          if-no-files-found: warn
+          retention-days: 3
