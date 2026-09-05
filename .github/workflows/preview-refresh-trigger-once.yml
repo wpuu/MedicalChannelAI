@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: preview-verified-refresh-once
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   refresh:
@@ -220,7 +220,7 @@ jobs:
           cp web/pipeline/data/tianjin_notice_events.json verified-refresh/web/pipeline/data/
           cp web/pipeline/data/tianjin_sync_report.json verified-refresh/web/pipeline/data/
           cp web/pipeline/data/tianjin_tjmugh_sync_report.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_tjnothop_sync_report.json verified-refresh/web/pipeline/data/
+          cp web/pipeline/data/tianjin_nothop_sync_report.json verified-refresh/web/pipeline/data/
           cp web/pipeline/data/tianjin_tjzxfc_sync_report.json verified-refresh/web/pipeline/data/
           cp web/pipeline/data/tianjin_tjzyefy_sync_report.json verified-refresh/web/pipeline/data/
           cp web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json verified-refresh/web/pipeline/data/
