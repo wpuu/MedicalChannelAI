@@ -15,6 +15,9 @@ sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
+from medical_channel_pipeline.procurement_intent_followup_plan import (  # noqa: E402
+    build_procurement_intent_followup_plan,
+)
 from medical_channel_pipeline.state import (  # noqa: E402
     active_ccgp_project_numbers,
     merge_canonical_records,
@@ -32,6 +35,7 @@ from sync_ccgp_query import (  # noqa: E402
 DEFAULT_PLAN = PIPELINE_ROOT / 'data' / 'tianjin_query_plan.json'
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 PILOT_REGION = '天津'
+DIRECTED_FOLLOWUP_LOOKBACK_DAYS = 45
 
 
 def parse_as_of(value: str | None) -> datetime:
@@ -115,6 +119,14 @@ def plan_date_window(as_of: datetime, lookback_days: int) -> tuple[str, str]:
     return start_date.isoformat(), local_date.isoformat()
 
 
+def directed_followup_date_window(as_of: datetime) -> tuple[str, str]:
+    if as_of.tzinfo is None:
+        raise ValueError('TIANJIN_DIRECTED_FOLLOWUP_AS_OF_TIMEZONE_REQUIRED')
+    local_date = as_of.astimezone(SHANGHAI).date()
+    start_date = local_date - timedelta(days=DIRECTED_FOLLOWUP_LOOKBACK_DAYS - 1)
+    return start_date.isoformat(), local_date.isoformat()
+
+
 def merge_discovered_candidates(
     discovered_by_url: dict[str, tuple[str, object]],
     discovered_keywords: dict[str, set[str]],
@@ -143,6 +155,33 @@ def publish_gate(
     return True, 'PASS'
 
 
+def _run_discovery_keyword(
+    *,
+    keyword: str,
+    plan: dict,
+    start_date: str,
+    end_date: str,
+    failures: list[dict],
+    discovered_by_url: dict[str, tuple[str, object]],
+    discovered_keywords: dict[str, set[str]],
+) -> None:
+    candidates = discover_candidates(
+        keyword=keyword,
+        region=plan['region'],
+        notice_types=plan['notice_types'],
+        start_date=start_date,
+        end_date=end_date,
+        delay_seconds=plan['delay_seconds'],
+        failures=failures,
+    )
+    merge_discovered_candidates(
+        discovered_by_url,
+        discovered_keywords,
+        keyword=keyword,
+        candidates=candidates,
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description='Low-frequency Tianjin medical plan sync: multi-keyword discovery -> dedupe -> VERIFIED detail -> one event watch pass.'
@@ -151,6 +190,7 @@ def main() -> int:
     parser.add_argument('--as-of', default=None, help='Optional ISO-8601 timestamp with timezone; defaults to now.')
     parser.add_argument('--existing-records-input', action='append', type=Path, default=[])
     parser.add_argument('--existing-events-input', action='append', type=Path, default=[])
+    parser.add_argument('--intent-records-input', action='append', type=Path, default=[])
     parser.add_argument('--records-output', required=True, type=Path)
     parser.add_argument('--events-output', required=True, type=Path)
     parser.add_argument('--report-output', required=True, type=Path)
@@ -159,33 +199,41 @@ def main() -> int:
     plan = load_plan(args.plan)
     as_of = parse_as_of(args.as_of)
     start_text, end_text = plan_date_window(as_of, plan['lookback_days'])
+    directed_start_text, directed_end_text = directed_followup_date_window(as_of)
     observed_at = as_of.astimezone(timezone.utc).isoformat()
 
     failures: list[dict] = []
     existing_records = load_json_arrays(args.existing_records_input, label='existing records')
     existing_events = load_json_arrays(args.existing_events_input, label='existing events')
+    intent_records = load_json_arrays(args.intent_records_input, label='procurement intent records')
+    followup_plan = build_procurement_intent_followup_plan(intent_records, as_of=as_of)
+    directed_keywords = [
+        keyword for keyword in followup_plan['ccgp_keywords']
+        if keyword not in set(plan['keywords'])
+    ]
 
     discovered_by_url: dict[str, tuple[str, object]] = {}
     discovered_keywords: dict[str, set[str]] = {}
-    planned_discovery_queries = len(plan['keywords']) * len(plan['notice_types'])
+    base_query_count = len(plan['keywords']) * len(plan['notice_types'])
+    directed_query_count = len(directed_keywords) * len(plan['notice_types'])
+    planned_discovery_queries = base_query_count + directed_query_count
 
-    for keyword_index, keyword in enumerate(plan['keywords']):
-        candidates = discover_candidates(
+    discovery_runs: list[tuple[str, str, str]] = [
+        (keyword, start_text, end_text) for keyword in plan['keywords']
+    ] + [
+        (keyword, directed_start_text, directed_end_text) for keyword in directed_keywords
+    ]
+    for run_index, (keyword, query_start, query_end) in enumerate(discovery_runs):
+        _run_discovery_keyword(
             keyword=keyword,
-            region=plan['region'],
-            notice_types=plan['notice_types'],
-            start_date=start_text,
-            end_date=end_text,
-            delay_seconds=plan['delay_seconds'],
+            plan=plan,
+            start_date=query_start,
+            end_date=query_end,
             failures=failures,
+            discovered_by_url=discovered_by_url,
+            discovered_keywords=discovered_keywords,
         )
-        merge_discovered_candidates(
-            discovered_by_url,
-            discovered_keywords,
-            keyword=keyword,
-            candidates=candidates,
-        )
-        if keyword_index + 1 < len(plan['keywords']):
+        if run_index + 1 < len(discovery_runs):
             time.sleep(plan['delay_seconds'])
 
     discovery_failures = [item for item in failures if item.get('stage') == 'discovery_search']
@@ -261,7 +309,13 @@ def main() -> int:
         'start_date': start_text,
         'end_date': end_text,
         'keywords': plan['keywords'],
+        'directed_followup_keywords': directed_keywords,
+        'directed_followup_start_date': directed_start_text if directed_keywords else None,
+        'directed_followup_end_date': directed_end_text if directed_keywords else None,
+        'directed_followup_plan': followup_plan,
         'notice_types': plan['notice_types'],
+        'base_discovery_query_count': base_query_count,
+        'directed_discovery_query_count': directed_query_count,
         'planned_discovery_query_count': planned_discovery_queries,
         'discovery_success_count': discovery_success_count,
         'unique_discovered_candidate_count': len(discovered),
@@ -278,6 +332,9 @@ def main() -> int:
         'policy': {
             'region_locked_to_tianjin': True,
             'multi_keyword_discovery_is_deduplicated_before_detail_fetch': True,
+            'official_intent_followup_hints_are_discovery_only': True,
+            'directed_followup_lookback_days': DIRECTED_FOLLOWUP_LOOKBACK_DAYS,
+            'unsupported_followup_sources_are_reported_not_scraped': True,
             'event_watch_runs_once_after_all_keywords': True,
             'previous_canonical_state_is_preserved': True,
             'discovery_only_never_becomes_verified_without_detail': True,
@@ -294,6 +351,7 @@ def main() -> int:
 
     print(
         f"queries_ok={discovery_success_count}/{planned_discovery_queries} "
+        f"directed={directed_query_count} unsupported_followup={followup_plan['unsupported_task_count']} "
         f"unique={len(discovered)} selected={len(selected)} verified={len(new_records)} "
         f"records={len(merged_records)} watched={len(watch_projects)} "
         f"events={len(new_events)} failures={len(failures)} gate={publish_gate_reason}"
