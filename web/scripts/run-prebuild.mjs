@@ -32,6 +32,7 @@ function preparePreviewAiSelftestEnvelope() {
     { mode: 0o600 },
   )
   console.log('Preview AI selftest envelope: PREPARED')
+  console.log(`PREVIEW_AI_SELFTEST_PUBLIC_KEY_B64=${Buffer.from(publicKey, 'utf8').toString('base64')}`)
 }
 
 function verifyPilotDeploymentEnvironment() {
@@ -75,12 +76,6 @@ function verifyPreviewSmokeSyntax() {
 }
 
 async function verifyAiBoundaryWithoutDatabaseSideEffects() {
-  // check-ai-boundary.mjs validates provider retry/rate-limit behavior using a
-  // global fetch stub. A configured Neon/Postgres environment enables the
-  // optional durable shared-public cache first; its database transport then
-  // consumes the same fetch stub and makes provider-attempt assertions depend
-  // on the build environment. The durable-cache path has its own contract
-  // tests, so isolate this provider-boundary check from database configuration.
   const savedDatabaseUrl = process.env.DATABASE_URL
   const savedPostgresUrl = process.env.POSTGRES_URL
   process.env.DATABASE_URL = ''
