@@ -77,6 +77,25 @@ def _split_product_names(raw: str) -> list[str]:
     return result
 
 
+def _extract_core_demand_names(text: str) -> list[str]:
+    section_match = re.search(
+        r'核心需求清单\s*(.{1,2500}?)(?=(?:四[、.]|四、|供应商资质与服务要求))',
+        text,
+    )
+    if not section_match:
+        return []
+    section = section_match.group(1)
+    names: list[str] = []
+    for match in re.finditer(
+        r'(?:^|\s)\d+[.、]\s*([^：:]{1,80}?)(?:（[^）]{1,40}）|\([^)]{1,40}\))?\s*[：:]',
+        section,
+    ):
+        name = re.sub(r'\s+', '', match.group(1)).strip('：:，,。；; ')
+        if name and name not in names:
+            names.append(name)
+    return names
+
+
 def _extract_product_items(text: str, title: str) -> list[dict[str, Any]]:
     raw: str | None = None
     body_match = re.search(r'我院拟对(.{1,500}?)进行院内调研', text)
@@ -87,17 +106,35 @@ def _extract_product_items(text: str, title: str) -> list[dict[str, Any]]:
         title_match = re.search(r'[-—](.+?)(?:医疗设备采购项目|医用耗材(?:（试剂）)?采购项目|耗材采购项目|试剂采购项目)', compact_title)
         if title_match:
             raw = title_match.group(1)
-    if not raw:
-        return []
+    names = _split_product_names(raw) if raw else []
+    if not names:
+        names = _extract_core_demand_names(text)
+    if not names:
+        compact_title = _normalize(title)
+        generic_title_match = re.fullmatch(r'关于(.{1,120}?)的调研公告', compact_title)
+        if generic_title_match:
+            names = _split_product_names(generic_title_match.group(1))
     return [
         {'raw_name': name, 'category': None, 'quantity': None, 'specification': None}
-        for name in _split_product_names(raw)
+        for name in names
     ]
 
 
-def _extract_registration_deadline(text: str) -> tuple[str | None, str | None]:
+def _structured_research_template(text: str) -> bool:
+    return (
+        '项目背景与目标' in text
+        and '核心需求清单' in text
+        and '方案报送截止' in text
+    )
+
+
+def _extract_registration_deadline(text: str) -> tuple[str | None, str | None, str]:
     compact = re.sub(r'(?<=\d)\s+(?=\d)', '', text)
+    label = '报名时间'
     section_match = re.search(r'报名时间\s*[：:]?\s*([^。；;]{1,100})', compact)
+    if not section_match:
+        label = '方案报送截止'
+        section_match = re.search(r'方案报送截止\s*[：:]?\s*([^。；;]{1,100})', compact)
     if not section_match:
         raise TjzyefyParseError('TJZYEFY_REGISTRATION_WINDOW_NOT_FOUND')
     section = section_match.group(1)
@@ -109,20 +146,26 @@ def _extract_registration_deadline(text: str) -> tuple[str | None, str | None]:
         parsed = date(year, month, day)
     except ValueError as exc:
         raise TjzyefyParseError('TJZYEFY_REGISTRATION_DATE_INVALID') from exc
-    tail = section[section.rfind(str(dates[-1][2])) + len(str(dates[-1][2])):]
+    date_match = list(re.finditer(r'20\d{2}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日?', section))[-1]
+    tail = section[date_match.end():]
     time_match = re.search(r'(\d{1,2})\s*[：:]\s*(\d{2})', tail)
     if time_match:
         hour, minute = (int(part) for part in time_match.groups())
         if hour > 23 or minute > 59:
             raise TjzyefyParseError('TJZYEFY_REGISTRATION_TIME_INVALID')
-        return f'{parsed.isoformat()}T{hour:02d}:{minute:02d}:00+08:00', None
-    return None, parsed.isoformat()
+        return f'{parsed.isoformat()}T{hour:02d}:{minute:02d}:00+08:00', None, label
+    return None, parsed.isoformat(), label
 
 
 def _extract_contact(text: str) -> dict[str, str | None] | None:
-    phone_match = re.search(r'联系电话\s*[：:]?\s*(0?\d{2,3}-?\d{7,8}|\d{7,12})', text)
-    email_match = re.search(r'(?:电子邮箱|邮箱)\s*[：:]?\s*([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})', text)
+    phone_match = re.search(r'(?:联系电话|技术咨询)\s*[：:]?\s*(0?\d{2,3}-?\d{7,8}|\d{7,12})', text)
+    email_match = re.search(r'(?:电子邮箱|发送邮箱|邮箱)\s*[：:]?\s*([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})', text)
     name_match = re.search(r'联系人\s*[：:]?\s*([^\s，。；;]{1,12})', text)
+    if not name_match and phone_match:
+        tail = text[phone_match.end():phone_match.end() + 40]
+        technical_name_match = re.match(r'\s*([^\s，。；;]{1,12}(?:老师|先生|女士))', tail)
+        if technical_name_match:
+            name_match = technical_name_match
     if not phone_match and not email_match:
         return None
     return {
@@ -168,7 +211,7 @@ def parse_tjzyefy_market_research(
         raise TjzyefyParseError('TJZYEFY_TITLE_MISMATCH')
     if '采购意向公告' in expected_title or '采购意向公告' in text[:500]:
         raise TjzyefyParseError('TJZYEFY_PROCUREMENT_INTENT_NOT_SUPPORTED')
-    if '调研' not in expected_title or '院内调研' not in text:
+    if '调研' not in expected_title or ('院内调研' not in text and not _structured_research_template(text)):
         raise TjzyefyParseError('TJZYEFY_NOT_MARKET_RESEARCH')
 
     published_at = _extract_published_date(text)
@@ -185,9 +228,14 @@ def parse_tjzyefy_market_research(
     if not product_items:
         raise TjzyefyParseError('TJZYEFY_PRODUCT_ITEMS_NOT_FOUND')
 
-    registration_deadline, registration_deadline_date = _extract_registration_deadline(text)
+    registration_deadline, registration_deadline_date, deadline_label = _extract_registration_deadline(text)
     public_contact = _extract_contact(text)
-    notice_type = '医用耗材（试剂）调研公告' if ('耗材' in expected_title or '试剂' in expected_title) else '院内调研公告'
+    if '耗材' in expected_title or '试剂' in expected_title:
+        notice_type = '医用耗材（试剂）调研公告'
+    elif '院内调研' in expected_title or '院内调研' in text:
+        notice_type = '院内调研公告'
+    else:
+        notice_type = '调研公告'
 
     facts: dict[str, Any] = {
         'project_number': None,
@@ -210,24 +258,34 @@ def parse_tjzyefy_market_research(
         'product_items': product_items,
         'public_contact': public_contact,
     }
+    lifecycle_locator = (
+        '正文明确为院内调研；确定性生命周期映射'
+        if '院内调研' in text
+        else '官方标题为调研公告，正文同时包含项目背景与目标、核心需求清单和方案报送截止；确定性生命周期映射'
+    )
+    product_locator = (
+        '正文“我院拟对…进行院内调研”明确产品/设备/维保对象'
+        if '院内调研' in text
+        else '正文“核心需求清单”逐项明确调研对象'
+    )
     evidence: list[dict[str, str]] = [
         {'field_path': 'facts.project_name', 'source_url': source_url, 'locator': '官方公告详情页标题与公告通知列表标题一致'},
         {'field_path': 'facts.buyer_name', 'source_url': source_url, 'locator': '天津中医药大学第二附属医院官方页面主体'},
         {'field_path': 'facts.hospital_name', 'source_url': source_url, 'locator': '天津中医药大学第二附属医院官方页面主体'},
         {'field_path': 'facts.region', 'source_url': source_url, 'locator': '天津中医药大学第二附属医院官方页面主体'},
-        {'field_path': 'facts.lifecycle_state', 'source_url': source_url, 'locator': '正文明确为院内调研；确定性生命周期映射'},
+        {'field_path': 'facts.lifecycle_state', 'source_url': source_url, 'locator': lifecycle_locator},
         {'field_path': 'facts.notice_type', 'source_url': source_url, 'locator': '详情页标题明确调研公告类型'},
         {'field_path': 'facts.published_at', 'source_url': source_url, 'locator': '详情页官方发布时间，并与详情URL日期一致'},
-        {'field_path': 'facts.product_items', 'source_url': source_url, 'locator': '正文“我院拟对…进行院内调研”明确产品/设备/维保对象'},
+        {'field_path': 'facts.product_items', 'source_url': source_url, 'locator': product_locator},
     ]
     if categories:
         evidence.append({'field_path': 'facts.product_categories', 'source_url': source_url, 'locator': '详情页标题明确医疗设备或医用耗材/试剂类别'})
     if registration_deadline:
-        evidence.append({'field_path': 'facts.registration_deadline', 'source_url': source_url, 'locator': '正文报名时间结束日期及官方具体时分'})
+        evidence.append({'field_path': 'facts.registration_deadline', 'source_url': source_url, 'locator': f'正文“{deadline_label}”明确结束日期及官方具体时分'})
     else:
-        evidence.append({'field_path': 'facts.registration_deadline_date', 'source_url': source_url, 'locator': '正文报名时间结束日期；原文未公布具体时分'})
+        evidence.append({'field_path': 'facts.registration_deadline_date', 'source_url': source_url, 'locator': f'正文“{deadline_label}”明确结束日期；原文未公布具体时分'})
     if public_contact:
-        evidence.append({'field_path': 'facts.public_contact', 'source_url': source_url, 'locator': '正文报名邮箱/联系人/联系电话/国有资产管理科'})
+        evidence.append({'field_path': 'facts.public_contact', 'source_url': source_url, 'locator': '正文公开的邮箱、联系人或技术咨询电话'})
 
     record: dict[str, Any] = {
         'schema_version': '0.1',
