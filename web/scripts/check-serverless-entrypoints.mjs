@@ -31,6 +31,31 @@ for (const path of files.filter((item) => item.endsWith('.js'))) {
   }
 }
 
+const authContract = spawnSync(
+  process.execPath,
+  [
+    '--input-type=module',
+    '--eval',
+    `
+      const auth = await import('./api/_auth.js')
+      if (auth.normalizeInviteCode('ab12cd') !== 'AB12CD') throw new Error('SHORT_INVITE_NORMALIZATION_FAILED')
+      if (auth.normalizeInviteCode('AB12CD34') !== 'AB12CD34') throw new Error('SHORT_INVITE_8_INVALID')
+      if (auth.normalizeInviteCode('ABCDE') !== null) throw new Error('SHORT_INVITE_TOO_SHORT_ACCEPTED')
+      if (auth.normalizeInviteCode('ABCDEFGHI') !== null) throw new Error('SHORT_INVITE_TOO_LONG_ACCEPTED')
+      await import('./api/auth.js')
+    `,
+  ],
+  {
+    cwd: webRoot,
+    stdio: 'inherit',
+    env: process.env,
+  },
+)
+if (authContract.error) throw authContract.error
+if (authContract.status !== 0) {
+  throw new Error(`SERVERLESS_AUTH_MODULE_CONTRACT_INVALID:exit_${authContract.status}`)
+}
+
 const deployable = files
   .filter((path) => path.endsWith('.js') || path.endsWith('.py'))
   .map((path) => relative(apiRoot, path))

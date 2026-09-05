@@ -29,6 +29,11 @@ function authMessage(error: unknown): string {
   }
 }
 
+function validInviteFormat(value: string): boolean {
+  const trimmed = value.trim()
+  return /^[A-Za-z0-9]{6,8}$/.test(trimmed) || (trimmed.length >= 24 && trimmed.length <= 512)
+}
+
 export function LoginPage() {
   const navigate = useNavigate()
   const [mode, setMode] = useState<Mode>('login')
@@ -65,8 +70,8 @@ export function LoginPage() {
       return
     }
     if (mode === 'register') {
-      if (inviteCode.trim().length < 24) {
-        setError('邀请码格式不正确。')
+      if (!validInviteFormat(inviteCode)) {
+        setError('邀请码应为 6～8 位字母或数字。')
         return
       }
       if (password !== confirmPassword) {
@@ -153,14 +158,17 @@ export function LoginPage() {
             <label className="block text-sm font-medium text-slate-700">
               邀请码
               <input
-                type="password"
+                type="text"
                 value={inviteCode}
                 onChange={(event) => setInviteCode(event.target.value)}
                 autoComplete="one-time-code"
+                autoCapitalize="characters"
                 spellCheck={false}
-                placeholder="粘贴管理员提供的一次性邀请码"
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-100"
+                maxLength={512}
+                placeholder="6～8 位字母或数字"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm uppercase tracking-wider text-slate-900 outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-100"
               />
+              <span className="mt-1 block text-xs font-normal text-slate-400">管理员默认提供 8 位一次性邀请码。</span>
             </label>
           ) : null}
 

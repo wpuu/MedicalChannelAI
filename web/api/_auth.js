@@ -12,6 +12,7 @@ const scrypt = promisify(scryptCallback)
 const SESSION_COOKIE = 'medopp_session'
 const SESSION_DAYS = 30
 const SESSION_TOUCH_INTERVAL_MS = 10 * 60 * 1000
+const SHORT_INVITE_RE = /^[A-Za-z0-9]{6,8}$/
 
 export function sendJson(response, status, payload) {
   response.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -50,6 +51,13 @@ export function validatePassword(value) {
 
 export function sha256(value) {
   return createHash('sha256').update(String(value), 'utf8').digest('hex')
+}
+
+export function normalizeInviteCode(value) {
+  const text = String(value || '').trim()
+  if (SHORT_INVITE_RE.test(text)) return text.toUpperCase()
+  if (text.length >= 24 && text.length <= 512) return text
+  return null
 }
 
 export async function hashPassword(password) {
@@ -192,8 +200,8 @@ export async function authenticatedUser(request) {
 export function bootstrapInviteHashes() {
   return String(process.env.PILOT_INVITE_CODES || '')
     .split(/[\n,;]+/)
-    .map((value) => value.trim())
-    .filter((value) => value.length >= 24)
+    .map(normalizeInviteCode)
+    .filter(Boolean)
     .map(sha256)
 }
 
@@ -207,14 +215,12 @@ export async function registerUserWithInvite({ inviteCode, username, password })
   await ensurePrivateSchema()
   const normalizedUsername = normalizeUsername(username)
   const validPassword = validatePassword(password)
-  const trimmedInvite = String(inviteCode || '').trim()
+  const normalizedInvite = normalizeInviteCode(inviteCode)
   if (!normalizedUsername) throw new Error('USERNAME_INVALID')
   if (!validPassword) throw new Error('PASSWORD_INVALID')
-  if (trimmedInvite.length < 24 || trimmedInvite.length > 512) {
-    throw new Error('INVITE_INVALID_OR_EXPIRED')
-  }
+  if (!normalizedInvite) throw new Error('INVITE_INVALID_OR_EXPIRED')
 
-  const inviteHash = sha256(trimmedInvite)
+  const inviteHash = sha256(normalizedInvite)
   const bootstrapAllowed = bootstrapInviteHashes().includes(inviteHash)
   const passwordRecord = await hashPassword(validPassword)
   const sql = privateDb()
