@@ -1,0 +1,31 @@
+{
+  "schema_version": "0.1",
+  "observed_at": "2026-09-05T17:02:46.269508+00:00",
+  "source": "TJZXFC_OFFICIAL_MARKET_RESEARCH",
+  "index_url": "https://www.tjzxfc.cn/ywgk/zbgg/index.shtml",
+  "start_date": "2026-08-08",
+  "end_date": "2026-09-06",
+  "discovered_early_signal_count": 0,
+  "selected_candidate_count": 0,
+  "new_verified_record_count": 0,
+  "unsupported_non_medical_count": 0,
+  "unsupported": [],
+  "failure_count": 0,
+  "failures": [],
+  "unresolved_failure_count": 0,
+  "unresolved_failure_opportunity_ids": [],
+  "merged_record_count": 0,
+  "publish_allowed": true,
+  "publish_gate_reason": "PASS",
+  "policy": {
+    "official_index_required": true,
+    "broad_market_research_discovery_then_strict_medical_detail_scope": true,
+    "non_medical_market_research_is_unsupported_not_failure": true,
+    "title_and_publication_date_must_match_official_detail": true,
+    "deadline_time_never_invented": true,
+    "failed_detail_never_replaces_existing_verified_record": true,
+    "minimum_detail_delay_seconds": 3.0,
+    "fetch_attempts": 2,
+    "intraday_scheduler_enabled": false
+  }
+}
