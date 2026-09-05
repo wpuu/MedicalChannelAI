@@ -33,6 +33,7 @@ from sync_ccgp_query import (  # noqa: E402
 )
 
 DEFAULT_PLAN = PIPELINE_ROOT / 'data' / 'tianjin_query_plan.json'
+DEFAULT_INTENT_RECORDS = PIPELINE_ROOT / 'data' / 'tianjin_live_tjzyefy_intent_records.json'
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 PILOT_REGION = '天津'
 DIRECTED_FOLLOWUP_LOOKBACK_DAYS = 45
@@ -190,7 +191,12 @@ def main() -> int:
     parser.add_argument('--as-of', default=None, help='Optional ISO-8601 timestamp with timezone; defaults to now.')
     parser.add_argument('--existing-records-input', action='append', type=Path, default=[])
     parser.add_argument('--existing-events-input', action='append', type=Path, default=[])
-    parser.add_argument('--intent-records-input', action='append', type=Path, default=[])
+    parser.add_argument(
+        '--intent-records-input',
+        action='append',
+        type=Path,
+        default=[DEFAULT_INTENT_RECORDS] if DEFAULT_INTENT_RECORDS.exists() else [],
+    )
     parser.add_argument('--records-output', required=True, type=Path)
     parser.add_argument('--events-output', required=True, type=Path)
     parser.add_argument('--report-output', required=True, type=Path)
@@ -207,9 +213,10 @@ def main() -> int:
     existing_events = load_json_arrays(args.existing_events_input, label='existing events')
     intent_records = load_json_arrays(args.intent_records_input, label='procurement intent records')
     followup_plan = build_procurement_intent_followup_plan(intent_records, as_of=as_of)
+    base_keyword_set = set(plan['keywords'])
     directed_keywords = [
         keyword for keyword in followup_plan['ccgp_keywords']
-        if keyword not in set(plan['keywords'])
+        if keyword not in base_keyword_set
     ]
 
     discovered_by_url: dict[str, tuple[str, object]] = {}
