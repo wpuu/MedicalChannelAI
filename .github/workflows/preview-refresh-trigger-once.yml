@@ -1,4 +1,4 @@
-name: Preview TJZYEFY Diagnostic Once
+name: Preview TJZYEFY Parser Acceptance Once
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  diagnose:
+  accept:
     runs-on:
       - self-hosted
       - linux
@@ -23,7 +23,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run bounded TJZYEFY diagnostic
+      - name: Run focused TJZYEFY parser tests
+        working-directory: web/pipeline
+        run: python3 -m unittest discover -s tests -p 'test_tjzyefy*.py' -v
+
+      - name: Run bounded live TJZYEFY acceptance
         id: probe
         shell: bash
         run: |
@@ -54,14 +58,15 @@ jobs:
           cat diagnostics/tjzyefy-report.json || true
           exit 0
 
-      - name: Upload diagnostic evidence
+      - name: Upload acceptance evidence
         uses: actions/upload-artifact@v4
         with:
-          name: tjzyefy-diagnostic-${{ github.run_id }}
+          name: tjzyefy-parser-acceptance-${{ github.run_id }}
           path: diagnostics/
           if-no-files-found: error
 
-      - name: Report diagnostic source exit code
+      - name: Require live source gate pass
         shell: bash
         run: |
-          echo "TJZYEFY diagnostic source exit code: ${{ steps.probe.outputs.exit_code }}"
+          echo "TJZYEFY live source exit code: ${{ steps.probe.outputs.exit_code }}"
+          test "${{ steps.probe.outputs.exit_code }}" = "0"
