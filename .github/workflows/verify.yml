@@ -50,6 +50,7 @@ jobs:
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo "full=true" >> "$GITHUB_OUTPUT"
             echo "live_intent=false" >> "$GITHUB_OUTPUT"
+            echo "live_ceb=false" >> "$GITHUB_OUTPUT"
             echo "Full Verify requested by workflow_dispatch"
             exit 0
           fi
@@ -75,6 +76,13 @@ jobs:
             echo "Read-only live procurement-intent probe requested by commit marker"
           else
             echo "live_intent=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [[ "$COMMIT_MESSAGE" == *"[live-ceb-probe]"* ]]; then
+            echo "live_ceb=true" >> "$GITHUB_OUTPUT"
+            echo "Read-only live CEB official-search probe requested by commit marker"
+          else
+            echo "live_ceb=false" >> "$GITHUB_OUTPUT"
           fi
 
           if [[ "$COMMIT_MESSAGE" == *"[full-verify]"* ]]; then
@@ -190,6 +198,14 @@ jobs:
           # mutate tracked medical data, create a deployment, or write back.
           cmp "$probe_dir/before.sha256" "$probe_dir/after.sha256"
           echo "Read-only live procurement-intent probe: PASS"
+
+      - name: Run read-only live CEB official-search probe
+        if: steps.verify_mode.outputs.live_ceb == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/probe_ceb_official_search.py
+          echo "Read-only live CEB official-search probe: COMPLETE"
 
       - name: Install web dependencies
         if: steps.verify_mode.outputs.full == 'true'
