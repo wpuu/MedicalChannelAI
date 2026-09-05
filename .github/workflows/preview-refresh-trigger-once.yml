@@ -1,4 +1,4 @@
-name: Preview Verified Refresh Artifact Once
+name: Preview Verified Refresh Persist Once
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - .github/workflows/preview-refresh-trigger-once.yml
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: preview-verified-refresh-once
@@ -204,35 +204,106 @@ jobs:
         working-directory: web/pipeline
         run: python3 -m unittest discover -s tests -v
 
-      - name: Stage verified refresh artifact
+      - name: Persist verified refresh atomically to Preview branch
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+          TARGET_BRANCH: chatgpt/preview-54495b1
         run: |
           set -euo pipefail
-          mkdir -p verified-refresh/web/pipeline/data verified-refresh/web/public/data
-          cp web/pipeline/data/tianjin_live_ccgp_records.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_live_tjmugh_records.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_live_tjnothop_records.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_live_tjzxfc_records.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_live_tjzyefy_records.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_live_tjzyefy_intent_records.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_live_teda_records.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_live_tjfch_records.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_notice_events.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_sync_report.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_tjmugh_sync_report.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_nothop_sync_report.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_tjzxfc_sync_report.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_tjzyefy_sync_report.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_teda_sync_report.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_tjfch_sync_report.json verified-refresh/web/pipeline/data/
-          cp web/pipeline/data/tianjin_tjfch_test_sync_report.json verified-refresh/web/pipeline/data/
-          cp web/public/data/today-actions.public.json verified-refresh/web/public/data/
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
 
-      - name: Upload verified refresh artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: verified-preview-refresh-${{ github.run_id }}
-          path: verified-refresh/
-          if-no-files-found: error
-          retention-days: 1
+          token = os.environ['GH_TOKEN']
+          repo = os.environ['REPOSITORY']
+          expected_head = os.environ['EXPECTED_HEAD']
+          branch = os.environ['TARGET_BRANCH']
+          api = f'https://api.github.com/repos/{repo}'
+
+          paths = [
+              'web/pipeline/data/tianjin_live_ccgp_records.json',
+              'web/pipeline/data/tianjin_live_tjmugh_records.json',
+              'web/pipeline/data/tianjin_live_tjnothop_records.json',
+              'web/pipeline/data/tianjin_live_tjzxfc_records.json',
+              'web/pipeline/data/tianjin_live_tjzyefy_records.json',
+              'web/pipeline/data/tianjin_live_tjzyefy_intent_records.json',
+              'web/pipeline/data/tianjin_live_teda_records.json',
+              'web/pipeline/data/tianjin_live_tjfch_records.json',
+              'web/pipeline/data/tianjin_notice_events.json',
+              'web/pipeline/data/tianjin_sync_report.json',
+              'web/pipeline/data/tianjin_tjmugh_sync_report.json',
+              'web/pipeline/data/tianjin_tjnothop_sync_report.json',
+              'web/pipeline/data/tianjin_tjzxfc_sync_report.json',
+              'web/pipeline/data/tianjin_tjzyefy_sync_report.json',
+              'web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json',
+              'web/pipeline/data/tianjin_teda_sync_report.json',
+              'web/pipeline/data/tianjin_tjfch_sync_report.json',
+              'web/pipeline/data/tianjin_tjfch_test_sync_report.json',
+              'web/public/data/today-actions.public.json',
+          ]
+
+          missing = [p for p in paths if not Path(p).is_file()]
+          if missing:
+              raise SystemExit(f'Missing verified outputs: {missing}')
+
+          def request(method, url, payload=None):
+              data = None if payload is None else json.dumps(payload).encode('utf-8')
+              req = urllib.request.Request(
+                  url,
+                  data=data,
+                  method=method,
+                  headers={
+                      'Authorization': f'Bearer {token}',
+                      'Accept': 'application/vnd.github+json',
+                      'X-GitHub-Api-Version': '2022-11-28',
+                      'User-Agent': 'medicalchannel-preview-refresh',
+                      'Content-Type': 'application/json',
+                  },
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as resp:
+                      body = resp.read().decode('utf-8')
+                      return json.loads(body) if body else {}
+              except urllib.error.HTTPError as exc:
+                  body = exc.read().decode('utf-8', errors='replace')
+                  raise RuntimeError(f'GitHub API {exc.code}: {body[:1000]}') from exc
+
+          ref_path = urllib.parse.quote(f'heads/{branch}', safe='/')
+          ref = request('GET', f'{api}/git/ref/{ref_path}')
+          current_head = ref['object']['sha']
+          if current_head != expected_head:
+              raise SystemExit(
+                  f'Preview branch moved during verification: expected {expected_head}, got {current_head}'
+              )
+
+          base_commit = request('GET', f'{api}/git/commits/{expected_head}')
+          tree_entries = []
+          for path in paths:
+              content = Path(path).read_text(encoding='utf-8')
+              blob = request('POST', f'{api}/git/blobs', {'content': content, 'encoding': 'utf-8'})
+              tree_entries.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+
+          tree = request(
+              'POST',
+              f'{api}/git/trees',
+              {'base_tree': base_commit['tree']['sha'], 'tree': tree_entries},
+          )
+          commit = request(
+              'POST',
+              f'{api}/git/commits',
+              {
+                  'message': 'data: refresh Tianjin verified opportunities [preview]',
+                  'tree': tree['sha'],
+                  'parents': [expected_head],
+              },
+          )
+          request('PATCH', f'{api}/git/refs/{ref_path}', {'sha': commit['sha'], 'force': False})
+          print(f"Persisted 19 verified files atomically at {commit['sha']}")
+          PY
