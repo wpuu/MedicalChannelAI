@@ -1,0 +1,46 @@
+name: Preview Browser Runtime Dependencies Once
+
+on:
+  push:
+    branches:
+      - chatgpt/preview-54495b1
+    paths:
+      - .github/workflows/preview-browser-deps-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  deps:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 10
+    steps:
+      - name: Install Chromium runtime libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n apt-get update
+          sudo -n apt-get install -y \
+            libnspr4 \
+            libnss3 \
+            libatk1.0-0t64 \
+            libatk-bridge2.0-0t64 \
+            libcups2t64 \
+            libxcb1 \
+            libxkbcommon0 \
+            libatspi2.0-0t64 \
+            libx11-6 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxext6 \
+            libxfixes3 \
+            libxrandr2 \
+            libgbm1 \
+            libcairo2 \
+            libpango-1.0-0 \
+            libasound2t64
+          echo CHROMIUM_RUNTIME_DEPS_READY
