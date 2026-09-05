@@ -125,14 +125,16 @@ def _extract_official_followup_sources(text: str) -> list[str]:
     # Only trust a platform reference when it is bound to the hospital's
     # explicit project-specific follow-up sentence. A platform name elsewhere
     # in navigation/footer text is not a procurement-source instruction.
-    # The hospital currently uses both “请关注” and “请于近期关注”.
+    # The hospital currently uses both “请关注” and “请于近期关注”, and its page
+    # body can split that sentence across line breaks inside one paragraph.
+    compact_text = _normalize(text)
     match = re.search(
-        r'本项目具体招标信息请(?:于近期)?关注\s*[：:]?\s*(.{1,220}?)(?=联系电话|联系人|$)',
-        text,
+        r'本项目具体招标信息请(?:于近期)?关注[：:]?(.{1,220}?)(?=联系电话|联系人|$)',
+        compact_text,
     )
     if not match:
         return []
-    instruction = _normalize(match.group(1)).lower()
+    instruction = match.group(1).lower()
     result: list[str] = []
     if '中国招标投标公共服务平台' in instruction or 'cebpubservice.com' in instruction:
         result.append(OFFICIAL_FOLLOWUP_SOURCE_CEB)
@@ -141,6 +143,7 @@ def _extract_official_followup_sources(text: str) -> list[str]:
         or '天津市政采中心' in instruction
         or '天津市政府采购中心' in instruction
         or 'tjgpc.zwfwb.tj.gov.cn' in instruction
+        or 'tjgp.cz.tj.gov.cn' in instruction
     ):
         result.append(OFFICIAL_FOLLOWUP_SOURCE_TIANJIN_GPC)
     return result
