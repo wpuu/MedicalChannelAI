@@ -1,6 +1,8 @@
 const INTERNAL_FIELD_RE = /\b[a-z][a-z0-9]*_[a-z0-9_]+\b/i
 const INTERNAL_ENUM_RE = /\b(?:OPEN|BIDDING|PARTIAL|VERIFIED|LATE_WINDOW|RELATIVE_WINDOW|CLOSED|AWAITING_MODEL|NOT_ELIGIBLE|BLOCKED_GROUNDING)\b/i
 const UNSUPPORTED_CHANGE_INFERENCE_RE = /(?:参数|评分标准|采购要求).{0,24}(?:后续|可能|存在).{0,16}(?:调整|变更|修改)|(?:可能|存在).{0,16}(?:补充通知|更正公告|参数调整|评分标准调整)/
+const UNSUPPORTED_CONTACT_OUTCOME_RE = /(?:联系|致电|沟通|询问|咨询).{0,16}(?:可|可以|能够|能).{0,10}(?:获取|获得|拿到|得到).{0,10}(?:完整|全部|全面).{0,10}(?:需求|参数|信息|资料)/
+const UNSUPPORTED_ABSENCE_INFERENCE_RE = /(?:暂无|没有|缺乏|不存在)(?:该院|该医院|医院).{0,24}(?:既往采购规律|既往采购数据|采购规律|竞争格局|竞争情况|历史数据)/
 const CONCRETE_DATE_OR_TIME_RE = /(?:20\d{2}[年\/-]\d{1,2}(?:[月\/-]\d{1,2}日?)?|\d{1,2}月\d{1,2}日|\d{1,2}:\d{2})/
 const RELATIVE_DEADLINE_ASSERTION_RE = /(?:截止|截至|截止日|截止时间|官方截止|前完成报名|前报名|之前报名)/
 const RELATIVE_WINDOW_FLAG = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
@@ -28,6 +30,10 @@ function invalid(code) {
 
 function userVisibleTextIsClean(value) {
   return !INTERNAL_FIELD_RE.test(value) && !INTERNAL_ENUM_RE.test(value) && !UNSUPPORTED_CHANGE_INFERENCE_RE.test(value)
+}
+
+function userVisibleTextIsGrounded(value) {
+  return !UNSUPPORTED_CONTACT_OUTCOME_RE.test(value) && !UNSUPPORTED_ABSENCE_INFERENCE_RE.test(value)
 }
 
 function relativeWindowTextIsGrounded(value) {
@@ -59,6 +65,7 @@ export function parseDecisionContent(rawText, constraints = {}) {
 
   for (const visible of [action, ...reasons, ...risks]) {
     if (!userVisibleTextIsClean(visible)) throw invalid('AI_DECISION_INTERNAL_LANGUAGE')
+    if (!userVisibleTextIsGrounded(visible)) throw invalid('AI_DECISION_UNGROUNDED_ASSERTION')
     if (constraints.relativeRegistrationWindow === true && !relativeWindowTextIsGrounded(visible)) {
       throw invalid('AI_DECISION_RELATIVE_WINDOW_DEADLINE_INVENTED')
     }
@@ -129,6 +136,8 @@ export function buildDecisionMessages(facts, evidenceUrls, customerContext, wind
         '只有输入事实明确提供更正、终止或其他变化证据时，才能陈述相应变化；否则只能建议“核实官方附件/后续公告”。',
         '官方只公布截止日期而没有具体时刻时，不得推测成 00:00、17:00、23:59 等具体时间。',
         '官方若只公布“自公告发布之日起若干天”的相对报名窗口，不得把系统内部用于排序或过期判断的推算日期、时刻写成官方截止事实。',
+        '建议联系公告公开联系人时，只能写成“向公开联系人核实/询问某项信息”这类行动建议；除非输入事实明确支持，不得声称联系、致电或沟通后可获得完整需求、全部参数、内部信息或其他确定结果。',
+        '客户自有信息缺失只能表述为“当前输入未提供相关客户自有信息、既往经营信息或竞争情况”；不得据此声称该医院不存在、暂无或缺乏既往采购规律、历史数据、竞争格局。',
         '客户自有信息如果存在，是用户自己提供的业务资源，不是医院官方事实；只能按“用户自述/客户自有信息”使用。',
         '“用户重点关注医院”只表示用户主动想监控、开发或经营该医院，不代表已经认识院内人员、不代表存在渠道关系，也绝不能当作医院关系强度、内部可达性或中标优势。',
         '只有“用户自述医院关系”中明确提供的关系，才能作为已有医院关系使用；重点关注医院即使完全没有关系也属于正常状态。',
