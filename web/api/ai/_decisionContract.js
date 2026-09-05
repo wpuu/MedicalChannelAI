@@ -43,14 +43,19 @@ function hasPublicContact(facts) {
   return Boolean(text(contact?.name, 150) || text(contact?.phone, 100) || text(contact?.email, 200))
 }
 
-function hasCustomerContext(context) {
+function hasConfirmedExecutionContext(context) {
   const root = asObject(context)
   if (!root) return false
-  if (asObject(root.target_hospital)?.watched_by_customer === true) return true
-  if (asObject(root.hospital_relationship)) return true
+  const relationship = asObject(root.hospital_relationship)
+  if (
+    relationship &&
+    [relationship.hospital, relationship.department, relationship.relationship_strength].some((value) => text(value, 300))
+  ) {
+    return true
+  }
   if (Array.isArray(root.matching_product_capabilities) && root.matching_product_capabilities.length > 0) return true
   const policy = asObject(root.partnering_policy)
-  return Boolean(policy && Object.values(policy).some((value) => value !== null && value !== undefined))
+  return Boolean(policy && Object.values(policy).some((value) => value === true))
 }
 
 function allowedActionCodes(facts, evidenceUrls, customerContext, windowStatus) {
@@ -66,7 +71,7 @@ function allowedActionCodes(facts, evidenceUrls, customerContext, windowStatus) 
     allowed.add('CONFIRM_RELATIVE_WINDOW')
   }
   if (windowStatus === 'LATE_WINDOW') allowed.add('CHECK_LATE_WINDOW_OPTIONS')
-  if (hasCustomerContext(customerContext)) allowed.add('MATCH_CONFIRMED_RESOURCES')
+  if (hasConfirmedExecutionContext(customerContext)) allowed.add('MATCH_CONFIRMED_RESOURCES')
   return allowed
 }
 
@@ -173,8 +178,8 @@ function renderRisks(facts, customerContext, windowStatus, actionCodes) {
   if (actionCodes.includes('CONTACT_PUBLIC_CONTACT')) {
     risks.push('与公开联系人沟通后的实际回复未知，只有对方明确答复才能记录为事实。')
   }
-  if (!hasCustomerContext(customerContext)) {
-    risks.push('当前输入未提供与本机会相关的客户自有关系、产品能力或竞争情况；不能据此推断医院实际情况。')
+  if (!hasConfirmedExecutionContext(customerContext)) {
+    risks.push('当前输入未提供与本机会相关的已确认关系或产品执行能力；重点关注对象不能据此视为已有关系，也不能推断医院竞争情况。')
   }
   if (windowStatus === 'RELATIVE_WINDOW') {
     risks.push('官方只给出相对窗口，未公布精确截止日期或时刻；内部推算时间不得对外表述为官方事实。')
@@ -217,8 +222,11 @@ export function parseDecisionContent(rawText, constraints = {}) {
   const windowStatus = text(constraints.windowStatus, 40)
   if (!windowStatus) throw invalid('AI_DECISION_CONTEXT_MISSING')
 
+  if (!Array.isArray(value.action_codes) || value.action_codes.length < 1 || value.action_codes.length > 3) {
+    throw invalid('AI_DECISION_INVALID')
+  }
   const actionCodes = cleanList(value.action_codes, 3, 60)
-  if (actionCodes.length === 0) throw invalid('AI_DECISION_INVALID')
+  if (actionCodes.length !== value.action_codes.length) throw invalid('AI_DECISION_INVALID')
   if (new Set(actionCodes).size !== actionCodes.length) throw invalid('AI_DECISION_DUPLICATE_ACTION')
 
   const allowed = allowedActionCodes(facts, evidenceUrls, customerContext, windowStatus)
