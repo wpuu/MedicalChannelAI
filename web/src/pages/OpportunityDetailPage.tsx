@@ -205,9 +205,6 @@ export function OpportunityDetailPage() {
     setAiBusy(true)
     try {
       const decision = await requestAiDecision(card)
-      setRuntimeStatus((current) =>
-        current ? { ...current, ai: { configured: true } } : current,
-      )
       setCard({
         ...card,
         model_decision_status: 'READY',
