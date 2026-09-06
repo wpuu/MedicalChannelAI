@@ -30,13 +30,16 @@ class TargetHospitalContextTests(unittest.TestCase):
         self.assertIn("privateTotal > 0 || hasTargetFocus ? 'MATCHED_PERSONALIZED'", source)
         self.assertIn('target_hospital:', source)
 
-    def test_ai_prompt_explicitly_forbids_treating_target_as_relationship(self):
+    def test_ai_contract_requires_confirmed_execution_context_for_resource_action(self):
         core = (WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js').read_text(encoding='utf-8')
         contract = (WEB_ROOT / 'api' / 'ai' / '_decisionContract.js').read_text(encoding='utf-8')
         self.assertIn('target_hospital: hasTarget ? sanitizedTarget : null', core)
-        self.assertIn('用户重点关注医院', contract)
-        self.assertIn('不代表已经认识院内人员', contract)
-        self.assertIn('重点关注绝不能冒充已有关系', contract)
+        self.assertIn('function hasConfirmedExecutionContext(context)', contract)
+        self.assertIn('root.hospital_relationship', contract)
+        self.assertIn('root.matching_product_capabilities', contract)
+        self.assertIn("if (hasConfirmedExecutionContext(customerContext)) allowed.add('MATCH_CONFIRMED_RESOURCES')", contract)
+        self.assertIn('不把重点关注对象当作已有关系', contract)
+        self.assertNotIn("asObject(root.target_hospital)?.watched_by_customer === true) return true", contract)
 
     def test_trial_ai_keeps_target_focus_as_context_without_affecting_score(self):
         source = (WEB_ROOT / 'src' / 'services' / 'aiDecisionApi.ts').read_text(encoding='utf-8')
