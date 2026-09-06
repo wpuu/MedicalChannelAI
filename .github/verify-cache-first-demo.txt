@@ -1,2 +1,0 @@
-Full verification marker for cache-first grounded AI demo path.
-No Production deployment requested.
