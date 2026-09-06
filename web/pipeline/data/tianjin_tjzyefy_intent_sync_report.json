@@ -1,37 +1,18 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-04T15:19:41.874251+00:00",
+  "observed_at": "2026-09-05T17:02:46.269508+00:00",
   "source": "TJZYEFY_OFFICIAL_PROCUREMENT_INTENT",
   "index_url": "https://www.tjzyefy.com/xwgg/ggtz/",
   "requested_lookback_days": 30,
-  "effective_lookback_days": 60,
-  "bootstrap_backfill_applied": true,
-  "start_date": "2026-07-07",
-  "end_date": "2026-09-04",
+  "effective_lookback_days": 30,
+  "bootstrap_backfill_applied": false,
+  "start_date": "2026-08-08",
+  "end_date": "2026-09-06",
   "discovered_intent_count": 7,
-  "selected_candidate_count": 7,
-  "new_verified_record_count": 4,
-  "unsupported_non_medical_count": 3,
-  "unsupported": [
-    {
-      "opportunity_id": "tjzyefy_intent_20260804_030195990",
-      "title": "采购意向公告（2026年46号）-2026年国庆中秋双节慰问品提货券采购项目",
-      "url": "https://www.tjzyefy.com/system/2026/08/04/030195990.shtml",
-      "reason": "TJZYEFY_INTENT_NON_MEDICAL"
-    },
-    {
-      "opportunity_id": "tjzyefy_intent_20260804_030195989",
-      "title": "采购意向公告（2026年45号）-二层儿科训练室装修改造工程项目",
-      "url": "https://www.tjzyefy.com/system/2026/08/04/030195989.shtml",
-      "reason": "TJZYEFY_INTENT_NON_MEDICAL"
-    },
-    {
-      "opportunity_id": "tjzyefy_intent_20260804_030195987",
-      "title": "采购意向公告（2026年43号）-安保服务项目",
-      "url": "https://www.tjzyefy.com/system/2026/08/04/030195987.shtml",
-      "reason": "TJZYEFY_INTENT_NON_MEDICAL"
-    }
-  ],
+  "selected_candidate_count": 0,
+  "new_verified_record_count": 0,
+  "unsupported_non_medical_count": 0,
+  "unsupported": [],
   "failure_count": 0,
   "failures": [],
   "unresolved_failure_count": 0,

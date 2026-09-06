@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-03T05:31:21.991132+00:00",
+  "observed_at": "2026-09-05T17:02:46.269508+00:00",
   "region": "天津",
-  "start_date": "2026-09-01",
-  "end_date": "2026-09-03",
+  "start_date": "2026-09-04",
+  "end_date": "2026-09-06",
   "keywords": [
     "医院",
     "医疗",
@@ -11,26 +11,91 @@
     "疾病预防控制",
     "卫生健康"
   ],
+  "directed_followup_keywords": [],
+  "directed_followup_start_date": null,
+  "directed_followup_end_date": null,
+  "directed_followup_plan": {
+    "schema_version": "0.1",
+    "tasks": [],
+    "ccgp_keywords": [],
+    "task_count": 0,
+    "ready_task_count": 0,
+    "unsupported_task_count": 0,
+    "policy": {
+      "verified_procurement_intent_only": true,
+      "official_followup_source_flag_required": true,
+      "maximum_intent_age_days": 120,
+      "maximum_tasks": 6,
+      "maximum_ccgp_keywords": 4,
+      "tianjin_gpc_routes_to_existing_ccgp_discovery_only": true,
+      "ceb_has_no_verified_adapter_yet": true,
+      "task_is_discovery_hint_not_fact_evidence": true,
+      "task_never_creates_lineage_or_crm_state": true,
+      "no_followup_url_is_invented": true
+    }
+  },
   "notice_types": [
     "公开招标",
     "竞争性磋商"
   ],
+  "base_discovery_query_count": 10,
+  "directed_discovery_query_count": 0,
   "planned_discovery_query_count": 10,
   "discovery_success_count": 10,
-  "unique_discovered_candidate_count": 20,
+  "unique_discovered_candidate_count": 18,
   "selected_candidate_count": 12,
-  "new_verified_record_count": 12,
-  "merged_record_count": 24,
-  "event_watch_project_count": 17,
+  "new_verified_record_count": 11,
+  "merged_record_count": 35,
+  "event_watch_project_count": 22,
   "new_notice_event_count": 0,
   "merged_event_count": 0,
-  "failure_count": 0,
-  "failures": [],
+  "failure_count": 4,
+  "failures": [
+    {
+      "stage": "verified_detail",
+      "region": "天津",
+      "notice_type": "公开招标",
+      "keywords": [
+        "医院"
+      ],
+      "title": "中国医学科学院血液病医院（中国医学科学院血液学研究所）办公用品、日用百货配送服务项目（项目编号：HFZX-2026-188）公开招标公告",
+      "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260904_27268325.htm",
+      "error": "CcgpDetailParseError",
+      "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+    },
+    {
+      "stage": "event_search",
+      "region": "天津",
+      "project_number": "TGPC-2026-A-0276",
+      "notice_type": "终止公告",
+      "error": "TimeoutError",
+      "message": "The read operation timed out"
+    },
+    {
+      "stage": "event_search",
+      "region": "天津",
+      "project_number": "XCSD-2026-A-589",
+      "notice_type": "更正公告",
+      "error": "TimeoutError",
+      "message": "The read operation timed out"
+    },
+    {
+      "stage": "event_search",
+      "region": "天津",
+      "project_number": "XCSD-2026-A-641",
+      "notice_type": "更正公告",
+      "error": "TimeoutError",
+      "message": "The read operation timed out"
+    }
+  ],
   "publish_allowed": true,
   "publish_gate_reason": "PASS",
   "policy": {
     "region_locked_to_tianjin": true,
     "multi_keyword_discovery_is_deduplicated_before_detail_fetch": true,
+    "official_intent_followup_hints_are_discovery_only": true,
+    "directed_followup_lookback_days": 45,
+    "unsupported_followup_sources_are_reported_not_scraped": true,
     "event_watch_runs_once_after_all_keywords": true,
     "previous_canonical_state_is_preserved": true,
     "discovery_only_never_becomes_verified_without_detail": true,

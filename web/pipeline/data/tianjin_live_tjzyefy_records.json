@@ -1,0 +1,306 @@
+[
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "tjzyefy_20260902_030197669",
+    "source": {
+      "source_id": "tjzyefy:tjzyefy_20260902_030197669",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+      "observed_at": "2026-09-05T17:02:46.269508+00:00"
+    },
+    "facts": {
+      "project_number": null,
+      "project_name": "天津中医药大学第二附属医院AI全自动菌落计数与药敏分析仪和薄层色谱成像仪采购项目调研公告",
+      "buyer_name": "天津中医药大学第二附属医院",
+      "hospital_name": "天津中医药大学第二附属医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "MARKET_RESEARCH",
+      "notice_type": "院内调研公告",
+      "published_at": "2026-09-02",
+      "registration_deadline": "2026-09-08T17:00:00+08:00",
+      "registration_deadline_date": null,
+      "bid_deadline": null,
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": null,
+      "procurement_method": null,
+      "product_categories": [],
+      "product_items": [
+        {
+          "raw_name": "AI全自动菌落计数与药敏分析仪和薄层色谱成像仪进行招标。现",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "public_contact": {
+        "name": "-联系电话”",
+        "title": null,
+        "phone": "13302121889",
+        "email": null
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+        "locator": "官方公告详情页标题与公告通知列表标题一致"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+        "locator": "正文明确为院内调研；确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+        "locator": "详情页标题明确调研公告类型"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+        "locator": "详情页官方发布时间，并与详情URL日期一致"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+        "locator": "正文“我院拟对…进行院内调研”明确产品/设备/维保对象"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+        "locator": "正文“报名时间”明确结束日期及官方具体时分"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml",
+        "locator": "正文公开的邮箱、联系人或技术咨询电话"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "tjzyefy_20260819_030196862",
+    "source": {
+      "source_id": "tjzyefy:tjzyefy_20260819_030196862",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+      "observed_at": "2026-09-05T17:02:46.269508+00:00"
+    },
+    "facts": {
+      "project_number": null,
+      "project_name": "院内调研公告（2026年19号）-血气生化分析仪等医疗设备采购项目",
+      "buyer_name": "天津中医药大学第二附属医院",
+      "hospital_name": "天津中医药大学第二附属医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "MARKET_RESEARCH",
+      "notice_type": "院内调研公告",
+      "published_at": "2026-08-19",
+      "registration_deadline": "2026-08-25T16:00:00+08:00",
+      "registration_deadline_date": null,
+      "bid_deadline": null,
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": null,
+      "procurement_method": null,
+      "product_categories": [
+        "医疗设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "血气生化分析仪",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "干式荧光免疫分析仪",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "艾灸烟雾净化过滤器",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "public_contact": {
+        "name": "潘老师",
+        "title": "国有资产管理科",
+        "phone": "022-60637522",
+        "email": "tjzyefygzk2026@126.com"
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "官方公告详情页标题与公告通知列表标题一致"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "正文明确为院内调研；确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "详情页标题明确调研公告类型"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "详情页官方发布时间，并与详情URL日期一致"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "正文“我院拟对…进行院内调研”明确产品/设备/维保对象"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "详情页标题明确医疗设备或医用耗材/试剂类别"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "正文“报名时间”明确结束日期及官方具体时分"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/19/030196862.shtml",
+        "locator": "正文公开的邮箱、联系人或技术咨询电话"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "tjzyefy_20260810_030196192",
+    "source": {
+      "source_id": "tjzyefy:tjzyefy_20260810_030196192",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+      "observed_at": "2026-09-05T17:02:46.269508+00:00"
+    },
+    "facts": {
+      "project_number": null,
+      "project_name": "关于租赁算力服务器及配套网络专线的调研公告",
+      "buyer_name": "天津中医药大学第二附属医院",
+      "hospital_name": "天津中医药大学第二附属医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "MARKET_RESEARCH",
+      "notice_type": "调研公告",
+      "published_at": "2026-08-10",
+      "registration_deadline": "2026-08-14T17:00:00+08:00",
+      "registration_deadline_date": null,
+      "bid_deadline": null,
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": null,
+      "procurement_method": null,
+      "product_categories": [],
+      "product_items": [
+        {
+          "raw_name": "租赁算力服务器及配套网络专线",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "public_contact": {
+        "name": "王老师",
+        "title": null,
+        "phone": "022-60637725",
+        "email": "zyefyxxzx@163.com"
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+        "locator": "官方公告详情页标题与公告通知列表标题一致"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+        "locator": "官方标题为调研公告，正文同时包含项目背景与目标、核心需求清单和方案报送截止；确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+        "locator": "详情页标题明确调研公告类型"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+        "locator": "详情页官方发布时间，并与详情URL日期一致"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+        "locator": "正文“核心需求清单”逐项明确调研对象"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+        "locator": "正文“方案报送截止”明确结束日期及官方具体时分"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/10/030196192.shtml",
+        "locator": "正文公开的邮箱、联系人或技术咨询电话"
+      }
+    ]
+  }
+]
