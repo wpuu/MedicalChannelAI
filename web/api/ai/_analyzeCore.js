@@ -514,6 +514,11 @@ async function getOrCreateDecision({
 }) {
   let createPromise = null
   const createResult = () => {
+    if (keys.length === 0) {
+      const error = new Error('AI_NOT_CONFIGURED')
+      error.code = 'AI_NOT_CONFIGURED'
+      throw error
+    }
     if (!createPromise) {
       createPromise = getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request)
     }
@@ -626,7 +631,6 @@ export default async function handler(request, response) {
   }
 
   const keys = getApiKeys()
-  if (keys.length === 0) return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })
 
   const baseUrl = (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim()
   const snapshotAsOf = cleanString(snapshot.snapshot_as_of, 100)
@@ -680,6 +684,7 @@ export default async function handler(request, response) {
     })
   } catch (error) {
     const status = Number(error?.status)
+    if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })
     if (error?.code === 'AI_RESPONSE_INVALID') return sendJson(response, 502, { error: 'AI_RESPONSE_INVALID' })
     if (status === 429) return sendJson(response, 429, { error: 'AI_RATE_LIMITED' })
     if (status === 401 || status === 403) return sendJson(response, 503, { error: 'AI_PROVIDER_AUTH_UNAVAILABLE' })

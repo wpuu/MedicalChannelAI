@@ -70,6 +70,23 @@ class DurablePublicIntelligenceTests(unittest.TestCase):
         self.assertIn('createPromise = getOrCreateWarmDecision(', core)
         self.assertIn('max_tokens: 900', core)
 
+    def test_cached_public_ai_can_render_without_provider_key_or_false_status(self) -> None:
+        core = (WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js').read_text(encoding='utf-8')
+        db = (WEB_ROOT / 'api' / '_publicIntelligenceDb.js').read_text(encoding='utf-8')
+        today = (WEB_ROOT / 'src' / 'pages' / 'TodayPage.tsx').read_text(encoding='utf-8')
+        detail = (WEB_ROOT / 'src' / 'pages' / 'OpportunityDetailPage.tsx').read_text(encoding='utf-8')
+
+        self.assertNotIn("if (keys.length === 0) return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })", core)
+        create_start = core.index('const createResult = () => {')
+        create_end = core.index('if (!sharedPublic)', create_start)
+        create_block = core[create_start:create_end]
+        self.assertIn('if (keys.length === 0)', create_block)
+        self.assertIn("error.code = 'AI_NOT_CONFIGURED'", create_block)
+        self.assertIn("if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503", core)
+        self.assertLess(db.index('if (cached[0])'), db.index('createdResult = await createResult()'))
+        self.assertNotIn('ai: { configured: true }', today)
+        self.assertNotIn('ai: { configured: true }', detail)
+
     def test_shared_public_ai_table_contains_no_account_scope(self) -> None:
         source = (WEB_ROOT / 'api' / '_publicIntelligenceDb.js').read_text(encoding='utf-8')
         start = source.index('CREATE TABLE IF NOT EXISTS public_ai_briefs')

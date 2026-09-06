@@ -203,7 +203,6 @@ export function TodayPage() {
     try {
       aiApi = await import('@/services/aiDecisionApi')
       const decision = await aiApi.requestAiDecision(card)
-      setRuntimeStatus((current) => current ? { ...current, ai: { configured: true } } : current)
       setData((current) => {
         if (!current) return current
         const updateCard = (item: TodayActionCard) =>
