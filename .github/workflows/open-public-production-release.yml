@@ -11,7 +11,11 @@ permissions:
 jobs:
   patch:
     if: github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -68,10 +72,7 @@ jobs:
               "const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；公开商机和跟进功能不受影响。'",
               "const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'",
           )
-          today = today.replace(
-              '>AI暂不可用</span>',
-              '>AI建议按需加载</span>',
-          )
+          today = today.replace('>AI暂不可用</span>', '>AI建议按需加载</span>')
           today_path.write_text(today, encoding='utf-8')
 
           detail_path = Path('web/src/pages/OpportunityDetailPage.tsx')
