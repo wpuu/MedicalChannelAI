@@ -10,7 +10,7 @@ import {
   RotateCcw,
   Target,
 } from 'lucide-react'
-import { APP_BUILD_LABEL } from '@/config/appVersion'
+import { APP_BUILD_COMMIT, APP_VERSION } from '@/config/appVersion'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { isApiMode, logoutPilot } from '@/services/apiConfig'
@@ -105,6 +105,12 @@ export function AppLayout() {
                   医疗商机助手
                 </h1>
                 <span
+                  className="shrink-0 text-[10px] font-medium text-slate-400 sm:text-[11px]"
+                  title={`构建 ${APP_BUILD_COMMIT}`}
+                >
+                  v{APP_VERSION}
+                </span>
+                <span
                   className={cn(
                     'hidden shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ring-1 lg:inline-flex',
                     isApiMode || isVerifiedPublicDemo
@@ -187,13 +193,6 @@ export function AppLayout() {
           ) : null}
         </div>
       </nav>
-
-      <div
-        className="fixed bottom-1 right-2 z-30 hidden select-none rounded bg-white/80 px-1.5 py-0.5 text-[10px] text-slate-400 shadow-sm ring-1 ring-slate-200/70 backdrop-blur sm:block"
-        title="当前页面版本与构建提交"
-      >
-        {APP_BUILD_LABEL}
-      </div>
     </div>
   )
 }
