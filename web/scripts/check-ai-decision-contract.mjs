@@ -191,7 +191,9 @@ const relativeInput = JSON.stringify(relativeMessages)
 assert.equal(relativeInput.includes('CONFIRM_RELATIVE_WINDOW'), true)
 assert.equal(relativeInput.includes('系统内部推算'), false)
 assert.equal(relativeInput.includes('RELATIVE_REGISTRATION_WINDOW_7_DAYS'), false)
-assert.equal(relativeInput.includes('RELATIVE_WINDOW'), false)
+// CONFIRM_RELATIVE_WINDOW is an allowed action code; only the standalone internal
+// window enum must stay out of the model prompt.
+assert.equal(relativeInput.includes('"RELATIVE_WINDOW"'), false)
 
 const relativeSafe = parseDecisionContent(JSON.stringify({
   action_codes: ['CONFIRM_RELATIVE_WINDOW', 'REVIEW_OFFICIAL_SOURCE'],
