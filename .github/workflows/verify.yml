@@ -93,6 +93,11 @@ jobs:
             echo "Fast Verify selected"
           fi
 
+      - name: Install fast verification runtime dependencies
+        if: steps.verify_mode.outputs.full != 'true'
+        working-directory: web
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+
       - name: Run fast contract verification
         if: steps.verify_mode.outputs.full != 'true'
         shell: bash
