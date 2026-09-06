@@ -29,9 +29,18 @@ const facts = {
   coverage_status: 'PARTIAL',
 }
 
+const evidenceUrls = ['https://www.ccgp.gov.cn/example.htm']
+const parse = (payload, overrides = {}) => parseDecisionContent(JSON.stringify(payload), {
+  facts,
+  evidenceUrls,
+  customerContext: null,
+  windowStatus: 'OPEN',
+  ...overrides,
+})
+
 const messages = buildDecisionMessages(
   facts,
-  ['https://www.ccgp.gov.cn/example.htm'],
+  evidenceUrls,
   null,
   'OPEN',
   '2026-09-01T13:00:00.000Z',
@@ -48,23 +57,113 @@ for (const forbidden of [
 ]) {
   assert.equal(modelInput.includes(forbidden), false, `machine token leaked into model prompt: ${forbidden}`)
 }
-assert.equal(modelInput.includes('当前仍在报名或获取文件窗口内'), true)
-assert.equal(modelInput.includes('不得声称联系、致电或沟通后可获得完整需求'), true)
-assert.equal(modelInput.includes('当前输入未提供相关客户自有信息、既往经营信息或竞争情况'), true)
+assert.equal(modelInput.includes('你没有事实陈述权'), true)
+assert.equal(modelInput.includes('只输出纯 JSON'), true)
+assert.equal(modelInput.includes('REVIEW_OFFICIAL_SOURCE'), true)
+assert.equal(modelInput.includes('VERIFY_REQUIREMENTS'), true)
+assert.equal(modelInput.includes('CONTACT_PUBLIC_CONTACT'), false)
 
-const safe = parseDecisionContent(JSON.stringify({
-  action: '今天先联系采购代理确认文件获取方式，并下载官方附件核对技术需求。',
-  reasons: ['报名或获取文件窗口仍在开放期，当前适合先完成公开信息核实。'],
-  risks: ['产品参数和资格条件以官方附件为准，未核实前不要向客户承诺。'],
-}))
+const safe = parse({
+  action_codes: ['REVIEW_OFFICIAL_SOURCE', 'VERIFY_REQUIREMENTS'],
+})
 assert.equal(safe.requires_human_confirmation, true)
+assert.equal(safe.action.includes('已核验官方来源'), true)
+assert.equal(safe.action.includes('核实技术要求'), true)
+assert.equal(safe.reasons.some((item) => item.includes('天津市某医院检验设备采购项目')), true)
+assert.equal(safe.reasons.some((item) => item.includes('2026年9月8日 16:00')), true)
+assert.equal(safe.reasons.some((item) => item.includes('100万元')), true)
+for (const unsupportedInference of ['通常存在一定竞争', '提前获取完整招标需求', '官方未披露医院既往', '中标不确定性较高']) {
+  assert.equal(JSON.stringify(safe).includes(unsupportedInference), false)
+}
 
-const groundedContactSafe = parseDecisionContent(JSON.stringify({
-  action: '今天致电公告公开联系人，核实招标文件获取方式和技术要求。',
-  reasons: ['当前仍在公开报名或文件获取窗口内，应先核实官方要求。'],
-  risks: ['当前输入未提供该医院既往经营信息或竞争情况，需人工补充。'],
-}))
-assert.equal(groundedContactSafe.requires_human_confirmation, true)
+const contactFacts = {
+  ...facts,
+  official_contact: { name: '范老师', phone: '022-12345678', email: null },
+}
+const contactDecision = parseDecisionContent(JSON.stringify({
+  action_codes: ['CONTACT_PUBLIC_CONTACT', 'VERIFY_REQUIREMENTS'],
+}), {
+  facts: contactFacts,
+  evidenceUrls,
+  customerContext: null,
+  windowStatus: 'OPEN',
+})
+assert.equal(contactDecision.action.includes('022-12345678'), true)
+assert.equal(contactDecision.action.includes('只记录对方明确回复'), true)
+assert.equal(contactDecision.risks.some((item) => item.includes('实际回复未知')), true)
+
+assert.throws(
+  () => parse({ action_codes: ['CONTACT_PUBLIC_CONTACT'] }),
+  (error) => error?.code === 'AI_RESPONSE_INVALID',
+)
+assert.throws(
+  () => parse({ action_codes: ['UNKNOWN_ACTION'] }),
+  (error) => error?.code === 'AI_RESPONSE_INVALID',
+)
+assert.throws(
+  () => parse({ action_codes: ['VERIFY_REQUIREMENTS', 'VERIFY_REQUIREMENTS'] }),
+  (error) => error?.code === 'AI_RESPONSE_INVALID',
+)
+assert.throws(
+  () => parse({ action_codes: ['VERIFY_REQUIREMENTS', 'REVIEW_OFFICIAL_SOURCE', 'PREPARE_REQUIRED_MATERIALS', 'CONTACT_PUBLIC_CONTACT'] }),
+  (error) => error?.code === 'AI_RESPONSE_INVALID',
+)
+assert.throws(
+  () => parse({
+    action: '主动联系采购人可获取完整采购需求。',
+    reasons: ['预算较大，通常存在一定竞争。'],
+    risks: ['暂无医院既往采购规律。'],
+  }),
+  (error) => error?.code === 'AI_RESPONSE_INVALID',
+)
+
+const targetOnlyContext = {
+  target_hospital: {
+    hospital: '天津市某医院',
+    watched_by_customer: true,
+  },
+  hospital_relationship: null,
+  matching_product_capabilities: [],
+  partnering_policy: {
+    can_find_manufacturer: null,
+    can_partner_channel: null,
+    can_handle_lease: null,
+  },
+}
+const targetOnlyMessages = JSON.stringify(buildDecisionMessages(
+  facts,
+  evidenceUrls,
+  targetOnlyContext,
+  'OPEN',
+  '2026-09-01T13:00:00.000Z',
+))
+assert.equal(targetOnlyMessages.includes('MATCH_CONFIRMED_RESOURCES'), false)
+assert.throws(
+  () => parseDecisionContent(JSON.stringify({ action_codes: ['MATCH_CONFIRMED_RESOURCES'] }), {
+    facts,
+    evidenceUrls,
+    customerContext: targetOnlyContext,
+    windowStatus: 'OPEN',
+  }),
+  (error) => error?.code === 'AI_RESPONSE_INVALID',
+)
+
+const relationshipContext = {
+  ...targetOnlyContext,
+  hospital_relationship: {
+    hospital: '天津市某医院',
+    department: '检验科',
+    relationship_strength: 'MEDIUM',
+  },
+}
+const relationshipMessages = JSON.stringify(buildDecisionMessages(
+  facts,
+  evidenceUrls,
+  relationshipContext,
+  'OPEN',
+  '2026-09-01T13:00:00.000Z',
+))
+assert.equal(relationshipMessages.includes('MATCH_CONFIRMED_RESOURCES'), true)
 
 const relativeFacts = {
   ...facts,
@@ -77,6 +176,7 @@ const relativeFacts = {
   registration_deadline_date: null,
   registration_deadline_precision: null,
   bid_deadline: null,
+  budget: null,
   procurement_method: '采购前期测试企业征集',
   quality_flags: ['RELATIVE_REGISTRATION_WINDOW_7_DAYS'],
 }
@@ -88,78 +188,22 @@ const relativeMessages = buildDecisionMessages(
   '2026-09-03T02:00:00.000Z',
 )
 const relativeInput = JSON.stringify(relativeMessages)
-assert.equal(relativeInput.includes('官方仅公布“自公告发布之日起7天”的相对报名窗口'), true)
-assert.equal(relativeInput.includes('不得把系统内部推算日期或时刻写成官方截止时间'), true)
-assert.equal(relativeInput.includes('根据已核验公开截止时间，当前仍在报名或获取文件窗口内'), false)
+assert.equal(relativeInput.includes('CONFIRM_RELATIVE_WINDOW'), true)
+assert.equal(relativeInput.includes('系统内部推算'), false)
 assert.equal(relativeInput.includes('RELATIVE_REGISTRATION_WINDOW_7_DAYS'), false)
 assert.equal(relativeInput.includes('RELATIVE_WINDOW'), false)
 
 const relativeSafe = parseDecisionContent(JSON.stringify({
-  action: '今天先联系公告公开联系人，确认测试企业报名是否仍开放，并按官方要求准备产品资料。',
-  reasons: ['官方采用发布日起7天的相对报名窗口，当前应优先人工确认实际开放状态。'],
-  risks: ['官方未公布精确截止时刻，不要把系统内部行动窗口当作官方截止时间。'],
-}), { relativeRegistrationWindow: true })
+  action_codes: ['CONFIRM_RELATIVE_WINDOW', 'REVIEW_OFFICIAL_SOURCE'],
+}), {
+  facts: relativeFacts,
+  evidenceUrls: ['https://www.tjfch.com.cn/example.shtml'],
+  customerContext: null,
+  windowStatus: 'RELATIVE_WINDOW',
+})
 assert.equal(relativeSafe.requires_human_confirmation, true)
+assert.equal(relativeSafe.action.includes('系统内部推算日期'), true)
+assert.equal(relativeSafe.reasons.some((item) => item.includes('自公告发布之日起7天')), true)
+assert.equal(relativeSafe.risks.some((item) => item.includes('未公布精确截止日期或时刻')), true)
 
-for (const inventedDeadline of [
-  {
-    action: '请在2026年9月8日前完成报名。',
-    reasons: ['报名截止为2026年9月8日。'],
-    risks: [],
-  },
-  {
-    action: '今天联系医院确认资料。',
-    reasons: ['9月8日是官方报名截止日。'],
-    risks: [],
-  },
-  {
-    action: '今天联系医院确认资料。',
-    reasons: ['报名窗口仍开放。'],
-    risks: ['官方截止时间为17:00。'],
-  },
-]) {
-  assert.throws(
-    () => parseDecisionContent(JSON.stringify(inventedDeadline), { relativeRegistrationWindow: true }),
-    (error) => error?.code === 'AI_RESPONSE_INVALID',
-  )
-}
-
-for (const leaked of [
-  {
-    action: 'runtime_window_status=OPEN，建议立即联系采购人。',
-    reasons: ['公开窗口仍开放。'],
-    risks: [],
-  },
-  {
-    action: '建议今天联系采购人。',
-    reasons: ['项目处于BIDDING阶段。'],
-    risks: [],
-  },
-  {
-    action: '建议今天联系采购人。',
-    reasons: ['coverage_status=PARTIAL，公告信息可能不完整。'],
-    risks: [],
-  },
-  {
-    action: '建议今天联系采购人。',
-    reasons: ['现有信息有限。'],
-    risks: ['参数后续可能调整，需要提前留意。'],
-  },
-  {
-    action: '今天主动联系采购人。',
-    reasons: ['主动联系采购人可获取完整采购需求，避免投标材料遗漏。'],
-    risks: [],
-  },
-  {
-    action: '建议补充客户经营信息。',
-    reasons: ['当前客户信息为空。'],
-    risks: ['暂无该医院既往采购规律及竞争格局数据。'],
-  },
-]) {
-  assert.throws(
-    () => parseDecisionContent(JSON.stringify(leaked)),
-    (error) => error?.code === 'AI_RESPONSE_INVALID',
-  )
-}
-
-console.log('AI decision contract checks: PASS')
+console.log('AI deterministic action selector contract: PASS')

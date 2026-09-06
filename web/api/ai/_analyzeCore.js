@@ -16,7 +16,7 @@ export const config = { maxDuration: 30 }
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const DEFAULT_ALTERNATE_BASE_URL = 'https://apihub.agnes-ai.cn/v1'
 const MODEL_ID = 'agnes-2.5-flash'
-const PUBLIC_AI_PROMPT_VERSION = 'decision-contract-v2-public-v1'
+const PUBLIC_AI_PROMPT_VERSION = 'decision-action-selector-v3-public-v1'
 const MAX_FACT_TEXT = 1200
 const MAX_ARRAY_ITEMS = 30
 const RESULT_CACHE_TTL_MS = 10 * 60 * 1000
@@ -117,7 +117,7 @@ function fingerprint(value) {
 }
 
 function snapshotCacheKey(snapshotAsOf, opportunityId, customerContext, runtimeWindowStatus) {
-  return `decision-contract-v2:${snapshotAsOf || 'snapshot-unknown'}:${opportunityId}:window-${runtimeWindowStatus}:ctx-${fingerprint(customerContext)}`
+  return `decision-action-selector-v3:${snapshotAsOf || 'snapshot-unknown'}:${opportunityId}:window-${runtimeWindowStatus}:ctx-${fingerprint(customerContext)}`
 }
 
 function getWarmCachedDecision(cacheKey) {
@@ -443,7 +443,7 @@ async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerCont
         model: MODEL_ID,
         messages: buildDecisionMessages(facts, evidenceUrls, customerContext, windowStatus, analysisAsOf),
         temperature: 0.1,
-        max_tokens: 900,
+        max_tokens: 160,
         stream: false,
       }),
     })
@@ -456,7 +456,10 @@ async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerCont
     const content = payload?.choices?.[0]?.message?.content
     if (typeof content !== 'string' || !content.trim()) throw new Error('UPSTREAM_CONTENT_EMPTY')
     return parseDecisionContent(content, {
-      relativeRegistrationWindow: windowStatus === 'RELATIVE_WINDOW',
+      facts,
+      evidenceUrls,
+      customerContext,
+      windowStatus,
     })
   } finally {
     clearTimeout(timeout)
