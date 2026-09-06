@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -24,6 +25,8 @@ from medical_channel_pipeline.tjmugh_market_research import parse_tjmugh_market_
 
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 MIN_DETAIL_DELAY_SECONDS = 3.0
+FETCH_ATTEMPTS = 2
+RETRYABLE_HTTP_CODES = {408, 425, 429, 500, 502, 503, 504}
 
 
 def parse_as_of(value: str | None) -> datetime:
@@ -50,16 +53,45 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
+def is_retryable_fetch_error(exc: Exception) -> bool:
+    message = str(exc)
+    if message == 'TJMUGH_NETWORK_ERROR':
+        return True
+    match = re.fullmatch(r'TJMUGH_HTTP_(\d{3})', message)
+    return bool(match and int(match.group(1)) in RETRYABLE_HTTP_CODES)
+
+
+def fetch_page_with_retry(
+    url: str,
+    *,
+    delay_seconds: float,
+    attempts: int = FETCH_ATTEMPTS,
+) -> str:
+    if attempts < 1:
+        raise ValueError('attempts must be >= 1')
+    for attempt in range(1, attempts + 1):
+        try:
+            return fetch_tjmugh_page(url)
+        except RuntimeError as exc:
+            if attempt >= attempts or not is_retryable_fetch_error(exc):
+                raise
+            time.sleep(delay_seconds)
+    raise AssertionError('unreachable')
+
+
 def publish_gate(
     *,
     index_discovery_succeeded: bool,
     selected_candidate_count: int,
     new_verified_record_count: int,
+    missing_selected_count: int,
 ) -> tuple[bool, str]:
     if not index_discovery_succeeded:
         return False, 'INDEX_DISCOVERY_FAILED'
-    if selected_candidate_count > 0 and new_verified_record_count <= 0:
-        return False, 'ALL_SELECTED_DETAILS_FAILED_VERIFICATION'
+    if missing_selected_count > 0:
+        if missing_selected_count == selected_candidate_count and new_verified_record_count <= 0:
+            return False, 'ALL_SELECTED_DETAILS_FAILED_VERIFICATION'
+        return False, 'SELECTED_DETAILS_INCOMPLETE'
     return True, 'PASS'
 
 
@@ -91,7 +123,10 @@ def main() -> int:
     failures: list[dict] = []
 
     try:
-        index_html = fetch_tjmugh_page(INDEX_URL)
+        index_html = fetch_page_with_retry(
+            INDEX_URL,
+            delay_seconds=args.delay_seconds,
+        )
         discovered = parse_tjmugh_index_html(index_html)
     except Exception as exc:
         report = {
@@ -120,11 +155,15 @@ def main() -> int:
         end_date=local_date,
         max_candidates=args.max_candidates,
     )
+    selected_ids = [stable_opportunity_id(candidate.detail_url) for candidate in selected]
     new_records: list[dict] = []
     for candidate in selected:
         time.sleep(args.delay_seconds)
         try:
-            detail_html = fetch_tjmugh_page(candidate.detail_url)
+            detail_html = fetch_page_with_retry(
+                candidate.detail_url,
+                delay_seconds=args.delay_seconds,
+            )
             record = parse_tjmugh_market_research(
                 detail_html,
                 source_url=candidate.detail_url,
@@ -145,10 +184,17 @@ def main() -> int:
             )
 
     merged_records = merge_canonical_records(existing_records, new_records)
+    merged_ids = {
+        record.get('opportunity_id')
+        for record in merged_records
+        if isinstance(record, dict) and isinstance(record.get('opportunity_id'), str)
+    }
+    missing_selected_ids = [opportunity_id for opportunity_id in selected_ids if opportunity_id not in merged_ids]
     publish_allowed, publish_gate_reason = publish_gate(
         index_discovery_succeeded=True,
         selected_candidate_count=len(selected),
         new_verified_record_count=len(new_records),
+        missing_selected_count=len(missing_selected_ids),
     )
     report = {
         'schema_version': '0.1',
@@ -162,6 +208,8 @@ def main() -> int:
         'new_verified_record_count': len(new_records),
         'existing_record_count': len(existing_records),
         'merged_record_count': len(merged_records),
+        'missing_selected_count': len(missing_selected_ids),
+        'missing_selected_opportunity_ids': missing_selected_ids,
         'failure_count': len(failures),
         'failures': failures,
         'publish_allowed': publish_allowed,
@@ -171,7 +219,9 @@ def main() -> int:
             'only_supported_medical_equipment_market_research_titles': True,
             'detail_must_pass_verified_parser': True,
             'failed_detail_never_replaces_existing_verified_record': True,
-            'all_selected_details_failed_verification_blocks_publish': True,
+            'every_selected_detail_requires_current_or_existing_verified_record': True,
+            'retry_transient_index_and_detail_fetch_errors': True,
+            'fetch_attempts': FETCH_ATTEMPTS,
             'rate_limit_bypass': False,
             'minimum_detail_delay_seconds': args.delay_seconds,
         },
@@ -180,7 +230,8 @@ def main() -> int:
     write_json(args.report_output, report)
     print(
         f'discovered={len(discovered)} selected={len(selected)} verified={len(new_records)} '
-        f'records={len(merged_records)} failures={len(failures)} gate={publish_gate_reason}'
+        f'records={len(merged_records)} missing={len(missing_selected_ids)} '
+        f'failures={len(failures)} gate={publish_gate_reason}'
     )
     if not publish_allowed:
         print(f'TMUGH refresh publish blocked: {publish_gate_reason}', file=sys.stderr)

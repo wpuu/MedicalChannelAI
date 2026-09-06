@@ -1,0 +1,33 @@
+{
+  "schema_version": "0.1",
+  "observed_at": "2026-09-05T17:02:46.269508+00:00",
+  "source": "TJFCH_IN_HOSPITAL_PROCUREMENT",
+  "index_url": "https://www.tjfch.com.cn/ywgk/ynbx/index.shtml",
+  "start_date": "2026-07-24",
+  "end_date": "2026-09-06",
+  "discovered_supported_count": 6,
+  "selected_candidate_count": 2,
+  "new_verified_record_count": 2,
+  "unsupported_candidate_count": 0,
+  "existing_record_count": 2,
+  "merged_record_count": 2,
+  "failure_count": 0,
+  "failures": [],
+  "unsupported": [],
+  "publish_allowed": true,
+  "publish_gate_reason": "PASS",
+  "policy": {
+    "official_procurement_index_required": true,
+    "truncated_index_title_requires_full_detail_title_verification": true,
+    "result_and_award_notices_excluded": true,
+    "ambiguous_result_detail_is_unsupported_not_opportunity": true,
+    "index_and_detail_title_or_prefix_must_match": true,
+    "detail_published_date_must_confirm_url_date": true,
+    "exact_bid_deadline_required": true,
+    "relative_workday_deadline_not_invented": true,
+    "failed_detail_never_replaces_existing_verified_record": true,
+    "all_actionable_details_failed_verification_blocks_publish": true,
+    "rate_limit_bypass": false,
+    "minimum_detail_delay_seconds": 3.0
+  }
+}

@@ -3,6 +3,10 @@ import {
   verifiedSnapshotSourceMode,
 } from '../_verifiedSnapshot.js'
 import {
+  getOrCreateSharedPublicAiBrief,
+  publicAiFactHash,
+} from '../_publicIntelligenceDb.js'
+import {
   buildDecisionMessages,
   parseDecisionContent,
 } from './_decisionContract.js'
@@ -12,6 +16,7 @@ export const config = { maxDuration: 30 }
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const DEFAULT_ALTERNATE_BASE_URL = 'https://apihub.agnes-ai.cn/v1'
 const MODEL_ID = 'agnes-2.5-flash'
+const PUBLIC_AI_PROMPT_VERSION = 'decision-action-selector-v3-public-v1'
 const MAX_FACT_TEXT = 1200
 const MAX_ARRAY_ITEMS = 30
 const RESULT_CACHE_TTL_MS = 10 * 60 * 1000
@@ -21,6 +26,8 @@ const RATE_MAX_PER_CLIENT = 10
 const PROVIDER_ATTEMPT_TIMEOUT_MS = 12_000
 const PROVIDER_RETRY_DELAY_MS = 250
 const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
+const SOURCE_CATEGORY_TITLE_CONFLICT = 'SOURCE_CATEGORY_TITLE_CONFLICT'
+const RELATIVE_WINDOW_FLAG = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
 
 const resultCache = new Map()
 const inFlight = new Map()
@@ -93,6 +100,12 @@ function warmRateLimitExceeded(request) {
   return current.count > RATE_MAX_PER_CLIENT
 }
 
+function rateLimitError() {
+  const error = new Error('AI_RATE_LIMITED')
+  error.status = 429
+  return error
+}
+
 function fingerprint(value) {
   const text = JSON.stringify(value ?? null)
   let hash = 2166136261
@@ -104,7 +117,7 @@ function fingerprint(value) {
 }
 
 function snapshotCacheKey(snapshotAsOf, opportunityId, customerContext, runtimeWindowStatus) {
-  return `decision-contract-v2:${snapshotAsOf || 'snapshot-unknown'}:${opportunityId}:window-${runtimeWindowStatus}:ctx-${fingerprint(customerContext)}`
+  return `decision-action-selector-v3:${snapshotAsOf || 'snapshot-unknown'}:${opportunityId}:window-${runtimeWindowStatus}:ctx-${fingerprint(customerContext)}`
 }
 
 function getWarmCachedDecision(cacheKey) {
@@ -133,9 +146,11 @@ function normalizeSnapshotBudget(value) {
   return typeof amount === 'number' && Number.isFinite(amount) ? amount : null
 }
 
-function sanitizeSnapshotFacts(raw) {
+export function sanitizeSnapshotFacts(raw) {
   const facts = asObject(raw) ?? {}
   const contact = asObject(facts.public_contact)
+  const qualityFlags = cleanArray(facts.quality_flags, (item) => cleanString(item, 120))
+  const sourceCategoryConflict = qualityFlags.includes(SOURCE_CATEGORY_TITLE_CONFLICT)
   return {
     project_code: cleanString(facts.project_number, 120),
     project_name: cleanString(facts.project_name, 500),
@@ -153,7 +168,9 @@ function sanitizeSnapshotFacts(raw) {
     expected_purchase_date: cleanString(facts.expected_procurement_at, 80),
     budget: normalizeSnapshotBudget(facts.budget),
     procurement_method: cleanString(facts.procurement_method, 100),
-    product_categories: cleanArray(facts.product_categories, (item) => cleanString(item, 200)),
+    product_categories: sourceCategoryConflict
+      ? []
+      : cleanArray(facts.product_categories, (item) => cleanString(item, 200)),
     products: cleanArray(facts.product_items, (item) => {
       const product = asObject(item)
       if (!product) return null
@@ -161,11 +178,12 @@ function sanitizeSnapshotFacts(raw) {
       if (!name) return null
       return {
         name,
-        category: cleanString(product.category, 200),
+        category: sourceCategoryConflict ? null : cleanString(product.category, 200),
         quantity: cleanString(product.quantity, 100),
         specification: cleanString(product.specification, 500),
       }
     }),
+    quality_flags: qualityFlags,
     official_contact: contact
       ? {
           name: cleanString(contact.name, 150),
@@ -195,6 +213,15 @@ function sanitizeEvidenceUrls(value) {
 function sanitizeCustomerContext(raw) {
   const root = asObject(raw)
   if (!root) return null
+  const target = asObject(root.target_hospital)
+  const sanitizedTarget = target
+    ? {
+        hospital: cleanString(target.hospital, 300),
+        department: cleanString(target.department, 200),
+        watched_by_customer: target.watched_by_customer === true,
+        updated_at: cleanString(target.updated_at, 100),
+      }
+    : null
   const relationship = asObject(root.hospital_relationship)
   const sanitizedRelationship = relationship
     ? {
@@ -222,13 +249,15 @@ function sanitizeCustomerContext(raw) {
     can_partner_channel: typeof policy?.can_partner_channel === 'boolean' ? policy.can_partner_channel : null,
     can_handle_lease: typeof policy?.can_handle_lease === 'boolean' ? policy.can_handle_lease : null,
   }
+  const hasTarget = Boolean(sanitizedTarget?.hospital && sanitizedTarget.watched_by_customer)
   const hasRelationship = Boolean(
     sanitizedRelationship?.hospital || sanitizedRelationship?.department || sanitizedRelationship?.relationship_strength,
   )
   const hasPolicy = Object.values(partneringPolicy).some((value) => value !== null)
-  if (!hasRelationship && capabilities.length === 0 && !hasPolicy) return null
+  if (!hasTarget && !hasRelationship && capabilities.length === 0 && !hasPolicy) return null
   return {
     context_type: 'CUSTOMER_SELF_REPORTED_CONTEXT',
+    target_hospital: hasTarget ? sanitizedTarget : null,
     hospital_relationship: hasRelationship ? sanitizedRelationship : null,
     matching_product_capabilities: capabilities,
     partnering_policy: partneringPolicy,
@@ -265,14 +294,28 @@ function shanghaiDateString(nowMs) {
   return `${values.year}-${values.month}-${values.day}`
 }
 
+function hasRelativeRegistrationWindow(facts) {
+  return Array.isArray(facts?.quality_flags) && facts.quality_flags.includes(RELATIVE_WINDOW_FLAG)
+}
+
+function addDaysDateString(value, days) {
+  const match = typeof value === 'string' ? value.match(/^(20\d{2})-(\d{2})-(\d{2})/) : null
+  if (!match) return null
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])))
+  if (Number.isNaN(date.getTime())) return null
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+
 export function runtimeWindowStatus(facts, nowMs = Date.now()) {
   const registrationDeadline = parsedTime(facts.registration_deadline)
   const registrationDate = /^\d{4}-\d{2}-\d{2}$/.test(facts.registration_deadline_date || '')
     ? facts.registration_deadline_date
     : null
   const bidDeadline = parsedTime(facts.bid_deadline)
+  const currentShanghaiDate = shanghaiDateString(nowMs)
   const dateOnlyRegistrationClosed = registrationDate
-    ? shanghaiDateString(nowMs) > registrationDate
+    ? currentShanghaiDate > registrationDate
     : false
   const exactRegistrationClosed = registrationDeadline !== null && registrationDeadline <= nowMs
 
@@ -285,7 +328,56 @@ export function runtimeWindowStatus(facts, nowMs = Date.now()) {
   ) {
     return 'LATE_WINDOW'
   }
+
+  if (
+    registrationDeadline === null &&
+    registrationDate === null &&
+    bidDeadline === null &&
+    hasRelativeRegistrationWindow(facts)
+  ) {
+    const relativeEndDate = addDaysDateString(facts.publish_date, 7)
+    if (!relativeEndDate) return 'CLOSED'
+    return currentShanghaiDate > relativeEndDate ? 'CLOSED' : 'RELATIVE_WINDOW'
+  }
+
   return 'OPEN'
+}
+
+function endOfShanghaiDayMs(dateKey) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateKey || '')
+    ? Date.parse(`${dateKey}T23:59:59+08:00`)
+    : null
+}
+
+function nextActionDeadlineMs(facts, windowStatus, nowMs) {
+  if (windowStatus === 'LATE_WINDOW') return parsedTime(facts.bid_deadline)
+  if (windowStatus === 'RELATIVE_WINDOW') {
+    const relativeEnd = addDaysDateString(facts.publish_date, 7)
+    return relativeEnd ? endOfShanghaiDayMs(relativeEnd) : null
+  }
+  const registration = parsedTime(facts.registration_deadline)
+  if (registration !== null && registration > nowMs) return registration
+  const registrationDate = /^\d{4}-\d{2}-\d{2}$/.test(facts.registration_deadline_date || '')
+    ? endOfShanghaiDayMs(facts.registration_deadline_date)
+    : null
+  if (registrationDate !== null && registrationDate > nowMs) return registrationDate
+  const bid = parsedTime(facts.bid_deadline)
+  return bid !== null && bid > nowMs ? bid : null
+}
+
+function urgencyBucket(deadlineMs, nowMs) {
+  if (deadlineMs === null) return 'NO_DEADLINE'
+  const hours = Math.max(0, (deadlineMs - nowMs) / (60 * 60 * 1000))
+  if (hours <= 24) return 'H24'
+  if (hours <= 72) return 'H72'
+  if (hours <= 7 * 24) return 'D7'
+  if (hours <= 14 * 24) return 'D14'
+  if (hours <= 30 * 24) return 'D30'
+  return 'GT30D'
+}
+
+export function publicWindowCacheState(facts, windowStatus, nowMs = Date.now()) {
+  return `${windowStatus}:${urgencyBucket(nextActionDeadlineMs(facts, windowStatus, nowMs), nowMs)}`
 }
 
 function getApiKeys() {
@@ -363,7 +455,12 @@ async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerCont
     const payload = await response.json()
     const content = payload?.choices?.[0]?.message?.content
     if (typeof content !== 'string' || !content.trim()) throw new Error('UPSTREAM_CONTENT_EMPTY')
-    return parseDecisionContent(content)
+    return parseDecisionContent(content, {
+      facts,
+      evidenceUrls,
+      customerContext,
+      windowStatus,
+    })
   } finally {
     clearTimeout(timeout)
   }
@@ -391,11 +488,12 @@ async function callProviderWithTransientRetry(providerArgs, keys, opportunityId)
   }
 }
 
-async function getOrCreateDecision(cacheKey, providerArgs, keys, opportunityId) {
+async function getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request) {
   const cached = getWarmCachedDecision(cacheKey)
   if (cached) return cached
   const pending = inFlight.get(cacheKey)
   if (pending) return pending
+  if (warmRateLimitExceeded(request)) throw rateLimitError()
   const promise = callProviderWithTransientRetry(providerArgs, keys, opportunityId)
     .then((decision) => {
       cacheWarmDecision(cacheKey, decision)
@@ -406,13 +504,104 @@ async function getOrCreateDecision(cacheKey, providerArgs, keys, opportunityId) 
   return promise
 }
 
+async function getOrCreateDecision({
+  cacheKey,
+  providerArgs,
+  keys,
+  opportunityId,
+  request,
+  sharedPublic,
+}) {
+  let createPromise = null
+  const createResult = () => {
+    if (keys.length === 0) {
+      const error = new Error('AI_NOT_CONFIGURED')
+      error.code = 'AI_NOT_CONFIGURED'
+      throw error
+    }
+    if (!createPromise) {
+      createPromise = getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request)
+    }
+    return createPromise
+  }
+  if (!sharedPublic) {
+    return {
+      decision: await createResult(),
+      cache: { cache_hit: false, durable: false, generated_at: providerArgs.analysisAsOf },
+    }
+  }
+  const cached = await getOrCreateSharedPublicAiBrief({
+    opportunityId,
+    factHash: sharedPublic.factHash,
+    windowState: sharedPublic.windowState,
+    briefType: 'PUBLIC_ACTION_DECISION',
+    promptVersion: PUBLIC_AI_PROMPT_VERSION,
+    createResult,
+  })
+  return { decision: cached.result, cache: cached }
+}
+
+function relationshipStrengthLabel(value) {
+  if (value === 'STRONG') return '较强'
+  if (value === 'MEDIUM') return '中等'
+  if (value === 'HISTORICAL') return '历史'
+  if (value === 'WEAK') return '较弱'
+  return '已确认'
+}
+
+function capabilityTypeLabel(value) {
+  if (value === 'DIRECT_AUTHORIZED') return '已确认直接授权/供货能力'
+  if (value === 'RENTAL_CAPABLE') return '可执行租赁项目'
+  if (value === 'SERVICE_ONLY') return '可提供相关服务'
+  if (value === 'PARTNER' || value === 'CAN_SOURCE_PARTNER') return '可组织合作渠道'
+  if (value === 'NEED_MANUFACTURER') return '仍需匹配厂家'
+  if (value === 'DIRECT' || value === 'DIRECT_UNCONFIRMED') return '直接供货条件仍需确认'
+  return '已录入相关执行能力'
+}
+
+function appendUnique(items, values, max = 5) {
+  const result = [...items]
+  for (const value of values) {
+    if (!value || result.includes(value)) continue
+    result.push(value)
+    if (result.length >= max) break
+  }
+  return result
+}
+
+export function applyPrivateDecisionOverlay(decision, customerContext) {
+  if (!customerContext) return decision
+  const reasons = []
+  const risks = []
+  const target = customerContext.target_hospital
+  if (target?.hospital && target.watched_by_customer) {
+    reasons.push(`当前账号已将${target.hospital}${target.department ? `${target.department}` : ''}列为重点关注对象；这只表示经营目标，不代表已有院内关系。`)
+  }
+  const relationship = customerContext.hospital_relationship
+  if (relationship?.hospital) {
+    reasons.push(`当前账号已确认与${relationship.hospital}${relationship.department ? `${relationship.department}` : ''}存在${relationshipStrengthLabel(relationship.relationship_strength)}关系，可优先通过已确认关系核实真实需求和执行窗口。`)
+  }
+  const capability = customerContext.matching_product_capabilities?.[0]
+  if (capability?.category) {
+    reasons.push(`当前账号在${capability.subcategory || capability.category}方向的执行条件为“${capabilityTypeLabel(capability.capability_type)}”，可据此决定是否继续投入。`)
+    if (['NEED_MANUFACTURER', 'DIRECT', 'DIRECT_UNCONFIRMED'].includes(capability.capability_type)) {
+      risks.push('当前账号的厂家、授权或最终供货条件仍需在投入投标或正式承诺前确认。')
+    }
+  }
+  return {
+    ...decision,
+    reasons: appendUnique(decision.reasons || [], reasons),
+    risks: appendUnique(decision.risks || [], risks),
+    requires_human_confirmation: true,
+  }
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST')
     return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
   }
   if (!sameOriginAllowed(request)) return sendJson(response, 403, { error: 'SAME_ORIGIN_REQUIRED' })
-  if (warmRateLimitExceeded(request)) return sendJson(response, 429, { error: 'AI_RATE_LIMITED' })
 
   const body = asObject(request.body)
   if (!body) return sendJson(response, 400, { error: 'JSON_BODY_REQUIRED' })
@@ -431,43 +620,71 @@ export default async function handler(request, response) {
   const grounded = findVerifiedOpportunity(snapshot, opportunityId)
   if (!grounded) return sendJson(response, 404, { error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' })
 
-  const customerContext = sanitizeCustomerContext(body.customer_context)
+  const clientCustomerContext = sanitizeCustomerContext(body.customer_context)
+  const privateOverlayContext = sanitizeCustomerContext(request.__medicalChannelPrivateDecisionOverlay)
+  const modelCustomerContext = privateOverlayContext ? null : clientCustomerContext
   const analysisAsOf = new Date().toISOString()
-  const windowStatus = runtimeWindowStatus(grounded.facts, Date.parse(analysisAsOf))
+  const nowMs = Date.parse(analysisAsOf)
+  const windowStatus = runtimeWindowStatus(grounded.facts, nowMs)
   if (windowStatus === 'CLOSED') {
     return sendJson(response, 409, { error: 'OPPORTUNITY_WINDOW_CLOSED', analysis_as_of: analysisAsOf })
   }
 
   const keys = getApiKeys()
-  if (keys.length === 0) return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })
 
   const baseUrl = (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim()
   const snapshotAsOf = cleanString(snapshot.snapshot_as_of, 100)
-  const cacheKey = snapshotCacheKey(snapshotAsOf, opportunityId, customerContext, windowStatus)
+  const windowCacheState = publicWindowCacheState(grounded.facts, windowStatus, nowMs)
+  const factHash = publicAiFactHash(grounded.facts, grounded.evidenceUrls)
+  const cacheKey = modelCustomerContext
+    ? snapshotCacheKey(snapshotAsOf, opportunityId, modelCustomerContext, windowCacheState)
+    : `shared-public:${PUBLIC_AI_PROMPT_VERSION}:${opportunityId}:${factHash}:${windowCacheState}`
 
   try {
-    const decision = await getOrCreateDecision(cacheKey, {
-      baseUrl,
-      facts: grounded.facts,
-      evidenceUrls: grounded.evidenceUrls,
-      customerContext,
-      windowStatus,
-      analysisAsOf,
-    }, keys, opportunityId)
+    const result = await getOrCreateDecision({
+      cacheKey,
+      providerArgs: {
+        baseUrl,
+        facts: grounded.facts,
+        evidenceUrls: grounded.evidenceUrls,
+        customerContext: modelCustomerContext,
+        windowStatus,
+        analysisAsOf,
+      },
+      keys,
+      opportunityId,
+      request,
+      sharedPublic: modelCustomerContext
+        ? null
+        : { factHash, windowState: windowCacheState },
+    })
+    const decision = applyPrivateDecisionOverlay(result.decision, privateOverlayContext)
     return sendJson(response, 200, {
       schema_version: '0.1',
       opportunity_id: opportunityId,
       snapshot_as_of: snapshotAsOf,
       snapshot_source_mode: verifiedSnapshotSourceMode(),
       generated_at: analysisAsOf,
+      decision_generated_at: result.cache.generated_at,
       runtime_window_status: windowStatus,
+      public_cache_window_state: windowCacheState,
       decision,
-      decision_source: customerContext
-        ? 'GROUNDED_AI_PUBLIC_FACTS_PLUS_CUSTOMER_CONTEXT'
-        : 'GROUNDED_AI_PUBLIC_FACTS_ONLY',
+      decision_source: privateOverlayContext
+        ? 'SHARED_PUBLIC_AI_PLUS_PRIVATE_RULE_OVERLAY'
+        : modelCustomerContext
+          ? 'GROUNDED_AI_PUBLIC_FACTS_PLUS_CUSTOMER_CONTEXT'
+          : 'SHARED_GROUNDED_AI_PUBLIC_FACTS_ONLY',
+      shared_public_cache: modelCustomerContext
+        ? null
+        : {
+            cache_hit: result.cache.cache_hit === true,
+            durable: result.cache.durable === true,
+            prompt_version: PUBLIC_AI_PROMPT_VERSION,
+          },
     })
   } catch (error) {
     const status = Number(error?.status)
+    if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })
     if (error?.code === 'AI_RESPONSE_INVALID') return sendJson(response, 502, { error: 'AI_RESPONSE_INVALID' })
     if (status === 429) return sendJson(response, 429, { error: 'AI_RATE_LIMITED' })
     if (status === 401 || status === 403) return sendJson(response, 503, { error: 'AI_PROVIDER_AUTH_UNAVAILABLE' })

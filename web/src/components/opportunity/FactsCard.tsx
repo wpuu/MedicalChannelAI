@@ -1,5 +1,9 @@
 import type { Facts } from '@/types'
 import { OfficialText } from '@/components/shared/EmptyValue'
+import {
+  expectedProcurementWindowText,
+  PreMarketSignalNotice,
+} from '@/components/shared/PreMarketSignalNotice'
 import { FactRow, SectionCard } from '@/components/shared/SectionCard'
 import { SourceTag, StageBadge, VerifiedBadge } from '@/components/shared/StageBadge'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
@@ -14,6 +18,20 @@ function registrationDeadlineDisplay(facts: Facts): string | null {
   return null
 }
 
+function telHref(value: string | null | undefined): string | null {
+  const raw = String(value || '').trim()
+  if (!raw || /[、,，;；/]/.test(raw)) return null
+  const leadingPlus = raw.startsWith('+')
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length < 5) return null
+  return `tel:${leadingPlus ? '+' : ''}${digits}`
+}
+
+function mailtoHref(value: string | null | undefined): string | null {
+  const email = String(value || '').trim()
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? `mailto:${email}` : null
+}
+
 export function FactsCard({ facts }: { facts: Facts }) {
   const subtitle = isApiMode
     ? '官方/已验证事实 · 空值不会自行补全'
@@ -25,6 +43,16 @@ export function FactsCard({ facts }: { facts: Facts }) {
     : isVerifiedPublicDemo
       ? '真实公开事实'
       : '演示公开字段'
+  const contactPhone = facts.official_contact?.phone?.trim() || null
+  const contactEmail = facts.official_contact?.email?.trim() || null
+  const contactPhoneHref = telHref(contactPhone)
+  const contactEmailHref = mailtoHref(contactEmail)
+  const expectedProcurementWindow = expectedProcurementWindowText(facts.quality_flags)
+  const isRelativeTestRecruitment =
+    facts.notice_type?.includes('测试企业征集公告') === true &&
+    !facts.registration_deadline &&
+    !facts.registration_deadline_date &&
+    !facts.bid_deadline
 
   return (
     <SectionCard
@@ -38,6 +66,15 @@ export function FactsCard({ facts }: { facts: Facts }) {
         </div>
       }
     >
+      <PreMarketSignalNotice
+        lifecycleStage={facts.lifecycle_stage}
+        qualityFlags={facts.quality_flags}
+      />
+      {isRelativeTestRecruitment ? (
+        <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12px] leading-5 text-amber-900">
+          官方原文仅公布“自公告发布之日起7天”的相对报名窗口，没有公布精确截止时刻。系统内部可据此判断行动紧迫度，但不会把推算日期展示成官方截止；实际联系或报名请先向官方确认是否仍开放。
+        </div>
+      ) : null}
       <FactRow label="项目编号"><OfficialText value={facts.project_code} /></FactRow>
       <FactRow label="项目名称"><OfficialText value={facts.project_name} /></FactRow>
       {isApiMode || isVerifiedPublicDemo || facts.buyer_name ? (
@@ -53,7 +90,9 @@ export function FactsCard({ facts }: { facts: Facts }) {
         <OfficialText value={registrationDeadlineDisplay(facts)} />
       </FactRow>
       <FactRow label="投标截止"><OfficialText value={formatDate(facts.bid_deadline)} /></FactRow>
-      <FactRow label="预计采购时间"><OfficialText value={formatDate(facts.expected_purchase_date)} /></FactRow>
+      <FactRow label="预计采购时间">
+        <OfficialText value={formatDate(facts.expected_purchase_date) ?? expectedProcurementWindow} />
+      </FactRow>
       <FactRow label="项目预算"><OfficialText value={formatBudget(facts.budget)} /></FactRow>
       <FactRow label="采购方式"><OfficialText value={facts.procurement_method} /></FactRow>
       <FactRow label="采购产品">
@@ -77,11 +116,42 @@ export function FactsCard({ facts }: { facts: Facts }) {
         {!facts.official_contact ? (
           <OfficialText value={null} />
         ) : (
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <p>姓名：<OfficialText value={facts.official_contact.name} /></p>
             <p>职务：<OfficialText value={facts.official_contact.title} /></p>
-            <p>电话：<OfficialText value={facts.official_contact.phone} /></p>
-            <p>邮箱：<OfficialText value={facts.official_contact.email} /></p>
+            <p>
+              电话：{contactPhone ? (
+                contactPhoneHref ? (
+                  <a
+                    href={contactPhoneHref}
+                    className="font-medium text-teal-700 underline decoration-teal-200 underline-offset-2"
+                  >
+                    {contactPhone}
+                  </a>
+                ) : (
+                  <span>{contactPhone}</span>
+                )
+              ) : <OfficialText value={null} />}
+            </p>
+            <p>
+              邮箱：{contactEmail ? (
+                contactEmailHref ? (
+                  <a
+                    href={contactEmailHref}
+                    className="font-medium text-teal-700 underline decoration-teal-200 underline-offset-2"
+                  >
+                    {contactEmail}
+                  </a>
+                ) : (
+                  <span>{contactEmail}</span>
+                )
+              ) : <OfficialText value={null} />}
+            </p>
+            {(contactPhoneHref || contactEmailHref) ? (
+              <p className="pt-1 text-[11px] leading-5 text-slate-400">
+                点击仅打开系统拨号或邮件应用，不会自动把商机标记为“已联系”。
+              </p>
+            ) : null}
           </div>
         )}
       </FactRow>

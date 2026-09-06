@@ -1,0 +1,385 @@
+[
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "tjzyefy_intent_20260804_030195992",
+    "source": {
+      "source_id": "tjzyefy-intent:tjzyefy_intent_20260804_030195992",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml",
+      "observed_at": "2026-09-04T15:19:41.874251+00:00"
+    },
+    "facts": {
+      "project_number": null,
+      "project_name": "采购意向公告（2026年48号）-云影像服务项目",
+      "buyer_name": "天津中医药大学第二附属医院",
+      "hospital_name": "天津中医药大学第二附属医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "PROCUREMENT_INTENT",
+      "notice_type": "采购意向公告",
+      "published_at": "2026-08-04",
+      "registration_deadline": null,
+      "registration_deadline_date": null,
+      "bid_deadline": null,
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": null,
+      "procurement_method": null,
+      "product_categories": [],
+      "product_items": [
+        {
+          "raw_name": "云影像服务",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "public_contact": {
+        "name": null,
+        "title": null,
+        "phone": "022-60637523",
+        "email": null
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml",
+        "locator": "官方采购意向详情页标题与公告通知列表标题一致"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml",
+        "locator": "标题与正文明确为采购意向公告；确定性映射为PROCUREMENT_INTENT"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml",
+        "locator": "详情页标题明确采购意向公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml",
+        "locator": "详情页官方发布时间，并与详情URL日期一致"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml",
+        "locator": "正文“近期对…进行采购”及详情页项目标题明确采购对象"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml",
+        "locator": "正文欢迎供应商咨询并公布联系人/联系电话"
+      }
+    ],
+    "quality_flags": [
+      "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+      "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月"
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "tjzyefy_intent_20260804_030195991",
+    "source": {
+      "source_id": "tjzyefy-intent:tjzyefy_intent_20260804_030195991",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml",
+      "observed_at": "2026-09-04T15:19:41.874251+00:00"
+    },
+    "facts": {
+      "project_number": null,
+      "project_name": "采购意向公告（2026年47号）-高分辨液质联用系统维保服务项目",
+      "buyer_name": "天津中医药大学第二附属医院",
+      "hospital_name": "天津中医药大学第二附属医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "PROCUREMENT_INTENT",
+      "notice_type": "采购意向公告",
+      "published_at": "2026-08-04",
+      "registration_deadline": null,
+      "registration_deadline_date": null,
+      "bid_deadline": null,
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": null,
+      "procurement_method": null,
+      "product_categories": [],
+      "product_items": [
+        {
+          "raw_name": "高分辨液质联用系统维保服务",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "public_contact": {
+        "name": null,
+        "title": null,
+        "phone": "022-60637527",
+        "email": null
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml",
+        "locator": "官方采购意向详情页标题与公告通知列表标题一致"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml",
+        "locator": "标题与正文明确为采购意向公告；确定性映射为PROCUREMENT_INTENT"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml",
+        "locator": "详情页标题明确采购意向公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml",
+        "locator": "详情页官方发布时间，并与详情URL日期一致"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml",
+        "locator": "正文“近期对…进行采购”及详情页项目标题明确采购对象"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml",
+        "locator": "正文欢迎供应商咨询并公布联系人/联系电话"
+      }
+    ],
+    "quality_flags": [
+      "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+      "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月"
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "tjzyefy_intent_20260804_030195988",
+    "source": {
+      "source_id": "tjzyefy-intent:tjzyefy_intent_20260804_030195988",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml",
+      "observed_at": "2026-09-04T15:19:41.874251+00:00"
+    },
+    "facts": {
+      "project_number": null,
+      "project_name": "采购意向公告（2026年44号）-空气压力治疗仪（淋巴水肿专用）采购项目",
+      "buyer_name": "天津中医药大学第二附属医院",
+      "hospital_name": "天津中医药大学第二附属医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "PROCUREMENT_INTENT",
+      "notice_type": "采购意向公告",
+      "published_at": "2026-08-04",
+      "registration_deadline": null,
+      "registration_deadline_date": null,
+      "bid_deadline": null,
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": null,
+      "procurement_method": null,
+      "product_categories": [],
+      "product_items": [
+        {
+          "raw_name": "空气压力治疗仪（淋巴水肿专用）",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "public_contact": {
+        "name": null,
+        "title": null,
+        "phone": "022-60637527",
+        "email": null
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml",
+        "locator": "官方采购意向详情页标题与公告通知列表标题一致"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml",
+        "locator": "标题与正文明确为采购意向公告；确定性映射为PROCUREMENT_INTENT"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml",
+        "locator": "详情页标题明确采购意向公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml",
+        "locator": "详情页官方发布时间，并与详情URL日期一致"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml",
+        "locator": "正文“近期对…进行采购”及详情页项目标题明确采购对象"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml",
+        "locator": "正文欢迎供应商咨询并公布联系人/联系电话"
+      }
+    ],
+    "quality_flags": [
+      "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+      "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年8月"
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "tjzyefy_intent_20260804_030195986",
+    "source": {
+      "source_id": "tjzyefy-intent:tjzyefy_intent_20260804_030195986",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+      "observed_at": "2026-09-04T15:19:41.874251+00:00"
+    },
+    "facts": {
+      "project_number": null,
+      "project_name": "采购意向公告（2026年42号）-肺功能仪等医疗设备采购项目",
+      "buyer_name": "天津中医药大学第二附属医院",
+      "hospital_name": "天津中医药大学第二附属医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "PROCUREMENT_INTENT",
+      "notice_type": "采购意向公告",
+      "published_at": "2026-08-04",
+      "registration_deadline": null,
+      "registration_deadline_date": null,
+      "bid_deadline": null,
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": null,
+      "procurement_method": null,
+      "product_categories": [
+        "医疗设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "肺功能仪",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "public_contact": {
+        "name": null,
+        "title": null,
+        "phone": "022-60637527",
+        "email": null
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+        "locator": "官方采购意向详情页标题与公告通知列表标题一致"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+        "locator": "天津中医药大学第二附属医院官方页面主体"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+        "locator": "标题与正文明确为采购意向公告；确定性映射为PROCUREMENT_INTENT"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+        "locator": "详情页标题明确采购意向公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+        "locator": "详情页官方发布时间，并与详情URL日期一致"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+        "locator": "正文“近期对…进行采购”及详情页项目标题明确采购对象"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+        "locator": "详情页标题明确医疗设备或医用耗材/试剂类别"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml",
+        "locator": "正文欢迎供应商咨询并公布联系人/联系电话"
+      }
+    ],
+    "quality_flags": [
+      "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+      "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月"
+    ]
+  }
+]

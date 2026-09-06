@@ -10,6 +10,23 @@ const MAX_OPPORTUNITY_POOL = 500
 const LATEST_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:latest:v2'
 const LEGACY_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:latest:v1'
 const RUNTIME_SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
+const ZERO_CONFIG_SCORE_TYPE_V2 = 'ZERO_CONFIG_PUBLIC_FACTS_V2'
+const V2_PRIORITY_MAX_POINTS = new Map([
+  ['PRODUCT_EXECUTION_CAPABILITY', 25],
+  ['RELATIONSHIP', 10],
+  ['EXECUTION_FLEXIBILITY', 5],
+  ['INTERVENTION_STAGE', 25],
+  ['DEADLINE_URGENCY', 10],
+  ['PROJECT_AMOUNT', 10],
+  ['PRODUCT_SPECIFICITY', 8],
+  ['PUBLICATION_FRESHNESS', 7],
+])
+const ZERO_CONFIG_PRIVATE_COMPONENTS = new Set([
+  'PRODUCT_EXECUTION_CAPABILITY',
+  'RELATIONSHIP',
+  'EXECUTION_FLEXIBILITY',
+])
+const ZERO_CONFIG_PUBLIC_SCORE_MAX = 60
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
   'model_requests', 'model_input', 'task_payloads', 'agnes_dispatch_plan', 'lease', 'lease_id',
@@ -60,6 +77,54 @@ function assertPublicCustomerContext(value, path) {
     if (policy[key] !== null) throw new Error(`VERIFIED_SNAPSHOT_PRIVATE_CONTEXT_PRESENT:${path}.partnering_policy.${key}`)
   }
 }
+function assertV2Priority(value, path) {
+  const priority = asObject(value)
+  if (!priority || priority.score_type !== ZERO_CONFIG_SCORE_TYPE_V2) {
+    throw new Error(`VERIFIED_SNAPSHOT_RANKING_VERSION_INVALID:${path}`)
+  }
+  if (!Array.isArray(priority.components) || priority.components.length !== V2_PRIORITY_MAX_POINTS.size) {
+    throw new Error(`VERIFIED_SNAPSHOT_PRIORITY_COMPONENTS_INVALID:${path}`)
+  }
+
+  const seen = new Set()
+  let score = 0
+  for (const componentValue of priority.components) {
+    const component = asObject(componentValue)
+    const code = component?.code
+    if (typeof code !== 'string' || seen.has(code) || !V2_PRIORITY_MAX_POINTS.has(code)) {
+      throw new Error(`VERIFIED_SNAPSHOT_PRIORITY_COMPONENT_INVALID:${path}`)
+    }
+    seen.add(code)
+    const expectedMax = V2_PRIORITY_MAX_POINTS.get(code)
+    const points = component.points
+    if (
+      component.max_points !== expectedMax ||
+      typeof points !== 'number' ||
+      !Number.isInteger(points) ||
+      points < 0 ||
+      points > expectedMax
+    ) {
+      throw new Error(`VERIFIED_SNAPSHOT_PRIORITY_COMPONENT_INVALID:${path}.${code}`)
+    }
+    if (ZERO_CONFIG_PRIVATE_COMPONENTS.has(code) && points !== 0) {
+      throw new Error(`VERIFIED_SNAPSHOT_PRIVATE_SCORE_PRESENT:${path}.${code}`)
+    }
+    score += points
+  }
+
+  if (seen.size !== V2_PRIORITY_MAX_POINTS.size) {
+    throw new Error(`VERIFIED_SNAPSHOT_PRIORITY_COMPONENTS_INVALID:${path}`)
+  }
+  if (
+    typeof priority.score !== 'number' ||
+    !Number.isInteger(priority.score) ||
+    priority.score !== score ||
+    priority.score < 0 ||
+    priority.score > ZERO_CONFIG_PUBLIC_SCORE_MAX
+  ) {
+    throw new Error(`VERIFIED_SNAPSHOT_PRIORITY_SCORE_INVALID:${path}`)
+  }
+}
 function assertPublicCard(value, path) {
   const card = asObject(value)
   if (!card || typeof card.opportunity_id !== 'string' || !card.opportunity_id.trim()) throw new Error(`VERIFIED_SNAPSHOT_CARD_INVALID:${path}`)
@@ -68,6 +133,7 @@ function assertPublicCard(value, path) {
   if (!Array.isArray(card.evidence_source_urls) || card.evidence_source_urls.length === 0) throw new Error(`VERIFIED_SNAPSHOT_EVIDENCE_INVALID:${path}`)
   card.evidence_source_urls.forEach((url, index) => assertHttpsUrl(url, `VERIFIED_SNAPSHOT_EVIDENCE_INVALID:${path}.evidence_source_urls[${index}]`))
   assertPublicCustomerContext(card.customer_context, `${path}.customer_context`)
+  assertV2Priority(card.priority, `${path}.priority`)
 }
 function assertUniqueOpportunityIds(items, code) {
   const seen = new Set()
@@ -151,7 +217,7 @@ async function loadRuntimeCachedSnapshot() {
     try {
       return validateVerifiedSnapshot(value)
     } catch {
-      // Invalid v2 state is never served; attempt one safe legacy migration below.
+      // Invalid or legacy state is never served; attempt one safe legacy check below.
     }
   }
 
@@ -161,7 +227,7 @@ async function loadRuntimeCachedSnapshot() {
       const verifiedLegacy = validateVerifiedSnapshot(legacy)
       return await persistRuntimeSnapshot(cache, verifiedLegacy)
     } catch {
-      // Invalid legacy state is never migrated.
+      // v1 ranking payloads intentionally fail the v2 contract and are never migrated.
     }
   }
 

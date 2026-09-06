@@ -24,6 +24,9 @@ class MedicalChannelScopeTests(unittest.TestCase):
             "天津市胸科医院检验科设备租赁服务项目",
             "天津市第三中心医院数字彩色超声诊断系统采购项目",
             "天津市滨海新区海滨人民医院采购人工智能GPU（8卡）算力服务器项目",
+            "天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选公告",
+            "天津中医药大学第二附属医院高分辨液质联用系统三年期维保项目",
+            "空气压力治疗仪（淋巴水肿专用）采购项目",
         ]
         for title in titles:
             with self.subTest(title=title):
@@ -34,6 +37,8 @@ class MedicalChannelScopeTests(unittest.TestCase):
             "天津中医药大学第二附属医院安保服务项目",
             "天津市海河医院战略型复合人才培养项目",
             "西青区卫生健康基层医疗卫生机构财务信息化管理项目",
+            "天津市第一中心医院科教处工服采购项目院内比选公告",
+            "中医外治疗室装修改造工程项目",
         ]
         for title in titles:
             with self.subTest(title=title):

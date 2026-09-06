@@ -1,6 +1,5 @@
 import { demoDatasetMode } from '@/config/demoDataset'
 import { mockTodayActionsResponse } from '@/data/today-actions.mock'
-import { verifiedDemoTodayActionsResponse } from '@/data/today-actions.verified-demo'
 import type {
   FollowupInput,
   FollowupRecord,
@@ -15,8 +14,7 @@ import type { TodayActionsService } from './TodayActionsService'
 const SYNTHETIC_STORAGE_KEY = 'medopp.followups.v1'
 const VERIFIED_STORAGE_KEY = 'medopp.verified-followups.v1'
 const STORAGE_KEY = demoDatasetMode === 'verified' ? VERIFIED_STORAGE_KEY : SYNTHETIC_STORAGE_KEY
-const selectedDemoResponse =
-  demoDatasetMode === 'verified' ? verifiedDemoTodayActionsResponse : mockTodayActionsResponse
+const selectedDemoResponse = mockTodayActionsResponse
 
 export function resetMockDemoState(): void {
   try {
@@ -141,7 +139,7 @@ export class MockTodayActionsService implements TodayActionsService {
       opportunity_id: id,
       disclaimer:
         demoDatasetMode === 'verified'
-          ? '真实公开事实快照 + 演示客户资源 · 话术由页面内演示逻辑生成，不代表实时 Agnes 调用，不代表医院立场。正式版将根据已验证事实和客户真实资源按需生成。'
+          ? '真实公开事实快照 + 演示客户资源 · 话术由页面内演示逻辑生成，不代表实时 AI 调用，不代表医院立场。正式版将根据已验证事实和客户真实资源按需生成。'
           : '演示模式 · 正式版将根据当前商机事实和客户资源按需生成。本话术仅供内部沟通参考，不是官方公告，也不代表医院立场。',
       generated_at: new Date().toISOString(),
       draft: buildDraft(card),

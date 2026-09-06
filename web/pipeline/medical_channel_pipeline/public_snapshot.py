@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import re
 from copy import deepcopy
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -10,6 +11,19 @@ from .validation import validate_records
 
 MAX_TODAY_CARDS = 5
 TIANJIN_TZ = ZoneInfo("Asia/Shanghai")
+SOURCE_CATEGORY_TITLE_CONFLICT = "SOURCE_CATEGORY_TITLE_CONFLICT"
+RELATIVE_REGISTRATION_WINDOW_7_DAYS = "RELATIVE_REGISTRATION_WINDOW_7_DAYS"
+PROCUREMENT_INTENT_LIFECYCLE = "PROCUREMENT_INTENT"
+
+_SPECIFIC_PRODUCT_ACRONYM_RE = re.compile(
+    r"(?<![A-Za-z0-9])(?:CT|DR|MRI|DSA|PCR|POCT|IVD|LIS|PACS|RIS|HIS|GPU)(?![A-Za-z0-9])",
+    re.IGNORECASE,
+)
+_SPECIFIC_PRODUCT_TERM_RE = re.compile(
+    r"(?:数字减影血管造影|血管造影机|磁共振|彩色超声|超声诊断|胃肠动力|X线|X光机|"
+    r"内窥镜|内镜|质谱|测序|透析|呼吸机|心电|脑电|病理|生化分析|免疫分析|"
+    r"血液分析|采血|检验科设备|实验室设备)"
+)
 
 
 def _as_datetime(value: str | None) -> datetime | None:
@@ -27,7 +41,38 @@ def _as_date(value: str | None) -> date | None:
     return date.fromisoformat(value)
 
 
-def _actionability(facts: dict[str, Any], as_of: datetime) -> tuple[str, int, str]:
+def _relative_registration_deadline(
+    facts: dict[str, Any],
+    quality_flags: list[str] | None = None,
+) -> datetime | None:
+    if RELATIVE_REGISTRATION_WINDOW_7_DAYS not in set(quality_flags or []):
+        return None
+    published = facts.get("published_at")
+    if not published:
+        return None
+    try:
+        published_date = date.fromisoformat(str(published)[:10])
+    except ValueError:
+        return None
+    # Operational bound only. The public fact fields intentionally keep the
+    # official deadline empty because the notice does not publish an exact
+    # cutoff timestamp. Using end-of-day after seven days is conservative
+    # for action ranking and must never be rendered as an official deadline.
+    return datetime.combine(published_date + timedelta(days=7), time.max, tzinfo=TIANJIN_TZ)
+
+
+def _actionability(
+    facts: dict[str, Any],
+    as_of: datetime,
+    quality_flags: list[str] | None = None,
+) -> tuple[str, int, str]:
+    # Procurement-intent notices are earlier than supplier-facing market
+    # research or tender registration. They are useful for advance supplier
+    # preparation, but the absence of a registration deadline must never make
+    # them look like a fully actionable open opportunity.
+    if facts.get("lifecycle_state") == PROCUREMENT_INTENT_LIFECYCLE:
+        return "PRE_MARKET_SIGNAL", 12, "AWAITING_MODEL"
+
     bid = _as_datetime(facts.get("bid_deadline"))
     registration = _as_datetime(facts.get("registration_deadline"))
     registration_date = _as_date(facts.get("registration_deadline_date"))
@@ -36,28 +81,156 @@ def _actionability(facts: dict[str, Any], as_of: datetime) -> tuple[str, int, st
     if registration and registration <= as_of:
         if not bid:
             return "ARCHIVE", 0, "NOT_ELIGIBLE"
-        return "LATE_WINDOW", 15, "AWAITING_MODEL"
+        return "LATE_WINDOW", 8, "AWAITING_MODEL"
     if registration is None and registration_date is not None:
         local_date = as_of.astimezone(TIANJIN_TZ).date()
         if registration_date < local_date:
             if not bid:
                 return "ARCHIVE", 0, "NOT_ELIGIBLE"
-            return "LATE_WINDOW", 15, "AWAITING_MODEL"
-    return "PUBLIC_OPPORTUNITY", 40, "AWAITING_MODEL"
+            return "LATE_WINDOW", 8, "AWAITING_MODEL"
+    relative_deadline = _relative_registration_deadline(facts, quality_flags)
+    if relative_deadline is not None and relative_deadline <= as_of:
+        return "ARCHIVE", 0, "NOT_ELIGIBLE"
+    return "PUBLIC_OPPORTUNITY", 25, "AWAITING_MODEL"
+
+
+def _next_action_deadline(
+    facts: dict[str, Any],
+    as_of: datetime,
+    quality_flags: list[str] | None = None,
+) -> datetime | None:
+    registration = _as_datetime(facts.get("registration_deadline"))
+    if registration and registration > as_of:
+        return registration
+
+    registration_date = _as_date(facts.get("registration_deadline_date"))
+    if registration is None and registration_date is not None:
+        local_date = as_of.astimezone(TIANJIN_TZ).date()
+        if registration_date >= local_date:
+            return datetime.combine(registration_date, time.max, tzinfo=TIANJIN_TZ)
+
+    bid = _as_datetime(facts.get("bid_deadline"))
+    if bid and bid > as_of:
+        return bid
+    relative_deadline = _relative_registration_deadline(facts, quality_flags)
+    if relative_deadline is not None and relative_deadline > as_of:
+        return relative_deadline
+    return None
+
+
+def _deadline_urgency_points(
+    facts: dict[str, Any],
+    as_of: datetime,
+    quality_flags: list[str] | None = None,
+) -> int:
+    deadline = _next_action_deadline(facts, as_of, quality_flags)
+    if deadline is None:
+        return 0
+    hours_left = (deadline - as_of).total_seconds() / 3600
+    if hours_left < 0:
+        return 0
+    if hours_left <= 24:
+        return 10
+    if hours_left <= 72:
+        return 9
+    if hours_left <= 7 * 24:
+        return 7
+    if hours_left <= 14 * 24:
+        return 5
+    if hours_left <= 30 * 24:
+        return 3
+    return 1
 
 
 def _amount_points(budget: int | None) -> int:
     if budget is None:
         return 0
     if budget >= 5_000_000:
-        return 20
+        return 10
     if budget >= 3_000_000:
-        return 18
+        return 9
     if budget >= 1_000_000:
-        return 14
+        return 7
     if budget >= 500_000:
-        return 8
-    return 4
+        return 4
+    if budget > 0:
+        return 2
+    return 0
+
+
+def _project_title_has_specific_product_signal(project_name: Any) -> bool:
+    if not isinstance(project_name, str):
+        return False
+    title = project_name.strip()
+    if not title:
+        return False
+    return bool(_SPECIFIC_PRODUCT_ACRONYM_RE.search(title) or _SPECIFIC_PRODUCT_TERM_RE.search(title))
+
+
+def _product_specificity_points(
+    facts: dict[str, Any],
+    quality_flags: list[str] | None = None,
+) -> int:
+    points = 0
+    items = facts.get("product_items") or []
+    categories = facts.get("product_categories") or []
+    flags = set(quality_flags or [])
+    if isinstance(items, list) and items:
+        points += 4
+    elif _project_title_has_specific_product_signal(facts.get("project_name")):
+        # A verified official title can safely establish a product family even
+        # when the parser has not extracted a structured line item. This is a
+        # deterministic fallback, not an AI inference.
+        points += 4
+    # Preserve source categories for audit/display, but an explicit conflict
+    # with the verified project title must never increase automated ranking.
+    if SOURCE_CATEGORY_TITLE_CONFLICT not in flags and isinstance(categories, list) and categories:
+        points += 2
+    if facts.get("department"):
+        points += 1
+    if facts.get("procurement_method"):
+        points += 1
+    return min(8, points)
+
+
+def _publication_freshness_points(facts: dict[str, Any], as_of: datetime) -> int:
+    value = facts.get("published_at")
+    if not value:
+        return 0
+    try:
+        published_date = date.fromisoformat(str(value)[:10])
+    except ValueError:
+        return 0
+    local_date = as_of.astimezone(TIANJIN_TZ).date()
+    age_days = (local_date - published_date).days
+    if age_days < 0:
+        return 0
+    if age_days <= 1:
+        return 7
+    if age_days <= 3:
+        return 6
+    if age_days <= 7:
+        return 5
+    if age_days <= 14:
+        return 3
+    if age_days <= 30:
+        return 1
+    return 0
+
+
+def _public_score_components(
+    facts: dict[str, Any],
+    as_of: datetime,
+    quality_flags: list[str] | None = None,
+) -> dict[str, int]:
+    _, intervention_points, _ = _actionability(facts, as_of, quality_flags)
+    return {
+        "INTERVENTION_STAGE": intervention_points,
+        "DEADLINE_URGENCY": _deadline_urgency_points(facts, as_of, quality_flags),
+        "PROJECT_AMOUNT": _amount_points(facts.get("budget_cny")),
+        "PRODUCT_SPECIFICITY": _product_specificity_points(facts, quality_flags),
+        "PUBLICATION_FRESHNESS": _publication_freshness_points(facts, as_of),
+    }
 
 
 def _event_is_effective(event: dict[str, Any], as_of: datetime) -> bool:
@@ -162,8 +335,10 @@ def _public_card(
     correction_evidence_urls: list[str] | None = None,
 ) -> dict[str, Any]:
     facts = record["facts"]
-    mode, intervention_points, model_status = _actionability(facts, as_of)
-    amount_points = _amount_points(facts.get("budget_cny"))
+    quality_flags = list(record.get("quality_flags") or [])
+    mode, _, model_status = _actionability(facts, as_of, quality_flags)
+    components = _public_score_components(facts, as_of, quality_flags)
+    public_score = sum(components.values())
     public_facts = {
         "project_number": facts.get("project_number"),
         "project_name": facts.get("project_name"),
@@ -188,6 +363,7 @@ def _public_card(
         "product_categories": facts.get("product_categories") or [],
         "product_items": facts.get("product_items") or [],
         "public_contact": facts.get("public_contact"),
+        "quality_flags": quality_flags,
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL",
     }
@@ -214,13 +390,13 @@ def _public_card(
         },
         "priority": {
             "schema_version": "0.1",
-            "score": amount_points + intervention_points,
-            "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+            "score": public_score,
+            "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
             "components": [
                 {
                     "code": "PRODUCT_EXECUTION_CAPABILITY",
                     "points": 0,
-                    "max_points": 30,
+                    "max_points": 25,
                     "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
                     "profile_paths": [],
                     "opportunity_paths": [],
@@ -234,10 +410,31 @@ def _public_card(
                     "opportunity_paths": [],
                 },
                 {
+                    "code": "EXECUTION_FLEXIBILITY",
+                    "points": 0,
+                    "max_points": 5,
+                    "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+                    "profile_paths": [],
+                    "opportunity_paths": [],
+                },
+                {
                     "code": "INTERVENTION_STAGE",
-                    "points": intervention_points,
-                    "max_points": 40,
+                    "points": components["INTERVENTION_STAGE"],
+                    "max_points": 25,
                     "basis": mode,
+                    "profile_paths": [],
+                    "opportunity_paths": [
+                        "facts.lifecycle_state",
+                        "facts.registration_deadline",
+                        "facts.registration_deadline_date",
+                        "facts.bid_deadline",
+                    ],
+                },
+                {
+                    "code": "DEADLINE_URGENCY",
+                    "points": components["DEADLINE_URGENCY"],
+                    "max_points": 10,
+                    "basis": "NEXT_ACTIONABLE_DEADLINE",
                     "profile_paths": [],
                     "opportunity_paths": [
                         "facts.registration_deadline",
@@ -247,14 +444,36 @@ def _public_card(
                 },
                 {
                     "code": "PROJECT_AMOUNT",
-                    "points": amount_points,
-                    "max_points": 20,
+                    "points": components["PROJECT_AMOUNT"],
+                    "max_points": 10,
                     "basis": "PUBLIC_BUDGET_ONLY",
                     "profile_paths": [],
                     "opportunity_paths": ["facts.budget_cny"],
                 },
+                {
+                    "code": "PRODUCT_SPECIFICITY",
+                    "points": components["PRODUCT_SPECIFICITY"],
+                    "max_points": 8,
+                    "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+                    "profile_paths": [],
+                    "opportunity_paths": [
+                        "facts.project_name",
+                        "facts.product_items",
+                        "facts.product_categories",
+                        "facts.department",
+                        "facts.procurement_method",
+                    ],
+                },
+                {
+                    "code": "PUBLICATION_FRESHNESS",
+                    "points": components["PUBLICATION_FRESHNESS"],
+                    "max_points": 7,
+                    "basis": "OFFICIAL_PUBLICATION_RECENCY",
+                    "profile_paths": [],
+                    "opportunity_paths": ["facts.published_at"],
+                },
             ],
-            "warnings": ["ZERO_CONFIG_PUBLIC_FACTS_ONLY", *(record.get("quality_flags") or [])],
+            "warnings": ["ZERO_CONFIG_PUBLIC_FACTS_ONLY", *quality_flags],
             "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY",
         },
         "match_status": "MATCHED_CANDIDATE",
@@ -263,6 +482,23 @@ def _public_card(
         "model_block_reason": None,
         "decision": None,
     }
+
+
+def _published_sort_timestamp(facts: dict[str, Any]) -> float:
+    value = facts.get("published_at")
+    if not value:
+        return 0.0
+    try:
+        published = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if published.tzinfo is None:
+            published = published.replace(tzinfo=TIANJIN_TZ)
+        return published.timestamp()
+    except ValueError:
+        try:
+            published_date = date.fromisoformat(str(value)[:10])
+            return datetime.combine(published_date, time.min, tzinfo=TIANJIN_TZ).timestamp()
+        except ValueError:
+            return 0.0
 
 
 def build_public_snapshot(
@@ -275,7 +511,7 @@ def build_public_snapshot(
     validated = validate_records(records)
     event_states = _build_event_states(notice_events or [], as_of)
 
-    sortable: list[tuple[int, str, dict[str, Any], list[str]]] = []
+    sortable: list[tuple[int, float, float, str, dict[str, Any], list[str]]] = []
     for record in validated:
         facts = record["facts"]
         project_number = str(facts.get("project_number") or "").strip().lower()
@@ -285,15 +521,34 @@ def build_public_snapshot(
             continue
 
         effective_facts = effective_record["facts"]
-        mode, intervention, _ = _actionability(effective_facts, as_of)
+        effective_flags = list(effective_record.get("quality_flags") or [])
+        mode, _, _ = _actionability(effective_facts, as_of, effective_flags)
         if mode == "ARCHIVE":
             continue
-        score = intervention + _amount_points(effective_facts.get("budget_cny"))
-        sortable.append((-score, effective_record["opportunity_id"], effective_record, correction_urls))
+        score = sum(
+            _public_score_components(
+                effective_facts,
+                as_of,
+                list(effective_record.get("quality_flags") or []),
+            ).values()
+        )
+        deadline = _next_action_deadline(effective_facts, as_of, effective_flags)
+        deadline_sort = deadline.timestamp() if deadline else float("inf")
+        published_sort = -_published_sort_timestamp(effective_facts)
+        sortable.append(
+            (
+                -score,
+                deadline_sort,
+                published_sort,
+                effective_record["opportunity_id"],
+                effective_record,
+                correction_urls,
+            )
+        )
 
-    sortable.sort(key=lambda item: (item[0], item[1]))
+    sortable.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
     opportunity_pool = [
-        _public_card(item[2], rank + 1, as_of, item[3])
+        _public_card(item[4], rank + 1, as_of, item[5])
         for rank, item in enumerate(sortable)
     ]
     cards = opportunity_pool[:MAX_TODAY_CARDS]

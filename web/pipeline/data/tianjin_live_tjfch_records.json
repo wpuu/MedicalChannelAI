@@ -1,0 +1,200 @@
+[
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "tjfch_20260831_030197542",
+    "source": {
+      "source_id": "tjfch:tjfch_20260831_030197542",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+      "observed_at": "2026-09-05T17:02:46.269508+00:00"
+    },
+    "facts": {
+      "project_number": "YNBX-2026-G-5001",
+      "project_name": "天津市第一中心医院科教处工服采购项目院内比选公告",
+      "buyer_name": "天津市第一中心医院",
+      "hospital_name": "天津市第一中心医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "院内比选采购公告",
+      "published_at": "2026-08-31",
+      "registration_deadline": null,
+      "registration_deadline_date": null,
+      "bid_deadline": "2026-09-02T17:00:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 50600,
+      "procurement_method": "院内比选",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "杨老师",
+        "title": null,
+        "phone": "022-23628323",
+        "email": "sdyzxsbwzcsbk@tj.gov.cn"
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "详情页完整标题（H1优先、文档title兜底）与官方列表标题/截断前缀一致"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "天津市第一中心医院官方院内比选页面主体"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "天津市第一中心医院官方院内比选页面主体"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "天津市第一中心医院官方页面主体"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "详情页完整标题=院内比选采购公告；确定性映射为BIDDING"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "官方栏目=院内比选采购信息；详情页完整标题含院内比选公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "详情页发布日期与/system/YYYY/MM/DD/路径日期一致"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "响应/投标文件递交截止时间，原文含明确日期和时分"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "详情页标题/正文明确采用院内比选"
+      },
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "项目编号"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "项目预算/最高限价/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197542.shtml",
+        "locator": "项目联系方式/联系人/电话/政务邮箱"
+      }
+    ],
+    "quality_flags": []
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "tjfch_20260831_030197537",
+    "source": {
+      "source_id": "tjfch:tjfch_20260831_030197537",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+      "observed_at": "2026-09-05T17:02:46.269508+00:00"
+    },
+    "facts": {
+      "project_number": "YNBX-2026-G-6004",
+      "project_name": "天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选公告",
+      "buyer_name": "天津市第一中心医院",
+      "hospital_name": "天津市第一中心医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "院内比选采购公告",
+      "published_at": "2026-08-31",
+      "registration_deadline": null,
+      "registration_deadline_date": null,
+      "bid_deadline": "2026-09-07T17:00:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 4588,
+      "procurement_method": "院内比选",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "王老师",
+        "title": null,
+        "phone": "23628323",
+        "email": "sdyzxsbwzcsbk@tj.gov.cn"
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "详情页完整标题（H1优先、文档title兜底）与官方列表标题/截断前缀一致"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "天津市第一中心医院官方院内比选页面主体"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "天津市第一中心医院官方院内比选页面主体"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "天津市第一中心医院官方页面主体"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "详情页完整标题=院内比选采购公告；确定性映射为BIDDING"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "官方栏目=院内比选采购信息；详情页完整标题含院内比选公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "详情页发布日期与/system/YYYY/MM/DD/路径日期一致"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "响应/投标文件递交截止时间，原文含明确日期和时分"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "详情页标题/正文明确采用院内比选"
+      },
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "项目编号"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "项目预算/最高限价/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml",
+        "locator": "项目联系方式/联系人/电话/政务邮箱"
+      }
+    ],
+    "quality_flags": []
+  }
+]

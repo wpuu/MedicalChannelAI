@@ -176,5 +176,117 @@
         "locator": "三、联系方式/联系电话"
       }
     ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "tjmugh_20260831_030337994",
+    "source": {
+      "source_id": "tjmugh:tjmugh_20260831_030337994",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+      "observed_at": "2026-09-05T17:02:46.269508+00:00"
+    },
+    "facts": {
+      "project_number": null,
+      "project_name": "天津医科大学总医院医疗设备项目市场调研论证邀请函",
+      "buyer_name": "天津医科大学总医院",
+      "hospital_name": "天津医科大学总医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "MARKET_RESEARCH",
+      "notice_type": "市场调研论证邀请函",
+      "published_at": "2026-08-31",
+      "registration_deadline": "2026-09-03T17:00:00+08:00",
+      "bid_deadline": null,
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": null,
+      "procurement_method": null,
+      "product_categories": [],
+      "product_items": [
+        {
+          "raw_name": "近红外组织血氧参数无损检测仪",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "连续心排量检测仪",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "液体加温仪",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "可视软性喉镜",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "public_contact": {
+        "name": "张老师",
+        "title": "设备采购科",
+        "phone": "60361777",
+        "email": null
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+        "locator": "页面标题"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+        "locator": "医院官网与正文主体"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+        "locator": "医院官网与正文主体"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+        "locator": "医院官网主体/天津医科大学总医院"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+        "locator": "正文=拟开展院内项目市场调研论证/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+        "locator": "页面标题/市场调研论证邀请函"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+        "locator": "页面发布时间"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+        "locator": "本次报名截止时间"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+        "locator": "一、论证项目名称"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tjmugh.com.cn/system/2026/08/31/030337994.shtml",
+        "locator": "三、联系方式/联系电话"
+      }
+    ]
   }
 ]

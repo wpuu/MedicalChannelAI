@@ -4,6 +4,7 @@ import type {
   HospitalRelationship,
   MatchingProductCapability,
   RelationshipStrength,
+  TargetHospitalInterest,
   TodayActionCard,
 } from '@/types'
 
@@ -20,9 +21,15 @@ export interface LocalHospitalRelationship {
   relationship_strength: RelationshipStrength
 }
 
+export interface LocalTargetHospital {
+  hospital: string
+  department: string | null
+}
+
 export interface LocalCustomerProfile {
   product_capabilities: LocalProductCapability[]
   hospital_relationships: LocalHospitalRelationship[]
+  target_hospitals: LocalTargetHospital[]
   can_find_manufacturer: boolean | null
   can_partner_channel: boolean | null
   can_handle_lease: boolean | null
@@ -32,6 +39,7 @@ export interface LocalCustomerProfile {
 const EMPTY_PROFILE: LocalCustomerProfile = {
   product_capabilities: [],
   hospital_relationships: [],
+  target_hospitals: [],
   can_find_manufacturer: null,
   can_partner_channel: null,
   can_handle_lease: null,
@@ -78,6 +86,7 @@ const SHORT_MEDICAL_CAPABILITY_KEYWORDS = new Set([
   'ct',
   'mr',
   'cr',
+  'dsa',
   'ivd',
   'pcr',
   'lis',
@@ -87,6 +96,19 @@ const SHORT_MEDICAL_CAPABILITY_KEYWORDS = new Set([
   'icu',
   'gpu',
 ])
+
+const CAPABILITY_ALIAS_GROUPS = [
+  ['dsa', '数字减影血管造影', '数字减影血管造影机', '血管造影机'],
+  ['dr', '数字x光机', '数字x线摄影', '数字化x线摄影', '数字化x射线摄影'],
+  ['ct', 'ct机', 'ct影像', '计算机断层扫描', '电子计算机断层扫描'],
+  ['mr', 'mri', '磁共振', '磁共振成像'],
+  ['cr', '计算机x线摄影'],
+  ['ivd', '体外诊断', '体外诊断试剂', '检测试剂', '质控品', '校准品'],
+  ['pcr', '聚合酶链式反应', '核酸扩增'],
+  ['lis', '检验信息系统', '实验室信息系统'],
+  ['his', '医院信息系统'],
+  ['ecg', '心电图', '心电图机'],
+]
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -147,10 +169,26 @@ export function loadLocalCustomerProfile(): LocalCustomerProfile {
       }
     }
 
+    const target_hospitals: LocalTargetHospital[] = []
+    if (Array.isArray(root.target_hospitals)) {
+      const keys = new Set<string>()
+      for (const item of root.target_hospitals.slice(0, 100)) {
+        const row = asRecord(item)
+        const hospital = cleanText(row?.hospital, 240)
+        if (!hospital) continue
+        const department = cleanText(row?.department, 160)
+        const key = `${hospital.toLowerCase()}|${(department ?? '').toLowerCase()}`
+        if (keys.has(key)) continue
+        keys.add(key)
+        target_hospitals.push({ hospital, department })
+      }
+    }
+
     const updatedAt = cleanText(root.updated_at, 80)
     return {
       product_capabilities,
       hospital_relationships,
+      target_hospitals,
       can_find_manufacturer: triState(root.can_find_manufacturer),
       can_partner_channel: triState(root.can_partner_channel),
       can_handle_lease: triState(root.can_handle_lease),
@@ -162,6 +200,19 @@ export function loadLocalCustomerProfile(): LocalCustomerProfile {
 }
 
 export function saveLocalCustomerProfile(profile: LocalCustomerProfile): void {
+  const targetKeys = new Set<string>()
+  const normalizedTargets: LocalTargetHospital[] = []
+  for (const item of profile.target_hospitals) {
+    const hospital = cleanText(item.hospital, 240) ?? ''
+    const department = cleanText(item.department, 160)
+    if (!hospital) continue
+    const key = `${hospital.toLowerCase()}|${(department ?? '').toLowerCase()}`
+    if (targetKeys.has(key)) continue
+    targetKeys.add(key)
+    normalizedTargets.push({ hospital, department })
+    if (normalizedTargets.length >= 100) break
+  }
+
   const normalized: LocalCustomerProfile = {
     product_capabilities: profile.product_capabilities
       .map((item) => ({
@@ -181,6 +232,7 @@ export function saveLocalCustomerProfile(profile: LocalCustomerProfile): void {
           item.hospital && RELATIONSHIP_STRENGTHS.has(item.relationship_strength),
       )
       .slice(0, 100),
+    target_hospitals: normalizedTargets,
     can_find_manufacturer: triState(profile.can_find_manufacturer),
     can_partner_channel: triState(profile.can_partner_channel),
     can_handle_lease: triState(profile.can_handle_lease),
@@ -201,6 +253,10 @@ function normalizeForMatch(value: string | null | undefined): string {
   return (value ?? '').toLowerCase().replace(/[\s（）()、，,·.\-_/]+/g, '')
 }
 
+const NORMALIZED_CAPABILITY_ALIAS_GROUPS = CAPABILITY_ALIAS_GROUPS.map((group) =>
+  group.map((item) => normalizeForMatch(item)).filter(Boolean),
+)
+
 export function isSpecificCapabilityKeyword(value: string): boolean {
   const normalized = normalizeForMatch(value)
   if (!normalized || GENERIC_CAPABILITY_KEYWORDS.has(normalized)) return false
@@ -209,7 +265,20 @@ export function isSpecificCapabilityKeyword(value: string): boolean {
   return hasCjk ? normalized.length >= 2 : normalized.length >= 4
 }
 
-function cardSearchText(card: TodayActionCard): string {
+function capabilityMatchTerms(value: string): string[] {
+  const keyword = normalizeForMatch(value)
+  if (!keyword) return []
+  const group = NORMALIZED_CAPABILITY_ALIAS_GROUPS.find((items) => items.includes(keyword))
+  return group ?? [keyword]
+}
+
+function shortAsciiTokenMatches(rawText: string, term: string): boolean {
+  if (!/^[a-z0-9]{2,3}$/.test(term)) return false
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(^|[^a-z0-9])${escaped}(?=$|[^a-z0-9])`, 'i').test(rawText)
+}
+
+function cardSearchText(card: TodayActionCard): { raw: string; normalized: string } {
   const values = [
     card.facts.project_name,
     card.facts.department,
@@ -219,26 +288,27 @@ function cardSearchText(card: TodayActionCard): string {
       item.category,
       item.specification,
     ]),
-  ]
-  return normalizeForMatch(values.filter(Boolean).join('|'))
+  ].filter(Boolean)
+  const raw = values.join(' | ').toLowerCase()
+  return { raw, normalized: normalizeForMatch(raw) }
 }
 
 function capabilityPoints(type: CapabilityType): number {
   switch (type) {
     case 'DIRECT_AUTHORIZED':
+      return 25
     case 'DIRECT':
-      return 30
-    case 'RENTAL_CAPABLE':
-      return 26
     case 'DIRECT_UNCONFIRMED':
+      return 18
+    case 'RENTAL_CAPABLE':
       return 22
     case 'NEED_MANUFACTURER':
     case 'CAN_SOURCE_PARTNER':
-      return 16
-    case 'PARTNER':
       return 14
-    case 'SERVICE_ONLY':
+    case 'PARTNER':
       return 12
+    case 'SERVICE_ONLY':
+      return 8
     default:
       return 0
   }
@@ -265,15 +335,15 @@ function hospitalNamesMatch(buyer: string, hospital: string): boolean {
   return buyer.includes(hospital) || hospital.includes(buyer)
 }
 
-function relationAppliesToCard(
-  relation: LocalHospitalRelationship,
+function hospitalScopeAppliesToCard(
+  item: Pick<LocalHospitalRelationship, 'hospital' | 'department'> | LocalTargetHospital,
   card: TodayActionCard,
 ): boolean {
   const buyer = normalizeForMatch(card.facts.hospital ?? card.facts.buyer_name)
-  const hospital = normalizeForMatch(relation.hospital)
+  const hospital = normalizeForMatch(item.hospital)
   if (!buyer || !hospital || !hospitalNamesMatch(buyer, hospital)) return false
 
-  const scopedDepartment = normalizeForMatch(relation.department)
+  const scopedDepartment = normalizeForMatch(item.department)
   if (!scopedDepartment) return true
 
   const cardDepartment = normalizeForMatch(card.facts.department)
@@ -291,7 +361,7 @@ function relationshipForCard(
 ): LocalHospitalRelationship | null {
   let best: LocalHospitalRelationship | null = null
   for (const relation of profile.hospital_relationships) {
-    if (!relationAppliesToCard(relation, card)) continue
+    if (!hospitalScopeAppliesToCard(relation, card)) continue
     if (!best || relationshipPoints(relation.relationship_strength) > relationshipPoints(best.relationship_strength)) {
       best = relation
     }
@@ -299,24 +369,92 @@ function relationshipForCard(
   return best
 }
 
+function targetForCard(
+  card: TodayActionCard,
+  profile: LocalCustomerProfile,
+): LocalTargetHospital | null {
+  return profile.target_hospitals.find((target) => hospitalScopeAppliesToCard(target, card)) ?? null
+}
+
 function capabilitiesForCard(
   card: TodayActionCard,
   profile: LocalCustomerProfile,
 ): LocalProductCapability[] {
   const haystack = cardSearchText(card)
-  if (!haystack) return []
+  if (!haystack.raw && !haystack.normalized) return []
   return profile.product_capabilities.filter((capability) => {
     if (!isSpecificCapabilityKeyword(capability.keyword)) return false
-    const keyword = normalizeForMatch(capability.keyword)
-    return haystack.includes(keyword)
+    return capabilityMatchTerms(capability.keyword).some((term) =>
+      /^[a-z0-9]{2,3}$/.test(term)
+        ? shortAsciiTokenMatches(haystack.raw, term)
+        : haystack.normalized.includes(term),
+    )
   })
 }
 
+function cardLooksLikeLease(card: TodayActionCard): boolean {
+  const text = normalizeForMatch(
+    [
+      card.facts.project_name,
+      card.facts.procurement_method,
+      ...(card.facts.product_categories ?? []),
+    ]
+      .filter(Boolean)
+      .join('|'),
+  )
+  return text.includes('租赁') || text.includes('租用') || text.includes('租机')
+}
+
+function executionFlexibilityPoints(
+  card: TodayActionCard,
+  capabilities: LocalProductCapability[],
+  profile: LocalCustomerProfile,
+): number {
+  let points = 0
+  const types = new Set(capabilities.map((item) => item.capability_type))
+
+  if (cardLooksLikeLease(card) && profile.can_handle_lease === true) {
+    return 5
+  }
+  if (types.has('RENTAL_CAPABLE') && profile.can_handle_lease === true) {
+    points = Math.max(points, 5)
+  }
+  if (
+    (types.has('NEED_MANUFACTURER') || types.has('CAN_SOURCE_PARTNER')) &&
+    profile.can_find_manufacturer === true
+  ) {
+    points = Math.max(points, 3)
+  }
+  if (
+    (types.has('PARTNER') || types.has('CAN_SOURCE_PARTNER')) &&
+    profile.can_partner_channel === true
+  ) {
+    points = Math.max(points, 3)
+  }
+  if (
+    types.has('CAN_SOURCE_PARTNER') &&
+    profile.can_find_manufacturer === true &&
+    profile.can_partner_channel === true
+  ) {
+    points = 5
+  }
+  return Math.min(5, points)
+}
+
 function toCustomerContext(
+  target: LocalTargetHospital | null,
   relation: LocalHospitalRelationship | null,
   capabilities: LocalProductCapability[],
   profile: LocalCustomerProfile,
 ): CustomerContext {
+  const targetHospital: TargetHospitalInterest | null = target
+    ? {
+        hospital: target.hospital,
+        department: target.department,
+        watched_by_customer: true,
+        updated_at: profile.updated_at,
+      }
+    : null
   const hospitalRelationship: HospitalRelationship | null = relation
     ? {
         hospital: relation.hospital,
@@ -336,6 +474,7 @@ function toCustomerContext(
   }))
 
   return {
+    target_hospital: targetHospital,
     hospital_relationship: hospitalRelationship,
     matching_product_capabilities: matching,
     partnering_policy: {
@@ -351,6 +490,7 @@ export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard
   if (
     profile.product_capabilities.length === 0 &&
     profile.hospital_relationships.length === 0 &&
+    profile.target_hospitals.length === 0 &&
     profile.can_find_manufacturer === null &&
     profile.can_partner_channel === null &&
     profile.can_handle_lease === null
@@ -359,6 +499,7 @@ export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard
   }
 
   const personalized = cards.map((card) => {
+    const target = targetForCard(card, profile)
     const relation = relationshipForCard(card, profile)
     const capabilities = capabilitiesForCard(card, profile)
     const capabilityPoint = capabilities.reduce(
@@ -366,22 +507,28 @@ export function personalizeTrialCards(cards: TodayActionCard[]): TodayActionCard
       0,
     )
     const relationPoint = relation ? relationshipPoints(relation.relationship_strength) : 0
+    const flexibilityPoint = executionFlexibilityPoints(card, capabilities, profile)
     const publicBase = Math.max(
       0,
       card.priority.score -
-        Math.round((card.priority.components.PRODUCT_EXECUTION_CAPABILITY / 100) * 30) -
-        Math.round((card.priority.components.RELATIONSHIP / 100) * 10),
+        Math.round((card.priority.components.PRODUCT_EXECUTION_CAPABILITY / 100) * 25) -
+        Math.round((card.priority.components.RELATIONSHIP / 100) * 10) -
+        Math.round(((card.priority.components.EXECUTION_FLEXIBILITY ?? 0) / 100) * 5),
     )
+    const privatePoints = capabilityPoint + relationPoint + flexibilityPoint
 
     return {
       ...card,
-      customer_context: toCustomerContext(relation, capabilities, profile),
+      match_status: privatePoints > 0 || target ? 'MATCHED_PERSONALIZED' : card.match_status,
+      customer_context: toCustomerContext(target, relation, capabilities, profile),
       priority: {
-        score: Math.min(100, publicBase + capabilityPoint + relationPoint),
+        score: Math.min(100, publicBase + privatePoints),
+        score_scope: 'PERSONALIZED' as const,
         components: {
           ...card.priority.components,
-          PRODUCT_EXECUTION_CAPABILITY: Math.round((capabilityPoint / 30) * 100),
+          PRODUCT_EXECUTION_CAPABILITY: Math.round((capabilityPoint / 25) * 100),
           RELATIONSHIP: relationPoint * 10,
+          EXECUTION_FLEXIBILITY: flexibilityPoint * 20,
         },
       },
     }

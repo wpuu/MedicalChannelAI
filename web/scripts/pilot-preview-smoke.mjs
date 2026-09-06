@@ -1,0 +1,479 @@
+import { randomUUID } from 'node:crypto'
+
+const baseUrl = String(process.env.PILOT_SMOKE_BASE_URL || '').trim().replace(/\/+$/, '')
+const inviteCode = String(process.env.PILOT_SMOKE_INVITE_CODE || '').trim()
+const bypassSecret = String(process.env.VERCEL_AUTOMATION_BYPASS_SECRET || '').trim()
+const testAi = ['1', 'true', 'yes', 'on'].includes(
+  String(process.env.PILOT_SMOKE_AI || '').trim().toLowerCase(),
+)
+const OBVIOUS_MEDICAL_INSTITUTION = /(医院|卫生院|社区卫生服务中心|妇幼保健院|妇幼保健中心|疾病预防控制中心|疾控中心|血液中心|医学中心|急救中心|疗养院)/
+
+if (!baseUrl) throw new Error('PILOT_SMOKE_BASE_URL_REQUIRED')
+if (inviteCode.length < 24) throw new Error('PILOT_SMOKE_INVITE_CODE_REQUIRED')
+
+const base = new URL(baseUrl)
+if (base.protocol !== 'https:') throw new Error('PILOT_SMOKE_HTTPS_REQUIRED')
+if (base.hostname === 'medicalai.qd.je') {
+  throw new Error('PILOT_SMOKE_PRODUCTION_FORBIDDEN')
+}
+if (!base.hostname.endsWith('.vercel.app')) {
+  throw new Error('PILOT_SMOKE_PREVIEW_HOST_REQUIRED')
+}
+
+const username = String(process.env.PILOT_SMOKE_USERNAME || `smoke${Date.now().toString(36)}`)
+  .trim()
+  .slice(0, 32)
+const password = String(process.env.PILOT_SMOKE_PASSWORD || `Smoke-${randomUUID()}!`)
+if (!/^[A-Za-z0-9._-]{4,32}$/.test(username)) throw new Error('PILOT_SMOKE_USERNAME_INVALID')
+if (password.length < 10 || password.length > 128) throw new Error('PILOT_SMOKE_PASSWORD_INVALID')
+
+const cookies = new Map()
+let accountCreated = false
+let accountDeleted = false
+
+function updateCookies(response) {
+  const values = typeof response.headers.getSetCookie === 'function'
+    ? response.headers.getSetCookie()
+    : [response.headers.get('set-cookie')].filter(Boolean)
+  for (const value of values) {
+    const first = String(value || '').split(';', 1)[0]
+    const separator = first.indexOf('=')
+    if (separator <= 0) continue
+    const name = first.slice(0, separator).trim()
+    const cookieValue = first.slice(separator + 1).trim()
+    if (!cookieValue || /max-age=0/i.test(String(value))) cookies.delete(name)
+    else cookies.set(name, cookieValue)
+  }
+}
+
+function cookieHeader() {
+  return [...cookies.entries()].map(([name, value]) => `${name}=${value}`).join('; ')
+}
+
+async function request(path, { method = 'GET', body, expected = [200] } = {}) {
+  const url = new URL(path, `${base.origin}/`)
+  const headers = {
+    Accept: 'application/json',
+    Origin: base.origin,
+  }
+  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  if (cookies.size) headers.Cookie = cookieHeader()
+  if (bypassSecret) {
+    headers['x-vercel-protection-bypass'] = bypassSecret
+    headers['x-vercel-set-bypass-cookie'] = 'true'
+  }
+
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+    redirect: 'manual',
+  })
+  updateCookies(response)
+
+  if (response.status >= 300 && response.status < 400) {
+    throw new Error(`PREVIEW_PROTECTION_OR_REDIRECT:${response.status}`)
+  }
+
+  const text = await response.text()
+  let payload = null
+  if (text) {
+    try {
+      payload = JSON.parse(text)
+    } catch {
+      throw new Error(`NON_JSON_RESPONSE:${response.status}`)
+    }
+  }
+
+  if (!expected.includes(response.status)) {
+    const code = payload && typeof payload.error === 'string' ? payload.error : 'UNKNOWN'
+    throw new Error(`HTTP_${response.status}:${code}`)
+  }
+  return { status: response.status, payload }
+}
+
+function assert(condition, code) {
+  if (!condition) throw new Error(code)
+}
+
+function hasOwn(record, key) {
+  return Boolean(record && typeof record === 'object' && Object.prototype.hasOwnProperty.call(record, key))
+}
+
+function assertPilotUser(payload, code) {
+  const user = payload?.user
+  assert(user && typeof user.username === 'string', `${code}:USERNAME`)
+  assert(hasOwn(user, 'display_name'), `${code}:DISPLAY_NAME_MISSING`)
+  assert(user.display_name === null || typeof user.display_name === 'string', `${code}:DISPLAY_NAME_INVALID`)
+  assert(['OWNER', 'ADMIN', 'MEMBER'].includes(user.role), `${code}:ROLE`)
+}
+
+function findComponent(card, code) {
+  const components = Array.isArray(card?.priority?.components) ? card.priority.components : []
+  return components.find((item) => item?.code === code) || null
+}
+
+function medicalInstitutionName(value) {
+  const name = typeof value === 'string' ? value.trim() : ''
+  return name && OBVIOUS_MEDICAL_INSTITUTION.test(name) ? name : null
+}
+
+function scanForbiddenKeys(value, path = '$') {
+  const forbidden = new Set(['password_hash', 'password_salt', 'token_hash', 'private_sessions'])
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => scanForbiddenKeys(item, `${path}[${index}]`))
+    return
+  }
+  if (!value || typeof value !== 'object') return
+  for (const [key, child] of Object.entries(value)) {
+    if (forbidden.has(key)) throw new Error(`ACCOUNT_EXPORT_SECRET_FIELD:${path}.${key}`)
+    scanForbiddenKeys(child, `${path}.${key}`)
+  }
+}
+
+async function cleanup() {
+  if (!accountCreated || accountDeleted) return
+  try {
+    let session = await request('/api/auth/me', { expected: [200, 401] })
+    if (session.status === 401) {
+      await request('/api/auth/login', {
+        method: 'POST',
+        body: { username, password },
+        expected: [200],
+      })
+      session = await request('/api/auth/me', { expected: [200] })
+    }
+    if (session.status === 200) {
+      await request('/api/account/delete', {
+        method: 'POST',
+        body: { password },
+        expected: [200],
+      })
+      accountDeleted = true
+    }
+  } catch (error) {
+    console.error('Pilot smoke cleanup failed:', error instanceof Error ? error.message : 'UNKNOWN')
+  }
+}
+
+async function main() {
+  console.log(`Pilot Preview smoke target: ${base.origin}`)
+
+  const continuationRoute = await request('/api/ai/discover-continuation', { expected: [405] })
+  assert(continuationRoute.payload?.error === 'METHOD_NOT_ALLOWED', 'CONTINUATION_REWRITE_INVALID')
+
+  const anonymous = await request('/api/auth/me', { expected: [401, 503] })
+  if (anonymous.status === 503) {
+    throw new Error(`PILOT_BACKEND_NOT_READY:${anonymous.payload?.error || 'HTTP_503'}`)
+  }
+  assert(anonymous.payload?.error === 'AUTH_REQUIRED', 'ANONYMOUS_AUTH_CONTRACT_INVALID')
+
+  const registered = await request('/api/auth/register', {
+    method: 'POST',
+    body: { invite_code: inviteCode, username, password },
+    expected: [201],
+  })
+  accountCreated = true
+  assertPilotUser(registered.payload, 'REGISTER_USER_CONTRACT_INVALID')
+
+  const me = await request('/api/auth/me')
+  assertPilotUser(me.payload, 'ME_USER_CONTRACT_INVALID')
+  assert(me.payload.user.username === username, 'ME_USERNAME_MISMATCH')
+
+  const emptyProfile = await request('/api/profile')
+  assert(emptyProfile.payload?.mode === 'PRIVATE_CUSTOMER_PROFILE', 'PROFILE_MODE_INVALID')
+  assert(Array.isArray(emptyProfile.payload?.profile?.product_capabilities), 'PROFILE_CAPABILITIES_INVALID')
+  assert(Array.isArray(emptyProfile.payload?.profile?.target_hospitals), 'PROFILE_TARGETS_INVALID')
+
+  const initialToday = await request('/api/today')
+  const initialPool = Array.isArray(initialToday.payload?.opportunity_pool)
+    ? initialToday.payload.opportunity_pool
+    : initialToday.payload?.cards
+  assert(Array.isArray(initialPool) && initialPool.length > 0, 'TODAY_POOL_EMPTY')
+  const target = initialPool.find((item) => {
+    const explicitHospital = typeof item?.facts?.hospital_name === 'string'
+      ? item.facts.hospital_name.trim()
+      : ''
+    return Boolean(explicitHospital || medicalInstitutionName(item?.facts?.buyer_name))
+  })
+  assert(target, 'TODAY_HOSPITAL_TARGET_MISSING')
+  const opportunityId = target?.opportunity_id
+  const projectName = target?.facts?.project_name
+  const explicitHospital = typeof target?.facts?.hospital_name === 'string'
+    ? target.facts.hospital_name.trim()
+    : ''
+  const hospital = explicitHospital || medicalInstitutionName(target?.facts?.buyer_name) || ''
+  const targetHospital = hospital
+  assert(typeof opportunityId === 'string' && opportunityId, 'TARGET_OPPORTUNITY_ID_MISSING')
+  assert(typeof projectName === 'string' && projectName.trim(), 'TARGET_PROJECT_NAME_MISSING')
+  assert(hospital, 'TARGET_HOSPITAL_MISSING')
+
+  const savedTargetOnlyProfile = await request('/api/profile', {
+    method: 'PUT',
+    body: {
+      product_capabilities: [{ keyword: projectName, capability_type: 'DIRECT_UNCONFIRMED' }],
+      hospital_relationships: [],
+      target_hospitals: [{ hospital: targetHospital, department: null }],
+      can_find_manufacturer: true,
+      can_partner_channel: true,
+      can_handle_lease: true,
+    },
+  })
+  assert(savedTargetOnlyProfile.payload?.profile?.product_capabilities?.length === 1, 'PROFILE_SAVE_FAILED')
+  assert(
+    savedTargetOnlyProfile.payload?.profile?.product_capabilities?.[0]?.capability_type === 'DIRECT_UNCONFIRMED',
+    'PROFILE_CAPABILITY_TYPE_DRIFTED',
+  )
+  assert(
+    savedTargetOnlyProfile.payload?.profile?.target_hospitals?.some((item) => item?.hospital === targetHospital),
+    'TARGET_HOSPITAL_SAVE_FAILED',
+  )
+  assert(
+    Array.isArray(savedTargetOnlyProfile.payload?.profile?.hospital_relationships)
+      && savedTargetOnlyProfile.payload.profile.hospital_relationships.length === 0,
+    'TARGET_ONLY_PROFILE_RELATIONSHIP_NOT_EMPTY',
+  )
+
+  const targetOnlyToday = await request('/api/today')
+  const targetOnlyPool = Array.isArray(targetOnlyToday.payload?.opportunity_pool)
+    ? targetOnlyToday.payload.opportunity_pool
+    : targetOnlyToday.payload?.cards
+  const targetOnlyPersonalized = targetOnlyPool.find((item) => item?.opportunity_id === opportunityId)
+  assert(targetOnlyPersonalized, 'TARGET_ONLY_PERSONALIZED_TARGET_MISSING')
+  assert(targetOnlyPersonalized.priority?.score_scope === 'PERSONALIZED', 'PERSONALIZED_SCORE_SCOPE_INVALID')
+  assert(
+    Number(findComponent(targetOnlyPersonalized, 'PRODUCT_EXECUTION_CAPABILITY')?.points || 0) > 0,
+    'PERSONALIZED_PRODUCT_POINTS_MISSING',
+  )
+  assert(
+    Number(findComponent(targetOnlyPersonalized, 'RELATIONSHIP')?.points || 0) === 0,
+    'TARGET_HOSPITAL_INFLATED_RELATIONSHIP_POINTS',
+  )
+
+  const savedRelationshipProfile = await request('/api/profile', {
+    method: 'PUT',
+    body: {
+      product_capabilities: [{ keyword: projectName, capability_type: 'DIRECT_UNCONFIRMED' }],
+      hospital_relationships: [{ hospital, department: null, relationship_strength: 'STRONG' }],
+      target_hospitals: [{ hospital: targetHospital, department: null }],
+      can_find_manufacturer: true,
+      can_partner_channel: true,
+      can_handle_lease: true,
+    },
+  })
+  assert(
+    savedRelationshipProfile.payload?.profile?.hospital_relationships?.some((item) => item?.hospital === hospital),
+    'HOSPITAL_RELATIONSHIP_SAVE_FAILED',
+  )
+
+  const relationshipToday = await request('/api/today')
+  const relationshipPool = Array.isArray(relationshipToday.payload?.opportunity_pool)
+    ? relationshipToday.payload.opportunity_pool
+    : relationshipToday.payload?.cards
+  const relationshipPersonalized = relationshipPool.find((item) => item?.opportunity_id === opportunityId)
+  assert(relationshipPersonalized, 'RELATIONSHIP_PERSONALIZED_TARGET_MISSING')
+  assert(
+    Number(findComponent(relationshipPersonalized, 'RELATIONSHIP')?.points || 0) > 0,
+    'PERSONALIZED_RELATIONSHIP_POINTS_MISSING',
+  )
+
+  await request(`/api/feedback/${encodeURIComponent(opportunityId)}`, {
+    method: 'PUT',
+    body: { value: 'NEW_WORTH_FOLLOWING' },
+  })
+  const feedback = await request(`/api/feedback/${encodeURIComponent(opportunityId)}`)
+  assert(feedback.payload?.value === 'NEW_WORTH_FOLLOWING', 'FEEDBACK_PERSISTENCE_FAILED')
+
+  const dueMutationId = `followup:${randomUUID()}`
+  const dueRemindAt = new Date(Date.now() - 60 * 1000).toISOString()
+  const dueFollowupBody = {
+    status: 'MONITOR',
+    mutation_id: dueMutationId,
+    note: 'Pilot Preview due reminder smoke test',
+    remind_at: dueRemindAt,
+  }
+  const firstDueFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`, {
+    method: 'POST',
+    body: dueFollowupBody,
+  })
+  assert(firstDueFollowup.payload?.mutation_inserted === true, 'DUE_REMINDER_FOLLOWUP_INSERT_FAILED')
+  assert(firstDueFollowup.payload?.current_status === 'MONITOR', 'DUE_REMINDER_STATUS_INVALID')
+  assert(
+    Date.parse(firstDueFollowup.payload?.remind_at) === Date.parse(dueRemindAt),
+    'DUE_REMINDER_SAVE_FAILED',
+  )
+
+  const repeatedDueFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`, {
+    method: 'POST',
+    body: dueFollowupBody,
+  })
+  assert(repeatedDueFollowup.payload?.mutation_inserted === false, 'DUE_REMINDER_IDEMPOTENCY_FAILED')
+  assert(repeatedDueFollowup.payload?.current_status === 'MONITOR', 'DUE_REMINDER_STATUS_DRIFTED')
+  assert(
+    Date.parse(repeatedDueFollowup.payload?.remind_at) === Date.parse(dueRemindAt),
+    'DUE_REMINDER_IDEMPOTENCY_TIME_DRIFTED',
+  )
+
+  const reminderInbox = await request('/api/reminders')
+  const dueReminder = Array.isArray(reminderInbox.payload?.reminders)
+    ? reminderInbox.payload.reminders.find((item) => item?.opportunity_id === opportunityId)
+    : null
+  assert(dueReminder, 'DUE_REMINDER_INBOX_MISSING')
+  assert(/^mrem_[0-9a-f]{64}$/.test(String(dueReminder.reminder_id || '')), 'DUE_REMINDER_ID_INVALID')
+  assert(Date.parse(dueReminder.remind_at) === Date.parse(dueRemindAt), 'DUE_REMINDER_INBOX_TIME_MISMATCH')
+
+  const acknowledgedReminder = await request(
+    `/api/reminders/${encodeURIComponent(dueReminder.reminder_id)}/ack`,
+    { method: 'POST', body: {} },
+  )
+  assert(acknowledgedReminder.payload?.acknowledged === true, 'DUE_REMINDER_ACK_FAILED')
+  assert(acknowledgedReminder.payload?.reminder_id === dueReminder.reminder_id, 'DUE_REMINDER_ACK_ID_MISMATCH')
+
+  const afterReminderAck = await request(`/api/followup/${encodeURIComponent(opportunityId)}`)
+  assert(afterReminderAck.payload?.current_status === 'MONITOR', 'DUE_REMINDER_ACK_STATUS_CHANGED')
+  assert(afterReminderAck.payload?.remind_at === null, 'DUE_REMINDER_ACK_NOT_CLEARED')
+  const inboxAfterAck = await request('/api/reminders')
+  assert(
+    !Array.isArray(inboxAfterAck.payload?.reminders)
+      || !inboxAfterAck.payload.reminders.some((item) => item?.opportunity_id === opportunityId),
+    'DUE_REMINDER_STILL_IN_INBOX_AFTER_ACK',
+  )
+
+  const mutationId = `followup:${randomUUID()}`
+  const remindAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+  const followupBody = {
+    status: 'MONITOR',
+    mutation_id: mutationId,
+    note: 'Pilot Preview future reminder smoke test',
+    remind_at: remindAt,
+  }
+  const firstFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`, {
+    method: 'POST',
+    body: followupBody,
+  })
+  assert(firstFollowup.payload?.mutation_inserted === true, 'FOLLOWUP_INSERT_FAILED')
+  assert(firstFollowup.payload?.current_status === 'MONITOR', 'FOLLOWUP_STATUS_INVALID')
+  assert(
+    Date.parse(firstFollowup.payload?.remind_at) === Date.parse(remindAt),
+    'FOLLOWUP_REMINDER_SAVE_FAILED',
+  )
+  const repeatedFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`, {
+    method: 'POST',
+    body: followupBody,
+  })
+  assert(repeatedFollowup.payload?.mutation_inserted === false, 'FOLLOWUP_IDEMPOTENCY_FAILED')
+  assert(repeatedFollowup.payload?.current_status === 'MONITOR', 'FOLLOWUP_STATUS_DRIFTED')
+  assert(
+    Date.parse(repeatedFollowup.payload?.remind_at) === Date.parse(remindAt),
+    'FOLLOWUP_REMINDER_IDEMPOTENCY_FAILED',
+  )
+
+  const followed = await request('/api/followed')
+  const followedTarget = Array.isArray(followed.payload?.items)
+    ? followed.payload.items.find((item) => item?.opportunity_id === opportunityId)
+    : null
+  assert(followedTarget, 'FOLLOWED_LIST_MISSING_TARGET')
+  assert(followedTarget?.followup_status === 'MONITOR', 'FOLLOWED_STATUS_INVALID')
+  assert(
+    Date.parse(followedTarget?.remind_at) === Date.parse(remindAt),
+    'FOLLOWED_REMINDER_MISSING',
+  )
+
+  const privateBoundary = await request('/api/ai/analyze', {
+    method: 'POST',
+    body: { opportunity_id: opportunityId, customer_context: {} },
+    expected: [400],
+  })
+  assert(
+    privateBoundary.payload?.error === 'PILOT_CUSTOMER_CONTEXT_SERVER_ONLY',
+    'AI_PRIVATE_BOUNDARY_NOT_ENFORCED',
+  )
+
+  if (testAi) {
+    const ai = await request('/api/ai/analyze', {
+      method: 'POST',
+      body: { opportunity_id: opportunityId },
+      expected: [200],
+    })
+    assert(ai.payload?.decision && typeof ai.payload.decision.action === 'string', 'AI_DECISION_INVALID')
+  }
+
+  const exported = await request('/api/account/export')
+  scanForbiddenKeys(exported.payload)
+  assert(exported.payload?.account?.username === username, 'ACCOUNT_EXPORT_USERNAME_MISMATCH')
+  assert(
+    exported.payload?.private_profile?.target_hospitals?.some((item) => item?.hospital === targetHospital),
+    'ACCOUNT_EXPORT_TARGET_HOSPITAL_MISSING',
+  )
+  assert(
+    exported.payload?.followups?.some(
+      (item) => item?.opportunity_id === opportunityId && Date.parse(item?.remind_at) === Date.parse(remindAt),
+    ),
+    'ACCOUNT_EXPORT_REMINDER_MISSING',
+  )
+
+  await request('/api/auth/logout', { method: 'POST' })
+  const loggedOut = await request('/api/auth/me', { expected: [401] })
+  assert(loggedOut.payload?.error === 'AUTH_REQUIRED', 'LOGOUT_SESSION_NOT_CLEARED')
+
+  const loggedIn = await request('/api/auth/login', {
+    method: 'POST',
+    body: { username, password },
+  })
+  assertPilotUser(loggedIn.payload, 'LOGIN_USER_CONTRACT_INVALID')
+  const persistedProfile = await request('/api/profile')
+  assert(
+    persistedProfile.payload?.profile?.product_capabilities?.some(
+      (item) => item?.keyword === projectName.slice(0, 160) && item?.capability_type === 'DIRECT_UNCONFIRMED',
+    ),
+    'CROSS_SESSION_PROFILE_PERSISTENCE_FAILED',
+  )
+  assert(
+    persistedProfile.payload?.profile?.target_hospitals?.some((item) => item?.hospital === targetHospital),
+    'CROSS_SESSION_TARGET_HOSPITAL_PERSISTENCE_FAILED',
+  )
+  assert(
+    persistedProfile.payload?.profile?.hospital_relationships?.some((item) => item?.hospital === hospital),
+    'CROSS_SESSION_HOSPITAL_RELATIONSHIP_PERSISTENCE_FAILED',
+  )
+  const persistedFollowup = await request(`/api/followup/${encodeURIComponent(opportunityId)}`)
+  assert(persistedFollowup.payload?.current_status === 'MONITOR', 'CROSS_SESSION_FOLLOWUP_STATUS_DRIFTED')
+  assert(
+    Date.parse(persistedFollowup.payload?.remind_at) === Date.parse(remindAt),
+    'CROSS_SESSION_REMINDER_PERSISTENCE_FAILED',
+  )
+
+  const deleted = await request('/api/account/delete', {
+    method: 'POST',
+    body: { password },
+  })
+  assert(deleted.payload?.deleted === true, 'ACCOUNT_DELETE_FAILED')
+  accountDeleted = true
+
+  const afterDelete = await request('/api/auth/me', { expected: [401] })
+  assert(afterDelete.payload?.error === 'AUTH_REQUIRED', 'DELETED_SESSION_STILL_ACTIVE')
+
+  const deletedLogin = await request('/api/auth/login', {
+    method: 'POST',
+    body: { username, password },
+    expected: [401],
+  })
+  assert(deletedLogin.payload?.error === 'INVALID_CREDENTIALS', 'DELETED_ACCOUNT_LOGIN_SUCCEEDED')
+
+  const reusedInvite = await request('/api/auth/register', {
+    method: 'POST',
+    body: { invite_code: inviteCode, username: `${username.slice(0, 27)}x`, password },
+    expected: [401],
+  })
+  assert(reusedInvite.payload?.error === 'INVITE_INVALID_OR_EXPIRED', 'CONSUMED_INVITE_REUSED')
+
+  console.log('Pilot Preview API smoke: PASS')
+  console.log(`Opportunity exercised: ${opportunityId}`)
+  console.log(`AI live call exercised: ${testAi ? 'yes' : 'no'}`)
+}
+
+try {
+  await main()
+} finally {
+  await cleanup()
+}

@@ -25,6 +25,35 @@ class PipelineStateTests(unittest.TestCase):
             (ROOT / 'data' / 'tianjin_official_institution_seed.json').read_text(encoding='utf-8')
         )
 
+    def test_existing_seed_and_live_overlap_is_collapsed_before_new_refresh(self) -> None:
+        seed = copy.deepcopy(self.ccgp_records[0])
+        live = copy.deepcopy(seed)
+        live['source']['observed_at'] = '2026-09-01T13:30:00+00:00'
+
+        merged = merge_canonical_records([seed, live], [])
+
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]['opportunity_id'], seed['opportunity_id'])
+        self.assertEqual(
+            merged[0]['source']['observed_at'],
+            '2026-09-01T13:30:00+00:00',
+        )
+
+    def test_later_live_state_wins_before_new_verified_record_is_applied(self) -> None:
+        seed = copy.deepcopy(self.ccgp_records[0])
+        live = copy.deepcopy(seed)
+        live['source']['observed_at'] = '2026-09-01T13:30:00+00:00'
+        refreshed = copy.deepcopy(seed)
+        refreshed['source']['observed_at'] = '2026-09-02T12:00:00+00:00'
+
+        merged = merge_canonical_records([seed, live], [refreshed])
+
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(
+            merged[0]['source']['observed_at'],
+            '2026-09-02T12:00:00+00:00',
+        )
+
     def test_new_record_replaces_same_project_number_without_duplicate_state(self) -> None:
         original = copy.deepcopy(self.ccgp_records[0])
         replacement = copy.deepcopy(original)

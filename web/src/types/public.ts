@@ -29,8 +29,16 @@ export interface PublicFacts {
   product_categories: string[]
   product_items: unknown[]
   public_contact: unknown
+  quality_flags?: string[]
   verification_status: string | null
   coverage_status: string | null
+}
+
+export interface PublicTargetHospital {
+  hospital_name: string
+  department: string | null
+  watched_by_customer: true
+  updated_at: string | null
 }
 
 export interface PublicHospitalRelationship {
@@ -59,6 +67,7 @@ export interface PublicPartneringPolicy {
 export interface PublicCustomerContext {
   context_type: 'CUSTOMER_PRIVATE_FACTS'
   business_role: string | null
+  target_hospital: PublicTargetHospital | null
   hospital_relationship: PublicHospitalRelationship | null
   matching_product_capabilities: PublicProductCapability[]
   partnering_policy: PublicPartneringPolicy
@@ -77,6 +86,8 @@ export interface PublicPriority {
   schema_version: string
   score: number
   score_type: string
+  /** PUBLIC = official/open facts only; PERSONALIZED = authenticated private profile was applied. */
+  score_scope?: 'PUBLIC' | 'PERSONALIZED'
   components: PublicPriorityComponent[]
   warnings: string[]
   interpretation: 'BUSINESS_PRIORITY_NOT_WIN_PROBABILITY'
@@ -103,12 +114,29 @@ export interface PublicTodayActionCard {
   model_decision_status: PublicModelDecisionStatus
   model_block_reason: string | null
   decision: PublicDecision | null
+  /** Authenticated Pilot Today endpoint may inline the user's current follow-up summary. */
+  followup_status?: string | null
+  remind_at?: string | null
+}
+
+export interface PublicRecommendationFeedbackSummary {
+  responded: number
+  effective_surprises: number
+  effective_surprise_rate: number | null
+}
+
+export interface PublicProcurementIntentFollowupSummary {
+  intent_count: number
+  intents_with_formal_successor: number
+  candidate_pair_count: number
+  /** Authenticated Today only: unique formal candidates not yet explicitly handled by this account. */
+  formal_candidates_needing_action?: number
 }
 
 /**
- * Exact H5-safe response returned by the verified public snapshot boundary.
- * `cards` is the Top5 Today Actions surface; `opportunity_pool` retains all
- * currently actionable verified opportunities from the same snapshot version.
+ * Exact H5-safe response returned by the verified boundary. The authenticated
+ * Pilot endpoint may choose the account's configured number of Today cards;
+ * `opportunity_pool` retains the full currently actionable pool.
  */
 export interface TodayActionsPublicResponse {
   schema_version: '0.1'
@@ -120,6 +148,10 @@ export interface TodayActionsPublicResponse {
   opportunity_pool_count?: number
   model_request_count: number
   coverage_warning: 'PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY'
+  today_limit?: number
+  today_limit_options?: number[]
+  recommendation_feedback_summary?: PublicRecommendationFeedbackSummary
+  procurement_intent_followup_summary?: PublicProcurementIntentFollowupSummary
   cards: PublicTodayActionCard[]
   opportunity_pool?: PublicTodayActionCard[]
 }

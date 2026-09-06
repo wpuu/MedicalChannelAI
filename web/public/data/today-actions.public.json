@@ -1,11 +1,11 @@
 {
   "schema_version": "0.1",
   "mode": "TODAY_ACTIONS",
-  "snapshot_as_of": "2026-09-01T21:33:16.482124+08:00",
-  "input_candidate_count": 13,
-  "matched_count": 9,
+  "snapshot_as_of": "2026-09-06T01:02:46.269508+08:00",
+  "input_candidate_count": 51,
+  "matched_count": 28,
   "card_count": 5,
-  "opportunity_pool_count": 9,
+  "opportunity_pool_count": 28,
   "model_request_count": 0,
   "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
   "cards": [
@@ -42,6 +42,7 @@
           "phone": "022-23717450-8002",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
@@ -61,13 +62,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 60,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 54,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -81,10 +82,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -94,12 +116,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 20,
-            "max_points": 20,
+            "points": 10,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -116,51 +162,68 @@
     },
     {
       "rank": 2,
-      "opportunity_id": "verified_xks_2026_a_641",
+      "opportunity_id": "ccgp_d3b044dfd4e61a1f",
       "facts": {
-        "project_number": "XCSD-2026-A-641",
-        "project_name": "天津市胸科医院检验科设备租赁服务项目",
-        "buyer_name": "天津市胸科医院",
-        "hospital_name": "天津市胸科医院",
-        "department": "检验科",
-        "region": "天津市",
+        "project_number": "TJBHGP-2026-017",
+        "project_name": "天津市泰达医院彩色多普勒超声诊断仪采购项目",
+        "buyer_name": "天津市泰达医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "滨海新区",
         "lifecycle_state": "BIDDING",
         "notice_type": "公开招标公告",
-        "published_at": "2026-08-27",
+        "published_at": "2026-09-01",
         "published_at_precision": "DAY",
-        "registration_deadline": "2026-09-03T16:00:00+08:00",
+        "registration_deadline": "2026-09-08T17:00:00+08:00",
         "registration_deadline_date": null,
         "registration_deadline_precision": "MINUTE",
-        "bid_deadline": "2026-09-17T09:30:00+08:00",
+        "bid_deadline": "2026-09-22T14:00:00+08:00",
         "expected_procurement_at": null,
         "expected_procurement_precision": null,
         "budget": {
-          "amount_cny": 5730000,
+          "amount_cny": 6210000,
           "currency": "CNY"
         },
         "procurement_method": "公开招标",
-        "product_categories": [
-          "医疗设备租赁服务"
-        ],
+        "product_categories": [],
         "product_items": [
           {
-            "raw_name": "天津市胸科医院检验科设备租赁服务项目",
-            "category": "医疗设备租赁服务",
+            "raw_name": "彩色多普勒超声诊断仪1台、彩色多普勒超声诊断仪（便携式）1台",
+            "category": null,
             "quantity": null,
-            "specification": "具体内容及要求详见官方项目附件"
+            "specification": null
+          },
+          {
+            "raw_name": "彩色多普勒超声诊断仪1台",
+            "category": null,
+            "quantity": null,
+            "specification": null
+          },
+          {
+            "raw_name": "人民币366万元（彩色多普勒超声诊断仪1台，人民币257万元",
+            "category": null,
+            "quantity": null,
+            "specification": null
+          },
+          {
+            "raw_name": "彩色多普勒超声诊断仪1台，人民币255万元】",
+            "category": null,
+            "quantity": null,
+            "specification": null
           }
         ],
         "public_contact": {
-          "name": "张忠义、尤心霖",
+          "name": "张明翔",
           "title": "项目联系人",
-          "phone": "022-23717450-8002",
+          "phone": "022-66629110",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
       "evidence_source_urls": [
-        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219613.htm"
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260901_27247925.htm"
       ],
       "customer_context": {
         "context_type": "CUSTOMER_PRIVATE_FACTS",
@@ -175,13 +238,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 60,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 54,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -195,10 +258,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -208,12 +292,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 20,
-            "max_points": 20,
+            "points": 10,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -261,6 +369,7 @@
           "phone": "022-28227838转811",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
@@ -280,13 +389,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 58,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 53,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -300,10 +409,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -313,12 +443,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 18,
-            "max_points": 20,
+            "points": 9,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -335,51 +489,43 @@
     },
     {
       "rank": 4,
-      "opportunity_id": "verified_teda_20260851",
+      "opportunity_id": "ccgp_bbe98d7a7acf4128",
       "facts": {
-        "project_number": "ZYGP20260851",
-        "project_name": "天津市泰达医院数字X光机（DR）采购项目",
+        "project_number": "TJBHGP-2026-018",
+        "project_name": "天津市泰达医院麻醉超声诊断仪采购项目",
         "buyer_name": "天津市泰达医院",
-        "hospital_name": "天津市泰达医院",
+        "hospital_name": null,
         "department": null,
-        "region": "天津市滨海新区",
+        "region": "滨海新区",
         "lifecycle_state": "BIDDING",
         "notice_type": "公开招标公告",
-        "published_at": "2026-08-27",
+        "published_at": "2026-09-01",
         "published_at_precision": "DAY",
-        "registration_deadline": "2026-09-03T17:00:00+08:00",
+        "registration_deadline": "2026-09-08T17:00:00+08:00",
         "registration_deadline_date": null,
         "registration_deadline_precision": "MINUTE",
-        "bid_deadline": "2026-09-17T10:00:00+08:00",
+        "bid_deadline": "2026-09-22T09:30:00+08:00",
         "expected_procurement_at": null,
         "expected_procurement_precision": null,
         "budget": {
-          "amount_cny": 2500000,
+          "amount_cny": 2100000,
           "currency": "CNY"
         },
         "procurement_method": "公开招标",
-        "product_categories": [
-          "医用X线诊断设备"
-        ],
-        "product_items": [
-          {
-            "raw_name": "数字X光机（DR）",
-            "category": "医用X线诊断设备",
-            "quantity": "1台",
-            "specification": "具体要求详见官方项目需求书"
-          }
-        ],
+        "product_categories": [],
+        "product_items": [],
         "public_contact": {
-          "name": "王亚楠、王志娜、苏东芸、孙楠",
+          "name": "张明翔",
           "title": "项目联系人",
-          "phone": "022-28227838-803",
+          "phone": "022-66629110",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
       "evidence_source_urls": [
-        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219685.htm"
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260901_27247929.htm"
       ],
       "customer_context": {
         "context_type": "CUSTOMER_PRIVATE_FACTS",
@@ -394,13 +540,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 54,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 51,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -414,10 +560,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -427,12 +594,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 14,
-            "max_points": 20,
+            "points": 7,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -449,51 +640,43 @@
     },
     {
       "rank": 5,
-      "opportunity_id": "verified_zybfy_2026_a_517",
+      "opportunity_id": "ccgp_29767cc0a65f6a47",
       "facts": {
-        "project_number": "XCSD-2026-A-517",
-        "project_name": "天津市职业病防治院采购X线移动业务用车项目",
-        "buyer_name": "天津市职业病防治院",
-        "hospital_name": "天津市职业病防治院",
+        "project_number": "TGJT-2026-B-1235",
+        "project_name": "天津市泰达医院C型臂X线机采购项目",
+        "buyer_name": "天津市泰达医院",
+        "hospital_name": null,
         "department": null,
-        "region": "天津市",
+        "region": "滨海新区",
         "lifecycle_state": "BIDDING",
         "notice_type": "公开招标公告",
-        "published_at": "2026-08-27",
+        "published_at": "2026-09-02",
         "published_at_precision": "DAY",
-        "registration_deadline": "2026-09-03T16:00:00+08:00",
+        "registration_deadline": "2026-09-09T17:00:00+08:00",
         "registration_deadline_date": null,
         "registration_deadline_precision": "MINUTE",
-        "bid_deadline": "2026-09-17T14:00:00+08:00",
+        "bid_deadline": "2026-09-23T14:00:00+08:00",
         "expected_procurement_at": null,
         "expected_procurement_precision": null,
         "budget": {
-          "amount_cny": 1300000,
+          "amount_cny": 2990000,
           "currency": "CNY"
         },
         "procurement_method": "公开招标",
-        "product_categories": [
-          "医用磁共振设备"
-        ],
-        "product_items": [
-          {
-            "raw_name": "X线移动业务用车",
-            "category": null,
-            "quantity": null,
-            "specification": "官方采购需求栏为“详见附件”"
-          }
-        ],
+        "product_categories": [],
+        "product_items": [],
         "public_contact": {
-          "name": "孙一瑶",
+          "name": "李倩",
           "title": "项目联系人",
-          "phone": "022-23717450-8002",
+          "phone": "022-66595088",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
       "evidence_source_urls": [
-        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219677.htm"
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260902_27255203.htm"
       ],
       "customer_context": {
         "context_type": "CUSTOMER_PRIVATE_FACTS",
@@ -508,13 +691,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 54,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 49,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -528,10 +711,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -541,18 +745,41 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 14,
-            "max_points": 20,
+            "points": 7,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
             ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
           }
         ],
         "warnings": [
-          "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
-          "SOURCE_CATEGORY_TITLE_CONFLICT"
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
         ],
         "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
       },
@@ -597,6 +824,7 @@
           "phone": "022-23717450-8002",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
@@ -616,13 +844,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 60,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 54,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -636,10 +864,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -649,12 +898,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 20,
-            "max_points": 20,
+            "points": 10,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -671,51 +944,68 @@
     },
     {
       "rank": 2,
-      "opportunity_id": "verified_xks_2026_a_641",
+      "opportunity_id": "ccgp_d3b044dfd4e61a1f",
       "facts": {
-        "project_number": "XCSD-2026-A-641",
-        "project_name": "天津市胸科医院检验科设备租赁服务项目",
-        "buyer_name": "天津市胸科医院",
-        "hospital_name": "天津市胸科医院",
-        "department": "检验科",
-        "region": "天津市",
+        "project_number": "TJBHGP-2026-017",
+        "project_name": "天津市泰达医院彩色多普勒超声诊断仪采购项目",
+        "buyer_name": "天津市泰达医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "滨海新区",
         "lifecycle_state": "BIDDING",
         "notice_type": "公开招标公告",
-        "published_at": "2026-08-27",
+        "published_at": "2026-09-01",
         "published_at_precision": "DAY",
-        "registration_deadline": "2026-09-03T16:00:00+08:00",
+        "registration_deadline": "2026-09-08T17:00:00+08:00",
         "registration_deadline_date": null,
         "registration_deadline_precision": "MINUTE",
-        "bid_deadline": "2026-09-17T09:30:00+08:00",
+        "bid_deadline": "2026-09-22T14:00:00+08:00",
         "expected_procurement_at": null,
         "expected_procurement_precision": null,
         "budget": {
-          "amount_cny": 5730000,
+          "amount_cny": 6210000,
           "currency": "CNY"
         },
         "procurement_method": "公开招标",
-        "product_categories": [
-          "医疗设备租赁服务"
-        ],
+        "product_categories": [],
         "product_items": [
           {
-            "raw_name": "天津市胸科医院检验科设备租赁服务项目",
-            "category": "医疗设备租赁服务",
+            "raw_name": "彩色多普勒超声诊断仪1台、彩色多普勒超声诊断仪（便携式）1台",
+            "category": null,
             "quantity": null,
-            "specification": "具体内容及要求详见官方项目附件"
+            "specification": null
+          },
+          {
+            "raw_name": "彩色多普勒超声诊断仪1台",
+            "category": null,
+            "quantity": null,
+            "specification": null
+          },
+          {
+            "raw_name": "人民币366万元（彩色多普勒超声诊断仪1台，人民币257万元",
+            "category": null,
+            "quantity": null,
+            "specification": null
+          },
+          {
+            "raw_name": "彩色多普勒超声诊断仪1台，人民币255万元】",
+            "category": null,
+            "quantity": null,
+            "specification": null
           }
         ],
         "public_contact": {
-          "name": "张忠义、尤心霖",
+          "name": "张明翔",
           "title": "项目联系人",
-          "phone": "022-23717450-8002",
+          "phone": "022-66629110",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
       "evidence_source_urls": [
-        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219613.htm"
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260901_27247925.htm"
       ],
       "customer_context": {
         "context_type": "CUSTOMER_PRIVATE_FACTS",
@@ -730,13 +1020,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 60,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 54,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -750,10 +1040,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -763,12 +1074,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 20,
-            "max_points": 20,
+            "points": 10,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -816,6 +1151,7 @@
           "phone": "022-28227838转811",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
@@ -835,13 +1171,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 58,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 53,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -855,10 +1191,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -868,12 +1225,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 18,
-            "max_points": 20,
+            "points": 9,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -890,51 +1271,43 @@
     },
     {
       "rank": 4,
-      "opportunity_id": "verified_teda_20260851",
+      "opportunity_id": "ccgp_bbe98d7a7acf4128",
       "facts": {
-        "project_number": "ZYGP20260851",
-        "project_name": "天津市泰达医院数字X光机（DR）采购项目",
+        "project_number": "TJBHGP-2026-018",
+        "project_name": "天津市泰达医院麻醉超声诊断仪采购项目",
         "buyer_name": "天津市泰达医院",
-        "hospital_name": "天津市泰达医院",
+        "hospital_name": null,
         "department": null,
-        "region": "天津市滨海新区",
+        "region": "滨海新区",
         "lifecycle_state": "BIDDING",
         "notice_type": "公开招标公告",
-        "published_at": "2026-08-27",
+        "published_at": "2026-09-01",
         "published_at_precision": "DAY",
-        "registration_deadline": "2026-09-03T17:00:00+08:00",
+        "registration_deadline": "2026-09-08T17:00:00+08:00",
         "registration_deadline_date": null,
         "registration_deadline_precision": "MINUTE",
-        "bid_deadline": "2026-09-17T10:00:00+08:00",
+        "bid_deadline": "2026-09-22T09:30:00+08:00",
         "expected_procurement_at": null,
         "expected_procurement_precision": null,
         "budget": {
-          "amount_cny": 2500000,
+          "amount_cny": 2100000,
           "currency": "CNY"
         },
         "procurement_method": "公开招标",
-        "product_categories": [
-          "医用X线诊断设备"
-        ],
-        "product_items": [
-          {
-            "raw_name": "数字X光机（DR）",
-            "category": "医用X线诊断设备",
-            "quantity": "1台",
-            "specification": "具体要求详见官方项目需求书"
-          }
-        ],
+        "product_categories": [],
+        "product_items": [],
         "public_contact": {
-          "name": "王亚楠、王志娜、苏东芸、孙楠",
+          "name": "张明翔",
           "title": "项目联系人",
-          "phone": "022-28227838-803",
+          "phone": "022-66629110",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
       "evidence_source_urls": [
-        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219685.htm"
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260901_27247929.htm"
       ],
       "customer_context": {
         "context_type": "CUSTOMER_PRIVATE_FACTS",
@@ -949,13 +1322,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 54,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 51,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -969,10 +1342,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -982,12 +1376,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 14,
-            "max_points": 20,
+            "points": 7,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -1004,51 +1422,43 @@
     },
     {
       "rank": 5,
-      "opportunity_id": "verified_zybfy_2026_a_517",
+      "opportunity_id": "ccgp_29767cc0a65f6a47",
       "facts": {
-        "project_number": "XCSD-2026-A-517",
-        "project_name": "天津市职业病防治院采购X线移动业务用车项目",
-        "buyer_name": "天津市职业病防治院",
-        "hospital_name": "天津市职业病防治院",
+        "project_number": "TGJT-2026-B-1235",
+        "project_name": "天津市泰达医院C型臂X线机采购项目",
+        "buyer_name": "天津市泰达医院",
+        "hospital_name": null,
         "department": null,
-        "region": "天津市",
+        "region": "滨海新区",
         "lifecycle_state": "BIDDING",
         "notice_type": "公开招标公告",
-        "published_at": "2026-08-27",
+        "published_at": "2026-09-02",
         "published_at_precision": "DAY",
-        "registration_deadline": "2026-09-03T16:00:00+08:00",
+        "registration_deadline": "2026-09-09T17:00:00+08:00",
         "registration_deadline_date": null,
         "registration_deadline_precision": "MINUTE",
-        "bid_deadline": "2026-09-17T14:00:00+08:00",
+        "bid_deadline": "2026-09-23T14:00:00+08:00",
         "expected_procurement_at": null,
         "expected_procurement_precision": null,
         "budget": {
-          "amount_cny": 1300000,
+          "amount_cny": 2990000,
           "currency": "CNY"
         },
         "procurement_method": "公开招标",
-        "product_categories": [
-          "医用磁共振设备"
-        ],
-        "product_items": [
-          {
-            "raw_name": "X线移动业务用车",
-            "category": null,
-            "quantity": null,
-            "specification": "官方采购需求栏为“详见附件”"
-          }
-        ],
+        "product_categories": [],
+        "product_items": [],
         "public_contact": {
-          "name": "孙一瑶",
+          "name": "李倩",
           "title": "项目联系人",
-          "phone": "022-23717450-8002",
+          "phone": "022-66595088",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
       "evidence_source_urls": [
-        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219677.htm"
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260902_27255203.htm"
       ],
       "customer_context": {
         "context_type": "CUSTOMER_PRIVATE_FACTS",
@@ -1063,13 +1473,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 54,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 49,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -1083,10 +1493,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -1096,18 +1527,41 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 14,
-            "max_points": 20,
+            "points": 7,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
             ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
           }
         ],
         "warnings": [
-          "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
-          "SOURCE_CATEGORY_TITLE_CONFLICT"
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
         ],
         "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
       },
@@ -1119,6 +1573,459 @@
     },
     {
       "rank": 6,
+      "opportunity_id": "ccgp_57ab8f21c0170363",
+      "facts": {
+        "project_number": "TJBH-2026-A-0057",
+        "project_name": "天津市泰达医院采购内镜中心信息化设备采购项目",
+        "buyer_name": "天津市泰达医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "滨海新区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-02",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-09T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-23T08:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 1325000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "肖琳",
+          "title": "项目联系人",
+          "phone": "022-25866109",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260902_27255217.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 49,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 7,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 7,
+      "opportunity_id": "ccgp_95c19ba9adc086c6",
+      "facts": {
+        "project_number": "HXPMGP-2026-0802",
+        "project_name": "天津市泰达医院耳鼻喉内窥镜系统采购项目",
+        "buyer_name": "天津市泰达医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "滨海新区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-02",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-09T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-23T09:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 1300000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "齐飞",
+          "title": "项目联系人",
+          "phone": "022-83857788",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260902_27255200.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 49,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 7,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 8,
+      "opportunity_id": "ccgp_0316d743f3b373c7",
+      "facts": {
+        "project_number": "TGPC-2026-A-0299",
+        "project_name": "天津市中心妇产科医院滨海院区试剂耗材采购及配送管理项目",
+        "buyer_name": "天津市中心妇产科医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "市辖区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-04",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-11T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-29T08:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 31900000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "丁亚天、董雅茹",
+          "title": "项目联系人",
+          "phone": "022-24538301",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260904_27272042.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 49,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 10,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 1,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 6,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 9,
       "opportunity_id": "ccgp_8aa1104ecdf1f15c",
       "facts": {
         "project_number": "ZCZBZC-GK-2026080508",
@@ -1150,6 +2057,7 @@
           "phone": "022-87495281",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
@@ -1170,12 +2078,12 @@
       "priority": {
         "schema_version": "0.1",
         "score": 48,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -1189,10 +2097,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -1202,12 +2131,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 8,
-            "max_points": 20,
+            "points": 4,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -1223,7 +2176,7 @@
       "decision": null
     },
     {
-      "rank": 7,
+      "rank": 10,
       "opportunity_id": "ccgp_b609d6c45eb6d1c0",
       "facts": {
         "project_number": "ZCZBZC-GK-2026080507",
@@ -1255,6 +2208,7 @@
           "phone": "022-87495281",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
@@ -1275,12 +2229,12 @@
       "priority": {
         "schema_version": "0.1",
         "score": 48,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -1294,10 +2248,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 40,
-            "max_points": 40,
+            "points": 25,
+            "max_points": 25,
             "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -1307,12 +2282,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 8,
-            "max_points": 20,
+            "points": 4,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -1328,7 +2327,1530 @@
       "decision": null
     },
     {
-      "rank": 8,
+      "rank": 11,
+      "opportunity_id": "ccgp_8daf80b12ce3e22f",
+      "facts": {
+        "project_number": "ZCZBZC-GK-2026080547",
+        "project_name": "天津中医药大学第一附属医院医疗设备维保（二）采购项目",
+        "buyer_name": "天津中医药大学第一附属医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "市辖区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-04",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-11T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-28T09:00:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 2730000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "李晓萌",
+          "title": "项目联系人",
+          "phone": "022-87495281",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260904_27272030.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 46,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 7,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 1,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 6,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 12,
+      "opportunity_id": "ccgp_c5aefc055c559e2e",
+      "facts": {
+        "project_number": "XCSD-2026-A-757",
+        "project_name": "天津市宝坻区人民医院超声弹道碎石清石系统采购项目",
+        "buyer_name": "天津市宝坻区人民医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "宝坻区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-02",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-09T16:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-24T10:00:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 2000000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "吴苏彤",
+          "title": "项目联系人",
+          "phone": "022-23717450-8006",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260902_27255191.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 45,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 7,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 1,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 13,
+      "opportunity_id": "ccgp_5f65a67f6cec1600",
+      "facts": {
+        "project_number": "TGPC-2026-A-0276",
+        "project_name": "天津中医药大学第二附属医院流式细胞仪等医疗设备采购项目",
+        "buyer_name": "天津中医药大学第二附属医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "市辖区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-02",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-09T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-23T08:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 2423500,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "李楠、张艳",
+          "title": "项目联系人",
+          "phone": "022-24538176",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260902_27255202.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 45,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 7,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 1,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 14,
+      "opportunity_id": "ccgp_bf77073fba23504b",
+      "facts": {
+        "project_number": "TGPC-2026-A-0240",
+        "project_name": "天津中医药大学第二附属医院肺功能仪等医疗设备采购项目",
+        "buyer_name": "天津中医药大学第二附属医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "市辖区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-02",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-09T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-23T08:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 1246000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "范志刚、李楠",
+          "title": "项目联系人",
+          "phone": "022-24538318",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260902_27255226.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 45,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 7,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 1,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 15,
+      "opportunity_id": "tjzyefy_20260902_030197669",
+      "facts": {
+        "project_number": null,
+        "project_name": "天津中医药大学第二附属医院AI全自动菌落计数与药敏分析仪和薄层色谱成像仪采购项目调研公告",
+        "buyer_name": "天津中医药大学第二附属医院",
+        "hospital_name": "天津中医药大学第二附属医院",
+        "department": null,
+        "region": "天津市",
+        "lifecycle_state": "MARKET_RESEARCH",
+        "notice_type": "院内调研公告",
+        "published_at": "2026-09-02",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-08T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": null,
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": null,
+        "procurement_method": null,
+        "product_categories": [],
+        "product_items": [
+          {
+            "raw_name": "AI全自动菌落计数与药敏分析仪和薄层色谱成像仪进行招标。现",
+            "category": null,
+            "quantity": null,
+            "specification": null
+          }
+        ],
+        "public_contact": {
+          "name": "-联系电话”",
+          "title": null,
+          "phone": "13302121889",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.tjzyefy.com/system/2026/09/02/030197669.shtml"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 43,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 0,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 4,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 16,
+      "opportunity_id": "ccgp_495edf09e2ad0be2",
+      "facts": {
+        "project_number": "GLZB2026-H-141",
+        "project_name": "天津市第一中心医院复康院区提升改造项目-连续性血液净化设备采购项目",
+        "buyer_name": "天津市第一中心医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "市辖区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-04",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-11T16:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-28T14:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 650000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "丁倩、李金萌、李媛、王瑶、董译璠",
+          "title": "项目联系人",
+          "phone": "022-26456284",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260904_27272040.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 43,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 4,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 1,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 6,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 17,
+      "opportunity_id": "ccgp_6754ef1b12062584",
+      "facts": {
+        "project_number": "XCSD-2026-C-204",
+        "project_name": "天津市天津医院骨密度检测设备维保项目",
+        "buyer_name": "天津市天津医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "市辖区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-04",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-11T16:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-28T14:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 600000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "李宁",
+          "title": "项目联系人",
+          "phone": "022-23717450-8019",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260904_27272038.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 43,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 4,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 1,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 6,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 18,
+      "opportunity_id": "ccgp_30c566710cb7b9ad",
+      "facts": {
+        "project_number": "TJBD-2026-C-399",
+        "project_name": "2026年天津医科大学第二医院精准医学研究中心心血管遗传病基因检测外送服务项目",
+        "buyer_name": "天津医科大学第二医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "市辖区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-04",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-11T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-28T09:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 500000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "刘妍、康晓媛、杨姣姣、郝文杰",
+          "title": "项目联系人",
+          "phone": "022-24213608",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260904_27272013.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 43,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 7,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 4,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 1,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 6,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 19,
+      "opportunity_id": "tjfch_20260831_030197537",
+      "facts": {
+        "project_number": "YNBX-2026-G-6004",
+        "project_name": "天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选公告",
+        "buyer_name": "天津市第一中心医院",
+        "hospital_name": "天津市第一中心医院",
+        "department": null,
+        "region": "天津市",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "院内比选采购公告",
+        "published_at": "2026-08-31",
+        "published_at_precision": "DAY",
+        "registration_deadline": null,
+        "registration_deadline_date": null,
+        "registration_deadline_precision": null,
+        "bid_deadline": "2026-09-07T17:00:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 4588,
+          "currency": "CNY"
+        },
+        "procurement_method": "院内比选",
+        "product_categories": [],
+        "product_items": [],
+        "public_contact": {
+          "name": "王老师",
+          "title": null,
+          "phone": "23628323",
+          "email": "sdyzxsbwzcsbk@tj.gov.cn"
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.tjfch.com.cn/system/2026/08/31/030197537.shtml"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 42,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 2,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 1,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 20,
+      "opportunity_id": "verified_xks_2026_a_641",
+      "facts": {
+        "project_number": "XCSD-2026-A-641",
+        "project_name": "天津市胸科医院检验科设备租赁服务项目",
+        "buyer_name": "天津市胸科医院",
+        "hospital_name": "天津市胸科医院",
+        "department": "检验科",
+        "region": "天津市",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-08-27",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-03T16:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-17T09:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 5730000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [
+          "医疗设备租赁服务"
+        ],
+        "product_items": [
+          {
+            "raw_name": "天津市胸科医院检验科设备租赁服务项目",
+            "category": "医疗设备租赁服务",
+            "quantity": null,
+            "specification": "具体内容及要求详见官方项目附件"
+          }
+        ],
+        "public_contact": {
+          "name": "张忠义、尤心霖",
+          "title": "项目联系人",
+          "phone": "022-23717450-8002",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219613.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 34,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 8,
+            "max_points": 25,
+            "basis": "LATE_WINDOW",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 5,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 10,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 8,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 3,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "LATE_WINDOW",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 21,
       "opportunity_id": "verified_bhcdc_2026_c_181",
       "facts": {
         "project_number": "XCSD-2026-C-181",
@@ -1375,6 +3897,7 @@
           "phone": "022-23717450-8019",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
@@ -1394,13 +3917,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 29,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 30,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -1414,10 +3937,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 15,
-            "max_points": 40,
+            "points": 8,
+            "max_points": 25,
             "basis": "LATE_WINDOW",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 5,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -1427,12 +3971,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 14,
-            "max_points": 20,
+            "points": 7,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 7,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 3,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -1448,7 +4016,330 @@
       "decision": null
     },
     {
-      "rank": 9,
+      "rank": 22,
+      "opportunity_id": "verified_teda_20260851",
+      "facts": {
+        "project_number": "ZYGP20260851",
+        "project_name": "天津市泰达医院数字X光机（DR）采购项目",
+        "buyer_name": "天津市泰达医院",
+        "hospital_name": "天津市泰达医院",
+        "department": null,
+        "region": "天津市滨海新区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-08-27",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-03T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-17T10:00:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 2500000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [
+          "医用X线诊断设备"
+        ],
+        "product_items": [
+          {
+            "raw_name": "数字X光机（DR）",
+            "category": "医用X线诊断设备",
+            "quantity": "1台",
+            "specification": "具体要求详见官方项目需求书"
+          }
+        ],
+        "public_contact": {
+          "name": "王亚楠、王志娜、苏东芸、孙楠",
+          "title": "项目联系人",
+          "phone": "022-28227838-803",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219685.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 30,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 8,
+            "max_points": 25,
+            "basis": "LATE_WINDOW",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 5,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 7,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 7,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 3,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "LATE_WINDOW",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 23,
+      "opportunity_id": "verified_zybfy_2026_a_517",
+      "facts": {
+        "project_number": "XCSD-2026-A-517",
+        "project_name": "天津市职业病防治院采购X线移动业务用车项目",
+        "buyer_name": "天津市职业病防治院",
+        "hospital_name": "天津市职业病防治院",
+        "department": null,
+        "region": "天津市",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-08-27",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-03T16:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-09-17T14:00:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 1300000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [
+          "医用磁共振设备"
+        ],
+        "product_items": [
+          {
+            "raw_name": "X线移动业务用车",
+            "category": null,
+            "quantity": null,
+            "specification": "官方采购需求栏为“详见附件”"
+          }
+        ],
+        "public_contact": {
+          "name": "孙一瑶",
+          "title": "项目联系人",
+          "phone": "022-23717450-8002",
+          "email": null
+        },
+        "quality_flags": [
+          "SOURCE_CATEGORY_TITLE_CONFLICT"
+        ],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219677.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 28,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 8,
+            "max_points": 25,
+            "basis": "LATE_WINDOW",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 5,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 7,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 3,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+          "SOURCE_CATEGORY_TITLE_CONFLICT"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "LATE_WINDOW",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 24,
       "opportunity_id": "verified_hbrmyy_gpu_0052",
       "facts": {
         "project_number": "TJBH-2026-A-0052",
@@ -1489,6 +4380,7 @@
           "phone": "022-25866107",
           "email": null
         },
+        "quality_flags": [],
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL"
       },
@@ -1508,13 +4400,13 @@
       },
       "priority": {
         "schema_version": "0.1",
-        "score": 23,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+        "score": 25,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
         "components": [
           {
             "code": "PRODUCT_EXECUTION_CAPABILITY",
             "points": 0,
-            "max_points": 30,
+            "max_points": 25,
             "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
             "profile_paths": [],
             "opportunity_paths": []
@@ -1528,10 +4420,31 @@
             "opportunity_paths": []
           },
           {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
             "code": "INTERVENTION_STAGE",
-            "points": 15,
-            "max_points": 40,
+            "points": 8,
+            "max_points": 25,
             "basis": "LATE_WINDOW",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 3,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.registration_deadline",
@@ -1541,12 +4454,36 @@
           },
           {
             "code": "PROJECT_AMOUNT",
-            "points": 8,
-            "max_points": 20,
+            "points": 4,
+            "max_points": 10,
             "basis": "PUBLIC_BUDGET_ONLY",
             "profile_paths": [],
             "opportunity_paths": [
               "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 7,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 3,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
             ]
           }
         ],
@@ -1557,6 +4494,648 @@
       },
       "match_status": "MATCHED_CANDIDATE",
       "recommendation_mode": "LATE_WINDOW",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 25,
+      "opportunity_id": "tjzyefy_intent_20260804_030195986",
+      "facts": {
+        "project_number": null,
+        "project_name": "采购意向公告（2026年42号）-肺功能仪等医疗设备采购项目",
+        "buyer_name": "天津中医药大学第二附属医院",
+        "hospital_name": "天津中医药大学第二附属医院",
+        "department": null,
+        "region": "天津市",
+        "lifecycle_state": "PROCUREMENT_INTENT",
+        "notice_type": "采购意向公告",
+        "published_at": "2026-08-04",
+        "published_at_precision": "DAY",
+        "registration_deadline": null,
+        "registration_deadline_date": null,
+        "registration_deadline_precision": null,
+        "bid_deadline": null,
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": null,
+        "procurement_method": null,
+        "product_categories": [
+          "医疗设备"
+        ],
+        "product_items": [
+          {
+            "raw_name": "肺功能仪",
+            "category": null,
+            "quantity": null,
+            "specification": null
+          }
+        ],
+        "public_contact": {
+          "name": null,
+          "title": null,
+          "phone": "022-60637527",
+          "email": null
+        },
+        "quality_flags": [
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月"
+        ],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.tjzyefy.com/system/2026/08/04/030195986.shtml"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 18,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 12,
+            "max_points": 25,
+            "basis": "PRE_MARKET_SIGNAL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 0,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 6,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 0,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PRE_MARKET_SIGNAL",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 26,
+      "opportunity_id": "tjzyefy_intent_20260804_030195988",
+      "facts": {
+        "project_number": null,
+        "project_name": "采购意向公告（2026年44号）-空气压力治疗仪（淋巴水肿专用）采购项目",
+        "buyer_name": "天津中医药大学第二附属医院",
+        "hospital_name": "天津中医药大学第二附属医院",
+        "department": null,
+        "region": "天津市",
+        "lifecycle_state": "PROCUREMENT_INTENT",
+        "notice_type": "采购意向公告",
+        "published_at": "2026-08-04",
+        "published_at_precision": "DAY",
+        "registration_deadline": null,
+        "registration_deadline_date": null,
+        "registration_deadline_precision": null,
+        "bid_deadline": null,
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": null,
+        "procurement_method": null,
+        "product_categories": [],
+        "product_items": [
+          {
+            "raw_name": "空气压力治疗仪（淋巴水肿专用）",
+            "category": null,
+            "quantity": null,
+            "specification": null
+          }
+        ],
+        "public_contact": {
+          "name": null,
+          "title": null,
+          "phone": "022-60637527",
+          "email": null
+        },
+        "quality_flags": [
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年8月"
+        ],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.tjzyefy.com/system/2026/08/04/030195988.shtml"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 16,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 12,
+            "max_points": 25,
+            "basis": "PRE_MARKET_SIGNAL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 0,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 4,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 0,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年8月"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PRE_MARKET_SIGNAL",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 27,
+      "opportunity_id": "tjzyefy_intent_20260804_030195991",
+      "facts": {
+        "project_number": null,
+        "project_name": "采购意向公告（2026年47号）-高分辨液质联用系统维保服务项目",
+        "buyer_name": "天津中医药大学第二附属医院",
+        "hospital_name": "天津中医药大学第二附属医院",
+        "department": null,
+        "region": "天津市",
+        "lifecycle_state": "PROCUREMENT_INTENT",
+        "notice_type": "采购意向公告",
+        "published_at": "2026-08-04",
+        "published_at_precision": "DAY",
+        "registration_deadline": null,
+        "registration_deadline_date": null,
+        "registration_deadline_precision": null,
+        "bid_deadline": null,
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": null,
+        "procurement_method": null,
+        "product_categories": [],
+        "product_items": [
+          {
+            "raw_name": "高分辨液质联用系统维保服务",
+            "category": null,
+            "quantity": null,
+            "specification": null
+          }
+        ],
+        "public_contact": {
+          "name": null,
+          "title": null,
+          "phone": "022-60637527",
+          "email": null
+        },
+        "quality_flags": [
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月"
+        ],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.tjzyefy.com/system/2026/08/04/030195991.shtml"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 16,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 12,
+            "max_points": 25,
+            "basis": "PRE_MARKET_SIGNAL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 0,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 4,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 0,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PRE_MARKET_SIGNAL",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 28,
+      "opportunity_id": "tjzyefy_intent_20260804_030195992",
+      "facts": {
+        "project_number": null,
+        "project_name": "采购意向公告（2026年48号）-云影像服务项目",
+        "buyer_name": "天津中医药大学第二附属医院",
+        "hospital_name": "天津中医药大学第二附属医院",
+        "department": null,
+        "region": "天津市",
+        "lifecycle_state": "PROCUREMENT_INTENT",
+        "notice_type": "采购意向公告",
+        "published_at": "2026-08-04",
+        "published_at_precision": "DAY",
+        "registration_deadline": null,
+        "registration_deadline_date": null,
+        "registration_deadline_precision": null,
+        "bid_deadline": null,
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": null,
+        "procurement_method": null,
+        "product_categories": [],
+        "product_items": [
+          {
+            "raw_name": "云影像服务",
+            "category": null,
+            "quantity": null,
+            "specification": null
+          }
+        ],
+        "public_contact": {
+          "name": null,
+          "title": null,
+          "phone": "022-60637523",
+          "email": null
+        },
+        "quality_flags": [
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月"
+        ],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL"
+      },
+      "evidence_source_urls": [
+        "https://www.tjzyefy.com/system/2026/08/04/030195992.shtml"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 16,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 12,
+            "max_points": 25,
+            "basis": "PRE_MARKET_SIGNAL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 0,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 4,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 0,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED",
+          "EXPECTED_PROCUREMENT_MONTH_WINDOW_TEXT=2026年9-10月"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PRE_MARKET_SIGNAL",
       "model_decision_status": "AWAITING_MODEL",
       "model_block_reason": null,
       "decision": null

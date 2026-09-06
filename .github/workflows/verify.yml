@@ -1,0 +1,257 @@
+name: Verify MedicalChannelAI
+# PR verification is read-only; one-time branch materializers must not be retained.
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify system Python
+        shell: bash
+        run: python3 --version
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Select verification depth
+        id: verify_mode
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          GH_TOKEN: ${{ github.token }}
+          GH_API_URL: ${{ github.api_url }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "full=true" >> "$GITHUB_OUTPUT"
+            echo "live_intent=false" >> "$GITHUB_OUTPUT"
+            echo "live_ceb=false" >> "$GITHUB_OUTPUT"
+            echo "Full Verify requested by workflow_dispatch"
+            exit 0
+          fi
+
+          COMMIT_MESSAGE="$(python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          url = f"{os.environ['GH_API_URL']}/repos/{os.environ['GH_REPOSITORY']}/commits/{os.environ['HEAD_SHA']}"
+          request = urllib.request.Request(url)
+          request.add_header('Accept', 'application/vnd.github+json')
+          request.add_header('Authorization', f"Bearer {os.environ['GH_TOKEN']}")
+          request.add_header('X-GitHub-Api-Version', '2022-11-28')
+          with urllib.request.urlopen(request, timeout=20) as response:
+              payload = json.load(response)
+          print(str(payload.get('commit', {}).get('message') or '').replace('\n', ' '))
+          PY
+          )"
+
+          if [[ "$COMMIT_MESSAGE" == *"[live-intent-probe]"* ]]; then
+            echo "live_intent=true" >> "$GITHUB_OUTPUT"
+            echo "Read-only live procurement-intent probe requested by commit marker"
+          else
+            echo "live_intent=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [[ "$COMMIT_MESSAGE" == *"[live-ceb-probe]"* ]]; then
+            echo "live_ceb=true" >> "$GITHUB_OUTPUT"
+            echo "Read-only live CEB official-search probe requested by commit marker"
+          else
+            echo "live_ceb=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [[ "$COMMIT_MESSAGE" == *"[full-verify]"* ]]; then
+            echo "full=true" >> "$GITHUB_OUTPUT"
+            echo "Full Verify requested by commit marker"
+          else
+            echo "full=false" >> "$GITHUB_OUTPUT"
+            echo "Fast Verify selected"
+          fi
+
+      - name: Install fast verification runtime dependencies
+        if: steps.verify_mode.outputs.full != 'true'
+        working-directory: web
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+
+      - name: Run fast contract verification
+        if: steps.verify_mode.outputs.full != 'true'
+        shell: bash
+        run: |
+          cd web/pipeline
+          python3 scripts/refresh_bundled_snapshot.py
+          python3 -m unittest discover -s tests -v
+          cd ..
+          node scripts/check-serverless-entrypoints.mjs
+          node --check scripts/pilot-preview-smoke.mjs
+          echo "Fast verification: PASS"
+
+      - name: Run read-only live procurement-intent probe
+        if: steps.verify_mode.outputs.live_intent == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe_dir="$(mktemp -d)"
+          trap 'rm -rf "$probe_dir"' EXIT
+
+          python3 - "$probe_dir/before.sha256" <<'PY'
+          import hashlib
+          import sys
+          from pathlib import Path
+
+          digest = hashlib.sha256()
+          for root_name in ('web/pipeline/data', 'web/public/data'):
+              root = Path(root_name)
+              for path in sorted(item for item in root.rglob('*') if item.is_file()):
+                  digest.update(path.as_posix().encode('utf-8'))
+                  digest.update(b'\0')
+                  digest.update(path.read_bytes())
+                  digest.update(b'\0')
+          Path(sys.argv[1]).write_text(digest.hexdigest() + '\n', encoding='utf-8')
+          PY
+
+          python3 web/pipeline/scripts/sync_tjzyefy_procurement_intent.py \
+            --lookback-days 30 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            --records-output "$probe_dir/records.json" \
+            --report-output "$probe_dir/report.json"
+
+          python3 - "$probe_dir/records.json" "$probe_dir/report.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          records_path = Path(sys.argv[1])
+          report_path = Path(sys.argv[2])
+          records = json.loads(records_path.read_text(encoding='utf-8'))
+          report = json.loads(report_path.read_text(encoding='utf-8'))
+          summary = {
+              'observed_at': report.get('observed_at'),
+              'requested_lookback_days': report.get('requested_lookback_days'),
+              'effective_lookback_days': report.get('effective_lookback_days'),
+              'bootstrap_backfill_applied': report.get('bootstrap_backfill_applied'),
+              'discovered_intent_count': report.get('discovered_intent_count'),
+              'selected_candidate_count': report.get('selected_candidate_count'),
+              'new_verified_record_count': report.get('new_verified_record_count'),
+              'unsupported_non_medical_count': report.get('unsupported_non_medical_count'),
+              'failure_count': report.get('failure_count'),
+              'unresolved_failure_count': report.get('unresolved_failure_count'),
+              'publish_allowed': report.get('publish_allowed'),
+              'publish_gate_reason': report.get('publish_gate_reason'),
+          }
+          print('LIVE_INTENT_PROBE_REPORT=' + json.dumps(summary, ensure_ascii=False))
+          for record in records:
+              facts = record.get('facts') or {}
+              products = [
+                  item.get('raw_name')
+                  for item in (facts.get('product_items') or [])
+                  if isinstance(item, dict) and item.get('raw_name')
+              ]
+              public_record = {
+                  'opportunity_id': record.get('opportunity_id'),
+                  'project_name': facts.get('project_name'),
+                  'published_at': facts.get('published_at'),
+                  'products': products,
+                  'quality_flags': record.get('quality_flags') or [],
+                  'source_url': (record.get('source') or {}).get('url'),
+              }
+              print('LIVE_INTENT_VERIFIED_RECORD=' + json.dumps(public_record, ensure_ascii=False))
+          PY
+
+          python3 - "$probe_dir/after.sha256" <<'PY'
+          import hashlib
+          import sys
+          from pathlib import Path
+
+          digest = hashlib.sha256()
+          for root_name in ('web/pipeline/data', 'web/public/data'):
+              root = Path(root_name)
+              for path in sorted(item for item in root.rglob('*') if item.is_file()):
+                  digest.update(path.as_posix().encode('utf-8'))
+                  digest.update(b'\0')
+                  digest.update(path.read_bytes())
+                  digest.update(b'\0')
+          Path(sys.argv[1]).write_text(digest.hexdigest() + '\n', encoding='utf-8')
+          PY
+
+          # The acceptance probe may read the public web only. It must never
+          # mutate tracked medical data, create a deployment, or write back.
+          cmp "$probe_dir/before.sha256" "$probe_dir/after.sha256"
+          echo "Read-only live procurement-intent probe: PASS"
+
+      - name: Run read-only live CEB official-search probe
+        if: steps.verify_mode.outputs.live_ceb == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/probe_ceb_official_search.py
+          echo "Read-only live CEB official-search probe: COMPLETE"
+
+      - name: Install web dependencies
+        if: steps.verify_mode.outputs.full == 'true'
+        working-directory: web
+        run: npm ci --no-audit --no-fund
+
+      - name: Run full prebuild, typecheck and production build
+        if: steps.verify_mode.outputs.full == 'true'
+        working-directory: web
+        run: npm run build
+
+      - name: Print verified ranking summary
+        if: steps.verify_mode.outputs.full == 'true'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('web/public/data/today-actions.public.json')
+          data = json.loads(path.read_text(encoding='utf-8'))
+          print(f"snapshot_as_of={data['snapshot_as_of']}")
+          print(f"opportunity_pool_count={data['opportunity_pool_count']}")
+          for card in data['opportunity_pool'][:10]:
+              components = {item['code']: item['points'] for item in card['priority']['components']}
+              facts = card['facts']
+              print(json.dumps({
+                  'rank': card['rank'],
+                  'score': card['priority']['score'],
+                  'mode': card['recommendation_mode'],
+                  'hospital': facts.get('hospital_name') or facts.get('buyer_name'),
+                  'project': facts.get('project_name'),
+                  'budget_cny': (facts.get('budget') or {}).get('amount_cny') if isinstance(facts.get('budget'), dict) else None,
+                  'registration_deadline': facts.get('registration_deadline') or facts.get('registration_deadline_date'),
+                  'bid_deadline': facts.get('bid_deadline'),
+                  'components': components,
+              }, ensure_ascii=False))
+          PY
+
+      - name: Clean transient workspace artifacts
+        if: always()
+        shell: bash
+        run: |
+          rm -rf web/node_modules web/dist

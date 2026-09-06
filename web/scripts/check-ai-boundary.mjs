@@ -48,10 +48,7 @@ function successfulProviderResponse() {
     status: 200,
     json: async () => ({
       choices: [{ message: { content: JSON.stringify({
-        action: '联系采购方核实当前窗口',
-        reasons: ['基于已核验公开事实进行下一步人工确认'],
-        risks: ['不得把未知客户关系写成事实'],
-        requires_human_confirmation: true,
+        action_codes: ['VERIFY_REQUIREMENTS'],
       }) } }],
     }),
   }
@@ -61,6 +58,7 @@ const savedKeys = process.env.AGNES_API_KEYS
 const savedKey = process.env.AGNES_API_KEY
 const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
 const savedPublicRemote = process.env.VITE_VERIFIED_SNAPSHOT_URL
+const savedPilot = process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED
 const savedFetch = globalThis.fetch
 process.env.AGNES_API_KEYS = ''
 process.env.AGNES_API_KEY = ''
@@ -69,6 +67,16 @@ process.env.VITE_VERIFIED_SNAPSHOT_URL = ''
 clearVerifiedSnapshotCacheForTests()
 
 try {
+  process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED = '1'
+  let response = await invoke({ body: { opportunity_id: knownOpportunityId } })
+  expectStatus(response, 403, 'AI_PILOT_BOUNDARY_ORIGIN_REQUIRED')
+  if (response.body?.error !== 'SAME_ORIGIN_REQUIRED') throw new Error('AI_PILOT_BOUNDARY_ORIGIN_CODE')
+
+  // The remaining cases exercise the public grounded AI core. Keep them isolated
+  // from Preview/Pilot build environment variables so authentication does not
+  // mask request-shape, grounding, provider, retry, and rate-limit assertions.
+  process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED = ''
+
   const dateOnlyFacts = {
     registration_deadline: null,
     registration_deadline_date: '2026-07-10',
@@ -81,7 +89,7 @@ try {
     throw new Error('AI_DATE_ONLY_DEADLINE_NEXT_DAY_MUST_CLOSE')
   }
 
-  let response = await invoke({ method: 'GET' })
+  response = await invoke({ method: 'GET' })
   expectStatus(response, 405, 'AI_BOUNDARY_GET')
   if (response.body?.error !== 'METHOD_NOT_ALLOWED') throw new Error('AI_BOUNDARY_GET_CODE')
 
@@ -260,24 +268,45 @@ try {
     throw new Error('AI_NETWORK_RETRY_SECRET_LEAK')
   }
 
-  process.env.AGNES_API_KEYS = ''
-  globalThis.fetch = savedFetch
-
+  // Rate limiting protects actual provider work. Cache hits and requests that
+  // stop before a provider call must not consume this scarce budget.
+  providerAttempt = 0
+  globalThis.fetch = async () => {
+    providerAttempt += 1
+    return successfulProviderResponse()
+  }
   for (let index = 0; index < 10; index += 1) {
     response = await invoke({
       origin: 'https://trial.example',
-      body: { opportunity_id: knownOpportunityId },
+      body: {
+        opportunity_id: knownOpportunityId,
+        customer_context: {
+          matching_product_capabilities: [{
+            category: `rate-limit-provider-call-${index}`,
+            capability_type: 'DIRECT_UNCONFIRMED',
+          }],
+        },
+      },
       ip: '198.51.100.5',
     })
-    expectStatus(response, 503, `AI_BOUNDARY_RATE_PRE_${index}`)
+    expectStatus(response, 200, `AI_BOUNDARY_RATE_PROVIDER_PRE_${index}`)
   }
   response = await invoke({
     origin: 'https://trial.example',
-    body: { opportunity_id: knownOpportunityId },
+    body: {
+      opportunity_id: knownOpportunityId,
+      customer_context: {
+        matching_product_capabilities: [{
+          category: 'rate-limit-provider-call-10',
+          capability_type: 'DIRECT_UNCONFIRMED',
+        }],
+      },
+    },
     ip: '198.51.100.5',
   })
   expectStatus(response, 429, 'AI_BOUNDARY_RATE_LIMIT')
   if (response.body?.error !== 'AI_RATE_LIMITED') throw new Error('AI_BOUNDARY_RATE_LIMIT_CODE')
+  if (providerAttempt !== 10) throw new Error(`AI_BOUNDARY_RATE_PROVIDER_CALL_COUNT:${providerAttempt}`)
 
   console.log('AI boundary checks: PASS')
 } finally {
@@ -291,4 +320,6 @@ try {
   else process.env.VERIFIED_SNAPSHOT_URL = savedRemote
   if (savedPublicRemote === undefined) delete process.env.VITE_VERIFIED_SNAPSHOT_URL
   else process.env.VITE_VERIFIED_SNAPSHOT_URL = savedPublicRemote
+  if (savedPilot === undefined) delete process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED
+  else process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED = savedPilot
 }

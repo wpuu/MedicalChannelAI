@@ -1,134 +1,248 @@
 # MedicalChannelAI current state
 
-Updated: 2026-08-31
+Updated: 2026-09-04
 
-## Product state
+## Product and safety boundary
 
-MedicalChannelAI is a medical-channel commercial intelligence / sales-agent pilot for medical devices, IVD and consumables. The first pilot region is Tianjin.
+MedicalChannelAI is a Tianjin-first medical-channel commercial intelligence / sales-assistant pilot for medical devices, IVD and consumables.
 
-The fixed product rule is **evidence first**:
+Fixed rules:
 
-- procurement facts must come from traceable official-source evidence;
-- unsupported critical facts stay empty instead of being guessed;
-- models may classify, match, explain and recommend actions, but they may not invent hospitals, projects, budgets, dates, contacts, suppliers, brands, model numbers, customer relationships or win probability;
-- customer-owned resources are explicitly separated from public procurement facts.
+- public medical/procurement facts require traceable official evidence; unsupported critical facts fail closed;
+- models may classify, match, explain and recommend actions, but may not invent hospitals, projects, budgets, dates, contacts, suppliers, brands, relationships or win probability;
+- public intelligence and customer-private resources are separate layers;
+- target hospitals are watch/focus objects only and never add relationship points;
+- hospital relationships and product capabilities are used only after customer confirmation;
+- private outcomes may support current-account review but never become public facts or automatically alter public ranking.
 
 `production_ready=false`.
 
-## User-facing deployment boundary
+## Source-control and deployment boundary
 
-- Custom demo URL: `https://medicalai.qd.je/` is reachable.
-- `web/` is the current H5 product implementation.
-- The product flow is **zero-config first**: users can see verified public opportunities before entering customer resources.
-- Today Actions exposes at most **5 priority cards** while retaining the total actionable-opportunity count separately.
-- `我的资源` is optional personalization. Product capabilities, hospital relationships and cooperation policies are stored locally in the current trial and are never presented as hospital/public facts.
-- `我的跟进` and local reminder lifecycle are usable in the verified trial.
-- The custom domain being reachable does **not** mean the newest branch commits are already promoted there. Production/custom-domain promotion remains separate from branch/Preview validation.
+- Active branch: `chatgpt/opportunity-ranking-v2-final`
+- Draft PR: `#6` — `v0.4.1: opportunity ranking v2 final`
+- Latest fully code-validated executable/runtime HEAD: `3663507b13dc57ca8d8179c51ae5b94303e936da`
+- Latest successful full validation: GitHub Actions **Verify #1472 SUCCESS**
+- PR base: `main` at `5cf221ad1b96520eecb444051ae902087bb10484`
+- PR remains open, Draft and unmerged.
+- `web/vercel.json` disables automatic Vercel deployments for this branch.
+- User boundary remains: **no Preview generation, no Production changes/deployments, no merge** until explicitly changed.
+- Latest observed Vercel deployment remains historical commit `ddd965f132343b0885f91e30e13a6b8fc2157afa` / `dpl_nWSXz4iwKcZZQsfd3Aem4XfXVtre` (ERROR); no current source-expansion work is deployed.
 
-## Source and evidence pipeline on the active branch
+## Latest executable validation
 
-Active branch: `chatgpt/m1-evidence-pipeline-v1`
+MedicalChannelAI remains private and uses repository-scoped GCP self-hosted runner `medicalchannelai-gcp-1` with labels `self-hosted`, `linux`, `x64`, `medicalchannelai-ci`.
 
-Draft PR: `#3` — `M1: evidence-first Tianjin pipeline and grounded AI trial`
+Verify **#1472** completed successfully for `3663507b13dc57ca8d8179c51ae5b94303e936da` and executed:
 
-Main base remains `6221925212bbb663793d7e0305e2b98f440c0513`. Do not treat the active branch as merged production state.
+- system Python **3.13.7** and Node **24.20.0**;
+- `npm ci` and bundled snapshot refresh;
+- **581 Python pipeline/contract tests — all PASS**;
+- serverless entrypoint checks **11/12**;
+- verified snapshot / medical scope / private profile / AI / runtime / collector boundaries;
+- full prebuild;
+- TypeScript `tsc --noEmit`;
+- Vite production build;
+- ranking summary.
 
-Implemented on the branch:
+Production build remains unchanged:
 
-1. canonical evidence/fact validation with fail-closed critical facts;
-2. CCGP discovery-only search adapter;
-3. verified CCGP detail adapters for public tender and competitive consultation notices;
-4. correction / termination event reconciliation;
-5. Tianjin Medical University General Hospital market-research discovery + verified detail source;
-6. deterministic Today Actions public snapshot generation with Top5 output;
-7. pipeline-generated `web/public/data/today-actions.public.json` consumed by the verified trial;
-8. runtime deadline protection so stale static snapshots cannot keep expired projects actionable;
-9. `LATE_WINDOW` handling when registration/file acquisition has closed but bid/response deadline is still future;
-10. optional customer-resource personalization without changing the public fact base;
-11. grounded on-demand AI analysis through same-origin `/api/ai/analyze`;
-12. local follow-up persistence and reminders;
-13. dual-source Tianjin refresh orchestration for CCGP + hospital market research;
-14. optional externally refreshed verified-snapshot loading, with fail-closed remote-source behavior.
+- `index.html`: **0.62 / gzip 0.38 kB**
+- CSS: **41.30 / gzip 8.09 kB**
+- main JS: **358.88 / gzip 115.27 kB**
+- AI client: **5.43 / gzip 2.66 kB**
+- OutreachDrawer: **12.16 / gzip 4.72 kB**
+- Opportunity Pool: **18.45 / gzip 6.97 kB**
+- Opportunity Detail: **50.45 / gzip 15.89 kB**
+- Radar: **57.59 / gzip 17.29 kB**
 
-## Grounded AI boundary
+The bundled ranking snapshot used by CI is still the historical verified snapshot dated `2026-09-03T13:31:21.991132+08:00` with 19 opportunities. The new procurement-intent source is code-validated, but CI does not perform its live network collection and therefore does not prove live intent data is already present in the snapshot.
 
-The browser sends an opportunity ID and, only when present, user-entered customer context.
+This is code/build validation only. Preview is intentionally disabled, so no current-HEAD Vercel runtime acceptance or China TTFB/P95 claim is made.
 
-The server function:
+## China-access / Today performance
 
-- retrieves verified public facts by opportunity ID from the configured verified snapshot source;
-- uses the bundled snapshot by default and can optionally use an HTTPS remote snapshot;
-- does not silently fall back to the bundled snapshot if a configured remote snapshot fails;
-- rejects browser-supplied fake procurement facts;
-- sanitizes customer context and labels it as self-reported/customer-owned context;
-- keeps provider/model/API key details server-side;
-- enforces same-origin access and a warm-instance request limit;
-- independently recalculates `OPEN`, `LATE_WINDOW` or `CLOSED` from official deadlines at request time;
-- refuses AI analysis after the actionable window is closed;
-- invalidates AI caches when customer context or the runtime window changes.
+Validated work remains:
 
-Preview POST execution with a real configured Agnes key is still unverified. Do not claim AI runtime success until a real POST returns a grounded result.
+- Today private profile and private-state reads are bounded/aggregated, reducing the main private data path from roughly ~7 DB round trips to ~2;
+- schema bootstrap uses version fast paths;
+- public history materialization is after-response side storage;
+- detail initial reads are parallel and public history is on demand;
+- follow-up mutations use bounded one-shot server-confirmed response reuse;
+- Today runtime status/reminders are auxiliary and non-blocking;
+- login/register uses a short one-shot in-memory auth handoff while refresh/new-tab remains server-authoritative;
+- hashed assets and lazy secondary routes are restored;
+- AI client and OutreachDrawer are on demand;
+- normal `/api/today` omits full `opportunity_pool` while preserving Top-N and `opportunity_pool_count`;
+- `/api/opportunity-pool/today` requests the full pool through the same private Function with `include_pool=1` and no extra Function slot.
 
-## Executable validation evidence
+The Today response split reduces response serialization/network bytes only. `_privateCore.js` still constructs/personalizes the full pool before projection, so no further DB/CPU reduction is claimed.
 
-Latest fully verified Vercel Preview commit:
+## Official early-signal source: 天津市中心妇产科医院 (`tjzxfc`)
 
-`00bc0d6bfc0ecffb106cc8b0c40b34f3202c26d6`
+Official source:
 
-Deployment:
+- domain: `www.tjzxfc.cn`
+- index: `https://www.tjzxfc.cn/ywgk/zbgg/index.shtml`
+- lifecycle: `MARKET_RESEARCH`
 
-`dpl_7wzRnZfgvi29sHn34poykwVkAyTf`
+Validated behavior:
 
-That Vercel build log proves all of the following for that commit:
+- broad official market-research discovery with strict detail medical-scope verification;
+- hospital identity alone never makes a record relevant;
+- non-medical facility/IT research is unsupported rather than published;
+- title and official publication date must agree;
+- exact deadline time is stored only when official text publishes it; otherwise date-only remains date-only;
+- true verification/network failures fail closed;
+- minimum detail interval 3 seconds;
+- PR daily-deep wiring uses 30-day lookback / max 20 candidates / 3-second minimum delay;
+- intentionally not in intraday scheduler.
 
-- Pipeline tests: **60 / 60 PASS**;
-- AI boundary checks: **PASS**;
-- prebuild verification: **PASS**;
-- `tsc --noEmit`: **PASS**;
-- Vite production build: **PASS**;
-- one Node.js server function was packaged in the Preview.
+Adapter Fast #1434 / Full #1435 passed; daily-deep integration Fast #1437 / Full #1438 passed.
 
-This verified point already includes runtime deadline/late-window hardening, AI-window enforcement, dual-source automatic-refresh architecture and the Pipeline Top5 implementation.
+## Official source: 天津中医药大学第二附属医院 (`tjzyefy`) — market research
 
-Current PR HEAD is newer than that verified point. At the time of this update it includes additional dedicated Top5 regression coverage plus dynamic verified-snapshot fail-closed checks. Those newest commits are **implemented but still require a newer successful Preview** before being called executable-validated.
+Official source:
 
-GitHub Actions runner execution remains unverified. Repository Actions and scheduled refresh must not be represented as PASS until an actual workflow run receives a runner and completes successfully.
+- domain: `www.tjzyefy.com`
+- announcement index: `https://www.tjzyefy.com/xwgg/ggtz/`
+- lifecycle: `MARKET_RESEARCH`
 
-## Automatic refresh architecture
+Validated behavior includes:
 
-Implemented but **not currently running in production**:
+- research notice discovery excludes procurement-intent notices;
+- shared medical-channel taxonomy is used rather than only a few generic title words;
+- `液质联用` / `液相色谱` / `色谱` are supported medical-channel signals;
+- strict official detail verification for hospital identity, title, publication date, product/service object and registration window;
+- a generic `医疗设备` category is not invented for a specific LC-MS maintenance notice whose title does not state that category;
+- date-only deadlines stay date-only;
+- only transient network failures are retried;
+- minimum detail interval 3 seconds;
+- PR daily-deep wiring uses 30-day lookback / max 20 candidates / 3-second minimum delay;
+- intentionally not in intraday scheduler.
 
-- CCGP query plan: `pipeline/data/tianjin_query_plan.json`;
-- durable CCGP state: `pipeline/data/tianjin_live_ccgp_records.json`;
-- durable hospital-source state: `pipeline/data/tianjin_live_tjmugh_records.json`;
-- CCGP plan orchestrator: `pipeline/scripts/sync_tianjin_plan.py`;
-- hospital-source sync: `pipeline/scripts/sync_tjmugh_market_research.py`;
-- publisher: `pipeline/scripts/publish_web_snapshot.py`;
-- workflow: `.github/workflows/tianjin-medical-refresh.yml`.
+Corrected adapter passed Fast #1449 / Full #1450; market-research daily-deep passed Fast #1451 / Full #1452 and was reconfirmed by later full validations.
 
-The refresh layer:
+## Official source: 天津中医药大学第二附属医院 — procurement intent
 
-- locks the Pilot to Tianjin;
-- uses multiple medical-channel CCGP keywords;
-- deduplicates official detail URLs before detail verification;
-- retains minimum request delays and performs no rate-limit bypass;
-- runs the old-project correction/termination watch only once after all CCGP keywords;
-- blocks CCGP publication if all discovery queries fail;
-- blocks CCGP publication when candidates are discovered but every selected detail fails verification;
-- blocks the hospital-source refresh if its official index fails;
-- blocks the hospital-source refresh when candidates are selected but every selected detail fails verification;
-- publishes only after both source refresh stages and the regression suite succeed.
+The same official announcement stream also contains medical `采购意向公告`. This is now represented by a separate validated lifecycle rather than being relabelled as market research.
 
-The workflow is scheduled in code for 08:20 China time daily and 16:20 China time on weekdays. Scheduled GitHub workflows only operate from the default branch, and current runner availability remains unverified, so this remains **IMPLEMENTED_NOT_RUNNING** until after merge and a successful real run.
+### Lifecycle and ranking semantics
 
-The default frontend deployment still uses the bundled snapshot. Optional external snapshot support is an optimization path, not proof that an external public data store has been configured.
+- canonical lifecycle: `PROCUREMENT_INTENT`
+- public recommendation mode: `PRE_MARKET_SIGNAL`
+- `INTERVENTION_STAGE`: **12/25**
+- no published registration/bid deadline means `DEADLINE_URGENCY=0`
+- `model_decision_status=AWAITING_MODEL`, allowing an explicit advance-layout analysis without implying a formal tender is open
+- ordinary `MARKET_RESEARCH` keeps the existing `PUBLIC_OPPORTUNITY` / **25/25** intervention-stage contract
 
-## Current blockers / next gates
+This prevents a supplier-consultation intent from being ranked as if registration or bidding were already open.
 
-1. Obtain a successful Vercel Preview for the current PR HEAD, including the newest Top5 and verified-snapshot checks.
-2. Verify Preview Today / Followups / Resources behavior with an executable browser path.
-3. Verify a real same-origin POST to `/api/ai/analyze` with server-side Agnes runtime configuration, without exposing the key/model to the browser.
-4. Execute the Tianjin refresh workflow successfully on a real runner and inspect both source sync reports before calling automatic refresh active.
-5. Only after those gates, request product-owner approval before merging PR #3 or promoting to the custom domain.
+### Discovery and evidence boundary
 
-Do not merge or mark `production_ready=true` merely because the custom domain opens.
+Procurement-intent discovery is deliberately broad across official `采购意向公告` titles, because medically valid titles such as `脉动真空灭菌器等设备采购项目` may not contain the generic phrase `医疗设备`.
+
+The detail layer then decides scope using the actual procurement object. It verifies:
+
+- official hospital domain and same-host index/detail identity;
+- hospital identity;
+- title identity;
+- official publication date;
+- explicit `采购意向公告` semantics;
+- supplier/service-provider consultation wording;
+- specific product/service objects;
+- medical-channel relevance independent of hospital identity.
+
+Non-medical procurement intents are `unsupported`, not public opportunities and not source-fatal errors. True verification/network failures remain fail closed.
+
+The shared medical scope was narrowly extended with `流式细胞仪` and `灭菌器`; generic words such as `干燥箱` were intentionally not added solely because a hospital published them.
+
+### Timing and contact grounding
+
+- no registration deadline/date is invented;
+- no bid deadline is invented;
+- official expected procurement wording such as a month or month range is **not converted to an exact date**;
+- such month/range language is recorded only through `EXPECTED_PROCUREMENT_MONTH_WINDOW_UNSTRUCTURED` while the official source remains auditable;
+- public contact is used only when the official page explicitly publishes it.
+
+### Sync and daily-deep
+
+The procurement-intent feed has a separate fail-closed sync path:
+
+- default 30-day lookback;
+- max 20 candidates;
+- minimum 3-second detail delay;
+- only transient network/408/425/429/5xx failures retry;
+- non-medical intent = unsupported;
+- unresolved supported/unknown detail failure blocks publish unless an older VERIFIED record covers the same opportunity;
+- separate live records/report files;
+- records feed the unified public snapshot;
+- intentionally not in intraday scheduler.
+
+The PR daily-deep definition includes this source on the existing self-hosted GCP runner.
+
+Validation progression:
+
+- procurement-intent actionability Fast #1461 passed;
+- discovery/detail parser Fast #1467 passed;
+- sync Fast #1469 passed;
+- daily-deep integration Fast #1471 passed;
+- **Full Verify #1472 passed with 581 tests**.
+
+## Daily-deep runtime boundary
+
+The PR version of `.github/workflows/tianjin-medical-refresh.yml` includes `tjzxfc`, `tjzyefy` market research and `tjzyefy` procurement intent, all on the self-hosted runner with a shared China-time refresh clock.
+
+**Important:** PR #6 remains unmerged. GitHub scheduled workflows execute from the default branch, so these new daily-deep definitions are **code-validated but not active default-branch schedules**. No claim is made that the new sources are already being collected every day or that current Production contains them.
+
+## Public intelligence / collector invariants
+
+Existing guarantees remain:
+
+- official-source discovery/detail verification and canonical VERIFIED facts;
+- correction/termination reconciliation;
+- public ranking without private relationship/product points;
+- source-scoped incremental staging/barriers;
+- bounded carryover and ledger retention;
+- actual Queue delivery clock and stale cross-China-day rejection;
+- deep/incremental serialization;
+- one official discovery pass per runtime scan;
+- unresolved verification barrier;
+- once-daily legacy deep fallback definition;
+- `tjzxfc`, `tjzyefy` market research and `tjzyefy` procurement intent are not silently added to intraday collection.
+
+## Business-closure loop
+
+Current pilot loop remains:
+
+**discover opportunity/early signal → official evidence → confirmed private resource match → grounded outreach → explicit contact record → optional concrete next action → due-action queue → terminal result → private outcome review**.
+
+Key private-state guarantees remain:
+
+- copying outreach / tapping phone / tapping email never auto-writes `CONTACTED`;
+- only explicit `已联系，记入跟进` records contact;
+- reminders are independent from sales stage and require a concrete next action;
+- reminder acknowledgement clears reminder only;
+- WON / LOST / NOT_FIT / ARCHIVED require explicit reopen confirmation;
+- ARCHIVED is workflow-terminal but excluded from outcome statistics;
+- WON/LOST terminal transitions require controlled private review server-side;
+- private outcome statistics remain current-account-only and do not alter public facts/ranking.
+
+## Remaining acceptance gates
+
+While no-Preview remains active, continue only code/test/data-boundary/business-closure work without making Vercel runtime claims.
+
+When the user explicitly allows Preview again:
+
+1. deploy the exact then-current PR HEAD to Preview only;
+2. verify Today / Opportunity Pool / detail / Resources / Followups interactively from China and record TTFB/P95, response sizes and perceived loading;
+3. verify normal Today omits the full pool while Opportunity Pool receives all current opportunities from the same Function;
+4. verify `PRE_MARKET_SIGNAL` UI clearly communicates “采购意向/提前布局” rather than formal open tender;
+5. run protected CONTACTED → optional next-action → reminder acknowledgement flow;
+6. verify private WON/LOST/NOT_FIT review persistence/export and no public leakage;
+7. verify collector Queue / daily-deep / intraday runtime behavior and snapshot freshness;
+8. verify `tjzxfc` / `tjzyefy` real network parsing on an allowed runtime before claiming those sources operational;
+9. run one same-origin grounded AI POST only if Preview AI configuration is intentionally supplied;
+10. inspect custom-domain/Production promotion separately before any Production action.
+
+PR #6 must remain Draft until those gates and product-owner acceptance are complete.

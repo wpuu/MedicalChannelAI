@@ -1,6 +1,22 @@
+import type { FollowupStatus, TodayActionCard } from '@/types'
+import { isStableOpportunityId } from '@/utils/opportunityId'
 import { todayActionsService } from './index'
 import { apiBaseUrl, isApiMode } from './apiConfig'
 import { listStoredFollowups } from './localFollowupStore'
+
+interface FollowedProductItem {
+  name: string
+  category: string | null
+  quantity: string | null
+  specification: string | null
+}
+
+interface FollowedPublicContact {
+  name: string | null
+  title: string | null
+  phone: string | null
+  email: string | null
+}
 
 export interface FollowedOpportunity {
   opportunity_id: string
@@ -14,16 +30,26 @@ export interface FollowedOpportunity {
     buyer_name: string | null
     hospital_name: string | null
     department: string | null
+    region: string | null
     lifecycle_state: string | null
+    notice_type: string | null
     published_at: string | null
+    registration_deadline: string | null
+    registration_deadline_date: string | null
     bid_deadline: string | null
     expected_procurement_at: string | null
     budget_cny: number | null
+    procurement_method: string | null
+    product_categories: string[]
+    product_items: FollowedProductItem[]
+    public_contact: FollowedPublicContact | null
+    verification_status: string | null
+    coverage_status: string | null
   }
   evidence_source_urls: string[]
 }
 
-const FOLLOWUP_STATUSES = new Set([
+const FOLLOWUP_STATUSES = new Set<FollowupStatus>([
   'NEW',
   'REVIEWING',
   'CONTACTED',
@@ -36,6 +62,19 @@ const FOLLOWUP_STATUSES = new Set([
   'MONITOR',
   'ARCHIVED',
 ])
+
+const NOT_FIT_REASON_LABEL: Record<string, string> = {
+  NO_PRODUCT_CAPABILITY: '没有对应产品',
+  NO_MANUFACTURER_ACCESS: '暂无厂家资源',
+  RELATIONSHIP_TOO_WEAK: '医院关系太弱',
+  AMOUNT_TOO_SMALL: '项目金额太小',
+  PROJECT_TOO_LATE: '介入时间太晚',
+  COMPETITOR_LOCKED_CUSTOMER_JUDGMENT: '判断竞争对手已锁定',
+  DEPARTMENT_OUT_OF_SCOPE: '科室不匹配',
+  REGION_OUT_OF_SCOPE: '区域不匹配',
+  RENTAL_NOT_SUPPORTED: '不做租赁项目',
+  OTHER: '其他',
+}
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -57,6 +96,65 @@ function nullableNumber(value: unknown): value is number | null {
   return value === null || (typeof value === 'number' && Number.isFinite(value))
 }
 
+function isFollowupStatus(value: unknown): value is FollowupStatus {
+  return typeof value === 'string' && FOLLOWUP_STATUSES.has(value as FollowupStatus)
+}
+
+async function responseError(response: Response): Promise<Error> {
+  try {
+    const root = asRecord(await response.json())
+    if (typeof root?.error === 'string') return new Error(root.error)
+  } catch {
+    // Fall through to the status-only error.
+  }
+  return new Error(`HTTP_${response.status}`)
+}
+
+function validateProducts(value: unknown): FollowedProductItem[] {
+  if (!Array.isArray(value)) throw new Error('FOLLOWED_RESPONSE_INVALID')
+  return value.map((item) => {
+    const row = asRecord(item)
+    if (
+      !row ||
+      !exactKeys(row, ['name', 'category', 'quantity', 'specification']) ||
+      typeof row.name !== 'string' ||
+      !row.name.trim() ||
+      !nullableString(row.category) ||
+      !nullableString(row.quantity) ||
+      !nullableString(row.specification)
+    ) {
+      throw new Error('FOLLOWED_RESPONSE_INVALID')
+    }
+    return {
+      name: row.name,
+      category: row.category,
+      quantity: row.quantity,
+      specification: row.specification,
+    }
+  })
+}
+
+function validateContact(value: unknown): FollowedPublicContact | null {
+  if (value === null) return null
+  const row = asRecord(value)
+  if (
+    !row ||
+    !exactKeys(row, ['name', 'title', 'phone', 'email']) ||
+    !nullableString(row.name) ||
+    !nullableString(row.title) ||
+    !nullableString(row.phone) ||
+    !nullableString(row.email)
+  ) {
+    throw new Error('FOLLOWED_RESPONSE_INVALID')
+  }
+  return {
+    name: row.name,
+    title: row.title,
+    phone: row.phone,
+    email: row.email,
+  }
+}
+
 function validateItem(value: unknown): FollowedOpportunity {
   const row = asRecord(value)
   if (
@@ -70,10 +168,8 @@ function validateItem(value: unknown): FollowedOpportunity {
       'facts',
       'evidence_source_urls',
     ]) ||
-    typeof row.opportunity_id !== 'string' ||
-    !/^opp_[0-9a-fA-F-]{36}$/.test(row.opportunity_id) ||
-    typeof row.followup_status !== 'string' ||
-    !FOLLOWUP_STATUSES.has(row.followup_status) ||
+    !isStableOpportunityId(row.opportunity_id) ||
+    !isFollowupStatus(row.followup_status) ||
     !nullableString(row.remind_at) ||
     !nullableString(row.latest_note) ||
     typeof row.followup_updated_at !== 'string' ||
@@ -93,22 +189,41 @@ function validateItem(value: unknown): FollowedOpportunity {
       'buyer_name',
       'hospital_name',
       'department',
+      'region',
       'lifecycle_state',
+      'notice_type',
       'published_at',
+      'registration_deadline',
+      'registration_deadline_date',
       'bid_deadline',
       'expected_procurement_at',
       'budget_cny',
+      'procurement_method',
+      'product_categories',
+      'product_items',
+      'public_contact',
+      'verification_status',
+      'coverage_status',
     ]) ||
     !nullableString(facts.project_number) ||
     !nullableString(facts.project_name) ||
     !nullableString(facts.buyer_name) ||
     !nullableString(facts.hospital_name) ||
     !nullableString(facts.department) ||
+    !nullableString(facts.region) ||
     !nullableString(facts.lifecycle_state) ||
+    !nullableString(facts.notice_type) ||
     !nullableString(facts.published_at) ||
+    !nullableString(facts.registration_deadline) ||
+    !nullableString(facts.registration_deadline_date) ||
     !nullableString(facts.bid_deadline) ||
     !nullableString(facts.expected_procurement_at) ||
-    !nullableNumber(facts.budget_cny)
+    !nullableNumber(facts.budget_cny) ||
+    !nullableString(facts.procurement_method) ||
+    !Array.isArray(facts.product_categories) ||
+    facts.product_categories.some((item) => typeof item !== 'string') ||
+    !nullableString(facts.verification_status) ||
+    !nullableString(facts.coverage_status)
   ) {
     throw new Error('FOLLOWED_RESPONSE_INVALID')
   }
@@ -125,19 +240,79 @@ function validateItem(value: unknown): FollowedOpportunity {
       buyer_name: facts.buyer_name,
       hospital_name: facts.hospital_name,
       department: facts.department,
+      region: facts.region,
       lifecycle_state: facts.lifecycle_state,
+      notice_type: facts.notice_type,
       published_at: facts.published_at,
+      registration_deadline: facts.registration_deadline,
+      registration_deadline_date: facts.registration_deadline_date,
       bid_deadline: facts.bid_deadline,
       expected_procurement_at: facts.expected_procurement_at,
       budget_cny: facts.budget_cny,
+      procurement_method: facts.procurement_method,
+      product_categories: [...facts.product_categories] as string[],
+      product_items: validateProducts(facts.product_items),
+      public_contact: validateContact(facts.public_contact),
+      verification_status: facts.verification_status,
+      coverage_status: facts.coverage_status,
     },
     evidence_source_urls: [...row.evidence_source_urls] as string[],
   }
 }
 
+interface HistoricalFollowupState {
+  status: FollowupStatus
+  remind_at: string | null
+  history: TodayActionCard['followup_history']
+}
+
+function validateHistoricalFollowupState(value: unknown, opportunityId: string): HistoricalFollowupState {
+  const root = asRecord(value)
+  if (
+    !root ||
+    root.schema_version !== '0.1' ||
+    root.opportunity_id !== opportunityId ||
+    !isFollowupStatus(root.current_status) ||
+    !nullableString(root.remind_at) ||
+    !Array.isArray(root.history)
+  ) {
+    throw new Error('FOLLOWUP_RESPONSE_INVALID')
+  }
+
+  const history = root.history.map((value) => {
+    const row = asRecord(value)
+    if (
+      !row ||
+      typeof row.id !== 'string' ||
+      !isFollowupStatus(row.status) ||
+      !nullableString(row.note) ||
+      !nullableString(row.reason) ||
+      !nullableString(row.remind_at) ||
+      typeof row.at !== 'string' ||
+      Number.isNaN(new Date(row.at).getTime()) ||
+      typeof row.actor !== 'string'
+    ) {
+      throw new Error('FOLLOWUP_RESPONSE_INVALID')
+    }
+    return {
+      id: row.id,
+      status: row.status,
+      note: row.note ?? undefined,
+      reason: row.reason ? (NOT_FIT_REASON_LABEL[row.reason] ?? row.reason) : undefined,
+      remind_at: row.remind_at ?? undefined,
+      at: row.at,
+      actor: row.actor,
+    }
+  })
+
+  return {
+    status: root.current_status,
+    remind_at: root.remind_at,
+    history,
+  }
+}
+
 async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
-  // Loading the current feed also migrates older v1 follow-up entries by attaching
-  // a minimal public snapshot before those opportunities rotate out of Today Top5.
   await todayActionsService.getTodayActions()
 
   return listStoredFollowups()
@@ -154,7 +329,28 @@ async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
           latest_note: latestNote,
           followup_updated_at:
             latestRecord?.at ?? entry.remind_at ?? '1970-01-01T00:00:00.000Z',
-          facts: { ...snapshot.facts },
+          facts: {
+            project_number: snapshot.facts.project_number,
+            project_name: snapshot.facts.project_name,
+            buyer_name: snapshot.facts.buyer_name,
+            hospital_name: snapshot.facts.hospital_name,
+            department: snapshot.facts.department,
+            region: null,
+            lifecycle_state: snapshot.facts.lifecycle_state,
+            notice_type: null,
+            published_at: snapshot.facts.published_at,
+            registration_deadline: null,
+            registration_deadline_date: null,
+            bid_deadline: snapshot.facts.bid_deadline,
+            expected_procurement_at: snapshot.facts.expected_procurement_at,
+            budget_cny: snapshot.facts.budget_cny,
+            procurement_method: null,
+            product_categories: [],
+            product_items: [],
+            public_contact: null,
+            verification_status: null,
+            coverage_status: null,
+          },
           evidence_source_urls: [...snapshot.evidence_source_urls],
         },
       ]
@@ -165,29 +361,231 @@ async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
     )
 }
 
-export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]> {
-  if (!isApiMode) return getLocalFollowedOpportunities()
-  const response = await fetch(`${apiBaseUrl}/followed`, {
+export interface FollowedOpportunityPage {
+  offset: number
+  items: FollowedOpportunity[]
+  has_more: boolean
+}
+
+export interface FollowedStatusIndexItem {
+  opportunity_id: string
+  followup_status: FollowupStatus
+  remind_at: string | null
+  followup_updated_at: string
+}
+
+function validateStatusIndexItem(value: unknown): FollowedStatusIndexItem {
+  const row = asRecord(value)
+  if (
+    !row ||
+    !exactKeys(row, ['opportunity_id', 'followup_status', 'remind_at', 'followup_updated_at']) ||
+    !isStableOpportunityId(row.opportunity_id) ||
+    !isFollowupStatus(row.followup_status) ||
+    !nullableString(row.remind_at) ||
+    typeof row.followup_updated_at !== 'string' ||
+    Number.isNaN(Date.parse(row.followup_updated_at))
+  ) {
+    throw new Error('FOLLOWED_STATUS_INDEX_INVALID')
+  }
+  return {
+    opportunity_id: row.opportunity_id,
+    followup_status: row.followup_status,
+    remind_at: row.remind_at,
+    followup_updated_at: row.followup_updated_at,
+  }
+}
+
+export async function getFollowedOpportunityPage(offset = 0): Promise<FollowedOpportunityPage> {
+  if (!Number.isInteger(offset) || offset < 0 || offset > 10000) {
+    throw new Error('FOLLOWED_OFFSET_INVALID')
+  }
+  if (!isApiMode) {
+    const all = await getLocalFollowedOpportunities()
+    return {
+      offset,
+      items: all.slice(offset, offset + 100),
+      has_more: offset + 100 < all.length,
+    }
+  }
+  const response = await fetch(`${apiBaseUrl}/followed?offset=${offset}`, {
     credentials: 'include',
     headers: { Accept: 'application/json' },
   })
-  if (!response.ok) throw new Error(`HTTP_${response.status}`)
-  const value: unknown = await response.json()
-  const root = asRecord(value)
+  if (!response.ok) throw await responseError(response)
+  const root = asRecord(await response.json())
   if (
     !root ||
-    !exactKeys(root, ['schema_version', 'mode', 'count', 'items']) ||
+    !exactKeys(root, ['schema_version', 'mode', 'offset', 'count', 'has_more', 'items']) ||
     root.schema_version !== '0.1' ||
     root.mode !== 'FOLLOWED_OPPORTUNITIES' ||
+    root.offset !== offset ||
     typeof root.count !== 'number' ||
     !Number.isInteger(root.count) ||
     root.count < 0 ||
     root.count > 100 ||
+    typeof root.has_more !== 'boolean' ||
     !Array.isArray(root.items)
   ) {
     throw new Error('FOLLOWED_RESPONSE_INVALID')
   }
   const items = root.items.map(validateItem)
   if (root.count !== items.length) throw new Error('FOLLOWED_RESPONSE_INVALID')
+  return { offset, items, has_more: root.has_more }
+}
+
+export async function getFollowedOpportunities(): Promise<FollowedOpportunity[]> {
+  return (await getFollowedOpportunityPage(0)).items
+}
+
+export async function getFollowedStatusIndex(): Promise<FollowedStatusIndexItem[]> {
+  if (!isApiMode) {
+    return listStoredFollowups().map(({ opportunity_id, entry }) => ({
+      opportunity_id,
+      followup_status: entry.status,
+      remind_at: entry.remind_at,
+      followup_updated_at: entry.history[0]?.at ?? entry.remind_at ?? '1970-01-01T00:00:00.000Z',
+    }))
+  }
+  const response = await fetch(`${apiBaseUrl}/followed?view=status-index`, {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  })
+  if (!response.ok) throw await responseError(response)
+  const root = asRecord(await response.json())
+  if (
+    !root ||
+    !exactKeys(root, ['schema_version', 'mode', 'count', 'truncated', 'items']) ||
+    root.schema_version !== '0.1' ||
+    root.mode !== 'FOLLOWED_STATUS_INDEX' ||
+    typeof root.count !== 'number' ||
+    !Number.isInteger(root.count) ||
+    root.count < 0 ||
+    root.count > 5000 ||
+    typeof root.truncated !== 'boolean' ||
+    !Array.isArray(root.items)
+  ) {
+    throw new Error('FOLLOWED_STATUS_INDEX_INVALID')
+  }
+  if (root.truncated) throw new Error('FOLLOWED_STATUS_INDEX_TRUNCATED')
+  const items = root.items.map(validateStatusIndexItem)
+  if (root.count !== items.length) throw new Error('FOLLOWED_STATUS_INDEX_INVALID')
   return items
+}
+
+export async function getFollowedOpportunityById(opportunityId: string): Promise<FollowedOpportunity | null> {
+  if (!isStableOpportunityId(opportunityId)) throw new Error('OPPORTUNITY_ID_INVALID')
+  if (!isApiMode) {
+    const all = await getLocalFollowedOpportunities()
+    return all.find((item) => item.opportunity_id === opportunityId) ?? null
+  }
+  const response = await fetch(`${apiBaseUrl}/followed?id=${encodeURIComponent(opportunityId)}`, {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  })
+  if (response.status === 404) return null
+  if (!response.ok) throw await responseError(response)
+  const root = asRecord(await response.json())
+  if (
+    !root ||
+    !exactKeys(root, ['schema_version', 'mode', 'item']) ||
+    root.schema_version !== '0.1' ||
+    root.mode !== 'FOLLOWED_OPPORTUNITY'
+  ) {
+    throw new Error('FOLLOWED_RESPONSE_INVALID')
+  }
+  return validateItem(root.item)
+}
+
+function verificationStatus(value: string | null): TodayActionCard['facts']['verification_status'] {
+  if (value === 'VERIFIED') return 'VERIFIED'
+  if (value === 'UNVERIFIED') return 'UNVERIFIED'
+  return 'PARTIAL'
+}
+
+function coverageStatus(value: string | null): TodayActionCard['facts']['coverage_status'] {
+  if (value === 'FULL') return 'FULL'
+  if (value === 'NONE') return 'NONE'
+  return 'PARTIAL'
+}
+
+export async function getHistoricalFollowedOpportunityCard(
+  opportunityId: string,
+): Promise<TodayActionCard | null> {
+  if (!isApiMode) return null
+  if (!isStableOpportunityId(opportunityId)) throw new Error('OPPORTUNITY_ID_INVALID')
+
+  const item = await getFollowedOpportunityById(opportunityId)
+  if (!item) return null
+
+  const response = await fetch(`${apiBaseUrl}/followup/${encodeURIComponent(opportunityId)}`, {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  })
+  if (!response.ok) throw await responseError(response)
+  const state = validateHistoricalFollowupState(await response.json(), opportunityId)
+
+  return {
+    rank: 0,
+    opportunity_id: opportunityId,
+    facts: {
+      project_code: item.facts.project_number,
+      project_name: item.facts.project_name,
+      hospital: item.facts.hospital_name,
+      buyer_name: item.facts.buyer_name,
+      department: item.facts.department,
+      region: item.facts.region,
+      lifecycle_stage: item.facts.lifecycle_state,
+      notice_type: item.facts.notice_type,
+      publish_date: item.facts.published_at,
+      registration_deadline: item.facts.registration_deadline,
+      registration_deadline_date: item.facts.registration_deadline_date,
+      registration_deadline_precision: item.facts.registration_deadline
+        ? 'MINUTE'
+        : item.facts.registration_deadline_date
+          ? 'DAY'
+          : null,
+      bid_deadline: item.facts.bid_deadline,
+      expected_purchase_date: item.facts.expected_procurement_at,
+      budget: item.facts.budget_cny,
+      procurement_method: item.facts.procurement_method,
+      product_categories: [...item.facts.product_categories],
+      products: item.facts.product_items.length ? item.facts.product_items.map((product) => ({ ...product })) : null,
+      official_contact: item.facts.public_contact ? { ...item.facts.public_contact } : null,
+      verification_status: verificationStatus(item.facts.verification_status),
+      coverage_status: coverageStatus(item.facts.coverage_status),
+    },
+    evidence_source_urls: [...item.evidence_source_urls],
+    customer_context: {
+      target_hospital: null,
+      hospital_relationship: null,
+      matching_product_capabilities: [],
+      partnering_policy: {
+        can_find_manufacturer: null,
+        can_partner_channel: null,
+        can_handle_lease: null,
+      },
+    },
+    priority: {
+      score: 0,
+      score_scope: 'PUBLIC',
+      components: {
+        PRODUCT_EXECUTION_CAPABILITY: 0,
+        RELATIONSHIP: 0,
+        EXECUTION_FLEXIBILITY: 0,
+        INTERVENTION_STAGE: 0,
+        DEADLINE_URGENCY: 0,
+        PROJECT_AMOUNT: 0,
+        PRODUCT_SPECIFICITY: 0,
+        PUBLICATION_FRESHNESS: 0,
+      },
+    },
+    match_status: 'ARCHIVE',
+    recommendation_mode: 'ARCHIVE',
+    model_decision_status: 'NOT_ELIGIBLE',
+    model_block_reason: '该商机已不在当前可行动商机池；仅展示已保存的历史公开快照与跟进记录。',
+    decision: null,
+    followup_status: state.status,
+    followup_history: state.history,
+    remind_at: state.remind_at,
+  }
 }

@@ -5,17 +5,15 @@ import {
   BookmarkCheck,
   BriefcaseBusiness,
   ClipboardList,
-  Layers3,
   LogOut,
+  Radar,
   RotateCcw,
+  Target,
 } from 'lucide-react'
 import { APP_BUILD_LABEL } from '@/config/appVersion'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { isApiMode, logoutPilot } from '@/services/apiConfig'
-import { clearLocalCustomerProfile } from '@/services/localCustomerProfile'
-import { resetLocalFollowups } from '@/services/localFollowupStore'
-import { resetMockDemoState } from '@/services/MockTodayActionsService'
 import { cn } from '@/utils/cn'
 
 const GROUNDED_AI_CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
@@ -64,10 +62,17 @@ export function AppLayout() {
     }
   }
 
-  const handleResetTrial = () => {
-    resetMockDemoState()
-    resetLocalFollowups()
-    if (isVerifiedPublicDemo) clearLocalCustomerProfile()
+  const handleResetTrial = async () => {
+    // These stores exist only for local demo/trial reset. Real Pilot users should
+    // not download them as part of the authenticated shell.
+    const [mockModule, followupModule, profileModule] = await Promise.all([
+      import('@/services/MockTodayActionsService'),
+      import('@/services/localFollowupStore'),
+      import('@/services/localCustomerProfile'),
+    ])
+    mockModule.resetMockDemoState()
+    followupModule.resetLocalFollowups()
+    if (isVerifiedPublicDemo) profileModule.clearLocalCustomerProfile()
     try {
       localStorage.removeItem(GROUNDED_AI_CACHE_KEY)
     } catch {
@@ -82,7 +87,9 @@ export function AppLayout() {
       ? '天津公开试用'
       : '演示数据'
 
-  const showPoolAndResources = !isApiMode && isVerifiedPublicDemo
+  const showPool = !isApiMode && isVerifiedPublicDemo
+  const showResources = isApiMode || isVerifiedPublicDemo
+  const showTargets = isApiMode || isVerifiedPublicDemo
 
   return (
     <div className="min-h-screen bg-[#f3f5f7]">
@@ -112,21 +119,19 @@ export function AppLayout() {
           </div>
 
           <nav className="hidden shrink-0 items-center gap-1 sm:flex">
+            <NavLink to="/radar" className={desktopNavClass}>AI雷达</NavLink>
             <NavLink to="/today" className={desktopNavClass}>今日行动</NavLink>
-            {showPoolAndResources ? (
-              <NavLink to="/opportunities" className={desktopNavClass}>商机池</NavLink>
-            ) : null}
+            {showTargets ? <NavLink to="/targets" className={desktopNavClass}>目标医院</NavLink> : null}
+            {showPool ? <NavLink to="/opportunities" className={desktopNavClass}>商机池</NavLink> : null}
             <NavLink to="/followed" className={desktopNavClass}>我的跟进</NavLink>
-            {showPoolAndResources ? (
-              <NavLink to="/resources" className={desktopNavClass}>我的资源</NavLink>
-            ) : null}
+            {showResources ? <NavLink to="/resources" className={desktopNavClass}>我的资源</NavLink> : null}
           </nav>
 
           <div className="flex shrink-0 items-center gap-1">
             {!isApiMode ? (
               <button
                 type="button"
-                onClick={handleResetTrial}
+                onClick={() => void handleResetTrial()}
                 title={isVerifiedPublicDemo ? '清除本机试用状态' : '恢复演示初始状态'}
                 aria-label={isVerifiedPublicDemo ? '清除本机试用状态' : '恢复演示初始状态'}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 sm:h-auto sm:w-auto sm:gap-1 sm:px-2.5 sm:py-1.5 sm:text-[12px]"
@@ -156,21 +161,25 @@ export function AppLayout() {
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 px-2 pt-1.5 pb-[calc(env(safe-area-inset-bottom)+0.45rem)] shadow-[0_-8px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:hidden">
         <div className="mx-auto flex max-w-md gap-1">
+          <NavLink to="/radar" className={mobileNavClass}>
+            <Radar className="h-5 w-5" />
+            <span>雷达</span>
+          </NavLink>
           <NavLink to="/today" className={mobileNavClass}>
             <ClipboardList className="h-5 w-5" />
             <span>今日</span>
           </NavLink>
-          {showPoolAndResources ? (
-            <NavLink to="/opportunities" className={mobileNavClass}>
-              <Layers3 className="h-5 w-5" />
-              <span>商机</span>
+          {showTargets ? (
+            <NavLink to="/targets" className={mobileNavClass}>
+              <Target className="h-5 w-5" />
+              <span>目标</span>
             </NavLink>
           ) : null}
           <NavLink to="/followed" className={mobileNavClass}>
             <BookmarkCheck className="h-5 w-5" />
             <span>跟进</span>
           </NavLink>
-          {showPoolAndResources ? (
+          {showResources ? (
             <NavLink to="/resources" className={mobileNavClass}>
               <BriefcaseBusiness className="h-5 w-5" />
               <span>资源</span>

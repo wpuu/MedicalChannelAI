@@ -3,7 +3,11 @@ from __future__ import annotations
 import unittest
 from urllib.parse import parse_qs, urlparse
 
-from medical_channel_pipeline.ccgp_discovery import build_search_url, parse_search_html
+from medical_channel_pipeline.ccgp_discovery import (
+    build_search_url,
+    is_primary_opportunity_candidate,
+    parse_search_html,
+)
 
 
 FIXTURE = """
@@ -20,6 +24,25 @@ FIXTURE = """
   <li>
     <a href="http://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260827_27219711.htm">天津大学总医院直线加速器等设备维保服务</a>
     <span>2026-08-27 | 采购人:天津大学总医院 | 天津市 | 公开招标公告</span>
+  </li>
+</ul>
+</body></html>
+"""
+
+RESULT_FIXTURE = """
+<html><body>
+<ul class="vT-srch-result-list-bid">
+  <li>
+    <a href="/cggg/dfgg/zbgg/202609/t20260902_27255285.htm">天津市第一中心医院水西院区大型设备维保服务项目中标公告</a>
+    <span>2026-09-02 | 采购人:天津市第一中心医院 | 天津市 | 中标公告</span>
+  </li>
+  <li>
+    <a href="/cggg/dfgg/gzgg/202609/t20260903_27260000.htm">天津市某医院医疗设备采购项目更正公告</a>
+    <span>2026-09-03 | 采购人:天津市某医院 | 天津市 | 更正公告</span>
+  </li>
+  <li>
+    <a href="/cggg/dfgg/gkzb/202609/t20260902_27260001.htm">天津中医药大学第二附属医院流式细胞仪等医疗设备采购项目</a>
+    <span>2026-09-02 | 采购人:天津中医药大学第二附属医院 | 天津市 | 公开招标公告</span>
   </li>
 </ul>
 </body></html>
@@ -75,6 +98,23 @@ class CcgpDiscoveryTests(unittest.TestCase):
         self.assertEqual(first.region, "天津市")
         self.assertEqual(first.notice_type, "公开招标公告")
         self.assertTrue(first.detail_url.startswith("https://www.ccgp.gov.cn/"))
+
+    def test_primary_opportunity_budget_rejects_result_and_event_notices(self) -> None:
+        candidates = parse_search_html(RESULT_FIXTURE, keyword="医院")
+        self.assertEqual(len(candidates), 3)
+        self.assertFalse(is_primary_opportunity_candidate(candidates[0]))
+        self.assertFalse(is_primary_opportunity_candidate(candidates[1]))
+        self.assertTrue(is_primary_opportunity_candidate(candidates[2]))
+
+    def test_result_path_is_rejected_even_if_metadata_is_mislabelled(self) -> None:
+        fixture = """
+        <html><body><ul class="vT-srch-result-list-bid"><li>
+          <a href="/cggg/dfgg/zbgg/202609/t20260902_27255285.htm">天津市第一中心医院大型设备维保服务项目</a>
+          <span>2026-09-02 | 采购人:天津市第一中心医院 | 天津市 | 竞争性磋商公告</span>
+        </li></ul></body></html>
+        """
+        candidate = parse_search_html(fixture, keyword="医院")[0]
+        self.assertFalse(is_primary_opportunity_candidate(candidate))
 
     def test_absolute_http_national_ccgp_link_is_upgraded_to_https(self) -> None:
         candidates = parse_search_html(FIXTURE, keyword="医疗")

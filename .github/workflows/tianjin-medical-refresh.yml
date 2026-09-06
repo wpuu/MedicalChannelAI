@@ -2,9 +2,10 @@ name: Tianjin Medical Refresh
 
 on:
   schedule:
-    # Legacy GitHub scheduler. Keep as a fallback until the Vercel-native collector is accepted.
+    # Legacy GitHub scheduler. Keep one daily deep reconciliation as a fallback
+    # until the Vercel-native collector is runtime-accepted; intraday freshness
+    # belongs to the bounded incremental chain, not a second full deep scrape.
     - cron: '20 0 * * *'
-    - cron: '20 8 * * 1-5'
   workflow_dispatch:
 
 permissions:
@@ -16,7 +17,11 @@ concurrency:
 
 jobs:
   refresh:
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
     timeout-minutes: 25
 
     steps:
@@ -25,21 +30,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: Verify system Python
+        shell: bash
+        run: python3 --version
+
+      - name: Refresh bundled snapshot for pre-network pipeline self-check
+        working-directory: web/pipeline
+        run: python3 scripts/refresh_bundled_snapshot.py
 
       - name: Verify current evidence pipeline
         working-directory: web/pipeline
-        run: python -m unittest discover -s tests -v
+        run: python3 -m unittest discover -s tests -v
 
       - name: Compute one authoritative refresh timestamp
         id: clock
         shell: bash
         run: |
           set -euo pipefail
-          AS_OF="$(python - <<'PY'
+          AS_OF="$(python3 - <<'PY'
           from datetime import datetime
           from zoneinfo import ZoneInfo
           print(datetime.now(ZoneInfo('Asia/Shanghai')).isoformat())
@@ -52,7 +60,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python web/pipeline/scripts/sync_tianjin_plan.py \
+          python3 web/pipeline/scripts/sync_tianjin_plan.py \
             --as-of '${{ steps.clock.outputs.as_of }}' \
             --existing-records-input web/pipeline/data/tianjin_verified_seed.json \
             --existing-records-input web/pipeline/data/tianjin_live_ccgp_records.json \
@@ -65,7 +73,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python web/pipeline/scripts/sync_tjmugh_market_research.py \
+          python3 web/pipeline/scripts/sync_tjmugh_market_research.py \
             --as-of '${{ steps.clock.outputs.as_of }}' \
             --existing-records-input web/pipeline/data/tianjin_official_institution_seed.json \
             --existing-records-input web/pipeline/data/tianjin_live_tjmugh_records.json \
@@ -76,27 +84,127 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python web/pipeline/scripts/sync_tjnothop_market_research.py \
+          python3 web/pipeline/scripts/sync_tjnothop_market_research.py \
             --as-of '${{ steps.clock.outputs.as_of }}' \
             --existing-records-input web/pipeline/data/tianjin_live_tjnothop_records.json \
             --records-output web/pipeline/data/tianjin_live_tjnothop_records.json \
             --report-output web/pipeline/data/tianjin_tjnothop_sync_report.json
 
+      - name: Sync verified Central Gynecology Obstetrics Hospital early-demand state
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing_args=()
+          if [[ -f web/pipeline/data/tianjin_live_tjzxfc_records.json ]]; then
+            existing_args+=(--existing-records-input web/pipeline/data/tianjin_live_tjzxfc_records.json)
+          fi
+          python3 web/pipeline/scripts/sync_tjzxfc_market_research.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 30 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            "${existing_args[@]}" \
+            --records-output web/pipeline/data/tianjin_live_tjzxfc_records.json \
+            --report-output web/pipeline/data/tianjin_tjzxfc_sync_report.json
+
+      - name: Sync verified TCM Second Affiliated Hospital medical-research state
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing_args=()
+          if [[ -f web/pipeline/data/tianjin_live_tjzyefy_records.json ]]; then
+            existing_args+=(--existing-records-input web/pipeline/data/tianjin_live_tjzyefy_records.json)
+          fi
+          python3 web/pipeline/scripts/sync_tjzyefy_market_research.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 30 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            "${existing_args[@]}" \
+            --records-output web/pipeline/data/tianjin_live_tjzyefy_records.json \
+            --report-output web/pipeline/data/tianjin_tjzyefy_sync_report.json
+
+      - name: Sync verified TCM Second Affiliated Hospital procurement-intent signals
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing_args=()
+          if [[ -f web/pipeline/data/tianjin_live_tjzyefy_intent_records.json ]]; then
+            existing_args+=(--existing-records-input web/pipeline/data/tianjin_live_tjzyefy_intent_records.json)
+          fi
+          python3 web/pipeline/scripts/sync_tjzyefy_procurement_intent.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 30 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            "${existing_args[@]}" \
+            --records-output web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
+            --report-output web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json
+
+      - name: Sync verified TEDA Hospital early-demand state
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing_args=()
+          if [[ -f web/pipeline/data/tianjin_live_teda_records.json ]]; then
+            existing_args+=(--existing-records-input web/pipeline/data/tianjin_live_teda_records.json)
+          fi
+          python3 web/pipeline/scripts/sync_teda_market_research.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 90 \
+            --index-pages 4 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            "${existing_args[@]}" \
+            --records-output web/pipeline/data/tianjin_live_teda_records.json \
+            --report-output web/pipeline/data/tianjin_teda_sync_report.json
+
+      - name: Sync verified First Central Hospital in-hospital procurement state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/sync_tjfch_procurement.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 45 \
+            --max-candidates 20 \
+            --delay-seconds 3 \
+            --existing-records-input web/pipeline/data/tianjin_live_tjfch_records.json \
+            --records-output web/pipeline/data/tianjin_live_tjfch_records.json \
+            --report-output web/pipeline/data/tianjin_tjfch_sync_report.json
+
+      - name: Sync verified First Central Hospital pre-procurement test recruitment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/sync_tjfch_test_recruitment.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 14 \
+            --max-candidates 30 \
+            --delay-seconds 3 \
+            --existing-records-input web/pipeline/data/tianjin_live_tjfch_records.json \
+            --records-output web/pipeline/data/tianjin_live_tjfch_records.json \
+            --report-output web/pipeline/data/tianjin_tjfch_test_sync_report.json
+
       - name: Publish H5-safe verified snapshot
         shell: bash
         run: |
           set -euo pipefail
-          python web/pipeline/scripts/publish_web_snapshot.py \
+          python3 web/pipeline/scripts/publish_web_snapshot.py \
             --as-of '${{ steps.clock.outputs.as_of }}' \
             --input web/pipeline/data/tianjin_live_ccgp_records.json \
             --input web/pipeline/data/tianjin_live_tjmugh_records.json \
             --input web/pipeline/data/tianjin_live_tjnothop_records.json \
+            --input web/pipeline/data/tianjin_live_tjzxfc_records.json \
+            --input web/pipeline/data/tianjin_live_tjzyefy_records.json \
+            --input web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
+            --input web/pipeline/data/tianjin_live_teda_records.json \
+            --input web/pipeline/data/tianjin_live_tjfch_records.json \
             --event-input web/pipeline/data/tianjin_notice_events.json \
             --output web/public/data/today-actions.public.json
 
       - name: Verify generated snapshot
         working-directory: web/pipeline
-        run: python -m unittest discover -s tests -v
+        run: python3 -m unittest discover -s tests -v
 
       - name: Publish and verify optional external snapshot
         shell: bash
@@ -119,13 +227,13 @@ jobs:
             exit 2
           fi
 
-          python web/pipeline/scripts/publish_snapshot_http.py \
+          python3 web/pipeline/scripts/publish_snapshot_http.py \
             --snapshot web/public/data/today-actions.public.json \
             --method PUT
 
           verified=0
           for attempt in 1 2 3; do
-            if python web/pipeline/scripts/verify_snapshot_roundtrip.py \
+            if python3 web/pipeline/scripts/verify_snapshot_roundtrip.py \
               --snapshot web/public/data/today-actions.public.json; then
               verified=1
               break
@@ -150,10 +258,21 @@ jobs:
             web/pipeline/data/tianjin_live_ccgp_records.json \
             web/pipeline/data/tianjin_live_tjmugh_records.json \
             web/pipeline/data/tianjin_live_tjnothop_records.json \
+            web/pipeline/data/tianjin_live_tjzxfc_records.json \
+            web/pipeline/data/tianjin_live_tjzyefy_records.json \
+            web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
+            web/pipeline/data/tianjin_live_teda_records.json \
+            web/pipeline/data/tianjin_live_tjfch_records.json \
             web/pipeline/data/tianjin_notice_events.json \
             web/pipeline/data/tianjin_sync_report.json \
             web/pipeline/data/tianjin_tjmugh_sync_report.json \
             web/pipeline/data/tianjin_tjnothop_sync_report.json \
+            web/pipeline/data/tianjin_tjzxfc_sync_report.json \
+            web/pipeline/data/tianjin_tjzyefy_sync_report.json \
+            web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json \
+            web/pipeline/data/tianjin_teda_sync_report.json \
+            web/pipeline/data/tianjin_tjfch_sync_report.json \
+            web/pipeline/data/tianjin_tjfch_test_sync_report.json \
             web/public/data/today-actions.public.json
           if git diff --cached --quiet; then
             echo 'No verified state change to commit.'

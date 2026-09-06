@@ -30,6 +30,28 @@ export type NotFitReason =
   | '不做租赁项目'
   | '其他'
 
+export type LostReason =
+  | '价格/报价竞争失败'
+  | '产品或参数不匹配'
+  | '厂家/授权资源不足'
+  | '医院关系不足'
+  | '介入时间太晚'
+  | '竞争对手优势明显'
+  | '投标/响应执行失败'
+  | '客户需求或项目变化'
+  | '主动放弃'
+  | '其他'
+
+export type WonReason =
+  | '产品或参数匹配'
+  | '厂家/授权资源有优势'
+  | '医院关系或沟通推进有效'
+  | '价格或商务条件有优势'
+  | '介入时机合适'
+  | '投标/响应执行到位'
+  | '方案与客户需求匹配'
+  | '其他'
+
 export type RelationshipStrength =
   | 'STRONG'
   | 'MEDIUM'
@@ -50,6 +72,7 @@ export type CapabilityType =
 
 export type VerificationStatus = 'VERIFIED' | 'UNVERIFIED' | 'PARTIAL'
 export type CoverageStatus = 'FULL' | 'PARTIAL' | 'NONE'
+export type PriorityScoreScope = 'PUBLIC' | 'PERSONALIZED'
 
 export interface ProductItem {
   name: string
@@ -85,8 +108,16 @@ export interface Facts {
   product_categories?: string[]
   products: ProductItem[] | null
   official_contact: OfficialContact | null
+  quality_flags?: string[]
   verification_status: VerificationStatus
   coverage_status: CoverageStatus
+}
+
+export interface TargetHospitalInterest {
+  hospital: string
+  department: string | null
+  watched_by_customer: true
+  updated_at: string | null
 }
 
 export interface HospitalRelationship {
@@ -112,6 +143,8 @@ export interface PartneringPolicy {
 }
 
 export interface CustomerContext {
+  /** Optional only for legacy demo fixtures; real Pilot adapters set it explicitly. */
+  target_hospital?: TargetHospitalInterest | null
   hospital_relationship: HospitalRelationship | null
   matching_product_capabilities: MatchingProductCapability[]
   partnering_policy: PartneringPolicy
@@ -122,10 +155,17 @@ export interface PriorityComponents {
   RELATIONSHIP: number
   INTERVENTION_STAGE: number
   PROJECT_AMOUNT: number
+  /** v2 fields are present for real verified opportunities; legacy demo fixtures may omit them. */
+  EXECUTION_FLEXIBILITY?: number
+  DEADLINE_URGENCY?: number
+  PRODUCT_SPECIFICITY?: number
+  PUBLICATION_FRESHNESS?: number
 }
 
 export interface Priority {
   score: number
+  /** Real v2 adapters must set this explicitly. Missing means legacy fixture/snapshot and is treated as PUBLIC only for backward compatibility. */
+  score_scope?: PriorityScoreScope
   components: PriorityComponents
 }
 
@@ -178,6 +218,20 @@ export interface ModelRequest {
   requested_at: string
 }
 
+export interface RecommendationFeedbackSummary {
+  responded: number
+  effective_surprises: number
+  effective_surprise_rate: number | null
+}
+
+export interface ProcurementIntentFollowupSummary {
+  intent_count: number
+  intents_with_formal_successor: number
+  candidate_pair_count: number
+  /** Authenticated Today display hint; does not alter the public successor counts above. */
+  formal_candidates_needing_action?: number
+}
+
 /** UI response after Mock or Public View adapter enrichment. */
 export interface TodayActionsResponse {
   schema_version: '0.1'
@@ -190,6 +244,10 @@ export interface TodayActionsResponse {
   coverage_warning: string
   generated_at: string
   refreshed_at: string
+  today_limit?: number
+  today_limit_options?: number[]
+  recommendation_feedback_summary?: RecommendationFeedbackSummary
+  procurement_intent_followup_summary?: ProcurementIntentFollowupSummary
   cards: TodayActionCard[]
   opportunity_pool?: TodayActionCard[]
   model_requests?: ModelRequest[]

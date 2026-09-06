@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Copy, Loader2 } from 'lucide-react'
+import { CheckCircle2, Copy, Loader2, Mail, Phone } from 'lucide-react'
 import { Drawer } from '@/components/ui/Drawer'
+import { RemindModal } from '@/components/followup/RemindModal'
 import { todayActionsService } from '@/services'
 import { isAuthRequiredError } from '@/services/apiConfig'
 import type { OutreachDraft } from '@/types'
 import { useToast } from '@/context/ToastContext'
+import { safeTelephoneHref } from '@/utils/safeTelephoneLinks'
 
 interface OutreachDrawerProps {
   open: boolean
@@ -13,10 +15,33 @@ interface OutreachDrawerProps {
   onClose: () => void
 }
 
+interface PublicContactQuickView {
+  names: string[]
+  phones: string[]
+  email: string | null
+}
+
+const GROUP_RECIPIENT = '__GROUP__'
+
 function outreachErrorMessage(error: unknown): string {
   if (!(error instanceof Error)) return '沟通草稿生成失败，请稍后重试'
   if (error.message === 'OUTREACH_GROUNDING_INSUFFICIENT' || error.message === 'HTTP_409') {
     return '当前商机的公开依据不足，暂不能生成沟通草稿。'
+  }
+  if (error.message === 'VERIFIED_SNAPSHOT_NOT_FRESH') {
+    return '公开商机快照已超过安全刷新窗口，请先核对官方依据，待数据刷新后再生成沟通草稿。'
+  }
+  if (error.message === 'OPPORTUNITY_WINDOW_CLOSED') {
+    return '当前项目的公开行动窗口已经结束，不再生成新的对外沟通草稿。'
+  }
+  if (error.message === 'VERIFIED_OPPORTUNITY_NOT_FOUND') {
+    return '当前商机已不在已核验可行动商机池中，请刷新页面后重试。'
+  }
+  if (error.message === 'PRIVATE_PROFILE_UNAVAILABLE') {
+    return '账号私有资源暂时无法读取，请稍后重试。'
+  }
+  if (error.message === 'PRIVATE_DATABASE_NOT_CONFIGURED') {
+    return '试用账号数据库尚未配置完成。'
   }
   if (error.message === 'HTTP_429') {
     return '当前请求较多，请稍后再次生成。'
@@ -30,13 +55,94 @@ function outreachErrorMessage(error: unknown): string {
   return '沟通草稿生成失败，请稍后重试'
 }
 
-/**
- * The sendable payload must contain only the message the user intends to copy.
- * Product/safety notes stay in UI chrome and are never mixed into clipboard text.
- * This also cleans legacy snapshot drafts that embedded those notes in the body.
- */
-function toSendableDraft(value: string): string {
+function contactNames(value: string): string[] {
   return value
+    .split(/[、，,；;／/]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function contactPhones(value: string): string[] {
+  return value
+    .split(/[、，,；;／/]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 8)
+}
+
+function safeEmailHref(value: string | null | undefined): string | null {
+  const email = String(value || '').trim()
+  if (!email || email.length > 320 || /[\r\n]/.test(email)) return null
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null
+  return `mailto:${email}`
+}
+
+function personGreeting(name: string): string {
+  const cleaned = name.trim()
+  if (!cleaned) return '您好：'
+  if (/(老师|先生|女士)$/.test(cleaned)) return `${cleaned}，您好：`
+  return `${cleaned}老师，您好：`
+}
+
+function normalizeGreetingLine(
+  value: string,
+  recipientSelection: string,
+  availableRecipients: string[],
+): string {
+  if (recipientSelection === GROUP_RECIPIENT) return '各位老师好：'
+  if (recipientSelection) return personGreeting(recipientSelection)
+  if (availableRecipients.length >= 2) return '您好：'
+  if (availableRecipients.length === 1) return personGreeting(availableRecipients[0])
+
+  const text = value.trim()
+  if (/^各位老师[，,]?(?:您好|好)[：:]?$/.test(text)) return '您好：'
+  if (/^老师[，,]?您好[：:]?$/.test(text) || /^您好[：:]?$/.test(text)) return '您好：'
+
+  const match = text.match(/^(.+?)老师[，,]?(?:您好|好)[：:]?$/)
+  if (!match) return value
+  const names = contactNames(match[1])
+  if (names.length >= 2) return '您好：'
+  if (names.length === 1) return personGreeting(names[0])
+  return '您好：'
+}
+
+function formatChineseDateTimeText(value: string): string {
+  return value.replace(
+    /(20\d{2})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})/g,
+    (_whole, year: string, month: string, day: string, hour: string, minute: string) =>
+      `${year}年${Number(month)}月${Number(day)}日 ${hour}:${minute}`,
+  )
+}
+
+function normalizePublicationAttribution(value: string): string {
+  const match = value.trim().match(/^关注到.+?公开发布了「(.+?)」。$/)
+  if (!match) return value
+  return `关注到「${match[1]}」的公开信息。`
+}
+
+function normalizeFormalProcurementWording(value: string): string {
+  const formalProcurement =
+    value.includes('招标文件获取') ||
+    value.includes('投标/响应截止') ||
+    value.includes('的公开采购信息。')
+  if (!formalProcurement) return value
+  return value
+    .replace(
+      '想确认目前是否还有公开答疑、技术交流或资料对接窗口；如方便，我们可以按项目要求准备相关资料。',
+      '想确认目前是否还有公开答疑或公告允许的资料对接窗口；如方便，我们可以按项目要求准备相关资料。',
+    )
+    .replace(
+      '想确认目前是否还有公开答疑、技术交流或资料对接窗口。',
+      '想确认目前是否还有公开答疑或公告允许的资料对接窗口。',
+    )
+}
+
+function toSendableDraft(
+  value: string,
+  recipientSelection: string,
+  availableRecipients: string[],
+): string {
+  const lines = value
     .split('\n')
     .filter((line) => {
       const text = line.trim()
@@ -44,25 +150,71 @@ function toSendableDraft(value: string): string {
       if (text.startsWith('说明：本草稿只使用公开采购事实')) return false
       return true
     })
-    .join('\n')
+
+  const firstContentIndex = lines.findIndex((line) => line.trim())
+  if (firstContentIndex >= 0) {
+    lines[firstContentIndex] = normalizeGreetingLine(
+      lines[firstContentIndex],
+      recipientSelection,
+      availableRecipients,
+    )
+  }
+  for (let index = firstContentIndex + 1; index < lines.length; index += 1) {
+    lines[index] = normalizePublicationAttribution(lines[index])
+  }
+
+  const formatted = formatChineseDateTimeText(lines.join('\n'))
     .replace(/\n{3,}/g, '\n\n')
     .trim()
+  return normalizeFormalProcurementWording(formatted)
 }
 
 export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerProps) {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [recordingContact, setRecordingContact] = useState(false)
+  const [contactRecorded, setContactRecorded] = useState(false)
+  const [remindOpen, setRemindOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [draft, setDraft] = useState<OutreachDraft | null>(null)
+  const [availableRecipients, setAvailableRecipients] = useState<string[]>([])
+  const [recipientSelection, setRecipientSelection] = useState('')
+  const [publicContact, setPublicContact] = useState<PublicContactQuickView | null>(null)
 
   useEffect(() => {
     if (!open || !opportunityId) return
     let cancelled = false
     setLoading(true)
+    setRecordingContact(false)
+    setContactRecorded(false)
+    setRemindOpen(false)
     setError(null)
     setDraft(null)
+    setAvailableRecipients([])
+    setRecipientSelection('')
+    setPublicContact(null)
+
     todayActionsService
+      .getOpportunity(opportunityId)
+      .then((card) => {
+        if (cancelled) return
+        const contact = card?.facts.official_contact
+        const names = contactNames(contact?.name ?? '')
+        const phones = contactPhones(contact?.phone ?? '')
+        const email = contact?.email?.trim() || null
+        setAvailableRecipients(names)
+        if (names.length === 1) setRecipientSelection(names[0])
+        if (names.length || phones.length || email) {
+          setPublicContact({ names, phones, email })
+        }
+      })
+      .catch(() => {
+        // Contact lookup is only a convenience layer. Draft generation has its
+        // own verified grounding gate and a neutral greeting remains safe.
+      })
+
+    void todayActionsService
       .requestOutreachDraft(opportunityId)
       .then((res) => {
         if (!cancelled) setDraft(res)
@@ -84,7 +236,13 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     }
   }, [navigate, onClose, open, opportunityId])
 
-  const sendableDraft = useMemo(() => (draft ? toSendableDraft(draft.draft) : ''), [draft])
+  const sendableDraft = useMemo(
+    () =>
+      draft
+        ? toSendableDraft(draft.draft, recipientSelection, availableRecipients)
+        : '',
+    [availableRecipients, draft, recipientSelection],
+  )
 
   const copyDraft = async () => {
     if (!sendableDraft) return
@@ -96,51 +254,259 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     }
   }
 
-  return (
-    <Drawer
-      open={open}
-      onClose={onClose}
-      title="沟通草稿"
-      subtitle="可直接复制，发送前按实际情况修改"
-      footer={
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-[13px] text-slate-600"
-          >
-            关闭
-          </button>
-          <button
-            type="button"
-            disabled={!sendableDraft}
-            onClick={copyDraft}
-            className="inline-flex items-center gap-1 rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] text-white disabled:opacity-50"
-          >
-            <Copy className="h-3.5 w-3.5" />
-            复制内容
-          </button>
-        </div>
+  const goToFollowed = () => {
+    setRemindOpen(false)
+    onClose()
+    navigate('/followed')
+  }
+
+  const recordContacted = async () => {
+    if (!opportunityId || recordingContact) return
+    setRecordingContact(true)
+    try {
+      await todayActionsService.updateFollowup(opportunityId, {
+        status: 'CONTACTED',
+        note: '从沟通草稿入口确认已完成联系。',
+      })
+      setContactRecorded(true)
+      toast('已联系，已记入“我的跟进”', 'success')
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        onClose()
+        navigate('/login', { replace: true })
+        return
       }
-    >
-      {loading ? (
-        <div className="mt-8 flex flex-col items-center justify-center gap-2 text-slate-500">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <p className="text-[13px]">正在生成沟通内容…</p>
-        </div>
-      ) : null}
-      {error ? <p className="mt-6 text-[13px] text-rose-700">{error}</p> : null}
-      {draft ? (
-        <div className="mt-2">
-          <p className="mb-2 text-[12px] font-medium text-slate-500">可复制内容</p>
-          <pre className="whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-white p-3 font-sans text-[13px] leading-6 text-slate-800">
-            {sendableDraft}
-          </pre>
-          <p className="mt-2 text-[11px] leading-5 text-slate-400">
-            提示：{draft.disclaimer}
-          </p>
-        </div>
-      ) : null}
-    </Drawer>
+      toast('联系状态保存失败，请重试')
+    } finally {
+      setRecordingContact(false)
+    }
+  }
+
+  const scheduleNextAction = async (remindAt: string, nextAction: string) => {
+    if (!opportunityId || recordingContact || !contactRecorded) return
+    setRecordingContact(true)
+    try {
+      await todayActionsService.updateFollowup(opportunityId, {
+        status: 'CONTACTED',
+        remind_at: remindAt,
+        note: `下次行动：${nextAction}`,
+      })
+      toast('下一步已安排，销售阶段仍为“已联系”', 'success')
+      goToFollowed()
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        setRemindOpen(false)
+        onClose()
+        navigate('/login', { replace: true })
+        return
+      }
+      toast('下一步保存失败，请重试')
+    } finally {
+      setRecordingContact(false)
+    }
+  }
+
+  return (
+    <>
+      <Drawer
+        open={open}
+        onClose={onClose}
+        title="沟通草稿"
+        subtitle={
+          contactRecorded
+            ? '联系已记录；可顺手安排下一步，也可以先进入我的跟进'
+            : '可直接复制；实际联系后再确认写入跟进台账'
+        }
+        footer={
+          contactRecorded ? (
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                disabled={recordingContact}
+                onClick={goToFollowed}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-[13px] text-slate-600 disabled:opacity-50"
+              >
+                先去我的跟进
+              </button>
+              <button
+                type="button"
+                disabled={recordingContact}
+                onClick={() => setRemindOpen(true)}
+                className="rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] font-medium text-white disabled:opacity-50"
+              >
+                安排下一步
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={recordingContact}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-[13px] text-slate-600 disabled:opacity-50"
+              >
+                关闭
+              </button>
+              <button
+                type="button"
+                disabled={!sendableDraft || recordingContact}
+                onClick={copyDraft}
+                className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[13px] font-medium text-indigo-800 disabled:opacity-50"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                复制内容
+              </button>
+              <button
+                type="button"
+                disabled={loading || recordingContact || !opportunityId}
+                onClick={() => void recordContacted()}
+                className="inline-flex items-center gap-1 rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] font-medium text-white disabled:opacity-50"
+              >
+                {recordingContact ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                )}
+                {recordingContact ? '正在记录…' : '已联系，记入跟进'}
+              </button>
+            </div>
+          )
+        }
+      >
+        {contactRecorded ? (
+          <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-[12px] leading-5 text-teal-900">
+            已记录为“已联系”。“安排下一步”只会增加私有下一步和提醒时间，不会再次改变销售阶段。
+          </div>
+        ) : null}
+
+        {loading ? (
+          <div className="mt-8 flex flex-col items-center justify-center gap-2 text-slate-500">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <p className="text-[13px]">正在生成沟通内容…</p>
+          </div>
+        ) : null}
+        {error ? <p className="mt-6 text-[13px] text-rose-700">{error}</p> : null}
+
+        {publicContact ? (
+          <div className="mt-3 rounded-xl border border-teal-100 bg-teal-50/60 p-3">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <p className="text-[12px] font-medium text-teal-900">公告公开联系方式</p>
+                {publicContact.names.length ? (
+                  <p className="mt-1 text-[12px] leading-5 text-teal-800">
+                    联系人：{publicContact.names.join('、')}
+                  </p>
+                ) : null}
+              </div>
+              <span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-teal-700 ring-1 ring-teal-100">
+                官方公开信息
+              </span>
+            </div>
+            {publicContact.phones.length ? (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {publicContact.phones.map((phone) => {
+                  const href = safeTelephoneHref(phone)
+                  return href ? (
+                    <a
+                      key={phone}
+                      href={href}
+                      className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-teal-200 bg-white px-2.5 py-1 text-[12px] font-medium text-teal-800"
+                    >
+                      <Phone className="h-3.5 w-3.5" />
+                      {phone}
+                    </a>
+                  ) : (
+                    <span
+                      key={phone}
+                      className="inline-flex min-h-8 items-center rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[12px] text-slate-600"
+                    >
+                      {phone}
+                    </span>
+                  )
+                })}
+              </div>
+            ) : null}
+            {safeEmailHref(publicContact.email) ? (
+              <a
+                href={safeEmailHref(publicContact.email) ?? undefined}
+                className="mt-2 inline-flex min-h-8 max-w-full items-center gap-1 rounded-lg border border-teal-200 bg-white px-2.5 py-1 text-[12px] font-medium text-teal-800"
+              >
+                <Mail className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{publicContact.email}</span>
+              </a>
+            ) : publicContact.email ? (
+              <p className="mt-2 break-all text-[12px] text-slate-600">邮箱：{publicContact.email}</p>
+            ) : null}
+            <p className="mt-2 text-[10px] leading-4 text-teal-700/80">
+              仅表示公告公开了这些联系方式，不代表你与联系人或医院存在私人关系。
+            </p>
+          </div>
+        ) : null}
+
+        {draft ? (
+          <div className="mt-3">
+            {availableRecipients.length > 1 ? (
+              <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-[12px] font-medium text-slate-700">称呼对象</p>
+                <p className="mt-0.5 text-[11px] leading-5 text-slate-500">
+                  公告列出多位联系人，不代表本次需要群发；默认不指定收件人。
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setRecipientSelection('')}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                      recipientSelection === ''
+                        ? 'border-teal-600 bg-teal-50 text-teal-800'
+                        : 'border-slate-200 bg-white text-slate-600'
+                    }`}
+                  >
+                    不指定
+                  </button>
+                  {availableRecipients.map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => setRecipientSelection(name)}
+                      className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                        recipientSelection === name
+                          ? 'border-teal-600 bg-teal-50 text-teal-800'
+                          : 'border-slate-200 bg-white text-slate-600'
+                      }`}
+                    >
+                      {name}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setRecipientSelection(GROUP_RECIPIENT)}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                      recipientSelection === GROUP_RECIPIENT
+                        ? 'border-teal-600 bg-teal-50 text-teal-800'
+                        : 'border-slate-200 bg-white text-slate-600'
+                    }`}
+                  >
+                    各位老师
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            <p className="mb-2 text-[12px] font-medium text-slate-500">可复制内容</p>
+            <pre className="whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-white p-3 font-sans text-[13px] leading-6 text-slate-800">
+              {sendableDraft}
+            </pre>
+            <p className="mt-2 text-[11px] leading-5 text-slate-400">
+              提示：{draft.disclaimer}
+            </p>
+          </div>
+        ) : null}
+      </Drawer>
+
+      <RemindModal
+        open={open && remindOpen && Boolean(opportunityId)}
+        onClose={() => setRemindOpen(false)}
+        onConfirm={(remindAt, nextAction) => void scheduleNextAction(remindAt, nextAction)}
+      />
+    </>
   )
 }

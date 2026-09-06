@@ -10,6 +10,24 @@ CCGP_SEARCH_URL = "https://search.ccgp.gov.cn/bxsearch"
 CCGP_DETAIL_BASE = "https://www.ccgp.gov.cn/"
 CCGP_DETAIL_HOSTS = {"ccgp.gov.cn", "www.ccgp.gov.cn"}
 RATE_LIMIT_MARKERS = ("您的访问过于频繁", "频繁访问")
+PRIMARY_OPPORTUNITY_EXCLUSION_MARKERS = (
+    "中标公告",
+    "中标结果公告",
+    "成交公告",
+    "成交结果公告",
+    "结果公告",
+    "终止公告",
+    "废标公告",
+    "更正公告",
+    "变更公告",
+)
+PRIMARY_OPPORTUNITY_EXCLUSION_PATHS = (
+    "/zbgg/",
+    "/cjgg/",
+    "/zzgg/",
+    "/fbgg/",
+    "/gzgg/",
+)
 
 BID_TYPE_CODES = {
     "全部": "0",
@@ -43,6 +61,22 @@ class DiscoveryCandidate:
 
     def to_dict(self) -> dict[str, str | None]:
         return asdict(self)
+
+
+def is_primary_opportunity_candidate(candidate: DiscoveryCandidate) -> bool:
+    """Keep formal opportunity notices out of result/correction event pages.
+
+    CCGP search occasionally returns result notices even when a formal opportunity
+    bidType is requested. Primary discovery must not let those rows consume the
+    bounded detail-verification budget. Corrections/terminations are handled by the
+    separate active-project event watcher.
+    """
+    title = str(candidate.title or "").strip()
+    notice_type = str(candidate.notice_type or "").strip()
+    if any(marker in title or marker in notice_type for marker in PRIMARY_OPPORTUNITY_EXCLUSION_MARKERS):
+        return False
+    path = urlsplit(candidate.detail_url).path.lower()
+    return not any(marker in path for marker in PRIMARY_OPPORTUNITY_EXCLUSION_PATHS)
 
 
 def _ccgp_date(value: str) -> str:

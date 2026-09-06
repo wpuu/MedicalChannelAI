@@ -5,6 +5,7 @@ import {
   localReminderId,
   opportunityIdFromLocalReminderId,
 } from './localFollowupStore'
+import { isStableOpportunityId } from '@/utils/opportunityId'
 
 export interface DueReminder {
   reminder_id: string
@@ -39,6 +40,7 @@ const FOLLOWUP_STATUSES = new Set([
   'MONITOR',
   'ARCHIVED',
 ])
+const REMINDER_TERMINAL_STATUSES = new Set(['WON', 'LOST', 'NOT_FIT', 'ARCHIVED'])
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -54,6 +56,16 @@ function exactKeys(record: Record<string, unknown>, allowed: string[]): boolean 
 
 function nullableString(value: unknown): value is string | null {
   return value === null || typeof value === 'string'
+}
+
+async function responseError(response: Response): Promise<Error> {
+  try {
+    const root = asRecord(await response.json())
+    if (typeof root?.error === 'string') return new Error(root.error)
+  } catch {
+    // Fall through to the status-only error.
+  }
+  return new Error(`HTTP_${response.status}`)
 }
 
 function validateInbox(value: unknown): ReminderInboxResponse {
@@ -86,8 +98,7 @@ function validateInbox(value: unknown): ReminderInboxResponse {
       ]) ||
       typeof row.reminder_id !== 'string' ||
       !/^mrem_[0-9a-f]{64}$/.test(row.reminder_id) ||
-      typeof row.opportunity_id !== 'string' ||
-      !/^opp_[0-9a-fA-F-]{36}$/.test(row.opportunity_id) ||
+      !isStableOpportunityId(row.opportunity_id) ||
       typeof row.followup_status !== 'string' ||
       !FOLLOWUP_STATUSES.has(row.followup_status) ||
       typeof row.remind_at !== 'string' ||
@@ -127,7 +138,11 @@ function getLocalDueReminders(): DueReminder[] {
   const now = Date.now()
   return listStoredFollowups()
     .flatMap(({ opportunity_id, entry }) => {
-      if (!entry.remind_at || !entry.public_snapshot) return []
+      if (
+        REMINDER_TERMINAL_STATUSES.has(entry.status) ||
+        !entry.remind_at ||
+        !entry.public_snapshot
+      ) return []
       const dueAt = new Date(entry.remind_at).getTime()
       if (Number.isNaN(dueAt) || dueAt > now) return []
       const latestNote = entry.history.find((record) => Boolean(record.note?.trim()))?.note ?? null
@@ -156,7 +171,7 @@ export async function getDueReminders(): Promise<DueReminder[]> {
     credentials: 'include',
     headers: { Accept: 'application/json' },
   })
-  if (!response.ok) throw new Error(`HTTP_${response.status}`)
+  if (!response.ok) throw await responseError(response)
   return validateInbox(await response.json()).reminders
 }
 
@@ -177,5 +192,5 @@ export async function acknowledgeDueReminder(reminderId: string): Promise<void> 
     },
     body: '{}',
   })
-  if (!response.ok) throw new Error(`HTTP_${response.status}`)
+  if (!response.ok) throw await responseError(response)
 }

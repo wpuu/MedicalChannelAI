@@ -2,7 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "git": {
     "deploymentEnabled": {
-      "chatgpt/m1-evidence-pipeline-v1": true
+      "chatgpt/m1-evidence-pipeline-v1": true,
+      "chatgpt/opportunity-ranking-v2-final": false
     }
   },
   "functions": {
@@ -34,6 +35,22 @@
     }
   ],
   "rewrites": [
+    { "source": "/api/auth/register", "destination": "/api/auth?route=register" },
+    { "source": "/api/auth/login", "destination": "/api/auth?route=login" },
+    { "source": "/api/auth/logout", "destination": "/api/auth?route=logout" },
+    { "source": "/api/auth/me", "destination": "/api/auth?route=me" },
+    { "source": "/api/account/export", "destination": "/api/auth?route=export" },
+    { "source": "/api/account/delete", "destination": "/api/auth?route=delete" },
+    { "source": "/api/today", "destination": "/api/private?route=today" },
+    { "source": "/api/opportunity-pool/today", "destination": "/api/private?route=today&include_pool=1" },
+    { "source": "/api/opportunity/:id", "destination": "/api/private?route=opportunity&id=:id" },
+    { "source": "/api/public-history/:id", "destination": "/api/profile?route=public-history&id=:id" },
+    { "source": "/api/followup/:id", "destination": "/api/private?route=followup&id=:id" },
+    { "source": "/api/followed", "destination": "/api/private?route=followed" },
+    { "source": "/api/reminders", "destination": "/api/private?route=reminders" },
+    { "source": "/api/reminders/:id/ack", "destination": "/api/private?route=reminder-ack&id=:id" },
+    { "source": "/api/feedback/:id", "destination": "/api/private?route=feedback&id=:id" },
+    { "source": "/api/ai/discover-continuation", "destination": "/api/ai/discover?route=continuation" },
     {
       "source": "/(.*)",
       "destination": "/index.html"

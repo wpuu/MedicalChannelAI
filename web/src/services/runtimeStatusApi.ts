@@ -1,3 +1,10 @@
+export type RuntimeSnapshotSourceMode =
+  | 'BUNDLED'
+  | 'RUNTIME_CACHE'
+  | 'REMOTE'
+  | 'BUNDLED_FALLBACK'
+  | 'UNAVAILABLE'
+
 export interface RuntimeStatus {
   schema_version: '0.1'
   service: 'MedicalChannelAI'
@@ -9,7 +16,7 @@ export interface RuntimeStatus {
   }
   snapshot: {
     available: boolean
-    source_mode: 'BUNDLED' | 'REMOTE' | 'UNAVAILABLE'
+    source_mode: RuntimeSnapshotSourceMode
     snapshot_as_of: string | null
     freshness: 'FRESH' | 'STALE' | 'INVALID' | 'UNAVAILABLE'
     age_minutes: number | null
@@ -21,6 +28,13 @@ export interface RuntimeStatus {
 
 const STATUS_URL = '/api/status'
 const CACHE_TTL_MS = 60_000
+const SNAPSHOT_SOURCE_MODES = new Set<RuntimeSnapshotSourceMode>([
+  'BUNDLED',
+  'RUNTIME_CACHE',
+  'REMOTE',
+  'BUNDLED_FALLBACK',
+  'UNAVAILABLE',
+])
 
 let cached: { expiresAt: number; value: RuntimeStatus } | null = null
 let inFlight: Promise<RuntimeStatus | null> | null = null
@@ -40,7 +54,7 @@ function isRuntimeStatus(value: unknown): value is RuntimeStatus {
     typeof ai?.configured === 'boolean' &&
     Boolean(snapshot) &&
     typeof snapshot?.available === 'boolean' &&
-    ['BUNDLED', 'REMOTE', 'UNAVAILABLE'].includes(String(snapshot?.source_mode)) &&
+    SNAPSHOT_SOURCE_MODES.has(String(snapshot?.source_mode) as RuntimeSnapshotSourceMode) &&
     (snapshot?.snapshot_as_of === null || typeof snapshot?.snapshot_as_of === 'string') &&
     ['FRESH', 'STALE', 'INVALID', 'UNAVAILABLE'].includes(String(snapshot?.freshness)) &&
     (snapshot?.age_minutes === null || typeof snapshot?.age_minutes === 'number') &&
@@ -63,6 +77,52 @@ async function fetchRuntimeStatus(): Promise<RuntimeStatus | null> {
   } catch {
     return null
   }
+}
+
+export function runtimeSnapshotWarning(
+  status: RuntimeStatus | null,
+  checked = true,
+): string | null {
+  if (!checked) return null
+  if (!status) {
+    return '当前无法确认公开商机快照状态。联系或报价前请先核对官方依据。'
+  }
+  if (status.snapshot.source_mode === 'BUNDLED_FALLBACK') {
+    return '实时数据读取异常，当前使用最近一次内置已核验快照。联系或报价前请先打开官方依据再次核对。'
+  }
+  if (status.snapshot.freshness === 'STALE') {
+    const hours = status.snapshot.age_minutes === null
+      ? null
+      : Math.max(1, Math.floor(status.snapshot.age_minutes / 60))
+    return hours === null
+      ? '公开商机快照已超过正常刷新窗口。联系或报价前请先打开官方依据再次核对。'
+      : `公开商机快照已约 ${hours} 小时未成功刷新。联系或报价前请先打开官方依据再次核对。`
+  }
+  if (status.snapshot.freshness === 'INVALID') {
+    return '公开商机快照时间异常，当前结果不应作为最新商机判断。请先核对官方依据。'
+  }
+  if (status.snapshot.freshness === 'UNAVAILABLE' || !status.snapshot.available) {
+    return '当前无法确认公开商机快照状态。联系或报价前请先核对官方依据。'
+  }
+  return null
+}
+
+export function runtimeAutomationUnavailableReason(
+  status: RuntimeStatus | null,
+  checked = true,
+): string | null {
+  if (!checked) return '正在确认公开商机快照状态，自动分析与沟通草稿暂不可用。'
+  if (!status) return '暂时无法确认商机数据新鲜度，已暂停自动分析与沟通草稿。'
+  if (!status.snapshot.available || status.snapshot.freshness === 'UNAVAILABLE') {
+    return '当前无法确认公开商机快照，已暂停自动分析与沟通草稿。'
+  }
+  if (status.snapshot.freshness === 'INVALID') {
+    return '公开商机快照时间异常，已暂停自动分析与沟通草稿。'
+  }
+  if (status.snapshot.freshness === 'STALE') {
+    return '公开商机快照已超过正常刷新窗口，已暂停自动分析与沟通草稿；请先核对官方依据。'
+  }
+  return null
 }
 
 export async function getRuntimeStatus(force = false): Promise<RuntimeStatus | null> {

@@ -38,19 +38,17 @@ def _same_record_identity(left: dict[str, Any], right: dict[str, Any]) -> bool:
     )
 
 
-def merge_canonical_records(
-    existing_records: list[dict[str, Any]],
-    new_records: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    # Validate each record before reconciliation, but deliberately defer
-    # collection-level duplicate checks until after identity repair. This lets a
-    # newer verified record heal legacy cache entries whose project number was
-    # malformed while keeping the same opportunity_id.
-    existing = [validate_record(record) for record in existing_records] if existing_records else []
-    new = [validate_record(record) for record in new_records] if new_records else []
-    merged = list(existing)
+def _reconcile_validated_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Collapse overlapping canonical state in input order.
 
-    for record in new:
+    Callers intentionally pass state from oldest/base to newest/current. Later
+    verified records therefore replace earlier seed/live copies while the first
+    canonical slot is retained for stable ordering. Matching by either project
+    number or opportunity id also repairs legacy identity drift before the final
+    collection-level duplicate validation runs.
+    """
+    merged: list[dict[str, Any]] = []
+    for record in records:
         matching_indexes = [
             index
             for index, current in enumerate(merged)
@@ -60,14 +58,25 @@ def merge_canonical_records(
             merged.append(record)
             continue
 
-        # Keep the earliest canonical slot for stable ordering, replace it with
-        # the newest verified record, and collapse any duplicate identities that
-        # may have been created by a previously malformed project number.
         first = matching_indexes[0]
         merged[first] = record
         for index in reversed(matching_indexes[1:]):
             del merged[index]
+    return merged
 
+
+def merge_canonical_records(
+    existing_records: list[dict[str, Any]],
+    new_records: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    # Validate each record before reconciliation, but deliberately defer
+    # collection-level duplicate checks until after identity repair. Existing
+    # state may legitimately overlap because the refresh workflow layers a
+    # verified seed below the latest live state; new verified records are then
+    # applied last. This also lets a newer record heal legacy malformed ids.
+    existing = [validate_record(record) for record in existing_records] if existing_records else []
+    new = [validate_record(record) for record in new_records] if new_records else []
+    merged = _reconcile_validated_records([*existing, *new])
     return validate_records(merged) if merged else []
 
 

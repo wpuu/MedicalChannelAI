@@ -12,6 +12,7 @@ interface DecisionCardProps {
   onAnalyze?: () => void
   analyzing?: boolean
   analysisUnavailableReason?: string | null
+  analysisDisabled?: boolean
 }
 
 export function DecisionCard({
@@ -19,6 +20,7 @@ export function DecisionCard({
   onAnalyze,
   analyzing,
   analysisUnavailableReason,
+  analysisDisabled,
 }: DecisionCardProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
   const hasCustomerContext = hasUserCustomerContext(card.customer_context)
@@ -26,15 +28,27 @@ export function DecisionCard({
   return (
     <SectionCard
       title="AI行动建议"
-      subtitle={hasCustomerContext ? '结合公开信息和我的资源' : '基于已核验公开信息'}
+      subtitle={
+        isApiMode
+          ? hasCustomerContext
+            ? '已核验公开事实 + 当前账号已确认资源'
+            : '基于已核验公开事实'
+          : hasCustomerContext
+            ? '结合公开信息和我的资源'
+            : '基于已核验公开信息'
+      }
       tone="ai"
       extra={
         <SourceTag tone="ai">
-          {!isApiMode && isVerifiedPublicDemo
+          {isApiMode
             ? hasCustomerContext
-              ? '公开信息 + 我的资源'
-              : '公开信息'
-            : 'AI行动建议'}
+              ? '公开事实 + 账号资源'
+              : '已核验公开事实'
+            : isVerifiedPublicDemo
+              ? hasCustomerContext
+                ? '公开信息 + 我的资源'
+                : '公开信息'
+              : 'AI行动建议'}
         </SourceTag>
       }
     >
@@ -73,53 +87,45 @@ export function DecisionCard({
           ) : null}
         </div>
       ) : card.model_decision_status === 'AWAITING_MODEL' ? (
-        isApiMode ? (
-          <div>
-            <div className="flex items-center gap-2 text-[14px] font-semibold text-indigo-900">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              AI分析中
-            </div>
-            <div className="mt-3 space-y-2">
-              <div className="h-3 w-3/4 animate-pulse-soft rounded bg-indigo-100" />
-              <div className="h-3 w-full animate-pulse-soft rounded bg-indigo-100" />
-              <div className="h-3 w-1/2 animate-pulse-soft rounded bg-indigo-100" />
-            </div>
-          </div>
-        ) : (
-          <div>
-            <p className="text-[13px] leading-6 text-slate-500">
-              {hasCustomerContext
+        <div>
+          <p className="text-[13px] leading-6 text-slate-500">
+            {isApiMode
+              ? hasCustomerContext
+                ? '点击后，AI会使用已核验公开事实；账号私有资源由服务器按当前用户和当前商机最小化读取。'
+                : '点击后，AI只基于已核验公开事实分析，不会替你猜测医院关系或产品资源。'
+              : hasCustomerContext
                 ? '让AI结合这条商机和你的资源，给出下一步动作。'
                 : '让AI基于这条公开商机，给出下一步动作和需要确认的事项。'}
-            </p>
-            {onAnalyze ? (
-              <button
-                type="button"
-                disabled={analyzing}
-                onClick={onAnalyze}
-                className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {analyzing ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Sparkles className="h-3.5 w-3.5" />
-                )}
-                {analyzing
-                  ? 'AI分析中'
+          </p>
+          {onAnalyze ? (
+            <button
+              type="button"
+              disabled={Boolean(analyzing) || analysisDisabled}
+              onClick={onAnalyze}
+              className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {analyzing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}
+              {analyzing
+                ? 'AI分析中'
+                : analysisDisabled
+                  ? '暂不能AI分析'
                   : hasCustomerContext
                     ? '结合我的资源分析'
                     : analysisUnavailableReason
                       ? '重试AI分析'
                       : '用AI分析这条'}
-              </button>
-            ) : null}
-            {analysisUnavailableReason ? (
-              <p className="mt-2 text-[11px] leading-5 text-amber-700">
-                {analysisUnavailableReason}
-              </p>
-            ) : null}
-          </div>
-        )
+            </button>
+          ) : null}
+          {analysisUnavailableReason ? (
+            <p className="mt-2 text-[11px] leading-5 text-amber-700">
+              {analysisUnavailableReason}
+            </p>
+          ) : null}
+        </div>
       ) : (
         <div className="flex items-start gap-2">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />

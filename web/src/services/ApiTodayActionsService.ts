@@ -14,9 +14,10 @@ import type {
   PublicTodayActionCard,
   TodayActionsPublicResponse,
 } from '@/types/public'
-import type { TodayActionsService } from './TodayActionsService'
+import type { TodayActionsLoadOptions, TodayActionsService } from './TodayActionsService'
 
 const COVERAGE_WARNING = '当前处于天津 Pilot 阶段，公开数据覆盖持续扩展中。'
+const MUTATION_REUSE_TTL_MS = 5_000
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
   'model_requests',
@@ -40,6 +41,29 @@ const FORBIDDEN_PUBLIC_PREFIXES = [
   'api_key_',
   'upstream_model_',
 ]
+
+const FOLLOWUP_STATUSES = new Set<FollowupStatus>([
+  'NEW',
+  'REVIEWING',
+  'CONTACTED',
+  'RELATIONSHIP_VERIFIED',
+  'PREPARING',
+  'BID_SUBMITTED',
+  'WON',
+  'LOST',
+  'NOT_FIT',
+  'MONITOR',
+  'ARCHIVED',
+])
+
+const DONE_FOR_TODAY = new Set<FollowupStatus>([
+  'CONTACTED',
+  'NOT_FIT',
+  'BID_SUBMITTED',
+  'WON',
+  'LOST',
+  'ARCHIVED',
+])
 
 const NOT_FIT_REASON_TO_CODE: Record<NotFitReason, string> = {
   没有对应产品: 'NO_PRODUCT_CAPABILITY',
@@ -160,7 +184,8 @@ function normalizeRelationshipStrength(value: string | null): RelationshipStreng
     value === 'MEDIUM' ||
     value === 'HISTORICAL' ||
     value === 'WEAK' ||
-    value === 'UNKNOWN'
+    value === 'UNKNOWN' ||
+    value === 'NONE'
   ) {
     return value
   }
@@ -169,6 +194,9 @@ function normalizeRelationshipStrength(value: string | null): RelationshipStreng
 
 function normalizeCapabilityType(value: string | null): CapabilityType | null {
   const allowed: CapabilityType[] = [
+    'DIRECT',
+    'NEED_MANUFACTURER',
+    'PARTNER',
     'DIRECT_AUTHORIZED',
     'DIRECT_UNCONFIRMED',
     'RENTAL_CAPABLE',
@@ -176,6 +204,12 @@ function normalizeCapabilityType(value: string | null): CapabilityType | null {
     'SERVICE_ONLY',
   ]
   return allowed.find((item) => item === value) ?? null
+}
+
+function normalizeFollowupStatus(value: string | null | undefined): FollowupStatus {
+  return value && FOLLOWUP_STATUSES.has(value as FollowupStatus)
+    ? value as FollowupStatus
+    : 'NEW'
 }
 
 function normalizeProductItems(items: unknown[]): TodayActionCard['facts']['products'] {
@@ -236,6 +270,7 @@ function componentPercent(card: PublicTodayActionCard, code: string): number {
 }
 
 function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
+  const target = card.customer_context.target_hospital
   const relationship = card.customer_context.hospital_relationship
   const capabilities = card.customer_context.matching_product_capabilities
     .map(normalizeCapability)
@@ -255,6 +290,8 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       notice_type: card.facts.notice_type,
       publish_date: card.facts.published_at,
       registration_deadline: card.facts.registration_deadline,
+      registration_deadline_date: card.facts.registration_deadline_date,
+      registration_deadline_precision: card.facts.registration_deadline_precision,
       bid_deadline: card.facts.bid_deadline,
       expected_purchase_date: card.facts.expected_procurement_at,
       budget: normalizeBudget(card.facts.budget),
@@ -262,11 +299,21 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       product_categories: card.facts.product_categories,
       products: normalizeProductItems(card.facts.product_items),
       official_contact: normalizePublicContact(card.facts.public_contact),
+      quality_flags: card.facts.quality_flags ?? [],
       verification_status: normalizeVerification(card.facts.verification_status),
       coverage_status: normalizeCoverage(card.facts.coverage_status),
     },
     evidence_source_urls: card.evidence_source_urls,
     customer_context: {
+      target_hospital:
+        target && target.watched_by_customer
+          ? {
+              hospital: target.hospital_name,
+              department: target.department,
+              watched_by_customer: true,
+              updated_at: target.updated_at,
+            }
+          : null,
       hospital_relationship:
         relationship && relationship.confirmed_by_customer
           ? {
@@ -290,14 +337,21 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
     },
     priority: {
       score: card.priority.score,
+      score_scope:
+        card.priority.score_scope ??
+        (card.priority.score_type === 'BUSINESS_PRIORITY_PERSONALIZED_V2' ? 'PERSONALIZED' : 'PUBLIC'),
       components: {
         PRODUCT_EXECUTION_CAPABILITY: componentPercent(
           card,
           'PRODUCT_EXECUTION_CAPABILITY',
         ),
         RELATIONSHIP: componentPercent(card, 'RELATIONSHIP'),
+        EXECUTION_FLEXIBILITY: componentPercent(card, 'EXECUTION_FLEXIBILITY'),
         INTERVENTION_STAGE: componentPercent(card, 'INTERVENTION_STAGE'),
+        DEADLINE_URGENCY: componentPercent(card, 'DEADLINE_URGENCY'),
         PROJECT_AMOUNT: componentPercent(card, 'PROJECT_AMOUNT'),
+        PRODUCT_SPECIFICITY: componentPercent(card, 'PRODUCT_SPECIFICITY'),
+        PUBLICATION_FRESHNESS: componentPercent(card, 'PUBLICATION_FRESHNESS'),
       },
     },
     match_status: card.match_status,
@@ -314,9 +368,9 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
             : [],
         }
       : null,
-    followup_status: 'NEW',
+    followup_status: normalizeFollowupStatus(card.followup_status),
     followup_history: [],
-    remind_at: null,
+    remind_at: typeof card.remind_at === 'string' && card.remind_at.trim() ? card.remind_at : null,
   }
 }
 
@@ -344,8 +398,42 @@ function applyFollowupState(card: TodayActionCard, state: ServerFollowupState): 
   }
 }
 
+function shouldAppearToday(card: TodayActionCard): boolean {
+  if (DONE_FOR_TODAY.has(card.followup_status)) return false
+  if (!card.remind_at) return true
+  const remindAt = new Date(card.remind_at).getTime()
+  return Number.isNaN(remindAt) || remindAt <= Date.now()
+}
+
+function applyMutationToToday(
+  current: TodayActionsResponse,
+  state: ServerFollowupState,
+): TodayActionsResponse {
+  const updateCard = (card: TodayActionCard) =>
+    card.opportunity_id === state.opportunity_id ? applyFollowupState(card, state) : card
+  const opportunityPool = (current.opportunity_pool ?? current.cards).map(updateCard)
+  const cards = current.cards.map(updateCard).filter(shouldAppearToday)
+  return {
+    ...current,
+    card_count: cards.length,
+    cards,
+    opportunity_pool: opportunityPool,
+  }
+}
+
 export class ApiTodayActionsService implements TodayActionsService {
   private readonly baseUrl: string
+  private latestToday: TodayActionsResponse | null = null
+  private pendingTodayAfterMutation: {
+    value: TodayActionsResponse
+    expiresAt: number
+  } | null = null
+  private latestOpportunity: TodayActionCard | null = null
+  private pendingOpportunityAfterMutation: {
+    opportunityId: string
+    value: TodayActionCard
+    expiresAt: number
+  } | null = null
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl.replace(/\/+$/, '')
@@ -360,8 +448,18 @@ export class ApiTodayActionsService implements TodayActionsService {
         ...(init?.headers ?? {}),
       },
     })
-    if (!response.ok) throw new Error(`HTTP_${response.status}`)
-    const payload: unknown = await response.json()
+
+    let payload: unknown
+    try {
+      payload = await response.json()
+    } catch {
+      throw new Error(response.ok ? 'API_RESPONSE_INVALID' : `HTTP_${response.status}`)
+    }
+
+    if (!response.ok) {
+      const root = asRecord(payload)
+      throw new Error(asString(root?.error) ?? `HTTP_${response.status}`)
+    }
     assertNoInternalFields(payload)
     return payload as T
   }
@@ -370,40 +468,61 @@ export class ApiTodayActionsService implements TodayActionsService {
     return this.requestJson<ServerFollowupState>(`/followup/${encodeURIComponent(id)}`)
   }
 
-  private async enrichWithServerFollowup(card: TodayActionCard): Promise<TodayActionCard> {
-    const state = await this.getFollowupState(card.opportunity_id)
-    return applyFollowupState(card, state)
-  }
+  async getTodayActions(_options?: TodayActionsLoadOptions): Promise<TodayActionsResponse> {
+    const pending = this.pendingTodayAfterMutation
+    this.pendingTodayAfterMutation = null
+    if (pending && pending.expiresAt >= Date.now()) {
+      this.latestToday = pending.value
+      return pending.value
+    }
 
-  async getTodayActions(): Promise<TodayActionsResponse> {
     const data = await this.requestJson<TodayActionsPublicResponse>('/today')
-    const now = new Date().toISOString()
-    const cards = await Promise.all(
-      data.cards.map(mapPublicCard).map((card) => this.enrichWithServerFollowup(card)),
-    )
-    return {
+    const mappedPool = (data.opportunity_pool ?? data.cards).map(mapPublicCard)
+    const cards = data.cards.map(mapPublicCard)
+    const result: TodayActionsResponse = {
       schema_version: data.schema_version,
       mode: data.mode,
       input_candidate_count: data.input_candidate_count,
       matched_count: data.matched_count,
-      card_count: data.card_count,
+      card_count: cards.length,
+      opportunity_pool_count: data.opportunity_pool_count ?? mappedPool.length,
       model_request_count: data.model_request_count,
       coverage_warning: COVERAGE_WARNING,
-      generated_at: now,
-      refreshed_at: now,
+      generated_at: data.snapshot_as_of,
+      refreshed_at: data.snapshot_as_of,
+      today_limit: data.today_limit,
+      today_limit_options: data.today_limit_options,
+      recommendation_feedback_summary: data.recommendation_feedback_summary,
+      procurement_intent_followup_summary: data.procurement_intent_followup_summary,
       cards,
+      opportunity_pool: mappedPool,
       model_requests: [],
     }
+    this.latestToday = result
+    return result
   }
 
   async getOpportunity(id: string): Promise<TodayActionCard | null> {
+    const pending = this.pendingOpportunityAfterMutation
+    if (pending?.opportunityId === id) {
+      this.pendingOpportunityAfterMutation = null
+      if (pending.expiresAt >= Date.now()) {
+        this.latestOpportunity = pending.value
+        return pending.value
+      }
+    }
+
     try {
-      const card = await this.requestJson<PublicTodayActionCard>(
-        `/opportunity/${encodeURIComponent(id)}`,
-      )
-      return await this.enrichWithServerFollowup(mapPublicCard(card))
+      const encodedId = encodeURIComponent(id)
+      const [card, state] = await Promise.all([
+        this.requestJson<PublicTodayActionCard>(`/opportunity/${encodedId}`),
+        this.getFollowupState(id),
+      ])
+      const result = applyFollowupState(mapPublicCard(card), state)
+      this.latestOpportunity = result
+      return result
     } catch (error) {
-      if (error instanceof Error && error.message === 'HTTP_404') return null
+      if (error instanceof Error && (error.message === 'HTTP_404' || error.message === 'VERIFIED_OPPORTUNITY_NOT_FOUND')) return null
       throw error
     }
   }
@@ -423,14 +542,37 @@ export class ApiTodayActionsService implements TodayActionsService {
       payload.reason = NOT_FIT_REASON_TO_CODE[reason]
     }
 
-    await this.requestJson<ServerFollowupState>(`/followup/${encodeURIComponent(id)}`, {
+    const state = await this.requestJson<ServerFollowupState>(`/followup/${encodeURIComponent(id)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
+
+    if (this.latestToday) {
+      const next = applyMutationToToday(this.latestToday, state)
+      this.latestToday = next
+      this.pendingTodayAfterMutation = {
+        value: next,
+        expiresAt: Date.now() + MUTATION_REUSE_TTL_MS,
+      }
+    }
+
+    if (this.latestOpportunity?.opportunity_id === id) {
+      const next = applyFollowupState(this.latestOpportunity, state)
+      this.latestOpportunity = next
+      this.pendingOpportunityAfterMutation = {
+        opportunityId: id,
+        value: next,
+        expiresAt: Date.now() + MUTATION_REUSE_TTL_MS,
+      }
+    }
   }
 
-  async requestOutreachDraft(_id: string): Promise<OutreachDraft> {
-    throw new Error('OUTREACH_API_NOT_IMPLEMENTED')
+  async requestOutreachDraft(id: string): Promise<OutreachDraft> {
+    return this.requestJson<OutreachDraft>('/ai/analyze?route=outreach', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ opportunity_id: id }),
+    })
   }
 }

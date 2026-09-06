@@ -1,0 +1,90 @@
+from __future__ import annotations
+
+import unittest
+from pathlib import Path
+
+WEB_ROOT = Path(__file__).resolve().parents[2]
+
+
+class FollowupOutcomeLearningUiTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.types = (WEB_ROOT / "src" / "types" / "index.ts").read_text(encoding="utf-8")
+        cls.labels = (WEB_ROOT / "src" / "utils" / "labels.ts").read_text(encoding="utf-8")
+        cls.card = (WEB_ROOT / "src" / "components" / "opportunity" / "FollowupCard.tsx").read_text(encoding="utf-8")
+        cls.won_modal = (WEB_ROOT / "src" / "components" / "followup" / "WonModal.tsx").read_text(encoding="utf-8")
+        cls.lost_modal = (WEB_ROOT / "src" / "components" / "followup" / "LostModal.tsx").read_text(encoding="utf-8")
+        cls.not_fit_modal = (WEB_ROOT / "src" / "components" / "followup" / "NotFitModal.tsx").read_text(encoding="utf-8")
+        cls.detail = (WEB_ROOT / "src" / "pages" / "OpportunityDetailPage.tsx").read_text(encoding="utf-8")
+
+    def test_lost_reason_has_bounded_business_categories(self) -> None:
+        self.assertIn('export type LostReason =', self.types)
+        self.assertIn('价格/报价竞争失败', self.labels)
+        self.assertIn('产品或参数不匹配', self.labels)
+        self.assertIn('厂家/授权资源不足', self.labels)
+        self.assertIn('投标/响应执行失败', self.labels)
+        self.assertIn('客户需求或项目变化', self.labels)
+
+    def test_lost_status_requires_explicit_reason_flow_in_ui(self) -> None:
+        self.assertIn("if (status === 'LOST')", self.card)
+        self.assertIn('onLost()', self.card)
+        self.assertIn('onLost={() => setLostOpen(true)}', self.detail)
+        self.assertIn('<LostModal', self.detail)
+
+    def test_lost_reason_is_clearly_private_user_judgment(self) -> None:
+        self.assertIn('当前账号私有复盘数据', self.lost_modal)
+        self.assertIn('不是医院或采购方公开确认的事实', self.lost_modal)
+        self.assertIn('未成交原因（当前用户判断）：${reason}', self.detail)
+        self.assertNotIn('facts.', self.lost_modal)
+        self.assertNotIn('public_snapshot', self.lost_modal)
+
+    def test_won_status_requires_private_review_before_persisting(self) -> None:
+        self.assertIn('export type WonReason =', self.types)
+        self.assertIn('WON_REASONS', self.labels)
+        self.assertIn("if (status === 'WON')", self.card)
+        self.assertIn('onWon()', self.card)
+        self.assertIn('onWon={() => setWonOpen(true)}', self.detail)
+        self.assertIn('<WonModal', self.detail)
+        self.assertIn("void updateStatus('WON', {", self.detail)
+        self.assertIn('成交复盘（当前用户判断）：${reason}', self.detail)
+
+    def test_won_review_is_private_judgment_not_public_win_cause(self) -> None:
+        self.assertIn('当前账号私有商业判断', self.won_modal)
+        self.assertIn('不是医院或采购方公开确认的中标原因', self.won_modal)
+        self.assertNotIn('facts.', self.won_modal)
+        self.assertNotIn('public_snapshot', self.won_modal)
+
+    def test_not_fit_persistence_copy_matches_runtime_mode(self) -> None:
+        self.assertIn('isApiMode', self.not_fit_modal)
+        self.assertIn('会保存到服务器，不会写入公开商机事实', self.not_fit_modal)
+        self.assertIn('演示模式下只保存在当前浏览器', self.not_fit_modal)
+
+    def test_terminal_results_require_explicit_two_step_reopen(self) -> None:
+        self.assertIn('const terminal = REMINDER_TERMINAL_STATUSES.has(card.followup_status)', self.card)
+        self.assertIn("const OUTCOME_TERMINAL_STATUSES = new Set<FollowupStatus>(['WON', 'LOST', 'NOT_FIT'])", self.card)
+        self.assertIn('const outcomeTerminal = OUTCOME_TERMINAL_STATUSES.has(card.followup_status)', self.card)
+        self.assertIn('更正结果 / 重新打开', self.card)
+        self.assertIn('确认重新打开', self.card)
+        self.assertIn("setStatus('REVIEWING')", self.card)
+        self.assertIn("onChangeStatus('REVIEWING')", self.card)
+        self.assertIn('保留原有结果和复盘历史', self.card)
+        self.assertIn('当前结果将不再计入终态统计', self.card)
+        terminal_start = self.card.index('{terminal ? (')
+        normal_select = self.card.index('<select', terminal_start)
+        reopen_copy = self.card.index('更正结果 / 重新打开', terminal_start)
+        self.assertLess(reopen_copy, normal_select)
+
+    def test_archived_is_locked_but_never_claimed_as_outcome_statistics(self) -> None:
+        self.assertIn("'ARCHIVED',", self.card)
+        self.assertIn("{outcomeTerminal ? '更正结果 / 重新打开' : '重新打开'}", self.card)
+        self.assertIn('项目已归档。普通状态下不直接开放下拉修改', self.card)
+        self.assertIn('保留原有归档历史；项目将重新进入推进流程', self.card)
+        outcome_set = self.card[
+            self.card.index('const OUTCOME_TERMINAL_STATUSES'):
+            self.card.index('interface FollowupCardProps')
+        ]
+        self.assertNotIn('ARCHIVED', outcome_set)
+
+
+if __name__ == '__main__':
+    unittest.main()

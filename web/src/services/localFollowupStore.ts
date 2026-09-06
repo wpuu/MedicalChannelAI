@@ -40,6 +40,12 @@ const FOLLOWUP_STATUSES = new Set<FollowupStatus>([
   'MONITOR',
   'ARCHIVED',
 ])
+const REMINDER_TERMINAL_STATUSES = new Set<FollowupStatus>([
+  'WON',
+  'LOST',
+  'NOT_FIT',
+  'ARCHIVED',
+])
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -189,9 +195,13 @@ export function backfillLocalFollowupSnapshots(cards: TodayActionCard[]): void {
 
 export function persistLocalFollowup(card: TodayActionCard): void {
   const stored = readLocalFollowups()
+  const existing = stored[card.opportunity_id]
+  const remindAt = REMINDER_TERMINAL_STATUSES.has(card.followup_status)
+    ? null
+    : card.remind_at ?? existing?.remind_at ?? null
   stored[card.opportunity_id] = {
     status: card.followup_status,
-    remind_at: card.remind_at,
+    remind_at: remindAt,
     history: card.followup_history,
     public_snapshot: toStoredPublicOpportunity(card),
   }
@@ -203,7 +213,7 @@ export function listStoredFollowups(): Array<{
   entry: StoredFollowupEntry
 }> {
   return Object.entries(readLocalFollowups())
-    .filter(([, entry]) => entry.status !== 'NEW')
+    .filter(([, entry]) => entry.status !== 'NEW' || Boolean(entry.remind_at))
     .map(([opportunity_id, entry]) => ({ opportunity_id, entry }))
 }
 

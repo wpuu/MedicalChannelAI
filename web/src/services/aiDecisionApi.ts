@@ -1,5 +1,6 @@
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
 import type { CustomerContext, Decision, TodayActionCard } from '@/types'
+import { isApiMode } from './apiConfig'
 import { beginAiRequest, endAiRequest } from './aiRequestGate'
 
 const CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
@@ -31,10 +32,15 @@ export function aiDecisionErrorMessage(cause: unknown): string {
   if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，可立即重试'
   if (cause.code === 'AI_PROVIDER_UNAVAILABLE') return 'AI服务暂时连接失败，请稍后再试'
   if (cause.code === 'VERIFIED_SNAPSHOT_UNAVAILABLE') return '公开商机数据正在更新，请稍后再试AI分析'
+  if (cause.code === 'VERIFIED_SNAPSHOT_NOT_FRESH') return '公开商机快照已超过安全刷新窗口，请先核对官方依据，待数据刷新后再使用AI分析'
   if (cause.code === 'SAME_ORIGIN_REQUIRED') return '当前访问地址未通过AI安全校验，请从正式站点进入'
   if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
   if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机暂不在已核验商机池中'
   if (cause.code === 'AI_RESPONSE_INVALID') return 'AI返回内容未通过校验，请重试'
+  if (cause.code === 'AUTH_REQUIRED') return '登录状态已失效，请重新登录后再分析'
+  if (cause.code === 'PRIVATE_PROFILE_UNAVAILABLE') return '暂时无法读取账号私有资源，请稍后再试'
+  if (cause.code === 'PRIVATE_DATABASE_NOT_CONFIGURED') return '试用账号数据库尚未配置完成'
+  if (cause.code === 'PILOT_CUSTOMER_CONTEXT_SERVER_ONLY') return '试用版个性化资料只能由服务端账号读取，请刷新页面后重试'
   return 'AI分析暂时不可用，请重试'
 }
 
@@ -72,7 +78,8 @@ function customerContextPayload(card: TodayActionCard): CustomerContext | null {
   const context = card.customer_context
   const policy = context.partnering_policy
   const hasContext = Boolean(
-    context.hospital_relationship ||
+    context.target_hospital ||
+      context.hospital_relationship ||
       context.matching_product_capabilities.length > 0 ||
       policy.can_find_manufacturer !== null ||
       policy.can_partner_channel !== null ||
@@ -173,6 +180,10 @@ function cacheDecision(opportunityId: string, snapshotAsOf: string, fingerprintV
 }
 
 export async function hydrateCachedAiDecisions(cards: TodayActionCard[]): Promise<TodayActionCard[]> {
+  // Pilot personalization is server-side. A browser cache cannot know when the
+  // authenticated user's private profile changed, so do not reuse personalized
+  // decisions from localStorage in API mode.
+  if (isApiMode) return cards
   const snapshotAsOf = await getSnapshotAsOf()
   if (!snapshotAsOf) return cards
   return cards.map((card) => {
@@ -188,9 +199,10 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
     throw new AiDecisionError('OPPORTUNITY_WINDOW_CLOSED', 409)
   }
 
-  const snapshotAsOf = await getSnapshotAsOf()
-  const customerContext = customerContextPayload(card)
-  const fingerprintValue = decisionFingerprint(card)
+  const useLocalContext = !isApiMode
+  const snapshotAsOf = useLocalContext ? await getSnapshotAsOf() : null
+  const customerContext = useLocalContext ? customerContextPayload(card) : null
+  const fingerprintValue = useLocalContext ? decisionFingerprint(card) : fingerprint(null)
   if (snapshotAsOf) {
     const cached = findCachedDecision(card.opportunity_id, snapshotAsOf, fingerprintValue)
     if (cached) return cached
@@ -200,6 +212,7 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
   try {
     const response = await fetch('/api/ai/analyze', {
       method: 'POST',
+      credentials: 'include',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         opportunity_id: card.opportunity_id,

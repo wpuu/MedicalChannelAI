@@ -1,29 +1,28 @@
-import { useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Clock, Info } from 'lucide-react'
+import { Clock, Info, Radar } from 'lucide-react'
 import { ActionCard } from '@/components/today/ActionCard'
 import { DueRemindersPanel } from '@/components/today/DueRemindersPanel'
 import { MetricCards } from '@/components/today/MetricCards'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { NotFitModal } from '@/components/followup/NotFitModal'
 import { RemindModal } from '@/components/followup/RemindModal'
-import { OutreachDrawer } from '@/components/followup/OutreachDrawer'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
-import {
-  AiDecisionError,
-  aiDecisionErrorMessage,
-  hydrateCachedAiDecisions,
-  requestAiDecision,
-} from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
+import { getOpportunityFeedback } from '@/services/opportunityFeedbackStore'
 import {
   acknowledgeDueReminder,
   getDueReminders,
   type DueReminder,
 } from '@/services/reminderApi'
-import { getRuntimeStatus, type RuntimeStatus } from '@/services/runtimeStatusApi'
+import {
+  getRuntimeStatus,
+  runtimeAutomationUnavailableReason,
+  runtimeSnapshotWarning,
+  type RuntimeStatus,
+} from '@/services/runtimeStatusApi'
 import type {
   FollowupStatus,
   NotFitReason,
@@ -31,6 +30,10 @@ import type {
   TodayActionsResponse,
 } from '@/types'
 import { formatDateTime } from '@/utils/format'
+
+const OutreachDrawer = lazy(() =>
+  import('@/components/followup/OutreachDrawer').then((module) => ({ default: module.OutreachDrawer })),
+)
 
 const DONE_FOR_TODAY = new Set<FollowupStatus>([
   'CONTACTED',
@@ -41,13 +44,24 @@ const DONE_FOR_TODAY = new Set<FollowupStatus>([
   'ARCHIVED',
 ])
 const MAX_TODAY_CARDS = 5
-const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；公开商机和跟进功能不受影响。'
+const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'
 
 function shouldHideFromVerifiedTrialToday(card: TodayActionCard): boolean {
   if (DONE_FOR_TODAY.has(card.followup_status)) return true
-  if (card.followup_status !== 'MONITOR' || !card.remind_at) return false
+  if (!card.remind_at) return false
   const remindAt = new Date(card.remind_at).getTime()
   return !Number.isNaN(remindAt) && remindAt > Date.now()
+}
+
+function localDiscoveryFeedbackBucket(card: TodayActionCard): number {
+  if (card.followup_status !== 'NEW' || card.remind_at) return 0
+  return getOpportunityFeedback(card.opportunity_id) === 'ALREADY_KNOWN' ? 1 : 0
+}
+
+function localFeedbackHidesFromToday(card: TodayActionCard): boolean {
+  return card.followup_status === 'NEW' &&
+    !card.remind_at &&
+    getOpportunityFeedback(card.opportunity_id) === 'NEW_NOT_VALUABLE'
 }
 
 function userCoverageWarning(value: string): string {
@@ -64,6 +78,7 @@ export function TodayPage() {
   const { toast } = useToast()
   const [data, setData] = useState<TodayActionsResponse | null>(null)
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
+  const [runtimeStatusChecked, setRuntimeStatusChecked] = useState(false)
   const [reminders, setReminders] = useState<DueReminder[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -74,19 +89,57 @@ export function TodayPage() {
   const [remindId, setRemindId] = useState<string | null>(null)
   const [outreachId, setOutreachId] = useState<string | null>(null)
 
+  const loadReminders = useCallback(async () => {
+    try {
+      setReminders(await getDueReminders())
+    } catch (cause) {
+      if (isAuthRequiredError(cause)) {
+        navigate('/login', { replace: true })
+        return
+      }
+      setReminders([])
+    }
+  }, [navigate])
+
+  const loadRuntimeStatus = useCallback(() => {
+    if (!isApiMode && !isVerifiedPublicDemo) return
+    void getRuntimeStatus().then((status) => {
+      setRuntimeStatus(status)
+      setRuntimeStatusChecked(true)
+    })
+  }, [])
+
   const load = useCallback(async (silent = false) => {
     if (!silent) {
       setLoading(true)
       setError(null)
     }
+
+    // Reminders and runtime health are auxiliary surfaces. Start them with the
+    // main Today request, but never keep the primary page spinner waiting for
+    // an extra cross-network round trip.
+    void loadReminders()
+    loadRuntimeStatus()
+
     try {
       const res = await todayActionsService.getTodayActions()
       if (!isApiMode && isVerifiedPublicDemo) {
+        // Only the public demo reuses browser-side AI decisions on initial load.
+        // Keep the AI client out of the authenticated Pilot Today bundle until
+        // a Pilot user explicitly asks for analysis.
+        const { hydrateCachedAiDecisions } = await import('@/services/aiDecisionApi')
         const pool = res.opportunity_pool ?? res.cards
         const hydratedPool = await hydrateCachedAiDecisions(pool)
         const cards = hydratedPool
           .filter((card) => !shouldHideFromVerifiedTrialToday(card))
+          .filter((card) => !localFeedbackHidesFromToday(card))
+          .sort((left, right) =>
+            localDiscoveryFeedbackBucket(left) - localDiscoveryFeedbackBucket(right) ||
+            right.priority.score - left.priority.score ||
+            left.rank - right.rank,
+          )
           .slice(0, MAX_TODAY_CARDS)
+          .map((card, index) => ({ ...card, rank: index + 1 }))
         setData({
           ...res,
           matched_count: hydratedPool.length,
@@ -95,21 +148,8 @@ export function TodayPage() {
           cards,
           opportunity_pool: hydratedPool,
         })
-        void getRuntimeStatus().then((status) => {
-          if (status) setRuntimeStatus(status)
-        })
       } else {
         setData(res)
-      }
-
-      try {
-        setReminders(await getDueReminders())
-      } catch (cause) {
-        if (isAuthRequiredError(cause)) {
-          navigate('/login', { replace: true })
-          return
-        }
-        setReminders([])
       }
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
@@ -120,7 +160,7 @@ export function TodayPage() {
     } finally {
       setLoading(false)
     }
-  }, [navigate])
+  }, [loadReminders, loadRuntimeStatus, navigate])
 
   useEffect(() => {
     void load()
@@ -135,10 +175,10 @@ export function TodayPage() {
     try {
       await todayActionsService.updateFollowup(id, { status, ...extra })
       await load(true)
-      if (isApiMode) toast('跟进状态已同步服务器', 'success')
+      if (extra?.remind_at) toast('提醒已设置，当前销售阶段保持不变', 'success')
+      else if (isApiMode) toast('跟进状态已同步服务器', 'success')
       else if (status === 'CONTACTED') toast('已联系，商机已移入“我的跟进”', 'success')
       else if (status === 'NOT_FIT') toast('已标记不适合，记录已保留在“我的跟进”', 'success')
-      else if (status === 'MONITOR' && extra?.remind_at) toast('提醒已设置，提醒前暂不占用今日重点', 'success')
       else toast('跟进状态已更新', 'success')
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
@@ -153,11 +193,16 @@ export function TodayPage() {
 
   const analyzeOpportunity = async (id: string) => {
     const card = data?.cards.find((item) => item.opportunity_id === id)
-    if (!card || !isVerifiedPublicDemo || isApiMode) return
+    const automationUnavailableReason = runtimeAutomationUnavailableReason(
+      runtimeStatus,
+      runtimeStatusChecked,
+    )
+    if (!card || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
+    let aiApi: typeof import('@/services/aiDecisionApi') | null = null
     setAiBusyId(id)
     try {
-      const decision = await requestAiDecision(card)
-      setRuntimeStatus((current) => current ? { ...current, ai: { configured: true } } : current)
+      aiApi = await import('@/services/aiDecisionApi')
+      const decision = await aiApi.requestAiDecision(card)
       setData((current) => {
         if (!current) return current
         const updateCard = (item: TodayActionCard) =>
@@ -172,10 +217,14 @@ export function TodayPage() {
       })
       toast('AI行动建议已生成', 'success')
     } catch (cause) {
-      if (cause instanceof AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
+      if (aiApi && cause instanceof aiApi.AiDecisionError && cause.code === 'AUTH_REQUIRED') {
+        navigate('/login', { replace: true })
+        return
+      }
+      if (aiApi && cause instanceof aiApi.AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
         setRuntimeStatus((current) => current ? { ...current, ai: { configured: false } } : current)
       }
-      toast(aiDecisionErrorMessage(cause))
+      toast(aiApi ? aiApi.aiDecisionErrorMessage(cause) : 'AI分析模块加载失败，请重试')
     } finally {
       setAiBusyId(null)
     }
@@ -208,10 +257,16 @@ export function TodayPage() {
       : data.cards
   const visibleData = { ...data, card_count: visibleCards.length, cards: visibleCards }
   const poolCount = data.opportunity_pool_count ?? data.opportunity_pool?.length ?? data.matched_count
-  const aiUnavailableReason =
-    !isApiMode && isVerifiedPublicDemo && runtimeStatus?.ai.configured === false
+  const automationUnavailableReason = runtimeAutomationUnavailableReason(
+    runtimeStatus,
+    runtimeStatusChecked,
+  )
+  const aiUnavailableReason = automationUnavailableReason || (
+    (isApiMode || isVerifiedPublicDemo) && runtimeStatus?.ai.configured === false
       ? AI_UNCONFIGURED_REASON
       : null
+  )
+  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -233,17 +288,37 @@ export function TodayPage() {
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>{userCoverageWarning(data.coverage_warning)}</span>
           </div>
-          {!isApiMode && isVerifiedPublicDemo && poolCount > visibleCards.length ? (
-            <button
-              type="button"
-              onClick={() => navigate('/opportunities')}
-              className="self-start rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[12px] font-medium text-teal-800 hover:bg-teal-100"
-            >
-              查看全部 {poolCount} 条
-            </button>
-          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {(isApiMode || isVerifiedPublicDemo) ? (
+              <button
+                type="button"
+                onClick={() => navigate('/intent-followup')}
+                title="按需加载完整商机池，核查采购意向及可能的后续正式公告"
+                className="inline-flex self-start items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[12px] font-medium text-amber-800 hover:bg-amber-100"
+              >
+                <Radar className="h-3.5 w-3.5" />
+                采购意向跟进
+              </button>
+            ) : null}
+            {(isApiMode || isVerifiedPublicDemo) && poolCount > visibleCards.length ? (
+              <button
+                type="button"
+                onClick={() => navigate('/opportunities')}
+                className="self-start rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-[12px] font-medium text-teal-800 hover:bg-teal-100"
+              >
+                查看全部 {poolCount} 条
+              </button>
+            ) : null}
+          </div>
         </div>
       </section>
+
+      {snapshotWarning ? (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12px] leading-5 text-amber-900">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{snapshotWarning}</span>
+        </div>
+      ) : null}
 
       {!isApiMode && isVerifiedPublicDemo ? (
         <div className="flex flex-wrap items-center gap-2 px-1 text-[11px] text-slate-500">
@@ -252,7 +327,7 @@ export function TodayPage() {
           {runtimeStatus?.ai.configured ? (
             <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-indigo-700">AI可用</span>
           ) : runtimeStatus?.ai.configured === false ? (
-            <span className="rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700">AI暂不可用</span>
+            <span className="rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700">AI建议按需加载</span>
           ) : null}
         </div>
       ) : null}
@@ -283,9 +358,13 @@ export function TodayPage() {
               onFollow={() => void updateStatus(card.opportunity_id, 'REVIEWING')}
               onNotFit={() => setNotFitId(card.opportunity_id)}
               onRemind={() => setRemindId(card.opportunity_id)}
-              onOutreach={() => setOutreachId(card.opportunity_id)}
-              onAnalyze={isVerifiedPublicDemo && !isApiMode ? () => void analyzeOpportunity(card.opportunity_id) : undefined}
+              onOutreach={() => {
+                if (!automationUnavailableReason) setOutreachId(card.opportunity_id)
+              }}
+              onAnalyze={isApiMode || isVerifiedPublicDemo ? () => void analyzeOpportunity(card.opportunity_id) : undefined}
+              onFeedbackChanged={() => load(true)}
               analysisUnavailableReason={aiUnavailableReason}
+              automationUnavailableReason={automationUnavailableReason}
             />
           ))}
         </div>
@@ -304,14 +383,26 @@ export function TodayPage() {
       <RemindModal
         open={Boolean(remindId)}
         onClose={() => setRemindId(null)}
-        onConfirm={(remindAt) => {
-          if (!remindId) return
+        onConfirm={(remindAt, nextAction) => {
+          if (!remindId || !data) return
           const id = remindId
+          const currentCard = (data.opportunity_pool ?? data.cards).find(
+            (item) => item.opportunity_id === id,
+          )
           setRemindId(null)
-          void updateStatus(id, 'MONITOR', { remind_at: remindAt, note: '稍后提醒' })
+          void updateStatus(id, currentCard?.followup_status ?? 'NEW', {
+            remind_at: remindAt,
+            note: nextAction
+              ? `下次行动：${nextAction}`
+              : '设置下次跟进提醒；销售阶段保持不变。',
+          })
         }}
       />
-      <OutreachDrawer open={Boolean(outreachId)} opportunityId={outreachId} onClose={() => setOutreachId(null)} />
+      {outreachId ? (
+        <Suspense fallback={null}>
+          <OutreachDrawer open opportunityId={outreachId} onClose={() => setOutreachId(null)} />
+        </Suspense>
+      ) : null}
     </div>
   )
 }

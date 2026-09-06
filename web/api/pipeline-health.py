@@ -1,15 +1,22 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
+from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_ROOT = PROJECT_ROOT / 'pipeline'
+BUNDLED_SNAPSHOT_PATH = PROJECT_ROOT / 'public' / 'data' / 'today-actions.public.json'
+MAX_VERIFIED_SNAPSHOT_AGE_SECONDS = 30 * 60 * 60
+sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 try:
+    from collector_namespace import LATEST_RUNTIME_SNAPSHOT_KEY
     from medical_channel_pipeline import build_public_snapshot
     from medical_channel_pipeline.validation import validate_record
     from vercel.functions import RuntimeCache
@@ -22,6 +29,7 @@ except Exception:
     _DATA_OK = False
     _CACHE_IMPORT_OK = False
     RuntimeCache = None  # type: ignore[assignment,misc]
+    LATEST_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:latest:v2'
 
 
 def cache_roundtrip() -> bool:
@@ -38,6 +46,58 @@ def cache_roundtrip() -> bool:
         return False
 
 
+def cron_secret_state() -> tuple[bool, bool]:
+    configured = bool(str(os.environ.get('CRON_SECRET') or '').strip())
+    required = str(os.environ.get('VERCEL_ENV') or '').strip().lower() == 'production'
+    return configured, required
+
+
+def _snapshot_time(value: Any) -> datetime | None:
+    if not isinstance(value, dict):
+        return None
+    raw = str(value.get('snapshot_as_of') or '').strip()
+    if not raw:
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace('Z', '+00:00'))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed.astimezone(timezone.utc)
+
+
+def _bundled_snapshot() -> dict[str, Any] | None:
+    try:
+        value = json.loads(BUNDLED_SNAPSHOT_PATH.read_text(encoding='utf-8'))
+    except Exception:
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def verified_snapshot_freshness() -> tuple[bool, str | None, int | None]:
+    candidates: list[tuple[str, datetime]] = []
+    if _CACHE_IMPORT_OK and RuntimeCache is not None:
+        try:
+            runtime_value = RuntimeCache().get(LATEST_RUNTIME_SNAPSHOT_KEY)
+            runtime_time = _snapshot_time(runtime_value)
+            if runtime_time is not None:
+                candidates.append(('RUNTIME_CACHE_V2', runtime_time))
+        except Exception:
+            pass
+
+    bundled_time = _snapshot_time(_bundled_snapshot())
+    if bundled_time is not None:
+        candidates.append(('BUNDLED_SNAPSHOT', bundled_time))
+
+    if not candidates:
+        return False, None, None
+
+    source, latest = max(candidates, key=lambda item: item[1])
+    age_seconds = max(0, int((datetime.now(timezone.utc) - latest).total_seconds()))
+    return age_seconds <= MAX_VERIFIED_SNAPSHOT_AGE_SECONDS, source, age_seconds
+
+
 class handler(BaseHTTPRequestHandler):
     def _send_json(self, status: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode('utf-8')
@@ -51,7 +111,11 @@ class handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         cache_ok = cache_roundtrip()
-        ready = bool(_IMPORT_OK and _DATA_OK and cache_ok)
+        cron_secret_configured, production_mode = cron_secret_state()
+        cron_ready = cron_secret_configured or not production_mode
+        snapshot_fresh, snapshot_source, snapshot_age_seconds = verified_snapshot_freshness()
+        snapshot_ready = snapshot_fresh or not production_mode
+        ready = bool(_IMPORT_OK and _DATA_OK and cache_ok and cron_ready and snapshot_ready)
         self._send_json(
             200 if ready else 503,
             {
@@ -62,6 +126,13 @@ class handler(BaseHTTPRequestHandler):
                     'module_import': bool(_IMPORT_OK),
                     'data_bundle': bool(_DATA_OK),
                     'runtime_cache': cache_ok,
+                    'cron_secret_configured': cron_secret_configured,
+                    'cron_secret_required': production_mode,
+                    'verified_snapshot_fresh': snapshot_fresh,
+                    'verified_snapshot_freshness_required': production_mode,
+                    'verified_snapshot_source': snapshot_source,
+                    'verified_snapshot_age_seconds': snapshot_age_seconds,
+                    'verified_snapshot_max_age_seconds': MAX_VERIFIED_SNAPSHOT_AGE_SECONDS,
                 },
             },
         )

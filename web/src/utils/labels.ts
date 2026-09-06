@@ -32,11 +32,39 @@ export const NOT_FIT_REASONS = [
   '其他',
 ] as const
 
+export const LOST_REASONS = [
+  '价格/报价竞争失败',
+  '产品或参数不匹配',
+  '厂家/授权资源不足',
+  '医院关系不足',
+  '介入时间太晚',
+  '竞争对手优势明显',
+  '投标/响应执行失败',
+  '客户需求或项目变化',
+  '主动放弃',
+  '其他',
+] as const
+
+export const WON_REASONS = [
+  '产品或参数匹配',
+  '厂家/授权资源有优势',
+  '医院关系或沟通推进有效',
+  '价格或商务条件有优势',
+  '介入时机合适',
+  '投标/响应执行到位',
+  '方案与客户需求匹配',
+  '其他',
+] as const
+
 export const PRIORITY_COMPONENT_LABEL: Record<string, string> = {
   PRODUCT_EXECUTION_CAPABILITY: '产品执行能力',
   RELATIONSHIP: '医院关系',
-  INTERVENTION_STAGE: '介入阶段',
+  EXECUTION_FLEXIBILITY: '找货/合作执行能力',
+  INTERVENTION_STAGE: '可介入阶段',
+  DEADLINE_URGENCY: '截止时间紧迫度',
   PROJECT_AMOUNT: '项目金额',
+  PRODUCT_SPECIFICITY: '产品与采购信息明确度',
+  PUBLICATION_FRESHNESS: '信息新鲜度',
 }
 
 export const RELATIONSHIP_LABEL: Record<RelationshipStrength, string> = {
@@ -49,7 +77,7 @@ export const RELATIONSHIP_LABEL: Record<RelationshipStrength, string> = {
 }
 
 export const CAPABILITY_LABEL: Record<CapabilityType, string> = {
-  DIRECT: '可直接参与',
+  DIRECT: '有直接产品能力，授权待确认',
   NEED_MANUFACTURER: '需临时寻找厂家',
   PARTNER: '可联合其他渠道商',
   DIRECT_AUTHORIZED: '已授权，可直接参与',
@@ -68,8 +96,8 @@ export const MODEL_STATUS_COPY: Record<
     hint: '基于已提供的公开事实与客户自有资源生成，不代表中标预测。',
   },
   AWAITING_MODEL: {
-    title: 'AI分析排队中',
-    hint: '系统正在等待分析完成，完成后将给出可执行的下一步建议。',
+    title: '可按需进行AI分析',
+    hint: '尚未发起AI请求。需要时由你主动分析这条商机，不会在后台自动消耗额度。',
   },
   BLOCKED_GROUNDING: {
     title: '公开依据不足，暂不生成AI建议',
