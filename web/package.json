@@ -7,14 +7,13 @@
     "dev": "vite",
     "verify": "node scripts/run-prebuild.mjs && tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "build": "node scripts/run-prebuild.mjs && tsc --noEmit && vite build",
+    "build": "node scripts/run-prebuild.mjs && node scripts/preview-ai-build-selftest.mjs && tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@vercel/functions": "3.9.5",
     "clsx": "2.1.1",
     "lucide-react": "^1.37.0",
-    "postgres": "3.4.7",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "react-router-dom": "^7.18.3",
