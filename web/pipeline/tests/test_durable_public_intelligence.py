@@ -63,6 +63,13 @@ class DurablePublicIntelligenceTests(unittest.TestCase):
         self.assertIn("briefType: 'PUBLIC_ACTION_DECISION'", core)
         self.assertIn('promptVersion: PUBLIC_AI_PROMPT_VERSION', core)
 
+    def test_provider_result_is_memoized_across_durable_cache_fallback(self) -> None:
+        core = (WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js').read_text(encoding='utf-8')
+        self.assertIn('let createPromise = null', core)
+        self.assertIn('if (!createPromise)', core)
+        self.assertIn('createPromise = getOrCreateWarmDecision(', core)
+        self.assertIn('max_tokens: 900', core)
+
     def test_shared_public_ai_table_contains_no_account_scope(self) -> None:
         source = (WEB_ROOT / 'api' / '_publicIntelligenceDb.js').read_text(encoding='utf-8')
         start = source.index('CREATE TABLE IF NOT EXISTS public_ai_briefs')
