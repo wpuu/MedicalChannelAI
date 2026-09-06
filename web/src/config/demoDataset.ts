@@ -1,3 +1,5 @@
+import { publicOpenMode } from './publicOpenMode'
+
 const env = (import.meta as ImportMeta & {
   env?: Record<string, string | undefined>
 }).env
@@ -13,5 +15,5 @@ const raw = env?.VITE_DEMO_DATASET?.trim()?.toLowerCase() ?? ''
  * verified: procurement facts come from the evidence-pipeline public snapshot;
  *           customer relationship/product capability remains empty until real customer data is supplied.
  */
-export const demoDatasetMode: DemoDatasetMode = raw === 'verified' ? 'verified' : 'synthetic'
+export const demoDatasetMode: DemoDatasetMode = publicOpenMode || raw === 'verified' ? 'verified' : 'synthetic'
 export const isVerifiedPublicDemo = demoDatasetMode === 'verified'

@@ -44,7 +44,7 @@ const DONE_FOR_TODAY = new Set<FollowupStatus>([
   'ARCHIVED',
 ])
 const MAX_TODAY_CARDS = 5
-const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；公开商机和跟进功能不受影响。'
+const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'
 
 function shouldHideFromVerifiedTrialToday(card: TodayActionCard): boolean {
   if (DONE_FOR_TODAY.has(card.followup_status)) return true
@@ -327,7 +327,7 @@ export function TodayPage() {
           {runtimeStatus?.ai.configured ? (
             <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-indigo-700">AI可用</span>
           ) : runtimeStatus?.ai.configured === false ? (
-            <span className="rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700">AI暂不可用</span>
+            <span className="rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700">AI建议按需加载</span>
           ) : null}
         </div>
       ) : null}

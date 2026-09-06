@@ -27,9 +27,8 @@ function routeName(request) {
 }
 
 function privatePilotEnabled() {
-  return ['1', 'true', 'yes', 'on'].includes(
-    String(process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED || '').trim().toLowerCase(),
-  )
+  // Public launch phase: use verified public facts without an account gate.
+  return false
 }
 
 function asObject(value) {

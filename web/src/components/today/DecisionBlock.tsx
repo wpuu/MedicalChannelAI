@@ -122,7 +122,7 @@ export function DecisionBlock({
                     : hasCustomerContext
                       ? '结合我的资源分析'
                       : analysisUnavailableReason
-                        ? '重试AI分析'
+                        ? '获取AI建议'
                         : '用AI分析这条'}
             </button>
           ) : null}

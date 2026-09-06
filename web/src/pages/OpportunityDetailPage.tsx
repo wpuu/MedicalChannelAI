@@ -41,7 +41,7 @@ import {
 } from '@/services/runtimeStatusApi'
 import type { FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
 
-const AI_UNCONFIGURED_REASON = 'AI暂时不可用，可稍后重试；其他功能正常。'
+const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'
 
 export function OpportunityDetailPage() {
   const { id } = useParams()

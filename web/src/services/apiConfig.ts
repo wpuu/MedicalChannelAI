@@ -1,3 +1,5 @@
+import { publicOpenMode } from '@/config/publicOpenMode'
+
 const env = (import.meta as ImportMeta & {
   env?: Record<string, string | undefined>
 }).env
@@ -5,18 +7,22 @@ const env = (import.meta as ImportMeta & {
 export type WebBuildMode = 'demo' | 'pilot' | 'unspecified'
 
 const rawBuildMode = env?.VITE_BUILD_MODE?.trim()?.toLowerCase() ?? ''
-export const webBuildMode: WebBuildMode =
-  rawBuildMode === 'demo' || rawBuildMode === 'pilot' ? rawBuildMode : 'unspecified'
+export const webBuildMode: WebBuildMode = publicOpenMode
+  ? 'demo'
+  : rawBuildMode === 'demo' || rawBuildMode === 'pilot'
+    ? rawBuildMode
+    : 'unspecified'
 
-export const apiBaseUrl = env?.VITE_API_BASE_URL?.trim()?.replace(/\/+$/, '') ?? ''
+const configuredApiBaseUrl = env?.VITE_API_BASE_URL?.trim()?.replace(/\/+$/, '') ?? ''
+export const apiBaseUrl = publicOpenMode ? '' : configuredApiBaseUrl
 export const isApiMode = apiBaseUrl.length > 0
 export const PILOT_SESSION_CHANGE_KEY = 'medicalchannelai.pilot.session-change.v1'
 const AUTH_HANDOFF_TTL_MS = 10_000
 
-if (webBuildMode === 'demo' && isApiMode) {
+if (!publicOpenMode && webBuildMode === 'demo' && isApiMode) {
   throw new Error('WEB_BUILD_MODE_MISMATCH: demo build must not configure VITE_API_BASE_URL')
 }
-if (webBuildMode === 'pilot' && apiBaseUrl !== '/api') {
+if (!publicOpenMode && webBuildMode === 'pilot' && apiBaseUrl !== '/api') {
   throw new Error('WEB_BUILD_MODE_MISMATCH: pilot build requires VITE_API_BASE_URL=/api')
 }
 
