@@ -1,6 +1,4 @@
 import { spawnSync } from 'node:child_process'
-import { generateKeyPairSync } from 'node:crypto'
-import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -8,32 +6,6 @@ const scriptDir = dirname(fileURLToPath(import.meta.url))
 const pipelineDir = resolve(scriptDir, '../pipeline')
 const unittestArgs = ['-m', 'unittest', 'discover', '-s', 'tests', '-v']
 const refreshArgs = ['scripts/refresh_bundled_snapshot.py']
-
-function preparePreviewAiSelftestEnvelope() {
-  const isValidationPreview =
-    String(process.env.VERCEL_ENV || '').trim() === 'preview' &&
-    String(process.env.VERCEL_GIT_COMMIT_REF || '').trim() === 'chatgpt/preview-54495b1'
-  if (!isValidationPreview) return
-
-  const { privateKey, publicKey } = generateKeyPairSync('rsa', {
-    modulusLength: 2048,
-    publicKeyEncoding: { type: 'spki', format: 'pem' },
-    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-  })
-  const modulePath = resolve(scriptDir, '../api/_previewAiSelftestKey.js')
-  writeFileSync(
-    modulePath,
-    [
-      '// Generated only inside the temporary protected Preview build workspace.',
-      `export const previewAiSelftestPrivateKey = ${JSON.stringify(privateKey)}`,
-      `export const previewAiSelftestPublicKey = ${JSON.stringify(publicKey)}`,
-      '',
-    ].join('\n'),
-    { mode: 0o600 },
-  )
-  console.log('Preview AI selftest envelope: PREPARED')
-  console.log(`PREVIEW_AI_SELFTEST_PUBLIC_KEY_B64=${Buffer.from(publicKey, 'utf8').toString('base64')}`)
-}
 
 function verifyPilotDeploymentEnvironment() {
   const buildMode = String(process.env.VITE_BUILD_MODE || '').trim().toLowerCase()
@@ -76,6 +48,12 @@ function verifyPreviewSmokeSyntax() {
 }
 
 async function verifyAiBoundaryWithoutDatabaseSideEffects() {
+  // check-ai-boundary.mjs validates provider retry/rate-limit behavior using a
+  // global fetch stub. A configured Neon/Postgres environment enables the
+  // optional durable shared-public cache first; its database transport then
+  // consumes the same fetch stub and makes provider-attempt assertions depend
+  // on the build environment. The durable-cache path has its own contract
+  // tests, so isolate this provider-boundary check from database configuration.
   const savedDatabaseUrl = process.env.DATABASE_URL
   const savedPostgresUrl = process.env.POSTGRES_URL
   process.env.DATABASE_URL = ''
@@ -90,7 +68,6 @@ async function verifyAiBoundaryWithoutDatabaseSideEffects() {
   }
 }
 
-preparePreviewAiSelftestEnvelope()
 verifyPilotDeploymentEnvironment()
 verifyPreviewSmokeSyntax()
 

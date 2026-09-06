@@ -7,7 +7,7 @@
     "dev": "vite",
     "verify": "node scripts/run-prebuild.mjs && tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "build": "npm install postgres@3.4.7 --no-save --ignore-scripts && node scripts/run-prebuild.mjs && node scripts/preview-ai-build-selftest.mjs && tsc --noEmit && vite build",
+    "build": "node scripts/run-prebuild.mjs && tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
