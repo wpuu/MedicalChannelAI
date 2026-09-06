@@ -443,7 +443,7 @@ async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerCont
         model: MODEL_ID,
         messages: buildDecisionMessages(facts, evidenceUrls, customerContext, windowStatus, analysisAsOf),
         temperature: 0.1,
-        max_tokens: 160,
+        max_tokens: 900,
         stream: false,
       }),
     })
@@ -512,7 +512,13 @@ async function getOrCreateDecision({
   request,
   sharedPublic,
 }) {
-  const createResult = () => getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request)
+  let createPromise = null
+  const createResult = () => {
+    if (!createPromise) {
+      createPromise = getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request)
+    }
+    return createPromise
+  }
   if (!sharedPublic) {
     return {
       decision: await createResult(),
