@@ -30,105 +30,86 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           core_path = Path('web/api/ai/_analyzeCore.js')
           core = core_path.read_text(encoding='utf-8')
 
-          old_create = """  const createResult = () => {
-            if (!createPromise) {
-              createPromise = getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request)
-            }
-            return createPromise
-          }
-          """
-          new_create = """  const createResult = () => {
-            if (keys.length === 0) {
-              const error = new Error('AI_NOT_CONFIGURED')
-              error.code = 'AI_NOT_CONFIGURED'
-              throw error
-            }
-            if (!createPromise) {
-              createPromise = getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request)
-            }
-            return createPromise
-          }
-          """
-          if old_create not in core:
-              raise SystemExit('createResult target not found')
-          core = core.replace(old_create, new_create, 1)
+          create_marker = "  const createResult = () => {\n"
+          if core.count(create_marker) != 1:
+              raise SystemExit(f'createResult marker count={core.count(create_marker)}')
+          core = core.replace(
+              create_marker,
+              create_marker
+              + "    if (keys.length === 0) {\n"
+              + "      const error = new Error('AI_NOT_CONFIGURED')\n"
+              + "      error.code = 'AI_NOT_CONFIGURED'\n"
+              + "      throw error\n"
+              + "    }\n",
+              1,
+          )
 
-          old_guard = """  const keys = getApiKeys()
-          if (keys.length === 0) return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })
+          early_guard = "  if (keys.length === 0) return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })\n"
+          if core.count(early_guard) != 1:
+              raise SystemExit(f'early key guard count={core.count(early_guard)}')
+          core = core.replace(early_guard, '', 1)
 
-          const baseUrl = (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim()
-          """
-          new_guard = """  const keys = getApiKeys()
-          const baseUrl = (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim()
-          """
-          if old_guard not in core:
-              raise SystemExit('early key guard target not found')
-          core = core.replace(old_guard, new_guard, 1)
-
-          old_catch = """  } catch (error) {
-            const status = Number(error?.status)
-            if (error?.code === 'AI_RESPONSE_INVALID') return sendJson(response, 502, { error: 'AI_RESPONSE_INVALID' })
-          """
-          new_catch = """  } catch (error) {
-            const status = Number(error?.status)
-            if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })
-            if (error?.code === 'AI_RESPONSE_INVALID') return sendJson(response, 502, { error: 'AI_RESPONSE_INVALID' })
-          """
-          if old_catch not in core:
-              raise SystemExit('catch target not found')
-          core = core.replace(old_catch, new_catch, 1)
+          status_line = "    const status = Number(error?.status)\n"
+          catch_at = core.rfind(status_line)
+          if catch_at < 0:
+              raise SystemExit('final catch status line not found')
+          insert_at = catch_at + len(status_line)
+          core = (
+              core[:insert_at]
+              + "    if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })\n"
+              + core[insert_at:]
+          )
           core_path.write_text(core, encoding='utf-8')
 
           today_path = Path('web/src/pages/TodayPage.tsx')
           today = today_path.read_text(encoding='utf-8')
-          old_today = """      setRuntimeStatus((current) => current ? { ...current, ai: { configured: true } } : current)
-          """
-          if old_today not in today:
-              raise SystemExit('Today configured=true target not found')
-          today = today.replace(old_today, '', 1)
-          today_path.write_text(today, encoding='utf-8')
+          false_provider_line = "      setRuntimeStatus((current) => current ? { ...current, ai: { configured: true } } : current)\n"
+          if today.count(false_provider_line) != 1:
+              raise SystemExit(f'Today configured=true count={today.count(false_provider_line)}')
+          today_path.write_text(today.replace(false_provider_line, '', 1), encoding='utf-8')
 
           detail_path = Path('web/src/pages/OpportunityDetailPage.tsx')
           detail = detail_path.read_text(encoding='utf-8')
-          old_detail = """      setRuntimeStatus((current) =>
-            current ? { ...current, ai: { configured: true } } : current,
+          detail, detail_count = re.subn(
+              r"\n      setRuntimeStatus\(\(current\) =>\n        current \? \{ \.\.\.current, ai: \{ configured: true \} \} : current,\n      \)\n",
+              "\n",
+              detail,
+              count=1,
           )
-          """
-          if old_detail not in detail:
-              raise SystemExit('Detail configured=true target not found')
-          detail = detail.replace(old_detail, '', 1)
+          if detail_count != 1:
+              raise SystemExit(f'Detail configured=true count={detail_count}')
           detail_path.write_text(detail, encoding='utf-8')
 
           test_path = Path('web/pipeline/tests/test_durable_public_intelligence.py')
           tests = test_path.read_text(encoding='utf-8')
-          anchor = """    def test_shared_public_ai_table_contains_no_account_scope(self) -> None:
-          """
-          new_test = """    def test_cached_public_ai_can_render_without_provider_key_or_false_status(self) -> None:
-              core = (WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js').read_text(encoding='utf-8')
-              db = (WEB_ROOT / 'api' / '_publicIntelligenceDb.js').read_text(encoding='utf-8')
-              today = (WEB_ROOT / 'src' / 'pages' / 'TodayPage.tsx').read_text(encoding='utf-8')
-              detail = (WEB_ROOT / 'src' / 'pages' / 'OpportunityDetailPage.tsx').read_text(encoding='utf-8')
-
-              self.assertNotIn("if (keys.length === 0) return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })", core)
-              create_start = core.index('const createResult = () => {')
-              create_end = core.index('if (!sharedPublic)', create_start)
-              create_block = core[create_start:create_end]
-              self.assertIn('if (keys.length === 0)', create_block)
-              self.assertIn("error.code = 'AI_NOT_CONFIGURED'", create_block)
-              self.assertIn("if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503", core)
-              self.assertLess(db.index('if (cached[0])'), db.index('createdResult = await createResult()'))
-              self.assertNotIn('ai: { configured: true }', today)
-              self.assertNotIn('ai: { configured: true }', detail)
-
-          """
-          if anchor not in tests:
-              raise SystemExit('test insertion anchor not found')
-          tests = tests.replace(anchor, new_test + anchor, 1)
-          test_path.write_text(tests, encoding='utf-8')
+          anchor = "    def test_shared_public_ai_table_contains_no_account_scope(self) -> None:\n"
+          if tests.count(anchor) != 1:
+              raise SystemExit(f'test insertion anchor count={tests.count(anchor)}')
+          new_test = (
+              "    def test_cached_public_ai_can_render_without_provider_key_or_false_status(self) -> None:\n"
+              "        core = (WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js').read_text(encoding='utf-8')\n"
+              "        db = (WEB_ROOT / 'api' / '_publicIntelligenceDb.js').read_text(encoding='utf-8')\n"
+              "        today = (WEB_ROOT / 'src' / 'pages' / 'TodayPage.tsx').read_text(encoding='utf-8')\n"
+              "        detail = (WEB_ROOT / 'src' / 'pages' / 'OpportunityDetailPage.tsx').read_text(encoding='utf-8')\n"
+              "\n"
+              "        self.assertNotIn(\"if (keys.length === 0) return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })\", core)\n"
+              "        create_start = core.index('const createResult = () => {')\n"
+              "        create_end = core.index('if (!sharedPublic)', create_start)\n"
+              "        create_block = core[create_start:create_end]\n"
+              "        self.assertIn('if (keys.length === 0)', create_block)\n"
+              "        self.assertIn(\"error.code = 'AI_NOT_CONFIGURED'\", create_block)\n"
+              "        self.assertIn(\"if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503\", core)\n"
+              "        self.assertLess(db.index('if (cached[0])'), db.index('createdResult = await createResult()'))\n"
+              "        self.assertNotIn('ai: { configured: true }', today)\n"
+              "        self.assertNotIn('ai: { configured: true }', detail)\n"
+              "\n"
+          )
+          test_path.write_text(tests.replace(anchor, new_test + anchor, 1), encoding='utf-8')
           PY
 
           rm .github/workflows/patch-cache-first-ai.yml
