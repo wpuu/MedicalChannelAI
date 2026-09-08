@@ -13,6 +13,10 @@
     "内镜",
     "内窥",
     "病理",
+    "质谱",
+    "液质联用",
+    "液相色谱",
+    "色谱",
     "流式细胞仪",
     "灭菌器",
     "测序",
@@ -40,19 +44,15 @@
     "康复设备",
     "胃肠动力",
     "心电",
-    "脑电"
+    "脑电",
+    "人工智能",
+    "算力"
   ],
   "contextual_terms": [
     "检验",
     "检测",
     "实验室",
-    "耗材",
-    "质谱",
-    "液质联用",
-    "液相色谱",
-    "色谱",
-    "人工智能",
-    "算力"
+    "耗材"
   ],
   "medical_context_terms": [
     "医院",
@@ -87,8 +87,8 @@
     "装修改造",
     "人才培养"
   ],
-  "acronyms": ["CT", "DR", "MRI", "DSA", "PCR", "POCT", "IVD", "LIS", "PACS", "RIS", "HIS"],
-  "contextual_acronyms": ["GPU"],
+  "acronyms": ["CT", "DR", "MRI", "DSA", "PCR", "POCT", "IVD", "LIS", "PACS", "RIS", "HIS", "GPU"],
+  "contextual_acronyms": [],
   "policy": {
     "buyer_or_hospital_name_alone_is_not_relevance_evidence": true,
     "generic_signal_requires_medical_context": true,
