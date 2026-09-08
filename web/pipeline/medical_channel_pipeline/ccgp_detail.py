@@ -161,15 +161,31 @@ def _extract_publish_date(text: str) -> str:
 
 
 def _extract_registration_deadline(text: str) -> str:
+    # Liaoning's official procurement template commonly numbers this as
+    # section four and publishes exact start/end datetimes instead of a
+    # daily business-hours schedule. Prefer that exact official end time.
+    direct_patterns = [
+        r"(?:三|四)[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
+        r"20\d{2}年\d{1,2}月\d{1,2}日\s*\d{1,2}\s*(?:时|点)\s*\d{1,2}\s*分?\s*(?:到|至)\s*"
+        r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*(\d{1,2})\s*(?:时|点)\s*(\d{1,2})\s*分?",
+        r"(?:三|四)[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
+        r"20\d{2}年\d{1,2}月\d{1,2}日\s*\d{1,2}\s*[：:]\s*\d{2}\s*(?:到|至)\s*"
+        r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*(\d{1,2})\s*[：:]\s*(\d{2})",
+    ]
+    for pattern in direct_patterns:
+        direct = re.search(pattern, text, re.S)
+        if direct:
+            return _datetime_from_cn(*direct.groups())
+
     patterns = [
-        r"三[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
+        r"(?:三|四)[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
         r"20\d{2}年\d{1,2}月\d{1,2}日\s*(?:到|至)\s*"
         r"(20\d{2})年(\d{1,2})月(\d{1,2})日"
-        r"(.+?)(?:地点\s*[：:]|四[、.])",
-        r"三[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
+        r"(.+?)(?:地点\s*[：:]|(?:四|五)[、.])",
+        r"(?:三|四)[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
         r"20\d{2}-\d{1,2}-\d{1,2}\s*(?:到|至)\s*"
         r"(20\d{2})-(\d{1,2})-(\d{1,2})"
-        r"(.+?)(?:地点\s*[：:]|四[、.])",
+        r"(.+?)(?:地点\s*[：:]|(?:四|五)[、.])",
     ]
     section = None
     for pattern in patterns:
@@ -193,10 +209,9 @@ def _extract_registration_deadline(text: str) -> str:
         hour, minute = times[-1]
     return _datetime_from_cn(year, month, day, hour, minute)
 
-
 def _extract_bid_deadline(text: str) -> str:
     prefix = (
-        r"四[、.]\s*提交投标文件截止时间、开标时间和地点\s*"
+        r"(?:四|五)[、.]\s*提交投标文件截止时间、开标时间和地点\s*"
         r"(?:(?:提交投标文件截止时间|截止时间)\s*[：:]\s*)?"
     )
     patterns = [
@@ -346,7 +361,7 @@ def _build_verified_record(
         ("facts.lifecycle_state", f"公告类型={notice_type}/确定性生命周期映射"),
         ("facts.notice_type", f"公告类型/{notice_type}"),
         ("facts.published_at", "公告发布日期"),
-        ("facts.registration_deadline", "三、获取采购文件/时间" if procurement_method != "公开招标" else "三、获取招标文件/时间"),
+        ("facts.registration_deadline", "获取采购文件/时间" if procurement_method != "公开招标" else "获取招标文件/时间"),
         ("facts.bid_deadline", deadline_locator),
         ("facts.procurement_method", f"公告类型={notice_type}/确定性采购方式映射"),
     ]
@@ -405,7 +420,7 @@ def parse_ccgp_public_tender_text(
         public_contact=_extract_contact(normalized),
         notice_type="公开招标公告",
         procurement_method="公开招标",
-        deadline_locator="四、提交投标文件截止时间、开标时间和地点",
+        deadline_locator="提交投标文件截止时间、开标时间和地点",
     )
 
 
