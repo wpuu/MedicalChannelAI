@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import {
   filterSnapshotToMedicalChannel,
+  isMedicalChannelRelevantCard,
   isMedicalChannelRelevantText,
 } from '../api/_medicalChannelScope.js'
 
@@ -17,9 +18,38 @@ for (const title of [
   '天津中医药大学第二附属医院安保服务项目',
   '天津市海河医院战略型复合人才培养项目',
   '西青区卫生健康基层医疗卫生机构财务信息化管理项目',
+  '计量专业检验检测设备更新项目',
+  '2026-2027年度拟外委托检验检测项目',
 ]) {
   assert.equal(isMedicalChannelRelevantText(title), false, `scope should exclude: ${title}`)
 }
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '检验检测仪器设备更新项目-2',
+    buyer_name: '黑龙江省药品检验研究院',
+    product_categories: [],
+    product_items: [],
+  },
+}), true)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '办公耗材',
+    buyer_name: '北京中医药大学东方医院秦皇岛医院（秦皇岛市中医医院）',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '2026-2027年度拟外委托检验检测项目',
+    buyer_name: '自然资源部大连海洋中心（自然资源部大连海洋预报台）',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
 
 const card = (id, title, rank) => ({ opportunity_id: id, rank, facts: { project_name: title, product_categories: [], product_items: [] } })
 const filtered = filterSnapshotToMedicalChannel({
