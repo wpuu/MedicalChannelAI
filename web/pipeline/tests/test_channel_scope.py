@@ -57,6 +57,73 @@ class MedicalChannelScopeTests(unittest.TestCase):
         }
         self.assertFalse(is_medical_channel_relevant_record(record))
 
+    def test_generic_inspection_keywords_require_medical_context(self) -> None:
+        non_medical_records = [
+            {
+                "facts": {
+                    "project_name": "计量专业检验检测设备更新项目",
+                    "buyer_name": "北京市计量检测科学研究院",
+                    "hospital_name": None,
+                    "department": None,
+                    "product_categories": [],
+                    "product_items": [],
+                }
+            },
+            {
+                "facts": {
+                    "project_name": "2026-2027年度拟外委托检验检测项目",
+                    "buyer_name": "自然资源部大连海洋中心（自然资源部大连海洋预报台）",
+                    "hospital_name": None,
+                    "department": None,
+                    "product_categories": [],
+                    "product_items": [],
+                }
+            },
+        ]
+        for record in non_medical_records:
+            with self.subTest(project=record["facts"]["project_name"]):
+                self.assertFalse(is_medical_channel_relevant_record(record))
+
+    def test_contextual_lab_terms_are_kept_for_medical_buyers(self) -> None:
+        records = [
+            {
+                "facts": {
+                    "project_name": "检验检测仪器设备更新项目-2",
+                    "buyer_name": "黑龙江省药品检验研究院",
+                    "hospital_name": None,
+                    "department": None,
+                    "product_categories": [],
+                    "product_items": [],
+                }
+            },
+            {
+                "facts": {
+                    "project_name": "实验室仪器设备采购项目",
+                    "buyer_name": "某市中心医院",
+                    "hospital_name": "某市中心医院",
+                    "department": None,
+                    "product_categories": [],
+                    "product_items": [],
+                }
+            },
+        ]
+        for record in records:
+            with self.subTest(project=record["facts"]["project_name"]):
+                self.assertTrue(is_medical_channel_relevant_record(record))
+
+    def test_office_consumables_remain_out_even_for_hospital_buyer(self) -> None:
+        record = {
+            "facts": {
+                "project_name": "办公耗材",
+                "buyer_name": "北京中医药大学东方医院秦皇岛医院（秦皇岛市中医医院）",
+                "hospital_name": None,
+                "department": None,
+                "product_categories": [],
+                "product_items": [],
+            }
+        }
+        self.assertFalse(is_medical_channel_relevant_record(record))
+
     def test_public_snapshot_filters_generic_hospital_procurement_but_keeps_gpu_ai(self) -> None:
         records = json.loads(SEED.read_text(encoding="utf-8"))
         generic = copy.deepcopy(records[0])
