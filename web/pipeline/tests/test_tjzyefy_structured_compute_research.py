@@ -52,6 +52,8 @@ class TjzyefyStructuredComputeResearchTests(unittest.TestCase):
             [item['raw_name'] for item in facts['product_items']],
             ['算力服务器', '存储服务器', '数据专线'],
         )
+        self.assertIn('医疗影像分析', facts['product_items'][0]['specification'])
+        self.assertIn('医疗影像', facts['product_items'][1]['specification'])
         self.assertEqual(facts['public_contact']['name'], '王老师')
         self.assertEqual(facts['public_contact']['phone'], '022-60637725')
         self.assertEqual(facts['public_contact']['email'], 'zyefyxxzx@163.com')
@@ -60,6 +62,28 @@ class TjzyefyStructuredComputeResearchTests(unittest.TestCase):
         )
         self.assertIn('核心需求清单', lifecycle_evidence['locator'])
         self.assertNotIn('院内调研；', lifecycle_evidence['locator'])
+
+    def test_structured_nonmedical_compute_body_is_rejected(self) -> None:
+        html = page(
+            '一、项目背景与目标 为满足通用科研计算和信息化基础设施扩容需求。'
+            '三、核心需求清单 '
+            '1. 算力服务器（1台）：用于通用大模型训练和高并发计算。 '
+            '2. 存储服务器（1台）：用于通用数据归档和备份。 '
+            '3. 数据专线（1条）：建设数据中心点对点专线。 '
+            '四、供应商资质与服务要求 数据安全须满足相关要求。 '
+            '六、时间安排 方案报送截止：2026年8月14日17:00前 '
+            '七、联系方式 技术咨询：022-60637725 王老师'
+        )
+        with self.assertRaisesRegex(TjzyefyParseError, 'TJZYEFY_NON_MEDICAL_RESEARCH'):
+            parse_tjzyefy_market_research(
+                html,
+                source_url=SOURCE_URL,
+                index_url=INDEX_URL,
+                index_published_at='2026-08-10',
+                expected_title=TITLE,
+                observed_at=OBSERVED_AT,
+                opportunity_id='tjzyefy_nonmedical_structured_compute',
+            )
 
     def test_generic_title_does_not_bypass_body_verification(self) -> None:
         html = page(
