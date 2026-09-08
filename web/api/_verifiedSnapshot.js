@@ -7,8 +7,14 @@ const REMOTE_TIMEOUT_MS = 6000
 const MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024
 const MAX_TODAY_CARDS = 5
 const MAX_OPPORTUNITY_POOL = 500
-const LATEST_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:latest:v2'
-const LEGACY_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:latest:v1'
+const BUNDLED_SNAPSHOT_REVISION = String(bundledSnapshot?.snapshot_as_of || 'unknown')
+  .replace(/[^0-9A-Za-z]/g, '')
+  .slice(0, 40) || 'unknown'
+// Runtime cache must be scoped to the bundled VERIFIED data revision. A data-refresh
+// deployment must never inherit a stale "latest" cache entry from an older bundle.
+// Pure code deployments that embed the same snapshot reuse the same cache key.
+const LATEST_RUNTIME_SNAPSHOT_KEY =
+  `medicalchannelai:verified-snapshot:${BUNDLED_SNAPSHOT_REVISION}:v3`
 const RUNTIME_SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
 const ZERO_CONFIG_SCORE_TYPE_V2 = 'ZERO_CONFIG_PUBLIC_FACTS_V2'
 const V2_PRIORITY_MAX_POINTS = new Map([
@@ -217,20 +223,12 @@ async function loadRuntimeCachedSnapshot() {
     try {
       return validateVerifiedSnapshot(value)
     } catch {
-      // Invalid or legacy state is never served; attempt one safe legacy check below.
+      // Invalid state is never served. Seed this exact bundled data revision below.
     }
   }
 
-  const legacy = await cache.get(LEGACY_RUNTIME_SNAPSHOT_KEY)
-  if (legacy) {
-    try {
-      const verifiedLegacy = validateVerifiedSnapshot(legacy)
-      return await persistRuntimeSnapshot(cache, verifiedLegacy)
-    } catch {
-      // v1 ranking payloads intentionally fail the v2 contract and are never migrated.
-    }
-  }
-
+  // Deliberately do not migrate old "latest:v1/v2" keys. Those keys are not
+  // bound to the bundled snapshot revision and can contain an older data refresh.
   return persistRuntimeSnapshot(cache, bundledVerifiedSnapshot())
 }
 export async function loadVerifiedSnapshot() {
