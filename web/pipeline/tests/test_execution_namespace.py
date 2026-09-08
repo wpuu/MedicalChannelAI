@@ -149,12 +149,14 @@ class ExecutionNamespaceTests(unittest.TestCase):
         self.assertIn("max_concurrency=1", source)
         self.assertIn('Topic[dict[str, object]]("medicalchannelai-refresh-v2")', source)
 
-    def test_snapshot_reader_migrates_v1_only_into_v2(self) -> None:
+    def test_snapshot_reader_scopes_runtime_cache_to_bundled_data_revision(self) -> None:
         source = (WEB_ROOT / "api" / "_verifiedSnapshot.js").read_text(encoding="utf-8")
-        self.assertIn("medicalchannelai:verified-snapshot:latest:v2", source)
-        self.assertIn("medicalchannelai:verified-snapshot:latest:v1", source)
-        self.assertLess(source.index("LATEST_RUNTIME_SNAPSHOT_KEY"), source.index("LEGACY_RUNTIME_SNAPSHOT_KEY"))
-        self.assertIn("persistRuntimeSnapshot(cache, verifiedLegacy)", source)
+        self.assertIn("BUNDLED_SNAPSHOT_REVISION", source)
+        self.assertIn("medicalchannelai:verified-snapshot:${BUNDLED_SNAPSHOT_REVISION}:v3", source)
+        self.assertNotIn("medicalchannelai:verified-snapshot:latest:v2", source)
+        self.assertNotIn("medicalchannelai:verified-snapshot:latest:v1", source)
+        self.assertNotIn("persistRuntimeSnapshot(cache, verifiedLegacy)", source)
+        self.assertIn("return persistRuntimeSnapshot(cache, bundledVerifiedSnapshot())", source)
 
 
 if __name__ == "__main__":
