@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from medical_channel_pipeline import build_public_snapshot
+from scripts.publish_web_snapshot import combine_snapshots
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]
 WEB_ROOT = PIPELINE_ROOT.parent
@@ -19,6 +20,7 @@ OPTIONAL_LIVE_SOURCES = (
     ('tianjin_live_teda_records.json', 'live TEDA state'),
     ('tianjin_live_tjfch_records.json', 'live First Central Hospital state'),
 )
+REGIONAL_LIVE_SOURCE = ('regional_live_ccgp_records.json', 'live regional CCGP state')
 
 
 def load_array(path: Path, *, label: str) -> list[dict]:
@@ -82,6 +84,14 @@ def normalize_legacy_bundled_snapshot(payload: dict) -> dict:
     return normalized
 
 
+def ensure_tianjin_market_metadata(records: list[dict]) -> None:
+    for record in records:
+        facts = record.setdefault('facts', {})
+        facts['market_code'] = 'TJ'
+        facts.setdefault('market_name', '天津')
+        facts.setdefault('market_admin_code', '120000')
+
+
 class PublishedWebSnapshotTests(unittest.TestCase):
     def test_published_web_snapshot_matches_pipeline_output(self) -> None:
         actual_raw = json.loads(
@@ -107,18 +117,45 @@ class PublishedWebSnapshotTests(unittest.TestCase):
         tmugh_source = live_tjmugh if live_tjmugh else load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_official_institution_seed.json', label='TMUGH seed'
         )
-        records = [*ccgp_source, *tmugh_source]
+        tianjin_records = [*ccgp_source, *tmugh_source]
         for filename, label in OPTIONAL_LIVE_SOURCES:
-            records.extend(load_optional_array(PIPELINE_ROOT / 'data' / filename, label=label))
+            tianjin_records.extend(
+                load_optional_array(PIPELINE_ROOT / 'data' / filename, label=label)
+            )
+        ensure_tianjin_market_metadata(tianjin_records)
+
+        regional_filename, regional_label = REGIONAL_LIVE_SOURCE
+        regional_records = load_optional_array(
+            PIPELINE_ROOT / 'data' / regional_filename,
+            label=regional_label,
+        )
 
         notice_events = load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json', label='notice events'
         )
-        expected = build_public_snapshot(records, published_as_of, notice_events)
+        tianjin_snapshot = build_public_snapshot(
+            tianjin_records,
+            published_as_of,
+            notice_events,
+        )
+        regional_snapshot = build_public_snapshot(
+            regional_records,
+            published_as_of,
+            [],
+        )
+        expected = combine_snapshots(
+            tianjin_snapshot,
+            regional_snapshot,
+            [*tianjin_records, *regional_records],
+            published_as_of,
+        )
         self.assertEqual(actual, expected)
 
     def test_local_refresh_source_set_matches_daily_deep_snapshot_inputs(self) -> None:
         refresh_source = (PIPELINE_ROOT / 'scripts' / 'refresh_bundled_snapshot.py').read_text(
+            encoding='utf-8'
+        )
+        publisher_source = (PIPELINE_ROOT / 'scripts' / 'publish_web_snapshot.py').read_text(
             encoding='utf-8'
         )
         daily_workflow = (REPO_ROOT / '.github' / 'workflows' / 'tianjin-medical-refresh.yml').read_text(
@@ -138,6 +175,11 @@ class PublishedWebSnapshotTests(unittest.TestCase):
             with self.subTest(filename=filename):
                 self.assertIn(filename, refresh_source)
                 self.assertIn(f'--input web/pipeline/data/{filename}', daily_workflow)
+
+        regional_filename = REGIONAL_LIVE_SOURCE[0]
+        self.assertIn(regional_filename, refresh_source)
+        self.assertIn(regional_filename, publisher_source)
+        self.assertIn('publish_web_snapshot.py', daily_workflow)
 
 
 if __name__ == '__main__':
