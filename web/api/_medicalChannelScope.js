@@ -4,6 +4,7 @@ const TERMS = (scopeConfig.terms || []).map((item) => String(item).toLocaleLower
 const CONTEXTUAL_TERMS = (scopeConfig.contextual_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
 const ADJACENT_TECH_TERMS = (scopeConfig.adjacent_tech_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
 const MEDICAL_CONTEXT_TERMS = (scopeConfig.medical_context_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
+const HARD_EXCLUSIONS = (scopeConfig.hard_exclusion_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
 const GENERIC_EXCLUSIONS = (scopeConfig.generic_exclusion_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
 const ACRONYMS = (scopeConfig.acronyms || []).map((item) => String(item).trim()).filter(Boolean)
 const CONTEXTUAL_ACRONYMS = (scopeConfig.contextual_acronyms || []).map((item) => String(item).trim()).filter(Boolean)
@@ -75,6 +76,11 @@ function hasMedicalContext(text) {
   return MEDICAL_CONTEXT_TERMS.some((term) => folded.includes(term))
 }
 
+function hasHardExclusion(text) {
+  const folded = text.toLocaleLowerCase('zh-CN')
+  return HARD_EXCLUSIONS.some((term) => folded.includes(term))
+}
+
 function hasGenericExclusion(text) {
   const folded = text.toLocaleLowerCase('zh-CN')
   return GENERIC_EXCLUSIONS.some((term) => folded.includes(term))
@@ -83,6 +89,7 @@ function hasGenericExclusion(text) {
 export function isMedicalChannelRelevantText(value) {
   const text = String(value || '').trim()
   if (!text) return false
+  if (hasHardExclusion(text)) return false
   if (hasStrongSignal(text)) return true
   if (hasGenericExclusion(text)) return false
   if (hasAdjacentTechSignal(text)) return hasMedicalContext(text)
@@ -93,6 +100,7 @@ export function isMedicalChannelRelevantCard(card) {
   const facts = card && typeof card === 'object' && !Array.isArray(card) ? card.facts : null
   if (!facts || typeof facts !== 'object') return false
   const scopeText = scopeTextFromFacts(facts)
+  if (hasHardExclusion(scopeText)) return false
   if (hasStrongSignal(scopeText)) return true
   if (hasGenericExclusion(scopeText)) return false
   if (hasAdjacentTechSignal(scopeText)) return hasMedicalContext(scopeText)
