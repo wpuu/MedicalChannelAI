@@ -95,6 +95,9 @@ export interface Facts {
   buyer_name?: string | null
   department: string | null
   region: string | null
+  market_code?: string | null
+  market_name?: string | null
+  market_admin_code?: string | null
   lifecycle_stage: string | null
   notice_type?: string | null
   publish_date: string | null
