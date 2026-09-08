@@ -73,6 +73,19 @@ REGION_ZONE_IDS = {
     "黑龙江": "23",
 }
 
+# Current CCGP result rows often render geography as a standalone pipe-delimited
+# field (for example "| 北京 |") with no "地域:" label. Only exact configured
+# province-level aliases are accepted here; titles, buyer names and addresses are
+# never used to infer geography.
+REGION_ROW_ALIASES = {
+    "北京", "北京市",
+    "天津", "天津市",
+    "河北", "河北省",
+    "辽宁", "辽宁省",
+    "吉林", "吉林省",
+    "黑龙江", "黑龙江省",
+}
+
 
 @dataclass(frozen=True)
 class DiscoveryCandidate:
@@ -220,14 +233,15 @@ def _parse_meta(meta: str) -> tuple[str | None, str | None, str | None, str | No
     ).strip()
 
     # The search request's zoneId is discovery-only. Geography must be proven by
-    # the official result row itself (currently "地域:北京"; some pages use
-    # "行政区域:北京市").
+    # the official result row itself. Some rows use "地域:北京" / "行政区域:北京市".
     region_match = re.search(
         r"(?:地域|行政区域)\s*:\s*([^|\s]+)",
         normalized_meta,
     )
     if region_match:
-        region = region_match.group(1).strip(" ,，;；") or None
+        candidate_region = region_match.group(1).strip(" ,，;；")
+        if candidate_region in REGION_ROW_ALIASES:
+            region = candidate_region
 
     for marker in NOTICE_TYPE_MARKERS:
         if marker in normalized_meta:
@@ -240,6 +254,12 @@ def _parse_meta(meta: str) -> tuple[str | None, str | None, str | None, str | No
         if normalized.startswith("采购人") and ":" in normalized:
             buyer_name = normalized.split(":", 1)[1].strip() or None
             continue
+        # Current production shape uses an exact standalone province field such
+        # as "| 北京 |". Accept only an exact configured alias, never a substring.
+        if region is None and normalized in REGION_ROW_ALIASES:
+            region = normalized
+            continue
+        # Retain legacy result rows that expose a longer province-level value.
         if region is None and any(token in part for token in ("北京市", "天津市", "上海市", "重庆市", "省", "自治区", "特别行政区")):
             if not re.match(r"^20\d{2}[.\-/]", part) and len(part) <= 24:
                 region = part
