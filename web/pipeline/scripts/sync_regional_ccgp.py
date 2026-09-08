@@ -72,7 +72,7 @@ class CcgpSearchSession:
         try:
             self._read('https://www.ccgp.gov.cn/', timeout=30)
         except Exception:
-            # Search can still work if the homepage warmup is temporarily unavailable.
+            # Search can still work if the homepage warm-up is temporarily unavailable.
             pass
         time.sleep(1.0)
         self.warmed = True
@@ -103,6 +103,7 @@ def load_plan(path: Path) -> dict:
     markets = payload.get('markets')
     if not isinstance(markets, list) or not markets:
         raise ValueError('MULTI_REGION_MARKETS_REQUIRED')
+
     seen_codes: set[str] = set()
     for market in markets:
         if not isinstance(market, dict):
@@ -118,6 +119,7 @@ def load_plan(path: Path) -> dict:
         if admin_code[:2] != zone_id:
             raise ValueError(f'MULTI_REGION_ADMIN_CODE_MISMATCH:{name}:{admin_code}:{zone_id}')
         seen_codes.add(code)
+
     keywords = payload.get('keywords')
     notice_types = payload.get('notice_types')
     if not isinstance(keywords, list) or not keywords or not all(isinstance(item, str) and item.strip() for item in keywords):
@@ -126,6 +128,7 @@ def load_plan(path: Path) -> dict:
         raise ValueError('MULTI_REGION_NOTICE_TYPES_INVALID')
     if any(item not in VERIFIED_NOTICE_ADAPTERS for item in notice_types):
         raise ValueError('MULTI_REGION_NOTICE_TYPE_UNSUPPORTED')
+
     lookback_days = int(payload.get('lookback_days', 3))
     max_candidates = int(payload.get('max_candidates_per_market', 10))
     delay_seconds = float(payload.get('delay_seconds', 4.0))
@@ -135,6 +138,7 @@ def load_plan(path: Path) -> dict:
         raise ValueError('MULTI_REGION_MAX_CANDIDATES_INVALID')
     if delay_seconds < 3:
         raise ValueError('MULTI_REGION_DELAY_TOO_LOW')
+
     return {
         'markets': markets,
         'keywords': [item.strip() for item in keywords],
@@ -164,7 +168,8 @@ def candidate_market_code(region: str | None, markets: list[dict]) -> str | None
         return None
     for market in markets:
         name = str(market['name']).strip()
-        if normalized == name or normalized.startswith(name) or normalized.startswith(f'{name}省') or normalized.startswith(f'{name}市'):
+        aliases = {name, f'{name}省', f'{name}市'}
+        if normalized in aliases or any(normalized.startswith(alias) for alias in aliases):
             return str(market['market_code']).strip().upper()
     return None
 
@@ -195,11 +200,6 @@ def fetch_candidates_page(
     ]
 
 
-def add_candidates(target: dict[str, tuple[str, object]], items: list[tuple[str, object]]) -> None:
-    for notice_type, candidate in items:
-        target.setdefault(candidate.detail_url, (notice_type, candidate))
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(
         description='Verified CCGP refresh for Beijing, Hebei, Liaoning, Jilin and Heilongjiang.'
@@ -218,18 +218,19 @@ def main() -> int:
     existing_records = load_json_arrays(args.existing_records_input, label='existing regional records')
     session = CcgpSearchSession()
 
+    markets = plan['markets']
+    market_by_code = {str(item['market_code']).upper(): item for item in markets}
     market_candidates: dict[str, dict[str, tuple[str, object]]] = {
-        str(market['market_code']).upper(): {} for market in plan['markets']
+        code: {} for code in market_by_code
     }
-    market_failures: dict[str, list[dict]] = {
-        str(market['market_code']).upper(): [] for market in plan['markets']
-    }
-    scoped_success: dict[str, int] = {code: 0 for code in market_candidates}
+    market_failures: dict[str, list[dict]] = {code: [] for code in market_by_code}
+    scoped_success: dict[str, int] = {code: 0 for code in market_by_code}
+    scoped_region_mismatches: dict[str, int] = {code: 0 for code in market_by_code}
 
-    # First try the site's province selector. It is cheap when it works and keeps
-    # candidate volume bounded. We never treat an empty HTTP response as evidence
-    # that a province has no procurement activity.
-    for market_index, market in enumerate(plan['markets']):
+    # Province-scoped search is only discovery. Do not trust the request parameter
+    # as proof of geography: every returned row must independently carry an official
+    # region label that maps back to the requested market before it can be selected.
+    for market in markets:
         code = str(market['market_code']).upper()
         name = str(market['name'])
         for keyword in plan['keywords']:
@@ -245,7 +246,15 @@ def main() -> int:
                         page_index=1,
                     )
                     scoped_success[code] += 1
-                    add_candidates(market_candidates[code], items)
+                    for item_notice_type, candidate in items:
+                        actual_code = candidate_market_code(getattr(candidate, 'region', None), markets)
+                        if actual_code != code:
+                            scoped_region_mismatches[code] += 1
+                            continue
+                        market_candidates[code].setdefault(
+                            candidate.detail_url,
+                            (item_notice_type, candidate),
+                        )
                 except Exception as exc:
                     market_failures[code].append({
                         'stage': 'scoped_discovery',
@@ -257,17 +266,15 @@ def main() -> int:
                         'message': str(exc)[:300],
                     })
                 time.sleep(plan['delay_seconds'])
-        if market_index + 1 < len(plan['markets']):
-            time.sleep(plan['delay_seconds'])
 
     empty_codes = {code for code, items in market_candidates.items() if not items}
     fallback_query_success = 0
     fallback_failures: list[dict] = []
 
-    # Current CCGP search implementations commonly leave displayZone/zoneId blank.
-    # If a scoped market is empty, use a bounded national search and distribute only
-    # by the official region text carried on each search result. This is a discovery
-    # fallback only; every published fact still requires the official detail page.
+    # If province-scoped search produces no region-verified candidate for a market,
+    # fall back to a bounded national search and distribute rows solely by the
+    # official region label on each result. Search rows remain discovery-only;
+    # publication still requires parsing the official detail page.
     if empty_codes:
         for keyword in plan['keywords']:
             for notice_type in plan['notice_types']:
@@ -296,12 +303,13 @@ def main() -> int:
                     if not items:
                         break
                     for item_notice_type, candidate in items:
-                        code = candidate_market_code(getattr(candidate, 'region', None), plan['markets'])
-                        if code in empty_codes:
-                            market_candidates[code].setdefault(
-                                candidate.detail_url,
-                                (item_notice_type, candidate),
-                            )
+                        actual_code = candidate_market_code(getattr(candidate, 'region', None), markets)
+                        if actual_code not in empty_codes:
+                            continue
+                        market_candidates[actual_code].setdefault(
+                            candidate.detail_url,
+                            (item_notice_type, candidate),
+                        )
                     time.sleep(plan['delay_seconds'])
                 time.sleep(plan['delay_seconds'])
 
@@ -310,18 +318,30 @@ def main() -> int:
 
     new_records: list[dict] = []
     market_reports: list[dict] = []
-    market_by_code = {str(market['market_code']).upper(): market for market in plan['markets']}
 
     for code, discovered_by_url in market_candidates.items():
         market = market_by_code[code]
         discovered = sorted(
             discovered_by_url.values(),
-            key=lambda item: (getattr(item[1], 'published_at', None) or '', getattr(item[1], 'detail_url', '')),
+            key=lambda item: (
+                getattr(item[1], 'published_at', None) or '',
+                getattr(item[1], 'detail_url', ''),
+            ),
             reverse=True,
         )
         selected = discovered[: plan['max_candidates_per_market']]
         market_new_count = 0
+
         for notice_type, candidate in selected:
+            # Final geography guard immediately before detail verification.
+            if candidate_market_code(getattr(candidate, 'region', None), markets) != code:
+                market_failures[code].append({
+                    'stage': 'pre_detail_market_guard',
+                    'market_code': code,
+                    'candidate_region': getattr(candidate, 'region', None),
+                    'url': getattr(candidate, 'detail_url', None),
+                })
+                continue
             try:
                 time.sleep(plan['delay_seconds'])
                 html = fetch_ccgp_detail_html(candidate.detail_url)
@@ -339,28 +359,30 @@ def main() -> int:
                     'market_code': code,
                     'region': market['name'],
                     'notice_type': notice_type,
+                    'candidate_region': getattr(candidate, 'region', None),
                     'title': getattr(candidate, 'title', None),
                     'url': getattr(candidate, 'detail_url', None),
                     'error': type(exc).__name__,
                     'message': str(exc)[:300],
                 })
 
-        report = {
+        market_reports.append({
             'market_code': code,
             'market_name': market['name'],
             'admin_code': market['admin_code'],
             'ccgp_zone_id': market['ccgp_zone_id'],
             'scoped_query_success_count': scoped_success[code],
+            'scoped_region_mismatch_count': scoped_region_mismatches[code],
             'national_fallback_used': code in empty_codes,
             'unique_candidate_count': len(discovered),
             'selected_candidate_count': len(selected),
             'new_verified_record_count': market_new_count,
             'failure_count': len(market_failures[code]),
             'failures': market_failures[code],
-        }
-        market_reports.append(report)
+        })
         print(
-            f'market={code} scoped_ok={scoped_success[code]} fallback={code in empty_codes} '
+            f'market={code} scoped_ok={scoped_success[code]} '
+            f'scoped_mismatch={scoped_region_mismatches[code]} fallback={code in empty_codes} '
             f'candidates={len(discovered)} selected={len(selected)} verified={market_new_count} '
             f'failures={len(market_failures[code])}'
         )
@@ -381,6 +403,8 @@ def main() -> int:
         'policy': {
             'business_market_is_explicit_not_geolocated': True,
             'market_admin_codes_are_validated_against_configured_ccgp_zone': True,
+            'scoped_query_parameter_is_not_geography_evidence': True,
+            'every_candidate_requires_official_search_result_region_match': True,
             'scoped_empty_does_not_mean_no_market_activity': True,
             'national_fallback_uses_official_search_result_region_only': True,
             'national_fallback_max_pages_per_query': NATIONAL_FALLBACK_MAX_PAGES,
@@ -394,7 +418,7 @@ def main() -> int:
     write_json(args.records_output, merged_records)
     write_json(args.report_output, report)
     print(
-        f'markets={len(plan["markets"])} scoped_queries_ok={sum(scoped_success.values())} '
+        f'markets={len(markets)} scoped_queries_ok={sum(scoped_success.values())} '
         f'fallback_queries_ok={fallback_query_success} new_verified={len(new_records)} '
         f'merged_records={len(merged_records)}'
     )
