@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-08T04:34:00.447095+00:00",
+  "observed_at": "2026-09-08T04:51:45.446985+00:00",
   "start_date": "2026-09-06",
   "end_date": "2026-09-08",
   "markets": [
@@ -10,13 +10,124 @@
       "admin_code": "110000",
       "ccgp_zone_id": "11",
       "scoped_query_success_count": 10,
-      "scoped_region_mismatch_count": 28,
-      "national_fallback_used": true,
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
+      "scoped_region_mismatch_count": 0,
+      "national_fallback_used": false,
+      "unique_candidate_count": 27,
+      "selected_candidate_count": 10,
       "new_verified_record_count": 0,
-      "failure_count": 0,
-      "failures": []
+      "failure_count": 10,
+      "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "2026-2027年度医疗保障信息安全服务项目（01包：医疗保障信息安全服务）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283831.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "2026-2027年度医疗保障信息安全服务项目（02包：等保测评及密码测评服务）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283822.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "中国医学科学院整形外科医院诊疗能力提升项目（2025）招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282657.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "中国医学科学院整形外科医院信息化运行维护项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282651.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "中国医学科学院整形外科医院诊疗能力提升项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282649.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "中日友好医院免散瞳眼底照相机系统采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282514.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "中日友好医院三维后装治疗系统采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282385.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "清华大学玉泉医院A楼机电系统升级改造工程采购项目采购公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27281611.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "中国中医科学院广安门医院国家中医药传承创新中心建设项目（第三十一批）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27280838.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "北京大学第三医院2026年设备购置项目-23公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27280237.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        }
+      ]
     },
     {
       "market_code": "HE",
@@ -24,13 +135,124 @@
       "admin_code": "130000",
       "ccgp_zone_id": "13",
       "scoped_query_success_count": 10,
-      "scoped_region_mismatch_count": 24,
-      "national_fallback_used": true,
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
+      "scoped_region_mismatch_count": 0,
+      "national_fallback_used": false,
+      "unique_candidate_count": 18,
+      "selected_candidate_count": 10,
       "new_verified_record_count": 0,
-      "failure_count": 0,
-      "failures": []
+      "failure_count": 10,
+      "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "邯郸市中心医院邯郸市中心医院移动床旁DR机采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285261.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "涞水县中医院医疗能力提升项目（二次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284081.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "承德医学院附属医院洗消设备一批采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283900.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "保定市妇幼保健院（保定市妇儿医院）公立医院改革与高质量发展示范项目2026年度医疗设备采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27281817.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "河北省胸科医院传染病医院传染病防控综合能力提升项目设备采购项目05包、07包公开招标公告（二次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27281470.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "河北医科大学第二医院鹿泉院区保安服务项目公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27281469.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "沧州市人民医院购买委托检验服务项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27281016.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "河北省沧州中西医结合医院保洁服务项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27281007.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "河北省眼科医院医疗废物处置服务项目（二次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27280582.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "秦皇岛市第一医院钕激光治疗仪公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27280068.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        }
+      ]
     },
     {
       "market_code": "LN",
@@ -38,13 +260,113 @@
       "admin_code": "210000",
       "ccgp_zone_id": "21",
       "scoped_query_success_count": 10,
-      "scoped_region_mismatch_count": 9,
-      "national_fallback_used": true,
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
+      "scoped_region_mismatch_count": 0,
+      "national_fallback_used": false,
+      "unique_candidate_count": 9,
+      "selected_candidate_count": 9,
       "new_verified_record_count": 0,
-      "failure_count": 0,
-      "failures": []
+      "failure_count": 9,
+      "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "葫芦岛市第四人民医院综合设备采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "阜新市人民医院（阜新市妇女儿童医疗中心）医用食品临床管理服务项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "自然资源部大连海洋中心（自然资源部大连海洋预报台）2026-2027年度拟外委托检验检测项目公开招标公告（二次公告）",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27278538.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "中国医科大学附属第一医院人行通道闸机等一批（安全保卫部）采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27279712.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "大连医科大学附属第一医院蛋类配送服务项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27278578.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "大连医科大学附属第一医院智慧护理建设配套设备端采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27277795.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "中国医科大学附属第一医院历史纸质病案托管存储及增值服务项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27277782.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "县域医疗服务能力提升项目（全自动生化分析仪）采购公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27277721.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "苏家屯区中心医院骨科建设设备采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27276793.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        }
+      ]
     },
     {
       "market_code": "JL",
@@ -52,13 +374,124 @@
       "admin_code": "220000",
       "ccgp_zone_id": "22",
       "scoped_query_success_count": 10,
-      "scoped_region_mismatch_count": 14,
-      "national_fallback_used": true,
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
+      "scoped_region_mismatch_count": 0,
+      "national_fallback_used": false,
+      "unique_candidate_count": 12,
+      "selected_candidate_count": 10,
       "new_verified_record_count": 0,
-      "failure_count": 0,
-      "failures": []
+      "failure_count": 10,
+      "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "长春中医药大学附属医院小动物超声系统等设备采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284446.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "通化市诚信工程咨询有限责任公司关于公立医院改革与高质量发展提升项目[（设备升级改造）区域诊疗中心诊疗能力提升填平补齐设备]（一）的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284253.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "吉林省产品质量监督检验院班车和业务用车租赁服务（第一包）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283414.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "吉林省产品质量监督检验院班车和业务用车租赁服务（第二包）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283408.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "吉林大学第二医院消毒供应中心劳务服务项目（二次）招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27278623.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "白山市公共资源交易中心（白山市政府采购中心）关于白山市中心医院保安服务采购项目的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27279264.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "吉林同源建设项目管理有限公司关于通化市疾病预防控制中心（通化市卫生监督所）传染病实验室监测质量提升采购项目的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27278298.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "吉林省佳禾锦泰项目管理有限公司关于设备更新采购项目（四平市产品质量检验院食品、工业产品检验检测设备采购项目、四平市食品药品检验所药品检验检测设备采购项目）的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27278115.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "吉林省机械设备成套招标公司关于浙江大学医学院附属妇产科医院吉林医院食堂服务外包项目的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27278046.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "北华大学附属医院2025年血管内超声等医疗设备采购项目一标包（三次）、三标包（四次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27277784.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        }
+      ]
     },
     {
       "market_code": "HL",
@@ -66,16 +499,127 @@
       "admin_code": "230000",
       "ccgp_zone_id": "23",
       "scoped_query_success_count": 10,
-      "scoped_region_mismatch_count": 31,
-      "national_fallback_used": true,
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
+      "scoped_region_mismatch_count": 0,
+      "national_fallback_used": false,
+      "unique_candidate_count": 25,
+      "selected_candidate_count": 10,
       "new_verified_record_count": 0,
-      "failure_count": 0,
-      "failures": []
+      "failure_count": 10,
+      "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "佳木斯市中医医院光学干涉断层成像系统招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285244.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "哈尔滨医科大学附属第二医院手术室麻醉科购置手术用具（2026227-2026231）招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284122.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "哈尔滨医科大学附属第二医院医用直线加速器（2026313）招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284087.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "牡丹江医科大学附属红旗医院电动液压手术床(三次)招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283820.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "哈尔滨医科大学附属第二医院康复医学科购置彩色超声诊断系统（2026288）招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283742.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "北大荒集团总医院2026年第一批医疗设备采购项目（二）七包公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27276091.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "北大荒集团总医院2026年第一批医疗设备采购项目（二）六包公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27276089.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "北大荒集团总医院2026年第一批医疗设备采购项目（二）五包公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27276086.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "北大荒集团总医院2026年第一批医疗设备采购项目（二）三包公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27276078.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "北大荒集团总医院2026年第一批医疗设备采购项目（二）四包公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27276075.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        }
+      ]
     }
   ],
-  "national_fallback_query_success_count": 20,
+  "national_fallback_query_success_count": 0,
   "national_fallback_failure_count": 0,
   "national_fallback_failures": [],
   "existing_record_count": 0,
