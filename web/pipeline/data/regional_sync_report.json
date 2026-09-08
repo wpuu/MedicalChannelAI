@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-08T08:51:46.822592+00:00",
+  "observed_at": "2026-09-08T09:09:17.505320+00:00",
   "start_date": "2026-09-06",
   "end_date": "2026-09-08",
   "markets": [
@@ -14,76 +14,9 @@
       "national_fallback_used": false,
       "unique_candidate_count": 29,
       "selected_candidate_count": 10,
-      "new_verified_record_count": 4,
-      "failure_count": 6,
-      "failures": [
-        {
-          "stage": "verified_detail",
-          "market_code": "BJ",
-          "region": "北京",
-          "notice_type": "公开招标",
-          "candidate_region": "北京",
-          "title": "北京天坛医院神经系统疾病大数据平台二期（大内存胖节点）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288159.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "BJ",
-          "region": "北京",
-          "notice_type": "公开招标",
-          "candidate_region": "北京",
-          "title": "2026年度首都医科大学附属北京妇产医院 北京妇幼保健院职工体检服务二次公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287763.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "BJ",
-          "region": "北京",
-          "notice_type": "公开招标",
-          "candidate_region": "北京",
-          "title": "2602-110000-04-02-828728市计量院计量专业检验检测设备更新项目第五、六、七、八包招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287632.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "BJ",
-          "region": "北京",
-          "notice_type": "公开招标",
-          "candidate_region": "北京",
-          "title": "2026北京口腔医院下半年新增软件运维服务项目01包（智能语音客服系统运维服务）、02包（医保系统维护、移动支付）、03包（医疗服务系统、自助机服务系统、互联网诊疗系统运维）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285965.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "BJ",
-          "region": "北京",
-          "notice_type": "公开招标",
-          "candidate_region": "北京",
-          "title": "2026-2027年度医疗保障信息安全服务项目（01包：医疗保障信息安全服务）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283831.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "BJ",
-          "region": "北京",
-          "notice_type": "公开招标",
-          "candidate_region": "北京",
-          "title": "2026-2027年度医疗保障信息安全服务项目（02包：等保测评及密码测评服务）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283822.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        }
-      ]
+      "new_verified_record_count": 10,
+      "failure_count": 0,
+      "failures": []
     },
     {
       "market_code": "HE",
@@ -95,21 +28,9 @@
       "national_fallback_used": false,
       "unique_candidate_count": 24,
       "selected_candidate_count": 10,
-      "new_verified_record_count": 9,
-      "failure_count": 1,
-      "failures": [
-        {
-          "stage": "verified_detail",
-          "market_code": "HE",
-          "region": "河北",
-          "notice_type": "公开招标",
-          "candidate_region": "河北",
-          "title": "北京中医药大学东方医院秦皇岛医院（秦皇岛市中医医院）办公耗材公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287314.htm",
-          "error": "ValidationError",
-          "message": "INVALID_DATE:facts.registration_deadline:2026-09-15T24:00:00+08:00"
-        }
-      ]
+      "new_verified_record_count": 10,
+      "failure_count": 0,
+      "failures": []
     },
     {
       "market_code": "LN",
@@ -133,7 +54,7 @@
           "title": "营口市中心医院新建手术室设备购置第二批招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
           "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         },
         {
           "stage": "verified_detail",
@@ -144,7 +65,7 @@
           "title": "中国医科大学附属第一医院“心血管健康区域化防控技术研究”社区血液样本检测服务项目招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
           "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         },
         {
           "stage": "verified_detail",
@@ -155,7 +76,7 @@
           "title": "医疗设备采购项目（第二次）招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
           "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         },
         {
           "stage": "verified_detail",
@@ -166,7 +87,7 @@
           "title": "丹东市中心医院2026-2029年度医用织物洗涤消毒招标采购（第二次）招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
           "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         },
         {
           "stage": "verified_detail",
@@ -177,7 +98,7 @@
           "title": "大连医科大学附属第一医院预包装食品类项目招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
           "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         },
         {
           "stage": "verified_detail",
@@ -188,7 +109,7 @@
           "title": "辽阳县紧密型县域医共体医疗卫生强基工程建设项目（建筑工程设备设施采购）招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
           "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         },
         {
           "stage": "verified_detail",
@@ -199,7 +120,7 @@
           "title": "葫芦岛市第四人民医院综合设备采购项目招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
           "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         },
         {
           "stage": "verified_detail",
@@ -210,7 +131,7 @@
           "title": "阜新市人民医院（阜新市妇女儿童医疗中心）医用食品临床管理服务项目招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
           "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         },
         {
           "stage": "verified_detail",
@@ -221,7 +142,7 @@
           "title": "中国医科大学附属第一医院人行通道闸机等一批（安全保卫部）采购项目招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27279712.htm",
           "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         }
       ]
     },
@@ -235,75 +156,9 @@
       "national_fallback_used": false,
       "unique_candidate_count": 16,
       "selected_candidate_count": 10,
-      "new_verified_record_count": 1,
-      "failure_count": 9,
+      "new_verified_record_count": 8,
+      "failure_count": 2,
       "failures": [
-        {
-          "stage": "verified_detail",
-          "market_code": "JL",
-          "region": "吉林",
-          "notice_type": "公开招标",
-          "candidate_region": "吉林",
-          "title": "融汇项目管理有限公司关于德惠市人民医院检验设备采购项目的公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287982.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "JL",
-          "region": "吉林",
-          "notice_type": "公开招标",
-          "candidate_region": "吉林",
-          "title": "病毒检验所采购埃可病毒30型核酸检测试剂盒（荧光法）等四大症候群监测相关试剂耗材项目（二次）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286996.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "JL",
-          "region": "吉林",
-          "notice_type": "公开招标",
-          "candidate_region": "吉林",
-          "title": "吉林省疾病预防控制中心（吉林省预防医学科学院）2026年全省艾滋病和梅毒的筛查检测试剂采购项目（二次）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286908.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "JL",
-          "region": "吉林",
-          "notice_type": "公开招标",
-          "candidate_region": "吉林",
-          "title": "中天宇工程项目管理有限公司关于公立医院改革与高质量发展提升项目[（设备升级改造）省市重点专科 ]（二）的公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286411.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "JL",
-          "region": "吉林",
-          "notice_type": "公开招标",
-          "candidate_region": "吉林",
-          "title": "长春中医药大学附属医院小动物超声系统等设备采购项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284446.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "JL",
-          "region": "吉林",
-          "notice_type": "公开招标",
-          "candidate_region": "吉林",
-          "title": "通化市诚信工程咨询有限责任公司关于公立医院改革与高质量发展提升项目[（设备升级改造）区域诊疗中心诊疗能力提升填平补齐设备]（一）的公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284253.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
-        },
         {
           "stage": "verified_detail",
           "market_code": "JL",
@@ -325,17 +180,6 @@
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283408.htm",
           "error": "CcgpDetailParseError",
           "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "JL",
-          "region": "吉林",
-          "notice_type": "公开招标",
-          "candidate_region": "吉林",
-          "title": "白山市公共资源交易中心（白山市政府采购中心）关于白山市中心医院保安服务采购项目的公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27279264.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
         }
       ]
     },
@@ -349,53 +193,9 @@
       "national_fallback_used": false,
       "unique_candidate_count": 37,
       "selected_candidate_count": 10,
-      "new_verified_record_count": 0,
-      "failure_count": 10,
+      "new_verified_record_count": 9,
+      "failure_count": 1,
       "failures": [
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "鸡西市疾病预防控制中心（鸡西市卫生监督局）传染病实验室监测质量提升项目实验室仪器设备采购(四次)招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288345.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "牡丹江市第一人民医院医疗服务与保障能力提升补助资金（医疗卫生机构能力建设）肺结节标记物放置定位设备(二次)招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288032.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "黑龙江省神经精神病医院省神经精神病医院重症与心理健康服务能力提升项目设备采购第二批（二十二）(四次)招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287820.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "黑河市第二人民医院（黑河市精神病防治院）美容科拟购置医疗设备招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287729.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        },
         {
           "stage": "verified_detail",
           "market_code": "HL",
@@ -406,61 +206,6 @@
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287227.htm",
           "error": "CcgpDetailParseError",
           "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "哈尔滨市第四医院医疗设备购置(二次)招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287106.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "黑龙江中医药大学附属第一医院人ApoE基因多态性核酸检测试剂盒（PCR-荧光探针法）等试剂购置(四次)招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285633.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "黑龙江省药品检验研究院检验检测仪器设备更新项目-2招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285589.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "黑龙江省药品检验研究院检验检测仪器设备更新项目-3招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285587.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "黑龙江省药品检验研究院检验检测仪器设备更新项目-4招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285585.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
         }
       ]
     }
@@ -468,9 +213,9 @@
   "national_fallback_query_success_count": 0,
   "national_fallback_failure_count": 0,
   "national_fallback_failures": [],
-  "existing_record_count": 0,
-  "new_verified_record_count": 15,
-  "merged_record_count": 14,
+  "existing_record_count": 14,
+  "new_verified_record_count": 38,
+  "merged_record_count": 38,
   "policy": {
     "business_market_is_explicit_not_geolocated": true,
     "market_admin_codes_are_validated_against_configured_ccgp_zone": true,
