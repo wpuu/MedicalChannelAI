@@ -29,14 +29,15 @@ jobs:
         run: python3 web/scripts/preview_patch_regional_candidate_classification.py
 
       - name: Run focused classification and parser regressions
+        working-directory: web/pipeline
         run: |
           python3 -m unittest \
-            web.pipeline.tests.test_regional_candidate_classification \
-            web.pipeline.tests.test_channel_scope \
-            web.pipeline.tests.test_ccgp_discovery \
-            web.pipeline.tests.test_ccgp_detail \
-            web.pipeline.tests.test_ccgp_national_detail_formats \
-            web.pipeline.tests.test_ccgp_liaoning_detail_format
+            tests.test_regional_candidate_classification \
+            tests.test_channel_scope \
+            tests.test_ccgp_discovery \
+            tests.test_ccgp_detail \
+            tests.test_ccgp_national_detail_formats \
+            tests.test_ccgp_liaoning_detail_format
 
       - name: Verify system Node
         run: |
