@@ -2,10 +2,12 @@ import scopeConfig from '../pipeline/data/medical_channel_scope.json' with { typ
 
 const TERMS = (scopeConfig.terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
 const CONTEXTUAL_TERMS = (scopeConfig.contextual_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
+const ADJACENT_TECH_TERMS = (scopeConfig.adjacent_tech_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
 const MEDICAL_CONTEXT_TERMS = (scopeConfig.medical_context_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
 const GENERIC_EXCLUSIONS = (scopeConfig.generic_exclusion_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
 const ACRONYMS = (scopeConfig.acronyms || []).map((item) => String(item).trim()).filter(Boolean)
 const CONTEXTUAL_ACRONYMS = (scopeConfig.contextual_acronyms || []).map((item) => String(item).trim()).filter(Boolean)
+const ADJACENT_TECH_ACRONYMS = (scopeConfig.adjacent_tech_acronyms || []).map((item) => String(item).trim()).filter(Boolean)
 
 function acronymRegex(items) {
   return items.length
@@ -15,6 +17,7 @@ function acronymRegex(items) {
 
 const ACRONYM_RE = acronymRegex(ACRONYMS)
 const CONTEXTUAL_ACRONYM_RE = acronymRegex(CONTEXTUAL_ACRONYMS)
+const ADJACENT_TECH_ACRONYM_RE = acronymRegex(ADJACENT_TECH_ACRONYMS)
 const MAX_TODAY_CARDS = 5
 
 function scopeTextFromFacts(facts) {
@@ -40,8 +43,8 @@ function scopeTextFromFacts(facts) {
 function contextTextFromFacts(facts) {
   if (!facts || typeof facts !== 'object') return ''
   const values = [scopeTextFromFacts(facts)]
-  // Buyer/hospital identity is disambiguating context only. It cannot by itself
-  // make an administrative procurement a MedicalChannelAI opportunity.
+  // Buyer/hospital identity is context only. It cannot independently make an
+  // administrative procurement a MedicalChannelAI opportunity.
   for (const key of ['buyer_name', 'hospital_name']) {
     const value = facts[key]
     if (typeof value === 'string' && value.trim()) values.push(value.trim())
@@ -61,6 +64,12 @@ function hasContextualSignal(text) {
   return Boolean(CONTEXTUAL_ACRONYM_RE && CONTEXTUAL_ACRONYM_RE.test(text))
 }
 
+function hasAdjacentTechSignal(text) {
+  const folded = text.toLocaleLowerCase('zh-CN')
+  if (ADJACENT_TECH_TERMS.some((term) => folded.includes(term))) return true
+  return Boolean(ADJACENT_TECH_ACRONYM_RE && ADJACENT_TECH_ACRONYM_RE.test(text))
+}
+
 function hasMedicalContext(text) {
   const folded = text.toLocaleLowerCase('zh-CN')
   return MEDICAL_CONTEXT_TERMS.some((term) => folded.includes(term))
@@ -76,6 +85,7 @@ export function isMedicalChannelRelevantText(value) {
   if (!text) return false
   if (hasStrongSignal(text)) return true
   if (hasGenericExclusion(text)) return false
+  if (hasAdjacentTechSignal(text)) return hasMedicalContext(text)
   return hasContextualSignal(text) && hasMedicalContext(text)
 }
 
@@ -85,6 +95,7 @@ export function isMedicalChannelRelevantCard(card) {
   const scopeText = scopeTextFromFacts(facts)
   if (hasStrongSignal(scopeText)) return true
   if (hasGenericExclusion(scopeText)) return false
+  if (hasAdjacentTechSignal(scopeText)) return hasMedicalContext(scopeText)
   return hasContextualSignal(scopeText) && hasMedicalContext(contextTextFromFacts(facts))
 }
 
