@@ -14,12 +14,20 @@ _SINGLE_SOURCE_MARKERS = (
 def regional_candidate_skip_reason(candidate: DiscoveryCandidate) -> str | None:
     """Classify discovery rows that must not enter competitive detail parsing.
 
-    Search query parameters are discovery-only. A row must independently remain
-    in medical-channel scope and represent a competitive procurement window.
+    Search query parameters are discovery-only. The official result-row title
+    and notice type can independently prove that a row is non-competitive.
     Single-source notices may be useful later as market intelligence, but they
-    do not have a competitive bid deadline and therefore must not be forced
-    through the open-tender/consultation detail adapters.
+    have no competitive bid deadline and must never be forced through the
+    open-tender/consultation detail adapters.
     """
+    notice_evidence = '\n'.join(
+        value.strip()
+        for value in (candidate.title, candidate.notice_type)
+        if isinstance(value, str) and value.strip()
+    )
+    if any(marker in notice_evidence for marker in _SINGLE_SOURCE_MARKERS):
+        return NON_COMPETITIVE_SINGLE_SOURCE
+
     record = {
         'facts': {
             'project_name': candidate.title,
@@ -28,12 +36,4 @@ def regional_candidate_skip_reason(candidate: DiscoveryCandidate) -> str | None:
     }
     if not is_medical_channel_relevant_record(record):
         return OUT_OF_MEDICAL_SCOPE
-
-    notice_evidence = '\n'.join(
-        value.strip()
-        for value in (candidate.title, candidate.notice_type)
-        if isinstance(value, str) and value.strip()
-    )
-    if any(marker in notice_evidence for marker in _SINGLE_SOURCE_MARKERS):
-        return NON_COMPETITIVE_SINGLE_SOURCE
     return None
