@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
+    _SearchListParser,
     build_search_url,
     fetch_search_page,
     parse_search_html,
@@ -47,6 +48,8 @@ def main() -> int:
         return 0
 
     parsed = parse_search_html(html, keyword='医院')
+    raw_parser = _SearchListParser()
+    raw_parser.feed(html)
     cggg_links = re.findall(r'href=["\']([^"\']*/cggg/[^"\']+)["\']', html, flags=re.I)
     title_match = re.search(r'<title[^>]*>(.*?)</title>', html, flags=re.I | re.S)
     title = re.sub(r'\s+', ' ', title_match.group(1)).strip()[:160] if title_match else None
@@ -59,6 +62,19 @@ def main() -> int:
         'cggg_link_count': len(cggg_links),
         'parser_candidate_count': len(parsed),
         'sample_cggg_paths': cggg_links[:3],
+        'sample_candidates': [
+            {
+                'title': item.title[:100],
+                'region': item.region,
+                'buyer_name': item.buyer_name,
+                'notice_type': item.notice_type,
+            }
+            for item in parsed[:5]
+        ],
+        'sample_row_meta': [
+            {'title': row_title[:100], 'meta': row_meta[:300]}
+            for row_title, _href, row_meta in raw_parser.rows[:5]
+        ],
         'contains_no_result_text': any(token in html for token in ('没有相关记录', '暂无相关', '未搜索到')),
     }, ensure_ascii=False))
     return 0

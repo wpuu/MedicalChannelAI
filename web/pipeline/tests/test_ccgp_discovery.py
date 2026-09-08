@@ -44,6 +44,27 @@ LABELED_REGION_FIXTURE = """
 </body></html>
 """
 
+SPLIT_DOM_FIXTURE = """
+<html><body>
+<ul class="vT-srch-result-list-bid">
+  <li>
+    <a href="/cggg/zygg/gkzb/202609/t20260907_27280838.htm"><em>中国中医科学院广安门医院</em>设备采购项目</a>
+    <span>发布时间：2026.09.07 17:21</span>
+    <i>公开招标</i>
+    地域：北京
+    <strong>采购人：中国中医科学院广安门医院</strong>
+  </li>
+  <li>
+    <a href="/cggg/dfgg/jzxcs/202609/t20260907_27280839.htm">河北某医院服务项目</a>
+    <span>发布时间：2026-09-07 16:00</span>
+    <b>竞争性磋商</b>
+    <em>地域：河北</em>
+    采购人：河北某医院
+  </li>
+</ul>
+</body></html>
+"""
+
 RESULT_FIXTURE = """
 <html><body>
 <ul class="vT-srch-result-list-bid">
@@ -120,6 +141,16 @@ class CcgpDiscoveryTests(unittest.TestCase):
         self.assertEqual(candidates[0].region, "北京")
         self.assertEqual(candidates[0].buyer_name, "北京市某医院")
         self.assertEqual(candidates[1].region, "河北省")
+
+    def test_parse_metadata_across_sibling_tags_and_text_nodes(self) -> None:
+        candidates = parse_search_html(SPLIT_DOM_FIXTURE, keyword="医院")
+        self.assertEqual(len(candidates), 2)
+        self.assertEqual(candidates[0].title, "中国中医科学院广安门医院设备采购项目")
+        self.assertEqual(candidates[0].published_at, "2026-09-07")
+        self.assertEqual(candidates[0].region, "北京")
+        self.assertEqual(candidates[0].notice_type, "公开招标")
+        self.assertEqual(candidates[1].region, "河北")
+        self.assertEqual(candidates[1].notice_type, "竞争性磋商")
 
     def test_primary_opportunity_budget_rejects_result_and_event_notices(self) -> None:
         candidates = parse_search_html(RESULT_FIXTURE, keyword="医院")

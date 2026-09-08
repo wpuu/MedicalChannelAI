@@ -43,6 +43,24 @@ BID_TYPE_CODES = {
     "终止公告": "10",
 }
 
+NOTICE_TYPE_MARKERS = (
+    "公开招标公告",
+    "竞争性磋商公告",
+    "竞争性谈判公告",
+    "询价公告",
+    "资格预审公告",
+    "单一来源公告",
+    "更正公告",
+    "中标公告",
+    "成交公告",
+    "终止公告",
+    "公开招标",
+    "竞争性磋商",
+    "竞争性谈判",
+    "单一来源",
+    "资格预审",
+)
+
 # CCGP's province-level zone ids follow the first two digits of the official
 # county-and-above administrative code. The business market remains an explicit
 # field on verified records; detail-page region text is never used to infer it.
@@ -128,10 +146,9 @@ class _SearchListParser(HTMLParser):
         self._list_depth = 0
         self._li_depth = 0
         self._capture_anchor = False
-        self._capture_span = False
         self._current_href: str | None = None
         self._anchor_text: list[str] = []
-        self._span_text: list[str] = []
+        self._meta_text: list[str] = []
         self.rows: list[tuple[str, str, str]] = []
 
     @staticmethod
@@ -149,23 +166,19 @@ class _SearchListParser(HTMLParser):
             if self._li_depth == 1:
                 self._current_href = None
                 self._anchor_text = []
-                self._span_text = []
+                self._meta_text = []
             return
         if self._li_depth == 1 and tag == "a" and self._current_href is None:
             self._current_href = next((v for k, v in attrs if k == "href"), None)
             self._capture_anchor = True
-        elif self._li_depth == 1 and tag == "span":
-            self._capture_span = True
 
     def handle_endtag(self, tag: str) -> None:
         if self._li_depth == 1 and tag == "a":
             self._capture_anchor = False
-        elif self._li_depth == 1 and tag == "span":
-            self._capture_span = False
         elif self._list_depth and tag == "li" and self._li_depth:
             if self._li_depth == 1:
                 title = "".join(self._anchor_text).strip()
-                meta = " ".join(self._span_text).strip()
+                meta = " ".join(self._meta_text).strip()
                 href = (self._current_href or "").strip()
                 if title and href:
                     self.rows.append((title, href, meta))
@@ -174,10 +187,17 @@ class _SearchListParser(HTMLParser):
             self._list_depth -= 1
 
     def handle_data(self, data: str) -> None:
+        if self._li_depth != 1:
+            return
         if self._capture_anchor:
             self._anchor_text.append(data)
-        if self._capture_span:
-            self._span_text.append(data)
+            return
+        text = data.strip()
+        if text:
+            # CCGP currently renders date, notice type, region and buyer across
+            # several sibling tags/text nodes. Capture the whole visible row
+            # outside the title link instead of assuming everything is <span>.
+            self._meta_text.append(text)
 
 
 def _normalize_date(meta: str) -> str | None:
@@ -193,17 +213,26 @@ def _parse_meta(meta: str) -> tuple[str | None, str | None, str | None, str | No
     buyer_name = None
     region = None
     notice_type = None
-    normalized_meta = meta.replace("\r", " ").replace("\n", " ").replace("：", ":")
+    normalized_meta = re.sub(
+        r"\s+",
+        " ",
+        meta.replace("\r", " ").replace("\n", " ").replace("：", ":"),
+    ).strip()
 
-    # Current CCGP search rows label geography as "地域：北京" / "地域：河北"
-    # (and some legacy rows use "行政区域：北京市"). The search request's zoneId
-    # is discovery-only, so geography must be parsed from the official row itself.
+    # The search request's zoneId is discovery-only. Geography must be proven by
+    # the official result row itself (currently "地域:北京"; some pages use
+    # "行政区域:北京市").
     region_match = re.search(
-        r"(?:^|[\s|])(?:地域|行政区域)\s*:\s*([^|\s]+)",
+        r"(?:地域|行政区域)\s*:\s*([^|\s]+)",
         normalized_meta,
     )
     if region_match:
         region = region_match.group(1).strip(" ,，;；") or None
+
+    for marker in NOTICE_TYPE_MARKERS:
+        if marker in normalized_meta:
+            notice_type = marker
+            break
 
     parts = [part.strip() for part in normalized_meta.split("|") if part.strip()]
     for part in parts:
@@ -211,11 +240,8 @@ def _parse_meta(meta: str) -> tuple[str | None, str | None, str | None, str | No
         if normalized.startswith("采购人") and ":" in normalized:
             buyer_name = normalized.split(":", 1)[1].strip() or None
             continue
-        if "公告" in part and len(part) <= 24:
-            notice_type = part
-            continue
         if region is None and any(token in part for token in ("北京市", "天津市", "上海市", "重庆市", "省", "自治区", "特别行政区")):
-            if not re.match(r"^20\d{2}[.\-/]", part):
+            if not re.match(r"^20\d{2}[.\-/]", part) and len(part) <= 24:
                 region = part
     return published_at, buyer_name, region, notice_type
 
