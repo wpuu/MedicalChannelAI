@@ -158,7 +158,7 @@ def _extract_publish_date(text: str) -> str:
 def _extract_registration_deadline(text: str) -> str:
     section = re.search(
         r"三[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
-        r"20\d{2}年\d{1,2}月\d{1,2}日\s*到\s*"
+        r"20\d{2}年\d{1,2}月\d{1,2}日\s*(?:到|至)\s*"
         r"(20\d{2})年(\d{1,2})月(\d{1,2})日"
         r"(.+?)(?:地点\s*[：:]|四[、.])",
         text,
@@ -188,6 +188,7 @@ def _extract_registration_deadline(text: str) -> str:
 def _extract_bid_deadline(text: str) -> str:
     match = _required_match(
         r"四[、.]\s*提交投标文件截止时间、开标时间和地点\s*"
+        r"(?:提交投标文件截止时间\s*[：:]\s*)?"
         r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*"
         r"(\d{1,2})\s*点\s*(\d{1,2})\s*分",
         text,
