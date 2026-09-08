@@ -45,6 +45,22 @@ class CcgpLiaoningDetailFormatTests(unittest.TestCase):
         )
         self.assertEqual(registration_evidence["locator"], "获取招标文件/时间")
 
+    def test_liaoning_24_hour_registration_end_rolls_to_next_day(self) -> None:
+        fixture = LIAONING_FIXTURE.replace(
+            "2026年01月30日00时00分",
+            "2026年01月29日24时00分",
+        )
+        record = parse_ccgp_public_tender_text(
+            fixture,
+            source_url="https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202601/t20260122_26106594.htm",
+            observed_at="2026-01-22T11:00:00+00:00",
+            opportunity_id="ccgp_ln_24h_template_test",
+        )
+        self.assertEqual(
+            record["facts"]["registration_deadline"],
+            "2026-01-30T00:00:00+08:00",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
