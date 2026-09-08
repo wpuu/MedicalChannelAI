@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
@@ -77,6 +78,14 @@ def validate_regional_market_metadata(records: list[dict]) -> None:
             )
 
 
+def published_market_counts(payload: dict) -> str:
+    counts = Counter(
+        str((card.get('facts') or {}).get('market_code') or '').strip().upper() or 'UNKNOWN'
+        for card in payload.get('opportunity_pool') or []
+    )
+    return ','.join(f'{code}:{counts[code]}' for code in sorted(counts))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description='Refresh the bundled frontend-safe snapshot from all verified live source files currently present.'
@@ -144,7 +153,8 @@ def main() -> int:
     print(
         'Bundled snapshot refreshed with current ranking logic from '
         f'{len(tianjin_records)} Tianjin + {len(regional_records)} regional verified canonical records; '
-        f'published opportunities={payload["opportunity_pool_count"]}'
+        f'published opportunities={payload["opportunity_pool_count"]}; '
+        f'markets={published_market_counts(payload)}'
     )
     return 0
 
