@@ -12,6 +12,9 @@ _TERMS = tuple(str(item).casefold() for item in _SCOPE.get("terms", []) if str(i
 _CONTEXTUAL_TERMS = tuple(
     str(item).casefold() for item in _SCOPE.get("contextual_terms", []) if str(item).strip()
 )
+_ADJACENT_TECH_TERMS = tuple(
+    str(item).casefold() for item in _SCOPE.get("adjacent_tech_terms", []) if str(item).strip()
+)
 _MEDICAL_CONTEXT_TERMS = tuple(
     str(item).casefold() for item in _SCOPE.get("medical_context_terms", []) if str(item).strip()
 )
@@ -21,6 +24,9 @@ _GENERIC_EXCLUSIONS = tuple(
 _ACRONYMS = tuple(str(item).strip() for item in _SCOPE.get("acronyms", []) if str(item).strip())
 _CONTEXTUAL_ACRONYMS = tuple(
     str(item).strip() for item in _SCOPE.get("contextual_acronyms", []) if str(item).strip()
+)
+_ADJACENT_TECH_ACRONYMS = tuple(
+    str(item).strip() for item in _SCOPE.get("adjacent_tech_acronyms", []) if str(item).strip()
 )
 
 
@@ -35,6 +41,7 @@ def _acronym_regex(items: tuple[str, ...]) -> re.Pattern[str] | None:
 
 _ACRONYM_RE = _acronym_regex(_ACRONYMS)
 _CONTEXTUAL_ACRONYM_RE = _acronym_regex(_CONTEXTUAL_ACRONYMS)
+_ADJACENT_TECH_ACRONYM_RE = _acronym_regex(_ADJACENT_TECH_ACRONYMS)
 _MAX_TODAY_CARDS = 5
 
 
@@ -64,7 +71,7 @@ def _context_text_from_facts(facts: dict[str, Any]) -> str:
     values = [_scope_text_from_facts(facts)]
     # Buyer/hospital identity is context only. It cannot independently make a
     # procurement relevant, but it can disambiguate generic terms such as
-    # “检验”“实验室”“GPU” when those terms appear in the actual procurement facts.
+    # “检验”“实验室”“耗材” when those terms appear in procurement facts.
     for key in ("buyer_name", "hospital_name"):
         value = facts.get(key)
         if isinstance(value, str) and value.strip():
@@ -86,6 +93,13 @@ def _has_contextual_signal(text: str) -> bool:
     return bool(_CONTEXTUAL_ACRONYM_RE and _CONTEXTUAL_ACRONYM_RE.search(text))
 
 
+def _has_adjacent_tech_signal(text: str) -> bool:
+    folded = text.casefold()
+    if any(term in folded for term in _ADJACENT_TECH_TERMS):
+        return True
+    return bool(_ADJACENT_TECH_ACRONYM_RE and _ADJACENT_TECH_ACRONYM_RE.search(text))
+
+
 def _has_medical_context(text: str) -> bool:
     folded = text.casefold()
     return any(term in folded for term in _MEDICAL_CONTEXT_TERMS)
@@ -104,6 +118,8 @@ def is_medical_channel_relevant_text(value: str) -> bool:
         return True
     if _has_generic_exclusion(text):
         return False
+    if _has_adjacent_tech_signal(text):
+        return _has_medical_context(text)
     return _has_contextual_signal(text) and _has_medical_context(text)
 
 
@@ -116,6 +132,11 @@ def is_medical_channel_relevant_record(record: dict[str, Any]) -> bool:
         return True
     if _has_generic_exclusion(scope_text):
         return False
+    if _has_adjacent_tech_signal(scope_text):
+        # Adjacent AI/compute procurement must carry medical context in the
+        # procurement facts themselves. Buyer identity alone must not turn a
+        # generic “算力/GPU” notice into a medical-channel opportunity.
+        return _has_medical_context(scope_text)
     return _has_contextual_signal(scope_text) and _has_medical_context(_context_text_from_facts(facts))
 
 
