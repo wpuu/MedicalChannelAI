@@ -25,11 +25,8 @@ jobs:
           ref: preview/multi-region-ui-acceptance
           fetch-depth: 0
 
-      - name: Correct one-shot patch count
-        run: python3 web/scripts/fix_business_patch_script.py
-
-      - name: Apply explicit business-market closure
-        run: python3 web/scripts/preview_patch_business_markets.py
+      - name: Apply unified business-market preference
+        run: python3 web/scripts/preview_unify_market_preference.py
 
       - name: Run business-market focused regression
         run: python3 -m unittest web.pipeline.tests.test_business_market_preferences
@@ -49,6 +46,7 @@ jobs:
 
       - name: Remove one-shot patch machinery
         run: |
+          rm -f web/scripts/preview_unify_market_preference.py
           rm -f web/scripts/preview_patch_business_markets.py
           rm -f web/scripts/fix_business_patch_script.py
           rm -f .github/workflows/preview-business-market-closure.yml
@@ -59,5 +57,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git diff --cached --check
-          git commit -m "feat: close explicit business market selection"
+          git commit -m "feat: unify explicit business market selection"
           git push origin HEAD:preview/multi-region-ui-acceptance
