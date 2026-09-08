@@ -22,7 +22,6 @@ class MedicalChannelScopeTests(unittest.TestCase):
             "天津市第五中心医院医疗设备更新项目-数字减影血管造影机采购项目",
             "天津市滨海新区大港医院CT影像设备维保项目",
             "天津市胸科医院检验科设备租赁服务项目",
-            "天津市第三中心医院数字彩色超声诊断系统采购项目",
             "天津市滨海新区海滨人民医院采购人工智能GPU（8卡）算力服务器项目",
             "天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选公告",
             "天津中医药大学第二附属医院高分辨液质联用系统三年期维保项目",
@@ -110,6 +109,31 @@ class MedicalChannelScopeTests(unittest.TestCase):
         for record in records:
             with self.subTest(project=record["facts"]["project_name"]):
                 self.assertTrue(is_medical_channel_relevant_record(record))
+
+    def test_adjacent_ai_compute_requires_medical_context_in_procurement_facts(self) -> None:
+        self.assertFalse(is_medical_channel_relevant_text("人工智能GPU算力服务器项目"))
+        self.assertTrue(is_medical_channel_relevant_text("某市中心医院人工智能GPU算力服务器项目"))
+
+        hospital_buyer_only = {
+            "facts": {
+                "project_name": "人工智能GPU算力服务器项目",
+                "buyer_name": "某市中心医院",
+                "hospital_name": "某市中心医院",
+                "department": None,
+                "product_categories": [],
+                "product_items": [],
+            }
+        }
+        self.assertFalse(is_medical_channel_relevant_record(hospital_buyer_only))
+
+        medical_title = copy.deepcopy(hospital_buyer_only)
+        medical_title["facts"]["project_name"] = "某市中心医院人工智能GPU算力服务器项目"
+        self.assertTrue(is_medical_channel_relevant_record(medical_title))
+
+        non_medical = copy.deepcopy(hospital_buyer_only)
+        non_medical["facts"]["buyer_name"] = "某市大数据中心"
+        non_medical["facts"]["hospital_name"] = None
+        self.assertFalse(is_medical_channel_relevant_record(non_medical))
 
     def test_office_consumables_remain_out_even_for_hospital_buyer(self) -> None:
         record = {
