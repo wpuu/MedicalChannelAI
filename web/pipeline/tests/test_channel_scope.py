@@ -43,6 +43,21 @@ class MedicalChannelScopeTests(unittest.TestCase):
             with self.subTest(title=title):
                 self.assertFalse(is_medical_channel_relevant_text(title))
 
+    def test_hard_business_exclusion_overrides_medical_wording(self) -> None:
+        title = "丹东市中心医院2026-2029年度医用织物洗涤消毒招标采购"
+        self.assertFalse(is_medical_channel_relevant_text(title))
+        record = {
+            "facts": {
+                "project_name": title,
+                "buyer_name": "丹东市中心医院",
+                "hospital_name": None,
+                "department": None,
+                "product_categories": [],
+                "product_items": [],
+            }
+        }
+        self.assertFalse(is_medical_channel_relevant_record(record))
+
     def test_hospital_buyer_name_alone_does_not_make_record_relevant(self) -> None:
         record = {
             "facts": {
