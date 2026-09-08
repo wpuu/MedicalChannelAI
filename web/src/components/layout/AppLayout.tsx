@@ -122,7 +122,7 @@ export function AppLayout() {
                 >
                   v{APP_VERSION}
                 </span>
-                {isVerifiedPublicDemo ? (
+                {isApiMode || isVerifiedPublicDemo ? (
                   <select
                     aria-label="业务地区"
                     title="业务地区"

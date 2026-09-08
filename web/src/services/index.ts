@@ -147,7 +147,7 @@ async function loadSyntheticDemoService(): Promise<TodayActionsService> {
  * - synthetic local demo: fictional Mock implementation.
  */
 export const todayActionsService: TodayActionsService = apiBaseUrl
-  ? new PilotApiTodayActionsService(apiBaseUrl)
+  ? new MarketScopedTodayActionsService(new PilotApiTodayActionsService(apiBaseUrl))
   : new DeferredTodayActionsService(
       demoDatasetMode === 'verified' ? loadVerifiedTrialService : loadSyntheticDemoService,
     )

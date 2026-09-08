@@ -8,6 +8,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageSt
 import { NotFitModal } from '@/components/followup/NotFitModal'
 import { RemindModal } from '@/components/followup/RemindModal'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
+import { marketSelectionLabel } from '@/config/marketPreference'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
@@ -68,9 +69,10 @@ function userCoverageWarning(value: string): string {
   return value
     .replace(
       '天津 Pilot · 公开事实来自证据流水线快照；当前仍为部分来源覆盖。',
-      '天津公开采购 · 商机来自已核验官方公开信息；当前仍为部分来源覆盖。',
+      '当前业务地区 · 商机来自已核验官方公开信息；各地区仍为部分来源覆盖。',
     )
-    .split('天津 Pilot').join('天津公开采购')
+    .split('天津 Pilot').join('当前业务地区')
+    .split('天津公开采购').join('当前业务地区')
 }
 
 export function TodayPage() {
@@ -322,7 +324,7 @@ export function TodayPage() {
 
       {!isApiMode && isVerifiedPublicDemo ? (
         <div className="flex flex-wrap items-center gap-2 px-1 text-[11px] text-slate-500">
-          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">数据范围：天津公开采购</span>
+          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">业务地区：{marketSelectionLabel()}</span>
           <span>每条商机可查看官方依据</span>
           {runtimeStatus?.ai.configured ? (
             <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-indigo-700">AI可用</span>
