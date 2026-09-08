@@ -9,15 +9,32 @@ from typing import Any
 _SCOPE_PATH = Path(__file__).resolve().parents[1] / "data" / "medical_channel_scope.json"
 _SCOPE = json.loads(_SCOPE_PATH.read_text(encoding="utf-8"))
 _TERMS = tuple(str(item).casefold() for item in _SCOPE.get("terms", []) if str(item).strip())
+_CONTEXTUAL_TERMS = tuple(
+    str(item).casefold() for item in _SCOPE.get("contextual_terms", []) if str(item).strip()
+)
+_MEDICAL_CONTEXT_TERMS = tuple(
+    str(item).casefold() for item in _SCOPE.get("medical_context_terms", []) if str(item).strip()
+)
+_GENERIC_EXCLUSIONS = tuple(
+    str(item).casefold() for item in _SCOPE.get("generic_exclusion_terms", []) if str(item).strip()
+)
 _ACRONYMS = tuple(str(item).strip() for item in _SCOPE.get("acronyms", []) if str(item).strip())
-_ACRONYM_RE = (
-    re.compile(
-        r"(?<![A-Za-z0-9])(?:" + "|".join(re.escape(item) for item in _ACRONYMS) + r")(?![A-Za-z0-9])",
+_CONTEXTUAL_ACRONYMS = tuple(
+    str(item).strip() for item in _SCOPE.get("contextual_acronyms", []) if str(item).strip()
+)
+
+
+def _acronym_regex(items: tuple[str, ...]) -> re.Pattern[str] | None:
+    if not items:
+        return None
+    return re.compile(
+        r"(?<![A-Za-z0-9])(?:" + "|".join(re.escape(item) for item in items) + r")(?![A-Za-z0-9])",
         re.IGNORECASE,
     )
-    if _ACRONYMS
-    else None
-)
+
+
+_ACRONYM_RE = _acronym_regex(_ACRONYMS)
+_CONTEXTUAL_ACRONYM_RE = _acronym_regex(_CONTEXTUAL_ACRONYMS)
 _MAX_TODAY_CARDS = 5
 
 
@@ -40,34 +57,70 @@ def _scope_text_from_facts(facts: dict[str, Any]) -> str:
             if isinstance(value, str) and value.strip():
                 values.append(value.strip())
 
-    # Deliberately exclude buyer_name/hospital_name. A hospital buyer alone does
-    # not make security, training, finance or other administrative procurement a
-    # MedicalChannelAI opportunity.
     return "\n".join(values)
 
 
-def is_medical_channel_relevant_text(value: str) -> bool:
-    text = str(value or "").strip()
-    if not text:
-        return False
+def _context_text_from_facts(facts: dict[str, Any]) -> str:
+    values = [_scope_text_from_facts(facts)]
+    # Buyer/hospital identity is context only. It cannot independently make a
+    # procurement relevant, but it can disambiguate generic terms such as
+    # “检验”“实验室”“GPU” when those terms appear in the actual procurement facts.
+    for key in ("buyer_name", "hospital_name"):
+        value = facts.get(key)
+        if isinstance(value, str) and value.strip():
+            values.append(value.strip())
+    return "\n".join(value for value in values if value)
+
+
+def _has_strong_signal(text: str) -> bool:
     folded = text.casefold()
     if any(term in folded for term in _TERMS):
         return True
     return bool(_ACRONYM_RE and _ACRONYM_RE.search(text))
 
 
+def _has_contextual_signal(text: str) -> bool:
+    folded = text.casefold()
+    if any(term in folded for term in _CONTEXTUAL_TERMS):
+        return True
+    return bool(_CONTEXTUAL_ACRONYM_RE and _CONTEXTUAL_ACRONYM_RE.search(text))
+
+
+def _has_medical_context(text: str) -> bool:
+    folded = text.casefold()
+    return any(term in folded for term in _MEDICAL_CONTEXT_TERMS)
+
+
+def _has_generic_exclusion(text: str) -> bool:
+    folded = text.casefold()
+    return any(term in folded for term in _GENERIC_EXCLUSIONS)
+
+
+def is_medical_channel_relevant_text(value: str) -> bool:
+    text = str(value or "").strip()
+    if not text:
+        return False
+    if _has_strong_signal(text):
+        return True
+    if _has_generic_exclusion(text):
+        return False
+    return _has_contextual_signal(text) and _has_medical_context(text)
+
+
 def is_medical_channel_relevant_record(record: dict[str, Any]) -> bool:
     facts = record.get("facts") if isinstance(record, dict) else None
     if not isinstance(facts, dict):
         return False
-    return is_medical_channel_relevant_text(_scope_text_from_facts(facts))
+    scope_text = _scope_text_from_facts(facts)
+    if _has_strong_signal(scope_text):
+        return True
+    if _has_generic_exclusion(scope_text):
+        return False
+    return _has_contextual_signal(scope_text) and _has_medical_context(_context_text_from_facts(facts))
 
 
 def is_medical_channel_relevant_public_card(card: dict[str, Any]) -> bool:
-    facts = card.get("facts") if isinstance(card, dict) else None
-    if not isinstance(facts, dict):
-        return False
-    return is_medical_channel_relevant_text(_scope_text_from_facts(facts))
+    return is_medical_channel_relevant_record(card)
 
 
 def filter_public_snapshot_to_medical_channel(snapshot: dict[str, Any]) -> dict[str, Any]:
