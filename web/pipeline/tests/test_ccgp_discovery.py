@@ -29,6 +29,21 @@ FIXTURE = """
 </body></html>
 """
 
+LABELED_REGION_FIXTURE = """
+<html><body>
+<ul class="vT-srch-result-list-bid">
+  <li>
+    <a href="/cggg/dfgg/gkzb/202609/t20260907_27280838.htm">北京市某医院医疗设备采购项目</a>
+    <span>2026.09.07 16:02 | 地域：北京 | 采购人：北京市某医院 | 公开招标公告</span>
+  </li>
+  <li>
+    <a href="/cggg/dfgg/gkzb/202609/t20260907_27280839.htm">河北省某医院医疗设备采购项目</a>
+    <span>2026.09.07 15:20 行政区域：河北省 采购人：河北省某医院</span>
+  </li>
+</ul>
+</body></html>
+"""
+
 RESULT_FIXTURE = """
 <html><body>
 <ul class="vT-srch-result-list-bid">
@@ -98,6 +113,13 @@ class CcgpDiscoveryTests(unittest.TestCase):
         self.assertEqual(first.region, "天津市")
         self.assertEqual(first.notice_type, "公开招标公告")
         self.assertTrue(first.detail_url.startswith("https://www.ccgp.gov.cn/"))
+
+    def test_parse_current_labeled_region_metadata(self) -> None:
+        candidates = parse_search_html(LABELED_REGION_FIXTURE, keyword="医疗")
+        self.assertEqual(len(candidates), 2)
+        self.assertEqual(candidates[0].region, "北京")
+        self.assertEqual(candidates[0].buyer_name, "北京市某医院")
+        self.assertEqual(candidates[1].region, "河北省")
 
     def test_primary_opportunity_budget_rejects_result_and_event_notices(self) -> None:
         candidates = parse_search_html(RESULT_FIXTURE, keyword="医院")
