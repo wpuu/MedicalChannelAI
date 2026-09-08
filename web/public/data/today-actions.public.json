@@ -3,9 +3,9 @@
   "mode": "TODAY_ACTIONS",
   "snapshot_as_of": "2026-09-08T13:57:26.111182+00:00",
   "input_candidate_count": 99,
-  "matched_count": 48,
+  "matched_count": 47,
   "card_count": 5,
-  "opportunity_pool_count": 48,
+  "opportunity_pool_count": 47,
   "model_request_count": 0,
   "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
   "cards": [
@@ -4325,160 +4325,6 @@
     },
     {
       "rank": 24,
-      "opportunity_id": "ccgp_ln_4fb2ace69aca93d6",
-      "facts": {
-        "project_number": "JH26-210600-02099",
-        "project_name": "丹东市中心医院2026-2029年度医用织物洗涤消毒招标采购 包组编号：001",
-        "buyer_name": "丹东市中心医院",
-        "hospital_name": null,
-        "department": null,
-        "region": "丹东市",
-        "lifecycle_state": "BIDDING",
-        "notice_type": "公开招标公告",
-        "published_at": "2026-09-08",
-        "published_at_precision": "DAY",
-        "registration_deadline": "2026-09-16T00:00:00+08:00",
-        "registration_deadline_date": null,
-        "registration_deadline_precision": "MINUTE",
-        "bid_deadline": "2026-09-29T09:30:00+08:00",
-        "expected_procurement_at": null,
-        "expected_procurement_precision": null,
-        "budget": {
-          "amount_cny": 2900000,
-          "currency": "CNY"
-        },
-        "procurement_method": "公开招标",
-        "product_categories": [],
-        "product_items": [],
-        "public_contact": {
-          "name": "马晓苓",
-          "title": "项目联系人",
-          "phone": "0415-6196667",
-          "email": null
-        },
-        "quality_flags": [],
-        "verification_status": "VERIFIED",
-        "coverage_status": "PARTIAL",
-        "market_code": "LN",
-        "market_name": "辽宁",
-        "market_admin_code": "210000"
-      },
-      "evidence_source_urls": [
-        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm"
-      ],
-      "customer_context": {
-        "context_type": "CUSTOMER_PRIVATE_FACTS",
-        "business_role": null,
-        "hospital_relationship": null,
-        "matching_product_capabilities": [],
-        "partnering_policy": {
-          "can_seek_temporary_manufacturer": null,
-          "can_cooperate_with_channel_partner": null,
-          "can_do_rental_projects": null
-        }
-      },
-      "priority": {
-        "schema_version": "0.1",
-        "score": 45,
-        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
-        "components": [
-          {
-            "code": "PRODUCT_EXECUTION_CAPABILITY",
-            "points": 0,
-            "max_points": 25,
-            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
-            "profile_paths": [],
-            "opportunity_paths": []
-          },
-          {
-            "code": "RELATIONSHIP",
-            "points": 0,
-            "max_points": 10,
-            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
-            "profile_paths": [],
-            "opportunity_paths": []
-          },
-          {
-            "code": "EXECUTION_FLEXIBILITY",
-            "points": 0,
-            "max_points": 5,
-            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
-            "profile_paths": [],
-            "opportunity_paths": []
-          },
-          {
-            "code": "INTERVENTION_STAGE",
-            "points": 25,
-            "max_points": 25,
-            "basis": "PUBLIC_OPPORTUNITY",
-            "profile_paths": [],
-            "opportunity_paths": [
-              "facts.lifecycle_state",
-              "facts.registration_deadline",
-              "facts.registration_deadline_date",
-              "facts.bid_deadline"
-            ]
-          },
-          {
-            "code": "DEADLINE_URGENCY",
-            "points": 5,
-            "max_points": 10,
-            "basis": "NEXT_ACTIONABLE_DEADLINE",
-            "profile_paths": [],
-            "opportunity_paths": [
-              "facts.registration_deadline",
-              "facts.registration_deadline_date",
-              "facts.bid_deadline"
-            ]
-          },
-          {
-            "code": "PROJECT_AMOUNT",
-            "points": 7,
-            "max_points": 10,
-            "basis": "PUBLIC_BUDGET_ONLY",
-            "profile_paths": [],
-            "opportunity_paths": [
-              "facts.budget_cny"
-            ]
-          },
-          {
-            "code": "PRODUCT_SPECIFICITY",
-            "points": 1,
-            "max_points": 8,
-            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
-            "profile_paths": [],
-            "opportunity_paths": [
-              "facts.project_name",
-              "facts.product_items",
-              "facts.product_categories",
-              "facts.department",
-              "facts.procurement_method"
-            ]
-          },
-          {
-            "code": "PUBLICATION_FRESHNESS",
-            "points": 7,
-            "max_points": 7,
-            "basis": "OFFICIAL_PUBLICATION_RECENCY",
-            "profile_paths": [],
-            "opportunity_paths": [
-              "facts.published_at"
-            ]
-          }
-        ],
-        "warnings": [
-          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
-        ],
-        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
-      },
-      "match_status": "MATCHED_CANDIDATE",
-      "recommendation_mode": "PUBLIC_OPPORTUNITY",
-      "model_decision_status": "AWAITING_MODEL",
-      "model_block_reason": null,
-      "decision": null
-    },
-    {
-      "rank": 25,
       "opportunity_id": "ccgp_ln_7d7eb844e2e5aec2",
       "facts": {
         "project_number": "JH26-210900-01441",
@@ -4632,7 +4478,7 @@
       "decision": null
     },
     {
-      "rank": 26,
+      "rank": 25,
       "opportunity_id": "ccgp_495edf09e2ad0be2",
       "facts": {
         "project_number": "GLZB2026-H-141",
@@ -4786,7 +4632,7 @@
       "decision": null
     },
     {
-      "rank": 27,
+      "rank": 26,
       "opportunity_id": "ccgp_6754ef1b12062584",
       "facts": {
         "project_number": "XCSD-2026-C-204",
@@ -4940,7 +4786,7 @@
       "decision": null
     },
     {
-      "rank": 28,
+      "rank": 27,
       "opportunity_id": "ccgp_30c566710cb7b9ad",
       "facts": {
         "project_number": "TJBD-2026-C-399",
@@ -5094,7 +4940,7 @@
       "decision": null
     },
     {
-      "rank": 29,
+      "rank": 28,
       "opportunity_id": "ccgp_jl_25eb3b5947b52eaa",
       "facts": {
         "project_number": "采购计划-[2026]-13786号-",
@@ -5248,7 +5094,7 @@
       "decision": null
     },
     {
-      "rank": 30,
+      "rank": 29,
       "opportunity_id": "ccgp_he_ca87fac13b11b638",
       "facts": {
         "project_number": "XHZB(ZC)-2026-0939",
@@ -5402,7 +5248,7 @@
       "decision": null
     },
     {
-      "rank": 31,
+      "rank": 30,
       "opportunity_id": "ccgp_ln_4cfe8973bdb983e2",
       "facts": {
         "project_number": "JH26-210402-00408",
@@ -5556,7 +5402,7 @@
       "decision": null
     },
     {
-      "rank": 32,
+      "rank": 31,
       "opportunity_id": "ccgp_ln_e098f4b20ac83f0c",
       "facts": {
         "project_number": "JH26-210114-00691",
@@ -5710,7 +5556,7 @@
       "decision": null
     },
     {
-      "rank": 33,
+      "rank": 32,
       "opportunity_id": "ccgp_jl_2ef67b2eece8e825",
       "facts": {
         "project_number": "采购计划-[2026]-13401号--0773-2641GNJLHWGK1739/05",
@@ -5864,7 +5710,7 @@
       "decision": null
     },
     {
-      "rank": 34,
+      "rank": 33,
       "opportunity_id": "verified_xks_2026_a_641",
       "facts": {
         "project_number": "XCSD-2026-A-641",
@@ -6027,7 +5873,7 @@
       "decision": null
     },
     {
-      "rank": 35,
+      "rank": 34,
       "opportunity_id": "ccgp_d3b044dfd4e61a1f",
       "facts": {
         "project_number": "TJBHGP-2026-017",
@@ -6206,7 +6052,7 @@
       "decision": null
     },
     {
-      "rank": 36,
+      "rank": 35,
       "opportunity_id": "ccgp_7f6514b76aa9b894",
       "facts": {
         "project_number": "XCSD-2026-A-589",
@@ -6360,7 +6206,7 @@
       "decision": null
     },
     {
-      "rank": 37,
+      "rank": 36,
       "opportunity_id": "verified_bhcdc_2026_c_181",
       "facts": {
         "project_number": "XCSD-2026-C-181",
@@ -6529,7 +6375,7 @@
       "decision": null
     },
     {
-      "rank": 38,
+      "rank": 37,
       "opportunity_id": "verified_teda_20260851",
       "facts": {
         "project_number": "ZYGP20260851",
@@ -6692,7 +6538,7 @@
       "decision": null
     },
     {
-      "rank": 39,
+      "rank": 38,
       "opportunity_id": "ccgp_bbe98d7a7acf4128",
       "facts": {
         "project_number": "TJBHGP-2026-018",
@@ -6846,7 +6692,7 @@
       "decision": null
     },
     {
-      "rank": 40,
+      "rank": 39,
       "opportunity_id": "ccgp_c8b5218e88574e9b",
       "facts": {
         "project_number": "ZYGP20260902",
@@ -7000,7 +6846,7 @@
       "decision": null
     },
     {
-      "rank": 41,
+      "rank": 40,
       "opportunity_id": "verified_zybfy_2026_a_517",
       "facts": {
         "project_number": "XCSD-2026-A-517",
@@ -7166,7 +7012,7 @@
       "decision": null
     },
     {
-      "rank": 42,
+      "rank": 41,
       "opportunity_id": "ccgp_8aa1104ecdf1f15c",
       "facts": {
         "project_number": "ZCZBZC-GK-2026080508",
@@ -7320,7 +7166,7 @@
       "decision": null
     },
     {
-      "rank": 43,
+      "rank": 42,
       "opportunity_id": "ccgp_b609d6c45eb6d1c0",
       "facts": {
         "project_number": "ZCZBZC-GK-2026080507",
@@ -7474,7 +7320,7 @@
       "decision": null
     },
     {
-      "rank": 44,
+      "rank": 43,
       "opportunity_id": "verified_hbrmyy_gpu_0052",
       "facts": {
         "project_number": "TJBH-2026-A-0052",
@@ -7637,7 +7483,7 @@
       "decision": null
     },
     {
-      "rank": 45,
+      "rank": 44,
       "opportunity_id": "tjzyefy_intent_20260804_030195986",
       "facts": {
         "project_number": null,
@@ -7802,7 +7648,7 @@
       "decision": null
     },
     {
-      "rank": 46,
+      "rank": 45,
       "opportunity_id": "tjzyefy_intent_20260804_030195988",
       "facts": {
         "project_number": null,
@@ -7965,7 +7811,7 @@
       "decision": null
     },
     {
-      "rank": 47,
+      "rank": 46,
       "opportunity_id": "tjzyefy_intent_20260804_030195991",
       "facts": {
         "project_number": null,
@@ -8128,7 +7974,7 @@
       "decision": null
     },
     {
-      "rank": 48,
+      "rank": 47,
       "opportunity_id": "tjzyefy_intent_20260804_030195992",
       "facts": {
         "project_number": null,
