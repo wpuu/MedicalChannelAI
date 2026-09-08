@@ -1,0 +1,70 @@
+name: Preview Sync Bundled Snapshot
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-sync-bundled-snapshot.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Preview
+        uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 0
+
+      - name: Rebuild bundled snapshot from verified canonical data
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/refresh_bundled_snapshot.py
+
+      - name: Verify audited public-pool baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          path='web/public/data/today-actions.public.json'
+          payload=json.load(open(path, encoding='utf-8'))
+          pool=payload.get('opportunity_pool') or []
+          counts=Counter((item.get('facts') or {}).get('market_code') for item in pool)
+          expected={'TJ':26,'BJ':2,'HE':4,'LN':5,'JL':4,'HL':6}
+          print('preview_market_counts=' + json.dumps(dict(counts), ensure_ascii=False, sort_keys=True))
+          if payload.get('input_candidate_count') != 99:
+              raise SystemExit(f'INPUT_CANDIDATE_COUNT_MISMATCH:{payload.get("input_candidate_count")}')
+          if payload.get('matched_count') != 47 or payload.get('opportunity_pool_count') != 47:
+              raise SystemExit(f'PUBLIC_POOL_COUNT_MISMATCH:{payload.get("matched_count")}:{payload.get("opportunity_pool_count")}')
+          if dict(counts) != expected:
+              raise SystemExit(f'MARKET_DISTRIBUTION_MISMATCH:{dict(counts)}')
+          titles=[str((item.get('facts') or {}).get('project_name') or '') for item in pool]
+          if any('织物洗涤' in title for title in titles):
+              raise SystemExit('LINEN_LAUNDRY_FALSE_POSITIVE_PRESENT')
+          if not any('人工智能GPU' in title and '医院' in title for title in titles):
+              raise SystemExit('GROUNDED_MEDICAL_GPU_OPPORTUNITY_MISSING')
+          print('audited_public_pool=PASS')
+          PY
+
+      - name: Publish regenerated snapshot to Preview only
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/publish_generated_data_github.py \
+            --branch "${GITHUB_REF_NAME}" \
+            --message 'data: align preview snapshot with audited medical scope' \
+            web/public/data/today-actions.public.json
