@@ -1,0 +1,208 @@
+name: Preview Patch Liaoning CCGP
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-patch-liaoning-ccgp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout preview branch
+        uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 0
+
+      - name: Patch verified Liaoning public-tender format
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('web/pipeline/medical_channel_pipeline/ccgp_detail.py')
+          source = path.read_text(encoding='utf-8')
+
+          old_registration = '''def _extract_registration_deadline(text: str) -> str:
+              patterns = [
+                  r"三[、.]\\s*获取(?:招标|采购)文件\\s+时间\\s*[：:]\\s*"
+                  r"20\\d{2}年\\d{1,2}月\\d{1,2}日\\s*(?:到|至)\\s*"
+                  r"(20\\d{2})年(\\d{1,2})月(\\d{1,2})日"
+                  r"(.+?)(?:地点\\s*[：:]|四[、.])",
+                  r"三[、.]\\s*获取(?:招标|采购)文件\\s+时间\\s*[：:]\\s*"
+                  r"20\\d{2}-\\d{1,2}-\\d{1,2}\\s*(?:到|至)\\s*"
+                  r"(20\\d{2})-(\\d{1,2})-(\\d{1,2})"
+                  r"(.+?)(?:地点\\s*[：:]|四[、.])",
+              ]
+              section = None
+              for pattern in patterns:
+                  section = re.search(pattern, text, re.S)
+                  if section:
+                      break
+              if not section:
+                  raise CcgpDetailParseError("CCGP_REGISTRATION_SECTION_NOT_FOUND")
+              year, month, day, schedule = section.groups()
+
+              if "下午" in schedule:
+                  afternoon_schedule = schedule.rsplit("下午", 1)[1]
+                  afternoon_times = re.findall(r"至\\s*(\\d{1,2})\\s*[：:]\\s*(\\d{2})", afternoon_schedule)
+                  if not afternoon_times:
+                      raise CcgpDetailParseError("CCGP_REGISTRATION_END_TIME_NOT_FOUND")
+                  hour, minute = afternoon_times[-1]
+              else:
+                  times = re.findall(r"至\\s*(\\d{1,2})\\s*[：:]\\s*(\\d{2})", schedule)
+                  if not times:
+                      raise CcgpDetailParseError("CCGP_REGISTRATION_END_TIME_NOT_FOUND")
+                  hour, minute = times[-1]
+              return _datetime_from_cn(year, month, day, hour, minute)
+          '''
+          new_registration = '''def _extract_registration_deadline(text: str) -> str:
+              # Liaoning's official procurement template commonly numbers this as
+              # section four and publishes exact start/end datetimes instead of a
+              # daily business-hours schedule. Prefer that exact official end time.
+              direct_patterns = [
+                  r"(?:三|四)[、.]\\s*获取(?:招标|采购)文件\\s+时间\\s*[：:]\\s*"
+                  r"20\\d{2}年\\d{1,2}月\\d{1,2}日\\s*\\d{1,2}\\s*(?:时|点)\\s*\\d{1,2}\\s*分?\\s*(?:到|至)\\s*"
+                  r"(20\\d{2})年(\\d{1,2})月(\\d{1,2})日\\s*(\\d{1,2})\\s*(?:时|点)\\s*(\\d{1,2})\\s*分?",
+                  r"(?:三|四)[、.]\\s*获取(?:招标|采购)文件\\s+时间\\s*[：:]\\s*"
+                  r"20\\d{2}年\\d{1,2}月\\d{1,2}日\\s*\\d{1,2}\\s*[：:]\\s*\\d{2}\\s*(?:到|至)\\s*"
+                  r"(20\\d{2})年(\\d{1,2})月(\\d{1,2})日\\s*(\\d{1,2})\\s*[：:]\\s*(\\d{2})",
+              ]
+              for pattern in direct_patterns:
+                  direct = re.search(pattern, text, re.S)
+                  if direct:
+                      return _datetime_from_cn(*direct.groups())
+
+              patterns = [
+                  r"(?:三|四)[、.]\\s*获取(?:招标|采购)文件\\s+时间\\s*[：:]\\s*"
+                  r"20\\d{2}年\\d{1,2}月\\d{1,2}日\\s*(?:到|至)\\s*"
+                  r"(20\\d{2})年(\\d{1,2})月(\\d{1,2})日"
+                  r"(.+?)(?:地点\\s*[：:]|(?:四|五)[、.])",
+                  r"(?:三|四)[、.]\\s*获取(?:招标|采购)文件\\s+时间\\s*[：:]\\s*"
+                  r"20\\d{2}-\\d{1,2}-\\d{1,2}\\s*(?:到|至)\\s*"
+                  r"(20\\d{2})-(\\d{1,2})-(\\d{1,2})"
+                  r"(.+?)(?:地点\\s*[：:]|(?:四|五)[、.])",
+              ]
+              section = None
+              for pattern in patterns:
+                  section = re.search(pattern, text, re.S)
+                  if section:
+                      break
+              if not section:
+                  raise CcgpDetailParseError("CCGP_REGISTRATION_SECTION_NOT_FOUND")
+              year, month, day, schedule = section.groups()
+
+              if "下午" in schedule:
+                  afternoon_schedule = schedule.rsplit("下午", 1)[1]
+                  afternoon_times = re.findall(r"至\\s*(\\d{1,2})\\s*[：:]\\s*(\\d{2})", afternoon_schedule)
+                  if not afternoon_times:
+                      raise CcgpDetailParseError("CCGP_REGISTRATION_END_TIME_NOT_FOUND")
+                  hour, minute = afternoon_times[-1]
+              else:
+                  times = re.findall(r"至\\s*(\\d{1,2})\\s*[：:]\\s*(\\d{2})", schedule)
+                  if not times:
+                      raise CcgpDetailParseError("CCGP_REGISTRATION_END_TIME_NOT_FOUND")
+                  hour, minute = times[-1]
+              return _datetime_from_cn(year, month, day, hour, minute)
+          '''
+          if source.count(old_registration) != 1:
+              raise SystemExit('registration function source did not match exactly once')
+          source = source.replace(old_registration, new_registration)
+
+          old_bid = 'r"四[、.]\\s*提交投标文件截止时间、开标时间和地点\\s*"'
+          new_bid = 'r"(?:四|五)[、.]\\s*提交投标文件截止时间、开标时间和地点\\s*"'
+          if source.count(old_bid) != 1:
+              raise SystemExit('bid section prefix did not match exactly once')
+          source = source.replace(old_bid, new_bid)
+
+          old_registration_locator = '("facts.registration_deadline", "三、获取采购文件/时间" if procurement_method != "公开招标" else "三、获取招标文件/时间"),'
+          new_registration_locator = '("facts.registration_deadline", "获取采购文件/时间" if procurement_method != "公开招标" else "获取招标文件/时间"),'
+          if source.count(old_registration_locator) != 1:
+              raise SystemExit('registration locator did not match exactly once')
+          source = source.replace(old_registration_locator, new_registration_locator)
+
+          old_bid_locator = 'deadline_locator="四、提交投标文件截止时间、开标时间和地点",'
+          new_bid_locator = 'deadline_locator="提交投标文件截止时间、开标时间和地点",'
+          if source.count(old_bid_locator) != 1:
+              raise SystemExit('public tender deadline locator did not match exactly once')
+          source = source.replace(old_bid_locator, new_bid_locator)
+          path.write_text(source, encoding='utf-8')
+
+          test_path = Path('web/pipeline/tests/test_ccgp_liaoning_detail_format.py')
+          test_path.write_text('''from __future__ import annotations
+
+import unittest
+
+from medical_channel_pipeline.ccgp_detail import parse_ccgp_public_tender_text
+
+
+LIAONING_FIXTURE = """
+公开招标公告
+采购项目名称 | 医疗设备采购项目
+采购单位 | 沈阳市辽中区卫生健康局
+行政区域 | 辽中区 | 公告时间 | 2026年01月22日 18:30
+一、项目基本情况
+项目编号：JH26-210122-00009
+项目名称：医疗设备采购项目
+预算金额（元）：19570000
+四、获取招标文件
+时间：2026年01月22日18时30分至2026年01月30日00时00分（北京时间，法定节假日除外）
+地点：线上获取
+五、提交投标文件截止时间、开标时间和地点
+2026年02月12日 09时40分（北京时间）
+地点：辽中区公共资源交易中心五楼开标室
+七、对本次招标提出询问，请按以下方式联系。
+1.采购人信息 名称：沈阳市辽中区卫生健康局 地址：蒲东街道丽水路1号
+3.项目联系方式 项目联系人：黄金凤 电话：13079212119
+"""
+
+
+class CcgpLiaoningDetailFormatTests(unittest.TestCase):
+    def test_liaoning_section_four_exact_registration_window_is_verified(self) -> None:
+        record = parse_ccgp_public_tender_text(
+            LIAONING_FIXTURE,
+            source_url="https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202601/t20260122_26106594.htm",
+            observed_at="2026-01-22T11:00:00+00:00",
+            opportunity_id="ccgp_ln_template_test",
+        )
+        facts = record["facts"]
+        self.assertEqual(facts["project_number"], "JH26-210122-00009")
+        self.assertEqual(facts["registration_deadline"], "2026-01-30T00:00:00+08:00")
+        self.assertEqual(facts["bid_deadline"], "2026-02-12T09:40:00+08:00")
+        self.assertEqual(facts["budget_cny"], 19_570_000)
+        registration_evidence = next(
+            item for item in record["evidence"]
+            if item["field_path"] == "facts.registration_deadline"
+        )
+        self.assertEqual(registration_evidence["locator"], "获取招标文件/时间")
+
+
+if __name__ == "__main__":
+    unittest.main()
+''', encoding='utf-8')
+          PY
+
+      - name: Verify focused parser regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web/pipeline
+          python3 -m unittest tests.test_ccgp_liaoning_detail_format tests.test_ccgp_national_detail_formats -v
+
+      - name: Commit parser and regression only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/preview-patch-liaoning-ccgp.yml
+          git add web/pipeline/medical_channel_pipeline/ccgp_detail.py web/pipeline/tests/test_ccgp_liaoning_detail_format.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix: support verified Liaoning CCGP tender format"
+          git push origin HEAD:preview/multi-region-ui-acceptance
