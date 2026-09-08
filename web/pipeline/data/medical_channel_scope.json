@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.3",
+  "schema_version": "0.4",
   "scope_id": "MEDICAL_CHANNEL_CORE_AND_ADJACENT_TECH",
   "terms": [
     "医疗设备",
@@ -72,6 +72,10 @@
     "药检",
     "医疗卫生"
   ],
+  "hard_exclusion_terms": [
+    "医用织物洗涤",
+    "织物洗涤"
+  ],
   "generic_exclusion_terms": [
     "办公耗材",
     "办公用品",
@@ -96,6 +100,7 @@
     "buyer_or_hospital_name_alone_is_not_relevance_evidence": true,
     "generic_signal_requires_medical_context": true,
     "adjacent_tech_requires_medical_context_in_procurement_facts": true,
+    "hard_exclusions_override_strong_signals": true,
     "generic_administration_exclusions_override_contextual_signals": true,
     "canonical_verified_facts_may_be_retained_even_when_out_of_public_scope": true,
     "public_opportunity_pool_requires_scope_match": true,
