@@ -25,6 +25,9 @@ jobs:
           ref: preview/multi-region-ui-acceptance
           fetch-depth: 0
 
+      - name: Correct one-shot patch count
+        run: python3 web/scripts/fix_business_patch_script.py
+
       - name: Apply explicit business-market closure
         run: python3 web/scripts/preview_patch_business_markets.py
 
@@ -49,6 +52,7 @@ jobs:
       - name: Remove one-shot patch machinery
         run: |
           rm -f web/scripts/preview_patch_business_markets.py
+          rm -f web/scripts/fix_business_patch_script.py
           rm -f .github/workflows/preview-business-market-closure.yml
 
       - name: Commit verified Preview changes
