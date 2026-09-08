@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-08T09:09:17.505320+00:00",
+  "observed_at": "2026-09-08T13:57:26.111182+00:00",
   "start_date": "2026-09-06",
   "end_date": "2026-09-08",
   "markets": [
@@ -40,111 +40,11 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 15,
+      "unique_candidate_count": 17,
       "selected_candidate_count": 10,
-      "new_verified_record_count": 1,
-      "failure_count": 9,
-      "failures": [
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "营口市中心医院新建手术室设备购置第二批招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "中国医科大学附属第一医院“心血管健康区域化防控技术研究”社区血液样本检测服务项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "医疗设备采购项目（第二次）招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "丹东市中心医院2026-2029年度医用织物洗涤消毒招标采购（第二次）招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "大连医科大学附属第一医院预包装食品类项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "辽阳县紧密型县域医共体医疗卫生强基工程建设项目（建筑工程设备设施采购）招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "葫芦岛市第四人民医院综合设备采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "阜新市人民医院（阜新市妇女儿童医疗中心）医用食品临床管理服务项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "中国医科大学附属第一医院人行通道闸机等一批（安全保卫部）采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27279712.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        }
-      ]
+      "new_verified_record_count": 10,
+      "failure_count": 0,
+      "failures": []
     },
     {
       "market_code": "JL",
@@ -214,8 +114,8 @@
   "national_fallback_failure_count": 0,
   "national_fallback_failures": [],
   "existing_record_count": 14,
-  "new_verified_record_count": 38,
-  "merged_record_count": 38,
+  "new_verified_record_count": 47,
+  "merged_record_count": 48,
   "policy": {
     "business_market_is_explicit_not_geolocated": true,
     "market_admin_codes_are_validated_against_configured_ccgp_zone": true,

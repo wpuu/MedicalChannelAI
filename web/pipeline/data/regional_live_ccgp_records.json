@@ -3798,5 +3798,1005 @@
         "locator": "项目联系方式"
       }
     ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "ccgp_ln_1a3880ab31870644",
+    "source": {
+      "source_id": "ccgp:JH26-210000-48090",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+      "observed_at": "2026-09-08T13:57:26.111182+00:00"
+    },
+    "facts": {
+      "project_number": "JH26-210000-48090",
+      "project_name": "辽宁省金秋医院2026年扇扫超声内镜设备采购项目 包组编号：001",
+      "buyer_name": "辽宁省金秋医院",
+      "hospital_name": null,
+      "department": null,
+      "region": "辽宁省",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "公开招标公告",
+      "published_at": "2026-09-08",
+      "registration_deadline": "2026-09-16T00:00:00+08:00",
+      "bid_deadline": "2026-09-29T09:30:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 3500000,
+      "procurement_method": "公开招标",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "赵蔓彤 乔善博 李勃",
+        "title": "项目联系人",
+        "phone": "024-23381000",
+        "email": null
+      },
+      "market_code": "LN",
+      "market_name": "辽宁",
+      "market_admin_code": "210000"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "一、项目基本情况/项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "一、项目基本情况/项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "采购人信息/名称"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "公告类型=公开招标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "公告类型/公开招标公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "公告发布日期"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "获取招标文件/时间"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "提交投标文件截止时间、开标时间和地点"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "公告类型=公开招标公告/确定性采购方式映射"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "一、项目基本情况/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "ccgp_ln_e098f4b20ac83f0c",
+    "source": {
+      "source_id": "ccgp:JH26-210114-00691",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+      "observed_at": "2026-09-08T13:57:26.111182+00:00"
+    },
+    "facts": {
+      "project_number": "JH26-210114-00691",
+      "project_name": "于洪区人民医院结核分枝杆菌耐药基因检测设备及其他配套设备采购项目 包组编号：001",
+      "buyer_name": "沈阳市于洪区人民医院",
+      "hospital_name": null,
+      "department": null,
+      "region": "于洪区",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "公开招标公告",
+      "published_at": "2026-09-08",
+      "registration_deadline": "2026-09-16T00:00:00+08:00",
+      "bid_deadline": "2026-09-29T09:30:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 400000,
+      "procurement_method": "公开招标",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "杨靖",
+        "title": "项目联系人",
+        "phone": "024-31038689",
+        "email": null
+      },
+      "market_code": "LN",
+      "market_name": "辽宁",
+      "market_admin_code": "210000"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "一、项目基本情况/项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "一、项目基本情况/项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "采购人信息/名称"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "公告类型=公开招标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "公告类型/公开招标公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "公告发布日期"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "获取招标文件/时间"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "提交投标文件截止时间、开标时间和地点"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "公告类型=公开招标公告/确定性采购方式映射"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "一、项目基本情况/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "ccgp_ln_be60c73331219966",
+    "source": {
+      "source_id": "ccgp:JH26-210800-03609",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+      "observed_at": "2026-09-08T13:57:26.111182+00:00"
+    },
+    "facts": {
+      "project_number": "JH26-210800-03609",
+      "project_name": "营口市中心医院新建手术室设备购置第二批 包组编号：001",
+      "buyer_name": "营口市中心医院",
+      "hospital_name": null,
+      "department": null,
+      "region": "营口市",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "公开招标公告",
+      "published_at": "2026-09-08",
+      "registration_deadline": "2026-09-16T00:00:00+08:00",
+      "bid_deadline": "2026-09-29T09:30:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 4440000,
+      "procurement_method": "公开招标",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "张桐博、郭琳、王天甲、崔岩、郭志权（代理机构）",
+        "title": "项目联系人",
+        "phone": "024-23389240",
+        "email": null
+      },
+      "market_code": "LN",
+      "market_name": "辽宁",
+      "market_admin_code": "210000"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "一、项目基本情况/项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "一、项目基本情况/项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "采购人信息/名称"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "公告类型=公开招标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "公告类型/公开招标公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "公告发布日期"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "获取招标文件/时间"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "提交投标文件截止时间、开标时间和地点"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "公告类型=公开招标公告/确定性采购方式映射"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "一、项目基本情况/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "ccgp_ln_1bd046dbac79f172",
+    "source": {
+      "source_id": "ccgp:JH26-210000-01253",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+      "observed_at": "2026-09-08T13:57:26.111182+00:00"
+    },
+    "facts": {
+      "project_number": "JH26-210000-01253",
+      "project_name": "中国医科大学附属第一医院“心血管健康区域化防控技术研究”社区血液样本检测服务项目 包组编号：001",
+      "buyer_name": "中国医科大学附属第一医院",
+      "hospital_name": null,
+      "department": null,
+      "region": "辽宁省",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "公开招标公告",
+      "published_at": "2026-09-08",
+      "registration_deadline": "2026-09-16T00:00:00+08:00",
+      "bid_deadline": "2026-09-29T09:30:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 1112000,
+      "procurement_method": "公开招标",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "徐佳、岳彤",
+        "title": "项目联系人",
+        "phone": "024-23383567",
+        "email": null
+      },
+      "market_code": "LN",
+      "market_name": "辽宁",
+      "market_admin_code": "210000"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "一、项目基本情况/项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "一、项目基本情况/项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "采购人信息/名称"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "公告类型=公开招标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "公告类型/公开招标公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "公告发布日期"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "获取招标文件/时间"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "提交投标文件截止时间、开标时间和地点"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "公告类型=公开招标公告/确定性采购方式映射"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "一、项目基本情况/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "ccgp_ln_4cfe8973bdb983e2",
+    "source": {
+      "source_id": "ccgp:JH26-210402-00408",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+      "observed_at": "2026-09-08T13:57:26.111182+00:00"
+    },
+    "facts": {
+      "project_number": "JH26-210402-00408",
+      "project_name": "医疗设备采购项目 包组编号：001",
+      "buyer_name": "抚顺市新抚区卫生健康局",
+      "hospital_name": null,
+      "department": null,
+      "region": "新抚区",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "公开招标公告",
+      "published_at": "2026-09-08",
+      "registration_deadline": "2026-09-16T00:00:00+08:00",
+      "bid_deadline": "2026-09-29T09:00:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 750000,
+      "procurement_method": "公开招标",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "邱实",
+        "title": "项目联系人",
+        "phone": "024-52606202",
+        "email": null
+      },
+      "market_code": "LN",
+      "market_name": "辽宁",
+      "market_admin_code": "210000"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "一、项目基本情况/项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "一、项目基本情况/项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "采购人信息/名称"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "公告类型=公开招标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "公告类型/公开招标公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "公告发布日期"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "获取招标文件/时间"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "提交投标文件截止时间、开标时间和地点"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "公告类型=公开招标公告/确定性采购方式映射"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "一、项目基本情况/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "ccgp_ln_4fb2ace69aca93d6",
+    "source": {
+      "source_id": "ccgp:JH26-210600-02099",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+      "observed_at": "2026-09-08T13:57:26.111182+00:00"
+    },
+    "facts": {
+      "project_number": "JH26-210600-02099",
+      "project_name": "丹东市中心医院2026-2029年度医用织物洗涤消毒招标采购 包组编号：001",
+      "buyer_name": "丹东市中心医院",
+      "hospital_name": null,
+      "department": null,
+      "region": "丹东市",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "公开招标公告",
+      "published_at": "2026-09-08",
+      "registration_deadline": "2026-09-16T00:00:00+08:00",
+      "bid_deadline": "2026-09-29T09:30:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 2900000,
+      "procurement_method": "公开招标",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "马晓苓",
+        "title": "项目联系人",
+        "phone": "0415-6196667",
+        "email": null
+      },
+      "market_code": "LN",
+      "market_name": "辽宁",
+      "market_admin_code": "210000"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "一、项目基本情况/项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "一、项目基本情况/项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "采购人信息/名称"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "公告类型=公开招标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "公告类型/公开招标公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "公告发布日期"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "获取招标文件/时间"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "提交投标文件截止时间、开标时间和地点"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "公告类型=公开招标公告/确定性采购方式映射"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "一、项目基本情况/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286706.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "ccgp_ln_302aa011df21c825",
+    "source": {
+      "source_id": "ccgp:JH26-210000-51909",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+      "observed_at": "2026-09-08T13:57:26.111182+00:00"
+    },
+    "facts": {
+      "project_number": "JH26-210000-51909",
+      "project_name": "大连医科大学附属第一医院预包装食品类项目 包组编号：001",
+      "buyer_name": "大连医科大学附属第一医院",
+      "hospital_name": null,
+      "department": null,
+      "region": "辽宁省",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "公开招标公告",
+      "published_at": "2026-09-08",
+      "registration_deadline": "2026-09-16T00:00:00+08:00",
+      "bid_deadline": "2026-09-29T09:00:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 3500000,
+      "procurement_method": "公开招标",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "李翔、王琳琳",
+        "title": "项目联系人",
+        "phone": "0411-83608842-121、122",
+        "email": null
+      },
+      "market_code": "LN",
+      "market_name": "辽宁",
+      "market_admin_code": "210000"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "一、项目基本情况/项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "一、项目基本情况/项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "采购人信息/名称"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "公告类型=公开招标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "公告类型/公开招标公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "公告发布日期"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "获取招标文件/时间"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "提交投标文件截止时间、开标时间和地点"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "公告类型=公开招标公告/确定性采购方式映射"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "一、项目基本情况/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285807.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "ccgp_ln_7c11dbc50e8e9f70",
+    "source": {
+      "source_id": "ccgp:JH26-211021-00378",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+      "observed_at": "2026-09-08T13:57:26.111182+00:00"
+    },
+    "facts": {
+      "project_number": "JH26-211021-00378",
+      "project_name": "辽阳县紧密型县域医共体医疗卫生强基工程建设项目（建筑工程设备设施采购） 包组编号：001",
+      "buyer_name": "辽阳县卫生健康局",
+      "hospital_name": null,
+      "department": null,
+      "region": "辽阳县",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "公开招标公告",
+      "published_at": "2026-09-08",
+      "registration_deadline": "2026-09-16T08:00:00+08:00",
+      "bid_deadline": "2026-09-29T09:00:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 2884269,
+      "procurement_method": "公开招标",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "孙维",
+        "title": "项目联系人",
+        "phone": "0419-7373198",
+        "email": null
+      },
+      "market_code": "LN",
+      "market_name": "辽宁",
+      "market_admin_code": "210000"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "一、项目基本情况/项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "一、项目基本情况/项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "采购人信息/名称"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "公告类型=公开招标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "公告类型/公开招标公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "公告发布日期"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "获取招标文件/时间"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "提交投标文件截止时间、开标时间和地点"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "公告类型=公开招标公告/确定性采购方式映射"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "一、项目基本情况/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285453.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "ccgp_ln_340f7081b4500696",
+    "source": {
+      "source_id": "ccgp:JH26-211400-01804",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+      "observed_at": "2026-09-08T13:57:26.111182+00:00"
+    },
+    "facts": {
+      "project_number": "JH26-211400-01804",
+      "project_name": "葫芦岛市第四人民医院综合设备采购项目 包组编号：001",
+      "buyer_name": "葫芦岛市第四人民医院",
+      "hospital_name": null,
+      "department": null,
+      "region": "葫芦岛市",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "公开招标公告",
+      "published_at": "2026-09-08",
+      "registration_deadline": "2026-09-16T00:00:00+08:00",
+      "bid_deadline": "2026-10-09T09:00:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 5550000,
+      "procurement_method": "公开招标",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "杨女士",
+        "title": "项目联系人",
+        "phone": "0416-2661788",
+        "email": null
+      },
+      "market_code": "LN",
+      "market_name": "辽宁",
+      "market_admin_code": "210000"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "一、项目基本情况/项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "一、项目基本情况/项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "采购人信息/名称"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "公告类型=公开招标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "公告类型/公开招标公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "公告发布日期"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "获取招标文件/时间"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "提交投标文件截止时间、开标时间和地点"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "公告类型=公开招标公告/确定性采购方式映射"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "一、项目基本情况/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "ccgp_ln_7d7eb844e2e5aec2",
+    "source": {
+      "source_id": "ccgp:JH26-210900-01441",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+      "observed_at": "2026-09-08T13:57:26.111182+00:00"
+    },
+    "facts": {
+      "project_number": "JH26-210900-01441",
+      "project_name": "阜新市人民医院（阜新市妇女儿童医疗中心）医用食品临床管理服务项目 包组编号：001",
+      "buyer_name": "阜新市人民医院（阜新市妇女儿童医疗中心）",
+      "hospital_name": null,
+      "department": null,
+      "region": "阜新市",
+      "lifecycle_state": "BIDDING",
+      "notice_type": "公开招标公告",
+      "published_at": "2026-09-08",
+      "registration_deadline": "2026-09-16T17:00:00+08:00",
+      "bid_deadline": "2026-09-29T09:00:00+08:00",
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 2000000,
+      "procurement_method": "公开招标",
+      "product_categories": [],
+      "product_items": [],
+      "public_contact": {
+        "name": "张础乔、王彤、杜晨榕",
+        "title": "项目联系人",
+        "phone": "024-83958278",
+        "email": null
+      },
+      "market_code": "LN",
+      "market_name": "辽宁",
+      "market_admin_code": "210000"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "一、项目基本情况/项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "一、项目基本情况/项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "采购人信息/名称"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "公告类型=公开招标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "公告类型/公开招标公告"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "公告发布日期"
+      },
+      {
+        "field_path": "facts.registration_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "获取招标文件/时间"
+      },
+      {
+        "field_path": "facts.bid_deadline",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "提交投标文件截止时间、开标时间和地点"
+      },
+      {
+        "field_path": "facts.procurement_method",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "公告类型=公开招标公告/确定性采购方式映射"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "一、项目基本情况/预算金额"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
+        "locator": "项目联系方式"
+      }
+    ]
   }
 ]
