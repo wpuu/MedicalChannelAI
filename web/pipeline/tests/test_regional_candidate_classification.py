@@ -1,14 +1,14 @@
 from pathlib import Path
 import unittest
 
-from web.pipeline.medical_channel_pipeline.ccgp_discovery import DiscoveryCandidate
-from web.pipeline.medical_channel_pipeline.regional_candidate import (
+from medical_channel_pipeline.ccgp_discovery import DiscoveryCandidate
+from medical_channel_pipeline.regional_candidate import (
     NON_COMPETITIVE_SINGLE_SOURCE,
     OUT_OF_MEDICAL_SCOPE,
     regional_candidate_skip_reason,
 )
 
-ROOT = Path(__file__).resolve().parents[2]
+PIPELINE_ROOT = Path(__file__).resolve().parents[1]
 
 
 def candidate(title: str, *, buyer: str | None = None, notice_type: str | None = None) -> DiscoveryCandidate:
@@ -57,7 +57,7 @@ class RegionalCandidateClassificationTests(unittest.TestCase):
         self.assertEqual(regional_candidate_skip_reason(item), NON_COMPETITIVE_SINGLE_SOURCE)
 
     def test_regional_sync_classifies_before_fetching_detail(self):
-        source = (ROOT / 'scripts/sync_regional_ccgp.py').read_text(encoding='utf-8')
+        source = (PIPELINE_ROOT / 'scripts/sync_regional_ccgp.py').read_text(encoding='utf-8')
         classifier_at = source.index('regional_candidate_skip_reason(candidate)')
         detail_at = source.index('fetch_ccgp_detail_html(candidate.detail_url)')
         self.assertLess(classifier_at, detail_at)
