@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: preview-business-market-closure
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   patch-and-verify:
@@ -34,12 +34,10 @@ jobs:
       - name: Run business-market focused regression
         run: python3 -m unittest web.pipeline.tests.test_business_market_preferences
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: web/package-lock.json
+      - name: Verify system Node
+        run: |
+          node --version
+          npm --version
 
       - name: Install web dependencies
         working-directory: web
