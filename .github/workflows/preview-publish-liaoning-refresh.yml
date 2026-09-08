@@ -1,0 +1,104 @@
+name: Preview Publish Liaoning Refresh
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-publish-liaoning-refresh.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 25
+    steps:
+      - name: Checkout preview branch
+        uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 0
+
+      - name: Verify parser regressions
+        run: |
+          cd web/pipeline
+          python3 -m unittest tests.test_ccgp_liaoning_detail_format tests.test_ccgp_national_detail_formats -v
+
+      - name: Build Liaoning-only plan
+        run: |
+          python3 -c "import json; p=json.load(open('web/pipeline/data/multi_region_query_plan.json',encoding='utf-8')); p['markets']=[m for m in p['markets'] if m['market_code']=='LN']; json.dump(p,open('/tmp/liaoning-plan.json','w',encoding='utf-8'),ensure_ascii=False,indent=2)"
+
+      - name: Refresh Liaoning canonical records
+        run: |
+          AS_OF="$(python3 -c "from datetime import datetime,timezone; print(datetime.now(timezone.utc).isoformat())")"
+          echo "$AS_OF" > /tmp/as_of.txt
+          python3 web/pipeline/scripts/sync_regional_ccgp.py \
+            --plan /tmp/liaoning-plan.json \
+            --as-of "$AS_OF" \
+            --existing-records-input web/pipeline/data/regional_live_ccgp_records.json \
+            --records-output web/pipeline/data/regional_live_ccgp_records.json \
+            --report-output /tmp/liaoning-report.json
+
+      - name: Merge Liaoning report into full regional report
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          full_path = Path('web/pipeline/data/regional_sync_report.json')
+          full = json.loads(full_path.read_text(encoding='utf-8'))
+          ln = json.loads(Path('/tmp/liaoning-report.json').read_text(encoding='utf-8'))
+          ln_market = ln['markets'][0]
+          full['observed_at'] = ln['observed_at']
+          full['start_date'] = ln['start_date']
+          full['end_date'] = ln['end_date']
+          full['markets'] = [ln_market if m.get('market_code') == 'LN' else m for m in full['markets']]
+          full['new_verified_record_count'] = sum(int(m.get('new_verified_record_count') or 0) for m in full['markets'])
+          full['merged_record_count'] = len(json.loads(Path('web/pipeline/data/regional_live_ccgp_records.json').read_text(encoding='utf-8')))
+          full_path.write_text(json.dumps(full, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          print(json.dumps(ln_market, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Publish combined Preview snapshot
+        run: |
+          AS_OF="$(cat /tmp/as_of.txt)"
+          python3 web/pipeline/scripts/publish_web_snapshot.py \
+            --as-of "$AS_OF" \
+            --input web/pipeline/data/tianjin_live_ccgp_records.json \
+            --input web/pipeline/data/tianjin_live_tjmugh_records.json \
+            --input web/pipeline/data/tianjin_live_tjnothop_records.json \
+            --input web/pipeline/data/tianjin_live_tjzxfc_records.json \
+            --input web/pipeline/data/tianjin_live_tjzyefy_records.json \
+            --input web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
+            --input web/pipeline/data/tianjin_live_teda_records.json \
+            --input web/pipeline/data/tianjin_live_tjfch_records.json \
+            --event-input web/pipeline/data/tianjin_notice_events.json \
+            --output web/public/data/today-actions.public.json
+
+      - name: Verify public market distribution
+        run: |
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          payload=json.load(open('web/public/data/today-actions.public.json',encoding='utf-8'))
+          counts=Counter((x.get('facts') or {}).get('market_code') for x in payload.get('opportunity_pool',[]))
+          print('preview_market_counts=' + json.dumps(counts, ensure_ascii=False, sort_keys=True))
+          if counts.get('LN', 0) < 1:
+              raise SystemExit('PREVIEW_LIAONING_PUBLIC_POOL_EMPTY')
+          PY
+
+      - name: Publish generated data to Preview branch only
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 web/pipeline/scripts/publish_generated_data_github.py \
+            --branch preview/multi-region-ui-acceptance \
+            --message 'data: refresh verified Liaoning opportunities on preview' \
+            web/pipeline/data/regional_live_ccgp_records.json \
+            web/pipeline/data/regional_sync_report.json \
+            web/public/data/today-actions.public.json
