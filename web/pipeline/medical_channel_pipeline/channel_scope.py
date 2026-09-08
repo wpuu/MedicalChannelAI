@@ -18,6 +18,9 @@ _ADJACENT_TECH_TERMS = tuple(
 _MEDICAL_CONTEXT_TERMS = tuple(
     str(item).casefold() for item in _SCOPE.get("medical_context_terms", []) if str(item).strip()
 )
+_HARD_EXCLUSIONS = tuple(
+    str(item).casefold() for item in _SCOPE.get("hard_exclusion_terms", []) if str(item).strip()
+)
 _GENERIC_EXCLUSIONS = tuple(
     str(item).casefold() for item in _SCOPE.get("generic_exclusion_terms", []) if str(item).strip()
 )
@@ -105,6 +108,11 @@ def _has_medical_context(text: str) -> bool:
     return any(term in folded for term in _MEDICAL_CONTEXT_TERMS)
 
 
+def _has_hard_exclusion(text: str) -> bool:
+    folded = text.casefold()
+    return any(term in folded for term in _HARD_EXCLUSIONS)
+
+
 def _has_generic_exclusion(text: str) -> bool:
     folded = text.casefold()
     return any(term in folded for term in _GENERIC_EXCLUSIONS)
@@ -113,6 +121,8 @@ def _has_generic_exclusion(text: str) -> bool:
 def is_medical_channel_relevant_text(value: str) -> bool:
     text = str(value or "").strip()
     if not text:
+        return False
+    if _has_hard_exclusion(text):
         return False
     if _has_strong_signal(text):
         return True
@@ -128,6 +138,8 @@ def is_medical_channel_relevant_record(record: dict[str, Any]) -> bool:
     if not isinstance(facts, dict):
         return False
     scope_text = _scope_text_from_facts(facts)
+    if _has_hard_exclusion(scope_text):
+        return False
     if _has_strong_signal(scope_text):
         return True
     if _has_generic_exclusion(scope_text):
