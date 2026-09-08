@@ -133,6 +133,7 @@ class CcgpDiscoveryTests(unittest.TestCase):
         self.assertEqual(first.published_at, "2026-08-27")
         self.assertEqual(first.buyer_name, "天津市胸科医院")
         self.assertEqual(first.region, "天津市")
+        self.assertEqual(candidates[1].region, "天津市滨海新区")
         self.assertEqual(first.notice_type, "公开招标公告")
         self.assertTrue(first.detail_url.startswith("https://www.ccgp.gov.cn/"))
 

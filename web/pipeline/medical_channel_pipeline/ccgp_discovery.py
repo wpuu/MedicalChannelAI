@@ -11,80 +11,39 @@ CCGP_DETAIL_BASE = "https://www.ccgp.gov.cn/"
 CCGP_DETAIL_HOSTS = {"ccgp.gov.cn", "www.ccgp.gov.cn"}
 RATE_LIMIT_MARKERS = ("您的访问过于频繁", "频繁访问")
 PRIMARY_OPPORTUNITY_EXCLUSION_MARKERS = (
-    "中标公告",
-    "中标结果公告",
-    "成交公告",
-    "成交结果公告",
-    "结果公告",
-    "终止公告",
-    "废标公告",
-    "更正公告",
-    "变更公告",
+    "中标公告", "中标结果公告", "成交公告", "成交结果公告", "结果公告",
+    "终止公告", "废标公告", "更正公告", "变更公告",
 )
-PRIMARY_OPPORTUNITY_EXCLUSION_PATHS = (
-    "/zbgg/",
-    "/cjgg/",
-    "/zzgg/",
-    "/fbgg/",
-    "/gzgg/",
-)
+PRIMARY_OPPORTUNITY_EXCLUSION_PATHS = ("/zbgg/", "/cjgg/", "/zzgg/", "/fbgg/", "/gzgg/")
 
 BID_TYPE_CODES = {
-    "全部": "0",
-    "公开招标": "1",
-    "询价公告": "2",
-    "竞争性谈判": "3",
-    "单一来源": "4",
-    "资格预审": "5",
-    "更正公告": "6",
-    "竞争性磋商": "7",
-    "中标公告": "8",
-    "成交公告": "9",
-    "终止公告": "10",
+    "全部": "0", "公开招标": "1", "询价公告": "2", "竞争性谈判": "3",
+    "单一来源": "4", "资格预审": "5", "更正公告": "6", "竞争性磋商": "7",
+    "中标公告": "8", "成交公告": "9", "终止公告": "10",
 }
 
 NOTICE_TYPE_MARKERS = (
-    "公开招标公告",
-    "竞争性磋商公告",
-    "竞争性谈判公告",
-    "询价公告",
-    "资格预审公告",
-    "单一来源公告",
-    "更正公告",
-    "中标公告",
-    "成交公告",
-    "终止公告",
-    "公开招标",
-    "竞争性磋商",
-    "竞争性谈判",
-    "单一来源",
-    "资格预审",
+    "公开招标公告", "竞争性磋商公告", "竞争性谈判公告", "询价公告",
+    "资格预审公告", "单一来源公告", "更正公告", "中标公告", "成交公告",
+    "终止公告", "公开招标", "竞争性磋商", "竞争性谈判", "单一来源", "资格预审",
 )
 
 # CCGP's province-level zone ids follow the first two digits of the official
 # county-and-above administrative code. The business market remains an explicit
 # field on verified records; detail-page region text is never used to infer it.
 REGION_ZONE_IDS = {
-    "北京": "11",
-    "天津": "12",
-    "河北": "13",
-    "辽宁": "21",
-    "吉林": "22",
-    "黑龙江": "23",
+    "北京": "11", "天津": "12", "河北": "13", "辽宁": "21", "吉林": "22", "黑龙江": "23",
 }
 
 # Current CCGP result rows often render geography as a standalone pipe-delimited
-# field (for example "| 北京 |") with no "地域:" label. Only exact configured
-# province-level aliases are accepted here; titles, buyer names and addresses are
-# never used to infer geography.
+# field (for example "| 北京 |"). Only exact configured aliases or a strict
+# province-prefixed administrative unit are accepted; free text is never used.
 REGION_ROW_ALIASES = {
-    "北京", "北京市",
-    "天津", "天津市",
-    "河北", "河北省",
-    "辽宁", "辽宁省",
-    "吉林", "吉林省",
-    "黑龙江", "黑龙江省",
+    "北京", "北京市", "天津", "天津市", "河北", "河北省",
+    "辽宁", "辽宁省", "吉林", "吉林省", "黑龙江", "黑龙江省",
 }
+REGION_ADMIN_PREFIXES = ("北京市", "天津市", "河北省", "辽宁省", "吉林省", "黑龙江省")
+REGION_ADMIN_SUFFIXES = ("自治县", "开发区", "高新区", "新区", "自治州", "市", "区", "县", "旗")
 
 
 @dataclass(frozen=True)
@@ -116,39 +75,20 @@ def _ccgp_date(value: str) -> str:
     return value.strip().replace("-", ":")
 
 
-def build_search_url(
-    *,
-    keyword: str,
-    notice_type: str = "全部",
-    page_index: int = 1,
-    start_date: str,
-    end_date: str,
-    region: str | None = None,
-) -> str:
+def build_search_url(*, keyword: str, notice_type: str = "全部", page_index: int = 1,
+                     start_date: str, end_date: str, region: str | None = None) -> str:
     if page_index < 1:
         raise ValueError("page_index must be >= 1")
     if notice_type not in BID_TYPE_CODES:
         raise ValueError(f"unsupported notice_type: {notice_type}")
     if region is not None and region not in REGION_ZONE_IDS:
         raise ValueError(f"unsupported region: {region}")
-
     params = {
-        "searchtype": "1",
-        "page_index": str(page_index),
-        "bidSort": "0",
-        "buyerName": "",
-        "projectId": "",
-        "pinMu": "0",
-        "bidType": BID_TYPE_CODES[notice_type],
-        "dbselect": "bidx",
-        "kw": keyword,
-        "start_time": _ccgp_date(start_date),
-        "end_time": _ccgp_date(end_date),
-        "timeType": "6",
-        "displayZone": region or "",
-        "zoneId": REGION_ZONE_IDS.get(region, "") if region else "",
-        "pppStatus": "0",
-        "agentName": "",
+        "searchtype": "1", "page_index": str(page_index), "bidSort": "0", "buyerName": "",
+        "projectId": "", "pinMu": "0", "bidType": BID_TYPE_CODES[notice_type], "dbselect": "bidx",
+        "kw": keyword, "start_time": _ccgp_date(start_date), "end_time": _ccgp_date(end_date),
+        "timeType": "6", "displayZone": region or "", "zoneId": REGION_ZONE_IDS.get(region, "") if region else "",
+        "pppStatus": "0", "agentName": "",
     }
     return f"{CCGP_SEARCH_URL}?{urlencode(params)}"
 
@@ -207,9 +147,6 @@ class _SearchListParser(HTMLParser):
             return
         text = data.strip()
         if text:
-            # CCGP currently renders date, notice type, region and buyer across
-            # several sibling tags/text nodes. Capture the whole visible row
-            # outside the title link instead of assuming everything is <span>.
             self._meta_text.append(text)
 
 
@@ -221,26 +158,39 @@ def _normalize_date(meta: str) -> str | None:
     return f"{year}-{int(month):02d}-{int(day):02d}"
 
 
+def _looks_like_region_field(value: str) -> bool:
+    normalized = value.strip()
+    if normalized in REGION_ROW_ALIASES:
+        return True
+    if any(char in normalized for char in (":", "，", ",", "；", ";", "。", " ")):
+        return False
+    if len(normalized) > 18 or not re.fullmatch(r"[\u4e00-\u9fff]+", normalized):
+        return False
+    for prefix in REGION_ADMIN_PREFIXES:
+        if not normalized.startswith(prefix):
+            continue
+        remainder = normalized[len(prefix):]
+        if not remainder:
+            return True
+        return any(remainder.endswith(suffix) for suffix in REGION_ADMIN_SUFFIXES)
+    return False
+
+
 def _parse_meta(meta: str) -> tuple[str | None, str | None, str | None, str | None]:
     published_at = _normalize_date(meta)
     buyer_name = None
     region = None
     notice_type = None
     normalized_meta = re.sub(
-        r"\s+",
-        " ",
-        meta.replace("\r", " ").replace("\n", " ").replace("：", ":"),
+        r"\s+", " ", meta.replace("\r", " ").replace("\n", " ").replace("：", ":")
     ).strip()
 
     # The search request's zoneId is discovery-only. Geography must be proven by
-    # the official result row itself. Some rows use "地域:北京" / "行政区域:北京市".
-    region_match = re.search(
-        r"(?:地域|行政区域)\s*:\s*([^|\s]+)",
-        normalized_meta,
-    )
+    # an explicit official result-row field.
+    region_match = re.search(r"(?:地域|行政区域)\s*:\s*([^|\s]+)", normalized_meta)
     if region_match:
         candidate_region = region_match.group(1).strip(" ,，;；")
-        if candidate_region in REGION_ROW_ALIASES:
+        if _looks_like_region_field(candidate_region):
             region = candidate_region
 
     for marker in NOTICE_TYPE_MARKERS:
@@ -254,15 +204,10 @@ def _parse_meta(meta: str) -> tuple[str | None, str | None, str | None, str | No
         if normalized.startswith("采购人") and ":" in normalized:
             buyer_name = normalized.split(":", 1)[1].strip() or None
             continue
-        # Current production shape uses an exact standalone province field such
-        # as "| 北京 |". Accept only an exact configured alias, never a substring.
-        if region is None and normalized in REGION_ROW_ALIASES:
+        # Current production shape: "... | 北京 |". This exact field is valid
+        # geography evidence, but descriptive prose containing 北京 is not.
+        if region is None and _looks_like_region_field(normalized):
             region = normalized
-            continue
-        # Retain legacy result rows that expose a longer province-level value.
-        if region is None and any(token in part for token in ("北京市", "天津市", "上海市", "重庆市", "省", "自治区", "特别行政区")):
-            if not re.match(r"^20\d{2}[.\-/]", part) and len(part) <= 24:
-                region = part
     return published_at, buyer_name, region, notice_type
 
 
@@ -270,13 +215,8 @@ def _canonical_detail_url(href: str) -> str:
     detail_url = urljoin(CCGP_DETAIL_BASE, href)
     parsed = urlsplit(detail_url)
     hostname = (parsed.hostname or "").lower()
-    if (
-        parsed.scheme == "http"
-        and hostname in CCGP_DETAIL_HOSTS
-        and parsed.username is None
-        and parsed.password is None
-        and parsed.port in (None, 80)
-    ):
+    if (parsed.scheme == "http" and hostname in CCGP_DETAIL_HOSTS and parsed.username is None
+            and parsed.password is None and parsed.port in (None, 80)):
         return urlunsplit(("https", hostname, parsed.path, parsed.query, parsed.fragment))
     return detail_url
 
@@ -294,31 +234,20 @@ def parse_search_html(html: str, *, keyword: str) -> list[DiscoveryCandidate]:
             continue
         seen_urls.add(detail_url)
         published_at, buyer_name, region, notice_type = _parse_meta(meta)
-        candidates.append(
-            DiscoveryCandidate(
-                title=title,
-                detail_url=detail_url,
-                published_at=published_at,
-                buyer_name=buyer_name,
-                region=region,
-                notice_type=notice_type,
-                search_keyword=keyword,
-            )
-        )
+        candidates.append(DiscoveryCandidate(
+            title=title, detail_url=detail_url, published_at=published_at, buyer_name=buyer_name,
+            region=region, notice_type=notice_type, search_keyword=keyword,
+        ))
     return candidates
 
 
 def fetch_search_page(search_url: str, *, timeout_seconds: int = 30) -> str:
     if not search_url.startswith(CCGP_SEARCH_URL):
         raise ValueError("search_url must target the CCGP public search endpoint")
-    request = Request(
-        search_url,
-        headers={
-            "User-Agent": "MedicalChannelAI/0.1 (+evidence-first public procurement discovery)",
-            "Accept": "text/html,application/xhtml+xml",
-            "Accept-Language": "zh-CN,zh;q=0.9",
-        },
-    )
+    request = Request(search_url, headers={
+        "User-Agent": "MedicalChannelAI/0.1 (+evidence-first public procurement discovery)",
+        "Accept": "text/html,application/xhtml+xml", "Accept-Language": "zh-CN,zh;q=0.9",
+    })
     with urlopen(request, timeout=timeout_seconds) as response:
         body = response.read()
         charset = response.headers.get_content_charset() or "utf-8"
