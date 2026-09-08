@@ -193,9 +193,21 @@ def _parse_meta(meta: str) -> tuple[str | None, str | None, str | None, str | No
     buyer_name = None
     region = None
     notice_type = None
-    parts = [part.strip() for part in meta.replace("\r", " ").replace("\n", " ").split("|") if part.strip()]
+    normalized_meta = meta.replace("\r", " ").replace("\n", " ").replace("：", ":")
+
+    # Current CCGP search rows label geography as "地域：北京" / "地域：河北"
+    # (and some legacy rows use "行政区域：北京市"). The search request's zoneId
+    # is discovery-only, so geography must be parsed from the official row itself.
+    region_match = re.search(
+        r"(?:^|[\s|])(?:地域|行政区域)\s*:\s*([^|\s]+)",
+        normalized_meta,
+    )
+    if region_match:
+        region = region_match.group(1).strip(" ,，;；") or None
+
+    parts = [part.strip() for part in normalized_meta.split("|") if part.strip()]
     for part in parts:
-        normalized = part.replace("：", ":")
+        normalized = part.strip()
         if normalized.startswith("采购人") and ":" in normalized:
             buyer_name = normalized.split(":", 1)[1].strip() or None
             continue
