@@ -42,9 +42,24 @@ def load_pinned_payload() -> tuple[dict, list[dict]]:
 
 
 def validate_national_table(meta: dict, payload: list[dict]) -> None:
-    roots = [item for item in payload if item.get('level') == 1]
-    if len(roots) != 34:
-        raise RuntimeError(f'ADMIN_DIVISION_PROVINCE_COUNT_INVALID:{len(roots)}')
+    # The pinned MCA 2025 dataset has 33 coded province-level rows. Taiwan is
+    # intentionally published as a province placeholder with its code marked
+    # "资料暂缺". Never invent or infer a numeric administrative code for it.
+    coded_roots = [item for item in payload if item.get('level') == 1]
+    taiwan_placeholders = [
+        item for item in payload
+        if item.get('name') == '台湾省' and item.get('type') == '省'
+    ]
+    if len(coded_roots) != 33:
+        raise RuntimeError(f'ADMIN_DIVISION_CODED_PROVINCE_COUNT_INVALID:{len(coded_roots)}')
+    if len(taiwan_placeholders) != 1:
+        raise RuntimeError(f'ADMIN_DIVISION_TAIWAN_PLACEHOLDER_COUNT_INVALID:{len(taiwan_placeholders)}')
+    taiwan = taiwan_placeholders[0]
+    if str(taiwan.get('code') or '').strip() != '资料暂缺' or taiwan.get('level') != 0:
+        raise RuntimeError('ADMIN_DIVISION_TAIWAN_PLACEHOLDER_INVALID')
+    if len(coded_roots) + len(taiwan_placeholders) != 34:
+        raise RuntimeError('ADMIN_DIVISION_TOP_LEVEL_NAME_COUNT_INVALID')
+
     by_code = {str(item.get('code') or ''): item for item in payload}
     for code, name in EXPECTED_PROVINCES.items():
         item = by_code.get(code)
@@ -72,10 +87,16 @@ def main() -> int:
         'version': meta['version'],
         'as_of': meta['as_of'],
         'record_count': len(payload),
+        'coded_province_level_count': 33,
+        'top_level_named_count': 34,
+        'taiwan_code_status': '资料暂缺',
         'records': payload,
     }
     args.output.write_text(json.dumps(output, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'admin_divisions version={meta["version"]} records={len(payload)} provinces=34')
+    print(
+        f'admin_divisions version={meta["version"]} records={len(payload)} '
+        'coded_provinces=33 top_level_names=34 taiwan_code=资料暂缺'
+    )
     return 0
 
 
