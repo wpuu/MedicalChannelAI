@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   patch-and-verify:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
     timeout-minutes: 25
     steps:
       - name: Checkout Preview branch
