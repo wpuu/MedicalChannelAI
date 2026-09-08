@@ -43,8 +43,16 @@ BID_TYPE_CODES = {
     "终止公告": "10",
 }
 
+# CCGP's province-level zone ids follow the first two digits of the official
+# county-and-above administrative code. The business market remains an explicit
+# field on verified records; detail-page region text is never used to infer it.
 REGION_ZONE_IDS = {
+    "北京": "11",
     "天津": "12",
+    "河北": "13",
+    "辽宁": "21",
+    "吉林": "22",
+    "黑龙江": "23",
 }
 
 
@@ -64,13 +72,7 @@ class DiscoveryCandidate:
 
 
 def is_primary_opportunity_candidate(candidate: DiscoveryCandidate) -> bool:
-    """Keep formal opportunity notices out of result/correction event pages.
-
-    CCGP search occasionally returns result notices even when a formal opportunity
-    bidType is requested. Primary discovery must not let those rows consume the
-    bounded detail-verification budget. Corrections/terminations are handled by the
-    separate active-project event watcher.
-    """
+    """Keep formal opportunity notices out of result/correction event pages."""
     title = str(candidate.title or "").strip()
     notice_type = str(candidate.notice_type or "").strip()
     if any(marker in title or marker in notice_type for marker in PRIMARY_OPPORTUNITY_EXCLUSION_MARKERS):
@@ -210,10 +212,6 @@ def _canonical_detail_url(href: str) -> str:
     detail_url = urljoin(CCGP_DETAIL_BASE, href)
     parsed = urlsplit(detail_url)
     hostname = (parsed.hostname or "").lower()
-
-    # CCGP search has historically emitted absolute http://www.ccgp.gov.cn links.
-    # Upgrade only the exact national CCGP hosts to HTTPS. Never rewrite an
-    # external/local-government host into a trusted national host.
     if (
         parsed.scheme == "http"
         and hostname in CCGP_DETAIL_HOSTS

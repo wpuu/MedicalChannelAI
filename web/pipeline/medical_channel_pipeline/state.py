@@ -7,6 +7,8 @@ from .ccgp_events import validate_notice_events
 from .channel_scope import is_medical_channel_relevant_record
 from .validation import validate_record, validate_records
 
+LEGACY_DEFAULT_MARKET_CODE = 'TJ'
+
 
 def _as_datetime(value: str | None) -> datetime | None:
     if not value:
@@ -17,36 +19,35 @@ def _as_datetime(value: str | None) -> datetime | None:
     return parsed
 
 
-def _record_identity(record: dict[str, Any]) -> tuple[str, str]:
+def market_code_for_record(record: dict[str, Any]) -> str:
+    value = str(record.get('facts', {}).get('market_code') or '').strip().upper()
+    return value or LEGACY_DEFAULT_MARKET_CODE
+
+
+def _record_identity(record: dict[str, Any]) -> tuple[str, str, str]:
+    market_code = market_code_for_record(record)
     project_number = str(record.get('facts', {}).get('project_number') or '').strip().lower()
     opportunity_id = str(record.get('opportunity_id') or '').strip()
     if not project_number and not opportunity_id:
         raise ValueError('STATE_RECORD_KEY_REQUIRED')
-    return project_number, opportunity_id
+    return market_code, project_number, opportunity_id
 
 
 def _same_record_identity(left: dict[str, Any], right: dict[str, Any]) -> bool:
-    left_project, left_opportunity = _record_identity(left)
-    right_project, right_opportunity = _record_identity(right)
+    left_market, left_project, left_opportunity = _record_identity(left)
+    right_market, right_project, right_opportunity = _record_identity(right)
+    if left_opportunity and right_opportunity and left_opportunity == right_opportunity:
+        return True
     return bool(
-        (left_project and right_project and left_project == right_project)
-        or (
-            left_opportunity
-            and right_opportunity
-            and left_opportunity == right_opportunity
-        )
+        left_market == right_market
+        and left_project
+        and right_project
+        and left_project == right_project
     )
 
 
 def _reconcile_validated_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Collapse overlapping canonical state in input order.
-
-    Callers intentionally pass state from oldest/base to newest/current. Later
-    verified records therefore replace earlier seed/live copies while the first
-    canonical slot is retained for stable ordering. Matching by either project
-    number or opportunity id also repairs legacy identity drift before the final
-    collection-level duplicate validation runs.
-    """
+    """Collapse overlapping canonical state in input order without cross-market merging."""
     merged: list[dict[str, Any]] = []
     for record in records:
         matching_indexes = [
@@ -69,11 +70,6 @@ def merge_canonical_records(
     existing_records: list[dict[str, Any]],
     new_records: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    # Validate each record before reconciliation, but deliberately defer
-    # collection-level duplicate checks until after identity repair. Existing
-    # state may legitimately overlap because the refresh workflow layers a
-    # verified seed below the latest live state; new verified records are then
-    # applied last. This also lets a newer record heal legacy malformed ids.
     existing = [validate_record(record) for record in existing_records] if existing_records else []
     new = [validate_record(record) for record in new_records] if new_records else []
     merged = _reconcile_validated_records([*existing, *new])
@@ -95,13 +91,18 @@ def merge_notice_events(
 def active_ccgp_project_numbers(
     records: list[dict[str, Any]],
     as_of: datetime,
+    *,
+    market_code: str | None = None,
 ) -> list[str]:
     if as_of.tzinfo is None:
         as_of = as_of.replace(tzinfo=timezone.utc)
+    wanted_market = market_code.strip().upper() if market_code else None
     active: set[str] = set()
     for record in validate_records(records):
         source = record.get('source', {})
         if source.get('source_type') != 'CCGP_NOTICE':
+            continue
+        if wanted_market and market_code_for_record(record) != wanted_market:
             continue
         if not is_medical_channel_relevant_record(record):
             continue

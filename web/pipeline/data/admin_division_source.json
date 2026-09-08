@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1",
+  "authority": "中华人民共和国民政部",
+  "official_product": "中国·国家地名信息库",
+  "official_url": "https://dmfw.mca.gov.cn/XzqhVersionPublish.html",
+  "version": "Xzqh20251231",
+  "as_of": "2025-12-31",
+  "scope": "全国县级以上行政区划；业务启用地区同时保留省级行政代码",
+  "retrieval_mirror": {
+    "repository": "dataxiv/data-district",
+    "path": "民政部/2025/data.json",
+    "git_blob_sha": "5a28769423d6204301638797b7ada0908343fa6b"
+  },
+  "enabled_markets": [
+    { "market_code": "BJ", "name": "北京", "admin_code": "110000", "ccgp_zone_id": "11" },
+    { "market_code": "TJ", "name": "天津", "admin_code": "120000", "ccgp_zone_id": "12" },
+    { "market_code": "HE", "name": "河北", "admin_code": "130000", "ccgp_zone_id": "13" },
+    { "market_code": "LN", "name": "辽宁", "admin_code": "210000", "ccgp_zone_id": "21" },
+    { "market_code": "JL", "name": "吉林", "admin_code": "220000", "ccgp_zone_id": "22" },
+    { "market_code": "HL", "name": "黑龙江", "admin_code": "230000", "ccgp_zone_id": "23" }
+  ],
+  "policy": {
+    "province_city_county_identity_comes_from_admin_code": true,
+    "notice_region_text_never_determines_business_market": true,
+    "legacy_tianjin_records_without_market_code_are_migrated_as_TJ": true,
+    "refresh_required_when_mca_releases_a_newer_version": true
+  }
+}

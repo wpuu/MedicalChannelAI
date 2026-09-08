@@ -17,6 +17,7 @@ DEFAULT_INPUTS = [
     PIPELINE_ROOT / 'data' / 'tianjin_verified_seed.json',
     PIPELINE_ROOT / 'data' / 'tianjin_official_institution_seed.json',
 ]
+REGIONAL_INPUT = PIPELINE_ROOT / 'data' / 'regional_live_ccgp_records.json'
 DEFAULT_EVENT_INPUTS = [PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json']
 DEFAULT_OUTPUT = WEB_ROOT / 'public' / 'data' / 'today-actions.public.json'
 
@@ -42,7 +43,7 @@ def main() -> int:
         action='append',
         type=Path,
         default=None,
-        help='Canonical-record JSON array. Repeat to combine seed and live state. Defaults to verified CCGP + hospital seeds.',
+        help='Canonical-record JSON array. Repeat to combine seed and live state.',
     )
     parser.add_argument(
         '--event-input',
@@ -53,7 +54,12 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    input_paths = args.input or DEFAULT_INPUTS
+    input_paths = list(args.input or DEFAULT_INPUTS)
+    # Multi-region CCGP data is a shared verified source. Automatically retain it
+    # whenever either the Tianjin deep refresh or a manual publisher rebuilds the
+    # public snapshot, so a Tianjin refresh cannot accidentally erase other markets.
+    if REGIONAL_INPUT.exists() and REGIONAL_INPUT not in input_paths:
+        input_paths.append(REGIONAL_INPUT)
     event_paths = args.event_input or DEFAULT_EVENT_INPUTS
     records = load_arrays(input_paths, label='input')
     notice_events = load_arrays(event_paths, label='event input')

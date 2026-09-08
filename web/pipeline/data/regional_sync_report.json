@@ -1,0 +1,5 @@
+{
+  "schema_version": "0.1",
+  "status": "NOT_RUN",
+  "markets": ["北京", "河北", "辽宁", "吉林", "黑龙江"]
+}

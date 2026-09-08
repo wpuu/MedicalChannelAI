@@ -26,6 +26,15 @@ CRITICAL_FACT_PATHS = {
 }
 
 ALLOWED_SOURCE_TYPES = {"CCGP_NOTICE", "OFFICIAL_INSTITUTION_NOTICE"}
+MARKET_ADMIN_CODES = {
+    "BJ": ("北京", "110000"),
+    "TJ": ("天津", "120000"),
+    "HE": ("河北", "130000"),
+    "LN": ("辽宁", "210000"),
+    "JL": ("吉林", "220000"),
+    "HL": ("黑龙江", "230000"),
+}
+LEGACY_DEFAULT_MARKET_CODE = "TJ"
 
 
 class ValidationError(ValueError):
@@ -113,6 +122,20 @@ def _evidence_index(record: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return out
 
 
+def _validate_market_fields(facts: dict[str, Any]) -> str:
+    code = str(facts.get("market_code") or LEGACY_DEFAULT_MARKET_CODE).strip().upper()
+    if code not in MARKET_ADMIN_CODES:
+        raise ValidationError(f"MARKET_CODE_INVALID:{code}")
+    expected_name, expected_admin_code = MARKET_ADMIN_CODES[code]
+    market_name = facts.get("market_name")
+    market_admin_code = facts.get("market_admin_code")
+    if market_name is not None and str(market_name).strip() != expected_name:
+        raise ValidationError(f"MARKET_NAME_MISMATCH:{code}:{market_name}")
+    if market_admin_code is not None and str(market_admin_code).strip() != expected_admin_code:
+        raise ValidationError(f"MARKET_ADMIN_CODE_MISMATCH:{code}:{market_admin_code}")
+    return code
+
+
 def validate_record(record: dict[str, Any]) -> dict[str, Any]:
     if record.get("schema_version") != "0.1":
         raise ValidationError("SCHEMA_VERSION_UNSUPPORTED")
@@ -126,6 +149,7 @@ def validate_record(record: dict[str, Any]) -> dict[str, Any]:
     facts = record.get("facts")
     if not isinstance(facts, dict):
         raise ValidationError("FACTS_REQUIRED")
+    _validate_market_fields(facts)
 
     for key in ("project_name", "buyer_name", "notice_type", "published_at"):
         if not _nonempty(facts.get(key)):
@@ -172,12 +196,14 @@ def validate_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
             raise ValidationError(f"DUPLICATE_OPPORTUNITY_ID:{opportunity_id}")
         seen_ids.add(opportunity_id)
         facts = record["facts"]
+        market_code = str(facts.get("market_code") or LEGACY_DEFAULT_MARKET_CODE).strip().upper()
         project_number = facts.get("project_number")
         if _nonempty(project_number):
-            dedupe_key = ("project_number", str(project_number).strip().lower())
+            dedupe_key = ("project_number", market_code, str(project_number).strip().lower())
         else:
             dedupe_key = (
                 "fallback",
+                market_code,
                 str(facts.get("buyer_name") or "").strip().lower(),
                 str(facts.get("project_name") or "").strip().lower(),
                 str(facts.get("published_at") or "").strip(),

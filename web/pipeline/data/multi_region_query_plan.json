@@ -1,0 +1,24 @@
+{
+  "schema_version": "0.1",
+  "markets": [
+    { "market_code": "BJ", "name": "北京", "admin_code": "110000", "ccgp_zone_id": "11" },
+    { "market_code": "HE", "name": "河北", "admin_code": "130000", "ccgp_zone_id": "13" },
+    { "market_code": "LN", "name": "辽宁", "admin_code": "210000", "ccgp_zone_id": "21" },
+    { "market_code": "JL", "name": "吉林", "admin_code": "220000", "ccgp_zone_id": "22" },
+    { "market_code": "HL", "name": "黑龙江", "admin_code": "230000", "ccgp_zone_id": "23" }
+  ],
+  "keywords": ["医院", "医疗", "检验", "疾病预防控制", "卫生健康"],
+  "notice_types": ["公开招标", "竞争性磋商"],
+  "lookback_days": 3,
+  "max_candidates_per_market": 10,
+  "max_event_watch_projects_per_market": 25,
+  "delay_seconds": 4.0,
+  "policy": {
+    "purpose": "MULTI_REGION_MEDICAL_CHANNEL_TRIAL",
+    "tianjin_is_refreshed_by_existing_deep_pipeline": true,
+    "other_markets_start_with_verified_ccgp_only": true,
+    "official_detail_required_before_publication": true,
+    "medical_channel_scope_filter_required": true,
+    "rate_limit_bypass": false
+  }
+}

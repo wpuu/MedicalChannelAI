@@ -1,4 +1,5 @@
 import { demoDatasetMode } from '@/config/demoDataset'
+import { marketCodeFromOpportunityId, marketCodesForSelection } from '@/config/marketPreference'
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
 import type { FollowupInput, OutreachDraft, TodayActionCard, TodayActionsResponse } from '@/types'
 import { apiBaseUrl } from './apiConfig'
@@ -32,6 +33,40 @@ class DeferredTodayActionsService implements TodayActionsService {
   }
 }
 
+class MarketScopedTodayActionsService implements TodayActionsService {
+  constructor(private readonly delegate: TodayActionsService) {}
+
+  async getTodayActions(options?: TodayActionsLoadOptions): Promise<TodayActionsResponse> {
+    const result = await this.delegate.getTodayActions(options)
+    const allowed = new Set(marketCodesForSelection())
+    const pool = (result.opportunity_pool ?? result.cards)
+      .filter((card) => allowed.has(marketCodeFromOpportunityId(card.opportunity_id)))
+      .map((card, index) => ({ ...card, rank: index + 1 }))
+    const cards = pool.slice(0, 5).map((card, index) => ({ ...card, rank: index + 1 }))
+    return {
+      ...result,
+      matched_count: pool.length,
+      card_count: cards.length,
+      opportunity_pool_count: pool.length,
+      coverage_warning: '当前业务地区的商机来自已核验官方公开信息；各地区仍为部分来源覆盖。',
+      cards,
+      opportunity_pool: pool,
+    }
+  }
+
+  async getOpportunity(id: string): Promise<TodayActionCard | null> {
+    return this.delegate.getOpportunity(id)
+  }
+
+  async updateFollowup(id: string, input: FollowupInput): Promise<void> {
+    return this.delegate.updateFollowup(id, input)
+  }
+
+  async requestOutreachDraft(id: string): Promise<OutreachDraft> {
+    return this.delegate.requestOutreachDraft(id)
+  }
+}
+
 class PilotApiTodayActionsService implements TodayActionsService {
   private primary: GroundedApiTodayActionsService
   private readonly fullPool: GroundedApiTodayActionsService
@@ -42,9 +77,6 @@ class PilotApiTodayActionsService implements TodayActionsService {
     const normalized = baseUrl.replace(/\/+$/, '')
     this.normalizedBaseUrl = normalized
     this.primary = new GroundedApiTodayActionsService(normalized)
-    // The Opportunity Pool already requests hydrateFollowups:false as its load profile.
-    // Route that one read through a same-function alias which keeps the full pool,
-    // while normal Today stays on the lighter /today response.
     this.fullPool = new GroundedApiTodayActionsService(`${normalized}/opportunity-pool`)
   }
 
@@ -65,9 +97,6 @@ class PilotApiTodayActionsService implements TodayActionsService {
   async updateFollowup(id: string, input: FollowupInput): Promise<void> {
     await this.primary.updateFollowup(id, input)
     if (this.primaryHasFormalNudge) {
-      // The account-private formal-window count is derived across the whole pool.
-      // A local card mutation cannot safely recompute it, so force only the next
-      // primary Today read back to the authenticated server for an authoritative count.
       this.primary = new GroundedApiTodayActionsService(this.normalizedBaseUrl)
       this.primaryHasFormalNudge = false
     }
@@ -83,9 +112,10 @@ async function loadVerifiedTrialService(): Promise<TodayActionsService> {
     import('./RuntimeTrialTodayActionsService'),
     import('./StaticSnapshotTodayActionsService'),
   ])
-  return new RuntimeTrialTodayActionsService(
+  const verified = new RuntimeTrialTodayActionsService(
     new StaticSnapshotTodayActionsService(verifiedSnapshotUrl),
   )
+  return new MarketScopedTodayActionsService(verified)
 }
 
 async function loadSyntheticDemoService(): Promise<TodayActionsService> {
@@ -95,9 +125,9 @@ async function loadSyntheticDemoService(): Promise<TodayActionsService> {
 
 /**
  * Service selection:
- * - VITE_API_BASE_URL configured: real backend Public Views + grounded server actions stay on the primary path.
- * - verified trial: evidence-pipeline generated snapshot is loaded only when the trial build needs it.
- * - synthetic local demo: fictional Mock implementation is loaded only for the demo build.
+ * - API configured: authenticated backend path.
+ * - verified public trial: one shared verified snapshot, filtered locally by the user's business market.
+ * - synthetic local demo: fictional Mock implementation.
  */
 export const todayActionsService: TodayActionsService = apiBaseUrl
   ? new PilotApiTodayActionsService(apiBaseUrl)

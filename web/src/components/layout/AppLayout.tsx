@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ChangeEvent } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Activity,
@@ -12,6 +12,12 @@ import {
 } from 'lucide-react'
 import { APP_BUILD_COMMIT, APP_VERSION } from '@/config/appVersion'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
+import {
+  getMarketSelection,
+  MARKET_SELECTION_OPTIONS,
+  setMarketSelection,
+  type MarketSelection,
+} from '@/config/marketPreference'
 import { useToast } from '@/context/ToastContext'
 import { isApiMode, logoutPilot } from '@/services/apiConfig'
 import { cn } from '@/utils/cn'
@@ -37,6 +43,7 @@ export function AppLayout() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [loggingOut, setLoggingOut] = useState(false)
+  const [marketSelection, setMarketSelectionState] = useState<MarketSelection>(() => getMarketSelection())
 
   const desktopNavClass = ({ isActive }: { isActive: boolean }) =>
     cn(
@@ -49,6 +56,13 @@ export function AppLayout() {
       'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-medium',
       isActive ? 'bg-teal-50 text-teal-800' : 'text-slate-500',
     )
+
+  const handleMarketChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value as MarketSelection
+    setMarketSelection(value)
+    setMarketSelectionState(value)
+    window.location.reload()
+  }
 
   const handleLogout = async () => {
     setLoggingOut(true)
@@ -63,8 +77,6 @@ export function AppLayout() {
   }
 
   const handleResetTrial = async () => {
-    // These stores exist only for local demo/trial reset. Real Pilot users should
-    // not download them as part of the authenticated shell.
     const [mockModule, followupModule, profileModule] = await Promise.all([
       import('@/services/MockTodayActionsService'),
       import('@/services/localFollowupStore'),
@@ -82,9 +94,9 @@ export function AppLayout() {
   }
 
   const modeLabel = isApiMode
-    ? '天津试用'
+    ? '试用'
     : isVerifiedPublicDemo
-      ? '天津公开试用'
+      ? '公开试用'
       : '演示数据'
 
   const showPool = !isApiMode && isVerifiedPublicDemo
@@ -110,6 +122,19 @@ export function AppLayout() {
                 >
                   v{APP_VERSION}
                 </span>
+                {isVerifiedPublicDemo ? (
+                  <select
+                    aria-label="业务地区"
+                    title="业务地区"
+                    value={marketSelection}
+                    onChange={handleMarketChange}
+                    className="max-w-[112px] rounded-md border border-slate-200 bg-white px-1.5 py-1 text-[11px] font-medium text-slate-700 outline-none hover:border-slate-300 focus:border-teal-500 sm:max-w-[128px]"
+                  >
+                    {MARKET_SELECTION_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                ) : null}
                 <span
                   className={cn(
                     'hidden shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ring-1 lg:inline-flex',
