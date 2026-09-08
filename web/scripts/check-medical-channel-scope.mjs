@@ -20,6 +20,7 @@ for (const title of [
   '西青区卫生健康基层医疗卫生机构财务信息化管理项目',
   '计量专业检验检测设备更新项目',
   '2026-2027年度拟外委托检验检测项目',
+  '人工智能GPU算力服务器项目',
 ]) {
   assert.equal(isMedicalChannelRelevantText(title), false, `scope should exclude: ${title}`)
 }
@@ -51,22 +52,44 @@ assert.equal(isMedicalChannelRelevantCard({
   },
 }), false)
 
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '人工智能GPU算力服务器项目',
+    buyer_name: '某市中心医院',
+    hospital_name: '某市中心医院',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '某市中心医院人工智能GPU算力服务器项目',
+    buyer_name: '某市中心医院',
+    hospital_name: '某市中心医院',
+    product_categories: [],
+    product_items: [],
+  },
+}), true)
+
 const card = (id, title, rank) => ({ opportunity_id: id, rank, facts: { project_name: title, product_categories: [], product_items: [] } })
 const filtered = filterSnapshotToMedicalChannel({
-  matched_count: 4,
-  card_count: 4,
-  opportunity_pool_count: 4,
+  matched_count: 5,
+  card_count: 5,
+  opportunity_pool_count: 5,
   cards: [
     card('medical', '数字彩色超声诊断系统采购项目', 1),
     card('security', '医院安保服务项目', 2),
     card('finance', '医院财务信息化管理项目', 3),
-    card('gpu', '人工智能GPU算力服务器项目', 4),
+    card('gpu', '某市中心医院人工智能GPU算力服务器项目', 4),
+    card('generic-gpu', '人工智能GPU算力服务器项目', 5),
   ],
   opportunity_pool: [
     card('medical', '数字彩色超声诊断系统采购项目', 1),
     card('security', '医院安保服务项目', 2),
     card('finance', '医院财务信息化管理项目', 3),
-    card('gpu', '人工智能GPU算力服务器项目', 4),
+    card('gpu', '某市中心医院人工智能GPU算力服务器项目', 4),
+    card('generic-gpu', '人工智能GPU算力服务器项目', 5),
   ],
 })
 assert.deepEqual(filtered.opportunity_pool.map((item) => item.opportunity_id), ['medical', 'gpu'])
