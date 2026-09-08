@@ -1,10 +1,20 @@
 import scopeConfig from '../pipeline/data/medical_channel_scope.json' with { type: 'json' }
 
 const TERMS = (scopeConfig.terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
+const CONTEXTUAL_TERMS = (scopeConfig.contextual_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
+const MEDICAL_CONTEXT_TERMS = (scopeConfig.medical_context_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
+const GENERIC_EXCLUSIONS = (scopeConfig.generic_exclusion_terms || []).map((item) => String(item).toLocaleLowerCase('zh-CN'))
 const ACRONYMS = (scopeConfig.acronyms || []).map((item) => String(item).trim()).filter(Boolean)
-const ACRONYM_RE = ACRONYMS.length
-  ? new RegExp(`(?<![A-Za-z0-9])(?:${ACRONYMS.map((item) => item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?![A-Za-z0-9])`, 'i')
-  : null
+const CONTEXTUAL_ACRONYMS = (scopeConfig.contextual_acronyms || []).map((item) => String(item).trim()).filter(Boolean)
+
+function acronymRegex(items) {
+  return items.length
+    ? new RegExp(`(?<![A-Za-z0-9])(?:${items.map((item) => item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?![A-Za-z0-9])`, 'i')
+    : null
+}
+
+const ACRONYM_RE = acronymRegex(ACRONYMS)
+const CONTEXTUAL_ACRONYM_RE = acronymRegex(CONTEXTUAL_ACRONYMS)
 const MAX_TODAY_CARDS = 5
 
 function scopeTextFromFacts(facts) {
@@ -24,22 +34,58 @@ function scopeTextFromFacts(facts) {
       if (typeof value === 'string' && value.trim()) values.push(value.trim())
     }
   }
-  // buyer_name/hospital_name are intentionally excluded: a hospital buyer alone
-  // must not make security, training or finance procurement a channel opportunity.
   return values.join('\n')
 }
 
-export function isMedicalChannelRelevantText(value) {
-  const text = String(value || '').trim()
-  if (!text) return false
+function contextTextFromFacts(facts) {
+  if (!facts || typeof facts !== 'object') return ''
+  const values = [scopeTextFromFacts(facts)]
+  // Buyer/hospital identity is disambiguating context only. It cannot by itself
+  // make an administrative procurement a MedicalChannelAI opportunity.
+  for (const key of ['buyer_name', 'hospital_name']) {
+    const value = facts[key]
+    if (typeof value === 'string' && value.trim()) values.push(value.trim())
+  }
+  return values.filter(Boolean).join('\n')
+}
+
+function hasStrongSignal(text) {
   const folded = text.toLocaleLowerCase('zh-CN')
   if (TERMS.some((term) => folded.includes(term))) return true
   return Boolean(ACRONYM_RE && ACRONYM_RE.test(text))
 }
 
+function hasContextualSignal(text) {
+  const folded = text.toLocaleLowerCase('zh-CN')
+  if (CONTEXTUAL_TERMS.some((term) => folded.includes(term))) return true
+  return Boolean(CONTEXTUAL_ACRONYM_RE && CONTEXTUAL_ACRONYM_RE.test(text))
+}
+
+function hasMedicalContext(text) {
+  const folded = text.toLocaleLowerCase('zh-CN')
+  return MEDICAL_CONTEXT_TERMS.some((term) => folded.includes(term))
+}
+
+function hasGenericExclusion(text) {
+  const folded = text.toLocaleLowerCase('zh-CN')
+  return GENERIC_EXCLUSIONS.some((term) => folded.includes(term))
+}
+
+export function isMedicalChannelRelevantText(value) {
+  const text = String(value || '').trim()
+  if (!text) return false
+  if (hasStrongSignal(text)) return true
+  if (hasGenericExclusion(text)) return false
+  return hasContextualSignal(text) && hasMedicalContext(text)
+}
+
 export function isMedicalChannelRelevantCard(card) {
   const facts = card && typeof card === 'object' && !Array.isArray(card) ? card.facts : null
-  return isMedicalChannelRelevantText(scopeTextFromFacts(facts))
+  if (!facts || typeof facts !== 'object') return false
+  const scopeText = scopeTextFromFacts(facts)
+  if (hasStrongSignal(scopeText)) return true
+  if (hasGenericExclusion(scopeText)) return false
+  return hasContextualSignal(scopeText) && hasMedicalContext(contextTextFromFacts(facts))
 }
 
 export function filterSnapshotToMedicalChannel(snapshot) {
