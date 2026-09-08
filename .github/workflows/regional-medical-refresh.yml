@@ -11,10 +11,13 @@ on:
       - 'web/pipeline/data/admin_division_source.json'
       - 'web/pipeline/data/multi_region_query_plan.json'
       - 'web/pipeline/scripts/sync_national_admin_divisions.py'
+      - 'web/pipeline/scripts/diagnose_ccgp_search.py'
       - 'web/pipeline/scripts/sync_regional_ccgp.py'
+      - 'web/pipeline/scripts/publish_generated_data_github.py'
       - 'web/pipeline/medical_channel_pipeline/ccgp_discovery.py'
       - 'web/pipeline/medical_channel_pipeline/state.py'
       - 'web/pipeline/medical_channel_pipeline/validation.py'
+      - 'web/pipeline/medical_channel_pipeline/public_snapshot.py'
 
 permissions:
   contents: write
@@ -58,6 +61,13 @@ jobs:
           )"
           echo "as_of=${AS_OF}" >> "$GITHUB_OUTPUT"
 
+      - name: Diagnose current CCGP search shape
+        continue-on-error: true
+        shell: bash
+        run: |
+          python3 web/pipeline/scripts/diagnose_ccgp_search.py \
+            --as-of '${{ steps.clock.outputs.as_of }}'
+
       - name: Sync verified regional CCGP opportunities
         shell: bash
         run: |
@@ -87,18 +97,14 @@ jobs:
 
       - name: Commit verified regional refresh
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          git config user.name 'medicalchannel-refresh[bot]'
-          git config user.email 'medicalchannel-refresh[bot]@users.noreply.github.com'
-          git add \
+          python3 web/pipeline/scripts/publish_generated_data_github.py \
+            --branch main \
+            --message 'data: refresh regional verified opportunities' \
             web/pipeline/data/national_admin_divisions.latest.json \
             web/pipeline/data/regional_live_ccgp_records.json \
             web/pipeline/data/regional_sync_report.json \
             web/public/data/today-actions.public.json
-          if git diff --cached --quiet; then
-            echo 'No verified regional state change to commit.'
-            exit 0
-          fi
-          git commit -m 'data: refresh regional verified opportunities'
-          git push
