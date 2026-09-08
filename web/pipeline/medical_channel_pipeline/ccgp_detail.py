@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from html.parser import HTMLParser
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -89,10 +89,16 @@ def _datetime_from_cn(
     hour: str,
     minute: str,
 ) -> str:
-    return (
-        f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
-        f"T{int(hour):02d}:{int(minute):02d}:00+08:00"
-    )
+    year_i, month_i, day_i = int(year), int(month), int(day)
+    hour_i, minute_i = int(hour), int(minute)
+    if hour_i == 24:
+        if minute_i != 0:
+            raise CcgpDetailParseError("CCGP_TIME_INVALID")
+        next_day = datetime(year_i, month_i, day_i) + timedelta(days=1)
+        return f"{next_day:%Y-%m-%d}T00:00:00+08:00"
+    if not 0 <= hour_i <= 23 or not 0 <= minute_i <= 59:
+        raise CcgpDetailParseError("CCGP_TIME_INVALID")
+    return f"{year_i:04d}-{month_i:02d}-{day_i:02d}T{hour_i:02d}:{minute_i:02d}:00+08:00"
 
 
 def _required_match(pattern: str, text: str, code: str, flags: int = 0) -> re.Match[str]:
@@ -109,15 +115,14 @@ def _extract_project_number(text: str) -> str:
         "CCGP_PROJECT_NUMBER_NOT_FOUND",
     )
     value = match.group(1).strip()
-    # Some CCGP pages concatenate the notice-title suffix directly onto the
-    # project-number token. Strip only that explicit official suffix; valid
-    # parentheses inside a project number must remain untouched.
     return re.sub(r"[)）](?:公开招标|竞争性磋商)公告$", "", value).strip()
 
 
 def _extract_project_name(text: str) -> str:
     match = _required_match(
-        r"项目名称\s*[：:]\s*(.+?)\s+(?:采购方式\s*[：:]\s*.+?\s+)?预算金额\s*[：:]",
+        r"项目名称\s*[：:]\s*(.+?)\s+"
+        r"(?:采购方式\s*[：:]\s*.+?\s+)?"
+        r"预算金额(?:（元）|\(元\))?\s*[：:]",
         text,
         "CCGP_PROJECT_NAME_NOT_FOUND",
         re.S,
@@ -156,21 +161,25 @@ def _extract_publish_date(text: str) -> str:
 
 
 def _extract_registration_deadline(text: str) -> str:
-    section = re.search(
+    patterns = [
         r"三[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
         r"20\d{2}年\d{1,2}月\d{1,2}日\s*(?:到|至)\s*"
         r"(20\d{2})年(\d{1,2})月(\d{1,2})日"
         r"(.+?)(?:地点\s*[：:]|四[、.])",
-        text,
-        re.S,
-    )
+        r"三[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
+        r"20\d{2}-\d{1,2}-\d{1,2}\s*(?:到|至)\s*"
+        r"(20\d{2})-(\d{1,2})-(\d{1,2})"
+        r"(.+?)(?:地点\s*[：:]|四[、.])",
+    ]
+    section = None
+    for pattern in patterns:
+        section = re.search(pattern, text, re.S)
+        if section:
+            break
     if not section:
         raise CcgpDetailParseError("CCGP_REGISTRATION_SECTION_NOT_FOUND")
     year, month, day, schedule = section.groups()
 
-    # CCGP commonly publishes separate morning/afternoon acquisition windows.
-    # If an afternoon clause exists, its explicit closing time is the daily cutoff.
-    # Never fall back to the morning close when the afternoon cutoff is missing.
     if "下午" in schedule:
         afternoon_schedule = schedule.rsplit("下午", 1)[1]
         afternoon_times = re.findall(r"至\s*(\d{1,2})\s*[：:]\s*(\d{2})", afternoon_schedule)
@@ -186,37 +195,62 @@ def _extract_registration_deadline(text: str) -> str:
 
 
 def _extract_bid_deadline(text: str) -> str:
-    match = _required_match(
+    prefix = (
         r"四[、.]\s*提交投标文件截止时间、开标时间和地点\s*"
-        r"(?:提交投标文件截止时间\s*[：:]\s*)?"
-        r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*"
-        r"(\d{1,2})\s*点\s*(\d{1,2})\s*分",
-        text,
-        "CCGP_BID_DEADLINE_NOT_FOUND",
-        re.S,
+        r"(?:(?:提交投标文件截止时间|截止时间)\s*[：:]\s*)?"
     )
-    return _datetime_from_cn(*match.groups())
+    patterns = [
+        prefix
+        + r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*"
+        + r"(\d{1,2})\s*(?:点|时)\s*(\d{1,2})\s*分(?:\s*\d{1,2}\s*秒)?",
+        prefix
+        + r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*"
+        + r"(\d{1,2})\s*[：:]\s*(\d{2})(?:\s*[：:]\s*\d{2})?",
+        prefix
+        + r"(20\d{2})-(\d{1,2})-(\d{1,2})\s+"
+        + r"(\d{1,2})\s*[：:]\s*(\d{2})(?:\s*[：:]\s*\d{2})?",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, re.S)
+        if match:
+            return _datetime_from_cn(*match.groups())
+    raise CcgpDetailParseError("CCGP_BID_DEADLINE_NOT_FOUND")
 
 
 def _extract_response_deadline(text: str) -> str:
-    match = _required_match(
-        r"四[、.]\s*响应文件提交\s+截止时间\s*[：:]\s*"
-        r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*"
-        r"(\d{1,2})\s*点\s*(\d{1,2})\s*分",
-        text,
-        "CCGP_RESPONSE_DEADLINE_NOT_FOUND",
-        re.S,
-    )
-    return _datetime_from_cn(*match.groups())
+    prefix = r"四[、.]\s*响应文件提交\s+截止时间\s*[：:]\s*"
+    patterns = [
+        prefix
+        + r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*"
+        + r"(\d{1,2})\s*(?:点|时)\s*(\d{1,2})\s*分(?:\s*\d{1,2}\s*秒)?",
+        prefix
+        + r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*"
+        + r"(\d{1,2})\s*[：:]\s*(\d{2})(?:\s*[：:]\s*\d{2})?",
+        prefix
+        + r"(20\d{2})-(\d{1,2})-(\d{1,2})\s+"
+        + r"(\d{1,2})\s*[：:]\s*(\d{2})(?:\s*[：:]\s*\d{2})?",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, re.S)
+        if match:
+            return _datetime_from_cn(*match.groups())
+    raise CcgpDetailParseError("CCGP_RESPONSE_DEADLINE_NOT_FOUND")
 
 
 def _extract_budget_cny(text: str) -> int | None:
-    match = re.search(r"预算金额\s*[：:]\s*([0-9]+(?:\.[0-9]+)?)\s*万元", text)
-    if not match:
-        match = re.search(r"预算金额\s*[|：:]?\s*[￥¥]?\s*([0-9]+(?:\.[0-9]+)?)\s*万元", text)
-    if not match:
-        return None
-    return int(round(float(match.group(1)) * 10_000))
+    match = re.search(
+        r"预算金额\s*[|：:]?\s*[￥¥]?\s*([0-9,]+(?:\.[0-9]+)?)\s*万元",
+        text,
+    )
+    if match:
+        return int(round(float(match.group(1).replace(",", "")) * 10_000))
+    match = re.search(
+        r"预算金额(?:（元）|\(元\))?\s*[|：:]\s*[￥¥]?\s*([0-9,]+(?:\.[0-9]+)?)\s*(?:元)?",
+        text,
+    )
+    if match:
+        return int(round(float(match.group(1).replace(",", ""))))
+    return None
 
 
 def _extract_contact(text: str) -> dict[str, str | None] | None:
