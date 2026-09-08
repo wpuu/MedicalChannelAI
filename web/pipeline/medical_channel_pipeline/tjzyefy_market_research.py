@@ -77,7 +77,7 @@ def _split_product_names(raw: str) -> list[str]:
     return result
 
 
-def _extract_core_demand_names(text: str) -> list[str]:
+def _extract_core_demand_items(text: str) -> list[dict[str, Any]]:
     section_match = re.search(
         r'核心需求清单\s*(.{1,2500}?)(?=(?:四[、.]|四、|供应商资质与服务要求))',
         text,
@@ -85,15 +85,31 @@ def _extract_core_demand_names(text: str) -> list[str]:
     if not section_match:
         return []
     section = section_match.group(1)
-    names: list[str] = []
-    for match in re.finditer(
-        r'(?:^|\s)\d+[.、]\s*([^：:]{1,80}?)(?:（[^）]{1,40}）|\([^)]{1,40}\))?\s*[：:]',
-        section,
-    ):
+    matches = list(
+        re.finditer(
+            r'(?:^|\s)\d+[.、]\s*([^：:]{1,80}?)(?:（[^）]{1,40}）|\([^)]{1,40}\))?\s*[：:]\s*'
+            r'(.+?)(?=(?:\s+\d+[.、]\s)|$)',
+            section,
+            re.S,
+        )
+    )
+    result: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for match in matches:
         name = re.sub(r'\s+', '', match.group(1)).strip('：:，,。；; ')
-        if name and name not in names:
-            names.append(name)
-    return names
+        specification = re.sub(r'\s+', ' ', match.group(2)).strip(' ：:，,。；;')
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        result.append(
+            {
+                'raw_name': name,
+                'category': None,
+                'quantity': None,
+                'specification': specification or None,
+            }
+        )
+    return result
 
 
 def _extract_product_items(text: str, title: str) -> list[dict[str, Any]]:
@@ -103,17 +119,27 @@ def _extract_product_items(text: str, title: str) -> list[dict[str, Any]]:
         raw = body_match.group(1)
     if not raw:
         compact_title = _normalize(title)
-        title_match = re.search(r'[-—](.+?)(?:医疗设备采购项目|医用耗材(?:（试剂）)?采购项目|耗材采购项目|试剂采购项目)', compact_title)
+        title_match = re.search(
+            r'[-—](.+?)(?:医疗设备采购项目|医用耗材(?:（试剂）)?采购项目|耗材采购项目|试剂采购项目)',
+            compact_title,
+        )
         if title_match:
             raw = title_match.group(1)
     names = _split_product_names(raw) if raw else []
-    if not names:
-        names = _extract_core_demand_names(text)
-    if not names:
-        compact_title = _normalize(title)
-        generic_title_match = re.fullmatch(r'关于(.{1,120}?)的调研公告', compact_title)
-        if generic_title_match:
-            names = _split_product_names(generic_title_match.group(1))
+    if names:
+        return [
+            {'raw_name': name, 'category': None, 'quantity': None, 'specification': None}
+            for name in names
+        ]
+
+    core_items = _extract_core_demand_items(text)
+    if core_items:
+        return core_items
+
+    compact_title = _normalize(title)
+    generic_title_match = re.fullmatch(r'关于(.{1,120}?)的调研公告', compact_title)
+    if generic_title_match:
+        names = _split_product_names(generic_title_match.group(1))
     return [
         {'raw_name': name, 'category': None, 'quantity': None, 'specification': None}
         for name in names
@@ -220,9 +246,11 @@ def parse_tjzyefy_market_research(
 
     product_items = _extract_product_items(text, expected_title)
     categories = _product_categories(expected_title)
-    scope_probe = '\n'.join(
-        [expected_title, *categories, *[str(item.get('raw_name') or '') for item in product_items]]
-    )
+    scope_probe_parts = [expected_title, *categories]
+    for item in product_items:
+        scope_probe_parts.append(str(item.get('raw_name') or ''))
+        scope_probe_parts.append(str(item.get('specification') or ''))
+    scope_probe = '\n'.join(part for part in scope_probe_parts if part)
     if not is_medical_channel_relevant_text(scope_probe):
         raise TjzyefyParseError('TJZYEFY_NON_MEDICAL_RESEARCH')
     if not product_items:
@@ -266,7 +294,7 @@ def parse_tjzyefy_market_research(
     product_locator = (
         '正文“我院拟对…进行院内调研”明确产品/设备/维保对象'
         if '院内调研' in text
-        else '正文“核心需求清单”逐项明确调研对象'
+        else '正文“核心需求清单”逐项明确调研对象及用途说明'
     )
     evidence: list[dict[str, str]] = [
         {'field_path': 'facts.project_name', 'source_url': source_url, 'locator': '官方公告详情页标题与公告通知列表标题一致'},
