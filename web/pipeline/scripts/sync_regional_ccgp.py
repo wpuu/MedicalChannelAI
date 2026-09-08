@@ -25,6 +25,7 @@ from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
     is_primary_opportunity_candidate,
     parse_search_html,
 )
+from medical_channel_pipeline.regional_candidate import regional_candidate_skip_reason  # noqa: E402
 from medical_channel_pipeline.state import merge_canonical_records  # noqa: E402
 from sync_ccgp_query import (  # noqa: E402
     VERIFIED_NOTICE_ADAPTERS,
@@ -224,7 +225,23 @@ def main() -> int:
         code: {} for code in market_by_code
     }
     market_failures: dict[str, list[dict]] = {code: [] for code in market_by_code}
+    market_skips: dict[str, dict[str, dict]] = {code: {} for code in market_by_code}
     scoped_success: dict[str, int] = {code: 0 for code in market_by_code}
+
+    def record_candidate_skip(code: str, notice_type: str, candidate: object, reason: str) -> None:
+        detail_url = str(getattr(candidate, 'detail_url', '') or '')
+        if not detail_url:
+            return
+        market_skips[code].setdefault(detail_url, {
+            'stage': 'candidate_classification',
+            'market_code': code,
+            'reason': reason,
+            'notice_type': notice_type,
+            'candidate_notice_type': getattr(candidate, 'notice_type', None),
+            'candidate_region': getattr(candidate, 'region', None),
+            'title': getattr(candidate, 'title', None),
+            'url': detail_url,
+        })
     scoped_region_mismatches: dict[str, int] = {code: 0 for code in market_by_code}
 
     # Province-scoped search is only discovery. Do not trust the request parameter
@@ -250,6 +267,10 @@ def main() -> int:
                         actual_code = candidate_market_code(getattr(candidate, 'region', None), markets)
                         if actual_code != code:
                             scoped_region_mismatches[code] += 1
+                            continue
+                        skip_reason = regional_candidate_skip_reason(candidate)
+                        if skip_reason:
+                            record_candidate_skip(code, item_notice_type, candidate, skip_reason)
                             continue
                         market_candidates[code].setdefault(
                             candidate.detail_url,
@@ -305,6 +326,10 @@ def main() -> int:
                     for item_notice_type, candidate in items:
                         actual_code = candidate_market_code(getattr(candidate, 'region', None), markets)
                         if actual_code not in empty_codes:
+                            continue
+                        skip_reason = regional_candidate_skip_reason(candidate)
+                        if skip_reason:
+                            record_candidate_skip(actual_code, item_notice_type, candidate, skip_reason)
                             continue
                         market_candidates[actual_code].setdefault(
                             candidate.detail_url,
@@ -374,6 +399,8 @@ def main() -> int:
             'scoped_query_success_count': scoped_success[code],
             'scoped_region_mismatch_count': scoped_region_mismatches[code],
             'national_fallback_used': code in empty_codes,
+            'skipped_candidate_count': len(market_skips[code]),
+            'skipped_candidates': sorted(market_skips[code].values(), key=lambda item: (item['reason'], item['url'])),
             'unique_candidate_count': len(discovered),
             'selected_candidate_count': len(selected),
             'new_verified_record_count': market_new_count,
