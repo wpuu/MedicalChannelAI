@@ -25,7 +25,7 @@ permissions:
 
 concurrency:
   group: regional-medical-refresh
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   refresh:
