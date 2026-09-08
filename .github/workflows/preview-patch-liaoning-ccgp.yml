@@ -28,12 +28,7 @@ jobs:
           cd web/pipeline
           python3 -m unittest tests.test_ccgp_liaoning_detail_format tests.test_ccgp_national_detail_formats -v
 
-      - name: Commit verified parser changes
-        run: |
-          git rm .github/workflows/preview-patch-liaoning-ccgp.yml
-          git rm web/pipeline/scripts/patch_liaoning_ccgp_preview.py
-          git add web/pipeline/medical_channel_pipeline/ccgp_detail.py web/pipeline/tests/test_ccgp_liaoning_detail_format.py
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "fix: support verified Liaoning CCGP tender format"
-          git push origin HEAD:preview/multi-region-ui-acceptance
+      - name: Publish verified parser and remove temporary tooling
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 web/pipeline/scripts/publish_preview_patch_via_api.py
