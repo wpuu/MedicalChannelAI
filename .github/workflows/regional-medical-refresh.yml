@@ -13,6 +13,7 @@ on:
       - 'web/pipeline/scripts/sync_national_admin_divisions.py'
       - 'web/pipeline/scripts/diagnose_ccgp_search.py'
       - 'web/pipeline/scripts/sync_regional_ccgp.py'
+      - 'web/pipeline/scripts/publish_web_snapshot.py'
       - 'web/pipeline/scripts/publish_generated_data_github.py'
       - 'web/pipeline/medical_channel_pipeline/ccgp_discovery.py'
       - 'web/pipeline/medical_channel_pipeline/state.py'

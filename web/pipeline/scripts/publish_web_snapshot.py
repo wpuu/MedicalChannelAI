@@ -4,8 +4,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime
+from copy import deepcopy
+from datetime import date, datetime, time, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]
 WEB_ROOT = PIPELINE_ROOT.parent
@@ -20,6 +22,7 @@ DEFAULT_INPUTS = [
 REGIONAL_INPUT = PIPELINE_ROOT / 'data' / 'regional_live_ccgp_records.json'
 DEFAULT_EVENT_INPUTS = [PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json']
 DEFAULT_OUTPUT = WEB_ROOT / 'public' / 'data' / 'today-actions.public.json'
+SHANGHAI = ZoneInfo('Asia/Shanghai')
 
 
 def load_arrays(paths: list[Path], *, label: str) -> list[dict]:
@@ -28,8 +31,124 @@ def load_arrays(paths: list[Path], *, label: str) -> list[dict]:
         payload = json.loads(path.read_text(encoding='utf-8'))
         if not isinstance(payload, list):
             raise ValueError(f'{label} must contain a JSON array: {path}')
-        merged.extend(payload)
+        for record in payload:
+            if not isinstance(record, dict):
+                raise ValueError(f'{label} record must be an object: {path}')
+            facts = record.setdefault('facts', {})
+            market_code = str(facts.get('market_code') or '').strip().upper()
+            if not market_code:
+                if not path.name.startswith('tianjin_'):
+                    raise ValueError(f'MARKET_CODE_REQUIRED:{path}:{record.get("opportunity_id")}')
+                facts['market_code'] = 'TJ'
+                facts['market_name'] = '天津'
+                facts['market_admin_code'] = '120000'
+            elif market_code == 'TJ':
+                facts.setdefault('market_name', '天津')
+                facts.setdefault('market_admin_code', '120000')
+            elif not facts.get('market_name') or not facts.get('market_admin_code'):
+                raise ValueError(f'MARKET_METADATA_REQUIRED:{path}:{record.get("opportunity_id")}')
+            merged.append(record)
     return merged
+
+
+def parse_card_datetime(value: object, *, end_of_day: bool = False) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    raw = value.strip()
+    try:
+        parsed = datetime.fromisoformat(raw.replace('Z', '+00:00'))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=SHANGHAI)
+        return parsed
+    except ValueError:
+        try:
+            parsed_date = date.fromisoformat(raw[:10])
+            return datetime.combine(parsed_date, time.max if end_of_day else time.min, tzinfo=SHANGHAI)
+        except ValueError:
+            return None
+
+
+def card_sort_key(card: dict) -> tuple[float, float, float, str]:
+    facts = card.get('facts') or {}
+    score = float((card.get('priority') or {}).get('score') or 0)
+    deadline = (
+        parse_card_datetime(facts.get('registration_deadline'))
+        or parse_card_datetime(facts.get('registration_deadline_date'), end_of_day=True)
+        or parse_card_datetime(facts.get('bid_deadline'))
+    )
+    published = parse_card_datetime(facts.get('published_at'))
+    return (
+        -score,
+        deadline.timestamp() if deadline else float('inf'),
+        -(published.timestamp() if published else 0.0),
+        str(card.get('opportunity_id') or ''),
+    )
+
+
+def market_metadata(records: list[dict]) -> dict[str, dict[str, str]]:
+    result: dict[str, dict[str, str]] = {}
+    for record in records:
+        opportunity_id = str(record.get('opportunity_id') or '').strip()
+        facts = record.get('facts') or {}
+        if not opportunity_id:
+            continue
+        result[opportunity_id] = {
+            'market_code': str(facts.get('market_code') or '').strip().upper(),
+            'market_name': str(facts.get('market_name') or '').strip(),
+            'market_admin_code': str(facts.get('market_admin_code') or '').strip(),
+        }
+    return result
+
+
+def inject_market(card: dict, metadata: dict[str, dict[str, str]]) -> dict:
+    copied = deepcopy(card)
+    meta = metadata.get(str(copied.get('opportunity_id') or ''))
+    if meta:
+        copied.setdefault('facts', {}).update(meta)
+    return copied
+
+
+def combine_snapshots(
+    tianjin_snapshot: dict,
+    regional_snapshot: dict,
+    records: list[dict],
+    as_of: datetime,
+) -> dict:
+    meta = market_metadata(records)
+    pool = [
+        inject_market(card, meta)
+        for card in [
+            *(tianjin_snapshot.get('opportunity_pool') or tianjin_snapshot.get('cards') or []),
+            *(regional_snapshot.get('opportunity_pool') or regional_snapshot.get('cards') or []),
+        ]
+    ]
+    seen: set[str] = set()
+    unique_pool: list[dict] = []
+    for card in sorted(pool, key=card_sort_key):
+        opportunity_id = str(card.get('opportunity_id') or '')
+        if not opportunity_id or opportunity_id in seen:
+            continue
+        seen.add(opportunity_id)
+        unique_pool.append(card)
+    for index, card in enumerate(unique_pool, start=1):
+        card['rank'] = index
+    cards = [deepcopy(card) for card in unique_pool[:5]]
+    for index, card in enumerate(cards, start=1):
+        card['rank'] = index
+    return {
+        'schema_version': '0.1',
+        'mode': 'TODAY_ACTIONS',
+        'snapshot_as_of': as_of.isoformat(),
+        'input_candidate_count': int(tianjin_snapshot.get('input_candidate_count') or 0)
+        + int(regional_snapshot.get('input_candidate_count') or 0),
+        'matched_count': len(unique_pool),
+        'card_count': len(cards),
+        'opportunity_pool_count': len(unique_pool),
+        'model_request_count': 0,
+        'coverage_warning': 'PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY',
+        'cards': cards,
+        'opportunity_pool': unique_pool,
+    }
 
 
 def main() -> int:
@@ -43,21 +162,18 @@ def main() -> int:
         action='append',
         type=Path,
         default=None,
-        help='Canonical-record JSON array. Repeat to combine seed and live state.',
+        help='Canonical-record JSON array. Repeat to combine verified source stores.',
     )
     parser.add_argument(
         '--event-input',
         action='append',
         type=Path,
         default=None,
-        help='Notice-event JSON array. Repeat to combine retained event stores.',
+        help='Tianjin notice-event JSON array. Regional events stay disabled until they have composite market identity.',
     )
     args = parser.parse_args()
 
     input_paths = list(args.input or DEFAULT_INPUTS)
-    # Multi-region CCGP data is a shared verified source. Automatically retain it
-    # whenever either the Tianjin deep refresh or a manual publisher rebuilds the
-    # public snapshot, so a Tianjin refresh cannot accidentally erase other markets.
     if REGIONAL_INPUT.exists() and REGIONAL_INPUT not in input_paths:
         input_paths.append(REGIONAL_INPUT)
     event_paths = args.event_input or DEFAULT_EVENT_INPUTS
@@ -67,7 +183,24 @@ def main() -> int:
     as_of = datetime.fromisoformat(args.as_of.replace('Z', '+00:00'))
     if as_of.tzinfo is None:
         raise ValueError('--as-of must include timezone')
-    snapshot = build_public_snapshot(records, as_of, notice_events)
+
+    tianjin_records = [
+        record for record in records
+        if str((record.get('facts') or {}).get('market_code') or '').strip().upper() == 'TJ'
+    ]
+    regional_records = [
+        record for record in records
+        if str((record.get('facts') or {}).get('market_code') or '').strip().upper() != 'TJ'
+    ]
+
+    # Critical boundary: the current notice-event store is Tianjin-only. Build it
+    # separately so a matching project number in another province can never inherit
+    # a Tianjin correction or termination. Regional event monitoring remains closed
+    # until event records carry an explicit market key.
+    tianjin_snapshot = build_public_snapshot(tianjin_records, as_of, notice_events)
+    regional_snapshot = build_public_snapshot(regional_records, as_of, [])
+    snapshot = combine_snapshots(tianjin_snapshot, regional_snapshot, records, as_of)
+
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(snapshot, ensure_ascii=False, indent=2) + '\n',
@@ -75,7 +208,8 @@ def main() -> int:
     )
     print(
         f'published {len(snapshot["cards"])} cards from '
-        f'{len(input_paths)} record stores + {len(event_paths)} event stores -> {args.output}'
+        f'{len(tianjin_records)} Tianjin + {len(regional_records)} regional records; '
+        f'Tianjin events={len(notice_events)} -> {args.output}'
     )
     return 0
 
