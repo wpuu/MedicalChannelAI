@@ -1,8 +1,8 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-08T09:09:17.505320+00:00",
-  "start_date": "2026-09-06",
-  "end_date": "2026-09-08",
+  "observed_at": "2026-09-09T05:23:59.876478+00:00",
+  "start_date": "2026-09-07",
+  "end_date": "2026-09-09",
   "markets": [
     {
       "market_code": "BJ",
@@ -12,7 +12,7 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 29,
+      "unique_candidate_count": 31,
       "selected_candidate_count": 10,
       "new_verified_record_count": 10,
       "failure_count": 0,
@@ -26,7 +26,7 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 24,
+      "unique_candidate_count": 35,
       "selected_candidate_count": 10,
       "new_verified_record_count": 10,
       "failure_count": 0,
@@ -40,11 +40,44 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 15,
+      "unique_candidate_count": 18,
       "selected_candidate_count": 10,
-      "new_verified_record_count": 1,
-      "failure_count": 9,
+      "new_verified_record_count": 0,
+      "failure_count": 10,
       "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "朝阳县中心医院西梁院区医用气体改造工程招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260909_27293818.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "辽宁省金秋医院2026年扇扫超声内镜设备采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "于洪区人民医院结核分枝杆菌耐药基因检测设备及其他配套设备采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
         {
           "stage": "verified_detail",
           "market_code": "LN",
@@ -121,28 +154,6 @@
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285310.htm",
           "error": "CcgpDetailParseError",
           "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "阜新市人民医院（阜新市妇女儿童医疗中心）医用食品临床管理服务项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284768.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "中国医科大学附属第一医院人行通道闸机等一批（安全保卫部）采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27279712.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         }
       ]
     },
@@ -191,11 +202,22 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 37,
+      "unique_candidate_count": 39,
       "selected_candidate_count": 10,
-      "new_verified_record_count": 9,
-      "failure_count": 1,
+      "new_verified_record_count": 8,
+      "failure_count": 2,
       "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "黑龙江省疾病预防控制中心艾滋病实验室进口试剂采购单一来源公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27289523.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
+        },
         {
           "stage": "verified_detail",
           "market_code": "HL",
@@ -213,9 +235,9 @@
   "national_fallback_query_success_count": 0,
   "national_fallback_failure_count": 0,
   "national_fallback_failures": [],
-  "existing_record_count": 14,
-  "new_verified_record_count": 38,
-  "merged_record_count": 38,
+  "existing_record_count": 38,
+  "new_verified_record_count": 36,
+  "merged_record_count": 61,
   "policy": {
     "business_market_is_explicit_not_geolocated": true,
     "market_admin_codes_are_validated_against_configured_ccgp_zone": true,
