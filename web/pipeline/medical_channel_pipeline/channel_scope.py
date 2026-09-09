@@ -118,6 +118,26 @@ def _has_generic_exclusion(text: str) -> bool:
     return any(term in folded for term in _GENERIC_EXCLUSIONS)
 
 
+def has_explicit_medical_channel_exclusion_text(value: str) -> bool:
+    """Return only exclusions strong enough to reject a sparse discovery title.
+
+    Candidate discovery is recall-oriented. Hard exclusions always win, while a
+    generic administration exclusion only wins when the same sparse title does
+    not already carry a strong medical signal. Final publication still uses the
+    full verified-facts classifier below.
+    """
+    text = str(value or "").strip()
+    if not text:
+        return False
+    if _has_hard_exclusion(text):
+        return True
+    return _has_generic_exclusion(text) and not _has_strong_signal(text)
+
+
+def has_medical_channel_context_text(value: str) -> bool:
+    return _has_medical_context(str(value or ""))
+
+
 def is_medical_channel_relevant_text(value: str) -> bool:
     text = str(value or "").strip()
     if not text:

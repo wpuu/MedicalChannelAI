@@ -25,7 +25,10 @@ from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
     is_primary_opportunity_candidate,
     parse_search_html,
 )
-from medical_channel_pipeline.regional_candidate import regional_candidate_skip_reason  # noqa: E402
+from medical_channel_pipeline.regional_candidate import (  # noqa: E402
+    regional_candidate_priority,
+    regional_candidate_skip_reason,
+)
 from medical_channel_pipeline.state import merge_canonical_records  # noqa: E402
 from sync_ccgp_query import (  # noqa: E402
     VERIFIED_NOTICE_ADAPTERS,
@@ -349,6 +352,7 @@ def main() -> int:
         discovered = sorted(
             discovered_by_url.values(),
             key=lambda item: (
+                regional_candidate_priority(item[1]),
                 getattr(item[1], 'published_at', None) or '',
                 getattr(item[1], 'detail_url', ''),
             ),
@@ -436,6 +440,8 @@ def main() -> int:
             'national_fallback_uses_official_search_result_region_only': True,
             'national_fallback_max_pages_per_query': NATIONAL_FALLBACK_MAX_PAGES,
             'official_detail_required_before_publication': True,
+            'candidate_prefilter_only_rejects_explicit_exclusions': True,
+            'candidate_detail_budget_uses_recall_preserving_priority': True,
             'cross_market_project_number_dedupe_is_forbidden': True,
             'regional_event_monitoring_deferred_until_composite_market_event_key_is_enabled': True,
             'rate_limit_bypass': False,
