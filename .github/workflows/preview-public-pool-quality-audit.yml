@@ -1,0 +1,97 @@
+name: Preview Public Pool Quality Audit
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-public-pool-quality-audit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 5
+    steps:
+      - name: Checkout Preview branch
+        uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 1
+
+      - name: Audit public-pool sales data quality
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+
+          snapshot = json.loads(Path('web/public/data/today-actions.public.json').read_text(encoding='utf-8'))
+          pool = snapshot.get('opportunity_pool') or []
+
+          def facts(card):
+              return card.get('facts') or {}
+
+          def has_items(card):
+              return bool(facts(card).get('product_items'))
+
+          def has_categories(card):
+              return bool(facts(card).get('product_categories'))
+
+          def has_phone(card):
+              contact = facts(card).get('public_contact') or {}
+              return bool(str(contact.get('phone') or '').strip())
+
+          def has_exact_deadline(card):
+              f = facts(card)
+              return bool(f.get('registration_deadline') or f.get('bid_deadline'))
+
+          by_market = Counter(str(facts(card).get('market_code') or '') for card in pool)
+          by_lifecycle = Counter(str(facts(card).get('lifecycle_state') or '') for card in pool)
+          with_items = sum(has_items(card) for card in pool)
+          with_categories = sum(has_categories(card) for card in pool)
+          with_any_product_structure = sum(has_items(card) or has_categories(card) for card in pool)
+          with_phone = sum(has_phone(card) for card in pool)
+          with_exact_deadline = sum(has_exact_deadline(card) for card in pool)
+          title_only = [card for card in pool if not has_items(card) and not has_categories(card)]
+          bidding = [card for card in pool if facts(card).get('lifecycle_state') == 'BIDDING']
+          bidding_title_only = [card for card in bidding if not has_items(card) and not has_categories(card)]
+          bidding_no_phone = [card for card in bidding if not has_phone(card)]
+
+          print('QUALITY_SUMMARY=' + json.dumps({
+              'total': len(pool),
+              'by_market': dict(sorted(by_market.items())),
+              'by_lifecycle': dict(sorted(by_lifecycle.items())),
+              'with_product_items': with_items,
+              'with_product_categories': with_categories,
+              'with_any_product_structure': with_any_product_structure,
+              'title_only_without_product_structure': len(title_only),
+              'with_public_phone': with_phone,
+              'with_exact_deadline': with_exact_deadline,
+              'bidding_total': len(bidding),
+              'bidding_title_only_without_product_structure': len(bidding_title_only),
+              'bidding_without_public_phone': len(bidding_no_phone),
+          }, ensure_ascii=False, sort_keys=True))
+
+          print('TITLE_ONLY_BEGIN')
+          for card in bidding_title_only:
+              f = facts(card)
+              contact = f.get('public_contact') or {}
+              budget = f.get('budget') or {}
+              print(json.dumps({
+                  'rank': card.get('rank'),
+                  'market': f.get('market_code'),
+                  'project_name': f.get('project_name'),
+                  'buyer_name': f.get('buyer_name'),
+                  'budget_cny': budget.get('amount_cny'),
+                  'phone': contact.get('phone'),
+                  'registration_deadline': f.get('registration_deadline'),
+                  'bid_deadline': f.get('bid_deadline'),
+                  'source_urls': card.get('evidence_source_urls') or [],
+              }, ensure_ascii=False, sort_keys=True))
+          print('TITLE_ONLY_END')
+          PY
