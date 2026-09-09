@@ -74,7 +74,7 @@ jobs:
               raise SystemExit('REGIONAL_REPORT_HAS_NO_MARKETS')
           if report.get('policy', {}).get('rate_limit_bypass') is not False:
               raise SystemExit('RATE_LIMIT_POLICY_CHANGED')
-          if float(report.get('policy', {}).get('minimum_inter_request_delay_seconds') or 0) < 4.0:
+          if float(report.get('policy', {}).get('minimum_request_delay_seconds') or 0) < 4.0:
               raise SystemExit('RATE_LIMIT_DELAY_TOO_LOW')
 
           skip_reasons = {'OUT_OF_MEDICAL_SCOPE', 'NON_COMPETITIVE_SINGLE_SOURCE'}
