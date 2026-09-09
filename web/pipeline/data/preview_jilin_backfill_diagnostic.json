@@ -1,4 +1,0 @@
-{
-  "exit_code": 1,
-  "output": "Traceback (most recent call last):\n  File \"/home/yy/actions-runner/_work/MedicalChannelAI/MedicalChannelAI/web/pipeline/scripts/preview_backfill_verified_jilin_products.py\", line 7, in <module>\n    from medical_channel_pipeline.validation import validate_records\nModuleNotFoundError: No module named 'medical_channel_pipeline'\n"
-}
