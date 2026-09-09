@@ -25,7 +25,13 @@ jobs:
           ref: preview/multi-region-ui-acceptance
           fetch-depth: 0
 
-      - name: Verify recall-preserving classifier regressions
+      - name: Apply unseen-first detail budget patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/scripts/preview_prioritize_unseen_regional_candidates.py
+
+      - name: Verify regional candidate regressions
         shell: bash
         run: |
           set -euo pipefail
@@ -37,6 +43,14 @@ jobs:
             tests.test_ccgp_detail \
             tests.test_ccgp_national_detail_formats \
             tests.test_ccgp_liaoning_detail_format
+
+      - name: Verify full production build
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web
+          npm ci
+          npm run build
 
       - name: Compute China refresh timestamp
         id: clock
@@ -75,12 +89,13 @@ jobs:
             --event-input web/pipeline/data/tianjin_notice_events.json \
             --output web/public/data/today-actions.public.json
 
-      - name: Verify live recall and exclusion invariants
+      - name: Verify unseen-first live recall invariants
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import json
+          from collections import Counter
           from pathlib import Path
 
           report = json.loads(Path('web/pipeline/data/regional_sync_report.json').read_text(encoding='utf-8'))
@@ -94,37 +109,47 @@ jobs:
               raise SystemExit('RATE_LIMIT_POLICY_CHANGED')
           if float(policy.get('minimum_request_delay_seconds') or 0) < 4.0:
               raise SystemExit('RATE_LIMIT_DELAY_TOO_LOW')
+          if policy.get('candidate_detail_budget_prioritizes_unseen_urls_before_rechecks') is not True:
+              raise SystemExit('UNSEEN_FIRST_POLICY_MISSING')
 
-          allowed_skip_reasons = {'OUT_OF_MEDICAL_SCOPE', 'NON_COMPETITIVE_SINGLE_SOURCE'}
           false_negative_markers = (
-              '免散瞳眼底照相机',
-              '乳腺机采购',
-              '疾病预防控制专用设备',
-              '医疗保障信息安全服务',
-              '信息互通共享功能升级',
+              '免散瞳眼底照相机', '乳腺机采购', '疾病预防控制专用设备',
+              '医疗保障信息安全服务', '信息互通共享功能升级',
           )
           explicit_nonmedical_markers = ('班车', '业务用车租赁', '办公耗材', '保安服务', '保洁服务')
           all_failures = []
           all_skips = []
+          selected_urls = set()
+          market_budget = {}
           for market in markets:
-              if int(market.get('selected_candidate_count') or 0) > 10:
-                  raise SystemExit(f"DETAIL_BUDGET_UNBOUNDED:{market.get('market_code')}")
+              code = str(market.get('market_code') or '')
+              selected = market.get('selected_candidates') or []
+              selected_count = int(market.get('selected_candidate_count') or 0)
+              unseen_count = int(market.get('selected_unseen_candidate_count') or 0)
+              existing_count = int(market.get('selected_existing_candidate_count') or 0)
+              if selected_count > 10:
+                  raise SystemExit(f'DETAIL_BUDGET_UNBOUNDED:{code}')
+              if selected_count != len(selected) or selected_count != unseen_count + existing_count:
+                  raise SystemExit(f'SELECTION_AUDIT_MISMATCH:{code}')
+              if code == 'BJ' and unseen_count <= 0:
+                  raise SystemExit('BEIJING_UNSEEN_BUDGET_NOT_USED')
+              selected_urls.update(str(item.get('url') or '') for item in selected)
               all_failures.extend(market.get('failures') or [])
               all_skips.extend(market.get('skipped_candidates') or [])
+              market_budget[code] = {'selected': selected_count, 'unseen': unseen_count, 'existing': existing_count}
 
           for skipped in all_skips:
               reason = skipped.get('reason')
               title = str(skipped.get('title') or '')
-              if reason not in allowed_skip_reasons:
+              if reason not in {'OUT_OF_MEDICAL_SCOPE', 'NON_COMPETITIVE_SINGLE_SOURCE'}:
                   raise SystemExit(f'UNKNOWN_SKIP_REASON:{reason}:{title}')
               if reason == 'OUT_OF_MEDICAL_SCOPE' and any(marker in title for marker in false_negative_markers):
                   raise SystemExit(f'KNOWN_MEDICAL_FALSE_NEGATIVE_STILL_SKIPPED:{title}')
               if reason == 'NON_COMPETITIVE_SINGLE_SOURCE' and '单一来源' not in title:
                   raise SystemExit(f'UNGROUNDED_SINGLE_SOURCE_SKIP:{title}')
+              if any(marker in title for marker in explicit_nonmedical_markers) and reason != 'OUT_OF_MEDICAL_SCOPE':
+                  raise SystemExit(f'EXPLICIT_NONMEDICAL_NOT_EXCLUDED:{title}')
 
-          # These exact official Beijing notices were previously false-negative skips.
-          # A source URL in canonical records proves successful detail verification;
-          # a verified_detail failure proves it at least reached the detail adapter.
           recall_urls = {
               'eye_fundus': 'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282514.htm',
               'cdc_device': 'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27277351.htm',
@@ -135,32 +160,27 @@ jobs:
               str((record.get('source') or {}).get('url') or '')
               for record in records if isinstance(record, dict)
           }
-          attempted_failure_urls = {
-              str(failure.get('url') or '')
-              for failure in all_failures
-              if failure.get('stage') == 'verified_detail'
+          failed_detail_urls = {
+              str(item.get('url') or '') for item in all_failures
+              if item.get('stage') == 'verified_detail'
           }
-          attempted = {
-              name: url in verified_urls or url in attempted_failure_urls
+          recall = {
+              name: {
+                  'selected': url in selected_urls,
+                  'verified': url in verified_urls,
+                  'detail_failure': url in failed_detail_urls,
+              }
               for name, url in recall_urls.items()
           }
-          if sum(1 for value in attempted.values() if value) < 2:
-              raise SystemExit(f'RECALL_PROOF_TOO_WEAK:{attempted}')
-
-          # Clear non-medical titles may be absent from a given window, but when
-          # they are skipped they must remain OUT_OF_MEDICAL_SCOPE.
-          bad_nonmedical = [
-              item for item in all_skips
-              if any(marker in str(item.get('title') or '') for marker in explicit_nonmedical_markers)
-              and item.get('reason') != 'OUT_OF_MEDICAL_SCOPE'
-          ]
-          if bad_nonmedical:
-              raise SystemExit(f'EXPLICIT_NONMEDICAL_NOT_EXCLUDED:{bad_nonmedical[:3]}')
+          if sum(1 for item in recall.values() if item['selected']) < 2:
+              raise SystemExit(f'KNOWN_RECALL_SELECTION_TOO_WEAK:{recall}')
+          if sum(1 for item in recall.values() if item['verified'] or item['detail_failure']) < 2:
+              raise SystemExit(f'KNOWN_RECALL_DETAIL_PROOF_TOO_WEAK:{recall}')
 
           pool = snapshot.get('opportunity_pool') or snapshot.get('cards') or []
-          market_codes = {str((card.get('facts') or {}).get('market_code') or '') for card in pool}
+          distribution = Counter(str((card.get('facts') or {}).get('market_code') or '') for card in pool)
           expected = {'TJ', 'BJ', 'HE', 'LN', 'JL', 'HL'}
-          missing = sorted(expected - market_codes)
+          missing = sorted(expected - set(distribution))
           if missing:
               raise SystemExit(f'PUBLISHED_SNAPSHOT_LOST_MARKETS:{missing}')
 
@@ -168,18 +188,15 @@ jobs:
               'new_verified': report.get('new_verified_record_count'),
               'merged_records': report.get('merged_record_count'),
               'snapshot_pool_count': len(pool),
-              'markets': sorted(market_codes),
-              'recall_attempted': attempted,
-              'failure_counts': {
-                  m.get('market_code'): len(m.get('failures') or []) for m in markets
-              },
-              'skip_counts': {
-                  m.get('market_code'): m.get('skipped_candidate_count', 0) for m in markets
-              },
+              'snapshot_market_distribution': dict(sorted(distribution.items())),
+              'market_detail_budget': market_budget,
+              'recall': recall,
+              'failure_counts': {m.get('market_code'): len(m.get('failures') or []) for m in markets},
+              'skip_counts': {m.get('market_code'): m.get('skipped_candidate_count', 0) for m in markets},
           }, ensure_ascii=False, indent=2))
           PY
 
-      - name: Commit live evidence and remove one-shot workflow
+      - name: Commit verified source and live evidence atomically
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
@@ -223,27 +240,34 @@ jobs:
               raise SystemExit(f'REMOTE_HEAD_CHANGED expected={expected_head} actual={head_sha}')
           commit = call('GET', f'{api}/git/commits/{head_sha}')
           base_tree = commit['tree']['sha']
-          paths = [
+          write_paths = [
+              'web/pipeline/medical_channel_pipeline/regional_candidate.py',
+              'web/pipeline/scripts/sync_regional_ccgp.py',
+              'web/pipeline/tests/test_regional_candidate_classification.py',
               'web/pipeline/data/national_admin_divisions.latest.json',
               'web/pipeline/data/regional_live_ccgp_records.json',
               'web/pipeline/data/regional_sync_report.json',
               'web/public/data/today-actions.public.json',
           ]
+          delete_paths = [
+              'web/scripts/preview_prioritize_unseen_regional_candidates.py',
+              '.github/workflows/preview-live-regional-recall-acceptance.yml',
+          ]
           tree = []
-          for path in paths:
+          for path in write_paths:
               file_path = root / path
+              if not file_path.is_file():
+                  raise SystemExit(f'MISSING_VERIFIED_FILE:{path}')
               blob = call('POST', f'{api}/git/blobs', {
                   'content': base64.b64encode(file_path.read_bytes()).decode('ascii'),
                   'encoding': 'base64',
               })
               tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
-          tree.append({
-              'path': '.github/workflows/preview-live-regional-recall-acceptance.yml',
-              'mode': '100644', 'type': 'blob', 'sha': None,
-          })
+          for path in delete_paths:
+              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': None})
           new_tree = call('POST', f'{api}/git/trees', {'base_tree': base_tree, 'tree': tree})
           new_commit = call('POST', f'{api}/git/commits', {
-              'message': 'data: live-verify recall-preserving regional refresh',
+              'message': 'fix: prioritize unseen regional candidates before rechecks',
               'tree': new_tree['sha'],
               'parents': [head_sha],
           })
