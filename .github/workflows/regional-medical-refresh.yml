@@ -10,6 +10,7 @@ on:
       - '.github/workflows/regional-medical-refresh.yml'
       - 'web/pipeline/data/admin_division_source.json'
       - 'web/pipeline/data/multi_region_query_plan.json'
+      - 'web/pipeline/data/medical_channel_scope.json'
       - 'web/pipeline/scripts/sync_national_admin_divisions.py'
       - 'web/pipeline/scripts/diagnose_ccgp_search.py'
       - 'web/pipeline/scripts/sync_regional_ccgp.py'
@@ -17,9 +18,13 @@ on:
       - 'web/pipeline/scripts/publish_generated_data_github.py'
       - 'web/pipeline/medical_channel_pipeline/ccgp_discovery.py'
       - 'web/pipeline/medical_channel_pipeline/ccgp_detail.py'
+      - 'web/pipeline/medical_channel_pipeline/regional_candidate.py'
+      - 'web/pipeline/medical_channel_pipeline/channel_scope.py'
       - 'web/pipeline/medical_channel_pipeline/state.py'
       - 'web/pipeline/medical_channel_pipeline/validation.py'
       - 'web/pipeline/medical_channel_pipeline/public_snapshot.py'
+      - 'web/pipeline/tests/test_regional_candidate_classification.py'
+      - 'web/pipeline/tests/test_channel_scope.py'
 
 permissions:
   contents: write
@@ -43,12 +48,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify CCGP detail parser regressions
+      - name: Verify regional classification and CCGP parser regressions
         shell: bash
         run: |
           set -euo pipefail
           cd web/pipeline
           python3 -m unittest \
+            tests.test_regional_candidate_classification \
+            tests.test_channel_scope \
             tests.test_ccgp_detail \
             tests.test_ccgp_national_detail_formats \
             tests.test_ccgp_liaoning_detail_format
