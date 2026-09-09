@@ -1,0 +1,118 @@
+name: Preview Verify Hebei Procurement Demand Products
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-verify-hebei-procurement-demand.yml
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-commit:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 1
+
+      - name: Apply bounded Hebei procurement-demand parser
+        run: |
+          set -euo pipefail
+          python3 web/scripts/preview_add_hebei_procurement_demand.py
+
+      - name: Run focused parser regressions
+        run: |
+          set -euo pipefail
+          cd web/pipeline
+          python3 -m unittest \
+            tests.test_ccgp_hebei_product_demand \
+            tests.test_ccgp_detail \
+            tests.test_ccgp_liaoning_product_lists \
+            tests.test_ccgp_product_table_variants \
+            tests.test_validation
+
+      - name: Verify exact products on representative official Hebei pages
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import sys
+          import time
+          from pathlib import Path
+
+          root = Path('web/pipeline').resolve()
+          sys.path.insert(0, str(root))
+          from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html, parse_ccgp_public_tender_html
+
+          records = json.loads((root/'data/regional_live_ccgp_records.json').read_text(encoding='utf-8'))
+          by_id = {r['opportunity_id']: r for r in records}
+          cases = [
+              ('pathology-scanner','ccgp_he_2a9ca892bf9d0b6a',[('病理数字化切片扫描仪','4套')]),
+              ('mobile-dr','ccgp_he_41406b60884c07ad',[('移动床旁DR机','2台')]),
+              ('dialysis','ccgp_he_ca87fac13b11b638',[('血液透析机','3台')]),
+              ('capacity-build','ccgp_he_6e1e4a83e00b40a3',[('脊柱内镜系统','1套'),('内热针灸治疗仪','3台'),('动态心电记录仪','8台')]),
+              ('two-package-xray','ccgp_he_a0ab098083f37680',[('数字胃肠X射线系统','1套'),('医用C型臂X光机','1台')]),
+          ]
+          for index,(label,opportunity_id,expected) in enumerate(cases):
+              if index: time.sleep(4.0)
+              record = by_id.get(opportunity_id)
+              if record is None: raise SystemExit(f'HEBEI_CANONICAL_CASE_MISSING:{label}:{opportunity_id}')
+              url=record['source']['url']
+              html=fetch_ccgp_detail_html(url)
+              parsed=parse_ccgp_public_tender_html(html,source_url=url,observed_at=record['source']['observed_at'],opportunity_id=opportunity_id)
+              actual=[(str(i.get('raw_name') or ''),str(i.get('quantity') or '')) for i in (parsed.get('facts') or {}).get('product_items') or []]
+              print(label,url,actual)
+              if actual != expected:
+                  raise SystemExit(f'HEBEI_LIVE_PRODUCTS_MISMATCH:{label}:expected={expected!r}:actual={actual!r}')
+              evidence=[e for e in parsed.get('evidence') or [] if e.get('field_path')=='facts.product_items']
+              if not evidence or '采购需求' not in str(evidence[0].get('locator') or ''):
+                  raise SystemExit(f'HEBEI_PRODUCT_EVIDENCE_MISSING:{label}:{evidence!r}')
+          PY
+
+      - name: Run full production build
+        run: |
+          set -euo pipefail
+          cd web
+          npm ci
+          npm run build
+
+      - name: Commit verified Hebei parser atomically and clean one-shot files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: preview/multi-region-ui-acceptance
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, json, os
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+          token,repo,branch,expected=os.environ['GH_TOKEN'],os.environ['REPOSITORY'],os.environ['BRANCH'],os.environ['EXPECTED_HEAD']
+          api=f'https://api.github.com/repos/{repo}'
+          headers={'Accept':'application/vnd.github+json','Authorization':f'Bearer {token}','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}
+          def call(method,url,payload=None):
+              data=None if payload is None else json.dumps(payload).encode()
+              with urlopen(Request(url,data=data,headers=headers,method=method),timeout=60) as response:
+                  body=response.read().decode(); return json.loads(body) if body else {}
+          ref_name=quote(f'heads/{branch}',safe='/')
+          head=call('GET',f'{api}/git/ref/{ref_name}')['object']['sha']
+          if head!=expected: raise SystemExit(f'REMOTE_HEAD_CHANGED expected={expected} actual={head}')
+          base_tree=call('GET',f'{api}/git/commits/{head}')['tree']['sha']
+          tree=[]
+          for path in ['web/pipeline/medical_channel_pipeline/ccgp_detail.py','web/pipeline/tests/test_ccgp_hebei_product_demand.py']:
+              blob=call('POST',f'{api}/git/blobs',{'content':base64.b64encode(Path(path).read_bytes()).decode(),'encoding':'base64'})
+              tree.append({'path':path,'mode':'100644','type':'blob','sha':blob['sha']})
+          for path in ['web/scripts/preview_add_hebei_procurement_demand.py','.github/workflows/preview-audit-hebei-product-formats.yml','.github/workflows/preview-verify-hebei-procurement-demand.yml']:
+              tree.append({'path':path,'mode':'100644','type':'blob','sha':None})
+          nt=call('POST',f'{api}/git/trees',{'base_tree':base_tree,'tree':tree})
+          nc=call('POST',f'{api}/git/commits',{'message':'feat: parse grounded Hebei procurement demand products','tree':nt['sha'],'parents':[head]})
+          call('PATCH',f'{api}/git/refs/{ref_name}',{'sha':nc['sha'],'force':False})
+          print('COMMITTED',nc['sha'])
+          PY
