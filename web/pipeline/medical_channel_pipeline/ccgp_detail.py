@@ -487,6 +487,159 @@ def _dedupe_text_product_items(items: list[dict[str, Any]]) -> list[dict[str, An
     return deduped
 
 
+_ZCY_SPECIFIC_PRODUCT_TERMS = (
+    '分析仪', '试剂', '试剂盒', '流水线', '质谱', '超声', '内窥镜', '内镜', '离心机',
+    '显微镜', '监护仪', '呼吸机', '透析机', '血透机', 'X射线机', 'X光机', 'C形臂', 'C型臂',
+    'CT', 'DR', 'MRI', '磁共振', 'PCR', '测序仪', '病理', '眼压计',
+)
+_ZCY_GENERIC_PRODUCT_NAMES = {
+    '数量', '采购数量', '设备', '设备一批', '医疗设备', '医疗设备一批', '检验设备', '检测设备',
+    '试剂耗材', '耗材', '货物', '产品', '标的', '合同包',
+}
+
+
+def _bounded_zcy_procurement_scope(text: str) -> str:
+    anchor_match = re.search(r'采购需求\s*[：:]\s*', text)
+    if not anchor_match:
+        return ''
+    scope = text[anchor_match.end():]
+    end_positions = [
+        position
+        for marker in (
+            '合同履行期限', '合同履约期限', '本项目不接受', '本项目接受',
+            '二、申请人的资格要求', '二、申请人',
+        )
+        if (position := scope.find(marker)) >= 0
+    ]
+    if end_positions:
+        scope = scope[: min(end_positions)]
+    scope = _normalize_space(scope)
+    return scope if scope and len(scope) <= 4000 else ''
+
+
+def _optional_text_product_item(raw_name: str, quantity: str | None) -> dict[str, Any]:
+    return {
+        'raw_name': _normalize_space(raw_name).strip('，,：:；;。'),
+        'category': None,
+        'quantity': _normalize_space(quantity) if quantity else None,
+        'specification': None,
+    }
+
+
+def _looks_specific_zcy_product_name(raw_name: str) -> bool:
+    name = _normalize_space(raw_name).strip('，,：:；;。')
+    if not name or len(name) < 2 or len(name) > 180:
+        return False
+    if name in _ZCY_GENERIC_PRODUCT_NAMES:
+        return False
+    if any(token in name for token in ('详见', '采购需求', '预算金额', '最高限价', '项目基本概况', '配置及参数一览表')):
+        return False
+    if name.endswith(('设备一批', '医疗设备一批', '检测设备', '检验检测设备')):
+        return False
+    return any(term in name for term in _ZCY_SPECIFIC_PRODUCT_TERMS)
+
+
+def _dedupe_optional_product_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    seen: set[tuple[str, str | None]] = set()
+    for item in items:
+        name = str(item.get('raw_name') or '').strip()
+        quantity = item.get('quantity')
+        normalized_quantity = str(quantity).strip() if quantity is not None else None
+        if not _looks_specific_zcy_product_name(name):
+            continue
+        if normalized_quantity is not None and not _is_explicit_product_quantity(normalized_quantity):
+            continue
+        key = (name, normalized_quantity)
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(item)
+        if len(result) >= 100:
+            break
+    return result
+
+
+def _extract_zcy_primary_subject_items(text: str) -> list[dict[str, Any]]:
+    """Parse explicit 政采云正文 pairs: 主要标的名称：X；数量：N单位。"""
+    scope = _bounded_zcy_procurement_scope(text)
+    if not scope:
+        return []
+    unit_pattern = '|'.join(
+        sorted(
+            (re.escape(unit) for unit in _PRODUCT_UNIT_WORDS if unit not in {'年', '月', '人', '人次', '家', '所', '间'}),
+            key=len,
+            reverse=True,
+        )
+    )
+    quantity_pattern = rf'(?:\d+(?:\.\d+)?|[一二三四五六七八九十百]+)\s*(?:{unit_pattern})'
+    pattern = re.compile(
+        rf'主要标的名称\s*[：:]\s*(?P<name>[^；;]{{2,180}}?)\s*[；;]\s*'
+        rf'数量\s*[：:]\s*(?P<quantity>{quantity_pattern})(?=\s*[；;，,。]|$)'
+    )
+    return _dedupe_optional_product_items([
+        _optional_text_product_item(match.group('name'), match.group('quantity'))
+        for match in pattern.finditer(scope)
+    ])
+
+
+def _extract_zcy_brief_description_items(text: str) -> list[dict[str, Any]]:
+    """Parse only concrete product facts from bounded 政采云“简要规格描述” blocks."""
+    scope = _bounded_zcy_procurement_scope(text)
+    if not scope:
+        return []
+    bodies = [
+        _normalize_space(match.group('body')).strip('，,：:；;。')
+        for match in re.finditer(
+            r'简要规格描述或项目基本概况介绍、用途\s*[：:]\s*'
+            r'(?P<body>.*?)(?=\s+备注\s*[：:]|\s+标项(?:一|二|三|四|五|六|七|八|九|十|名称)(?:\s|:|：)|$)',
+            scope,
+        )
+    ]
+    if not bodies:
+        return []
+
+    unit_pattern = '|'.join(
+        sorted(
+            (re.escape(unit) for unit in _PRODUCT_UNIT_WORDS if unit not in {'年', '月', '人', '人次', '家', '所', '间'}),
+            key=len,
+            reverse=True,
+        )
+    )
+    explicit_pattern = re.compile(
+        rf'(?P<name>[A-Za-z0-9\u4e00-\u9fff（）()·+\-/]{{2,120}}?)'
+        rf'(?P<quantity>\d+(?:\.\d+)?\s*(?:{unit_pattern}))(?=\s*(?:及|和|与|，|,|；|;|。|$))'
+    )
+    items: list[dict[str, Any]] = []
+    for body in bodies:
+        if not body or len(body) > 1200 or re.match(r'^\d+[.、]', body):
+            continue
+
+        explicit: list[dict[str, Any]] = []
+        for match in explicit_pattern.finditer(body[:500]):
+            name = match.group('name').strip()
+            if _looks_specific_zcy_product_name(name):
+                explicit.append(_optional_text_product_item(name, match.group('quantity')))
+        if explicit:
+            items.extend(explicit)
+            continue
+
+        name: str | None = None
+        if body.startswith(('采购', '拟采购', '购买')):
+            candidate = re.sub(r'^(?:拟采购|采购|购买)', '', body, count=1).strip()
+            candidate = re.split(r'[，,](?:\s*详见|\s*具体)', candidate, maxsplit=1)[0].strip()
+            name = candidate
+        else:
+            purchase = re.match(r'(?P<name>.+?)采购(?:[，,]|$)', body)
+            if purchase:
+                name = purchase.group('name').strip()
+                name = re.sub(r'^(?:一|二|三|四|五|六|七|八|九|十)标段\s*[：:]\s*', '', name)
+        if name and _looks_specific_zcy_product_name(name):
+            items.append(_optional_text_product_item(name, None))
+
+    return _dedupe_optional_product_items(items)
+
+
 def _extract_top_level_numbered_quantity_items(text: str) -> list[dict[str, Any]]:
     scope = _procurement_text_scope(text)
     if not scope:
@@ -589,7 +742,7 @@ def _extract_bounded_procurement_demand_items(text: str) -> list[dict[str, Any]]
     scope = text[anchor_match.end():]
     end_positions = [
         position
-        for marker in ("合同履行期限", "本项目不接受", "本项目接受", "二、申请人的资格要求", "二、申请人")
+        for marker in ("合同履行期限", "合同履约期限", "本项目不接受", "本项目接受", "二、申请人的资格要求", "二、申请人")
         if (position := scope.find(marker)) >= 0
     ]
     if end_positions:
@@ -617,7 +770,9 @@ def _extract_bounded_procurement_demand_items(text: str) -> list[dict[str, Any]]
         name = re.sub(r"^(?:其中|包括|包含)\s*", "", name).strip()
         if not name or len(name) < 2 or len(name) > 160:
             return
-        if any(token in name for token in ('预算金额', '最高限价', '合同履行', '详见', '具体内容', '采购需求')):
+        if name in _ZCY_GENERIC_PRODUCT_NAMES or name.startswith(('数量：', '数量:')):
+            return
+        if any(token in name for token in ('预算金额', '最高限价', '合同履行', '合同履约', '详见', '具体内容', '采购需求')):
             return
         normalized_quantity = _normalize_space(quantity)
         if not _is_explicit_product_quantity(normalized_quantity):
@@ -664,6 +819,8 @@ def _extract_bounded_procurement_demand_items(text: str) -> list[dict[str, Any]]
 
 def _extract_grounded_text_product_items(text: str) -> list[dict[str, Any]]:
     extractors = (
+        _extract_zcy_primary_subject_items,
+        _extract_zcy_brief_description_items,
         _extract_bounded_procurement_demand_items,
         _extract_item_name_quantity_unit_lines,
         _extract_product_name_quantity_lines,
@@ -693,7 +850,7 @@ def _apply_grounded_text_products(record: dict[str, Any], text: str) -> dict[str
         {
             'field_path': 'facts.product_items',
             'source_url': record['source']['url'],
-            'locator': '采购需求/正文结构化名称与数量清单',
+            'locator': '采购需求/正文结构化产品明细',
         }
     )
     record['evidence'] = evidence
