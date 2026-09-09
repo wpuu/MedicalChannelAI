@@ -1,0 +1,319 @@
+name: Preview Commit Beijing Product Backfill
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-commit-beijing-product-backfill.yml
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-commit:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 0
+
+      - name: Preserve public baseline
+        run: cp web/public/data/today-actions.public.json /tmp/bj-commit-baseline-public.json
+
+      - name: Reparse Beijing empty-product records
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import re
+          import sys
+          import time
+          from pathlib import Path
+
+          root = Path('web/pipeline').resolve()
+          sys.path.insert(0, str(root))
+          from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html, parse_ccgp_public_tender_html
+
+          path = root / 'data/regional_live_ccgp_records.json'
+          records = json.loads(path.read_text(encoding='utf-8'))
+          targets = [
+              (idx, record) for idx, record in enumerate(records)
+              if (record.get('facts') or {}).get('market_code') == 'BJ'
+              and (record.get('facts') or {}).get('notice_type') == '公开招标公告'
+              and not ((record.get('facts') or {}).get('product_items') or [])
+          ]
+          if len(targets) != 27:
+              raise SystemExit(f'UNEXPECTED_BJ_EMPTY_TARGET_COUNT:{len(targets)}')
+
+          def norm(value):
+              return re.sub(r'\s+', ' ', str(value or '')).strip()
+
+          bad_prefixes = ('备注', '注解', '项目用途', '项目现场', '保险期限', '合同履行期限', '服务期限')
+          bad_exact = {'1年', '医院服务', '北京中医药大学东方医院指定地点'}
+          recovered=[]; unsupported=[]; failures=[]
+
+          for position, (index, record) in enumerate(targets):
+              if position:
+                  time.sleep(4.0)
+              facts=record['facts']; source=record['source']; url=source['url']
+              try:
+                  html=fetch_ccgp_detail_html(url)
+                  fresh_record=parse_ccgp_public_tender_html(
+                      html,
+                      source_url=url,
+                      observed_at=source['observed_at'],
+                      opportunity_id=record['opportunity_id'],
+                  )
+                  fresh=fresh_record['facts']
+                  if norm(fresh.get('project_number')) != norm(facts.get('project_number')):
+                      raise ValueError('PROJECT_NUMBER_MISMATCH')
+                  if norm(fresh.get('project_name')) != norm(facts.get('project_name')):
+                      raise ValueError('PROJECT_NAME_MISMATCH')
+                  items=fresh.get('product_items') or []
+                  names=[norm(item.get('raw_name')) for item in items]
+                  leaked=[name for name in names if name.startswith(bad_prefixes) or name in bad_exact]
+                  if leaked:
+                      raise ValueError('PRODUCT_METADATA_LEAK:' + '|'.join(leaked))
+                  if not items:
+                      unsupported.append({
+                          'opportunity_id': record['opportunity_id'],
+                          'project_name': facts.get('project_name'),
+                          'buyer_name': facts.get('buyer_name'),
+                          'url': url,
+                      })
+                      continue
+                  facts['product_items']=items
+                  facts['product_categories']=fresh.get('product_categories') or []
+                  product_evidence=[
+                      item for item in fresh_record.get('evidence', [])
+                      if item.get('field_path') in {'facts.product_items','facts.product_categories'}
+                  ]
+                  if not any(item.get('field_path') == 'facts.product_items' for item in product_evidence):
+                      raise ValueError('PRODUCT_EVIDENCE_MISSING')
+                  record['evidence']=[
+                      item for item in record.get('evidence', [])
+                      if item.get('field_path') not in {'facts.product_items','facts.product_categories'}
+                  ] + product_evidence
+                  records[index]=record
+                  recovered.append({
+                      'opportunity_id': record['opportunity_id'],
+                      'project_name': facts.get('project_name'),
+                      'buyer_name': facts.get('buyer_name'),
+                      'url': url,
+                      'item_count': len(items),
+                      'items': names,
+                  })
+              except Exception as exc:
+                  failures.append({
+                      'opportunity_id': record.get('opportunity_id'),
+                      'project_name': facts.get('project_name'),
+                      'buyer_name': facts.get('buyer_name'),
+                      'url': url,
+                      'error': type(exc).__name__,
+                      'message': str(exc)[:500],
+                  })
+
+          expected_unsupported = {
+              'ccgp_bj_10b27e7271e3637c',
+              'ccgp_bj_27c4b67032bf597f',
+              'ccgp_bj_1d41464508071bc8',
+              'ccgp_bj_877131eb9f02f595',
+              'ccgp_bj_2f3215759c2a7852',
+          }
+          unsupported_ids={row['opportunity_id'] for row in unsupported}
+          if failures:
+              raise SystemExit('BJ_BACKFILL_HAS_TRUE_FAILURES:' + json.dumps(failures, ensure_ascii=False))
+          if len(recovered) != 22:
+              raise SystemExit(f'UNEXPECTED_RECOVERED_COUNT:{len(recovered)}')
+          if unsupported_ids != expected_unsupported:
+              raise SystemExit('UNEXPECTED_UNSUPPORTED_SET:' + json.dumps(sorted(unsupported_ids), ensure_ascii=False))
+
+          expected_products = {
+              'ccgp_bj_7288c338a1406922': ['医责险采购', '医师险采购'],
+              'ccgp_bj_71b6984cdeed7b23': ['离心机', '全自动干式生化分析仪', '生物显微镜'],
+              'ccgp_bj_6f5e872d1d6e7fa0': [
+                  'X射线骨密度检测仪', '磁共振成像系统', '乳腺X射线机', '医用磁共振成像系统（MR）',
+                  '数字乳腺X射线摄影系统', 'X射线计算机体层摄影设备(CT)',
+                  '单光子发射及X射线计算机断层成像系统（SPECT/CT）',
+              ],
+              'ccgp_bj_bda3420ecd1d653d': [
+                  '超脉冲点阵手术激光系统', '上下肢主被动康复训练仪',
+                  '血流动力学监测平台', '便携式彩色超声诊断系统',
+              ],
+          }
+          by_id={row['opportunity_id']: row for row in recovered}
+          for opportunity_id, expected in expected_products.items():
+              actual=(by_id.get(opportunity_id) or {}).get('items')
+              if actual != expected:
+                  raise SystemExit(f'KNOWN_PRODUCT_SET_MISMATCH:{opportunity_id}:expected={expected!r}:actual={actual!r}')
+
+          path.write_text(json.dumps(records, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+          report={
+              'target_count': len(targets),
+              'recovered_count': len(recovered),
+              'unsupported_count': len(unsupported),
+              'failure_count': len(failures),
+              'recovered': recovered,
+              'unsupported': unsupported,
+              'failures': failures,
+          }
+          Path('/tmp/bj-commit-backfill-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+          print('BJ_COMMIT_BACKFILL=' + json.dumps(report, ensure_ascii=False))
+          PY
+
+      - name: Run full production build
+        run: |
+          set -euo pipefail
+          cd web
+          npm ci
+          npm run build
+
+      - name: Verify exact public-pool delta
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import re
+          from collections import Counter
+          from pathlib import Path
+
+          baseline=json.loads(Path('/tmp/bj-commit-baseline-public.json').read_text(encoding='utf-8'))
+          snapshot=json.loads(Path('web/public/data/today-actions.public.json').read_text(encoding='utf-8'))
+          report=json.loads(Path('/tmp/bj-commit-backfill-report.json').read_text(encoding='utf-8'))
+          old_pool=baseline.get('opportunity_pool') or []
+          pool=snapshot.get('opportunity_pool') or []
+          old_by_id={str(c.get('opportunity_id') or ''):c for c in old_pool}
+          by_id={str(c.get('opportunity_id') or ''):c for c in pool}
+          added_ids=sorted(set(by_id)-set(old_by_id))
+          removed_ids=sorted(set(old_by_id)-set(by_id))
+
+          def norm(value):
+              return re.sub(r'\s+', ' ', str(value or '')).strip()
+          def summary(card):
+              facts=card.get('facts') or {}
+              return {
+                  'opportunity_id': card.get('opportunity_id'),
+                  'project_name': facts.get('project_name'),
+                  'items': [item.get('raw_name') for item in facts.get('product_items') or []][:20],
+              }
+          def structured(cards):
+              return sum(1 for c in cards if (c.get('facts') or {}).get('lifecycle_state')=='BIDDING' and ((c.get('facts') or {}).get('product_items') or (c.get('facts') or {}).get('product_categories')))
+
+          bad_prefixes=('备注', '注解', '项目用途', '项目现场', '保险期限', '合同履行期限', '服务期限')
+          bad_exact={'1年', '医院服务', '北京中医药大学东方医院指定地点'}
+          leaks=[]
+          for card in pool:
+              for item in (card.get('facts') or {}).get('product_items') or []:
+                  name=norm(item.get('raw_name'))
+                  if name.startswith(bad_prefixes) or name in bad_exact:
+                      leaks.append({'opportunity_id': card.get('opportunity_id'), 'product': name})
+
+          expected_added={'ccgp_bj_6f5e872d1d6e7fa0', 'ccgp_bj_bda3420ecd1d653d'}
+          distribution=dict(sorted(Counter((c.get('facts') or {}).get('market_code') for c in pool).items()))
+          result={
+              'baseline_pool_count': len(old_pool),
+              'public_pool_count': len(pool),
+              'added': [summary(by_id[i]) for i in added_ids],
+              'removed': [summary(old_by_id[i]) for i in removed_ids],
+              'baseline_structured_bidding': structured(old_pool),
+              'structured_bidding': structured(pool),
+              'structure_gain': structured(pool)-structured(old_pool),
+              'market_distribution': distribution,
+              'metadata_leaks': leaks,
+          }
+          print('BJ_COMMIT_PUBLIC_DELTA=' + json.dumps(result, ensure_ascii=False, indent=2))
+
+          if len(old_pool) != 90 or len(pool) != 92:
+              raise SystemExit(f'PUBLIC_POOL_COUNT_MISMATCH:{len(old_pool)}->{len(pool)}')
+          if set(added_ids) != expected_added:
+              raise SystemExit('UNEXPECTED_ADDED_SET:' + json.dumps(added_ids, ensure_ascii=False))
+          if removed_ids:
+              raise SystemExit('REMOVED_PUBLIC_OPPORTUNITIES:' + json.dumps(removed_ids, ensure_ascii=False))
+          if leaks:
+              raise SystemExit('PUBLIC_PRODUCT_METADATA_LEAK:' + json.dumps(leaks, ensure_ascii=False))
+          if distribution != {'BJ':16,'HE':14,'HL':22,'JL':8,'LN':6,'TJ':26}:
+              raise SystemExit('UNEXPECTED_MARKET_DISTRIBUTION:' + json.dumps(distribution, ensure_ascii=False))
+          if 'ccgp_bj_4f06004fe0a3f03f' in by_id:
+              raise SystemExit('NONMEDICAL_METROLOGY_ENTERED_PUBLIC_POOL')
+          if any('办公耗材' in norm((card.get('facts') or {}).get('project_name')) for card in pool):
+              raise SystemExit('OFFICE_CONSUMABLES_ENTERED_PUBLIC_POOL')
+          if report['failure_count'] != 0 or report['recovered_count'] != 22 or report['unsupported_count'] != 5:
+              raise SystemExit('BACKFILL_COUNTS_CHANGED')
+          PY
+
+      - name: Reject unexpected tracked changes
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import subprocess
+          expected={
+              'web/pipeline/data/regional_live_ccgp_records.json',
+              'web/public/data/today-actions.public.json',
+          }
+          changed={line.strip() for line in subprocess.check_output(['git','diff','--name-only'], text=True).splitlines() if line.strip()}
+          print('TRACKED_CHANGES=' + ','.join(sorted(changed)))
+          if changed != expected:
+              raise SystemExit(f'UNEXPECTED_TRACKED_CHANGES:{sorted(changed)!r}')
+          PY
+
+      - name: Commit verified Beijing data atomically and remove one-shot workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: preview/multi-region-ui-acceptance
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+
+          token=os.environ['GH_TOKEN']; repo=os.environ['REPOSITORY']; branch=os.environ['BRANCH']; expected_head=os.environ['EXPECTED_HEAD']
+          root=Path.cwd(); api=f'https://api.github.com/repos/{repo}'
+          headers={
+              'Accept':'application/vnd.github+json',
+              'Authorization':f'Bearer {token}',
+              'X-GitHub-Api-Version':'2022-11-28',
+              'Content-Type':'application/json',
+          }
+          def call(method, url, payload=None):
+              data=None if payload is None else json.dumps(payload).encode('utf-8')
+              req=Request(url, data=data, headers=headers, method=method)
+              with urlopen(req, timeout=60) as resp:
+                  body=resp.read().decode('utf-8')
+                  return json.loads(body) if body else {}
+
+          ref_name=quote(f'heads/{branch}', safe='/')
+          ref=call('GET', f'{api}/git/ref/{ref_name}')
+          head_sha=ref['object']['sha']
+          if head_sha != expected_head:
+              raise SystemExit(f'REMOTE_HEAD_CHANGED expected={expected_head} actual={head_sha}')
+          commit=call('GET', f'{api}/git/commits/{head_sha}')
+          base_tree=commit['tree']['sha']
+          tree=[]
+          for path in ['web/pipeline/data/regional_live_ccgp_records.json','web/public/data/today-actions.public.json']:
+              file_path=root/path
+              if not file_path.is_file():
+                  raise SystemExit(f'MISSING_VERIFIED_FILE:{path}')
+              blob=call('POST', f'{api}/git/blobs', {
+                  'content':base64.b64encode(file_path.read_bytes()).decode('ascii'),
+                  'encoding':'base64',
+              })
+              tree.append({'path':path,'mode':'100644','type':'blob','sha':blob['sha']})
+          tree.append({'path':'.github/workflows/preview-commit-beijing-product-backfill.yml','mode':'100644','type':'blob','sha':None})
+          new_tree=call('POST', f'{api}/git/trees', {'base_tree':base_tree,'tree':tree})
+          new_commit=call('POST', f'{api}/git/commits', {
+              'message':'data: backfill grounded Beijing product items',
+              'tree':new_tree['sha'],
+              'parents':[head_sha],
+          })
+          call('PATCH', f'{api}/git/refs/{ref_name}', {'sha':new_commit['sha'],'force':False})
+          print('committed ' + new_commit['sha'])
+          PY
