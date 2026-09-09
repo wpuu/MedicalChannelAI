@@ -27,6 +27,7 @@ from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
 )
 from medical_channel_pipeline.regional_candidate import (  # noqa: E402
     regional_candidate_priority,
+    regional_candidate_selection_key,
     regional_candidate_skip_reason,
 )
 from medical_channel_pipeline.state import merge_canonical_records  # noqa: E402
@@ -220,6 +221,11 @@ def main() -> int:
     start_date, end_date = date_window(as_of, plan['lookback_days'])
     observed_at = as_of.astimezone(timezone.utc).isoformat()
     existing_records = load_json_arrays(args.existing_records_input, label='existing regional records')
+    existing_source_urls = {
+        str((record.get('source') or {}).get('url') or '')
+        for record in existing_records
+        if isinstance(record, dict) and str((record.get('source') or {}).get('url') or '')
+    }
     session = CcgpSearchSession()
 
     markets = plan['markets']
@@ -351,14 +357,20 @@ def main() -> int:
         market = market_by_code[code]
         discovered = sorted(
             discovered_by_url.values(),
-            key=lambda item: (
-                regional_candidate_priority(item[1]),
-                getattr(item[1], 'published_at', None) or '',
-                getattr(item[1], 'detail_url', ''),
-            ),
+            key=lambda item: regional_candidate_selection_key(item[1], existing_source_urls),
             reverse=True,
         )
         selected = discovered[: plan['max_candidates_per_market']]
+        selected_candidates = [
+            {
+                'title': getattr(candidate, 'title', None),
+                'url': getattr(candidate, 'detail_url', None),
+                'published_at': getattr(candidate, 'published_at', None),
+                'priority': regional_candidate_priority(candidate),
+                'was_existing_verified_url': str(getattr(candidate, 'detail_url', '') or '') in existing_source_urls,
+            }
+            for _, candidate in selected
+        ]
         market_new_count = 0
 
         for notice_type, candidate in selected:
@@ -407,6 +419,13 @@ def main() -> int:
             'skipped_candidates': sorted(market_skips[code].values(), key=lambda item: (item['reason'], item['url'])),
             'unique_candidate_count': len(discovered),
             'selected_candidate_count': len(selected),
+            'selected_unseen_candidate_count': sum(
+                1 for item in selected_candidates if not item['was_existing_verified_url']
+            ),
+            'selected_existing_candidate_count': sum(
+                1 for item in selected_candidates if item['was_existing_verified_url']
+            ),
+            'selected_candidates': selected_candidates,
             'new_verified_record_count': market_new_count,
             'failure_count': len(market_failures[code]),
             'failures': market_failures[code],
@@ -442,6 +461,7 @@ def main() -> int:
             'official_detail_required_before_publication': True,
             'candidate_prefilter_only_rejects_explicit_exclusions': True,
             'candidate_detail_budget_uses_recall_preserving_priority': True,
+            'candidate_detail_budget_prioritizes_unseen_urls_before_rechecks': True,
             'cross_market_project_number_dedupe_is_forbidden': True,
             'regional_event_monitoring_deferred_until_composite_market_event_key_is_enabled': True,
             'rate_limit_bypass': False,

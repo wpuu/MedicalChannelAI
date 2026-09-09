@@ -6,6 +6,7 @@ from medical_channel_pipeline.regional_candidate import (
     NON_COMPETITIVE_SINGLE_SOURCE,
     OUT_OF_MEDICAL_SCOPE,
     regional_candidate_priority,
+    regional_candidate_selection_key,
     regional_candidate_skip_reason,
 )
 
@@ -97,15 +98,52 @@ class RegionalCandidateClassificationTests(unittest.TestCase):
         self.assertGreater(regional_candidate_priority(mammography), regional_candidate_priority(metrology))
         self.assertGreater(regional_candidate_priority(health_it), regional_candidate_priority(publishing))
 
+    def test_unseen_official_url_wins_budget_before_existing_recheck(self):
+        seen = candidate(
+            '某医院医疗设备采购项目公开招标公告',
+            buyer='某医院',
+            notice_type='公开招标公告',
+        )
+        unseen = candidate(
+            '中国医学科学院北京协和医院放射科乳腺机采购项目公开招标公告',
+            buyer='中国医学科学院北京协和医院',
+            notice_type='公开招标公告',
+        )
+        seen = DiscoveryCandidate(**{**seen.__dict__, 'detail_url': 'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/seen.htm'})
+        unseen = DiscoveryCandidate(**{**unseen.__dict__, 'detail_url': 'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/unseen.htm'})
+        existing = {seen.detail_url}
+        self.assertGreater(
+            regional_candidate_selection_key(unseen, existing),
+            regional_candidate_selection_key(seen, existing),
+        )
+
+    def test_unseen_selection_still_prefers_medical_relevance_then_recency(self):
+        medical = candidate(
+            '中日友好医院免散瞳眼底照相机系统采购项目公开招标公告',
+            buyer='中日友好医院',
+            notice_type='公开招标公告',
+        )
+        generic = candidate(
+            '某研究院一般设备采购项目公开招标公告',
+            buyer='某研究院',
+            notice_type='公开招标公告',
+        )
+        self.assertGreater(
+            regional_candidate_selection_key(medical, set()),
+            regional_candidate_selection_key(generic, set()),
+        )
+
     def test_regional_sync_classifies_and_prioritizes_before_detail_budget(self):
         source = (PIPELINE_ROOT / 'scripts/sync_regional_ccgp.py').read_text(encoding='utf-8')
         classifier_at = source.index('regional_candidate_skip_reason(candidate)')
-        priority_at = source.index('regional_candidate_priority(item[1])')
+        priority_at = source.index('regional_candidate_selection_key(item[1], existing_source_urls)')
         detail_at = source.index('fetch_ccgp_detail_html(candidate.detail_url)')
         self.assertLess(classifier_at, priority_at)
         self.assertLess(priority_at, detail_at)
         self.assertIn("'candidate_prefilter_only_rejects_explicit_exclusions': True", source)
         self.assertIn("'candidate_detail_budget_uses_recall_preserving_priority': True", source)
+        self.assertIn("'candidate_detail_budget_prioritizes_unseen_urls_before_rechecks': True", source)
+        self.assertIn("'selected_candidates': selected_candidates", source)
 
 
 if __name__ == '__main__':

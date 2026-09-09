@@ -65,3 +65,22 @@ def regional_candidate_priority(candidate: DiscoveryCandidate) -> int:
     ):
         return 2
     return 1
+
+
+def regional_candidate_selection_key(
+    candidate: DiscoveryCandidate,
+    existing_source_urls: set[str] | frozenset[str],
+) -> tuple[int, int, str, str]:
+    """Spend bounded detail budget on unseen official URLs before rechecks.
+
+    Existing verified URLs remain eligible for periodic re-verification, but
+    they must not crowd newly discovered candidates out of the same refresh
+    window. Relevance priority and recency are secondary ordering signals.
+    """
+    url = str(candidate.detail_url or '')
+    return (
+        1 if url and url not in existing_source_urls else 0,
+        regional_candidate_priority(candidate),
+        str(candidate.published_at or ''),
+        url,
+    )
