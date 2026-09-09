@@ -1,0 +1,100 @@
+name: Preview Backfill Jilin Products
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-backfill-jilin-products.yml
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 0
+
+      - name: Preserve pre-backfill snapshot
+        run: cp web/public/data/today-actions.public.json /tmp/today-actions.before-jilin.json
+
+      - name: Backfill only live-verified Jilin product facts
+        run: |
+          set -euo pipefail
+          cd web/pipeline
+          python3 scripts/preview_backfill_verified_jilin_products.py
+
+      - name: Regenerate snapshot at identical as-of time
+        run: |
+          set -euo pipefail
+          AS_OF="$(python3 - <<'PY'
+          import json
+          print(json.load(open('/tmp/today-actions.before-jilin.json', encoding='utf-8'))['snapshot_as_of'])
+          PY
+          )"
+          python3 web/pipeline/scripts/publish_web_snapshot.py --as-of "$AS_OF"
+
+      - name: Assert bounded snapshot change
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          before = json.loads(Path('/tmp/today-actions.before-jilin.json').read_text(encoding='utf-8'))
+          after = json.loads(Path('web/public/data/today-actions.public.json').read_text(encoding='utf-8'))
+          assert before['snapshot_as_of'] == after['snapshot_as_of']
+          assert before['opportunity_pool_count'] == after['opportunity_pool_count']
+          assert before['matched_count'] == after['matched_count']
+          assert before['model_request_count'] == after['model_request_count'] == 0
+
+          before_ids = {card['opportunity_id'] for card in before['opportunity_pool']}
+          after_ids = {card['opportunity_id'] for card in after['opportunity_pool']}
+          assert before_ids == after_ids
+          by_id = {card['opportunity_id']: card for card in after['opportunity_pool']}
+
+          def pairs(opportunity_id):
+              return [
+                  (item.get('raw_name'), item.get('quantity'))
+                  for item in by_id[opportunity_id]['facts'].get('product_items') or []
+              ]
+
+          assert pairs('ccgp_jl_3edf4a29f776eebf') == [('血管内超声', '1套'), ('非接触眼压计', '1套')]
+          assert pairs('ccgp_jl_92d8a706047d0a62') == [('血液透析机（单泵）', '10台'), ('三维移动式C形臂X射线机等', '1套')]
+          assert pairs('ccgp_jl_40d5ac0960328c51') == [
+              ('五分类血球分析仪、糖化分析仪、超敏C反应分析仪一体化自动检测流水线', None),
+              ('全自动尿液分析仪(干化学+尿沉渣)', None),
+              ('质谱分析仪', None),
+              ('微生物药敏分析仪', None),
+          ]
+          assert pairs('ccgp_jl_37172df35abece06') == [('埃可病毒30型核酸检测试剂盒（荧光法）等四大症候群监测相关试剂耗材', None)]
+          aids = pairs('ccgp_jl_25eb3b5947b52eaa')
+          assert len(aids) == 1 and aids[0][1] is None and '艾滋病和梅毒' in aids[0][0]
+          for opportunity_id in ('ccgp_jl_af9636c5bc0f7784', 'ccgp_jl_2ef67b2eece8e825', 'ccgp_jl_7b4525920ec1cc52'):
+              assert pairs(opportunity_id) == []
+          for opportunity_id in after_ids:
+              assert all(item.get('raw_name') != '数量' for item in (by_id[opportunity_id]['facts'].get('product_items') or []))
+          print('JILIN_PREVIEW_SNAPSHOT_BOUNDARY_OK')
+          PY
+
+      - name: Run full pipeline regression suite
+        run: |
+          set -euo pipefail
+          cd web/pipeline
+          python3 -m unittest discover -s tests
+
+      - name: Publish bounded Preview data change
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/publish_generated_data_github.py \
+            --branch "${GITHUB_REF_NAME}" \
+            --message 'data: backfill verified Jilin product facts' \
+            web/pipeline/data/regional_live_ccgp_records.json \
+            web/public/data/today-actions.public.json
