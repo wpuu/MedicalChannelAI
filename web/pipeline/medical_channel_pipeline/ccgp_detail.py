@@ -68,6 +68,176 @@ def html_to_text(html: str) -> str:
     return text.strip()
 
 
+class _StructuredProductTableParser(HTMLParser):
+    """Preserve exact table cell boundaries for official procurement item tables."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.tables: list[list[list[str]]] = []
+        self._table_depth = 0
+        self._current_table: list[list[str]] | None = None
+        self._current_row: list[str] | None = None
+        self._current_cell: list[str] | None = None
+        self._ignored_depth = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        if tag in {"script", "style"}:
+            self._ignored_depth += 1
+            return
+        if self._ignored_depth:
+            return
+        if tag == "table":
+            self._table_depth += 1
+            if self._table_depth == 1:
+                self._current_table = []
+            return
+        if self._table_depth != 1:
+            return
+        if tag == "tr":
+            self._current_row = []
+        elif tag in {"td", "th"} and self._current_row is not None:
+            self._current_cell = []
+
+    def handle_data(self, data: str) -> None:
+        if self._ignored_depth or self._table_depth != 1 or self._current_cell is None:
+            return
+        value = data.strip()
+        if value:
+            self._current_cell.append(value)
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.lower()
+        if tag in {"script", "style"}:
+            if self._ignored_depth:
+                self._ignored_depth -= 1
+            return
+        if self._ignored_depth:
+            return
+        if self._table_depth == 1 and tag in {"td", "th"} and self._current_cell is not None:
+            if self._current_row is not None:
+                self._current_row.append(" ".join(self._current_cell).strip())
+            self._current_cell = None
+            return
+        if self._table_depth == 1 and tag == "tr" and self._current_row is not None:
+            if self._current_table is not None and any(cell.strip() for cell in self._current_row):
+                self._current_table.append(self._current_row)
+            self._current_row = None
+            return
+        if tag == "table" and self._table_depth:
+            if self._table_depth == 1 and self._current_table is not None:
+                self.tables.append(self._current_table)
+                self._current_table = None
+            self._table_depth -= 1
+
+
+def _normalize_table_header(value: str) -> str:
+    return re.sub(r"\s+", "", value).replace("（", "(").replace("）", ")")
+
+
+def _optional_table_value(row: list[str], index: int | None, *, max_length: int) -> str | None:
+    if index is None or index >= len(row):
+        return None
+    value = _normalize_space(row[index]).strip("，,：:；;。")
+    if not value or value in {"-", "—", "/"} or len(value) > max_length:
+        return None
+    return value
+
+
+def _extract_standard_product_table_items(html: str) -> list[dict[str, Any]]:
+    """Extract only explicit official rows with 品目名称/采购标的/数量（单位） columns."""
+    parser = _StructuredProductTableParser()
+    parser.feed(html)
+    items: list[dict[str, Any]] = []
+    seen: set[tuple[str, str | None, str | None, str | None]] = set()
+
+    for rows in parser.tables:
+        for header_index, header_row in enumerate(rows):
+            headers = [_normalize_table_header(cell) for cell in header_row]
+            if "品目名称" not in headers or "采购标的" not in headers:
+                continue
+            quantity_index = next(
+                (index for index, header in enumerate(headers) if header in {"数量(单位)", "数量"}),
+                None,
+            )
+            if quantity_index is None:
+                continue
+            category_index = headers.index("品目名称")
+            name_index = headers.index("采购标的")
+            specification_index = next(
+                (
+                    index
+                    for index, header in enumerate(headers)
+                    if header in {"技术规格、参数及要求", "技术规格参数及要求", "技术要求"}
+                ),
+                None,
+            )
+            required_index = max(category_index, name_index, quantity_index)
+            for row in rows[header_index + 1 :]:
+                if len(row) <= required_index:
+                    continue
+                raw_name = _optional_table_value(row, name_index, max_length=300)
+                if raw_name is None or _normalize_table_header(raw_name) == "采购标的":
+                    continue
+                category = _optional_table_value(row, category_index, max_length=200)
+                quantity = _optional_table_value(row, quantity_index, max_length=80)
+                specification = _optional_table_value(row, specification_index, max_length=2000)
+                key = (raw_name, category, quantity, specification)
+                if key in seen:
+                    continue
+                seen.add(key)
+                items.append(
+                    {
+                        "raw_name": raw_name,
+                        "category": category,
+                        "quantity": quantity,
+                        "specification": specification,
+                    }
+                )
+                if len(items) >= 100:
+                    return items
+    return items
+
+
+def _apply_structured_html_products(record: dict[str, Any], html: str) -> dict[str, Any]:
+    items = _extract_standard_product_table_items(html)
+    if not items:
+        return record
+
+    facts = record["facts"]
+    facts["product_items"] = items
+    categories: list[str] = []
+    for item in items:
+        category = item.get("category")
+        if isinstance(category, str) and category and category not in categories:
+            categories.append(category)
+    facts["product_categories"] = categories
+
+    evidence = [
+        item
+        for item in record.get("evidence", [])
+        if item.get("field_path") not in {"facts.product_items", "facts.product_categories"}
+    ]
+    source_url = record["source"]["url"]
+    if categories:
+        evidence.append(
+            {
+                "field_path": "facts.product_categories",
+                "source_url": source_url,
+                "locator": "一、项目基本情况/采购需求/品目表/品目名称",
+            }
+        )
+    evidence.append(
+        {
+            "field_path": "facts.product_items",
+            "source_url": source_url,
+            "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）",
+        }
+    )
+    record["evidence"] = evidence
+    return validate_record(record)
+
+
 def _assert_source_url(source_url: str) -> None:
     parsed = urlparse(source_url)
     if parsed.scheme != "https" or parsed.hostname not in CCGP_HOSTS:
@@ -476,12 +646,13 @@ def parse_ccgp_public_tender_html(
     observed_at: str,
     opportunity_id: str,
 ) -> dict[str, Any]:
-    return parse_ccgp_public_tender_text(
+    record = parse_ccgp_public_tender_text(
         html_to_text(html),
         source_url=source_url,
         observed_at=observed_at,
         opportunity_id=opportunity_id,
     )
+    return _apply_structured_html_products(record, html)
 
 
 def parse_ccgp_competitive_consultation_html(
@@ -491,12 +662,13 @@ def parse_ccgp_competitive_consultation_html(
     observed_at: str,
     opportunity_id: str,
 ) -> dict[str, Any]:
-    return parse_ccgp_competitive_consultation_text(
+    record = parse_ccgp_competitive_consultation_text(
         html_to_text(html),
         source_url=source_url,
         observed_at=observed_at,
         opportunity_id=opportunity_id,
     )
+    return _apply_structured_html_products(record, html)
 
 
 def fetch_ccgp_detail_html(source_url: str, *, timeout_seconds: int = 30) -> str:

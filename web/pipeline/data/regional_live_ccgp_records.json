@@ -2924,8 +2924,49 @@
       "expected_procurement_precision": null,
       "budget_cny": 12918150,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "其他医疗设备",
+        "医用内窥镜",
+        "医用超声波仪器及设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "宝清县人民医院智能药房设备采购",
+          "category": "其他医疗设备",
+          "quantity": "1(套)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "裂隙灯干眼检测仪器",
+          "category": "其他医疗设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "眼底造影机",
+          "category": "其他医疗设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "胃肠镜",
+          "category": "医用内窥镜",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "超声诊断仪",
+          "category": "医用超声波仪器及设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "眩晕诊断治疗系统",
+          "category": "其他医疗设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "科韵",
         "title": "项目联系人",
@@ -2996,6 +3037,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288718.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288718.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288718.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -3024,8 +3075,23 @@
       "expected_procurement_precision": null,
       "budget_cny": 2280000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "其他医疗设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "三代基因测序系统（纳米孔测序系统）",
+          "category": "其他医疗设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "数字多聚酶链式反应系统",
+          "category": "其他医疗设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "刘子琦",
         "title": "项目联系人",
@@ -3096,6 +3162,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288345.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288345.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288345.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -3124,8 +3200,17 @@
       "expected_procurement_precision": null,
       "budget_cny": 1000000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "其他医疗设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "肺结节标记物放置定位设备",
+          "category": "其他医疗设备",
+          "quantity": "1(套)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "张笑中",
         "title": "项目联系人",
@@ -3196,6 +3281,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288032.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288032.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288032.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -3224,8 +3319,47 @@
       "expected_procurement_precision": null,
       "budget_cny": 960000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "急救和生命支持设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "血滤机",
+          "category": "急救和生命支持设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "血气分析仪",
+          "category": "急救和生命支持设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "除颤器",
+          "category": "急救和生命支持设备",
+          "quantity": "3(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "除颤仪",
+          "category": "急救和生命支持设备",
+          "quantity": "4(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "胸腔按压机",
+          "category": "急救和生命支持设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "体外起搏器",
+          "category": "急救和生命支持设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "黑龙江晟贝德项目管理咨询有限公司",
         "title": "项目联系人",
@@ -3296,6 +3430,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287820.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287820.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287820.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -3324,8 +3468,35 @@
       "expected_procurement_precision": null,
       "budget_cny": 2000000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "医用光学仪器"
+      ],
+      "product_items": [
+        {
+          "raw_name": "半导体激光治疗仪",
+          "category": "医用光学仪器",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "超皮秒激光",
+          "category": "医用光学仪器",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "强脉冲光治疗仪",
+          "category": "医用光学仪器",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "二氧化碳激光治疗机",
+          "category": "医用光学仪器",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "大成工程咨询有限公司",
         "title": "项目联系人",
@@ -3396,6 +3567,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287729.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287729.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287729.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -3424,8 +3605,35 @@
       "expected_procurement_precision": null,
       "budget_cny": 2337900,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "医用电子生理参数检测仪器设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "DSA三维成像工作站",
+          "category": "医用电子生理参数检测仪器设备",
+          "quantity": "1(台/套)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "血管内成像设备",
+          "category": "医用电子生理参数检测仪器设备",
+          "quantity": "1(台/套)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "红外红光治疗仪",
+          "category": "医用电子生理参数检测仪器设备",
+          "quantity": "1(台/套)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "耳鼻喉医疗设备",
+          "category": "医用电子生理参数检测仪器设备",
+          "quantity": "1(台/套)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "宋占庆",
         "title": "项目联系人",
@@ -3496,6 +3704,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287106.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287106.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287106.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -3524,8 +3742,17 @@
       "expected_procurement_precision": null,
       "budget_cny": 1555200,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "其他病人医用试剂"
+      ],
+      "product_items": [
+        {
+          "raw_name": "人ApoE基因多态性核酸检测试剂盒（PCR-荧光探针法）等试剂购置",
+          "category": "其他病人医用试剂",
+          "quantity": "1(批)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "张洪亮",
         "title": "项目联系人",
@@ -3596,6 +3823,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285633.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285633.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285633.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -3624,8 +3861,24 @@
       "expected_procurement_precision": null,
       "budget_cny": 9100000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "质谱仪",
+        "显微镜"
+      ],
+      "product_items": [
+        {
+          "raw_name": "液相色谱/质谱联用仪",
+          "category": "质谱仪",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "照相显微镜",
+          "category": "显微镜",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "齐飞",
         "title": "项目联系人",
@@ -3696,6 +3949,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285589.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285589.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285589.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -3724,8 +3987,17 @@
       "expected_procurement_precision": null,
       "budget_cny": 8400000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "质谱仪"
+      ],
+      "product_items": [
+        {
+          "raw_name": "液相色谱/质谱联用仪",
+          "category": "质谱仪",
+          "quantity": "2(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "齐飞",
         "title": "项目联系人",
@@ -3796,6 +4068,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285587.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285587.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285587.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -6524,8 +6806,17 @@
       "expected_procurement_precision": null,
       "budget_cny": 5800000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "医用 X 线诊断设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "64排螺旋CT设备",
+          "category": "医用 X 线诊断设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "黑龙江国政项目管理有限公司",
         "title": "项目联系人",
@@ -6596,6 +6887,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291415.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291415.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291415.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -6624,8 +6925,29 @@
       "expected_procurement_precision": null,
       "budget_cny": 4200000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "医用内窥镜"
+      ],
+      "product_items": [
+        {
+          "raw_name": "电子消化道内窥镜系统",
+          "category": "医用内窥镜",
+          "quantity": "1(套)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "电子上消化道内窥镜",
+          "category": "医用内窥镜",
+          "quantity": "1(条)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "电子结肠内窥镜",
+          "category": "医用内窥镜",
+          "quantity": "1(条)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "刘工",
         "title": "项目联系人",
@@ -6696,6 +7018,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291176.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291176.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291176.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -6724,8 +7056,35 @@
       "expected_procurement_precision": null,
       "budget_cny": 7700000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "色谱仪"
+      ],
+      "product_items": [
+        {
+          "raw_name": "高效液相色谱仪",
+          "category": "色谱仪",
+          "quantity": "4(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "高效液相色谱仪",
+          "category": "色谱仪",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "高效液相色谱仪",
+          "category": "色谱仪",
+          "quantity": "2(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "高效液相色谱仪",
+          "category": "色谱仪",
+          "quantity": "6(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "齐飞",
         "title": "项目联系人",
@@ -6796,6 +7155,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285585.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285585.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285585.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -6824,8 +7193,17 @@
       "expected_procurement_precision": null,
       "budget_cny": 6000000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "质谱仪"
+      ],
+      "product_items": [
+        {
+          "raw_name": "液相色谱/质谱联用仪",
+          "category": "质谱仪",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "齐飞",
         "title": "项目联系人",
@@ -6896,6 +7274,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285578.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285578.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285578.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -9424,8 +9812,31 @@
       "expected_procurement_precision": null,
       "budget_cny": 4750000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "色谱仪",
+        "医用电子生理参数检测仪器设备",
+        "热学式分析仪器"
+      ],
+      "product_items": [
+        {
+          "raw_name": "离子色谱仪",
+          "category": "色谱仪",
+          "quantity": "3(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "心电电极电性能测试仪",
+          "category": "医用电子生理参数检测仪器设备",
+          "quantity": "1(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "微波消解仪",
+          "category": "热学式分析仪器",
+          "quantity": "3(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "齐飞",
         "title": "项目联系人",
@@ -9496,6 +9907,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285540.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285540.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285540.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -9524,8 +9945,17 @@
       "expected_procurement_precision": null,
       "budget_cny": 250000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "体外循环设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "血液透析设备",
+          "category": "体外循环设备",
+          "quantity": "2(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "孙女士",
         "title": "项目联系人",
@@ -9596,6 +10026,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285495.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285495.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285495.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -9624,8 +10064,43 @@
       "expected_procurement_precision": null,
       "budget_cny": 7170000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "病房护理及医院设备",
+        "物理治疗、康复及体育治疗仪器设备",
+        "手术室设备及附件"
+      ],
+      "product_items": [
+        {
+          "raw_name": "电动负压吸引器（2026228）",
+          "category": "病房护理及医院设备",
+          "quantity": "3(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "恒温水毯（2026229）",
+          "category": "物理治疗、康复及体育治疗仪器设备",
+          "quantity": "3(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "病人推车（进口）（2026227）",
+          "category": "病房护理及医院设备",
+          "quantity": "12(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "病人推车（进口）（2026230）",
+          "category": "病房护理及医院设备",
+          "quantity": "45(台)",
+          "specification": "详见采购文件"
+        },
+        {
+          "raw_name": "高频电刀（进口）（2026231）",
+          "category": "手术室设备及附件",
+          "quantity": "30(台)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "王女士",
         "title": "项目联系人",
@@ -9696,6 +10171,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284122.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284122.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284122.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -9724,8 +10209,17 @@
       "expected_procurement_precision": null,
       "budget_cny": 31000000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "医用 X 线诊断设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "医用直线加速器（2026313）",
+          "category": "医用 X 线诊断设备",
+          "quantity": "1(套)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "王女士",
         "title": "项目联系人",
@@ -9796,6 +10290,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284087.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284087.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27284087.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
@@ -9824,8 +10328,17 @@
       "expected_procurement_precision": null,
       "budget_cny": 950000,
       "procurement_method": "公开招标",
-      "product_categories": [],
-      "product_items": [],
+      "product_categories": [
+        "医用超声波仪器及设备"
+      ],
+      "product_items": [
+        {
+          "raw_name": "彩色超声诊断系统（2026288）",
+          "category": "医用超声波仪器及设备",
+          "quantity": "1(套)",
+          "specification": "详见采购文件"
+        }
+      ],
       "public_contact": {
         "name": "于淼",
         "title": "项目联系人",
@@ -9896,6 +10409,16 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283742.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_categories",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283742.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/品目名称"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283742.htm",
+        "locator": "一、项目基本情况/采购需求/品目表/采购标的与数量（单位）"
       }
     ]
   },
