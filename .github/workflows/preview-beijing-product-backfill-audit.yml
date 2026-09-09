@@ -1,0 +1,177 @@
+name: Preview Beijing Product Backfill Audit
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-beijing-product-backfill-audit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+      - name: Preserve public baseline
+        run: cp web/public/data/today-actions.public.json /tmp/bj-baseline-public.json
+
+      - name: Reparse Beijing empty-product records without committing
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import re
+          import sys
+          import time
+          from pathlib import Path
+
+          root = Path('web/pipeline').resolve()
+          sys.path.insert(0, str(root))
+          from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html, parse_ccgp_public_tender_html
+
+          path = root / 'data/regional_live_ccgp_records.json'
+          records = json.loads(path.read_text(encoding='utf-8'))
+          targets = [
+              (idx, record) for idx, record in enumerate(records)
+              if (record.get('facts') or {}).get('market_code') == 'BJ'
+              and (record.get('facts') or {}).get('notice_type') == '公开招标公告'
+              and not ((record.get('facts') or {}).get('product_items') or [])
+          ]
+          if len(targets) != 27:
+              raise SystemExit(f'UNEXPECTED_BJ_EMPTY_TARGET_COUNT:{len(targets)}')
+
+          def norm(value):
+              return re.sub(r'\s+', ' ', str(value or '')).strip()
+
+          recovered=[]; unsupported=[]; failures=[]
+          for position, (index, record) in enumerate(targets):
+              if position:
+                  time.sleep(4.0)
+              facts=record['facts']; source=record['source']; url=source['url']
+              try:
+                  html=fetch_ccgp_detail_html(url)
+                  fresh_record=parse_ccgp_public_tender_html(
+                      html,
+                      source_url=url,
+                      observed_at=source['observed_at'],
+                      opportunity_id=record['opportunity_id'],
+                  )
+                  fresh=fresh_record['facts']
+                  if norm(fresh.get('project_number')) != norm(facts.get('project_number')):
+                      raise ValueError('PROJECT_NUMBER_MISMATCH')
+                  if norm(fresh.get('project_name')) != norm(facts.get('project_name')):
+                      raise ValueError('PROJECT_NAME_MISMATCH')
+                  items=fresh.get('product_items') or []
+                  if not items:
+                      unsupported.append({
+                          'opportunity_id': record['opportunity_id'],
+                          'project_name': facts.get('project_name'),
+                          'buyer_name': facts.get('buyer_name'),
+                          'url': url,
+                      })
+                      continue
+                  facts['product_items']=items
+                  facts['product_categories']=fresh.get('product_categories') or []
+                  product_evidence=[
+                      item for item in fresh_record.get('evidence', [])
+                      if item.get('field_path') in {'facts.product_items','facts.product_categories'}
+                  ]
+                  record['evidence']=[
+                      item for item in record.get('evidence', [])
+                      if item.get('field_path') not in {'facts.product_items','facts.product_categories'}
+                  ] + product_evidence
+                  records[index]=record
+                  recovered.append({
+                      'opportunity_id': record['opportunity_id'],
+                      'project_name': facts.get('project_name'),
+                      'buyer_name': facts.get('buyer_name'),
+                      'url': url,
+                      'item_count': len(items),
+                      'items': [item.get('raw_name') for item in items[:20]],
+                  })
+              except Exception as exc:
+                  failures.append({
+                      'opportunity_id': record.get('opportunity_id'),
+                      'project_name': facts.get('project_name'),
+                      'buyer_name': facts.get('buyer_name'),
+                      'url': url,
+                      'error': type(exc).__name__,
+                      'message': str(exc)[:500],
+                  })
+
+          path.write_text(json.dumps(records, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+          report={
+              'target_count': len(targets),
+              'recovered_count': len(recovered),
+              'unsupported_count': len(unsupported),
+              'failure_count': len(failures),
+              'recovered': recovered,
+              'unsupported': unsupported,
+              'failures': failures,
+          }
+          Path('/tmp/bj-product-backfill-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+          print('BJ_BACKFILL=' + json.dumps(report, ensure_ascii=False))
+          PY
+
+      - name: Build refreshed snapshot
+        run: |
+          set -euo pipefail
+          cd web
+          npm ci
+          npm run build
+
+      - name: Audit exact public-pool delta
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+
+          baseline=json.loads(Path('/tmp/bj-baseline-public.json').read_text(encoding='utf-8'))
+          snapshot=json.loads(Path('web/public/data/today-actions.public.json').read_text(encoding='utf-8'))
+          report=json.loads(Path('/tmp/bj-product-backfill-report.json').read_text(encoding='utf-8'))
+          old_pool=baseline.get('opportunity_pool') or []
+          pool=snapshot.get('opportunity_pool') or []
+          old_by_id={str(c.get('opportunity_id') or ''):c for c in old_pool}
+          by_id={str(c.get('opportunity_id') or ''):c for c in pool}
+          added_ids=sorted(set(by_id)-set(old_by_id))
+          removed_ids=sorted(set(old_by_id)-set(by_id))
+
+          def card_summary(card):
+              facts=card.get('facts') or {}
+              return {
+                  'opportunity_id': card.get('opportunity_id'),
+                  'market_code': facts.get('market_code'),
+                  'project_name': facts.get('project_name'),
+                  'buyer_name': facts.get('buyer_name'),
+                  'items': [item.get('raw_name') for item in facts.get('product_items') or []][:20],
+              }
+          def structured(cards):
+              return sum(1 for c in cards if (c.get('facts') or {}).get('lifecycle_state')=='BIDDING' and ((c.get('facts') or {}).get('product_items') or (c.get('facts') or {}).get('product_categories')))
+
+          result={
+              'baseline_pool_count': len(old_pool),
+              'public_pool_count': len(pool),
+              'added': [card_summary(by_id[i]) for i in added_ids],
+              'removed': [card_summary(old_by_id[i]) for i in removed_ids],
+              'baseline_structured_bidding': structured(old_pool),
+              'structured_bidding': structured(pool),
+              'structure_gain': structured(pool)-structured(old_pool),
+              'market_distribution': dict(sorted(Counter((c.get('facts') or {}).get('market_code') for c in pool).items())),
+              'backfill_recovered_count': report['recovered_count'],
+              'backfill_unsupported_count': report['unsupported_count'],
+              'backfill_failure_count': report['failure_count'],
+          }
+          print('BJ_PUBLIC_DELTA=' + json.dumps(result, ensure_ascii=False, indent=2))
+          if report['failure_count']:
+              raise SystemExit('BJ_BACKFILL_HAS_TRUE_FAILURES')
+          if removed_ids:
+              raise SystemExit('BJ_BACKFILL_REMOVED_PUBLIC_OPPORTUNITIES')
+          PY
