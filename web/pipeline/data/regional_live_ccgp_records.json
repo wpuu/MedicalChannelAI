@@ -4269,7 +4269,32 @@
       "budget_cny": 3500000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "超声主机",
+          "category": null,
+          "quantity": "1台",
+          "specification": null
+        },
+        {
+          "raw_name": "超声电子上消化道内窥镜（扇扫）",
+          "category": null,
+          "quantity": "1条",
+          "specification": null
+        },
+        {
+          "raw_name": "超声电子上消化道内窥镜（环扫）",
+          "category": null,
+          "quantity": "1条",
+          "specification": null
+        },
+        {
+          "raw_name": "高清电子内窥镜系统",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "赵蔓彤 乔善博 李勃",
         "title": "项目联系人",
@@ -4340,6 +4365,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
+        "locator": "采购需求/正文结构化名称与数量清单"
       }
     ]
   },
@@ -4369,7 +4399,32 @@
       "budget_cny": 400000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "结核分枝杆菌耐药基因检测多通道分析仪",
+          "category": null,
+          "quantity": "1台",
+          "specification": null
+        },
+        {
+          "raw_name": "高压蒸汽灭菌器",
+          "category": null,
+          "quantity": "1台",
+          "specification": null
+        },
+        {
+          "raw_name": "生物安全柜",
+          "category": null,
+          "quantity": "1个",
+          "specification": null
+        },
+        {
+          "raw_name": "离心机",
+          "category": null,
+          "quantity": "2台",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "杨靖",
         "title": "项目联系人",
@@ -4440,6 +4495,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+        "locator": "采购需求/正文结构化名称与数量清单"
       }
     ]
   },
