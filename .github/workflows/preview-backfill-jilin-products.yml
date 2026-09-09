@@ -29,7 +29,7 @@ jobs:
           cd web/pipeline
           python3 scripts/preview_backfill_verified_jilin_products.py
 
-      - name: Regenerate snapshot at identical as-of time
+      - name: Regenerate snapshot at identical as-of time with complete verified inputs
         run: |
           set -euo pipefail
           AS_OF="$(python3 - <<'PY'
@@ -37,7 +37,18 @@ jobs:
           print(json.load(open('/tmp/today-actions.before-jilin.json', encoding='utf-8'))['snapshot_as_of'])
           PY
           )"
-          python3 web/pipeline/scripts/publish_web_snapshot.py --as-of "$AS_OF"
+          python3 web/pipeline/scripts/publish_web_snapshot.py \
+            --as-of "$AS_OF" \
+            --input web/pipeline/data/tianjin_live_ccgp_records.json \
+            --input web/pipeline/data/tianjin_live_tjmugh_records.json \
+            --input web/pipeline/data/tianjin_live_tjnothop_records.json \
+            --input web/pipeline/data/tianjin_live_tjzxfc_records.json \
+            --input web/pipeline/data/tianjin_live_tjzyefy_records.json \
+            --input web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
+            --input web/pipeline/data/tianjin_live_teda_records.json \
+            --input web/pipeline/data/tianjin_live_tjfch_records.json \
+            --event-input web/pipeline/data/tianjin_notice_events.json \
+            --output web/public/data/today-actions.public.json
 
       - name: Assert bounded snapshot change
         run: |
@@ -49,8 +60,9 @@ jobs:
           before = json.loads(Path('/tmp/today-actions.before-jilin.json').read_text(encoding='utf-8'))
           after = json.loads(Path('web/public/data/today-actions.public.json').read_text(encoding='utf-8'))
           assert before['snapshot_as_of'] == after['snapshot_as_of']
-          assert before['opportunity_pool_count'] == after['opportunity_pool_count']
-          assert before['matched_count'] == after['matched_count']
+          assert before['opportunity_pool_count'] == after['opportunity_pool_count'] == 92
+          assert before['matched_count'] == after['matched_count'] == 92
+          assert before['card_count'] == after['card_count'] == 5
           assert before['model_request_count'] == after['model_request_count'] == 0
 
           before_ids = {card['opportunity_id'] for card in before['opportunity_pool']}
