@@ -1,0 +1,215 @@
+name: Preview Backfill Liaoning Product Items
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-backfill-liaoning-product-items.yml
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-commit:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 1
+
+      - name: Backfill current Liaoning canonical records from official detail pages
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import sys
+          import time
+          from copy import deepcopy
+          from pathlib import Path
+
+          root = Path('web/pipeline').resolve()
+          sys.path.insert(0, str(root))
+          from medical_channel_pipeline.ccgp_detail import (
+              fetch_ccgp_detail_html,
+              parse_ccgp_competitive_consultation_html,
+              parse_ccgp_public_tender_html,
+          )
+
+          data_path = root / 'data/regional_live_ccgp_records.json'
+          records = json.loads(data_path.read_text(encoding='utf-8'))
+          targets = [r for r in records if (r.get('facts') or {}).get('market_code') == 'LN']
+          if len(targets) != 6:
+              raise SystemExit(f'LIAONING_CANONICAL_COUNT_UNEXPECTED:{len(targets)}')
+
+          recovered = 0
+          recovered_items = 0
+          unsupported = 0
+          for position, record in enumerate(targets):
+              if position:
+                  time.sleep(4.0)
+              facts = record.get('facts') or {}
+              url = (record.get('source') or {}).get('url')
+              if not url:
+                  raise SystemExit(f'MISSING_SOURCE_URL:{record.get("opportunity_id")}')
+              html = fetch_ccgp_detail_html(url)
+              parser = (
+                  parse_ccgp_competitive_consultation_html
+                  if facts.get('procurement_method') == '竞争性磋商'
+                  else parse_ccgp_public_tender_html
+              )
+              parsed = parser(
+                  html,
+                  source_url=url,
+                  observed_at=record['source']['observed_at'],
+                  opportunity_id=record['opportunity_id'],
+              )
+              parsed_facts = parsed.get('facts') or {}
+              if parsed_facts.get('project_number') != facts.get('project_number'):
+                  raise SystemExit(
+                      f'PROJECT_NUMBER_MISMATCH:{record["opportunity_id"]}:'
+                      f'{facts.get("project_number")}:{parsed_facts.get("project_number")}'
+                  )
+              old_name = str(facts.get('project_name') or '').strip()
+              new_name = str(parsed_facts.get('project_name') or '').strip()
+              if not (old_name == new_name or old_name.startswith(new_name) or new_name.startswith(old_name)):
+                  raise SystemExit(f'PROJECT_NAME_MISMATCH:{record["opportunity_id"]}:{old_name}:{new_name}')
+
+              items = deepcopy(parsed_facts.get('product_items') or [])
+              categories = deepcopy(parsed_facts.get('product_categories') or [])
+              if not items and not categories:
+                  unsupported += 1
+                  print('NO_GROUNDED_PRODUCTS', record['opportunity_id'], old_name)
+                  continue
+
+              facts['product_items'] = items
+              facts['product_categories'] = categories
+              evidence = [
+                  e for e in (record.get('evidence') or [])
+                  if e.get('field_path') not in {'facts.product_items', 'facts.product_categories'}
+              ]
+              parsed_product_evidence = [
+                  deepcopy(e) for e in (parsed.get('evidence') or [])
+                  if e.get('field_path') in {'facts.product_items', 'facts.product_categories'}
+              ]
+              if not any(e.get('field_path') == 'facts.product_items' for e in parsed_product_evidence):
+                  raise SystemExit(f'MISSING_PRODUCT_EVIDENCE:{record["opportunity_id"]}')
+              evidence.extend(parsed_product_evidence)
+              record['evidence'] = evidence
+              recovered += 1
+              recovered_items += len(items)
+              print('RECOVERED', record['opportunity_id'], old_name, len(items), [(i.get('raw_name'), i.get('quantity')) for i in items])
+
+          if recovered < 3:
+              raise SystemExit(f'LIAONING_RECOVERY_TOO_LOW:{recovered}')
+          if recovered_items < 12:
+              raise SystemExit(f'LIAONING_ITEM_RECOVERY_TOO_LOW:{recovered_items}')
+          data_path.write_text(json.dumps(records, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          print(f'LIAONING_BACKFILL recovered={recovered} items={recovered_items} unsupported={unsupported}')
+          PY
+
+      - name: Run full production build
+        run: |
+          set -euo pipefail
+          cd web
+          npm ci
+          npm run build
+
+      - name: Verify pool identity and Liaoning structure gain
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+
+          payload = json.loads(Path('web/public/data/today-actions.public.json').read_text(encoding='utf-8'))
+          cards = payload.get('opportunity_pool') or []
+          if len(cards) != 92 or payload.get('opportunity_pool_count') != 92:
+              raise SystemExit(f'PUBLIC_POOL_COUNT_CHANGED:{len(cards)}:{payload.get("opportunity_pool_count")}')
+          counts = Counter((c.get('facts') or {}).get('market_code') for c in cards)
+          expected = {'TJ': 26, 'BJ': 16, 'HE': 14, 'LN': 6, 'JL': 8, 'HL': 22}
+          if dict(counts) != expected:
+              raise SystemExit(f'MARKET_COUNTS_CHANGED:{dict(counts)}')
+          ln = [c for c in cards if (c.get('facts') or {}).get('market_code') == 'LN']
+          structured = [c for c in ln if (c.get('facts') or {}).get('product_items') or (c.get('facts') or {}).get('product_categories')]
+          if len(structured) < 3:
+              raise SystemExit(f'LIAONING_PUBLIC_STRUCTURE_TOO_LOW:{len(structured)}')
+          for card in structured:
+              items = (card.get('facts') or {}).get('product_items') or []
+              if any(not str(item.get('raw_name') or '').strip() for item in items):
+                  raise SystemExit(f'EMPTY_PRODUCT_NAME:{card.get("opportunity_id")}')
+          print('POOL_OK', len(cards), expected)
+          print('LIAONING_STRUCTURED', len(structured), [(c['opportunity_id'], (c.get('facts') or {}).get('project_name'), len((c.get('facts') or {}).get('product_items') or [])) for c in structured])
+          PY
+
+      - name: Commit verified Liaoning enrichment atomically and clean one-shot workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: preview/multi-region-ui-acceptance
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+
+          token = os.environ['GH_TOKEN']
+          repo = os.environ['REPOSITORY']
+          branch = os.environ['BRANCH']
+          expected_head = os.environ['EXPECTED_HEAD']
+          api = f'https://api.github.com/repos/{repo}'
+          headers = {
+              'Accept': 'application/vnd.github+json',
+              'Authorization': f'Bearer {token}',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'Content-Type': 'application/json',
+          }
+          def call(method, url, payload=None):
+              data = None if payload is None else json.dumps(payload).encode('utf-8')
+              req = Request(url, data=data, headers=headers, method=method)
+              with urlopen(req, timeout=60) as response:
+                  body = response.read().decode('utf-8')
+                  return json.loads(body) if body else {}
+
+          ref_name = quote(f'heads/{branch}', safe='/')
+          ref = call('GET', f'{api}/git/ref/{ref_name}')
+          head_sha = ref['object']['sha']
+          if head_sha != expected_head:
+              raise SystemExit(f'REMOTE_HEAD_CHANGED expected={expected_head} actual={head_sha}')
+          commit = call('GET', f'{api}/git/commits/{head_sha}')
+          base_tree = commit['tree']['sha']
+          write_paths = [
+              'web/pipeline/data/regional_live_ccgp_records.json',
+              'web/public/data/today-actions.public.json',
+          ]
+          delete_paths = [
+              '.github/workflows/preview-product-coverage-audit.yml',
+              '.github/workflows/preview-backfill-liaoning-product-items.yml',
+          ]
+          tree = []
+          for path in write_paths:
+              file_path = Path(path)
+              blob = call('POST', f'{api}/git/blobs', {
+                  'content': base64.b64encode(file_path.read_bytes()).decode('ascii'),
+                  'encoding': 'base64',
+              })
+              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+          for path in delete_paths:
+              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': None})
+          new_tree = call('POST', f'{api}/git/trees', {'base_tree': base_tree, 'tree': tree})
+          new_commit = call('POST', f'{api}/git/commits', {
+              'message': 'data: backfill grounded Liaoning product items',
+              'tree': new_tree['sha'],
+              'parents': [head_sha],
+          })
+          call('PATCH', f'{api}/git/refs/{ref_name}', {'sha': new_commit['sha'], 'force': False})
+          print('COMMITTED', new_commit['sha'])
+          PY
