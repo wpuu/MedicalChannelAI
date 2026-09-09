@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  verify-and-commit:
+  verify-and-clean:
     runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
     timeout-minutes: 25
     steps:
@@ -20,10 +20,29 @@ jobs:
           ref: preview/multi-region-ui-acceptance
           fetch-depth: 0
 
-      - name: Apply strict product-row parser
+      - name: Verify hardening is already present
         run: |
           set -euo pipefail
-          python3 web/scripts/preview_harden_ccgp_product_rows.py
+          python3 - <<'PY'
+          from pathlib import Path
+          parser = Path('web/pipeline/medical_channel_pipeline/ccgp_detail.py').read_text(encoding='utf-8')
+          tests = Path('web/pipeline/tests/test_ccgp_product_table_variants.py').read_text(encoding='utf-8')
+          required_parser = [
+              '_is_explicit_product_quantity',
+              '_is_product_table_footer_row',
+              '_PRODUCT_TABLE_FOOTER_PREFIXES',
+          ]
+          required_tests = [
+              'test_colspan_footer_rows_do_not_become_products',
+              'test_non_quantity_metadata_rows_after_product_rows_are_ignored',
+              'test_quantity_like_value_cannot_be_product_name',
+          ]
+          missing = [name for name in required_parser if name not in parser]
+          missing += [name for name in required_tests if name not in tests]
+          if missing:
+              raise SystemExit('HARDENING_CONTRACT_MISSING:' + ','.join(missing))
+          print('HARDENING_CONTRACT_PRESENT')
+          PY
 
       - name: Run focused parser regressions
         run: |
@@ -114,7 +133,7 @@ jobs:
           npm ci
           npm run build
 
-      - name: Commit verified hardening atomically and clean one-shot files
+      - name: Remove one-shot verification workflow
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
@@ -123,10 +142,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import base64
           import json
           import os
-          from pathlib import Path
           from urllib.parse import quote
           from urllib.request import Request, urlopen
 
@@ -134,7 +151,7 @@ jobs:
           repo = os.environ['REPOSITORY']
           branch = os.environ['BRANCH']
           expected_head = os.environ['EXPECTED_HEAD']
-          root = Path.cwd()
+          path = '.github/workflows/preview-harden-ccgp-product-rows.yml'
           api = f'https://api.github.com/repos/{repo}'
           headers = {
               'Accept': 'application/vnd.github+json',
@@ -150,42 +167,15 @@ jobs:
                   body = response.read().decode('utf-8')
                   return json.loads(body) if body else {}
 
-          ref_name = quote(f'heads/{branch}', safe='/')
-          ref = call('GET', f'{api}/git/ref/{ref_name}')
-          head_sha = ref['object']['sha']
-          if head_sha != expected_head:
-              raise SystemExit(f'REMOTE_HEAD_CHANGED expected={expected_head} actual={head_sha}')
-          commit = call('GET', f'{api}/git/commits/{head_sha}')
-          base_tree = commit['tree']['sha']
-
-          write_paths = [
-              'web/pipeline/medical_channel_pipeline/ccgp_detail.py',
-              'web/pipeline/tests/test_ccgp_product_table_variants.py',
-          ]
-          delete_paths = [
-              'web/scripts/preview_harden_ccgp_product_rows.py',
-              '.github/workflows/preview-beijing-product-backfill-audit.yml',
-              '.github/workflows/preview-harden-ccgp-product-rows.yml',
-          ]
-          tree = []
-          for path in write_paths:
-              file_path = root / path
-              if not file_path.is_file():
-                  raise SystemExit(f'MISSING_VERIFIED_FILE:{path}')
-              blob = call('POST', f'{api}/git/blobs', {
-                  'content': base64.b64encode(file_path.read_bytes()).decode('ascii'),
-                  'encoding': 'base64',
-              })
-              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
-          for path in delete_paths:
-              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': None})
-
-          new_tree = call('POST', f'{api}/git/trees', {'base_tree': base_tree, 'tree': tree})
-          new_commit = call('POST', f'{api}/git/commits', {
-              'message': 'fix: reject CCGP product-table metadata rows',
-              'tree': new_tree['sha'],
-              'parents': [head_sha],
+          ref = call('GET', f"{api}/git/ref/{quote('heads/' + branch, safe='/')}")
+          actual_head = ref['object']['sha']
+          if actual_head != expected_head:
+              raise SystemExit(f'REMOTE_HEAD_CHANGED expected={expected_head} actual={actual_head}')
+          info = call('GET', f"{api}/contents/{quote(path, safe='/')}?ref={quote(branch, safe='')}")
+          call('DELETE', f"{api}/contents/{quote(path, safe='/')}", {
+              'message': 'ci: remove completed Beijing product hardening verifier',
+              'sha': info['sha'],
+              'branch': branch,
           })
-          call('PATCH', f'{api}/git/refs/{ref_name}', {'sha': new_commit['sha'], 'force': False})
-          print(f"committed {new_commit['sha']}")
+          print('ONE_SHOT_WORKFLOW_REMOVED')
           PY
