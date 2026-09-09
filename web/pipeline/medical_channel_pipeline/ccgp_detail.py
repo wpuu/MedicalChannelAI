@@ -581,8 +581,90 @@ def _extract_item_name_quantity_unit_lines(text: str) -> list[dict[str, Any]]:
     return _dedupe_text_product_items(items)
 
 
+def _extract_bounded_procurement_demand_items(text: str) -> list[dict[str, Any]]:
+    """Extract only explicit name+quantity facts from the bounded official 采购需求 paragraph."""
+    anchor_match = re.search(r"采购需求\s*[：:]\s*", text)
+    if not anchor_match:
+        return []
+    scope = text[anchor_match.end():]
+    end_positions = [
+        position
+        for marker in ("合同履行期限", "本项目不接受", "本项目接受", "二、申请人的资格要求", "二、申请人")
+        if (position := scope.find(marker)) >= 0
+    ]
+    if end_positions:
+        scope = scope[: min(end_positions)]
+    scope = _normalize_space(scope)
+    if not scope or len(scope) > 4000:
+        return []
+
+    unit_pattern = '|'.join(
+        sorted(
+            (re.escape(unit) for unit in _PRODUCT_UNIT_WORDS if unit not in {'年', '月', '人', '人次', '家', '所', '间'}),
+            key=len,
+            reverse=True,
+        )
+    )
+    quantity_pattern = rf"(?:\d+(?:\.\d+)?|[一二三四五六七八九十百]+)\s*(?:{unit_pattern})"
+    items: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+
+    def add(raw_name: str, quantity: str) -> None:
+        name = _normalize_space(raw_name).strip('，,：:；;。')
+        name = re.sub(r"^(?:其中)?(?:[A-HＡ-Ｈ]包|包\s*[A-HＡ-Ｈ一二三四五六七八九十0-9]+)\s*[：:]\s*", "", name)
+        name = re.sub(r"^(?:拟采购|采购|购买)", "", name).strip()
+        name = re.sub(r"采购$", "", name).strip()
+        name = re.sub(r"^(?:其中|包括|包含)\s*", "", name).strip()
+        if not name or len(name) < 2 or len(name) > 160:
+            return
+        if any(token in name for token in ('预算金额', '最高限价', '合同履行', '详见', '具体内容', '采购需求')):
+            return
+        normalized_quantity = _normalize_space(quantity)
+        if not _is_explicit_product_quantity(normalized_quantity):
+            return
+        key = (name, normalized_quantity)
+        if key in seen:
+            return
+        seen.add(key)
+        items.append(_text_product_item(name, normalized_quantity))
+
+    # Multi-package wording such as 包1:设备A：预算金额：...、数量：1套，包2:设备B：...、数量：1台。
+    package_re = re.compile(
+        rf"(?:^|[，,；;])\s*(?:其中)?(?:[A-HＡ-Ｈ]包|包\s*[A-HＡ-Ｈ一二三四五六七八九十0-9]+)\s*[：:]\s*"
+        rf"(?P<name>[^；;，,]{{2,180}}?)"
+        rf"(?:[：:]\s*预算金额\s*[：:]\s*[^，,；;]{{1,100}})?"
+        rf"[、，,]\s*数量\s*[：:]\s*(?P<quantity>{quantity_pattern})"
+    )
+    consumed: list[tuple[int, int]] = []
+    for match in package_re.finditer(scope):
+        add(match.group('name'), match.group('quantity'))
+        consumed.append(match.span())
+
+    if consumed:
+        chars = list(scope)
+        for start, end in consumed:
+            chars[start:end] = ' ' * (end - start)
+        scope = ''.join(chars)
+
+    # Direct bounded statements such as 病理数字化切片扫描仪4套 / 移动床旁DR机采购2台.
+    for segment in re.split(r"[；;。]", scope):
+        segment = _normalize_space(segment).strip('，,：:；;。')
+        if not segment or segment.startswith(('详见', '具体内容')):
+            continue
+        # Ignore explicit service/package descriptions without a quantity in this first strict variant.
+        direct = re.search(rf"(?P<name>.+?)(?P<quantity>{quantity_pattern})(?=$|[，,、])", segment)
+        if direct:
+            raw_name = direct.group('name')
+            # If unrelated prose precedes the product after a comma, use only the final bounded clause.
+            raw_name = re.split(r"[，,]", raw_name)[-1]
+            add(raw_name, direct.group('quantity'))
+
+    return items[:100]
+
+
 def _extract_grounded_text_product_items(text: str) -> list[dict[str, Any]]:
     extractors = (
+        _extract_bounded_procurement_demand_items,
         _extract_item_name_quantity_unit_lines,
         _extract_product_name_quantity_lines,
         _extract_top_level_numbered_quantity_items,
