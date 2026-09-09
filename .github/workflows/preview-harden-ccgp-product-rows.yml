@@ -51,16 +51,6 @@ jobs:
           records = json.loads((root / 'data/regional_live_ccgp_records.json').read_text(encoding='utf-8'))
           by_id = {record['opportunity_id']: record for record in records}
 
-          def unique_title_record(needle):
-              matches = [
-                  record for record in records
-                  if needle in str((record.get('facts') or {}).get('project_name') or '')
-                  and (record.get('facts') or {}).get('market_code') == 'BJ'
-              ]
-              if len(matches) != 1:
-                  raise SystemExit(f'CANONICAL_TITLE_NOT_UNIQUE:{needle}:{len(matches)}')
-              return matches[0]
-
           cases = [
               (
                   'insurance',
@@ -75,16 +65,29 @@ jobs:
                   ['离心机', '全自动干式生化分析仪', '生物显微镜'],
               ),
               (
-                  'new-tiatan-device',
-                  unique_title_record('肌电图与诱发电位仪设备购置'),
-                  None,
-                  ['肌电图与诱发电位仪'],
+                  'new-pumch-maintenance-one',
+                  by_id.get('ccgp_bj_6f5e872d1d6e7fa0'),
+                  'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289482.htm',
+                  [
+                      'X射线骨密度检测仪',
+                      '磁共振成像系统',
+                      '乳腺X射线机',
+                      '医用磁共振成像系统（MR）',
+                      '数字乳腺X射线摄影系统',
+                      'X射线计算机体层摄影设备(CT)',
+                      '单光子发射及X射线计算机断层成像系统（SPECT/CT）',
+                  ],
               ),
               (
-                  'new-pumch-maintenance',
-                  unique_title_record('设备维保服务（五）采购项目'),
-                  None,
-                  ['脑氧饱和度监测仪', '心排量测量仪'],
+                  'new-plastic-surgery-diagnosis',
+                  by_id.get('ccgp_bj_bda3420ecd1d653d'),
+                  'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282649.htm',
+                  [
+                      '超脉冲点阵手术激光系统',
+                      '上下肢主被动康复训练仪',
+                      '血流动力学监测平台',
+                      '便携式彩色超声诊断系统',
+                  ],
               ),
           ]
 
@@ -108,7 +111,7 @@ jobs:
                   raise SystemExit(f'LIVE_PRODUCT_NAMES_MISMATCH:{label}:expected={expected_names!r}:actual={names!r}')
               if any(
                   name.startswith(('备注', '注解', '项目用途', '项目现场', '保险期限', '合同履行期限'))
-                  or name in {'1年', '医院服务'}
+                  or name in {'1年', '医院服务', '北京中医药大学东方医院指定地点'}
                   for name in names
               ):
                   raise SystemExit(f'LIVE_PRODUCT_METADATA_LEAK:{label}:{names!r}')
