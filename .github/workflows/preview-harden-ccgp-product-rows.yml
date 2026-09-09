@@ -1,0 +1,191 @@
+name: Preview Harden CCGP Product Rows
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-harden-ccgp-product-rows.yml
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-commit:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 0
+
+      - name: Apply strict product-row parser
+        run: |
+          set -euo pipefail
+          python3 web/scripts/preview_harden_ccgp_product_rows.py
+
+      - name: Run focused parser regressions
+        run: |
+          set -euo pipefail
+          cd web/pipeline
+          python3 -m unittest \
+            tests.test_ccgp_detail \
+            tests.test_ccgp_product_table_variants \
+            tests.test_validation \
+            tests.test_channel_scope
+
+      - name: Verify exact products on official Beijing pages
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import sys
+          import time
+          from pathlib import Path
+
+          root = Path('web/pipeline').resolve()
+          sys.path.insert(0, str(root))
+          from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html, parse_ccgp_public_tender_html
+
+          observed_at = '2026-09-09T00:00:00+00:00'
+          cases = [
+              (
+                  'insurance',
+                  'ccgp_bj_7288c338a1406922',
+                  'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27288058.htm',
+                  ['医责险采购', '医师险采购'],
+              ),
+              (
+                  'rowspan-medical-equipment',
+                  'ccgp_bj_71b6984cdeed7b23',
+                  'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289907.htm',
+                  ['离心机', '全自动干式生化分析仪', '生物显微镜'],
+              ),
+              (
+                  'pumch-maintenance-one',
+                  'ccgp_bj_6f5e872d1d6e7fa0',
+                  'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289482.htm',
+                  [
+                      'X射线骨密度检测仪',
+                      '磁共振成像系统',
+                      '乳腺X射线机',
+                      '医用磁共振成像系统（MR）',
+                      '数字乳腺X射线摄影系统',
+                      'X射线计算机体层摄影设备(CT)',
+                      '单光子发射及X射线计算机断层成像系统（SPECT/CT）',
+                  ],
+              ),
+              (
+                  'plastic-surgery-diagnostic-upgrade',
+                  'ccgp_bj_bda3420ecd1d653d',
+                  'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282649.htm',
+                  [
+                      '超脉冲点阵手术激光系统',
+                      '上下肢主被动康复训练仪',
+                      '血流动力学监测平台',
+                      '便携式彩色超声诊断系统',
+                  ],
+              ),
+          ]
+
+          forbidden_prefixes = ('备注', '注解', '项目用途', '项目现场', '保险期限', '合同履行期限')
+          for position, (label, opportunity_id, url, expected_names) in enumerate(cases):
+              if position:
+                  time.sleep(4.0)
+              html = fetch_ccgp_detail_html(url)
+              parsed = parse_ccgp_public_tender_html(
+                  html,
+                  source_url=url,
+                  observed_at=observed_at,
+                  opportunity_id=opportunity_id,
+              )
+              names = [str(item.get('raw_name') or '') for item in parsed['facts'].get('product_items') or []]
+              print(label, opportunity_id, url, names)
+              if names != expected_names:
+                  raise SystemExit(f'LIVE_PRODUCT_NAMES_MISMATCH:{label}:expected={expected_names!r}:actual={names!r}')
+              if any(name.startswith(forbidden_prefixes) or name in {'1年', '医院服务'} for name in names):
+                  raise SystemExit(f'LIVE_PRODUCT_METADATA_LEAK:{label}:{names!r}')
+          PY
+
+      - name: Run full production build
+        run: |
+          set -euo pipefail
+          cd web
+          npm ci
+          npm run build
+
+      - name: Commit verified hardening atomically and clean one-shot files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: preview/multi-region-ui-acceptance
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+
+          token = os.environ['GH_TOKEN']
+          repo = os.environ['REPOSITORY']
+          branch = os.environ['BRANCH']
+          expected_head = os.environ['EXPECTED_HEAD']
+          root = Path.cwd()
+          api = f'https://api.github.com/repos/{repo}'
+          headers = {
+              'Accept': 'application/vnd.github+json',
+              'Authorization': f'Bearer {token}',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'Content-Type': 'application/json',
+          }
+
+          def call(method, url, payload=None):
+              data = None if payload is None else json.dumps(payload).encode('utf-8')
+              request = Request(url, data=data, headers=headers, method=method)
+              with urlopen(request, timeout=60) as response:
+                  body = response.read().decode('utf-8')
+                  return json.loads(body) if body else {}
+
+          ref_name = quote(f'heads/{branch}', safe='/')
+          ref = call('GET', f'{api}/git/ref/{ref_name}')
+          head_sha = ref['object']['sha']
+          if head_sha != expected_head:
+              raise SystemExit(f'REMOTE_HEAD_CHANGED expected={expected_head} actual={head_sha}')
+          commit = call('GET', f'{api}/git/commits/{head_sha}')
+          base_tree = commit['tree']['sha']
+
+          write_paths = [
+              'web/pipeline/medical_channel_pipeline/ccgp_detail.py',
+              'web/pipeline/tests/test_ccgp_product_table_variants.py',
+          ]
+          delete_paths = [
+              'web/scripts/preview_harden_ccgp_product_rows.py',
+              '.github/workflows/preview-beijing-product-backfill-audit.yml',
+              '.github/workflows/preview-harden-ccgp-product-rows.yml',
+          ]
+          tree = []
+          for path in write_paths:
+              file_path = root / path
+              if not file_path.is_file():
+                  raise SystemExit(f'MISSING_VERIFIED_FILE:{path}')
+              blob = call('POST', f'{api}/git/blobs', {
+                  'content': base64.b64encode(file_path.read_bytes()).decode('ascii'),
+                  'encoding': 'base64',
+              })
+              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+          for path in delete_paths:
+              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': None})
+
+          new_tree = call('POST', f'{api}/git/trees', {'base_tree': base_tree, 'tree': tree})
+          new_commit = call('POST', f'{api}/git/commits', {
+              'message': 'fix: reject CCGP product-table metadata rows',
+              'tree': new_tree['sha'],
+              'parents': [head_sha],
+          })
+          call('PATCH', f'{api}/git/refs/{ref_name}', {'sha': new_commit['sha'], 'force': False})
+          print(f"committed {new_commit['sha']}")
+          PY
