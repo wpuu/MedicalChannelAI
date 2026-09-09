@@ -1,0 +1,78 @@
+name: Preview Audit Liaoning Product Lists
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-audit-liaoning-product-lists.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+
+      - name: Inspect verified Liaoning product-list formats
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import sys
+          import time
+          from pathlib import Path
+
+          root = Path('web/pipeline').resolve()
+          sys.path.insert(0, str(root))
+          from medical_channel_pipeline.ccgp_detail import (
+              _SpanningProductTableParser,
+              _expand_spanning_table_rows,
+              fetch_ccgp_detail_html,
+              html_to_text,
+          )
+
+          records = json.loads((root / 'data/regional_live_ccgp_records.json').read_text(encoding='utf-8'))
+          ln = [r for r in records if (r.get('facts') or {}).get('market_code') == 'LN']
+          print(f'LN_CANONICAL_COUNT={len(ln)}')
+          empty = [r for r in ln if not ((r.get('facts') or {}).get('product_items') or [])]
+          print(f'LN_EMPTY_PRODUCT_COUNT={len(empty)}')
+
+          for record in ln:
+              facts = record.get('facts') or {}
+              print('LN_RECORD', record.get('opportunity_id'), facts.get('project_name'), record.get('source', {}).get('url'), 'products=', [i.get('raw_name') for i in facts.get('product_items') or []])
+
+          for index, record in enumerate(empty):
+              if index:
+                  time.sleep(4.0)
+              facts = record.get('facts') or {}
+              url = record['source']['url']
+              print('\n=== LN_EMPTY_CASE ===')
+              print('ID=', record.get('opportunity_id'))
+              print('TITLE=', facts.get('project_name'))
+              print('URL=', url)
+              html = fetch_ccgp_detail_html(url)
+              text = html_to_text(html)
+              anchor = text.find('采购需求')
+              if anchor < 0:
+                  anchor = text.find('项目基本情况')
+              if anchor < 0:
+                  anchor = 0
+              snippet = text[anchor:anchor + 2600]
+              print('TEXT_SNIPPET_BEGIN')
+              print(snippet)
+              print('TEXT_SNIPPET_END')
+
+              parser = _SpanningProductTableParser()
+              parser.feed(html)
+              print('TABLE_COUNT=', len(parser.tables))
+              for ti, raw_rows in enumerate(parser.tables[:8]):
+                  rows = _expand_spanning_table_rows(raw_rows)
+                  preview = rows[:8]
+                  print(f'TABLE_{ti}_ROWS=', json.dumps(preview, ensure_ascii=False))
+          PY
