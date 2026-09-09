@@ -1,0 +1,179 @@
+name: Preview Final Scope Recall Acceptance
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-final-scope-recall-acceptance.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: preview-final-scope-recall-acceptance
+  cancel-in-progress: true
+
+jobs:
+  verify-and-commit:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Preview branch
+        uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 0
+
+      - name: Apply final medical scope recall patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/scripts/preview_fix_final_scope_recall.py
+
+      - name: Run focused Python scope regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web/pipeline
+          python3 -m unittest \
+            tests.test_channel_scope \
+            tests.test_regional_candidate_classification
+
+      - name: Run full production build and rebuild snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web
+          npm ci
+          npm run build
+
+      - name: Verify final public-pool recall and exclusions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+
+          path = Path('web/public/data/today-actions.public.json')
+          snapshot = json.loads(path.read_text(encoding='utf-8'))
+          pool = snapshot.get('opportunity_pool') or []
+          urls = {
+              str(url)
+              for card in pool
+              for url in (card.get('evidence_source_urls') or [])
+          }
+          titles = [str((card.get('facts') or {}).get('project_name') or '') for card in pool]
+
+          required = {
+              'eye_fundus': 'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282514.htm',
+              'cdc_device': 'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27277351.htm',
+              'breast_imaging': 'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289494.htm',
+              'health_it': 'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27290702.htm',
+          }
+          missing_required = [name for name, url in required.items() if url not in urls]
+          if missing_required:
+              raise SystemExit(f'VERIFIED_MEDICAL_FALSE_NEGATIVES_STILL_OUT_OF_PUBLIC_POOL:{missing_required}')
+
+          forbidden_markers = (
+              '班车', '业务用车租赁', '办公耗材',
+              '计量专业检验检测设备更新项目',
+              '2026-2027年度拟外委托检验检测项目',
+          )
+          bad_titles = [title for title in titles if any(marker in title for marker in forbidden_markers)]
+          if bad_titles:
+              raise SystemExit(f'NONMEDICAL_FALSE_POSITIVES_REENTERED_PUBLIC_POOL:{bad_titles[:5]}')
+
+          distribution = Counter(str((card.get('facts') or {}).get('market_code') or '') for card in pool)
+          expected_markets = {'TJ', 'BJ', 'HE', 'LN', 'JL', 'HL'}
+          missing_markets = sorted(expected_markets - set(distribution))
+          if missing_markets:
+              raise SystemExit(f'PUBLIC_POOL_LOST_MARKETS:{missing_markets}')
+          if len(pool) < 88:
+              raise SystemExit(f'PUBLIC_POOL_RECALL_DID_NOT_IMPROVE:{len(pool)}')
+
+          print(json.dumps({
+              'opportunity_pool_count': len(pool),
+              'market_distribution': dict(sorted(distribution.items())),
+              'required_medical_urls_present': sorted(required),
+              'forbidden_false_positive_count': len(bad_titles),
+          }, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit verified scope and snapshot atomically
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: preview/multi-region-ui-acceptance
+          EXPECTED_HEAD: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+
+          token = os.environ['GH_TOKEN']
+          repo = os.environ['REPOSITORY']
+          branch = os.environ['BRANCH']
+          expected_head = os.environ['EXPECTED_HEAD']
+          root = Path.cwd()
+          api = f'https://api.github.com/repos/{repo}'
+          headers = {
+              'Accept': 'application/vnd.github+json',
+              'Authorization': f'Bearer {token}',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'Content-Type': 'application/json',
+          }
+
+          def call(method, url, payload=None):
+              data = None if payload is None else json.dumps(payload).encode('utf-8')
+              request = Request(url, data=data, headers=headers, method=method)
+              with urlopen(request, timeout=60) as response:
+                  body = response.read().decode('utf-8')
+                  return json.loads(body) if body else {}
+
+          ref_name = quote(f'heads/{branch}', safe='/')
+          ref = call('GET', f'{api}/git/ref/{ref_name}')
+          head_sha = ref['object']['sha']
+          if head_sha != expected_head:
+              raise SystemExit(f'REMOTE_HEAD_CHANGED expected={expected_head} actual={head_sha}')
+          commit = call('GET', f'{api}/git/commits/{head_sha}')
+          base_tree = commit['tree']['sha']
+          write_paths = [
+              'web/pipeline/data/medical_channel_scope.json',
+              'web/pipeline/tests/test_channel_scope.py',
+              'web/scripts/check-medical-channel-scope.mjs',
+              'web/public/data/today-actions.public.json',
+          ]
+          delete_paths = [
+              'web/scripts/preview_fix_final_scope_recall.py',
+              '.github/workflows/preview-final-scope-recall-acceptance.yml',
+          ]
+          tree = []
+          for path in write_paths:
+              file_path = root / path
+              if not file_path.is_file():
+                  raise SystemExit(f'MISSING_VERIFIED_FILE:{path}')
+              blob = call('POST', f'{api}/git/blobs', {
+                  'content': base64.b64encode(file_path.read_bytes()).decode('ascii'),
+                  'encoding': 'base64',
+              })
+              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+          for path in delete_paths:
+              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': None})
+          new_tree = call('POST', f'{api}/git/trees', {'base_tree': base_tree, 'tree': tree})
+          new_commit = call('POST', f'{api}/git/commits', {
+              'message': 'fix: admit verified medical device and health IT scope',
+              'tree': new_tree['sha'],
+              'parents': [head_sha],
+          })
+          call('PATCH', f'{api}/git/refs/{ref_name}', {'sha': new_commit['sha'], 'force': False})
+          print(f"committed {new_commit['sha']}")
+          PY
