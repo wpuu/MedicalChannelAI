@@ -1,0 +1,349 @@
+name: Preview CCGP Product Table Enrichment V2
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-ccgp-product-table-enrichment-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  verify-enrich-commit:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Preview branch
+        uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+          fetch-depth: 0
+
+      - name: Preserve pre-enrichment public baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp web/public/data/today-actions.public.json /tmp/baseline-today-actions.public.json
+
+      - name: Apply grounded product-table parser patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/scripts/preview_apply_ccgp_product_table_enrichment.py
+
+      - name: Run focused parser regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web/pipeline
+          python3 -m unittest \
+            tests.test_ccgp_detail \
+            tests.test_ccgp_national_detail_formats \
+            tests.test_ccgp_liaoning_detail_format \
+            tests.test_validation
+
+      - name: Backfill bounded verified Heilongjiang product tables
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import re
+          import sys
+          import time
+          from pathlib import Path
+
+          root = Path('web/pipeline').resolve()
+          sys.path.insert(0, str(root))
+          from medical_channel_pipeline.ccgp_detail import (
+              fetch_ccgp_detail_html,
+              parse_ccgp_competitive_consultation_html,
+              parse_ccgp_public_tender_html,
+          )
+
+          path = root / 'data/regional_live_ccgp_records.json'
+          records = json.loads(path.read_text(encoding='utf-8'))
+
+          def norm(value):
+              return re.sub(r'\s+', ' ', str(value or '')).strip()
+
+          eligible = []
+          for index, record in enumerate(records):
+              facts = record.get('facts') or {}
+              source = record.get('source') or {}
+              if facts.get('market_code') != 'HL':
+                  continue
+              if facts.get('lifecycle_state') != 'BIDDING':
+                  continue
+              if source.get('source_type') != 'CCGP_NOTICE':
+                  continue
+              if facts.get('product_items'):
+                  continue
+              notice_type = str(facts.get('notice_type') or '')
+              if notice_type not in {'公开招标公告', '竞争性磋商公告'}:
+                  continue
+              eligible.append((index, record))
+
+          eligible = eligible[:25]
+          recovered = []
+          failures = []
+          for position, (index, record) in enumerate(eligible):
+              if position:
+                  time.sleep(4.0)
+              source = record['source']
+              facts = record['facts']
+              url = source['url']
+              try:
+                  html = fetch_ccgp_detail_html(url)
+                  parser = (
+                      parse_ccgp_public_tender_html
+                      if facts.get('notice_type') == '公开招标公告'
+                      else parse_ccgp_competitive_consultation_html
+                  )
+                  reparsed = parser(
+                      html,
+                      source_url=url,
+                      observed_at=source['observed_at'],
+                      opportunity_id=record['opportunity_id'],
+                  )
+                  fresh = reparsed['facts']
+                  if norm(fresh.get('project_number')) != norm(facts.get('project_number')):
+                      raise ValueError('PROJECT_NUMBER_MISMATCH')
+                  if norm(fresh.get('project_name')) != norm(facts.get('project_name')):
+                      raise ValueError('PROJECT_NAME_MISMATCH')
+                  items = fresh.get('product_items') or []
+                  if not items:
+                      continue
+                  facts['product_items'] = items
+                  facts['product_categories'] = fresh.get('product_categories') or []
+                  product_evidence = [
+                      item for item in reparsed.get('evidence', [])
+                      if item.get('field_path') in {'facts.product_items', 'facts.product_categories'}
+                  ]
+                  record['evidence'] = [
+                      item for item in record.get('evidence', [])
+                      if item.get('field_path') not in {'facts.product_items', 'facts.product_categories'}
+                  ] + product_evidence
+                  records[index] = record
+                  recovered.append({
+                      'opportunity_id': record.get('opportunity_id'),
+                      'url': url,
+                      'project_name': facts.get('project_name'),
+                      'buyer_name': facts.get('buyer_name'),
+                      'item_count': len(items),
+                      'items': [item.get('raw_name') for item in items[:12]],
+                  })
+              except Exception as exc:
+                  failures.append({
+                      'url': url,
+                      'project_name': facts.get('project_name'),
+                      'error': type(exc).__name__,
+                      'message': str(exc)[:300],
+                  })
+
+          path.write_text(json.dumps(records, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          report = {
+              'eligible_count': len(eligible),
+              'recovered_count': len(recovered),
+              'failure_count': len(failures),
+              'recovered': recovered,
+              'failures': failures,
+          }
+          Path('/tmp/ccgp-product-backfill.json').write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
+          )
+          print('PRODUCT_BACKFILL=' + json.dumps(report, ensure_ascii=False))
+          if failures:
+              raise SystemExit(f'PRODUCT_BACKFILL_FAILURES:{failures!r}')
+          if len(recovered) < 18:
+              raise SystemExit(f'PRODUCT_BACKFILL_RECOVERY_REGRESSED:{len(recovered)}')
+          PY
+
+      - name: Run full production build
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web
+          npm ci
+          npm run build
+
+      - name: Verify exact evidence-driven pool expansion
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+
+          baseline = json.loads(Path('/tmp/baseline-today-actions.public.json').read_text(encoding='utf-8'))
+          snapshot = json.loads(Path('web/public/data/today-actions.public.json').read_text(encoding='utf-8'))
+          regional = json.loads(Path('web/pipeline/data/regional_live_ccgp_records.json').read_text(encoding='utf-8'))
+          report = json.loads(Path('/tmp/ccgp-product-backfill.json').read_text(encoding='utf-8'))
+
+          old_pool = baseline.get('opportunity_pool') or []
+          pool = snapshot.get('opportunity_pool') or []
+          old_ids = {str(card.get('opportunity_id') or '') for card in old_pool}
+          new_ids = {str(card.get('opportunity_id') or '') for card in pool}
+          added = new_ids - old_ids
+          removed = old_ids - new_ids
+          expected_added = {
+              'ccgp_hl_a300e994a06867a8',  # 宝清县人民医院 智能化药房和设备采购项目
+              'ccgp_hl_a2566cd3b558e85d',  # 牡丹江市第一人民医院 肺结节标记物放置定位设备
+          }
+          if added != expected_added:
+              raise SystemExit(f'UNEXPECTED_PUBLIC_POOL_ADDITIONS expected={sorted(expected_added)} actual={sorted(added)}')
+          if removed:
+              raise SystemExit(f'UNEXPECTED_PUBLIC_POOL_REMOVALS:{sorted(removed)}')
+
+          distribution = Counter(str((card.get('facts') or {}).get('market_code') or '') for card in pool)
+          expected_distribution = {'BJ': 14, 'HE': 14, 'HL': 22, 'JL': 8, 'LN': 6, 'TJ': 26}
+          if len(pool) != 90:
+              raise SystemExit(f'PUBLIC_POOL_COUNT_NOT_90:{len(pool)}')
+          if dict(sorted(distribution.items())) != expected_distribution:
+              raise SystemExit(f'PUBLIC_POOL_DISTRIBUTION_CHANGED:{dict(sorted(distribution.items()))}')
+
+          cards_by_id = {str(card.get('opportunity_id') or ''): card for card in pool}
+          expected_new_facts = {
+              'ccgp_hl_a300e994a06867a8': {
+                  'buyer': '宝清县人民医院',
+                  'required_item': '眼底造影机',
+              },
+              'ccgp_hl_a2566cd3b558e85d': {
+                  'buyer': '牡丹江市第一人民医院',
+                  'required_item': '肺结节标记物放置定位设备',
+              },
+          }
+          for opportunity_id, expectation in expected_new_facts.items():
+              card = cards_by_id.get(opportunity_id)
+              if card is None:
+                  raise SystemExit(f'EXPECTED_NEW_CARD_MISSING:{opportunity_id}')
+              facts = card.get('facts') or {}
+              if facts.get('buyer_name') != expectation['buyer']:
+                  raise SystemExit(f'EXPECTED_NEW_BUYER_MISMATCH:{opportunity_id}:{facts.get("buyer_name")}')
+              names = [str(item.get('raw_name') or '') for item in facts.get('product_items') or []]
+              if expectation['required_item'] not in names:
+                  raise SystemExit(f'EXPECTED_NEW_PRODUCT_MISSING:{opportunity_id}:{names!r}')
+
+          required_existing = {
+              'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291415.htm': '64排螺旋CT设备',
+              'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291176.htm': '电子消化道内窥镜系统',
+          }
+          found_existing = {}
+          for record in regional:
+              url = (record.get('source') or {}).get('url')
+              if url not in required_existing:
+                  continue
+              facts = record.get('facts') or {}
+              names = [str(item.get('raw_name') or '') for item in facts.get('product_items') or []]
+              categories = facts.get('product_categories') or []
+              expected = required_existing[url]
+              if expected not in names or not categories:
+                  raise SystemExit(f'KNOWN_PRODUCT_NOT_GROUNDED:{url}:{names!r}:{categories!r}')
+              found_existing[url] = {'names': names, 'categories': categories}
+          if set(found_existing) != set(required_existing):
+              raise SystemExit(f'KNOWN_RECORD_MISSING:{set(required_existing) - set(found_existing)}')
+
+          bidding = [card for card in pool if (card.get('facts') or {}).get('lifecycle_state') == 'BIDDING']
+          with_structure = [
+              card for card in bidding
+              if (card.get('facts') or {}).get('product_items') or (card.get('facts') or {}).get('product_categories')
+          ]
+          if len(with_structure) < 24:
+              raise SystemExit(f'PUBLIC_PRODUCT_STRUCTURE_RECOVERY_TOO_LOW:{len(with_structure)}')
+
+          print(json.dumps({
+              'baseline_pool_count': len(old_pool),
+              'public_pool_count': len(pool),
+              'added_ids': sorted(added),
+              'removed_ids': sorted(removed),
+              'market_distribution': dict(sorted(distribution.items())),
+              'bidding_total': len(bidding),
+              'bidding_with_product_structure': len(with_structure),
+              'bidding_without_product_structure': len(bidding) - len(with_structure),
+              'backfill_recovered_count': report['recovered_count'],
+              'backfill_failure_count': report['failure_count'],
+          }, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit verified enrichment atomically and remove one-shot files
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: preview/multi-region-ui-acceptance
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+
+          token = os.environ['GH_TOKEN']
+          repo = os.environ['REPOSITORY']
+          branch = os.environ['BRANCH']
+          expected_head = os.environ['EXPECTED_HEAD']
+          root = Path.cwd()
+          api = f'https://api.github.com/repos/{repo}'
+          headers = {
+              'Accept': 'application/vnd.github+json',
+              'Authorization': f'Bearer {token}',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'Content-Type': 'application/json',
+          }
+
+          def call(method, url, payload=None):
+              data = None if payload is None else json.dumps(payload).encode('utf-8')
+              request = Request(url, data=data, headers=headers, method=method)
+              with urlopen(request, timeout=60) as response:
+                  body = response.read().decode('utf-8')
+                  return json.loads(body) if body else {}
+
+          ref_name = quote(f'heads/{branch}', safe='/')
+          ref = call('GET', f'{api}/git/ref/{ref_name}')
+          head_sha = ref['object']['sha']
+          if head_sha != expected_head:
+              raise SystemExit(f'REMOTE_HEAD_CHANGED expected={expected_head} actual={head_sha}')
+          commit = call('GET', f'{api}/git/commits/{head_sha}')
+          base_tree = commit['tree']['sha']
+
+          write_paths = [
+              'web/pipeline/medical_channel_pipeline/ccgp_detail.py',
+              'web/pipeline/tests/test_ccgp_detail.py',
+              'web/pipeline/data/regional_live_ccgp_records.json',
+              'web/public/data/today-actions.public.json',
+          ]
+          delete_paths = [
+              'web/scripts/preview_apply_ccgp_product_table_enrichment.py',
+              '.github/workflows/preview-ccgp-product-table-enrichment.yml',
+              '.github/workflows/preview-ccgp-product-table-enrichment-v2.yml',
+              '.github/workflows/preview-ccgp-product-table-audit.yml',
+          ]
+          tree = []
+          for path in write_paths:
+              file_path = root / path
+              if not file_path.is_file():
+                  raise SystemExit(f'MISSING_VERIFIED_FILE:{path}')
+              blob = call('POST', f'{api}/git/blobs', {
+                  'content': base64.b64encode(file_path.read_bytes()).decode('ascii'),
+                  'encoding': 'base64',
+              })
+              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']})
+          for path in delete_paths:
+              tree.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': None})
+
+          new_tree = call('POST', f'{api}/git/trees', {'base_tree': base_tree, 'tree': tree})
+          new_commit = call('POST', f'{api}/git/commits', {
+              'message': 'feat: extract grounded CCGP product tables',
+              'tree': new_tree['sha'],
+              'parents': [head_sha],
+          })
+          call('PATCH', f'{api}/git/refs/{ref_name}', {'sha': new_commit['sha'], 'force': False})
+          print(f"committed {new_commit['sha']}")
+          PY
