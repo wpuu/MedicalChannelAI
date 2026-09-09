@@ -5277,7 +5277,7 @@
         "public_contact": {
           "name": "董艳",
           "title": "项目联系人",
-          "phone": "董艳",
+          "phone": null,
           "email": null
         },
         "quality_flags": [],

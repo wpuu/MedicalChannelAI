@@ -106,6 +106,21 @@ class CcgpDetailTests(unittest.TestCase):
         self.assertEqual(facts["public_contact"]["name"], "李宁")
         self.assertEqual(facts["public_contact"]["phone"], "022-23717450-8019")
 
+    def test_non_phone_contact_value_is_preserved_as_name_but_not_dial_target(self) -> None:
+        text = FIXTURE.replace(
+            "项目联系人：李宁 电 话：022-23717450-8019",
+            "项目联系人：董艳 项目联系电话：董艳",
+        )
+        record = parse_ccgp_public_tender_text(
+            text,
+            source_url="https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27278298.htm",
+            observed_at="2026-09-09T09:30:00+08:00",
+            opportunity_id="ccgp_jl_invalid_phone_fixture",
+        )
+        contact = record["facts"]["public_contact"]
+        self.assertEqual(contact["name"], "董艳")
+        self.assertIsNone(contact["phone"])
+
     def test_competitive_consultation_uses_response_submission_deadline_not_opening_time(self) -> None:
         record = parse_ccgp_competitive_consultation_text(
             CONSULTATION_FIXTURE,

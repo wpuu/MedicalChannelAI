@@ -268,6 +268,16 @@ def _extract_budget_cny(text: str) -> int | None:
     return None
 
 
+def _normalize_public_phone(value: str) -> str | None:
+    normalized = _normalize_space(value)
+    # Contact facts must fail closed. A non-empty label value that has no
+    # plausible telephone digit content (for example a repeated contact name)
+    # is not a phone number and must never become a dial target.
+    if len(re.findall(r"\d", normalized)) < 5:
+        return None
+    return normalized
+
+
 def _extract_contact(text: str) -> dict[str, str | None] | None:
     match = re.search(
         r"3[.、]\s*项目联系方式\s+项目联系人\s*[：:]\s*(.+?)\s+"
@@ -286,7 +296,7 @@ def _extract_contact(text: str) -> dict[str, str | None] | None:
     return {
         "name": _normalize_space(match.group(1)),
         "title": "项目联系人",
-        "phone": _normalize_space(match.group(2)),
+        "phone": _normalize_public_phone(match.group(2)),
         "email": None,
     }
 
