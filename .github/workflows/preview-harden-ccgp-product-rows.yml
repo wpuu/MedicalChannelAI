@@ -50,40 +50,51 @@ jobs:
 
           records = json.loads((root / 'data/regional_live_ccgp_records.json').read_text(encoding='utf-8'))
           by_id = {record['opportunity_id']: record for record in records}
+
+          def unique_title_record(needle):
+              matches = [
+                  record for record in records
+                  if needle in str((record.get('facts') or {}).get('project_name') or '')
+                  and (record.get('facts') or {}).get('market_code') == 'BJ'
+              ]
+              if len(matches) != 1:
+                  raise SystemExit(f'CANONICAL_TITLE_NOT_UNIQUE:{needle}:{len(matches)}')
+              return matches[0]
+
           cases = [
               (
                   'insurance',
+                  by_id.get('ccgp_bj_7288c338a1406922'),
                   'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27288058.htm',
-                  'ccgp_bj_7288c338a1406922',
                   ['医责险采购', '医师险采购'],
               ),
               (
                   'rowspan-medical-equipment',
+                  by_id.get('ccgp_bj_71b6984cdeed7b23'),
                   'https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289907.htm',
-                  'ccgp_bj_71b6984cdeed7b23',
                   ['离心机', '全自动干式生化分析仪', '生物显微镜'],
               ),
               (
                   'new-tiatan-device',
+                  unique_title_record('肌电图与诱发电位仪设备购置'),
                   None,
-                  'ccgp_bj_1abc687defc83173',
                   ['肌电图与诱发电位仪'],
               ),
               (
                   'new-pumch-maintenance',
+                  unique_title_record('设备维保服务（五）采购项目'),
                   None,
-                  'ccgp_bj_b06309639761535d',
                   ['脑氧饱和度监测仪', '心排量测量仪'],
               ),
           ]
 
-          for position, (label, explicit_url, opportunity_id, expected_names) in enumerate(cases):
+          for position, (label, record, explicit_url, expected_names) in enumerate(cases):
+              if record is None:
+                  raise SystemExit(f'CANONICAL_CASE_MISSING:{label}')
               if position:
                   time.sleep(4.0)
-              record = by_id.get(opportunity_id)
-              if record is None:
-                  raise SystemExit(f'CANONICAL_CASE_MISSING:{label}:{opportunity_id}')
               url = explicit_url or record['source']['url']
+              opportunity_id = record['opportunity_id']
               html = fetch_ccgp_detail_html(url)
               parsed = parse_ccgp_public_tender_html(
                   html,
@@ -92,7 +103,7 @@ jobs:
                   opportunity_id=opportunity_id,
               )
               names = [str(item.get('raw_name') or '') for item in parsed['facts'].get('product_items') or []]
-              print(label, url, names)
+              print(label, opportunity_id, url, names)
               if names != expected_names:
                   raise SystemExit(f'LIVE_PRODUCT_NAMES_MISMATCH:{label}:expected={expected_names!r}:actual={names!r}')
               if any(
