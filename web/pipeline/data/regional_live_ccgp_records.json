@@ -25,7 +25,20 @@
       "budget_cny": 2300000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "医责险采购",
+          "category": null,
+          "quantity": "1项",
+          "specification": null
+        },
+        {
+          "raw_name": "医师险采购",
+          "category": null,
+          "quantity": "1项",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "张伯涵、肖然、孙薇",
         "title": "项目联系人",
@@ -96,6 +109,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27288058.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27288058.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -125,7 +143,14 @@
       "budget_cny": 601820,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "中国医学科学院阜外医院西院区二期2号楼VRV采购项目",
+          "category": null,
+          "quantity": "1项",
+          "specification": "详见招标文件第五章采购需求"
+        }
+      ],
       "public_contact": {
         "name": "卢永男、周满堂",
         "title": "项目联系人",
@@ -196,6 +221,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27287903.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27287903.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -225,7 +255,14 @@
       "budget_cny": 800000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "双能X射线骨密度仪",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "马建、肖然、吴萍、孙薇",
         "title": "项目联系人",
@@ -296,6 +333,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282657.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282657.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -325,7 +367,14 @@
       "budget_cny": 500000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "bim系统升级",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "马建、肖然、吴萍、孙薇",
         "title": "项目联系人",
@@ -396,6 +445,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282651.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282651.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -1425,7 +1479,14 @@
       "budget_cny": 2850000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "医用直线加速器",
+          "category": null,
+          "quantity": "1台",
+          "specification": "维保范围包括所有相关设备（加速器主机及治疗床、激光定位灯、外水冷机、多叶光栅（MLC）、影像系统（XVI、iView）、呼吸门控、辅助设备及电缆及工作站等）"
+        }
+      ],
       "public_contact": {
         "name": "王颖杰",
         "title": "项目联系人",
@@ -1496,6 +1557,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27288644.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27288644.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -1525,7 +1591,14 @@
       "budget_cny": 3595000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "中国医学科学院肿瘤医院医疗设备维保服务（一）采购项目",
+          "category": null,
+          "quantity": "1项 服务",
+          "specification": "该项目是为我院6台设备购买维保服务，具体详见第五章《采购需求》"
+        }
+      ],
       "public_contact": {
         "name": "蔡欣悦、白雪、张晶、洪京",
         "title": "项目联系人",
@@ -1596,6 +1669,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27288503.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27288503.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -1625,7 +1703,20 @@
       "budget_cny": 5317702,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "大内存胖节点",
+          "category": null,
+          "quantity": "1套",
+          "specification": "详见第五章《采购需求》"
+        },
+        {
+          "raw_name": "登录管理节点",
+          "category": null,
+          "quantity": "1套",
+          "specification": "详见第五章《采购需求》"
+        }
+      ],
       "public_contact": {
         "name": "赵雨辰、孙薇",
         "title": "项目联系人",
@@ -1696,6 +1787,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288159.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288159.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -1825,7 +1921,32 @@
       "budget_cny": 31491800,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "酸度计检定仪",
+          "category": null,
+          "quantity": "1 （套）",
+          "specification": null
+        },
+        {
+          "raw_name": "标准振动台（含高频、中频、低频）",
+          "category": null,
+          "quantity": "1 （套）",
+          "specification": null
+        },
+        {
+          "raw_name": "质量法水流量标准装置（含静态）",
+          "category": null,
+          "quantity": "1 （套）",
+          "specification": null
+        },
+        {
+          "raw_name": "☆质量比较仪",
+          "category": null,
+          "quantity": "1 （套）",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "白老师、吕老师",
         "title": "项目联系人",
@@ -1896,6 +2017,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287632.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287632.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -1925,7 +2051,26 @@
       "budget_cny": 805000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "智能语音客服系统运维服务",
+          "category": null,
+          "quantity": "1 项",
+          "specification": "服务内容主要包括 5 并发机器人和 3 个号码认证服务等。具体详见招标文件 “ 第五章采购需求 ” "
+        },
+        {
+          "raw_name": "医保系统维护、移动支付",
+          "category": null,
+          "quantity": "1 项",
+          "specification": "服务内容主要包括 对现有的医保信息系统及医保移动支付系统运维服务进行升级、定制个性化医保信息系统技术服务方案 等。具体详见招标文件 “ 第五章采购需求 ” "
+        },
+        {
+          "raw_name": "医疗服务系统、自助机服务系统、互联网诊疗系统运维",
+          "category": null,
+          "quantity": "1 项",
+          "specification": "服务内容主要包括对医院医疗服务系统、自助机服务系统、互联网诊疗系统提供全面运维及技术支持服务等。具体详见招标文件 “ 第五章采购需求 ” "
+        }
+      ],
       "public_contact": {
         "name": "杨东来、钱柏丞、李思哲、胡杰谦、和学娟、刘莎",
         "title": "项目联系人",
@@ -1996,6 +2141,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285965.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27285965.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -2025,7 +2175,14 @@
       "budget_cny": 2400000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "等保测评及密码测评服务",
+          "category": null,
+          "quantity": "一项服务",
+          "specification": "对 12 个业务系统（等保三级）开展等保测评和密码测评服务，包括：安全通信网络测评、安全区域边界测评、安全计算环境测评、安全管理中心测评、安全管理制度测评、安全管理机构测评、安全管理人员测评、安全建设管理测评、安全运维管理测评、物理和环境安全测评、网络和通信安全测评、设备和计算安全测评、应用和数据安全测评等。 （详见招标文件第五章 采购需求）"
+        }
+      ],
       "public_contact": {
         "name": "刘晨、邹意隆、张超、李一村",
         "title": "项目联系人",
@@ -2096,6 +2253,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283822.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27283822.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -5107,7 +5269,26 @@
       "budget_cny": 145500,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "离心机",
+          "category": null,
+          "quantity": "3台",
+          "specification": "详见招标文件第五章《采购需求》"
+        },
+        {
+          "raw_name": "全自动干式生化分析仪",
+          "category": null,
+          "quantity": "1台",
+          "specification": "详见招标文件第五章《采购需求》"
+        },
+        {
+          "raw_name": "生物显微镜",
+          "category": null,
+          "quantity": "1台",
+          "specification": "详见招标文件第五章《采购需求》"
+        }
+      ],
       "public_contact": {
         "name": "王斌、朱艳梅、刘晶晶、李倩、郭玉婷、丁峥敏、卢雪、张书玲",
         "title": "项目联系人",
@@ -5178,6 +5359,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289907.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289907.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -5207,7 +5393,14 @@
       "budget_cny": 23000000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "CT",
+          "category": null,
+          "quantity": "1",
+          "specification": "机架内置液晶显示系统"
+        }
+      ],
       "public_contact": {
         "name": "张曌明，李子豪",
         "title": "项目联系人",
@@ -5278,6 +5471,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289487.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289487.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -5307,7 +5505,32 @@
       "budget_cny": 19800000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "品目1 医用直线加速器升级1",
+          "category": null,
+          "quantity": "1",
+          "specification": "4D CBCT 重建加速升级"
+        },
+        {
+          "raw_name": "品目2 医用直线加速器升级2",
+          "category": null,
+          "quantity": "1",
+          "specification": "4D CBCT 重建加速升级"
+        },
+        {
+          "raw_name": "品目3 医用直线加速器升级3",
+          "category": null,
+          "quantity": "1",
+          "specification": "系统软件升级至最新版本"
+        },
+        {
+          "raw_name": "品目4 医用直线加速器升级4",
+          "category": null,
+          "quantity": "1",
+          "specification": "加速器质控升级"
+        }
+      ],
       "public_contact": {
         "name": "张曌明，李子豪",
         "title": "项目联系人",
@@ -5378,6 +5601,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289485.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289485.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -5407,7 +5635,50 @@
       "budget_cny": 14750000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "X射线骨密度检测仪",
+          "category": null,
+          "quantity": "1",
+          "specification": "保障设备全年开机率≥95%"
+        },
+        {
+          "raw_name": "磁共振成像系统",
+          "category": null,
+          "quantity": "1",
+          "specification": "保障设备全年开机率≥95%"
+        },
+        {
+          "raw_name": "乳腺X射线机",
+          "category": null,
+          "quantity": "1",
+          "specification": "保障设备全年开机率≥95%"
+        },
+        {
+          "raw_name": "医用磁共振成像系统（MR）",
+          "category": null,
+          "quantity": "1",
+          "specification": "保障设备全年开机率≥95%"
+        },
+        {
+          "raw_name": "数字乳腺X射线摄影系统",
+          "category": null,
+          "quantity": "1",
+          "specification": "保障设备全年开机率≥95%"
+        },
+        {
+          "raw_name": "X射线计算机体层摄影设备(CT)",
+          "category": null,
+          "quantity": "1",
+          "specification": "保障设备全年开机率≥95%"
+        },
+        {
+          "raw_name": "单光子发射及X射线计算机断层成像系统（SPECT/CT）",
+          "category": null,
+          "quantity": "1",
+          "specification": "保障设备全年开机率≥95%"
+        }
+      ],
       "public_contact": {
         "name": "张曌明，李子豪",
         "title": "项目联系人",
@@ -5478,6 +5749,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289482.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289482.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -5507,7 +5783,14 @@
       "budget_cny": 20000000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "CT",
+          "category": null,
+          "quantity": "1",
+          "specification": "机架孔径：≥78cm"
+        }
+      ],
       "public_contact": {
         "name": "张曌明，李子豪",
         "title": "项目联系人",
@@ -5578,6 +5861,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289438.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289438.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -5707,7 +5995,14 @@
       "budget_cny": 20000000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "X射线计算机体层摄影设备（CT）",
+          "category": null,
+          "quantity": "1",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "强文晓、孙薇",
         "title": "项目联系人",
@@ -5778,6 +6073,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27279385.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27279385.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -7313,7 +7613,14 @@
       "budget_cny": 9864800,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "全自动糖化血红蛋白分析仪",
+          "category": null,
+          "quantity": "1台",
+          "specification": "详见采购需求"
+        }
+      ],
       "public_contact": {
         "name": "李敏、尹洪伟",
         "title": "项目联系人",
@@ -7384,6 +7691,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27279957.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27279957.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -7613,7 +7925,14 @@
       "budget_cny": 3700000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "乳腺机",
+          "category": null,
+          "quantity": "1",
+          "specification": "用于乳腺疾病筛查及诊断，具备断层摄影、对比增强摄影及断层引导下的活检定位"
+        }
+      ],
       "public_contact": {
         "name": "张曌明，李子豪",
         "title": "项目联系人",
@@ -7684,6 +8003,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289494.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289494.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -7713,7 +8037,32 @@
       "budget_cny": 3800000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "超脉冲点阵手术激光系统",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        },
+        {
+          "raw_name": "上下肢主被动康复训练仪",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        },
+        {
+          "raw_name": "血流动力学监测平台",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        },
+        {
+          "raw_name": "便携式彩色超声诊断系统",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "马建、肖然、吴萍、孙薇",
         "title": "项目联系人",
@@ -7784,6 +8133,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282649.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282649.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -7813,7 +8167,14 @@
       "budget_cny": 1800000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "免散瞳眼底照相机系统",
+          "category": null,
+          "quantity": "1",
+          "specification": "用于眼科视网膜和眼睛周边部分进行摄像，显示和存储相关的数据"
+        }
+      ],
       "public_contact": {
         "name": "张曌明，孙溢霞",
         "title": "项目联系人",
@@ -7884,6 +8245,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282514.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27282514.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -7913,7 +8279,50 @@
       "budget_cny": 1727400,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "液氮储存罐",
+          "category": null,
+          "quantity": "1",
+          "specification": null
+        },
+        {
+          "raw_name": "全能型凝胶成像系统",
+          "category": null,
+          "quantity": "1",
+          "specification": null
+        },
+        {
+          "raw_name": "大容量冷冻离心机",
+          "category": null,
+          "quantity": "2",
+          "specification": null
+        },
+        {
+          "raw_name": "二氧化碳培养箱",
+          "category": null,
+          "quantity": "1",
+          "specification": null
+        },
+        {
+          "raw_name": "液氮罐（含补给罐）",
+          "category": null,
+          "quantity": "1",
+          "specification": null
+        },
+        {
+          "raw_name": "凝胶成像仪",
+          "category": null,
+          "quantity": "1",
+          "specification": null
+        },
+        {
+          "raw_name": "超低温冰箱",
+          "category": null,
+          "quantity": "5",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "张老师",
         "title": "项目联系人",
@@ -7984,6 +8393,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27277351.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260907_27277351.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
@@ -8113,7 +8527,14 @@
       "budget_cny": 750000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "北京中医药大学东方医院办刊运营服务采购项目",
+          "category": null,
+          "quantity": "1项",
+          "specification": "为北京中医药大学东方医院提供办刊运营服务，具体详见第五章采购需求"
+        }
+      ],
       "public_contact": {
         "name": "王斌、朱艳梅、刘晶晶、李倩、郭玉婷、丁峥敏、卢雪、张书玲",
         "title": "项目联系人",
@@ -8184,6 +8605,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289848.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289848.htm",
+        "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量"
       }
     ]
   },
