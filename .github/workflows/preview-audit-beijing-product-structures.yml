@@ -1,0 +1,94 @@
+name: Preview Audit Beijing Product Structures
+
+on:
+  push:
+    branches:
+      - preview/multi-region-ui-acceptance
+    paths:
+      - .github/workflows/preview-audit-beijing-product-structures.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/multi-region-ui-acceptance
+      - name: Audit empty Beijing product structures
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import re
+          import sys
+          import time
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          root = Path('web/pipeline').resolve()
+          sys.path.insert(0, str(root))
+          from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html, html_to_text
+
+          records = json.loads((root / 'data/regional_live_ccgp_records.json').read_text(encoding='utf-8'))
+          targets = [
+              record for record in records
+              if (record.get('facts') or {}).get('market_code') == 'BJ'
+              and not ((record.get('facts') or {}).get('product_items') or [])
+              and (record.get('facts') or {}).get('notice_type') == '公开招标公告'
+          ]
+          print(f'BJ_EMPTY_TARGETS={len(targets)}')
+
+          class TableHeaders(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.tables=[]; self.depth=0; self.rows=[]; self.row=None; self.cell=None
+              def handle_starttag(self, tag, attrs):
+                  tag=tag.lower()
+                  if tag=='table':
+                      self.depth += 1
+                      if self.depth == 1: self.rows=[]
+                  elif self.depth == 1 and tag=='tr': self.row=[]
+                  elif self.depth == 1 and tag in {'td','th'} and self.row is not None: self.cell=[]
+              def handle_data(self, data):
+                  if self.depth == 1 and self.cell is not None and data.strip(): self.cell.append(data.strip())
+              def handle_endtag(self, tag):
+                  tag=tag.lower()
+                  if self.depth == 1 and tag in {'td','th'} and self.cell is not None:
+                      self.row.append(' '.join(self.cell)); self.cell=None
+                  elif self.depth == 1 and tag=='tr' and self.row is not None:
+                      if any(x.strip() for x in self.row): self.rows.append(self.row)
+                      self.row=None
+                  elif tag=='table' and self.depth:
+                      if self.depth == 1: self.tables.append(self.rows)
+                      self.depth -= 1
+
+          for i, record in enumerate(targets):
+              if i: time.sleep(4.0)
+              facts=record['facts']; url=record['source']['url']
+              print('\n===TARGET===')
+              print('ID=', record['opportunity_id'])
+              print('TITLE=', facts.get('project_name'))
+              print('BUYER=', facts.get('buyer_name'))
+              print('URL=', url)
+              try:
+                  html=fetch_ccgp_detail_html(url)
+                  text=html_to_text(html)
+                  p=TableHeaders(); p.feed(html)
+                  header_candidates=[]
+                  for rows in p.tables:
+                      for row in rows[:4]:
+                          joined=' | '.join(re.sub(r'\s+',' ',x).strip() for x in row)
+                          if any(k in joined for k in ['采购标的','标的名称','设备名称','货物名称','品目名称','数量']):
+                              header_candidates.append(joined[:1200])
+                  print('TABLE_HEADER_CANDIDATES=', json.dumps(header_candidates[:8], ensure_ascii=False))
+                  pos=text.find('采购需求')
+                  if pos < 0: pos=text.find('项目基本情况')
+                  snippet=text[max(0,pos):pos+5000]
+                  print('DEMAND_TEXT=', re.sub(r'\s+', ' ', snippet)[:5000])
+              except Exception as exc:
+                  print('ERROR=', type(exc).__name__, str(exc)[:300])
+          PY
