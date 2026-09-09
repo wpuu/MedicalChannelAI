@@ -452,6 +452,171 @@ def _extract_general_product_table_items(html: str) -> list[dict[str, Any]]:
     return items
 
 
+
+def _procurement_text_scope(text: str) -> str:
+    anchor = text.find('采购需求')
+    return text[anchor:] if anchor >= 0 else ''
+
+
+def _text_product_item(raw_name: str, quantity: str) -> dict[str, Any]:
+    return {
+        'raw_name': _normalize_space(raw_name).strip('，,：:；;。'),
+        'category': None,
+        'quantity': _normalize_space(quantity),
+        'specification': None,
+    }
+
+
+def _dedupe_text_product_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    deduped: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for item in items:
+        raw_name = str(item.get('raw_name') or '').strip()
+        quantity = str(item.get('quantity') or '').strip()
+        if not raw_name or not _is_explicit_product_quantity(quantity):
+            continue
+        if _is_explicit_product_quantity(raw_name) or len(raw_name) > 180:
+            continue
+        key = (raw_name, quantity)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+        if len(deduped) >= 100:
+            break
+    return deduped
+
+
+def _extract_top_level_numbered_quantity_items(text: str) -> list[dict[str, Any]]:
+    scope = _procurement_text_scope(text)
+    if not scope:
+        return []
+    unit_pattern = '|'.join(sorted((re.escape(unit) for unit in _PRODUCT_UNIT_WORDS), key=len, reverse=True))
+    pattern = re.compile(
+        rf'(?<![\d.])(?P<index>\d{{1,3}})[.、](?!\d)\s*'
+        rf'(?P<name>[^：:\n]{{1,120}}?)\s+'
+        rf'(?P<quantity>\d+(?:\.\d+)?\s*(?:{unit_pattern}))\s*'
+        rf'(?=[：:★▲]|\d{{1,3}}\.\d|\d{{1,3}}[.、](?!\d)|$)'
+    )
+    items = [
+        _text_product_item(match.group('name'), match.group('quantity'))
+        for match in pattern.finditer(scope)
+    ]
+    return _dedupe_text_product_items(items)
+
+
+def _normalized_text_lines(text: str) -> list[str]:
+    return [_normalize_space(line) for line in text.splitlines() if _normalize_space(line)]
+
+
+def _find_header_cluster(lines: list[str], required: tuple[str, ...], *, window: int = 8) -> int | None:
+    for start, line in enumerate(lines):
+        if line != required[0]:
+            continue
+        cluster = lines[start : start + window]
+        if all(value in cluster for value in required[1:]):
+            return start + max(cluster.index(value) for value in required)
+    return None
+
+
+def _extract_product_name_quantity_lines(text: str) -> list[dict[str, Any]]:
+    scope = _procurement_text_scope(text)
+    lines = _normalized_text_lines(scope)
+    header_end = _find_header_cluster(lines, ('序号', '产品名称', '数量'), window=7)
+    if header_end is None:
+        return []
+
+    items: list[dict[str, Any]] = []
+    index = header_end + 1
+    while index + 2 < len(lines):
+        line = lines[index]
+        if line.startswith(('合同履行期限', '二、供应商', '三、政府采购供应商', '四、获取')):
+            break
+        if re.fullmatch(r'\d{1,3}', line):
+            raw_name = lines[index + 1]
+            quantity = lines[index + 2]
+            if (
+                1 <= len(raw_name) <= 180
+                and not _is_explicit_product_quantity(raw_name)
+                and _is_explicit_product_quantity(quantity)
+                and re.search(r'\D', quantity)
+            ):
+                items.append(_text_product_item(raw_name, quantity))
+                index += 3
+                continue
+        index += 1
+    return _dedupe_text_product_items(items)
+
+
+def _extract_item_name_quantity_unit_lines(text: str) -> list[dict[str, Any]]:
+    scope = _procurement_text_scope(text)
+    lines = _normalized_text_lines(scope)
+    header_end = _find_header_cluster(lines, ('品目号', '品目名称', '数量', '计量单位'), window=9)
+    if header_end is None:
+        return []
+
+    items: list[dict[str, Any]] = []
+    index = header_end + 1
+    while index + 3 < len(lines):
+        line = lines[index]
+        if line.startswith(('投标人须以包为单位', '合同履行期限', '★二、交货', '二、供应商', '三、政府采购供应商')):
+            break
+        if re.fullmatch(r'\d{3}包', line):
+            index += 1
+            continue
+        if re.fullmatch(r'\d{1,3}', line):
+            raw_name = lines[index + 1]
+            amount = lines[index + 2]
+            unit = lines[index + 3]
+            if (
+                1 <= len(raw_name) <= 180
+                and re.fullmatch(r'\d+(?:\.\d+)?', amount)
+                and unit in _PRODUCT_UNIT_WORDS
+                and not _is_explicit_product_quantity(raw_name)
+            ):
+                items.append(_text_product_item(raw_name, f'{amount}{unit}'))
+                index += 4
+                continue
+        index += 1
+    return _dedupe_text_product_items(items)
+
+
+def _extract_grounded_text_product_items(text: str) -> list[dict[str, Any]]:
+    extractors = (
+        _extract_item_name_quantity_unit_lines,
+        _extract_product_name_quantity_lines,
+        _extract_top_level_numbered_quantity_items,
+    )
+    for extractor in extractors:
+        items = extractor(text)
+        if items:
+            return items
+    return []
+
+
+def _apply_grounded_text_products(record: dict[str, Any], text: str) -> dict[str, Any]:
+    if record['facts'].get('product_items'):
+        return record
+    items = _extract_grounded_text_product_items(text)
+    if not items:
+        return record
+
+    record['facts']['product_items'] = items
+    record['facts']['product_categories'] = []
+    evidence = [
+        item for item in record.get('evidence', [])
+        if item.get('field_path') not in {'facts.product_items', 'facts.product_categories'}
+    ]
+    evidence.append(
+        {
+            'field_path': 'facts.product_items',
+            'source_url': record['source']['url'],
+            'locator': '采购需求/正文结构化名称与数量清单',
+        }
+    )
+    record['evidence'] = evidence
+    return validate_record(record)
+
 def _apply_structured_html_products(record: dict[str, Any], html: str) -> dict[str, Any]:
     items = _extract_standard_product_table_items(html)
     if not items:
@@ -901,13 +1066,15 @@ def parse_ccgp_public_tender_html(
     observed_at: str,
     opportunity_id: str,
 ) -> dict[str, Any]:
+    text = html_to_text(html)
     record = parse_ccgp_public_tender_text(
-        html_to_text(html),
+        text,
         source_url=source_url,
         observed_at=observed_at,
         opportunity_id=opportunity_id,
     )
-    return _apply_structured_html_products(record, html)
+    record = _apply_structured_html_products(record, html)
+    return _apply_grounded_text_products(record, text)
 
 
 def parse_ccgp_competitive_consultation_html(
@@ -917,13 +1084,15 @@ def parse_ccgp_competitive_consultation_html(
     observed_at: str,
     opportunity_id: str,
 ) -> dict[str, Any]:
+    text = html_to_text(html)
     record = parse_ccgp_competitive_consultation_text(
-        html_to_text(html),
+        text,
         source_url=source_url,
         observed_at=observed_at,
         opportunity_id=opportunity_id,
     )
-    return _apply_structured_html_products(record, html)
+    record = _apply_structured_html_products(record, html)
+    return _apply_grounded_text_products(record, text)
 
 
 def fetch_ccgp_detail_html(source_url: str, *, timeout_seconds: int = 30) -> str:
