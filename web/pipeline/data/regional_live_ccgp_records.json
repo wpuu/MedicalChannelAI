@@ -2387,7 +2387,32 @@
       "budget_cny": 4730000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "五分类血球分析仪、糖化分析仪、超敏C反应分析仪一体化自动检测流水线",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "全自动尿液分析仪(干化学+尿沉渣)",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "质谱分析仪",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "微生物药敏分析仪",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "张爱丽",
         "title": "项目联系人",
@@ -2458,6 +2483,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287982.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287982.htm",
+        "locator": "采购需求/正文结构化产品明细"
       }
     ]
   },
@@ -2487,7 +2517,14 @@
       "budget_cny": 1514375,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "埃可病毒30型核酸检测试剂盒（荧光法）等四大症候群监测相关试剂耗材",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "李思诺、徐海艳、张格格",
         "title": "项目联系人",
@@ -2558,6 +2595,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286996.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286996.htm",
+        "locator": "采购需求/正文结构化产品明细"
       }
     ]
   },
@@ -2587,7 +2629,14 @@
       "budget_cny": 755500,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "2026年全省艾滋病和梅毒的筛查检测试剂",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "李思诺、徐海艳、张格格",
         "title": "项目联系人",
@@ -2658,6 +2707,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286908.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27286908.htm",
+        "locator": "采购需求/正文结构化产品明细"
       }
     ]
   },
@@ -6967,7 +7021,20 @@
       "budget_cny": 280000,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "血管内超声",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        },
+        {
+          "raw_name": "非接触眼压计",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "何欣 孙丽竹",
         "title": "项目联系人",
@@ -7038,6 +7105,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27277784.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27277784.htm",
+        "locator": "采购需求/正文结构化产品明细"
       }
     ]
   },
@@ -7067,7 +7139,20 @@
       "budget_cny": 5108800,
       "procurement_method": "公开招标",
       "product_categories": [],
-      "product_items": [],
+      "product_items": [
+        {
+          "raw_name": "血液透析机（单泵）",
+          "category": null,
+          "quantity": "10台",
+          "specification": null
+        },
+        {
+          "raw_name": "三维移动式C形臂X射线机等",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        }
+      ],
       "public_contact": {
         "name": "林叶、王洋",
         "title": "项目联系人",
@@ -7138,6 +7223,11 @@
         "field_path": "facts.public_contact",
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27277389.htm",
         "locator": "项目联系方式"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27277389.htm",
+        "locator": "采购需求/正文结构化产品明细"
       }
     ]
   },
