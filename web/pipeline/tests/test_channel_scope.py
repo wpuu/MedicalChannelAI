@@ -150,6 +150,32 @@ class MedicalChannelScopeTests(unittest.TestCase):
         non_medical["facts"]["hospital_name"] = None
         self.assertFalse(is_medical_channel_relevant_record(non_medical))
 
+    def test_verified_specific_device_and_medical_it_false_negatives_are_in_scope(self) -> None:
+        strong_titles = [
+            "中国医学科学院北京协和医院放射科乳腺机采购项目",
+            "中日友好医院免散瞳眼底照相机系统采购项目",
+            "中国疾病预防控制中心疾病预防控制专用设备购置项目",
+        ]
+        for title in strong_titles:
+            with self.subTest(title=title):
+                self.assertTrue(is_medical_channel_relevant_text(title))
+
+        health_it = {
+            "facts": {
+                "project_name": "2026年应用支撑平台、信息互通共享功能升级项目",
+                "buyer_name": "国家卫生健康委统计信息中心",
+                "hospital_name": None,
+                "department": None,
+                "product_categories": [],
+                "product_items": [],
+            }
+        }
+        generic_it = copy.deepcopy(health_it)
+        generic_it["facts"]["buyer_name"] = "某市大数据中心"
+        self.assertTrue(is_medical_channel_relevant_record(health_it))
+        self.assertFalse(is_medical_channel_relevant_record(generic_it))
+        self.assertFalse(is_medical_channel_relevant_text("2026年应用支撑平台、信息互通共享功能升级项目"))
+
     def test_office_consumables_remain_out_even_for_hospital_buyer(self) -> None:
         record = {
             "facts": {

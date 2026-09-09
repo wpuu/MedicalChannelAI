@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.4",
+  "schema_version": "0.5",
   "scope_id": "MEDICAL_CHANNEL_CORE_AND_ADJACENT_TECH",
   "terms": [
     "医疗设备",
@@ -44,13 +44,19 @@
     "康复设备",
     "胃肠动力",
     "心电",
-    "脑电"
+    "脑电",
+    "乳腺机",
+    "眼底照相机",
+    "疾病预防控制专用设备",
+    "疾控专用设备"
   ],
   "contextual_terms": [
     "检验",
     "检测",
     "实验室",
-    "耗材"
+    "耗材",
+    "信息互通共享",
+    "应用支撑平台"
   ],
   "adjacent_tech_terms": [
     "人工智能",
@@ -93,9 +99,23 @@
     "装修改造",
     "人才培养"
   ],
-  "acronyms": ["CT", "DR", "MRI", "DSA", "PCR", "POCT", "IVD", "LIS", "PACS", "RIS", "HIS"],
+  "acronyms": [
+    "CT",
+    "DR",
+    "MRI",
+    "DSA",
+    "PCR",
+    "POCT",
+    "IVD",
+    "LIS",
+    "PACS",
+    "RIS",
+    "HIS"
+  ],
   "contextual_acronyms": [],
-  "adjacent_tech_acronyms": ["GPU"],
+  "adjacent_tech_acronyms": [
+    "GPU"
+  ],
   "policy": {
     "buyer_or_hospital_name_alone_is_not_relevance_evidence": true,
     "generic_signal_requires_medical_context": true,
@@ -104,6 +124,8 @@
     "generic_administration_exclusions_override_contextual_signals": true,
     "canonical_verified_facts_may_be_retained_even_when_out_of_public_scope": true,
     "public_opportunity_pool_requires_scope_match": true,
-    "ccgp_event_watch_requires_scope_match": true
+    "ccgp_event_watch_requires_scope_match": true,
+    "verified_specific_medical_devices_may_be_strong_signals": true,
+    "medical_it_contextual_terms_require_medical_context": true
   }
 }

@@ -35,6 +35,32 @@ assert.equal(isMedicalChannelRelevantCard({
   },
 }), true)
 
+for (const title of [
+  '中国医学科学院北京协和医院放射科乳腺机采购项目',
+  '中日友好医院免散瞳眼底照相机系统采购项目',
+  '中国疾病预防控制中心疾病预防控制专用设备购置项目',
+]) {
+  assert.equal(isMedicalChannelRelevantText(title), true, `specific medical scope should include: ${title}`)
+}
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '2026年应用支撑平台、信息互通共享功能升级项目',
+    buyer_name: '国家卫生健康委统计信息中心',
+    product_categories: [],
+    product_items: [],
+  },
+}), true)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '2026年应用支撑平台、信息互通共享功能升级项目',
+    buyer_name: '某市大数据中心',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
+
 assert.equal(isMedicalChannelRelevantCard({
   facts: {
     project_name: '办公耗材',
