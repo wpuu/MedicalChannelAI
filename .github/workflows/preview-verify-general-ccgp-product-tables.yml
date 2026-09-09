@@ -20,6 +20,22 @@ jobs:
           ref: preview/multi-region-ui-acceptance
           fetch-depth: 0
 
+      - name: Repair staging fixture quoting
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('web/scripts/preview_apply_ccgp_general_product_tables.py')
+          text = path.read_text(encoding='utf-8')
+          starts = text.count("record = self.parse('''")
+          ends = text.count("\n        ''')\n")
+          if starts != 6 or ends != 6:
+              raise SystemExit(f'UNEXPECTED_FIXTURE_QUOTE_SHAPE starts={starts} ends={ends}')
+          text = text.replace("record = self.parse('''", 'record = self.parse("""')
+          text = text.replace("\n        ''')\n", '\n        """)\n')
+          path.write_text(text, encoding='utf-8')
+          PY
+
       - name: Apply generalized structured-table parser
         run: |
           set -euo pipefail
