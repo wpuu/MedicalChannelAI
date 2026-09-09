@@ -1,0 +1,119 @@
+{
+  "source_audit_snapshot_as_of": "2026-09-09T09:07:41.461389+08:00",
+  "verified_count": 8,
+  "cases": [
+    {
+      "opportunity_id": "ccgp_jl_3edf4a29f776eebf",
+      "project_name": "北华大学附属医院2025年血管内超声等医疗设备采购项目一标包（三次）、三标包（四次）",
+      "product_items": [
+        {
+          "raw_name": "血管内超声",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        },
+        {
+          "raw_name": "非接触眼压计",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        }
+      ],
+      "product_categories": []
+    },
+    {
+      "opportunity_id": "ccgp_jl_92d8a706047d0a62",
+      "project_name": "吉林省结核病医院（吉林省传染病医院）采购医疗设备一批项目",
+      "product_items": [
+        {
+          "raw_name": "血液透析机（单泵）",
+          "category": null,
+          "quantity": "10台",
+          "specification": null
+        },
+        {
+          "raw_name": "三维移动式C形臂X射线机等",
+          "category": null,
+          "quantity": "1套",
+          "specification": null
+        }
+      ],
+      "product_categories": []
+    },
+    {
+      "opportunity_id": "ccgp_jl_af9636c5bc0f7784",
+      "project_name": "设备更新采购项目（四平市产品质量检验院食品、工业产品检验检测设备采购项目、四平市食品药品检验所药品检验检测设备采购项目）",
+      "product_items": [],
+      "product_categories": []
+    },
+    {
+      "opportunity_id": "ccgp_jl_40d5ac0960328c51",
+      "project_name": "德惠市人民医院检验设备采购项目",
+      "product_items": [
+        {
+          "raw_name": "五分类血球分析仪、糖化分析仪、超敏C反应分析仪一体化自动检测流水线",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "全自动尿液分析仪(干化学+尿沉渣)",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "质谱分析仪",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        },
+        {
+          "raw_name": "微生物药敏分析仪",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "product_categories": []
+    },
+    {
+      "opportunity_id": "ccgp_jl_2ef67b2eece8e825",
+      "project_name": "长春中医药大学附属医院小动物超声系统等设备采购项目",
+      "product_items": [],
+      "product_categories": []
+    },
+    {
+      "opportunity_id": "ccgp_jl_37172df35abece06",
+      "project_name": "病毒检验所采购埃可病毒30型核酸检测试剂盒（荧光法）等四大症候群监测相关试剂耗材项目（二次）",
+      "product_items": [
+        {
+          "raw_name": "埃可病毒30型核酸检测试剂盒（荧光法）等四大症候群监测相关试剂耗材",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "product_categories": []
+    },
+    {
+      "opportunity_id": "ccgp_jl_7b4525920ec1cc52",
+      "project_name": "通化市疾病预防控制中心（通化市卫生监督所）传染病实验室监测质量提升采购项目",
+      "product_items": [],
+      "product_categories": []
+    },
+    {
+      "opportunity_id": "ccgp_jl_25eb3b5947b52eaa",
+      "project_name": "吉林省疾病预防控制中心（吉林省预防医学科学院）2026年全省艾滋病和梅毒的筛查检测试剂采购项目（二次）",
+      "product_items": [
+        {
+          "raw_name": "2026年全省艾滋病和梅毒的筛查检测试剂",
+          "category": null,
+          "quantity": null,
+          "specification": null
+        }
+      ],
+      "product_categories": []
+    }
+  ]
+}
