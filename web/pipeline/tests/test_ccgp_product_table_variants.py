@@ -97,6 +97,43 @@ class CcgpProductTableVariantTests(unittest.TestCase):
         self.assertEqual(item['raw_name'], '64排螺旋CT设备')
         self.assertEqual(item['category'], '医用X线诊断设备')
 
+
+    def test_colspan_footer_rows_do_not_become_products(self) -> None:
+        record = self.parse("""
+        <table>
+          <tr><th>包号</th><th>品目号</th><th>标的名称</th><th>数量</th><th>单位</th><th>备注</th></tr>
+          <tr><td>1</td><td>1-1</td><td>双能X射线骨密度仪</td><td>1</td><td>套</td><td>单一产品</td></tr>
+          <tr><td colspan="6">备注：本项目采购标的对应行业为工业</td></tr>
+        </table>
+        """)
+        self.assertEqual([item['raw_name'] for item in record['facts']['product_items']], ['双能X射线骨密度仪'])
+
+    def test_non_quantity_metadata_rows_after_product_rows_are_ignored(self) -> None:
+        record = self.parse("""
+        <table>
+          <tr><th>包号</th><th>品目号</th><th>品目名称</th><th>数量</th><th>预算</th></tr>
+          <tr><td>1</td><td>1-1</td><td>医责险采购</td><td>1项</td><td>120</td></tr>
+          <tr><td>2</td><td>2-1</td><td>医师险采购</td><td>1项</td><td>110</td></tr>
+          <tr><td colspan="2">项目用途</td><td colspan="3">医院服务</td></tr>
+          <tr><td colspan="2">项目现场</td><td colspan="3">指定地点</td></tr>
+          <tr><td colspan="2">保险期限</td><td colspan="3">1年</td></tr>
+        </table>
+        """)
+        self.assertEqual(
+            [item['raw_name'] for item in record['facts']['product_items']],
+            ['医责险采购', '医师险采购'],
+        )
+
+    def test_quantity_like_value_cannot_be_product_name(self) -> None:
+        record = self.parse("""
+        <table>
+          <tr><th>标的名称</th><th>数量</th><th>简要服务要求</th></tr>
+          <tr><td>医疗设备维保服务</td><td>1项服务</td><td>详见采购需求</td></tr>
+          <tr><td>1年</td><td>1年</td><td>错误移位的期限行</td></tr>
+        </table>
+        """)
+        self.assertEqual([item['raw_name'] for item in record['facts']['product_items']], ['医疗设备维保服务'])
+
     def test_unrelated_name_quantity_table_is_not_treated_as_procurement_items(self) -> None:
         record = self.parse("""
         <table><tr><th>名称</th><th>数量</th></tr><tr><td>附件</td><td>1</td></tr></table>

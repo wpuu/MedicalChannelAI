@@ -337,6 +337,34 @@ def _find_general_product_name_index(headers: list[str]) -> int | None:
     return headers.index('品目名称') if '品目名称' in headers else None
 
 
+
+_PRODUCT_UNIT_WORDS = {
+    '台', '套', '项', '个', '条', '批', '组', '件', '盒', '瓶', '包', '支', '份', '张', '辆',
+    '本', '册', '人', '人次', '系统', '服务', '年', '月', '次', '家', '所', '间', '种', '片',
+    '枚', '把', '部', '床', '位', '台/套', '套/年', '项服务',
+}
+_PRODUCT_TABLE_FOOTER_PREFIXES = (
+    '备注', '注解', '注：', '注:', '合同履行期限', '项目用途', '项目现场', '保险期限', '服务期限',
+)
+
+
+def _is_explicit_product_quantity(value: str | None) -> bool:
+    if value is None:
+        return False
+    normalized = re.sub(r'\s+', '', value).replace('（', '(').replace('）', ')')
+    unit_pattern = '|'.join(sorted((re.escape(unit) for unit in _PRODUCT_UNIT_WORDS), key=len, reverse=True))
+    return bool(
+        re.fullmatch(
+            rf'(?:\d+(?:\.\d+)?|[一二三四五六七八九十百]+)(?:\([^()\d]{{1,8}}\)|(?:{unit_pattern}))?',
+            normalized,
+        )
+    )
+
+
+def _is_product_table_footer_row(row: list[str]) -> bool:
+    first = next((_normalize_space(cell) for cell in row if _normalize_space(cell)), '')
+    return first.startswith(_PRODUCT_TABLE_FOOTER_PREFIXES)
+
 def _extract_general_product_table_items(html: str) -> list[dict[str, Any]]:
     """Parse explicit procurement rows across official CCGP table-header variants only."""
     parser = _SpanningProductTableParser()
@@ -379,6 +407,8 @@ def _extract_general_product_table_items(html: str) -> list[dict[str, Any]]:
             )
             required_index = max(name_index, quantity_index)
             for row in rows[header_index + 1 :]:
+                if _is_product_table_footer_row(row):
+                    break
                 if len(row) <= required_index:
                     continue
                 raw_name = _optional_table_value(row, name_index, max_length=300)
@@ -389,12 +419,17 @@ def _extract_general_product_table_items(html: str) -> list[dict[str, Any]]:
                     normalized_name in {'采购标的', '标的名称', '设备名称', '货物名称', '维保设备名称', '品目名称'}
                     or re.fullmatch(r'\d+(?:[-.]\d+)*', normalized_name)
                     or normalized_name in {'是', '否', '服务', '货物'}
+                    or _is_explicit_product_quantity(raw_name)
                 ):
                     continue
 
                 category = _optional_table_value(row, category_index, max_length=200)
                 quantity = _optional_table_value(row, quantity_index, max_length=80)
+                if not _is_explicit_product_quantity(quantity):
+                    continue
                 unit = _optional_table_value(row, unit_index, max_length=30)
+                if unit_index is not None and unit is not None and _normalize_space(unit) not in _PRODUCT_UNIT_WORDS:
+                    continue
                 if quantity and unit and unit not in quantity:
                     quantity = f'{quantity}{unit}'
                 specification = _optional_table_value(row, specification_index, max_length=2000)
