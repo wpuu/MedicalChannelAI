@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
-from medical_channel_pipeline.validation import validate_records
-
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PIPELINE_ROOT))
+
+from medical_channel_pipeline.validation import validate_records  # noqa: E402
+
 RECORDS_PATH = PIPELINE_ROOT / 'data' / 'regional_live_ccgp_records.json'
 REPORT_PATH = PIPELINE_ROOT / 'data' / 'preview_jilin_live_verification.json'
 
@@ -38,7 +41,6 @@ def main() -> int:
         if any(item.get('raw_name') == '数量' for item in items):
             raise RuntimeError(f'JILIN_INVALID_QUANTITY_LABEL:{opportunity_id}')
         if not items:
-            # Deliberately leave generic/attachment-only notices empty.
             continue
 
         facts['product_items'] = items
