@@ -88,7 +88,7 @@ class VerifiedSnapshotAutomationGuardTests(unittest.TestCase):
             regional.index('Publish combined verified snapshot'),
             regional.index('Publish and verify optional external snapshot'),
         )
-        self.assertIn('REGIONAL_INPUT = PIPELINE_ROOT / "data" / "regional_live_ccgp_records.json"', publisher)
+        self.assertIn("REGIONAL_INPUT = PIPELINE_ROOT / 'data' / 'regional_live_ccgp_records.json'", publisher)
         self.assertIn('if REGIONAL_INPUT.exists() and REGIONAL_INPUT not in input_paths:', publisher)
         self.assertIn('input_paths.append(REGIONAL_INPUT)', publisher)
 
