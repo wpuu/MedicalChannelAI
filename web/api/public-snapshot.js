@@ -34,8 +34,11 @@ function authorizedPublisher(request, expectedToken) {
   const authorization = headerValue(request, 'authorization')
   if (!authorization.startsWith('Bearer ')) return false
   const supplied = authorization.slice('Bearer '.length).trim()
-  if (!supplied || !expectedToken || supplied.length !== expectedToken.length) return false
-  return timingSafeEqual(Buffer.from(supplied), Buffer.from(expectedToken))
+  if (!supplied || !expectedToken) return false
+  const suppliedBuffer = Buffer.from(supplied)
+  const expectedBuffer = Buffer.from(expectedToken)
+  if (suppliedBuffer.length !== expectedBuffer.length) return false
+  return timingSafeEqual(suppliedBuffer, expectedBuffer)
 }
 
 async function requestBodyValue(request) {
@@ -109,7 +112,10 @@ export default async function handler(request, response) {
   try {
     const snapshot = await loadVerifiedSnapshot()
     response.setHeader('X-MedicalChannelAI-Snapshot-Source', verifiedSnapshotSourceMode())
-    return sendJson(response, 200, snapshot, { cacheable: true })
+    // This endpoint is also the publisher readback target. CDN caching here can
+    // make a successful PUT appear stale during immediate round-trip validation,
+    // so freshness is delegated to the validated Runtime Cache layer instead.
+    return sendJson(response, 200, snapshot)
   } catch {
     return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
   }
