@@ -3,6 +3,8 @@ import {
   bundledVerifiedSnapshot,
   clearVerifiedSnapshotCacheForTests,
   loadVerifiedSnapshot,
+  publishVerifiedSnapshotToRuntimeCache,
+  selectPublishedRuntimeSnapshot,
 } from '../api/_verifiedSnapshot.js'
 
 function expect(condition, code) {
@@ -28,10 +30,18 @@ function mockResponse() {
   }
 }
 
-async function invokeSnapshot(method = 'GET') {
+async function invokeSnapshot(method = 'GET', { body, headers = {} } = {}) {
   const response = mockResponse()
-  await snapshotHandler({ method }, response)
+  await snapshotHandler({ method, body, headers }, response)
   return response
+}
+
+function memoryCache() {
+  const values = new Map()
+  return {
+    async get(key) { return values.get(key) ?? null },
+    async set(key, value) { values.set(key, structuredClone(value)) },
+  }
 }
 
 async function expectRemoteRejected(payload, expectedMessage, code) {
@@ -58,11 +68,13 @@ async function expectRemoteRejected(payload, expectedMessage, code) {
 
 const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
 const savedPublicRemote = process.env.VITE_VERIFIED_SNAPSHOT_URL
+const savedPublishToken = process.env.VERIFIED_SNAPSHOT_PUBLISH_TOKEN
 const savedFetch = globalThis.fetch
 
 try {
   process.env.VERIFIED_SNAPSHOT_URL = ''
   process.env.VITE_VERIFIED_SNAPSHOT_URL = ''
+  process.env.VERIFIED_SNAPSHOT_PUBLISH_TOKEN = ''
   clearVerifiedSnapshotCacheForTests()
 
   const bundled = await loadVerifiedSnapshot()
@@ -78,6 +90,75 @@ try {
     'SNAPSHOT_BUNDLED_RANKING_MUST_BE_V2',
   )
 
+  const baselineMs = Date.parse(bundledVerifiedSnapshot().snapshot_as_of)
+  const testNowMs = baselineMs + 10 * 60 * 1000
+  const published = structuredClone(bundledVerifiedSnapshot())
+  published.snapshot_as_of = new Date(baselineMs + 60 * 1000).toISOString()
+  const cache = memoryCache()
+  const stored = await publishVerifiedSnapshotToRuntimeCache(published, { cache, nowMs: testNowMs })
+  expect(stored.snapshot_as_of === published.snapshot_as_of, 'SNAPSHOT_RUNTIME_PUBLISH_STORED')
+  expect(
+    selectPublishedRuntimeSnapshot(stored, bundledVerifiedSnapshot(), testNowMs)?.snapshot_as_of
+      === published.snapshot_as_of,
+    'SNAPSHOT_RUNTIME_PUBLISH_NEWER_SELECTED',
+  )
+
+  const olderPublished = structuredClone(published)
+  olderPublished.snapshot_as_of = new Date(baselineMs + 30 * 1000).toISOString()
+  let rollbackFailure = null
+  try {
+    await publishVerifiedSnapshotToRuntimeCache(olderPublished, { cache, nowMs: testNowMs })
+  } catch (error) {
+    rollbackFailure = error
+  }
+  expect(
+    rollbackFailure?.message === 'RUNTIME_SNAPSHOT_ROLLBACK_REJECTED',
+    'SNAPSHOT_RUNTIME_PUBLISH_ROLLBACK_REJECTED',
+  )
+
+  const conflictingPublished = structuredClone(published)
+  conflictingPublished.input_candidate_count += 1
+  let conflictFailure = null
+  try {
+    await publishVerifiedSnapshotToRuntimeCache(conflictingPublished, { cache, nowMs: testNowMs })
+  } catch (error) {
+    conflictFailure = error
+  }
+  expect(
+    conflictFailure?.message === 'RUNTIME_SNAPSHOT_REVISION_CONFLICT',
+    'SNAPSHOT_RUNTIME_PUBLISH_REVISION_CONFLICT_REJECTED',
+  )
+
+  const invalidPublished = structuredClone(published)
+  invalidPublished.cards[0].facts.verification_status = 'PARTIAL'
+  let invalidPublishFailure = null
+  try {
+    await publishVerifiedSnapshotToRuntimeCache(invalidPublished, { cache, nowMs: testNowMs })
+  } catch (error) {
+    invalidPublishFailure = error
+  }
+  expect(
+    /^VERIFIED_SNAPSHOT_CARD_NOT_VERIFIED:/.test(invalidPublishFailure?.message ?? ''),
+    'SNAPSHOT_RUNTIME_PUBLISH_INVALID_REJECTED',
+  )
+
+  const futurePublished = structuredClone(published)
+  futurePublished.snapshot_as_of = new Date(testNowMs + 16 * 60 * 1000).toISOString()
+  let futureFailure = null
+  try {
+    await publishVerifiedSnapshotToRuntimeCache(futurePublished, { cache: memoryCache(), nowMs: testNowMs })
+  } catch (error) {
+    futureFailure = error
+  }
+  expect(
+    futureFailure?.message === 'RUNTIME_SNAPSHOT_FUTURE_REJECTED',
+    'SNAPSHOT_RUNTIME_PUBLISH_FUTURE_REJECTED',
+  )
+  expect(
+    selectPublishedRuntimeSnapshot(futurePublished, bundledVerifiedSnapshot(), testNowMs) === null,
+    'SNAPSHOT_RUNTIME_FUTURE_NOT_SELECTED',
+  )
+
   let endpoint = await invokeSnapshot('GET')
   expect(endpoint.statusCode === 200, 'SNAPSHOT_ENDPOINT_GET_STATUS')
   expect(endpoint.body?.schema_version === '0.1', 'SNAPSHOT_ENDPOINT_GET_BODY')
@@ -85,8 +166,16 @@ try {
     endpoint.headers['x-medicalchannelai-snapshot-source'] === 'BUNDLED',
     'SNAPSHOT_ENDPOINT_BUNDLED_SOURCE',
   )
-  endpoint = await invokeSnapshot('POST')
-  expect(endpoint.statusCode === 405, 'SNAPSHOT_ENDPOINT_POST_STATUS')
+  endpoint = await invokeSnapshot('DELETE')
+  expect(endpoint.statusCode === 405, 'SNAPSHOT_ENDPOINT_DELETE_STATUS')
+  endpoint = await invokeSnapshot('PUT', { body: bundledVerifiedSnapshot() })
+  expect(endpoint.statusCode === 503, 'SNAPSHOT_PUBLISH_MISSING_SERVER_TOKEN_FAILS_CLOSED')
+  process.env.VERIFIED_SNAPSHOT_PUBLISH_TOKEN = 'test-publish-token-1234567890'
+  endpoint = await invokeSnapshot('PUT', {
+    body: bundledVerifiedSnapshot(),
+    headers: { authorization: 'Bearer wrong-token' },
+  })
+  expect(endpoint.statusCode === 401, 'SNAPSHOT_PUBLISH_BAD_TOKEN_REJECTED')
 
   process.env.VERIFIED_SNAPSHOT_URL = 'http://snapshot.example/data.json'
   clearVerifiedSnapshotCacheForTests()
@@ -262,4 +351,6 @@ try {
   else process.env.VERIFIED_SNAPSHOT_URL = savedRemote
   if (savedPublicRemote === undefined) delete process.env.VITE_VERIFIED_SNAPSHOT_URL
   else process.env.VITE_VERIFIED_SNAPSHOT_URL = savedPublicRemote
+  if (savedPublishToken === undefined) delete process.env.VERIFIED_SNAPSHOT_PUBLISH_TOKEN
+  else process.env.VERIFIED_SNAPSHOT_PUBLISH_TOKEN = savedPublishToken
 }
