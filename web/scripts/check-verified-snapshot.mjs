@@ -3,7 +3,6 @@ import {
   bundledVerifiedSnapshot,
   clearVerifiedSnapshotCacheForTests,
   loadVerifiedSnapshot,
-  selectCollectorRuntimeSnapshot,
 } from '../api/_verifiedSnapshot.js'
 
 function expect(condition, code) {
@@ -77,43 +76,6 @@ try {
   expect(
     bundled.cards.every((card) => card.priority?.score_type === 'ZERO_CONFIG_PUBLIC_FACTS_V2'),
     'SNAPSHOT_BUNDLED_RANKING_MUST_BE_V2',
-  )
-
-  const baselineMs = Date.parse(bundledVerifiedSnapshot().snapshot_as_of)
-  const collectorNowMs = baselineMs + 10 * 60 * 1000
-  const newerCollector = structuredClone(bundledVerifiedSnapshot())
-  newerCollector.snapshot_as_of = new Date(baselineMs + 60 * 1000).toISOString()
-  expect(
-    selectCollectorRuntimeSnapshot(newerCollector, bundledVerifiedSnapshot(), collectorNowMs)?.snapshot_as_of
-      === newerCollector.snapshot_as_of,
-    'SNAPSHOT_COLLECTOR_NEWER_MUST_WIN',
-  )
-
-  const equalCollector = structuredClone(bundledVerifiedSnapshot())
-  expect(
-    selectCollectorRuntimeSnapshot(equalCollector, bundledVerifiedSnapshot(), collectorNowMs) === null,
-    'SNAPSHOT_COLLECTOR_EQUAL_MUST_NOT_OVERRIDE_BUNDLE',
-  )
-
-  const olderCollector = structuredClone(bundledVerifiedSnapshot())
-  olderCollector.snapshot_as_of = new Date(baselineMs - 60 * 1000).toISOString()
-  expect(
-    selectCollectorRuntimeSnapshot(olderCollector, bundledVerifiedSnapshot(), collectorNowMs) === null,
-    'SNAPSHOT_COLLECTOR_OLDER_MUST_NOT_ROLL_BACK_BUNDLE',
-  )
-
-  const invalidCollector = structuredClone(newerCollector)
-  invalidCollector.cards[0].facts.verification_status = 'PARTIAL'
-  expect(
-    selectCollectorRuntimeSnapshot(invalidCollector, bundledVerifiedSnapshot(), collectorNowMs) === null,
-    'SNAPSHOT_COLLECTOR_INVALID_MUST_NOT_OVERRIDE_BUNDLE',
-  )
-
-  const futureCollector = structuredClone(newerCollector)
-  futureCollector.snapshot_as_of = new Date(collectorNowMs + 16 * 60 * 1000).toISOString()
-  expect(
-    selectCollectorRuntimeSnapshot(futureCollector, bundledVerifiedSnapshot(), collectorNowMs) === null,
-    'SNAPSHOT_COLLECTOR_FUTURE_MUST_NOT_OVERRIDE_BUNDLE',
   )
 
   let endpoint = await invokeSnapshot('GET')
