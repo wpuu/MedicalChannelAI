@@ -15,6 +15,8 @@ on:
       - 'web/pipeline/scripts/diagnose_ccgp_search.py'
       - 'web/pipeline/scripts/sync_regional_ccgp.py'
       - 'web/pipeline/scripts/publish_web_snapshot.py'
+      - 'web/pipeline/scripts/publish_snapshot_http.py'
+      - 'web/pipeline/scripts/verify_snapshot_roundtrip.py'
       - 'web/pipeline/scripts/publish_generated_data_github.py'
       - 'web/pipeline/medical_channel_pipeline/ccgp_discovery.py'
       - 'web/pipeline/medical_channel_pipeline/ccgp_detail.py'
@@ -25,6 +27,8 @@ on:
       - 'web/pipeline/medical_channel_pipeline/public_snapshot.py'
       - 'web/pipeline/tests/test_regional_candidate_classification.py'
       - 'web/pipeline/tests/test_channel_scope.py'
+      - 'web/pipeline/tests/test_snapshot_http_publish.py'
+      - 'web/pipeline/tests/test_snapshot_roundtrip.py'
 
 permissions:
   contents: write
@@ -58,7 +62,9 @@ jobs:
             tests.test_channel_scope \
             tests.test_ccgp_detail \
             tests.test_ccgp_national_detail_formats \
-            tests.test_ccgp_liaoning_detail_format
+            tests.test_ccgp_liaoning_detail_format \
+            tests.test_snapshot_http_publish \
+            tests.test_snapshot_roundtrip
 
       - name: Materialize nationwide administrative divisions
         shell: bash
@@ -113,6 +119,48 @@ jobs:
             --input web/pipeline/data/tianjin_live_tjfch_records.json \
             --event-input web/pipeline/data/tianjin_notice_events.json \
             --output web/public/data/today-actions.public.json
+
+      - name: Publish and verify optional external snapshot
+        shell: bash
+        env:
+          VERIFIED_SNAPSHOT_PUBLISH_URL: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_URL }}
+          VERIFIED_SNAPSHOT_PUBLISH_TOKEN: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_TOKEN }}
+          VERIFIED_SNAPSHOT_READ_URL: ${{ secrets.VERIFIED_SNAPSHOT_READ_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VERIFIED_SNAPSHOT_PUBLISH_URL:-}" ]]; then
+            if [[ -n "${VERIFIED_SNAPSHOT_READ_URL:-}" ]]; then
+              echo 'VERIFIED_SNAPSHOT_READ_URL is configured without VERIFIED_SNAPSHOT_PUBLISH_URL.' >&2
+              exit 2
+            fi
+            echo 'External verified-snapshot publishing is not configured; keeping Git snapshot flow only.'
+            exit 0
+          fi
+          if [[ -z "${VERIFIED_SNAPSHOT_READ_URL:-}" ]]; then
+            echo 'External snapshot publishing requires VERIFIED_SNAPSHOT_READ_URL for fail-closed readback verification.' >&2
+            exit 2
+          fi
+
+          python3 web/pipeline/scripts/publish_snapshot_http.py \
+            --snapshot web/public/data/today-actions.public.json \
+            --method PUT
+
+          verified=0
+          for attempt in 1 2 3; do
+            if python3 web/pipeline/scripts/verify_snapshot_roundtrip.py \
+              --snapshot web/public/data/today-actions.public.json; then
+              verified=1
+              break
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              echo "External snapshot readback not consistent yet; retry ${attempt}/3 after 2s."
+              sleep 2
+            fi
+          done
+          if [[ "${verified}" -ne 1 ]]; then
+            echo 'External snapshot round-trip verification failed after 3 attempts.' >&2
+            exit 2
+          fi
 
       - name: Commit verified regional refresh
         shell: bash
