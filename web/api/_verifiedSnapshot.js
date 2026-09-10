@@ -10,12 +10,15 @@ const MAX_OPPORTUNITY_POOL = 500
 const BUNDLED_SNAPSHOT_REVISION = String(bundledSnapshot?.snapshot_as_of || 'unknown')
   .replace(/[^0-9A-Za-z]/g, '')
   .slice(0, 40) || 'unknown'
-// Runtime cache must be scoped to the bundled VERIFIED data revision. A data-refresh
-// deployment must never inherit a stale "latest" cache entry from an older bundle.
-// Pure code deployments that embed the same snapshot reuse the same cache key.
-const LATEST_RUNTIME_SNAPSHOT_KEY =
+// Keep an exact bundled-revision cache as the rollback-safe seed. The native
+// Vercel collector publishes independently to COLLECTOR_RUNTIME_SNAPSHOT_KEY;
+// that stable key is safe across deployments because Vercel Runtime Cache is
+// isolated by project and deployment environment (Preview vs Production).
+const BUNDLED_RUNTIME_SNAPSHOT_KEY =
   `medicalchannelai:verified-snapshot:${BUNDLED_SNAPSHOT_REVISION}:v3`
+const COLLECTOR_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:latest:v1'
 const RUNTIME_SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
+const RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS = 15 * 60 * 1000
 const ZERO_CONFIG_SCORE_TYPE_V2 = 'ZERO_CONFIG_PUBLIC_FACTS_V2'
 const V2_PRIORITY_MAX_POINTS = new Map([
   ['PRODUCT_EXECUTION_CAPABILITY', 25],
@@ -187,6 +190,26 @@ function scopedVerifiedSnapshot(snapshot) {
 export function bundledVerifiedSnapshot() {
   return validateVerifiedSnapshot(bundledSnapshot)
 }
+export function selectCollectorRuntimeSnapshot(value, bundled = bundledVerifiedSnapshot(), nowMs = Date.now()) {
+  let candidate
+  let baseline
+  try {
+    candidate = validateVerifiedSnapshot(value)
+    baseline = validateVerifiedSnapshot(bundled)
+  } catch {
+    return null
+  }
+  const candidateMs = Date.parse(candidate.snapshot_as_of)
+  const baselineMs = Date.parse(baseline.snapshot_as_of)
+  if (!Number.isFinite(candidateMs) || !Number.isFinite(baselineMs)) return null
+  // The stable collector key survives code/data deployments within one Vercel
+  // environment. It may therefore contain an older snapshot and must never roll
+  // back the exact VERIFIED bundle embedded in this deployment. Equal timestamps
+  // are also ambiguous, so only a strictly newer collector snapshot can win.
+  if (candidateMs <= baselineMs) return null
+  if (candidateMs > nowMs + RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS) return null
+  return candidate
+}
 async function loadRemoteSnapshot(remoteUrl) {
   const now = Date.now()
   if (remoteCache?.url === remoteUrl && remoteCache.expiresAt > now) return remoteCache.snapshot
@@ -206,19 +229,27 @@ async function loadRemoteSnapshot(remoteUrl) {
     clearTimeout(timeout)
   }
 }
-async function persistRuntimeSnapshot(cache, snapshot) {
-  await cache.set(LATEST_RUNTIME_SNAPSHOT_KEY, snapshot, {
+async function persistBundledRuntimeSnapshot(cache, snapshot) {
+  await cache.set(BUNDLED_RUNTIME_SNAPSHOT_KEY, snapshot, {
     ttl: RUNTIME_SNAPSHOT_TTL_SECONDS,
     tags: ['medicalchannelai-verified-snapshot'],
   })
-  const readBack = await cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
+  const readBack = await cache.get(BUNDLED_RUNTIME_SNAPSHOT_KEY)
   if (!readBack) throw new Error('RUNTIME_SNAPSHOT_READBACK_FAILED')
   return validateVerifiedSnapshot(readBack)
 }
 async function loadRuntimeCachedSnapshot() {
   if (!process.env.VERCEL_REGION) return null
   const cache = getCache()
-  const value = await cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
+
+  // Native collector output is a data-plane update independent from Git/code
+  // deployment. Accept it only after full public VERIFIED validation and only
+  // when it is monotonically newer than this deployment's bundled snapshot.
+  const collectorValue = await cache.get(COLLECTOR_RUNTIME_SNAPSHOT_KEY)
+  const collectorSnapshot = selectCollectorRuntimeSnapshot(collectorValue)
+  if (collectorSnapshot) return collectorSnapshot
+
+  const value = await cache.get(BUNDLED_RUNTIME_SNAPSHOT_KEY)
   if (value) {
     try {
       return validateVerifiedSnapshot(value)
@@ -227,9 +258,7 @@ async function loadRuntimeCachedSnapshot() {
     }
   }
 
-  // Deliberately do not migrate old "latest:v1/v2" keys. Those keys are not
-  // bound to the bundled snapshot revision and can contain an older data refresh.
-  return persistRuntimeSnapshot(cache, bundledVerifiedSnapshot())
+  return persistBundledRuntimeSnapshot(cache, bundledVerifiedSnapshot())
 }
 export async function loadVerifiedSnapshot() {
   const remoteUrl = configuredRemoteUrl()
