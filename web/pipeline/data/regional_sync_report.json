@@ -1,8 +1,8 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-10T05:22:26.740579+00:00",
-  "start_date": "2026-09-08",
-  "end_date": "2026-09-10",
+  "observed_at": "2026-09-11T05:20:27.078660+00:00",
+  "start_date": "2026-09-09",
+  "end_date": "2026-09-11",
   "markets": [
     {
       "market_code": "BJ",
@@ -12,23 +12,11 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 30,
+      "unique_candidate_count": 23,
       "selected_candidate_count": 10,
-      "new_verified_record_count": 9,
-      "failure_count": 1,
-      "failures": [
-        {
-          "stage": "verified_detail",
-          "market_code": "BJ",
-          "region": "北京",
-          "notice_type": "公开招标",
-          "candidate_region": "北京",
-          "title": "北京中医药大学东直门医院高水平中医医院临床科研一体化数据平台硬件采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260910_27302500.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
-        }
-      ]
+      "new_verified_record_count": 10,
+      "failure_count": 0,
+      "failures": []
     },
     {
       "market_code": "HE",
@@ -38,7 +26,7 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 35,
+      "unique_candidate_count": 29,
       "selected_candidate_count": 10,
       "new_verified_record_count": 10,
       "failure_count": 0,
@@ -52,11 +40,33 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 15,
-      "selected_candidate_count": 10,
+      "unique_candidate_count": 7,
+      "selected_candidate_count": 7,
       "new_verified_record_count": 0,
-      "failure_count": 10,
+      "failure_count": 7,
       "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "葫芦岛市建昌县医疗卫生强基工程医疗设备采购招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260910_27304093.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "鞍山市中心医院铁东院区(GE)DSA及影像设备维保采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260910_27304079.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
         {
           "stage": "verified_detail",
           "market_code": "LN",
@@ -111,61 +121,6 @@
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260909_27293818.htm",
           "error": "CcgpDetailParseError",
           "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "辽宁省金秋医院2026年扇扫超声内镜设备采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291255.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "于洪区人民医院结核分枝杆菌耐药基因检测设备及其他配套设备采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "营口市中心医院新建手术室设备购置第二批招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288084.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "中国医科大学附属第一医院“心血管健康区域化防控技术研究”社区血液样本检测服务项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288043.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "医疗设备采购项目（第二次）招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27288040.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         }
       ]
     },
@@ -174,14 +129,34 @@
       "market_name": "吉林",
       "admin_code": "220000",
       "ccgp_zone_id": "22",
-      "scoped_query_success_count": 10,
+      "scoped_query_success_count": 9,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 15,
-      "selected_candidate_count": 10,
-      "new_verified_record_count": 8,
-      "failure_count": 2,
+      "unique_candidate_count": 7,
+      "selected_candidate_count": 7,
+      "new_verified_record_count": 4,
+      "failure_count": 4,
       "failures": [
+        {
+          "stage": "scoped_discovery",
+          "market_code": "JL",
+          "region": "吉林",
+          "keyword": "医院",
+          "notice_type": "公开招标",
+          "error": "TimeoutError",
+          "message": "The read operation timed out"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "JL",
+          "region": "吉林",
+          "notice_type": "公开招标",
+          "candidate_region": "吉林",
+          "title": "吉林省人民检察院（本级）-全省检察机关公益诉讼检测设备及法医勘验检验设备统一购建",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27308894.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
         {
           "stage": "verified_detail",
           "market_code": "JL",
@@ -214,42 +189,19 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 30,
+      "unique_candidate_count": 20,
       "selected_candidate_count": 10,
-      "new_verified_record_count": 8,
-      "failure_count": 2,
-      "failures": [
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "哈尔滨医科大学附属肿瘤医院GE64排CT维保服务单一来源公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260909_27297998.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "notice_type": "公开招标",
-          "candidate_region": "黑龙江",
-          "title": "哈尔滨医科大学附属肿瘤医院后装治疗机维保（含换源服务）单一来源公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260909_27297941.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
-        }
-      ]
+      "new_verified_record_count": 10,
+      "failure_count": 0,
+      "failures": []
     }
   ],
   "national_fallback_query_success_count": 0,
   "national_fallback_failure_count": 0,
   "national_fallback_failures": [],
-  "existing_record_count": 61,
-  "new_verified_record_count": 35,
-  "merged_record_count": 92,
+  "existing_record_count": 92,
+  "new_verified_record_count": 34,
+  "merged_record_count": 119,
   "policy": {
     "business_market_is_explicit_not_geolocated": true,
     "market_admin_codes_are_validated_against_configured_ccgp_zone": true,
