@@ -10,6 +10,7 @@ for (const title of [
   '天津市滨海新区大港医院CT影像设备维保项目',
   '天津市胸科医院检验科设备租赁服务项目',
   '天津市滨海新区海滨人民医院采购人工智能GPU（8卡）算力服务器项目',
+  '朝阳县中心医院西梁院区医用气体改造工程',
 ]) {
   assert.equal(isMedicalChannelRelevantText(title), true, `scope should include: ${title}`)
 }
@@ -22,6 +23,7 @@ for (const title of [
   '2026-2027年度拟外委托检验检测项目',
   '人工智能GPU算力服务器项目',
   '丹东市中心医院2026-2029年度医用织物洗涤消毒招标采购',
+  '中国中医科学院眼科医院国家中医药传承创新中心建设项目基建改造工程——眼功能实验室改造施工',
 ]) {
   assert.equal(isMedicalChannelRelevantText(title), false, `scope should exclude: ${title}`)
 }
@@ -107,6 +109,24 @@ assert.equal(isMedicalChannelRelevantCard({
     product_items: [],
   },
 }), false)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '中国中医科学院眼科医院国家中医药传承创新中心建设项目基建改造工程——眼功能实验室改造施工',
+    buyer_name: '中国中医科学院眼科医院',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '朝阳县中心医院西梁院区医用气体改造工程',
+    buyer_name: '朝阳县中心医院',
+    product_categories: [],
+    product_items: [],
+  },
+}), true)
 
 const card = (id, title, rank) => ({ opportunity_id: id, rank, facts: { project_name: title, product_categories: [], product_items: [] } })
 const filtered = filterSnapshotToMedicalChannel({
