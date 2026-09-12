@@ -1,8 +1,8 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-11T05:20:27.078660+00:00",
-  "start_date": "2026-09-09",
-  "end_date": "2026-09-11",
+  "observed_at": "2026-09-12T05:10:53.027883+00:00",
+  "start_date": "2026-09-10",
+  "end_date": "2026-09-12",
   "markets": [
     {
       "market_code": "BJ",
@@ -12,7 +12,7 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 23,
+      "unique_candidate_count": 19,
       "selected_candidate_count": 10,
       "new_verified_record_count": 10,
       "failure_count": 0,
@@ -26,7 +26,7 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 29,
+      "unique_candidate_count": 27,
       "selected_candidate_count": 10,
       "new_verified_record_count": 10,
       "failure_count": 0,
@@ -40,11 +40,22 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 7,
-      "selected_candidate_count": 7,
+      "unique_candidate_count": 3,
+      "selected_candidate_count": 3,
       "new_verified_record_count": 0,
-      "failure_count": 7,
+      "failure_count": 3,
       "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "LN",
+          "region": "辽宁",
+          "notice_type": "公开招标",
+          "candidate_region": "辽宁",
+          "title": "职工（在职、退休）补充医疗保险服务项目（第二次）招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27315555.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
+        },
         {
           "stage": "verified_detail",
           "market_code": "LN",
@@ -66,61 +77,6 @@
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260910_27304079.htm",
           "error": "CcgpDetailParseError",
           "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "精细化工检验检测实训中心设备更新（1）（第二次）招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260909_27300520.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "义县人民医院医用吊塔采购安装项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260909_27298678.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "中国医科大学附属第一医院“人工智能+”辅助诊疗系统（信息中心）招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260909_27297055.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "中国医科大学附属盛京医院混合动力碎石清石系统采购项目（第二次）招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260909_27297027.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "朝阳县中心医院西梁院区医用气体改造工程招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260909_27293818.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         }
       ]
     },
@@ -129,23 +85,14 @@
       "market_name": "吉林",
       "admin_code": "220000",
       "ccgp_zone_id": "22",
-      "scoped_query_success_count": 9,
+      "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 7,
-      "selected_candidate_count": 7,
-      "new_verified_record_count": 4,
-      "failure_count": 4,
+      "unique_candidate_count": 15,
+      "selected_candidate_count": 10,
+      "new_verified_record_count": 9,
+      "failure_count": 1,
       "failures": [
-        {
-          "stage": "scoped_discovery",
-          "market_code": "JL",
-          "region": "吉林",
-          "keyword": "医院",
-          "notice_type": "公开招标",
-          "error": "TimeoutError",
-          "message": "The read operation timed out"
-        },
         {
           "stage": "verified_detail",
           "market_code": "JL",
@@ -154,28 +101,6 @@
           "candidate_region": "吉林",
           "title": "吉林省人民检察院（本级）-全省检察机关公益诉讼检测设备及法医勘验检验设备统一购建",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27308894.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "JL",
-          "region": "吉林",
-          "notice_type": "公开招标",
-          "candidate_region": "吉林",
-          "title": "吉林省社会医疗保险管理局-吉林省医疗保障定点服务机构核查检查第三方支持服务项目-专项检查（含重点项目）服务包（2）",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260910_27302161.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "JL",
-          "region": "吉林",
-          "notice_type": "公开招标",
-          "candidate_region": "吉林",
-          "title": "吉林省社会医疗保险管理局-吉林省医疗保障定点服务机构核查检查第三方支持服务项目-常态化协议管理检查服务包",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260910_27302160.htm",
           "error": "CcgpDetailParseError",
           "message": "CCGP_REGISTRATION_SECTION_NOT_FOUND"
         }
@@ -189,19 +114,42 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "unique_candidate_count": 20,
+      "unique_candidate_count": 18,
       "selected_candidate_count": 10,
-      "new_verified_record_count": 10,
-      "failure_count": 0,
-      "failures": []
+      "new_verified_record_count": 8,
+      "failure_count": 2,
+      "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "黑龙江省卫生健康委员会信息化业务系统迁移信创云采购（医疗机构依法执业自查系统）(三次)单一来源公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27313993.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
+        },
+        {
+          "stage": "verified_detail",
+          "market_code": "HL",
+          "region": "黑龙江",
+          "notice_type": "公开招标",
+          "candidate_region": "黑龙江",
+          "title": "黑龙江省医院液氧及其他医用气体供应服务(二次)单一来源公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27313472.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_BID_DEADLINE_NOT_FOUND"
+        }
+      ]
     }
   ],
   "national_fallback_query_success_count": 0,
   "national_fallback_failure_count": 0,
   "national_fallback_failures": [],
-  "existing_record_count": 92,
-  "new_verified_record_count": 34,
-  "merged_record_count": 119,
+  "existing_record_count": 119,
+  "new_verified_record_count": 37,
+  "merged_record_count": 147,
   "policy": {
     "business_market_is_explicit_not_geolocated": true,
     "market_admin_codes_are_validated_against_configured_ccgp_zone": true,
