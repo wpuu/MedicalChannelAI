@@ -38,6 +38,10 @@ class DeepRefreshScheduleTests(unittest.TestCase):
         self.assertNotIn("group: regional-medical-refresh-", self.regional_workflow)
         self.assertNotIn("cancel-in-progress: true", self.regional_workflow)
 
+    def test_regional_push_trigger_is_main_only_after_preview_acceptance(self) -> None:
+        self.assertIn("branches: [main]", self.regional_workflow)
+        self.assertNotIn("release/production-gate-prep", self.regional_workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
