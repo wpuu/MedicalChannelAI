@@ -1,0 +1,72 @@
+name: Stage Production 2026-09-13
+
+on:
+  push:
+    branches: [release/staged-production-20260913]
+    paths:
+      - '.github/workflows/stage-production-20260913.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannelai-production-release-20260913
+  cancel-in-progress: false
+
+jobs:
+  stage:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 20
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo '::error::VERCEL_TOKEN GitHub Actions secret is not configured; no deployment attempted.'
+            exit 1
+          fi
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: 783c10230d9385738b81c1a8d553d9742f75ea24
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Link exact Vercel project locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Create staged Production deployment without domain switch
+        id: stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
+          case "$DEPLOY_URL" in
+            https://*) ;;
+            *) echo '::error::Vercel did not return a deployment URL.'; exit 1 ;;
+          esac
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          echo "Staged Production URL: $DEPLOY_URL"
+          echo "### Staged Production" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Exact source SHA: \`783c10230d9385738b81c1a8d553d9742f75ea24\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: $DEPLOY_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Domain switch: skipped" >> "$GITHUB_STEP_SUMMARY"
