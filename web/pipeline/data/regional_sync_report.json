@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-13T02:44:06.685958+00:00",
+  "observed_at": "2026-09-13T05:25:34.272730+00:00",
   "start_date": "2026-09-11",
   "end_date": "2026-09-13",
   "markets": [
@@ -103,49 +103,14 @@
       ],
       "unique_candidate_count": 16,
       "selected_candidate_count": 10,
-      "selected_unseen_candidate_count": 6,
-      "selected_existing_candidate_count": 4,
+      "selected_unseen_candidate_count": 1,
+      "selected_existing_candidate_count": 9,
       "selected_candidates": [
         {
-          "title": "保定市第一中心医院购置匀浆机等设备项目5包二次公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27313041.htm",
+          "title": "保定市第一中心医院购置匀浆机等设备项目11包公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27313040.htm",
           "published_at": "2026-09-11",
           "priority": 2,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "2026年中医医院“量质齐升”建设项目采购（二次）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27311522.htm",
-          "published_at": "2026-09-11",
-          "priority": 1,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "唐山市开平区卫生健康局本级计划生育特殊家庭住院护工补贴保险（五次）（双盲评审）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27310985.htm",
-          "published_at": "2026-09-11",
-          "priority": 1,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "河北省胸科医院学生公寓租赁项目（三年）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27310320.htm",
-          "published_at": "2026-09-11",
-          "priority": 1,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "河北省眼科医院顺德院区中央空调采购项目（二次）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27310306.htm",
-          "published_at": "2026-09-11",
-          "priority": 1,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "无极县医院临床专科（肿瘤科）能力提升项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27308982.htm",
-          "published_at": "2026-09-11",
-          "priority": 1,
           "was_existing_verified_url": false
         },
         {
@@ -174,6 +139,41 @@
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27309462.htm",
           "published_at": "2026-09-11",
           "priority": 3,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "秦皇岛市第三医院设备更新项目第十三标段：椎间孔镜手术系统（二次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27315254.htm",
+          "published_at": "2026-09-11",
+          "priority": 2,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "廊坊市人民医院综合信息平台系统升级、维保服务（三期）项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27313065.htm",
+          "published_at": "2026-09-11",
+          "priority": 2,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "保定市第一中心医院购置匀浆机等设备项目5包二次公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27313041.htm",
+          "published_at": "2026-09-11",
+          "priority": 2,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "故城县医院GE医学图像处理软件采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27309461.htm",
+          "published_at": "2026-09-11",
+          "priority": 2,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "河北省食品检验研究院虚拟化服务器设备采购项目公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27314492.htm",
+          "published_at": "2026-09-11",
+          "priority": 1,
           "was_existing_verified_url": true
         }
       ],
@@ -220,22 +220,22 @@
       "skipped_candidates": [],
       "unique_candidate_count": 8,
       "selected_candidate_count": 8,
-      "selected_unseen_candidate_count": 2,
-      "selected_existing_candidate_count": 6,
+      "selected_unseen_candidate_count": 1,
+      "selected_existing_candidate_count": 7,
       "selected_candidates": [
-        {
-          "title": "吉林大学第一医院彩色多普勒超声诊断仪采购项目（三次）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260913_27318421.htm",
-          "published_at": "2026-09-13",
-          "priority": 3,
-          "was_existing_verified_url": false
-        },
         {
           "title": "吉林省人民检察院（本级）-全省检察机关公益诉讼检测设备及法医勘验检验设备统一购建",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260911_27308894.htm",
           "published_at": "2026-09-11",
           "priority": 1,
           "was_existing_verified_url": false
+        },
+        {
+          "title": "吉林大学第一医院彩色多普勒超声诊断仪采购项目（三次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260913_27318421.htm",
+          "published_at": "2026-09-13",
+          "priority": 3,
+          "was_existing_verified_url": true
         },
         {
           "title": "吉林大学第二医院彩色多普勒超声诊断仪采购项目公开招标公告",
@@ -301,7 +301,7 @@
       "market_name": "黑龙江",
       "admin_code": "230000",
       "ccgp_zone_id": "23",
-      "scoped_query_success_count": 9,
+      "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
       "skipped_candidate_count": 4,
@@ -424,24 +424,14 @@
         }
       ],
       "new_verified_record_count": 10,
-      "failure_count": 1,
-      "failures": [
-        {
-          "stage": "scoped_discovery",
-          "market_code": "HL",
-          "region": "黑龙江",
-          "keyword": "检验",
-          "notice_type": "公开招标",
-          "error": "TimeoutError",
-          "message": "The read operation timed out"
-        }
-      ]
+      "failure_count": 0,
+      "failures": []
     }
   ],
   "national_fallback_query_success_count": 0,
   "national_fallback_failure_count": 0,
   "national_fallback_failures": [],
-  "existing_record_count": 202,
+  "existing_record_count": 208,
   "new_verified_record_count": 36,
   "merged_record_count": 208,
   "policy": {
