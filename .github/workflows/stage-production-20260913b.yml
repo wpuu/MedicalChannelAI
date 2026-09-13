@@ -70,3 +70,5 @@ jobs:
           echo "- Exact source SHA: \`5b35ea51f45774b110147d3fbf7d0c66b5e749cf\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- URL: $DEPLOY_URL" >> "$GITHUB_STEP_SUMMARY"
           echo "- Domain switch: skipped" >> "$GITHUB_STEP_SUMMARY"
+
+# retry-trigger: 2026-09-13T06:36Z
