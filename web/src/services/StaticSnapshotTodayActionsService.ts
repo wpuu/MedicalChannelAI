@@ -14,7 +14,7 @@ import {
 import { personalizeTrialCards } from './localCustomerProfile'
 import type { TodayActionsService } from './TodayActionsService'
 
-const COVERAGE_WARNING = '天津 Pilot · 公开事实来自证据流水线快照；当前仍为部分来源覆盖。'
+const COVERAGE_WARNING = '当前业务地区 · 公开事实来自证据流水线快照；各地区仍为部分来源覆盖。'
 const INTERVENTION_MAX_POINTS = 25
 const LATE_WINDOW_POINTS = 8
 const LATE_WINDOW_PERCENT = Math.round((LATE_WINDOW_POINTS / INTERVENTION_MAX_POINTS) * 100)
@@ -148,6 +148,9 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       buyer_name: card.facts.buyer_name,
       department: card.facts.department,
       region: card.facts.region,
+      market_code: card.facts.market_code ?? null,
+      market_name: card.facts.market_name ?? null,
+      market_admin_code: card.facts.market_admin_code ?? null,
       lifecycle_stage: card.facts.lifecycle_state,
       notice_type: card.facts.notice_type,
       publish_date: card.facts.published_at,

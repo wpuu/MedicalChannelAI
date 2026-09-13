@@ -14,6 +14,9 @@ export interface PublicFacts {
   hospital_name: string | null
   department: string | null
   region: string | null
+  market_code?: string | null
+  market_name?: string | null
+  market_admin_code?: string | null
   lifecycle_state: string | null
   notice_type: string | null
   published_at: string | null

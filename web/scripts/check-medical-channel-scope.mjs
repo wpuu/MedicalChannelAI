@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import {
   filterSnapshotToMedicalChannel,
+  isMedicalChannelRelevantCard,
   isMedicalChannelRelevantText,
 } from '../api/_medicalChannelScope.js'
 
@@ -9,6 +10,7 @@ for (const title of [
   '天津市滨海新区大港医院CT影像设备维保项目',
   '天津市胸科医院检验科设备租赁服务项目',
   '天津市滨海新区海滨人民医院采购人工智能GPU（8卡）算力服务器项目',
+  '朝阳县中心医院西梁院区医用气体改造工程',
 ]) {
   assert.equal(isMedicalChannelRelevantText(title), true, `scope should include: ${title}`)
 }
@@ -17,26 +19,134 @@ for (const title of [
   '天津中医药大学第二附属医院安保服务项目',
   '天津市海河医院战略型复合人才培养项目',
   '西青区卫生健康基层医疗卫生机构财务信息化管理项目',
+  '计量专业检验检测设备更新项目',
+  '2026-2027年度拟外委托检验检测项目',
+  '人工智能GPU算力服务器项目',
+  '丹东市中心医院2026-2029年度医用织物洗涤消毒招标采购',
+  '中国中医科学院眼科医院国家中医药传承创新中心建设项目基建改造工程——眼功能实验室改造施工',
 ]) {
   assert.equal(isMedicalChannelRelevantText(title), false, `scope should exclude: ${title}`)
 }
 
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '检验检测仪器设备更新项目-2',
+    buyer_name: '黑龙江省药品检验研究院',
+    product_categories: [],
+    product_items: [],
+  },
+}), true)
+
+for (const title of [
+  '中国医学科学院北京协和医院放射科乳腺机采购项目',
+  '中日友好医院免散瞳眼底照相机系统采购项目',
+  '中国疾病预防控制中心疾病预防控制专用设备购置项目',
+]) {
+  assert.equal(isMedicalChannelRelevantText(title), true, `specific medical scope should include: ${title}`)
+}
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '2026年应用支撑平台、信息互通共享功能升级项目',
+    buyer_name: '国家卫生健康委统计信息中心',
+    product_categories: [],
+    product_items: [],
+  },
+}), true)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '2026年应用支撑平台、信息互通共享功能升级项目',
+    buyer_name: '某市大数据中心',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '办公耗材',
+    buyer_name: '北京中医药大学东方医院秦皇岛医院（秦皇岛市中医医院）',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '2026-2027年度拟外委托检验检测项目',
+    buyer_name: '自然资源部大连海洋中心（自然资源部大连海洋预报台）',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '人工智能GPU算力服务器项目',
+    buyer_name: '某市中心医院',
+    hospital_name: '某市中心医院',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '某市中心医院人工智能GPU算力服务器项目',
+    buyer_name: '某市中心医院',
+    hospital_name: '某市中心医院',
+    product_categories: [],
+    product_items: [],
+  },
+}), true)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '丹东市中心医院2026-2029年度医用织物洗涤消毒招标采购',
+    buyer_name: '丹东市中心医院',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '中国中医科学院眼科医院国家中医药传承创新中心建设项目基建改造工程——眼功能实验室改造施工',
+    buyer_name: '中国中医科学院眼科医院',
+    product_categories: [],
+    product_items: [],
+  },
+}), false)
+
+assert.equal(isMedicalChannelRelevantCard({
+  facts: {
+    project_name: '朝阳县中心医院西梁院区医用气体改造工程',
+    buyer_name: '朝阳县中心医院',
+    product_categories: [],
+    product_items: [],
+  },
+}), true)
+
 const card = (id, title, rank) => ({ opportunity_id: id, rank, facts: { project_name: title, product_categories: [], product_items: [] } })
 const filtered = filterSnapshotToMedicalChannel({
-  matched_count: 4,
-  card_count: 4,
-  opportunity_pool_count: 4,
+  matched_count: 6,
+  card_count: 5,
+  opportunity_pool_count: 6,
   cards: [
     card('medical', '数字彩色超声诊断系统采购项目', 1),
     card('security', '医院安保服务项目', 2),
     card('finance', '医院财务信息化管理项目', 3),
-    card('gpu', '人工智能GPU算力服务器项目', 4),
+    card('gpu', '某市中心医院人工智能GPU算力服务器项目', 4),
+    card('laundry', '丹东市中心医院医用织物洗涤消毒招标采购', 5),
   ],
   opportunity_pool: [
     card('medical', '数字彩色超声诊断系统采购项目', 1),
     card('security', '医院安保服务项目', 2),
     card('finance', '医院财务信息化管理项目', 3),
-    card('gpu', '人工智能GPU算力服务器项目', 4),
+    card('gpu', '某市中心医院人工智能GPU算力服务器项目', 4),
+    card('generic-gpu', '人工智能GPU算力服务器项目', 5),
+    card('laundry', '丹东市中心医院医用织物洗涤消毒招标采购', 6),
   ],
 })
 assert.deepEqual(filtered.opportunity_pool.map((item) => item.opportunity_id), ['medical', 'gpu'])

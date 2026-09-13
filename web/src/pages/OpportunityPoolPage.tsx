@@ -15,6 +15,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageSt
 import { PreMarketSignalNotice, isPreMarketSignal } from '@/components/shared/PreMarketSignalNotice'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { StageBadge } from '@/components/shared/StageBadge'
+import { marketCodesForSelection, marketSelectionLabel } from '@/config/marketPreference'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { AiDecisionError, requestAiDecision } from '@/services/aiDecisionApi'
@@ -40,6 +41,7 @@ function normalizedSearchText(card: TodayActionCard): string {
     card.facts.hospital,
     card.facts.buyer_name,
     card.facts.department,
+    card.facts.market_name,
     card.facts.region,
     ...(card.facts.product_categories ?? []),
     ...(card.facts.products ?? []).flatMap((item) => [item.name, item.category, item.specification]),
@@ -123,6 +125,8 @@ function PoolCard({
   const contactEmail = contact?.email?.trim() || null
   const contactPhoneHref = telHref(contactPhone)
   const contactEmailHref = mailtoHref(contactEmail)
+  const marketName = card.facts.market_name?.trim() || null
+  const noticeRegion = card.facts.region?.trim() || null
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -134,6 +138,11 @@ function PoolCard({
             </span>
             <PriorityBadge score={card.priority.score} scoreScope={card.priority.score_scope} />
             <StageBadge stage={card.facts.lifecycle_stage} />
+            {marketName ? (
+              <span className="rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-800">
+                {marketName}
+              </span>
+            ) : null}
             {late ? (
               <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
                 报名窗口已结束
@@ -147,7 +156,7 @@ function PoolCard({
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-500">
             {budget ? <span>公开预算 {budget}</span> : <span>公开预算未提供</span>}
             {deadline ? <span>{deadline}</span> : null}
-            {card.facts.region ? <span>{card.facts.region}</span> : null}
+            {noticeRegion && noticeRegion !== marketName ? <span>公告区域 {noticeRegion}</span> : null}
           </div>
           {preMarket ? (
             <div className="mt-2">
@@ -332,17 +341,20 @@ export function OpportunityPoolPage() {
     }
   }, [navigate])
 
+  const selectedMarketCodes = useMemo(() => new Set(marketCodesForSelection()), [])
+
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
     return cards.filter((card) => {
       const preMarket = isPreMarketSignal(card.facts.lifecycle_stage, card.recommendation_mode)
+      if (!card.facts.market_code || !selectedMarketCodes.has(card.facts.market_code as never)) return false
       if (windowFilter === 'OPEN' && (card.recommendation_mode === 'LATE_WINDOW' || preMarket)) return false
       if (windowFilter === 'PRE_MARKET_SIGNAL' && !preMarket) return false
       if (windowFilter === 'LATE_WINDOW' && card.recommendation_mode !== 'LATE_WINDOW') return false
       if (!needle) return true
       return normalizedSearchText(card).includes(needle)
     })
-  }, [cards, query, windowFilter])
+  }, [cards, query, selectedMarketCodes, windowFilter])
 
   const addToFollowups = async (id: string) => {
     const card = cards.find((item) => item.opportunity_id === id)
@@ -471,7 +483,7 @@ export function OpportunityPoolPage() {
           </div>
         ) : null}
 
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-4 flex flex-col gap-2 lg:flex-row">
           <label className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
@@ -481,6 +493,9 @@ export function OpportunityPoolPage() {
               className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-[13px] outline-none focus:border-teal-400 focus:bg-white"
             />
           </label>
+          <div className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-[12px] text-slate-500">
+            <span className="whitespace-nowrap">业务地区：<strong className="font-medium text-slate-700">{marketSelectionLabel()}</strong></span>
+          </div>
           <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
             <SlidersHorizontal className="ml-2 h-3.5 w-3.5 text-slate-400" />
             {([
@@ -527,7 +542,7 @@ export function OpportunityPoolPage() {
           ))}
         </div>
       ) : (
-        <EmptyState title="没有符合条件的机会" hint="可以清空搜索词或切换筛选条件。" />
+        <EmptyState title="没有符合条件的机会" hint="可以清空搜索词、在顶部切换业务地区或调整窗口筛选。" />
       )}
     </div>
   )

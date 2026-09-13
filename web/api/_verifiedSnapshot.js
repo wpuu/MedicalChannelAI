@@ -5,16 +5,19 @@ import { filterSnapshotToMedicalChannel } from './_medicalChannelScope.js'
 const REMOTE_CACHE_TTL_MS = 60 * 1000
 const REMOTE_TIMEOUT_MS = 6000
 const MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024
+const MAX_RUNTIME_SNAPSHOT_BYTES = 1900 * 1024
 const MAX_TODAY_CARDS = 5
 const MAX_OPPORTUNITY_POOL = 500
+const RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS = 15 * 60 * 1000
 const BUNDLED_SNAPSHOT_REVISION = String(bundledSnapshot?.snapshot_as_of || 'unknown')
   .replace(/[^0-9A-Za-z]/g, '')
   .slice(0, 40) || 'unknown'
-// Runtime cache must be scoped to the bundled VERIFIED data revision. A data-refresh
-// deployment must never inherit a stale "latest" cache entry from an older bundle.
-// Pure code deployments that embed the same snapshot reuse the same cache key.
-const LATEST_RUNTIME_SNAPSHOT_KEY =
+// The exact bundled revision remains the rollback-safe cache seed. Separately,
+// the authenticated GitHub verified-data publisher may update PUBLISHED_RUNTIME_SNAPSHOT_KEY
+// without deploying code. Vercel Runtime Cache isolates Preview and Production.
+const BUNDLED_RUNTIME_SNAPSHOT_KEY =
   `medicalchannelai:verified-snapshot:${BUNDLED_SNAPSHOT_REVISION}:v3`
+const PUBLISHED_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:published:v1'
 const RUNTIME_SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
 const ZERO_CONFIG_SCORE_TYPE_V2 = 'ZERO_CONFIG_PUBLIC_FACTS_V2'
 const V2_PRIORITY_MAX_POINTS = new Map([
@@ -187,6 +190,66 @@ function scopedVerifiedSnapshot(snapshot) {
 export function bundledVerifiedSnapshot() {
   return validateVerifiedSnapshot(bundledSnapshot)
 }
+function parsedSnapshotTime(snapshot) {
+  return Date.parse(snapshot?.snapshot_as_of || '')
+}
+export function selectPublishedRuntimeSnapshot(value, bundled = bundledVerifiedSnapshot(), nowMs = Date.now()) {
+  let candidate
+  let baseline
+  try {
+    candidate = validateVerifiedSnapshot(value)
+    baseline = validateVerifiedSnapshot(bundled)
+  } catch {
+    return null
+  }
+  const candidateMs = parsedSnapshotTime(candidate)
+  const baselineMs = parsedSnapshotTime(baseline)
+  if (!Number.isFinite(candidateMs) || !Number.isFinite(baselineMs)) return null
+  if (candidateMs <= baselineMs) return null
+  if (candidateMs > nowMs + RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS) return null
+  return candidate
+}
+export async function publishVerifiedSnapshotToRuntimeCache(value, options = {}) {
+  const snapshot = validateVerifiedSnapshot(value)
+  const serialized = JSON.stringify(snapshot)
+  if (Buffer.byteLength(serialized, 'utf8') > MAX_RUNTIME_SNAPSHOT_BYTES) {
+    throw new Error('RUNTIME_SNAPSHOT_TOO_LARGE')
+  }
+  const nowMs = Number.isFinite(options.nowMs) ? options.nowMs : Date.now()
+  const candidateMs = parsedSnapshotTime(snapshot)
+  const bundled = bundledVerifiedSnapshot()
+  const bundledMs = parsedSnapshotTime(bundled)
+  if (candidateMs < bundledMs) throw new Error('RUNTIME_SNAPSHOT_OLDER_THAN_BUNDLE')
+  if (candidateMs > nowMs + RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS) {
+    throw new Error('RUNTIME_SNAPSHOT_FUTURE_REJECTED')
+  }
+
+  const cache = options.cache || getCache()
+  const currentValue = await cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+  if (currentValue) {
+    try {
+      const current = validateVerifiedSnapshot(currentValue)
+      const currentMs = parsedSnapshotTime(current)
+      if (candidateMs < currentMs) throw new Error('RUNTIME_SNAPSHOT_ROLLBACK_REJECTED')
+      if (candidateMs === currentMs) {
+        if (JSON.stringify(current) !== serialized) throw new Error('RUNTIME_SNAPSHOT_REVISION_CONFLICT')
+        return current
+      }
+    } catch (error) {
+      if (['RUNTIME_SNAPSHOT_ROLLBACK_REJECTED', 'RUNTIME_SNAPSHOT_REVISION_CONFLICT'].includes(error?.message)) throw error
+      // Invalid cached state is replaceable by a fully validated publisher payload.
+    }
+  }
+
+  await cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {
+    ttl: RUNTIME_SNAPSHOT_TTL_SECONDS,
+    tags: ['medicalchannelai-verified-snapshot'],
+  })
+  const readBack = await cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+  const verifiedReadBack = validateVerifiedSnapshot(readBack)
+  if (JSON.stringify(verifiedReadBack) !== serialized) throw new Error('RUNTIME_SNAPSHOT_READBACK_MISMATCH')
+  return verifiedReadBack
+}
 async function loadRemoteSnapshot(remoteUrl) {
   const now = Date.now()
   if (remoteCache?.url === remoteUrl && remoteCache.expiresAt > now) return remoteCache.snapshot
@@ -206,19 +269,24 @@ async function loadRemoteSnapshot(remoteUrl) {
     clearTimeout(timeout)
   }
 }
-async function persistRuntimeSnapshot(cache, snapshot) {
-  await cache.set(LATEST_RUNTIME_SNAPSHOT_KEY, snapshot, {
+async function persistBundledRuntimeSnapshot(cache, snapshot) {
+  await cache.set(BUNDLED_RUNTIME_SNAPSHOT_KEY, snapshot, {
     ttl: RUNTIME_SNAPSHOT_TTL_SECONDS,
     tags: ['medicalchannelai-verified-snapshot'],
   })
-  const readBack = await cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
+  const readBack = await cache.get(BUNDLED_RUNTIME_SNAPSHOT_KEY)
   if (!readBack) throw new Error('RUNTIME_SNAPSHOT_READBACK_FAILED')
   return validateVerifiedSnapshot(readBack)
 }
 async function loadRuntimeCachedSnapshot() {
   if (!process.env.VERCEL_REGION) return null
   const cache = getCache()
-  const value = await cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
+
+  const publishedValue = await cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+  const publishedSnapshot = selectPublishedRuntimeSnapshot(publishedValue)
+  if (publishedSnapshot) return publishedSnapshot
+
+  const value = await cache.get(BUNDLED_RUNTIME_SNAPSHOT_KEY)
   if (value) {
     try {
       return validateVerifiedSnapshot(value)
@@ -227,9 +295,10 @@ async function loadRuntimeCachedSnapshot() {
     }
   }
 
-  // Deliberately do not migrate old "latest:v1/v2" keys. Those keys are not
-  // bound to the bundled snapshot revision and can contain an older data refresh.
-  return persistRuntimeSnapshot(cache, bundledVerifiedSnapshot())
+  // The Vercel-native collector's legacy "latest:v1" key is intentionally not
+  // consumed here: that collector currently covers Tianjin only, while the public
+  // product snapshot covers Tianjin plus verified regional markets.
+  return persistBundledRuntimeSnapshot(cache, bundledVerifiedSnapshot())
 }
 export async function loadVerifiedSnapshot() {
   const remoteUrl = configuredRemoteUrl()

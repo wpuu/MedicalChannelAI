@@ -10,23 +10,32 @@ on:
       - '.github/workflows/regional-medical-refresh.yml'
       - 'web/pipeline/data/admin_division_source.json'
       - 'web/pipeline/data/multi_region_query_plan.json'
+      - 'web/pipeline/data/medical_channel_scope.json'
       - 'web/pipeline/scripts/sync_national_admin_divisions.py'
       - 'web/pipeline/scripts/diagnose_ccgp_search.py'
       - 'web/pipeline/scripts/sync_regional_ccgp.py'
       - 'web/pipeline/scripts/publish_web_snapshot.py'
+      - 'web/pipeline/scripts/publish_snapshot_http.py'
+      - 'web/pipeline/scripts/verify_snapshot_roundtrip.py'
       - 'web/pipeline/scripts/publish_generated_data_github.py'
       - 'web/pipeline/medical_channel_pipeline/ccgp_discovery.py'
       - 'web/pipeline/medical_channel_pipeline/ccgp_detail.py'
+      - 'web/pipeline/medical_channel_pipeline/regional_candidate.py'
+      - 'web/pipeline/medical_channel_pipeline/channel_scope.py'
       - 'web/pipeline/medical_channel_pipeline/state.py'
       - 'web/pipeline/medical_channel_pipeline/validation.py'
       - 'web/pipeline/medical_channel_pipeline/public_snapshot.py'
+      - 'web/pipeline/tests/test_regional_candidate_classification.py'
+      - 'web/pipeline/tests/test_channel_scope.py'
+      - 'web/pipeline/tests/test_snapshot_http_publish.py'
+      - 'web/pipeline/tests/test_snapshot_roundtrip.py'
 
 permissions:
   contents: write
 
 concurrency:
-  group: regional-medical-refresh
-  cancel-in-progress: true
+  group: medicalchannel-deep-refresh-${{ github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   refresh:
@@ -43,14 +52,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify CCGP detail parser regressions
+      - name: Verify regional classification and CCGP parser regressions
         shell: bash
         run: |
           set -euo pipefail
           cd web/pipeline
           python3 -m unittest \
+            tests.test_regional_candidate_classification \
+            tests.test_channel_scope \
             tests.test_ccgp_detail \
-            tests.test_ccgp_national_detail_formats
+            tests.test_ccgp_national_detail_formats \
+            tests.test_ccgp_liaoning_detail_format \
+            tests.test_snapshot_http_publish \
+            tests.test_snapshot_roundtrip
 
       - name: Materialize nationwide administrative divisions
         shell: bash
@@ -106,6 +120,48 @@ jobs:
             --event-input web/pipeline/data/tianjin_notice_events.json \
             --output web/public/data/today-actions.public.json
 
+      - name: Publish and verify optional external snapshot
+        shell: bash
+        env:
+          VERIFIED_SNAPSHOT_PUBLISH_URL: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_URL }}
+          VERIFIED_SNAPSHOT_PUBLISH_TOKEN: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_TOKEN }}
+          VERIFIED_SNAPSHOT_READ_URL: ${{ secrets.VERIFIED_SNAPSHOT_READ_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VERIFIED_SNAPSHOT_PUBLISH_URL:-}" ]]; then
+            if [[ -n "${VERIFIED_SNAPSHOT_READ_URL:-}" ]]; then
+              echo 'VERIFIED_SNAPSHOT_READ_URL is configured without VERIFIED_SNAPSHOT_PUBLISH_URL.' >&2
+              exit 2
+            fi
+            echo 'External verified-snapshot publishing is not configured; keeping Git snapshot flow only.'
+            exit 0
+          fi
+          if [[ -z "${VERIFIED_SNAPSHOT_READ_URL:-}" ]]; then
+            echo 'External snapshot publishing requires VERIFIED_SNAPSHOT_READ_URL for fail-closed readback verification.' >&2
+            exit 2
+          fi
+
+          python3 web/pipeline/scripts/publish_snapshot_http.py \
+            --snapshot web/public/data/today-actions.public.json \
+            --method PUT
+
+          verified=0
+          for attempt in 1 2 3; do
+            if python3 web/pipeline/scripts/verify_snapshot_roundtrip.py \
+              --snapshot web/public/data/today-actions.public.json; then
+              verified=1
+              break
+            fi
+            if [[ "${attempt}" -lt 3 ]]; then
+              echo "External snapshot readback not consistent yet; retry ${attempt}/3 after 2s."
+              sleep 2
+            fi
+          done
+          if [[ "${verified}" -ne 1 ]]; then
+            echo 'External snapshot round-trip verification failed after 3 attempts.' >&2
+            exit 2
+          fi
+
       - name: Commit verified regional refresh
         shell: bash
         env:
@@ -113,7 +169,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 web/pipeline/scripts/publish_generated_data_github.py \
-            --branch main \
+            --branch "${GITHUB_REF_NAME}" \
             --message 'data: refresh regional verified opportunities' \
             web/pipeline/data/national_admin_divisions.latest.json \
             web/pipeline/data/regional_live_ccgp_records.json \

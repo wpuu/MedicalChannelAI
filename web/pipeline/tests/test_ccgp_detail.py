@@ -5,6 +5,7 @@ import unittest
 from medical_channel_pipeline.ccgp_detail import (
     CcgpDetailParseError,
     parse_ccgp_competitive_consultation_text,
+    parse_ccgp_public_tender_html,
     parse_ccgp_public_tender_text,
 )
 
@@ -81,6 +82,27 @@ CONSULTATION_FIXTURE = """
 """
 
 
+STANDARD_PRODUCT_TABLE_HTML_FIXTURE = (
+    "<html><body><pre>"
+    + FIXTURE
+    + "</pre>"
+    + """
+    <table>
+      <tr><th>品目号</th><th>品目名称</th><th>采购标的</th><th>数量（单位）</th><th>技术规格、参数及要求</th><th>品目预算(元)</th></tr>
+      <tr><td>1-1</td><td>医用 X 线诊断设备</td><td>64排螺旋CT设备</td><td>1(台)</td><td>详见采购文件</td><td>5800000</td></tr>
+      <tr><td>1-2</td><td>医用内窥镜</td><td>电子消化道内窥镜系统</td><td>1(套)</td><td>4K成像</td><td>1500000</td></tr>
+    </table>
+    """
+    + "</body></html>"
+)
+
+NON_PRODUCT_TABLE_HTML_FIXTURE = (
+    "<html><body><pre>"
+    + ATTACHMENT_ONLY_FIXTURE
+    + "</pre><table><tr><th>名称</th><th>数量</th></tr><tr><td>附件</td><td>1</td></tr></table></body></html>"
+)
+
+
 class CcgpDetailTests(unittest.TestCase):
     def test_public_tender_detail_becomes_verified_canonical_record(self) -> None:
         record = parse_ccgp_public_tender_text(
@@ -105,6 +127,52 @@ class CcgpDetailTests(unittest.TestCase):
         self.assertIn("基因测序仪", facts["product_items"][0]["raw_name"])
         self.assertEqual(facts["public_contact"]["name"], "李宁")
         self.assertEqual(facts["public_contact"]["phone"], "022-23717450-8019")
+
+    def test_non_phone_contact_value_is_preserved_as_name_but_not_dial_target(self) -> None:
+        text = FIXTURE.replace(
+            "项目联系人：李宁 电 话：022-23717450-8019",
+            "项目联系人：董艳 项目联系电话：董艳",
+        )
+        record = parse_ccgp_public_tender_text(
+            text,
+            source_url="https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260907_27278298.htm",
+            observed_at="2026-09-09T09:30:00+08:00",
+            opportunity_id="ccgp_jl_invalid_phone_fixture",
+        )
+        contact = record["facts"]["public_contact"]
+        self.assertEqual(contact["name"], "董艳")
+        self.assertIsNone(contact["phone"])
+
+    def test_official_standard_product_table_is_structured_without_title_guessing(self) -> None:
+        record = parse_ccgp_public_tender_html(
+            STANDARD_PRODUCT_TABLE_HTML_FIXTURE,
+            source_url="https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291415.htm",
+            observed_at="2026-09-09T01:55:00+00:00",
+            opportunity_id="standard_product_table",
+        )
+        facts = record["facts"]
+        self.assertEqual(facts["product_categories"], ["医用 X 线诊断设备", "医用内窥镜"])
+        self.assertEqual(len(facts["product_items"]), 2)
+        self.assertEqual(facts["product_items"][0], {
+            "raw_name": "64排螺旋CT设备",
+            "category": "医用 X 线诊断设备",
+            "quantity": "1(台)",
+            "specification": "详见采购文件",
+        })
+        self.assertEqual(facts["product_items"][1]["raw_name"], "电子消化道内窥镜系统")
+        evidence_paths = {item["field_path"] for item in record["evidence"]}
+        self.assertIn("facts.product_items", evidence_paths)
+        self.assertIn("facts.product_categories", evidence_paths)
+
+    def test_unrelated_html_table_does_not_invent_product_items(self) -> None:
+        record = parse_ccgp_public_tender_html(
+            NON_PRODUCT_TABLE_HTML_FIXTURE,
+            source_url="https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202608/t20260824_27194426.htm",
+            observed_at="2026-09-09T01:55:00+00:00",
+            opportunity_id="non_product_table",
+        )
+        self.assertEqual(record["facts"]["product_items"], [])
+        self.assertEqual(record["facts"]["product_categories"], [])
 
     def test_competitive_consultation_uses_response_submission_deadline_not_opening_time(self) -> None:
         record = parse_ccgp_competitive_consultation_text(

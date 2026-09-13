@@ -16,7 +16,7 @@ import type {
 } from '@/types/public'
 import type { TodayActionsLoadOptions, TodayActionsService } from './TodayActionsService'
 
-const COVERAGE_WARNING = '当前处于天津 Pilot 阶段，公开数据覆盖持续扩展中。'
+const COVERAGE_WARNING = '当前公开商机已覆盖天津、北京、河北、辽宁、吉林、黑龙江的已核验来源；各地区覆盖仍在持续扩展。'
 const MUTATION_REUSE_TTL_MS = 5_000
 
 const FORBIDDEN_PUBLIC_KEYS = new Set([
@@ -286,6 +286,9 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       buyer_name: card.facts.buyer_name,
       department: card.facts.department,
       region: card.facts.region,
+      market_code: card.facts.market_code ?? null,
+      market_name: card.facts.market_name ?? null,
+      market_admin_code: card.facts.market_admin_code ?? null,
       lifecycle_stage: card.facts.lifecycle_state,
       notice_type: card.facts.notice_type,
       publish_date: card.facts.published_at,

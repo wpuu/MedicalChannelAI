@@ -24,7 +24,7 @@ export const MARKET_SELECTION_OPTIONS: readonly { value: MarketSelection; label:
   { value: 'LN', label: '辽宁' },
   { value: 'JL', label: '吉林' },
   { value: 'HL', label: '黑龙江' },
-  { value: 'JJ', label: '北京 + 天津' },
+  { value: 'JJ', label: '京津' },
   { value: 'JJJ', label: '京津冀' },
   { value: 'NE3', label: '东北三省' },
   { value: 'ALL', label: '全部已开通' },

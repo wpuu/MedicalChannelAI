@@ -68,6 +68,835 @@ def html_to_text(html: str) -> str:
     return text.strip()
 
 
+class _StructuredProductTableParser(HTMLParser):
+    """Preserve exact table cell boundaries for official procurement item tables."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.tables: list[list[list[str]]] = []
+        self._table_depth = 0
+        self._current_table: list[list[str]] | None = None
+        self._current_row: list[str] | None = None
+        self._current_cell: list[str] | None = None
+        self._ignored_depth = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        if tag in {"script", "style"}:
+            self._ignored_depth += 1
+            return
+        if self._ignored_depth:
+            return
+        if tag == "table":
+            self._table_depth += 1
+            if self._table_depth == 1:
+                self._current_table = []
+            return
+        if self._table_depth != 1:
+            return
+        if tag == "tr":
+            self._current_row = []
+        elif tag in {"td", "th"} and self._current_row is not None:
+            self._current_cell = []
+
+    def handle_data(self, data: str) -> None:
+        if self._ignored_depth or self._table_depth != 1 or self._current_cell is None:
+            return
+        value = data.strip()
+        if value:
+            self._current_cell.append(value)
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.lower()
+        if tag in {"script", "style"}:
+            if self._ignored_depth:
+                self._ignored_depth -= 1
+            return
+        if self._ignored_depth:
+            return
+        if self._table_depth == 1 and tag in {"td", "th"} and self._current_cell is not None:
+            if self._current_row is not None:
+                self._current_row.append(" ".join(self._current_cell).strip())
+            self._current_cell = None
+            return
+        if self._table_depth == 1 and tag == "tr" and self._current_row is not None:
+            if self._current_table is not None and any(cell.strip() for cell in self._current_row):
+                self._current_table.append(self._current_row)
+            self._current_row = None
+            return
+        if tag == "table" and self._table_depth:
+            if self._table_depth == 1 and self._current_table is not None:
+                self.tables.append(self._current_table)
+                self._current_table = None
+            self._table_depth -= 1
+
+
+def _normalize_table_header(value: str) -> str:
+    return re.sub(r"\s+", "", value).replace("（", "(").replace("）", ")")
+
+
+def _optional_table_value(row: list[str], index: int | None, *, max_length: int) -> str | None:
+    if index is None or index >= len(row):
+        return None
+    value = _normalize_space(row[index]).strip("，,：:；;。")
+    if not value or value in {"-", "—", "/"} or len(value) > max_length:
+        return None
+    return value
+
+
+def _extract_standard_product_table_items(html: str) -> list[dict[str, Any]]:
+    """Extract only explicit official rows with 品目名称/采购标的/数量（单位） columns."""
+    parser = _StructuredProductTableParser()
+    parser.feed(html)
+    items: list[dict[str, Any]] = []
+    seen: set[tuple[str, str | None, str | None, str | None]] = set()
+
+    for rows in parser.tables:
+        for header_index, header_row in enumerate(rows):
+            headers = [_normalize_table_header(cell) for cell in header_row]
+            if "品目名称" not in headers or "采购标的" not in headers:
+                continue
+            quantity_index = next(
+                (index for index, header in enumerate(headers) if header in {"数量(单位)", "数量"}),
+                None,
+            )
+            if quantity_index is None:
+                continue
+            category_index = headers.index("品目名称")
+            name_index = headers.index("采购标的")
+            specification_index = next(
+                (
+                    index
+                    for index, header in enumerate(headers)
+                    if header in {"技术规格、参数及要求", "技术规格参数及要求", "技术要求"}
+                ),
+                None,
+            )
+            required_index = max(category_index, name_index, quantity_index)
+            for row in rows[header_index + 1 :]:
+                if len(row) <= required_index:
+                    continue
+                raw_name = _optional_table_value(row, name_index, max_length=300)
+                if raw_name is None or _normalize_table_header(raw_name) == "采购标的":
+                    continue
+                category = _optional_table_value(row, category_index, max_length=200)
+                quantity = _optional_table_value(row, quantity_index, max_length=80)
+                specification = _optional_table_value(row, specification_index, max_length=2000)
+                key = (raw_name, category, quantity, specification)
+                if key in seen:
+                    continue
+                seen.add(key)
+                items.append(
+                    {
+                        "raw_name": raw_name,
+                        "category": category,
+                        "quantity": quantity,
+                        "specification": specification,
+                    }
+                )
+                if len(items) >= 100:
+                    return items
+    return items
+
+
+class _SpanningProductTableParser(HTMLParser):
+    """Capture table cells plus rowspan/colspan so official merged rows can be reconstructed."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.tables: list[list[list[tuple[str, int, int]]]] = []
+        self._table_depth = 0
+        self._current_table: list[list[tuple[str, int, int]]] | None = None
+        self._current_row: list[tuple[str, int, int]] | None = None
+        self._current_cell: list[str] | None = None
+        self._current_rowspan = 1
+        self._current_colspan = 1
+        self._ignored_depth = 0
+
+    @staticmethod
+    def _span(attrs: list[tuple[str, str | None]], name: str) -> int:
+        raw = next((value for key, value in attrs if key.lower() == name), None)
+        try:
+            value = int(raw or '1')
+        except ValueError:
+            return 1
+        return value if 1 <= value <= 100 else 1
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        if tag in {'script', 'style'}:
+            self._ignored_depth += 1
+            return
+        if self._ignored_depth:
+            return
+        if tag == 'table':
+            self._table_depth += 1
+            if self._table_depth == 1:
+                self._current_table = []
+            return
+        if self._table_depth != 1:
+            return
+        if tag == 'tr':
+            self._current_row = []
+        elif tag in {'td', 'th'} and self._current_row is not None:
+            self._current_cell = []
+            self._current_rowspan = self._span(attrs, 'rowspan')
+            self._current_colspan = self._span(attrs, 'colspan')
+
+    def handle_data(self, data: str) -> None:
+        if self._ignored_depth or self._table_depth != 1 or self._current_cell is None:
+            return
+        value = data.strip()
+        if value:
+            self._current_cell.append(value)
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.lower()
+        if tag in {'script', 'style'}:
+            if self._ignored_depth:
+                self._ignored_depth -= 1
+            return
+        if self._ignored_depth:
+            return
+        if self._table_depth == 1 and tag in {'td', 'th'} and self._current_cell is not None:
+            if self._current_row is not None:
+                self._current_row.append(
+                    (' '.join(self._current_cell).strip(), self._current_rowspan, self._current_colspan)
+                )
+            self._current_cell = None
+            self._current_rowspan = 1
+            self._current_colspan = 1
+            return
+        if self._table_depth == 1 and tag == 'tr' and self._current_row is not None:
+            if self._current_table is not None and self._current_row:
+                self._current_table.append(self._current_row)
+            self._current_row = None
+            return
+        if tag == 'table' and self._table_depth:
+            if self._table_depth == 1 and self._current_table is not None:
+                self.tables.append(self._current_table)
+                self._current_table = None
+            self._table_depth -= 1
+
+
+def _expand_spanning_table_rows(
+    rows: list[list[tuple[str, int, int]]],
+) -> list[list[str]]:
+    expanded: list[list[str]] = []
+    active: dict[int, tuple[int, str]] = {}
+
+    for source_row in rows:
+        row: list[str] = []
+        future: dict[int, tuple[int, str]] = {}
+        column = 0
+
+        def consume_active() -> bool:
+            nonlocal column
+            span = active.get(column)
+            if span is None:
+                return False
+            remaining, value = span
+            row.append(value)
+            if remaining > 1:
+                future[column] = (remaining - 1, value)
+            column += 1
+            return True
+
+        for value, rowspan, colspan in source_row:
+            while consume_active():
+                pass
+            placed = 0
+            while placed < colspan:
+                while consume_active():
+                    pass
+                row.append(value)
+                if rowspan > 1:
+                    future[column] = (rowspan - 1, value)
+                column += 1
+                placed += 1
+
+        max_active = max(active, default=-1)
+        while column <= max_active:
+            if consume_active():
+                continue
+            row.append('')
+            column += 1
+
+        if any(cell.strip() for cell in row):
+            expanded.append(row)
+        active = future
+
+    return expanded
+
+
+def _find_general_product_name_index(headers: list[str]) -> int | None:
+    exact_names = {'采购标的', '标的名称', '设备名称', '货物名称', '维保设备名称'}
+    for index, header in enumerate(headers):
+        if header in exact_names or header.endswith('设备名称') or header.endswith('货物名称'):
+            return index
+    return headers.index('品目名称') if '品目名称' in headers else None
+
+
+
+_PRODUCT_UNIT_WORDS = {
+    '台', '套', '项', '个', '条', '批', '组', '件', '盒', '瓶', '包', '支', '份', '张', '辆',
+    '本', '册', '人', '人次', '系统', '服务', '年', '月', '次', '家', '所', '间', '种', '片',
+    '枚', '把', '部', '床', '位', '台/套', '套/年', '项服务',
+}
+_PRODUCT_TABLE_FOOTER_PREFIXES = (
+    '备注', '注解', '注：', '注:', '合同履行期限', '项目用途', '项目现场', '保险期限', '服务期限',
+)
+
+
+def _is_explicit_product_quantity(value: str | None) -> bool:
+    if value is None:
+        return False
+    normalized = re.sub(r'\s+', '', value).replace('（', '(').replace('）', ')')
+    unit_pattern = '|'.join(sorted((re.escape(unit) for unit in _PRODUCT_UNIT_WORDS), key=len, reverse=True))
+    return bool(
+        re.fullmatch(
+            rf'(?:\d+(?:\.\d+)?|[一二三四五六七八九十百]+)(?:\([^()\d]{{1,8}}\)|(?:{unit_pattern}))?',
+            normalized,
+        )
+    )
+
+
+def _is_product_table_footer_row(row: list[str]) -> bool:
+    first = next((_normalize_space(cell) for cell in row if _normalize_space(cell)), '')
+    return first.startswith(_PRODUCT_TABLE_FOOTER_PREFIXES)
+
+def _extract_general_product_table_items(html: str) -> list[dict[str, Any]]:
+    """Parse explicit procurement rows across official CCGP table-header variants only."""
+    parser = _SpanningProductTableParser()
+    parser.feed(html)
+    items: list[dict[str, Any]] = []
+    seen: set[tuple[str, str | None, str | None, str | None]] = set()
+
+    for raw_rows in parser.tables:
+        rows = _expand_spanning_table_rows(raw_rows)
+        for header_index, header_row in enumerate(rows[:6]):
+            headers = [_normalize_table_header(cell) for cell in header_row]
+            name_index = _find_general_product_name_index(headers)
+            quantity_index = next(
+                (
+                    index
+                    for index, header in enumerate(headers)
+                    if '数量' in header and '预算' not in header
+                ),
+                None,
+            )
+            if name_index is None or quantity_index is None:
+                continue
+
+            unit_index = next((index for index, header in enumerate(headers) if header == '单位'), None)
+            category_index = None
+            if '品目名称' in headers:
+                candidate = headers.index('品目名称')
+                if candidate != name_index:
+                    category_index = candidate
+            specification_index = next(
+                (
+                    index
+                    for index, header in enumerate(headers)
+                    if (
+                        ('简要' in header and ('技术' in header or '服务' in header))
+                        or header in {'技术要求', '技术规格参数及要求'}
+                    )
+                ),
+                None,
+            )
+            required_index = max(name_index, quantity_index)
+            for row in rows[header_index + 1 :]:
+                if _is_product_table_footer_row(row):
+                    break
+                if len(row) <= required_index:
+                    continue
+                raw_name = _optional_table_value(row, name_index, max_length=300)
+                if raw_name is None:
+                    continue
+                normalized_name = _normalize_table_header(raw_name)
+                if (
+                    normalized_name in {'采购标的', '标的名称', '设备名称', '货物名称', '维保设备名称', '品目名称'}
+                    or re.fullmatch(r'\d+(?:[-.]\d+)*', normalized_name)
+                    or normalized_name in {'是', '否', '服务', '货物'}
+                    or _is_explicit_product_quantity(raw_name)
+                ):
+                    continue
+
+                category = _optional_table_value(row, category_index, max_length=200)
+                quantity = _optional_table_value(row, quantity_index, max_length=80)
+                if not _is_explicit_product_quantity(quantity):
+                    continue
+                unit = _optional_table_value(row, unit_index, max_length=30)
+                if unit_index is not None and unit is not None and _normalize_space(unit) not in _PRODUCT_UNIT_WORDS:
+                    continue
+                if quantity and unit and unit not in quantity:
+                    quantity = f'{quantity}{unit}'
+                specification = _optional_table_value(row, specification_index, max_length=2000)
+                key = (raw_name, category, quantity, specification)
+                if key in seen:
+                    continue
+                seen.add(key)
+                items.append(
+                    {
+                        'raw_name': raw_name,
+                        'category': category,
+                        'quantity': quantity,
+                        'specification': specification,
+                    }
+                )
+                if len(items) >= 100:
+                    return items
+            if items:
+                return items
+    return items
+
+
+
+def _procurement_text_scope(text: str) -> str:
+    anchor = text.find('采购需求')
+    return text[anchor:] if anchor >= 0 else ''
+
+
+def _text_product_item(raw_name: str, quantity: str) -> dict[str, Any]:
+    return {
+        'raw_name': _normalize_space(raw_name).strip('，,：:；;。'),
+        'category': None,
+        'quantity': _normalize_space(quantity),
+        'specification': None,
+    }
+
+
+def _dedupe_text_product_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    deduped: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for item in items:
+        raw_name = str(item.get('raw_name') or '').strip()
+        quantity = str(item.get('quantity') or '').strip()
+        if not raw_name or not _is_explicit_product_quantity(quantity):
+            continue
+        if _is_explicit_product_quantity(raw_name) or len(raw_name) > 180:
+            continue
+        key = (raw_name, quantity)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+        if len(deduped) >= 100:
+            break
+    return deduped
+
+
+_ZCY_SPECIFIC_PRODUCT_TERMS = (
+    '分析仪', '试剂', '试剂盒', '流水线', '质谱', '超声', '内窥镜', '内镜', '离心机',
+    '显微镜', '监护仪', '呼吸机', '透析机', '血透机', 'X射线机', 'X光机', 'C形臂', 'C型臂',
+    'CT', 'DR', 'MRI', '磁共振', 'PCR', '测序仪', '病理', '眼压计',
+)
+_ZCY_GENERIC_PRODUCT_NAMES = {
+    '数量', '采购数量', '设备', '设备一批', '医疗设备', '医疗设备一批', '检验设备', '检测设备',
+    '试剂耗材', '耗材', '货物', '产品', '标的', '合同包',
+}
+
+
+def _bounded_zcy_procurement_scope(text: str) -> str:
+    anchor_match = re.search(r'采购需求\s*[：:]\s*', text)
+    if not anchor_match:
+        return ''
+    scope = text[anchor_match.end():]
+    end_positions = [
+        position
+        for marker in (
+            '合同履行期限', '合同履约期限', '本项目不接受', '本项目接受',
+            '二、申请人的资格要求', '二、申请人',
+        )
+        if (position := scope.find(marker)) >= 0
+    ]
+    if end_positions:
+        scope = scope[: min(end_positions)]
+    scope = _normalize_space(scope)
+    return scope if scope and len(scope) <= 4000 else ''
+
+
+def _optional_text_product_item(raw_name: str, quantity: str | None) -> dict[str, Any]:
+    return {
+        'raw_name': _normalize_space(raw_name).strip('，,：:；;。'),
+        'category': None,
+        'quantity': _normalize_space(quantity) if quantity else None,
+        'specification': None,
+    }
+
+
+def _looks_specific_zcy_product_name(raw_name: str) -> bool:
+    name = _normalize_space(raw_name).strip('，,：:；;。')
+    if not name or len(name) < 2 or len(name) > 180:
+        return False
+    if name in _ZCY_GENERIC_PRODUCT_NAMES:
+        return False
+    if any(token in name for token in ('详见', '采购需求', '预算金额', '最高限价', '项目基本概况', '配置及参数一览表')):
+        return False
+    if name.endswith(('设备一批', '医疗设备一批', '检测设备', '检验检测设备')):
+        return False
+    return any(term in name for term in _ZCY_SPECIFIC_PRODUCT_TERMS)
+
+
+def _dedupe_optional_product_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    seen: set[tuple[str, str | None]] = set()
+    for item in items:
+        name = str(item.get('raw_name') or '').strip()
+        quantity = item.get('quantity')
+        normalized_quantity = str(quantity).strip() if quantity is not None else None
+        if not _looks_specific_zcy_product_name(name):
+            continue
+        if normalized_quantity is not None and not _is_explicit_product_quantity(normalized_quantity):
+            continue
+        key = (name, normalized_quantity)
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(item)
+        if len(result) >= 100:
+            break
+    return result
+
+
+def _extract_zcy_primary_subject_items(text: str) -> list[dict[str, Any]]:
+    """Parse explicit 政采云正文 pairs: 主要标的名称：X；数量：N单位。"""
+    scope = _bounded_zcy_procurement_scope(text)
+    if not scope:
+        return []
+    unit_pattern = '|'.join(
+        sorted(
+            (re.escape(unit) for unit in _PRODUCT_UNIT_WORDS if unit not in {'年', '月', '人', '人次', '家', '所', '间'}),
+            key=len,
+            reverse=True,
+        )
+    )
+    quantity_pattern = rf'(?:\d+(?:\.\d+)?|[一二三四五六七八九十百]+)\s*(?:{unit_pattern})'
+    pattern = re.compile(
+        rf'主要标的名称\s*[：:]\s*(?P<name>[^；;]{{2,180}}?)\s*[；;]\s*'
+        rf'数量\s*[：:]\s*(?P<quantity>{quantity_pattern})(?=\s*[；;，,。]|$)'
+    )
+    return _dedupe_optional_product_items([
+        _optional_text_product_item(match.group('name'), match.group('quantity'))
+        for match in pattern.finditer(scope)
+    ])
+
+
+def _extract_zcy_brief_description_items(text: str) -> list[dict[str, Any]]:
+    """Parse only concrete product facts from bounded 政采云“简要规格描述” blocks."""
+    scope = _bounded_zcy_procurement_scope(text)
+    if not scope:
+        return []
+    bodies = [
+        _normalize_space(match.group('body')).strip('，,：:；;。')
+        for match in re.finditer(
+            r'简要规格描述或项目基本概况介绍、用途\s*[：:]\s*'
+            r'(?P<body>.*?)(?=\s+备注\s*[：:]|\s+标项(?:一|二|三|四|五|六|七|八|九|十|名称)(?:\s|:|：)|$)',
+            scope,
+        )
+    ]
+    if not bodies:
+        return []
+
+    unit_pattern = '|'.join(
+        sorted(
+            (re.escape(unit) for unit in _PRODUCT_UNIT_WORDS if unit not in {'年', '月', '人', '人次', '家', '所', '间'}),
+            key=len,
+            reverse=True,
+        )
+    )
+    explicit_pattern = re.compile(
+        rf'(?P<name>[A-Za-z0-9\u4e00-\u9fff（）()·+\-/]{{2,120}}?)'
+        rf'(?P<quantity>\d+(?:\.\d+)?\s*(?:{unit_pattern}))(?=\s*(?:及|和|与|，|,|；|;|。|$))'
+    )
+    items: list[dict[str, Any]] = []
+    for body in bodies:
+        if not body or len(body) > 1200 or re.match(r'^\d+[.、]', body):
+            continue
+
+        explicit: list[dict[str, Any]] = []
+        for match in explicit_pattern.finditer(body[:500]):
+            name = match.group('name').strip()
+            if _looks_specific_zcy_product_name(name):
+                explicit.append(_optional_text_product_item(name, match.group('quantity')))
+        if explicit:
+            items.extend(explicit)
+            continue
+
+        name: str | None = None
+        if body.startswith(('采购', '拟采购', '购买')):
+            candidate = re.sub(r'^(?:拟采购|采购|购买)', '', body, count=1).strip()
+            candidate = re.split(r'[，,](?:\s*详见|\s*具体)', candidate, maxsplit=1)[0].strip()
+            name = candidate
+        else:
+            purchase = re.match(r'(?P<name>.+?)采购(?:[，,]|$)', body)
+            if purchase:
+                name = purchase.group('name').strip()
+                name = re.sub(r'^(?:一|二|三|四|五|六|七|八|九|十)标段\s*[：:]\s*', '', name)
+        if name and _looks_specific_zcy_product_name(name):
+            items.append(_optional_text_product_item(name, None))
+
+    return _dedupe_optional_product_items(items)
+
+
+def _extract_top_level_numbered_quantity_items(text: str) -> list[dict[str, Any]]:
+    scope = _procurement_text_scope(text)
+    if not scope:
+        return []
+    unit_pattern = '|'.join(sorted((re.escape(unit) for unit in _PRODUCT_UNIT_WORDS), key=len, reverse=True))
+    pattern = re.compile(
+        rf'(?<![\d.])(?P<index>\d{{1,3}})[.、](?!\d)\s*'
+        rf'(?P<name>[^：:\n]{{1,120}}?)\s+'
+        rf'(?P<quantity>\d+(?:\.\d+)?\s*(?:{unit_pattern}))\s*'
+        rf'(?=[：:★▲]|\d{{1,3}}\.\d|\d{{1,3}}[.、](?!\d)|$)'
+    )
+    items = [
+        _text_product_item(match.group('name'), match.group('quantity'))
+        for match in pattern.finditer(scope)
+    ]
+    return _dedupe_text_product_items(items)
+
+
+def _normalized_text_lines(text: str) -> list[str]:
+    return [_normalize_space(line) for line in text.splitlines() if _normalize_space(line)]
+
+
+def _find_header_cluster(lines: list[str], required: tuple[str, ...], *, window: int = 8) -> int | None:
+    for start, line in enumerate(lines):
+        if line != required[0]:
+            continue
+        cluster = lines[start : start + window]
+        if all(value in cluster for value in required[1:]):
+            return start + max(cluster.index(value) for value in required)
+    return None
+
+
+def _extract_product_name_quantity_lines(text: str) -> list[dict[str, Any]]:
+    scope = _procurement_text_scope(text)
+    lines = _normalized_text_lines(scope)
+    header_end = _find_header_cluster(lines, ('序号', '产品名称', '数量'), window=7)
+    if header_end is None:
+        return []
+
+    items: list[dict[str, Any]] = []
+    index = header_end + 1
+    while index + 2 < len(lines):
+        line = lines[index]
+        if line.startswith(('合同履行期限', '二、供应商', '三、政府采购供应商', '四、获取')):
+            break
+        if re.fullmatch(r'\d{1,3}', line):
+            raw_name = lines[index + 1]
+            quantity = lines[index + 2]
+            if (
+                1 <= len(raw_name) <= 180
+                and not _is_explicit_product_quantity(raw_name)
+                and _is_explicit_product_quantity(quantity)
+                and re.search(r'\D', quantity)
+            ):
+                items.append(_text_product_item(raw_name, quantity))
+                index += 3
+                continue
+        index += 1
+    return _dedupe_text_product_items(items)
+
+
+def _extract_item_name_quantity_unit_lines(text: str) -> list[dict[str, Any]]:
+    scope = _procurement_text_scope(text)
+    lines = _normalized_text_lines(scope)
+    header_end = _find_header_cluster(lines, ('品目号', '品目名称', '数量', '计量单位'), window=9)
+    if header_end is None:
+        return []
+
+    items: list[dict[str, Any]] = []
+    index = header_end + 1
+    while index + 3 < len(lines):
+        line = lines[index]
+        if line.startswith(('投标人须以包为单位', '合同履行期限', '★二、交货', '二、供应商', '三、政府采购供应商')):
+            break
+        if re.fullmatch(r'\d{3}包', line):
+            index += 1
+            continue
+        if re.fullmatch(r'\d{1,3}', line):
+            raw_name = lines[index + 1]
+            amount = lines[index + 2]
+            unit = lines[index + 3]
+            if (
+                1 <= len(raw_name) <= 180
+                and re.fullmatch(r'\d+(?:\.\d+)?', amount)
+                and unit in _PRODUCT_UNIT_WORDS
+                and not _is_explicit_product_quantity(raw_name)
+            ):
+                items.append(_text_product_item(raw_name, f'{amount}{unit}'))
+                index += 4
+                continue
+        index += 1
+    return _dedupe_text_product_items(items)
+
+
+def _extract_bounded_procurement_demand_items(text: str) -> list[dict[str, Any]]:
+    """Extract only explicit name+quantity facts from the bounded official 采购需求 paragraph."""
+    anchor_match = re.search(r"采购需求\s*[：:]\s*", text)
+    if not anchor_match:
+        return []
+    scope = text[anchor_match.end():]
+    end_positions = [
+        position
+        for marker in ("合同履行期限", "合同履约期限", "本项目不接受", "本项目接受", "二、申请人的资格要求", "二、申请人")
+        if (position := scope.find(marker)) >= 0
+    ]
+    if end_positions:
+        scope = scope[: min(end_positions)]
+    scope = _normalize_space(scope)
+    if not scope or len(scope) > 4000:
+        return []
+
+    unit_pattern = '|'.join(
+        sorted(
+            (re.escape(unit) for unit in _PRODUCT_UNIT_WORDS if unit not in {'年', '月', '人', '人次', '家', '所', '间'}),
+            key=len,
+            reverse=True,
+        )
+    )
+    quantity_pattern = rf"(?:\d+(?:\.\d+)?|[一二三四五六七八九十百]+)\s*(?:{unit_pattern})"
+    items: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+
+    def add(raw_name: str, quantity: str) -> None:
+        name = _normalize_space(raw_name).strip('，,：:；;。')
+        name = re.sub(r"^(?:其中)?(?:[A-HＡ-Ｈ]包|包\s*[A-HＡ-Ｈ一二三四五六七八九十0-9]+)\s*[：:]\s*", "", name)
+        name = re.sub(r"^(?:拟采购|采购|购买)", "", name).strip()
+        name = re.sub(r"采购$", "", name).strip()
+        name = re.sub(r"^(?:其中|包括|包含)\s*", "", name).strip()
+        if not name or len(name) < 2 or len(name) > 160:
+            return
+        if name in _ZCY_GENERIC_PRODUCT_NAMES or name.startswith(('数量：', '数量:')):
+            return
+        if any(token in name for token in ('预算金额', '最高限价', '合同履行', '合同履约', '详见', '具体内容', '采购需求')):
+            return
+        normalized_quantity = _normalize_space(quantity)
+        if not _is_explicit_product_quantity(normalized_quantity):
+            return
+        key = (name, normalized_quantity)
+        if key in seen:
+            return
+        seen.add(key)
+        items.append(_text_product_item(name, normalized_quantity))
+
+    # Multi-package wording such as 包1:设备A：预算金额：...、数量：1套，包2:设备B：...、数量：1台。
+    package_re = re.compile(
+        rf"(?:^|[，,；;])\s*(?:其中)?(?:[A-HＡ-Ｈ]包|包\s*[A-HＡ-Ｈ一二三四五六七八九十0-9]+)\s*[：:]\s*"
+        rf"(?P<name>[^；;，,]{{2,180}}?)"
+        rf"(?:[：:]\s*预算金额\s*[：:]\s*[^，,；;]{{1,100}})?"
+        rf"[、，,]\s*数量\s*[：:]\s*(?P<quantity>{quantity_pattern})"
+    )
+    consumed: list[tuple[int, int]] = []
+    for match in package_re.finditer(scope):
+        add(match.group('name'), match.group('quantity'))
+        consumed.append(match.span())
+
+    if consumed:
+        chars = list(scope)
+        for start, end in consumed:
+            chars[start:end] = ' ' * (end - start)
+        scope = ''.join(chars)
+
+    # Direct bounded statements such as 病理数字化切片扫描仪4套 / 移动床旁DR机采购2台.
+    for segment in re.split(r"[；;。]", scope):
+        segment = _normalize_space(segment).strip('，,：:；;。')
+        if not segment or segment.startswith(('详见', '具体内容')):
+            continue
+        # Ignore explicit service/package descriptions without a quantity in this first strict variant.
+        direct = re.search(rf"(?P<name>.+?)(?P<quantity>{quantity_pattern})(?=$|[，,、])", segment)
+        if direct:
+            raw_name = direct.group('name')
+            # If unrelated prose precedes the product after a comma, use only the final bounded clause.
+            raw_name = re.split(r"[，,]", raw_name)[-1]
+            add(raw_name, direct.group('quantity'))
+
+    return items[:100]
+
+
+def _extract_grounded_text_product_items(text: str) -> list[dict[str, Any]]:
+    extractors = (
+        _extract_zcy_primary_subject_items,
+        _extract_zcy_brief_description_items,
+        _extract_bounded_procurement_demand_items,
+        _extract_item_name_quantity_unit_lines,
+        _extract_product_name_quantity_lines,
+        _extract_top_level_numbered_quantity_items,
+    )
+    for extractor in extractors:
+        items = extractor(text)
+        if items:
+            return items
+    return []
+
+
+def _apply_grounded_text_products(record: dict[str, Any], text: str) -> dict[str, Any]:
+    if record['facts'].get('product_items'):
+        return record
+    items = _extract_grounded_text_product_items(text)
+    if not items:
+        return record
+
+    record['facts']['product_items'] = items
+    record['facts']['product_categories'] = []
+    evidence = [
+        item for item in record.get('evidence', [])
+        if item.get('field_path') not in {'facts.product_items', 'facts.product_categories'}
+    ]
+    evidence.append(
+        {
+            'field_path': 'facts.product_items',
+            'source_url': record['source']['url'],
+            'locator': '采购需求/正文结构化产品明细',
+        }
+    )
+    record['evidence'] = evidence
+    return validate_record(record)
+
+def _apply_structured_html_products(record: dict[str, Any], html: str) -> dict[str, Any]:
+    items = _extract_standard_product_table_items(html)
+    if not items:
+        items = _extract_general_product_table_items(html)
+    if not items:
+        return record
+
+    facts = record["facts"]
+    facts["product_items"] = items
+    categories: list[str] = []
+    for item in items:
+        category = item.get("category")
+        if isinstance(category, str) and category and category not in categories:
+            categories.append(category)
+    facts["product_categories"] = categories
+
+    evidence = [
+        item
+        for item in record.get("evidence", [])
+        if item.get("field_path") not in {"facts.product_items", "facts.product_categories"}
+    ]
+    source_url = record["source"]["url"]
+    if categories:
+        evidence.append(
+            {
+                "field_path": "facts.product_categories",
+                "source_url": source_url,
+                "locator": "一、项目基本情况/采购需求/结构化采购表/品目名称",
+            }
+        )
+    evidence.append(
+        {
+            "field_path": "facts.product_items",
+            "source_url": source_url,
+            "locator": "一、项目基本情况/采购需求/结构化采购表/标的名称与数量",
+        }
+    )
+    record["evidence"] = evidence
+    return validate_record(record)
+
+
 def _assert_source_url(source_url: str) -> None:
     parsed = urlparse(source_url)
     if parsed.scheme != "https" or parsed.hostname not in CCGP_HOSTS:
@@ -161,15 +990,31 @@ def _extract_publish_date(text: str) -> str:
 
 
 def _extract_registration_deadline(text: str) -> str:
+    # Liaoning's official procurement template commonly numbers this as
+    # section four and publishes exact start/end datetimes instead of a
+    # daily business-hours schedule. Prefer that exact official end time.
+    direct_patterns = [
+        r"(?:三|四)[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
+        r"20\d{2}年\d{1,2}月\d{1,2}日\s*\d{1,2}\s*(?:时|点)\s*\d{1,2}\s*分?\s*(?:到|至)\s*"
+        r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*(\d{1,2})\s*(?:时|点)\s*(\d{1,2})\s*分?",
+        r"(?:三|四)[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
+        r"20\d{2}年\d{1,2}月\d{1,2}日\s*\d{1,2}\s*[：:]\s*\d{2}\s*(?:到|至)\s*"
+        r"(20\d{2})年(\d{1,2})月(\d{1,2})日\s*(\d{1,2})\s*[：:]\s*(\d{2})",
+    ]
+    for pattern in direct_patterns:
+        direct = re.search(pattern, text, re.S)
+        if direct:
+            return _datetime_from_cn(*direct.groups())
+
     patterns = [
-        r"三[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
+        r"(?:三|四)[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
         r"20\d{2}年\d{1,2}月\d{1,2}日\s*(?:到|至)\s*"
         r"(20\d{2})年(\d{1,2})月(\d{1,2})日"
-        r"(.+?)(?:地点\s*[：:]|四[、.])",
-        r"三[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
+        r"(.+?)(?:地点\s*[：:]|(?:四|五)[、.])",
+        r"(?:三|四)[、.]\s*获取(?:招标|采购)文件\s+时间\s*[：:]\s*"
         r"20\d{2}-\d{1,2}-\d{1,2}\s*(?:到|至)\s*"
         r"(20\d{2})-(\d{1,2})-(\d{1,2})"
-        r"(.+?)(?:地点\s*[：:]|四[、.])",
+        r"(.+?)(?:地点\s*[：:]|(?:四|五)[、.])",
     ]
     section = None
     for pattern in patterns:
@@ -193,10 +1038,9 @@ def _extract_registration_deadline(text: str) -> str:
         hour, minute = times[-1]
     return _datetime_from_cn(year, month, day, hour, minute)
 
-
 def _extract_bid_deadline(text: str) -> str:
     prefix = (
-        r"四[、.]\s*提交投标文件截止时间、开标时间和地点\s*"
+        r"(?:四|五)[、.]\s*提交投标文件截止时间、开标时间和地点\s*"
         r"(?:(?:提交投标文件截止时间|截止时间)\s*[：:]\s*)?"
     )
     patterns = [
@@ -253,6 +1097,16 @@ def _extract_budget_cny(text: str) -> int | None:
     return None
 
 
+def _normalize_public_phone(value: str) -> str | None:
+    normalized = _normalize_space(value)
+    # Contact facts must fail closed. A non-empty label value that has no
+    # plausible telephone digit content (for example a repeated contact name)
+    # is not a phone number and must never become a dial target.
+    if len(re.findall(r"\d", normalized)) < 5:
+        return None
+    return normalized
+
+
 def _extract_contact(text: str) -> dict[str, str | None] | None:
     match = re.search(
         r"3[.、]\s*项目联系方式\s+项目联系人\s*[：:]\s*(.+?)\s+"
@@ -271,7 +1125,7 @@ def _extract_contact(text: str) -> dict[str, str | None] | None:
     return {
         "name": _normalize_space(match.group(1)),
         "title": "项目联系人",
-        "phone": _normalize_space(match.group(2)),
+        "phone": _normalize_public_phone(match.group(2)),
         "email": None,
     }
 
@@ -346,7 +1200,7 @@ def _build_verified_record(
         ("facts.lifecycle_state", f"公告类型={notice_type}/确定性生命周期映射"),
         ("facts.notice_type", f"公告类型/{notice_type}"),
         ("facts.published_at", "公告发布日期"),
-        ("facts.registration_deadline", "三、获取采购文件/时间" if procurement_method != "公开招标" else "三、获取招标文件/时间"),
+        ("facts.registration_deadline", "获取采购文件/时间" if procurement_method != "公开招标" else "获取招标文件/时间"),
         ("facts.bid_deadline", deadline_locator),
         ("facts.procurement_method", f"公告类型={notice_type}/确定性采购方式映射"),
     ]
@@ -405,7 +1259,7 @@ def parse_ccgp_public_tender_text(
         public_contact=_extract_contact(normalized),
         notice_type="公开招标公告",
         procurement_method="公开招标",
-        deadline_locator="四、提交投标文件截止时间、开标时间和地点",
+        deadline_locator="提交投标文件截止时间、开标时间和地点",
     )
 
 
@@ -451,12 +1305,15 @@ def parse_ccgp_public_tender_html(
     observed_at: str,
     opportunity_id: str,
 ) -> dict[str, Any]:
-    return parse_ccgp_public_tender_text(
-        html_to_text(html),
+    text = html_to_text(html)
+    record = parse_ccgp_public_tender_text(
+        text,
         source_url=source_url,
         observed_at=observed_at,
         opportunity_id=opportunity_id,
     )
+    record = _apply_structured_html_products(record, html)
+    return _apply_grounded_text_products(record, text)
 
 
 def parse_ccgp_competitive_consultation_html(
@@ -466,12 +1323,15 @@ def parse_ccgp_competitive_consultation_html(
     observed_at: str,
     opportunity_id: str,
 ) -> dict[str, Any]:
-    return parse_ccgp_competitive_consultation_text(
-        html_to_text(html),
+    text = html_to_text(html)
+    record = parse_ccgp_competitive_consultation_text(
+        text,
         source_url=source_url,
         observed_at=observed_at,
         opportunity_id=opportunity_id,
     )
+    record = _apply_structured_html_products(record, html)
+    return _apply_grounded_text_products(record, text)
 
 
 def fetch_ccgp_detail_html(source_url: str, *, timeout_seconds: int = 30) -> str:

@@ -1,12 +1,10 @@
 {
-  "schema_version": "0.1",
-  "scope_id": "TIANJIN_MEDICAL_CHANNEL_CORE_AND_ADJACENT_TECH",
+  "schema_version": "0.5",
+  "scope_id": "MEDICAL_CHANNEL_CORE_AND_ADJACENT_TECH",
   "terms": [
     "医疗设备",
     "医疗器械",
     "医用",
-    "检验",
-    "检测",
     "诊断",
     "影像",
     "X线",
@@ -22,14 +20,12 @@
     "流式细胞仪",
     "灭菌器",
     "测序",
-    "实验室",
     "采血",
     "试剂",
     "质控品",
     "校准品",
     "抗体",
     "抗原",
-    "耗材",
     "体外诊断",
     "基因",
     "微生物",
@@ -49,14 +45,91 @@
     "胃肠动力",
     "心电",
     "脑电",
+    "乳腺机",
+    "眼底照相机",
+    "疾病预防控制专用设备",
+    "疾控专用设备"
+  ],
+  "contextual_terms": [
+    "检验",
+    "检测",
+    "实验室",
+    "耗材",
+    "信息互通共享",
+    "应用支撑平台"
+  ],
+  "adjacent_tech_terms": [
     "人工智能",
     "算力"
   ],
-  "acronyms": ["CT", "DR", "MRI", "DSA", "PCR", "POCT", "IVD", "LIS", "PACS", "RIS", "HIS", "GPU"],
+  "medical_context_terms": [
+    "医院",
+    "医科大学",
+    "医学科学院",
+    "中医药",
+    "疾病预防控制",
+    "疾控",
+    "卫生健康",
+    "妇幼",
+    "血站",
+    "临床",
+    "诊疗",
+    "药品检验",
+    "药检",
+    "医疗卫生"
+  ],
+  "hard_exclusion_terms": [
+    "医用织物洗涤",
+    "织物洗涤"
+  ],
+  "generic_exclusion_terms": [
+    "办公耗材",
+    "办公用品",
+    "安保服务",
+    "保安服务",
+    "物业服务",
+    "保洁服务",
+    "洗涤服务",
+    "职工体检服务",
+    "预包装食品",
+    "班车",
+    "业务用车租赁",
+    "工服",
+    "制服",
+    "装修改造",
+    "基建改造工程",
+    "改造施工",
+    "工程监理",
+    "房屋修缮",
+    "人才培养"
+  ],
+  "acronyms": [
+    "CT",
+    "DR",
+    "MRI",
+    "DSA",
+    "PCR",
+    "POCT",
+    "IVD",
+    "LIS",
+    "PACS",
+    "RIS",
+    "HIS"
+  ],
+  "contextual_acronyms": [],
+  "adjacent_tech_acronyms": [
+    "GPU"
+  ],
   "policy": {
     "buyer_or_hospital_name_alone_is_not_relevance_evidence": true,
+    "generic_signal_requires_medical_context": true,
+    "adjacent_tech_requires_medical_context_in_procurement_facts": true,
+    "hard_exclusions_override_strong_signals": true,
+    "generic_administration_exclusions_override_contextual_signals": true,
     "canonical_verified_facts_may_be_retained_even_when_out_of_public_scope": true,
     "public_opportunity_pool_requires_scope_match": true,
-    "ccgp_event_watch_requires_scope_match": true
+    "ccgp_event_watch_requires_scope_match": true,
+    "verified_specific_medical_devices_may_be_strong_signals": true,
+    "medical_it_contextual_terms_require_medical_context": true
   }
 }

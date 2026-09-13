@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
@@ -12,6 +13,7 @@ WEB_ROOT = PIPELINE_ROOT.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
+from publish_web_snapshot import combine_snapshots  # noqa: E402
 
 OPTIONAL_LIVE_SOURCES = (
     ('tianjin_live_tjnothop_records.json', 'live Tianjin Hospital state'),
@@ -20,6 +22,10 @@ OPTIONAL_LIVE_SOURCES = (
     ('tianjin_live_tjzyefy_intent_records.json', 'live TJZYEFY procurement-intent state'),
     ('tianjin_live_teda_records.json', 'live TEDA Hospital state'),
     ('tianjin_live_tjfch_records.json', 'live First Central Hospital state'),
+)
+REGIONAL_LIVE_SOURCE = (
+    'regional_live_ccgp_records.json',
+    'live regional CCGP state',
 )
 
 
@@ -41,6 +47,43 @@ def parse_as_of(value: str) -> datetime:
     if parsed.tzinfo is None:
         raise ValueError('--as-of must include timezone')
     return parsed
+
+
+def ensure_tianjin_market_metadata(records: list[dict]) -> None:
+    for record in records:
+        facts = record.setdefault('facts', {})
+        market_code = str(facts.get('market_code') or '').strip().upper()
+        if market_code and market_code != 'TJ':
+            raise ValueError(
+                f'TIANJIN_SOURCE_MARKET_MISMATCH:{record.get("opportunity_id")}:{market_code}'
+            )
+        facts['market_code'] = 'TJ'
+        facts.setdefault('market_name', '天津')
+        facts.setdefault('market_admin_code', '120000')
+
+
+def validate_regional_market_metadata(records: list[dict]) -> None:
+    for record in records:
+        facts = record.get('facts') or {}
+        market_code = str(facts.get('market_code') or '').strip().upper()
+        market_name = str(facts.get('market_name') or '').strip()
+        market_admin_code = str(facts.get('market_admin_code') or '').strip()
+        if not market_code or market_code == 'TJ':
+            raise ValueError(
+                f'REGIONAL_MARKET_CODE_INVALID:{record.get("opportunity_id")}:{market_code}'
+            )
+        if not market_name or not market_admin_code:
+            raise ValueError(
+                f'REGIONAL_MARKET_METADATA_REQUIRED:{record.get("opportunity_id")}'
+            )
+
+
+def published_market_counts(payload: dict) -> str:
+    counts = Counter(
+        str((card.get('facts') or {}).get('market_code') or '').strip().upper() or 'UNKNOWN'
+        for card in payload.get('opportunity_pool') or []
+    )
+    return ','.join(f'{code}:{counts[code]}' for code in sorted(counts))
 
 
 def main() -> int:
@@ -76,23 +119,42 @@ def main() -> int:
         label='TMUGH seed',
     )
 
-    records = [*ccgp_source, *tmugh_source]
+    tianjin_records = [*ccgp_source, *tmugh_source]
     for filename, label in OPTIONAL_LIVE_SOURCES:
-        records.extend(load_optional_array(PIPELINE_ROOT / 'data' / filename, label=label))
+        tianjin_records.extend(load_optional_array(PIPELINE_ROOT / 'data' / filename, label=label))
+    ensure_tianjin_market_metadata(tianjin_records)
+
+    regional_filename, regional_label = REGIONAL_LIVE_SOURCE
+    regional_records = load_optional_array(
+        PIPELINE_ROOT / 'data' / regional_filename,
+        label=regional_label,
+    )
+    validate_regional_market_metadata(regional_records)
 
     notice_events = load_array(
         PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json',
         label='notice events',
     )
 
-    payload = build_public_snapshot(records, published_as_of, notice_events)
+    # Keep Tianjin notice events isolated from regional records. Regional event
+    # monitoring remains disabled until those events carry explicit market identity.
+    tianjin_snapshot = build_public_snapshot(tianjin_records, published_as_of, notice_events)
+    regional_snapshot = build_public_snapshot(regional_records, published_as_of, [])
+    payload = combine_snapshots(
+        tianjin_snapshot,
+        regional_snapshot,
+        [*tianjin_records, *regional_records],
+        published_as_of,
+    )
     output.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2) + '\n',
         encoding='utf-8',
     )
     print(
-        'Bundled snapshot refreshed with current ranking logic '
-        f'from {len(records)} verified canonical records'
+        'Bundled snapshot refreshed with current ranking logic from '
+        f'{len(tianjin_records)} Tianjin + {len(regional_records)} regional verified canonical records; '
+        f'published opportunities={payload["opportunity_pool_count"]}; '
+        f'markets={published_market_counts(payload)}'
     )
     return 0
 

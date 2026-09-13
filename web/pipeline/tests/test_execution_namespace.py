@@ -156,7 +156,7 @@ class ExecutionNamespaceTests(unittest.TestCase):
         self.assertNotIn("medicalchannelai:verified-snapshot:latest:v2", source)
         self.assertNotIn("medicalchannelai:verified-snapshot:latest:v1", source)
         self.assertNotIn("persistRuntimeSnapshot(cache, verifiedLegacy)", source)
-        self.assertIn("return persistRuntimeSnapshot(cache, bundledVerifiedSnapshot())", source)
+        self.assertIn("return persistBundledRuntimeSnapshot(cache, bundledVerifiedSnapshot())", source)
 
 
 if __name__ == "__main__":
