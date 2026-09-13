@@ -1,0 +1,155 @@
+name: Promote Production 2026-09-13b
+
+on:
+  push:
+    branches: [release/staged-production-20260913b]
+    paths:
+      - '.github/workflows/promote-production-20260913b.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannelai-production-release-20260913b
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+      GITHUB_REPO_TOKEN: ${{ github.token }}
+      EXPECTED_MAIN_SHA: 5b35ea51f45774b110147d3fbf7d0c66b5e749cf
+      STAGED_DEPLOYMENT_ID: dpl_CCihWbU5nYxhFB3ayiKWqtmFeNDd
+      STAGED_URL: https://medicalchannelai-bf27m1lvg-rerisse7-1717s-projects.vercel.app
+      OLD_PRODUCTION_URL: https://medicalchannelai-4haqyoa3q-rerisse7-1717s-projects.vercel.app
+      PUBLIC_STATUS_URL: https://medicalchannelai.vercel.app/api/status
+
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo '::error::VERCEL_TOKEN is missing; promotion not attempted.'
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Fail closed if main changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAIN_JSON="$(curl -fsS \
+            -H "Authorization: Bearer $GITHUB_REPO_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            'https://api.github.com/repos/wpuu/MedicalChannelAI/commits/main')"
+          CURRENT_MAIN_SHA="$(MAIN_JSON="$MAIN_JSON" node -e "const v=JSON.parse(process.env.MAIN_JSON); process.stdout.write(v.sha || '')")"
+          echo "Current main: $CURRENT_MAIN_SHA"
+          echo "Expected main: $EXPECTED_MAIN_SHA"
+          if [ "$CURRENT_MAIN_SHA" != "$EXPECTED_MAIN_SHA" ]; then
+            echo '::error::main changed after staged acceptance; promotion stopped.'
+            exit 1
+          fi
+
+      - name: Link exact Vercel project locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Recheck exact staged deployment is READY Production
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOY_JSON="$(curl -fsS \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$STAGED_DEPLOYMENT_ID?teamId=$VERCEL_ORG_ID")"
+          DEPLOY_JSON="$DEPLOY_JSON" STAGED_DEPLOYMENT_ID="$STAGED_DEPLOYMENT_ID" node <<'NODE'
+          const d = JSON.parse(process.env.DEPLOY_JSON || '{}');
+          const state = d.readyState || d.state;
+          const ok = d.id === process.env.STAGED_DEPLOYMENT_ID && state === 'READY' && d.target === 'production';
+          console.log(`staged deployment=${d.id || 'missing'} state=${state || 'missing'} target=${d.target || 'missing'}`);
+          if (!ok) process.exit(1);
+          NODE
+
+      - name: Promote exact staged deployment and validate public Production
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Promoting exact staged URL: $STAGED_URL"
+          npx --yes vercel@latest promote "$STAGED_URL" --yes --token="$VERCEL_TOKEN"
+
+          accepted=0
+          last_status=''
+          for attempt in $(seq 1 18); do
+            last_status="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
+            if STATUS_JSON="$last_status" node <<'NODE'
+          let s;
+          try { s = JSON.parse(process.env.STATUS_JSON || '{}'); } catch { process.exit(1); }
+          const ok =
+            s.ready === true &&
+            s.degraded === false &&
+            s.ai?.configured === true &&
+            s.snapshot?.available === true &&
+            s.snapshot?.freshness === 'FRESH' &&
+            s.snapshot?.today_card_count === 5 &&
+            s.snapshot?.opportunity_pool_count === 144;
+          if (!ok) process.exit(1);
+          console.log(`Production gate PASS: ready=${s.ready} degraded=${s.degraded} ai=${s.ai.configured} freshness=${s.snapshot.freshness} today=${s.snapshot.today_card_count} pool=${s.snapshot.opportunity_pool_count}`);
+          NODE
+            then
+              accepted=1
+              break
+            fi
+            echo "Production gate not ready yet (attempt $attempt/18); retrying in 5s."
+            sleep 5
+          done
+
+          if [ "$accepted" -ne 1 ]; then
+            echo '::error::Post-promote Production gate failed. Rolling back to the previous verified Production deployment.'
+            echo "Last status payload: $last_status"
+            npx --yes vercel@latest promote "$OLD_PRODUCTION_URL" --yes --token="$VERCEL_TOKEN" || true
+
+            rollback_ok=0
+            for attempt in $(seq 1 12); do
+              rollback_status="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
+              if STATUS_JSON="$rollback_status" node <<'NODE'
+          let s;
+          try { s = JSON.parse(process.env.STATUS_JSON || '{}'); } catch { process.exit(1); }
+          const ok = s.ready === true && s.degraded === false && s.commit === '7208891' && s.snapshot?.opportunity_pool_count === 26;
+          if (!ok) process.exit(1);
+          console.log(`Rollback verified: commit=${s.commit} pool=${s.snapshot.opportunity_pool_count}`);
+          NODE
+              then
+                rollback_ok=1
+                break
+              fi
+              sleep 5
+            done
+            if [ "$rollback_ok" -ne 1 ]; then
+              echo '::error::Rollback command was issued but old Production could not be positively verified within the retry window.'
+            fi
+            exit 1
+          fi
+
+          echo '### Production promotion' >> "$GITHUB_STEP_SUMMARY"
+          echo "- Accepted main SHA: \`$EXPECTED_MAIN_SHA\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Promoted deployment: \`$STAGED_DEPLOYMENT_ID\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Staged URL: $STAGED_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo '- Post-promote gate: PASS (AI configured, ready, not degraded, FRESH, Today=5, pool=144)' >> "$GITHUB_STEP_SUMMARY"
+          echo "- Rollback baseline retained: $OLD_PRODUCTION_URL" >> "$GITHUB_STEP_SUMMARY"
