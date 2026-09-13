@@ -28,8 +28,7 @@ jobs:
       GITHUB_REPO_TOKEN: ${{ github.token }}
       EXPECTED_MAIN_SHA: 5b35ea51f45774b110147d3fbf7d0c66b5e749cf
       STAGED_DEPLOYMENT_ID: dpl_CCihWbU5nYxhFB3ayiKWqtmFeNDd
-      STAGED_URL: https://medicalchannelai-bf27m1lvg-rerisse7-1717s-projects.vercel.app
-      OLD_PRODUCTION_URL: https://medicalchannelai-4haqyoa3q-rerisse7-1717s-projects.vercel.app
+      OLD_PRODUCTION_DEPLOYMENT_ID: dpl_FTRtLrj7cZHehiSDWjqfbrXNsYNH
       PUBLIC_STATUS_URL: https://medicalchannelai.vercel.app/api/status
 
     steps:
@@ -64,13 +63,6 @@ jobs:
             exit 1
           fi
 
-      - name: Link exact Vercel project locally
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p .vercel
-          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
-
       - name: Recheck exact staged deployment is READY Production
         shell: bash
         run: |
@@ -86,19 +78,13 @@ jobs:
           if (!ok) process.exit(1);
           NODE
 
-      - name: Promote exact staged deployment and validate public Production
+      - name: Promote exact deployment via Vercel API and validate with automatic rollback
         shell: bash
         run: |
           set -euo pipefail
 
-          echo "Promoting exact staged URL: $STAGED_URL"
-          npx --yes vercel@latest promote "$STAGED_URL" --yes --token="$VERCEL_TOKEN"
-
-          accepted=0
-          last_status=''
-          for attempt in $(seq 1 18); do
-            last_status="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
-            if STATUS_JSON="$last_status" node <<'NODE'
+          is_new_production() {
+            STATUS_JSON="$1" node <<'NODE'
           let s;
           try { s = JSON.parse(process.env.STATUS_JSON || '{}'); } catch { process.exit(1); }
           const ok =
@@ -112,7 +98,73 @@ jobs:
           if (!ok) process.exit(1);
           console.log(`Production gate PASS: ready=${s.ready} degraded=${s.degraded} ai=${s.ai.configured} freshness=${s.snapshot.freshness} today=${s.snapshot.today_card_count} pool=${s.snapshot.opportunity_pool_count}`);
           NODE
-            then
+          }
+
+          is_old_production() {
+            STATUS_JSON="$1" node <<'NODE'
+          let s;
+          try { s = JSON.parse(process.env.STATUS_JSON || '{}'); } catch { process.exit(1); }
+          const ok = s.ready === true && s.degraded === false && s.commit === '7208891' && s.snapshot?.opportunity_pool_count === 26;
+          if (!ok) process.exit(1);
+          console.log(`Old Production verified: commit=${s.commit} pool=${s.snapshot.opportunity_pool_count}`);
+          NODE
+          }
+
+          rollback_old() {
+            echo 'Issuing official Vercel rollback to the previous verified Production deployment.'
+            set +e
+            rollback_http="$(curl -sS -o /tmp/vercel-rollback-response.txt -w '%{http_code}' \
+              --request POST \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v1/projects/$VERCEL_PROJECT_ID/rollback/$OLD_PRODUCTION_DEPLOYMENT_ID?teamId=$VERCEL_ORG_ID")"
+            rollback_rc=$?
+            set -e
+            echo "Rollback API curl_rc=$rollback_rc http=$rollback_http"
+            if [ -s /tmp/vercel-rollback-response.txt ]; then cat /tmp/vercel-rollback-response.txt; fi
+
+            for attempt in $(seq 1 12); do
+              rollback_status="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
+              if is_old_production "$rollback_status"; then
+                echo 'Rollback verification PASS.'
+                return 0
+              fi
+              sleep 5
+            done
+            return 1
+          }
+
+          echo "Requesting Production traffic promotion for deployment $STAGED_DEPLOYMENT_ID"
+          set +e
+          promote_http="$(curl -sS -o /tmp/vercel-promote-response.txt -w '%{http_code}' \
+            --request POST \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/promote/$STAGED_DEPLOYMENT_ID?teamId=$VERCEL_ORG_ID")"
+          promote_rc=$?
+          set -e
+          echo "Promote API curl_rc=$promote_rc http=$promote_http"
+          if [ -s /tmp/vercel-promote-response.txt ]; then cat /tmp/vercel-promote-response.txt; fi
+
+          if [ "$promote_rc" -ne 0 ] || { [ "$promote_http" != '200' ] && [ "$promote_http" != '201' ] && [ "$promote_http" != '202' ]; }; then
+            current_status="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
+            if is_new_production "$current_status"; then
+              echo 'Promotion API response was unexpected, but the exact accepted Production gate is already live; continuing as success.'
+            elif is_old_production "$current_status"; then
+              echo '::error::Promotion API failed before traffic changed; old Production remains live.'
+              exit 1
+            else
+              echo '::error::Promotion API outcome is ambiguous; forcing rollback to the prior verified Production.'
+              if ! rollback_old; then
+                echo '::error::Rollback could not be positively verified.'
+              fi
+              exit 1
+            fi
+          fi
+
+          accepted=0
+          last_status=''
+          for attempt in $(seq 1 18); do
+            last_status="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
+            if is_new_production "$last_status"; then
               accepted=1
               break
             fi
@@ -121,28 +173,10 @@ jobs:
           done
 
           if [ "$accepted" -ne 1 ]; then
-            echo '::error::Post-promote Production gate failed. Rolling back to the previous verified Production deployment.'
+            echo '::error::Post-promote Production gate failed; rolling back.'
             echo "Last status payload: $last_status"
-            npx --yes vercel@latest promote "$OLD_PRODUCTION_URL" --yes --token="$VERCEL_TOKEN" || true
-
-            rollback_ok=0
-            for attempt in $(seq 1 12); do
-              rollback_status="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
-              if STATUS_JSON="$rollback_status" node <<'NODE'
-          let s;
-          try { s = JSON.parse(process.env.STATUS_JSON || '{}'); } catch { process.exit(1); }
-          const ok = s.ready === true && s.degraded === false && s.commit === '7208891' && s.snapshot?.opportunity_pool_count === 26;
-          if (!ok) process.exit(1);
-          console.log(`Rollback verified: commit=${s.commit} pool=${s.snapshot.opportunity_pool_count}`);
-          NODE
-              then
-                rollback_ok=1
-                break
-              fi
-              sleep 5
-            done
-            if [ "$rollback_ok" -ne 1 ]; then
-              echo '::error::Rollback command was issued but old Production could not be positively verified within the retry window.'
+            if ! rollback_old; then
+              echo '::error::Rollback was issued but could not be positively verified within the retry window.'
             fi
             exit 1
           fi
@@ -150,6 +184,6 @@ jobs:
           echo '### Production promotion' >> "$GITHUB_STEP_SUMMARY"
           echo "- Accepted main SHA: \`$EXPECTED_MAIN_SHA\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Promoted deployment: \`$STAGED_DEPLOYMENT_ID\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Staged URL: $STAGED_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo '- Promotion path: official Vercel project/deployment REST API' >> "$GITHUB_STEP_SUMMARY"
           echo '- Post-promote gate: PASS (AI configured, ready, not degraded, FRESH, Today=5, pool=144)' >> "$GITHUB_STEP_SUMMARY"
-          echo "- Rollback baseline retained: $OLD_PRODUCTION_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Rollback baseline retained: \`$OLD_PRODUCTION_DEPLOYMENT_ID\`" >> "$GITHUB_STEP_SUMMARY"
