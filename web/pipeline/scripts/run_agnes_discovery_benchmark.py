@@ -25,7 +25,7 @@ from medical_channel_pipeline.agnes_discovery import (  # noqa: E402
 )
 
 DEFAULT_BASE_URL = "https://apihub.agnes-ai.com/v1"
-MODEL_ID = "agnes-2.5-flash"
+MODEL_ID = "agnes-3.0-flash"
 MIN_FETCH_DELAY_SECONDS = 2.0
 
 
@@ -271,7 +271,7 @@ def main() -> int:
         "mode": "AGNES_DISCOVERY_SHADOW_BENCHMARK",
         "started_at": started_at,
         "completed_at": datetime.now(timezone.utc).isoformat(),
-        "model_family": "agnes-2.5-flash",
+        "model_family": "agnes-3.0-flash",
         "production_data_mutated": False,
         "policy": {
             "manual_search_results_are_not_input": True,
