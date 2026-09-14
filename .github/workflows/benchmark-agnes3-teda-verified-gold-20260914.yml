@@ -1,0 +1,79 @@
+name: Benchmark Agnes 3 TEDA Verified Gold 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes3-quality-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes3-teda-verified-gold-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 5
+    steps:
+      - name: Score Production shadow discovery against strict TEDA gold
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY='{"source":{"id":"TEDA-verified-gold","name":"天津市泰达医院","kind":"HOSPITAL_OFFICIAL","url":"https://www.tedahospital.com.cn/article/plist/9"}}'
+          http="$(curl -sS --max-time 45 -o /tmp/teda-gold.json -w '%{http_code}' \
+            --request POST \
+            --header 'Origin: https://medicalchannelai.vercel.app' \
+            --header 'Content-Type: application/json' \
+            --data "$BODY" \
+            'https://medicalchannelai.vercel.app/api/ai/discover')"
+          echo "HTTP $http"
+          test "$http" = '200' || { cat /tmp/teda-gold.json; echo; echo '::error::TEDA Production shadow discovery failed.'; exit 1; }
+          RESPONSE="$(cat /tmp/teda-gold.json)" node <<'NODE'
+          const value = JSON.parse(process.env.RESPONSE || '{}')
+          // Strictly verified by tianjin_teda_sync_report.json + detail validation.
+          const gold = [
+            'https://www.tedahospital.com.cn/article/show/9/901',
+            'https://www.tedahospital.com.cn/article/show/9/893',
+            'https://www.tedahospital.com.cn/article/show/9/883',
+            'https://www.tedahospital.com.cn/article/show/9/882',
+          ]
+          const anchors = new Set((value.anchor_snapshot || []).map(x => x?.url).filter(Boolean))
+          const candidates = new Set((value.candidates || []).map(x => x?.url).filter(Boolean))
+          const visibleGold = gold.filter(url => anchors.has(url))
+          const hits = visibleGold.filter(url => candidates.has(url))
+          const raw = Number(value.raw_candidate_count || 0)
+          const rejectedUngrounded = Number(value.rejected_ungrounded_count || 0)
+          const rejectedInvalid = Number(value.rejected_invalid_count || 0)
+          const recall = visibleGold.length ? hits.length / visibleGold.length : null
+          const grounding = raw ? (raw - rejectedUngrounded) / raw : 1
+          const format = raw ? (raw - rejectedUngrounded - rejectedInvalid) / raw : 1
+          const score = recall === null ? null : 100 * (0.75 * recall + 0.20 * grounding + 0.05 * format)
+          const report = {
+            mode: value.mode,
+            analysis_version: value.analysis_version,
+            ai_called: value.ai_called,
+            cache_status: value.cache_status,
+            production_data_mutated: value.production_data_mutated,
+            official_anchor_count: value.official_anchor_count,
+            analyzed_anchor_count: value.analyzed_anchor_count,
+            raw_candidate_count: raw,
+            candidate_count: value.candidate_count,
+            rejected_ungrounded_count: rejectedUngrounded,
+            rejected_invalid_count: rejectedInvalid,
+            strict_verified_gold_count: gold.length,
+            visible_gold_count: visibleGold.length,
+            visible_gold_urls: visibleGold,
+            known_hit_count: hits.length,
+            known_hit_urls: hits,
+            known_recall: recall === null ? null : Number(recall.toFixed(4)),
+            grounding_rate: Number(grounding.toFixed(4)),
+            format_valid_rate: Number(format.toFixed(4)),
+            discovery_score: score === null ? null : Number(score.toFixed(1)),
+            candidate_urls: [...candidates],
+          }
+          console.log(JSON.stringify(report, null, 2))
+          if (value.mode !== 'AI_DISCOVERY_SHADOW' || value.ai_called !== true || value.production_data_mutated !== false) process.exit(2)
+          NODE
