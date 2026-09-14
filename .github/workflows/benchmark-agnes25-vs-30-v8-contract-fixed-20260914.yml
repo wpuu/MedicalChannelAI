@@ -1,0 +1,133 @@
+name: Benchmark Agnes V8 Contract Fixed 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes25-vs-30-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes25-vs-30-v8-contract-fixed-20260914.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannelai-agnes-ab-v8-20260914
+  cancel-in-progress: true
+
+jobs:
+  benchmark-build:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 25
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
+
+      - name: Checkout benchmark helper
+        uses: actions/checkout@v4
+        with:
+          ref: benchmark/agnes25-vs-30-20260914
+          path: bench
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e
+          path: app
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Inject contract-fixed benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 bench/.github/scripts/inject_agnes_ab_build.py app
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('app/web/scripts/agnes-ab-build.mjs')
+          text=p.read_text(encoding='utf-8')
+
+          old_models="const models = ['agnes-2.5-flash','agnes-3.0-flash']"
+          new_models="const scenarios = [{name:'agnes-2.5-default',model:'agnes-2.5-flash',extra:{}},{name:'agnes-3.0-thinking-off',model:'agnes-3.0-flash',extra:{chat_template_kwargs:{enable_thinking:false}}}]"
+          if text.count(old_models)!=1: raise SystemExit('model patch mismatch')
+          text=text.replace(old_models,new_models)
+
+          old_info="console.log('AGNES_AB_INFO_JSON='+JSON.stringify({key_count:keys.length,corpus_count:corpus.length,positive_count:positives.length,negative_count:negatives.length,models,production_data_mutated:false}))"
+          new_info="console.log('AGNES_AB_INFO_JSON='+JSON.stringify({key_count:keys.length,corpus_count:corpus.length,positive_count:positives.length,negative_count:negatives.length,scenarios:scenarios.map(x=>x.name),prompt_contract:'signal_type_single_string_v2',production_data_mutated:false}))"
+          if text.count(old_info)!=1: raise SystemExit('info patch mismatch')
+          text=text.replace(old_info,new_info)
+
+          old_schema="{role:'user',content:JSON.stringify({source:'MedicalChannelAI 固定 A/B 基准语料',source_kind:'OFFICIAL_BENCHMARK',anchors,max_candidates:12,output_schema:{candidates:[{title:'对应输入标题',url:'必须与输入URL完全一致',signal_type:Array.from(signalTypes),confidence:'0到1',reason:'不超过80个汉字'}]}})}"
+          new_schema="{role:'user',content:JSON.stringify({source:'MedicalChannelAI 固定 A/B 基准语料',source_kind:'OFFICIAL_BENCHMARK',anchors,max_candidates:12,allowed_signal_types:Array.from(signalTypes),output_rules:['candidates只包含判断为采购前期窗口的链接','每个candidate的signal_type必须是单个字符串，且只能取allowed_signal_types中的一个值','confidence必须是0到1之间的数字','reason不超过30个汉字','不要返回title字段'],output_schema:{candidates:[{url:'必须与输入URL完全一致',signal_type:'单个字符串枚举值',confidence:0.95,reason:'不超过30个汉字'}]}})}"
+          if text.count(old_schema)!=1: raise SystemExit('schema patch mismatch')
+          text=text.replace(old_schema,new_schema)
+
+          old_fn="async function runOne(model,slot,timeoutMs){"
+          new_fn="async function runOne(scenario,slot,timeoutMs){\n  const model=scenario.model"
+          if text.count(old_fn)!=1: raise SystemExit('runOne patch mismatch')
+          text=text.replace(old_fn,new_fn)
+
+          old_body="body:JSON.stringify({model,messages:messages(),temperature:0,max_tokens:1400,stream:false})"
+          new_body="body:JSON.stringify({model,messages:messages(),temperature:0,max_tokens:1400,stream:false,...scenario.extra})"
+          if text.count(old_body)!=1: raise SystemExit('body patch mismatch')
+          text=text.replace(old_body,new_body)
+
+          old_success="return {provider_ok:true,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,raw_candidate_count:parsed.raw,candidate_count:s.size,positive_hits:hits,false_positives:fp,recall:Number((hits/positives.length).toFixed(4)),false_positive_rate:Number((fp/negatives.length).toFixed(4)),precision:Number((s.size?hits/s.size:1).toFixed(4)),rejected_ungrounded_count:parsed.ungrounded,rejected_invalid_count:parsed.invalid}"
+          new_success="return {provider_ok:true,scenario:scenario.name,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,raw_candidate_count:parsed.raw,candidate_count:s.size,positive_hits:hits,false_positives:fp,recall:Number((hits/positives.length).toFixed(4)),false_positive_rate:Number((fp/negatives.length).toFixed(4)),precision:Number((s.size?hits/s.size:1).toFixed(4)),rejected_ungrounded_count:parsed.ungrounded,rejected_invalid_count:parsed.invalid}"
+          if text.count(old_success)!=1: raise SystemExit('success patch mismatch')
+          text=text.replace(old_success,new_success)
+
+          old_catch="return {provider_ok:false,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,error:timed?'TIMEOUT':'PROVIDER_EXCEPTION'}"
+          new_catch="return {provider_ok:false,scenario:scenario.name,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,error:timed?'TIMEOUT':'PROVIDER_EXCEPTION'}"
+          if text.count(old_catch)!=1: raise SystemExit('catch patch mismatch')
+          text=text.replace(old_catch,new_catch)
+
+          old_loop="for(const phase of phases){for(const model of models){const batch=await Promise.all(keys.map((_,slot)=>runOne(model,slot,phase.timeout_ms)));for(const x of batch){rows.push({phase:phase.name,...x});console.log('AGNES_AB_ROW_JSON='+JSON.stringify({phase:phase.name,...x}))}}}"
+          new_loop="for(const phase of phases){for(const scenario of scenarios){for(let slot=0;slot<keys.length;slot+=1){const x=await runOne(scenario,slot,phase.timeout_ms);rows.push({phase:phase.name,...x});console.log('AGNES_AB_ROW_JSON='+JSON.stringify({phase:phase.name,...x}));await new Promise(resolve=>setTimeout(resolve,1000))}}}"
+          if text.count(old_loop)!=1: raise SystemExit('loop patch mismatch')
+          text=text.replace(old_loop,new_loop)
+
+          old_report="for(const phase of phases.map(x=>x.name)){report[phase]={};for(const model of models){const r=rows.filter(x=>x.phase===phase&&x.model===model),ok=r.filter(x=>x.provider_ok),avg=k=>ok.length?Number((ok.reduce((s,x)=>s+Number(x[k]??0),0)/ok.length).toFixed(4)):null,lats=r.map(x=>Number(x.latency_ms)).filter(Number.isFinite);report[phase][model]={attempts:r.length,successes:ok.length,success_rate:r.length?Number((ok.length/r.length).toFixed(4)):0,timeouts:r.filter(x=>x.error==='TIMEOUT').length,p50_latency_ms:pct(lats,.5),p95_latency_ms:pct(lats,.95),avg_recall:avg('recall'),avg_false_positive_rate:avg('false_positive_rate'),avg_precision:avg('precision'),avg_candidate_count:avg('candidate_count'),total_rejected_ungrounded:ok.reduce((s,x)=>s+Number(x.rejected_ungrounded_count||0),0),total_rejected_invalid:ok.reduce((s,x)=>s+Number(x.rejected_invalid_count||0),0)}}}"
+          new_report="for(const phase of phases.map(x=>x.name)){report[phase]={};for(const scenario of scenarios){const r=rows.filter(x=>x.phase===phase&&x.scenario===scenario.name),ok=r.filter(x=>x.provider_ok),usable=ok.filter(x=>Number(x.candidate_count)>0),avg=k=>ok.length?Number((ok.reduce((s,x)=>s+Number(x[k]??0),0)/ok.length).toFixed(4)):null,lats=r.map(x=>Number(x.latency_ms)).filter(Number.isFinite);report[phase][scenario.name]={attempts:r.length,provider_successes:ok.length,usable_successes:usable.length,success_rate:r.length?Number((usable.length/r.length).toFixed(4)):0,timeouts:r.filter(x=>x.error==='TIMEOUT').length,p50_latency_ms:pct(lats,.5),p95_latency_ms:pct(lats,.95),avg_recall:avg('recall'),avg_false_positive_rate:avg('false_positive_rate'),avg_precision:avg('precision'),avg_candidate_count:avg('candidate_count'),total_rejected_ungrounded:ok.reduce((s,x)=>s+Number(x.rejected_ungrounded_count||0),0),total_rejected_invalid:ok.reduce((s,x)=>s+Number(x.rejected_invalid_count||0),0)}}}"
+          if text.count(old_report)!=1: raise SystemExit('report patch mismatch')
+          text=text.replace(old_report,new_report)
+
+          old_expected="const expected=keys.length*models.length*phases.length"
+          new_expected="const expected=keys.length*scenarios.length*phases.length"
+          if text.count(old_expected)!=1: raise SystemExit('expected patch mismatch')
+          text=text.replace(old_expected,new_expected)
+
+          p.write_text(text,encoding='utf-8')
+          PY
+          ! grep -q 'Promise.all(keys.map' app/web/scripts/agnes-ab-build.mjs
+          grep -q 'signal_type必须是单个字符串' app/web/scripts/agnes-ab-build.mjs
+          grep -q 'agnes-3.0-thinking-off' app/web/scripts/agnes-ab-build.mjs
+
+      - name: Link exact Vercel project locally
+        shell: bash
+        working-directory: app
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Deploy isolated staged Production benchmark
+        shell: bash
+        working-directory: app
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
+          case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged deployment URL'; exit 1;; esac
+          echo "Staged V8 benchmark URL: $DEPLOY_URL"
+          echo "Production domain switch: skipped"
+          echo "Prompt contract fixed: signal_type is one string enum; title omitted; reason <=30 Chinese chars."
+          echo "Scenarios: Agnes 2.5 default; Agnes 3.0 thinking off."
+          echo "All key slots are sequential with 1s spacing."
+          echo "No verified snapshot write is performed."
