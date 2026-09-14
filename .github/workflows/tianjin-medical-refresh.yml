@@ -209,9 +209,9 @@ jobs:
       - name: Publish and verify optional external snapshot
         shell: bash
         env:
-          VERIFIED_SNAPSHOT_PUBLISH_URL: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_URL }}
+          VERIFIED_SNAPSHOT_PUBLISH_URL: https://medicalchannelai.vercel.app/api/public-snapshot
           VERIFIED_SNAPSHOT_PUBLISH_TOKEN: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_TOKEN }}
-          VERIFIED_SNAPSHOT_READ_URL: ${{ secrets.VERIFIED_SNAPSHOT_READ_URL }}
+          VERIFIED_SNAPSHOT_READ_URL: https://medicalchannelai.vercel.app/api/public-snapshot
         run: |
           set -euo pipefail
           if [[ -z "${VERIFIED_SNAPSHOT_PUBLISH_URL:-}" ]]; then
