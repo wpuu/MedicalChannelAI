@@ -8,8 +8,8 @@ export const config = { maxDuration: 30 }
 const PUBLIC_FIRST_PARTY_ORIGIN = 'https://medicalai.qd.je'
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const MODEL_ID = 'agnes-3.0-flash'
-const ROOT_ANALYSIS_VERSION = 'agnes-discovery-live-v4-safe-next-page'
-const CONTINUATION_ANALYSIS_VERSION = 'agnes-discovery-continuation-v1'
+const ROOT_ANALYSIS_VERSION = 'agnes-discovery-live-v5-async-cache'
+const CONTINUATION_ANALYSIS_VERSION = 'agnes-discovery-continuation-v2'
 const RATE_WINDOW_MS = 60 * 1000
 const RATE_MAX_PER_CLIENT = 12
 const PROVIDER_TIMEOUT_MS = 12_000
@@ -496,13 +496,20 @@ function buildMessages(source, anchors) {
         continuation_segment: true,
         anchors,
         max_candidates: 12,
+        allowed_signal_types: Array.from(SIGNAL_TYPES),
+        output_rules: [
+          'candidates只包含判断为采购前期窗口的链接',
+          '每个candidate的signal_type必须是单个字符串，且只能取allowed_signal_types中的一个值',
+          'confidence必须是0到1之间的数字',
+          'reason不超过30个汉字',
+          '不要返回title字段',
+        ],
         output_schema: {
           candidates: [{
-            title: '对应输入标题',
             url: '必须与输入URL完全一致',
-            signal_type: Array.from(SIGNAL_TYPES),
-            confidence: '0到1',
-            reason: '不超过80个汉字',
+            signal_type: '单个字符串枚举值',
+            confidence: 0.95,
+            reason: '不超过30个汉字',
           }],
         },
       }),
@@ -530,6 +537,7 @@ async function callProvider(source, anchors, keys, segmentIndex) {
         temperature: 0,
         max_tokens: 1400,
         stream: false,
+        chat_template_kwargs: { enable_thinking: false },
       }),
     })
     if (!response.ok) throw new Error(`UPSTREAM_HTTP_${response.status}`)

@@ -68,6 +68,7 @@ const HEALTH_LABELS = {
 
 const MULTI_SCAN_GAP_MS = 2200
 const FINDINGS_RENDER_LIMIT = 500
+const AI_REFRESH_RETRY_DELAYS_MS = [4_000, 8_000, 12_000] as const
 
 function normalizeSourceUrl(value: string) {
   const parsed = new URL(value.trim())
@@ -111,6 +112,9 @@ function formatBytes(value: number | null) {
 }
 
 function cacheStatusText(result: DiscoveryRadarResult) {
+  if (result.cache_status === 'AI_REFRESH_PENDING') return 'AI后台分析中 · 当前没有把空结果当成无商机'
+  if (result.cache_status === 'STALE_WHILE_AI_REFRESH') return '先显示上次仍可复用结果 · AI正在后台刷新变化链接'
+  if (result.cache_status === 'SERVER_AI_CACHE') return 'AI后台结果已就绪 · 本次直接读取服务器缓存'
   if (result.cache_status === 'FRESH_DELTA_AI') {
     return `新增 ${result.new_anchor_count} / 变更 ${result.changed_anchor_count} · AI仅分析 ${result.ai_analyzed_anchor_count} 条增量`
   }
@@ -221,7 +225,7 @@ export function DiscoveryRadarPage() {
     }
   }, [enabledSources, findings, rows, scopeNames.length])
 
-  const scanOne = async (sourceId: string, options?: { preserveBusy?: boolean; forceAi?: boolean }) => {
+  const scanOne = async (sourceId: string, options?: { preserveBusy?: boolean; forceAi?: boolean; autoRetry?: boolean; retryAttempt?: number }) => {
     const source = workspace.sources.find((item) => item.id === sourceId)
     if (!source || !source.enabled || !storageReady) return false
     if (!options?.preserveBusy) setBusySource(sourceId)
@@ -232,8 +236,17 @@ export function DiscoveryRadarPage() {
         ...current,
         results: { ...current.results, [sourceId]: result },
         stats: { ...current.stats, [sourceId]: recordDiscoverySuccess(current.stats[sourceId], result) },
-        findings: mergeDiscoveryFindings(current.findings, result),
+        findings: result.ai_refresh_pending ? current.findings : mergeDiscoveryFindings(current.findings, result),
       }))
+      if (result.ai_refresh_pending && options?.autoRetry !== false) {
+        const attempt = options?.retryAttempt ?? 0
+        const delay = AI_REFRESH_RETRY_DELAYS_MS[attempt]
+        if (delay !== undefined) {
+          window.setTimeout(() => {
+            void scanOne(sourceId, { preserveBusy: true, autoRetry: true, retryAttempt: attempt + 1 })
+          }, delay)
+        }
+      }
       return true
     } catch (cause) {
       const code = cause instanceof DiscoveryRadarError ? cause.code : 'UNKNOWN'
@@ -260,7 +273,7 @@ export function DiscoveryRadarPage() {
     setBusySource(busyKey)
     setError(null)
     for (let index = 0; index < sources.length; index += 1) {
-      await scanOne(sources[index].id, { preserveBusy: true })
+      await scanOne(sources[index].id, { preserveBusy: true, autoRetry: false })
       if (index < sources.length - 1) await sleep(MULTI_SCAN_GAP_MS)
     }
     setBusySource(null)

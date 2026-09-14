@@ -23,10 +23,11 @@ class AgnesOutputContractTests(unittest.TestCase):
         self.assertIn('const anchor = allowed.get(rawUrl)', self.source)
         self.assertIn('if (!SIGNAL_TYPES.has(signalType)', self.source)
 
-    def test_contract_fix_does_not_change_model_timeout_or_thinking_mode(self):
+    def test_async_architecture_keeps_model_but_moves_latency_off_request_path(self):
         self.assertIn("const MODEL_ID = 'agnes-3.0-flash'", self.source)
-        self.assertIn('const PROVIDER_TIMEOUT_MS = 12_000', self.source)
-        self.assertNotIn('enable_thinking', self.source)
+        self.assertIn('const BACKGROUND_PROVIDER_TIMEOUT_MS = 25_000', self.source)
+        self.assertIn('chat_template_kwargs: { enable_thinking: false }', self.source)
+        self.assertIn('waitUntil(task)', self.source)
         self.assertNotIn('reasoning_effort', self.source)
 
 

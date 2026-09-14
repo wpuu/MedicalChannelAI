@@ -10,7 +10,7 @@ import {
 export interface DiscoveryContinuationSegment {
   schema_version: '0.1'
   mode: 'AI_DISCOVERY_CONTINUATION_SHADOW'
-  analysis_version: 'agnes-discovery-continuation-v1'
+  analysis_version: 'agnes-discovery-continuation-v2'
   segment_id: string
   segment_index: number
   source_id: string
@@ -111,7 +111,7 @@ function validSegmentResponse(
   return (
     body?.mode === 'AI_DISCOVERY_CONTINUATION_SHADOW' &&
     body?.schema_version === '0.1' &&
-    body?.analysis_version === 'agnes-discovery-continuation-v1' &&
+    body?.analysis_version === 'agnes-discovery-continuation-v2' &&
     body?.source_id === source.id &&
     body?.source_url === source.url &&
     body?.root_content_fingerprint === root.content_fingerprint &&

@@ -15,6 +15,9 @@ export type DiscoveryCacheStatus =
   | 'REUSED_UNCHANGED'
   | 'REUSED_NO_NEW_LINKS'
   | 'REUSED_PARTIAL_COVERAGE'
+  | 'SERVER_AI_CACHE'
+  | 'AI_REFRESH_PENDING'
+  | 'STALE_WHILE_AI_REFRESH'
 
 export interface DiscoverySourceInput {
   id: DiscoverySourceId
@@ -48,9 +51,10 @@ export interface DiscoveryRadarResult {
   source_url: string
   checked_at: string
   scanned_at: string
-  analyzed_at: string
+  analyzed_at: string | null
   cache_status: DiscoveryCacheStatus
   ai_called: boolean
+  ai_refresh_pending: boolean
   content_fingerprint: string
   official_anchor_count: number
   analyzed_anchor_count: number
@@ -125,7 +129,7 @@ export function discoveryRadarErrorMessage(error: unknown): string {
 }
 
 function previousScanPayload(result: DiscoveryRadarResult | undefined) {
-  if (!result) return undefined
+  if (!result || result.ai_refresh_pending) return undefined
   return {
     analysis_version: result.analysis_version,
     source_url: result.source_url,
@@ -175,6 +179,8 @@ export async function scanDiscoverySource(
       !Array.isArray(body?.coverage_page_urls) ||
       typeof body?.content_fingerprint !== 'string' ||
       typeof body?.ai_called !== 'boolean' ||
+      typeof body?.ai_refresh_pending !== 'boolean' ||
+      !(body?.analyzed_at === null || (typeof body?.analyzed_at === 'string' && Number.isFinite(Date.parse(body.analyzed_at)))) ||
       typeof body?.new_anchor_count !== 'number' ||
       typeof body?.changed_anchor_count !== 'number' ||
       typeof body?.removed_anchor_count !== 'number' ||

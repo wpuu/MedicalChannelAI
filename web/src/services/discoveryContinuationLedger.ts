@@ -60,7 +60,7 @@ function normalizeSegment(value: unknown): DiscoveryContinuationSegment | null {
   if (
     row.schema_version !== '0.1' ||
     row.mode !== 'AI_DISCOVERY_CONTINUATION_SHADOW' ||
-    row.analysis_version !== 'agnes-discovery-continuation-v1' ||
+    row.analysis_version !== 'agnes-discovery-continuation-v2' ||
     typeof row.segment_id !== 'string' ||
     !Number.isInteger(row.segment_index) || Number(row.segment_index) < 1 ||
     typeof row.source_id !== 'string' ||
