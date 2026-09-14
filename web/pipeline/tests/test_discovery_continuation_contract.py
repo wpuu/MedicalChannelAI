@@ -87,7 +87,7 @@ class DiscoveryContinuationContractTests(unittest.TestCase):
     def test_client_fails_closed_on_segment_contract_mismatch(self):
         self.assertIn("body?.mode === 'AI_DISCOVERY_CONTINUATION_SHADOW'", self.client)
         self.assertIn("body?.schema_version === '0.1'", self.client)
-        self.assertIn("body?.analysis_version === 'agnes-discovery-continuation-v1'", self.client)
+        self.assertIn("body?.analysis_version === 'agnes-discovery-continuation-v2'", self.client)
         self.assertIn('body?.root_content_fingerprint === root.content_fingerprint', self.client)
         self.assertIn('body?.segment_index === previousSegments.length + 1', self.client)
         self.assertIn('body?.production_data_mutated === false', self.client)
