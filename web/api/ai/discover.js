@@ -1,20 +1,21 @@
 import { createHash } from 'node:crypto'
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
+import { getCache, waitUntil } from '@vercel/functions'
 import { authenticatedUser } from '../_auth.js'
 import { privateDatabaseConfigured } from '../_privateDb.js'
 import { loadVerifiedSnapshot } from '../_verifiedSnapshot.js'
 import continuationDiscoveryHandler from './_discoverContinuation.js'
 
-export const config = { maxDuration: 30 }
+export const config = { maxDuration: 45 }
 
 const PUBLIC_FIRST_PARTY_ORIGIN = 'https://medicalai.qd.je'
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const MODEL_ID = 'agnes-3.0-flash'
-const ANALYSIS_VERSION = 'agnes-discovery-live-v4-safe-next-page'
+const ANALYSIS_VERSION = 'agnes-discovery-live-v5-async-cache'
 const RATE_WINDOW_MS = 60 * 1000
 const RATE_MAX_PER_CLIENT = 30
-const PROVIDER_TIMEOUT_MS = 12_000
+const BACKGROUND_PROVIDER_TIMEOUT_MS = 25_000
 const SOURCE_TIMEOUT_MS = 8_000
 const OPTIONAL_PAGE_TIMEOUT_MS = 4_000
 const MAX_SOURCE_BYTES = 2_000_000
@@ -22,7 +23,13 @@ const MAX_REQUEST_BODY_BYTES = 262_144
 const MAX_ANCHORS = 80
 const MAX_REDIRECTS = 3
 const MAX_COVERAGE_PAGES = 2
+const AI_CACHE_PREFIX = 'medicalchannelai:agnes-discovery:v1'
+const AI_CACHE_READY_TTL_SECONDS = 2 * 24 * 60 * 60
+const AI_CACHE_TRANSIENT_TTL_SECONDS = 60
+const AI_CACHE_PENDING_STALE_MS = 35_000
+const AI_CACHE_FAILURE_BACKOFF_MS = 15_000
 const rateBuckets = new Map()
+const aiRefreshInFlight = new Set()
 
 const SOURCE_KINDS = new Set([
   'HOSPITAL_OFFICIAL',
@@ -494,7 +501,7 @@ async function callProvider(source, anchors, keys) {
   const apiKey = keys[stableIndex(`${source.id}:${source.url}`, keys.length)]
   const baseUrl = String(process.env.AGNES_API_BASE_URL || DEFAULT_BASE_URL).trim().replace(/\/+$/, '')
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS)
+  const timeout = setTimeout(() => controller.abort(), BACKGROUND_PROVIDER_TIMEOUT_MS)
   try {
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
@@ -510,6 +517,7 @@ async function callProvider(source, anchors, keys) {
         temperature: 0,
         max_tokens: 1400,
         stream: false,
+        chat_template_kwargs: { enable_thinking: false },
       }),
     })
     if (!response.ok) throw new Error(`UPSTREAM_HTTP_${response.status}`)
@@ -579,6 +587,191 @@ function mergeParsed(reused, fresh) {
   }
 }
 
+
+function emptyParsed() {
+  return { candidates: [], rawCount: 0, rejectedUngrounded: 0, rejectedInvalid: 0 }
+}
+
+function aiCacheSourceSignature(source) {
+  return createHash('sha256')
+    .update(`${source.url}\u0000${source.kind}\u0000${source.name}`)
+    .digest('hex')
+    .slice(0, 32)
+}
+
+function aiCacheKey(source, fingerprint) {
+  return `${AI_CACHE_PREFIX}:${createHash('sha256')
+    .update(`${ANALYSIS_VERSION}\u0000${aiCacheSourceSignature(source)}\u0000${fingerprint}`)
+    .digest('hex')
+    .slice(0, 40)}`
+}
+
+function cachedCandidateRows(parsed) {
+  return parsed.candidates.map((item) => ({
+    url: item.url,
+    signal_type: item.signal_type,
+    confidence: item.confidence,
+    reason: item.reason,
+  }))
+}
+
+function normalizeCacheDelta(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const fields = ['newCount', 'changedCount', 'removedCount', 'reusedCount']
+  const result = {}
+  for (const field of fields) {
+    const number = Number(value[field])
+    if (!Number.isInteger(number) || number < 0 || number > MAX_ANCHORS * 2) return null
+    result[field] = number
+  }
+  return result
+}
+
+function validateAiCacheEntry(value, source, anchors, fingerprint) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  if (value.schema_version !== '0.1' || value.analysis_version !== ANALYSIS_VERSION) return null
+  if (value.source_signature !== aiCacheSourceSignature(source) || value.content_fingerprint !== fingerprint) return null
+  if (value.state === 'PENDING') {
+    const startedAt = Date.parse(value.started_at || '')
+    return Number.isFinite(startedAt) ? { state: 'PENDING', startedAt } : null
+  }
+  if (value.state === 'FAILED') {
+    const retryAfter = Date.parse(value.retry_after || '')
+    return Number.isFinite(retryAfter) ? { state: 'FAILED', retryAfter } : null
+  }
+  if (value.state !== 'READY' || !value.parsed || typeof value.parsed !== 'object') return null
+  const rawCount = Number(value.parsed.rawCount)
+  const rejectedUngrounded = Number(value.parsed.rejectedUngrounded)
+  const rejectedInvalid = Number(value.parsed.rejectedInvalid)
+  if (![rawCount, rejectedUngrounded, rejectedInvalid].every((item) => Number.isInteger(item) && item >= 0)) return null
+  if (!Array.isArray(value.parsed.candidates) || value.parsed.candidates.length > 60) return null
+  const reparsed = parseCandidateRows(value.parsed.candidates, anchors, rawCount)
+  if (reparsed.rejectedUngrounded || reparsed.rejectedInvalid || reparsed.candidates.length !== value.parsed.candidates.length) return null
+  const analyzedAt = typeof value.analyzed_at === 'string' && Number.isFinite(Date.parse(value.analyzed_at))
+    ? value.analyzed_at
+    : null
+  const aiAnalyzedAnchorCount = Number(value.ai_analyzed_anchor_count)
+  const delta = normalizeCacheDelta(value.delta)
+  if (!analyzedAt || !Number.isInteger(aiAnalyzedAnchorCount) || aiAnalyzedAnchorCount < 0 || aiAnalyzedAnchorCount > MAX_ANCHORS || !delta) return null
+  return {
+    state: 'READY',
+    analyzedAt,
+    aiAnalyzedAnchorCount,
+    delta,
+    parsed: {
+      candidates: reparsed.candidates,
+      rawCount,
+      rejectedUngrounded,
+      rejectedInvalid,
+    },
+  }
+}
+
+async function readAiCache(source, anchors, fingerprint) {
+  if (!process.env.VERCEL_REGION) return null
+  try {
+    const value = await getCache().get(aiCacheKey(source, fingerprint))
+    return validateAiCacheEntry(value, source, anchors, fingerprint)
+  } catch {
+    return null
+  }
+}
+
+async function writeAiCache(key, value, ttl) {
+  if (!process.env.VERCEL_REGION) return
+  await getCache().set(key, value, {
+    ttl,
+    tags: ['medicalchannelai-agnes-discovery'],
+  })
+}
+
+async function runAiRefreshTask({ key, source, aiAnchors, fingerprint, keys, baseParsed, delta }) {
+  try {
+    const content = await callProvider(source, aiAnchors, keys)
+    const freshParsed = parseCandidates(content, aiAnchors)
+    const parsed = mergeParsed(baseParsed, freshParsed)
+    const analyzedAt = new Date().toISOString()
+    const cacheValue = {
+      schema_version: '0.1',
+      state: 'READY',
+      analysis_version: ANALYSIS_VERSION,
+      source_signature: aiCacheSourceSignature(source),
+      content_fingerprint: fingerprint,
+      analyzed_at: analyzedAt,
+      ai_analyzed_anchor_count: aiAnchors.length,
+      delta: {
+        newCount: delta.newCount,
+        changedCount: delta.changedCount,
+        removedCount: delta.removedCount,
+        reusedCount: delta.reusedCount,
+      },
+      parsed: {
+        candidates: cachedCandidateRows(parsed),
+        rawCount: parsed.rawCount,
+        rejectedUngrounded: parsed.rejectedUngrounded,
+        rejectedInvalid: parsed.rejectedInvalid,
+      },
+    }
+    await writeAiCache(key, cacheValue, AI_CACHE_READY_TTL_SECONDS)
+    return {
+      state: 'READY',
+      analyzedAt,
+      aiAnalyzedAnchorCount: aiAnchors.length,
+      delta: cacheValue.delta,
+      parsed,
+    }
+  } catch (error) {
+    try {
+      await writeAiCache(key, {
+        schema_version: '0.1',
+        state: 'FAILED',
+        analysis_version: ANALYSIS_VERSION,
+        source_signature: aiCacheSourceSignature(source),
+        content_fingerprint: fingerprint,
+        retry_after: new Date(Date.now() + AI_CACHE_FAILURE_BACKOFF_MS).toISOString(),
+      }, AI_CACHE_TRANSIENT_TTL_SECONDS)
+    } catch {
+      // Cache failure must not turn a slow provider into a request-path failure.
+    }
+    console.warn('AI discovery background refresh deferred', {
+      source_host: new URL(source.url).hostname,
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
+    return null
+  } finally {
+    aiRefreshInFlight.delete(key)
+  }
+}
+
+async function scheduleAiRefresh({ source, aiAnchors, fingerprint, keys, baseParsed, delta }) {
+  const key = aiCacheKey(source, fingerprint)
+  if (aiRefreshInFlight.has(key)) return { scheduled: false, ready: null }
+  aiRefreshInFlight.add(key)
+  try {
+    await writeAiCache(key, {
+      schema_version: '0.1',
+      state: 'PENDING',
+      analysis_version: ANALYSIS_VERSION,
+      source_signature: aiCacheSourceSignature(source),
+      content_fingerprint: fingerprint,
+      started_at: new Date().toISOString(),
+    }, AI_CACHE_TRANSIENT_TTL_SECONDS)
+  } catch {
+    // Background work may still complete in this warm instance even if cache marking fails.
+  }
+  const task = runAiRefreshTask({ key, source, aiAnchors, fingerprint, keys, baseParsed, delta })
+  if (process.env.VERCEL) {
+    try {
+      waitUntil(task)
+      return { scheduled: true, ready: null }
+    } catch {
+      // Fall through to awaited local-style execution if background scheduling is unavailable.
+    }
+  }
+  const ready = await task
+  return { scheduled: true, ready }
+}
+
 function previousAnchorSnapshot(previous, source) {
   if (!Array.isArray(previous?.anchor_snapshot) || previous.anchor_snapshot.length > MAX_ANCHORS) return null
   const seen = new Set()
@@ -598,6 +791,7 @@ function previousAnchorSnapshot(previous, source) {
 function reusablePreviousSnapshot(body, source) {
   const previous = body?.previous_scan
   if (!previous || typeof previous !== 'object' || Array.isArray(previous)) return null
+  if (previous.ai_refresh_pending === true || ['AI_REFRESH_PENDING', 'STALE_WHILE_AI_REFRESH'].includes(previous.cache_status)) return null
   if (previous.analysis_version !== ANALYSIS_VERSION || canonicalSourceUrl(previous.source_url) !== source.url) return null
   if (!Array.isArray(previous.candidates) || previous.candidates.length > 60) return null
   const anchors = previousAnchorSnapshot(previous, source)
@@ -619,6 +813,7 @@ function previousScanContext(body, source, anchors, fingerprint) {
   if (body?.force_ai === true) return null
   const previous = body?.previous_scan
   if (!previous || typeof previous !== 'object' || Array.isArray(previous)) return null
+  if (previous.ai_refresh_pending === true || ['AI_REFRESH_PENDING', 'STALE_WHILE_AI_REFRESH'].includes(previous.cache_status)) return null
   if (previous.analysis_version !== ANALYSIS_VERSION || canonicalSourceUrl(previous.source_url) !== source.url) return null
   if (!Array.isArray(previous.candidates) || previous.candidates.length > 60) return null
   const rawCount = Number(previous.raw_candidate_count)
@@ -705,13 +900,14 @@ function resultPayload({
   source, checkedAt, analyzedAt, allAnchors, anchors, fingerprint, parsed, benchmark,
   aiCalled, cacheStatus, aiAnalyzedAnchorCount, delta, coverage,
 }) {
+  const aiRefreshPending = ['AI_REFRESH_PENDING', 'STALE_WHILE_AI_REFRESH'].includes(cacheStatus)
   const knownHits = parsed.candidates.filter((item) => benchmark.currentGold.has(item.url)).length
-  const knownRecall = benchmark.currentGold.size ? knownHits / benchmark.currentGold.size : null
+  const knownRecall = aiRefreshPending ? null : benchmark.currentGold.size ? knownHits / benchmark.currentGold.size : null
   const groundedRate = parsed.rawCount ? (parsed.rawCount - parsed.rejectedUngrounded) / parsed.rawCount : 1
   const validRate = parsed.rawCount
     ? (parsed.rawCount - parsed.rejectedUngrounded - parsed.rejectedInvalid) / parsed.rawCount
     : 1
-  const discoveryScore = knownRecall === null
+  const discoveryScore = aiRefreshPending || knownRecall === null
     ? null
     : Math.round((0.75 * knownRecall + 0.20 * groundedRate + 0.05 * validRate) * 1000) / 10
 
@@ -728,6 +924,7 @@ function resultPayload({
     analyzed_at: analyzedAt,
     cache_status: cacheStatus,
     ai_called: aiCalled,
+    ai_refresh_pending: aiRefreshPending,
     content_fingerprint: fingerprint,
     official_anchor_count: allAnchors.length,
     analyzed_anchor_count: anchors.length,
@@ -835,25 +1032,58 @@ export default async function handler(request, response) {
       }))
     }
 
-    const keys = getApiKeys()
-    if (!keys.length) return sendJson(response, 503, { error: 'AI_RADAR_NOT_CONFIGURED' })
-    const aiAnchors = previous ? previous.deltaAnchors : anchors
-    const content = await callProvider(source, aiAnchors, keys)
-    const freshParsed = parseCandidates(content, aiAnchors)
-    const parsed = previous ? mergeParsed(previous.reusedParsed, freshParsed) : freshParsed
+    const cached = await readAiCache(source, anchors, fingerprint)
+    if (cached?.state === 'READY' && body?.force_ai !== true) {
+      return sendJson(response, 200, resultPayload({
+        source, checkedAt, analyzedAt: cached.analyzedAt, allAnchors, anchors, fingerprint,
+        parsed: cached.parsed, benchmark, aiCalled: false, cacheStatus: 'SERVER_AI_CACHE',
+        aiAnalyzedAnchorCount: cached.aiAnalyzedAnchorCount, delta: cached.delta, coverage,
+      }))
+    }
+
+    const now = Date.now()
+    const cacheBlocksRefresh = body?.force_ai !== true && (
+      (cached?.state === 'PENDING' && now - cached.startedAt < AI_CACHE_PENDING_STALE_MS) ||
+      (cached?.state === 'FAILED' && now < cached.retryAfter)
+    )
+    const baseParsed = previous?.reusedParsed || (cached?.state === 'READY' ? cached.parsed : emptyParsed())
     const delta = previous ?? {
       newCount: anchors.length,
       changedCount: 0,
       removedCount: 0,
       reusedCount: 0,
     }
+    const aiAnchors = previous ? previous.deltaAnchors : anchors
+
+    if (cacheBlocksRefresh) {
+      return sendJson(response, 200, resultPayload({
+        source, checkedAt, analyzedAt: previous?.analyzedAt || cached?.analyzedAt || null,
+        allAnchors, anchors, fingerprint, parsed: baseParsed, benchmark, aiCalled: false,
+        cacheStatus: baseParsed.candidates.length ? 'STALE_WHILE_AI_REFRESH' : 'AI_REFRESH_PENDING',
+        aiAnalyzedAnchorCount: 0, delta, coverage,
+      }))
+    }
+
+    const keys = getApiKeys()
+    if (!keys.length) return sendJson(response, 503, { error: 'AI_RADAR_NOT_CONFIGURED' })
+    const scheduled = await scheduleAiRefresh({
+      source, aiAnchors, fingerprint, keys, baseParsed, delta,
+    })
+    if (scheduled.ready) {
+      return sendJson(response, 200, resultPayload({
+        source, checkedAt, analyzedAt: scheduled.ready.analyzedAt, allAnchors, anchors, fingerprint,
+        parsed: scheduled.ready.parsed, benchmark, aiCalled: true,
+        cacheStatus: previous ? 'FRESH_DELTA_AI' : 'FRESH_AI',
+        aiAnalyzedAnchorCount: aiAnchors.length, delta, coverage,
+      }))
+    }
     return sendJson(response, 200, resultPayload({
-      source, checkedAt, analyzedAt: checkedAt, allAnchors, anchors, fingerprint, parsed, benchmark,
-      aiCalled: true,
-      cacheStatus: previous ? 'FRESH_DELTA_AI' : 'FRESH_AI',
-      aiAnalyzedAnchorCount: aiAnchors.length,
-      delta,
-      coverage,
+      source, checkedAt, analyzedAt: previous?.analyzedAt || cached?.analyzedAt || null,
+      allAnchors, anchors, fingerprint, parsed: baseParsed, benchmark,
+      aiCalled: scheduled.scheduled,
+      cacheStatus: baseParsed.candidates.length ? 'STALE_WHILE_AI_REFRESH' : 'AI_REFRESH_PENDING',
+      aiAnalyzedAnchorCount: scheduled.scheduled ? aiAnchors.length : 0,
+      delta, coverage,
     }))
   } catch (error) {
     console.error('AI discovery radar failed', {
