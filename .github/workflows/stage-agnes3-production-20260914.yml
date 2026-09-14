@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   smoke:
@@ -18,31 +19,37 @@ jobs:
       - medicalchannelai-ci
     timeout-minutes: 7
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       DEPLOY_URL: https://medicalchannelai-fwo3i349a-rerisse7-1717s-projects.vercel.app
-      VERCEL_SCOPE: rerisse7-1717s-projects
     steps:
-      - name: Require existing staged deployment credential
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
-          echo 'Using existing READY staged deployment dpl_gLjFTUMWGBdGj4Kff87ryhE7pcsK'
-          echo 'Exact staged source SHA: b7143479016db9311da3564615ab181822121719'
+      - name: Get masked GitHub OIDC token
+        id: oidc
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken()
+            core.setSecret(token)
+            core.setOutput('token', token)
 
-      - name: Verify Vercel CLI account scope
+      - name: Verify trusted-source access reaches staged application
         shell: bash
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           set -euo pipefail
-          npx --yes vercel@latest whoami --token "$VERCEL_TOKEN"
+          http="$(curl -sS --max-time 20 -o /tmp/pr19-status.json -w '%{http_code}' -H "x-vercel-trusted-oidc-idp-token: $OIDC_TOKEN" "$DEPLOY_URL/api/status")"
+          echo "staged status HTTP $http"
+          test "$http" = '200' || { echo '::error::GitHub OIDC is not accepted by Vercel Trusted Sources for this deployment'; exit 1; }
+          node -e "const p=require('/tmp/pr19-status.json'); if(p.ready!==true||p.degraded!==false||p.ai?.configured!==true) process.exit(1); console.log('staged ready='+p.ready+' degraded='+p.degraded+' ai='+p.ai.configured)"
 
       - name: Require real TEDA source-unavailable fallback on staged candidate
         shell: bash
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           set -euo pipefail
           BODY='{"source":{"id":"pr19-teda-runtime-gate","name":"天津泰达医院","kind":"HOSPITAL_OFFICIAL","url":"https://www.tedahospital.com.cn/article/plist/9"}}'
           call_stage() {
-            npx --yes vercel@latest curl "$DEPLOY_URL/api/ai/discover" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" -sS -X POST -H "Origin: $DEPLOY_URL" -H 'Content-Type: application/json' -d "$BODY"
+            curl -sS --max-time 30 -H "x-vercel-trusted-oidc-idp-token: $OIDC_TOKEN" -H "Origin: $DEPLOY_URL" -H 'Content-Type: application/json' -X POST -d "$BODY" "$DEPLOY_URL/api/ai/discover"
           }
           assert_fallback() {
             RESPONSE="$1" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); const ok=p.cache_status==='SERVER_AI_CACHE_SOURCE_UNAVAILABLE'&&p.coverage_partial===true&&String(p.coverage_error_code||'').startsWith('SOURCE_')&&p.ai_called===false&&p.production_data_mutated===false&&Array.isArray(p.anchor_snapshot)&&p.anchor_snapshot.length>0; console.log('fallback='+p.cache_status+' source_error='+p.coverage_error_code+' candidates='+p.candidate_count); if(!ok) process.exit(1)"
