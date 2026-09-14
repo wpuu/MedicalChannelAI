@@ -1,0 +1,68 @@
+name: Agnes 3.0 Flash API smoke 2026-09-14
+
+on:
+  push:
+    branches:
+      - verify/agnes3-api-20260914
+    paths:
+      - '.github/workflows/agnes3-api-smoke-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify Agnes 3.0 Flash API
+        shell: bash
+        env:
+          AGNES_API_KEYS: ${{ secrets.AGNES_API_KEYS }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${AGNES_API_KEYS:-}" ]]; then
+            echo 'AGNES_API_KEYS is not configured; cannot verify Agnes 3.0 Flash.' >&2
+            exit 2
+          fi
+          python3 - <<'PY'
+          import json
+          import os
+          from urllib.error import HTTPError, URLError
+          from urllib.request import Request, urlopen
+
+          raw = os.environ['AGNES_API_KEYS']
+          key = next((x.strip() for x in raw.replace(';', ',').replace('\n', ',').split(',') if x.strip()), '')
+          if not key:
+              raise SystemExit('No usable Agnes key found')
+          body = json.dumps({
+              'model': 'agnes-3.0-flash',
+              'messages': [{'role': 'user', 'content': 'Reply with exactly OK.'}],
+              'temperature': 0,
+              'max_tokens': 32,
+              'stream': False,
+          }).encode('utf-8')
+          req = Request(
+              'https://apihub.agnes-ai.com/v1/chat/completions',
+              data=body,
+              method='POST',
+              headers={
+                  'Authorization': f'Bearer {key}',
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+              },
+          )
+          try:
+              with urlopen(req, timeout=40) as resp:
+                  payload = json.loads(resp.read().decode('utf-8'))
+                  status = resp.status
+          except HTTPError as exc:
+              detail = exc.read().decode('utf-8', errors='replace')[:500]
+              raise SystemExit(f'Agnes API HTTP {exc.code}: {detail}')
+          except URLError as exc:
+              raise SystemExit(f'Agnes API network error: {exc.reason}')
+          content = payload.get('choices', [{}])[0].get('message', {}).get('content')
+          if status != 200 or not isinstance(content, str) or not content.strip():
+              raise SystemExit('Agnes 3.0 Flash returned no usable content')
+          print(f'Agnes 3.0 Flash API smoke PASS; HTTP={status}; content_chars={len(content.strip())}')
+          PY
