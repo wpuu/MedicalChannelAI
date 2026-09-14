@@ -11,7 +11,11 @@ permissions:
 
 jobs:
   patch:
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
     timeout-minutes: 5
     steps:
       - name: Replace only live Agnes model IDs
