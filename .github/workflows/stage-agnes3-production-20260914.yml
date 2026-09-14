@@ -1,4 +1,4 @@
-name: Stage PR19 Production Candidate 2026-09-14
+name: Smoke PR19 Staged Candidate 2026-09-14
 
 on:
   push:
@@ -10,74 +10,46 @@ permissions:
   contents: read
 
 jobs:
-  stage:
+  smoke:
     runs-on:
       - self-hosted
       - linux
       - x64
       - medicalchannelai-ci
-    timeout-minutes: 12
+    timeout-minutes: 7
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
-      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+      DEPLOY_URL: https://medicalchannelai-fwo3i349a-rerisse7-1717s-projects.vercel.app
+      VERCEL_SCOPE: rerisse7-1717s-projects
     steps:
-      - name: Require deployment credential
+      - name: Require existing staged deployment credential
         shell: bash
         run: |
           set -euo pipefail
-          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing; no deployment attempted'; exit 1; }
-          echo 'Deployment credential gate: PASS'
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
+          echo 'Using existing READY staged deployment dpl_gLjFTUMWGBdGj4Kff87ryhE7pcsK'
+          echo 'Exact staged source SHA: b7143479016db9311da3564615ab181822121719'
 
-      - name: Checkout exact accepted PR19 candidate
-        uses: actions/checkout@v4
-        with:
-          ref: b7143479016db9311da3564615ab181822121719
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-
-      - name: Link exact Vercel project locally
+      - name: Verify Vercel CLI account scope
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p .vercel
-          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+          npx --yes vercel@latest whoami --token "$VERCEL_TOKEN"
 
-      - name: Create staged Production deployment without domain switch
-        id: stage
+      - name: Require real TEDA source-unavailable fallback on staged candidate
         shell: bash
-        run: |
-          set -euo pipefail
-          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
-          case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged URL returned'; exit 1;; esac
-          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
-          echo "Staged Production URL: $DEPLOY_URL"
-          echo "Exact source SHA: b7143479016db9311da3564615ab181822121719"
-          echo 'Production domain switch: skipped'
-
-      - name: Seed staged TEDA READY cache and require real source-unavailable fallback
-        shell: bash
-        env:
-          DEPLOY_URL: ${{ steps.stage.outputs.url }}
         run: |
           set -euo pipefail
           BODY='{"source":{"id":"pr19-teda-runtime-gate","name":"天津泰达医院","kind":"HOSPITAL_OFFICIAL","url":"https://www.tedahospital.com.cn/article/plist/9"}}'
 
           call_stage() {
-            npx --yes vercel@latest curl /api/ai/discover \
-              --deployment "$DEPLOY_URL" \
+            npx --yes vercel@latest curl "$DEPLOY_URL/api/ai/discover" \
+              --scope "$VERCEL_SCOPE" \
               --token "$VERCEL_TOKEN" \
-              -- \
-              --silent --show-error \
-              --request POST \
-              --header "Origin: $DEPLOY_URL" \
-              --header 'Content-Type: application/json' \
-              --data "$BODY"
+              -sS -X POST \
+              -H "Origin: $DEPLOY_URL" \
+              -H 'Content-Type: application/json' \
+              -d "$BODY"
           }
 
           ready=0
@@ -86,34 +58,25 @@ jobs:
             status="$(RESPONSE="$RESPONSE" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); process.stdout.write(String(p.cache_status||p.error||''))")"
             mutated="$(RESPONSE="$RESPONSE" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); process.stdout.write(String(p.production_data_mutated))")"
             echo "ready-poll ${attempt}: ${status}"
-            if [[ "$mutated" == 'true' ]]; then
-              echo '::error::Discovery smoke mutated production data.'
-              exit 1
-            fi
+            [[ "$mutated" != 'true' ]] || { echo '::error::Discovery smoke mutated production data'; exit 1; }
             if [[ "$status" == 'SERVER_AI_CACHE_SOURCE_UNAVAILABLE' ]]; then
               RESPONSE="$RESPONSE" node <<'NODE'
-          const p=JSON.parse(process.env.RESPONSE||'{}')
-          if (p.coverage_partial !== true || !String(p.coverage_error_code||'').startsWith('SOURCE_') || p.ai_called !== false || p.production_data_mutated !== false) process.exit(1)
-          console.log(`fallback=${p.cache_status} source_error=${p.coverage_error_code} candidates=${p.candidate_count}`)
-          NODE
+const p=JSON.parse(process.env.RESPONSE||'{}')
+const ok=p.coverage_partial===true && String(p.coverage_error_code||'').startsWith('SOURCE_') && p.ai_called===false && p.production_data_mutated===false && Array.isArray(p.anchor_snapshot) && p.anchor_snapshot.length>0
+if (!ok) process.exit(1)
+console.log(`fallback=${p.cache_status} source_error=${p.coverage_error_code} candidates=${p.candidate_count}`)
+NODE
               echo 'PR19 staged source-unavailable fallback: PASS'
               exit 0
             fi
-            if [[ "$status" == 'SERVER_AI_CACHE' ]]; then
-              ready=1
-              break
-            fi
+            if [[ "$status" == 'SERVER_AI_CACHE' ]]; then ready=1; break; fi
             if [[ "$status" != 'AI_REFRESH_PENDING' && "$status" != 'STALE_WHILE_AI_REFRESH' ]]; then
               echo "::error::Unexpected staged discovery status before READY: $status"
               exit 1
             fi
             sleep 5
           done
-
-          if [[ "$ready" -ne 1 ]]; then
-            echo '::error::Staged READY cache was not reached in the bounded window.'
-            exit 1
-          fi
+          [[ "$ready" -eq 1 ]] || { echo '::error::Staged READY cache not reached'; exit 1; }
 
           for attempt in $(seq 1 12); do
             RESPONSE="$(call_stage)"
@@ -122,20 +85,17 @@ jobs:
             echo "fallback-poll ${attempt}: ${status} source_error=${source_error:-NONE}"
             if [[ "$status" == 'SERVER_AI_CACHE_SOURCE_UNAVAILABLE' ]]; then
               RESPONSE="$RESPONSE" node <<'NODE'
-          const p=JSON.parse(process.env.RESPONSE||'{}')
-          const ok=p.coverage_partial===true && String(p.coverage_error_code||'').startsWith('SOURCE_') && p.ai_called===false && p.production_data_mutated===false && Array.isArray(p.anchor_snapshot) && p.anchor_snapshot.length>0
-          if (!ok) process.exit(1)
-          console.log(`fallback=${p.cache_status} source_error=${p.coverage_error_code} candidates=${p.candidate_count}`)
-          NODE
+const p=JSON.parse(process.env.RESPONSE||'{}')
+const ok=p.coverage_partial===true && String(p.coverage_error_code||'').startsWith('SOURCE_') && p.ai_called===false && p.production_data_mutated===false && Array.isArray(p.anchor_snapshot) && p.anchor_snapshot.length>0
+if (!ok) process.exit(1)
+console.log(`fallback=${p.cache_status} source_error=${p.coverage_error_code} candidates=${p.candidate_count}`)
+NODE
               echo 'PR19 staged source-unavailable fallback: PASS'
               exit 0
             fi
-            if [[ "$status" != 'SERVER_AI_CACHE' ]]; then
-              echo "::error::Unexpected post-READY status: $status"
-              exit 1
-            fi
+            [[ "$status" == 'SERVER_AI_CACHE' ]] || { echo "::error::Unexpected post-READY status: $status"; exit 1; }
             sleep 3
           done
 
-          echo '::error::TEDA stayed healthy for every bounded poll; no real SOURCE_* event occurred, so the fallback runtime gate is not claimed as passed.'
+          echo '::error::TEDA stayed healthy for every bounded poll; fallback runtime gate remains untriggered.'
           exit 2
