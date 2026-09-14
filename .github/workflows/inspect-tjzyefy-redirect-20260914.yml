@@ -1,0 +1,45 @@
+name: Inspect TJZYEFY Redirect 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes3-quality-20260914]
+    paths:
+      - '.github/workflows/inspect-tjzyefy-redirect-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 3
+    steps:
+      - name: Print redirect chain without downloading bodies
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://www.tjzyefy.com/xwgg/ggtz/'
+          for i in 1 2 3 4; do
+            echo "--- hop $i: $url"
+            headers="$(mktemp)"
+            code="$(curl -sS --max-time 20 -o /dev/null -D "$headers" -w '%{http_code}' --max-redirs 0 \
+              -A 'MedicalChannelAI/0.4 (+incremental public source radar)' \
+              -H 'Accept: text/html,application/xhtml+xml' \
+              -H 'Accept-Language: zh-CN,zh;q=0.9' \
+              "$url" || true)"
+            echo "status=$code"
+            grep -iE '^(HTTP/|location:|server:|content-type:)' "$headers" || true
+            location="$(sed -n 's/^[Ll]ocation:[[:space:]]*//p' "$headers" | tr -d '\r' | tail -1)"
+            rm -f "$headers"
+            if [ -z "$location" ]; then break; fi
+            url="$(URL="$url" LOCATION="$location" python3 - <<'PY'
+          import os
+          from urllib.parse import urljoin
+          print(urljoin(os.environ['URL'], os.environ['LOCATION']))
+          PY
+            )"
+          done
