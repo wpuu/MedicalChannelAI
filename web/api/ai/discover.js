@@ -712,6 +712,32 @@ async function writeAiCache(key, value, ttl) {
   })
 }
 
+async function seedLatestAiCache(source, anchors, fingerprint, ready) {
+  if (ready?.state !== 'READY') return
+  const cacheValue = {
+    schema_version: '0.1',
+    state: 'READY',
+    analysis_version: ANALYSIS_VERSION,
+    source_signature: aiCacheSourceSignature(source),
+    content_fingerprint: fingerprint,
+    analyzed_at: ready.analyzedAt,
+    ai_analyzed_anchor_count: ready.aiAnalyzedAnchorCount,
+    delta: ready.delta,
+    anchor_snapshot: anchors.map((item) => ({ title: item.title, url: item.url })),
+    parsed: {
+      candidates: cachedCandidateRows(ready.parsed),
+      rawCount: ready.parsed.rawCount,
+      rejectedUngrounded: ready.parsed.rejectedUngrounded,
+      rejectedInvalid: ready.parsed.rejectedInvalid,
+    },
+  }
+  try {
+    await writeAiCache(aiLatestCacheKey(source), cacheValue, AI_CACHE_READY_TTL_SECONDS)
+  } catch {
+    // Compatibility seeding is resilience-only and must never fail the request.
+  }
+}
+
 async function runAiRefreshTask({ key, source, aiAnchors, snapshotAnchors, fingerprint, keys, baseParsed, delta }) {
   try {
     const content = await callProvider(source, aiAnchors, keys)
@@ -1095,6 +1121,7 @@ export default async function handler(request, response) {
 
     const cached = await readAiCache(source, anchors, fingerprint)
     if (cached?.state === 'READY' && body?.force_ai !== true) {
+      await seedLatestAiCache(source, anchors, fingerprint, cached)
       return sendJson(response, 200, resultPayload({
         source, checkedAt, analyzedAt: cached.analyzedAt, allAnchors, anchors, fingerprint,
         parsed: cached.parsed, benchmark, aiCalled: false, cacheStatus: 'SERVER_AI_CACHE',
