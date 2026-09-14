@@ -1,0 +1,138 @@
+name: Benchmark Agnes 3 Production Shadow Quality 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes3-quality-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes3-production-shadow-quality-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run Production shadow quality baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web
+          PYTHONPATH=pipeline python3 - <<'PY'
+          from __future__ import annotations
+          import json
+          from pathlib import Path
+          from urllib.error import HTTPError, URLError
+          from urllib.request import Request, urlopen
+
+          from medical_channel_pipeline.agnes_discovery import known_gold_urls_from_snapshot
+
+          API = 'https://medicalchannelai.vercel.app/api/ai/discover'
+          ORIGIN = 'https://medicalchannelai.vercel.app'
+          registry = json.loads(Path('pipeline/data/agnes_discovery_sources.json').read_text(encoding='utf-8'))
+          snapshot = json.loads(Path('public/data/today-actions.public.json').read_text(encoding='utf-8'))
+
+          reports = []
+          scores = []
+          for source in registry['sources']:
+              source_id = source['source_id']
+              seed = source['seed_urls'][0]
+              body = json.dumps({
+                  'source': {
+                      'id': source_id,
+                      'name': source['display_name'],
+                      'kind': 'HOSPITAL_OFFICIAL',
+                      'url': seed,
+                  }
+              }, ensure_ascii=False).encode('utf-8')
+              req = Request(API, data=body, method='POST', headers={
+                  'Origin': ORIGIN,
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+              })
+              try:
+                  with urlopen(req, timeout=45) as resp:
+                      status = resp.status
+                      payload = json.loads(resp.read().decode('utf-8'))
+              except HTTPError as exc:
+                  raw = exc.read().decode('utf-8', errors='replace')[:500]
+                  reports.append({'source_id': source_id, 'status': exc.code, 'error': raw})
+                  continue
+              except URLError as exc:
+                  reports.append({'source_id': source_id, 'status': None, 'error': f'NETWORK:{exc.reason}'})
+                  continue
+
+              anchors = {row.get('url') for row in payload.get('anchor_snapshot', []) if isinstance(row, dict) and row.get('url')}
+              historical_gold = known_gold_urls_from_snapshot(snapshot, allowed_hosts=set(source['allowed_hosts']))
+              gold = historical_gold & anchors
+              candidates = {row.get('url') for row in payload.get('candidates', []) if isinstance(row, dict) and row.get('url')}
+              hits = candidates & gold
+              raw_count = int(payload.get('raw_candidate_count') or 0)
+              rejected_ungrounded = int(payload.get('rejected_ungrounded_count') or 0)
+              rejected_invalid = int(payload.get('rejected_invalid_count') or 0)
+              recall = (len(hits) / len(gold)) if gold else None
+              grounded_rate = ((raw_count - rejected_ungrounded) / raw_count) if raw_count else 1.0
+              format_valid_rate = ((raw_count - rejected_ungrounded - rejected_invalid) / raw_count) if raw_count else 1.0
+              score = None if recall is None else round(100 * (0.75 * recall + 0.20 * grounded_rate + 0.05 * format_valid_rate), 1)
+              if score is not None:
+                  scores.append(score)
+              reports.append({
+                  'source_id': source_id,
+                  'display_name': source['display_name'],
+                  'status': status,
+                  'mode': payload.get('mode'),
+                  'analysis_version': payload.get('analysis_version'),
+                  'ai_called': payload.get('ai_called'),
+                  'cache_status': payload.get('cache_status'),
+                  'production_data_mutated': payload.get('production_data_mutated'),
+                  'official_anchor_count': payload.get('official_anchor_count'),
+                  'analyzed_anchor_count': payload.get('analyzed_anchor_count'),
+                  'historical_gold_known_count': len(historical_gold),
+                  'gold_known_count': len(gold),
+                  'ai_candidate_count': len(candidates),
+                  'known_hit_count': len(hits),
+                  'known_recall': None if recall is None else round(recall, 4),
+                  'grounded_rate': round(grounded_rate, 4),
+                  'format_valid_rate': round(format_valid_rate, 4),
+                  'novel_candidate_count': len(candidates - gold),
+                  'known_hit_urls': sorted(hits),
+                  'novel_candidate_urls': sorted(candidates - gold),
+                  'discovery_score': score,
+              })
+
+          report = {
+              'schema_version': '0.1',
+              'mode': 'PRODUCTION_SHADOW_QUALITY_BASELINE',
+              'model_family': 'agnes-3.0-flash',
+              'production_data_mutated': False,
+              'score_definition': '75% known-set recall + 20% URL grounding + 5% response format validity',
+              'overall_discovery_score': round(sum(scores) / len(scores), 1) if scores else None,
+              'sources': reports,
+          }
+          Path('artifacts').mkdir(exist_ok=True)
+          out = Path('artifacts/agnes3_production_shadow_quality_20260914.json')
+          out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          print(out.read_text(encoding='utf-8'))
+
+          successful = [r for r in reports if r.get('status') == 200]
+          if not successful:
+              raise SystemExit('No source completed successfully; quality baseline not established.')
+          for row in successful:
+              assert row.get('mode') == 'AI_DISCOVERY_SHADOW', row
+              assert row.get('ai_called') is True, row
+              assert row.get('production_data_mutated') is False, row
+          print(f"Successful sources: {len(successful)}/{len(reports)}")
+          print(f"Overall discovery score: {report['overall_discovery_score']}")
+          PY
