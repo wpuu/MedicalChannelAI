@@ -1,0 +1,145 @@
+name: Benchmark Agnes 3 TJZYEFY Direct 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes3-quality-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes3-tjzyefy-direct-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 10
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Require Vercel credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing; benchmark stopped.'; exit 1; }
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run native TJZYEFY shadow benchmark with Production Agnes credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web
+
+          # List env metadata only to locate the existing Production Agnes credential.
+          curl -fsS \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_ORG_ID" \
+            -o /tmp/vercel-env-list.json
+
+          ENV_ID="$(python3 - <<'PY'
+          import json
+          data = json.load(open('/tmp/vercel-env-list.json', encoding='utf-8'))
+          rows = data.get('envs') or data.get('data') or []
+          matches = []
+          for row in rows:
+              if row.get('key') not in {'AGNES_API_KEYS', 'AGNES_API_KEY'}:
+                  continue
+              target = row.get('target') or []
+              if isinstance(target, str):
+                  target = [target]
+              if not target or 'production' in target:
+                  matches.append(row)
+          if not matches:
+              raise SystemExit('Production Agnes environment variable metadata not found')
+          # Prefer the plural multi-key setting when both exist.
+          matches.sort(key=lambda r: (r.get('key') != 'AGNES_API_KEYS', str(r.get('id') or '')))
+          print(matches[0]['id'])
+          PY
+          )"
+          test -n "$ENV_ID"
+
+          curl -fsS \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v1/projects/$VERCEL_PROJECT_ID/env/$ENV_ID?teamId=$VERCEL_ORG_ID" \
+            -o /tmp/vercel-agnes-env.json
+
+          python3 - <<'PY' > /tmp/agnes-key-export.sh
+          import json, shlex
+          data = json.load(open('/tmp/vercel-agnes-env.json', encoding='utf-8'))
+          value = data.get('value')
+          if not isinstance(value, str) or not value.strip():
+              raise SystemExit('Decrypted Agnes environment value missing')
+          # Mask each individual key before any provider call can surface it.
+          for token in value.replace(';', ',').replace('\n', ',').split(','):
+              token = token.strip()
+              if token:
+                  print(f"echo {shlex.quote('::add-mask::' + token)}")
+          print('export AGNES_API_KEYS=' + shlex.quote(value))
+          PY
+          rm -f /tmp/vercel-env-list.json /tmp/vercel-agnes-env.json
+          # shellcheck disable=SC1091
+          source /tmp/agnes-key-export.sh
+          rm -f /tmp/agnes-key-export.sh
+
+          cat > /tmp/tjzyefy-agnes-registry.json <<'JSON'
+          {
+            "schema_version": "0.1",
+            "sources": [
+              {
+                "source_id": "tjzyefy_intent",
+                "display_name": "天津市第二中心医院采购意向",
+                "seed_urls": ["https://www.tjzyefy.com/xwgg/ggtz/"],
+                "allowed_hosts": ["tjzyefy.com", "www.tjzyefy.com"]
+              }
+            ]
+          }
+          JSON
+
+          mkdir -p artifacts
+          set +e
+          PYTHONPATH=pipeline python3 pipeline/scripts/run_agnes_discovery_benchmark.py \
+            --registry /tmp/tjzyefy-agnes-registry.json \
+            --snapshot public/data/today-actions.public.json \
+            --output artifacts/agnes3_tjzyefy_quality_20260914.json \
+            --source-id tjzyefy_intent
+          rc=$?
+          set -e
+          rm -f /tmp/tjzyefy-agnes-registry.json
+
+          echo '--- Agnes 3 TJZYEFY quality baseline ---'
+          cat artifacts/agnes3_tjzyefy_quality_20260914.json
+          echo
+          python3 - <<'PY'
+          import json
+          p = 'artifacts/agnes3_tjzyefy_quality_20260914.json'
+          data = json.load(open(p, encoding='utf-8'))
+          assert data.get('mode') == 'AGNES_DISCOVERY_SHADOW_BENCHMARK'
+          assert data.get('model_family') == 'agnes-3.0-flash'
+          assert data.get('production_data_mutated') is False
+          row = data['sources'][0]
+          m = row['metrics']
+          print('SUMMARY', json.dumps({
+              'official_anchor_count': row['official_anchor_count'],
+              'candidate_count': row['candidate_count'],
+              'failure_count': row['failure_count'],
+              'historical_gold_known_count': m.get('historical_gold_known_count'),
+              'gold_known_count': m.get('gold_known_count'),
+              'known_hit_count': m.get('known_hit_count'),
+              'known_recall': m.get('known_recall'),
+              'grounded_rate': m.get('grounded_rate'),
+              'format_valid_rate': m.get('format_valid_rate'),
+              'discovery_score': m.get('discovery_score'),
+          }, ensure_ascii=False))
+          PY
+          exit "$rc"
