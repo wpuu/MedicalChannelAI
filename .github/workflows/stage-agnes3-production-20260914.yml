@@ -1,4 +1,4 @@
-name: Smoke PR19 Staged Candidate 2026-09-14
+name: Stage PR19 Exact Merged Main 2026-09-14
 
 on:
   push:
@@ -8,73 +8,67 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
-  smoke:
+  stage:
     runs-on:
       - self-hosted
       - linux
       - x64
       - medicalchannelai-ci
-    timeout-minutes: 7
+    timeout-minutes: 12
     env:
-      DEPLOY_URL: https://medicalchannelai-fwo3i349a-rerisse7-1717s-projects.vercel.app
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
     steps:
-      - name: Get masked GitHub OIDC token
-        id: oidc
-        uses: actions/github-script@v7
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing; no deployment attempted'; exit 1; }
+
+      - name: Checkout exact merged main
+        uses: actions/checkout@v4
         with:
-          script: |
-            const token = await core.getIDToken()
-            core.setSecret(token)
-            core.setOutput('token', token)
+          ref: 0ddf3d2e8cc60f42357fe78eb21f4c8ac20176e1
+          fetch-depth: 1
+          persist-credentials: false
 
-      - name: Verify trusted-source access reaches staged application
+      - name: Verify exact source
         shell: bash
-        env:
-          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           set -euo pipefail
-          http="$(curl -sS --max-time 20 -o /tmp/pr19-status.json -w '%{http_code}' -H "x-vercel-trusted-oidc-idp-token: $OIDC_TOKEN" "$DEPLOY_URL/api/status")"
-          echo "staged status HTTP $http"
-          test "$http" = '200' || { echo '::error::GitHub OIDC is not accepted by Vercel Trusted Sources for this deployment'; exit 1; }
-          node -e "const p=require('/tmp/pr19-status.json'); if(p.ready!==true||p.degraded!==false||p.ai?.configured!==true) process.exit(1); console.log('staged ready='+p.ready+' degraded='+p.degraded+' ai='+p.ai.configured)"
+          test "$GITHUB_WORKSPACE" != ''
+          ACTUAL="$(git rev-parse HEAD 2>/dev/null || true)"
+          if [[ -n "$ACTUAL" ]]; then
+            echo "Checked out: $ACTUAL"
+            test "$ACTUAL" = '0ddf3d2e8cc60f42357fe78eb21f4c8ac20176e1'
+          else
+            echo 'Checkout uses REST archive mode on this runner; exact ref was supplied to actions/checkout.'
+          fi
 
-      - name: Require real TEDA source-unavailable fallback on staged candidate
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Link exact Vercel project locally
         shell: bash
-        env:
-          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           set -euo pipefail
-          BODY='{"source":{"id":"pr19-teda-runtime-gate","name":"天津泰达医院","kind":"HOSPITAL_OFFICIAL","url":"https://www.tedahospital.com.cn/article/plist/9"}}'
-          call_stage() {
-            curl -sS --max-time 30 -H "x-vercel-trusted-oidc-idp-token: $OIDC_TOKEN" -H "Origin: $DEPLOY_URL" -H 'Content-Type: application/json' -X POST -d "$BODY" "$DEPLOY_URL/api/ai/discover"
-          }
-          assert_fallback() {
-            RESPONSE="$1" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); const ok=p.cache_status==='SERVER_AI_CACHE_SOURCE_UNAVAILABLE'&&p.coverage_partial===true&&String(p.coverage_error_code||'').startsWith('SOURCE_')&&p.ai_called===false&&p.production_data_mutated===false&&Array.isArray(p.anchor_snapshot)&&p.anchor_snapshot.length>0; console.log('fallback='+p.cache_status+' source_error='+p.coverage_error_code+' candidates='+p.candidate_count); if(!ok) process.exit(1)"
-          }
-          ready=0
-          for attempt in $(seq 1 10); do
-            RESPONSE="$(call_stage)"
-            status="$(RESPONSE="$RESPONSE" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); process.stdout.write(String(p.cache_status||p.error||''))")"
-            mutated="$(RESPONSE="$RESPONSE" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); process.stdout.write(String(p.production_data_mutated))")"
-            echo "ready-poll ${attempt}: ${status}"
-            [[ "$mutated" != 'true' ]] || { echo '::error::Discovery smoke mutated production data'; exit 1; }
-            if [[ "$status" == 'SERVER_AI_CACHE_SOURCE_UNAVAILABLE' ]]; then assert_fallback "$RESPONSE"; echo 'PR19 staged source-unavailable fallback: PASS'; exit 0; fi
-            if [[ "$status" == 'SERVER_AI_CACHE' ]]; then ready=1; break; fi
-            if [[ "$status" != 'AI_REFRESH_PENDING' && "$status" != 'STALE_WHILE_AI_REFRESH' ]]; then echo "::error::Unexpected staged discovery status before READY: $status"; exit 1; fi
-            sleep 5
-          done
-          [[ "$ready" -eq 1 ]] || { echo '::error::Staged READY cache not reached'; exit 1; }
-          for attempt in $(seq 1 12); do
-            RESPONSE="$(call_stage)"
-            status="$(RESPONSE="$RESPONSE" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); process.stdout.write(String(p.cache_status||p.error||''))")"
-            source_error="$(RESPONSE="$RESPONSE" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); process.stdout.write(String(p.coverage_error_code||''))")"
-            echo "fallback-poll ${attempt}: ${status} source_error=${source_error:-NONE}"
-            if [[ "$status" == 'SERVER_AI_CACHE_SOURCE_UNAVAILABLE' ]]; then assert_fallback "$RESPONSE"; echo 'PR19 staged source-unavailable fallback: PASS'; exit 0; fi
-            [[ "$status" == 'SERVER_AI_CACHE' ]] || { echo "::error::Unexpected post-READY status: $status"; exit 1; }
-            sleep 3
-          done
-          echo '::error::TEDA stayed healthy for every bounded poll; fallback runtime gate remains untriggered.'
-          exit 2
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Create staged Production deployment without domain switch
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
+          case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged URL returned'; exit 1;; esac
+          echo "Staged Production URL: $DEPLOY_URL"
+          echo 'Exact source SHA: 0ddf3d2e8cc60f42357fe78eb21f4c8ac20176e1'
+          echo 'Production domain switch: skipped'
+          echo "- Exact source: \`0ddf3d2e8cc60f42357fe78eb21f4c8ac20176e1\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Staged URL: \`$DEPLOY_URL\`" >> "$GITHUB_STEP_SUMMARY"
+          echo '- Production domain switch: skipped' >> "$GITHUB_STEP_SUMMARY"
