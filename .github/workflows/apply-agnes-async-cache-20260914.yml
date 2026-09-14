@@ -59,6 +59,8 @@ jobs:
               'web/src/services/discoveryContinuationApi.ts',
               'web/pipeline/tests/test_agnes_async_cache.py',
               'web/pipeline/tests/test_agnes_output_contract.py',
+              'web/pipeline/tests/test_ai_discovery_radar_contract.py',
+              'web/pipeline/tests/test_discovery_continuation_contract.py',
             ];
             for (const path of paths) {
               let sha;
