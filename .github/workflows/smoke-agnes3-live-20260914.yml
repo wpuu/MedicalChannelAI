@@ -1,0 +1,47 @@
+name: Smoke Agnes 3 Live 2026-09-14
+
+on:
+  push:
+    branches: [release/agnes3-production-stage-20260914]
+    paths:
+      - '.github/workflows/smoke-agnes3-live-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 5
+    steps:
+      - name: Call Production discovery through server-side Agnes configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY='{"source":{"id":"agnes3-smoke-ccgp","name":"中国政府采购网","kind":"GOVERNMENT_PROCUREMENT","url":"https://www.ccgp.gov.cn/cggg/dfgg/"}}'
+          http="$(curl -sS --max-time 40 -o /tmp/agnes3-smoke.json -w '%{http_code}' \
+            --request POST \
+            --header 'Origin: https://medicalchannelai.vercel.app' \
+            --header 'Content-Type: application/json' \
+            --data "$BODY" \
+            'https://medicalchannelai.vercel.app/api/ai/discover')"
+          echo "HTTP $http"
+          cat /tmp/agnes3-smoke.json
+          echo
+          if [ "$http" != '200' ]; then
+            echo '::error::Production discovery smoke did not return HTTP 200.'
+            exit 1
+          fi
+          RESPONSE="$(cat /tmp/agnes3-smoke.json)" node <<'NODE'
+          const value = JSON.parse(process.env.RESPONSE || '{}');
+          console.log(`ai_called=${value.ai_called} cache_status=${value.cache_status || 'missing'} official_anchor_count=${value.official_anchor_count ?? 'missing'} analyzed_anchor_count=${value.analyzed_anchor_count ?? 'missing'}`);
+          if (value.ai_called !== true) {
+            console.error('Expected ai_called=true to prove the live provider path was exercised.');
+            process.exit(1);
+          }
+          NODE
+          echo 'Agnes 3 Production provider smoke: PASS'
