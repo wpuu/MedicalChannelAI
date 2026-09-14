@@ -1,0 +1,84 @@
+name: Apply dynamic snapshot and Agnes 3.0 upgrade 2026-09-14
+
+on:
+  push:
+    branches:
+      - release/dynamic-snapshot-agnes3-20260914
+    paths:
+      - '.github/workflows/apply-dynamic-snapshot-agnes3-20260914.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 10
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: release/dynamic-snapshot-agnes3-20260914
+          fetch-depth: 0
+
+      - name: Apply exact bounded replacements
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          endpoint = 'https://medicalchannelai.vercel.app/api/public-snapshot'
+          workflow_paths = [
+              Path('.github/workflows/tianjin-medical-refresh.yml'),
+              Path('.github/workflows/regional-medical-refresh.yml'),
+          ]
+          for path in workflow_paths:
+              text = path.read_text(encoding='utf-8')
+              old_publish = 'VERIFIED_SNAPSHOT_PUBLISH_URL: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_URL }}'
+              old_read = 'VERIFIED_SNAPSHOT_READ_URL: ${{ secrets.VERIFIED_SNAPSHOT_READ_URL }}'
+              if text.count(old_publish) != 1 or text.count(old_read) != 1:
+                  raise SystemExit(f'Unexpected snapshot URL wiring in {path}')
+              text = text.replace(old_publish, f'VERIFIED_SNAPSHOT_PUBLISH_URL: {endpoint}')
+              text = text.replace(old_read, f'VERIFIED_SNAPSHOT_READ_URL: {endpoint}')
+              path.write_text(text, encoding='utf-8')
+
+          model_path = Path('web/pipeline/scripts/run_agnes_discovery_benchmark.py')
+          text = model_path.read_text(encoding='utf-8')
+          if text.count('agnes-2.5-flash') != 2:
+              raise SystemExit('Unexpected Agnes 2.5 model reference count')
+          text = text.replace('agnes-2.5-flash', 'agnes-3.0-flash')
+          model_path.write_text(text, encoding='utf-8')
+          PY
+          git diff --check
+          git diff -- .github/workflows/tianjin-medical-refresh.yml .github/workflows/regional-medical-refresh.yml web/pipeline/scripts/run_agnes_discovery_benchmark.py
+
+      - name: Run focused regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web/pipeline
+          python3 -m unittest \
+            tests.test_agnes_discovery \
+            tests.test_snapshot_http_publish \
+            tests.test_snapshot_roundtrip \
+            tests.test_tianjin_refresh_workflow \
+            tests.test_verified_snapshot_automation_guard
+
+      - name: Commit bounded changes and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/apply-dynamic-snapshot-agnes3-20260914.yml
+          git config user.name 'medicalchannel-release[bot]'
+          git config user.email 'medicalchannel-release[bot]@users.noreply.github.com'
+          git add \
+            .github/workflows/tianjin-medical-refresh.yml \
+            .github/workflows/regional-medical-refresh.yml \
+            web/pipeline/scripts/run_agnes_discovery_benchmark.py
+          git commit -m 'release: enable dynamic snapshot lane and Agnes 3.0 Flash'
+          git push origin HEAD:release/dynamic-snapshot-agnes3-20260914
