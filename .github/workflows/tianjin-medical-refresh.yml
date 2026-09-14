@@ -86,9 +86,9 @@ jobs:
           set -euo pipefail
           python3 web/pipeline/scripts/sync_tjnothop_market_research.py \
             --as-of '${{ steps.clock.outputs.as_of }}' \
-            --existing-records-input web/pipeline/data/tianjin_live_tjnothop_records.json \
-            --records-output web/pipeline/data/tianjin_live_tjnothop_records.json \
-            --report-output web/pipeline/data/tianjin_tjnothop_sync_report.json
+            --existing-records-input web/pipeline/data/tianjin_live_nothop_records.json \
+            --records-output web/pipeline/data/tianjin_live_nothop_records.json \
+            --report-output web/pipeline/data/tianjin_nothop_sync_report.json
 
       - name: Sync verified Central Gynecology Obstetrics Hospital early-demand state
         shell: bash
@@ -193,7 +193,7 @@ jobs:
             --as-of '${{ steps.clock.outputs.as_of }}' \
             --input web/pipeline/data/tianjin_live_ccgp_records.json \
             --input web/pipeline/data/tianjin_live_tjmugh_records.json \
-            --input web/pipeline/data/tianjin_live_tjnothop_records.json \
+            --input web/pipeline/data/tianjin_live_nothop_records.json \
             --input web/pipeline/data/tianjin_live_tjzxfc_records.json \
             --input web/pipeline/data/tianjin_live_tjzyefy_records.json \
             --input web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
@@ -209,9 +209,9 @@ jobs:
       - name: Publish and verify optional external snapshot
         shell: bash
         env:
-          VERIFIED_SNAPSHOT_PUBLISH_URL: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_URL }}
+          VERIFIED_SNAPSHOT_PUBLISH_URL: https://medicalchannelai.vercel.app/api/public-snapshot
           VERIFIED_SNAPSHOT_PUBLISH_TOKEN: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_TOKEN }}
-          VERIFIED_SNAPSHOT_READ_URL: ${{ secrets.VERIFIED_SNAPSHOT_READ_URL }}
+          VERIFIED_SNAPSHOT_READ_URL: https://medicalchannelai.vercel.app/api/public-snapshot
         run: |
           set -euo pipefail
           if [[ -z "${VERIFIED_SNAPSHOT_PUBLISH_URL:-}" ]]; then
@@ -257,7 +257,7 @@ jobs:
           git add \
             web/pipeline/data/tianjin_live_ccgp_records.json \
             web/pipeline/data/tianjin_live_tjmugh_records.json \
-            web/pipeline/data/tianjin_live_tjnothop_records.json \
+            web/pipeline/data/tianjin_live_nothop_records.json \
             web/pipeline/data/tianjin_live_tjzxfc_records.json \
             web/pipeline/data/tianjin_live_tjzyefy_records.json \
             web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
@@ -266,7 +266,7 @@ jobs:
             web/pipeline/data/tianjin_notice_events.json \
             web/pipeline/data/tianjin_sync_report.json \
             web/pipeline/data/tianjin_tjmugh_sync_report.json \
-            web/pipeline/data/tianjin_tjnothop_sync_report.json \
+            web/pipeline/data/tianjin_nothop_sync_report.json \
             web/pipeline/data/tianjin_tjzxfc_sync_report.json \
             web/pipeline/data/tianjin_tjzyefy_sync_report.json \
             web/pipeline/data/tianjin_tjzyefy_intent_sync_report.json \
