@@ -10,7 +10,7 @@ export const config = { maxDuration: 30 }
 
 const PUBLIC_FIRST_PARTY_ORIGIN = 'https://medicalai.qd.je'
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
-const MODEL_ID = 'agnes-2.5-flash'
+const MODEL_ID = 'agnes-3.0-flash'
 const ANALYSIS_VERSION = 'agnes-discovery-live-v4-safe-next-page'
 const RATE_WINDOW_MS = 60 * 1000
 const RATE_MAX_PER_CLIENT = 30
