@@ -1,0 +1,73 @@
+name: Smoke Agnes 3 Continuation 2026-09-14
+
+on:
+  push:
+    branches: [release/agnes3-production-stage-20260914]
+    paths:
+      - '.github/workflows/smoke-agnes3-continuation-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 5
+    steps:
+      - name: Call Production continuation through server-side Agnes configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY="$(node <<'NODE'
+          const { createHash } = require('node:crypto')
+          const anchors = [{ title: '首页', url: 'https://www.gov.cn/' }]
+          const stable = anchors
+            .map((item) => [item.url, item.title])
+            .sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]))
+          const fingerprint = createHash('sha256').update(JSON.stringify(stable)).digest('hex').slice(0, 32)
+          process.stdout.write(JSON.stringify({
+            source: {
+              id: 'agnes3-continuation-smoke-govcn',
+              name: '中国政府网',
+              kind: 'OTHER_OFFICIAL',
+              url: 'https://www.gov.cn/'
+            },
+            root_scan: {
+              analysis_version: 'agnes-discovery-live-v4-safe-next-page',
+              source_id: 'agnes3-continuation-smoke-govcn',
+              source_url: 'https://www.gov.cn/',
+              coverage_partial: false,
+              coverage_page_limit_applied: true,
+              anchor_cap_applied: false,
+              anchor_snapshot: anchors,
+              coverage_page_urls: ['https://www.gov.cn/'],
+              content_fingerprint: fingerprint
+            },
+            previous_segments: []
+          }))
+          NODE
+          )"
+          http="$(curl -sS --max-time 40 -o /tmp/agnes3-continuation-smoke.json -w '%{http_code}' \
+            --request POST \
+            --header 'Origin: https://medicalchannelai.vercel.app' \
+            --header 'Content-Type: application/json' \
+            --data "$BODY" \
+            'https://medicalchannelai.vercel.app/api/ai/discover?route=continuation')"
+          echo "HTTP $http"
+          cat /tmp/agnes3-continuation-smoke.json
+          echo
+          test "$http" = '200' || { echo '::error::Continuation smoke did not return HTTP 200.'; exit 1; }
+          RESPONSE="$(cat /tmp/agnes3-continuation-smoke.json)" node <<'NODE'
+          const value = JSON.parse(process.env.RESPONSE || '{}')
+          console.log(`mode=${value.mode} ai_called=${value.ai_called} analyzed_anchor_count=${value.analyzed_anchor_count ?? 'missing'} production_data_mutated=${value.production_data_mutated}`)
+          const ok = value.mode === 'AI_DISCOVERY_CONTINUATION_SHADOW' &&
+            value.ai_called === true &&
+            Number(value.analyzed_anchor_count) > 0 &&
+            value.production_data_mutated === false
+          if (!ok) process.exit(1)
+          NODE
+          echo 'Agnes 3 Production continuation provider smoke: PASS'
