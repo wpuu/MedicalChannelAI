@@ -1,0 +1,210 @@
+name: Benchmark Agnes V10 Latency Floor 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes25-vs-30-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes-v10-latency-floor-20260914.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannelai-agnes-v10-latency-floor-20260914
+  cancel-in-progress: true
+
+jobs:
+  benchmark-build:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 20
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e
+          path: app
+          persist-credentials: false
+
+      - name: Inject V10 latency-floor benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          app = Path('app')
+          root = app / 'web/pipeline/data'
+          positive_files = [root/'tianjin_live_teda_records.json', root/'tianjin_live_tjmugh_records.json', root/'tianjin_live_tjzyefy_intent_records.json']
+          negative_files = [root/'tianjin_live_tjfch_records.json', root/'tianjin_live_tjzyefy_records.json', root/'tianjin_live_ccgp_records.json']
+          pos_states = {'MARKET_RESEARCH','PROCUREMENT_INTENT','SUPPLIER_RECRUITMENT'}
+          neg_states = {'BIDDING','AWARD','RESULT'}
+
+          def collect(paths, states, label):
+              out, seen = [], set()
+              for path in paths:
+                  for row in json.loads(path.read_text(encoding='utf-8')):
+                      facts, source = row.get('facts') or {}, row.get('source') or {}
+                      state = str(facts.get('lifecycle_state') or '').upper()
+                      title = str(facts.get('project_name') or '').strip()
+                      url = str(source.get('url') or '').strip()
+                      if state in states and title and url and url not in seen:
+                          seen.add(url)
+                          out.append({'title':title,'url':url,'label':label,'state':state})
+              return out
+
+          positives = sorted(collect(positive_files,pos_states,'positive'), key=lambda x:(x['state'],x['url']))[:3]
+          negatives = sorted(collect(negative_files,neg_states,'negative'), key=lambda x:(x['state'],x['url']))[:3]
+          if len(positives) != 3 or len(negatives) != 3:
+              raise SystemExit(f'corpus gate failed positives={len(positives)} negatives={len(negatives)}')
+          corpus = {'positives': positives, 'negatives': negatives}
+
+          script = r'''const corpus = __CORPUS__
+          const timeoutMs = 12000
+          const models = [
+            {id:'agnes-2.5-flash', thinking:null},
+            {id:'agnes-3.0-flash', thinking:false},
+          ]
+          const tasks = ['ping','single','six']
+          const signalTypes = new Set(['DEMAND_RESEARCH','SUPPLIER_RECRUITMENT','TEST_ENTERPRISE_RECRUITMENT','ARGUMENTATION_INVITATION','PURCHASE_INTENTION','OTHER_PREPROCUREMENT'])
+          const keys = String(process.env.AGNES_API_KEYS || process.env.AGNES_API_KEY || '').split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean)
+          const baseUrl = String(process.env.AGNES_API_BASE_URL || 'https://apihub.agnes-ai.com/v1').trim().replace(/\/+$/,'')
+          if (!keys.length) { console.error('AGNES_V10_SAFE_ERROR=AGNES_KEY_MISSING'); process.exit(2) }
+          console.log('AGNES_V10_INFO_JSON='+JSON.stringify({key_count:keys.length,models:models.map(x=>x.id),tasks,timeout_ms:timeoutMs,production_data_mutated:false}))
+
+          const sleep=(ms)=>new Promise(resolve=>setTimeout(resolve,ms))
+          const sixAnchors=[]
+          for(let i=0;i<3;i++){sixAnchors.push(corpus.positives[i],corpus.negatives[i])}
+          function cleanAnchors(rows){return rows.map(({title,url})=>({title,url}))}
+          function classificationMessages(anchors,maxCandidates){return [
+            {role:'system',content:'你是医疗行业公开商机发现器。只从输入官方链接中挑选仍可能影响需求、测试、论证、方案或采购准备的前期窗口。排除正式招标、成交/中标结果、招聘、人事、党建、新闻宣传、纯制度通知。只能原样返回输入URL。严格输出JSON，不要Markdown。'},
+            {role:'user',content:JSON.stringify({source:'MedicalChannelAI V10 latency floor',anchors,max_candidates:maxCandidates,allowed_signal_types:Array.from(signalTypes),output_rules:['candidates只包含采购前期窗口','signal_type必须是单个字符串枚举值','confidence必须是0到1数字','reason不超过30个汉字','不要返回title字段'],output_schema:{candidates:[{url:'必须与输入URL完全一致',signal_type:'单个字符串枚举值',confidence:0.95,reason:'不超过30个汉字'}]}})}
+          ]}
+          function jsonContent(s){return s.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim()}
+          function parseClassification(content,anchors){
+            let payload
+            try{payload=JSON.parse(jsonContent(content))}catch{return {ok:false,error:'AI_RESPONSE_INVALID'}}
+            if(!payload||typeof payload!=='object'||!Array.isArray(payload.candidates))return {ok:false,error:'AI_RESPONSE_INVALID'}
+            const allowed=new Set(anchors.map(x=>x.url));let invalid=0,ungrounded=0;const selected=[];const seen=new Set()
+            for(const row of payload.candidates){
+              if(!row||typeof row!=='object'){invalid++;continue}
+              const url=typeof row.url==='string'?row.url.trim():''
+              if(!allowed.has(url)){ungrounded++;continue}
+              const type=typeof row.signal_type==='string'?row.signal_type.trim().toUpperCase():''
+              const confidence=Number(row.confidence)
+              const reason=typeof row.reason==='string'?row.reason.replace(/\s+/g,' ').trim():''
+              if(!signalTypes.has(type)||!Number.isFinite(confidence)||confidence<0||confidence>1||!reason){invalid++;continue}
+              if(!seen.has(url)){seen.add(url);selected.push(url)}
+            }
+            return {ok:true,selected,invalid,ungrounded,raw:payload.candidates.length}
+          }
+          function taskSpec(task){
+            if(task==='ping') return {messages:[{role:'system',content:'严格只回复两个大写字母 OK，不要解释。'},{role:'user',content:'回复OK'}],max_tokens:8,anchors:[],expectedPositiveUrls:[]}
+            if(task==='single') {
+              const anchors=cleanAnchors([corpus.positives[0]])
+              return {messages:classificationMessages(anchors,1),max_tokens:220,anchors,expectedPositiveUrls:[corpus.positives[0].url]}
+            }
+            const anchors=cleanAnchors(sixAnchors)
+            return {messages:classificationMessages(anchors,6),max_tokens:700,anchors,expectedPositiveUrls:corpus.positives.map(x=>x.url)}
+          }
+          async function runOne(modelConfig,task,slot){
+            const spec=taskSpec(task)
+            const body={model:modelConfig.id,messages:spec.messages,temperature:0,max_tokens:spec.max_tokens,stream:false}
+            if(modelConfig.thinking===false) body.chat_template_kwargs={enable_thinking:false}
+            const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeoutMs);const started=Date.now()
+            try{
+              const response=await fetch(baseUrl+'/chat/completions',{method:'POST',signal:controller.signal,headers:{Authorization:`Bearer ${keys[slot]}`,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(body)})
+              const latency_ms=Date.now()-started
+              if(!response.ok)return {model:modelConfig.id,task,key_slot:slot,provider_ok:false,quality_pass:false,latency_ms,error:`UPSTREAM_HTTP_${response.status}`}
+              const payload=await response.json();const content=payload?.choices?.[0]?.message?.content
+              const finish_reason=payload?.choices?.[0]?.finish_reason??null
+              if(typeof content!=='string'||!content.trim())return {model:modelConfig.id,task,key_slot:slot,provider_ok:false,quality_pass:false,latency_ms,finish_reason,error:'UPSTREAM_CONTENT_EMPTY'}
+              if(task==='ping'){
+                const quality_pass=content.trim()==='OK'
+                return {model:modelConfig.id,task,key_slot:slot,provider_ok:true,quality_pass,latency_ms,finish_reason,content_length:content.length,shape:content.trim().slice(0,40)}
+              }
+              const parsed=parseClassification(content,spec.anchors)
+              if(!parsed.ok)return {model:modelConfig.id,task,key_slot:slot,provider_ok:false,quality_pass:false,latency_ms,finish_reason,error:parsed.error,content_length:content.length,shape:content.trim().slice(0,120)}
+              const selected=new Set(parsed.selected)
+              const hits=spec.expectedPositiveUrls.filter(url=>selected.has(url)).length
+              const negatives=spec.anchors.map(x=>x.url).filter(url=>!spec.expectedPositiveUrls.includes(url))
+              const fp=negatives.filter(url=>selected.has(url)).length
+              const quality_pass=hits===spec.expectedPositiveUrls.length&&fp===0&&parsed.invalid===0&&parsed.ungrounded===0
+              return {model:modelConfig.id,task,key_slot:slot,provider_ok:true,quality_pass,latency_ms,finish_reason,content_length:content.length,raw_candidate_count:parsed.raw,candidate_count:selected.size,positive_hits:hits,expected_positive_count:spec.expectedPositiveUrls.length,false_positives:fp,rejected_invalid_count:parsed.invalid,rejected_ungrounded_count:parsed.ungrounded}
+            }catch(error){
+              const latency_ms=Date.now()-started
+              const timed=error?.name==='AbortError'||/aborted/i.test(String(error?.message||error||''))
+              return {model:modelConfig.id,task,key_slot:slot,provider_ok:false,quality_pass:false,latency_ms,error:timed?'TIMEOUT':'PROVIDER_EXCEPTION'}
+            }finally{clearTimeout(timer)}
+          }
+
+          const rows=[]
+          for(const task of tasks){
+            for(const modelConfig of models){
+              for(let slot=0;slot<keys.length;slot+=1){
+                const row=await runOne(modelConfig,task,slot)
+                rows.push(row)
+                console.log('AGNES_V10_ROW_JSON='+JSON.stringify(row))
+                await sleep(750)
+              }
+            }
+          }
+          const percentile=(values,p)=>{if(!values.length)return null;const a=[...values].sort((x,y)=>x-y);return a[Math.min(a.length-1,Math.max(0,Math.ceil(p*a.length)-1))]}
+          const report={}
+          for(const modelConfig of models){
+            report[modelConfig.id]={}
+            for(const task of tasks){
+              const r=rows.filter(x=>x.model===modelConfig.id&&x.task===task)
+              const success=r.filter(x=>x.provider_ok)
+              const quality=r.filter(x=>x.quality_pass)
+              const lat=r.map(x=>x.latency_ms).filter(Number.isFinite)
+              report[modelConfig.id][task]={attempts:r.length,provider_successes:success.length,quality_passes:quality.length,timeouts:r.filter(x=>x.error==='TIMEOUT').length,p50_latency_ms:percentile(lat,.5),p95_latency_ms:percentile(lat,.95),min_latency_ms:lat.length?Math.min(...lat):null,max_latency_ms:lat.length?Math.max(...lat):null}
+            }
+          }
+          const expected=models.length*tasks.length*keys.length
+          if(rows.length!==expected){console.error(`AGNES_V10_SAFE_ERROR=ATTEMPT_COUNT_MISMATCH expected=${expected} actual=${rows.length}`);process.exit(3)}
+          console.log('AGNES_V10_REPORT_JSON='+JSON.stringify(report))
+          '''.replace('__CORPUS__', json.dumps(corpus, ensure_ascii=False))
+
+          scripts = app/'web/scripts'
+          scripts.mkdir(parents=True, exist_ok=True)
+          (scripts/'agnes-v10-latency-floor.mjs').write_text(script, encoding='utf-8')
+          package_path=app/'web/package.json'
+          pkg=json.loads(package_path.read_text(encoding='utf-8'))
+          pkg['scripts']['build']='node scripts/agnes-v10-latency-floor.mjs && '+pkg['scripts']['build']
+          package_path.write_text(json.dumps(pkg,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps({'injected':True,'models':['agnes-2.5-flash','agnes-3.0-flash'],'tasks':['ping','single','six'],'key_slots':'runtime','timeout_ms':12000},ensure_ascii=False))
+          PY
+          grep -q 'AGNES_V10_REPORT_JSON' app/web/scripts/agnes-v10-latency-floor.mjs
+          grep -q "agnes-2.5-flash" app/web/scripts/agnes-v10-latency-floor.mjs
+          grep -q "agnes-3.0-flash" app/web/scripts/agnes-v10-latency-floor.mjs
+
+      - name: Link exact Vercel project locally
+        shell: bash
+        working-directory: app
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Deploy isolated staged Production benchmark
+        shell: bash
+        working-directory: app
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
+          case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged deployment URL'; exit 1;; esac
+          echo "Staged V10 benchmark URL: $DEPLOY_URL"
+          echo "Production domain switch: skipped"
+          echo "Agnes 2.5 vs 3.0 thinking-off; ping/single/6-anchor; 3 key slots sequential; SLA 12s."
+          echo "No verified snapshot write is performed."
