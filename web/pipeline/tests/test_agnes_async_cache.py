@@ -59,6 +59,15 @@ class AgnesAsyncCacheTests(unittest.TestCase):
         self.assertIn('base.consecutive_zero_candidate_count', self.store)
         self.assertIn('result.ai_refresh_pending ? current.findings : mergeDiscoveryFindings', self.page)
 
+    def test_force_ai_replaces_instead_of_merging_ready_cache(self) -> None:
+        self.assertIn("const baseParsed = body?.force_ai === true", self.root)
+        self.assertIn("? emptyParsed()", self.root)
+
+    def test_continuation_ledger_accepts_v2_segments(self) -> None:
+        ledger = (WEB_ROOT / 'src' / 'services' / 'discoveryContinuationLedger.ts').read_text(encoding='utf-8')
+        self.assertIn("row.analysis_version !== 'agnes-discovery-continuation-v2'", ledger)
+        self.assertNotIn("row.analysis_version !== 'agnes-discovery-continuation-v1'", ledger)
+
     def test_multi_scan_does_not_spawn_client_poll_storm(self) -> None:
         self.assertIn('{ preserveBusy: true, autoRetry: false }', self.page)
 
