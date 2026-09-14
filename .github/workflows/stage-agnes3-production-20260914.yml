@@ -1,0 +1,61 @@
+name: Stage Agnes 3 Production 2026-09-14
+
+on:
+  push:
+    branches: [release/agnes3-production-stage-20260914]
+    paths:
+      - '.github/workflows/stage-agnes3-production-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  stage:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 25
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing; no deployment attempted'; exit 1; }
+          echo 'Deployment credential gate: PASS'
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: 28a79253986545ace235cda86995e465c2cad5d2
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Link exact Vercel project locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Create staged Production deployment without domain switch
+        id: stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
+          case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged URL returned'; exit 1;; esac
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          echo "Staged Production URL: $DEPLOY_URL"
+          echo "Exact source SHA: 28a79253986545ace235cda86995e465c2cad5d2"
+          echo 'Production domain switch: skipped'
