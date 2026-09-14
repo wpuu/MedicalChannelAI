@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: medicalchannelai-agnes-ab-v3-20260914
@@ -169,15 +170,32 @@ jobs:
           echo "Staged benchmark URL: $DEPLOY_URL"
           echo "Production domain switch: skipped"
 
+      - name: Get short-lived GitHub OIDC token
+        id: oidc
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken();
+            core.setSecret(token);
+            core.setOutput('token', token);
+
       - name: Run fair A/B across every Production key slot
         shell: bash
         env:
           DEPLOY_URL: ${{ steps.stage.outputs.url }}
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           set -euo pipefail
+          test -n "${OIDC_TOKEN:-}" || { echo '::error::GitHub OIDC token missing'; exit 1; }
           mkdir -p /tmp/agnes-ab
           curl_stage() {
-            npx --yes vercel@latest --token="$VERCEL_TOKEN" curl "$DEPLOY_URL/api/ai/discover" -X POST -H 'Origin: https://medicalai.qd.je' -H 'Content-Type: application/json' -d "$1"
+            curl -sS --fail-with-body --max-time 40 \
+              --request POST \
+              --header "x-vercel-trusted-oidc-idp-token: $OIDC_TOKEN" \
+              --header 'Origin: https://medicalai.qd.je' \
+              --header 'Content-Type: application/json' \
+              --data "$1" \
+              "$DEPLOY_URL/api/ai/discover"
           }
           for attempt in $(seq 1 24); do
             if curl_stage '{"benchmark_ab":true,"action":"info"}' > /tmp/agnes-ab/info.json 2>/tmp/agnes-ab/info.err; then break; fi
