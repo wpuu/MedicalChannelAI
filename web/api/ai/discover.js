@@ -1046,7 +1046,9 @@ export default async function handler(request, response) {
       (cached?.state === 'PENDING' && now - cached.startedAt < AI_CACHE_PENDING_STALE_MS) ||
       (cached?.state === 'FAILED' && now < cached.retryAfter)
     )
-    const baseParsed = previous?.reusedParsed || (cached?.state === 'READY' ? cached.parsed : emptyParsed())
+    const baseParsed = body?.force_ai === true
+      ? emptyParsed()
+      : previous?.reusedParsed || (cached?.state === 'READY' ? cached.parsed : emptyParsed())
     const delta = previous ?? {
       newCount: anchors.length,
       changedCount: 0,
