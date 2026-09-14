@@ -1,0 +1,74 @@
+name: Benchmark Agnes 2.5 vs 3.0 V4 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes25-vs-30-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes25-vs-30-v4-20260914.yml'
+      - '.github/scripts/inject_agnes_ab_get.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannelai-agnes-ab-v4-20260914
+  cancel-in-progress: true
+
+jobs:
+  deploy-benchmark:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
+
+      - name: Checkout benchmark helper
+        uses: actions/checkout@v4
+        with:
+          ref: benchmark/agnes25-vs-30-20260914
+          path: bench
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e
+          path: app
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Inject isolated GET benchmark route
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 bench/.github/scripts/inject_agnes_ab_get.py app
+          grep -q 'EPHEMERAL_AB_GET_START' app/web/api/ai/discover.js
+
+      - name: Link exact Vercel project locally
+        shell: bash
+        working-directory: app
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Deploy isolated staged Production benchmark
+        id: stage
+        shell: bash
+        working-directory: app
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
+          case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged deployment URL'; exit 1;; esac
+          echo "Staged benchmark URL: $DEPLOY_URL"
+          echo "Production domain switch: skipped"
+          echo "No benchmark calls are executed by this workflow."
+          echo "No verified snapshot write is performed."
