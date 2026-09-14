@@ -18,12 +18,15 @@ jobs:
       - x64
       - medicalchannelai-ci
     timeout-minutes: 10
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout release branch
         uses: actions/checkout@v4
         with:
           ref: release/dynamic-snapshot-agnes3-20260914
-          fetch-depth: 0
+          fetch-depth: 1
+          persist-credentials: false
 
       - name: Apply exact bounded replacements
         shell: bash
@@ -31,6 +34,7 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           endpoint = 'https://medicalchannelai.vercel.app/api/public-snapshot'
           workflow_paths = [
@@ -39,12 +43,12 @@ jobs:
           ]
           for path in workflow_paths:
               text = path.read_text(encoding='utf-8')
-              old_publish = 'VERIFIED_SNAPSHOT_PUBLISH_URL: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_URL }}'
-              old_read = 'VERIFIED_SNAPSHOT_READ_URL: ${{ secrets.VERIFIED_SNAPSHOT_READ_URL }}'
-              if text.count(old_publish) != 1 or text.count(old_read) != 1:
+              publish_pattern = r'(?m)^(\s*)VERIFIED_SNAPSHOT_PUBLISH_URL:.*$'
+              read_pattern = r'(?m)^(\s*)VERIFIED_SNAPSHOT_READ_URL:.*$'
+              if len(re.findall(publish_pattern, text)) != 1 or len(re.findall(read_pattern, text)) != 1:
                   raise SystemExit(f'Unexpected snapshot URL wiring in {path}')
-              text = text.replace(old_publish, f'VERIFIED_SNAPSHOT_PUBLISH_URL: {endpoint}')
-              text = text.replace(old_read, f'VERIFIED_SNAPSHOT_READ_URL: {endpoint}')
+              text = re.sub(publish_pattern, rf'\1VERIFIED_SNAPSHOT_PUBLISH_URL: {endpoint}', text)
+              text = re.sub(read_pattern, rf'\1VERIFIED_SNAPSHOT_READ_URL: {endpoint}', text)
               path.write_text(text, encoding='utf-8')
 
           model_path = Path('web/pipeline/scripts/run_agnes_discovery_benchmark.py')
@@ -53,9 +57,17 @@ jobs:
               raise SystemExit('Unexpected Agnes 2.5 model reference count')
           text = text.replace('agnes-2.5-flash', 'agnes-3.0-flash')
           model_path.write_text(text, encoding='utf-8')
+
+          for path in workflow_paths:
+              text = path.read_text(encoding='utf-8')
+              if endpoint not in text:
+                  raise SystemExit(f'Missing same-origin endpoint in {path}')
+              if 'VERIFIED_SNAPSHOT_PUBLISH_TOKEN:' not in text:
+                  raise SystemExit(f'Missing publish token wiring in {path}')
+          if 'agnes-2.5-flash' in model_path.read_text(encoding='utf-8'):
+              raise SystemExit('Legacy Agnes model reference remains')
           PY
-          git diff --check
-          git diff -- .github/workflows/tianjin-medical-refresh.yml .github/workflows/regional-medical-refresh.yml web/pipeline/scripts/run_agnes_discovery_benchmark.py
+          python3 -m py_compile web/pipeline/scripts/run_agnes_discovery_benchmark.py
 
       - name: Run focused regression tests
         shell: bash
@@ -69,16 +81,79 @@ jobs:
             tests.test_tianjin_refresh_workflow \
             tests.test_verified_snapshot_automation_guard
 
-      - name: Commit bounded changes and remove one-shot workflow
+      - name: Atomically commit bounded changes through GitHub API
         shell: bash
         run: |
           set -euo pipefail
-          git rm .github/workflows/apply-dynamic-snapshot-agnes3-20260914.yml
-          git config user.name 'medicalchannel-release[bot]'
-          git config user.email 'medicalchannel-release[bot]@users.noreply.github.com'
-          git add \
-            .github/workflows/tianjin-medical-refresh.yml \
-            .github/workflows/regional-medical-refresh.yml \
-            web/pipeline/scripts/run_agnes_discovery_benchmark.py
-          git commit -m 'release: enable dynamic snapshot lane and Agnes 3.0 Flash'
-          git push origin HEAD:release/dynamic-snapshot-agnes3-20260914
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+          from pathlib import Path
+
+          repo = 'wpuu/MedicalChannelAI'
+          branch = 'release/dynamic-snapshot-agnes3-20260914'
+          self_path = '.github/workflows/apply-dynamic-snapshot-agnes3-20260914.yml'
+          changed_paths = [
+              '.github/workflows/tianjin-medical-refresh.yml',
+              '.github/workflows/regional-medical-refresh.yml',
+              'web/pipeline/scripts/run_agnes_discovery_benchmark.py',
+          ]
+          token = os.environ.get('GITHUB_TOKEN', '')
+          if not token:
+              raise SystemExit('GITHUB_TOKEN unavailable')
+          base = 'https://api.github.com'
+          headers = {
+              'Authorization': f'Bearer {token}',
+              'Accept': 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'User-Agent': 'MedicalChannelAI-release-automation',
+          }
+
+          def call(method, path, payload=None):
+              data = None if payload is None else json.dumps(payload).encode('utf-8')
+              req = urllib.request.Request(base + path, data=data, method=method, headers=headers)
+              if data is not None:
+                  req.add_header('Content-Type', 'application/json')
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  return json.loads(resp.read().decode('utf-8'))
+
+          ref = call('GET', f'/repos/{repo}/git/ref/heads/{branch}')
+          head_sha = ref['object']['sha']
+          commit = call('GET', f'/repos/{repo}/git/commits/{head_sha}')
+          base_tree = commit['tree']['sha']
+
+          entries = []
+          for path in changed_paths:
+              content = Path(path).read_text(encoding='utf-8')
+              blob = call('POST', f'/repos/{repo}/git/blobs', {
+                  'content': content,
+                  'encoding': 'utf-8',
+              })
+              entries.append({
+                  'path': path,
+                  'mode': '100644',
+                  'type': 'blob',
+                  'sha': blob['sha'],
+              })
+          entries.append({
+              'path': self_path,
+              'mode': '100644',
+              'type': 'blob',
+              'sha': None,
+          })
+          tree = call('POST', f'/repos/{repo}/git/trees', {
+              'base_tree': base_tree,
+              'tree': entries,
+          })
+          new_commit = call('POST', f'/repos/{repo}/git/commits', {
+              'message': 'release: enable dynamic snapshot lane and Agnes 3.0 Flash',
+              'tree': tree['sha'],
+              'parents': [head_sha],
+          })
+          call('PATCH', f'/repos/{repo}/git/refs/heads/{branch}', {
+              'sha': new_commit['sha'],
+              'force': False,
+          })
+          print('Committed release candidate:', new_commit['sha'])
+          PY
