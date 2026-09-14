@@ -14,17 +14,9 @@ jobs:
     runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
     timeout-minutes: 10
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      STAGED_HOST: medicalchannelai-72cmd20bd-rerisse7-1717s-projects.vercel.app
       STAGED_ORIGIN: https://medicalchannelai-72cmd20bd-rerisse7-1717s-projects.vercel.app
     steps:
-      - name: Require Vercel credential
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
-
-      - name: Exercise isolated async cache runtime
+      - name: Exercise isolated async cache runtime over direct HTTPS
         shell: bash
         run: |
           set -euo pipefail
@@ -34,26 +26,30 @@ jobs:
 
           call_radar() {
             local label="$1"
-            local start end elapsed
+            local start end elapsed http
             start="$(date +%s%3N)"
-            npx --yes vercel@latest curl /api/ai/discover \
-              --deployment "$STAGED_HOST" \
-              --token="$VERCEL_TOKEN" \
-              -- \
-              --silent --show-error --fail-with-body \
+            http="$(curl --silent --show-error \
+              --output response.json \
+              --write-out '%{http_code}' \
               --request POST \
               --header "Origin: $STAGED_ORIGIN" \
               --header 'Accept: application/json' \
               --header 'Content-Type: application/json' \
-              --data-binary @payload.json > response.json
+              --data-binary @payload.json \
+              "$STAGED_ORIGIN/api/ai/discover")"
             end="$(date +%s%3N)"
             elapsed=$((end-start))
-            LABEL="$label" ELAPSED_MS="$elapsed" python3 - <<'PY'
+            LABEL="$label" ELAPSED_MS="$elapsed" HTTP_CODE="$http" python3 - <<'PY'
           import json, os
-          with open('response.json', encoding='utf-8') as f:
-              body = json.load(f)
+          raw = open('response.json', encoding='utf-8').read()
+          try:
+              body = json.loads(raw)
+          except Exception:
+              print({'label': os.environ['LABEL'], 'http': os.environ['HTTP_CODE'], 'elapsed_ms': os.environ['ELAPSED_MS'], 'body_prefix': raw[:200]})
+              raise
           print(json.dumps({
               'label': os.environ['LABEL'],
+              'http': int(os.environ['HTTP_CODE']),
               'elapsed_ms': int(os.environ['ELAPSED_MS']),
               'mode': body.get('mode'),
               'analysis_version': body.get('analysis_version'),
@@ -63,8 +59,8 @@ jobs:
               'candidate_count': body.get('candidate_count'),
               'error': body.get('error'),
           }, ensure_ascii=False))
-          if body.get('error'):
-              raise SystemExit('radar returned error: ' + str(body.get('error')))
+          if int(os.environ['HTTP_CODE']) != 200:
+              raise SystemExit('unexpected HTTP status: ' + os.environ['HTTP_CODE'] + ' error=' + str(body.get('error')))
           if body.get('analysis_version') != 'agnes-discovery-live-v5-async-cache':
               raise SystemExit('unexpected analysis version')
           PY
