@@ -48,7 +48,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m unittest \
+          PYTHONPATH=web/pipeline python3 -m unittest \
             web.pipeline.tests.test_agnes_output_contract \
             web.pipeline.tests.test_agnes_discovery \
             web.pipeline.tests.test_agnes_model_consistency
