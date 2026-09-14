@@ -24,6 +24,7 @@ const MAX_ANCHORS = 80
 const MAX_REDIRECTS = 3
 const MAX_COVERAGE_PAGES = 2
 const AI_CACHE_PREFIX = 'medicalchannelai:agnes-discovery:v1'
+const AI_CACHE_LATEST_PREFIX = 'medicalchannelai:agnes-discovery-latest:v1'
 const AI_CACHE_READY_TTL_SECONDS = 2 * 24 * 60 * 60
 const AI_CACHE_TRANSIENT_TTL_SECONDS = 60
 const AI_CACHE_PENDING_STALE_MS = 35_000
@@ -606,6 +607,13 @@ function aiCacheKey(source, fingerprint) {
     .slice(0, 40)}`
 }
 
+function aiLatestCacheKey(source) {
+  return `${AI_CACHE_LATEST_PREFIX}:${createHash('sha256')
+    .update(`${ANALYSIS_VERSION}\u0000${aiCacheSourceSignature(source)}`)
+    .digest('hex')
+    .slice(0, 40)}`
+}
+
 function cachedCandidateRows(parsed) {
   return parsed.candidates.map((item) => ({
     url: item.url,
@@ -677,6 +685,25 @@ async function readAiCache(source, anchors, fingerprint) {
   }
 }
 
+function validateLatestAiCacheEntry(value, source) {
+  const anchors = previousAnchorSnapshot(value, source)
+  if (!anchors?.length) return null
+  const fingerprint = typeof value?.content_fingerprint === 'string' ? value.content_fingerprint : ''
+  if (!fingerprint || anchorFingerprint(anchors) !== fingerprint) return null
+  const ready = validateAiCacheEntry(value, source, anchors, fingerprint)
+  return ready?.state === 'READY' ? { ...ready, anchors, fingerprint } : null
+}
+
+async function readLatestAiCache(source) {
+  if (!process.env.VERCEL_REGION) return null
+  try {
+    const value = await getCache().get(aiLatestCacheKey(source))
+    return validateLatestAiCacheEntry(value, source)
+  } catch {
+    return null
+  }
+}
+
 async function writeAiCache(key, value, ttl) {
   if (!process.env.VERCEL_REGION) return
   await getCache().set(key, value, {
@@ -685,7 +712,7 @@ async function writeAiCache(key, value, ttl) {
   })
 }
 
-async function runAiRefreshTask({ key, source, aiAnchors, fingerprint, keys, baseParsed, delta }) {
+async function runAiRefreshTask({ key, source, aiAnchors, snapshotAnchors, fingerprint, keys, baseParsed, delta }) {
   try {
     const content = await callProvider(source, aiAnchors, keys)
     const freshParsed = parseCandidates(content, aiAnchors)
@@ -705,6 +732,7 @@ async function runAiRefreshTask({ key, source, aiAnchors, fingerprint, keys, bas
         removedCount: delta.removedCount,
         reusedCount: delta.reusedCount,
       },
+      anchor_snapshot: snapshotAnchors.map((item) => ({ title: item.title, url: item.url })),
       parsed: {
         candidates: cachedCandidateRows(parsed),
         rawCount: parsed.rawCount,
@@ -713,6 +741,11 @@ async function runAiRefreshTask({ key, source, aiAnchors, fingerprint, keys, bas
       },
     }
     await writeAiCache(key, cacheValue, AI_CACHE_READY_TTL_SECONDS)
+    try {
+      await writeAiCache(aiLatestCacheKey(source), cacheValue, AI_CACHE_READY_TTL_SECONDS)
+    } catch {
+      // Fingerprint cache remains authoritative; latest cache is resilience-only.
+    }
     return {
       state: 'READY',
       analyzedAt,
@@ -743,7 +776,7 @@ async function runAiRefreshTask({ key, source, aiAnchors, fingerprint, keys, bas
   }
 }
 
-async function scheduleAiRefresh({ source, aiAnchors, fingerprint, keys, baseParsed, delta }) {
+async function scheduleAiRefresh({ source, aiAnchors, snapshotAnchors, fingerprint, keys, baseParsed, delta }) {
   const key = aiCacheKey(source, fingerprint)
   if (aiRefreshInFlight.has(key)) return { scheduled: false, ready: null }
   aiRefreshInFlight.add(key)
@@ -759,7 +792,7 @@ async function scheduleAiRefresh({ source, aiAnchors, fingerprint, keys, basePar
   } catch {
     // Background work may still complete in this warm instance even if cache marking fails.
   }
-  const task = runAiRefreshTask({ key, source, aiAnchors, fingerprint, keys, baseParsed, delta })
+  const task = runAiRefreshTask({ key, source, aiAnchors, snapshotAnchors, fingerprint, keys, baseParsed, delta })
   if (process.env.VERCEL) {
     try {
       waitUntil(task)
@@ -981,7 +1014,35 @@ export default async function handler(request, response) {
   const checkedAt = new Date().toISOString()
 
   try {
-    const coverage = await fetchOfficialCoverage(source)
+    let coverage
+    try {
+      coverage = await fetchOfficialCoverage(source)
+    } catch (sourceError) {
+      const sourceMessage = sourceError instanceof Error ? sourceError.message : ''
+      if (sourceMessage.startsWith('SOURCE_') && body?.force_ai !== true) {
+        const latest = await readLatestAiCache(source)
+        if (latest?.state === 'READY') {
+          const benchmark = await benchmarkContext(source, latest.anchors)
+          const fallbackCoverage = {
+            pageUrls: [],
+            nextPageDetected: false,
+            pageLimitApplied: false,
+            partial: true,
+            errorCode: sourceMessage,
+            scannedAnchorCount: 0,
+          }
+          return sendJson(response, 200, resultPayload({
+            source, checkedAt, analyzedAt: latest.analyzedAt,
+            allAnchors: latest.anchors, anchors: latest.anchors, fingerprint: latest.fingerprint,
+            parsed: latest.parsed, benchmark, aiCalled: false,
+            cacheStatus: 'SERVER_AI_CACHE_SOURCE_UNAVAILABLE',
+            aiAnalyzedAnchorCount: latest.aiAnalyzedAnchorCount, delta: latest.delta,
+            coverage: fallbackCoverage,
+          }))
+        }
+      }
+      throw sourceError
+    }
     const currentAllAnchors = coverage.anchors
     const currentAnchors = currentAllAnchors.slice(0, MAX_ANCHORS)
     if (!currentAnchors.length) return sendJson(response, 503, { error: 'AI_RADAR_SOURCE_EMPTY' })
@@ -1069,7 +1130,7 @@ export default async function handler(request, response) {
     const keys = getApiKeys()
     if (!keys.length) return sendJson(response, 503, { error: 'AI_RADAR_NOT_CONFIGURED' })
     const scheduled = await scheduleAiRefresh({
-      source, aiAnchors, fingerprint, keys, baseParsed, delta,
+      source, aiAnchors, snapshotAnchors: anchors, fingerprint, keys, baseParsed, delta,
     })
     if (scheduled.ready) {
       return sendJson(response, 200, resultPayload({
