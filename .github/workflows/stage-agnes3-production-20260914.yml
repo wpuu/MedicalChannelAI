@@ -16,7 +16,7 @@ jobs:
       - linux
       - x64
       - medicalchannelai-ci
-    timeout-minutes: 25
+    timeout-minutes: 12
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
@@ -59,3 +59,83 @@ jobs:
           echo "Staged Production URL: $DEPLOY_URL"
           echo "Exact source SHA: b7143479016db9311da3564615ab181822121719"
           echo 'Production domain switch: skipped'
+
+      - name: Seed staged TEDA READY cache and require real source-unavailable fallback
+        shell: bash
+        env:
+          DEPLOY_URL: ${{ steps.stage.outputs.url }}
+        run: |
+          set -euo pipefail
+          BODY='{"source":{"id":"pr19-teda-runtime-gate","name":"天津泰达医院","kind":"HOSPITAL_OFFICIAL","url":"https://www.tedahospital.com.cn/article/plist/9"}}'
+
+          call_stage() {
+            npx --yes vercel@latest curl /api/ai/discover \
+              --deployment "$DEPLOY_URL" \
+              --token "$VERCEL_TOKEN" \
+              -- \
+              --silent --show-error \
+              --request POST \
+              --header "Origin: $DEPLOY_URL" \
+              --header 'Content-Type: application/json' \
+              --data "$BODY"
+          }
+
+          ready=0
+          for attempt in $(seq 1 10); do
+            RESPONSE="$(call_stage)"
+            status="$(RESPONSE="$RESPONSE" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); process.stdout.write(String(p.cache_status||p.error||''))")"
+            mutated="$(RESPONSE="$RESPONSE" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); process.stdout.write(String(p.production_data_mutated))")"
+            echo "ready-poll ${attempt}: ${status}"
+            if [[ "$mutated" == 'true' ]]; then
+              echo '::error::Discovery smoke mutated production data.'
+              exit 1
+            fi
+            if [[ "$status" == 'SERVER_AI_CACHE_SOURCE_UNAVAILABLE' ]]; then
+              RESPONSE="$RESPONSE" node <<'NODE'
+          const p=JSON.parse(process.env.RESPONSE||'{}')
+          if (p.coverage_partial !== true || !String(p.coverage_error_code||'').startsWith('SOURCE_') || p.ai_called !== false || p.production_data_mutated !== false) process.exit(1)
+          console.log(`fallback=${p.cache_status} source_error=${p.coverage_error_code} candidates=${p.candidate_count}`)
+          NODE
+              echo 'PR19 staged source-unavailable fallback: PASS'
+              exit 0
+            fi
+            if [[ "$status" == 'SERVER_AI_CACHE' ]]; then
+              ready=1
+              break
+            fi
+            if [[ "$status" != 'AI_REFRESH_PENDING' && "$status" != 'STALE_WHILE_AI_REFRESH' ]]; then
+              echo "::error::Unexpected staged discovery status before READY: $status"
+              exit 1
+            fi
+            sleep 5
+          done
+
+          if [[ "$ready" -ne 1 ]]; then
+            echo '::error::Staged READY cache was not reached in the bounded window.'
+            exit 1
+          fi
+
+          for attempt in $(seq 1 12); do
+            RESPONSE="$(call_stage)"
+            status="$(RESPONSE="$RESPONSE" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); process.stdout.write(String(p.cache_status||p.error||''))")"
+            source_error="$(RESPONSE="$RESPONSE" node -e "const p=JSON.parse(process.env.RESPONSE||'{}'); process.stdout.write(String(p.coverage_error_code||''))")"
+            echo "fallback-poll ${attempt}: ${status} source_error=${source_error:-NONE}"
+            if [[ "$status" == 'SERVER_AI_CACHE_SOURCE_UNAVAILABLE' ]]; then
+              RESPONSE="$RESPONSE" node <<'NODE'
+          const p=JSON.parse(process.env.RESPONSE||'{}')
+          const ok=p.coverage_partial===true && String(p.coverage_error_code||'').startsWith('SOURCE_') && p.ai_called===false && p.production_data_mutated===false && Array.isArray(p.anchor_snapshot) && p.anchor_snapshot.length>0
+          if (!ok) process.exit(1)
+          console.log(`fallback=${p.cache_status} source_error=${p.coverage_error_code} candidates=${p.candidate_count}`)
+          NODE
+              echo 'PR19 staged source-unavailable fallback: PASS'
+              exit 0
+            fi
+            if [[ "$status" != 'SERVER_AI_CACHE' ]]; then
+              echo "::error::Unexpected post-READY status: $status"
+              exit 1
+            fi
+            sleep 3
+          done
+
+          echo '::error::TEDA stayed healthy for every bounded poll; no real SOURCE_* event occurred, so the fallback runtime gate is not claimed as passed.'
+          exit 2
