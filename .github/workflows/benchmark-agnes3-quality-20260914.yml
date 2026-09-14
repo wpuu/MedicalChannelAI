@@ -1,0 +1,68 @@
+name: Benchmark Agnes 3 Quality 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes3-quality-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes3-quality-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 10
+    env:
+      AGNES_API_KEYS: ${{ secrets.AGNES_API_KEYS }}
+    steps:
+      - name: Require existing Agnes benchmark credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${AGNES_API_KEYS:-}" || { echo '::error::AGNES_API_KEYS GitHub Actions secret is not configured; benchmark did not call provider.'; exit 1; }
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify Python benchmark runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 --version
+          python3 - <<'PY'
+          import requests
+          print(f"requests={requests.__version__}")
+          PY
+
+      - name: Run Agnes 3 shadow discovery quality benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web
+          PYTHONPATH=pipeline python3 pipeline/scripts/run_agnes_discovery_benchmark.py
+          echo '--- Agnes 3 quality baseline artifact ---'
+          cat artifacts/agnes_discovery_shadow_benchmark.json
+
+      - name: Confirm shadow-only artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/agnes_discovery_shadow_benchmark.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          assert data.get('mode') == 'SHADOW_BENCHMARK', data.get('mode')
+          assert data.get('model') == 'agnes-3.0-flash', data.get('model')
+          print('Shadow-only Agnes 3 benchmark artifact verified.')
+          PY
