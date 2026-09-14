@@ -1,0 +1,36 @@
+name: Probe Agnes 3 TEDA Routing 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes3-quality-20260914]
+    paths:
+      - '.github/workflows/probe-agnes3-teda-routing-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 5
+    steps:
+      - name: Probe deterministic routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          ids=('TEDA-keyprobe-11' 'TEDA-keyprobe-20' 'TEDA-keyprobe-0' 'TEDA-keyprobe-3' 'TEDA-keyprobe-2')
+          slot=0
+          for sid in "${ids[@]}"; do
+            out="/tmp/agnes3-route-$slot.json"
+            metrics="$(curl -sS --max-time 45 -o "$out" -w '%{http_code} %{time_total}' --request POST --header 'Origin: https://medicalchannelai.vercel.app' --header 'Content-Type: application/json' --data "{\"source\":{\"id\":\"$sid\",\"name\":\"天津泰达医院\",\"kind\":\"HOSPITAL_OFFICIAL\",\"url\":\"https://www.tedahospital.com.cn/article/plist/9\"}}" 'https://medicalchannelai.vercel.app/api/ai/discover')"
+            http="${metrics%% *}"
+            seconds="${metrics#* }"
+            SUMMARY_FILE="$out" SLOT="$slot" SID="$sid" HTTP="$http" SECONDS="$seconds" node <<'NODE'
+          const fs = require('node:fs')
+          let value = {}
+          try { value = JSON.parse(fs.readFileSync(process.env.SUMMARY_FILE, 'utf8')) } catch {}
+          console.log(JSON.stringify({route_sample:Number(process.env.SLOT),source_id:process.env.SID,http:Number(process.env.HTTP),seconds:Number(Number(process.env.SECONDS).toFixed(3)),error:value.error||null,mode:value.mode||null,ai_called:value.ai_called??null,official_anchor_count:value.official_anchor_count??null,analyzed_anchor_count:value.analyzed_anchor_count??null,candidate_count:value.candidate_count??null,production_data_mutated:value.production_data_mutated??null}))
+          if (value.production_data_mutated === true) process.exit(2)
+          NODE
+            slot=$((slot + 1))
+          done
