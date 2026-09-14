@@ -1,4 +1,4 @@
-name: Stage Agnes 3 Production 2026-09-14
+name: Stage PR19 Production Candidate 2026-09-14
 
 on:
   push:
@@ -29,10 +29,10 @@ jobs:
           test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing; no deployment attempted'; exit 1; }
           echo 'Deployment credential gate: PASS'
 
-      - name: Checkout exact accepted main
+      - name: Checkout exact accepted PR19 candidate
         uses: actions/checkout@v4
         with:
-          ref: 28a79253986545ace235cda86995e465c2cad5d2
+          ref: b7143479016db9311da3564615ab181822121719
           fetch-depth: 1
           persist-credentials: false
 
@@ -57,5 +57,5 @@ jobs:
           case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged URL returned'; exit 1;; esac
           echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
           echo "Staged Production URL: $DEPLOY_URL"
-          echo "Exact source SHA: 28a79253986545ace235cda86995e465c2cad5d2"
+          echo "Exact source SHA: b7143479016db9311da3564615ab181822121719"
           echo 'Production domain switch: skipped'
