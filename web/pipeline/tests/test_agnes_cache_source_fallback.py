@@ -38,6 +38,12 @@ class AgnesCacheSourceFallbackTests(unittest.TestCase):
         self.assertIn('anchorFingerprint(anchors) !== fingerprint', self.root)
         self.assertIn('validateAiCacheEntry(value, source, anchors, fingerprint)', self.root)
 
+    def test_existing_fingerprint_ready_cache_seeds_latest_resilience_pointer(self) -> None:
+        self.assertIn('async function seedLatestAiCache(source, anchors, fingerprint, ready)', self.root)
+        self.assertIn('await seedLatestAiCache(source, anchors, fingerprint, cached)', self.root)
+        self.assertIn('anchor_snapshot: anchors.map', self.root)
+        self.assertIn('Compatibility seeding is resilience-only', self.root)
+
     def test_client_accepts_source_unavailable_cache_status(self) -> None:
         self.assertIn("| 'SERVER_AI_CACHE_SOURCE_UNAVAILABLE'", self.client)
 
