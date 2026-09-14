@@ -1,0 +1,33 @@
+name: Verify staged snapshot auth 2026-09-14
+
+on:
+  push:
+    branches: [release/snapshot-secret-stage-20260914]
+    paths:
+      - '.github/workflows/verify-staged-snapshot-auth-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 5
+    steps:
+      - name: Require bad token rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          HTTP_CODE="$(curl --silent --show-error --output /tmp/bad-token-response.json --write-out '%{http_code}' \
+            --request PUT \
+            --url 'https://medicalchannelai-r1qyje5pd-rerisse7-1717s-projects.vercel.app/api/public-snapshot' \
+            --header 'Authorization: Bearer deliberately-invalid-token-20260914' \
+            --header 'Content-Type: application/json' \
+            --data '{}')"
+          rm -f /tmp/bad-token-response.json
+          test "$HTTP_CODE" = '401' || { echo "::error::Expected HTTP 401, got $HTTP_CODE"; exit 1; }
+          echo 'Bad-token publish auth gate PASS: HTTP 401'
