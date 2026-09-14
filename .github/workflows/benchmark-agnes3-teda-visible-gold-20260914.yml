@@ -1,0 +1,53 @@
+name: Benchmark Agnes 3 TEDA Visible Gold 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes3-quality-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes3-teda-visible-gold-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 3
+    steps:
+      - name: Compare current TEDA anchors to strict verified gold
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY='{"source":{"id":"TEDA-keyprobe-2","name":"天津泰达医院","kind":"HOSPITAL_OFFICIAL","url":"https://www.tedahospital.com.cn/article/plist/9"}}'
+          http="$(curl -sS --max-time 45 -o /tmp/teda-visible-gold.json -w '%{http_code}' --request POST --header 'Origin: https://medicalchannelai.vercel.app' --header 'Content-Type: application/json' --data "$BODY" 'https://medicalchannelai.vercel.app/api/ai/discover')"
+          echo "HTTP $http"
+          test "$http" = '200' || { cat /tmp/teda-visible-gold.json; echo; exit 1; }
+          RESPONSE="$(cat /tmp/teda-visible-gold.json)" node <<'NODE'
+          const value = JSON.parse(process.env.RESPONSE || '{}')
+          const gold = [
+            'https://www.tedahospital.com.cn/article/show/9/901',
+            'https://www.tedahospital.com.cn/article/show/9/893',
+            'https://www.tedahospital.com.cn/article/show/9/883',
+            'https://www.tedahospital.com.cn/article/show/9/882',
+          ]
+          const anchors = new Set((value.anchor_snapshot || []).map(x => x?.url).filter(Boolean))
+          const candidates = new Set((value.candidates || []).map(x => x?.url).filter(Boolean))
+          const visible = gold.filter(x => anchors.has(x))
+          const hits = visible.filter(x => candidates.has(x))
+          console.log(JSON.stringify({
+            mode:value.mode,
+            ai_called:value.ai_called,
+            production_data_mutated:value.production_data_mutated,
+            official_anchor_count:value.official_anchor_count,
+            analyzed_anchor_count:value.analyzed_anchor_count,
+            strict_verified_gold_count:gold.length,
+            visible_gold_count:visible.length,
+            visible_gold_urls:visible,
+            candidate_count:value.candidate_count,
+            candidate_urls:[...candidates],
+            known_hit_count:hits.length,
+            known_hit_urls:hits,
+            known_recall:visible.length ? hits.length/visible.length : null,
+          }, null, 2))
+          if (value.ai_called !== true || value.production_data_mutated !== false) process.exit(2)
+          NODE
