@@ -1,0 +1,81 @@
+name: Benchmark Agnes 2.5 vs 3.0 V6 Sequential 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes25-vs-30-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes25-vs-30-v6-20260914.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannelai-agnes-ab-v6-20260914
+  cancel-in-progress: true
+
+jobs:
+  benchmark-build:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 25
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
+
+      - name: Checkout benchmark helper
+        uses: actions/checkout@v4
+        with:
+          ref: benchmark/agnes25-vs-30-20260914
+          path: bench
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e
+          path: app
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Inject sequential build-stage benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 bench/.github/scripts/inject_agnes_ab_build.py app
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('app/web/scripts/agnes-ab-build.mjs')
+          text=p.read_text(encoding='utf-8')
+          old="for(const phase of phases){for(const model of models){const batch=await Promise.all(keys.map((_,slot)=>runOne(model,slot,phase.timeout_ms)));for(const x of batch){rows.push({phase:phase.name,...x});console.log('AGNES_AB_ROW_JSON='+JSON.stringify({phase:phase.name,...x}))}}}"
+          new="for(const phase of phases){for(const model of models){for(let slot=0;slot<keys.length;slot+=1){const x=await runOne(model,slot,phase.timeout_ms);rows.push({phase:phase.name,...x});console.log('AGNES_AB_ROW_JSON='+JSON.stringify({phase:phase.name,...x}));await new Promise(resolve=>setTimeout(resolve,1000))}}}"
+          if text.count(old)!=1: raise SystemExit('sequential patch marker mismatch')
+          p.write_text(text.replace(old,new),encoding='utf-8')
+          PY
+          ! grep -q 'Promise.all(keys.map' app/web/scripts/agnes-ab-build.mjs
+
+      - name: Link exact Vercel project locally
+        shell: bash
+        working-directory: app
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Deploy isolated staged Production benchmark
+        shell: bash
+        working-directory: app
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
+          case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged deployment URL'; exit 1;; esac
+          echo "Staged sequential benchmark URL: $DEPLOY_URL"
+          echo "Production domain switch: skipped"
+          echo "A/B is sequential across key slots with 1s spacing."
+          echo "No verified snapshot write is performed."
