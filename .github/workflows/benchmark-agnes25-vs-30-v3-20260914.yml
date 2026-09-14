@@ -177,7 +177,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/agnes-ab
           curl_stage() {
-            npx --yes vercel@latest curl "$DEPLOY_URL/api/ai/discover" --token="$VERCEL_TOKEN" -X POST -H 'Origin: https://medicalai.qd.je' -H 'Content-Type: application/json' -d "$1"
+            npx --yes vercel@latest --token="$VERCEL_TOKEN" curl "$DEPLOY_URL/api/ai/discover" -X POST -H 'Origin: https://medicalai.qd.je' -H 'Content-Type: application/json' -d "$1"
           }
           for attempt in $(seq 1 24); do
             if curl_stage '{"benchmark_ab":true,"action":"info"}' > /tmp/agnes-ab/info.json 2>/tmp/agnes-ab/info.err; then break; fi
