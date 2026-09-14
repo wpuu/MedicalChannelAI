@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BODY='{"source":{"id":"TEDA-verified-gold","name":"天津市泰达医院","kind":"HOSPITAL_OFFICIAL","url":"https://www.tedahospital.com.cn/article/plist/9"}}'
+          BODY='{"source":{"id":"TEDA","name":"天津泰达医院","kind":"HOSPITAL_OFFICIAL","url":"https://www.tedahospital.com.cn/article/plist/9"}}'
           http="$(curl -sS --max-time 45 -o /tmp/teda-gold.json -w '%{http_code}' \
             --request POST \
             --header 'Origin: https://medicalchannelai.vercel.app' \
