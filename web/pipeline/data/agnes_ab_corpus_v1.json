@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Agnes discovery A/B benchmark truth labels",
+  "positive_ids": ["p01","p02","p03","p04","p05","p06","p07","p08","p09","p10"],
+  "negative_ids": ["n01","n02","n03","n04","n05","n06","n07","n08","n09","n10"],
+  "notes": {
+    "positive": "采购前期信号：需求调研、论证邀请、采购意向、供应商/方案征集",
+    "negative": "正式招标、结果、更正/废标、招聘、党建、新闻、普通通知"
+  }
+}
