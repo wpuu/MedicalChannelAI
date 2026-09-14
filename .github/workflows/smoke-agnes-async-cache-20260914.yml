@@ -1,0 +1,96 @@
+name: Smoke Agnes async cache 2026-09-14
+
+on:
+  push:
+    branches: [fix/agnes-discovery-async-cache-20260914]
+    paths:
+      - '.github/workflows/smoke-agnes-async-cache-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 10
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      STAGED_HOST: medicalchannelai-72cmd20bd-rerisse7-1717s-projects.vercel.app
+      STAGED_ORIGIN: https://medicalchannelai-72cmd20bd-rerisse7-1717s-projects.vercel.app
+    steps:
+      - name: Require Vercel credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
+
+      - name: Exercise isolated async cache runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > payload.json <<'JSON'
+          {"source":{"id":"smoke-async-cache-20260914","name":"天津市天津医院异步缓存验收20260914","kind":"HOSPITAL_OFFICIAL","url":"https://www.tjnothop.cn/xwzx/index.shtml"}}
+          JSON
+
+          call_radar() {
+            local label="$1"
+            local start end elapsed
+            start="$(date +%s%3N)"
+            npx --yes vercel@latest curl /api/ai/discover \
+              --deployment "$STAGED_HOST" \
+              --token="$VERCEL_TOKEN" \
+              -- \
+              --silent --show-error --fail-with-body \
+              --request POST \
+              --header "Origin: $STAGED_ORIGIN" \
+              --header 'Accept: application/json' \
+              --header 'Content-Type: application/json' \
+              --data-binary @payload.json > response.json
+            end="$(date +%s%3N)"
+            elapsed=$((end-start))
+            LABEL="$label" ELAPSED_MS="$elapsed" python3 - <<'PY'
+          import json, os
+          with open('response.json', encoding='utf-8') as f:
+              body = json.load(f)
+          print(json.dumps({
+              'label': os.environ['LABEL'],
+              'elapsed_ms': int(os.environ['ELAPSED_MS']),
+              'mode': body.get('mode'),
+              'analysis_version': body.get('analysis_version'),
+              'cache_status': body.get('cache_status'),
+              'ai_called': body.get('ai_called'),
+              'ai_refresh_pending': body.get('ai_refresh_pending'),
+              'candidate_count': body.get('candidate_count'),
+              'error': body.get('error'),
+          }, ensure_ascii=False))
+          if body.get('error'):
+              raise SystemExit('radar returned error: ' + str(body.get('error')))
+          if body.get('analysis_version') != 'agnes-discovery-live-v5-async-cache':
+              raise SystemExit('unexpected analysis version')
+          PY
+          }
+
+          call_radar first
+          FIRST_STATUS="$(python3 -c "import json; print(json.load(open('response.json'))['cache_status'])")"
+          if [ "$FIRST_STATUS" != "AI_REFRESH_PENDING" ] && [ "$FIRST_STATUS" != "STALE_WHILE_AI_REFRESH" ] && [ "$FIRST_STATUS" != "SERVER_AI_CACHE" ]; then
+            echo "::error::unexpected first cache status: $FIRST_STATUS"
+            exit 1
+          fi
+
+          HIT=0
+          for delay in 4 8 12 20; do
+            sleep "$delay"
+            call_radar "poll-${delay}s"
+            STATUS="$(python3 -c "import json; print(json.load(open('response.json'))['cache_status'])")"
+            if [ "$STATUS" = "SERVER_AI_CACHE" ]; then
+              HIT=1
+              break
+            fi
+          done
+          if [ "$HIT" -ne 1 ]; then
+            echo "::error::background Agnes result did not become SERVER_AI_CACHE within bounded smoke window"
+            exit 1
+          fi
+          echo 'ASYNC_CACHE_RUNTIME_SMOKE=PASS'
+          echo 'Production domain switch: none'
+          echo 'Verified snapshot write: none'
