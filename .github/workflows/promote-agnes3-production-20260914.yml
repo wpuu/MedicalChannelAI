@@ -1,0 +1,162 @@
+name: Promote Agnes 3 Production 2026-09-14
+
+on:
+  push:
+    branches: [release/agnes3-production-stage-20260914]
+    paths:
+      - '.github/workflows/promote-agnes3-production-20260914.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannelai-production-release-20260914-agnes3
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+      GITHUB_REPO_TOKEN: ${{ github.token }}
+      EXPECTED_MAIN_SHA: 28a79253986545ace235cda86995e465c2cad5d2
+      STAGED_DEPLOYMENT_ID: dpl_EjmqESyV7FMAruo3oQxvonBEFpZK
+      OLD_PRODUCTION_DEPLOYMENT_ID: dpl_GNGXKzQF9Ks2QeHFz6TSCqxmdW5V
+      PUBLIC_STATUS_URL: https://medicalchannelai.vercel.app/api/status
+
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing; promotion not attempted.'; exit 1; }
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Fail closed if main changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAIN_JSON="$(curl -fsS \
+            -H "Authorization: Bearer $GITHUB_REPO_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            'https://api.github.com/repos/wpuu/MedicalChannelAI/commits/main')"
+          CURRENT_MAIN_SHA="$(MAIN_JSON="$MAIN_JSON" node -e "const v=JSON.parse(process.env.MAIN_JSON); process.stdout.write(v.sha || '')")"
+          echo "Current main: $CURRENT_MAIN_SHA"
+          echo "Expected main: $EXPECTED_MAIN_SHA"
+          test "$CURRENT_MAIN_SHA" = "$EXPECTED_MAIN_SHA" || { echo '::error::main changed after staged acceptance; promotion stopped.'; exit 1; }
+
+      - name: Recheck exact staged deployment is READY Production
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOY_JSON="$(curl -fsS \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$STAGED_DEPLOYMENT_ID?teamId=$VERCEL_ORG_ID")"
+          DEPLOY_JSON="$DEPLOY_JSON" STAGED_DEPLOYMENT_ID="$STAGED_DEPLOYMENT_ID" node <<'NODE'
+          const d = JSON.parse(process.env.DEPLOY_JSON || '{}');
+          const state = d.readyState || d.state;
+          const ok = d.id === process.env.STAGED_DEPLOYMENT_ID && state === 'READY' && d.target === 'production';
+          console.log(`staged deployment=${d.id || 'missing'} state=${state || 'missing'} target=${d.target || 'missing'}`);
+          if (!ok) process.exit(1);
+          NODE
+
+      - name: Verify current Production baseline before switch
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS_JSON="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL")"
+          STATUS_JSON="$STATUS_JSON" node <<'NODE'
+          const s = JSON.parse(process.env.STATUS_JSON || '{}');
+          const ok = s.ready === true && s.degraded === false && s.ai?.configured === true && s.snapshot?.available === true && s.snapshot?.freshness === 'FRESH' && s.snapshot?.today_card_count === 5 && s.snapshot?.opportunity_pool_count === 144;
+          console.log(`baseline ready=${s.ready} degraded=${s.degraded} ai=${s.ai?.configured} freshness=${s.snapshot?.freshness} today=${s.snapshot?.today_card_count} pool=${s.snapshot?.opportunity_pool_count}`);
+          if (!ok) process.exit(1);
+          NODE
+
+      - name: Promote exact deployment and validate with automatic rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          production_gate() {
+            STATUS_JSON="$1" node <<'NODE'
+          let s;
+          try { s = JSON.parse(process.env.STATUS_JSON || '{}'); } catch { process.exit(1); }
+          const ok = s.ready === true && s.degraded === false && s.ai?.configured === true && s.snapshot?.available === true && s.snapshot?.freshness === 'FRESH' && s.snapshot?.today_card_count === 5 && s.snapshot?.opportunity_pool_count === 144;
+          if (!ok) process.exit(1);
+          console.log(`Production gate PASS: ready=${s.ready} degraded=${s.degraded} ai=${s.ai.configured} freshness=${s.snapshot.freshness} today=${s.snapshot.today_card_count} pool=${s.snapshot.opportunity_pool_count} snapshot=${s.snapshot.snapshot_as_of}`);
+          NODE
+          }
+
+          rollback_old() {
+            echo "Rolling back to $OLD_PRODUCTION_DEPLOYMENT_ID"
+            set +e
+            rollback_http="$(curl -sS -o /tmp/vercel-rollback-response.txt -w '%{http_code}' \
+              --request POST \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v1/projects/$VERCEL_PROJECT_ID/rollback/$OLD_PRODUCTION_DEPLOYMENT_ID?teamId=$VERCEL_ORG_ID")"
+            rollback_rc=$?
+            set -e
+            echo "Rollback API curl_rc=$rollback_rc http=$rollback_http"
+            if [ -s /tmp/vercel-rollback-response.txt ]; then cat /tmp/vercel-rollback-response.txt; fi
+            for attempt in $(seq 1 12); do
+              s="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
+              if production_gate "$s"; then
+                echo 'Rollback health verification PASS.'
+                return 0
+              fi
+              sleep 5
+            done
+            return 1
+          }
+
+          echo "Promoting $STAGED_DEPLOYMENT_ID"
+          set +e
+          promote_http="$(curl -sS -o /tmp/vercel-promote-response.txt -w '%{http_code}' \
+            --request POST \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/promote/$STAGED_DEPLOYMENT_ID?teamId=$VERCEL_ORG_ID")"
+          promote_rc=$?
+          set -e
+          echo "Promote API curl_rc=$promote_rc http=$promote_http"
+          if [ -s /tmp/vercel-promote-response.txt ]; then cat /tmp/vercel-promote-response.txt; fi
+          if [ "$promote_rc" -ne 0 ] || { [ "$promote_http" != '200' ] && [ "$promote_http" != '201' ] && [ "$promote_http" != '202' ]; }; then
+            echo '::error::Promote API failed or returned unexpected status; old Production should remain live.'
+            exit 1
+          fi
+
+          accepted=0
+          last_status=''
+          for attempt in $(seq 1 18); do
+            last_status="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
+            if production_gate "$last_status"; then
+              accepted=1
+              break
+            fi
+            echo "Production gate not ready yet ($attempt/18); retrying in 5s."
+            sleep 5
+          done
+
+          if [ "$accepted" -ne 1 ]; then
+            echo '::error::Post-promote gate failed; forcing rollback.'
+            echo "Last status: $last_status"
+            rollback_old || echo '::error::Rollback could not be positively verified.'
+            exit 1
+          fi
+
+          echo '### Agnes 3.0 Production promotion' >> "$GITHUB_STEP_SUMMARY"
+          echo "- Accepted main: \`$EXPECTED_MAIN_SHA\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Promoted deployment: \`$STAGED_DEPLOYMENT_ID\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Rollback baseline: \`$OLD_PRODUCTION_DEPLOYMENT_ID\`" >> "$GITHUB_STEP_SUMMARY"
+          echo '- Gate: ready=true, degraded=false, ai.configured=true, FRESH, Today=5, pool=144' >> "$GITHUB_STEP_SUMMARY"
