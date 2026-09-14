@@ -1,0 +1,97 @@
+name: Audit Agnes Benchmark Gold 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes3-quality-20260914]
+    paths:
+      - '.github/workflows/audit-agnes-benchmark-gold-20260914.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Audit verified pool source and lifecycle distribution
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web
+          python3 - <<'PY'
+          import json
+          from collections import Counter, defaultdict
+          from pathlib import Path
+          from urllib.parse import urlparse
+
+          data = json.loads(Path('public/data/today-actions.public.json').read_text(encoding='utf-8'))
+          rows = data.get('opportunity_pool') or data.get('cards') or []
+          hosts = Counter()
+          lifecycle = Counter()
+          notice = Counter()
+          by_host = defaultdict(lambda: {'count': 0, 'lifecycle': Counter(), 'notice': Counter()})
+          early_keywords = ('调研','征集','论证','意向','需求','测试','遴选','市场调查','咨询')
+          early_rows = []
+
+          for row in rows:
+              facts = row.get('facts') or {}
+              if facts.get('verification_status') != 'VERIFIED':
+                  continue
+              lc = str(facts.get('lifecycle_state') or 'UNKNOWN')
+              nt = str(facts.get('notice_type') or 'UNKNOWN')
+              lifecycle[lc] += 1
+              notice[nt] += 1
+              urls = row.get('evidence_source_urls') or []
+              row_hosts = set()
+              for raw in urls:
+                  try:
+                      host = (urlparse(raw).hostname or '').lower()
+                  except Exception:
+                      host = ''
+                  if host:
+                      hosts[host] += 1
+                      row_hosts.add(host)
+              for host in row_hosts:
+                  by_host[host]['count'] += 1
+                  by_host[host]['lifecycle'][lc] += 1
+                  by_host[host]['notice'][nt] += 1
+              text = ' '.join(str(facts.get(k) or '') for k in ('project_name','notice_type','lifecycle_state'))
+              if any(k in text for k in early_keywords):
+                  early_rows.append({
+                      'opportunity_id': row.get('opportunity_id'),
+                      'project_name': facts.get('project_name'),
+                      'notice_type': nt,
+                      'lifecycle_state': lc,
+                      'hosts': sorted(row_hosts),
+                      'urls': urls,
+                  })
+
+          print(f"verified_rows={sum(lifecycle.values())}")
+          print('LIFECYCLE', json.dumps(lifecycle, ensure_ascii=False, sort_keys=True))
+          print('NOTICE', json.dumps(notice, ensure_ascii=False, sort_keys=True))
+          print('TOP_HOSTS')
+          for host, count in hosts.most_common(20):
+              item = by_host[host]
+              print(json.dumps({
+                  'host': host,
+                  'url_mentions': count,
+                  'verified_rows': item['count'],
+                  'lifecycle': dict(item['lifecycle']),
+                  'notice': dict(item['notice']),
+              }, ensure_ascii=False))
+          print(f"EARLY_KEYWORD_ROWS={len(early_rows)}")
+          for row in early_rows[:30]:
+              print('EARLY', json.dumps(row, ensure_ascii=False))
+          PY
