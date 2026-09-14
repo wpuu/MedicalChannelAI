@@ -1,0 +1,128 @@
+name: Benchmark Agnes 2.5 vs 3.0 V7 Thinking Modes 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes25-vs-30-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes25-vs-30-v7-thinking-modes-20260914.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannelai-agnes-ab-v7-20260914
+  cancel-in-progress: true
+
+jobs:
+  benchmark-build:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 25
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
+
+      - name: Checkout benchmark helper
+        uses: actions/checkout@v4
+        with:
+          ref: benchmark/agnes25-vs-30-20260914
+          path: bench
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e
+          path: app
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Inject thinking-mode benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 bench/.github/scripts/inject_agnes_ab_build.py app
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('app/web/scripts/agnes-ab-build.mjs')
+          text=p.read_text(encoding='utf-8')
+
+          replacements = [
+            (
+              "const models = ['agnes-2.5-flash','agnes-3.0-flash']",
+              "const scenarios = [{name:'agnes-2.5-default',model:'agnes-2.5-flash',extra:{}},{name:'agnes-3.0-thinking-off',model:'agnes-3.0-flash',extra:{chat_template_kwargs:{enable_thinking:false}}},{name:'agnes-3.0-thinking-low',model:'agnes-3.0-flash',extra:{chat_template_kwargs:{enable_thinking:true,reasoning_effort:'low'}}}]"
+            ),
+            (
+              "console.log('AGNES_AB_INFO_JSON='+JSON.stringify({key_count:keys.length,corpus_count:corpus.length,positive_count:positives.length,negative_count:negatives.length,models,production_data_mutated:false}))",
+              "console.log('AGNES_AB_INFO_JSON='+JSON.stringify({key_count:keys.length,corpus_count:corpus.length,positive_count:positives.length,negative_count:negatives.length,scenarios:scenarios.map(x=>x.name),production_data_mutated:false}))"
+            ),
+            (
+              "async function runOne(model,slot,timeoutMs){",
+              "async function runOne(scenario,slot,timeoutMs){\n  const model=scenario.model"
+            ),
+            (
+              "body:JSON.stringify({model,messages:messages(),temperature:0,max_tokens:1400,stream:false})",
+              "body:JSON.stringify({model,messages:messages(),temperature:0,max_tokens:1400,stream:false,...scenario.extra})"
+            ),
+            (
+              "const payload=await r.json();const content=payload?.choices?.[0]?.message?.content\n    if(typeof content!=='string'||!content.trim())return {provider_ok:false,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,error:'UPSTREAM_CONTENT_EMPTY'}\n    const parsed=parse(content);if(!parsed.ok)return {provider_ok:false,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,error:parsed.error}",
+              "const payload=await r.json();const choice=payload?.choices?.[0]||{};const message=choice?.message||{};const content=message?.content;const diagnostic={scenario:scenario.name,finish_reason:choice?.finish_reason||null,message_keys:Object.keys(message),content_type:typeof content,content_chars:typeof content==='string'?content.length:null,content_preview:typeof content==='string'?content.replace(/\\s+/g,' ').slice(0,240):null,reasoning_content_chars:typeof message?.reasoning_content==='string'?message.reasoning_content.length:null,completion_tokens:payload?.usage?.completion_tokens??null,reasoning_tokens:payload?.usage?.reasoning_tokens??null};\n    if(typeof content!=='string'||!content.trim())return {provider_ok:false,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,error:'UPSTREAM_CONTENT_EMPTY',...diagnostic}\n    const parsed=parse(content);if(!parsed.ok)return {provider_ok:false,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,error:parsed.error,...diagnostic}"
+            ),
+            (
+              "return {provider_ok:true,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,raw_candidate_count:parsed.raw,candidate_count:s.size,positive_hits:hits,false_positives:fp,recall:Number((hits/positives.length).toFixed(4)),false_positive_rate:Number((fp/negatives.length).toFixed(4)),precision:Number((s.size?hits/s.size:1).toFixed(4)),rejected_ungrounded_count:parsed.ungrounded,rejected_invalid_count:parsed.invalid}",
+              "return {provider_ok:true,scenario:scenario.name,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,raw_candidate_count:parsed.raw,candidate_count:s.size,positive_hits:hits,false_positives:fp,recall:Number((hits/positives.length).toFixed(4)),false_positive_rate:Number((fp/negatives.length).toFixed(4)),precision:Number((s.size?hits/s.size:1).toFixed(4)),rejected_ungrounded_count:parsed.ungrounded,rejected_invalid_count:parsed.invalid}"
+            ),
+            (
+              "return {provider_ok:false,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,error:timed?'TIMEOUT':'PROVIDER_EXCEPTION'}",
+              "return {provider_ok:false,scenario:scenario.name,model,key_slot:slot,timeout_ms:timeoutMs,latency_ms,error:timed?'TIMEOUT':'PROVIDER_EXCEPTION'}"
+            ),
+            (
+              "for(const phase of phases){for(const model of models){const batch=await Promise.all(keys.map((_,slot)=>runOne(model,slot,phase.timeout_ms)));for(const x of batch){rows.push({phase:phase.name,...x});console.log('AGNES_AB_ROW_JSON='+JSON.stringify({phase:phase.name,...x}))}}}",
+              "for(const phase of phases){for(const scenario of scenarios){for(let slot=0;slot<keys.length;slot+=1){const x=await runOne(scenario,slot,phase.timeout_ms);rows.push({phase:phase.name,...x});console.log('AGNES_AB_ROW_JSON='+JSON.stringify({phase:phase.name,...x}));await new Promise(resolve=>setTimeout(resolve,1000))}}}"
+            ),
+            (
+              "for(const phase of phases.map(x=>x.name)){report[phase]={};for(const model of models){const r=rows.filter(x=>x.phase===phase&&x.model===model),ok=r.filter(x=>x.provider_ok),avg=k=>ok.length?Number((ok.reduce((s,x)=>s+Number(x[k]??0),0)/ok.length).toFixed(4)):null,lats=r.map(x=>Number(x.latency_ms)).filter(Number.isFinite);report[phase][model]={attempts:r.length,successes:ok.length,success_rate:r.length?Number((ok.length/r.length).toFixed(4)):0,timeouts:r.filter(x=>x.error==='TIMEOUT').length,p50_latency_ms:pct(lats,.5),p95_latency_ms:pct(lats,.95),avg_recall:avg('recall'),avg_false_positive_rate:avg('false_positive_rate'),avg_precision:avg('precision'),avg_candidate_count:avg('candidate_count'),total_rejected_ungrounded:ok.reduce((s,x)=>s+Number(x.rejected_ungrounded_count||0),0),total_rejected_invalid:ok.reduce((s,x)=>s+Number(x.rejected_invalid_count||0),0)}}}",
+              "for(const phase of phases.map(x=>x.name)){report[phase]={};for(const scenario of scenarios){const r=rows.filter(x=>x.phase===phase&&x.scenario===scenario.name),ok=r.filter(x=>x.provider_ok),avg=k=>ok.length?Number((ok.reduce((s,x)=>s+Number(x[k]??0),0)/ok.length).toFixed(4)):null,lats=r.map(x=>Number(x.latency_ms)).filter(Number.isFinite);report[phase][scenario.name]={attempts:r.length,successes:ok.length,success_rate:r.length?Number((ok.length/r.length).toFixed(4)):0,timeouts:r.filter(x=>x.error==='TIMEOUT').length,p50_latency_ms:pct(lats,.5),p95_latency_ms:pct(lats,.95),avg_recall:avg('recall'),avg_false_positive_rate:avg('false_positive_rate'),avg_precision:avg('precision'),avg_candidate_count:avg('candidate_count'),total_rejected_ungrounded:ok.reduce((s,x)=>s+Number(x.rejected_ungrounded_count||0),0),total_rejected_invalid:ok.reduce((s,x)=>s+Number(x.rejected_invalid_count||0),0)}}}"
+            ),
+            (
+              "const expected=keys.length*models.length*phases.length",
+              "const expected=keys.length*scenarios.length*phases.length"
+            ),
+          ]
+          for old,new in replacements:
+              if text.count(old)!=1:
+                  raise SystemExit('V7 patch marker mismatch: '+old[:80])
+              text=text.replace(old,new)
+          p.write_text(text,encoding='utf-8')
+          PY
+          ! grep -q 'Promise.all(keys.map' app/web/scripts/agnes-ab-build.mjs
+          grep -q 'agnes-3.0-thinking-off' app/web/scripts/agnes-ab-build.mjs
+          grep -q 'reasoning_effort' app/web/scripts/agnes-ab-build.mjs
+
+      - name: Link exact Vercel project locally
+        shell: bash
+        working-directory: app
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Deploy isolated staged Production benchmark
+        shell: bash
+        working-directory: app
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
+          case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged deployment URL'; exit 1;; esac
+          echo "Staged V7 benchmark URL: $DEPLOY_URL"
+          echo "Production domain switch: skipped"
+          echo "Scenarios: Agnes 2.5 default; Agnes 3.0 thinking off; Agnes 3.0 thinking low."
+          echo "All key slots are sequential with 1s spacing."
+          echo "No verified snapshot write is performed."
