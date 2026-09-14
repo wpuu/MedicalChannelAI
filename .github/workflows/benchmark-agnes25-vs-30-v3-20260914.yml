@@ -1,0 +1,225 @@
+name: Benchmark Agnes 2.5 vs 3.0 V3 2026-09-14
+
+on:
+  push:
+    branches: [benchmark/agnes25-vs-30-20260914]
+    paths:
+      - '.github/workflows/benchmark-agnes25-vs-30-v3-20260914.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannelai-agnes-ab-v3-20260914
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 35
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Inject staged-only A/B route into existing discover function
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('web/pipeline/data')
+          positives_src = [root/'tianjin_live_teda_records.json', root/'tianjin_live_tjmugh_records.json', root/'tianjin_live_tjzyefy_intent_records.json']
+          negatives_src = [root/'tianjin_live_tjfch_records.json', root/'tianjin_live_tjzyefy_records.json', root/'tianjin_live_ccgp_records.json']
+          pos_states = {'MARKET_RESEARCH', 'PROCUREMENT_INTENT', 'SUPPLIER_RECRUITMENT'}
+          neg_states = {'BIDDING', 'AWARD', 'RESULT'}
+
+          def collect(paths, states, label):
+              rows, seen = [], set()
+              for path in paths:
+                  for row in json.loads(path.read_text(encoding='utf-8')):
+                      facts, source = row.get('facts') or {}, row.get('source') or {}
+                      state = str(facts.get('lifecycle_state') or '').upper()
+                      title, url = str(facts.get('project_name') or '').strip(), str(source.get('url') or '').strip()
+                      if state in states and title and url and url not in seen:
+                          seen.add(url); rows.append({'title':title,'url':url,'label':label,'state':state})
+              return rows
+
+          positives = sorted(collect(positives_src,pos_states,'positive'), key=lambda x:(x['state'],x['url']))[:12]
+          negatives = sorted(collect(negatives_src,neg_states,'negative'), key=lambda x:(x['state'],x['url']))[:len(positives)]
+          if len(positives) < 8 or len(negatives) != len(positives):
+              raise SystemExit(f'corpus gate failed positives={len(positives)} negatives={len(negatives)}')
+          corpus = positives + negatives
+          print(json.dumps({'positive_count':len(positives),'negative_count':len(negatives),'total':len(corpus),'positive_states':sorted({x['state'] for x in positives}),'negative_states':sorted({x['state'] for x in negatives})}, ensure_ascii=False))
+
+          p = Path('web/api/ai/discover.js')
+          text = p.read_text(encoding='utf-8')
+          handler = 'export default async function handler(request, response) {'
+          same_origin = "  if (!sameOriginAllowed(request)) return sendJson(response, 403, { error: 'SAME_ORIGIN_REQUIRED' })\n"
+          if text.count(handler) != 1 or text.count(same_origin) != 1:
+              raise SystemExit('discover patch marker mismatch')
+
+          helper = r'''
+          // EPHEMERAL_AB_BENCHMARK_START - staged only; never promote this deployment.
+          const AGNES_AB_MODEL_25 = ['agnes', '2.5', 'flash'].join('-')
+          const AGNES_AB_MODELS = new Set([AGNES_AB_MODEL_25, MODEL_ID])
+          const AGNES_AB_CORPUS = __CORPUS__
+
+          async function agnesAbBenchmarkHandler(body, response) {
+            const keys = getApiKeys()
+            if (!keys.length) return sendJson(response, 503, { error: 'AGNES_KEY_MISSING' })
+            if (body?.action === 'info') return sendJson(response, 200, {
+              key_count: keys.length,
+              corpus_count: AGNES_AB_CORPUS.length,
+              positive_count: AGNES_AB_CORPUS.filter((x) => x.label === 'positive').length,
+              negative_count: AGNES_AB_CORPUS.filter((x) => x.label === 'negative').length,
+              models: Array.from(AGNES_AB_MODELS),
+              production_data_mutated: false,
+            })
+            const model = String(body?.model || '')
+            if (!AGNES_AB_MODELS.has(model)) return sendJson(response, 400, { error: 'MODEL_NOT_ALLOWED' })
+            const slot = Number(body?.key_slot)
+            if (!Number.isInteger(slot) || slot < 0 || slot >= keys.length) return sendJson(response, 400, { error: 'KEY_SLOT_INVALID', key_count: keys.length })
+            const timeoutMs = Math.max(1000, Math.min(25000, Number(body?.timeout_ms || 12000)))
+            const anchors = AGNES_AB_CORPUS.map(({title,url}) => ({title,url}))
+            const positives = AGNES_AB_CORPUS.filter((x) => x.label === 'positive')
+            const negatives = AGNES_AB_CORPUS.filter((x) => x.label === 'negative')
+            const baseUrl = String(process.env.AGNES_API_BASE_URL || DEFAULT_BASE_URL).trim().replace(/\/+$/, '')
+            const controller = new AbortController()
+            const timeout = setTimeout(() => controller.abort(), timeoutMs)
+            const started = Date.now()
+            try {
+              const upstream = await fetch(`${baseUrl}/chat/completions`, {
+                method:'POST', signal:controller.signal,
+                headers:{Authorization:`Bearer ${keys[slot]}`,'Content-Type':'application/json',Accept:'application/json'},
+                body:JSON.stringify({model,messages:buildMessages({name:'MedicalChannelAI 固定 A/B 基准语料'},anchors),temperature:0,max_tokens:1400,stream:false}),
+              })
+              const latencyMs = Date.now()-started
+              if (!upstream.ok) return sendJson(response,200,{provider_ok:false,model,key_slot:slot,key_count:keys.length,timeout_ms:timeoutMs,latency_ms:latencyMs,error:`UPSTREAM_HTTP_${upstream.status}`,production_data_mutated:false})
+              const payload = await upstream.json()
+              const content = payload?.choices?.[0]?.message?.content
+              if (typeof content !== 'string' || !content.trim()) return sendJson(response,200,{provider_ok:false,model,key_slot:slot,key_count:keys.length,timeout_ms:timeoutMs,latency_ms:latencyMs,error:'UPSTREAM_CONTENT_EMPTY',production_data_mutated:false})
+              let parsed
+              try { parsed = parseCandidates(content,anchors) }
+              catch { return sendJson(response,200,{provider_ok:false,model,key_slot:slot,key_count:keys.length,timeout_ms:timeoutMs,latency_ms:latencyMs,error:'AI_RESPONSE_INVALID',production_data_mutated:false}) }
+              const selected = new Set(parsed.candidates.map((x)=>x.url))
+              const hits = positives.filter((x)=>selected.has(x.url)).length
+              const fp = negatives.filter((x)=>selected.has(x.url)).length
+              return sendJson(response,200,{
+                provider_ok:true,model,key_slot:slot,key_count:keys.length,timeout_ms:timeoutMs,latency_ms:latencyMs,
+                corpus_count:AGNES_AB_CORPUS.length,positive_count:positives.length,negative_count:negatives.length,
+                raw_candidate_count:parsed.rawCount,candidate_count:parsed.candidates.length,positive_hits:hits,false_positives:fp,
+                recall:Math.round((hits/positives.length)*10000)/10000,
+                false_positive_rate:Math.round((fp/negatives.length)*10000)/10000,
+                precision:Math.round((selected.size?hits/selected.size:1)*10000)/10000,
+                rejected_ungrounded_count:parsed.rejectedUngrounded,rejected_invalid_count:parsed.rejectedInvalid,
+                production_data_mutated:false,
+              })
+            } catch(error) {
+              const latencyMs=Date.now()-started
+              const timedOut=error?.name==='AbortError'||/aborted/i.test(String(error?.message||error||''))
+              return sendJson(response,200,{provider_ok:false,model,key_slot:slot,key_count:keys.length,timeout_ms:timeoutMs,latency_ms:latencyMs,error:timedOut?'TIMEOUT':'PROVIDER_EXCEPTION',production_data_mutated:false})
+            } finally { clearTimeout(timeout) }
+          }
+          // EPHEMERAL_AB_BENCHMARK_END
+
+          '''.replace('__CORPUS__', json.dumps(corpus, ensure_ascii=False))
+          text = text.replace(handler, helper + handler)
+          text = text.replace(same_origin, same_origin + "  const abBody = bodyObject(request)\n  if (abBody?.benchmark_ab === true) return agnesAbBenchmarkHandler(abBody, response)\n")
+          p.write_text(text, encoding='utf-8')
+          PY
+          grep -q 'EPHEMERAL_AB_BENCHMARK_START' web/api/ai/discover.js
+          ! grep -q 'agnes-2.5-flash' web/api/ai/discover.js
+
+      - name: Link exact Vercel project locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Deploy isolated staged Production benchmark
+        id: stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
+          case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged deployment URL'; exit 1;; esac
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          echo "Staged benchmark URL: $DEPLOY_URL"
+          echo "Production domain switch: skipped"
+
+      - name: Run fair A/B across every Production key slot
+        shell: bash
+        env:
+          DEPLOY_URL: ${{ steps.stage.outputs.url }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/agnes-ab
+          curl_stage() {
+            npx --yes vercel@latest curl "$DEPLOY_URL/api/ai/discover" --token="$VERCEL_TOKEN" -X POST -H 'Origin: https://medicalai.qd.je' -H 'Content-Type: application/json' -d "$1"
+          }
+          for attempt in $(seq 1 24); do
+            if curl_stage '{"benchmark_ab":true,"action":"info"}' > /tmp/agnes-ab/info.json 2>/tmp/agnes-ab/info.err; then break; fi
+            sleep 5
+          done
+          test -s /tmp/agnes-ab/info.json || { cat /tmp/agnes-ab/info.err || true; echo '::error::Benchmark endpoint unavailable'; exit 1; }
+          cat /tmp/agnes-ab/info.json
+          KEY_COUNT="$(node -e "const x=require('/tmp/agnes-ab/info.json');process.stdout.write(String(x.key_count||0))")"
+          test "$KEY_COUNT" -gt 0 && test "$KEY_COUNT" -le 20
+
+          call_one() {
+            model="$1"; slot="$2"; timeout_ms="$3"; phase="$4"
+            out="/tmp/agnes-ab/${phase}-${model}-${slot}.json"
+            body="{\"benchmark_ab\":true,\"model\":\"$model\",\"key_slot\":$slot,\"timeout_ms\":$timeout_ms}"
+            curl_stage "$body" > "$out"
+            MODEL="$model" SLOT="$slot" PHASE="$phase" FILE="$out" node <<'NODE'
+          const fs=require('node:fs');const x=JSON.parse(fs.readFileSync(process.env.FILE,'utf8'))
+          console.log(JSON.stringify({phase:process.env.PHASE,model:process.env.MODEL,key_slot:Number(process.env.SLOT),provider_ok:x.provider_ok??false,error:x.error||null,latency_ms:x.latency_ms??null,recall:x.recall??null,false_positive_rate:x.false_positive_rate??null,precision:x.precision??null,candidate_count:x.candidate_count??null,rejected_ungrounded_count:x.rejected_ungrounded_count??null,rejected_invalid_count:x.rejected_invalid_count??null}))
+          if(x.production_data_mutated===true)process.exit(3)
+          NODE
+            sleep 1
+          }
+
+          for model in agnes-2.5-flash agnes-3.0-flash; do for slot in $(seq 0 $((KEY_COUNT-1))); do call_one "$model" "$slot" 12000 sla12; done; done
+          for model in agnes-2.5-flash agnes-3.0-flash; do for slot in $(seq 0 $((KEY_COUNT-1))); do call_one "$model" "$slot" 25000 quality25; done; done
+
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),dir='/tmp/agnes-ab'
+          const files=fs.readdirSync(dir).filter((n)=>/^(sla12|quality25)-agnes-/.test(n)&&n.endsWith('.json'))
+          const rows=files.map((n)=>({phase:n.startsWith('sla12-')?'sla12':'quality25',...JSON.parse(fs.readFileSync(path.join(dir,n),'utf8'))}))
+          const pct=(v,p)=>{if(!v.length)return null;const a=[...v].sort((x,y)=>x-y);return a[Math.min(a.length-1,Math.max(0,Math.ceil(p*a.length)-1))]}
+          const report={}
+          for(const phase of ['sla12','quality25']){report[phase]={};for(const model of ['agnes-2.5-flash','agnes-3.0-flash']){const r=rows.filter((x)=>x.phase===phase&&x.model===model),ok=r.filter((x)=>x.provider_ok===true),avg=(k)=>ok.length?Number((ok.reduce((s,x)=>s+Number(x[k]??0),0)/ok.length).toFixed(4)):null,lats=r.map((x)=>Number(x.latency_ms)).filter(Number.isFinite);report[phase][model]={attempts:r.length,successes:ok.length,success_rate:r.length?Number((ok.length/r.length).toFixed(4)):0,timeouts:r.filter((x)=>x.error==='TIMEOUT').length,p50_latency_ms:pct(lats,.5),p95_latency_ms:pct(lats,.95),avg_recall:avg('recall'),avg_false_positive_rate:avg('false_positive_rate'),avg_precision:avg('precision'),avg_candidate_count:avg('candidate_count'),total_rejected_ungrounded:ok.reduce((s,x)=>s+Number(x.rejected_ungrounded_count||0),0),total_rejected_invalid:ok.reduce((s,x)=>s+Number(x.rejected_invalid_count||0),0)}}}
+          console.log('=== AGNES A/B REPORT ===');console.log(JSON.stringify(report,null,2));fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,`\n## Agnes 2.5 vs 3.0 A/B\n\n\`\`\`json\n${JSON.stringify(report,null,2)}\n\`\`\`\n`)
+          NODE
+
+      - name: Final safety note
+        if: always()
+        shell: bash
+        env:
+          DEPLOY_URL: ${{ steps.stage.outputs.url }}
+        run: |
+          echo "Benchmark deployment only: ${DEPLOY_URL:-not-created}"
+          echo "No Promote/domain switch was performed."
+          echo "No verified snapshot write was performed."
