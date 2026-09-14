@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-14T01:03:19.856347+00:00",
+  "observed_at": "2026-09-14T05:30:20.398929+00:00",
   "start_date": "2026-09-12",
   "end_date": "2026-09-14",
   "markets": [
@@ -11,17 +11,51 @@
       "ccgp_zone_id": "11",
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
-      "national_fallback_used": true,
+      "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
-      "selected_unseen_candidate_count": 0,
+      "unique_candidate_count": 3,
+      "selected_candidate_count": 3,
+      "selected_unseen_candidate_count": 3,
       "selected_existing_candidate_count": 0,
-      "selected_candidates": [],
-      "new_verified_record_count": 0,
-      "failure_count": 0,
-      "failures": []
+      "selected_candidates": [
+        {
+          "title": "北京华信医院（清华大学第一附属医院）检验外送服务项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260914_27320424.htm",
+          "published_at": "2026-09-14",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "中医药传承创新发展示范性项目临床检验设备采购项目-标包1吞咽神经肌肉电刺激仪等（重新招标）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27319600.htm",
+          "published_at": "2026-09-14",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "中国疾病预防控制中心职业卫生与中毒控制所二期办公家具采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260914_27319261.htm",
+          "published_at": "2026-09-14",
+          "priority": 1,
+          "was_existing_verified_url": false
+        }
+      ],
+      "new_verified_record_count": 2,
+      "failure_count": 1,
+      "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "BJ",
+          "region": "北京",
+          "notice_type": "公开招标",
+          "candidate_region": "北京",
+          "title": "中国疾病预防控制中心职业卫生与中毒控制所二期办公家具采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260914_27319261.htm",
+          "error": "CcgpDetailParseError",
+          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
+        }
+      ]
     },
     {
       "market_code": "HE",
@@ -30,15 +64,37 @@
       "ccgp_zone_id": "13",
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
-      "national_fallback_used": true,
+      "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
-      "selected_unseen_candidate_count": 0,
+      "unique_candidate_count": 3,
+      "selected_candidate_count": 3,
+      "selected_unseen_candidate_count": 3,
       "selected_existing_candidate_count": 0,
-      "selected_candidates": [],
-      "new_verified_record_count": 0,
+      "selected_candidates": [
+        {
+          "title": "景县第二人民医院透析专科发展项目（二次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27319562.htm",
+          "published_at": "2026-09-14",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "大厂回族自治县人民医院网络安全三级等保建设项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27320251.htm",
+          "published_at": "2026-09-14",
+          "priority": 1,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "河北省产品质量监督检验研究院2026年家具中心能力保障专用检验检测设备购置项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27319746.htm",
+          "published_at": "2026-09-14",
+          "priority": 1,
+          "was_existing_verified_url": false
+        }
+      ],
+      "new_verified_record_count": 3,
       "failure_count": 0,
       "failures": []
     },
@@ -49,15 +105,37 @@
       "ccgp_zone_id": "21",
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
-      "national_fallback_used": true,
+      "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
-      "selected_unseen_candidate_count": 0,
+      "unique_candidate_count": 3,
+      "selected_candidate_count": 3,
+      "selected_unseen_candidate_count": 3,
       "selected_existing_candidate_count": 0,
-      "selected_candidates": [],
-      "new_verified_record_count": 0,
+      "selected_candidates": [
+        {
+          "title": "中国医科大学附属第一医院流式细胞仪（浑南院区血液内科）采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27320367.htm",
+          "published_at": "2026-09-14",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "葫芦岛市中心医院医用设备(八)采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27319934.htm",
+          "published_at": "2026-09-14",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "阜新蒙古族自治县蒙医医院(阜新蒙医药研究所)下肢外骨骼步行康复器项目（第五次）招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27319013.htm",
+          "published_at": "2026-09-14",
+          "priority": 2,
+          "was_existing_verified_url": false
+        }
+      ],
+      "new_verified_record_count": 3,
       "failure_count": 0,
       "failures": []
     },
@@ -66,41 +144,51 @@
       "market_name": "吉林",
       "admin_code": "220000",
       "ccgp_zone_id": "22",
-      "scoped_query_success_count": 10,
+      "scoped_query_success_count": 9,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
       "unique_candidate_count": 3,
       "selected_candidate_count": 3,
-      "selected_unseen_candidate_count": 2,
-      "selected_existing_candidate_count": 1,
+      "selected_unseen_candidate_count": 0,
+      "selected_existing_candidate_count": 3,
       "selected_candidates": [
-        {
-          "title": "吉林省中蕴华太科技发展有限公司关于长春市第二中等专业学校卫生健康服务专业群临床护理虚拟仿真实训基地的公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27318797.htm",
-          "published_at": "2026-09-14",
-          "priority": 1,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "吉林省中蕴华太科技发展有限公司关于长春市第二中等专业学校卫生健康服务专业群全维元宇宙交互中心（一期）的公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260913_27318720.htm",
-          "published_at": "2026-09-13",
-          "priority": 1,
-          "was_existing_verified_url": false
-        },
         {
           "title": "吉林大学第一医院彩色多普勒超声诊断仪采购项目（三次）公开招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260913_27318421.htm",
           "published_at": "2026-09-13",
           "priority": 3,
           "was_existing_verified_url": true
+        },
+        {
+          "title": "吉林省中蕴华太科技发展有限公司关于长春市第二中等专业学校卫生健康服务专业群临床护理虚拟仿真实训基地的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27318797.htm",
+          "published_at": "2026-09-14",
+          "priority": 1,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "吉林省中蕴华太科技发展有限公司关于长春市第二中等专业学校卫生健康服务专业群全维元宇宙交互中心（一期）的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260913_27318720.htm",
+          "published_at": "2026-09-13",
+          "priority": 1,
+          "was_existing_verified_url": true
         }
       ],
       "new_verified_record_count": 3,
-      "failure_count": 0,
-      "failures": []
+      "failure_count": 1,
+      "failures": [
+        {
+          "stage": "scoped_discovery",
+          "market_code": "JL",
+          "region": "吉林",
+          "keyword": "医疗",
+          "notice_type": "公开招标",
+          "error": "TimeoutError",
+          "message": "The read operation timed out"
+        }
+      ]
     },
     {
       "market_code": "HL",
@@ -112,30 +200,37 @@
       "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
-      "unique_candidate_count": 1,
-      "selected_candidate_count": 1,
+      "unique_candidate_count": 2,
+      "selected_candidate_count": 2,
       "selected_unseen_candidate_count": 1,
-      "selected_existing_candidate_count": 0,
+      "selected_existing_candidate_count": 1,
       "selected_candidates": [
+        {
+          "title": "黑龙江省神经精神病医院黑龙江神经精神病医院重症与心理健康服务能力提升项目第二批设备（三十三）(二次)招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27319532.htm",
+          "published_at": "2026-09-14",
+          "priority": 2,
+          "was_existing_verified_url": false
+        },
         {
           "title": "哈尔滨市第五医院供应室外包服务招标公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260913_27318602.htm",
           "published_at": "2026-09-13",
           "priority": 1,
-          "was_existing_verified_url": false
+          "was_existing_verified_url": true
         }
       ],
-      "new_verified_record_count": 1,
+      "new_verified_record_count": 2,
       "failure_count": 0,
       "failures": []
     }
   ],
-  "national_fallback_query_success_count": 20,
+  "national_fallback_query_success_count": 0,
   "national_fallback_failure_count": 0,
   "national_fallback_failures": [],
-  "existing_record_count": 208,
-  "new_verified_record_count": 4,
-  "merged_record_count": 211,
+  "existing_record_count": 211,
+  "new_verified_record_count": 13,
+  "merged_record_count": 220,
   "policy": {
     "business_market_is_explicit_not_geolocated": true,
     "market_admin_codes_are_validated_against_configured_ccgp_zone": true,
