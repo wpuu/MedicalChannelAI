@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BODY='{"source":{"id":"agnes3-smoke-ccgp","name":"中国政府采购网","kind":"GOVERNMENT_PROCUREMENT","url":"https://www.ccgp.gov.cn/cggg/dfgg/"}}'
+          BODY='{"source":{"id":"agnes3-smoke-govcn","name":"中国政府网","kind":"OTHER_OFFICIAL","url":"https://www.gov.cn/"}}'
           http="$(curl -sS --max-time 40 -o /tmp/agnes3-smoke.json -w '%{http_code}' \
             --request POST \
             --header 'Origin: https://medicalchannelai.vercel.app' \
