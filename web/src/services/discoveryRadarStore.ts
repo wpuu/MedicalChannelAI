@@ -386,15 +386,18 @@ export function recordDiscoverySuccess(
   result: DiscoveryRadarResult,
 ): DiscoverySourceStats {
   const base = current ?? blankStats()
+  const pending = result.ai_refresh_pending === true
   const novel = result.candidates.filter((item) => item.verification_status === 'DISCOVERED_UNVERIFIED').length
   return {
     scan_count: base.scan_count + 1,
     ai_call_count: base.ai_call_count + (result.ai_called ? 1 : 0),
-    cache_hit_count: base.cache_hit_count + (result.ai_called ? 0 : 1),
-    total_candidate_count: base.total_candidate_count + result.candidate_count,
-    total_novel_candidate_count: base.total_novel_candidate_count + novel,
+    cache_hit_count: base.cache_hit_count + (!result.ai_called && !pending ? 1 : 0),
+    total_candidate_count: base.total_candidate_count + (pending ? 0 : result.candidate_count),
+    total_novel_candidate_count: base.total_novel_candidate_count + (pending ? 0 : novel),
     consecutive_failure_count: 0,
-    consecutive_zero_candidate_count: result.candidate_count === 0 ? base.consecutive_zero_candidate_count + 1 : 0,
+    consecutive_zero_candidate_count: pending
+      ? base.consecutive_zero_candidate_count
+      : result.candidate_count === 0 ? base.consecutive_zero_candidate_count + 1 : 0,
     last_checked_at: result.checked_at,
     last_error: null,
   }
