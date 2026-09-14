@@ -1,0 +1,62 @@
+name: Apply Agnes Output Contract Fix 2026-09-14
+
+on:
+  push:
+    branches: [fix/agnes-discovery-output-contract-20260914]
+    paths:
+      - '.github/scripts/apply_agnes_output_contract_fix.py'
+      - '.github/workflows/apply-agnes-output-contract-fix-20260914.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: medicalchannelai-agnes-contract-fix-20260914
+  cancel-in-progress: true
+
+jobs:
+  apply-and-verify:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout fix branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/agnes-discovery-output-contract-20260914
+          fetch-depth: 0
+
+      - name: Verify exact base ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor ac26f308258eaefc6fb74bfa723e9dbf3cf2d57e HEAD
+
+      - name: Apply exact contract patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/apply_agnes_output_contract_fix.py
+
+      - name: Run focused regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest \
+            web.pipeline.tests.test_agnes_output_contract \
+            web.pipeline.tests.test_agnes_discovery \
+            web.pipeline.tests.test_agnes_model_consistency
+
+      - name: Remove one-shot helper and commit clean fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/scripts/apply_agnes_output_contract_fix.py
+          rm -f .github/workflows/apply-agnes-output-contract-fix-20260914.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git diff --cached --name-only
+          test "$(git diff --cached --name-only | sort | tr '\n' ' ')" = "web/api/ai/discover.js web/pipeline/tests/test_agnes_output_contract.py "
+          git commit -m 'fix: align Agnes discovery output contract'
+          git push origin HEAD:fix/agnes-discovery-output-contract-20260914
