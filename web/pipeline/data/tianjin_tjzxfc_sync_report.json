@@ -1,10 +1,10 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-05T17:02:46.269508+00:00",
+  "observed_at": "2026-09-15T04:57:54.105689+00:00",
   "source": "TJZXFC_OFFICIAL_MARKET_RESEARCH",
   "index_url": "https://www.tjzxfc.cn/ywgk/zbgg/index.shtml",
-  "start_date": "2026-08-08",
-  "end_date": "2026-09-06",
+  "start_date": "2026-08-17",
+  "end_date": "2026-09-15",
   "discovered_early_signal_count": 0,
   "selected_candidate_count": 0,
   "new_verified_record_count": 0,

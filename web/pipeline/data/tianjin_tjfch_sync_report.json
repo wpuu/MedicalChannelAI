@@ -1,19 +1,26 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-05T17:02:46.269508+00:00",
+  "observed_at": "2026-09-15T04:57:54.105689+00:00",
   "source": "TJFCH_IN_HOSPITAL_PROCUREMENT",
   "index_url": "https://www.tjfch.com.cn/ywgk/ynbx/index.shtml",
-  "start_date": "2026-07-24",
-  "end_date": "2026-09-06",
+  "start_date": "2026-08-02",
+  "end_date": "2026-09-15",
   "discovered_supported_count": 6,
-  "selected_candidate_count": 2,
+  "selected_candidate_count": 3,
   "new_verified_record_count": 2,
-  "unsupported_candidate_count": 0,
+  "unsupported_candidate_count": 1,
   "existing_record_count": 2,
   "merged_record_count": 2,
   "failure_count": 0,
   "failures": [],
-  "unsupported": [],
+  "unsupported": [
+    {
+      "title": "天津市第一中心医院甲型肝炎病毒IgM抗体质控品等采购项目院内比选...",
+      "published_at": "2026-09-07",
+      "url": "https://www.tjfch.com.cn/system/2026/09/07/030197973.shtml",
+      "reason": "TJFCH_NOTICE_TYPE_UNSUPPORTED"
+    }
+  ],
   "publish_allowed": true,
   "publish_gate_reason": "PASS",
   "policy": {

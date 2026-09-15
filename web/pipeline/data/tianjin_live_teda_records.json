@@ -6,7 +6,7 @@
       "source_id": "teda:teda_901",
       "source_type": "OFFICIAL_INSTITUTION_NOTICE",
       "url": "https://www.tedahospital.com.cn/article/show/9/901",
-      "observed_at": "2026-09-05T17:02:46.269508+00:00"
+      "observed_at": "2026-09-15T04:57:54.105689+00:00"
     },
     "facts": {
       "project_number": null,
@@ -109,7 +109,7 @@
       "source_id": "teda:teda_893",
       "source_type": "OFFICIAL_INSTITUTION_NOTICE",
       "url": "https://www.tedahospital.com.cn/article/show/9/893",
-      "observed_at": "2026-09-05T17:02:46.269508+00:00"
+      "observed_at": "2026-09-15T04:57:54.105689+00:00"
     },
     "facts": {
       "project_number": null,
@@ -209,7 +209,7 @@
       "source_id": "teda:teda_883",
       "source_type": "OFFICIAL_INSTITUTION_NOTICE",
       "url": "https://www.tedahospital.com.cn/article/show/9/883",
-      "observed_at": "2026-09-05T17:02:46.269508+00:00"
+      "observed_at": "2026-09-15T04:57:54.105689+00:00"
     },
     "facts": {
       "project_number": null,
@@ -327,7 +327,7 @@
       "source_id": "teda:teda_882",
       "source_type": "OFFICIAL_INSTITUTION_NOTICE",
       "url": "https://www.tedahospital.com.cn/article/show/9/882",
-      "observed_at": "2026-09-05T17:02:46.269508+00:00"
+      "observed_at": "2026-09-15T04:57:54.105689+00:00"
     },
     "facts": {
       "project_number": null,
@@ -521,6 +521,109 @@
         "source_url": "https://www.tedahospital.com.cn/article/show/9/876",
         "locator": "调研文件提交/联系方式"
       }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "opportunity_id": "teda_922",
+    "source": {
+      "source_id": "teda:teda_922",
+      "source_type": "OFFICIAL_INSTITUTION_NOTICE",
+      "url": "https://www.tedahospital.com.cn/article/show/9/922",
+      "observed_at": "2026-09-15T04:57:54.105689+00:00"
+    },
+    "facts": {
+      "project_number": null,
+      "project_name": "天津市泰达医院 生物安全柜设备需求调研",
+      "buyer_name": "天津市泰达医院",
+      "hospital_name": "天津市泰达医院",
+      "department": null,
+      "region": "天津市",
+      "lifecycle_state": "MARKET_RESEARCH",
+      "notice_type": "设备需求调研",
+      "published_at": "2026-09-04",
+      "registration_deadline": null,
+      "registration_deadline_date": "2026-09-11",
+      "bid_deadline": null,
+      "expected_procurement_at": null,
+      "expected_procurement_precision": null,
+      "budget_cny": 150000,
+      "procurement_method": null,
+      "product_categories": [],
+      "product_items": [
+        {
+          "raw_name": "生物安全柜",
+          "category": null,
+          "quantity": "5台",
+          "specification": null
+        }
+      ],
+      "public_contact": {
+        "name": "何老师",
+        "title": null,
+        "phone": "19902096751",
+        "email": "tedamed@163.com"
+      }
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "详情页标题"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "医院官网主体/正文"
+      },
+      {
+        "field_path": "facts.hospital_name",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "医院官网主体/正文"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "天津市泰达医院官方页面主体"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "正文明确为医疗设备采购需求调研或采购前论证；确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "详情页标题/正文调研类型"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "正文落款发布日期"
+      },
+      {
+        "field_path": "facts.product_items",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "一、拟采购设备项目/设备明细"
+      },
+      {
+        "field_path": "facts.registration_deadline_date",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "报名截止时间"
+      },
+      {
+        "field_path": "facts.budget_cny",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "拟采购设备项目/设备明细预算"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.tedahospital.com.cn/article/show/9/922",
+        "locator": "调研文件提交/联系方式"
+      }
+    ],
+    "quality_flags": [
+      "DEADLINE_TIME_NOT_PUBLISHED"
     ]
   }
 ]
