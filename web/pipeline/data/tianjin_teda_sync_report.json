@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-15T04:57:54.105689+00:00",
+  "observed_at": "2026-09-16T04:52:46.408373+00:00",
   "source": "TEDA_HOSPITAL_PROCUREMENT_INDEX",
-  "start_date": "2026-06-18",
-  "end_date": "2026-09-15",
+  "start_date": "2026-06-19",
+  "end_date": "2026-09-16",
   "index_pages": 4,
   "discovered_early_title_count": 6,
   "considered_candidate_count": 6,
@@ -23,7 +23,7 @@
       "reason": "TEDA_OFFICIAL_PUBLISHED_DATE_NOT_AVAILABLE"
     }
   ],
-  "existing_record_count": 5,
+  "existing_record_count": 6,
   "merged_record_count": 6,
   "failure_count": 0,
   "failures": [],
