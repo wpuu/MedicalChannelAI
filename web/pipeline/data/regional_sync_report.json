@@ -1,8 +1,8 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-16T05:21:58.863021+00:00",
-  "start_date": "2026-09-14",
-  "end_date": "2026-09-16",
+  "observed_at": "2026-09-17T05:31:30.274498+00:00",
+  "start_date": "2026-09-15",
+  "end_date": "2026-09-17",
   "markets": [
     {
       "market_code": "BJ",
@@ -14,29 +14,50 @@
       "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
-      "unique_candidate_count": 23,
+      "unique_candidate_count": 22,
       "selected_candidate_count": 10,
       "selected_unseen_candidate_count": 10,
       "selected_existing_candidate_count": 0,
       "selected_candidates": [
         {
-          "title": "北京安贞医院临床外送医学检验服务项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27335530.htm",
+          "title": "北京天坛医院超声设备维保公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260917_27343650.htm",
+          "published_at": "2026-09-17",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "2026年医疗设备购置更新项目第二批（1-5包）第1包、第2包、第3包、第4包公开招标公告（重新招标）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260917_27342147.htm",
+          "published_at": "2026-09-17",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "2026年医疗设备购置更新项目第二批（6-9包）第6包、第7包公开招标公告（重新招标）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260917_27342141.htm",
+          "published_at": "2026-09-17",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "北京市属医院2026年医用设备集中带量采购体外诊断与辅助设备组（第一批）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27340947.htm",
           "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "首都医科大学附属北京安定医院高额资金购置科研设备项目（第二批）-流式细胞仪、全景组织细胞成像系统购置项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27333849.htm",
+          "title": "2026年医疗设备购置（二次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27337571.htm",
           "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "中国医学科学院北京协和医院国家皮肤与免疫疾病临床医学研究中心创新能力提升两重建设项目第1、2、3、6包公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260915_27329521.htm",
-          "published_at": "2026-09-15",
+          "title": "海淀区医联体建设专项经费（两院合作经费）医疗设备购置项目-（第一批）第2、11包-公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27336958.htm",
+          "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
@@ -48,15 +69,15 @@
           "was_existing_verified_url": false
         },
         {
-          "title": "2026年北京同仁医院医疗设备采购项目(一)包2：超声眼科晶状体摘除和玻璃体切除设备及附件项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27328980.htm",
-          "published_at": "2026-09-15",
-          "priority": 3,
+          "title": "北京大学第六医院诊疗能力提升项目-病床单元（二次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260917_27343088.htm",
+          "published_at": "2026-09-17",
+          "priority": 2,
           "was_existing_verified_url": false
         },
         {
-          "title": "公改示范项目（第一批）-西城区骨健康特色诊疗中心项目（丰盛医院）07包公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27334865.htm",
+          "title": "北京大学人民医院绩效管理信息平台建设项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260916_27338396.htm",
           "published_at": "2026-09-16",
           "priority": 2,
           "was_existing_verified_url": false
@@ -66,27 +87,6 @@
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27328379.htm",
           "published_at": "2026-09-15",
           "priority": 2,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "北京市疾病预防控制中心新址其他设备设施采购（第1包）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27328378.htm",
-          "published_at": "2026-09-15",
-          "priority": 2,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "北京清华长庚医院2026-2027年度工程设计委外服务采购项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27334952.htm",
-          "published_at": "2026-09-16",
-          "priority": 1,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "北京小汤山医院2026年应急病房物业管理服务采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27334177.htm",
-          "published_at": "2026-09-16",
-          "priority": 1,
           "was_existing_verified_url": false
         }
       ],
@@ -100,93 +100,82 @@
       "admin_code": "130000",
       "ccgp_zone_id": "13",
       "scoped_query_success_count": 10,
-      "scoped_region_mismatch_count": 0,
+      "scoped_region_mismatch_count": 3,
       "national_fallback_used": false,
-      "skipped_candidate_count": 1,
-      "skipped_candidates": [
-        {
-          "stage": "candidate_classification",
-          "market_code": "HE",
-          "reason": "OUT_OF_MEDICAL_SCOPE",
-          "notice_type": "公开招标",
-          "candidate_notice_type": "公开招标公告",
-          "candidate_region": "河北",
-          "title": "清河县人民医院医用织物洗涤服务项目（二次）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27329358.htm"
-        }
-      ],
-      "unique_candidate_count": 30,
+      "skipped_candidate_count": 0,
+      "skipped_candidates": [],
+      "unique_candidate_count": 27,
       "selected_candidate_count": 10,
       "selected_unseen_candidate_count": 10,
       "selected_existing_candidate_count": 0,
       "selected_candidates": [
         {
-          "title": "石家庄市疾病预防控制中心抗结核药品检测试剂采购项目（四次招标）公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27335290.htm",
+          "title": "定州市人民医院彩色超声诊断系统采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27339097.htm",
           "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "唐山市丰南区医院购买2026年医用设备采购项目（三）招标公告（二次）",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27335278.htm",
+          "title": "河北省卢龙县医院电子下消化道内窥镜（治疗肠镜）系统项目采购公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27338532.htm",
           "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "河北北方学院附属第一医院瓶装医用气体采购二次公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27334855.htm",
+          "title": "衡水市人民医院人民路院区血液病融合基因检测外送外检项目（三次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27337667.htm",
           "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "河北北方学院附属第一医院医疗设备计量服务公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27334251.htm",
+          "title": "河北医科大学第二医院2026年医疗设备采购项目（一）01包三次公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27337278.htm",
           "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "保定市第一中心医院PACS信息系统和移动护理系统运行维护服务项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27331241.htm",
-          "published_at": "2026-09-15",
+          "title": "清河县人民医院健康管理院区医用家具采购及安装项目（三次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27336087.htm",
+          "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "衡水市中医医院胃肠镜、注射泵、胰岛素泵医疗设备采购公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27331238.htm",
-          "published_at": "2026-09-15",
-          "priority": 3,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "河北工程大学附属医院高效液相色谱串联质谱检测系统采购项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27327987.htm",
-          "published_at": "2026-09-15",
-          "priority": 3,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "河北省中医院循证科研管理服务信息化系统建设项目公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27332620.htm",
-          "published_at": "2026-09-15",
+          "title": "河北大学附属医院2026年公立医院综合改革设备采购项目（二次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260917_27343539.htm",
+          "published_at": "2026-09-17",
           "priority": 2,
           "was_existing_verified_url": false
         },
         {
-          "title": "河北医科大学第四医院省级医疗机构能力建设补助资金项目（四）（二次）合同包2公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27331753.htm",
-          "published_at": "2026-09-15",
+          "title": "唐山市第二医院关节镜系统采购项目（双盲评审）（二次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27339171.htm",
+          "published_at": "2026-09-16",
           "priority": 2,
           "was_existing_verified_url": false
         },
         {
-          "title": "河北医科大学第四医院省级医疗机构能力提升项目（一）合同包2公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27331752.htm",
-          "published_at": "2026-09-15",
+          "title": "河北省眼科医院河北省眼科医院成本核算管理系统采购项目第三次公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27338531.htm",
+          "published_at": "2026-09-16",
+          "priority": 2,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "河北省中医院中医病证诊疗平台慢性萎缩性胃炎标准化系统公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27337288.htm",
+          "published_at": "2026-09-16",
+          "priority": 2,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "邢台市人民医院转诊会诊管理中心信息系统项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27336530.htm",
+          "published_at": "2026-09-16",
           "priority": 2,
           "was_existing_verified_url": false
         }
@@ -205,51 +194,16 @@
       "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
-      "unique_candidate_count": 15,
-      "selected_candidate_count": 10,
-      "selected_unseen_candidate_count": 7,
-      "selected_existing_candidate_count": 3,
+      "unique_candidate_count": 8,
+      "selected_candidate_count": 8,
+      "selected_unseen_candidate_count": 2,
+      "selected_existing_candidate_count": 6,
       "selected_candidates": [
         {
-          "title": "大连理工大学附属中心医院（大连市中心医院）国家临床重点专科医疗设备购置项目(一)招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27322484.htm",
-          "published_at": "2026-09-14",
+          "title": "大连大学附属新华医院医疗设备更新项目的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260917_27343349.htm",
+          "published_at": "2026-09-17",
           "priority": 3,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "桓仁满族自治县人民医院能力提升设备采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27331409.htm",
-          "published_at": "2026-09-15",
-          "priority": 2,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "大连理工大学附属中心医院（大连市中心医院）胸痛中心信息化管理系统购置项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27329061.htm",
-          "published_at": "2026-09-15",
-          "priority": 2,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "大连经济技术开发区医院（新楼）空调系统维保项目的公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27327805.htm",
-          "published_at": "2026-09-15",
-          "priority": 2,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "市第五人民医院胸部肿瘤精准诊疗体系能力提升项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27321208.htm",
-          "published_at": "2026-09-14",
-          "priority": 2,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "医疗服务与保障能力提升（临床重点专科建设）（第二次）招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27335164.htm",
-          "published_at": "2026-09-16",
-          "priority": 1,
           "was_existing_verified_url": false
         },
         {
@@ -274,38 +228,37 @@
           "was_existing_verified_url": true
         },
         {
-          "title": "中国医科大学附属第四医院内窥镜摄像系统-电子鼻咽喉镜采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27323786.htm",
-          "published_at": "2026-09-14",
-          "priority": 3,
+          "title": "桓仁满族自治县人民医院能力提升设备采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27331409.htm",
+          "published_at": "2026-09-15",
+          "priority": 2,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "大连理工大学附属中心医院（大连市中心医院）胸痛中心信息化管理系统购置项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27329061.htm",
+          "published_at": "2026-09-15",
+          "priority": 2,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "大连经济技术开发区医院（新楼）空调系统维保项目的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27327805.htm",
+          "published_at": "2026-09-15",
+          "priority": 2,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "医疗服务与保障能力提升（临床重点专科建设）（第二次）招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27335164.htm",
+          "published_at": "2026-09-16",
+          "priority": 1,
           "was_existing_verified_url": true
         }
       ],
       "new_verified_record_count": 7,
-      "failure_count": 3,
+      "failure_count": 1,
       "failures": [
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "大连理工大学附属中心医院（大连市中心医院）国家临床重点专科医疗设备购置项目(一)招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27322484.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
-        },
-        {
-          "stage": "verified_detail",
-          "market_code": "LN",
-          "region": "辽宁",
-          "notice_type": "公开招标",
-          "candidate_region": "辽宁",
-          "title": "市第五人民医院胸部肿瘤精准诊疗体系能力提升项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27321208.htm",
-          "error": "CcgpDetailParseError",
-          "message": "CCGP_PROJECT_NAME_NOT_FOUND"
-        },
         {
           "stage": "verified_detail",
           "market_code": "LN",
@@ -350,64 +303,43 @@
           "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260915_27326557.htm"
         }
       ],
-      "unique_candidate_count": 17,
+      "unique_candidate_count": 18,
       "selected_candidate_count": 10,
-      "selected_unseen_candidate_count": 9,
-      "selected_existing_candidate_count": 1,
+      "selected_unseen_candidate_count": 6,
+      "selected_existing_candidate_count": 4,
       "selected_candidates": [
         {
-          "title": "吉林大学中日联谊医院POCT快速免疫分析仪采购项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260916_27334639.htm",
+          "title": "微生物检验所采购关于呼吸道症候群监测检测相关的试剂耗材项目（三次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27339105.htm",
           "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "吉林大学中日联谊医院生化分析仪采购项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260916_27334635.htm",
+          "title": "吉林省红日招投标代理有限公司关于白城市疾病预防控制中心(白城市卫生监督所)微生物实验室试剂耗材采购、理化实验室试剂耗材采购的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27337243.htm",
           "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "吉林大学第二医院超声骨密度采购项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260916_27333924.htm",
-          "published_at": "2026-09-16",
-          "priority": 3,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "吉林省人民医院血液透析系统项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27330701.htm",
-          "published_at": "2026-09-15",
-          "priority": 3,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "吉林大学中日联谊医院电解质分析仪采购项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260916_27334637.htm",
+          "title": "吉林大学第二医院可穿戴运动及步态量化评估系统采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260916_27335910.htm",
           "published_at": "2026-09-16",
           "priority": 2,
           "was_existing_verified_url": false
         },
         {
-          "title": "吉林大学中日联谊医院尿液分析仪采购项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260916_27334633.htm",
+          "title": "长春中医药大学附属医院心肺复苏机等设备采购项目（二次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27339292.htm",
           "published_at": "2026-09-16",
           "priority": 2,
           "was_existing_verified_url": false
         },
         {
-          "title": "吉林省人民医院存储系统扩容/新增项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27327884.htm",
-          "published_at": "2026-09-15",
-          "priority": 2,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "吉林大学第一医院心身病房科改造项目公开招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260915_27329676.htm",
-          "published_at": "2026-09-15",
+          "title": "吉林省肿瘤医院护理部高新院区医辅服务项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27337592.htm",
+          "published_at": "2026-09-16",
           "priority": 1,
           "was_existing_verified_url": false
         },
@@ -419,8 +351,29 @@
           "was_existing_verified_url": false
         },
         {
-          "title": "吉林省妇幼保健院（吉林省产科质量控制中心）-2026年提升妇幼保健服务能力建设（医疗设备购置）（2）",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27325649.htm",
+          "title": "吉林大学中日联谊医院POCT快速免疫分析仪采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260916_27334639.htm",
+          "published_at": "2026-09-16",
+          "priority": 3,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "吉林大学中日联谊医院生化分析仪采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260916_27334635.htm",
+          "published_at": "2026-09-16",
+          "priority": 3,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "吉林大学第二医院超声骨密度采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260916_27333924.htm",
+          "published_at": "2026-09-16",
+          "priority": 3,
+          "was_existing_verified_url": true
+        },
+        {
+          "title": "吉林省人民医院血液透析系统项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27330701.htm",
           "published_at": "2026-09-15",
           "priority": 3,
           "was_existing_verified_url": true
@@ -450,28 +403,8 @@
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
       "national_fallback_used": false,
-      "skipped_candidate_count": 4,
+      "skipped_candidate_count": 3,
       "skipped_candidates": [
-        {
-          "stage": "candidate_classification",
-          "market_code": "HL",
-          "reason": "NON_COMPETITIVE_SINGLE_SOURCE",
-          "notice_type": "公开招标",
-          "candidate_notice_type": "公开招标公告",
-          "candidate_region": "黑龙江",
-          "title": "黑龙江省疾病预防控制中心艾滋病实验室进口试剂采购(二次)单一来源公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27323037.htm"
-        },
-        {
-          "stage": "candidate_classification",
-          "market_code": "HL",
-          "reason": "NON_COMPETITIVE_SINGLE_SOURCE",
-          "notice_type": "公开招标",
-          "candidate_notice_type": "公开招标公告",
-          "candidate_region": "黑龙江",
-          "title": "黑龙江中医药大学附属第三医院门诊预约挂号系统购置单一来源公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27326192.htm"
-        },
         {
           "stage": "candidate_classification",
           "market_code": "HL",
@@ -491,81 +424,91 @@
           "candidate_region": "黑龙江",
           "title": "哈尔滨医科大学附属第二医院血液净化中心购置水处理设备移机（2026314）单一来源公告",
           "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27333921.htm"
+        },
+        {
+          "stage": "candidate_classification",
+          "market_code": "HL",
+          "reason": "NON_COMPETITIVE_SINGLE_SOURCE",
+          "notice_type": "公开招标",
+          "candidate_notice_type": "公开招标公告",
+          "candidate_region": "黑龙江",
+          "title": "哈尔滨医科大学附属第二医院心内科-血管造影X射线机维保（2026318）单一来源公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27336813.htm"
         }
       ],
-      "unique_candidate_count": 14,
+      "unique_candidate_count": 21,
       "selected_candidate_count": 10,
       "selected_unseen_candidate_count": 10,
       "selected_existing_candidate_count": 0,
       "selected_candidates": [
         {
-          "title": "友谊县疾病预防控制中心（友谊县卫生监督所）友谊县疾控中心实验室能力提升(二次)招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27329742.htm",
-          "published_at": "2026-09-15",
+          "title": "牡丹江心血管病医院高质量发展项目（国产医疗设备类）招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260917_27343232.htm",
+          "published_at": "2026-09-17",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "哈尔滨医科大学附属第四医院自动化生物样本库样本检测设备采购招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27329254.htm",
-          "published_at": "2026-09-15",
+          "title": "鸡西市人民医院彩色超声诊断系统招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260917_27343167.htm",
+          "published_at": "2026-09-17",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "齐齐哈尔医学院附属第二医院康复科医疗设备一批招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27328772.htm",
-          "published_at": "2026-09-15",
+          "title": "哈尔滨市道外区人民医院医疗设备第三批次采购项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27341078.htm",
+          "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "齐齐哈尔医学院附属第三医院检验试剂耗材一批招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27328744.htm",
-          "published_at": "2026-09-15",
+          "title": "哈尔滨市妇幼保健计划生育服务中心生殖医疗设备采购项目一(五次)招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27336833.htm",
+          "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "拜泉县中医院中医院医疗设备采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27328361.htm",
-          "published_at": "2026-09-15",
+          "title": "哈尔滨市第二医院2026年财政资金医疗设备购置项目招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27336754.htm",
+          "published_at": "2026-09-16",
           "priority": 3,
           "was_existing_verified_url": false
         },
         {
-          "title": "宁安市妇幼保健计划生育服务中心公立医院与高质量发展医疗设备采购项目招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27327728.htm",
-          "published_at": "2026-09-15",
-          "priority": 3,
-          "was_existing_verified_url": false
-        },
-        {
-          "title": "饶河县人民医院饶河县边境地区紧密型医共体五大共享中心改扩建及相关设备购置项目-信息集成服务招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27333125.htm",
-          "published_at": "2026-09-15",
+          "title": "佳木斯市肛肠医院电子胃肠镜系统采购项目(二次)招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260917_27342406.htm",
+          "published_at": "2026-09-17",
           "priority": 2,
           "was_existing_verified_url": false
         },
         {
-          "title": "哈尔滨医科大学附属第四医院自动化生物样本库样本处理设备采购招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27329266.htm",
-          "published_at": "2026-09-15",
+          "title": "黑龙江省神经精神病医院省神经精神病医院设备更新项目（七）(四次)招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260917_27341966.htm",
+          "published_at": "2026-09-17",
           "priority": 2,
           "was_existing_verified_url": false
         },
         {
-          "title": "哈尔滨医科大学附属第四医院自动化生物样本库存储设备采购招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27329213.htm",
-          "published_at": "2026-09-15",
+          "title": "哈尔滨医科大学附属第一医院等离子双极电切电凝系统等设备(二次)招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27339177.htm",
+          "published_at": "2026-09-16",
           "priority": 2,
           "was_existing_verified_url": false
         },
         {
-          "title": "牡丹江市第二人民医院私有云及终端电脑租赁服务招标公告",
-          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260915_27330224.htm",
-          "published_at": "2026-09-15",
-          "priority": 1,
+          "title": "绥棱县人民医院绥棱县县域紧密型医共体五大共享中心建设及相关设施设备购置项目(二次)招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27337848.htm",
+          "published_at": "2026-09-16",
+          "priority": 2,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "绥棱县人民医院绥棱县县域紧密型医共体五大共享中心建设及相关设施设备购置项目(二次)招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260916_27336830.htm",
+          "published_at": "2026-09-16",
+          "priority": 2,
           "was_existing_verified_url": false
         }
       ],
@@ -577,9 +520,9 @@
   "national_fallback_query_success_count": 0,
   "national_fallback_failure_count": 0,
   "national_fallback_failures": [],
-  "existing_record_count": 250,
+  "existing_record_count": 289,
   "new_verified_record_count": 46,
-  "merged_record_count": 289,
+  "merged_record_count": 323,
   "policy": {
     "business_market_is_explicit_not_geolocated": true,
     "market_admin_codes_are_validated_against_configured_ccgp_zone": true,
