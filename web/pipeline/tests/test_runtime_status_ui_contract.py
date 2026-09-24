@@ -18,8 +18,12 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
         server = SERVER_STATUS.read_text(encoding='utf-8')
         for mode in ['BUNDLED', 'RUNTIME_CACHE', 'REMOTE', 'BUNDLED_FALLBACK', 'UNAVAILABLE']:
             self.assertIn(mode, client)
-        self.assertIn("lastSourceMode = 'RUNTIME_CACHE'", (WEB_ROOT / 'api' / '_verifiedSnapshot.js').read_text(encoding='utf-8'))
-        self.assertIn("lastSourceMode = 'BUNDLED_FALLBACK'", (WEB_ROOT / 'api' / '_verifiedSnapshot.js').read_text(encoding='utf-8'))
+        snapshot_loader = (WEB_ROOT / 'api' / '_verifiedSnapshot.js').read_text(encoding='utf-8')
+        self.assertIn("lastSourceMode = 'RUNTIME_CACHE'", snapshot_loader)
+        self.assertIn("lastSourceMode = 'BUNDLED_FALLBACK'", snapshot_loader)
+        self.assertIn("lastRuntimeOrigin = runtimeResult.origin", snapshot_loader)
+        self.assertIn("runtime_origin: sourceMode === 'RUNTIME_CACHE' ? runtimeOrigin : null", server)
+        self.assertIn("runtime_origin?: 'PUBLISHED' | 'BUNDLED' | null", client)
         self.assertIn('SNAPSHOT_STALE_AFTER_MINUTES = 30 * 60', server)
 
     def test_shared_runtime_helpers_surface_stale_fallback_and_unavailable_snapshot(self) -> None:
