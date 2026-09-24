@@ -1,0 +1,69 @@
+name: Smoke Snapshot Persistence Staged Production 2026-09-25
+
+on:
+  push:
+    branches: [release/snapshot-persistence-production-20260925]
+    paths:
+      - '.github/workflows/smoke-snapshot-persistence-production-20260925.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  smoke:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 7
+    env:
+      DEPLOY_URL: https://medicalchannelai-pivnuvfoz-rerisse7-1717s-projects.vercel.app
+    steps:
+      - name: Get masked GitHub OIDC token
+        id: oidc
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken()
+            core.setSecret(token)
+            core.setOutput('token', token)
+
+      - name: Verify staged status
+        shell: bash
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: |
+          set -euo pipefail
+          http="$(curl -sS --max-time 20 -o /tmp/status.json -w '%{http_code}' -H "x-vercel-trusted-oidc-idp-token: $OIDC_TOKEN" "$DEPLOY_URL/api/status")"
+          echo "staged status HTTP $http"
+          test "$http" = '200'
+          STATUS_JSON="$(cat /tmp/status.json)"
+          STATUS_JSON="$STATUS_JSON" node <<'NODE'
+          const s = JSON.parse(process.env.STATUS_JSON || '{}');
+          const ok = s.ready === true && s.degraded === false && s.ai?.configured === true &&
+            s.snapshot?.available === true && s.snapshot?.freshness === 'FRESH' &&
+            s.snapshot?.today_card_count === 5 && s.snapshot?.opportunity_pool_count === 372 &&
+            s.snapshot?.source_mode === 'RUNTIME_CACHE' && s.snapshot?.runtime_origin === 'BUNDLED';
+          console.log(`staged ready=${s.ready} degraded=${s.degraded} ai=${s.ai?.configured} source=${s.snapshot?.source_mode}/${s.snapshot?.runtime_origin} freshness=${s.snapshot?.freshness} today=${s.snapshot?.today_card_count} pool=${s.snapshot?.opportunity_pool_count} snapshot=${s.snapshot?.snapshot_as_of}`);
+          if (!ok) process.exit(1);
+NODE
+
+      - name: Verify staged public snapshot
+        shell: bash
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: |
+          set -euo pipefail
+          http="$(curl -sS --max-time 20 -o /tmp/snapshot.json -w '%{http_code}' -H "x-vercel-trusted-oidc-idp-token: $OIDC_TOKEN" "$DEPLOY_URL/api/public-snapshot")"
+          echo "staged public-snapshot HTTP $http"
+          test "$http" = '200'
+          SNAPSHOT_JSON="$(cat /tmp/snapshot.json)"
+          SNAPSHOT_JSON="$SNAPSHOT_JSON" node <<'NODE'
+          const s = JSON.parse(process.env.SNAPSHOT_JSON || '{}');
+          const ok = s.snapshot_as_of === '2026-09-24T13:32:02.844764+08:00' &&
+            s.card_count === 5 && s.opportunity_pool_count === 372 && s.matched_count === 372;
+          console.log(`snapshot=${s.snapshot_as_of} today=${s.card_count} pool=${s.opportunity_pool_count}`);
+          if (!ok) process.exit(1);
+NODE
