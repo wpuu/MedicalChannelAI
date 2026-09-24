@@ -38,9 +38,14 @@ async function invokeSnapshot(method = 'GET', { body, headers = {} } = {}) {
 
 function memoryCache() {
   const values = new Map()
+  const setCalls = []
   return {
+    setCalls,
     async get(key) { return values.get(key) ?? null },
-    async set(key, value) { values.set(key, structuredClone(value)) },
+    async set(key, value, options) {
+      setCalls.push({ key, options })
+      values.set(key, structuredClone(value))
+    },
   }
 }
 
@@ -97,6 +102,15 @@ try {
   const cache = memoryCache()
   const stored = await publishVerifiedSnapshotToRuntimeCache(published, { cache, nowMs: testNowMs })
   expect(stored.snapshot_as_of === published.snapshot_as_of, 'SNAPSHOT_RUNTIME_PUBLISH_STORED')
+  expect(cache.setCalls.length === 1, 'SNAPSHOT_RUNTIME_PUBLISH_SINGLE_WRITE')
+  expect(
+    cache.setCalls[0]?.key === 'medicalchannelai:verified-snapshot:published:v2',
+    'SNAPSHOT_RUNTIME_PUBLISH_V2_KEY',
+  )
+  expect(
+    cache.setCalls[0]?.options === undefined,
+    'SNAPSHOT_RUNTIME_PUBLISH_MUST_NOT_HAVE_TTL_OR_TAGS',
+  )
   expect(
     selectPublishedRuntimeSnapshot(stored, bundledVerifiedSnapshot(), testNowMs)?.snapshot_as_of
       === published.snapshot_as_of,
