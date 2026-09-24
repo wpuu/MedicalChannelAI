@@ -48,7 +48,7 @@ jobs:
             s.snapshot?.source_mode === 'RUNTIME_CACHE' && s.snapshot?.runtime_origin === 'BUNDLED';
           console.log(`staged ready=${s.ready} degraded=${s.degraded} ai=${s.ai?.configured} source=${s.snapshot?.source_mode}/${s.snapshot?.runtime_origin} freshness=${s.snapshot?.freshness} today=${s.snapshot?.today_card_count} pool=${s.snapshot?.opportunity_pool_count} snapshot=${s.snapshot?.snapshot_as_of}`);
           if (!ok) process.exit(1);
-NODE
+          NODE
 
       - name: Verify staged public snapshot
         shell: bash
@@ -66,4 +66,4 @@ NODE
             s.card_count === 5 && s.opportunity_pool_count === 372 && s.matched_count === 372;
           console.log(`snapshot=${s.snapshot_as_of} today=${s.card_count} pool=${s.opportunity_pool_count}`);
           if (!ok) process.exit(1);
-NODE
+          NODE
