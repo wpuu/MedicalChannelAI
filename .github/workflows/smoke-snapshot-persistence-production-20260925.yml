@@ -37,7 +37,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          STATUS_JSON="$(npx --yes vercel@latest curl "$DEPLOY_URL/api/status" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" -fsS)"
+          STATUS_JSON="$(npx --yes vercel@latest curl /api/status --deployment "$DEPLOY_URL" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN")"
           STATUS_JSON="$STATUS_JSON" node <<'NODE'
           const s = JSON.parse(process.env.STATUS_JSON || '{}');
           const ok = s.ready === true && s.degraded === false && s.ai?.configured === true &&
@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SNAPSHOT_JSON="$(npx --yes vercel@latest curl "$DEPLOY_URL/api/public-snapshot" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" -fsS)"
+          SNAPSHOT_JSON="$(npx --yes vercel@latest curl /api/public-snapshot --deployment "$DEPLOY_URL" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN")"
           SNAPSHOT_JSON="$SNAPSHOT_JSON" node <<'NODE'
           const s = JSON.parse(process.env.SNAPSHOT_JSON || '{}');
           const ok = s.snapshot_as_of === '2026-09-24T13:32:02.844764+08:00' &&
