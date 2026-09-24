@@ -1,0 +1,162 @@
+name: Promote Snapshot Persistence Production 2026-09-25
+
+on:
+  push:
+    branches: [release/snapshot-persistence-production-20260925]
+    paths:
+      - '.github/workflows/promote-snapshot-persistence-production-20260925.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicalchannelai-production-release-20260925-snapshot-persistence
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERIFIED_SNAPSHOT_PUBLISH_TOKEN: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_TOKEN }}
+      VERIFIED_SNAPSHOT_PUBLISH_URL: https://medicalchannelai.vercel.app/api/public-snapshot
+      VERIFIED_SNAPSHOT_READ_URL: https://medicalchannelai.vercel.app/api/public-snapshot
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+      GITHUB_REPO_TOKEN: ${{ github.token }}
+      EXPECTED_MAIN_SHA: 0619734395d644cb8576075b88ceb7e76730594b
+      STAGED_DEPLOYMENT_ID: dpl_89LCUBwPFu9ZmAvABYVfD7N7m5Qt
+      OLD_PRODUCTION_DEPLOYMENT_ID: dpl_92LC2nvXr3mw7dr6QGPF4LaZcskZ
+      PUBLIC_STATUS_URL: https://medicalchannelai.vercel.app/api/status
+      EXPECTED_AS_OF: 2026-09-24T13:32:02.844764+08:00
+      EXPECTED_POOL: '372'
+
+    steps:
+      - name: Require release credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing; promotion not attempted'; exit 1; }
+          test -n "${VERIFIED_SNAPSHOT_PUBLISH_TOKEN:-}" || { echo '::error::VERIFIED_SNAPSHOT_PUBLISH_TOKEN missing; promotion not attempted'; exit 1; }
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: 0619734395d644cb8576075b88ceb7e76730594b
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Fail closed if main changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAIN_JSON="$(curl -fsS -H "Authorization: Bearer $GITHUB_REPO_TOKEN" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' 'https://api.github.com/repos/wpuu/MedicalChannelAI/commits/main')"
+          CURRENT_MAIN_SHA="$(MAIN_JSON="$MAIN_JSON" node -e 'const v=JSON.parse(process.env.MAIN_JSON||"{}"); process.stdout.write(v.sha||"")')"
+          echo "Current main: $CURRENT_MAIN_SHA"
+          echo "Expected main: $EXPECTED_MAIN_SHA"
+          test "$CURRENT_MAIN_SHA" = "$EXPECTED_MAIN_SHA" || { echo '::error::main changed after acceptance; promotion stopped'; exit 1; }
+
+      - name: Recheck exact staged deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOY_JSON="$(curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$STAGED_DEPLOYMENT_ID?teamId=$VERCEL_ORG_ID")"
+          DEPLOY_JSON="$DEPLOY_JSON" STAGED_DEPLOYMENT_ID="$STAGED_DEPLOYMENT_ID" node -e 'const d=JSON.parse(process.env.DEPLOY_JSON||"{}"); const state=d.readyState||d.state; const ok=d.id===process.env.STAGED_DEPLOYMENT_ID && state==="READY" && d.target==="production"; console.log(`staged=${d.id} state=${state} target=${d.target}`); if(!ok) process.exit(1)'
+
+      - name: Record current Production baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS_JSON="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL")"
+          STATUS_JSON="$STATUS_JSON" node -e 'const s=JSON.parse(process.env.STATUS_JSON||"{}"); const ok=s.ready===true && s.snapshot?.available===true; console.log(`baseline ready=${s.ready} degraded=${s.degraded} source=${s.snapshot?.source_mode} freshness=${s.snapshot?.freshness} today=${s.snapshot?.today_card_count} pool=${s.snapshot?.opportunity_pool_count} snapshot=${s.snapshot?.snapshot_as_of}`); if(!ok) process.exit(1)'
+
+      - name: Promote exact deployment with automatic rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          new_code_gate() {
+            STATUS_JSON="$1" EXPECTED_AS_OF="$EXPECTED_AS_OF" EXPECTED_POOL="$EXPECTED_POOL" node -e 'let s; try{s=JSON.parse(process.env.STATUS_JSON||"{}")}catch{process.exit(1)}; const ok=s.ready===true && s.degraded===false && s.ai?.configured===true && s.snapshot?.available===true && s.snapshot?.freshness==="FRESH" && s.snapshot?.today_card_count===5 && s.snapshot?.opportunity_pool_count===Number(process.env.EXPECTED_POOL) && s.snapshot?.snapshot_as_of===process.env.EXPECTED_AS_OF && s.snapshot?.source_mode==="RUNTIME_CACHE" && ["BUNDLED","PUBLISHED"].includes(s.snapshot?.runtime_origin); console.log(`new-code gate ready=${s.ready} degraded=${s.degraded} ai=${s.ai?.configured} source=${s.snapshot?.source_mode}/${s.snapshot?.runtime_origin} freshness=${s.snapshot?.freshness} today=${s.snapshot?.today_card_count} pool=${s.snapshot?.opportunity_pool_count} snapshot=${s.snapshot?.snapshot_as_of}`); if(!ok) process.exit(1)'
+          }
+
+          rollback_old() {
+            echo "Rolling back to $OLD_PRODUCTION_DEPLOYMENT_ID"
+            set +e
+            rollback_http="$(curl -sS -o /tmp/vercel-rollback-response.txt -w '%{http_code}' --request POST -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v1/projects/$VERCEL_PROJECT_ID/rollback/$OLD_PRODUCTION_DEPLOYMENT_ID?teamId=$VERCEL_ORG_ID")"
+            rollback_rc=$?
+            set -e
+            echo "Rollback API curl_rc=$rollback_rc http=$rollback_http"
+            if [ -s /tmp/vercel-rollback-response.txt ]; then cat /tmp/vercel-rollback-response.txt; fi
+            return 0
+          }
+
+          echo "Promoting $STAGED_DEPLOYMENT_ID"
+          set +e
+          promote_http="$(curl -sS -o /tmp/vercel-promote-response.txt -w '%{http_code}' --request POST -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/promote/$STAGED_DEPLOYMENT_ID?teamId=$VERCEL_ORG_ID")"
+          promote_rc=$?
+          set -e
+          echo "Promote API curl_rc=$promote_rc http=$promote_http"
+          if [ -s /tmp/vercel-promote-response.txt ]; then cat /tmp/vercel-promote-response.txt; fi
+          if [ "$promote_rc" -ne 0 ] || { [ "$promote_http" != '200' ] && [ "$promote_http" != '201' ] && [ "$promote_http" != '202' ]; }; then
+            echo '::error::Promote API failed; old Production should remain live'
+            exit 1
+          fi
+
+          accepted=0
+          last_status=''
+          for attempt in $(seq 1 18); do
+            last_status="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
+            if new_code_gate "$last_status"; then
+              accepted=1
+              break
+            fi
+            echo "New-code Production gate not ready ($attempt/18); retrying in 5s"
+            sleep 5
+          done
+          if [ "$accepted" -ne 1 ]; then
+            echo '::error::Post-promote code gate failed; forcing rollback'
+            echo "Last status: $last_status"
+            rollback_old
+            exit 1
+          fi
+
+      - name: Seed published v2 snapshot and verify round trip
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/publish_snapshot_http.py --snapshot web/public/data/today-actions.public.json --method PUT
+          verified=0
+          for attempt in 1 2 3; do
+            if python3 web/pipeline/scripts/verify_snapshot_roundtrip.py --snapshot web/public/data/today-actions.public.json; then
+              verified=1
+              break
+            fi
+            if [[ "$attempt" -lt 3 ]]; then sleep 2; fi
+          done
+          test "$verified" -eq 1 || { echo '::error::Published v2 round-trip verification failed'; exit 2; }
+
+      - name: Final Production published-origin gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          final_gate() {
+            STATUS_JSON="$1" EXPECTED_AS_OF="$EXPECTED_AS_OF" EXPECTED_POOL="$EXPECTED_POOL" node -e 'let s; try{s=JSON.parse(process.env.STATUS_JSON||"{}")}catch{process.exit(1)}; const ok=s.ready===true && s.degraded===false && s.ai?.configured===true && s.snapshot?.available===true && s.snapshot?.freshness==="FRESH" && s.snapshot?.today_card_count===5 && s.snapshot?.opportunity_pool_count===Number(process.env.EXPECTED_POOL) && s.snapshot?.snapshot_as_of===process.env.EXPECTED_AS_OF && s.snapshot?.source_mode==="RUNTIME_CACHE" && s.snapshot?.runtime_origin==="PUBLISHED"; console.log(`final gate ready=${s.ready} degraded=${s.degraded} ai=${s.ai?.configured} source=${s.snapshot?.source_mode}/${s.snapshot?.runtime_origin} freshness=${s.snapshot?.freshness} today=${s.snapshot?.today_card_count} pool=${s.snapshot?.opportunity_pool_count} snapshot=${s.snapshot?.snapshot_as_of}`); if(!ok) process.exit(1)'
+          }
+          accepted=0
+          for attempt in $(seq 1 18); do
+            s="$(curl -fsS --max-time 15 "$PUBLIC_STATUS_URL" 2>/dev/null || true)"
+            if final_gate "$s"; then accepted=1; break; fi
+            echo "Published-origin gate not ready ($attempt/18); retrying in 5s"
+            sleep 5
+          done
+          test "$accepted" -eq 1 || { echo '::error::Final Production published-origin gate failed'; exit 1; }
+          echo '### Snapshot persistence Production release' >> "$GITHUB_STEP_SUMMARY"
+          echo "- Accepted main: \`$EXPECTED_MAIN_SHA\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Promoted deployment: \`$STAGED_DEPLOYMENT_ID\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Rollback baseline: \`$OLD_PRODUCTION_DEPLOYMENT_ID\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Snapshot: \`$EXPECTED_AS_OF\`, pool=$EXPECTED_POOL, runtime_origin=PUBLISHED" >> "$GITHUB_STEP_SUMMARY"
