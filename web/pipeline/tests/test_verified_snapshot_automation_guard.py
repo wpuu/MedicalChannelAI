@@ -50,7 +50,7 @@ class VerifiedSnapshotAutomationGuardTests(unittest.TestCase):
         source = VERIFIED_SNAPSHOT.read_text(encoding='utf-8')
 
         self.assertIn(
-            "PUBLISHED_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:published:v1'",
+            "PUBLISHED_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:published:v2'",
             source,
         )
         self.assertIn('selectPublishedRuntimeSnapshot', source)
@@ -59,6 +59,18 @@ class VerifiedSnapshotAutomationGuardTests(unittest.TestCase):
         self.assertIn("throw new Error('RUNTIME_SNAPSHOT_ROLLBACK_REJECTED')", source)
         self.assertIn("throw new Error('RUNTIME_SNAPSHOT_REVISION_CONFLICT')", source)
         self.assertIn('RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS = 15 * 60 * 1000', source)
+        published_write = source[
+            source.index('await cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot)'):
+            source.index('const readBack = await cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)')
+        ]
+        self.assertNotIn('ttl:', published_write)
+        self.assertNotIn('tags:', published_write)
+        bundled_write = source[
+            source.index('await cache.set(BUNDLED_RUNTIME_SNAPSHOT_KEY, snapshot'):
+            source.index('const readBack = await cache.get(BUNDLED_RUNTIME_SNAPSHOT_KEY)')
+        ]
+        self.assertIn('ttl: BUNDLED_RUNTIME_SNAPSHOT_TTL_SECONDS', bundled_write)
+        self.assertIn('verifiedSnapshotRuntimeOrigin', source)
         self.assertIn("collector's legacy \"latest:v1\" key is intentionally not", source)
 
     def test_same_origin_publish_endpoint_fails_closed_and_readback_is_not_cdn_cached(self) -> None:

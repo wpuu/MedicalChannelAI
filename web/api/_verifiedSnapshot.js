@@ -17,8 +17,8 @@ const BUNDLED_SNAPSHOT_REVISION = String(bundledSnapshot?.snapshot_as_of || 'unk
 // without deploying code. Vercel Runtime Cache isolates Preview and Production.
 const BUNDLED_RUNTIME_SNAPSHOT_KEY =
   `medicalchannelai:verified-snapshot:${BUNDLED_SNAPSHOT_REVISION}:v3`
-const PUBLISHED_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:published:v1'
-const RUNTIME_SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
+const PUBLISHED_RUNTIME_SNAPSHOT_KEY = 'medicalchannelai:verified-snapshot:published:v2'
+const BUNDLED_RUNTIME_SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
 const ZERO_CONFIG_SCORE_TYPE_V2 = 'ZERO_CONFIG_PUBLIC_FACTS_V2'
 const V2_PRIORITY_MAX_POINTS = new Map([
   ['PRODUCT_EXECUTION_CAPABILITY', 25],
@@ -49,6 +49,7 @@ const FORBIDDEN_PUBLIC_PREFIXES = [
 
 let remoteCache = null
 let lastSourceMode = 'BUNDLED'
+let lastRuntimeOrigin = null
 
 function asObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : null
@@ -241,10 +242,11 @@ export async function publishVerifiedSnapshotToRuntimeCache(value, options = {})
     }
   }
 
-  await cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {
-    ttl: RUNTIME_SNAPSHOT_TTL_SECONDS,
-    tags: ['medicalchannelai-verified-snapshot'],
-  })
+  // This is the authoritative latest verified snapshot, not an expendable cache entry.
+  // Freshness is enforced from snapshot_as_of by /api/status and AI automation guards.
+  // Do not attach TTL/tags here: cross-deployment TTL metadata can diverge and evict the
+  // stable published key even while daily publisher round-trips are succeeding.
+  await cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot)
   const readBack = await cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
   const verifiedReadBack = validateVerifiedSnapshot(readBack)
   if (JSON.stringify(verifiedReadBack) !== serialized) throw new Error('RUNTIME_SNAPSHOT_READBACK_MISMATCH')
@@ -271,7 +273,7 @@ async function loadRemoteSnapshot(remoteUrl) {
 }
 async function persistBundledRuntimeSnapshot(cache, snapshot) {
   await cache.set(BUNDLED_RUNTIME_SNAPSHOT_KEY, snapshot, {
-    ttl: RUNTIME_SNAPSHOT_TTL_SECONDS,
+    ttl: BUNDLED_RUNTIME_SNAPSHOT_TTL_SECONDS,
     tags: ['medicalchannelai-verified-snapshot'],
   })
   const readBack = await cache.get(BUNDLED_RUNTIME_SNAPSHOT_KEY)
@@ -284,12 +286,12 @@ async function loadRuntimeCachedSnapshot() {
 
   const publishedValue = await cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
   const publishedSnapshot = selectPublishedRuntimeSnapshot(publishedValue)
-  if (publishedSnapshot) return publishedSnapshot
+  if (publishedSnapshot) return { snapshot: publishedSnapshot, origin: 'PUBLISHED' }
 
   const value = await cache.get(BUNDLED_RUNTIME_SNAPSHOT_KEY)
   if (value) {
     try {
-      return validateVerifiedSnapshot(value)
+      return { snapshot: validateVerifiedSnapshot(value), origin: 'BUNDLED' }
     } catch {
       // Invalid state is never served. Seed this exact bundled data revision below.
     }
@@ -298,31 +300,42 @@ async function loadRuntimeCachedSnapshot() {
   // The Vercel-native collector's legacy "latest:v1" key is intentionally not
   // consumed here: that collector currently covers Tianjin only, while the public
   // product snapshot covers Tianjin plus verified regional markets.
-  return persistBundledRuntimeSnapshot(cache, bundledVerifiedSnapshot())
+  return {
+    snapshot: await persistBundledRuntimeSnapshot(cache, bundledVerifiedSnapshot()),
+    origin: 'BUNDLED',
+  }
 }
 export async function loadVerifiedSnapshot() {
   const remoteUrl = configuredRemoteUrl()
   if (remoteUrl) {
     lastSourceMode = 'REMOTE'
+    lastRuntimeOrigin = null
     return scopedVerifiedSnapshot(await loadRemoteSnapshot(remoteUrl))
   }
   try {
-    const runtimeSnapshot = await loadRuntimeCachedSnapshot()
-    if (runtimeSnapshot) {
+    const runtimeResult = await loadRuntimeCachedSnapshot()
+    if (runtimeResult) {
       lastSourceMode = 'RUNTIME_CACHE'
-      return scopedVerifiedSnapshot(runtimeSnapshot)
+      lastRuntimeOrigin = runtimeResult.origin
+      return scopedVerifiedSnapshot(runtimeResult.snapshot)
     }
   } catch {
     lastSourceMode = 'BUNDLED_FALLBACK'
+    lastRuntimeOrigin = null
     return scopedVerifiedSnapshot(bundledVerifiedSnapshot())
   }
   lastSourceMode = 'BUNDLED'
+  lastRuntimeOrigin = null
   return scopedVerifiedSnapshot(bundledVerifiedSnapshot())
 }
 export function verifiedSnapshotSourceMode() {
   return lastSourceMode
 }
+export function verifiedSnapshotRuntimeOrigin() {
+  return lastRuntimeOrigin
+}
 export function clearVerifiedSnapshotCacheForTests() {
   remoteCache = null
   lastSourceMode = 'BUNDLED'
+  lastRuntimeOrigin = null
 }

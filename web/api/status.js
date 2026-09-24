@@ -1,4 +1,4 @@
-import { loadVerifiedSnapshot, verifiedSnapshotSourceMode } from './_verifiedSnapshot.js'
+import { loadVerifiedSnapshot, verifiedSnapshotRuntimeOrigin, verifiedSnapshotSourceMode } from './_verifiedSnapshot.js'
 
 const APP_VERSION = '0.5.0'
 const SNAPSHOT_STALE_AFTER_MINUTES = 30 * 60
@@ -43,6 +43,7 @@ export default async function handler(request, response) {
   try {
     const snapshot = await loadVerifiedSnapshot()
     const sourceMode = verifiedSnapshotSourceMode()
+    const runtimeOrigin = verifiedSnapshotRuntimeOrigin()
     const pool = Array.isArray(snapshot.opportunity_pool) ? snapshot.opportunity_pool : snapshot.cards
     const freshness = snapshotFreshness(snapshot.snapshot_as_of)
     const fallbackDegraded = sourceMode === 'BUNDLED_FALLBACK'
@@ -51,7 +52,9 @@ export default async function handler(request, response) {
       ready: freshness.freshness !== 'INVALID',
       degraded: freshness.degraded || fallbackDegraded,
       snapshot: {
-        available: true, source_mode: sourceMode, snapshot_as_of: snapshot.snapshot_as_of ?? null,
+        available: true, source_mode: sourceMode,
+        runtime_origin: sourceMode === 'RUNTIME_CACHE' ? runtimeOrigin : null,
+        snapshot_as_of: snapshot.snapshot_as_of ?? null,
         freshness: freshness.freshness, age_minutes: freshness.age_minutes,
         stale_after_minutes: SNAPSHOT_STALE_AFTER_MINUTES,
         today_card_count: Array.isArray(snapshot.cards) ? snapshot.cards.length : 0,
@@ -64,7 +67,7 @@ export default async function handler(request, response) {
     return sendJson(response, 503, {
       ...base, ready: false, degraded: true,
       snapshot: {
-        available: false, source_mode: failureMode, snapshot_as_of: null,
+        available: false, source_mode: failureMode, runtime_origin: null, snapshot_as_of: null,
         freshness: 'UNAVAILABLE', age_minutes: null, stale_after_minutes: SNAPSHOT_STALE_AFTER_MINUTES,
         today_card_count: 0, opportunity_pool_count: 0,
       },

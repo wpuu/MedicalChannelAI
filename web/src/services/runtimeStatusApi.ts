@@ -17,6 +17,7 @@ export interface RuntimeStatus {
   snapshot: {
     available: boolean
     source_mode: RuntimeSnapshotSourceMode
+    runtime_origin?: 'PUBLISHED' | 'BUNDLED' | null
     snapshot_as_of: string | null
     freshness: 'FRESH' | 'STALE' | 'INVALID' | 'UNAVAILABLE'
     age_minutes: number | null
@@ -55,6 +56,7 @@ function isRuntimeStatus(value: unknown): value is RuntimeStatus {
     Boolean(snapshot) &&
     typeof snapshot?.available === 'boolean' &&
     SNAPSHOT_SOURCE_MODES.has(String(snapshot?.source_mode) as RuntimeSnapshotSourceMode) &&
+    (snapshot?.runtime_origin === undefined || snapshot?.runtime_origin === null || ['PUBLISHED', 'BUNDLED'].includes(String(snapshot?.runtime_origin))) &&
     (snapshot?.snapshot_as_of === null || typeof snapshot?.snapshot_as_of === 'string') &&
     ['FRESH', 'STALE', 'INVALID', 'UNAVAILABLE'].includes(String(snapshot?.freshness)) &&
     (snapshot?.age_minutes === null || typeof snapshot?.age_minutes === 'number') &&
