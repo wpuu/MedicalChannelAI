@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Clock, Info, Radar } from 'lucide-react'
+import { Clock, Info, Loader2, Radar, Sparkles } from 'lucide-react'
 import { ActionCard } from '@/components/today/ActionCard'
 import { DueRemindersPanel } from '@/components/today/DueRemindersPanel'
 import { MetricCards } from '@/components/today/MetricCards'
