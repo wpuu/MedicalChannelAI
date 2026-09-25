@@ -214,9 +214,24 @@ def main() -> int:
     parser.add_argument('--existing-records-input', action='append', type=Path, default=[])
     parser.add_argument('--records-output', required=True, type=Path)
     parser.add_argument('--report-output', required=True, type=Path)
+    parser.add_argument(
+        '--incremental-only',
+        action='store_true',
+        help='Verify only previously unseen detail URLs; existing verified URLs are reconciled by the daily deep refresh.',
+    )
+    parser.add_argument(
+        '--lookback-days',
+        type=int,
+        default=None,
+        help='Override configured discovery lookback for bounded incremental scans.',
+    )
     args = parser.parse_args()
 
     plan = load_plan(args.plan)
+    if args.lookback_days is not None:
+        if not 1 <= args.lookback_days <= 14:
+            raise ValueError('INCREMENTAL_LOOKBACK_INVALID')
+        plan['lookback_days'] = args.lookback_days
     as_of = parse_as_of(args.as_of)
     start_date, end_date = date_window(as_of, plan['lookback_days'])
     observed_at = as_of.astimezone(timezone.utc).isoformat()
@@ -360,7 +375,12 @@ def main() -> int:
             key=lambda item: regional_candidate_selection_key(item[1], existing_source_urls),
             reverse=True,
         )
-        selected = discovered[: plan['max_candidates_per_market']]
+        eligible_for_detail = (
+            [item for item in discovered if str(getattr(item[1], 'detail_url', '') or '') not in existing_source_urls]
+            if args.incremental_only
+            else discovered
+        )
+        selected = eligible_for_detail[: plan['max_candidates_per_market']]
         selected_candidates = [
             {
                 'title': getattr(candidate, 'title', None),
@@ -462,6 +482,8 @@ def main() -> int:
             'candidate_prefilter_only_rejects_explicit_exclusions': True,
             'candidate_detail_budget_uses_recall_preserving_priority': True,
             'candidate_detail_budget_prioritizes_unseen_urls_before_rechecks': True,
+            'incremental_only': args.incremental_only,
+            'incremental_existing_verified_urls_are_not_refetched': args.incremental_only,
             'cross_market_project_number_dedupe_is_forbidden': True,
             'regional_event_monitoring_deferred_until_composite_market_event_key_is_enabled': True,
             'rate_limit_bypass': False,
