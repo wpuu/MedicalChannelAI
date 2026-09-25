@@ -1,5 +1,14 @@
 # MCAI-HERMES-JOINT-REVIEW-20260925
 
+> **SUPERSEDED NOTICE — 2026-09-25**
+>
+> 本文原始联合审计结论保留作历史记录，但其中 **Hermes Sample Gate H0 的“先取得真实客户资料/已结束项目资料再允许 75126”前置条件，以及“先做老杨真实资料员流程采样”的当前优先顺序，已被同日后续 Owner 决策 supersede。**
+>
+> 当前权威修正见：
+> `docs/reviews/MCAI-ZERO-TRUST-OWNER-DECISION-20260925.md`
+>
+> 75126 仍为 DEFERRED，但原因已改为“尚未出现经过 A 侧价值之后的真实 L3 私有核验需求/明确受控演示触发”，不再以客户先交整套真实资料作为硬前置。
+
 日期：2026-09-25  
 性质：GPT-6 Sol 联合产品 / 架构 / 商业终审的 Owner 接受记录  
 结论：CHANGE；有条件保留协同假设；当前联合商业闭环 NOT PROVEN。
