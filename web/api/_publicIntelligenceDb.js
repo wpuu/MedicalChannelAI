@@ -374,6 +374,47 @@ export async function materializeVerifiedSnapshot(snapshot) {
   return { configured: true, materialized: true, regions }
 }
 
+export async function getSharedPublicAiBrief({
+  opportunityId,
+  factHash,
+  windowState,
+  briefType = 'PUBLIC_ACTION_DECISION',
+  promptVersion,
+}) {
+  if (!publicIntelligenceDatabaseConfigured()) {
+    return { result: null, cache_hit: false, durable: false, generated_at: null }
+  }
+  try {
+    await ensurePublicIntelligenceSchema()
+    const sql = publicIntelligenceDb()
+    const cached = await sql`
+      SELECT result, generated_at
+      FROM public_ai_briefs
+      WHERE opportunity_id = ${opportunityId}
+        AND fact_hash = ${factHash}
+        AND window_state = ${windowState}
+        AND brief_type = ${briefType}
+        AND prompt_version = ${promptVersion}
+      LIMIT 1
+    `
+    if (!cached[0]) {
+      return { result: null, cache_hit: false, durable: true, generated_at: null }
+    }
+    return {
+      result: cached[0].result,
+      cache_hit: true,
+      durable: true,
+      generated_at: new Date(cached[0].generated_at).toISOString(),
+    }
+  } catch (error) {
+    console.warn('shared public AI cache read unavailable', {
+      opportunity_id: opportunityId,
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
+    return { result: null, cache_hit: false, durable: false, generated_at: null }
+  }
+}
+
 export async function getOrCreateSharedPublicAiBrief({
   opportunityId,
   factHash,
