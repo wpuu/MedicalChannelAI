@@ -369,10 +369,19 @@ export function OpportunityPoolPage() {
 
     void hydrateSharedAiDecisions(candidates).then((hydrated) => {
       if (cancelled) return
-      const byId = new Map(hydrated.map((card) => [card.opportunity_id, card]))
-      setCards((current) =>
-        current.map((card) => byId.get(card.opportunity_id) ?? card),
-      )
+      const ready = hydrated.filter((card) => Boolean(card.decision))
+      if (ready.length === 0) return
+      const byId = new Map(ready.map((card) => [card.opportunity_id, card]))
+      setCards((current) => {
+        let changed = false
+        const next = current.map((card) => {
+          const hydratedCard = byId.get(card.opportunity_id)
+          if (!hydratedCard || hydratedCard.decision === card.decision) return card
+          changed = true
+          return hydratedCard
+        })
+        return changed ? next : current
+      })
     })
     return () => {
       cancelled = true
