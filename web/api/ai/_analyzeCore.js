@@ -4,6 +4,7 @@ import {
 } from '../_verifiedSnapshot.js'
 import {
   getOrCreateSharedPublicAiBrief,
+  getSharedPublicAiBrief,
   publicAiFactHash,
 } from '../_publicIntelligenceDb.js'
 import {
@@ -15,10 +16,11 @@ export const config = { maxDuration: 30 }
 
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const DEFAULT_ALTERNATE_BASE_URL = 'https://apihub.agnes-ai.cn/v1'
-const MODEL_ID = 'agnes-2.5-flash'
+const MODEL_ID = 'agnes-3.0-flash'
 const PUBLIC_AI_PROMPT_VERSION = 'decision-action-selector-v3-public-v1'
 const MAX_FACT_TEXT = 1200
 const MAX_ARRAY_ITEMS = 30
+const MAX_BATCH_OPPORTUNITIES = 10
 const RESULT_CACHE_TTL_MS = 10 * 60 * 1000
 const RESULT_CACHE_MAX = 50
 const RATE_WINDOW_MS = 60 * 1000
@@ -541,6 +543,118 @@ async function getOrCreateDecision({
   return { decision: cached.result, cache: cached }
 }
 
+
+function batchErrorCode(error) {
+  const status = Number(error?.status)
+  if (error?.code === 'AI_NOT_CONFIGURED') return 'AI_NOT_CONFIGURED'
+  if (error?.code === 'AI_RESPONSE_INVALID') return 'AI_RESPONSE_INVALID'
+  if (status === 429) return 'AI_RATE_LIMITED'
+  if (status === 401 || status === 403) return 'AI_PROVIDER_AUTH_UNAVAILABLE'
+  if (status === 408 || error?.name === 'AbortError') return 'AI_TIMEOUT'
+  return 'AI_PROVIDER_UNAVAILABLE'
+}
+
+async function analyzeSharedPublicBatchItem({
+  snapshot,
+  opportunityId,
+  request,
+  cacheOnly,
+}) {
+  const grounded = findVerifiedOpportunity(snapshot, opportunityId)
+  if (!grounded) {
+    return { opportunity_id: opportunityId, status: 'ERROR', error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' }
+  }
+
+  const analysisAsOf = new Date().toISOString()
+  const nowMs = Date.parse(analysisAsOf)
+  const windowStatus = runtimeWindowStatus(grounded.facts, nowMs)
+  if (windowStatus === 'CLOSED') {
+    return {
+      opportunity_id: opportunityId,
+      status: 'NOT_ELIGIBLE',
+      error: 'OPPORTUNITY_WINDOW_CLOSED',
+      runtime_window_status: windowStatus,
+    }
+  }
+
+  const snapshotAsOf = cleanString(snapshot.snapshot_as_of, 100)
+  const windowCacheState = publicWindowCacheState(grounded.facts, windowStatus, nowMs)
+  const factHash = publicAiFactHash(grounded.facts, grounded.evidenceUrls)
+
+  if (cacheOnly) {
+    const cached = await getSharedPublicAiBrief({
+      opportunityId,
+      factHash,
+      windowState: windowCacheState,
+      briefType: 'PUBLIC_ACTION_DECISION',
+      promptVersion: PUBLIC_AI_PROMPT_VERSION,
+    })
+    if (!cached.result) {
+      return {
+        opportunity_id: opportunityId,
+        status: 'MISS',
+        runtime_window_status: windowStatus,
+        public_cache_window_state: windowCacheState,
+      }
+    }
+    return {
+      opportunity_id: opportunityId,
+      status: 'READY',
+      decision: cached.result,
+      decision_generated_at: cached.generated_at,
+      runtime_window_status: windowStatus,
+      public_cache_window_state: windowCacheState,
+      shared_public_cache: {
+        cache_hit: true,
+        durable: cached.durable === true,
+        prompt_version: PUBLIC_AI_PROMPT_VERSION,
+      },
+    }
+  }
+
+  try {
+    const keys = getApiKeys()
+    const baseUrl = (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim()
+    const cacheKey = `shared-public:${PUBLIC_AI_PROMPT_VERSION}:${opportunityId}:${factHash}:${windowCacheState}`
+    const result = await getOrCreateDecision({
+      cacheKey,
+      providerArgs: {
+        baseUrl,
+        facts: grounded.facts,
+        evidenceUrls: grounded.evidenceUrls,
+        customerContext: null,
+        windowStatus,
+        analysisAsOf,
+      },
+      keys,
+      opportunityId,
+      request,
+      sharedPublic: { factHash, windowState: windowCacheState },
+    })
+    return {
+      opportunity_id: opportunityId,
+      status: 'READY',
+      decision: result.decision,
+      decision_generated_at: result.cache.generated_at,
+      runtime_window_status: windowStatus,
+      public_cache_window_state: windowCacheState,
+      shared_public_cache: {
+        cache_hit: result.cache.cache_hit === true,
+        durable: result.cache.durable === true,
+        prompt_version: PUBLIC_AI_PROMPT_VERSION,
+      },
+    }
+  } catch (error) {
+    return {
+      opportunity_id: opportunityId,
+      status: 'ERROR',
+      error: batchErrorCode(error),
+      runtime_window_status: windowStatus,
+      public_cache_window_state: windowCacheState,
+    }
+  }
+}
+
 function relationshipStrengthLabel(value) {
   if (value === 'STRONG') return '较强'
   if (value === 'MEDIUM') return '中等'
@@ -605,9 +719,74 @@ export default async function handler(request, response) {
 
   const body = asObject(request.body)
   if (!body) return sendJson(response, 400, { error: 'JSON_BODY_REQUIRED' })
-  if (Object.keys(body).some((key) => !['opportunity_id', 'customer_context'].includes(key))) {
+  if (Object.keys(body).some((key) => ![
+    'opportunity_id',
+    'opportunity_ids',
+    'customer_context',
+    'cache_only',
+  ].includes(key))) {
     return sendJson(response, 400, { error: 'UNEXPECTED_FIELDS' })
   }
+
+  const batchRequested = Object.prototype.hasOwnProperty.call(body, 'opportunity_ids')
+  if (batchRequested) {
+    if (body.customer_context) {
+      return sendJson(response, 400, { error: 'BATCH_CUSTOMER_CONTEXT_UNSUPPORTED' })
+    }
+    if (!Array.isArray(body.opportunity_ids)) {
+      return sendJson(response, 400, { error: 'OPPORTUNITY_IDS_ARRAY_REQUIRED' })
+    }
+    const opportunityIds = [...new Set(
+      body.opportunity_ids
+        .map((value) => cleanString(value, 200))
+        .filter(Boolean),
+    )]
+    if (opportunityIds.length === 0) {
+      return sendJson(response, 400, { error: 'OPPORTUNITY_IDS_REQUIRED' })
+    }
+    if (opportunityIds.length > MAX_BATCH_OPPORTUNITIES) {
+      return sendJson(response, 400, {
+        error: 'OPPORTUNITY_BATCH_TOO_LARGE',
+        max_batch_size: MAX_BATCH_OPPORTUNITIES,
+      })
+    }
+    if (body.cache_only !== undefined && typeof body.cache_only !== 'boolean') {
+      return sendJson(response, 400, { error: 'CACHE_ONLY_BOOLEAN_REQUIRED' })
+    }
+
+    let batchSnapshot
+    try {
+      batchSnapshot = await loadVerifiedSnapshot()
+    } catch {
+      return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
+    }
+
+    const cacheOnly = body.cache_only === true
+    const items = await Promise.all(
+      opportunityIds.map((opportunityId) =>
+        analyzeSharedPublicBatchItem({
+          snapshot: batchSnapshot,
+          opportunityId,
+          request,
+          cacheOnly,
+        }),
+      ),
+    )
+    return sendJson(response, 200, {
+      schema_version: '0.1',
+      mode: 'BATCH',
+      cache_only: cacheOnly,
+      snapshot_as_of: cleanString(batchSnapshot.snapshot_as_of, 100),
+      snapshot_source_mode: verifiedSnapshotSourceMode(),
+      requested_count: opportunityIds.length,
+      ready_count: items.filter((item) => item.status === 'READY').length,
+      cache_hit_count: items.filter((item) => item.shared_public_cache?.cache_hit === true).length,
+      miss_count: items.filter((item) => item.status === 'MISS').length,
+      error_count: items.filter((item) => item.status === 'ERROR').length,
+      items,
+    })
+  }
+
   const opportunityId = cleanString(body.opportunity_id, 200)
   if (!opportunityId) return sendJson(response, 400, { error: 'OPPORTUNITY_ID_REQUIRED' })
 
