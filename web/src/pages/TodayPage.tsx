@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Clock, Info, Radar } from 'lucide-react'
+import { Clock, Info, Loader2, Radar, Sparkles } from 'lucide-react'
 import { ActionCard } from '@/components/today/ActionCard'
 import { DueRemindersPanel } from '@/components/today/DueRemindersPanel'
 import { MetricCards } from '@/components/today/MetricCards'
@@ -86,6 +86,7 @@ export function TodayPage() {
   const [error, setError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [aiBusyId, setAiBusyId] = useState<string | null>(null)
+  const [aiBatchBusy, setAiBatchBusy] = useState(false)
   const [reminderBusyId, setReminderBusyId] = useState<string | null>(null)
   const [notFitId, setNotFitId] = useState<string | null>(null)
   const [remindId, setRemindId] = useState<string | null>(null)
@@ -125,10 +126,8 @@ export function TodayPage() {
 
     try {
       const res = await todayActionsService.getTodayActions()
+      let nextData: TodayActionsResponse = res
       if (!isApiMode && isVerifiedPublicDemo) {
-        // Only the public demo reuses browser-side AI decisions on initial load.
-        // Keep the AI client out of the authenticated Pilot Today bundle until
-        // a Pilot user explicitly asks for analysis.
         const { hydrateCachedAiDecisions } = await import('@/services/aiDecisionApi')
         const pool = res.opportunity_pool ?? res.cards
         const hydratedPool = await hydrateCachedAiDecisions(pool)
@@ -142,17 +141,29 @@ export function TodayPage() {
           )
           .slice(0, MAX_TODAY_CARDS)
           .map((card, index) => ({ ...card, rank: index + 1 }))
-        setData({
+        nextData = {
           ...res,
           matched_count: hydratedPool.length,
           card_count: cards.length,
           opportunity_pool_count: hydratedPool.length,
           cards,
           opportunity_pool: hydratedPool,
-        })
-      } else {
-        setData(res)
+        }
+      } else if (isApiMode) {
+        const { hydrateSharedAiDecisions } = await import('@/services/aiDecisionApi')
+        const hydratedCards = await hydrateSharedAiDecisions(res.cards)
+        const hydratedById = new Map(
+          hydratedCards.map((card) => [card.opportunity_id, card]),
+        )
+        nextData = {
+          ...res,
+          cards: hydratedCards,
+          opportunity_pool: res.opportunity_pool?.map(
+            (card) => hydratedById.get(card.opportunity_id) ?? card,
+          ),
+        }
       }
+      setData(nextData)
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
@@ -232,6 +243,75 @@ export function TodayPage() {
     }
   }
 
+  const analyzeVisibleOpportunities = async () => {
+    const automationUnavailableReason = runtimeAutomationUnavailableReason(
+      runtimeStatus,
+      runtimeStatusChecked,
+    )
+    const candidates = data?.cards.filter(
+      (card) =>
+        card.model_decision_status === 'AWAITING_MODEL' &&
+        !card.decision,
+    ) ?? []
+    if (
+      candidates.length === 0 ||
+      automationUnavailableReason ||
+      (!isApiMode && !isVerifiedPublicDemo)
+    ) {
+      return
+    }
+
+    let aiApi: typeof import('@/services/aiDecisionApi') | null = null
+    setAiBatchBusy(true)
+    try {
+      aiApi = await import('@/services/aiDecisionApi')
+      const result = await aiApi.requestAiDecisionBatch(candidates)
+      const readyIds = Object.keys(result.decisions)
+      if (readyIds.length > 0) {
+        setData((current) => {
+          if (!current) return current
+          const updateCard = (item: TodayActionCard) => {
+            const decision = result.decisions[item.opportunity_id]
+            return decision
+              ? {
+                  ...item,
+                  model_decision_status: 'READY' as const,
+                  model_block_reason: null,
+                  decision,
+                }
+              : item
+          }
+          return {
+            ...current,
+            cards: current.cards.map(updateCard),
+            opportunity_pool: current.opportunity_pool?.map(updateCard),
+          }
+        })
+      }
+
+      const errorCount = Object.keys(result.errors).length
+      if (readyIds.length > 0 && errorCount === 0) {
+        toast(`AI已完成 ${readyIds.length} 条行动分析`, 'success')
+      } else if (readyIds.length > 0) {
+        toast(`已完成 ${readyIds.length} 条，另有 ${errorCount} 条未完成`)
+      } else if (errorCount > 0) {
+        const firstCode = Object.values(result.errors)[0]
+        toast(aiApi.aiDecisionErrorMessage(new aiApi.AiDecisionError(firstCode, 502)))
+      }
+    } catch (cause) {
+      if (aiApi && cause instanceof aiApi.AiDecisionError && cause.code === 'AUTH_REQUIRED') {
+        navigate('/login', { replace: true })
+        return
+      }
+      if (aiApi && cause instanceof aiApi.AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
+        setRuntimeStatus((current) => current ? { ...current, ai: { configured: false } } : current)
+      }
+      toast(aiApi ? aiApi.aiDecisionErrorMessage(cause) : 'AI批量分析模块加载失败，请重试')
+    } finally {
+      setAiBatchBusy(false)
+    }
+  }
+
   const acknowledgeReminder = async (reminderId: string) => {
     setReminderBusyId(reminderId)
     try {
@@ -269,6 +349,9 @@ export function TodayPage() {
       : null
   )
   const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
+  const pendingAiCount = visibleCards.filter(
+    (card) => card.model_decision_status === 'AWAITING_MODEL' && !card.decision,
+  ).length
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -291,6 +374,18 @@ export function TodayPage() {
             <span>{userCoverageWarning(data.coverage_warning)}</span>
           </div>
           <div className="flex flex-wrap gap-2">
+            {(isApiMode || isVerifiedPublicDemo) && pendingAiCount > 0 ? (
+              <button
+                type="button"
+                disabled={aiBatchBusy || Boolean(aiUnavailableReason)}
+                onClick={() => void analyzeVisibleOpportunities()}
+                title={aiUnavailableReason || '一次请求分析当前页面所有尚未分析的重点商机'}
+                className="inline-flex self-start items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[12px] font-medium text-indigo-800 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-500"
+              >
+                {aiBatchBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                {aiBatchBusy ? '批量分析中' : `AI分析未分析项（${pendingAiCount}）`}
+              </button>
+            ) : null}
             {(isApiMode || isVerifiedPublicDemo) ? (
               <button
                 type="button"

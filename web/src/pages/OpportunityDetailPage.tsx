@@ -117,7 +117,7 @@ export function OpportunityDetailPage() {
           if (!silent) setPublicHistory(null)
         }
       } else {
-        if (!isApiMode && isVerifiedPublicDemo) {
+        if (isApiMode || isVerifiedPublicDemo) {
           const [hydrated] = await hydrateCachedAiDecisions([res])
           setCard(hydrated ?? res)
         } else {

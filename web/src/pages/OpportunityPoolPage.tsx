@@ -18,7 +18,7 @@ import { StageBadge } from '@/components/shared/StageBadge'
 import { marketCodesForSelection, marketSelectionLabel } from '@/config/marketPreference'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
-import { AiDecisionError, requestAiDecision } from '@/services/aiDecisionApi'
+import { AiDecisionError, hydrateSharedAiDecisions, requestAiDecision } from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { persistLocalFollowup } from '@/services/localFollowupStore'
 import {
@@ -355,6 +355,38 @@ export function OpportunityPoolPage() {
       return normalizedSearchText(card).includes(needle)
     })
   }, [cards, query, selectedMarketCodes, windowFilter])
+
+  useEffect(() => {
+    let cancelled = false
+    const candidates = visible
+      .filter(
+        (card) =>
+          card.model_decision_status === 'AWAITING_MODEL' &&
+          !card.decision,
+      )
+      .slice(0, 10)
+    if (candidates.length === 0) return () => { cancelled = true }
+
+    void hydrateSharedAiDecisions(candidates).then((hydrated) => {
+      if (cancelled) return
+      const ready = hydrated.filter((card) => Boolean(card.decision))
+      if (ready.length === 0) return
+      const byId = new Map(ready.map((card) => [card.opportunity_id, card]))
+      setCards((current) => {
+        let changed = false
+        const next = current.map((card) => {
+          const hydratedCard = byId.get(card.opportunity_id)
+          if (!hydratedCard || hydratedCard.decision === card.decision) return card
+          changed = true
+          return hydratedCard
+        })
+        return changed ? next : current
+      })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [visible])
 
   const addToFollowups = async (id: string) => {
     const card = cards.find((item) => item.opportunity_id === id)

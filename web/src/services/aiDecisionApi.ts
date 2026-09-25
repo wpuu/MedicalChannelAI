@@ -179,14 +179,133 @@ function cacheDecision(opportunityId: string, snapshotAsOf: string, fingerprintV
   writeCache([{ snapshot_as_of: snapshotAsOf, opportunity_id: opportunityId, context_fingerprint: fingerprintValue, cached_at: new Date().toISOString(), decision }, ...existing])
 }
 
+export interface AiDecisionBatchResult {
+  decisions: Record<string, Decision>
+  misses: string[]
+  errors: Record<string, string>
+  requested_count: number
+  ready_count: number
+  cache_hit_count: number
+}
+
+function batchEligibleCards(cards: TodayActionCard[]): TodayActionCard[] {
+  const seen = new Set<string>()
+  return cards.filter((card) => {
+    if (
+      card.model_decision_status === 'NOT_ELIGIBLE' ||
+      card.model_decision_status === 'BLOCKED_GROUNDING' ||
+      card.decision
+    ) {
+      return false
+    }
+    if (seen.has(card.opportunity_id)) return false
+    seen.add(card.opportunity_id)
+    return true
+  }).slice(0, 10)
+}
+
+export async function requestAiDecisionBatch(
+  cards: TodayActionCard[],
+  options: { cacheOnly?: boolean } = {},
+): Promise<AiDecisionBatchResult> {
+  const eligible = batchEligibleCards(cards)
+  if (eligible.length === 0) {
+    return {
+      decisions: {},
+      misses: [],
+      errors: {},
+      requested_count: 0,
+      ready_count: 0,
+      cache_hit_count: 0,
+    }
+  }
+
+  const cacheOnly = options.cacheOnly === true
+  let gateAcquired = false
+  if (!cacheOnly) {
+    if (!beginAiRequest()) throw new AiDecisionError('AI_CLIENT_BUSY', 429)
+    gateAcquired = true
+  }
+
+  try {
+    const response = await fetch('/api/ai/analyze', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        opportunity_ids: eligible.map((card) => card.opportunity_id),
+        cache_only: cacheOnly,
+      }),
+    })
+
+    const payload: unknown = await response.json().catch(() => null)
+    const record = asRecord(payload)
+    if (!response.ok) {
+      const code = typeof record?.error === 'string' ? record.error : `AI_HTTP_${response.status}`
+      throw new AiDecisionError(code, response.status)
+    }
+
+    const decisions: Record<string, Decision> = {}
+    const misses: string[] = []
+    const errors: Record<string, string> = {}
+    const items = Array.isArray(record?.items) ? record.items : []
+    for (const rawItem of items) {
+      const item = asRecord(rawItem)
+      const opportunityId = typeof item?.opportunity_id === 'string' ? item.opportunity_id : ''
+      if (!opportunityId) continue
+      if (item?.status === 'READY') {
+        const decision = normalizeDecision(item.decision)
+        if (decision) decisions[opportunityId] = decision
+        else errors[opportunityId] = 'AI_RESPONSE_INVALID'
+      } else if (item?.status === 'MISS') {
+        misses.push(opportunityId)
+      } else {
+        errors[opportunityId] = typeof item?.error === 'string' ? item.error : 'AI_BATCH_ITEM_FAILED'
+      }
+    }
+
+    return {
+      decisions,
+      misses,
+      errors,
+      requested_count: typeof record?.requested_count === 'number' ? record.requested_count : eligible.length,
+      ready_count: typeof record?.ready_count === 'number' ? record.ready_count : Object.keys(decisions).length,
+      cache_hit_count: typeof record?.cache_hit_count === 'number' ? record.cache_hit_count : 0,
+    }
+  } finally {
+    if (gateAcquired) endAiRequest()
+  }
+}
+
+export async function hydrateSharedAiDecisions(
+  cards: TodayActionCard[],
+): Promise<TodayActionCard[]> {
+  try {
+    const result = await requestAiDecisionBatch(cards, { cacheOnly: true })
+    if (Object.keys(result.decisions).length === 0) return cards
+    return cards.map((card) => {
+      const decision = result.decisions[card.opportunity_id]
+      return decision
+        ? { ...card, model_decision_status: 'READY', model_block_reason: null, decision }
+        : card
+    })
+  } catch {
+    // Shared hydration is a best-effort optimization. The normal single-item
+    // analysis path remains available when cache lookup is unavailable.
+    return cards
+  }
+}
+
 export async function hydrateCachedAiDecisions(cards: TodayActionCard[]): Promise<TodayActionCard[]> {
+  const sharedHydrated = await hydrateSharedAiDecisions(cards)
   // Pilot personalization is server-side. A browser cache cannot know when the
   // authenticated user's private profile changed, so do not reuse personalized
   // decisions from localStorage in API mode.
-  if (isApiMode) return cards
+  if (isApiMode) return sharedHydrated
   const snapshotAsOf = await getSnapshotAsOf()
-  if (!snapshotAsOf) return cards
-  return cards.map((card) => {
+  if (!snapshotAsOf) return sharedHydrated
+  return sharedHydrated.map((card) => {
+    if (card.decision) return card
     if (card.model_decision_status === 'NOT_ELIGIBLE' || card.model_decision_status === 'BLOCKED_GROUNDING') return card
     const decision = findCachedDecision(card.opportunity_id, snapshotAsOf, decisionFingerprint(card))
     if (!decision) return card
