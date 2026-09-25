@@ -1,0 +1,149 @@
+name: Regional Medical Incremental Radar
+
+on:
+  schedule:
+    # Beijing time (UTC+8), weekdays:
+    # 08:30-18:30 every 30 minutes.
+    - cron: '0,30 0-10 * * 1-5'
+    # 19:30-21:30 hourly.
+    - cron: '30 11-13 * * 1-5'
+    # 23:00 close-out scan.
+    - cron: '0 15 * * 1-5'
+    # 07:30 pre-open scan (23:30 UTC on the previous calendar day).
+    - cron: '30 23 * * 0-4'
+    # Weekends: bounded daytime coverage every 3 hours, 08:30-20:30 Beijing.
+    - cron: '30 0-12/3 * * 6,0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: medicalchannel-regional-refresh
+  cancel-in-progress: false
+
+jobs:
+  incremental:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify incremental radar regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd web/pipeline
+          python3 -m unittest \
+            tests.test_regional_incremental_radar \
+            tests.test_regional_candidate_classification \
+            tests.test_ccgp_detail
+
+      - name: Compute refresh timestamp
+        id: clock
+        shell: bash
+        run: |
+          set -euo pipefail
+          AS_OF="$(python3 - <<'PY'
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          print(datetime.now(ZoneInfo('Asia/Shanghai')).isoformat())
+          PY
+          )"
+          echo "as_of=${AS_OF}" >> "$GITHUB_OUTPUT"
+
+      - name: Scan and verify unseen regional opportunities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/sync_regional_ccgp.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --lookback-days 1 \
+            --incremental-only \
+            --existing-records-input web/pipeline/data/regional_live_ccgp_records.json \
+            --records-output web/pipeline/data/regional_live_ccgp_records.json \
+            --report-output web/pipeline/data/regional_incremental_sync_report.json
+
+      - name: Detect verified changes
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          COUNT="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('web/pipeline/data/regional_incremental_sync_report.json').read_text(encoding='utf-8'))
+          print(int(report.get('new_verified_record_count') or 0))
+          PY
+          )"
+          echo "new_verified_count=${COUNT}" >> "$GITHUB_OUTPUT"
+          if [[ "${COUNT}" -gt 0 ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "No new verified opportunity; snapshot, AI and Git publication are skipped."
+          fi
+
+      - name: Publish combined verified snapshot
+        if: steps.changes.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/publish_web_snapshot.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            --input web/pipeline/data/tianjin_live_ccgp_records.json \
+            --input web/pipeline/data/tianjin_live_tjmugh_records.json \
+            --input web/pipeline/data/tianjin_live_tjnothop_records.json \
+            --input web/pipeline/data/tianjin_live_tjzxfc_records.json \
+            --input web/pipeline/data/tianjin_live_tjzyefy_records.json \
+            --input web/pipeline/data/tianjin_live_tjzyefy_intent_records.json \
+            --input web/pipeline/data/tianjin_live_teda_records.json \
+            --input web/pipeline/data/tianjin_live_tjfch_records.json \
+            --event-input web/pipeline/data/tianjin_notice_events.json \
+            --output web/public/data/today-actions.public.json
+
+      - name: Publish and verify external snapshot
+        if: steps.changes.outputs.publish == 'true'
+        shell: bash
+        env:
+          VERIFIED_SNAPSHOT_PUBLISH_URL: https://medicalchannelai.vercel.app/api/public-snapshot
+          VERIFIED_SNAPSHOT_PUBLISH_TOKEN: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_TOKEN }}
+          VERIFIED_SNAPSHOT_READ_URL: https://medicalchannelai.vercel.app/api/public-snapshot
+        run: |
+          set -euo pipefail
+          test -n "${VERIFIED_SNAPSHOT_PUBLISH_TOKEN:-}" || { echo 'VERIFIED_SNAPSHOT_PUBLISH_TOKEN missing' >&2; exit 2; }
+          python3 web/pipeline/scripts/publish_snapshot_http.py \
+            --snapshot web/public/data/today-actions.public.json \
+            --method PUT
+          verified=0
+          for attempt in 1 2 3; do
+            if python3 web/pipeline/scripts/verify_snapshot_roundtrip.py \
+              --snapshot web/public/data/today-actions.public.json; then
+              verified=1
+              break
+            fi
+            [[ "${attempt}" -lt 3 ]] && sleep 2
+          done
+          [[ "${verified}" -eq 1 ]] || { echo 'External snapshot round-trip verification failed.' >&2; exit 2; }
+
+      - name: Commit verified incremental refresh
+        if: steps.changes.outputs.publish == 'true'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/publish_generated_data_github.py \
+            --branch "${GITHUB_REF_NAME}" \
+            --message 'data: incremental regional verified opportunities' \
+            web/pipeline/data/regional_live_ccgp_records.json \
+            web/pipeline/data/regional_incremental_sync_report.json \
+            web/public/data/today-actions.public.json
