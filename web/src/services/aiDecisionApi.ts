@@ -305,6 +305,7 @@ export async function hydrateCachedAiDecisions(cards: TodayActionCard[]): Promis
   const snapshotAsOf = await getSnapshotAsOf()
   if (!snapshotAsOf) return sharedHydrated
   return sharedHydrated.map((card) => {
+    if (card.decision) return card
     if (card.model_decision_status === 'NOT_ELIGIBLE' || card.model_decision_status === 'BLOCKED_GROUNDING') return card
     const decision = findCachedDecision(card.opportunity_id, snapshotAsOf, decisionFingerprint(card))
     if (!decision) return card
