@@ -34,7 +34,9 @@ permissions:
   contents: write
 
 concurrency:
-  group: medicalchannel-deep-refresh-${{ github.ref_name }}
+  # Serialize the daily reconciliation with the daytime incremental radar so
+  # both jobs never publish or commit the same regional snapshot concurrently.
+  group: medicalchannel-regional-refresh
   cancel-in-progress: false
 
 jobs:
