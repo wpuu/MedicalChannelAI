@@ -1,0 +1,71 @@
+name: Stage AI Cache V2 Production 2026-09-25
+
+on:
+  push:
+    branches: [release/ai-cache-v2-production-20260925]
+    paths:
+      - '.github/workflows/stage-ai-cache-v2-production-20260925.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  stage:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Require deployment credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing; no deployment attempted'; exit 1; }
+
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: 0b600a16e6361075003addf10aa6dbd3e5708f5f
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact source
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD 2>/dev/null || true)"
+          if [[ -n "$ACTUAL" ]]; then
+            echo "Checked out: $ACTUAL"
+            test "$ACTUAL" = '0b600a16e6361075003addf10aa6dbd3e5708f5f'
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Link exact Vercel project locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_jEy8Ex9vRDBdXj1cQPKF8sRd","projectId":"prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"}' > .vercel/project.json
+
+      - name: Create staged Production deployment without domain switch
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
+          case "$DEPLOY_URL" in https://*) ;; *) echo '::error::No staged URL returned'; exit 1;; esac
+          echo "Staged Production URL: $DEPLOY_URL"
+          echo 'Exact source SHA: 0b600a16e6361075003addf10aa6dbd3e5708f5f'
+          echo 'Production domain switch: skipped'
+          echo "- Exact source: \`0b600a16e6361075003addf10aa6dbd3e5708f5f\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Staged URL: \`$DEPLOY_URL\`" >> "$GITHUB_STEP_SUMMARY"
+          echo '- Production domain switch: skipped' >> "$GITHUB_STEP_SUMMARY"
