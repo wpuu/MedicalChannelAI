@@ -93,8 +93,7 @@ def _recovery_cycle_id(cache: RuntimeCache, local_date: str) -> str | None:
         stage_state = stages.get(stage_name)
         if (
             isinstance(stage_state, dict)
-            and stage_state.get("status") == "RUNNING"
-            and int(stage_state.get("attempt_count", 0)) >= 2
+            and stage_state.get("status") in {"RUNNING", "COMPLETED"}
             and f"{stage_name}_fallback" not in stages
         ):
             return f"prod:{local_date}:recovery-v6"
