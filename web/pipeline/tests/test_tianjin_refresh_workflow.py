@@ -14,12 +14,14 @@ class TianjinRefreshWorkflowTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW_PATH.read_text(encoding='utf-8')
 
-    def test_daily_deep_uses_validated_self_hosted_runner_and_system_python(self) -> None:
-        self.assertIn('      - self-hosted', self.workflow)
-        self.assertIn('      - medicalchannelai-ci', self.workflow)
+    def test_daily_deep_uses_github_hosted_runner_and_pinned_python(self) -> None:
+        self.assertIn('    runs-on: ubuntu-latest', self.workflow)
+        self.assertNotIn('      - self-hosted', self.workflow)
+        self.assertNotIn('      - medicalchannelai-ci', self.workflow)
+        self.assertIn('uses: actions/setup-python@v5', self.workflow)
+        self.assertIn("python-version: '3.13'", self.workflow)
         self.assertIn('- name: Verify system Python', self.workflow)
         self.assertIn('run: python3 --version', self.workflow)
-        self.assertNotIn('actions/setup-python', self.workflow)
 
     def test_teda_uses_shared_authoritative_refresh_clock(self) -> None:
         match = re.search(
