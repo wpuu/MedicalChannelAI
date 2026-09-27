@@ -16,7 +16,10 @@ jobs:
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       TEAM_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      TEAM_SLUG: rerisse7-1717s-projects
       PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
       PUBLIC_ORIGIN: https://medicalchannelai.vercel.app
       EXPECTED_COMMIT: 2d91574
 
@@ -45,28 +48,37 @@ jobs:
           echo '::error::Expected Production commit did not become active in time.'
           exit 1
 
-      - name: Read existing CRON_SECRET securely
+      - name: Pull existing CRON_SECRET securely with Vercel CLI
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsS             -H "Authorization: Bearer $VERCEL_TOKEN"             "https://api.vercel.com/v10/projects/$PROJECT_ID/env?decrypt=true&teamId=$TEAM_ID" > "$RUNNER_TEMP/env.json"
-          python3 - "$RUNNER_TEMP/env.json" "$RUNNER_TEMP/cron_secret" <<'PY'
-          import json,sys
-          d=json.load(open(sys.argv[1],encoding='utf-8'))
-          for item in d.get('envs') or []:
-              if item.get('key')=='CRON_SECRET' and 'production' in (item.get('target') or []):
-                  value=str(item.get('value') or '')
-                  if len(value) < 24:
-                      raise SystemExit('CRON_SECRET_DECRYPT_EMPTY')
-                  open(sys.argv[2],'w',encoding='utf-8').write(value)
-                  print('CRON_SECRET_DECRYPT=PASS')
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "$tmpdir"' EXIT
+          (
+            cd "$tmpdir"
+            npx --yes vercel@latest pull --yes --environment=production --scope "$TEAM_SLUG" --token "$VERCEL_TOKEN" >/dev/null
+            npx --yes vercel@latest env pull "$RUNNER_TEMP/prod.env" --environment=production --yes --scope "$TEAM_SLUG" --token "$VERCEL_TOKEN" >/dev/null
+          )
+          python3 - "$RUNNER_TEMP/prod.env" "$RUNNER_TEMP/cron_secret" <<'PY'
+          import sys
+          from pathlib import Path
+          src=Path(sys.argv[1]).read_text(encoding='utf-8').splitlines()
+          value=''
+          for line in src:
+              if line.startswith('CRON_SECRET='):
+                  value=line.split('=',1)[1].strip()
+                  if len(value)>=2 and value[0]==value[-1] and value[0] in {'"', "'"}:
+                      value=value[1:-1]
                   break
-          else:
-              raise SystemExit('CRON_SECRET_NOT_FOUND')
+          if len(value) < 24:
+              raise SystemExit('CRON_SECRET_PULL_EMPTY')
+          Path(sys.argv[2]).write_text(value,encoding='utf-8')
+          print('CRON_SECRET_PULL=PASS')
           PY
           CRON_SECRET_VALUE="$(cat "$RUNNER_TEMP/cron_secret")"
           echo "::add-mask::$CRON_SECRET_VALUE"
           chmod 600 "$RUNNER_TEMP/cron_secret"
+          rm -f "$RUNNER_TEMP/prod.env"
 
       - name: Trigger authenticated deep collector
         shell: bash
