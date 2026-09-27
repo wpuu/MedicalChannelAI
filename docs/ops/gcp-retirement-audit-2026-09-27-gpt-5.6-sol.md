@@ -209,3 +209,34 @@ GCP VM 本机没有可复用的 Vercel CLI 登录态。
 8. DigitalPlat DNS 最终仍需把 `medicalai.qd.je` 从 `35.211.124.40` 直接切到 Vercel；在 DNS 完成前保留当前 GCP 301 重定向。
 
 注意：当前 GCP 已不再代理 MedicalChannelAI 网站正文，只提供旧域名 301，因此网站流量出网问题已基本止血；但 Runner 仍不能直接停。
+
+
+## 13. MCAI-GCP-RETIRE-005：Neon Production 数据库已准备
+
+2026-09-27 已完成 Neon 生产数据库准备：
+
+- Neon Project：`orange-band-79103824`
+- Project name：`MedicalChannelAI Preview Test`
+- Branch：`main` / `br-billowing-night-a5gfc23w`
+- Region：`aws-us-east-2`
+- Plan：`free_v3`
+- 原数据库 `neondb` 保留 Preview/测试数据，不作为 Production 数据库；其中已有测试用户/会话，因此禁止直接当生产库。
+- 新建独立生产数据库：`medicalchannelai_prod`
+- 新建独立应用角色：`medicalchannelai_app`
+- 已授予该角色 `medicalchannelai_prod` 的运行期所需权限。
+- 已按当前 main 初始化 private/public schema。
+- private schema version：`2026-09-04-ui-preference-v1`
+- public schema version：`2026-09-27-public-intelligence-v2`
+- 初始化后：`private_users=0`、`public_opportunities=0`、`public_verified_snapshots=0`
+- 已验证可取得 `medicalchannelai_app -> medicalchannelai_prod` 专用连接串；连接串/密码不得写入 GitHub 或审计文档。
+
+当前唯一生产控制面阻塞仍在 Vercel：
+
+1. Vercel Production 尚未写入上述生产数据库的 `DATABASE_URL`；
+2. Vercel Production 尚未配置 `CRON_SECRET`；
+3. 最新 main 尚未重新部署到 Production；
+4. 当前可用 Vercel MCP 只提供项目/部署/日志等能力，不提供 Environment Variable 写入接口；
+5. 自动浏览器没有用户的 Vercel 登录态；Work/Computer Use handoff 已被用户拒绝，因此不得继续依赖 Work；
+6. 在 Vercel 控制面完成上述两项变量前，禁止停止 `medicalchannelai-gcp-1`。
+
+下一验收门：Vercel Production 配置完成后，必须依次验证 `/api/auth/me`、`/api/pipeline-health`、一次 authenticated `/api/collector-run`、`/api/collector-status` 实际 stage 进展、以及 `/api/status` 的 durable/new snapshot，再讨论 Runner 退役。
