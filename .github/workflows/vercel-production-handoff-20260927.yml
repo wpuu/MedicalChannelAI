@@ -86,13 +86,69 @@ jobs:
           chmod 600 "$RUNNER_TEMP/cron_secret"
           echo 'CRON_SECRET_UPSERT=PASS'
 
-      - name: Redeploy verified candidate to Production with current environment
+      - name: Create exact main Production deployment via Vercel REST API
         shell: bash
         run: |
           set -euo pipefail
-          npx --yes vercel@latest redeploy "$CANDIDATE_URL"             --target=production             --non-interactive             --scope "$TEAM_SLUG"             --token "$VERCEL_TOKEN" > "$RUNNER_TEMP/redeploy.out"
-          tail -n 5 "$RUNNER_TEMP/redeploy.out" | sed -E 's#https://[^ ]+#<deployment-url>#g'
-          echo 'PRODUCTION_REDEPLOY_REQUEST=PASS'
+          cat > "$RUNNER_TEMP/deploy-request.json" <<'JSON'
+          {
+            "name": "medicalchannelai",
+            "project": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+            "target": "production",
+            "gitSource": {
+              "type": "github",
+              "org": "wpuu",
+              "repo": "MedicalChannelAI",
+              "ref": "main"
+            }
+          }
+          JSON
+
+          code="$(curl -sS -o "$RUNNER_TEMP/deploy-create.json" -w '%{http_code}' -X POST -H "Authorization: Bearer $VERCEL_TOKEN" -H 'Content-Type: application/json' --data-binary @"$RUNNER_TEMP/deploy-request.json" "https://api.vercel.com/v13/deployments?teamId=$TEAM_ID")"
+          if [[ "$code" != "200" && "$code" != "201" ]]; then
+            echo "::error::Production deployment create failed HTTP $code"
+            python3 - "$RUNNER_TEMP/deploy-create.json" <<'PY'
+          import json,sys
+          try:
+              d=json.load(open(sys.argv[1], encoding='utf-8'))
+              e=d.get('error') or {}
+              print({'code': e.get('code'), 'message': e.get('message')})
+          except Exception:
+              print('Vercel deployment API returned non-JSON error.')
+          PY
+            exit 1
+          fi
+
+          DEPLOYMENT_ID="$(python3 - "$RUNNER_TEMP/deploy-create.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1], encoding='utf-8'))
+          print(d.get('id') or d.get('uid') or '')
+          PY
+          )"
+          test -n "$DEPLOYMENT_ID" || { echo '::error::Deployment ID missing'; exit 1; }
+          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> "$GITHUB_ENV"
+
+          for attempt in $(seq 1 60); do
+            sleep 5
+            curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID?teamId=$TEAM_ID" > "$RUNNER_TEMP/deploy-state.json"
+            state="$(python3 - "$RUNNER_TEMP/deploy-state.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1], encoding='utf-8'))
+          print(d.get('readyState') or d.get('state') or '')
+          PY
+          )"
+            echo "Deployment attempt $attempt: state=$state"
+            if [[ "$state" = "READY" ]]; then
+              echo 'PRODUCTION_DEPLOYMENT_READY=PASS'
+              exit 0
+            fi
+            if [[ "$state" = "ERROR" || "$state" = "CANCELED" ]]; then
+              echo '::error::Production deployment entered terminal failure state.'
+              exit 1
+            fi
+          done
+          echo '::error::Production deployment did not become READY within bounded polling window.'
+          exit 1
 
       - name: Verify database and cron configuration reached Production
         shell: bash
