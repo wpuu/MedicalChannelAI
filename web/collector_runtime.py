@@ -6,9 +6,10 @@ import os
 import sys
 import time
 from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
@@ -98,6 +99,49 @@ from medical_channel_pipeline.regional_candidate import (  # noqa: E402
     regional_candidate_selection_key,
     regional_candidate_skip_reason,
 )
+from medical_channel_pipeline.tjzxfc_discovery import (  # noqa: E402
+    INDEX_URL as TJZXFC_INDEX_URL,
+    fetch_tjzxfc_page,
+    parse_tjzxfc_index_html,
+    select_candidates_since as select_tjzxfc_candidates,
+    stable_opportunity_id as tjzxfc_opportunity_id,
+)
+from medical_channel_pipeline.tjzxfc_market_research import (  # noqa: E402
+    TjzxfcParseError,
+    parse_tjzxfc_market_research,
+)
+from medical_channel_pipeline.tjzyefy_discovery import (  # noqa: E402
+    INDEX_URL as TJZYEFY_INDEX_URL,
+    fetch_tjzyefy_page,
+    parse_tjzyefy_index_html,
+    select_candidates_since as select_tjzyefy_candidates,
+    stable_opportunity_id as tjzyefy_opportunity_id,
+)
+from medical_channel_pipeline.tjzyefy_market_research import (  # noqa: E402
+    TjzyefyParseError,
+    parse_tjzyefy_market_research,
+)
+from medical_channel_pipeline.tjzyefy_intent_discovery import (  # noqa: E402
+    parse_tjzyefy_intent_index_html,
+    select_intent_candidates_since as select_tjzyefy_intent_candidates,
+    stable_intent_opportunity_id as tjzyefy_intent_opportunity_id,
+)
+from medical_channel_pipeline.tjzyefy_procurement_intent import (  # noqa: E402
+    TjzyefyIntentParseError,
+    parse_tjzyefy_procurement_intent,
+)
+from sync_tjzxfc_market_research import (  # noqa: E402
+    UNSUPPORTED_DETAIL_CODES as TJZXFC_UNSUPPORTED_DETAIL_CODES,
+    is_retryable_fetch_error as tjzxfc_is_retryable_fetch_error,
+)
+from sync_tjzyefy_market_research import (  # noqa: E402
+    UNSUPPORTED_DETAIL_CODES as TJZYEFY_UNSUPPORTED_DETAIL_CODES,
+    is_retryable_fetch_error as tjzyefy_is_retryable_fetch_error,
+)
+from sync_tjzyefy_procurement_intent import (  # noqa: E402
+    UNSUPPORTED_DETAIL_CODES as TJZYEFY_INTENT_UNSUPPORTED_DETAIL_CODES,
+    is_retryable_fetch_error as tjzyefy_intent_is_retryable_fetch_error,
+)
 
 SCHEMA_VERSION = "0.1"
 SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -128,6 +172,13 @@ TJFCH_MAX_CANDIDATES = 20
 TJFCH_TEST_LOOKBACK_DAYS = 14
 TJFCH_TEST_MAX_CANDIDATES = 30
 TJFCH_REQUEST_DELAY_SECONDS = 3.0
+# Tianjin official-site early signals (market research / in-hospital sourcing /
+# procurement intent). Same window and politeness as the verified GitHub sync
+# workflow: --lookback-days 30 --max-candidates 20 --delay-seconds 3.
+OFFICIAL_SITE_LOOKBACK_DAYS = 30
+OFFICIAL_SITE_MAX_CANDIDATES = 20
+OFFICIAL_SITE_REQUEST_DELAY_SECONDS = 3.0
+OFFICIAL_SITE_FETCH_ATTEMPTS = 2
 
 META_KEY = "medicalchannelai:collector-runtime-state:v1"
 CCGP_RECORDS_KEY = "medicalchannelai:collector-ccgp-records:v1"
@@ -137,6 +188,9 @@ TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v1"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v1"
 TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v1"
 TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v1"
+TJZXFC_RECORDS_KEY = "medicalchannelai:collector-tjzxfc-records:v1"
+TJZYEFY_RECORDS_KEY = "medicalchannelai:collector-tjzyefy-records:v1"
+TJZYEFY_INTENT_RECORDS_KEY = "medicalchannelai:collector-tjzyefy-intent-records:v1"
 REGIONAL_RECORDS_KEY_PREFIX = "medicalchannelai:collector-regional-records:v3"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 PUBLISHED_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:published:v2"
@@ -171,6 +225,9 @@ STAGE_ORDER = (
     "tjnothop",
     "teda",
     "tjfch",
+    "tjzxfc",
+    "tjzyefy",
+    "tjzyefy_intent",
     "regional_bj",
     "regional_bj_fallback",
     "regional_he",
@@ -195,6 +252,82 @@ class CollectorPrecondition(CollectorError):
 
 class CollectorStageBlocked(CollectorError):
     code = "COLLECTOR_STAGE_BLOCKED"
+
+
+@dataclass(frozen=True)
+class OfficialSiteSource:
+    """One Tianjin official-website early-signal source run as a deep-cycle stage.
+
+    ``records_key_name`` is resolved against this module at run time so the
+    v2 namespace override (collector_namespace.apply_runtime_namespace) applies
+    to these stages exactly like to the older ones.
+    """
+
+    stage: str
+    label: str
+    records_key_name: str
+    bootstrap_file: str
+    index_url: str
+    fetch_page: Callable[..., str]
+    parse_index: Callable[[str], list[Any]]
+    select_candidates: Callable[..., list[Any]]
+    parse_detail: Callable[..., dict[str, Any]]
+    opportunity_id: Callable[[str], str]
+    parse_error: type[Exception]
+    unsupported_codes: frozenset[str]
+    is_retryable_fetch_error: Callable[[Exception], bool]
+
+    def records_key(self) -> str:
+        return str(globals()[self.records_key_name])
+
+
+OFFICIAL_SITE_SOURCES: dict[str, OfficialSiteSource] = {
+    "tjzxfc": OfficialSiteSource(
+        stage="tjzxfc",
+        label="TJZXFC",
+        records_key_name="TJZXFC_RECORDS_KEY",
+        bootstrap_file="tianjin_live_tjzxfc_records.json",
+        index_url=TJZXFC_INDEX_URL,
+        fetch_page=fetch_tjzxfc_page,
+        parse_index=parse_tjzxfc_index_html,
+        select_candidates=select_tjzxfc_candidates,
+        parse_detail=parse_tjzxfc_market_research,
+        opportunity_id=tjzxfc_opportunity_id,
+        parse_error=TjzxfcParseError,
+        unsupported_codes=frozenset(TJZXFC_UNSUPPORTED_DETAIL_CODES),
+        is_retryable_fetch_error=tjzxfc_is_retryable_fetch_error,
+    ),
+    "tjzyefy": OfficialSiteSource(
+        stage="tjzyefy",
+        label="TJZYEFY",
+        records_key_name="TJZYEFY_RECORDS_KEY",
+        bootstrap_file="tianjin_live_tjzyefy_records.json",
+        index_url=TJZYEFY_INDEX_URL,
+        fetch_page=fetch_tjzyefy_page,
+        parse_index=parse_tjzyefy_index_html,
+        select_candidates=select_tjzyefy_candidates,
+        parse_detail=parse_tjzyefy_market_research,
+        opportunity_id=tjzyefy_opportunity_id,
+        parse_error=TjzyefyParseError,
+        unsupported_codes=frozenset(TJZYEFY_UNSUPPORTED_DETAIL_CODES),
+        is_retryable_fetch_error=tjzyefy_is_retryable_fetch_error,
+    ),
+    "tjzyefy_intent": OfficialSiteSource(
+        stage="tjzyefy_intent",
+        label="TJZYEFY_INTENT",
+        records_key_name="TJZYEFY_INTENT_RECORDS_KEY",
+        bootstrap_file="tianjin_live_tjzyefy_intent_records.json",
+        index_url=TJZYEFY_INDEX_URL,
+        fetch_page=fetch_tjzyefy_page,
+        parse_index=parse_tjzyefy_intent_index_html,
+        select_candidates=select_tjzyefy_intent_candidates,
+        parse_detail=parse_tjzyefy_procurement_intent,
+        opportunity_id=tjzyefy_intent_opportunity_id,
+        parse_error=TjzyefyIntentParseError,
+        unsupported_codes=frozenset(TJZYEFY_INTENT_UNSUPPORTED_DETAIL_CODES),
+        is_retryable_fetch_error=tjzyefy_intent_is_retryable_fetch_error,
+    ),
+}
 
 
 def _now_utc() -> datetime:
@@ -392,6 +525,8 @@ def _stage_output_keys(stage: str) -> tuple[str, ...]:
         return (TEDA_RECORDS_KEY,)
     if stage == "tjfch":
         return (TJFCH_RECORDS_KEY,)
+    if stage in OFFICIAL_SITE_SOURCES:
+        return (OFFICIAL_SITE_SOURCES[stage].records_key(),)
     if stage in REGIONAL_STAGE_MARKET_CODES:
         return (_regional_records_key(REGIONAL_STAGE_MARKET_CODES[stage]),)
     return ()
@@ -1164,6 +1299,153 @@ def _run_tjfch(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _bootstrap_official_site_records(source: OfficialSiteSource) -> list[dict[str, Any]]:
+    return merge_canonical_records([], _load_array(DATA_ROOT / source.bootstrap_file))
+
+
+def _fetch_official_site_page(source: OfficialSiteSource, url: str) -> str:
+    """Fetch with the sync scripts' transient-error retry, but budget-aware."""
+    for attempt in range(1, OFFICIAL_SITE_FETCH_ATTEMPTS + 1):
+        try:
+            return source.fetch_page(url, timeout_seconds=SOURCE_REQUEST_TIMEOUT_SECONDS)
+        except Exception as exc:
+            if (
+                attempt >= OFFICIAL_SITE_FETCH_ATTEMPTS
+                or not source.is_retryable_fetch_error(exc)
+                or _budget_remaining_seconds() < 2 * SOURCE_REQUEST_TIMEOUT_SECONDS
+            ):
+                raise
+            _sleep(OFFICIAL_SITE_REQUEST_DELAY_SECONDS)
+    raise AssertionError("unreachable")
+
+
+def _run_official_site_stage(
+    cache: RuntimeCache,
+    state: dict[str, Any],
+    source: OfficialSiteSource,
+) -> dict[str, Any]:
+    """Deep-cycle stage for one Tianjin official-website early-signal source.
+
+    Mirrors the verified GitHub sync scripts: index discovery -> bounded
+    candidate window -> official detail verification. An unsupported notice is
+    an explicit non-fact and is skipped; a failed verification of a notice that
+    is not already in canonical state blocks this source for the cycle so a
+    partial verification never advances canonical state.
+    """
+    as_of = _cycle_as_of(state)
+    local_date = as_of.astimezone(SHANGHAI).date()
+    start_date = local_date - timedelta(days=OFFICIAL_SITE_LOOKBACK_DAYS - 1)
+    observed_at = as_of.astimezone(timezone.utc).isoformat()
+    records_key = source.records_key()
+    existing_records, bootstrapped = _cached_list(
+        cache, records_key, lambda: _bootstrap_official_site_records(source)
+    )
+
+    try:
+        index_html = _fetch_official_site_page(source, source.index_url)
+        discovered = source.parse_index(index_html)
+    except Exception as exc:
+        raise CollectorStageBlocked(
+            f"{source.label}_INDEX_DISCOVERY_FAILED:{type(exc).__name__}:{str(exc)[:180]}"
+        ) from exc
+
+    selected = source.select_candidates(
+        discovered,
+        start_date=start_date,
+        end_date=local_date,
+        max_candidates=OFFICIAL_SITE_MAX_CANDIDATES,
+    )
+    new_records: list[dict[str, Any]] = []
+    failures: list[dict[str, Any]] = []
+    unsupported: list[dict[str, Any]] = []
+    failed_ids: list[str] = []
+    deferred_candidate_count = 0
+
+    for position, candidate in enumerate(selected):
+        if _budget_exhausted():
+            deferred_candidate_count = len(selected) - position
+            break
+        opportunity_id = source.opportunity_id(candidate.detail_url)
+        _sleep(OFFICIAL_SITE_REQUEST_DELAY_SECONDS)
+        try:
+            detail_html = _fetch_official_site_page(source, candidate.detail_url)
+            new_records.append(
+                source.parse_detail(
+                    detail_html,
+                    source_url=candidate.detail_url,
+                    index_url=source.index_url,
+                    index_published_at=candidate.published_at,
+                    expected_title=candidate.title,
+                    observed_at=observed_at,
+                    opportunity_id=opportunity_id,
+                )
+            )
+        except source.parse_error as exc:
+            if str(exc) in source.unsupported_codes:
+                unsupported.append(
+                    {"opportunity_id": opportunity_id, "title": candidate.title, "url": candidate.detail_url, "reason": str(exc)}
+                )
+                continue
+            failed_ids.append(opportunity_id)
+            failures.append(
+                {
+                    "stage": "verified_detail",
+                    "opportunity_id": opportunity_id,
+                    "title": candidate.title,
+                    "url": candidate.detail_url,
+                    "error": type(exc).__name__,
+                    "message": str(exc)[:300],
+                }
+            )
+        except Exception as exc:
+            failed_ids.append(opportunity_id)
+            failures.append(
+                {
+                    "stage": "verified_detail",
+                    "opportunity_id": opportunity_id,
+                    "title": candidate.title,
+                    "url": candidate.detail_url,
+                    "error": type(exc).__name__,
+                    "message": str(exc)[:300],
+                }
+            )
+
+    if selected and deferred_candidate_count == len(selected):
+        raise CollectorStageBlocked(f"COLLECTOR_STAGE_BUDGET_EXHAUSTED:{source.stage}:detail")
+
+    merged = merge_canonical_records(existing_records, new_records)
+    merged_ids = {
+        record.get("opportunity_id")
+        for record in merged
+        if isinstance(record, dict) and isinstance(record.get("opportunity_id"), str)
+    }
+    unresolved_failure_ids = [opportunity_id for opportunity_id in failed_ids if opportunity_id not in merged_ids]
+    if unresolved_failure_ids:
+        diagnostic = ";".join(
+            f"{item.get('error')}:{str(item.get('message'))[:80]}"
+            for item in failures
+            if item.get("opportunity_id") in unresolved_failure_ids
+        )
+        raise CollectorStageBlocked(
+            f"{source.label}_CANDIDATE_VERIFICATION_INCOMPLETE:{len(unresolved_failure_ids)}:{diagnostic[:200]}"
+        )
+
+    _cache_set(cache, records_key, merged, tag="medicalchannelai-collector-canonical")
+    return {
+        "source": source.label,
+        "discovered_supported_count": len(discovered),
+        "selected_candidate_count": len(selected),
+        "deferred_candidate_count": deferred_candidate_count,
+        "new_verified_record_count": len(new_records),
+        "unsupported_candidate_count": len(unsupported),
+        "resolved_failure_count": len(failed_ids) - len(unresolved_failure_ids),
+        "merged_record_count": len(merged),
+        "failure_count": 0,
+        "bootstrapped_records": bootstrapped,
+        "publish_gate_reason": "PASS",
+    }
+
+
 def _digest(value: Any) -> str:
     encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
@@ -1565,6 +1847,9 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     tjnothop_records = cache.get(TJNOTHOP_RECORDS_KEY)
     teda_records = cache.get(TEDA_RECORDS_KEY)
     tjfch_records = cache.get(TJFCH_RECORDS_KEY)
+    official_site_records = {
+        stage: cache.get(source.records_key()) for stage, source in OFFICIAL_SITE_SOURCES.items()
+    }
     regional_records_by_market = {
         market_code: cache.get(_regional_records_key(market_code))
         for market_code in REGIONAL_STAGE_MARKET_CODES.values()
@@ -1576,6 +1861,7 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "tjnothop": tjnothop_records,
         "teda": teda_records,
         "tjfch": tjfch_records,
+        **official_site_records,
         **{
             f"regional_{market_code.lower()}": value
             for market_code, value in regional_records_by_market.items()
@@ -1602,6 +1888,7 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         + list(tjnothop_records)
         + list(teda_records)
         + list(tjfch_records)
+        + [record for stage in OFFICIAL_SITE_SOURCES for record in official_site_records[stage]]
         + regional_records
     )
     as_of = _cycle_as_of(state)
@@ -1691,6 +1978,8 @@ def run_stage(
             result = _run_teda(cache, state)
         elif stage == "tjfch":
             result = _run_tjfch(cache, state)
+        elif stage in OFFICIAL_SITE_SOURCES:
+            result = _run_official_site_stage(cache, state, OFFICIAL_SITE_SOURCES[stage])
         elif stage in REGIONAL_STAGE_MARKET_CODES or stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
             result = _run_regional_market(cache, state, stage)
         elif stage == "publish":

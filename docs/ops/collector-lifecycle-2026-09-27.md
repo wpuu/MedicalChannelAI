@@ -118,6 +118,22 @@ the snapshot was fresh.
   `pipeline/tests/test_runtime_status_ui_contract.py` derive the list from the
   server source so it cannot drift again.
 
+### Deep-cycle stage list
+
+`ccgp → event1..6 → tjmugh → tjnothop → teda → tjfch → tjzxfc → tjzyefy →
+tjzyefy_intent → regional_{bj,he,ln,jl,hl}(+_fallback) → publish` (25 stages).
+
+`tjzxfc` (天津市中心妇产科医院 院内比选/调研), `tjzyefy` (天津中医药大学第二附属医院
+院内调研) and `tjzyefy_intent` (同院 采购意向公告) were added on 2026-09-27 so a
+Vercel publish carries the same Tianjin early signals (PRE_MARKET_SIGNAL /
+PROCUREMENT_INTENT cards, the data behind 采购意向跟进) as the GitHub refresh.
+They run through one spec-driven runner (`OfficialSiteSource` /
+`_run_official_site_stage`) that reuses the verified sync scripts' discovery,
+parsers, unsupported-notice codes and retry rule, with the 30-day / 20-candidate
+window of the workflow. Publish now requires their canonical keys too
+(`COLLECTOR_CANONICAL_STATE_INCOMPLETE:tjzxfc,...` names what is missing). The
+intraday incremental chain does not scan these three sources yet.
+
 ## Operating notes
 
 - To recover a broken day: wait until the failing stage's `lease_expires_at`
@@ -142,7 +158,6 @@ the snapshot was fresh.
   cover the memo/head-probe read path with an injected durable store.
 
 Follow-ups deliberately **not** in this change: moving canonical collector
-state out of Runtime Cache into Postgres (S-1 in the audit), adding the
-tjzxfc / tjzyefy / tjzyefy_intent sources to the Vercel stage list, and
-deciding which of the two publishers (GitHub runner vs Vercel collector) is
-retired.
+state out of Runtime Cache into Postgres (S-1 in the audit), adding the three
+official-site sources to the intraday incremental chain, and deciding which of
+the two publishers (GitHub runner vs Vercel collector) is retired.

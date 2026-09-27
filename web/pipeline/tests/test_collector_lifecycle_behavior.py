@@ -89,6 +89,7 @@ class CollectorLifecycleBehaviorTests(unittest.TestCase):
             mock.patch.object(rt, "_run_tjnothop", self._stage("tjnothop")),
             mock.patch.object(rt, "_run_teda", self._stage("teda")),
             mock.patch.object(rt, "_run_tjfch", self._stage("tjfch")),
+            mock.patch.object(rt, "_run_official_site_stage", lambda cache, state, source: self._record(source.stage)),
             mock.patch.object(rt, "_run_publish", self._stage("publish")),
             mock.patch.object(rt, "_run_regional_market", lambda cache, state, stage: self._record(stage, fallback_required=False)),
             mock.patch.object(cq, "_start_intraday_chain_after_deep", _noop_async),
@@ -102,6 +103,7 @@ class CollectorLifecycleBehaviorTests(unittest.TestCase):
         for key in (
             rt.CCGP_RECORDS_KEY, rt.CCGP_EVENTS_KEY, rt.CCGP_WATCH_KEY, rt.TJMUGH_RECORDS_KEY,
             rt.TJNOTHOP_RECORDS_KEY, rt.TEDA_RECORDS_KEY, rt.TJFCH_RECORDS_KEY,
+            *(source.records_key() for source in rt.OFFICIAL_SITE_SOURCES.values()),
         ):
             cache.set(key, [])
         for market in rt.REGIONAL_STAGE_MARKET_CODES.values():

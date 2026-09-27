@@ -22,6 +22,9 @@ from collector_namespace import (  # noqa: E402
     TJFCH_RECORDS_KEY,
     TJMUGH_RECORDS_KEY,
     TJNOTHOP_RECORDS_KEY,
+    TJZXFC_RECORDS_KEY,
+    TJZYEFY_INTENT_RECORDS_KEY,
+    TJZYEFY_RECORDS_KEY,
     active_cycle_id,
     active_incremental_id,
     apply_runtime_namespace,
@@ -44,6 +47,9 @@ class ExecutionNamespaceTests(unittest.TestCase):
             TJNOTHOP_RECORDS_KEY,
             TEDA_RECORDS_KEY,
             TJFCH_RECORDS_KEY,
+            TJZXFC_RECORDS_KEY,
+            TJZYEFY_RECORDS_KEY,
+            TJZYEFY_INTENT_RECORDS_KEY,
             LATEST_RUNTIME_SNAPSHOT_KEY,
         ]
         self.assertTrue(all(value.endswith(":v2") for value in keys))
@@ -60,6 +66,9 @@ class ExecutionNamespaceTests(unittest.TestCase):
         self.assertEqual(runtime.TJNOTHOP_RECORDS_KEY, TJNOTHOP_RECORDS_KEY)
         self.assertEqual(runtime.TEDA_RECORDS_KEY, TEDA_RECORDS_KEY)
         self.assertEqual(runtime.TJFCH_RECORDS_KEY, TJFCH_RECORDS_KEY)
+        self.assertEqual(runtime.TJZXFC_RECORDS_KEY, TJZXFC_RECORDS_KEY)
+        self.assertEqual(runtime.TJZYEFY_RECORDS_KEY, TJZYEFY_RECORDS_KEY)
+        self.assertEqual(runtime.TJZYEFY_INTENT_RECORDS_KEY, TJZYEFY_INTENT_RECORDS_KEY)
         self.assertEqual(runtime.LATEST_RUNTIME_SNAPSHOT_KEY, LATEST_RUNTIME_SNAPSHOT_KEY)
 
     def test_active_cycle_helpers_fail_closed(self) -> None:
