@@ -41,7 +41,9 @@ class VercelTjfchRuntimeTests(unittest.TestCase):
     def test_tjfch_is_a_first_class_runtime_stage_between_teda_and_publish(self) -> None:
         order = _tuple_assignment(self.runtime, "STAGE_ORDER")
         self.assertIn("tjfch", order)
-        self.assertEqual(order[-3:], ("teda", "tjfch", "publish"))
+        self.assertLess(order.index("teda"), order.index("tjfch"))
+        self.assertLess(order.index("tjfch"), order.index("regional_bj"))
+        self.assertLess(order.index("regional_hl"), order.index("publish"))
         dispatch = _function_source(self.runtime, "run_stage")
         self.assertIn('elif stage == "tjfch":', dispatch)
         self.assertIn("result = _run_tjfch(cache, state)", dispatch)

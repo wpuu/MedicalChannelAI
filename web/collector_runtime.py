@@ -73,6 +73,19 @@ from sync_teda_market_research import (  # noqa: E402
     fetch_page_with_retry as fetch_teda_page_with_retry,
 )
 from sync_tianjin_plan import load_plan, plan_date_window, publish_gate as ccgp_publish_gate  # noqa: E402
+from sync_regional_ccgp import (  # noqa: E402
+    CcgpSearchSession as RegionalCcgpSearchSession,
+    NATIONAL_FALLBACK_MAX_PAGES as REGIONAL_FALLBACK_MAX_PAGES,
+    annotate_market as annotate_regional_market,
+    candidate_market_code,
+    date_window as regional_date_window,
+    fetch_candidates_page as fetch_regional_candidates_page,
+    load_plan as load_regional_plan,
+)
+from medical_channel_pipeline.regional_candidate import (  # noqa: E402
+    regional_candidate_selection_key,
+    regional_candidate_skip_reason,
+)
 
 SCHEMA_VERSION = "0.1"
 SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -98,7 +111,16 @@ TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v1"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v1"
 TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v1"
 TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v1"
+REGIONAL_RECORDS_KEY = "medicalchannelai:collector-regional-records:v2"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
+
+REGIONAL_STAGE_MARKET_CODES = {
+    "regional_bj": "BJ",
+    "regional_he": "HE",
+    "regional_ln": "LN",
+    "regional_jl": "JL",
+    "regional_hl": "HL",
+}
 
 STAGE_ORDER = (
     "ccgp",
@@ -112,6 +134,11 @@ STAGE_ORDER = (
     "tjnothop",
     "teda",
     "tjfch",
+    "regional_bj",
+    "regional_he",
+    "regional_ln",
+    "regional_jl",
+    "regional_hl",
     "publish",
 )
 EXPECTED_SCHEDULES = {
@@ -185,6 +212,10 @@ def _bootstrap_teda_records() -> list[dict[str, Any]]:
 
 def _bootstrap_tjfch_records() -> list[dict[str, Any]]:
     return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_tjfch_records.json"))
+
+
+def _bootstrap_regional_records() -> list[dict[str, Any]]:
+    return merge_canonical_records([], _load_array(DATA_ROOT / "regional_live_ccgp_records.json"))
 
 
 def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[str, Any]], bool]:
@@ -859,6 +890,201 @@ def _digest(value: Any) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _run_regional_market(
+    cache: RuntimeCache,
+    state: dict[str, Any],
+    stage: str,
+) -> dict[str, Any]:
+    market_code = REGIONAL_STAGE_MARKET_CODES.get(stage)
+    if not market_code:
+        raise CollectorPrecondition(f"REGIONAL_STAGE_INVALID:{stage}")
+
+    plan = load_regional_plan(DATA_ROOT / "multi_region_query_plan.json")
+    market_by_code = {
+        str(item["market_code"]).strip().upper(): item
+        for item in plan["markets"]
+    }
+    market = market_by_code.get(market_code)
+    if not market:
+        raise CollectorPrecondition(f"REGIONAL_MARKET_NOT_CONFIGURED:{market_code}")
+
+    as_of = _cycle_as_of(state)
+    start_date, end_date = regional_date_window(as_of, plan["lookback_days"])
+    observed_at = as_of.astimezone(timezone.utc).isoformat()
+    existing_records, bootstrapped = _cached_list(
+        cache,
+        REGIONAL_RECORDS_KEY,
+        _bootstrap_regional_records,
+    )
+    existing_source_urls = {
+        str((record.get("source") or {}).get("url") or "")
+        for record in existing_records
+        if isinstance(record, dict) and str((record.get("source") or {}).get("url") or "")
+    }
+
+    session = RegionalCcgpSearchSession()
+    discovered_by_url: dict[str, tuple[str, object]] = {}
+    failures: list[dict[str, Any]] = []
+    scoped_query_success_count = 0
+    scoped_region_mismatch_count = 0
+
+    for keyword in plan["keywords"]:
+        for notice_type in plan["notice_types"]:
+            try:
+                items = fetch_regional_candidates_page(
+                    session,
+                    keyword=keyword,
+                    notice_type=notice_type,
+                    start_date=start_date,
+                    end_date=end_date,
+                    region=str(market["name"]),
+                    page_index=1,
+                )
+                scoped_query_success_count += 1
+                for item_notice_type, candidate in items:
+                    actual_code = candidate_market_code(
+                        getattr(candidate, "region", None),
+                        plan["markets"],
+                    )
+                    if actual_code != market_code:
+                        scoped_region_mismatch_count += 1
+                        continue
+                    if regional_candidate_skip_reason(candidate):
+                        continue
+                    discovered_by_url.setdefault(
+                        str(candidate.detail_url),
+                        (item_notice_type, candidate),
+                    )
+            except Exception as exc:
+                failures.append({
+                    "stage": "scoped_discovery",
+                    "market_code": market_code,
+                    "keyword": keyword,
+                    "notice_type": notice_type,
+                    "error": type(exc).__name__,
+                    "message": str(exc)[:300],
+                })
+            time.sleep(plan["delay_seconds"])
+
+    fallback_query_success_count = 0
+    national_fallback_used = not bool(discovered_by_url)
+    if national_fallback_used:
+        for keyword in plan["keywords"]:
+            for notice_type in plan["notice_types"]:
+                for page_index in range(1, REGIONAL_FALLBACK_MAX_PAGES + 1):
+                    try:
+                        items = fetch_regional_candidates_page(
+                            session,
+                            keyword=keyword,
+                            notice_type=notice_type,
+                            start_date=start_date,
+                            end_date=end_date,
+                            region=None,
+                            page_index=page_index,
+                        )
+                        fallback_query_success_count += 1
+                    except Exception as exc:
+                        failures.append({
+                            "stage": "national_fallback_discovery",
+                            "market_code": market_code,
+                            "keyword": keyword,
+                            "notice_type": notice_type,
+                            "page_index": page_index,
+                            "error": type(exc).__name__,
+                            "message": str(exc)[:300],
+                        })
+                        break
+                    if not items:
+                        break
+                    for item_notice_type, candidate in items:
+                        actual_code = candidate_market_code(
+                            getattr(candidate, "region", None),
+                            plan["markets"],
+                        )
+                        if actual_code != market_code:
+                            continue
+                        if regional_candidate_skip_reason(candidate):
+                            continue
+                        discovered_by_url.setdefault(
+                            str(candidate.detail_url),
+                            (item_notice_type, candidate),
+                        )
+                    time.sleep(plan["delay_seconds"])
+                time.sleep(plan["delay_seconds"])
+
+    if scoped_query_success_count + fallback_query_success_count <= 0:
+        raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}")
+
+    discovered = sorted(
+        discovered_by_url.values(),
+        key=lambda item: regional_candidate_selection_key(item[1], existing_source_urls),
+        reverse=True,
+    )
+    selected = discovered[: plan["max_candidates_per_market"]]
+    new_records: list[dict[str, Any]] = []
+
+    for notice_type, candidate in selected:
+        if candidate_market_code(getattr(candidate, "region", None), plan["markets"]) != market_code:
+            failures.append({
+                "stage": "pre_detail_market_guard",
+                "market_code": market_code,
+                "url": getattr(candidate, "detail_url", None),
+            })
+            continue
+        try:
+            time.sleep(plan["delay_seconds"])
+            html = fetch_ccgp_detail_html(candidate.detail_url)
+            record = VERIFIED_NOTICE_ADAPTERS[notice_type](
+                html,
+                source_url=candidate.detail_url,
+                observed_at=observed_at,
+                opportunity_id=stable_id(
+                    f"ccgp_{market_code.lower()}",
+                    candidate.detail_url,
+                ),
+            )
+            new_records.append(annotate_regional_market(record, market))
+        except Exception as exc:
+            failures.append({
+                "stage": "verified_detail",
+                "market_code": market_code,
+                "notice_type": notice_type,
+                "title": getattr(candidate, "title", None),
+                "url": getattr(candidate, "detail_url", None),
+                "error": type(exc).__name__,
+                "message": str(exc)[:300],
+            })
+
+    if selected and not new_records:
+        raise CollectorStageBlocked(
+            f"REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION:{market_code}"
+        )
+
+    merged = merge_canonical_records(existing_records, new_records)
+    _cache_set(
+        cache,
+        REGIONAL_RECORDS_KEY,
+        merged,
+        tag="medicalchannelai-collector-regional",
+    )
+    return {
+        "market_code": market_code,
+        "market_name": market["name"],
+        "start_date": start_date,
+        "end_date": end_date,
+        "scoped_query_success_count": scoped_query_success_count,
+        "scoped_region_mismatch_count": scoped_region_mismatch_count,
+        "national_fallback_used": national_fallback_used,
+        "national_fallback_query_success_count": fallback_query_success_count,
+        "unique_candidate_count": len(discovered),
+        "selected_candidate_count": len(selected),
+        "new_verified_record_count": len(new_records),
+        "merged_record_count": len(merged),
+        "failure_count": len(failures),
+        "bootstrapped_records": bootstrapped,
+    }
+
+
 def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     ccgp_records = cache.get(CCGP_RECORDS_KEY)
     events = cache.get(CCGP_EVENTS_KEY)
@@ -866,9 +1092,18 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     tjnothop_records = cache.get(TJNOTHOP_RECORDS_KEY)
     teda_records = cache.get(TEDA_RECORDS_KEY)
     tjfch_records = cache.get(TJFCH_RECORDS_KEY)
+    regional_records = cache.get(REGIONAL_RECORDS_KEY)
     if not all(
         isinstance(value, list)
-        for value in (ccgp_records, events, tjmugh_records, tjnothop_records, teda_records, tjfch_records)
+        for value in (
+            ccgp_records,
+            events,
+            tjmugh_records,
+            tjnothop_records,
+            teda_records,
+            tjfch_records,
+            regional_records,
+        )
     ):
         raise CollectorPrecondition("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
 
@@ -878,6 +1113,7 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         + list(tjnothop_records)
         + list(teda_records)
         + list(tjfch_records)
+        + list(regional_records)
     )
     as_of = _cycle_as_of(state)
     snapshot = build_public_snapshot(records, as_of, list(events))
@@ -934,6 +1170,8 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             result = _run_teda(cache, state)
         elif stage == "tjfch":
             result = _run_tjfch(cache, state)
+        elif stage in REGIONAL_STAGE_MARKET_CODES:
+            result = _run_regional_market(cache, state, stage)
         elif stage == "publish":
             result = _run_publish(cache, state)
         else:
