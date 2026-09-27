@@ -211,6 +211,24 @@ export function selectPublishedRuntimeSnapshot(value, bundled = bundledVerifiedS
   if (candidateMs > nowMs + RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS) return null
   return candidate
 }
+export function selectDurableVerifiedSnapshot(value, bundled = bundledVerifiedSnapshot(), nowMs = Date.now()) {
+  let candidate
+  let baseline
+  try {
+    candidate = validateVerifiedSnapshot(value)
+    baseline = validateVerifiedSnapshot(bundled)
+  } catch {
+    return null
+  }
+  const candidateMs = parsedSnapshotTime(candidate)
+  const baselineMs = parsedSnapshotTime(baseline)
+  if (!Number.isFinite(candidateMs) || !Number.isFinite(baselineMs)) return null
+  // Durable Postgres is authoritative even when it stores the exact bundled
+  // revision. Runtime Cache stays stricter and must be strictly newer.
+  if (candidateMs < baselineMs) return null
+  if (candidateMs > nowMs + RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS) return null
+  return candidate
+}
 export async function publishVerifiedSnapshotToRuntimeCache(value, options = {}) {
   const snapshot = validateVerifiedSnapshot(value)
   const serialized = JSON.stringify(snapshot)
@@ -315,7 +333,7 @@ export async function loadVerifiedSnapshot() {
   }
 
   const durableValue = await latestPublicVerifiedSnapshot()
-  const durableSnapshot = durableValue ? selectPublishedRuntimeSnapshot(durableValue) : null
+  const durableSnapshot = durableValue ? selectDurableVerifiedSnapshot(durableValue) : null
   if (durableSnapshot) {
     lastSourceMode = 'DATABASE'
     lastRuntimeOrigin = null
