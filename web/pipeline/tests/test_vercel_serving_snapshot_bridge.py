@@ -10,7 +10,7 @@ NODE_SNAPSHOT = WEB_ROOT / "api" / "_verifiedSnapshot.js"
 
 
 def _string_constant(source: str, name: str) -> str:
-    match = re.search(rf'^{name}\s*=\s*["\']([^"\']+)["\']', source, flags=re.M)
+    match = re.search(rf'^(?:const\s+)?{name}\s*=\s*["\']([^"\']+)["\']', source, flags=re.M)
     if not match:
         raise AssertionError(f"constant not found: {name}")
     return match.group(1)
