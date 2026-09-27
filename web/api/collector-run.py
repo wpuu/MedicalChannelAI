@@ -66,6 +66,24 @@ def _first_query(query: dict[str, list[str]], name: str) -> str:
     return str(values[0]).strip().lower() if values else ""
 
 
+def _recovery_cycle_id(cache: RuntimeCache, local_date: str) -> str | None:
+    state = cache.get(META_KEY)
+    if not isinstance(state, dict):
+        return None
+    if str(state.get("local_date") or "") != local_date:
+        return None
+    stages = state.get("stages")
+    if not isinstance(stages, dict):
+        return None
+    publish = stages.get("publish")
+    if not isinstance(publish, dict) or publish.get("status") != "FAILED":
+        return None
+    error_message = str(publish.get("error_message") or "")
+    if not error_message.startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE"):
+        return None
+    return f"prod:{local_date}:recovery-v3"
+
+
 def _activate_cycle(
     cache: RuntimeCache,
     *,
@@ -98,9 +116,9 @@ def _activate_cycle(
 async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
     now = datetime.now(timezone.utc)
     local_date = now.astimezone(SHANGHAI).date().isoformat()
-    cycle_id = f"prod:{local_date}"
 
     cache = RuntimeCache()
+    cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"
     _activate_cycle(
         cache,
         cycle_id=cycle_id,
