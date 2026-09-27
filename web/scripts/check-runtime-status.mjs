@@ -34,6 +34,8 @@ const savedKeys = process.env.AGNES_API_KEYS
 const savedKey = process.env.AGNES_API_KEY
 const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
 const savedPublicRemote = process.env.VITE_VERIFIED_SNAPSHOT_URL
+const savedDatabaseUrl = process.env.DATABASE_URL
+const savedPostgresUrl = process.env.POSTGRES_URL
 const savedFetch = globalThis.fetch
 
 try {
@@ -59,6 +61,11 @@ try {
   process.env.AGNES_API_KEY = ''
   process.env.VERIFIED_SNAPSHOT_URL = ''
   process.env.VITE_VERIFIED_SNAPSHOT_URL = ''
+  // The bundled-mode assertions below are deterministic unit checks. A real
+  // Production DATABASE_URL would legitimately switch status.js to DATABASE
+  // and contaminate this build-time contract test.
+  process.env.DATABASE_URL = ''
+  process.env.POSTGRES_URL = ''
   clearVerifiedSnapshotCacheForTests()
 
   let response = await invoke('GET')
@@ -113,4 +120,8 @@ try {
   else process.env.VERIFIED_SNAPSHOT_URL = savedRemote
   if (savedPublicRemote === undefined) delete process.env.VITE_VERIFIED_SNAPSHOT_URL
   else process.env.VITE_VERIFIED_SNAPSHOT_URL = savedPublicRemote
+  if (savedDatabaseUrl === undefined) delete process.env.DATABASE_URL
+  else process.env.DATABASE_URL = savedDatabaseUrl
+  if (savedPostgresUrl === undefined) delete process.env.POSTGRES_URL
+  else process.env.POSTGRES_URL = savedPostgresUrl
 }
