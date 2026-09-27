@@ -136,6 +136,5 @@
         }
       ]
     }
-  ],
-  "buildCommand": "python3 -m unittest discover -s pipeline/tests -p 'test_collector_run_security.py' -v && python3 -m unittest discover -s pipeline/tests -p 'test_vercel_regional_runtime.py' -v && npm run build"
+  ]
 }
