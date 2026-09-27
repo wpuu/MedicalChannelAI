@@ -1,0 +1,30 @@
+name: MCAI CI Retirement Diagnostic
+
+on:
+  push:
+    branches:
+      - owner/vercel-preview-ci-20260927
+    paths:
+      - '.github/workflows/ci-retirement-diagnostic-20260927.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run exact Vercel build command
+        working-directory: web
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build

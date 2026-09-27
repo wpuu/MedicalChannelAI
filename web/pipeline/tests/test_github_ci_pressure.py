@@ -1,61 +1,53 @@
 from __future__ import annotations
 
+import json
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-WORKFLOW = ROOT / ".github" / "workflows" / "verify.yml"
+WEB_ROOT = ROOT / "web"
+LEGACY_WORKFLOW = ROOT / ".github" / "workflows" / "verify.yml"
+PACKAGE = WEB_ROOT / "package.json"
+PREBUILD = WEB_ROOT / "scripts" / "run-prebuild.mjs"
 
 
 class GithubCiPressureTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.workflow = WORKFLOW.read_text(encoding="utf-8")
+        cls.package = json.loads(PACKAGE.read_text(encoding="utf-8"))
+        cls.prebuild = PREBUILD.read_text(encoding="utf-8")
 
-    def test_normal_pr_verify_skips_heavy_npm_build(self) -> None:
-        self.assertIn("Select verification depth", self.workflow)
-        self.assertIn('"[full-verify]"', self.workflow)
-        self.assertIn("Fast Verify selected", self.workflow)
-        self.assertIn("Run fast contract verification", self.workflow)
-        self.assertIn("python3 -m unittest discover -s tests -v", self.workflow)
-        self.assertIn("node scripts/check-serverless-entrypoints.mjs", self.workflow)
-        self.assertIn("if: steps.verify_mode.outputs.full == 'true'", self.workflow)
+    def test_gcp_backed_pr_verify_workflow_is_retired(self) -> None:
+        self.assertFalse(
+            LEGACY_WORKFLOW.exists(),
+            "PR verification must not depend on the MedicalChannelAI GCP self-hosted runner",
+        )
 
-    def test_full_verify_remains_available_at_stage_boundaries(self) -> None:
-        self.assertIn("workflow_dispatch", self.workflow)
-        self.assertIn("Full Verify requested by workflow_dispatch", self.workflow)
-        self.assertIn("npm ci --no-audit --no-fund", self.workflow)
-        self.assertIn("npm run build", self.workflow)
-        self.assertIn("Print verified ranking summary", self.workflow)
+    def test_vercel_build_is_the_complete_pr_verification_entrypoint(self) -> None:
+        build = self.package.get("scripts", {}).get("build")
+        self.assertEqual(
+            build,
+            "node scripts/run-prebuild.mjs && tsc --noEmit && vite build",
+        )
 
-    def test_live_intent_probe_is_explicit_read_only_and_bounded(self) -> None:
-        self.assertIn('"[live-intent-probe]"', self.workflow)
-        self.assertIn("Run read-only live procurement-intent probe", self.workflow)
-        self.assertIn("if: steps.verify_mode.outputs.live_intent == 'true'", self.workflow)
-        self.assertIn("sync_tjzyefy_procurement_intent.py", self.workflow)
-        self.assertIn("--lookback-days 30", self.workflow)
-        self.assertIn("--max-candidates 20", self.workflow)
-        self.assertIn("--delay-seconds 3", self.workflow)
-        self.assertIn("mktemp -d", self.workflow)
-        self.assertIn("hashlib.sha256()", self.workflow)
-        self.assertIn("web/pipeline/data", self.workflow)
-        self.assertIn("web/public/data", self.workflow)
-        self.assertIn("LIVE_INTENT_PROBE_REPORT=", self.workflow)
-        self.assertIn("LIVE_INTENT_VERIFIED_RECORD=", self.workflow)
-        self.assertIn('cmp "$probe_dir/before.sha256" "$probe_dir/after.sha256"', self.workflow)
-        probe_start = self.workflow.index("Run read-only live procurement-intent probe")
-        probe_end = self.workflow.index("Install web dependencies", probe_start)
-        probe = self.workflow[probe_start:probe_end]
-        self.assertNotIn("git push", probe)
-        self.assertNotIn("git diff", probe)
-        self.assertNotIn("VERIFIED_SNAPSHOT_PUBLISH", probe)
-        self.assertNotIn("vercel", probe.lower())
+    def test_prebuild_runs_full_python_regression_suite(self) -> None:
+        self.assertIn("['-m', 'unittest', 'discover', '-s', 'tests', '-v']", self.prebuild)
+        self.assertIn("BUNDLED_SNAPSHOT_REFRESH_FAILED", self.prebuild)
+        self.assertIn("PIPELINE_UNITTEST_FAILED", self.prebuild)
+        self.assertIn("PYTHON_RUNTIME_NOT_FOUND_FOR_PIPELINE_TESTS", self.prebuild)
 
-    def test_runner_cleanup_and_docs_skip_remain_enabled(self) -> None:
-        self.assertIn("cancel-in-progress: true", self.workflow)
-        self.assertIn("'docs/**'", self.workflow)
-        self.assertIn("'**/*.md'", self.workflow)
-        self.assertIn("rm -rf web/node_modules web/dist", self.workflow)
+    def test_prebuild_keeps_serverless_and_safety_contracts(self) -> None:
+        required_checks = [
+            "check-serverless-entrypoints.mjs",
+            "check-verified-snapshot.mjs",
+            "check-medical-channel-scope.mjs",
+            "check-ai-decision-contract.mjs",
+            "check-runtime-status.mjs",
+            "check-source-quality-boundary.mjs",
+        ]
+        for check in required_checks:
+            self.assertIn(check, self.prebuild)
+        self.assertIn("Prebuild verification: PASS", self.prebuild)
 
 
 if __name__ == "__main__":
