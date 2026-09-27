@@ -1,0 +1,101 @@
+name: MCAI Current Production Collector Trigger 2026-09-27
+
+on:
+  push:
+    branches:
+      - ops/vercel-prod-secret-probe-20260927
+    paths:
+      - '.github/workflows/current-production-collector-trigger-20260927.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  trigger:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      TEAM_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+      PUBLIC_ORIGIN: https://medicalchannelai.vercel.app
+
+    steps:
+      - name: Retrieve Production cron credential without logging it
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
+          curl -fsS             -H "Authorization: Bearer $VERCEL_TOKEN"             "https://api.vercel.com/v10/projects/$PROJECT_ID/env?decrypt=true&teamId=$TEAM_ID"             > "$RUNNER_TEMP/prod-env.json"
+          CRON_SECRET_VALUE="$(python3 - "$RUNNER_TEMP/prod-env.json" <<'PY'
+          import json,sys
+          data=json.load(open(sys.argv[1], encoding='utf-8'))
+          for item in data.get('envs') or []:
+              if item.get('key') == 'CRON_SECRET' and 'production' in (item.get('target') or []):
+                  print(item.get('value') or '')
+                  break
+          PY
+          )"
+          test -n "$CRON_SECRET_VALUE" || { echo '::error::Production CRON_SECRET unavailable'; exit 1; }
+          echo "::add-mask::$CRON_SECRET_VALUE"
+          printf '%s' "$CRON_SECRET_VALUE" > "$RUNNER_TEMP/cron-secret"
+          chmod 600 "$RUNNER_TEMP/cron-secret"
+          rm -f "$RUNNER_TEMP/prod-env.json"
+          echo 'CRON_SECRET_RETRIEVAL=PASS'
+
+      - name: Trigger collector on current Production
+        shell: bash
+        run: |
+          set -euo pipefail
+          CRON_SECRET_VALUE="$(cat "$RUNNER_TEMP/cron-secret")"
+          code="$(curl -sS --max-time 30 -o "$RUNNER_TEMP/start.json" -w '%{http_code}'             -H "Authorization: Bearer $CRON_SECRET_VALUE"             "$PUBLIC_ORIGIN/api/collector-run?recovery_probe=20260927")"
+          echo "COLLECTOR_TRIGGER_HTTP=$code"
+          python3 - "$RUNNER_TEMP/start.json" <<'PY'
+          import json,sys
+          try:
+              d=json.load(open(sys.argv[1], encoding='utf-8'))
+          except Exception:
+              print('COLLECTOR_RESPONSE=NON_JSON')
+              raise SystemExit(1)
+          c=d.get('collector') or {}
+          safe={
+              'error': d.get('error'),
+              'action': c.get('action'),
+              'execution_plane': c.get('execution_plane'),
+              'cycle_id': c.get('cycle_id'),
+              'stage': c.get('stage'),
+              'message_id': c.get('message_id'),
+          }
+          print('COLLECTOR_RESPONSE=' + json.dumps(safe, ensure_ascii=False))
+          PY
+          if [[ "$code" != "202" && "$code" != "409" ]]; then
+            echo '::error::Current Production collector trigger rejected.'
+            exit 1
+          fi
+
+      - name: Observe current Production progress
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            curl -fsS --max-time 20 "$PUBLIC_ORIGIN/api/collector-status" > "$RUNNER_TEMP/status.json"
+            summary="$(python3 - "$RUNNER_TEMP/status.json" <<'PY'
+          import json,sys
+          c=(json.load(open(sys.argv[1], encoding='utf-8')).get('collector') or {})
+          print(f"{c.get('active_cycle_id')}|{c.get('completed_stage_count',0)}|{c.get('total_stage_count',0)}")
+          PY
+          )"
+            IFS='|' read -r cycle completed total <<< "$summary"
+            echo "Attempt $attempt: cycle=$cycle completed=$completed total=$total"
+            if [[ "${completed:-0}" -gt 0 ]]; then
+              echo 'CURRENT_PRODUCTION_QUEUE_PROGRESS=PASS'
+              exit 0
+            fi
+            sleep 15
+          done
+          echo '::error::No collector stage completed on current Production within bounded observation.'
+          exit 1
