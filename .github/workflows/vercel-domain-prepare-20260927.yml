@@ -1,0 +1,64 @@
+name: MCAI Vercel Domain Prepare 2026-09-27
+on:
+  push:
+    branches: [ops/vercel-domain-prepare-20260927]
+    paths:
+      - '.github/workflows/vercel-domain-prepare-20260927.yml'
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 5
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      TEAM_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+      DOMAIN: medicalai.qd.je
+    steps:
+      - name: Register domain and print safe DNS requirements
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -sS -o "$RUNNER_TEMP/domain-add.json" -w '%{http_code}' \
+            -X POST \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H 'Content-Type: application/json' \
+            --data "{\"name\":\"$DOMAIN\"}" \
+            "https://api.vercel.com/v10/projects/$PROJECT_ID/domains?teamId=$TEAM_ID")"
+          if [[ "$code" != "200" && "$code" != "201" && "$code" != "400" ]]; then
+            echo "::error::Domain registration failed HTTP $code"
+            exit 1
+          fi
+          curl -fsS \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/$PROJECT_ID/domains?teamId=$TEAM_ID&limit=100" \
+            > "$RUNNER_TEMP/domains.json"
+          python3 - "$RUNNER_TEMP/domains.json" "$DOMAIN" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding='utf-8'))
+          domain=sys.argv[2]
+          items=d.get('domains') or []
+          item=next((x for x in items if x.get('name')==domain),None)
+          if not item:
+              raise SystemExit('DOMAIN_NOT_FOUND_AFTER_ADD')
+          print('DOMAIN='+domain)
+          print('VERIFIED='+str(bool(item.get('verified'))).lower())
+          print('APEX='+str(item.get('apexName') or ''))
+          verification=item.get('verification') or []
+          for i,v in enumerate(verification,1):
+              print(f'VERIFICATION_{i}_TYPE={v.get("type") or ""}')
+              print(f'VERIFICATION_{i}_DOMAIN={v.get("domain") or ""}')
+              print(f'VERIFICATION_{i}_VALUE={v.get("value") or ""}')
+          PY
+          curl -fsS \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v6/domains/$DOMAIN/config?teamId=$TEAM_ID" \
+            > "$RUNNER_TEMP/config.json" || true
+          python3 - "$RUNNER_TEMP/config.json" <<'PY'
+          import json,sys
+          try:d=json.load(open(sys.argv[1],encoding='utf-8'))
+          except Exception:d={}
+          for k in ('configuredBy','misconfigured','recommendedIPv4','recommendedCNAME','serviceType'):
+              if k in d: print(f'{k.upper()}={d.get(k)}')
+          PY
