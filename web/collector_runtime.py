@@ -297,8 +297,16 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
 
     stages = state.setdefault("stages", {})
     previous = stages.get(stage)
+    regional_cache_replay = False
     if isinstance(previous, dict) and previous.get("status") == "COMPLETED":
-        return state, previous
+        if stage in REGIONAL_STAGE_MARKET_CODES:
+            market_code = REGIONAL_STAGE_MARKET_CODES[stage]
+            regional_cache_replay = not isinstance(
+                cache.get(_regional_records_key(market_code)),
+                list,
+            )
+        if not regional_cache_replay:
+            return state, previous
 
     if index > 0:
         required = STAGE_ORDER[index - 1]
@@ -314,7 +322,19 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
         and previous.get("status") == "FAILED"
         and "TJFCH_NOTICE_TYPE_UNSUPPORTED" in str(previous.get("error_message") or "")
     )
-    if attempts >= MAX_STAGE_ATTEMPTS_PER_DAY and not tjfch_policy_recovery_retry:
+    publish_cache_migration_retry = (
+        stage == "publish"
+        and attempts == MAX_STAGE_ATTEMPTS_PER_DAY
+        and isinstance(previous, dict)
+        and previous.get("status") == "FAILED"
+        and str(previous.get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
+    )
+    if (
+        attempts >= MAX_STAGE_ATTEMPTS_PER_DAY
+        and not tjfch_policy_recovery_retry
+        and not regional_cache_replay
+        and not publish_cache_migration_retry
+    ):
         raise CollectorPrecondition(f"COLLECTOR_STAGE_RETRY_LIMIT:{stage}")
 
     stages[stage] = {
@@ -1174,17 +1194,27 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         market_code: cache.get(_regional_records_key(market_code))
         for market_code in REGIONAL_STAGE_MARKET_CODES.values()
     }
-    canonical_values = (
-        ccgp_records,
-        events,
-        tjmugh_records,
-        tjnothop_records,
-        teda_records,
-        tjfch_records,
-        *regional_records_by_market.values(),
-    )
-    if not all(isinstance(value, list) for value in canonical_values):
-        raise CollectorPrecondition("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
+    canonical_by_name = {
+        "ccgp": ccgp_records,
+        "events": events,
+        "tjmugh": tjmugh_records,
+        "tjnothop": tjnothop_records,
+        "teda": teda_records,
+        "tjfch": tjfch_records,
+        **{
+            f"regional_{market_code.lower()}": value
+            for market_code, value in regional_records_by_market.items()
+        },
+    }
+    missing_canonical = [
+        name
+        for name, value in canonical_by_name.items()
+        if not isinstance(value, list)
+    ]
+    if missing_canonical:
+        raise CollectorPrecondition(
+            "COLLECTOR_CANONICAL_STATE_INCOMPLETE:" + ",".join(sorted(missing_canonical))
+        )
 
     regional_records = [
         record
