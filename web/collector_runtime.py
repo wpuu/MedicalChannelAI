@@ -287,7 +287,14 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
             raise CollectorPrecondition(f"COLLECTOR_PREVIOUS_STAGE_INCOMPLETE:{required}")
 
     attempts = int(previous.get("attempt_count", 0)) if isinstance(previous, dict) else 0
-    if attempts >= MAX_STAGE_ATTEMPTS_PER_DAY:
+    tjfch_policy_recovery_retry = (
+        stage == "tjfch"
+        and attempts == MAX_STAGE_ATTEMPTS_PER_DAY
+        and isinstance(previous, dict)
+        and previous.get("status") == "FAILED"
+        and "TJFCH_NOTICE_TYPE_UNSUPPORTED" in str(previous.get("error_message") or "")
+    )
+    if attempts >= MAX_STAGE_ATTEMPTS_PER_DAY and not tjfch_policy_recovery_retry:
         raise CollectorPrecondition(f"COLLECTOR_STAGE_RETRY_LIMIT:{stage}")
 
     stages[stage] = {
