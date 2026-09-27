@@ -34,6 +34,7 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertIn("def _recovery_cycle_id(cache: RuntimeCache, local_date: str)", source)
         self.assertIn('publish.get("status") != "FAILED"', source)
         self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', source)
+        self.assertIn('return f"prod:{local_date}:recovery-v5"', source)
         self.assertIn('return f"prod:{local_date}:recovery-v3"', source)
         self.assertNotIn("uuid", source.lower())
 

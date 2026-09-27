@@ -89,7 +89,7 @@ def _recovery_cycle_id(cache: RuntimeCache, local_date: str) -> str | None:
         and int(bj.get("attempt_count", 0)) >= 3
         and "regional_bj_fallback" not in stages
     ):
-        return f"prod:{local_date}:recovery-v4"
+        return f"prod:{local_date}:recovery-v5"
     return f"prod:{local_date}:recovery-v3"
 
 
