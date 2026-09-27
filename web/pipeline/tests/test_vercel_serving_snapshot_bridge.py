@@ -30,7 +30,7 @@ class VercelServingSnapshotBridgeTests(unittest.TestCase):
 
     def test_collector_publish_writes_serving_key_without_ttl(self) -> None:
         body = self.python[self.python.index("def _run_publish"):]
-        self.assertIn("cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot)", body)
+        self.assertIn("cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})", body)
         self.assertNotIn("_cache_set(\n        cache,\n        PUBLISHED_RUNTIME_SNAPSHOT_KEY", body)
         self.assertIn("SERVING_SNAPSHOT_READBACK_MISMATCH", body)
 
