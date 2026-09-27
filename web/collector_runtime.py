@@ -324,7 +324,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
             isinstance(publish_state, dict)
             and publish_state.get("status") == "FAILED"
             and str(publish_state.get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
-            and not isinstance(cache.get(_regional_records_key(market_code)), list)
+            and int(previous.get("attempt_count", 0)) == MAX_STAGE_ATTEMPTS_PER_DAY
             and started is not None
             and started.tzinfo is not None
             and now - started.astimezone(timezone.utc) >= timedelta(minutes=15)
