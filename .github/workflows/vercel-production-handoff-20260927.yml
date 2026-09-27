@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   handoff:
@@ -28,6 +28,12 @@ jobs:
       PUBLIC_ORIGIN: https://medicalchannelai.vercel.app
 
     steps:
+      - name: Checkout main for Git deployment fallback
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
       - name: Preflight Vercel Production database environment
         shell: bash
         run: |
@@ -86,7 +92,7 @@ jobs:
           chmod 600 "$RUNNER_TEMP/cron_secret"
           echo 'CRON_SECRET_UPSERT=PASS'
 
-      - name: Create exact main Production deployment via Vercel REST API
+      - name: Deploy current main with API or Git fallback
         shell: bash
         run: |
           set -euo pipefail
@@ -105,49 +111,86 @@ jobs:
           JSON
 
           code="$(curl -sS -o "$RUNNER_TEMP/deploy-create.json" -w '%{http_code}' -X POST -H "Authorization: Bearer $VERCEL_TOKEN" -H 'Content-Type: application/json' --data-binary @"$RUNNER_TEMP/deploy-request.json" "https://api.vercel.com/v13/deployments?teamId=$TEAM_ID")"
-          if [[ "$code" != "200" && "$code" != "201" ]]; then
-            echo "::error::Production deployment create failed HTTP $code"
-            python3 - "$RUNNER_TEMP/deploy-create.json" <<'PY'
-          import json,sys
-          try:
-              d=json.load(open(sys.argv[1], encoding='utf-8'))
-              e=d.get('error') or {}
-              print({'code': e.get('code'), 'message': e.get('message')})
-          except Exception:
-              print('Vercel deployment API returned non-JSON error.')
-          PY
-            exit 1
-          fi
 
-          DEPLOYMENT_ID="$(python3 - "$RUNNER_TEMP/deploy-create.json" <<'PY'
+          if [[ "$code" = "200" || "$code" = "201" ]]; then
+            DEPLOYMENT_ID="$(python3 - "$RUNNER_TEMP/deploy-create.json" <<'PY'
           import json,sys
           d=json.load(open(sys.argv[1], encoding='utf-8'))
           print(d.get('id') or d.get('uid') or '')
           PY
           )"
-          test -n "$DEPLOYMENT_ID" || { echo '::error::Deployment ID missing'; exit 1; }
-          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> "$GITHUB_ENV"
-
-          for attempt in $(seq 1 60); do
-            sleep 5
-            curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID?teamId=$TEAM_ID" > "$RUNNER_TEMP/deploy-state.json"
-            state="$(python3 - "$RUNNER_TEMP/deploy-state.json" <<'PY'
+            test -n "$DEPLOYMENT_ID" || { echo '::error::Deployment ID missing'; exit 1; }
+            for attempt in $(seq 1 60); do
+              sleep 5
+              curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID?teamId=$TEAM_ID" > "$RUNNER_TEMP/deploy-state.json"
+              state="$(python3 - "$RUNNER_TEMP/deploy-state.json" <<'PY'
           import json,sys
           d=json.load(open(sys.argv[1], encoding='utf-8'))
           print(d.get('readyState') or d.get('state') or '')
           PY
           )"
-            echo "Deployment attempt $attempt: state=$state"
-            if [[ "$state" = "READY" ]]; then
-              echo 'PRODUCTION_DEPLOYMENT_READY=PASS'
+              echo "Deployment attempt $attempt: state=$state"
+              if [[ "$state" = "READY" ]]; then
+                echo 'PRODUCTION_DEPLOYMENT_READY=PASS'
+                exit 0
+              fi
+              if [[ "$state" = "ERROR" || "$state" = "CANCELED" ]]; then
+                echo '::error::Production deployment entered terminal failure state.'
+                exit 1
+              fi
+            done
+            echo '::error::Production deployment did not become READY within bounded polling window.'
+            exit 1
+          fi
+
+          api_error="$(python3 - "$RUNNER_TEMP/deploy-create.json" <<'PY'
+          import json,sys
+          try:
+              d=json.load(open(sys.argv[1], encoding='utf-8'))
+              e=d.get('error') or {}
+              print(str(e.get('code') or ''))
+          except Exception:
+              print('')
+          PY
+          )"
+          if [[ "$code" != "402" || "$api_error" != "payment_required" ]]; then
+            echo "::error::Production deployment create failed HTTP $code code=$api_error"
+            exit 1
+          fi
+
+          echo 'Vercel API deployment daily limit reached; using Git integration fallback.'
+          git config user.name "MedicalChannelAI Ops"
+          git config user.email "actions@users.noreply.github.com"
+          mkdir -p docs/ops
+          printf 'MCAI Vercel env redeploy marker\nrun_attempt=%s\n' "$GITHUB_RUN_ATTEMPT" > docs/ops/vercel-env-redeploy-marker.txt
+          git add docs/ops/vercel-env-redeploy-marker.txt
+          if git diff --cached --quiet; then
+            printf 'MCAI Vercel env redeploy marker\nrun_attempt=%s-%s\n' "$GITHUB_RUN_ATTEMPT" "$(date -u +%s)" > docs/ops/vercel-env-redeploy-marker.txt
+            git add docs/ops/vercel-env-redeploy-marker.txt
+          fi
+          git commit -m "ops: trigger Vercel Git redeploy after env rotation"
+          git push origin HEAD:main
+          EXPECTED_COMMIT="$(git rev-parse --short=7 HEAD)"
+          echo "EXPECTED_PRODUCTION_COMMIT=$EXPECTED_COMMIT" >> "$GITHUB_ENV"
+
+          for attempt in $(seq 1 60); do
+            sleep 5
+            curl -fsS --max-time 20 "$PUBLIC_ORIGIN/api/status" > "$RUNNER_TEMP/git-deploy-status.json" || true
+            current="$(python3 - "$RUNNER_TEMP/git-deploy-status.json" <<'PY'
+          import json,sys
+          try:
+              print(str(json.load(open(sys.argv[1], encoding='utf-8')).get('commit') or ''))
+          except Exception:
+              print('')
+          PY
+          )"
+            echo "Git deployment attempt $attempt: commit=$current"
+            if [[ "$current" = "$EXPECTED_COMMIT" ]]; then
+              echo 'PRODUCTION_GIT_DEPLOYMENT_READY=PASS'
               exit 0
             fi
-            if [[ "$state" = "ERROR" || "$state" = "CANCELED" ]]; then
-              echo '::error::Production deployment entered terminal failure state.'
-              exit 1
-            fi
           done
-          echo '::error::Production deployment did not become READY within bounded polling window.'
+          echo '::error::Git-triggered Production deployment did not become active in time.'
           exit 1
 
       - name: Verify database and cron configuration reached Production
