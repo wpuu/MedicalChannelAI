@@ -967,7 +967,8 @@ def _run_regional_market(
             time.sleep(plan["delay_seconds"])
 
     fallback_query_success_count = 0
-    if not discovered_by_url:
+    national_fallback_used = not bool(discovered_by_url)
+    if national_fallback_used:
         for keyword in plan["keywords"]:
             for notice_type in plan["notice_types"]:
                 for page_index in range(1, REGIONAL_FALLBACK_MAX_PAGES + 1):
@@ -1073,7 +1074,7 @@ def _run_regional_market(
         "end_date": end_date,
         "scoped_query_success_count": scoped_query_success_count,
         "scoped_region_mismatch_count": scoped_region_mismatch_count,
-        "national_fallback_used": not bool(discovered_by_url) and fallback_query_success_count > 0,
+        "national_fallback_used": national_fallback_used,
         "national_fallback_query_success_count": fallback_query_success_count,
         "unique_candidate_count": len(discovered),
         "selected_candidate_count": len(selected),
