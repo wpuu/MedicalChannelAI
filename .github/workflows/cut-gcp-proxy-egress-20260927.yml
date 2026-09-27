@@ -1,0 +1,54 @@
+name: MCAI Cut GCP Proxy Egress
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cut-gcp-proxy-egress-20260927.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  cutover:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 5
+    steps:
+      - name: Replace reverse proxy with permanent redirect
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n true
+          ts="$(date -u +%Y%m%dT%H%M%SZ)"
+          sudo cp /etc/caddy/Caddyfile "/etc/caddy/Caddyfile.medicalai-backup-$ts"
+          cat > "$RUNNER_TEMP/Caddyfile.medicalai" <<'EOF'
+          {
+            acme_ca https://acme.zerossl.com/v2/DV90
+            email rerisse7@gmail.com
+          }
+
+          medicalai.qd.je {
+            redir https://medicalchannelai.vercel.app{uri} permanent
+          }
+          EOF
+          sudo cp "$RUNNER_TEMP/Caddyfile.medicalai" /etc/caddy/Caddyfile
+          sudo caddy validate --config /etc/caddy/Caddyfile
+          sudo systemctl reload caddy
+          echo 'Caddy reloaded.'
+
+      - name: Verify old domain no longer proxies body through GCP
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(curl -sS -I --max-time 20 'https://medicalai.qd.je/api/status?gcp_retire_probe=1')"
+          printf '%s\n' "$headers"
+          printf '%s\n' "$headers" | grep -Eq '^HTTP/[0-9.]+ 30[18] '
+          printf '%s\n' "$headers" | grep -Eiq '^location: https://medicalchannelai\.vercel\.app/api/status\?gcp_retire_probe=1'
+          if printf '%s\n' "$headers" | grep -Eiq '^via: .*Caddy'; then
+            echo 'Redirect is still served by Caddy, as expected until DNS cutover.'
+          fi
+          echo 'GCP reverse-proxy egress cutover: PASS'
