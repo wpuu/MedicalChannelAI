@@ -74,12 +74,19 @@ async function expectRemoteRejected(payload, expectedMessage, code) {
 const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
 const savedPublicRemote = process.env.VITE_VERIFIED_SNAPSHOT_URL
 const savedPublishToken = process.env.VERIFIED_SNAPSHOT_PUBLISH_TOKEN
+const savedDatabaseUrl = process.env.DATABASE_URL
+const savedPostgresUrl = process.env.POSTGRES_URL
 const savedFetch = globalThis.fetch
 
 try {
   process.env.VERIFIED_SNAPSHOT_URL = ''
   process.env.VITE_VERIFIED_SNAPSHOT_URL = ''
   process.env.VERIFIED_SNAPSHOT_PUBLISH_TOKEN = ''
+  // This script verifies bundled/runtime/remote selection contracts. A real
+  // Production DATABASE_URL would make the endpoint legitimately prefer the
+  // durable Neon snapshot and contaminate these deterministic unit checks.
+  process.env.DATABASE_URL = ''
+  process.env.POSTGRES_URL = ''
   clearVerifiedSnapshotCacheForTests()
 
   const bundled = await loadVerifiedSnapshot()
@@ -367,4 +374,8 @@ try {
   else process.env.VITE_VERIFIED_SNAPSHOT_URL = savedPublicRemote
   if (savedPublishToken === undefined) delete process.env.VERIFIED_SNAPSHOT_PUBLISH_TOKEN
   else process.env.VERIFIED_SNAPSHOT_PUBLISH_TOKEN = savedPublishToken
+  if (savedDatabaseUrl === undefined) delete process.env.DATABASE_URL
+  else process.env.DATABASE_URL = savedDatabaseUrl
+  if (savedPostgresUrl === undefined) delete process.env.POSTGRES_URL
+  else process.env.POSTGRES_URL = savedPostgresUrl
 }
