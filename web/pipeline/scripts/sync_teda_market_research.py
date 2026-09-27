@@ -73,12 +73,15 @@ def fetch_page_with_retry(
     *,
     delay_seconds: float,
     attempts: int = FETCH_ATTEMPTS,
+    timeout_seconds: int | None = None,
 ) -> str:
     if attempts < 1:
         raise ValueError('attempts must be >= 1')
     for attempt in range(1, attempts + 1):
         try:
-            return fetch_teda_page(url)
+            if timeout_seconds is None:
+                return fetch_teda_page(url)
+            return fetch_teda_page(url, timeout_seconds=timeout_seconds)
         except RuntimeError as exc:
             if attempt >= attempts or not is_retryable_fetch_error(exc):
                 raise
@@ -90,6 +93,7 @@ def discover_candidates(
     *,
     index_pages: int,
     delay_seconds: float,
+    timeout_seconds: int | None = None,
 ) -> list[TedaCandidate]:
     result: list[TedaCandidate] = []
     seen: set[str] = set()
@@ -98,7 +102,10 @@ def discover_candidates(
             time.sleep(delay_seconds)
         url = index_page_url(page)
         try:
-            html = fetch_page_with_retry(url, delay_seconds=delay_seconds)
+            if timeout_seconds is None:
+                html = fetch_page_with_retry(url, delay_seconds=delay_seconds)
+            else:
+                html = fetch_page_with_retry(url, delay_seconds=delay_seconds, timeout_seconds=timeout_seconds)
             parsed = parse_teda_index_html(html, index_url=url)
         except Exception as exc:
             raise RuntimeError(

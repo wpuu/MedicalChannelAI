@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urlsplit
 from zoneinfo import ZoneInfo
 
 from vercel.functions import RuntimeCache
-from vercel.queue import send
+from vercel.queue import DuplicateIdempotencyKeyError, send
 
 from collector_incremental import scan_bucket_id
 from collector_incremental_scheduler import (
@@ -22,17 +22,21 @@ from collector_namespace import (
     ACTIVE_CYCLE_KEY,
     ACTIVE_CYCLE_TTL_SECONDS,
     INCREMENTAL_ACTIVE_KEY,
+    MAX_RECOVERY_CYCLES_PER_DAY,
     META_KEY,
     QUEUE_TOPIC_NAME,
     active_cycle_id,
     active_incremental_id,
-    cycle_has_running_stage,
+    cycle_has_live_running_stage,
+    cycle_publish_completed,
+    recovery_attempt_count,
+    reset_unfinished_stage_attempts,
+    write_collector_state,
 )
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 MESSAGE_RETENTION = timedelta(days=2)
 DEEP_START_DELAY_WHEN_INCREMENTAL_SECONDS = 300
-MIGRATION_STALE_RUNNING_AFTER = timedelta(minutes=15)
 # This is an explicit allowlist of implemented source adapters. Merely adding a
 # policy must never activate a new collector without an adapter and tests.
 INCREMENTAL_SOURCE_IDS = SCHEDULED_INCREMENTAL_SOURCES
@@ -67,79 +71,23 @@ def _first_query(query: dict[str, list[str]], name: str) -> str:
     return str(values[0]).strip().lower() if values else ""
 
 
-def _recovery_cycle_id(cache: RuntimeCache, local_date: str) -> str | None:
-    state = cache.get(META_KEY)
-    if not isinstance(state, dict):
-        return None
-    if str(state.get("local_date") or "") != local_date:
-        return None
-    stages = state.get("stages")
-    if not isinstance(stages, dict):
-        return None
-    publish = stages.get("publish")
-    if not isinstance(publish, dict) or publish.get("status") != "FAILED":
-        return None
-    error_message = str(publish.get("error_message") or "")
-    if not error_message.startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE"):
-        return None
-    regional_primary_stages = (
-        "regional_bj",
-        "regional_he",
-        "regional_ln",
-        "regional_jl",
-        "regional_hl",
-    )
-    for stage_name in regional_primary_stages:
-        stage_state = stages.get(stage_name)
-        if (
-            isinstance(stage_state, dict)
-            and stage_state.get("status") in {"RUNNING", "COMPLETED"}
-            and f"{stage_name}_fallback" not in stages
-        ):
-            return f"prod:{local_date}:recovery-v7"
-    return f"prod:{local_date}:recovery-v3"
+def _plan_cycle(state: object, *, local_date: str) -> tuple[str, bool]:
+    """Choose the cycle id for a trigger on ``local_date``.
 
-
-def _migration_recovery_running_stages_are_stale(
-    state: object,
-    *,
-    local_date: str,
-    now: datetime,
-) -> bool:
-    if not isinstance(state, dict):
-        return False
-    if str(state.get("local_date") or "") != local_date:
-        return False
-    stages = state.get("stages")
-    if not isinstance(stages, dict):
-        return False
-    publish = stages.get("publish")
-    if not isinstance(publish, dict) or publish.get("status") != "FAILED":
-        return False
-    if not str(publish.get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE"):
-        return False
-
-    running = [
-        (name, stage_state)
-        for name, stage_state in stages.items()
-        if isinstance(stage_state, dict) and stage_state.get("status") == "RUNNING"
-    ]
-    if not running:
-        return False
-
-    for name, stage_state in running:
-        if not str(name).startswith("regional_"):
-            return False
-        started_raw = str(stage_state.get("started_at") or "")
-        try:
-            started = datetime.fromisoformat(started_raw.replace("Z", "+00:00"))
-        except ValueError:
-            return False
-        if started.tzinfo is None:
-            return False
-        if now - started.astimezone(timezone.utc) < MIGRATION_STALE_RUNNING_AFTER:
-            return False
-    return True
+    First trigger of the day: ``prod:{date}``. A later same-day trigger while
+    the day's cycle is unfinished mints ``prod:{date}:recovery-{n}`` with a
+    counter persisted in collector state, so every recovery gets fresh queue
+    idempotency keys (a reused key is rejected by Vercel Queues for 24 h) and
+    the number of same-day recoveries is bounded.
+    """
+    if not isinstance(state, dict) or str(state.get("local_date") or "") != local_date:
+        return f"prod:{local_date}", False
+    if cycle_publish_completed(state):
+        raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_COMPLETED_TODAY")
+    attempt = recovery_attempt_count(state) + 1
+    if attempt > MAX_RECOVERY_CYCLES_PER_DAY:
+        raise CollectorStartConflict("COLLECTOR_RECOVERY_LIMIT")
+    return f"prod:{local_date}:recovery-{attempt}", True
 
 
 def _activate_cycle(
@@ -151,11 +99,10 @@ def _activate_cycle(
     source: str,
 ) -> None:
     current_state = cache.get(META_KEY)
-    if cycle_has_running_stage(current_state) and not _migration_recovery_running_stages_are_stale(
-        current_state,
-        local_date=local_date,
-        now=now,
-    ):
+    # Only a stage whose wall-clock lease is unexpired can still have a live
+    # worker. A RUNNING marker left behind by a platform kill (or by any
+    # previous day) never blocks a new cycle.
+    if cycle_has_live_running_stage(current_state, now=now):
         raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
 
     active = {
@@ -175,12 +122,18 @@ def _activate_cycle(
         raise RuntimeError("COLLECTOR_ACTIVE_CYCLE_READBACK_FAILED")
 
 
+def _release_cycle_if_owned(cache: RuntimeCache, cycle_id: str) -> None:
+    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) == cycle_id:
+        cache.delete(ACTIVE_CYCLE_KEY)
+
+
 async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
     now = datetime.now(timezone.utc)
     local_date = now.astimezone(SHANGHAI).date().isoformat()
 
     cache = RuntimeCache()
-    cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"
+    state = cache.get(META_KEY)
+    cycle_id, is_recovery = _plan_cycle(state, local_date=local_date)
     _activate_cycle(
         cache,
         cycle_id=cycle_id,
@@ -188,6 +141,11 @@ async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
         local_date=local_date,
         source=source,
     )
+    if is_recovery and isinstance(state, dict):
+        # Persist the recovery counter before send() so a failed send can never
+        # reuse this cycle id, and give unfinished stages a fresh attempt budget.
+        reset_unfinished_stage_attempts(state, recovery_cycle_id=cycle_id, now=now)
+        write_collector_state(cache, state, now=now)
 
     # Deep collection owns the authoritative mutation lease from this point.
     # If an incremental invocation was already in flight, delay the first deep
@@ -198,18 +156,28 @@ async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
         if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) is not None
         else 0
     )
-    message_id = await send(
-        QUEUE_TOPIC_NAME,
-        {
-            "schema_version": "0.1",
-            "stage": "ccgp",
-            "cycle_as_of": now.isoformat(),
-            "cycle_id": cycle_id,
-        },
-        retention=MESSAGE_RETENTION,
-        delay=delay_seconds,
-        idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:ccgp",
-    )
+    try:
+        message_id = await send(
+            QUEUE_TOPIC_NAME,
+            {
+                "schema_version": "0.1",
+                "stage": "ccgp",
+                "cycle_as_of": now.isoformat(),
+                "cycle_id": cycle_id,
+            },
+            retention=MESSAGE_RETENTION,
+            delay=delay_seconds,
+            idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:ccgp",
+        )
+    except DuplicateIdempotencyKeyError as exc:
+        # The first message of this exact cycle id was already accepted by the
+        # queue; the lease we just wrote belongs to that in-flight cycle, keep it.
+        raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_QUEUED") from exc
+    except Exception:
+        # No queue message exists for this lease: release it so the next trigger
+        # (cron or manual) is not locked out until ACTIVE_CYCLE_TTL_SECONDS.
+        _release_cycle_if_owned(cache, cycle_id)
+        raise
     return str(message_id), local_date, cycle_id, delay_seconds
 
 
@@ -225,7 +193,7 @@ async def _enqueue_incremental(source: str, trigger_source: str) -> tuple[str, s
     # had a RUNNING stage. Also keep one incremental source active at a time.
     if (
         active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) is not None
-        or cycle_has_running_stage(cache.get(META_KEY))
+        or cycle_has_live_running_stage(cache.get(META_KEY), now=now)
     ):
         raise CollectorStartConflict("INCREMENTAL_BLOCKED_BY_DEEP_CYCLE")
     if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) is not None:
@@ -348,8 +316,8 @@ class handler(BaseHTTPRequestHandler):
             message_id, local_date, cycle_id, start_delay_seconds = asyncio.run(
                 _enqueue_start(trigger_source)
             )
-        except CollectorStartConflict:
-            return self._send_json(409, {"error": "COLLECTOR_CYCLE_ALREADY_RUNNING"})
+        except CollectorStartConflict as exc:
+            return self._send_json(409, {"error": str(exc) or "COLLECTOR_CYCLE_ALREADY_RUNNING"})
         except Exception as exc:
             return self._send_json(
                 503,

@@ -26,7 +26,7 @@ class VercelRegionalRuntimeTests(unittest.TestCase):
             '"regional_hl"',
             '"regional_hl_fallback"',
         ]
-        stage_order = self.source[self.source.index("STAGE_ORDER = ("):self.source.index("EXPECTED_SCHEDULES")]
+        stage_order = self.source[self.source.index("STAGE_ORDER = ("):self.source.index("class CollectorError")]
         positions = [stage_order.index(stage) for stage in stages]
         self.assertEqual(positions, sorted(positions))
         self.assertLess(positions[-1], stage_order.index('"publish"'))
@@ -49,17 +49,22 @@ class VercelRegionalRuntimeTests(unittest.TestCase):
         self.assertIn("REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION", self.source)
         self.assertIn("candidate_market_code", self.source)
 
-    def test_stale_running_regional_stage_can_replay_only_for_known_migration_failure(self) -> None:
-        self.assertIn("regional_stale_migration_replay = False", self.source)
-        self.assertIn('previous.get("status") == "RUNNING"', self.source)
-        self.assertIn('publish_state.get("status") == "FAILED"', self.source)
-        self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', self.source)
-        self.assertIn("timedelta(minutes=15)", self.source)
-        self.assertIn('int(previous.get("attempt_count", 0)) == MAX_STAGE_ATTEMPTS_PER_DAY', self.source)
+    def test_running_stage_is_claimed_by_wall_clock_lease_not_by_special_case_flags(self) -> None:
         prepare = self.source[self.source.index("def _prepare_stage"):self.source.index("def _mark_completed")]
-        stale_block = prepare[prepare.index("regional_stale_migration_replay = bool("):prepare.index("if index > 0:")]
-        self.assertNotIn("not isinstance(cache.get(_regional_records_key(market_code)), list)", stale_block)
-        self.assertIn("and not regional_stale_migration_replay", self.source)
+        for removed_flag in (
+            "regional_stale_migration_replay",
+            "regional_timeout_split_replay",
+            "publish_cache_migration_retry",
+            "tjfch_policy_recovery_retry",
+            "regional_cache_replay",
+        ):
+            self.assertNotIn(removed_flag, self.source)
+        self.assertIn("if stage_lease_is_live(previous, now=wall_now):", prepare)
+        self.assertIn('f"COLLECTOR_STAGE_LEASE_HELD:{stage}:', prepare)
+        self.assertIn('previous["error_code"] = "COLLECTOR_STAGE_TIMEOUT"', prepare)
+        self.assertIn('"started_at": wall_now.isoformat()', prepare)
+        self.assertIn('"lease_expires_at": (wall_now + timedelta(seconds=STAGE_LEASE_SECONDS)).isoformat()', prepare)
+        self.assertNotIn('"started_at": now.isoformat()', prepare)
 
     def test_every_regional_fallback_is_a_separate_bounded_queue_stage(self) -> None:
         mapping = self.source[self.source.index("REGIONAL_FALLBACK_STAGE_MARKET_CODES = {"):self.source.index("STAGE_ORDER = (")]
@@ -83,13 +88,15 @@ class VercelRegionalRuntimeTests(unittest.TestCase):
         publish = self.source[self.source.index("def _run_publish"):]
         self.assertIn("for market_code in REGIONAL_STAGE_MARKET_CODES.values()", publish)
 
-    def test_timeout_split_recovery_is_narrow_for_regional_primaries(self) -> None:
-        prepare = self.source[self.source.index("def _prepare_stage"):self.source.index("def _mark_completed")]
-        self.assertIn("regional_timeout_split_replay", prepare)
-        self.assertIn("stage in REGIONAL_STAGE_MARKET_CODES", prepare)
-        self.assertIn("attempts in {MAX_STAGE_ATTEMPTS_PER_DAY, MAX_STAGE_ATTEMPTS_PER_DAY + 1}", prepare)
-        self.assertIn('f"{stage}_fallback" not in stages', prepare)
-        self.assertIn("and not regional_timeout_split_replay", prepare)
+    def test_regional_discovery_and_detail_loops_respect_the_stage_budget(self) -> None:
+        runtime = self.source[self.source.index("def _run_regional_market"):self.source.index("def _publish_min_pool_ratio")]
+        self.assertIn('_require_budget(f"{stage}:scoped_discovery")', runtime)
+        self.assertIn('_require_budget(f"{stage}:national_fallback_discovery")', runtime)
+        self.assertIn("deferred_candidate_count = len(selected) - position", runtime)
+        self.assertIn('raise CollectorStageBlocked(f"COLLECTOR_STAGE_BUDGET_EXHAUSTED:{stage}:detail")', runtime)
+        self.assertIn("RegionalCcgpSearchSession(timeout_seconds=SOURCE_REQUEST_TIMEOUT_SECONDS)", runtime)
+        self.assertIn("fetch_ccgp_detail_html(candidate.detail_url, timeout_seconds=SOURCE_REQUEST_TIMEOUT_SECONDS)", runtime)
+        self.assertNotIn("time.sleep(", runtime)
 
     def test_publish_includes_market_sharded_regional_canonical_records(self) -> None:
         self.assertIn(
@@ -103,18 +110,16 @@ class VercelRegionalRuntimeTests(unittest.TestCase):
         self.assertIn("regional_records = [", publish)
         self.assertNotIn("cache.get(REGIONAL_RECORDS_KEY)", publish)
 
-    def test_completed_regional_stage_replays_when_v3_cache_shard_is_missing(self) -> None:
+    def test_completed_stage_replays_when_its_canonical_output_is_missing(self) -> None:
         prepare = self.source[self.source.index("def _prepare_stage"):self.source.index("def _mark_completed")]
-        self.assertIn("regional_cache_replay = False", prepare)
-        self.assertIn("cache.get(_regional_records_key(market_code))", prepare)
-        self.assertIn("if not regional_cache_replay:", prepare)
-        self.assertIn("and not regional_cache_replay", prepare)
+        outputs = self.source[self.source.index("def _stage_output_keys"):self.source.index("def _missing_stage_outputs")]
+        self.assertIn("missing = _missing_stage_outputs(cache, stage)", prepare)
+        self.assertIn('replay_reason = "COLLECTOR_STAGE_OUTPUT_MISSING:"', prepare)
+        self.assertIn("attempts = 0", prepare)
+        self.assertIn("return (_regional_records_key(REGIONAL_STAGE_MARKET_CODES[stage]),)", outputs)
+        self.assertIn("return (CCGP_RECORDS_KEY, CCGP_EVENTS_KEY, CCGP_WATCH_KEY)", outputs)
 
-    def test_publish_gets_one_narrow_cache_migration_retry_and_names_missing_state(self) -> None:
-        prepare = self.source[self.source.index("def _prepare_stage"):self.source.index("def _mark_completed")]
-        self.assertIn("publish_cache_migration_retry", prepare)
-        self.assertIn('stage == "publish"', prepare)
-        self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', prepare)
+    def test_publish_names_missing_canonical_state(self) -> None:
         publish = self.source[self.source.index("def _run_publish"):]
         self.assertIn("canonical_by_name", publish)
         self.assertIn("missing_canonical", publish)

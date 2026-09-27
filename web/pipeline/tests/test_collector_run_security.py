@@ -29,27 +29,34 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertIn('INCREMENTAL_SOURCE_UNSUPPORTED', source)
         self.assertIn('COLLECTOR_MODE_INVALID', source)
 
-    def test_cache_migration_recovery_cycle_is_narrow_and_deterministic(self) -> None:
+    def test_same_day_recovery_cycles_are_counted_bounded_and_persisted_before_send(self) -> None:
         source = COLLECTOR_RUN.read_text(encoding="utf-8")
-        self.assertIn("def _recovery_cycle_id(cache: RuntimeCache, local_date: str)", source)
-        self.assertIn('publish.get("status") != "FAILED"', source)
-        self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', source)
-        self.assertIn('return f"prod:{local_date}:recovery-v7"', source)
-        self.assertIn('"regional_he"', source)
-        self.assertIn('stage_state.get("status") in {"RUNNING", "COMPLETED"}', source)
-        self.assertIn('f"{stage_name}_fallback" not in stages', source)
-        self.assertIn('return f"prod:{local_date}:recovery-v3"', source)
+        self.assertIn("def _plan_cycle(state: object, *, local_date: str)", source)
+        self.assertIn('return f"prod:{local_date}:recovery-{attempt}", True', source)
+        self.assertIn("if attempt > MAX_RECOVERY_CYCLES_PER_DAY:", source)
+        self.assertIn('raise CollectorStartConflict("COLLECTOR_RECOVERY_LIMIT")', source)
+        self.assertIn('raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_COMPLETED_TODAY")', source)
+        # Counter + attempt reset are persisted before the queue send so a failed
+        # send can never reuse a cycle id (Vercel Queues rejects reused keys for 24h).
+        self.assertLess(source.index("write_collector_state(cache, state, now=now)"), source.index("message_id = await send("))
+        self.assertNotIn("recovery-v3", source)
+        self.assertNotIn("recovery-v6", source)
+        self.assertNotIn("recovery-v7", source)
+        self.assertNotIn("_recovery_cycle_id", source)
         self.assertNotIn("uuid", source.lower())
 
-    def test_cache_migration_recovery_ignores_only_stale_regional_running_stages(self) -> None:
+    def test_new_cycle_is_blocked_only_by_a_live_stage_lease_and_releases_on_send_failure(self) -> None:
         source = COLLECTOR_RUN.read_text(encoding="utf-8")
-        self.assertIn("MIGRATION_STALE_RUNNING_AFTER = timedelta(minutes=15)", source)
-        self.assertIn("def _migration_recovery_running_stages_are_stale(", source)
-        self.assertIn('str(name).startswith("regional_")', source)
-        self.assertIn('publish.get("status") != "FAILED"', source)
-        self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', source)
-        self.assertIn("now - started.astimezone(timezone.utc) < MIGRATION_STALE_RUNNING_AFTER", source)
-        self.assertIn("cycle_has_running_stage(current_state) and not _migration_recovery_running_stages_are_stale(", source)
+        self.assertNotIn("MIGRATION_STALE_RUNNING_AFTER", source)
+        self.assertNotIn("_migration_recovery_running_stages_are_stale", source)
+        self.assertIn("if cycle_has_live_running_stage(current_state, now=now):", source)
+        self.assertIn('raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")', source)
+        self.assertIn("except DuplicateIdempotencyKeyError as exc:", source)
+        self.assertIn('raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_QUEUED") from exc', source)
+        enqueue = source[source.index("async def _enqueue_start"):source.index("async def _enqueue_incremental")]
+        self.assertIn("except Exception:", enqueue)
+        self.assertIn("_release_cycle_if_owned(cache, cycle_id)", enqueue)
+        self.assertIn("raise", enqueue)
 
     def test_trigger_requires_cron_secret_and_bearer_auth_fail_closed(self) -> None:
         source = COLLECTOR_RUN.read_text(encoding="utf-8")
@@ -61,7 +68,7 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertNotIn('x-vercel-cron-schedule', source)
         self.assertLess(source.index("if not cron_secret:"), source.index('return True, "VERCEL_CRON"'))
         self.assertLess(source.index("hmac.compare_digest"), source.index('return True, "VERCEL_CRON"'))
-        self.assertIn('cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"', source)
+        self.assertIn("cycle_id, is_recovery = _plan_cycle(state, local_date=local_date)", source)
 
 
 if __name__ == "__main__":

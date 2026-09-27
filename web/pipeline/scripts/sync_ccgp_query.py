@@ -82,6 +82,10 @@ def discovery_event(candidate, *, project_number: str, event_type: str, observed
     }
 
 
+def _fetch_kwargs(timeout_seconds: int | None) -> dict:
+    return {} if timeout_seconds is None else {'timeout_seconds': timeout_seconds}
+
+
 def scan_events(
     project_number: str,
     *,
@@ -91,6 +95,7 @@ def scan_events(
     delay_seconds: float,
     observed_at: str,
     failures: list[dict],
+    timeout_seconds: int | None = None,
 ) -> list[dict]:
     events: list[dict] = []
     for notice_type, event_type in (('更正公告', 'CORRECTION'), ('终止公告', 'TERMINATION')):
@@ -103,7 +108,7 @@ def scan_events(
             region=region,
         )
         try:
-            html = fetch_search_page(search_url)
+            html = fetch_search_page(search_url, **_fetch_kwargs(timeout_seconds))
             candidates = parse_search_html(html, keyword=project_number)
         except Exception as exc:  # explicit report; no bypass/retry storm
             failures.append(
@@ -124,7 +129,7 @@ def scan_events(
             event = None
             try:
                 time.sleep(delay_seconds)
-                detail_html = fetch_ccgp_detail_html(candidate.detail_url)
+                detail_html = fetch_ccgp_detail_html(candidate.detail_url, **_fetch_kwargs(timeout_seconds))
                 event = parse_ccgp_event_html(
                     detail_html,
                     source_url=candidate.detail_url,
@@ -166,6 +171,7 @@ def discover_candidates(
     end_date: str,
     delay_seconds: float,
     failures: list[dict],
+    timeout_seconds: int | None = None,
 ) -> list[tuple[str, object]]:
     discovered: list[tuple[str, object]] = []
     seen_urls: set[str] = set()
@@ -181,7 +187,7 @@ def discover_candidates(
             region=region,
         )
         try:
-            html = fetch_search_page(search_url)
+            html = fetch_search_page(search_url, **_fetch_kwargs(timeout_seconds))
             candidates = parse_search_html(html, keyword=keyword)
         except Exception as exc:
             failures.append(
