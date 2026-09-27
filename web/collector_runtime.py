@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sys
 import time
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
 from vercel.functions import RuntimeCache
@@ -114,6 +117,8 @@ TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v1"
 REGIONAL_RECORDS_KEY = "medicalchannelai:collector-regional-records:v2"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 PUBLISHED_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:published:v2"
+DURABLE_PUBLISH_URL = "https://medicalchannelai.vercel.app/api/public-snapshot"
+DURABLE_PUBLISH_TIMEOUT_SECONDS = 30
 
 REGIONAL_STAGE_MARKET_CODES = {
     "regional_bj": "BJ",
@@ -1093,6 +1098,55 @@ def _run_regional_market(
     }
 
 
+def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, Any]:
+    token = str(os.environ.get("VERIFIED_SNAPSHOT_PUBLISH_TOKEN") or "").strip()
+    if len(token) < 24:
+        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_TOKEN_MISSING")
+
+    payload = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    request = Request(
+        DURABLE_PUBLISH_URL,
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json; charset=utf-8",
+            "Accept": "application/json",
+            "User-Agent": "MedicalChannelAI-VercelCollector/0.1",
+        },
+        method="PUT",
+    )
+    try:
+        with urlopen(request, timeout=DURABLE_PUBLISH_TIMEOUT_SECONDS) as response:
+            status = int(getattr(response, "status", 0) or 0)
+            body = response.read()
+    except HTTPError as exc:
+        try:
+            detail = exc.read().decode("utf-8", errors="replace")[:180]
+        except Exception:
+            detail = ""
+        raise CollectorStageBlocked(
+            f"DURABLE_SNAPSHOT_PUBLISH_HTTP_{exc.code}:{detail}"
+        ) from exc
+    except URLError as exc:
+        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_NETWORK_FAILED") from exc
+
+    if status != 200:
+        raise CollectorStageBlocked(f"DURABLE_SNAPSHOT_PUBLISH_HTTP_{status}")
+    try:
+        result = json.loads(body.decode("utf-8"))
+    except Exception as exc:
+        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_RESPONSE_INVALID") from exc
+    if result.get("ok") is not True:
+        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_NOT_ACKNOWLEDGED")
+    if result.get("snapshot_as_of") != snapshot.get("snapshot_as_of"):
+        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_AS_OF_MISMATCH")
+    expected_pool = snapshot.get("opportunity_pool")
+    expected_count = len(expected_pool) if isinstance(expected_pool, list) else len(snapshot.get("cards") or [])
+    if int(result.get("opportunity_pool_count") or -1) != expected_count:
+        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_POOL_MISMATCH")
+    return result
+
+
 def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     ccgp_records = cache.get(CCGP_RECORDS_KEY)
     events = cache.get(CCGP_EVENTS_KEY)
@@ -1140,6 +1194,8 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     # Node public serving reads this exact stable key. It is intentionally written
     # without TTL/tags so the collector cannot expire the serving snapshot merely
     # because the short-lived collector state ages out.
+    durable_result = _persist_verified_snapshot_durably(snapshot)
+
     cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})
     serving_read_back = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
     if not isinstance(serving_read_back, dict) or _digest(serving_read_back) != digest:
@@ -1153,6 +1209,8 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "canonical_record_count": len(records),
         "notice_event_count": len(events),
         "sha256": digest,
+        "durable_snapshot_persisted": True,
+        "durable_snapshot_as_of": durable_result.get("snapshot_as_of"),
     }
 
 

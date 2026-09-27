@@ -34,6 +34,15 @@ class VercelServingSnapshotBridgeTests(unittest.TestCase):
         self.assertNotIn("_cache_set(\n        cache,\n        PUBLISHED_RUNTIME_SNAPSHOT_KEY", body)
         self.assertIn("SERVING_SNAPSHOT_READBACK_MISMATCH", body)
 
+    def test_collector_publish_persists_snapshot_before_serving_ack(self) -> None:
+        self.assertIn('DURABLE_PUBLISH_URL = "https://medicalchannelai.vercel.app/api/public-snapshot"', self.python)
+        self.assertIn('os.environ.get("VERIFIED_SNAPSHOT_PUBLISH_TOKEN")', self.python)
+        body = self.python[self.python.index("def _run_publish"):]
+        durable = body.index("_persist_verified_snapshot_durably(snapshot)")
+        serving = body.index("cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})")
+        self.assertLess(durable, serving)
+        self.assertIn('"durable_snapshot_persisted": True', body)
+
     def test_legacy_collector_key_remains_separate_from_serving_key(self) -> None:
         legacy = _string_constant(self.python, "LATEST_RUNTIME_SNAPSHOT_KEY")
         serving = _string_constant(self.python, "PUBLISHED_RUNTIME_SNAPSHOT_KEY")
