@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check canonical public demo URLs
+      - name: Check public demo URLs
         shell: bash
         run: |
           set -euo pipefail
@@ -29,6 +29,7 @@ jobs:
 
           check_url "https://medicalchannelai.vercel.app/"
           check_url "https://medicalchannelai.vercel.app/today"
+          check_url "https://medicalai.qd.je/"
 
       - name: Check application status
         shell: bash
@@ -50,3 +51,13 @@ jobs:
           if payload.get('ready') is not True:
               raise SystemExit('api/status ready != true')
           PY
+
+      - name: Warn while qd.je still uses retired VPS address
+        shell: bash
+        run: |
+          set -euo pipefail
+          addresses="$(getent ahostsv4 medicalai.qd.je | awk '{print $1}' | sort -u | tr '\n' ' ')"
+          echo "medicalai.qd.je IPv4: $addresses"
+          if [[ " $addresses " == *" 35.211.124.40 "* ]]; then
+            echo "::warning::medicalai.qd.je still points to retired paid VPS address 35.211.124.40; migrate to zero-cost hosting before releasing the VPS."
+          fi
