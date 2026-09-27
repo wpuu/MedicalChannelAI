@@ -36,70 +36,22 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/api/auth/register",
-      "destination": "/api/auth?route=register"
-    },
-    {
-      "source": "/api/auth/login",
-      "destination": "/api/auth?route=login"
-    },
-    {
-      "source": "/api/auth/logout",
-      "destination": "/api/auth?route=logout"
-    },
-    {
-      "source": "/api/auth/me",
-      "destination": "/api/auth?route=me"
-    },
-    {
-      "source": "/api/account/export",
-      "destination": "/api/auth?route=export"
-    },
-    {
-      "source": "/api/account/delete",
-      "destination": "/api/auth?route=delete"
-    },
-    {
-      "source": "/api/today",
-      "destination": "/api/private?route=today"
-    },
-    {
-      "source": "/api/opportunity-pool/today",
-      "destination": "/api/private?route=today&include_pool=1"
-    },
-    {
-      "source": "/api/opportunity/:id",
-      "destination": "/api/private?route=opportunity&id=:id"
-    },
-    {
-      "source": "/api/public-history/:id",
-      "destination": "/api/profile?route=public-history&id=:id"
-    },
-    {
-      "source": "/api/followup/:id",
-      "destination": "/api/private?route=followup&id=:id"
-    },
-    {
-      "source": "/api/followed",
-      "destination": "/api/private?route=followed"
-    },
-    {
-      "source": "/api/reminders",
-      "destination": "/api/private?route=reminders"
-    },
-    {
-      "source": "/api/reminders/:id/ack",
-      "destination": "/api/private?route=reminder-ack&id=:id"
-    },
-    {
-      "source": "/api/feedback/:id",
-      "destination": "/api/private?route=feedback&id=:id"
-    },
-    {
-      "source": "/api/ai/discover-continuation",
-      "destination": "/api/ai/discover?route=continuation"
-    },
+    { "source": "/api/auth/register", "destination": "/api/auth?route=register" },
+    { "source": "/api/auth/login", "destination": "/api/auth?route=login" },
+    { "source": "/api/auth/logout", "destination": "/api/auth?route=logout" },
+    { "source": "/api/auth/me", "destination": "/api/auth?route=me" },
+    { "source": "/api/account/export", "destination": "/api/auth?route=export" },
+    { "source": "/api/account/delete", "destination": "/api/auth?route=delete" },
+    { "source": "/api/today", "destination": "/api/private?route=today" },
+    { "source": "/api/opportunity-pool/today", "destination": "/api/private?route=today&include_pool=1" },
+    { "source": "/api/opportunity/:id", "destination": "/api/private?route=opportunity&id=:id" },
+    { "source": "/api/public-history/:id", "destination": "/api/profile?route=public-history&id=:id" },
+    { "source": "/api/followup/:id", "destination": "/api/private?route=followup&id=:id" },
+    { "source": "/api/followed", "destination": "/api/private?route=followed" },
+    { "source": "/api/reminders", "destination": "/api/private?route=reminders" },
+    { "source": "/api/reminders/:id/ack", "destination": "/api/private?route=reminder-ack&id=:id" },
+    { "source": "/api/feedback/:id", "destination": "/api/private?route=feedback&id=:id" },
+    { "source": "/api/ai/discover-continuation", "destination": "/api/ai/discover?route=continuation" },
     {
       "source": "/(.*)",
       "destination": "/index.html"
@@ -109,31 +61,16 @@
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow, noarchive, nosnippet"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "no-referrer"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        }
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ]
