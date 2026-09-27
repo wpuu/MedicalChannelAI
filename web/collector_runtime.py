@@ -122,7 +122,6 @@ DURABLE_PUBLISH_TIMEOUT_SECONDS = 30
 
 REGIONAL_STAGE_MARKET_CODES = {
     "regional_bj": "BJ",
-    "regional_bj_fallback": "BJ",
     "regional_he": "HE",
     "regional_ln": "LN",
     "regional_jl": "JL",
@@ -978,10 +977,10 @@ def _run_regional_market(
     state: dict[str, Any],
     stage: str,
 ) -> dict[str, Any]:
-    market_code = REGIONAL_STAGE_MARKET_CODES.get(stage)
+    fallback_only = stage == "regional_bj_fallback"
+    market_code = "BJ" if fallback_only else REGIONAL_STAGE_MARKET_CODES.get(stage)
     if not market_code:
         raise CollectorPrecondition(f"REGIONAL_STAGE_INVALID:{stage}")
-    fallback_only = stage == "regional_bj_fallback"
 
     plan = load_regional_plan(DATA_ROOT / "multi_region_query_plan.json")
     market_by_code = {
@@ -1028,9 +1027,9 @@ def _run_regional_market(
     scoped_region_mismatch_count = 0
 
     if not fallback_only:
-            for keyword in plan["keywords"]:
-                for notice_type in plan["notice_types"]:
-                    try:
+        for keyword in plan["keywords"]:
+            for notice_type in plan["notice_types"]:
+                try:
                     items = fetch_regional_candidates_page(
                         session,
                         keyword=keyword,
@@ -1065,7 +1064,7 @@ def _run_regional_market(
                         "message": str(exc)[:300],
                     })
                 time.sleep(plan["delay_seconds"])
-    
+
     fallback_query_success_count = 0
     scoped_found_candidates = bool(discovered_by_url)
     national_fallback_used = fallback_only or (stage != "regional_bj" and not scoped_found_candidates)
@@ -1375,7 +1374,7 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             result = _run_teda(cache, state)
         elif stage == "tjfch":
             result = _run_tjfch(cache, state)
-        elif stage in REGIONAL_STAGE_MARKET_CODES:
+        elif stage in REGIONAL_STAGE_MARKET_CODES or stage == "regional_bj_fallback":
             result = _run_regional_market(cache, state, stage)
         elif stage == "publish":
             result = _run_publish(cache, state)
