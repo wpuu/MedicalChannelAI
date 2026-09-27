@@ -16,9 +16,10 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
     def test_frontend_accepts_all_server_snapshot_source_modes(self) -> None:
         client = STATUS_API.read_text(encoding='utf-8')
         server = SERVER_STATUS.read_text(encoding='utf-8')
-        for mode in ['BUNDLED', 'RUNTIME_CACHE', 'REMOTE', 'BUNDLED_FALLBACK', 'UNAVAILABLE']:
+        for mode in ['DATABASE', 'BUNDLED', 'RUNTIME_CACHE', 'REMOTE', 'BUNDLED_FALLBACK', 'UNAVAILABLE']:
             self.assertIn(mode, client)
         snapshot_loader = (WEB_ROOT / 'api' / '_verifiedSnapshot.js').read_text(encoding='utf-8')
+        self.assertIn("lastSourceMode = 'DATABASE'", snapshot_loader)
         self.assertIn("lastSourceMode = 'RUNTIME_CACHE'", snapshot_loader)
         self.assertIn("lastSourceMode = 'BUNDLED_FALLBACK'", snapshot_loader)
         self.assertIn("lastRuntimeOrigin = runtimeResult.origin", snapshot_loader)
