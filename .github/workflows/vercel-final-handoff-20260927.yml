@@ -1,0 +1,124 @@
+name: MCAI Final Vercel Handoff 2026-09-27
+
+on:
+  push:
+    branches: [ops/vercel-final-handoff-20260927]
+    paths:
+      - '.github/workflows/vercel-final-handoff-20260927.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  handoff:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 30
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      TEAM_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+      PUBLIC_ORIGIN: https://medicalchannelai.vercel.app
+      EXPECTED_COMMIT: 2d91574
+
+    steps:
+      - name: Wait for exact Production commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 60); do
+            code="$(curl -sS --max-time 20 -o "$RUNNER_TEMP/status.json" -w '%{http_code}' "$PUBLIC_ORIGIN/api/status" || true)"
+            commit="$(python3 - "$RUNNER_TEMP/status.json" <<'PY'
+          import json,sys
+          try:
+              print(str(json.load(open(sys.argv[1],encoding='utf-8')).get('commit') or ''))
+          except Exception:
+              print('')
+          PY
+          )"
+            echo "Attempt $attempt: http=$code commit=$commit"
+            if [[ "$code" = "200" && "$commit" = "$EXPECTED_COMMIT" ]]; then
+              echo 'EXACT_PRODUCTION_COMMIT=PASS'
+              exit 0
+            fi
+            sleep 10
+          done
+          echo '::error::Expected Production commit did not become active in time.'
+          exit 1
+
+      - name: Read existing CRON_SECRET securely
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS             -H "Authorization: Bearer $VERCEL_TOKEN"             "https://api.vercel.com/v10/projects/$PROJECT_ID/env?decrypt=true&teamId=$TEAM_ID" > "$RUNNER_TEMP/env.json"
+          python3 - "$RUNNER_TEMP/env.json" "$RUNNER_TEMP/cron_secret" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding='utf-8'))
+          for item in d.get('envs') or []:
+              if item.get('key')=='CRON_SECRET' and 'production' in (item.get('target') or []):
+                  value=str(item.get('value') or '')
+                  if len(value) < 24:
+                      raise SystemExit('CRON_SECRET_DECRYPT_EMPTY')
+                  open(sys.argv[2],'w',encoding='utf-8').write(value)
+                  print('CRON_SECRET_DECRYPT=PASS')
+                  break
+          else:
+              raise SystemExit('CRON_SECRET_NOT_FOUND')
+          PY
+          CRON_SECRET_VALUE="$(cat "$RUNNER_TEMP/cron_secret")"
+          echo "::add-mask::$CRON_SECRET_VALUE"
+          chmod 600 "$RUNNER_TEMP/cron_secret"
+
+      - name: Trigger authenticated deep collector
+        shell: bash
+        run: |
+          set -euo pipefail
+          CRON_SECRET_VALUE="$(cat "$RUNNER_TEMP/cron_secret")"
+          code="$(curl -sS --max-time 30 -o "$RUNNER_TEMP/start.json" -w '%{http_code}'             -H "Authorization: Bearer $CRON_SECRET_VALUE"             "$PUBLIC_ORIGIN/api/collector-run")"
+          echo "COLLECTOR_TRIGGER_HTTP=$code"
+          python3 - "$RUNNER_TEMP/start.json" <<'PY'
+          import json,sys
+          try:
+              d=json.load(open(sys.argv[1],encoding='utf-8'))
+              c=d.get('collector') or {}
+              print('COLLECTOR_ACTION=' + str(c.get('action') or d.get('error') or 'UNKNOWN'))
+              print('COLLECTOR_CYCLE_ID=' + str(c.get('cycle_id') or ''))
+          except Exception:
+              print('COLLECTOR_RESPONSE_INVALID')
+          PY
+          if [[ "$code" != "202" && "$code" != "409" ]]; then
+            echo '::error::Collector trigger failed.'
+            exit 1
+          fi
+
+      - name: Prove durable takeover
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 75); do
+            curl -sS --max-time 20 "$PUBLIC_ORIGIN/api/collector-status" -o "$RUNNER_TEMP/collector.json"
+            curl -sS --max-time 20 "$PUBLIC_ORIGIN/api/status" -o "$RUNNER_TEMP/status.json"
+            summary="$(python3 - "$RUNNER_TEMP/collector.json" "$RUNNER_TEMP/status.json" <<'PY'
+          import json,sys
+          c=(json.load(open(sys.argv[1],encoding='utf-8')).get('collector') or {})
+          s=(json.load(open(sys.argv[2],encoding='utf-8')).get('snapshot') or {})
+          publish=(c.get('stages') or {}).get('publish') or {}
+          print('|'.join([
+              str(c.get('completed_stage_count') or 0),
+              str(c.get('total_stage_count') or 0),
+              str(publish.get('status') or ''),
+              str(s.get('source_mode') or ''),
+              str(s.get('freshness') or ''),
+              str(s.get('snapshot_as_of') or ''),
+          ]))
+          PY
+          )"
+            IFS='|' read -r done total publish source fresh asof <<< "$summary"
+            echo "Attempt $attempt: stages=$done/$total publish=$publish source=$source freshness=$fresh snapshot=$asof"
+            if [[ "$publish" = "COMPLETED" && "$source" = "DATABASE" && "$fresh" = "FRESH" ]]; then
+              echo 'VERCEL_NEON_DURABLE_TAKEOVER=PASS'
+              exit 0
+            fi
+            sleep 20
+          done
+          echo '::error::Durable takeover was not proven within bounded polling.'
+          exit 1
