@@ -1,4 +1,5 @@
 import { getCache } from '@vercel/functions'
+import { latestPublicVerifiedSnapshot } from './_publicIntelligenceDb.js'
 import bundledSnapshot from '../public/data/today-actions.public.json' with { type: 'json' }
 import { filterSnapshotToMedicalChannel } from './_medicalChannelScope.js'
 
@@ -312,6 +313,15 @@ export async function loadVerifiedSnapshot() {
     lastRuntimeOrigin = null
     return scopedVerifiedSnapshot(await loadRemoteSnapshot(remoteUrl))
   }
+
+  const durableValue = await latestPublicVerifiedSnapshot()
+  const durableSnapshot = durableValue ? selectPublishedRuntimeSnapshot(durableValue) : null
+  if (durableSnapshot) {
+    lastSourceMode = 'DATABASE'
+    lastRuntimeOrigin = null
+    return scopedVerifiedSnapshot(durableSnapshot)
+  }
+
   try {
     const runtimeResult = await loadRuntimeCachedSnapshot()
     if (runtimeResult) {

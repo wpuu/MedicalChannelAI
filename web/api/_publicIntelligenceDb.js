@@ -4,7 +4,7 @@ import { privateDatabaseConfigured, privateDb } from './_privateDb.js'
 let schemaPromise = null
 
 const PUBLIC_SCHEMA_KEY = 'medicalchannelai-public-intelligence'
-const PUBLIC_SCHEMA_VERSION = '2026-09-04-public-intelligence-v1'
+const PUBLIC_SCHEMA_VERSION = '2026-09-27-public-intelligence-v2'
 const PUBLIC_SCHEMA_LOCK_KEY = 'medicalchannelai-public-intelligence-schema-migration'
 
 const PUBLIC_SCHEMA_STATEMENTS = [
@@ -63,6 +63,15 @@ const PUBLIC_SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX IF NOT EXISTS public_snapshot_materializations_region_time_idx
     ON public_snapshot_materializations (region_code, snapshot_as_of DESC)`,
+  `CREATE TABLE IF NOT EXISTS public_verified_snapshots (
+    snapshot_hash TEXT PRIMARY KEY CHECK (length(snapshot_hash) = 64),
+    snapshot_as_of TIMESTAMPTZ NOT NULL UNIQUE,
+    payload JSONB NOT NULL,
+    opportunity_count INTEGER NOT NULL CHECK (opportunity_count >= 0),
+    materialized_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS public_verified_snapshots_as_of_idx
+    ON public_verified_snapshots (snapshot_as_of DESC, materialized_at DESC)`,
   `CREATE TABLE IF NOT EXISTS public_ai_briefs (
     opportunity_id TEXT NOT NULL,
     fact_hash TEXT NOT NULL CHECK (length(fact_hash) = 64),
@@ -316,6 +325,71 @@ export function publicAiFactHash(facts, evidenceUrls) {
     facts: asObject(facts) || {},
     evidence_source_urls: Array.isArray(evidenceUrls) ? [...new Set(evidenceUrls)].sort() : [],
   })
+}
+
+export async function persistPublicVerifiedSnapshot(snapshot) {
+  if (!publicIntelligenceDatabaseConfigured()) {
+    return { configured: false, persisted: false, snapshot_hash: null }
+  }
+  const snapshotAsOf = cleanText(snapshot?.snapshot_as_of, 100)
+  if (!snapshotAsOf || Number.isNaN(Date.parse(snapshotAsOf))) {
+    throw new Error('PUBLIC_SNAPSHOT_AS_OF_INVALID')
+  }
+  const cards = Array.isArray(snapshot?.opportunity_pool)
+    ? snapshot.opportunity_pool
+    : Array.isArray(snapshot?.cards) ? snapshot.cards : []
+  const snapshotHash = sha256Json(snapshot)
+
+  await ensurePublicIntelligenceSchema()
+  const sql = publicIntelligenceDb()
+  const result = await sql.begin(async (tx) => {
+    await tx`SELECT pg_advisory_xact_lock(hashtext('public-verified-snapshot'), hashtext(${snapshotAsOf}))`
+    const existing = await tx`
+      SELECT snapshot_hash
+      FROM public_verified_snapshots
+      WHERE snapshot_as_of = ${snapshotAsOf}
+      LIMIT 1
+    `
+    if (existing[0] && existing[0].snapshot_hash !== snapshotHash) {
+      throw new Error('PUBLIC_SNAPSHOT_REVISION_CONFLICT')
+    }
+    const inserted = await tx`
+      INSERT INTO public_verified_snapshots (
+        snapshot_hash, snapshot_as_of, payload, opportunity_count
+      ) VALUES (
+        ${snapshotHash}, ${snapshotAsOf}, ${tx.json(snapshot)}, ${cards.length}
+      )
+      ON CONFLICT (snapshot_hash) DO NOTHING
+      RETURNING snapshot_hash
+    `
+    return { inserted: inserted.length > 0 }
+  })
+  return {
+    configured: true,
+    persisted: true,
+    inserted: result.inserted,
+    snapshot_hash: snapshotHash,
+  }
+}
+
+export async function latestPublicVerifiedSnapshot() {
+  if (!publicIntelligenceDatabaseConfigured()) return null
+  try {
+    await ensurePublicIntelligenceSchema()
+    const sql = publicIntelligenceDb()
+    const rows = await sql`
+      SELECT payload
+      FROM public_verified_snapshots
+      ORDER BY snapshot_as_of DESC, materialized_at DESC
+      LIMIT 1
+    `
+    return rows[0]?.payload || null
+  } catch (error) {
+    console.warn('durable public snapshot read unavailable', {
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
+    return null
+  }
 }
 
 export async function materializeVerifiedSnapshot(snapshot) {

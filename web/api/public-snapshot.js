@@ -2,8 +2,10 @@ import { timingSafeEqual } from 'node:crypto'
 import {
   loadVerifiedSnapshot,
   publishVerifiedSnapshotToRuntimeCache,
+  validateVerifiedSnapshot,
   verifiedSnapshotSourceMode,
 } from './_verifiedSnapshot.js'
+import { persistPublicVerifiedSnapshot } from './_publicIntelligenceDb.js'
 
 function sendJson(response, status, payload, { cacheable = false } = {}) {
   response.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -63,7 +65,8 @@ function publishFailureStatus(error) {
     code === 'RUNTIME_SNAPSHOT_ROLLBACK_REJECTED' ||
     code === 'RUNTIME_SNAPSHOT_REVISION_CONFLICT' ||
     code === 'RUNTIME_SNAPSHOT_OLDER_THAN_BUNDLE' ||
-    code === 'RUNTIME_SNAPSHOT_FUTURE_REJECTED'
+    code === 'RUNTIME_SNAPSHOT_FUTURE_REJECTED' ||
+    code === 'PUBLIC_SNAPSHOT_REVISION_CONFLICT'
   ) return 409
   if (
     code.startsWith('VERIFIED_SNAPSHOT_') ||
@@ -84,7 +87,8 @@ async function publishSnapshot(request, response) {
   }
 
   try {
-    const snapshot = await requestBodyValue(request)
+    const snapshot = validateVerifiedSnapshot(await requestBodyValue(request))
+    await persistPublicVerifiedSnapshot(snapshot)
     const published = await publishVerifiedSnapshotToRuntimeCache(snapshot)
     const pool = Array.isArray(published.opportunity_pool) ? published.opportunity_pool : published.cards
     return sendJson(response, 200, {
