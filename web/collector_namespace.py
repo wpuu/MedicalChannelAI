@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 NAMESPACE_VERSION = "v2"
@@ -21,6 +22,18 @@ LEGACY_LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:
 ACTIVE_CYCLE_TTL_SECONDS = 2 * 24 * 60 * 60
 INCREMENTAL_ACTIVE_TTL_SECONDS = 15 * 60
 INCREMENTAL_CHAIN_TTL_SECONDS = 2 * 24 * 60 * 60
+STATE_TTL_SECONDS = 14 * 24 * 60 * 60
+STATE_CACHE_TAG = "medicalchannelai-collector-state"
+
+# Must equal functions["api/collector-queue.py"].maxDuration in web/vercel.json
+# (guarded by tests). Vercel terminates the queue worker at that limit, so a
+# stage whose lease is older than this cannot still be running anywhere.
+QUEUE_FUNCTION_MAX_DURATION_SECONDS = 300
+# Grace for clock skew between instances; NOT for extra work time.
+STAGE_LEASE_GRACE_SECONDS = 15
+STAGE_LEASE_SECONDS = QUEUE_FUNCTION_MAX_DURATION_SECONDS + STAGE_LEASE_GRACE_SECONDS
+# Same-day manual/cron re-triggers may mint at most this many recovery cycles.
+MAX_RECOVERY_CYCLES_PER_DAY = 3
 
 _RUNTIME_KEY_ASSIGNMENTS = {
     "META_KEY": META_KEY,
@@ -104,3 +117,121 @@ def deep_message_lease_disposition(
                     return "COMPLETED_CYCLE"
 
     return "MISSING_UNSAFE"
+
+
+def parse_iso_datetime(value: Any) -> datetime | None:
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed.astimezone(timezone.utc)
+
+
+def stage_lease_expires_at(stage_state: Any) -> datetime | None:
+    """Wall-clock instant after which a RUNNING stage entry is known to be dead.
+
+    New entries carry ``lease_expires_at``. Entries written before the lease
+    existed fall back to ``started_at`` + STAGE_LEASE_SECONDS. Unparsable
+    entries return None and are treated as already expired.
+    """
+    if not isinstance(stage_state, dict):
+        return None
+    explicit = parse_iso_datetime(stage_state.get("lease_expires_at"))
+    if explicit is not None:
+        return explicit
+    started = parse_iso_datetime(stage_state.get("started_at"))
+    if started is None:
+        return None
+    return started + timedelta(seconds=STAGE_LEASE_SECONDS)
+
+
+def stage_lease_is_live(stage_state: Any, *, now: datetime) -> bool:
+    if not isinstance(stage_state, dict) or stage_state.get("status") != "RUNNING":
+        return False
+    expires_at = stage_lease_expires_at(stage_state)
+    return expires_at is not None and now.astimezone(timezone.utc) < expires_at
+
+
+def cycle_has_live_running_stage(value: Any, *, now: datetime) -> bool:
+    """True only while some stage's lease is unexpired, i.e. a worker may still be alive."""
+    if not isinstance(value, dict):
+        return False
+    stages = value.get("stages")
+    if not isinstance(stages, dict):
+        return False
+    return any(stage_lease_is_live(stage_state, now=now) for stage_state in stages.values())
+
+
+def cycle_publish_completed(value: Any) -> bool:
+    if not isinstance(value, dict):
+        return False
+    stages = value.get("stages")
+    if not isinstance(stages, dict):
+        return False
+    publish = stages.get("publish")
+    return isinstance(publish, dict) and publish.get("status") == "COMPLETED"
+
+
+def recovery_attempt_count(value: Any) -> int:
+    if not isinstance(value, dict):
+        return 0
+    try:
+        return max(0, int(value.get("recovery_attempts") or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def reset_unfinished_stage_attempts(
+    state: dict[str, Any],
+    *,
+    recovery_cycle_id: str,
+    now: datetime,
+) -> dict[str, Any]:
+    """Give every non-COMPLETED stage a fresh attempt budget for a recovery cycle.
+
+    COMPLETED stages keep their results (they are replayed as
+    ALREADY_COMPLETED_TODAY unless their canonical output vanished). Attempt
+    history is preserved compactly for diagnosis instead of being overwritten.
+    """
+    stages = state.get("stages")
+    if not isinstance(stages, dict):
+        stages = {}
+        state["stages"] = stages
+    for stage_state in stages.values():
+        if not isinstance(stage_state, dict) or stage_state.get("status") == "COMPLETED":
+            continue
+        history = stage_state.get("previous_attempts")
+        if not isinstance(history, list):
+            history = []
+        history.append(
+            {
+                "attempt_count": int(stage_state.get("attempt_count") or 0),
+                "status": stage_state.get("status"),
+                "error_code": stage_state.get("error_code"),
+                "started_at": stage_state.get("started_at"),
+                "completed_at": stage_state.get("completed_at"),
+                "reset_by": recovery_cycle_id,
+            }
+        )
+        stage_state["previous_attempts"] = history[-6:]
+        stage_state["attempt_count"] = 0
+        if stage_state.get("status") == "RUNNING":
+            # The lease is expired (the caller verified), so the worker is gone.
+            stage_state["status"] = "FAILED"
+            stage_state["error_code"] = "COLLECTOR_STAGE_TIMEOUT"
+            stage_state["error_message"] = "COLLECTOR_STAGE_TIMEOUT:lease_expired_before_recovery"
+            stage_state["completed_at"] = now.astimezone(timezone.utc).isoformat()
+    state["recovery_attempts"] = recovery_attempt_count(state) + 1
+    state["recovery_cycle_id"] = recovery_cycle_id
+    state["recovery_started_at"] = now.astimezone(timezone.utc).isoformat()
+    return state
+
+
+def write_collector_state(cache: Any, state: dict[str, Any], *, now: datetime) -> None:
+    state["updated_at"] = now.astimezone(timezone.utc).isoformat()
+    cache.set(META_KEY, state, {"ttl": STATE_TTL_SECONDS, "tags": [STATE_CACHE_TAG]})

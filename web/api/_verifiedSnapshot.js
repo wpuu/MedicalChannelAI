@@ -1,10 +1,13 @@
 import { getCache } from '@vercel/functions'
-import { latestPublicVerifiedSnapshot } from './_publicIntelligenceDb.js'
+import { latestPublicVerifiedSnapshotHead, publicVerifiedSnapshotByHash } from './_publicIntelligenceDb.js'
 import bundledSnapshot from '../public/data/today-actions.public.json' with { type: 'json' }
 import { filterSnapshotToMedicalChannel } from './_medicalChannelScope.js'
 
 const REMOTE_CACHE_TTL_MS = 60 * 1000
 const REMOTE_TIMEOUT_MS = 6000
+// How long a warm instance trusts its memoized durable revision before it
+// re-probes the database head (two small columns, no payload).
+const DURABLE_HEAD_RECHECK_MS = 60 * 1000
 const MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024
 const MAX_RUNTIME_SNAPSHOT_BYTES = 1900 * 1024
 const MAX_TODAY_CARDS = 5
@@ -51,6 +54,16 @@ const FORBIDDEN_PUBLIC_PREFIXES = [
 let remoteCache = null
 let lastSourceMode = 'BUNDLED'
 let lastRuntimeOrigin = null
+let lastPayloadOrigin = null
+// Memoized durable (Postgres) revision for this warm instance:
+// { hash, asOf, snapshot | null, checkedAtMs }. snapshot === null memoizes a
+// head that failed selection so it is not re-downloaded on every request.
+let durableMemo = null
+const defaultDurableStore = {
+  head: latestPublicVerifiedSnapshotHead,
+  byHash: publicVerifiedSnapshotByHash,
+}
+let durableStore = defaultDurableStore
 
 function asObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : null
@@ -324,21 +337,95 @@ async function loadRuntimeCachedSnapshot() {
     origin: 'BUNDLED',
   }
 }
-export async function loadVerifiedSnapshot() {
+function warnDurable(message, error) {
+  console.warn(message, { error: error instanceof Error ? error.message : 'UNKNOWN' })
+}
+async function runtimeCachedRevision(cache, headMs, nowMs) {
+  if (!cache || !Number.isFinite(headMs)) return null
+  try {
+    const cached = selectPublishedRuntimeSnapshot(await cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY), bundledVerifiedSnapshot(), nowMs)
+    // snapshot_as_of is UNIQUE in public_verified_snapshots and the publisher
+    // rejects same-as_of/different-content revisions, so as_of identifies the revision.
+    return cached && parsedSnapshotTime(cached) === headMs ? cached : null
+  } catch {
+    return null
+  }
+}
+// Durable read path. The full payload (~1.5 MB) is fetched from Postgres only
+// when the head revision changes; warm instances answer from memory and
+// re-validate the head at most once per DURABLE_HEAD_RECHECK_MS. When the
+// database is unreachable the last known durable revision keeps being served
+// instead of silently reverting to the older bundled data.
+async function loadDurableSnapshot(nowMs = Date.now()) {
+  if (durableMemo && nowMs - durableMemo.checkedAtMs < DURABLE_HEAD_RECHECK_MS) {
+    lastPayloadOrigin = durableMemo.snapshot ? 'MEMO' : null
+    return durableMemo.snapshot
+  }
+  let head
+  try {
+    head = await durableStore.head()
+  } catch (error) {
+    warnDurable('durable public snapshot head unavailable', error)
+    lastPayloadOrigin = durableMemo?.snapshot ? 'MEMO_STALE' : null
+    return durableMemo?.snapshot || null
+  }
+  if (!head || typeof head.snapshot_hash !== 'string') {
+    durableMemo = null
+    lastPayloadOrigin = null
+    return null
+  }
+  if (durableMemo && durableMemo.hash === head.snapshot_hash) {
+    durableMemo.checkedAtMs = nowMs
+    lastPayloadOrigin = durableMemo.snapshot ? 'HEAD_PROBE' : null
+    return durableMemo.snapshot
+  }
+
+  const headMs = Date.parse(head.snapshot_as_of || '')
+  let cache = null
+  if (typeof durableStore.cache === 'function') {
+    cache = durableStore.cache()
+  } else if (process.env.VERCEL_REGION) {
+    try { cache = getCache() } catch { cache = null }
+  }
+  let snapshot = await runtimeCachedRevision(cache, headMs, nowMs)
+  let origin = snapshot ? 'RUNTIME_CACHE' : null
+  if (!snapshot) {
+    let payload
+    try {
+      payload = await durableStore.byHash(head.snapshot_hash)
+    } catch (error) {
+      warnDurable('durable public snapshot payload unavailable', error)
+      lastPayloadOrigin = durableMemo?.snapshot ? 'MEMO_STALE' : null
+      return durableMemo?.snapshot || null
+    }
+    snapshot = payload ? selectDurableVerifiedSnapshot(payload, bundledVerifiedSnapshot(), nowMs) : null
+    origin = snapshot ? 'DATABASE' : null
+    if (snapshot && cache) {
+      // Best effort: warm the Runtime Cache copy so other cold instances in this
+      // region can skip the payload download. Monotonic publisher rules apply.
+      try { await publishVerifiedSnapshotToRuntimeCache(snapshot, { cache, nowMs }) } catch { /* serving path must not depend on this */ }
+    }
+  }
+  durableMemo = { hash: head.snapshot_hash, asOf: head.snapshot_as_of || null, snapshot, checkedAtMs: nowMs }
+  lastPayloadOrigin = origin
+  return snapshot
+}
+export async function loadVerifiedSnapshot(options = {}) {
   const remoteUrl = configuredRemoteUrl()
   if (remoteUrl) {
     lastSourceMode = 'REMOTE'
     lastRuntimeOrigin = null
+    lastPayloadOrigin = null
     return scopedVerifiedSnapshot(await loadRemoteSnapshot(remoteUrl))
   }
 
-  const durableValue = await latestPublicVerifiedSnapshot()
-  const durableSnapshot = durableValue ? selectDurableVerifiedSnapshot(durableValue) : null
+  const durableSnapshot = await loadDurableSnapshot(Number.isFinite(options.nowMs) ? options.nowMs : Date.now())
   if (durableSnapshot) {
     lastSourceMode = 'DATABASE'
     lastRuntimeOrigin = null
     return scopedVerifiedSnapshot(durableSnapshot)
   }
+  lastPayloadOrigin = null
 
   try {
     const runtimeResult = await loadRuntimeCachedSnapshot()
@@ -362,8 +449,21 @@ export function verifiedSnapshotSourceMode() {
 export function verifiedSnapshotRuntimeOrigin() {
   return lastRuntimeOrigin
 }
+// Where the last DATABASE-mode payload actually came from:
+// 'MEMO' | 'HEAD_PROBE' | 'RUNTIME_CACHE' | 'DATABASE' | 'MEMO_STALE' | null.
+export function verifiedSnapshotPayloadOrigin() {
+  return lastPayloadOrigin
+}
+export function setDurableSnapshotStoreForTests(store) {
+  durableStore = store && typeof store.head === 'function' && typeof store.byHash === 'function'
+    ? store
+    : defaultDurableStore
+  durableMemo = null
+}
 export function clearVerifiedSnapshotCacheForTests() {
   remoteCache = null
+  durableMemo = null
   lastSourceMode = 'BUNDLED'
   lastRuntimeOrigin = null
+  lastPayloadOrigin = null
 }

@@ -2,6 +2,13 @@
 name = "medicalchannelai-runtime"
 version = "0.4.0"
 requires-python = ">=3.12"
+# Pinned: `vercel` is a meta-package; the Runtime Cache and Queues clients the
+# collector imports (vercel.functions.RuntimeCache, vercel.queue.send /
+# accept_and_handle / DuplicateIdempotencyKeyError) ship in vercel-cache and
+# vercel-queue, which `vercel` only constrains with open upper bounds. Unpinned,
+# every Vercel build could pick up a breaking SDK release on the deploy path.
 dependencies = [
-  "vercel",
+  "vercel==0.11.4",
+  "vercel-cache==0.7.5",
+  "vercel-queue==0.9.0",
 ]

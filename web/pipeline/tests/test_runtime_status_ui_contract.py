@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import unittest
 from pathlib import Path
 
@@ -16,9 +17,23 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
     def test_frontend_accepts_all_server_snapshot_source_modes(self) -> None:
         client = STATUS_API.read_text(encoding='utf-8')
         server = SERVER_STATUS.read_text(encoding='utf-8')
-        for mode in ['BUNDLED', 'RUNTIME_CACHE', 'REMOTE', 'BUNDLED_FALLBACK', 'UNAVAILABLE']:
-            self.assertIn(mode, client)
         snapshot_loader = (WEB_ROOT / 'api' / '_verifiedSnapshot.js').read_text(encoding='utf-8')
+        # Derive the server-side mode list from source instead of hard-coding it:
+        # a mode the browser validator does not know (e.g. DATABASE after the
+        # durable store landed) makes isRuntimeStatus() fail and pauses AI
+        # automation for every user even while the snapshot is fresh.
+        server_modes = set(re.findall(r"lastSourceMode = '([A-Z_]+)'", snapshot_loader))
+        failure_line = re.search(r"const failureMode = (.*)", server).group(1)
+        server_modes.update(re.findall(r"'([A-Z_]+)'", failure_line))
+        self.assertIn('DATABASE', server_modes)
+        self.assertGreaterEqual(server_modes, {'BUNDLED', 'DATABASE', 'RUNTIME_CACHE', 'REMOTE', 'BUNDLED_FALLBACK', 'UNAVAILABLE'})
+        set_start = client.index('SNAPSHOT_SOURCE_MODES = new Set')
+        client_set = client[set_start:client.index('])', set_start)]
+        union_start = client.index('export type RuntimeSnapshotSourceMode')
+        client_union = client[union_start:client.index('export interface RuntimeStatus', union_start)]
+        for mode in sorted(server_modes):
+            self.assertIn(f"'{mode}'", client_set, f'browser SNAPSHOT_SOURCE_MODES must accept {mode}')
+            self.assertIn(f"'{mode}'", client_union, f'RuntimeSnapshotSourceMode must include {mode}')
         self.assertIn("lastSourceMode = 'RUNTIME_CACHE'", snapshot_loader)
         self.assertIn("lastSourceMode = 'BUNDLED_FALLBACK'", snapshot_loader)
         self.assertIn("lastRuntimeOrigin = runtimeResult.origin", snapshot_loader)

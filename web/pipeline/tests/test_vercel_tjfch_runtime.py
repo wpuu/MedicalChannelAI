@@ -77,12 +77,23 @@ class VercelTjfchRuntimeTests(unittest.TestCase):
         self.assertIn("early_new_verified_record_count", body)
         self.assertIn("unsupported.append", body)
 
-    def test_tjfch_policy_recovery_retry_is_narrowly_scoped(self) -> None:
+    def test_tjfch_has_no_special_case_retry_bypass_in_stage_preparation(self) -> None:
         body = _function_source(self.runtime, "_prepare_stage")
-        self.assertIn('stage == "tjfch"', body)
-        self.assertIn('"TJFCH_NOTICE_TYPE_UNSUPPORTED" in str(previous.get("error_message") or "")', body)
-        self.assertIn("attempts == MAX_STAGE_ATTEMPTS_PER_DAY", body)
-        self.assertIn("and not tjfch_policy_recovery_retry", body)
+        # Retry accounting is generic: a stage gets MAX_STAGE_ATTEMPTS_PER_DAY
+        # per cycle, recovery cycles reset the counter, and there is no
+        # error-message-specific bypass for any single source.
+        self.assertNotIn('stage == "tjfch"', body)
+        self.assertNotIn("TJFCH_NOTICE_TYPE_UNSUPPORTED", body)
+        self.assertNotIn("tjfch_policy_recovery_retry", body)
+        self.assertIn("if attempts >= MAX_STAGE_ATTEMPTS_PER_DAY:", body)
+
+    def test_tjfch_detail_loops_use_bounded_request_timeouts_and_the_stage_budget(self) -> None:
+        body = _function_source(self.runtime, "_run_tjfch")
+        self.assertIn("fetch_tjfch_page(TJFCH_INDEX_URL, timeout_seconds=SOURCE_REQUEST_TIMEOUT_SECONDS)", body)
+        self.assertIn("fetch_tjfch_page(candidate.detail_url, timeout_seconds=SOURCE_REQUEST_TIMEOUT_SECONDS)", body)
+        self.assertIn("deferred_candidate_count = len(selected) - position", body)
+        self.assertIn("early_deferred_candidate_count = len(early_discovered) - position", body)
+        self.assertNotIn("time.sleep(", body)
 
     def test_publish_requires_tjfch_and_uses_authoritative_cycle_clock(self) -> None:
         body = _function_source(self.runtime, "_run_publish")

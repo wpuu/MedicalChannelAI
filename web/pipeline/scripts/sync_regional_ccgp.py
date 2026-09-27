@@ -51,11 +51,16 @@ _BROWSER_HEADERS = {
 }
 
 
+SEARCH_TIMEOUT_SECONDS = 90
+WARMUP_TIMEOUT_SECONDS = 30
+
+
 class CcgpSearchSession:
-    def __init__(self) -> None:
+    def __init__(self, *, timeout_seconds: int = SEARCH_TIMEOUT_SECONDS) -> None:
         jar = http.cookiejar.CookieJar()
         self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
         self.warmed = False
+        self.timeout_seconds = int(timeout_seconds)
 
     def _read(self, url: str, *, timeout: int) -> str:
         request = urllib.request.Request(url, headers=_BROWSER_HEADERS)
@@ -75,7 +80,7 @@ class CcgpSearchSession:
         if self.warmed:
             return
         try:
-            self._read('https://www.ccgp.gov.cn/', timeout=30)
+            self._read('https://www.ccgp.gov.cn/', timeout=min(WARMUP_TIMEOUT_SECONDS, self.timeout_seconds))
         except Exception:
             # Search can still work if the homepage warm-up is temporarily unavailable.
             pass
@@ -86,7 +91,7 @@ class CcgpSearchSession:
         if not url.startswith(CCGP_SEARCH_URL):
             raise ValueError('CCGP_SEARCH_URL_REQUIRED')
         self.warmup()
-        html = self._read(url, timeout=90)
+        html = self._read(url, timeout=self.timeout_seconds)
         if any(marker in html for marker in RATE_LIMIT_MARKERS):
             raise RuntimeError('CCGP_RATE_LIMITED')
         return html

@@ -1,5 +1,10 @@
+// Must stay a superset of every source_mode /api/status can emit
+// (see api/_verifiedSnapshot.js `lastSourceMode = ...` and api/status.js).
+// An unknown mode makes isRuntimeStatus() reject the payload, which pauses
+// AI automation for every user even when the snapshot is fresh.
 export type RuntimeSnapshotSourceMode =
   | 'BUNDLED'
+  | 'DATABASE'
   | 'RUNTIME_CACHE'
   | 'REMOTE'
   | 'BUNDLED_FALLBACK'
@@ -18,6 +23,7 @@ export interface RuntimeStatus {
     available: boolean
     source_mode: RuntimeSnapshotSourceMode
     runtime_origin?: 'PUBLISHED' | 'BUNDLED' | null
+    payload_origin?: string | null
     snapshot_as_of: string | null
     freshness: 'FRESH' | 'STALE' | 'INVALID' | 'UNAVAILABLE'
     age_minutes: number | null
@@ -31,6 +37,7 @@ const STATUS_URL = '/api/status'
 const CACHE_TTL_MS = 60_000
 const SNAPSHOT_SOURCE_MODES = new Set<RuntimeSnapshotSourceMode>([
   'BUNDLED',
+  'DATABASE',
   'RUNTIME_CACHE',
   'REMOTE',
   'BUNDLED_FALLBACK',

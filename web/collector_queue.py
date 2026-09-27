@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from vercel.functions import RuntimeCache
-from vercel.queue import send
+from vercel.queue import DuplicateIdempotencyKeyError, send
 
 import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
@@ -45,6 +46,9 @@ STAGE_ORDER = runtime.STAGE_ORDER
 
 MESSAGE_RETENTION = timedelta(hours=24)
 NEXT_STAGE_DELAY_SECONDS = 2
+# A duplicate/redelivered message that finds the stage lease still held waits
+# in-process for a nearly expired lease instead of burning a queue attempt.
+LEASE_WAIT_MAX_SECONDS = 45
 
 
 def _parse_cycle_as_of(payload: dict[str, Any]) -> datetime | None:
@@ -120,19 +124,37 @@ def _write_chain_state(
 
 
 async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) -> str:
-    message_id = await send(
-        QUEUE_TOPIC_NAME,
-        {
-            "schema_version": "0.1",
-            "stage": stage,
-            "cycle_as_of": cycle_as_of.isoformat(),
-            "cycle_id": cycle_id,
-        },
-        retention=MESSAGE_RETENTION,
-        delay=NEXT_STAGE_DELAY_SECONDS if stage != "ccgp" else 0,
-        idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:{stage}",
-    )
+    try:
+        message_id = await send(
+            QUEUE_TOPIC_NAME,
+            {
+                "schema_version": "0.1",
+                "stage": stage,
+                "cycle_as_of": cycle_as_of.isoformat(),
+                "cycle_id": cycle_id,
+            },
+            retention=MESSAGE_RETENTION,
+            delay=NEXT_STAGE_DELAY_SECONDS if stage != "ccgp" else 0,
+            idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:{stage}",
+        )
+    except DuplicateIdempotencyKeyError:
+        # At-least-once delivery: another delivery of the previous stage already
+        # queued this one. That is exactly what the idempotency key is for.
+        return "ALREADY_QUEUED"
     return str(message_id)
+
+
+def _lease_wait_seconds(result: dict[str, Any], *, now: datetime) -> float | None:
+    raw = str(result.get("lease_expires_at") or "").strip()
+    if not raw:
+        return None
+    try:
+        expires_at = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if expires_at.tzinfo is None:
+        return None
+    return max(0.0, (expires_at - now).total_seconds()) + 1.0
 
 
 async def _enqueue_incremental_tick(tick: IncrementalTick, *, now: datetime) -> str:
@@ -379,6 +401,11 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
         return
 
     status, result = runtime.run_stage(stage, now=cycle_as_of)
+    if status == 409 and "COLLECTOR_STAGE_LEASE_HELD" in str(result.get("error") or ""):
+        wait_seconds = _lease_wait_seconds(result, now=datetime.now(timezone.utc))
+        if wait_seconds is not None and wait_seconds <= LEASE_WAIT_MAX_SECONDS:
+            await asyncio.sleep(wait_seconds)
+            status, result = runtime.run_stage(stage, now=cycle_as_of)
     action = str(result.get("action") or "")
     if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
         next_stage = _next_stage(stage)
@@ -398,6 +425,10 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
     if status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error:
         _release_active_cycle_if_owned(cycle_id)
+        return
+    if status == 409 and "COLLECTOR_STAGE_LEASE_LOST" in error:
+        # A newer worker re-claimed the stage after this one's lease expired;
+        # that worker drives the chain, so this delivery is simply acknowledged.
         return
 
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")

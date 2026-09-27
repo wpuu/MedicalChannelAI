@@ -1,5 +1,11 @@
 import statusHandler, { snapshotFreshness } from '../api/status.js'
-import { clearVerifiedSnapshotCacheForTests } from '../api/_verifiedSnapshot.js'
+import {
+  bundledVerifiedSnapshot,
+  clearVerifiedSnapshotCacheForTests,
+  setDurableSnapshotStoreForTests,
+} from '../api/_verifiedSnapshot.js'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
 function expect(condition, code) {
   if (!condition) throw new Error(code)
@@ -108,8 +114,44 @@ try {
   expect(response.body?.snapshot?.source_mode === 'UNAVAILABLE', 'STATUS_INVALID_REMOTE_MODE')
   expect(response.body?.snapshot?.freshness === 'UNAVAILABLE', 'STATUS_INVALID_REMOTE_FRESHNESS')
 
+  // Durable (DATABASE) mode: status must expose the payload origin so operators
+  // can confirm warm instances answer from memory instead of re-downloading.
+  process.env.VERIFIED_SNAPSHOT_URL = ''
+  const durableRevision = structuredClone(bundledVerifiedSnapshot())
+  durableRevision.snapshot_as_of = new Date(Date.now() - 60_000).toISOString()
+  let headCalls = 0
+  setDurableSnapshotStoreForTests({
+    async head() { headCalls += 1; return { snapshot_hash: 'd'.repeat(64), snapshot_as_of: durableRevision.snapshot_as_of } },
+    async byHash() { return durableRevision },
+  })
+  clearVerifiedSnapshotCacheForTests()
+  response = await invoke('GET')
+  expect(response.statusCode === 200, 'STATUS_DATABASE_HTTP')
+  expect(response.body?.snapshot?.source_mode === 'DATABASE', 'STATUS_DATABASE_MODE')
+  expect(response.body?.snapshot?.payload_origin === 'DATABASE', 'STATUS_DATABASE_PAYLOAD_ORIGIN')
+  expect(response.body?.snapshot?.freshness === 'FRESH', 'STATUS_DATABASE_FRESH')
+  response = await invoke('GET')
+  expect(response.body?.snapshot?.payload_origin === 'MEMO', 'STATUS_DATABASE_MEMO_ORIGIN')
+  expect(headCalls === 1, 'STATUS_DATABASE_MEMO_NO_REQUERY')
+  setDurableSnapshotStoreForTests(null)
+
+  // Every source_mode the server can emit must be accepted by the browser
+  // validator; otherwise AI automation is paused for all users.
+  const webRoot = fileURLToPath(new URL('..', import.meta.url))
+  const serverModes = new Set(['DATABASE', 'REMOTE', 'UNAVAILABLE'])
+  for (const file of ['api/_verifiedSnapshot.js', 'api/status.js']) {
+    const source = readFileSync(new URL(file, `file://${webRoot}`), 'utf8')
+    for (const match of source.matchAll(/lastSourceMode = '([A-Z_]+)'/g)) serverModes.add(match[1])
+  }
+  const client = readFileSync(new URL('src/services/runtimeStatusApi.ts', `file://${webRoot}`), 'utf8')
+  const clientSetSource = client.slice(client.indexOf('SNAPSHOT_SOURCE_MODES = new Set'), client.indexOf('])', client.indexOf('SNAPSHOT_SOURCE_MODES = new Set')))
+  for (const mode of serverModes) {
+    expect(clientSetSource.includes(`'${mode}'`), `STATUS_CLIENT_MISSING_SOURCE_MODE:${mode}`)
+  }
+
   console.log('Runtime status checks: PASS')
 } finally {
+  setDurableSnapshotStoreForTests(null)
   clearVerifiedSnapshotCacheForTests()
   globalThis.fetch = savedFetch
   if (savedKeys === undefined) delete process.env.AGNES_API_KEYS

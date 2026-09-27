@@ -392,6 +392,46 @@ export async function latestPublicVerifiedSnapshot() {
   }
 }
 
+function snapshotAsOfIso(value) {
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value.toISOString()
+  if (typeof value === 'string' && !Number.isNaN(Date.parse(value))) return new Date(value).toISOString()
+  return null
+}
+
+// Cheap revision probe (two small columns, no payload). The read path calls this
+// on every uncached request instead of pulling the ~1.5 MB payload, so the
+// per-request database egress stays in the bytes range until the head changes.
+// Returns null when no durable snapshot exists and THROWS when the database is
+// unreachable so callers can tell "empty" from "unavailable".
+export async function latestPublicVerifiedSnapshotHead() {
+  if (!publicIntelligenceDatabaseConfigured()) return null
+  await ensurePublicIntelligenceSchema()
+  const sql = publicIntelligenceDb()
+  const rows = await sql`
+    SELECT snapshot_hash, snapshot_as_of
+    FROM public_verified_snapshots
+    ORDER BY snapshot_as_of DESC, materialized_at DESC
+    LIMIT 1
+  `
+  const row = rows[0]
+  if (!row || typeof row.snapshot_hash !== 'string') return null
+  return { snapshot_hash: row.snapshot_hash, snapshot_as_of: snapshotAsOfIso(row.snapshot_as_of) }
+}
+
+export async function publicVerifiedSnapshotByHash(snapshotHash) {
+  if (!publicIntelligenceDatabaseConfigured()) return null
+  if (typeof snapshotHash !== 'string' || snapshotHash.length !== 64) return null
+  await ensurePublicIntelligenceSchema()
+  const sql = publicIntelligenceDb()
+  const rows = await sql`
+    SELECT payload
+    FROM public_verified_snapshots
+    WHERE snapshot_hash = ${snapshotHash}
+    LIMIT 1
+  `
+  return rows[0]?.payload || null
+}
+
 export async function materializeVerifiedSnapshot(snapshot) {
   if (!publicIntelligenceDatabaseConfigured()) return { configured: false, materialized: false, regions: [] }
   const snapshotAsOf = cleanText(snapshot?.snapshot_as_of, 100)

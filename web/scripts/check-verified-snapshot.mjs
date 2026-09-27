@@ -5,6 +5,9 @@ import {
   loadVerifiedSnapshot,
   publishVerifiedSnapshotToRuntimeCache,
   selectPublishedRuntimeSnapshot,
+  setDurableSnapshotStoreForTests,
+  verifiedSnapshotPayloadOrigin,
+  verifiedSnapshotSourceMode,
 } from '../api/_verifiedSnapshot.js'
 
 function expect(condition, code) {
@@ -364,8 +367,124 @@ try {
     'SNAPSHOT_ENDPOINT_REMOTE_SOURCE',
   )
 
+  // ---- Durable (Postgres) read path: head probe + memo, no per-request payload download.
+  delete process.env.VERIFIED_SNAPSHOT_URL
+  delete process.env.VITE_VERIFIED_SNAPSHOT_URL
+  const PUBLISHED_KEY = 'medicalchannelai:verified-snapshot:published:v2'
+  const bundledMs = Date.parse(bundled.snapshot_as_of)
+  const dayMs = 24 * 60 * 60 * 1000
+  const revisionA = structuredClone(bundledVerifiedSnapshot())
+  revisionA.snapshot_as_of = new Date(bundledMs + dayMs).toISOString()
+  const revisionB = structuredClone(bundledVerifiedSnapshot())
+  revisionB.snapshot_as_of = new Date(bundledMs + 2 * dayMs).toISOString()
+  const hashA = 'a'.repeat(64)
+  const hashB = 'b'.repeat(64)
+  const payloads = new Map([[hashA, revisionA], [hashB, revisionB]])
+  const store = {
+    head: { snapshot_hash: hashA, snapshot_as_of: revisionA.snapshot_as_of },
+    headCalls: 0,
+    payloadCalls: 0,
+    failHead: false,
+    async headFn() {
+      store.headCalls += 1
+      if (store.failHead) throw new Error('DB_UNREACHABLE')
+      return store.head
+    },
+    async byHash(hash) {
+      store.payloadCalls += 1
+      return payloads.get(hash) || null
+    },
+  }
+  const durableNow = bundledMs + 2 * dayMs + 60 * 60 * 1000
+  clearVerifiedSnapshotCacheForTests()
+  setDurableSnapshotStoreForTests({ head: store.headFn, byHash: store.byHash })
+
+  let durable = await loadVerifiedSnapshot({ nowMs: durableNow })
+  expect(durable.snapshot_as_of === revisionA.snapshot_as_of, 'SNAPSHOT_DURABLE_FIRST_LOAD_AS_OF')
+  expect(verifiedSnapshotSourceMode() === 'DATABASE', 'SNAPSHOT_DURABLE_SOURCE_MODE')
+  expect(verifiedSnapshotPayloadOrigin() === 'DATABASE', 'SNAPSHOT_DURABLE_FIRST_LOAD_ORIGIN')
+  expect(store.headCalls === 1 && store.payloadCalls === 1, 'SNAPSHOT_DURABLE_FIRST_LOAD_QUERIES')
+
+  durable = await loadVerifiedSnapshot({ nowMs: durableNow + 1_000 })
+  expect(durable.snapshot_as_of === revisionA.snapshot_as_of, 'SNAPSHOT_DURABLE_MEMO_AS_OF')
+  expect(verifiedSnapshotPayloadOrigin() === 'MEMO', 'SNAPSHOT_DURABLE_MEMO_ORIGIN')
+  expect(store.headCalls === 1 && store.payloadCalls === 1, 'SNAPSHOT_DURABLE_MEMO_MUST_NOT_QUERY')
+
+  durable = await loadVerifiedSnapshot({ nowMs: durableNow + 61_000 })
+  expect(verifiedSnapshotPayloadOrigin() === 'HEAD_PROBE', 'SNAPSHOT_DURABLE_HEAD_PROBE_ORIGIN')
+  expect(store.headCalls === 2 && store.payloadCalls === 1, 'SNAPSHOT_DURABLE_HEAD_PROBE_MUST_NOT_DOWNLOAD_PAYLOAD')
+
+  store.head = { snapshot_hash: hashB, snapshot_as_of: revisionB.snapshot_as_of }
+  durable = await loadVerifiedSnapshot({ nowMs: durableNow + 122_000 })
+  expect(durable.snapshot_as_of === revisionB.snapshot_as_of, 'SNAPSHOT_DURABLE_HEAD_CHANGE_SERVES_NEW_REVISION')
+  expect(verifiedSnapshotPayloadOrigin() === 'DATABASE', 'SNAPSHOT_DURABLE_HEAD_CHANGE_ORIGIN')
+  expect(store.headCalls === 3 && store.payloadCalls === 2, 'SNAPSHOT_DURABLE_HEAD_CHANGE_QUERIES')
+
+  store.failHead = true
+  const outageWarnings = []
+  const originalWarn = console.warn
+  console.warn = (...args) => { outageWarnings.push(args) }
+  try {
+    durable = await loadVerifiedSnapshot({ nowMs: durableNow + 183_000 })
+  } finally {
+    console.warn = originalWarn
+  }
+  expect(outageWarnings.length === 1, 'SNAPSHOT_DURABLE_DB_OUTAGE_IS_LOGGED_ONCE')
+  expect(durable.snapshot_as_of === revisionB.snapshot_as_of, 'SNAPSHOT_DURABLE_DB_OUTAGE_KEEPS_LAST_REVISION')
+  expect(verifiedSnapshotSourceMode() === 'DATABASE', 'SNAPSHOT_DURABLE_DB_OUTAGE_SOURCE_MODE')
+  expect(verifiedSnapshotPayloadOrigin() === 'MEMO_STALE', 'SNAPSHOT_DURABLE_DB_OUTAGE_ORIGIN')
+  store.failHead = false
+
+  // Runtime Cache already holds the head revision: no payload download at all.
+  const revisionCache = memoryCache()
+  await revisionCache.set(PUBLISHED_KEY, revisionB)
+  clearVerifiedSnapshotCacheForTests()
+  setDurableSnapshotStoreForTests({ head: store.headFn, byHash: store.byHash, cache: () => revisionCache })
+  const payloadCallsBefore = store.payloadCalls
+  durable = await loadVerifiedSnapshot({ nowMs: durableNow })
+  expect(durable.snapshot_as_of === revisionB.snapshot_as_of, 'SNAPSHOT_DURABLE_RUNTIME_CACHE_AS_OF')
+  expect(verifiedSnapshotPayloadOrigin() === 'RUNTIME_CACHE', 'SNAPSHOT_DURABLE_RUNTIME_CACHE_ORIGIN')
+  expect(store.payloadCalls === payloadCallsBefore, 'SNAPSHOT_DURABLE_RUNTIME_CACHE_MUST_NOT_DOWNLOAD_PAYLOAD')
+
+  // Runtime Cache holds an older revision: download once and warm the cache.
+  const staleCache = memoryCache()
+  await staleCache.set(PUBLISHED_KEY, revisionA)
+  clearVerifiedSnapshotCacheForTests()
+  setDurableSnapshotStoreForTests({ head: store.headFn, byHash: store.byHash, cache: () => staleCache })
+  durable = await loadVerifiedSnapshot({ nowMs: durableNow })
+  expect(durable.snapshot_as_of === revisionB.snapshot_as_of, 'SNAPSHOT_DURABLE_STALE_CACHE_SERVES_HEAD')
+  expect(verifiedSnapshotPayloadOrigin() === 'DATABASE', 'SNAPSHOT_DURABLE_STALE_CACHE_ORIGIN')
+  expect(staleCache.setCalls.some((call) => call.key === PUBLISHED_KEY), 'SNAPSHOT_DURABLE_WRITE_THROUGH')
+  expect(
+    (await staleCache.get(PUBLISHED_KEY))?.snapshot_as_of === revisionB.snapshot_as_of,
+    'SNAPSHOT_DURABLE_WRITE_THROUGH_VALUE',
+  )
+
+  // Head older than the bundled data: rejected once, then memoized (no repeated download).
+  const olderRevision = structuredClone(bundledVerifiedSnapshot())
+  olderRevision.snapshot_as_of = '2020-01-01T00:00:00+08:00'
+  payloads.set('c'.repeat(64), olderRevision)
+  store.head = { snapshot_hash: 'c'.repeat(64), snapshot_as_of: olderRevision.snapshot_as_of }
+  clearVerifiedSnapshotCacheForTests()
+  setDurableSnapshotStoreForTests({ head: store.headFn, byHash: store.byHash })
+  const olderCallsBefore = store.payloadCalls
+  durable = await loadVerifiedSnapshot({ nowMs: durableNow })
+  expect(durable.snapshot_as_of === bundled.snapshot_as_of, 'SNAPSHOT_DURABLE_OLDER_FALLS_BACK_TO_BUNDLED')
+  expect(verifiedSnapshotSourceMode() === 'BUNDLED', 'SNAPSHOT_DURABLE_OLDER_SOURCE_MODE')
+  durable = await loadVerifiedSnapshot({ nowMs: durableNow + 1_000 })
+  expect(store.payloadCalls === olderCallsBefore + 1, 'SNAPSHOT_DURABLE_REJECTED_HEAD_MEMOIZED')
+
+  // No durable row at all: bundled, and the memo does not linger.
+  store.head = null
+  clearVerifiedSnapshotCacheForTests()
+  durable = await loadVerifiedSnapshot({ nowMs: durableNow })
+  expect(verifiedSnapshotSourceMode() === 'BUNDLED', 'SNAPSHOT_DURABLE_EMPTY_FALLS_BACK')
+  expect(verifiedSnapshotPayloadOrigin() === null, 'SNAPSHOT_DURABLE_EMPTY_ORIGIN')
+  setDurableSnapshotStoreForTests(null)
+
   console.log('Verified snapshot checks: PASS')
 } finally {
+  setDurableSnapshotStoreForTests(null)
   clearVerifiedSnapshotCacheForTests()
   globalThis.fetch = savedFetch
   if (savedRemote === undefined) delete process.env.VERIFIED_SNAPSHOT_URL
