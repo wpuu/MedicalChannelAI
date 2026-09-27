@@ -1,4 +1,5 @@
 export type RuntimeSnapshotSourceMode =
+  | 'DATABASE'
   | 'BUNDLED'
   | 'RUNTIME_CACHE'
   | 'REMOTE'
@@ -30,6 +31,7 @@ export interface RuntimeStatus {
 const STATUS_URL = '/api/status'
 const CACHE_TTL_MS = 60_000
 const SNAPSHOT_SOURCE_MODES = new Set<RuntimeSnapshotSourceMode>([
+  'DATABASE',
   'BUNDLED',
   'RUNTIME_CACHE',
   'REMOTE',
