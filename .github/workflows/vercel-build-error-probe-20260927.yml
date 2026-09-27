@@ -1,0 +1,38 @@
+name: MCAI Vercel Build Error Probe 2026-09-27
+on:
+  push:
+    branches: [ops/vercel-build-error-probe-20260927]
+    paths:
+      - '.github/workflows/vercel-build-error-probe-20260927.yml'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 5
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      TEAM_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      DEPLOYMENT_ID: dpl_2Qk6f9p44ASmxTZruY5ua2ou4WSQ
+    steps:
+      - name: Fetch failing production build events
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v3/deployments/$DEPLOYMENT_ID/events?direction=forward&follow=0&limit=-1&builds=1&teamId=$TEAM_ID" \
+            > "$RUNNER_TEMP/events.json"
+          python3 - "$RUNNER_TEMP/events.json" <<'PY'
+          import json,sys,re
+          data=json.load(open(sys.argv[1],encoding='utf-8'))
+          items=data if isinstance(data,list) else data.get('events') or data.get('items') or []
+          pat=re.compile(r'(error|fail|fatal|exited with|traceback|PILOT_|BUNDLED_|PIPELINE_|TypeScript|TS\d+|npm ERR|Error:)',re.I)
+          printed=0
+          for item in items:
+              text=str(item.get('text') or item.get('message') or '')
+              if pat.search(text):
+                  print(text[:2000])
+                  printed+=1
+          print(f'MATCHED_ERROR_EVENTS={printed}')
+          PY
