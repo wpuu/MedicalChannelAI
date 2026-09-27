@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 30
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      GITHUB_TOKEN: ${{ github.token }}
       TEAM_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
       TEAM_SLUG: rerisse7-1717s-projects
       PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
@@ -158,19 +159,32 @@ jobs:
             exit 1
           fi
 
-          echo 'Vercel API deployment daily limit reached; using Git integration fallback.'
-          git config user.name "MedicalChannelAI Ops"
-          git config user.email "actions@users.noreply.github.com"
-          mkdir -p docs/ops
-          printf 'MCAI Vercel env redeploy marker\nrun_attempt=%s\n' "$GITHUB_RUN_ATTEMPT" > docs/ops/vercel-env-redeploy-marker.txt
-          git add docs/ops/vercel-env-redeploy-marker.txt
-          if git diff --cached --quiet; then
-            printf 'MCAI Vercel env redeploy marker\nrun_attempt=%s-%s\n' "$GITHUB_RUN_ATTEMPT" "$(date -u +%s)" > docs/ops/vercel-env-redeploy-marker.txt
-            git add docs/ops/vercel-env-redeploy-marker.txt
+          echo 'Vercel API deployment daily limit reached; using GitHub Contents API fallback.'
+          MARKER_PATH="docs/ops/vercel-env-redeploy-marker-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.txt"
+          MARKER_BODY="$(printf 'MCAI Vercel env redeploy marker\nrun_id=%s\nrun_attempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" | base64 -w0)"
+          python3 - "$MARKER_BODY" "$MARKER_PATH" > "$RUNNER_TEMP/github-marker.json" <<'PY'
+          import json,sys
+          content=sys.argv[1]
+          path=sys.argv[2]
+          print(json.dumps({
+              "message": "ops: trigger Vercel Git redeploy after env rotation",
+              "content": content,
+              "branch": "main",
+          }))
+          PY
+          code="$(curl -sS -o "$RUNNER_TEMP/github-marker-response.json" -w '%{http_code}'             -X PUT             -H "Authorization: Bearer $GITHUB_TOKEN"             -H "Accept: application/vnd.github+json"             -H "X-GitHub-Api-Version: 2022-11-28"             -H 'Content-Type: application/json'             --data-binary @"$RUNNER_TEMP/github-marker.json"             "https://api.github.com/repos/$GITHUB_REPOSITORY/contents/$MARKER_PATH")"
+          if [[ "$code" != "200" && "$code" != "201" ]]; then
+            echo "::error::GitHub marker commit failed HTTP $code"
+            exit 1
           fi
-          git commit -m "ops: trigger Vercel Git redeploy after env rotation"
-          git push origin HEAD:main
-          EXPECTED_COMMIT="$(git rev-parse --short=7 HEAD)"
+          FULL_COMMIT="$(python3 - "$RUNNER_TEMP/github-marker-response.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding='utf-8'))
+          print(str((d.get('commit') or {}).get('sha') or ''))
+          PY
+          )"
+          test -n "$FULL_COMMIT" || { echo '::error::GitHub marker commit SHA missing'; exit 1; }
+          EXPECTED_COMMIT="${FULL_COMMIT:0:7}"
           echo "EXPECTED_PRODUCTION_COMMIT=$EXPECTED_COMMIT" >> "$GITHUB_ENV"
 
           for attempt in $(seq 1 60); do
