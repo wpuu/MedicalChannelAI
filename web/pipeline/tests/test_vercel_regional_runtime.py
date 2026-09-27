@@ -45,6 +45,23 @@ class VercelRegionalRuntimeTests(unittest.TestCase):
         self.assertIn("regional_records = [", publish)
         self.assertNotIn("cache.get(REGIONAL_RECORDS_KEY)", publish)
 
+    def test_completed_regional_stage_replays_when_v3_cache_shard_is_missing(self) -> None:
+        prepare = self.source[self.source.index("def _prepare_stage"):self.source.index("def _mark_completed")]
+        self.assertIn("regional_cache_replay = False", prepare)
+        self.assertIn("cache.get(_regional_records_key(market_code))", prepare)
+        self.assertIn("if not regional_cache_replay:", prepare)
+        self.assertIn("and not regional_cache_replay", prepare)
+
+    def test_publish_gets_one_narrow_cache_migration_retry_and_names_missing_state(self) -> None:
+        prepare = self.source[self.source.index("def _prepare_stage"):self.source.index("def _mark_completed")]
+        self.assertIn("publish_cache_migration_retry", prepare)
+        self.assertIn('stage == "publish"', prepare)
+        self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', prepare)
+        publish = self.source[self.source.index("def _run_publish"):]
+        self.assertIn("canonical_by_name", publish)
+        self.assertIn("missing_canonical", publish)
+        self.assertIn('"COLLECTOR_CANONICAL_STATE_INCOMPLETE:" +', publish)
+
     def test_regional_cache_bootstraps_only_the_current_market(self) -> None:
         self.assertIn(
             'DATA_ROOT / "regional_live_ccgp_records.json"',
