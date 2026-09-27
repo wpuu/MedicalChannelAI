@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check public demo URLs
+      - name: Check canonical public demo URLs
         shell: bash
         run: |
           set -euo pipefail
@@ -29,7 +29,6 @@ jobs:
 
           check_url "https://medicalchannelai.vercel.app/"
           check_url "https://medicalchannelai.vercel.app/today"
-          check_url "https://medicalai.qd.je/"
 
       - name: Check application status
         shell: bash
@@ -51,12 +50,3 @@ jobs:
           if payload.get('ready') is not True:
               raise SystemExit('api/status ready != true')
           PY
-
-      - name: Warn while qd.je is still only a redirect
-        shell: bash
-        run: |
-          set -euo pipefail
-          final="$(curl -L --connect-timeout 10 --max-time 30 -sS -o /dev/null -w '%{url_effective}' "https://medicalai.qd.je/")"
-          if [[ "$final" == https://medicalchannelai.vercel.app/* ]]; then
-            echo "::warning::medicalai.qd.je still redirects to medicalchannelai.vercel.app; it is not an independent hostname path."
-          fi
