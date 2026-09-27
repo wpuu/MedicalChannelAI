@@ -39,6 +39,10 @@ class VercelRegionalRuntimeTests(unittest.TestCase):
         self.assertIn('publish_state.get("status") == "FAILED"', self.source)
         self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', self.source)
         self.assertIn("timedelta(minutes=15)", self.source)
+        self.assertIn('int(previous.get("attempt_count", 0)) == MAX_STAGE_ATTEMPTS_PER_DAY', self.source)
+        prepare = self.source[self.source.index("def _prepare_stage"):self.source.index("def _mark_completed")]
+        stale_block = prepare[prepare.index("regional_stale_migration_replay = bool("):prepare.index("if index > 0:")]
+        self.assertNotIn("not isinstance(cache.get(_regional_records_key(market_code)), list)", stale_block)
         self.assertIn("and not regional_stale_migration_replay", self.source)
 
     def test_publish_includes_market_sharded_regional_canonical_records(self) -> None:
