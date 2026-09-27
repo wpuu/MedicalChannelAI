@@ -35,12 +35,25 @@ class DurableVerifiedSnapshotStoreTests(unittest.TestCase):
         self.assertIn("WHERE snapshot_as_of = ${snapshotAsOf}", self.db)
         self.assertIn("existing[0].snapshot_hash !== snapshotHash", self.db)
 
-    def test_database_snapshot_is_used_only_when_newer_than_bundle(self) -> None:
+    def test_database_snapshot_accepts_equal_bundle_revision_as_durable_authority(self) -> None:
         self.assertIn("latestPublicVerifiedSnapshot", self.verified)
-        self.assertIn("selectPublishedRuntimeSnapshot(durableValue)", self.verified)
+        self.assertIn("selectDurableVerifiedSnapshot(durableValue)", self.verified)
+        self.assertIn("if (candidateMs < baselineMs) return null", self.verified)
+        self.assertIn("if (candidateMs <= baselineMs) return null", self.verified)
         db_mode = self.verified.index("lastSourceMode = 'DATABASE'")
         runtime_load = self.verified.index("const runtimeResult = await loadRuntimeCachedSnapshot()")
         self.assertLess(db_mode, runtime_load)
+
+    def test_runtime_and_durable_snapshot_freshness_rules_stay_distinct(self) -> None:
+        runtime_start = self.verified.index("export function selectPublishedRuntimeSnapshot")
+        durable_start = self.verified.index("export function selectDurableVerifiedSnapshot")
+        publish_start = self.verified.index("export async function publishVerifiedSnapshotToRuntimeCache")
+        runtime_body = self.verified[runtime_start:durable_start]
+        durable_body = self.verified[durable_start:publish_start]
+        self.assertIn("candidateMs <= baselineMs", runtime_body)
+        self.assertNotIn("candidateMs < baselineMs", runtime_body)
+        self.assertIn("candidateMs < baselineMs", durable_body)
+        self.assertNotIn("candidateMs <= baselineMs", durable_body)
 
     def test_database_unconfigured_remains_backward_compatible(self) -> None:
         self.assertIn("if (!publicIntelligenceDatabaseConfigured()) return null", self.db)
