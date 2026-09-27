@@ -114,7 +114,7 @@ TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v1"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v1"
 TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v1"
 TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v1"
-REGIONAL_RECORDS_KEY = "medicalchannelai:collector-regional-records:v2"
+REGIONAL_RECORDS_KEY_PREFIX = "medicalchannelai:collector-regional-records:v3"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 PUBLISHED_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:published:v2"
 DURABLE_PUBLISH_URL = "https://medicalchannelai.vercel.app/api/public-snapshot"
@@ -220,8 +220,23 @@ def _bootstrap_tjfch_records() -> list[dict[str, Any]]:
     return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_tjfch_records.json"))
 
 
-def _bootstrap_regional_records() -> list[dict[str, Any]]:
-    return merge_canonical_records([], _load_array(DATA_ROOT / "regional_live_ccgp_records.json"))
+def _regional_records_key(market_code: str) -> str:
+    normalized = str(market_code or "").strip().upper()
+    if normalized not in set(REGIONAL_STAGE_MARKET_CODES.values()):
+        raise CollectorPrecondition(f"REGIONAL_MARKET_KEY_INVALID:{normalized}")
+    return f"{REGIONAL_RECORDS_KEY_PREFIX}:{normalized}"
+
+
+def _bootstrap_regional_records(market_code: str) -> list[dict[str, Any]]:
+    normalized = str(market_code or "").strip().upper()
+    records = _load_array(DATA_ROOT / "regional_live_ccgp_records.json")
+    scoped = [
+        record
+        for record in records
+        if isinstance(record, dict)
+        and str((record.get("facts") or {}).get("market_code") or "").strip().upper() == normalized
+    ]
+    return merge_canonical_records([], scoped)
 
 
 def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[str, Any]], bool]:
@@ -924,10 +939,11 @@ def _run_regional_market(
     as_of = _cycle_as_of(state)
     start_date, end_date = regional_date_window(as_of, plan["lookback_days"])
     observed_at = as_of.astimezone(timezone.utc).isoformat()
+    regional_records_key = _regional_records_key(market_code)
     existing_records, bootstrapped = _cached_list(
         cache,
-        REGIONAL_RECORDS_KEY,
-        _bootstrap_regional_records,
+        regional_records_key,
+        lambda: _bootstrap_regional_records(market_code),
     )
     existing_source_urls = {
         str((record.get("source") or {}).get("url") or "")
@@ -1076,9 +1092,9 @@ def _run_regional_market(
     merged = merge_canonical_records(existing_records, new_records)
     _cache_set(
         cache,
-        REGIONAL_RECORDS_KEY,
+        regional_records_key,
         merged,
-        tag="medicalchannelai-collector-regional",
+        tag=f"medicalchannelai-collector-regional-{market_code.lower()}",
     )
     return {
         "market_code": market_code,
@@ -1154,28 +1170,34 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     tjnothop_records = cache.get(TJNOTHOP_RECORDS_KEY)
     teda_records = cache.get(TEDA_RECORDS_KEY)
     tjfch_records = cache.get(TJFCH_RECORDS_KEY)
-    regional_records = cache.get(REGIONAL_RECORDS_KEY)
-    if not all(
-        isinstance(value, list)
-        for value in (
-            ccgp_records,
-            events,
-            tjmugh_records,
-            tjnothop_records,
-            teda_records,
-            tjfch_records,
-            regional_records,
-        )
-    ):
+    regional_records_by_market = {
+        market_code: cache.get(_regional_records_key(market_code))
+        for market_code in REGIONAL_STAGE_MARKET_CODES.values()
+    }
+    canonical_values = (
+        ccgp_records,
+        events,
+        tjmugh_records,
+        tjnothop_records,
+        teda_records,
+        tjfch_records,
+        *regional_records_by_market.values(),
+    )
+    if not all(isinstance(value, list) for value in canonical_values):
         raise CollectorPrecondition("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
 
+    regional_records = [
+        record
+        for market_code in REGIONAL_STAGE_MARKET_CODES.values()
+        for record in regional_records_by_market[market_code]
+    ]
     records = (
         list(ccgp_records)
         + list(tjmugh_records)
         + list(tjnothop_records)
         + list(teda_records)
         + list(tjfch_records)
-        + list(regional_records)
+        + regional_records
     )
     as_of = _cycle_as_of(state)
     snapshot = build_public_snapshot(records, as_of, list(events))

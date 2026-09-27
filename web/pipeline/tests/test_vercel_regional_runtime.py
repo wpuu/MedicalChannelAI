@@ -33,21 +33,27 @@ class VercelRegionalRuntimeTests(unittest.TestCase):
         self.assertIn("REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION", self.source)
         self.assertIn("candidate_market_code", self.source)
 
-    def test_publish_includes_regional_canonical_records(self) -> None:
+    def test_publish_includes_market_sharded_regional_canonical_records(self) -> None:
         self.assertIn(
-            'REGIONAL_RECORDS_KEY = "medicalchannelai:collector-regional-records:v2"',
+            'REGIONAL_RECORDS_KEY_PREFIX = "medicalchannelai:collector-regional-records:v3"',
             self.source,
         )
+        self.assertIn('return f"{REGIONAL_RECORDS_KEY_PREFIX}:{normalized}"', self.source)
         publish = self.source[self.source.index("def _run_publish"):]
-        self.assertIn("regional_records = cache.get(REGIONAL_RECORDS_KEY)", publish)
-        self.assertIn("+ list(regional_records)", publish)
+        self.assertIn("regional_records_by_market", publish)
+        self.assertIn("for market_code in REGIONAL_STAGE_MARKET_CODES.values()", publish)
+        self.assertIn("regional_records = [", publish)
+        self.assertNotIn("cache.get(REGIONAL_RECORDS_KEY)", publish)
 
-    def test_regional_cache_bootstraps_from_verified_git_data(self) -> None:
+    def test_regional_cache_bootstraps_only_the_current_market(self) -> None:
         self.assertIn(
             'DATA_ROOT / "regional_live_ccgp_records.json"',
             self.source,
         )
-        self.assertIn("_bootstrap_regional_records", self.source)
+        self.assertIn("def _bootstrap_regional_records(market_code: str)", self.source)
+        self.assertIn('get("market_code")', self.source)
+        self.assertIn("regional_records_key = _regional_records_key(market_code)", self.source)
+        self.assertIn("lambda: _bootstrap_regional_records(market_code)", self.source)
         self.assertIn("merge_canonical_records(existing_records, new_records)", self.source)
 
 
