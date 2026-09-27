@@ -13,7 +13,7 @@ jobs:
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       TEAM_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
-      DEPLOYMENT_ID: dpl_2Qk6f9p44ASmxTZruY5ua2ou4WSQ
+      DEPLOYMENT_ID: dpl_BTKCiBCw3j8aHPi4E2K2Z98orELV
     steps:
       - name: Fetch failing production build events
         shell: bash
