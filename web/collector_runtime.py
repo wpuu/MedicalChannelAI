@@ -762,7 +762,7 @@ def _run_tjfch(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
                 )
             )
         except TjfchParseError as exc:
-            if str(exc) == "TJFCH_BID_DEADLINE_NOT_EXACT":
+            if str(exc) in {"TJFCH_BID_DEADLINE_NOT_EXACT", "TJFCH_NOTICE_TYPE_UNSUPPORTED"}:
                 unsupported.append(
                     {
                         "feed": "in_hospital_procurement",
