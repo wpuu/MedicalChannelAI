@@ -127,6 +127,13 @@ REGIONAL_STAGE_MARKET_CODES = {
     "regional_jl": "JL",
     "regional_hl": "HL",
 }
+REGIONAL_FALLBACK_STAGE_MARKET_CODES = {
+    "regional_bj_fallback": "BJ",
+    "regional_he_fallback": "HE",
+    "regional_ln_fallback": "LN",
+    "regional_jl_fallback": "JL",
+    "regional_hl_fallback": "HL",
+}
 
 STAGE_ORDER = (
     "ccgp",
@@ -143,9 +150,13 @@ STAGE_ORDER = (
     "regional_bj",
     "regional_bj_fallback",
     "regional_he",
+    "regional_he_fallback",
     "regional_ln",
+    "regional_ln_fallback",
     "regional_jl",
+    "regional_jl_fallback",
     "regional_hl",
+    "regional_hl_fallback",
     "publish",
 )
 EXPECTED_SCHEDULES = {
@@ -352,14 +363,14 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
         and previous.get("status") == "FAILED"
         and str(previous.get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
     )
-    bj_timeout_split_replay = (
-        stage == "regional_bj"
-        and attempts == MAX_STAGE_ATTEMPTS_PER_DAY + 1
+    regional_timeout_split_replay = (
+        stage in REGIONAL_STAGE_MARKET_CODES
         and isinstance(previous, dict)
         and previous.get("status") == "RUNNING"
+        and attempts in {MAX_STAGE_ATTEMPTS_PER_DAY, MAX_STAGE_ATTEMPTS_PER_DAY + 1}
         and isinstance(stages.get("publish"), dict)
         and str(stages["publish"].get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
-        and "regional_bj_fallback" not in stages
+        and f"{stage}_fallback" not in stages
     )
     if (
         attempts >= MAX_STAGE_ATTEMPTS_PER_DAY
@@ -367,7 +378,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
         and not regional_cache_replay
         and not regional_stale_migration_replay
         and not publish_cache_migration_retry
-        and not bj_timeout_split_replay
+        and not regional_timeout_split_replay
     ):
         raise CollectorPrecondition(f"COLLECTOR_STAGE_RETRY_LIMIT:{stage}")
 
@@ -977,8 +988,12 @@ def _run_regional_market(
     state: dict[str, Any],
     stage: str,
 ) -> dict[str, Any]:
-    fallback_only = stage == "regional_bj_fallback"
-    market_code = "BJ" if fallback_only else REGIONAL_STAGE_MARKET_CODES.get(stage)
+    fallback_only = stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES
+    market_code = (
+        REGIONAL_FALLBACK_STAGE_MARKET_CODES.get(stage)
+        if fallback_only
+        else REGIONAL_STAGE_MARKET_CODES.get(stage)
+    )
     if not market_code:
         raise CollectorPrecondition(f"REGIONAL_STAGE_INVALID:{stage}")
 
@@ -992,10 +1007,11 @@ def _run_regional_market(
         raise CollectorPrecondition(f"REGIONAL_MARKET_NOT_CONFIGURED:{market_code}")
 
     if fallback_only:
-        primary = (state.get("stages") or {}).get("regional_bj")
+        primary_stage = stage.removesuffix("_fallback")
+        primary = (state.get("stages") or {}).get(primary_stage)
         primary_result = primary.get("result") if isinstance(primary, dict) else None
         if not isinstance(primary_result, dict):
-            raise CollectorPrecondition("REGIONAL_BJ_PRIMARY_RESULT_MISSING")
+            raise CollectorPrecondition(f"REGIONAL_PRIMARY_RESULT_MISSING:{market_code}")
         if primary_result.get("fallback_required") is not True:
             return {
                 "market_code": market_code,
@@ -1067,7 +1083,7 @@ def _run_regional_market(
 
     fallback_query_success_count = 0
     scoped_found_candidates = bool(discovered_by_url)
-    national_fallback_used = fallback_only or (stage != "regional_bj" and not scoped_found_candidates)
+    national_fallback_used = fallback_only
     if national_fallback_used:
         for keyword in plan["keywords"]:
             for notice_type in plan["notice_types"]:
@@ -1202,6 +1218,7 @@ def _run_regional_market(
         "scoped_query_success_count": scoped_query_success_count,
         "scoped_region_mismatch_count": scoped_region_mismatch_count,
         "national_fallback_used": national_fallback_used,
+        "fallback_required": (not fallback_only and not scoped_found_candidates),
         "national_fallback_query_success_count": fallback_query_success_count,
         "unique_candidate_count": len(discovered),
         "selected_candidate_count": len(selected),
@@ -1374,7 +1391,7 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             result = _run_teda(cache, state)
         elif stage == "tjfch":
             result = _run_tjfch(cache, state)
-        elif stage in REGIONAL_STAGE_MARKET_CODES or stage == "regional_bj_fallback":
+        elif stage in REGIONAL_STAGE_MARKET_CODES or stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
             result = _run_regional_market(cache, state, stage)
         elif stage == "publish":
             result = _run_publish(cache, state)
