@@ -17,11 +17,7 @@ concurrency:
 
 jobs:
   refresh:
-    runs-on:
-      - self-hosted
-      - linux
-      - x64
-      - medicalchannelai-ci
+    runs-on: ubuntu-latest
     timeout-minutes: 25
 
     steps:
@@ -29,6 +25,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
 
       - name: Verify system Python
         shell: bash
