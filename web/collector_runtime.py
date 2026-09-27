@@ -395,23 +395,42 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     return state, None
 
 
+def _latest_stage_state_for_update(
+    cache: RuntimeCache,
+    state: dict[str, Any],
+    stage: str,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    latest = load_status(cache)
+    if latest.get("local_date") != state.get("local_date"):
+        raise CollectorPrecondition("COLLECTOR_STATE_DATE_CHANGED_DURING_STAGE")
+    latest_stages = latest.setdefault("stages", {})
+    latest_stage = latest_stages.get(stage)
+    if not isinstance(latest_stage, dict):
+        original = (state.get("stages") or {}).get(stage)
+        if not isinstance(original, dict):
+            raise CollectorPrecondition(f"COLLECTOR_STAGE_STATE_MISSING:{stage}")
+        latest_stage = dict(original)
+        latest_stages[stage] = latest_stage
+    return latest, latest_stage
+
+
 def _mark_completed(cache: RuntimeCache, state: dict[str, Any], stage: str, result: dict[str, Any]) -> None:
-    current = state["stages"][stage]
+    latest, current = _latest_stage_state_for_update(cache, state, stage)
     current["status"] = "COMPLETED"
     current["completed_at"] = _now_utc().isoformat()
     current["result"] = result
     current["error_code"] = None
     current["error_message"] = None
-    _write_status(cache, state)
+    _write_status(cache, latest)
 
 
 def _mark_failed(cache: RuntimeCache, state: dict[str, Any], stage: str, exc: Exception) -> None:
-    current = state["stages"][stage]
+    latest, current = _latest_stage_state_for_update(cache, state, stage)
     current["status"] = "FAILED"
     current["completed_at"] = _now_utc().isoformat()
     current["error_code"] = getattr(exc, "code", type(exc).__name__)
     current["error_message"] = str(exc)[:300]
-    _write_status(cache, state)
+    _write_status(cache, latest)
 
 
 def _cycle_as_of(state: dict[str, Any]) -> datetime:

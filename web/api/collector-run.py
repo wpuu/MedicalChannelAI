@@ -96,7 +96,7 @@ def _recovery_cycle_id(cache: RuntimeCache, local_date: str) -> str | None:
             and stage_state.get("status") in {"RUNNING", "COMPLETED"}
             and f"{stage_name}_fallback" not in stages
         ):
-            return f"prod:{local_date}:recovery-v6"
+            return f"prod:{local_date}:recovery-v7"
     return f"prod:{local_date}:recovery-v3"
 
 

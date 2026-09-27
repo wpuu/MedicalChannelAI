@@ -34,7 +34,7 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertIn("def _recovery_cycle_id(cache: RuntimeCache, local_date: str)", source)
         self.assertIn('publish.get("status") != "FAILED"', source)
         self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', source)
-        self.assertIn('return f"prod:{local_date}:recovery-v6"', source)
+        self.assertIn('return f"prod:{local_date}:recovery-v7"', source)
         self.assertIn('"regional_he"', source)
         self.assertIn('stage_state.get("status") in {"RUNNING", "COMPLETED"}', source)
         self.assertIn('f"{stage_name}_fallback" not in stages', source)
