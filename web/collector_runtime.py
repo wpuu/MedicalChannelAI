@@ -1133,7 +1133,7 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     # Node public serving reads this exact stable key. It is intentionally written
     # without TTL/tags so the collector cannot expire the serving snapshot merely
     # because the short-lived collector state ages out.
-    cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot)
+    cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})
     serving_read_back = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
     if not isinstance(serving_read_back, dict) or _digest(serving_read_back) != digest:
         raise CollectorStageBlocked("SERVING_SNAPSHOT_READBACK_MISMATCH")
