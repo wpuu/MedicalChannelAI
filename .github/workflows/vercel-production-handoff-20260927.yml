@@ -1,0 +1,187 @@
+name: MCAI Vercel Production Handoff 2026-09-27
+
+on:
+  push:
+    branches:
+      - ops/vercel-prod-secret-probe-20260927
+    paths:
+      - '.github/workflows/vercel-production-handoff-20260927.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  handoff:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 30
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      TEAM_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      TEAM_SLUG: rerisse7-1717s-projects
+      PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+      CANDIDATE_URL: https://medicalchannelai-9hzbfna0h-rerisse7-1717s-projects.vercel.app
+      PUBLIC_ORIGIN: https://medicalchannelai.vercel.app
+
+    steps:
+      - name: Preflight Vercel Production database environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}" || { echo '::error::VERCEL_TOKEN missing'; exit 1; }
+          curl -fsS             -H "Authorization: Bearer $VERCEL_TOKEN"             "https://api.vercel.com/v10/projects/$PROJECT_ID/env?teamId=$TEAM_ID" > "$RUNNER_TEMP/vercel-env.json"
+          python3 - "$RUNNER_TEMP/vercel-env.json" <<'PY'
+          import json, sys
+          data=json.load(open(sys.argv[1], encoding='utf-8'))
+          envs=data.get('envs') or data.get('env') or []
+          def has_prod(key):
+              for item in envs:
+                  if item.get('key') != key:
+                      continue
+                  target=item.get('target') or []
+                  if 'production' in target:
+                      return True
+              return False
+          db = has_prod('DATABASE_URL') or has_prod('POSTGRES_URL')
+          print('DATABASE_ENV=' + ('PRESENT' if db else 'MISSING'))
+          print('CRON_SECRET_ENV=' + ('PRESENT' if has_prod('CRON_SECRET') else 'MISSING'))
+          raise SystemExit(0 if db else 2)
+          PY
+
+      - name: Rotate Production CRON_SECRET safely
+        id: cron
+        shell: bash
+        run: |
+          set -euo pipefail
+          CRON_SECRET_VALUE="$(openssl rand -hex 32)"
+          echo "::add-mask::$CRON_SECRET_VALUE"
+          python3 - "$CRON_SECRET_VALUE" > "$RUNNER_TEMP/cron-env.json" <<'PY'
+          import json, sys
+          print(json.dumps({
+            "key": "CRON_SECRET",
+            "value": sys.argv[1],
+            "type": "sensitive",
+            "target": ["production"],
+            "comment": "MedicalChannelAI Vercel collector cron authentication"
+          }))
+          PY
+          code="$(curl -sS -o "$RUNNER_TEMP/cron-env.out" -w '%{http_code}'             -X POST             -H "Authorization: Bearer $VERCEL_TOKEN"             -H 'Content-Type: application/json'             --data-binary @"$RUNNER_TEMP/cron-env.json"             "https://api.vercel.com/v10/projects/$PROJECT_ID/env?upsert=true&teamId=$TEAM_ID")"
+          if [[ "$code" != "200" && "$code" != "201" ]]; then
+            echo "::error::CRON_SECRET upsert failed HTTP $code"
+            python3 - "$RUNNER_TEMP/cron-env.out" <<'PY'
+          import json,sys
+          try:
+              d=json.load(open(sys.argv[1], encoding='utf-8'))
+              print({'error': d.get('error') or d.get('message') or 'UNKNOWN'})
+          except Exception:
+              print('Vercel environment API returned non-JSON error.')
+          PY
+            exit 1
+          fi
+          printf '%s' "$CRON_SECRET_VALUE" > "$RUNNER_TEMP/cron_secret"
+          chmod 600 "$RUNNER_TEMP/cron_secret"
+          echo 'CRON_SECRET_UPSERT=PASS'
+
+      - name: Redeploy verified candidate to Production with current environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@latest redeploy "$CANDIDATE_URL"             --target=production             --non-interactive             --scope "$TEAM_SLUG"             --token "$VERCEL_TOKEN" > "$RUNNER_TEMP/redeploy.out"
+          tail -n 5 "$RUNNER_TEMP/redeploy.out" | sed -E 's#https://[^ ]+#<deployment-url>#g'
+          echo 'PRODUCTION_REDEPLOY_REQUEST=PASS'
+
+      - name: Verify database and cron configuration reached Production
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 24); do
+            auth_code="$(curl -sS --max-time 20 -o "$RUNNER_TEMP/auth.json" -w '%{http_code}' "$PUBLIC_ORIGIN/api/auth/me" || true)"
+            health_code="$(curl -sS --max-time 20 -o "$RUNNER_TEMP/health.json" -w '%{http_code}' "$PUBLIC_ORIGIN/api/pipeline-health" || true)"
+            db_ok=0
+            cron_ok=0
+            if ! grep -q 'PRIVATE_DATABASE_NOT_CONFIGURED' "$RUNNER_TEMP/auth.json" 2>/dev/null; then db_ok=1; fi
+            if python3 - "$RUNNER_TEMP/health.json" <<'PY'
+          import json,sys
+          try:
+              d=json.load(open(sys.argv[1], encoding='utf-8'))
+              p=d.get('pipeline_runtime') or {}
+              raise SystemExit(0 if p.get('cron_secret_configured') is True else 1)
+          except Exception:
+              raise SystemExit(1)
+          PY
+            then cron_ok=1; fi
+            echo "Attempt $attempt: auth_http=$auth_code health_http=$health_code db_configured=$db_ok cron_configured=$cron_ok"
+            if [[ "$db_ok" = "1" && "$cron_ok" = "1" ]]; then
+              echo 'PRODUCTION_ENV_PROPAGATION=PASS'
+              exit 0
+            fi
+            sleep 10
+          done
+          echo '::error::Production did not expose database + cron configuration in time.'
+          exit 1
+
+      - name: Trigger one authenticated Vercel collector cycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          CRON_SECRET_VALUE="$(cat "$RUNNER_TEMP/cron_secret")"
+          code="$(curl -sS --max-time 30 -o "$RUNNER_TEMP/collector-start.json" -w '%{http_code}'             -H "Authorization: Bearer $CRON_SECRET_VALUE"             "$PUBLIC_ORIGIN/api/collector-run")"
+          echo "COLLECTOR_TRIGGER_HTTP=$code"
+          if [[ "$code" != "202" && "$code" != "409" ]]; then
+            echo '::error::Collector trigger rejected.'
+            exit 1
+          fi
+
+      - name: Prove collector progress and durable fresh snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          progressed=0
+          durable_fresh=0
+          for attempt in $(seq 1 60); do
+            curl -sS --max-time 20 "$PUBLIC_ORIGIN/api/collector-status" -o "$RUNNER_TEMP/collector-status.json"
+            curl -sS --max-time 20 "$PUBLIC_ORIGIN/api/status" -o "$RUNNER_TEMP/status.json"
+            if python3 - "$RUNNER_TEMP/collector-status.json" <<'PY'
+          import json,sys
+          try:
+              c=(json.load(open(sys.argv[1], encoding='utf-8')).get('collector') or {})
+              ok=(c.get('completed_stage_count') or 0) > 0 or c.get('active_cycle_id') is not None
+              raise SystemExit(0 if ok else 1)
+          except Exception:
+              raise SystemExit(1)
+          PY
+            then progressed=1; fi
+            if python3 - "$RUNNER_TEMP/status.json" <<'PY'
+          import json,sys
+          try:
+              s=(json.load(open(sys.argv[1], encoding='utf-8')).get('snapshot') or {})
+              ok=s.get('freshness') == 'FRESH' and s.get('source_mode') == 'DATABASE'
+              raise SystemExit(0 if ok else 1)
+          except Exception:
+              raise SystemExit(1)
+          PY
+            then durable_fresh=1; fi
+            echo "Attempt $attempt: collector_progress=$progressed durable_database_fresh=$durable_fresh"
+            if [[ "$progressed" = "1" && "$durable_fresh" = "1" ]]; then
+              python3 - "$RUNNER_TEMP/collector-status.json" "$RUNNER_TEMP/status.json" <<'PY'
+          import json,sys
+          c=(json.load(open(sys.argv[1], encoding='utf-8')).get('collector') or {})
+          s=(json.load(open(sys.argv[2], encoding='utf-8')).get('snapshot') or {})
+          print('COLLECTOR_COMPLETED_STAGES=' + str(c.get('completed_stage_count')))
+          print('COLLECTOR_TOTAL_STAGES=' + str(c.get('total_stage_count')))
+          print('SNAPSHOT_SOURCE=' + str(s.get('source_mode')))
+          print('SNAPSHOT_FRESHNESS=' + str(s.get('freshness')))
+          print('SNAPSHOT_AS_OF=' + str(s.get('snapshot_as_of')))
+          print('SNAPSHOT_POOL=' + str(s.get('opportunity_pool_count')))
+          PY
+              echo 'VERCEL_PRODUCTION_HANDOFF=PASS'
+              exit 0
+            fi
+            sleep 20
+          done
+          echo '::error::Collector/database takeover not proven within bounded polling window.'
+          exit 1
