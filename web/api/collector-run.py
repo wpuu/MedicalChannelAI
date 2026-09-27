@@ -82,6 +82,14 @@ def _recovery_cycle_id(cache: RuntimeCache, local_date: str) -> str | None:
     error_message = str(publish.get("error_message") or "")
     if not error_message.startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE"):
         return None
+    bj = stages.get("regional_bj")
+    if (
+        isinstance(bj, dict)
+        and bj.get("status") == "RUNNING"
+        and int(bj.get("attempt_count", 0)) >= 3
+        and "regional_bj_fallback" not in stages
+    ):
+        return f"prod:{local_date}:recovery-v4"
     return f"prod:{local_date}:recovery-v3"
 
 
