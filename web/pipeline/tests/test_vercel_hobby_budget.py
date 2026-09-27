@@ -53,14 +53,14 @@ class VercelHobbyBudgetTests(unittest.TestCase):
         self.assertNotIn("ai/discover-continuation.js", routes)
         self.assertTrue((API_ROOT / "ai" / "_discoverContinuation.js").is_file())
 
-    def test_main_git_push_cannot_auto_deploy_production(self):
+    def test_main_git_push_updates_production_bundle(self):
         config = json.loads(VERCEL_CONFIG.read_text(encoding="utf-8"))
         deployment_enabled = config.get("git", {}).get("deploymentEnabled", {})
         self.assertIsInstance(deployment_enabled, dict)
         self.assertIs(
             deployment_enabled.get("main"),
-            False,
-            "main must remain explicitly disabled for automatic Vercel Git deployments; Production release is manual/staged only",
+            True,
+            "main must auto-deploy so committed verified snapshots cannot lag behind Production",
         )
 
     def test_legacy_frontend_paths_rewrite_to_consolidated_routers(self):
