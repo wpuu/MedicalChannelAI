@@ -82,14 +82,22 @@ def _recovery_cycle_id(cache: RuntimeCache, local_date: str) -> str | None:
     error_message = str(publish.get("error_message") or "")
     if not error_message.startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE"):
         return None
-    bj = stages.get("regional_bj")
-    if (
-        isinstance(bj, dict)
-        and bj.get("status") == "RUNNING"
-        and int(bj.get("attempt_count", 0)) >= 3
-        and "regional_bj_fallback" not in stages
-    ):
-        return f"prod:{local_date}:recovery-v5"
+    regional_primary_stages = (
+        "regional_bj",
+        "regional_he",
+        "regional_ln",
+        "regional_jl",
+        "regional_hl",
+    )
+    for stage_name in regional_primary_stages:
+        stage_state = stages.get(stage_name)
+        if (
+            isinstance(stage_state, dict)
+            and stage_state.get("status") == "RUNNING"
+            and int(stage_state.get("attempt_count", 0)) >= 2
+            and f"{stage_name}_fallback" not in stages
+        ):
+            return f"prod:{local_date}:recovery-v6"
     return f"prod:{local_date}:recovery-v3"
 
 
