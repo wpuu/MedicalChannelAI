@@ -45,6 +45,31 @@ class VercelRegionalRuntimeTests(unittest.TestCase):
         self.assertNotIn("not isinstance(cache.get(_regional_records_key(market_code)), list)", stale_block)
         self.assertIn("and not regional_stale_migration_replay", self.source)
 
+    def test_beijing_fallback_is_a_separate_bounded_queue_stage(self) -> None:
+        stage_order = self.source[self.source.index("STAGE_ORDER = ("):self.source.index("EXPECTED_SCHEDULES")]
+        self.assertLess(stage_order.index('"regional_bj"'), stage_order.index('"regional_bj_fallback"'))
+        self.assertLess(stage_order.index('"regional_bj_fallback"'), stage_order.index('"regional_he"'))
+        runtime = self.source[self.source.index("def _run_regional_market"):self.source.index("def _persist_verified_snapshot_durably")]
+        self.assertIn('fallback_only = stage == "regional_bj_fallback"', runtime)
+        self.assertIn('"fallback_required": True', runtime)
+        self.assertIn('national_fallback_used = fallback_only or (stage != "regional_bj" and not scoped_found_candidates)', runtime)
+        self.assertIn('elif stage in REGIONAL_STAGE_MARKET_CODES or stage == "regional_bj_fallback"', self.source)
+
+    def test_beijing_fallback_does_not_duplicate_publish_market_map(self) -> None:
+        mapping = self.source[self.source.index("REGIONAL_STAGE_MARKET_CODES = {"):self.source.index("STAGE_ORDER = (")]
+        self.assertIn('"regional_bj": "BJ"', mapping)
+        self.assertNotIn('"regional_bj_fallback"', mapping)
+        publish = self.source[self.source.index("def _run_publish"):]
+        self.assertIn("for market_code in REGIONAL_STAGE_MARKET_CODES.values()", publish)
+
+    def test_timeout_split_recovery_is_one_extra_attempt_only(self) -> None:
+        prepare = self.source[self.source.index("def _prepare_stage"):self.source.index("def _mark_completed")]
+        self.assertIn("bj_timeout_split_replay", prepare)
+        self.assertIn('stage == "regional_bj"', prepare)
+        self.assertIn("attempts == MAX_STAGE_ATTEMPTS_PER_DAY + 1", prepare)
+        self.assertIn('"regional_bj_fallback" not in stages', prepare)
+        self.assertIn("and not bj_timeout_split_replay", prepare)
+
     def test_publish_includes_market_sharded_regional_canonical_records(self) -> None:
         self.assertIn(
             'REGIONAL_RECORDS_KEY_PREFIX = "medicalchannelai:collector-regional-records:v3"',

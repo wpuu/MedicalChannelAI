@@ -141,6 +141,7 @@ STAGE_ORDER = (
     "teda",
     "tjfch",
     "regional_bj",
+    "regional_bj_fallback",
     "regional_he",
     "regional_ln",
     "regional_jl",
@@ -351,12 +352,22 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
         and previous.get("status") == "FAILED"
         and str(previous.get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
     )
+    bj_timeout_split_replay = (
+        stage == "regional_bj"
+        and attempts == MAX_STAGE_ATTEMPTS_PER_DAY + 1
+        and isinstance(previous, dict)
+        and previous.get("status") == "RUNNING"
+        and isinstance(stages.get("publish"), dict)
+        and str(stages["publish"].get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
+        and "regional_bj_fallback" not in stages
+    )
     if (
         attempts >= MAX_STAGE_ATTEMPTS_PER_DAY
         and not tjfch_policy_recovery_retry
         and not regional_cache_replay
         and not regional_stale_migration_replay
         and not publish_cache_migration_retry
+        and not bj_timeout_split_replay
     ):
         raise CollectorPrecondition(f"COLLECTOR_STAGE_RETRY_LIMIT:{stage}")
 
@@ -966,7 +977,8 @@ def _run_regional_market(
     state: dict[str, Any],
     stage: str,
 ) -> dict[str, Any]:
-    market_code = REGIONAL_STAGE_MARKET_CODES.get(stage)
+    fallback_only = stage == "regional_bj_fallback"
+    market_code = "BJ" if fallback_only else REGIONAL_STAGE_MARKET_CODES.get(stage)
     if not market_code:
         raise CollectorPrecondition(f"REGIONAL_STAGE_INVALID:{stage}")
 
@@ -978,6 +990,20 @@ def _run_regional_market(
     market = market_by_code.get(market_code)
     if not market:
         raise CollectorPrecondition(f"REGIONAL_MARKET_NOT_CONFIGURED:{market_code}")
+
+    if fallback_only:
+        primary = (state.get("stages") or {}).get("regional_bj")
+        primary_result = primary.get("result") if isinstance(primary, dict) else None
+        if not isinstance(primary_result, dict):
+            raise CollectorPrecondition("REGIONAL_BJ_PRIMARY_RESULT_MISSING")
+        if primary_result.get("fallback_required") is not True:
+            return {
+                "market_code": market_code,
+                "market_name": market["name"],
+                "fallback_required": False,
+                "fallback_skipped": True,
+                "merged_record_count": len(_bootstrap_regional_records(market_code)),
+            }
 
     as_of = _cycle_as_of(state)
     start_date, end_date = regional_date_window(as_of, plan["lookback_days"])
@@ -1000,46 +1026,48 @@ def _run_regional_market(
     scoped_query_success_count = 0
     scoped_region_mismatch_count = 0
 
-    for keyword in plan["keywords"]:
-        for notice_type in plan["notice_types"]:
-            try:
-                items = fetch_regional_candidates_page(
-                    session,
-                    keyword=keyword,
-                    notice_type=notice_type,
-                    start_date=start_date,
-                    end_date=end_date,
-                    region=str(market["name"]),
-                    page_index=1,
-                )
-                scoped_query_success_count += 1
-                for item_notice_type, candidate in items:
-                    actual_code = candidate_market_code(
-                        getattr(candidate, "region", None),
-                        plan["markets"],
+    if not fallback_only:
+        for keyword in plan["keywords"]:
+            for notice_type in plan["notice_types"]:
+                try:
+                    items = fetch_regional_candidates_page(
+                        session,
+                        keyword=keyword,
+                        notice_type=notice_type,
+                        start_date=start_date,
+                        end_date=end_date,
+                        region=str(market["name"]),
+                        page_index=1,
                     )
-                    if actual_code != market_code:
-                        scoped_region_mismatch_count += 1
-                        continue
-                    if regional_candidate_skip_reason(candidate):
-                        continue
-                    discovered_by_url.setdefault(
-                        str(candidate.detail_url),
-                        (item_notice_type, candidate),
-                    )
-            except Exception as exc:
-                failures.append({
-                    "stage": "scoped_discovery",
-                    "market_code": market_code,
-                    "keyword": keyword,
-                    "notice_type": notice_type,
-                    "error": type(exc).__name__,
-                    "message": str(exc)[:300],
-                })
-            time.sleep(plan["delay_seconds"])
+                    scoped_query_success_count += 1
+                    for item_notice_type, candidate in items:
+                        actual_code = candidate_market_code(
+                            getattr(candidate, "region", None),
+                            plan["markets"],
+                        )
+                        if actual_code != market_code:
+                            scoped_region_mismatch_count += 1
+                            continue
+                        if regional_candidate_skip_reason(candidate):
+                            continue
+                        discovered_by_url.setdefault(
+                            str(candidate.detail_url),
+                            (item_notice_type, candidate),
+                        )
+                except Exception as exc:
+                    failures.append({
+                        "stage": "scoped_discovery",
+                        "market_code": market_code,
+                        "keyword": keyword,
+                        "notice_type": notice_type,
+                        "error": type(exc).__name__,
+                        "message": str(exc)[:300],
+                    })
+                time.sleep(plan["delay_seconds"])
 
     fallback_query_success_count = 0
-    national_fallback_used = not bool(discovered_by_url)
+    scoped_found_candidates = bool(discovered_by_url)
+    national_fallback_used = fallback_only or (stage != "regional_bj" and not scoped_found_candidates)
     if national_fallback_used:
         for keyword in plan["keywords"]:
             for notice_type in plan["notice_types"]:
@@ -1084,8 +1112,35 @@ def _run_regional_market(
                     time.sleep(plan["delay_seconds"])
                 time.sleep(plan["delay_seconds"])
 
-    if scoped_query_success_count + fallback_query_success_count <= 0:
+    if not fallback_only and scoped_query_success_count <= 0:
         raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}")
+    if fallback_only and fallback_query_success_count <= 0:
+        raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}")
+
+    if stage == "regional_bj" and not scoped_found_candidates:
+        _cache_set(
+            cache,
+            regional_records_key,
+            existing_records,
+            tag="medicalchannelai-collector-regional-bj",
+        )
+        return {
+            "market_code": market_code,
+            "market_name": market["name"],
+            "start_date": start_date,
+            "end_date": end_date,
+            "scoped_query_success_count": scoped_query_success_count,
+            "scoped_region_mismatch_count": scoped_region_mismatch_count,
+            "national_fallback_used": False,
+            "fallback_required": True,
+            "national_fallback_query_success_count": 0,
+            "unique_candidate_count": 0,
+            "selected_candidate_count": 0,
+            "new_verified_record_count": 0,
+            "merged_record_count": len(existing_records),
+            "failure_count": len(failures),
+            "bootstrapped_records": bootstrapped,
+        }
 
     discovered = sorted(
         discovered_by_url.values(),
@@ -1319,7 +1374,7 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             result = _run_teda(cache, state)
         elif stage == "tjfch":
             result = _run_tjfch(cache, state)
-        elif stage in REGIONAL_STAGE_MARKET_CODES:
+        elif stage in REGIONAL_STAGE_MARKET_CODES or stage == "regional_bj_fallback":
             result = _run_regional_market(cache, state, stage)
         elif stage == "publish":
             result = _run_publish(cache, state)
