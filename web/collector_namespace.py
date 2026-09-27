@@ -17,6 +17,9 @@ TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v2"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v2"
 TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v2"
 TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v2"
+TJZXFC_RECORDS_KEY = "medicalchannelai:collector-tjzxfc-records:v2"
+TJZYEFY_RECORDS_KEY = "medicalchannelai:collector-tjzyefy-records:v2"
+TJZYEFY_INTENT_RECORDS_KEY = "medicalchannelai:collector-tjzyefy-intent-records:v2"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v2"
 LEGACY_LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 ACTIVE_CYCLE_TTL_SECONDS = 2 * 24 * 60 * 60
@@ -44,6 +47,9 @@ _RUNTIME_KEY_ASSIGNMENTS = {
     "TJNOTHOP_RECORDS_KEY": TJNOTHOP_RECORDS_KEY,
     "TEDA_RECORDS_KEY": TEDA_RECORDS_KEY,
     "TJFCH_RECORDS_KEY": TJFCH_RECORDS_KEY,
+    "TJZXFC_RECORDS_KEY": TJZXFC_RECORDS_KEY,
+    "TJZYEFY_RECORDS_KEY": TJZYEFY_RECORDS_KEY,
+    "TJZYEFY_INTENT_RECORDS_KEY": TJZYEFY_INTENT_RECORDS_KEY,
     "LATEST_RUNTIME_SNAPSHOT_KEY": LATEST_RUNTIME_SNAPSHOT_KEY,
 }
 
