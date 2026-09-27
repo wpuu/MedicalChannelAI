@@ -1,0 +1,83 @@
+name: MCAI GCP Retirement Readonly Inventory
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/gcp-retirement-readonly-inventory-20260927.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout authoritative repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Read-only VM inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== MCAI_GCP_RETIRE_002 INVENTORY START ==='
+          echo "UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "HOSTNAME=$(hostname)"
+          echo "USER=$(id -un)"
+          echo "KERNEL=$(uname -srmo)"
+          echo
+          echo '--- FILESYSTEM ---'
+          df -hT / /home 2>/dev/null || true
+          echo
+          echo '--- HOME TOP LEVEL ---'
+          find "$HOME" -mindepth 1 -maxdepth 2 -printf '%y %p %s bytes %TY-%Tm-%TdT%TH:%TM:%TS\n' 2>/dev/null | sort | head -n 300
+          echo
+          echo '--- LIKELY PROJECT / RUNNER PATHS ---'
+          find "$HOME" /opt /srv /var/www -maxdepth 5 \
+            \( -iname '*medicalchannel*' -o -iname '*actions-runner*' -o -iname '*cloudflared*' -o -iname '*nginx*' \) \
+            -printf '%y %p %s bytes %TY-%Tm-%TdT%TH:%TM:%TS\n' 2>/dev/null | sort | head -n 500 || true
+          echo
+          echo '--- GIT WORKTREES UNDER HOME (NO REMOTE URL VALUES) ---'
+          while IFS= read -r dotgit; do
+            repo="$(dirname "$dotgit")"
+            echo "REPO=$repo"
+            git -C "$repo" rev-parse --verify HEAD 2>/dev/null | sed 's/^/HEAD=/' || true
+            git -C "$repo" status --porcelain=v1 --untracked-files=normal 2>/dev/null | sed 's/^/STATUS=/' | head -n 120 || true
+          done < <(find "$HOME" -maxdepth 6 -type d -name .git 2>/dev/null | sort)
+          echo
+          echo '--- ENV FILE NAMES AND VARIABLE NAMES ONLY ---'
+          while IFS= read -r envfile; do
+            echo "ENVFILE=$envfile"
+            sed -n -E 's/^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)=.*/VAR=\1/p' "$envfile" 2>/dev/null | sort -u | head -n 120 || true
+          done < <(find "$HOME" /opt /srv /var/www -maxdepth 6 -type f \( -name '.env' -o -name '.env.*' \) 2>/dev/null | sort)
+          echo
+          echo '--- USER CRONTAB (REDACT ASSIGNMENT VALUES) ---'
+          crontab -l 2>/dev/null | sed -E 's/^([A-Za-z_][A-Za-z0-9_]*)=.*/\1=<redacted>/' || echo 'NO_USER_CRONTAB_OR_NO_ACCESS'
+          echo
+          echo '--- SYSTEMD UNIT NAMES RELEVANT TO PROJECT ---'
+          systemctl list-unit-files --type=service --no-pager 2>/dev/null | grep -Ei 'actions|runner|medical|nginx|cloudflared|caddy' || true
+          echo
+          echo '--- ACTIVE SERVICE NAMES RELEVANT TO PROJECT ---'
+          systemctl list-units --type=service --state=running --no-pager 2>/dev/null | grep -Ei 'actions|runner|medical|nginx|cloudflared|caddy' || true
+          echo
+          echo '--- WEB / TUNNEL CONFIG FILE NAMES ONLY ---'
+          find /etc/nginx /etc/caddy /etc/cloudflared /root/.cloudflared "$HOME/.cloudflared" \
+            -maxdepth 4 -type f -printf '%p %s bytes %TY-%Tm-%TdT%TH:%TM:%TS\n' 2>/dev/null | sort || true
+          echo
+          echo '--- LISTENING TCP PORTS ---'
+          ss -ltn 2>/dev/null | head -n 100 || true
+          echo
+          echo '--- CURRENT ACTIONS WORKSPACE TRACKED STATE ---'
+          echo "WORKSPACE=$GITHUB_WORKSPACE"
+          git status --short
+          git rev-parse HEAD | sed 's/^/CHECKOUT_HEAD=/'
+          echo
+          echo '=== MCAI_GCP_RETIRE_002 INVENTORY END ==='
