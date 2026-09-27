@@ -1,0 +1,22 @@
+name: PR35 Ubuntu Contract Verify 2026-09-27
+
+on:
+  push:
+    branches: [ops/pr35-ubuntu-verify-20260927]
+    paths:
+      - '.github/workflows/pr35-ubuntu-contract-verify.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run regional runtime migration contract
+        run: python -m unittest web.pipeline.tests.test_vercel_regional_runtime
