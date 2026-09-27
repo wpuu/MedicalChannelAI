@@ -160,7 +160,7 @@ jobs:
           fi
 
           echo 'Vercel API deployment daily limit reached; using GitHub Contents API fallback.'
-          MARKER_PATH="docs/ops/vercel-env-redeploy-marker-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.txt"
+          MARKER_PATH="web/.vercel-env-redeploy-marker-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.txt"
           MARKER_BODY="$(printf 'MCAI Vercel env redeploy marker\nrun_id=%s\nrun_attempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" | base64 -w0)"
           python3 - "$MARKER_BODY" "$MARKER_PATH" > "$RUNNER_TEMP/github-marker.json" <<'PY'
           import json,sys
