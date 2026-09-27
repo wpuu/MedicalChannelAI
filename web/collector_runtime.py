@@ -113,6 +113,7 @@ TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v1"
 TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v1"
 REGIONAL_RECORDS_KEY = "medicalchannelai:collector-regional-records:v2"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
+PUBLISHED_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:published:v2"
 
 REGIONAL_STAGE_MARKET_CODES = {
     "regional_bj": "BJ",
@@ -1128,6 +1129,14 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     read_back = cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
     if not isinstance(read_back, dict) or _digest(read_back) != digest:
         raise CollectorStageBlocked("RUNTIME_SNAPSHOT_READBACK_MISMATCH")
+
+    # Node public serving reads this exact stable key. It is intentionally written
+    # without TTL/tags so the collector cannot expire the serving snapshot merely
+    # because the short-lived collector state ages out.
+    cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})
+    serving_read_back = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+    if not isinstance(serving_read_back, dict) or _digest(serving_read_back) != digest:
+        raise CollectorStageBlocked("SERVING_SNAPSHOT_READBACK_MISMATCH")
 
     pool = read_back.get("opportunity_pool")
     return {
