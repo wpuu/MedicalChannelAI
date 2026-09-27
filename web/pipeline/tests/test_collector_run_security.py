@@ -29,6 +29,14 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertIn('INCREMENTAL_SOURCE_UNSUPPORTED', source)
         self.assertIn('COLLECTOR_MODE_INVALID', source)
 
+    def test_cache_migration_recovery_cycle_is_narrow_and_deterministic(self) -> None:
+        source = COLLECTOR_RUN.read_text(encoding="utf-8")
+        self.assertIn("def _recovery_cycle_id(cache: RuntimeCache, local_date: str)", source)
+        self.assertIn('publish.get("status") != "FAILED"', source)
+        self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', source)
+        self.assertIn('return f"prod:{local_date}:recovery-v3"', source)
+        self.assertNotIn("uuid", source.lower())
+
     def test_trigger_requires_cron_secret_and_bearer_auth_fail_closed(self) -> None:
         source = COLLECTOR_RUN.read_text(encoding="utf-8")
         self.assertIn('os.environ.get("CRON_SECRET")', source)
@@ -39,7 +47,7 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertNotIn('x-vercel-cron-schedule', source)
         self.assertLess(source.index("if not cron_secret:"), source.index('return True, "VERCEL_CRON"'))
         self.assertLess(source.index("hmac.compare_digest"), source.index('return True, "VERCEL_CRON"'))
-        self.assertIn('cycle_id = f"prod:{local_date}"', source)
+        self.assertIn('cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"', source)
 
 
 if __name__ == "__main__":
