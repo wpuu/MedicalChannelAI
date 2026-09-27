@@ -173,3 +173,39 @@ GCP VM 本机没有可复用的 Vercel CLI 登录态。
 - 不在该分支直接关闭 GCP Runner。
 
 完成 Preview + 自托管现有测试后，再做生产接管。
+
+
+## 12. 2026-09-27 12:27（UTC+8）增量状态
+
+代码层迁移已继续完成并合入 `main`：
+
+- PR #26 / `MCAI-GCP-RETIRE-002`：Vercel-native 区域采集 stage，已合并；PR 头提交的 `Verify MedicalChannelAI` = PASS。
+- PR #27 / `MCAI-GCP-RETIRE-003`：Vercel Collector → 公共快照 serving bridge，已合并；验证 = PASS。
+- PR #28 / `MCAI-GCP-RETIRE-004`：完整 verified snapshot 持久化到 Postgres，并优先读取 durable database snapshot，已合并；验证 = PASS。
+
+失败的 GitHub-hosted Runner 路线已正式关闭：
+
+- Draft PR #24 已关闭且未合并；
+- 两次 `ubuntu-latest` 均在拿到 Runner 之前失败，`runner_id=0`、`steps=[]`；
+- 不再把该路线当作可用替代执行面。
+
+2026-09-27 生产实时复核仍显示：
+
+- `/api/status`：公开快照仍为 `2026-09-24T13:32:02.844764+08:00`，`STALE`；
+- `/api/pipeline-health`：`cron_secret_configured=false`；
+- `/api/collector-status`：0 个 stage 完成；
+- `/api/auth/me`：`PRIVATE_DATABASE_NOT_CONFIGURED`；
+- `web/vercel.json` 当前仍为 `deploymentEnabled.main=false`，因此合并到 main 不等于生产已部署。
+
+因此当前剩余阻塞已经从“代码设计”缩小为“生产控制面配置 + 接管验收”：
+
+1. 为 Vercel Production 配置 Postgres（`DATABASE_URL` 或 `POSTGRES_URL`）；
+2. 为 Vercel Production 配置高熵 `CRON_SECRET`；
+3. 将最新 `main` 部署/Promote 到 Production；
+4. 实际跑通至少一次完整 Vercel Queue deep cycle；
+5. 验证生产 snapshot source 变为 durable database / 新鲜快照；
+6. 再决定关闭 `medicalchannelai-gcp-1` 的刷新职责；
+7. CI 验证职责需要另找非 GitHub-hosted 的替代执行面，或保留 GCP Runner 仅作 CI；
+8. DigitalPlat DNS 最终仍需把 `medicalai.qd.je` 从 `35.211.124.40` 直接切到 Vercel；在 DNS 完成前保留当前 GCP 301 重定向。
+
+注意：当前 GCP 已不再代理 MedicalChannelAI 网站正文，只提供旧域名 301，因此网站流量出网问题已基本止血；但 Runner 仍不能直接停。
