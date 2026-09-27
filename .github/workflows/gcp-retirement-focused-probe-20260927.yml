@@ -1,0 +1,53 @@
+name: MCAI GCP Retirement Focused Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/gcp-retirement-focused-probe-20260927.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 5
+
+    steps:
+      - name: Focused read-only probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== MCAI_GCP_RETIRE_003 START ==='
+          echo '--- CADDYFILE SANITIZED ---'
+          if [[ -f /etc/caddy/Caddyfile ]]; then
+            sed -E \
+              -e '/[Bb]asic[Aa]uth/ s/.*/<redacted basicauth directive>/' \
+              -e '/[Aa]uthorization/ s/.*/<redacted authorization directive>/' \
+              -e '/[Tt]oken/ s/.*/<redacted token directive>/' \
+              -e '/[Ss]ecret/ s/.*/<redacted secret directive>/' \
+              -e '/[Pp]assword/ s/.*/<redacted password directive>/' \
+              /etc/caddy/Caddyfile
+          else
+            echo 'NO_CADDYFILE'
+          fi
+          echo
+          echo '--- PROJECT-NAMED FILES OUTSIDE ACTIONS WORKSPACE ---'
+          find /etc /opt /srv /var/www "$HOME" -maxdepth 6 \
+            \( -iname '*medicalchannelai*' -o -iname '*medicalai*' \) \
+            -not -path "$HOME/actions-runner/_work/*" \
+            -printf '%y %p %s bytes %TY-%Tm-%TdT%TH:%TM:%TS\n' 2>/dev/null | sort | head -n 300 || true
+          echo
+          echo '--- RELEVANT SYSTEMD UNIT FILE PATHS ---'
+          find /etc/systemd/system /lib/systemd/system -maxdepth 3 -type f \
+            \( -iname '*medical*' -o -iname '*actions*runner*' -o -iname '*caddy*' -o -iname '*cloudflared*' \) \
+            -printf '%p\n' 2>/dev/null | sort || true
+          echo
+          echo '--- RUNNER WORKSPACE SIZE ---'
+          du -sh "$HOME/actions-runner/_work/MedicalChannelAI" 2>/dev/null || true
+          echo '=== MCAI_GCP_RETIRE_003 END ==='
