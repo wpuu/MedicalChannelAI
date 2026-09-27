@@ -1,0 +1,42 @@
+name: MCAI GCP Vercel Auth Readonly Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/gcp-vercel-auth-readonly-probe-20260927.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - medicalchannelai-ci
+    timeout-minutes: 6
+    env:
+      VERCEL_SCOPE: rerisse7-1717s-projects
+      VERCEL_ORG_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      VERCEL_PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+
+    steps:
+      - name: Probe cached Vercel CLI authorization and project metadata
+        shell: bash
+        run: |
+          set -u
+          echo '=== MCAI_GCP_RETIRE_004 START ==='
+          echo '--- VERCEL CLI IDENTITY ---'
+          npx --yes vercel@latest whoami --scope "$VERCEL_SCOPE" 2>&1 || true
+          echo
+          echo '--- PRODUCTION ENV VARIABLE NAMES ---'
+          npx --yes vercel@latest env ls production --scope "$VERCEL_SCOPE" 2>&1 || true
+          echo
+          echo '--- CUSTOM DOMAIN INSPECTION ---'
+          npx --yes vercel@latest domains inspect medicalai.qd.je --scope "$VERCEL_SCOPE" 2>&1 || true
+          echo
+          echo '--- CURRENT PROJECT DEPLOYMENTS ---'
+          npx --yes vercel@latest list medicalchannelai --prod --scope "$VERCEL_SCOPE" 2>&1 | head -n 80 || true
+          echo '=== MCAI_GCP_RETIRE_004 END ==='
