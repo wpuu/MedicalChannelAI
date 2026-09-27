@@ -77,6 +77,13 @@ class VercelTjfchRuntimeTests(unittest.TestCase):
         self.assertIn("early_new_verified_record_count", body)
         self.assertIn("unsupported.append", body)
 
+    def test_tjfch_policy_recovery_retry_is_narrowly_scoped(self) -> None:
+        body = _function_source(self.runtime, "_prepare_stage")
+        self.assertIn('stage == "tjfch"', body)
+        self.assertIn('"TJFCH_NOTICE_TYPE_UNSUPPORTED" in str(previous.get("error_message") or "")', body)
+        self.assertIn("attempts == MAX_STAGE_ATTEMPTS_PER_DAY", body)
+        self.assertIn("and not tjfch_policy_recovery_retry", body)
+
     def test_publish_requires_tjfch_and_uses_authoritative_cycle_clock(self) -> None:
         body = _function_source(self.runtime, "_run_publish")
         self.assertIn("tjfch_records = cache.get(TJFCH_RECORDS_KEY)", body)
