@@ -1,0 +1,30 @@
+name: MCAI Vercel Publish Env Probe 2026-09-27
+on:
+  push:
+    branches: [ops/vercel-env-probe-20260927b]
+    paths:
+      - '.github/workflows/vercel-publish-env-probe-20260927.yml'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, medicalchannelai-ci]
+    timeout-minutes: 5
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      TEAM_ID: team_jEy8Ex9vRDBdXj1cQPKF8sRd
+      PROJECT_ID: prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM
+    steps:
+      - name: Report Vercel env key presence only
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN"             "https://api.vercel.com/v10/projects/$PROJECT_ID/env?teamId=$TEAM_ID" > "$RUNNER_TEMP/env.json"
+          python3 - "$RUNNER_TEMP/env.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding='utf-8'))
+          envs=d.get('envs') or []
+          for key in ['DATABASE_URL','CRON_SECRET','VERIFIED_SNAPSHOT_PUBLISH_TOKEN','VERIFIED_SNAPSHOT_PUBLISH_URL']:
+              ok=any(item.get('key')==key and 'production' in (item.get('target') or []) for item in envs)
+              print(f"{key}={'PRESENT' if ok else 'MISSING'}")
+          PY
