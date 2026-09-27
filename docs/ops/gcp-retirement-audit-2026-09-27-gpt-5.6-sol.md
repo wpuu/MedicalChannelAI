@@ -240,3 +240,33 @@ GCP VM 本机没有可复用的 Vercel CLI 登录态。
 6. 在 Vercel 控制面完成上述两项变量前，禁止停止 `medicalchannelai-gcp-1`。
 
 下一验收门：Vercel Production 配置完成后，必须依次验证 `/api/auth/me`、`/api/pipeline-health`、一次 authenticated `/api/collector-run`、`/api/collector-status` 实际 stage 进展、以及 `/api/status` 的 durable/new snapshot，再讨论 Runner 退役。
+
+
+## 14. MCAI-GCP-RETIRE-015：Production 接管收尾状态
+
+2026-09-27 增量状态：
+
+- Vercel Production 已配置 `DATABASE_URL` 与 `CRON_SECRET`；
+- Neon `medicalchannelai_prod.public_verified_snapshots` 已有 1 条 durable snapshot：
+  - snapshot_as_of = `2026-09-27T13:52:31.739523+08:00`
+  - opportunity_count = 406
+  - materialized_at = `2026-09-27T08:24:27.628Z`
+- PR #34 已将区域 Runtime Cache 从单一大对象拆为 BJ/HE/LN/JL/HL 五个 market shard，修复已观测到的 Runtime Cache HTTP 413；
+- PR #35 已加入 v2 -> v3 区域 cache migration replay；
+- PR #36 已加入 deterministic same-day recovery cycle ID；
+- PR #37 已加入只针对已知 migration failure 且超过 15 分钟的 stale regional RUNNING recovery；
+- PR #38 已将 durable database 与 Runtime Cache 的版本选择规则分离：Runtime Cache 仍要求严格更新，Neon durable authority 允许与 bundled snapshot 同一 verified revision；
+- PR #37 与 #38 的目标 Python 契约测试 + 正常 Vercel build 均已在 Preview 执行并通过；最终 head 的普通 Preview 也 READY；
+- PR #37 单独合并后的 Production deployment READY；
+- PR #38 合并后的首次 Production deployment 出现一次 `npm run build exited with 1`，但同一 PR 最终 Preview READY，因此本 docs-only commit 用于触发同代码 Production 重建，区分瞬时构建故障与稳定代码故障。
+
+尚未宣布 GCP 退役完成。最终 Gate 仍要求：
+
+1. 最新 Production build READY；
+2. `/api/status` = `DATABASE + FRESH`；
+3. same-day recovery 完整跑到 `publish=COMPLETED`；
+4. Neon durable snapshot 更新/保持一致并可回读；
+5. `/api/pipeline-health` 可用；
+6. `medicalai.qd.je` DNS 从 GCP A 记录切到 Vercel project-specific CNAME 并完成 SSL 验证；
+7. 最后再移除 GCP 上 MedicalChannelAI Caddy redirect；整台 VM 不删除，因为还有其他非本项目服务；
+8. GCP self-hosted Runner 的 CI 职责需单独决定替代执行面，不能随数据链路一起误停。
