@@ -298,6 +298,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     stages = state.setdefault("stages", {})
     previous = stages.get(stage)
     regional_cache_replay = False
+    regional_stale_migration_replay = False
     if isinstance(previous, dict) and previous.get("status") == "COMPLETED":
         if stage in REGIONAL_STAGE_MARKET_CODES:
             market_code = REGIONAL_STAGE_MARKET_CODES[stage]
@@ -307,6 +308,27 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
             )
         if not regional_cache_replay:
             return state, previous
+    elif (
+        isinstance(previous, dict)
+        and previous.get("status") == "RUNNING"
+        and stage in REGIONAL_STAGE_MARKET_CODES
+    ):
+        publish_state = stages.get("publish")
+        market_code = REGIONAL_STAGE_MARKET_CODES[stage]
+        started_raw = str(previous.get("started_at") or "")
+        try:
+            started = datetime.fromisoformat(started_raw.replace("Z", "+00:00"))
+        except ValueError:
+            started = None
+        regional_stale_migration_replay = bool(
+            isinstance(publish_state, dict)
+            and publish_state.get("status") == "FAILED"
+            and str(publish_state.get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
+            and not isinstance(cache.get(_regional_records_key(market_code)), list)
+            and started is not None
+            and started.tzinfo is not None
+            and now - started.astimezone(timezone.utc) >= timedelta(minutes=15)
+        )
 
     if index > 0:
         required = STAGE_ORDER[index - 1]
@@ -333,6 +355,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
         attempts >= MAX_STAGE_ATTEMPTS_PER_DAY
         and not tjfch_policy_recovery_retry
         and not regional_cache_replay
+        and not regional_stale_migration_replay
         and not publish_cache_migration_retry
     ):
         raise CollectorPrecondition(f"COLLECTOR_STAGE_RETRY_LIMIT:{stage}")

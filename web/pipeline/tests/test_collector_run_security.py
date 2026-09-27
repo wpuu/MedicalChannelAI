@@ -37,6 +37,16 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertIn('return f"prod:{local_date}:recovery-v3"', source)
         self.assertNotIn("uuid", source.lower())
 
+    def test_cache_migration_recovery_ignores_only_stale_regional_running_stages(self) -> None:
+        source = COLLECTOR_RUN.read_text(encoding="utf-8")
+        self.assertIn("MIGRATION_STALE_RUNNING_AFTER = timedelta(minutes=15)", source)
+        self.assertIn("def _migration_recovery_running_stages_are_stale(", source)
+        self.assertIn('str(name).startswith("regional_")', source)
+        self.assertIn('publish.get("status") != "FAILED"', source)
+        self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', source)
+        self.assertIn("now - started.astimezone(timezone.utc) < MIGRATION_STALE_RUNNING_AFTER", source)
+        self.assertIn("cycle_has_running_stage(current_state) and not _migration_recovery_running_stages_are_stale(", source)
+
     def test_trigger_requires_cron_secret_and_bearer_auth_fail_closed(self) -> None:
         source = COLLECTOR_RUN.read_text(encoding="utf-8")
         self.assertIn('os.environ.get("CRON_SECRET")', source)

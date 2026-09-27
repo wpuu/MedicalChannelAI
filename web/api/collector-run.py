@@ -32,6 +32,7 @@ from collector_namespace import (
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 MESSAGE_RETENTION = timedelta(days=2)
 DEEP_START_DELAY_WHEN_INCREMENTAL_SECONDS = 300
+MIGRATION_STALE_RUNNING_AFTER = timedelta(minutes=15)
 # This is an explicit allowlist of implemented source adapters. Merely adding a
 # policy must never activate a new collector without an adapter and tests.
 INCREMENTAL_SOURCE_IDS = SCHEDULED_INCREMENTAL_SOURCES
@@ -84,6 +85,48 @@ def _recovery_cycle_id(cache: RuntimeCache, local_date: str) -> str | None:
     return f"prod:{local_date}:recovery-v3"
 
 
+def _migration_recovery_running_stages_are_stale(
+    state: object,
+    *,
+    local_date: str,
+    now: datetime,
+) -> bool:
+    if not isinstance(state, dict):
+        return False
+    if str(state.get("local_date") or "") != local_date:
+        return False
+    stages = state.get("stages")
+    if not isinstance(stages, dict):
+        return False
+    publish = stages.get("publish")
+    if not isinstance(publish, dict) or publish.get("status") != "FAILED":
+        return False
+    if not str(publish.get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE"):
+        return False
+
+    running = [
+        (name, stage_state)
+        for name, stage_state in stages.items()
+        if isinstance(stage_state, dict) and stage_state.get("status") == "RUNNING"
+    ]
+    if not running:
+        return False
+
+    for name, stage_state in running:
+        if not str(name).startswith("regional_"):
+            return False
+        started_raw = str(stage_state.get("started_at") or "")
+        try:
+            started = datetime.fromisoformat(started_raw.replace("Z", "+00:00"))
+        except ValueError:
+            return False
+        if started.tzinfo is None:
+            return False
+        if now - started.astimezone(timezone.utc) < MIGRATION_STALE_RUNNING_AFTER:
+            return False
+    return True
+
+
 def _activate_cycle(
     cache: RuntimeCache,
     *,
@@ -93,7 +136,11 @@ def _activate_cycle(
     source: str,
 ) -> None:
     current_state = cache.get(META_KEY)
-    if cycle_has_running_stage(current_state):
+    if cycle_has_running_stage(current_state) and not _migration_recovery_running_stages_are_stale(
+        current_state,
+        local_date=local_date,
+        now=now,
+    ):
         raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
 
     active = {

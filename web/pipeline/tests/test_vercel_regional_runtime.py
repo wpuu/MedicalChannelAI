@@ -33,6 +33,14 @@ class VercelRegionalRuntimeTests(unittest.TestCase):
         self.assertIn("REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION", self.source)
         self.assertIn("candidate_market_code", self.source)
 
+    def test_stale_running_regional_stage_can_replay_only_for_known_migration_failure(self) -> None:
+        self.assertIn("regional_stale_migration_replay = False", self.source)
+        self.assertIn('previous.get("status") == "RUNNING"', self.source)
+        self.assertIn('publish_state.get("status") == "FAILED"', self.source)
+        self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', self.source)
+        self.assertIn("timedelta(minutes=15)", self.source)
+        self.assertIn("and not regional_stale_migration_replay", self.source)
+
     def test_publish_includes_market_sharded_regional_canonical_records(self) -> None:
         self.assertIn(
             'REGIONAL_RECORDS_KEY_PREFIX = "medicalchannelai:collector-regional-records:v3"',
