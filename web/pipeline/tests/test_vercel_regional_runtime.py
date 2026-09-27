@@ -31,6 +31,16 @@ class VercelRegionalRuntimeTests(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
         self.assertLess(positions[-1], stage_order.index('"publish"'))
 
+    def test_stage_completion_merges_latest_runtime_state(self) -> None:
+        self.assertIn("def _latest_stage_state_for_update(", self.source)
+        self.assertIn("latest = load_status(cache)", self.source)
+        self.assertIn("_write_status(cache, latest)", self.source)
+        mark_completed = self.source[
+            self.source.index("def _mark_completed"):
+            self.source.index("def _mark_failed")
+        ]
+        self.assertNotIn("_write_status(cache, state)", mark_completed)
+
     def test_regional_runtime_is_bounded_per_market(self) -> None:
         self.assertIn("REGIONAL_STAGE_MARKET_CODES", self.source)
         self.assertIn("plan[\"max_candidates_per_market\"]", self.source)
