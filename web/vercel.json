@@ -8,6 +8,9 @@
     }
   },
   "functions": {
+    "api/ai/analyze.js": {
+      "maxDuration": 60
+    },
     "api/collector-run.py": {
       "maxDuration": 60
     },

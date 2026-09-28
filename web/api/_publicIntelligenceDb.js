@@ -489,6 +489,26 @@ export async function getSharedPublicAiBrief({
   }
 }
 
+async function readSharedPublicAiBrief(sql, { opportunityId, factHash, windowState, briefType, promptVersion }) {
+  const cached = await sql`
+    SELECT result, generated_at
+    FROM public_ai_briefs
+    WHERE opportunity_id = ${opportunityId}
+      AND fact_hash = ${factHash}
+      AND window_state = ${windowState}
+      AND brief_type = ${briefType}
+      AND prompt_version = ${promptVersion}
+    LIMIT 1
+  `
+  if (!cached[0]) return null
+  return {
+    result: cached[0].result,
+    cache_hit: true,
+    durable: true,
+    generated_at: new Date(cached[0].generated_at).toISOString(),
+  }
+}
+
 export async function getOrCreateSharedPublicAiBrief({
   opportunityId,
   factHash,
@@ -501,57 +521,66 @@ export async function getOrCreateSharedPublicAiBrief({
   if (!publicIntelligenceDatabaseConfigured()) {
     return { result: await createResult(), cache_hit: false, durable: false, generated_at: new Date().toISOString() }
   }
+  // Never hold a database transaction, pooled connection or advisory lock
+  // while the model is generating (that can take tens of seconds and a batch
+  // would pin one connection per item). Read the cache, generate outside any
+  // transaction, then insert first-writer-wins. Concurrent generators on
+  // different instances may both call the model once, but they converge on a
+  // single durable answer. Same-instance duplicates are already collapsed by
+  // the in-flight map in _analyzeCore.js.
   let createdResult = null
+  let sql = null
+  const cacheKeyValues = { opportunityId, factHash, windowState, briefType, promptVersion }
   try {
     await ensurePublicIntelligenceSchema()
-    const sql = publicIntelligenceDb()
-    const lockKey = `${factHash}:${windowState}:${briefType}:${promptVersion}`
-    return await sql.begin(async (tx) => {
-      await tx`SELECT pg_advisory_xact_lock(hashtext(${opportunityId}), hashtext(${lockKey}))`
-      const cached = await tx`
-        SELECT result, generated_at
-        FROM public_ai_briefs
-        WHERE opportunity_id = ${opportunityId}
-          AND fact_hash = ${factHash}
-          AND window_state = ${windowState}
-          AND brief_type = ${briefType}
-          AND prompt_version = ${promptVersion}
-        LIMIT 1
-      `
-      if (cached[0]) {
-        return {
-          result: cached[0].result,
-          cache_hit: true,
-          durable: true,
-          generated_at: new Date(cached[0].generated_at).toISOString(),
-        }
-      }
-      createdResult = await createResult()
-      const inserted = await tx`
-        INSERT INTO public_ai_briefs (
-          opportunity_id, fact_hash, window_state, brief_type, prompt_version, result, generated_at
-        ) VALUES (
-          ${opportunityId}, ${factHash}, ${windowState}, ${briefType}, ${promptVersion},
-          ${tx.json(createdResult)}, now()
-        )
-        ON CONFLICT (opportunity_id, fact_hash, window_state, brief_type, prompt_version)
-        DO UPDATE SET result = EXCLUDED.result, generated_at = EXCLUDED.generated_at
-        RETURNING generated_at
-      `
+    sql = publicIntelligenceDb()
+    const cached = await readSharedPublicAiBrief(sql, cacheKeyValues)
+    if (cached) return cached
+  } catch (error) {
+    console.warn('shared public AI cache read unavailable; generating without durable cache hit', {
+      opportunity_id: opportunityId,
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
+    sql = null
+  }
+
+  createdResult = await createResult()
+  if (!sql) {
+    return { result: createdResult, cache_hit: false, durable: false, generated_at: new Date().toISOString() }
+  }
+
+  try {
+    const inserted = await sql`
+      INSERT INTO public_ai_briefs (
+        opportunity_id, fact_hash, window_state, brief_type, prompt_version, result, generated_at
+      ) VALUES (
+        ${opportunityId}, ${factHash}, ${windowState}, ${briefType}, ${promptVersion},
+        ${sql.json(createdResult)}, now()
+      )
+      ON CONFLICT (opportunity_id, fact_hash, window_state, brief_type, prompt_version)
+      DO NOTHING
+      RETURNING generated_at
+    `
+    if (inserted[0]) {
       return {
         result: createdResult,
         cache_hit: false,
         durable: true,
         generated_at: new Date(inserted[0].generated_at).toISOString(),
       }
-    })
+    }
+    // Another instance finished first: serve the stored answer so every user
+    // sees the same shared public decision.
+    const winner = await readSharedPublicAiBrief(sql, cacheKeyValues)
+    if (winner) return { ...winner, cache_hit: false }
+    return { result: createdResult, cache_hit: false, durable: false, generated_at: new Date().toISOString() }
   } catch (error) {
-    console.warn('shared public AI cache unavailable; falling back to request-local execution', {
+    console.warn('shared public AI cache write unavailable; returning request-local result', {
       opportunity_id: opportunityId,
       error: error instanceof Error ? error.message : 'UNKNOWN',
     })
     return {
-      result: createdResult ?? await createResult(),
+      result: createdResult,
       cache_hit: false,
       durable: false,
       generated_at: new Date().toISOString(),
