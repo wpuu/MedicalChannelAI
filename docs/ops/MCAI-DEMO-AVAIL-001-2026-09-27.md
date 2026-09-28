@@ -59,7 +59,7 @@ medicalai.qd.je
 - 不需要常驻 VM；
 - 免费计划足够当前流量；
 - 自动 HTTPS；
-- 支持 path/query forwarding；
+- 固定进入 `/today`，Query forwarding 开启；
 - 配置比新增 Firebase 项目更少。
 
 Firebase Hosting 配置继续保留为 fallback，不再作为第一选择。
@@ -70,7 +70,7 @@ Firebase Hosting 配置继续保留为 fallback，不再作为第一选择。
 2. `medicalai.qd.je` 正常；
 3. qd.je 不再解析到 `35.211.124.40`；
 4. qd.je HTTPS 正常；
-5. path/query forwarding 正确；
+5. Path forwarding 关闭、Query forwarding 开启，行为符合预期；
 6. GCP 中不再保留仅为本入口计费的 VM / 静态 IPv4；
 7. 天津真实手机网络至少验证一次；
 8. public demo smoke 持续检查两个入口。
