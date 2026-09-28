@@ -52,11 +52,12 @@ jobs:
               raise SystemExit('api/status ready != true')
           PY
 
-      - name: Warn while qd.je is still only a redirect
+      - name: Warn while qd.je still uses retired VPS address
         shell: bash
         run: |
           set -euo pipefail
-          final="$(curl -L --connect-timeout 10 --max-time 30 -sS -o /dev/null -w '%{url_effective}' "https://medicalai.qd.je/")"
-          if [[ "$final" == https://medicalchannelai.vercel.app/* ]]; then
-            echo "::warning::medicalai.qd.je still redirects to medicalchannelai.vercel.app; it is not an independent hostname path."
+          addresses="$(getent ahostsv4 medicalai.qd.je | awk '{print $1}' | sort -u | tr '\n' ' ')"
+          echo "medicalai.qd.je IPv4: $addresses"
+          if [[ " $addresses " == *" 35.211.124.40 "* ]]; then
+            echo "::warning::medicalai.qd.je still points to retired paid VPS address 35.211.124.40; migrate to zero-cost hosting before releasing the VPS."
           fi

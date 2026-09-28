@@ -1,141 +1,94 @@
 # MCAI-DEMO-AVAIL-001 · 演示站可用性 P0
 
 DATE=2026-09-27T21:22:00+08:00  
+UPDATED=2026-09-27T23:20:00+08:00  
 MODEL=GPT-5.6 Sol High  
 SEVERITY=P0  
 STATUS=OPEN
 
-## 事件
+## 用户要求
 
-2026-09-27 用户在给老杨现场演示时：
+`medicalai.qd.je` 必须继续可访问。
 
-- https://medicalchannelai.vercel.app 无法打开；
-- https://medicalai.qd.je 也无法打开。
+同时，原 `35.211.124.40` GCP VPS 已产生接近 3 美元费用，不能继续作为 MedicalChannelAI 的长期入口。
 
-现场演示失败，因此“公开演示入口可用”提升为产品发布前置门槛。在本 P0 关闭前，不应把新增业务功能置于演示可用性之前。
+因此目标不是退役 qd.je，而是：
 
-## 2026-09-27 复核事实
+> 保留 medicalai.qd.je，移除常驻付费 VPS 依赖。
 
-### Vercel 正式入口
+## 当前事实
 
-当前 Vercel 项目：
+### Vercel 主站
 
-- Project: `medicalchannelai`
-- Project ID: `prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM`
-- Production alias: `medicalchannelai.vercel.app`
-- 当前 Production deployment: `dpl_6YPga6ronr8mmbtMnAFsG4ohXgz7`
-- Production commit: `6ed4a1fa52037dea464fd4a8eb060d32c92a9bd0`
-- Deployment state: `READY`
+当前应用主站：
 
-复核时：
+- https://medicalchannelai.vercel.app
+- Production 已运行已接受版本；
+- `/api/status` 为 `ready=true`；
+- 数据源 `DATABASE`；
+- 快照 `FRESH`；
+- AI 可用。
 
-- `https://medicalchannelai.vercel.app` 返回 HTTP 200；
-- `/api/status` 返回 HTTP 200；
-- status 中 `ready=true`、`degraded=false`；
-- 数据源为 `DATABASE`；
-- AI 配置可用。
+### qd.je
 
-这说明“现在可访问”不能反证现场失败；需要把中国现场网络可达性视为独立风险。
+当前：
 
-### qd.je 入口
+- `medicalai.qd.je` 仍解析到 `35.211.124.40`；
+- 该 A 记录暂时不能删除，否则 qd.je 会立即失去现有入口；
+- Vercel 对 qd.je 的直接 Custom Domain 验证存在 PSL/父域验证冲突，不能再把“直接绑定 Vercel”作为唯一解。
 
-复核时：
+## 决策：零成本 Firebase Hosting 入口
 
-- `https://medicalai.qd.je` 最终跳转到 `https://medicalchannelai.vercel.app/today`；
-- 它目前不是 Vercel 项目的正式 Custom Domain；
-- 当前 Production alias 列表中没有 `medicalai.qd.je`。
+为保留 `medicalai.qd.je`，采用 Firebase Hosting 作为极薄静态入口。
 
-因此两个演示地址不是独立故障域：
+理由：
 
-```
+1. Firebase Hosting 支持自定义域名和自动 SSL；
+2. 自定义域名可通过 TXT 验证和 A 记录接入；
+3. 不要求常驻 VM；
+4. Hosting 有免费额度；
+5. 本入口只负责把请求跳转到正式 Vercel Production，资源消耗极低。
+
+目标链路：
+
+```text
 medicalai.qd.je
-  -> redirect
-  -> medicalchannelai.vercel.app
+  -> Firebase Hosting（免费静态入口）
+  -> 保留原 path/query/hash
+  -> https://medicalchannelai.vercel.app
 ```
 
-当 `vercel.app` hostname 在现场网络不可达时，两个地址会一起失效。
+## 迁移顺序
 
-### Production 漂移
+必须零中断：
 
-GitHub main 在复核时为：
+1. 保留现有 `35.211.124.40` A 记录；
+2. 创建 Firebase Hosting site；
+3. 部署 `ops/qd-je-firebase-redirect/`；
+4. 在 Firebase 中添加 `medicalai.qd.je`；
+5. 按 Firebase 提供的精确 TXT 验证记录配置 DNS；
+6. 等 Firebase ownership/SSL 准备完成；
+7. 再把 A 记录从 `35.211.124.40` 改成 Firebase 控制台提供的地址；
+8. 验证 `https://medicalai.qd.je` 可访问；
+9. 确认不再解析到 `35.211.124.40`；
+10. 最后才释放 GCP VM / 静态 IPv4。
 
-`f08509134822128f0737a905226f2d7d1725d877`
-
-但 Production 仍运行：
-
-`6ed4a1fa52037dea464fd4a8eb060d32c92a9bd0`
-
-main 后续提交没有成为 Production。当前最新 READY Preview 也来自 feature branch，而不是 main Production。
-
-因此还存在第二个独立问题：
-
-> GitHub 已推进，不代表正式演示地址已经运行最新被接受版本。
+严禁先关 VPS 再配置 Firebase。
 
 ## P0 关闭条件
 
-以下条件必须同时满足：
-
-1. `medicalai.qd.je` 作为 Vercel Project Custom Domain 直接提供站点，不再 HTTP 跳转到 `*.vercel.app`；
-2. Vercel 显示该域名 Verified，HTTPS 正常；
-3. Production 版本与明确接受的 GitHub release commit 对齐；
-4. `/`、`/today`、`/api/status` 在公开网络通过；
-5. 至少做一次中国现场网络（天津移动/联通/电信或真实手机流量）验证；
-6. 保留一个不依赖在线站点的演示兜底（本机/手机预先保存的离线演示）；
-7. 演示前 smoke check 成为固定动作。
-
-## 最小修复路线
-
-### A. 先修主域名
-
-在 Vercel Project -> Settings -> Domains 添加：
-
-`medicalai.qd.je`
-
-随后按 Vercel 返回的 verification / CNAME 要求，在该 qd.je 域名当前使用的权威 DNS 服务中配置记录。
-
-DigitalPlat 只负责域名注册/NS delegation；普通 DNS 记录由外部权威 DNS 服务管理。
-
-注意：
-
-- 不删除现有 `medicalchannelai.vercel.app` alias；
-- 不把 `medicalai.qd.je` 配成 redirect；
-- 目标是浏览器访问后地址栏仍保持 `medicalai.qd.je`。
-
-### B. 修 Production 发布纪律
-
-每次面向外部人员演示前必须记录：
-
-- accepted GitHub commit；
-- Production deployment ID；
-- `/api/status.commit`；
-- 三者必须一致或有明确、已记录的例外。
-
-Preview READY 不等于 Production READY。
-
-### C. 演示前检查
-
-仓库增加 `.github/workflows/public-demo-smoke.yml`。
-
-检查：
-
-- `medicalchannelai.vercel.app`；
-- `medicalai.qd.je`；
-- `medicalchannelai.vercel.app/api/status`；
-- HTTP 成功；
-- status.ready=true；
-- 输出 qd.je 的最终跳转地址，用于持续发现仍依赖 `vercel.app` 的情况。
-
-## 当前人工阻塞
-
-Vercel MCP 当前可以读取部署，但没有“向项目添加 Custom Domain”的写入动作。
-
-尝试通过 Vercel Dashboard 自动添加域名时，Dashboard 要求交互式登录，自动浏览器没有已保存的 Vercel 登录态，因此未执行任何域名修改。
-
-需要用户完成一次 Vercel 登录/域名添加，或提供一个已授权的 Vercel 浏览器会话；之后才能读取 Vercel 返回的精确 DNS verification 记录并继续完成 qd.je 直连。
+1. `medicalchannelai.vercel.app` 正常；
+2. `medicalai.qd.je` 正常；
+3. qd.je 不再解析到 `35.211.124.40`；
+4. qd.je HTTPS 正常；
+5. Firebase 入口能保留 path/query/hash 后跳转到 Vercel；
+6. GCP 中不再保留仅为本入口计费的 VM / 静态 IPv4；
+7. 天津真实手机网络至少验证一次；
+8. public demo smoke 持续检查两个入口。
 
 ## 不做的事
 
-- 不因为当前再次返回 200 就关闭事故；
-- 不把另一个 `*.vercel.app` Preview 当“独立备用站”；
-- 不在 P0 未关闭前继续为演示可靠性增加无关业务功能；
-- 不把美国/海外探针成功等价为天津现场可达。
+- 不退役 medicalai.qd.je；
+- 不再为 qd.je 保留常驻付费 VPS；
+- 不删除当前 A 记录直到 Firebase 新入口完成；
+- 不继续死磕 Vercel 的 qd.je Verification Required。
