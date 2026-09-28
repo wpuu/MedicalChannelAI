@@ -1,3 +1,4 @@
+import { consumeRateLimit } from '../_sharedRateLimit.js'
 import { createHash } from 'node:crypto'
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
@@ -20,7 +21,6 @@ const MAX_SEGMENT_ANCHORS = 80
 const MAX_SEGMENT_PAGE_FETCHES = 3
 const MAX_PRIOR_SEGMENTS = 5
 const MAX_REDIRECTS = 3
-const rateBuckets = new Map()
 
 const SOURCE_KINDS = new Set([
   'HOSPITAL_OFFICIAL',
@@ -70,26 +70,13 @@ function sameOriginAllowed(request) {
   return hosts.includes(parsed.host.toLowerCase())
 }
 
-function clientKey(request) {
-  const forwarded = firstHeader(request.headers?.['x-forwarded-for'])
-  return forwarded?.split(',')[0]?.trim() || firstHeader(request.headers?.['x-real-ip']) || 'unknown-client'
-}
-
-function rateLimited(request) {
-  const now = Date.now()
-  const key = clientKey(request)
-  const current = rateBuckets.get(key)
-  if (!current || now - current.startedAt >= RATE_WINDOW_MS) {
-    rateBuckets.set(key, { startedAt: now, count: 1 })
-    return false
-  }
-  current.count += 1
-  if (rateBuckets.size > 500) {
-    for (const [bucketKey, bucket] of rateBuckets) {
-      if (now - bucket.startedAt >= RATE_WINDOW_MS) rateBuckets.delete(bucketKey)
-    }
-  }
-  return current.count > RATE_MAX_PER_CLIENT
+async function rateLimited(request) {
+  const { limited } = await consumeRateLimit(request, {
+    scope: 'ai-discover-continuation',
+    limit: RATE_MAX_PER_CLIENT,
+    windowMs: RATE_WINDOW_MS,
+  })
+  return limited
 }
 
 function bodyObject(request) {
@@ -620,7 +607,7 @@ export default async function handler(request, response) {
     return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
   }
   if (!sameOriginAllowed(request)) return sendJson(response, 403, { error: 'SAME_ORIGIN_REQUIRED' })
-  if (rateLimited(request)) return sendJson(response, 429, { error: 'AI_RADAR_RATE_LIMITED' })
+  if (await rateLimited(request)) return sendJson(response, 429, { error: 'AI_RADAR_RATE_LIMITED' })
 
   const body = bodyObject(request)
   const source = sourceFromBody(body)

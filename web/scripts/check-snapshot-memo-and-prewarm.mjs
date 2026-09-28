@@ -168,7 +168,7 @@ try {
 
   // Internal prewarm must bypass the per-IP visitor budget, and only prewarm.
   const core = readFileSync(new URL('../api/ai/_analyzeCore.js', import.meta.url), 'utf8')
-  if (!core.includes('if (!request?.__mcaiInternalPrewarm && warmRateLimitExceeded(request))')) {
+  if (!core.includes('if (!request?.__mcaiInternalPrewarm && await warmRateLimitExceeded(request))')) {
     throw new Error('PREWARM_RATE_LIMIT_BYPASS_MISSING')
   }
   const analyze = readFileSync(new URL('../api/ai/analyze.js', import.meta.url), 'utf8')

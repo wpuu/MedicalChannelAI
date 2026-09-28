@@ -1,3 +1,4 @@
+import { consumeRateLimit } from '../_sharedRateLimit.js'
 import { createHash } from 'node:crypto'
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
@@ -29,7 +30,6 @@ const AI_CACHE_READY_TTL_SECONDS = 2 * 24 * 60 * 60
 const AI_CACHE_TRANSIENT_TTL_SECONDS = 60
 const AI_CACHE_PENDING_STALE_MS = 35_000
 const AI_CACHE_FAILURE_BACKOFF_MS = 15_000
-const rateBuckets = new Map()
 const aiRefreshInFlight = new Set()
 
 const SOURCE_KINDS = new Set([
@@ -112,26 +112,13 @@ function sameOriginAllowed(request) {
   return hosts.includes(parsed.host.toLowerCase())
 }
 
-function clientKey(request) {
-  const forwarded = firstHeader(request.headers?.['x-forwarded-for'])
-  return forwarded?.split(',')[0]?.trim() || firstHeader(request.headers?.['x-real-ip']) || 'unknown-client'
-}
-
-function rateLimited(request) {
-  const now = Date.now()
-  const key = clientKey(request)
-  const current = rateBuckets.get(key)
-  if (!current || now - current.startedAt >= RATE_WINDOW_MS) {
-    rateBuckets.set(key, { startedAt: now, count: 1 })
-    return false
-  }
-  current.count += 1
-  if (rateBuckets.size > 500) {
-    for (const [bucketKey, bucket] of rateBuckets) {
-      if (now - bucket.startedAt >= RATE_WINDOW_MS) rateBuckets.delete(bucketKey)
-    }
-  }
-  return current.count > RATE_MAX_PER_CLIENT
+async function rateLimited(request) {
+  const { limited } = await consumeRateLimit(request, {
+    scope: 'ai-discover',
+    limit: RATE_MAX_PER_CLIENT,
+    windowMs: RATE_WINDOW_MS,
+  })
+  return limited
 }
 
 function bodyObject(request) {
@@ -1032,7 +1019,7 @@ export default async function handler(request, response) {
   if (!sameOriginAllowed(request)) return sendJson(response, 403, { error: 'SAME_ORIGIN_REQUIRED' })
   if (!await requirePrivatePilotSession(request, response)) return
   if (routeName === 'continuation') return continuationDiscoveryHandler(request, response)
-  if (rateLimited(request)) return sendJson(response, 429, { error: 'AI_RADAR_RATE_LIMITED' })
+  if (await rateLimited(request)) return sendJson(response, 429, { error: 'AI_RADAR_RATE_LIMITED' })
 
   const body = bodyObject(request)
   const source = sourceFromBody(body)
