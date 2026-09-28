@@ -13,6 +13,7 @@ import {
 } from './localFollowupStore'
 import { personalizeTrialCards } from './localCustomerProfile'
 import type { TodayActionsService } from './TodayActionsService'
+import { loadVerifiedSnapshotPayload } from './verifiedSnapshotClient'
 
 const COVERAGE_WARNING = '当前业务地区 · 公开事实来自证据流水线快照；各地区仍为部分来源覆盖。'
 const INTERVENTION_MAX_POINTS = 25
@@ -466,12 +467,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
 
   private async ensureLoaded(): Promise<TodayActionsResponse> {
     if (this.snapshot) return this.snapshot
-    const response = await fetch(this.snapshotUrl, {
-      headers: { Accept: 'application/json' },
-      cache: 'no-cache',
-    })
-    if (!response.ok) throw new Error(`SNAPSHOT_HTTP_${response.status}`)
-    const payload: unknown = await response.json()
+    const payload = await loadVerifiedSnapshotPayload(this.snapshotUrl)
     assertNoInternalFields(payload)
     const data = payload as TodayActionsPublicResponse
     if (

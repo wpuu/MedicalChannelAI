@@ -2,6 +2,7 @@ import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
 import type { CustomerContext, Decision, TodayActionCard } from '@/types'
 import { isApiMode } from './apiConfig'
 import { beginAiRequest, endAiRequest } from './aiRequestGate'
+import { getVerifiedSnapshotAsOf } from './verifiedSnapshotClient'
 
 const CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
 const MAX_CACHE_ENTRIES = 50
@@ -170,17 +171,8 @@ export function clearAiDecisionCache(): void {
   }
 }
 
-async function getSnapshotAsOf(): Promise<string | null> {
-  try {
-    const response = await fetch(verifiedSnapshotUrl, { headers: { Accept: 'application/json' }, cache: 'no-store' })
-    if (!response.ok) return null
-    const payload: unknown = await response.json()
-    const record = asRecord(payload)
-    const value = record?.snapshot_as_of
-    return typeof value === 'string' && !Number.isNaN(Date.parse(value)) ? value : null
-  } catch {
-    return null
-  }
+function getSnapshotAsOf(): Promise<string | null> {
+  return getVerifiedSnapshotAsOf(verifiedSnapshotUrl)
 }
 
 function findCachedDecision(opportunityId: string, snapshotAsOf: string, fingerprintValue: string): Decision | null {

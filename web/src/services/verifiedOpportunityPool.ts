@@ -6,6 +6,7 @@ import {
   hydrateLocalFollowups,
 } from './localFollowupStore'
 import { personalizeTrialCards } from './localCustomerProfile'
+import { loadVerifiedSnapshotPayload } from './verifiedSnapshotClient'
 
 const LATE_WINDOW_PERCENT = 32
 
@@ -225,12 +226,7 @@ function rerank(cards: TodayActionCard[]): TodayActionCard[] {
 }
 
 async function fetchSnapshot(): Promise<TodayActionsPublicResponse> {
-  const response = await fetch(verifiedSnapshotUrl, {
-    headers: { Accept: 'application/json' },
-    cache: 'no-cache',
-  })
-  if (!response.ok) throw new Error(`SNAPSHOT_HTTP_${response.status}`)
-  const payload: unknown = await response.json()
+  const payload = await loadVerifiedSnapshotPayload(verifiedSnapshotUrl)
   const data = payload as TodayActionsPublicResponse
   if (
     data.schema_version !== '0.1' ||
