@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Loader2, ShieldAlert, Sparkles } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import { MODEL_STATUS_COPY } from '@/utils/labels'
@@ -19,6 +19,21 @@ interface DecisionBlockProps {
   analysisDisabled?: boolean
 }
 
+const SLOW_ANALYSIS_HINT_MS = 10_000
+
+function useSlowAnalysisHint(analyzing: boolean): boolean {
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    if (!analyzing) {
+      setSlow(false)
+      return
+    }
+    const timer = setTimeout(() => setSlow(true), SLOW_ANALYSIS_HINT_MS)
+    return () => clearTimeout(timer)
+  }, [analyzing])
+  return slow
+}
+
 export function DecisionBlock({
   card,
   onAnalyze,
@@ -34,6 +49,7 @@ export function DecisionBlock({
     () => false,
   )
   const anotherAiRequestBusy = globalAiBusy && !analyzing
+  const slowAnalysis = useSlowAnalysisHint(Boolean(analyzing))
 
   if (card.model_decision_status === 'READY' && card.decision) {
     return (
@@ -126,7 +142,11 @@ export function DecisionBlock({
                         : '用AI分析这条'}
             </button>
           ) : null}
-          {anotherAiRequestBusy ? (
+          {analyzing && slowAnalysis ? (
+            <p className="mt-2 text-[11px] leading-5 text-slate-500">
+              AI服务本次响应较慢，系统仍在继续处理，无需重复点击。
+            </p>
+          ) : anotherAiRequestBusy ? (
             <p className="mt-2 text-[11px] leading-5 text-slate-500">
               为避免重复消耗，当前一次只处理一条AI分析。
             </p>

@@ -83,7 +83,13 @@ class DurablePublicIntelligenceTests(unittest.TestCase):
         self.assertIn('if (keys.length === 0)', create_block)
         self.assertIn("error.code = 'AI_NOT_CONFIGURED'", create_block)
         self.assertIn("if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503", core)
-        self.assertLess(db.index('if (cached[0])'), db.index('createdResult = await createResult()'))
+        brief_start = db.index('export async function getOrCreateSharedPublicAiBrief')
+        self.assertLess(db.index('if (cached) return cached', brief_start), db.index('createdResult = await createResult()', brief_start))
+        # Generation must not run inside a DB transaction / advisory lock.
+        brief_block = db[brief_start:db.index('\n}\n', brief_start)]
+        self.assertNotIn('sql.begin', brief_block)
+        self.assertNotIn('pg_advisory', brief_block)
+        self.assertIn('DO NOTHING', brief_block)
         self.assertNotIn('ai: { configured: true }', today)
         self.assertNotIn('ai: { configured: true }', detail)
 

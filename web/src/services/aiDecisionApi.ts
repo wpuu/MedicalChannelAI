@@ -23,13 +23,31 @@ export class AiDecisionError extends Error {
   }
 }
 
+// Transient provider failures (slow tail, one invalid model sample, brief
+// upstream 5xx) are retried once automatically so the user does not have to
+// click the button again. Deterministic failures (auth, closed window, rate
+// limit, configuration) are surfaced immediately.
+const AUTO_RETRY_CODES = new Set(['AI_TIMEOUT', 'AI_RESPONSE_INVALID', 'AI_PROVIDER_UNAVAILABLE', 'AI_HTTP_502', 'AI_HTTP_503', 'AI_HTTP_504'])
+const AUTO_RETRY_DELAY_MS = 800
+
+export function isAutoRetryableAiError(cause: unknown): boolean {
+  if (cause instanceof AiDecisionError) return AUTO_RETRY_CODES.has(cause.code)
+  // fetch() network failure (TypeError) — e.g. a dropped mobile connection.
+  return cause instanceof TypeError
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 export function aiDecisionErrorMessage(cause: unknown): string {
   if (!(cause instanceof AiDecisionError)) return '网络连接异常或AI服务暂时不可用，请重试'
+  if (cause.code === 'AI_NETWORK_UNAVAILABLE') return '网络连接不稳定，已自动重试仍未成功，请检查网络后再试'
   if (cause.code === 'AI_CLIENT_BUSY') return '已有AI分析任务正在处理，请稍候'
   if (cause.code === 'AI_NOT_CONFIGURED') return 'AI服务尚未启用；公开商机和跟进功能不受影响'
   if (cause.code === 'AI_RATE_LIMITED') return 'AI请求较多，请约1分钟后再试'
   if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') return 'AI服务连接异常，请稍后再试'
-  if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，可立即重试'
+  if (cause.code === 'AI_TIMEOUT') return 'AI服务响应较慢，已自动重试仍未完成，请稍后再试'
   if (cause.code === 'AI_PROVIDER_UNAVAILABLE') return 'AI服务暂时连接失败，请稍后再试'
   if (cause.code === 'VERIFIED_SNAPSHOT_UNAVAILABLE') return '公开商机数据正在更新，请稍后再试AI分析'
   if (cause.code === 'VERIFIED_SNAPSHOT_NOT_FRESH') return '公开商机快照已超过安全刷新窗口，请先核对官方依据，待数据刷新后再使用AI分析'
@@ -204,6 +222,53 @@ function batchEligibleCards(cards: TodayActionCard[]): TodayActionCard[] {
   }).slice(0, 10)
 }
 
+async function postAiDecisionBatch(opportunityIds: string[], cacheOnly: boolean): Promise<AiDecisionBatchResult> {
+  const response = await fetch('/api/ai/analyze', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      opportunity_ids: opportunityIds,
+      cache_only: cacheOnly,
+    }),
+  })
+
+  const payload: unknown = await response.json().catch(() => null)
+  const record = asRecord(payload)
+  if (!response.ok) {
+    const code = typeof record?.error === 'string' ? record.error : `AI_HTTP_${response.status}`
+    throw new AiDecisionError(code, response.status)
+  }
+
+  const decisions: Record<string, Decision> = {}
+  const misses: string[] = []
+  const errors: Record<string, string> = {}
+  const items = Array.isArray(record?.items) ? record.items : []
+  for (const rawItem of items) {
+    const item = asRecord(rawItem)
+    const opportunityId = typeof item?.opportunity_id === 'string' ? item.opportunity_id : ''
+    if (!opportunityId) continue
+    if (item?.status === 'READY') {
+      const decision = normalizeDecision(item.decision)
+      if (decision) decisions[opportunityId] = decision
+      else errors[opportunityId] = 'AI_RESPONSE_INVALID'
+    } else if (item?.status === 'MISS') {
+      misses.push(opportunityId)
+    } else {
+      errors[opportunityId] = typeof item?.error === 'string' ? item.error : 'AI_BATCH_ITEM_FAILED'
+    }
+  }
+
+  return {
+    decisions,
+    misses,
+    errors,
+    requested_count: typeof record?.requested_count === 'number' ? record.requested_count : opportunityIds.length,
+    ready_count: typeof record?.ready_count === 'number' ? record.ready_count : Object.keys(decisions).length,
+    cache_hit_count: typeof record?.cache_hit_count === 'number' ? record.cache_hit_count : 0,
+  }
+}
+
 export async function requestAiDecisionBatch(
   cards: TodayActionCard[],
   options: { cacheOnly?: boolean } = {},
@@ -228,49 +293,33 @@ export async function requestAiDecisionBatch(
   }
 
   try {
-    const response = await fetch('/api/ai/analyze', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        opportunity_ids: eligible.map((card) => card.opportunity_id),
-        cache_only: cacheOnly,
-      }),
-    })
+    const first = await postAiDecisionBatch(eligible.map((card) => card.opportunity_id), cacheOnly)
+    if (cacheOnly) return first
+    const retryIds = Object.entries(first.errors)
+      .filter(([, code]) => AUTO_RETRY_CODES.has(code))
+      .map(([opportunityId]) => opportunityId)
+    if (retryIds.length === 0) return first
 
-    const payload: unknown = await response.json().catch(() => null)
-    const record = asRecord(payload)
-    if (!response.ok) {
-      const code = typeof record?.error === 'string' ? record.error : `AI_HTTP_${response.status}`
-      throw new AiDecisionError(code, response.status)
+    // One automatic pass for items that failed transiently; anything the slow
+    // first pass managed to store is now served from the shared cache.
+    await wait(AUTO_RETRY_DELAY_MS)
+    let second: AiDecisionBatchResult
+    try {
+      second = await postAiDecisionBatch(retryIds, false)
+    } catch {
+      return first
     }
-
-    const decisions: Record<string, Decision> = {}
-    const misses: string[] = []
-    const errors: Record<string, string> = {}
-    const items = Array.isArray(record?.items) ? record.items : []
-    for (const rawItem of items) {
-      const item = asRecord(rawItem)
-      const opportunityId = typeof item?.opportunity_id === 'string' ? item.opportunity_id : ''
-      if (!opportunityId) continue
-      if (item?.status === 'READY') {
-        const decision = normalizeDecision(item.decision)
-        if (decision) decisions[opportunityId] = decision
-        else errors[opportunityId] = 'AI_RESPONSE_INVALID'
-      } else if (item?.status === 'MISS') {
-        misses.push(opportunityId)
-      } else {
-        errors[opportunityId] = typeof item?.error === 'string' ? item.error : 'AI_BATCH_ITEM_FAILED'
-      }
-    }
-
+    const errors = { ...first.errors }
+    for (const opportunityId of retryIds) delete errors[opportunityId]
+    Object.assign(errors, second.errors)
+    const decisions = { ...first.decisions, ...second.decisions }
     return {
       decisions,
-      misses,
+      misses: [...new Set([...first.misses, ...second.misses])],
       errors,
-      requested_count: typeof record?.requested_count === 'number' ? record.requested_count : eligible.length,
-      ready_count: typeof record?.ready_count === 'number' ? record.ready_count : Object.keys(decisions).length,
-      cache_hit_count: typeof record?.cache_hit_count === 'number' ? record.cache_hit_count : 0,
+      requested_count: first.requested_count,
+      ready_count: Object.keys(decisions).length,
+      cache_hit_count: first.cache_hit_count + second.cache_hit_count,
     }
   } finally {
     if (gateAcquired) endAiRequest()
@@ -328,7 +377,7 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
   }
 
   if (!beginAiRequest()) throw new AiDecisionError('AI_CLIENT_BUSY', 429)
-  try {
+  const requestOnce = async (): Promise<Decision> => {
     const response = await fetch('/api/ai/analyze', {
       method: 'POST',
       credentials: 'include',
@@ -348,8 +397,24 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
 
     const decision = normalizeDecision(record?.decision)
     if (!decision) throw new AiDecisionError('AI_RESPONSE_INVALID', 502)
+    return decision
+  }
+  try {
+    let decision: Decision
+    try {
+      decision = await requestOnce()
+    } catch (cause) {
+      if (!isAutoRetryableAiError(cause)) throw cause
+      // If the slow first attempt finished server-side, this retry is served
+      // from the shared durable cache almost instantly.
+      await wait(AUTO_RETRY_DELAY_MS)
+      decision = await requestOnce()
+    }
     if (snapshotAsOf) cacheDecision(card.opportunity_id, snapshotAsOf, fingerprintValue, decision)
     return decision
+  } catch (cause) {
+    if (cause instanceof TypeError) throw new AiDecisionError('AI_NETWORK_UNAVAILABLE', 0)
+    throw cause
   } finally {
     endAiRequest()
   }

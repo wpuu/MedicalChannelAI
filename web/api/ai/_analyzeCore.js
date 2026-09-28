@@ -12,7 +12,7 @@ import {
   parseDecisionContent,
 } from './_decisionContract.js'
 
-export const config = { maxDuration: 30 }
+export const config = { maxDuration: 60 }
 
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const DEFAULT_ALTERNATE_BASE_URL = 'https://apihub.agnes-ai.cn/v1'
@@ -25,7 +25,17 @@ const RESULT_CACHE_TTL_MS = 10 * 60 * 1000
 const RESULT_CACHE_MAX = 50
 const RATE_WINDOW_MS = 60 * 1000
 const RATE_MAX_PER_CLIENT = 10
-const PROVIDER_ATTEMPT_TIMEOUT_MS = 12_000
+// Provider latency has a long tail: most answers arrive in 2-6s, a few take
+// 10-20s. A hard 12s abort followed by a from-scratch retry (the previous
+// design) turned those slow answers into AI_TIMEOUT and forced users to click
+// several times. Instead we keep the first attempt alive, start one hedged
+// attempt in parallel if it is still silent after PROVIDER_HEDGE_AFTER_MS, take
+// whichever valid answer arrives first, and give the whole operation a single
+// budget that stays well inside the function maxDuration so a finished answer
+// can always be written to the shared cache.
+export const PROVIDER_HEDGE_AFTER_MS = 8_000
+export const PROVIDER_TOTAL_BUDGET_MS = 42_000
+const PROVIDER_MAX_ATTEMPTS = 2
 const PROVIDER_RETRY_DELAY_MS = 250
 const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
 const SOURCE_CATEGORY_TITLE_CONFLICT = 'SOURCE_CATEGORY_TITLE_CONFLICT'
@@ -409,7 +419,9 @@ function isTransientHttpStatus(status) {
 }
 
 function isConnectivityError(error) {
-  if (error?.name === 'AbortError') return true
+  // A slow model answer is not a routing problem. Our own abort (hedge loser or
+  // total budget) must never switch the retry to the alternate region.
+  if (error?.name === 'AbortError' || error?.code === 'AI_TIMEOUT') return false
   if (error instanceof TypeError) return true
   const code = String(error?.cause?.code || error?.code || '').toUpperCase()
   return [
@@ -429,65 +441,130 @@ function retryDelay() {
   return new Promise((resolve) => setTimeout(resolve, PROVIDER_RETRY_DELAY_MS))
 }
 
-async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerContext, windowStatus, analysisAsOf }) {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), PROVIDER_ATTEMPT_TIMEOUT_MS)
-  try {
-    const response = await fetch(`${normalizeBaseUrl(baseUrl)}/chat/completions`, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        model: MODEL_ID,
-        messages: buildDecisionMessages(facts, evidenceUrls, customerContext, windowStatus, analysisAsOf),
-        temperature: 0.1,
-        max_tokens: 900,
-        stream: false,
-      }),
-    })
-    if (!response.ok) {
-      const error = new Error(`UPSTREAM_HTTP_${response.status}`)
-      error.status = response.status
-      throw error
-    }
-    const payload = await response.json()
-    const content = payload?.choices?.[0]?.message?.content
-    if (typeof content !== 'string' || !content.trim()) throw new Error('UPSTREAM_CONTENT_EMPTY')
-    return parseDecisionContent(content, {
-      facts,
-      evidenceUrls,
-      customerContext,
-      windowStatus,
-    })
-  } finally {
-    clearTimeout(timeout)
+async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerContext, windowStatus, analysisAsOf, signal }) {
+  const response = await fetch(`${normalizeBaseUrl(baseUrl)}/chat/completions`, {
+    method: 'POST',
+    signal,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      model: MODEL_ID,
+      messages: buildDecisionMessages(facts, evidenceUrls, customerContext, windowStatus, analysisAsOf),
+      temperature: 0.1,
+      max_tokens: 900,
+      stream: false,
+    }),
+  })
+  if (!response.ok) {
+    const error = new Error(`UPSTREAM_HTTP_${response.status}`)
+    error.status = response.status
+    throw error
   }
+  const payload = await response.json()
+  const content = payload?.choices?.[0]?.message?.content
+  if (typeof content !== 'string' || !content.trim()) throw new Error('UPSTREAM_CONTENT_EMPTY')
+  return parseDecisionContent(content, {
+    facts,
+    evidenceUrls,
+    customerContext,
+    windowStatus,
+  })
 }
 
-async function callProviderWithTransientRetry(providerArgs, keys, opportunityId) {
-  const apiKey = selectedKey(keys, opportunityId)
-  try {
-    return await callProvider({ ...providerArgs, apiKey })
-  } catch (error) {
-    const status = Number(error?.status)
-    if (status === 401 || status === 403 || status === 429) throw error
+function providerTimeoutError() {
+  const error = new Error('AI_TIMEOUT')
+  error.code = 'AI_TIMEOUT'
+  error.status = 408
+  return error
+}
 
-    let retryBaseUrl = providerArgs.baseUrl
-    if (isConnectivityError(error)) {
-      if (normalizeBaseUrl(providerArgs.baseUrl) === normalizeBaseUrl(DEFAULT_BASE_URL)) {
-        retryBaseUrl = DEFAULT_ALTERNATE_BASE_URL
-      }
-    } else if (!isTransientHttpStatus(status)) {
-      throw error
+function isFatalProviderError(error) {
+  const status = Number(error?.status)
+  return status === 401 || status === 403 || status === 429 || error?.code === 'AI_NOT_CONFIGURED'
+}
+
+/**
+ * Decide the route for the single follow-up attempt after a failed attempt.
+ * Returns null when the failure is not worth retrying.
+ */
+function retryBaseUrlFor(error, baseUrl) {
+  if (isFatalProviderError(error)) return null
+  if (isConnectivityError(error)) {
+    return normalizeBaseUrl(baseUrl) === normalizeBaseUrl(DEFAULT_BASE_URL)
+      ? DEFAULT_ALTERNATE_BASE_URL
+      : baseUrl
+  }
+  // Model output occasionally fails the strict grounding contract; one fresh
+  // sample usually passes. Transient upstream HTTP errors retry on the same route.
+  if (error?.code === 'AI_RESPONSE_INVALID') return baseUrl
+  if (isTransientHttpStatus(error?.status)) return baseUrl
+  if (error?.message === 'UPSTREAM_CONTENT_EMPTY') return baseUrl
+  return null
+}
+
+export async function callProviderWithTransientRetry(providerArgs, keys, opportunityId, timing = {}) {
+  const apiKey = selectedKey(keys, opportunityId)
+  const hedgeAfterMs = timing.hedgeAfterMs ?? PROVIDER_HEDGE_AFTER_MS
+  const totalBudgetMs = timing.totalBudgetMs ?? PROVIDER_TOTAL_BUDGET_MS
+
+  return new Promise((resolve, reject) => {
+    const controllers = []
+    let settled = false
+    let running = 0
+    let launched = 0
+    let retryScheduled = false
+    let lastError = null
+    let hedgeTimer = null
+    let retryTimer = null
+
+    const finish = (callback, value) => {
+      if (settled) return
+      settled = true
+      clearTimeout(hedgeTimer)
+      clearTimeout(retryTimer)
+      clearTimeout(budgetTimer)
+      for (const controller of controllers) controller.abort()
+      callback(value)
     }
 
-    await retryDelay()
-    return callProvider({ ...providerArgs, baseUrl: retryBaseUrl, apiKey })
-  }
+    const budgetTimer = setTimeout(() => finish(reject, providerTimeoutError()), totalBudgetMs)
+
+    const launch = (baseUrl) => {
+      if (settled || launched >= PROVIDER_MAX_ATTEMPTS) return
+      launched += 1
+      running += 1
+      const controller = new AbortController()
+      controllers.push(controller)
+      callProvider({ ...providerArgs, baseUrl, apiKey, signal: controller.signal }).then(
+        (decision) => finish(resolve, decision),
+        (error) => {
+          running -= 1
+          if (settled) return
+          lastError = error
+          if (isFatalProviderError(error)) return finish(reject, error)
+          const retryBaseUrl = launched < PROVIDER_MAX_ATTEMPTS ? retryBaseUrlFor(error, baseUrl) : null
+          if (retryBaseUrl) {
+            clearTimeout(hedgeTimer)
+            retryScheduled = true
+            retryTimer = setTimeout(() => {
+              retryScheduled = false
+              launch(retryBaseUrl)
+            }, PROVIDER_RETRY_DELAY_MS)
+            return
+          }
+          if (running === 0 && !retryScheduled) finish(reject, lastError)
+        },
+      )
+    }
+
+    launch(providerArgs.baseUrl)
+    // Hedge: the first attempt is still silent, so start a parallel attempt on
+    // the same route. The first valid answer wins and the other is aborted.
+    hedgeTimer = setTimeout(() => launch(providerArgs.baseUrl), hedgeAfterMs)
+  })
 }
 
 async function getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request) {
@@ -550,7 +627,7 @@ function batchErrorCode(error) {
   if (error?.code === 'AI_RESPONSE_INVALID') return 'AI_RESPONSE_INVALID'
   if (status === 429) return 'AI_RATE_LIMITED'
   if (status === 401 || status === 403) return 'AI_PROVIDER_AUTH_UNAVAILABLE'
-  if (status === 408 || error?.name === 'AbortError') return 'AI_TIMEOUT'
+  if (error?.code === 'AI_TIMEOUT' || status === 408 || error?.name === 'AbortError') return 'AI_TIMEOUT'
   return 'AI_PROVIDER_UNAVAILABLE'
 }
 
@@ -867,7 +944,7 @@ export default async function handler(request, response) {
     if (error?.code === 'AI_RESPONSE_INVALID') return sendJson(response, 502, { error: 'AI_RESPONSE_INVALID' })
     if (status === 429) return sendJson(response, 429, { error: 'AI_RATE_LIMITED' })
     if (status === 401 || status === 403) return sendJson(response, 503, { error: 'AI_PROVIDER_AUTH_UNAVAILABLE' })
-    if (status === 408 || error?.name === 'AbortError') return sendJson(response, 504, { error: 'AI_TIMEOUT' })
+    if (error?.code === 'AI_TIMEOUT' || status === 408 || error?.name === 'AbortError') return sendJson(response, 504, { error: 'AI_TIMEOUT' })
     return sendJson(response, 502, { error: 'AI_PROVIDER_UNAVAILABLE' })
   }
 }

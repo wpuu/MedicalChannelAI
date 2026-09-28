@@ -36,8 +36,12 @@ class AiBatchCacheV2Tests(unittest.TestCase):
         pool = (WEB_ROOT / "src" / "pages" / "OpportunityPoolPage.tsx").read_text(encoding="utf-8")
 
         self.assertIn("export async function requestAiDecisionBatch", client)
-        self.assertIn("opportunity_ids: eligible.map", client)
+        self.assertIn("opportunity_ids: opportunityIds", client)
+        self.assertIn("postAiDecisionBatch(eligible.map((card) => card.opportunity_id), cacheOnly)", client)
         self.assertIn("cache_only: cacheOnly", client)
+        # Transient per-item failures get exactly one automatic follow-up pass.
+        self.assertIn("postAiDecisionBatch(retryIds, false)", client)
+        self.assertIn("if (cacheOnly) return first", client)
         self.assertIn("export async function hydrateSharedAiDecisions", client)
         self.assertIn("requestAiDecisionBatch(cards, { cacheOnly: true })", client)
 
