@@ -136,9 +136,8 @@ class PrewarmAiDecisionsTests(unittest.TestCase):
                     os.environ[name] = value
 
     def test_refresh_workflows_prewarm_after_publish_without_failing_refresh(self) -> None:
-        # The workflow step is added by a repository admin (token needs the
-        # `workflow` scope); see docs/ops/MCAI-PERF-001-2026-09-28.md. Once
-        # present it must run after publishing and never fail the refresh.
+        # Both refresh workflows prewarm after publishing; the step must never
+        # fail the refresh (see docs/ops/MCAI-PERF-001-2026-09-28.md).
         wired = 0
         for name in ("regional-medical-refresh.yml", "tianjin-medical-refresh.yml"):
             source = (WORKFLOWS / name).read_text(encoding="utf-8")
@@ -150,8 +149,7 @@ class PrewarmAiDecisionsTests(unittest.TestCase):
             self.assertLess(source.index("Publish and verify optional external snapshot"), step)
             block = source[step : source.index(marker) + len(marker)]
             self.assertIn("continue-on-error: true", block)
-        if wired == 0:
-            self.skipTest("prewarm step not yet added to refresh workflows")
+        self.assertEqual(wired, 2, "both refresh workflows must prewarm AI decisions")
 
     def test_workflow_snippet_is_documented(self) -> None:
         doc = (WORKFLOWS.parents[1] / "docs" / "ops" / "MCAI-PERF-001-2026-09-28.md").read_text(encoding="utf-8")

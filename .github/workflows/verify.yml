@@ -85,12 +85,18 @@ jobs:
             echo "live_ceb=false" >> "$GITHUB_OUTPUT"
           fi
 
+          # Full verification (prebuild checks + typecheck + vite build) is the
+          # default so frontend/API regressions are caught on every PR. Use the
+          # "[fast-verify]" marker only for data/pipeline-only changes.
           if [[ "$COMMIT_MESSAGE" == *"[full-verify]"* ]]; then
             echo "full=true" >> "$GITHUB_OUTPUT"
             echo "Full Verify requested by commit marker"
-          else
+          elif [[ "$COMMIT_MESSAGE" == *"[fast-verify]"* ]]; then
             echo "full=false" >> "$GITHUB_OUTPUT"
             echo "Fast Verify selected"
+          else
+            echo "full=true" >> "$GITHUB_OUTPUT"
+            echo "Full Verify selected by default"
           fi
 
       - name: Install fast verification runtime dependencies

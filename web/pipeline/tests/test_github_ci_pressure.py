@@ -12,10 +12,15 @@ class GithubCiPressureTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_normal_pr_verify_skips_heavy_npm_build(self) -> None:
+    def test_pr_verify_defaults_to_full_with_explicit_fast_opt_out(self) -> None:
         self.assertIn("Select verification depth", self.workflow)
         self.assertIn('"[full-verify]"', self.workflow)
+        self.assertIn('"[fast-verify]"', self.workflow)
         self.assertIn("Fast Verify selected", self.workflow)
+        self.assertIn("Full Verify selected by default", self.workflow)
+        fast = self.workflow.index('"[fast-verify]"')
+        default = self.workflow.index("Full Verify selected by default")
+        self.assertLess(fast, default)
         self.assertIn("Run fast contract verification", self.workflow)
         self.assertIn("python3 -m unittest discover -s tests -v", self.workflow)
         self.assertIn("node scripts/check-serverless-entrypoints.mjs", self.workflow)
