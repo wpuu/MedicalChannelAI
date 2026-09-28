@@ -30,13 +30,15 @@ async function proxyRequest(request) {
       if (
         lower !== "host" &&
         lower !== "connection" &&
-        lower !== "content-length"
+        lower !== "content-length" &&
+        lower !== "accept-encoding"
       ) {
         requestHeaders[key] = value;
       }
     });
     requestHeaders.origin = ORIGIN;
     requestHeaders.referer = ORIGIN + "/";
+    requestHeaders["accept-encoding"] = "identity";
 
     const init = {
       method: request.method,
@@ -52,7 +54,12 @@ async function proxyRequest(request) {
 
     const responseHeaders = {};
     originResponse.headers.forEach((value, key) => {
-      if (key.toLowerCase() !== "content-length") {
+      const lower = key.toLowerCase();
+      if (
+        lower !== "content-length" &&
+        lower !== "content-encoding" &&
+        lower !== "transfer-encoding"
+      ) {
         responseHeaders[key] = value;
       }
     });
