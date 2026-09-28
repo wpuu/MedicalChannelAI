@@ -1,11 +1,11 @@
 {
   "schema_version": "0.1",
   "mode": "TODAY_ACTIONS",
-  "snapshot_as_of": "2026-09-29T00:29:11.720513+08:00",
-  "input_candidate_count": 782,
-  "matched_count": 415,
+  "snapshot_as_of": "2026-09-29T00:43:40.252856+08:00",
+  "input_candidate_count": 791,
+  "matched_count": 417,
   "card_count": 5,
-  "opportunity_pool_count": 415,
+  "opportunity_pool_count": 417,
   "model_request_count": 0,
   "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
   "cards": [
@@ -6763,6 +6763,173 @@
     },
     {
       "rank": 29,
+      "opportunity_id": "ccgp_he_64df06d059669d6c",
+      "facts": {
+        "project_number": "HBZJ-2026N0874",
+        "project_name": "唐山市丰南区医院紧密型县域医共体建设项目",
+        "buyer_name": "唐山市丰南区医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "丰南区",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-28",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-10-10T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-10-20T09:00:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 7125000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [
+          {
+            "raw_name": "01包：远程心电图终端",
+            "category": null,
+            "quantity": "240套",
+            "specification": null
+          },
+          {
+            "raw_name": "02包：1.5T核磁共振",
+            "category": null,
+            "quantity": "1台",
+            "specification": null
+          }
+        ],
+        "public_contact": {
+          "name": "魏振平、郑德志",
+          "title": "项目联系人",
+          "phone": "0311-86063928",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL",
+        "market_code": "HE",
+        "market_name": "河北",
+        "market_admin_code": "130000"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260928_27407187.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 52,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 5,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 10,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 7,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 30,
       "opportunity_id": "ccgp_he_0f44425558d52497",
       "facts": {
         "project_number": "HBZJ-2026N1233",
@@ -6935,7 +7102,7 @@
       "decision": null
     },
     {
-      "rank": 30,
+      "rank": 31,
       "opportunity_id": "ccgp_ln_0b6728a27ba2160d",
       "facts": {
         "project_number": "JH26-210000-05267",
@@ -7096,7 +7263,7 @@
       "decision": null
     },
     {
-      "rank": 31,
+      "rank": 32,
       "opportunity_id": "ccgp_bj_06ed93ce396c2e82",
       "facts": {
         "project_number": "11000026210200183661-XM001",
@@ -7257,7 +7424,7 @@
       "decision": null
     },
     {
-      "rank": 32,
+      "rank": 33,
       "opportunity_id": "ccgp_bj_bbcbdc543bf3078c",
       "facts": {
         "project_number": "4000104511775088462587-2026041638",
@@ -7424,7 +7591,7 @@
       "decision": null
     },
     {
-      "rank": 33,
+      "rank": 34,
       "opportunity_id": "ccgp_he_37dbee44ab5207d5",
       "facts": {
         "project_number": "SJZGK20261684",
@@ -7578,7 +7745,7 @@
       "decision": null
     },
     {
-      "rank": 34,
+      "rank": 35,
       "opportunity_id": "ccgp_he_bcc416770ba3e9e0",
       "facts": {
         "project_number": "HBGC-2026-0801",
@@ -7739,7 +7906,7 @@
       "decision": null
     },
     {
-      "rank": 35,
+      "rank": 36,
       "opportunity_id": "ccgp_jl_2812e5ccead7b586",
       "facts": {
         "project_number": "采购计划-[2026]-00159号-JLSHSH-20260917",
@@ -7900,7 +8067,7 @@
       "decision": null
     },
     {
-      "rank": 36,
+      "rank": 37,
       "opportunity_id": "ccgp_he_9d3fb32d5c04029c",
       "facts": {
         "project_number": "Z1303002608542011-3",
@@ -8054,7 +8221,7 @@
       "decision": null
     },
     {
-      "rank": 37,
+      "rank": 38,
       "opportunity_id": "ccgp_ln_f985a6444c6b64fe",
       "facts": {
         "project_number": "JH26-210000-18112",
@@ -8215,7 +8382,7 @@
       "decision": null
     },
     {
-      "rank": 38,
+      "rank": 39,
       "opportunity_id": "ccgp_hl_199e012752b662a8",
       "facts": {
         "project_number": "[230201]HLJLC[GK]20260004",
@@ -8378,7 +8545,7 @@
       "decision": null
     },
     {
-      "rank": 39,
+      "rank": 40,
       "opportunity_id": "ccgp_hl_731baf5a061f296b",
       "facts": {
         "project_number": "[230101]YDZB[GK]20260001-1",
@@ -8559,7 +8726,7 @@
       "decision": null
     },
     {
-      "rank": 40,
+      "rank": 41,
       "opportunity_id": "ccgp_hl_ef29ecc91b070dc6",
       "facts": {
         "project_number": "[231181]zzgj[GK]20260001",
@@ -8722,7 +8889,7 @@
       "decision": null
     },
     {
-      "rank": 41,
+      "rank": 42,
       "opportunity_id": "ccgp_hl_56bb9b58335ec68a",
       "facts": {
         "project_number": "[231001]MDJZC[GK]20260038",
@@ -8891,7 +9058,7 @@
       "decision": null
     },
     {
-      "rank": 42,
+      "rank": 43,
       "opportunity_id": "ccgp_hl_9dab0ee46dec9cdb",
       "facts": {
         "project_number": "[230125]YYGL[GK]20260002-1",
@@ -9060,7 +9227,7 @@
       "decision": null
     },
     {
-      "rank": 43,
+      "rank": 44,
       "opportunity_id": "ccgp_bj_5f1f42d75ab9ab37",
       "facts": {
         "project_number": "0701-264106140937",
@@ -9275,7 +9442,7 @@
       "decision": null
     },
     {
-      "rank": 44,
+      "rank": 45,
       "opportunity_id": "ccgp_hl_1e305f2eeb2f9cce",
       "facts": {
         "project_number": "[230101]zzgj[GK]20260009-1",
@@ -9465,7 +9632,7 @@
       "decision": null
     },
     {
-      "rank": 45,
+      "rank": 46,
       "opportunity_id": "ccgp_hl_e0549039f9a7f2b3",
       "facts": {
         "project_number": "[231102]JRGS[GK]20260006",
@@ -9950,7 +10117,7 @@
       "decision": null
     },
     {
-      "rank": 46,
+      "rank": 47,
       "opportunity_id": "ccgp_bj_86d86a718fd63824",
       "facts": {
         "project_number": "11000026210200184623-XM001",
@@ -10111,7 +10278,7 @@
       "decision": null
     },
     {
-      "rank": 47,
+      "rank": 48,
       "opportunity_id": "ccgp_he_44d0b1bebf7f5198",
       "facts": {
         "project_number": "ZHZB2026367",
@@ -10272,7 +10439,7 @@
       "decision": null
     },
     {
-      "rank": 48,
+      "rank": 49,
       "opportunity_id": "ccgp_he_75ef7dbefa32f15e",
       "facts": {
         "project_number": "HBDS2026-035ZC",
@@ -10451,7 +10618,7 @@
       "decision": null
     },
     {
-      "rank": 49,
+      "rank": 50,
       "opportunity_id": "ccgp_hl_6aeb01c8c17f10a3",
       "facts": {
         "project_number": "[230001]YRSG[GK]20260001",
@@ -10632,7 +10799,7 @@
       "decision": null
     },
     {
-      "rank": 50,
+      "rank": 51,
       "opportunity_id": "ccgp_ln_9434bdc2fa443825",
       "facts": {
         "project_number": "JH26-210682-00150",
@@ -10793,7 +10960,7 @@
       "decision": null
     },
     {
-      "rank": 51,
+      "rank": 52,
       "opportunity_id": "ccgp_bj_f780f89e2ba52e48",
       "facts": {
         "project_number": "0701-264106071013",
@@ -10954,7 +11121,7 @@
       "decision": null
     },
     {
-      "rank": 52,
+      "rank": 53,
       "opportunity_id": "ccgp_bj_e062cd48f35dea07",
       "facts": {
         "project_number": "0686-2611CI054755Z",
@@ -11127,7 +11294,7 @@
       "decision": null
     },
     {
-      "rank": 53,
+      "rank": 54,
       "opportunity_id": "ccgp_he_982f35b153034f45",
       "facts": {
         "project_number": "SJZGK20261691",
@@ -11288,7 +11455,7 @@
       "decision": null
     },
     {
-      "rank": 54,
+      "rank": 55,
       "opportunity_id": "ccgp_bj_136a00b5bbff1775",
       "facts": {
         "project_number": "清华一附院采招【2026】33号/",
@@ -11449,7 +11616,7 @@
       "decision": null
     },
     {
-      "rank": 55,
+      "rank": 56,
       "opportunity_id": "ccgp_bj_627ef3d471f565f3",
       "facts": {
         "project_number": "11000026210200180873-XM001",
@@ -11603,7 +11770,7 @@
       "decision": null
     },
     {
-      "rank": 56,
+      "rank": 57,
       "opportunity_id": "ccgp_bj_118b1b34e77c10cf",
       "facts": {
         "project_number": "202601",
@@ -11782,7 +11949,7 @@
       "decision": null
     },
     {
-      "rank": 57,
+      "rank": 58,
       "opportunity_id": "ccgp_bj_ac467655e9f97dae",
       "facts": {
         "project_number": "20260624",
@@ -11973,7 +12140,7 @@
       "decision": null
     },
     {
-      "rank": 58,
+      "rank": 59,
       "opportunity_id": "ccgp_bj_d8890b156425331a",
       "facts": {
         "project_number": "11010626210200030361-XM001",
@@ -12218,7 +12385,7 @@
       "decision": null
     },
     {
-      "rank": 59,
+      "rank": 60,
       "opportunity_id": "ccgp_ln_1542730c2a8318bb",
       "facts": {
         "project_number": "JFCG20260904",
@@ -12372,7 +12539,7 @@
       "decision": null
     },
     {
-      "rank": 60,
+      "rank": 61,
       "opportunity_id": "ccgp_he_399149f092eb6c30",
       "facts": {
         "project_number": "HB2025123610120008",
@@ -12526,7 +12693,7 @@
       "decision": null
     },
     {
-      "rank": 61,
+      "rank": 62,
       "opportunity_id": "ccgp_he_7199c0e378845c22",
       "facts": {
         "project_number": "ZHZB2026452",
@@ -12680,7 +12847,7 @@
       "decision": null
     },
     {
-      "rank": 62,
+      "rank": 63,
       "opportunity_id": "ccgp_he_ef1a1d7e9ff51fa6",
       "facts": {
         "project_number": "HBFY2026-BS-011",
@@ -12834,7 +13001,7 @@
       "decision": null
     },
     {
-      "rank": 63,
+      "rank": 64,
       "opportunity_id": "ccgp_hl_712d1d2f7893b015",
       "facts": {
         "project_number": "[230801]QLGS[GK]20260006",
@@ -12997,7 +13164,7 @@
       "decision": null
     },
     {
-      "rank": 64,
+      "rank": 65,
       "opportunity_id": "ccgp_hl_9371ab3461e46de7",
       "facts": {
         "project_number": "[230101]zzgj[GK]20260010-1",
@@ -13173,7 +13340,7 @@
       "decision": null
     },
     {
-      "rank": 65,
+      "rank": 66,
       "opportunity_id": "ccgp_hl_c8b4fcb58e2a9eba",
       "facts": {
         "project_number": "[230001]ZY1094[GK]20260001-3",
@@ -13336,7 +13503,7 @@
       "decision": null
     },
     {
-      "rank": 66,
+      "rank": 67,
       "opportunity_id": "ccgp_bj_1464c8dfd7b2431c",
       "facts": {
         "project_number": "0701-264106071006",
@@ -13490,7 +13657,7 @@
       "decision": null
     },
     {
-      "rank": 67,
+      "rank": 68,
       "opportunity_id": "ccgp_bj_50137736bfc56f40",
       "facts": {
         "project_number": "11000026210200175131-XM001",
@@ -13885,7 +14052,7 @@
       "decision": null
     },
     {
-      "rank": 68,
+      "rank": 69,
       "opportunity_id": "ccgp_he_41aafadae7704336",
       "facts": {
         "project_number": "ZHZB2026526",
@@ -14039,7 +14206,7 @@
       "decision": null
     },
     {
-      "rank": 69,
+      "rank": 70,
       "opportunity_id": "ccgp_ln_4bc6812a6f08d349",
       "facts": {
         "project_number": "JH26-210000-55720",
@@ -14193,7 +14360,7 @@
       "decision": null
     },
     {
-      "rank": 70,
+      "rank": 71,
       "opportunity_id": "ccgp_he_d9bc3f7e4ee4441e",
       "facts": {
         "project_number": "BZZB-(ZC)-2026-0583",
@@ -14354,7 +14521,7 @@
       "decision": null
     },
     {
-      "rank": 71,
+      "rank": 72,
       "opportunity_id": "ccgp_he_9bb6ca441a5ffd9b",
       "facts": {
         "project_number": "BWZB2026-09N14",
@@ -14515,7 +14682,7 @@
       "decision": null
     },
     {
-      "rank": 72,
+      "rank": 73,
       "opportunity_id": "ccgp_hl_0b3085583c7fa3c6",
       "facts": {
         "project_number": "[230881]HCYGC[GK]20260001",
@@ -14684,7 +14851,7 @@
       "decision": null
     },
     {
-      "rank": 73,
+      "rank": 74,
       "opportunity_id": "ccgp_hl_5a68fbf60f2eb934",
       "facts": {
         "project_number": "[231283]SCGC[GK]20260001-2",
@@ -14871,7 +15038,7 @@
       "decision": null
     },
     {
-      "rank": 74,
+      "rank": 75,
       "opportunity_id": "ccgp_hl_ed25f31e004e2e53",
       "facts": {
         "project_number": "[230001]zzgj[GK]20260059",
@@ -15077,7 +15244,7 @@
       "decision": null
     },
     {
-      "rank": 75,
+      "rank": 76,
       "opportunity_id": "ccgp_hl_1356695bc42c937c",
       "facts": {
         "project_number": "[230001]BRCGGL[GK]20260041",
@@ -15246,7 +15413,7 @@
       "decision": null
     },
     {
-      "rank": 76,
+      "rank": 77,
       "opportunity_id": "ccgp_hl_901900d85388c0d7",
       "facts": {
         "project_number": "[231001]MDJZC[GK]20260036",
@@ -15422,7 +15589,7 @@
       "decision": null
     },
     {
-      "rank": 77,
+      "rank": 78,
       "opportunity_id": "ccgp_hl_af1b8a1a9d61bb90",
       "facts": {
         "project_number": "[231001]MDJZC[GK]20260037",
@@ -15598,7 +15765,7 @@
       "decision": null
     },
     {
-      "rank": 78,
+      "rank": 79,
       "opportunity_id": "ccgp_jl_0b75ef30f6c85a32",
       "facts": {
         "project_number": "YXGC-202609-980",
@@ -15759,7 +15926,7 @@
       "decision": null
     },
     {
-      "rank": 79,
+      "rank": 80,
       "opportunity_id": "ccgp_jl_2445a6f911250acb",
       "facts": {
         "project_number": "JD-022-ZZCC2026-28",
@@ -15913,7 +16080,7 @@
       "decision": null
     },
     {
-      "rank": 80,
+      "rank": 81,
       "opportunity_id": "ccgp_jl_b5d1aea0be510b92",
       "facts": {
         "project_number": "采购计划-[2026]-02494号-CG01",
@@ -16074,7 +16241,7 @@
       "decision": null
     },
     {
-      "rank": 81,
+      "rank": 82,
       "opportunity_id": "ccgp_jl_fc284b9108141aac",
       "facts": {
         "project_number": "JD-024-20260914-CG04-C",
@@ -16228,7 +16395,168 @@
       "decision": null
     },
     {
-      "rank": 82,
+      "rank": 83,
+      "opportunity_id": "ccgp_bj_dc9d959e7cba5e1d",
+      "facts": {
+        "project_number": "26CNIC381070-062",
+        "project_name": "国家中医药传承创新中心建设项目（第三十二批）",
+        "buyer_name": "中国中医科学院广安门医院",
+        "hospital_name": null,
+        "department": null,
+        "region": "北京市",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-28",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-10-10T17:00:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-10-20T09:30:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 1500000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [],
+        "product_items": [
+          {
+            "raw_name": "液相芯片蛋白分析系统",
+            "category": null,
+            "quantity": "1",
+            "specification": "可以同时开展核酸、蛋白检测"
+          }
+        ],
+        "public_contact": {
+          "name": "王颖杰",
+          "title": "项目联系人",
+          "phone": "010-81166152、88312806",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL",
+        "market_code": "BJ",
+        "market_name": "北京",
+        "market_admin_code": "110000"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260928_27408791.htm"
+      ],
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 49,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 5,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 7,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 5,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 7,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    },
+    {
+      "rank": 84,
       "opportunity_id": "ccgp_hl_90d3924313418d06",
       "facts": {
         "project_number": "BDHZC202512004-1",
@@ -16389,7 +16717,7 @@
       "decision": null
     },
     {
-      "rank": 83,
+      "rank": 85,
       "opportunity_id": "ccgp_he_3e9bd73f6fda27f5",
       "facts": {
         "project_number": "HBFY2026-BS-013",
@@ -16543,7 +16871,7 @@
       "decision": null
     },
     {
-      "rank": 84,
+      "rank": 86,
       "opportunity_id": "ccgp_hl_b66930c42805fc7c",
       "facts": {
         "project_number": "ZT-2026018",
@@ -16697,7 +17025,7 @@
       "decision": null
     },
     {
-      "rank": 85,
+      "rank": 87,
       "opportunity_id": "ccgp_hl_7a98f767230d3709",
       "facts": {
         "project_number": "[230001]ZLZB-[GK]20260001-2",
@@ -16903,7 +17231,7 @@
       "decision": null
     },
     {
-      "rank": 86,
+      "rank": 88,
       "opportunity_id": "ccgp_he_067443e491140e78",
       "facts": {
         "project_number": "HBZJ-2026ZJK149",
@@ -17057,7 +17385,7 @@
       "decision": null
     },
     {
-      "rank": 87,
+      "rank": 89,
       "opportunity_id": "ccgp_ln_5daaa801127237b8",
       "facts": {
         "project_number": "JH25-210000-04290",
@@ -17211,7 +17539,7 @@
       "decision": null
     },
     {
-      "rank": 88,
+      "rank": 90,
       "opportunity_id": "ccgp_bj_f3f14e5e9dc1566a",
       "facts": {
         "project_number": "11010126210200022614-XM001",
@@ -17365,7 +17693,7 @@
       "decision": null
     },
     {
-      "rank": 89,
+      "rank": 91,
       "opportunity_id": "ccgp_bj_6753080b67ff79b0",
       "facts": {
         "project_number": "11011526210200034743-XM001",
@@ -17519,7 +17847,7 @@
       "decision": null
     },
     {
-      "rank": 90,
+      "rank": 92,
       "opportunity_id": "ccgp_hl_c1ca0631ec9622b1",
       "facts": {
         "project_number": "[231001]MDJZC[GK]20260039",
@@ -18288,7 +18616,7 @@
       "decision": null
     },
     {
-      "rank": 91,
+      "rank": 93,
       "opportunity_id": "ccgp_ln_0e2fc273634812d7",
       "facts": {
         "project_number": "JH26-211382-00053",
@@ -18442,7 +18770,7 @@
       "decision": null
     },
     {
-      "rank": 92,
+      "rank": 94,
       "opportunity_id": "ccgp_hl_0b3398a2a24a72f8",
       "facts": {
         "project_number": "[230101]HTCL[GK]20250004-2",
@@ -18625,7 +18953,7 @@
       "decision": null
     },
     {
-      "rank": 93,
+      "rank": 95,
       "opportunity_id": "ccgp_hl_ad6803a2f8a90ed1",
       "facts": {
         "project_number": "[230801]ZTZB[GK]20260014",
@@ -18788,7 +19116,7 @@
       "decision": null
     },
     {
-      "rank": 94,
+      "rank": 96,
       "opportunity_id": "ccgp_ln_a568d27472098854",
       "facts": {
         "project_number": "DCZ202609011",
@@ -18949,7 +19277,7 @@
       "decision": null
     },
     {
-      "rank": 95,
+      "rank": 97,
       "opportunity_id": "ccgp_ln_366f6134c07cfba3",
       "facts": {
         "project_number": "JH26-210800-04301",
@@ -19103,7 +19431,7 @@
       "decision": null
     },
     {
-      "rank": 96,
+      "rank": 98,
       "opportunity_id": "ccgp_bj_07f1ed60dddd7d95",
       "facts": {
         "project_number": "0701-264106071010",
@@ -19257,7 +19585,7 @@
       "decision": null
     },
     {
-      "rank": 97,
+      "rank": 99,
       "opportunity_id": "ccgp_bj_0d68eaeabe28cb76",
       "facts": {
         "project_number": "0701-264106071005",
@@ -19411,7 +19739,7 @@
       "decision": null
     },
     {
-      "rank": 98,
+      "rank": 100,
       "opportunity_id": "ccgp_bj_8e1284390422e1a6",
       "facts": {
         "project_number": "0701-264106071004",
@@ -19565,7 +19893,7 @@
       "decision": null
     },
     {
-      "rank": 99,
+      "rank": 101,
       "opportunity_id": "ccgp_he_6b0123bc3df3245c",
       "facts": {
         "project_number": "SJZGK20261630",
@@ -19719,7 +20047,7 @@
       "decision": null
     },
     {
-      "rank": 100,
+      "rank": 102,
       "opportunity_id": "ccgp_he_ed760e0001a02825",
       "facts": {
         "project_number": "ZHZB2026368",
@@ -19873,7 +20201,7 @@
       "decision": null
     },
     {
-      "rank": 101,
+      "rank": 103,
       "opportunity_id": "ccgp_bj_5a96a9fd136d588e",
       "facts": {
         "project_number": "0733-26110887",
@@ -20034,7 +20362,7 @@
       "decision": null
     },
     {
-      "rank": 102,
+      "rank": 104,
       "opportunity_id": "ccgp_bj_918f99fa52e07bf5",
       "facts": {
         "project_number": "0733-26110851",
@@ -20195,7 +20523,7 @@
       "decision": null
     },
     {
-      "rank": 103,
+      "rank": 105,
       "opportunity_id": "ccgp_he_cda67bc5a1bfe20a",
       "facts": {
         "project_number": "SZYL-2026-077",
@@ -20356,7 +20684,7 @@
       "decision": null
     },
     {
-      "rank": 104,
+      "rank": 106,
       "opportunity_id": "ccgp_jl_42161f0653c9deff",
       "facts": {
         "project_number": "采购计划-[2026]-00182号-ZWZB20260902-079-2",
@@ -20517,7 +20845,7 @@
       "decision": null
     },
     {
-      "rank": 105,
+      "rank": 107,
       "opportunity_id": "ccgp_bj_1b3a109c996c65db",
       "facts": {
         "project_number": "11010626210200029888-XM001",
@@ -20690,7 +21018,7 @@
       "decision": null
     },
     {
-      "rank": 106,
+      "rank": 108,
       "opportunity_id": "ccgp_he_72070a09dab39e9b",
       "facts": {
         "project_number": "DXGS-ZBDL2026-015CG",
@@ -20844,7 +21172,7 @@
       "decision": null
     },
     {
-      "rank": 107,
+      "rank": 109,
       "opportunity_id": "ccgp_bj_808e677795fa8e4b",
       "facts": {
         "project_number": "0686-2611CC055614Z",
@@ -21011,7 +21339,7 @@
       "decision": null
     },
     {
-      "rank": 108,
+      "rank": 110,
       "opportunity_id": "ccgp_he_18849e4c23fe596b",
       "facts": {
         "project_number": "ZXGK20260102",
@@ -21172,7 +21500,7 @@
       "decision": null
     },
     {
-      "rank": 109,
+      "rank": 111,
       "opportunity_id": "ccgp_he_2688df1fb95a3aab",
       "facts": {
         "project_number": "HB2026043610260013",
@@ -21326,7 +21654,7 @@
       "decision": null
     },
     {
-      "rank": 110,
+      "rank": 112,
       "opportunity_id": "ccgp_he_06174eb2d547dcc3",
       "facts": {
         "project_number": "HBZJ-2026N0159",
@@ -21487,7 +21815,7 @@
       "decision": null
     },
     {
-      "rank": 111,
+      "rank": 113,
       "opportunity_id": "ccgp_ln_0a6ef084988b3b72",
       "facts": {
         "project_number": "JH26-210000-00511",
@@ -21672,7 +22000,7 @@
       "decision": null
     },
     {
-      "rank": 112,
+      "rank": 114,
       "opportunity_id": "ccgp_jl_c03246dcbfa07975",
       "facts": {
         "project_number": "JM-2026-07-06233-JLCTTC-26ZFHW2026",
@@ -21845,7 +22173,7 @@
       "decision": null
     },
     {
-      "rank": 113,
+      "rank": 115,
       "opportunity_id": "ccgp_jl_c81cd0e852716793",
       "facts": {
         "project_number": "JM-2026-07-05768-JLCTTC-26ZFHW2011-1",
@@ -22006,7 +22334,7 @@
       "decision": null
     },
     {
-      "rank": 114,
+      "rank": 116,
       "opportunity_id": "ccgp_ln_b1e78bdffbf2b9ad",
       "facts": {
         "project_number": "JH26-210800-03537",
@@ -22160,7 +22488,7 @@
       "decision": null
     },
     {
-      "rank": 115,
+      "rank": 117,
       "opportunity_id": "ccgp_hl_6998b7a5faa5ec0b",
       "facts": {
         "project_number": "BDHZB20263043",
@@ -22314,7 +22642,7 @@
       "decision": null
     },
     {
-      "rank": 116,
+      "rank": 118,
       "opportunity_id": "ccgp_he_0d0300a970bf8432",
       "facts": {
         "project_number": "HBZJ-2026N1140",
@@ -22468,7 +22796,7 @@
       "decision": null
     },
     {
-      "rank": 117,
+      "rank": 119,
       "opportunity_id": "ccgp_hl_e3825342df383280",
       "facts": {
         "project_number": "[230001]HLJ-SH[GK]20260003",
@@ -22631,7 +22959,7 @@
       "decision": null
     },
     {
-      "rank": 118,
+      "rank": 120,
       "opportunity_id": "ccgp_ln_1a5d8956fb89a9dc",
       "facts": {
         "project_number": "JH26-210381-01773",
@@ -22785,7 +23113,7 @@
       "decision": null
     },
     {
-      "rank": 119,
+      "rank": 121,
       "opportunity_id": "ccgp_he_8617cedc3e57eac0",
       "facts": {
         "project_number": "ZFCG2026090191001",
@@ -22939,7 +23267,7 @@
       "decision": null
     },
     {
-      "rank": 120,
+      "rank": 122,
       "opportunity_id": "ccgp_hl_3653386a43b17661",
       "facts": {
         "project_number": "[230001]BRCGGL[GK]20260034",
@@ -23115,7 +23443,7 @@
       "decision": null
     },
     {
-      "rank": 121,
+      "rank": 123,
       "opportunity_id": "ccgp_hl_d8bdcd07b5774db6",
       "facts": {
         "project_number": "[230001]SC[GK]20260325-1",
@@ -23285,7 +23613,7 @@
       "decision": null
     },
     {
-      "rank": 122,
+      "rank": 124,
       "opportunity_id": "ccgp_hl_deac94856818db2d",
       "facts": {
         "project_number": "[230001]HLJJY[GK]20260004",
@@ -23448,7 +23776,7 @@
       "decision": null
     },
     {
-      "rank": 123,
+      "rank": 125,
       "opportunity_id": "ccgp_he_8b30817fd8dceaca",
       "facts": {
         "project_number": "Z1303002609772001",
@@ -23602,7 +23930,7 @@
       "decision": null
     },
     {
-      "rank": 124,
+      "rank": 126,
       "opportunity_id": "ccgp_jl_806743d8af167ea4",
       "facts": {
         "project_number": "JD-025-20260915-CG04-C",
@@ -23756,7 +24084,7 @@
       "decision": null
     },
     {
-      "rank": 125,
+      "rank": 127,
       "opportunity_id": "ccgp_jl_df18a35969c158a6",
       "facts": {
         "project_number": "JD-022-20260906-FW04-F",
@@ -24067,7 +24395,7 @@
       "decision": null
     },
     {
-      "rank": 126,
+      "rank": 128,
       "opportunity_id": "ccgp_bj_73d0fe9e5e89595e",
       "facts": {
         "project_number": "2607-HXTC-KY1410",
@@ -24228,7 +24556,7 @@
       "decision": null
     },
     {
-      "rank": 127,
+      "rank": 129,
       "opportunity_id": "ccgp_he_7d3363beffedd4d5",
       "facts": {
         "project_number": "2026CK-114",
@@ -24382,7 +24710,7 @@
       "decision": null
     },
     {
-      "rank": 128,
+      "rank": 130,
       "opportunity_id": "ccgp_hl_67ba44890d3d5d5e",
       "facts": {
         "project_number": "[230101]FDGJ[GK]20260002-2",
@@ -24569,7 +24897,7 @@
       "decision": null
     },
     {
-      "rank": 129,
+      "rank": 131,
       "opportunity_id": "ccgp_hl_bd38dce692a748db",
       "facts": {
         "project_number": "[230001]wdzb[GK]20260023-3",
@@ -24732,7 +25060,7 @@
       "decision": null
     },
     {
-      "rank": 130,
+      "rank": 132,
       "opportunity_id": "ccgp_bj_48e401d3afc02b4d",
       "facts": {
         "project_number": "999100034000061089-JH001-XM001",
@@ -24893,7 +25221,7 @@
       "decision": null
     },
     {
-      "rank": 131,
+      "rank": 133,
       "opportunity_id": "ccgp_bj_27db1b91b559709e",
       "facts": {
         "project_number": "0686-2611CC204845Z",
@@ -25054,7 +25382,7 @@
       "decision": null
     },
     {
-      "rank": 132,
+      "rank": 134,
       "opportunity_id": "ccgp_he_ab47ca315a2122af",
       "facts": {
         "project_number": "HXZB2026-E1-00073-001",
@@ -25208,7 +25536,7 @@
       "decision": null
     },
     {
-      "rank": 133,
+      "rank": 135,
       "opportunity_id": "ccgp_he_69652b34bc1940ea",
       "facts": {
         "project_number": "HBHS2025-1206",
@@ -25362,7 +25690,7 @@
       "decision": null
     },
     {
-      "rank": 134,
+      "rank": 136,
       "opportunity_id": "ccgp_bj_9af03ba52c5d99ef",
       "facts": {
         "project_number": "ZXHD26171",
@@ -25516,7 +25844,7 @@
       "decision": null
     },
     {
-      "rank": 135,
+      "rank": 137,
       "opportunity_id": "ccgp_bj_951e8c41b4e04ba2",
       "facts": {
         "project_number": "0686-2611CI076171Z",
@@ -25670,7 +25998,7 @@
       "decision": null
     },
     {
-      "rank": 136,
+      "rank": 138,
       "opportunity_id": "ccgp_hl_2776c0131ea88aa6",
       "facts": {
         "project_number": "[230101]JXXM[GK]20260006",
@@ -25833,7 +26161,7 @@
       "decision": null
     },
     {
-      "rank": 137,
+      "rank": 139,
       "opportunity_id": "ccgp_hl_2790354df8bb0615",
       "facts": {
         "project_number": "[230801]ZPRJ[GK]20260007-1",
@@ -26044,7 +26372,7 @@
       "decision": null
     },
     {
-      "rank": 138,
+      "rank": 140,
       "opportunity_id": "ccgp_hl_338514ed30a6d361",
       "facts": {
         "project_number": "[230001]wdzb[GK]20260028",
@@ -26214,7 +26542,7 @@
       "decision": null
     },
     {
-      "rank": 139,
+      "rank": 141,
       "opportunity_id": "ccgp_hl_4fc72168a66b0c96",
       "facts": {
         "project_number": "[230001]BRCGGL[GK]20260023-2",
@@ -26391,7 +26719,7 @@
       "decision": null
     },
     {
-      "rank": 140,
+      "rank": 142,
       "opportunity_id": "ccgp_hl_668e40450ac6a08b",
       "facts": {
         "project_number": "[230881]FDGJ[GK]20260001",
@@ -26575,7 +26903,7 @@
       "decision": null
     },
     {
-      "rank": 141,
+      "rank": 143,
       "opportunity_id": "ccgp_hl_70e2d6da6bfc07f4",
       "facts": {
         "project_number": "[230001]zzgj[GK]20260014-6",
@@ -26738,7 +27066,7 @@
       "decision": null
     },
     {
-      "rank": 142,
+      "rank": 144,
       "opportunity_id": "ccgp_hl_80d64325f86dda18",
       "facts": {
         "project_number": "[230001]wdzb[GK]20260027",
@@ -26908,7 +27236,7 @@
       "decision": null
     },
     {
-      "rank": 143,
+      "rank": 145,
       "opportunity_id": "ccgp_hl_edc6775d4b4a188c",
       "facts": {
         "project_number": "[230801]BZGC[GK]20260009-3",
@@ -27197,7 +27525,7 @@
       "decision": null
     },
     {
-      "rank": 144,
+      "rank": 146,
       "opportunity_id": "ccgp_ln_b1e6b58c6e544482",
       "facts": {
         "project_number": "JH26-210100-09362",
@@ -27358,7 +27686,7 @@
       "decision": null
     },
     {
-      "rank": 145,
+      "rank": 147,
       "opportunity_id": "ccgp_he_07387b128e7f1d11",
       "facts": {
         "project_number": "HB2026073610120003",
@@ -27512,7 +27840,7 @@
       "decision": null
     },
     {
-      "rank": 146,
+      "rank": 148,
       "opportunity_id": "ccgp_he_ba2a4b68571b8b06",
       "facts": {
         "project_number": "HBZJ-2026N1136",
@@ -27666,7 +27994,7 @@
       "decision": null
     },
     {
-      "rank": 147,
+      "rank": 149,
       "opportunity_id": "ccgp_jl_138542e6db7ad8f1",
       "facts": {
         "project_number": "采购计划-[2026]-00130号-0773-2641GNJLHWGK2296-2",
@@ -27820,7 +28148,7 @@
       "decision": null
     },
     {
-      "rank": 148,
+      "rank": 150,
       "opportunity_id": "ccgp_ln_7097434e7b5bfe5c",
       "facts": {
         "project_number": "JH26-210300-14267",
@@ -27974,7 +28302,7 @@
       "decision": null
     },
     {
-      "rank": 149,
+      "rank": 151,
       "opportunity_id": "ccgp_bj_cf373f3c42550610",
       "facts": {
         "project_number": "11010126210200022046-XM001",
@@ -28128,7 +28456,7 @@
       "decision": null
     },
     {
-      "rank": 150,
+      "rank": 152,
       "opportunity_id": "ccgp_he_8476905d4dd4df6b",
       "facts": {
         "project_number": "ZHZB2026503",
@@ -28282,7 +28610,7 @@
       "decision": null
     },
     {
-      "rank": 151,
+      "rank": 153,
       "opportunity_id": "ccgp_jl_f2aafb77e123d8ee",
       "facts": {
         "project_number": "GMGITC-JL-260411",
@@ -28436,7 +28764,7 @@
       "decision": null
     },
     {
-      "rank": 152,
+      "rank": 154,
       "opportunity_id": "ccgp_bj_aa909179e53a9f6f",
       "facts": {
         "project_number": "0686-2611CI076172Z",
@@ -28590,7 +28918,7 @@
       "decision": null
     },
     {
-      "rank": 153,
+      "rank": 155,
       "opportunity_id": "ccgp_he_b34b4634b517d695",
       "facts": {
         "project_number": "HTZB（2026）-01-17",
@@ -28744,7 +29072,7 @@
       "decision": null
     },
     {
-      "rank": 154,
+      "rank": 156,
       "opportunity_id": "ccgp_bj_0594fdd16f30fc3b",
       "facts": {
         "project_number": "11010826210200059052-XM001",
@@ -28898,7 +29226,7 @@
       "decision": null
     },
     {
-      "rank": 155,
+      "rank": 157,
       "opportunity_id": "ccgp_he_1e3abc82620da2f8",
       "facts": {
         "project_number": "HBYJ-2026-016",
@@ -29052,7 +29380,7 @@
       "decision": null
     },
     {
-      "rank": 156,
+      "rank": 158,
       "opportunity_id": "ccgp_he_94dee950c64f7ef3",
       "facts": {
         "project_number": "BDGK2026064",
@@ -29206,7 +29534,7 @@
       "decision": null
     },
     {
-      "rank": 157,
+      "rank": 159,
       "opportunity_id": "ccgp_hl_6733cb8cf1a8134e",
       "facts": {
         "project_number": "[232799]GZXMGL[GK]20260002-2",
@@ -29369,7 +29697,7 @@
       "decision": null
     },
     {
-      "rank": 158,
+      "rank": 160,
       "opportunity_id": "ccgp_hl_a300e994a06867a8",
       "facts": {
         "project_number": "[230523]KYZB[GK]20260002",
@@ -29564,7 +29892,7 @@
       "decision": null
     },
     {
-      "rank": 159,
+      "rank": 161,
       "opportunity_id": "ccgp_hl_f5e81e6f1c1d469a",
       "facts": {
         "project_number": "[230001]BJGJZB[GK]20260013",
@@ -29727,7 +30055,7 @@
       "decision": null
     },
     {
-      "rank": 160,
+      "rank": 162,
       "opportunity_id": "ccgp_hl_67bf1f4c7eadac18",
       "facts": {
         "project_number": "[231001]MDJZC[GK]20260032",
@@ -29902,7 +30230,7 @@
       "decision": null
     },
     {
-      "rank": 161,
+      "rank": 163,
       "opportunity_id": "ccgp_hl_c5027bd7def0a106",
       "facts": {
         "project_number": "[230301]JXCG[GK]20260019",
@@ -30108,7 +30436,7 @@
       "decision": null
     },
     {
-      "rank": 162,
+      "rank": 164,
       "opportunity_id": "ccgp_bj_594ed3124f7726a0",
       "facts": {
         "project_number": "B0708-CMC26N7909",
@@ -30287,7 +30615,7 @@
       "decision": null
     },
     {
-      "rank": 163,
+      "rank": 165,
       "opportunity_id": "ccgp_bj_7c978bf102bfab66",
       "facts": {
         "project_number": "B0708-CMC26N7916",
@@ -30448,7 +30776,7 @@
       "decision": null
     },
     {
-      "rank": 164,
+      "rank": 166,
       "opportunity_id": "ccgp_bj_e42301e465f617ef",
       "facts": {
         "project_number": "B0708-CMC26N7915",
@@ -30609,7 +30937,7 @@
       "decision": null
     },
     {
-      "rank": 165,
+      "rank": 167,
       "opportunity_id": "ccgp_bj_39ee3eb3b3ddaae0",
       "facts": {
         "project_number": "B0708-CMC26N7917",
@@ -30770,7 +31098,7 @@
       "decision": null
     },
     {
-      "rank": 166,
+      "rank": 168,
       "opportunity_id": "ccgp_bj_10eb48bdd052aaf7",
       "facts": {
         "project_number": "CIGN26129",
@@ -30931,7 +31259,7 @@
       "decision": null
     },
     {
-      "rank": 167,
+      "rank": 169,
       "opportunity_id": "ccgp_hl_8f27746291725d6f",
       "facts": {
         "project_number": "[230101]GXGJ[GK]20260002-1",
@@ -31112,7 +31440,7 @@
       "decision": null
     },
     {
-      "rank": 168,
+      "rank": 170,
       "opportunity_id": "ccgp_hl_a2566cd3b558e85d",
       "facts": {
         "project_number": "[231001]ZJSH[GK]20260001-1",
@@ -31275,7 +31603,7 @@
       "decision": null
     },
     {
-      "rank": 169,
+      "rank": 171,
       "opportunity_id": "ccgp_hl_a79f33eacdb2d74e",
       "facts": {
         "project_number": "[230701]ZGXM[GK]20260004",
@@ -31607,7 +31935,7 @@
       "decision": null
     },
     {
-      "rank": 170,
+      "rank": 172,
       "opportunity_id": "ccgp_hl_bb2849b2dc17c4c2",
       "facts": {
         "project_number": "[230301]JXCG[GK]20260012-3",
@@ -31776,7 +32104,7 @@
       "decision": null
     },
     {
-      "rank": 171,
+      "rank": 173,
       "opportunity_id": "ccgp_hl_e06affdcb23b0218",
       "facts": {
         "project_number": "[230001]HLJ-SH[GK]20260001-3",
@@ -31939,7 +32267,7 @@
       "decision": null
     },
     {
-      "rank": 172,
+      "rank": 174,
       "opportunity_id": "ccgp_ln_1a3880ab31870644",
       "facts": {
         "project_number": "JH26-210000-48090",
@@ -32118,7 +32446,7 @@
       "decision": null
     },
     {
-      "rank": 173,
+      "rank": 175,
       "opportunity_id": "ccgp_he_664e82d58a615305",
       "facts": {
         "project_number": "HBZJ-2026N1081",
@@ -32303,7 +32631,7 @@
       "decision": null
     },
     {
-      "rank": 174,
+      "rank": 176,
       "opportunity_id": "ccgp_he_e0e3bff1b54479f4",
       "facts": {
         "project_number": "BAZB26225601",
@@ -32464,7 +32792,7 @@
       "decision": null
     },
     {
-      "rank": 175,
+      "rank": 177,
       "opportunity_id": "ccgp_hl_bb1b876102d32e05",
       "facts": {
         "project_number": "[230522]GZXMGL[GK]20260002-1",
@@ -32815,7 +33143,7 @@
       "decision": null
     },
     {
-      "rank": 176,
+      "rank": 178,
       "opportunity_id": "ccgp_hl_da257175987991b4",
       "facts": {
         "project_number": "[230001]ZKGS[GK]20260007",
@@ -33022,7 +33350,7 @@
       "decision": null
     },
     {
-      "rank": 177,
+      "rank": 179,
       "opportunity_id": "ccgp_hl_e0fd2eba998cfd6a",
       "facts": {
         "project_number": "[230001]ZLZB[GK]20260012",
@@ -33185,7 +33513,7 @@
       "decision": null
     },
     {
-      "rank": 178,
+      "rank": 180,
       "opportunity_id": "ccgp_hl_879e677f58a08926",
       "facts": {
         "project_number": "[230104]hljhs[GK]20260004",
@@ -33958,7 +34286,7 @@
       "decision": null
     },
     {
-      "rank": 179,
+      "rank": 181,
       "opportunity_id": "ccgp_hl_797a7d1e55b41bfe",
       "facts": {
         "project_number": "[231001]MDJZC[GK]20260034",
@@ -34167,7 +34495,7 @@
       "decision": null
     },
     {
-      "rank": 180,
+      "rank": 182,
       "opportunity_id": "ccgp_hl_7dd0b0741ef89b7f",
       "facts": {
         "project_number": "[230601]QC[GK]20260078",
@@ -34342,7 +34670,7 @@
       "decision": null
     },
     {
-      "rank": 181,
+      "rank": 183,
       "opportunity_id": "ccgp_hl_b52cae5de72bbb71",
       "facts": {
         "project_number": "[230001]zzgj[GK]20260062",
@@ -34505,7 +34833,7 @@
       "decision": null
     },
     {
-      "rank": 182,
+      "rank": 184,
       "opportunity_id": "ccgp_hl_eb7063446ba083ed",
       "facts": {
         "project_number": "[230601]QC[GK]20260077",
@@ -34674,7 +35002,7 @@
       "decision": null
     },
     {
-      "rank": 183,
+      "rank": 185,
       "opportunity_id": "ccgp_hl_7f672145923408ea",
       "facts": {
         "project_number": "[230001]zzgj[GK]20260057",
@@ -34837,7 +35165,7 @@
       "decision": null
     },
     {
-      "rank": 184,
+      "rank": 186,
       "opportunity_id": "ccgp_jl_909d7d99fc5d87c9",
       "facts": {
         "project_number": "采购计划-[2026]-00197号-ZTY-20267078",
@@ -35004,7 +35332,7 @@
       "decision": null
     },
     {
-      "rank": 185,
+      "rank": 187,
       "opportunity_id": "ccgp_hl_332a5a54f7cde9e2",
       "facts": {
         "project_number": "[231102]DCZX[GK]20260001",
@@ -35185,7 +35513,7 @@
       "decision": null
     },
     {
-      "rank": 186,
+      "rank": 188,
       "opportunity_id": "ccgp_hl_03b307f4b79cc186",
       "facts": {
         "project_number": "[230001]HLJGY[GK]20260004",
@@ -35570,7 +35898,7 @@
       "decision": null
     },
     {
-      "rank": 187,
+      "rank": 189,
       "opportunity_id": "ccgp_hl_14f72e1e9bf1a1ce",
       "facts": {
         "project_number": "[232721]ARXMGL[GK]20260003-1",
@@ -35740,7 +36068,7 @@
       "decision": null
     },
     {
-      "rank": 188,
+      "rank": 190,
       "opportunity_id": "ccgp_hl_283f3caafca3de19",
       "facts": {
         "project_number": "[230001]GXGJ[GK]20260005-2",
@@ -35903,7 +36231,7 @@
       "decision": null
     },
     {
-      "rank": 189,
+      "rank": 191,
       "opportunity_id": "ccgp_hl_c85af8d6ae341582",
       "facts": {
         "project_number": "[230001]GFCG[GK]20260055",
@@ -36066,7 +36394,7 @@
       "decision": null
     },
     {
-      "rank": 190,
+      "rank": 192,
       "opportunity_id": "ccgp_hl_843b8a28dbbe0d0b",
       "facts": {
         "project_number": "[230231]BC[GK]20260030",
@@ -36331,7 +36659,7 @@
       "decision": null
     },
     {
-      "rank": 191,
+      "rank": 193,
       "opportunity_id": "ccgp_hl_9244a9a9bdafe25b",
       "facts": {
         "project_number": "[230301]JXCG[GK]20260020",
@@ -36500,7 +36828,7 @@
       "decision": null
     },
     {
-      "rank": 192,
+      "rank": 194,
       "opportunity_id": "ccgp_bj_6d1abae2d9b99ae7",
       "facts": {
         "project_number": "B0708-CMC26N7819",
@@ -36661,7 +36989,7 @@
       "decision": null
     },
     {
-      "rank": 193,
+      "rank": 195,
       "opportunity_id": "ccgp_bj_0806e60e0872e8b1",
       "facts": {
         "project_number": "B0708-CMC26N7912",
@@ -36828,7 +37156,7 @@
       "decision": null
     },
     {
-      "rank": 194,
+      "rank": 196,
       "opportunity_id": "ccgp_bj_8d86781c82d34c84",
       "facts": {
         "project_number": "26CNIC381070-041",
@@ -36989,7 +37317,7 @@
       "decision": null
     },
     {
-      "rank": 195,
+      "rank": 197,
       "opportunity_id": "ccgp_he_2a9ca892bf9d0b6a",
       "facts": {
         "project_number": "HBZJ-2026N1007",
@@ -37143,7 +37471,7 @@
       "decision": null
     },
     {
-      "rank": 196,
+      "rank": 198,
       "opportunity_id": "ccgp_hl_d773be706e8683cf",
       "facts": {
         "project_number": "[230001]BJGJZB[GK]20260005",
@@ -37332,7 +37660,7 @@
       "decision": null
     },
     {
-      "rank": 197,
+      "rank": 199,
       "opportunity_id": "ccgp_hl_31c1a1e1558702aa",
       "facts": {
         "project_number": "[230001]SC[GK]20260338",
@@ -37513,7 +37841,7 @@
       "decision": null
     },
     {
-      "rank": 198,
+      "rank": 200,
       "opportunity_id": "ccgp_hl_97aab014a7deed1b",
       "facts": {
         "project_number": "[230001]SC[GK]20260336",
@@ -37683,7 +38011,7 @@
       "decision": null
     },
     {
-      "rank": 199,
+      "rank": 201,
       "opportunity_id": "ccgp_hl_ccb077536c12e520",
       "facts": {
         "project_number": "[230001]SC[GK]20260335",
@@ -37846,7 +38174,7 @@
       "decision": null
     },
     {
-      "rank": 200,
+      "rank": 202,
       "opportunity_id": "ccgp_hl_238c7a6d1d62646d",
       "facts": {
         "project_number": "[230001]SC[GK]20260236",
@@ -38305,7 +38633,7 @@
       "decision": null
     },
     {
-      "rank": 201,
+      "rank": 203,
       "opportunity_id": "ccgp_hl_68c0aa88cc5ed536",
       "facts": {
         "project_number": "[231001]ZJSH[GK]20260003",
@@ -38468,7 +38796,7 @@
       "decision": null
     },
     {
-      "rank": 202,
+      "rank": 204,
       "opportunity_id": "ccgp_hl_b0a6a23bb8073f32",
       "facts": {
         "project_number": "[231124]ZPRJ[GK]20260007",
@@ -38872,7 +39200,7 @@
       "decision": null
     },
     {
-      "rank": 203,
+      "rank": 205,
       "opportunity_id": "ccgp_bj_2cec44893e36b2b0",
       "facts": {
         "project_number": "11000026210200183468-XM001",
@@ -39033,7 +39361,7 @@
       "decision": null
     },
     {
-      "rank": 204,
+      "rank": 206,
       "opportunity_id": "ccgp_bj_7b68da1f802efe68",
       "facts": {
         "project_number": "yysbjzdlcg5-4",
@@ -39320,7 +39648,7 @@
       "decision": null
     },
     {
-      "rank": 205,
+      "rank": 207,
       "opportunity_id": "ccgp_bj_1d80b2d887fd6682",
       "facts": {
         "project_number": "XHTC-HW-2026-1049",
@@ -39481,7 +39809,7 @@
       "decision": null
     },
     {
-      "rank": 206,
+      "rank": 208,
       "opportunity_id": "ccgp_bj_d941384c34cfa840",
       "facts": {
         "project_number": "11000026210200173615-XM001",
@@ -39702,7 +40030,7 @@
       "decision": null
     },
     {
-      "rank": 207,
+      "rank": 209,
       "opportunity_id": "ccgp_he_37ff7e360009b4b0",
       "facts": {
         "project_number": "RHP-C192668883545-1",
@@ -39863,7 +40191,7 @@
       "decision": null
     },
     {
-      "rank": 208,
+      "rank": 210,
       "opportunity_id": "ccgp_jl_c2605e2e0df44b45",
       "facts": {
         "project_number": "采购计划-[2026]-00155号-JLHJZX2026-091726-ZC",
@@ -40024,7 +40352,7 @@
       "decision": null
     },
     {
-      "rank": 209,
+      "rank": 211,
       "opportunity_id": "ccgp_bj_0f18a92ffdc98276",
       "facts": {
         "project_number": "0701-264110080094",
@@ -40209,7 +40537,7 @@
       "decision": null
     },
     {
-      "rank": 210,
+      "rank": 212,
       "opportunity_id": "ccgp_0316d743f3b373c7",
       "facts": {
         "project_number": "TGPC-2026-A-0299",
@@ -40363,7 +40691,7 @@
       "decision": null
     },
     {
-      "rank": 211,
+      "rank": 213,
       "opportunity_id": "ccgp_jl_3b13d2e3117e6ae1",
       "facts": {
         "project_number": "采购计划-[2026]-00176号-thcx-zc-2026-13",
@@ -40524,7 +40852,7 @@
       "decision": null
     },
     {
-      "rank": 212,
+      "rank": 214,
       "opportunity_id": "ccgp_bj_877131eb9f02f595",
       "facts": {
         "project_number": "0701-264102170801",
@@ -40678,7 +41006,7 @@
       "decision": null
     },
     {
-      "rank": 213,
+      "rank": 215,
       "opportunity_id": "ccgp_he_41406b60884c07ad",
       "facts": {
         "project_number": "HBHX（Z）-2026-019",
@@ -40832,7 +41160,7 @@
       "decision": null
     },
     {
-      "rank": 214,
+      "rank": 216,
       "opportunity_id": "ccgp_hl_26006fa545dddca9",
       "facts": {
         "project_number": "[230225]CQXMGL[GK]20260003-1",
@@ -41001,7 +41329,7 @@
       "decision": null
     },
     {
-      "rank": 215,
+      "rank": 217,
       "opportunity_id": "ccgp_hl_bae7a4d460533e26",
       "facts": {
         "project_number": "[230606]QC[GK]20260009",
@@ -41207,7 +41535,7 @@
       "decision": null
     },
     {
-      "rank": 216,
+      "rank": 218,
       "opportunity_id": "ccgp_hl_bd21d5ad3e68b440",
       "facts": {
         "project_number": "[230001]GTCG[GK]20260008-1",
@@ -41382,7 +41710,7 @@
       "decision": null
     },
     {
-      "rank": 217,
+      "rank": 219,
       "opportunity_id": "ccgp_hl_1cd367dfd3aa57bc",
       "facts": {
         "project_number": "[231001]ZJSH[GK]20260004",
@@ -41629,7 +41957,7 @@
       "decision": null
     },
     {
-      "rank": 218,
+      "rank": 220,
       "opportunity_id": "ccgp_hl_b292e7fa7a2169f1",
       "facts": {
         "project_number": "[230001]ZKGS[GK]20260006",
@@ -41828,7 +42156,7 @@
       "decision": null
     },
     {
-      "rank": 219,
+      "rank": 221,
       "opportunity_id": "ccgp_hl_dc77311506d49f1b",
       "facts": {
         "project_number": "[230001]ZKGS[GK]20260008",
@@ -42035,7 +42363,7 @@
       "decision": null
     },
     {
-      "rank": 220,
+      "rank": 222,
       "opportunity_id": "ccgp_bj_242a346dd58d6ac0",
       "facts": {
         "project_number": "0701-264106070791",
@@ -42214,7 +42542,7 @@
       "decision": null
     },
     {
-      "rank": 221,
+      "rank": 223,
       "opportunity_id": "ccgp_hl_58784ec3f5b4a6d3",
       "facts": {
         "project_number": "[230101]GFCG[GK]20260006",
@@ -42422,7 +42750,7 @@
       "decision": null
     },
     {
-      "rank": 222,
+      "rank": 224,
       "opportunity_id": "ccgp_ln_1aa652e7aed1c0b1",
       "facts": {
         "project_number": "JH26-210000-01260",
@@ -42601,7 +42929,7 @@
       "decision": null
     },
     {
-      "rank": 223,
+      "rank": 225,
       "opportunity_id": "ccgp_he_7a337431837c8830",
       "facts": {
         "project_number": "ZHZB2026336",
@@ -42846,7 +43174,7 @@
       "decision": null
     },
     {
-      "rank": 224,
+      "rank": 226,
       "opportunity_id": "ccgp_hl_1f4ab3fa97c83ccb",
       "facts": {
         "project_number": "[230001]zzgj[GK]20260052-1",
@@ -43009,7 +43337,7 @@
       "decision": null
     },
     {
-      "rank": 225,
+      "rank": 227,
       "opportunity_id": "ccgp_hl_21ee7f7fbf4c58e2",
       "facts": {
         "project_number": "[230001]HTCL[GK]20260019",
@@ -43172,7 +43500,7 @@
       "decision": null
     },
     {
-      "rank": 226,
+      "rank": 228,
       "opportunity_id": "ccgp_hl_58d468942e66f5ac",
       "facts": {
         "project_number": "[230229]TLXH[GK]20260002",
@@ -43404,7 +43732,7 @@
       "decision": null
     },
     {
-      "rank": 227,
+      "rank": 229,
       "opportunity_id": "ccgp_hl_938f0f31ad4a1819",
       "facts": {
         "project_number": "[230801]zzgj[GK]20260014-1",
@@ -43567,7 +43895,7 @@
       "decision": null
     },
     {
-      "rank": 228,
+      "rank": 230,
       "opportunity_id": "ccgp_hl_f73a25de19a80551",
       "facts": {
         "project_number": "[230001]GFCG[GK]20260059",
@@ -43730,7 +44058,7 @@
       "decision": null
     },
     {
-      "rank": 229,
+      "rank": 231,
       "opportunity_id": "ccgp_hl_617fe69fdc11a097",
       "facts": {
         "project_number": "[230001]BZGC[GK]20260011-2",
@@ -43893,7 +44221,7 @@
       "decision": null
     },
     {
-      "rank": 230,
+      "rank": 232,
       "opportunity_id": "ccgp_hl_6d52750c4ffb34f5",
       "facts": {
         "project_number": "[230301]JXCG[GK]20260025",
@@ -44056,7 +44384,7 @@
       "decision": null
     },
     {
-      "rank": 231,
+      "rank": 233,
       "opportunity_id": "ccgp_jl_92d8a706047d0a62",
       "facts": {
         "project_number": "采购计划-[2026]-21393号-0773-2641GNJLHWGK2552",
@@ -44223,7 +44551,7 @@
       "decision": null
     },
     {
-      "rank": 232,
+      "rank": 234,
       "opportunity_id": "ccgp_he_175f256e3588ec64",
       "facts": {
         "project_number": "HBGY-2026-172",
@@ -44377,7 +44705,7 @@
       "decision": null
     },
     {
-      "rank": 233,
+      "rank": 235,
       "opportunity_id": "ccgp_he_d593bebe222b6bb4",
       "facts": {
         "project_number": "HBZJ-2026N0858",
@@ -44531,7 +44859,7 @@
       "decision": null
     },
     {
-      "rank": 234,
+      "rank": 236,
       "opportunity_id": "ccgp_bj_0d840175b4eb0590",
       "facts": {
         "project_number": "11000026210200175771-XM001",
@@ -44710,7 +45038,7 @@
       "decision": null
     },
     {
-      "rank": 235,
+      "rank": 237,
       "opportunity_id": "ccgp_ln_93daeeba3ef47848",
       "facts": {
         "project_number": "JH26-210000-47010",
@@ -44889,7 +45217,7 @@
       "decision": null
     },
     {
-      "rank": 236,
+      "rank": 238,
       "opportunity_id": "ccgp_bj_4f885ed00e503794",
       "facts": {
         "project_number": "B0708-CMC26N7921",
@@ -45056,7 +45384,7 @@
       "decision": null
     },
     {
-      "rank": 237,
+      "rank": 239,
       "opportunity_id": "ccgp_ln_85e7776fa845f8dd",
       "facts": {
         "project_number": "JH26-210300-14004",
@@ -45210,7 +45538,7 @@
       "decision": null
     },
     {
-      "rank": 238,
+      "rank": 240,
       "opportunity_id": "ccgp_hl_ad0b9fa7b1906302",
       "facts": {
         "project_number": "BDHZB20263046-6",
@@ -45364,7 +45692,7 @@
       "decision": null
     },
     {
-      "rank": 239,
+      "rank": 241,
       "opportunity_id": "ccgp_bj_7f53c5ef13844afd",
       "facts": {
         "project_number": "11000026210200176167-XM001",
@@ -45518,7 +45846,7 @@
       "decision": null
     },
     {
-      "rank": 240,
+      "rank": 242,
       "opportunity_id": "ccgp_jl_40d5ac0960328c51",
       "facts": {
         "project_number": "采购计划-[2026]-00361号-RHJL-HW-2026-0907",
@@ -45697,7 +46025,7 @@
       "decision": null
     },
     {
-      "rank": 241,
+      "rank": 243,
       "opportunity_id": "ccgp_hl_36bc770678478e4c",
       "facts": {
         "project_number": "[230001]SC[GK]20260339",
@@ -45874,7 +46202,7 @@
       "decision": null
     },
     {
-      "rank": 242,
+      "rank": 244,
       "opportunity_id": "ccgp_he_d5ec15e85fb99cca",
       "facts": {
         "project_number": "HBLC-2026039",
@@ -46028,7 +46356,7 @@
       "decision": null
     },
     {
-      "rank": 243,
+      "rank": 245,
       "opportunity_id": "ccgp_hl_e82e223d61bb94dc",
       "facts": {
         "project_number": "[230001]BRCGGL[GK]20260038",
@@ -46191,7 +46519,7 @@
       "decision": null
     },
     {
-      "rank": 244,
+      "rank": 246,
       "opportunity_id": "ccgp_jl_92fdf40c6a9c3703",
       "facts": {
         "project_number": "JD-006-TCGK-2026",
@@ -46345,7 +46673,7 @@
       "decision": null
     },
     {
-      "rank": 245,
+      "rank": 247,
       "opportunity_id": "ccgp_bj_a86ba2a9aaef454e",
       "facts": {
         "project_number": "B0708-CMC26N7343",
@@ -46560,7 +46888,7 @@
       "decision": null
     },
     {
-      "rank": 246,
+      "rank": 248,
       "opportunity_id": "ccgp_hl_71552d40bf4143b0",
       "facts": {
         "project_number": "[230001]GFCG[GK]20260053",
@@ -46723,7 +47051,7 @@
       "decision": null
     },
     {
-      "rank": 247,
+      "rank": 249,
       "opportunity_id": "ccgp_hl_b4a690f8eee80e14",
       "facts": {
         "project_number": "[230001]GFCG[GK]20260054",
@@ -46886,7 +47214,7 @@
       "decision": null
     },
     {
-      "rank": 248,
+      "rank": 250,
       "opportunity_id": "ccgp_bj_b85e1a17547aaf8e",
       "facts": {
         "project_number": "清华一附院采招【2026】29号/XHTC-HW-2026-1102",
@@ -47089,7 +47417,7 @@
       "decision": null
     },
     {
-      "rank": 249,
+      "rank": 251,
       "opportunity_id": "ccgp_he_d7bd4705040dd697",
       "facts": {
         "project_number": "HBZJ-2026N0819",
@@ -47250,7 +47578,7 @@
       "decision": null
     },
     {
-      "rank": 250,
+      "rank": 252,
       "opportunity_id": "ccgp_he_f57cc4d32fdcdf82",
       "facts": {
         "project_number": "ZFCG2026090114001",
@@ -47404,7 +47732,7 @@
       "decision": null
     },
     {
-      "rank": 251,
+      "rank": 253,
       "opportunity_id": "ccgp_bj_94f3b57ec2e52cef",
       "facts": {
         "project_number": "11010626210200029926-XM001",
@@ -47571,7 +47899,7 @@
       "decision": null
     },
     {
-      "rank": 252,
+      "rank": 254,
       "opportunity_id": "ccgp_bj_919c2f17ce28efcc",
       "facts": {
         "project_number": "11000026210200180182-XM001",
@@ -47732,7 +48060,7 @@
       "decision": null
     },
     {
-      "rank": 253,
+      "rank": 255,
       "opportunity_id": "ccgp_he_a6f5c6104e741062",
       "facts": {
         "project_number": "ZHZB2026537",
@@ -47893,7 +48221,7 @@
       "decision": null
     },
     {
-      "rank": 254,
+      "rank": 256,
       "opportunity_id": "ccgp_jl_395d4bb0e608db5a",
       "facts": {
         "project_number": "采购计划-[2026]-02211号-采购计划-[2026]-02211号",
@@ -48060,7 +48388,7 @@
       "decision": null
     },
     {
-      "rank": 255,
+      "rank": 257,
       "opportunity_id": "ccgp_he_0a05c28e5e781b6c",
       "facts": {
         "project_number": "HXZB2026-T1-00416-001",
@@ -48221,7 +48549,7 @@
       "decision": null
     },
     {
-      "rank": 256,
+      "rank": 258,
       "opportunity_id": "ccgp_he_7baebbbc9d3dc5e7",
       "facts": {
         "project_number": "FXZB-ZC20260914",
@@ -48382,7 +48710,7 @@
       "decision": null
     },
     {
-      "rank": 257,
+      "rank": 259,
       "opportunity_id": "ccgp_he_a0f28a00cc77aaaf",
       "facts": {
         "project_number": "Z1303002608402001",
@@ -48536,7 +48864,7 @@
       "decision": null
     },
     {
-      "rank": 258,
+      "rank": 260,
       "opportunity_id": "ccgp_bj_d65b65a292f5b7a0",
       "facts": {
         "project_number": "11011526210200032771-XM003",
@@ -48709,7 +49037,7 @@
       "decision": null
     },
     {
-      "rank": 259,
+      "rank": 261,
       "opportunity_id": "ccgp_ln_a1ffcd4f881bb365",
       "facts": {
         "project_number": "JH26-210100-03371",
@@ -48894,7 +49222,7 @@
       "decision": null
     },
     {
-      "rank": 260,
+      "rank": 262,
       "opportunity_id": "ccgp_bj_1b8087c7f314143b",
       "facts": {
         "project_number": "0733-26110875",
@@ -49055,7 +49383,7 @@
       "decision": null
     },
     {
-      "rank": 261,
+      "rank": 263,
       "opportunity_id": "ccgp_bj_4b13ab918cdd0361",
       "facts": {
         "project_number": "11011426210200034217-XM001",
@@ -49222,7 +49550,7 @@
       "decision": null
     },
     {
-      "rank": 262,
+      "rank": 264,
       "opportunity_id": "ccgp_jl_21531518ec6dfe32",
       "facts": {
         "project_number": "0773-2641GNJLHWGK2704",
@@ -49407,7 +49735,7 @@
       "decision": null
     },
     {
-      "rank": 263,
+      "rank": 265,
       "opportunity_id": "ccgp_bj_a04fa86beb737fd4",
       "facts": {
         "project_number": "11010826210200056613-XM001",
@@ -49574,7 +49902,7 @@
       "decision": null
     },
     {
-      "rank": 264,
+      "rank": 266,
       "opportunity_id": "ccgp_he_2eb184a1fcd226b8",
       "facts": {
         "project_number": "HBCT-261650",
@@ -49741,7 +50069,7 @@
       "decision": null
     },
     {
-      "rank": 265,
+      "rank": 267,
       "opportunity_id": "ccgp_he_b4a53a6d27c71b5c",
       "facts": {
         "project_number": "HBCX-20260911",
@@ -49895,7 +50223,7 @@
       "decision": null
     },
     {
-      "rank": 266,
+      "rank": 268,
       "opportunity_id": "ccgp_ln_11985270acd35922",
       "facts": {
         "project_number": "JH26-210000-05257",
@@ -50062,7 +50390,7 @@
       "decision": null
     },
     {
-      "rank": 267,
+      "rank": 269,
       "opportunity_id": "ccgp_ln_3387ee457fa8b321",
       "facts": {
         "project_number": "JH26-210100-09105",
@@ -50223,7 +50551,7 @@
       "decision": null
     },
     {
-      "rank": 268,
+      "rank": 270,
       "opportunity_id": "ccgp_bj_af714557953ba895",
       "facts": {
         "project_number": "0701-264110080093",
@@ -50396,7 +50724,7 @@
       "decision": null
     },
     {
-      "rank": 269,
+      "rank": 271,
       "opportunity_id": "ccgp_bj_5c69d85279dce1e5",
       "facts": {
         "project_number": "0701-264106140931",
@@ -50575,7 +50903,7 @@
       "decision": null
     },
     {
-      "rank": 270,
+      "rank": 272,
       "opportunity_id": "ccgp_he_1f9a72862a4d6a42",
       "facts": {
         "project_number": "RHP-C192669203869-1",
@@ -50736,7 +51064,7 @@
       "decision": null
     },
     {
-      "rank": 271,
+      "rank": 273,
       "opportunity_id": "ccgp_bj_1d41464508071bc8",
       "facts": {
         "project_number": "11011226210200021664-XM001",
@@ -50890,7 +51218,7 @@
       "decision": null
     },
     {
-      "rank": 272,
+      "rank": 274,
       "opportunity_id": "ccgp_hl_8ed6e1acc09c811a",
       "facts": {
         "project_number": "BDHZB20263046-4",
@@ -51044,7 +51372,7 @@
       "decision": null
     },
     {
-      "rank": 273,
+      "rank": 275,
       "opportunity_id": "ccgp_he_4ced33abe103dca7",
       "facts": {
         "project_number": "ZJKXY-2026-02",
@@ -51198,7 +51526,7 @@
       "decision": null
     },
     {
-      "rank": 274,
+      "rank": 276,
       "opportunity_id": "ccgp_bj_27c4b67032bf597f",
       "facts": {
         "project_number": "11011226210200022017-XM001",
@@ -51352,7 +51680,7 @@
       "decision": null
     },
     {
-      "rank": 275,
+      "rank": 277,
       "opportunity_id": "ccgp_he_6e1e4a83e00b40a3",
       "facts": {
         "project_number": "ZHZB2026483",
@@ -51506,7 +51834,7 @@
       "decision": null
     },
     {
-      "rank": 276,
+      "rank": 278,
       "opportunity_id": "ccgp_he_a0ab098083f37680",
       "facts": {
         "project_number": "HBTK(2026)-01-209",
@@ -51660,7 +51988,7 @@
       "decision": null
     },
     {
-      "rank": 277,
+      "rank": 279,
       "opportunity_id": "ccgp_hl_c45a7aa0325e26be",
       "facts": {
         "project_number": "[230401]BZGC[GK]20260002",
@@ -51823,7 +52151,7 @@
       "decision": null
     },
     {
-      "rank": 278,
+      "rank": 280,
       "opportunity_id": "ccgp_ln_1bd046dbac79f172",
       "facts": {
         "project_number": "JH26-210000-01253",
@@ -51977,7 +52305,7 @@
       "decision": null
     },
     {
-      "rank": 279,
+      "rank": 281,
       "opportunity_id": "ccgp_ln_7d7eb844e2e5aec2",
       "facts": {
         "project_number": "JH26-210900-01441",
@@ -52131,7 +52459,7 @@
       "decision": null
     },
     {
-      "rank": 280,
+      "rank": 282,
       "opportunity_id": "ccgp_hl_5c0dfda9a76a85cc",
       "facts": {
         "project_number": "[230001]zzgj[GK]20260038-3",
@@ -52294,7 +52622,7 @@
       "decision": null
     },
     {
-      "rank": 281,
+      "rank": 283,
       "opportunity_id": "ccgp_hl_c5ca68e8e4f59fb3",
       "facts": {
         "project_number": "[230801]BZGC[GK]20260009-2",
@@ -52583,7 +52911,7 @@
       "decision": null
     },
     {
-      "rank": 282,
+      "rank": 284,
       "opportunity_id": "ccgp_bj_21d639f93d1c1ef4",
       "facts": {
         "project_number": "11000026210200179468-XM001",
@@ -52810,7 +53138,7 @@
       "decision": null
     },
     {
-      "rank": 283,
+      "rank": 285,
       "opportunity_id": "ccgp_hl_0e45da329626df25",
       "facts": {
         "project_number": "[231084]zxgcxm[GK]20260002",
@@ -52991,7 +53319,7 @@
       "decision": null
     },
     {
-      "rank": 284,
+      "rank": 286,
       "opportunity_id": "ccgp_c3bcd185779b6b36",
       "facts": {
         "project_number": "0615-2641031930899",
@@ -53145,7 +53473,7 @@
       "decision": null
     },
     {
-      "rank": 285,
+      "rank": 287,
       "opportunity_id": "ccgp_bj_66f7980e1548d3cf",
       "facts": {
         "project_number": "11000026210200166997-XM001",
@@ -53299,7 +53627,7 @@
       "decision": null
     },
     {
-      "rank": 286,
+      "rank": 288,
       "opportunity_id": "ccgp_efbdd298c9209996",
       "facts": {
         "project_number": "ZCZBZC-GK-2026080529",
@@ -53453,7 +53781,7 @@
       "decision": null
     },
     {
-      "rank": 287,
+      "rank": 289,
       "opportunity_id": "ccgp_hl_c612a681c642d4f0",
       "facts": {
         "project_number": "[230101]-HCC-[GK]20260012-4",
@@ -53616,7 +53944,7 @@
       "decision": null
     },
     {
-      "rank": 288,
+      "rank": 290,
       "opportunity_id": "ccgp_hl_2a96e7b1db171897",
       "facts": {
         "project_number": "[230103]ALZC[GK]20260005",
@@ -53785,7 +54113,7 @@
       "decision": null
     },
     {
-      "rank": 289,
+      "rank": 291,
       "opportunity_id": "ccgp_ln_40589d6ed9e41fee",
       "facts": {
         "project_number": "HFZC260901",
@@ -53939,7 +54267,7 @@
       "decision": null
     },
     {
-      "rank": 290,
+      "rank": 292,
       "opportunity_id": "ccgp_hl_b3a6d6aab50d0212",
       "facts": {
         "project_number": "[230001]HLJLB[GK]20260004-1",
@@ -54412,7 +54740,7 @@
       "decision": null
     },
     {
-      "rank": 291,
+      "rank": 293,
       "opportunity_id": "ccgp_jl_d69a5b63b7c668f1",
       "facts": {
         "project_number": "采购计划-[2026]-00147号-JLJH-2026-LYCZ07",
@@ -54566,7 +54894,7 @@
       "decision": null
     },
     {
-      "rank": 292,
+      "rank": 294,
       "opportunity_id": "ccgp_jl_37172df35abece06",
       "facts": {
         "project_number": "采购计划-[2026]-12648号-",
@@ -54727,7 +55055,7 @@
       "decision": null
     },
     {
-      "rank": 293,
+      "rank": 295,
       "opportunity_id": "ccgp_bj_71b6984cdeed7b23",
       "facts": {
         "project_number": "ZYZB-2026-0863",
@@ -54900,7 +55228,7 @@
       "decision": null
     },
     {
-      "rank": 294,
+      "rank": 296,
       "opportunity_id": "ccgp_ln_e098f4b20ac83f0c",
       "facts": {
         "project_number": "JH26-210114-00691",
@@ -55079,7 +55407,7 @@
       "decision": null
     },
     {
-      "rank": 295,
+      "rank": 297,
       "opportunity_id": "ccgp_bj_d266c2025d82740e",
       "facts": {
         "project_number": "11011526210200034423-XM001",
@@ -55233,7 +55561,7 @@
       "decision": null
     },
     {
-      "rank": 296,
+      "rank": 298,
       "opportunity_id": "ccgp_ln_1777302f120df1c2",
       "facts": {
         "project_number": "JH26-210000-01257",
@@ -55387,7 +55715,7 @@
       "decision": null
     },
     {
-      "rank": 297,
+      "rank": 299,
       "opportunity_id": "ccgp_bj_acaf0e862f864afa",
       "facts": {
         "project_number": "0747-2661SCCZD150",
@@ -55548,7 +55876,7 @@
       "decision": null
     },
     {
-      "rank": 298,
+      "rank": 300,
       "opportunity_id": "ccgp_he_cc75e4131bf95a76",
       "facts": {
         "project_number": "Z1303002607992011",
@@ -55709,7 +56037,7 @@
       "decision": null
     },
     {
-      "rank": 299,
+      "rank": 301,
       "opportunity_id": "ccgp_bj_37449b3424dda14d",
       "facts": {
         "project_number": "0686-2611CI076050Z",
@@ -55876,7 +56204,7 @@
       "decision": null
     },
     {
-      "rank": 300,
+      "rank": 302,
       "opportunity_id": "ccgp_bj_e7382d1a03a4fa5c",
       "facts": {
         "project_number": "ZYZB-2026-0926",
@@ -56055,7 +56383,7 @@
       "decision": null
     },
     {
-      "rank": 301,
+      "rank": 303,
       "opportunity_id": "ccgp_bj_71d0591c0ad4ea50",
       "facts": {
         "project_number": "清华一附院采招【2026】23号/XHTC-HW-2026-1163",
@@ -56276,7 +56604,7 @@
       "decision": null
     },
     {
-      "rank": 302,
+      "rank": 304,
       "opportunity_id": "ccgp_bj_1505a6fd679234f3",
       "facts": {
         "project_number": "11010826210200059297-XM001",
@@ -56485,7 +56813,7 @@
       "decision": null
     },
     {
-      "rank": 303,
+      "rank": 305,
       "opportunity_id": "ccgp_he_a48789de0ca38c37",
       "facts": {
         "project_number": "HBCACG(2026)044",
@@ -56646,7 +56974,7 @@
       "decision": null
     },
     {
-      "rank": 304,
+      "rank": 306,
       "opportunity_id": "ccgp_he_cf3f508921d5ea96",
       "facts": {
         "project_number": "HFZB-03-2026-014/01/02/03/04",
@@ -56825,7 +57153,7 @@
       "decision": null
     },
     {
-      "rank": 305,
+      "rank": 307,
       "opportunity_id": "ccgp_jl_ddb0ce0753d1e87f",
       "facts": {
         "project_number": "采购计划-[2026]-00151号-JLSHSH-20260911",
@@ -56992,7 +57320,7 @@
       "decision": null
     },
     {
-      "rank": 306,
+      "rank": 308,
       "opportunity_id": "ccgp_ln_78ea230a3f1fd71b",
       "facts": {
         "project_number": "JH26-210000-01256",
@@ -57183,7 +57511,7 @@
       "decision": null
     },
     {
-      "rank": 307,
+      "rank": 309,
       "opportunity_id": "ccgp_b08543ab4d6720af",
       "facts": {
         "project_number": "0615-2641031940902",
@@ -57337,7 +57665,7 @@
       "decision": null
     },
     {
-      "rank": 308,
+      "rank": 310,
       "opportunity_id": "ccgp_he_f57a4fa38fdd7343",
       "facts": {
         "project_number": "ZCZB-2026-183-01",
@@ -57491,7 +57819,7 @@
       "decision": null
     },
     {
-      "rank": 309,
+      "rank": 311,
       "opportunity_id": "ccgp_he_b44ef959a9fbabcc",
       "facts": {
         "project_number": "HBCT-261715-001",
@@ -57645,7 +57973,7 @@
       "decision": null
     },
     {
-      "rank": 310,
+      "rank": 312,
       "opportunity_id": "ccgp_bj_964489f21d26f353",
       "facts": {
         "project_number": "11000026210200177236-XM001",
@@ -57806,7 +58134,7 @@
       "decision": null
     },
     {
-      "rank": 311,
+      "rank": 313,
       "opportunity_id": "ccgp_bj_0910dbf1b0a1954b",
       "facts": {
         "project_number": "0701-264110080092",
@@ -57973,7 +58301,7 @@
       "decision": null
     },
     {
-      "rank": 312,
+      "rank": 314,
       "opportunity_id": "ccgp_jl_98e8882148a999de",
       "facts": {
         "project_number": "ZRZBCG2026-091",
@@ -58127,7 +58455,7 @@
       "decision": null
     },
     {
-      "rank": 313,
+      "rank": 315,
       "opportunity_id": "ccgp_jl_a36e78f6eee0d809",
       "facts": {
         "project_number": "CMEETC-267DP114BB182",
@@ -58288,7 +58616,7 @@
       "decision": null
     },
     {
-      "rank": 314,
+      "rank": 316,
       "opportunity_id": "ccgp_bj_35bf6f7ec31c5a54",
       "facts": {
         "project_number": "11010126210200021596-XM001",
@@ -58575,7 +58903,7 @@
       "decision": null
     },
     {
-      "rank": 315,
+      "rank": 317,
       "opportunity_id": "ccgp_ln_281509c6bb7bf60e",
       "facts": {
         "project_number": "JH26-210000-00510",
@@ -58736,7 +59064,7 @@
       "decision": null
     },
     {
-      "rank": 316,
+      "rank": 318,
       "opportunity_id": "ccgp_hl_4ba699aadb357015",
       "facts": {
         "project_number": "[230001]GZXMGL[GK]20260013",
@@ -58899,7 +59227,7 @@
       "decision": null
     },
     {
-      "rank": 317,
+      "rank": 319,
       "opportunity_id": "ccgp_he_96053b00cf8132fb",
       "facts": {
         "project_number": "Z1309002601942031",
@@ -59053,7 +59381,7 @@
       "decision": null
     },
     {
-      "rank": 318,
+      "rank": 320,
       "opportunity_id": "ccgp_jl_fd7dc53a8285e29f",
       "facts": {
         "project_number": "采购计划-[2026]-03428号-J2026ZCY243",
@@ -59207,7 +59535,7 @@
       "decision": null
     },
     {
-      "rank": 319,
+      "rank": 321,
       "opportunity_id": "ccgp_ln_d21cbcbd16be9a4c",
       "facts": {
         "project_number": "JH26-211422-00089",
@@ -59361,7 +59689,7 @@
       "decision": null
     },
     {
-      "rank": 320,
+      "rank": 322,
       "opportunity_id": "ccgp_4bfa39429a3845a3",
       "facts": {
         "project_number": "ZCZB-2026-D-435",
@@ -59515,7 +59843,7 @@
       "decision": null
     },
     {
-      "rank": 321,
+      "rank": 323,
       "opportunity_id": "ccgp_hl_fe99310e1c67348b",
       "facts": {
         "project_number": "[230001]ZLZB[GK]20260013",
@@ -59702,7 +60030,7 @@
       "decision": null
     },
     {
-      "rank": 322,
+      "rank": 324,
       "opportunity_id": "ccgp_jl_321f830842ed652c",
       "facts": {
         "project_number": "ZZ62200HW04310121",
@@ -59856,7 +60184,7 @@
       "decision": null
     },
     {
-      "rank": 323,
+      "rank": 325,
       "opportunity_id": "ccgp_hl_8ccc6eaa97cc1df1",
       "facts": {
         "project_number": "[231226]BRCGGL[GK]20260001-1",
@@ -60019,7 +60347,7 @@
       "decision": null
     },
     {
-      "rank": 324,
+      "rank": 326,
       "opportunity_id": "ccgp_bj_e0a0264b901a7be1",
       "facts": {
         "project_number": "11010826210200057063-XM001",
@@ -60186,7 +60514,7 @@
       "decision": null
     },
     {
-      "rank": 325,
+      "rank": 327,
       "opportunity_id": "ccgp_bj_a1272540f5779cf8",
       "facts": {
         "project_number": "11011526210200034530-XM001",
@@ -60340,7 +60668,7 @@
       "decision": null
     },
     {
-      "rank": 326,
+      "rank": 328,
       "opportunity_id": "ccgp_hl_71dd681cc01b3a6d",
       "facts": {
         "project_number": "[230001]ZBGJGC[GK]20260011",
@@ -60503,7 +60831,7 @@
       "decision": null
     },
     {
-      "rank": 327,
+      "rank": 329,
       "opportunity_id": "ccgp_jl_46ec16fc6b507272",
       "facts": {
         "project_number": "采购计划-[2026]-00167号-ZTY-2026707（二次）",
@@ -60657,7 +60985,7 @@
       "decision": null
     },
     {
-      "rank": 328,
+      "rank": 330,
       "opportunity_id": "ccgp_he_9be87b0c84b3aa64",
       "facts": {
         "project_number": "HBXK-2026-40",
@@ -60830,7 +61158,7 @@
       "decision": null
     },
     {
-      "rank": 329,
+      "rank": 331,
       "opportunity_id": "ccgp_hl_992708d6008827d4",
       "facts": {
         "project_number": "[230801]BZGC[GK]20260015",
@@ -60999,7 +61327,7 @@
       "decision": null
     },
     {
-      "rank": 330,
+      "rank": 332,
       "opportunity_id": "ccgp_hl_c2be7a157cdbfbf2",
       "facts": {
         "project_number": "[231086]JHXM[GK]20260009",
@@ -61162,7 +61490,7 @@
       "decision": null
     },
     {
-      "rank": 331,
+      "rank": 333,
       "opportunity_id": "ccgp_hl_bbef5edf1de62a2c",
       "facts": {
         "project_number": "BDHZB20263046-3",
@@ -61316,7 +61644,7 @@
       "decision": null
     },
     {
-      "rank": 332,
+      "rank": 334,
       "opportunity_id": "ccgp_he_4e4439688a7205c1",
       "facts": {
         "project_number": "HBQH-ZB26048（XT）",
@@ -61470,7 +61798,7 @@
       "decision": null
     },
     {
-      "rank": 333,
+      "rank": 335,
       "opportunity_id": "ccgp_ln_4cfe8973bdb983e2",
       "facts": {
         "project_number": "JH26-210402-00408",
@@ -61624,7 +61952,7 @@
       "decision": null
     },
     {
-      "rank": 334,
+      "rank": 336,
       "opportunity_id": "ccgp_jl_3892cee8f83c2385",
       "facts": {
         "project_number": "采购计划-[2026]-14801号-MTZX26078",
@@ -61785,7 +62113,7 @@
       "decision": null
     },
     {
-      "rank": 335,
+      "rank": 337,
       "opportunity_id": "ccgp_jl_30d7fd96314c3599",
       "facts": {
         "project_number": "采购计划-[2026]-22402号-01",
@@ -61939,7 +62267,7 @@
       "decision": null
     },
     {
-      "rank": 336,
+      "rank": 338,
       "opportunity_id": "ccgp_ln_f986aab4e04e6265",
       "facts": {
         "project_number": "JH26-210000-10792",
@@ -62100,7 +62428,7 @@
       "decision": null
     },
     {
-      "rank": 337,
+      "rank": 339,
       "opportunity_id": "ccgp_ln_f65ddaf892429853",
       "facts": {
         "project_number": "DLZR-2026-0609",
@@ -62254,7 +62582,7 @@
       "decision": null
     },
     {
-      "rank": 338,
+      "rank": 340,
       "opportunity_id": "ccgp_52c744a527a0dc93",
       "facts": {
         "project_number": "ZCZBZC-GK-2026080545",
@@ -62408,7 +62736,7 @@
       "decision": null
     },
     {
-      "rank": 339,
+      "rank": 341,
       "opportunity_id": "ccgp_bj_09b4fd0ba898c03b",
       "facts": {
         "project_number": "11011226210200022107-XM001",
@@ -62562,7 +62890,7 @@
       "decision": null
     },
     {
-      "rank": 340,
+      "rank": 342,
       "opportunity_id": "ccgp_bj_97bc81d7893e485d",
       "facts": {
         "project_number": "26CNIC381070-060",
@@ -62716,7 +63044,7 @@
       "decision": null
     },
     {
-      "rank": 341,
+      "rank": 343,
       "opportunity_id": "ccgp_he_10408499c90f4b8d",
       "facts": {
         "project_number": "hbzzkxzb-2026-075-1",
@@ -62870,7 +63198,7 @@
       "decision": null
     },
     {
-      "rank": 342,
+      "rank": 344,
       "opportunity_id": "ccgp_he_e9439caae92699c8",
       "facts": {
         "project_number": "Z1311002603331001",
@@ -63024,7 +63352,7 @@
       "decision": null
     },
     {
-      "rank": 343,
+      "rank": 345,
       "opportunity_id": "ccgp_bj_157e922f31e3fd67",
       "facts": {
         "project_number": "11010126210200022486-XM001",
@@ -63178,7 +63506,7 @@
       "decision": null
     },
     {
-      "rank": 344,
+      "rank": 346,
       "opportunity_id": "ccgp_jl_b8bc296bda21bf7d",
       "facts": {
         "project_number": "采购计划-[2026]-05758号-20260508-FW01-F-04",
@@ -63332,7 +63660,7 @@
       "decision": null
     },
     {
-      "rank": 345,
+      "rank": 347,
       "opportunity_id": "ccgp_bj_cb37455c2164faed",
       "facts": {
         "project_number": "11010626210200029853-XM001",
@@ -63486,7 +63814,7 @@
       "decision": null
     },
     {
-      "rank": 346,
+      "rank": 348,
       "opportunity_id": "ccgp_he_7fdd9c9f320a3c7a",
       "facts": {
         "project_number": "HBBY-HW-F2026204",
@@ -63640,7 +63968,7 @@
       "decision": null
     },
     {
-      "rank": 347,
+      "rank": 349,
       "opportunity_id": "ccgp_jl_ce616c8f3167b613",
       "facts": {
         "project_number": "采购计划-[2026]-00122号-JLSHSH-20260918",
@@ -63794,7 +64122,7 @@
       "decision": null
     },
     {
-      "rank": 348,
+      "rank": 350,
       "opportunity_id": "ccgp_he_4186538283601bfd",
       "facts": {
         "project_number": "YLZB-2026-004",
@@ -63948,7 +64276,7 @@
       "decision": null
     },
     {
-      "rank": 349,
+      "rank": 351,
       "opportunity_id": "ccgp_ln_d4ce76c3c5281b90",
       "facts": {
         "project_number": "JH26-210727-00061",
@@ -64102,7 +64430,7 @@
       "decision": null
     },
     {
-      "rank": 350,
+      "rank": 352,
       "opportunity_id": "ccgp_hl_1f60f1936a1abc3d",
       "facts": {
         "project_number": "BDHZB20263046-5",
@@ -64256,7 +64584,7 @@
       "decision": null
     },
     {
-      "rank": 351,
+      "rank": 353,
       "opportunity_id": "ccgp_hl_ef2c55a2cb09bb3f",
       "facts": {
         "project_number": "BDHZB20263046-7",
@@ -64410,7 +64738,7 @@
       "decision": null
     },
     {
-      "rank": 352,
+      "rank": 354,
       "opportunity_id": "ccgp_jl_25eb3b5947b52eaa",
       "facts": {
         "project_number": "采购计划-[2026]-13786号-",
@@ -64571,7 +64899,7 @@
       "decision": null
     },
     {
-      "rank": 353,
+      "rank": 355,
       "opportunity_id": "ccgp_he_2a56d00dbab0057e",
       "facts": {
         "project_number": "BDLY-2026-04",
@@ -64725,7 +65053,7 @@
       "decision": null
     },
     {
-      "rank": 354,
+      "rank": 356,
       "opportunity_id": "ccgp_he_55e87daf4e17b337",
       "facts": {
         "project_number": "CSZB2026-034",
@@ -64879,7 +65207,7 @@
       "decision": null
     },
     {
-      "rank": 355,
+      "rank": 357,
       "opportunity_id": "ccgp_he_8e296e4e7d72605d",
       "facts": {
         "project_number": "HBDS2026-028ZC",
@@ -65033,7 +65361,7 @@
       "decision": null
     },
     {
-      "rank": 356,
+      "rank": 358,
       "opportunity_id": "ccgp_jl_d1902e9d26f85d3c",
       "facts": {
         "project_number": "JM-2026-06-04930-GZ260296HW0431-0004（3）-07",
@@ -65194,7 +65522,7 @@
       "decision": null
     },
     {
-      "rank": 357,
+      "rank": 359,
       "opportunity_id": "ccgp_ln_f1209a4ee4d2abde",
       "facts": {
         "project_number": "JH26-210300-12305",
@@ -65355,7 +65683,7 @@
       "decision": null
     },
     {
-      "rank": 358,
+      "rank": 360,
       "opportunity_id": "ccgp_jl_9a207eb2913d5d9b",
       "facts": {
         "project_number": "DFA-BFCC-DL-20261594",
@@ -65516,7 +65844,7 @@
       "decision": null
     },
     {
-      "rank": 359,
+      "rank": 361,
       "opportunity_id": "ccgp_bj_93e9da381ddb3644",
       "facts": {
         "project_number": "BMCC-ZC26-1296",
@@ -65677,7 +66005,7 @@
       "decision": null
     },
     {
-      "rank": 360,
+      "rank": 362,
       "opportunity_id": "ccgp_he_3de3719d2c4eadc3",
       "facts": {
         "project_number": "HBGJ-260086-002",
@@ -65831,7 +66159,7 @@
       "decision": null
     },
     {
-      "rank": 361,
+      "rank": 363,
       "opportunity_id": "ccgp_he_d8c9dbd6ac8c7ec8",
       "facts": {
         "project_number": "HBZS-2026-110",
@@ -65985,7 +66313,7 @@
       "decision": null
     },
     {
-      "rank": 362,
+      "rank": 364,
       "opportunity_id": "ccgp_jl_3d36d5e3cfbec2a5",
       "facts": {
         "project_number": "DFA-BFCC-DL-20261602",
@@ -66146,7 +66474,7 @@
       "decision": null
     },
     {
-      "rank": 363,
+      "rank": 365,
       "opportunity_id": "ccgp_jl_d091117e7b8063a6",
       "facts": {
         "project_number": "ZZ62199HW04310120",
@@ -66300,7 +66628,7 @@
       "decision": null
     },
     {
-      "rank": 364,
+      "rank": 366,
       "opportunity_id": "ccgp_hl_11f9725a0aea9fb7",
       "facts": {
         "project_number": "[230001]BRCGGL[GK]20260022-3",
@@ -66463,7 +66791,7 @@
       "decision": null
     },
     {
-      "rank": 365,
+      "rank": 367,
       "opportunity_id": "ccgp_hl_a45fee87f02018fb",
       "facts": {
         "project_number": "[230001]ztyx22[GK]20260003",
@@ -66626,7 +66954,7 @@
       "decision": null
     },
     {
-      "rank": 366,
+      "rank": 368,
       "opportunity_id": "ccgp_jl_c3ec6bb1097c5f95",
       "facts": {
         "project_number": "GMGITC-JL-260911",
@@ -66780,7 +67108,7 @@
       "decision": null
     },
     {
-      "rank": 367,
+      "rank": 369,
       "opportunity_id": "ccgp_bj_138a45d6d7b9eb84",
       "facts": {
         "project_number": "11011526210200032771-XM001",
@@ -66941,7 +67269,7 @@
       "decision": null
     },
     {
-      "rank": 368,
+      "rank": 370,
       "opportunity_id": "ccgp_hl_135aea4be83cb712",
       "facts": {
         "project_number": "[230001]ZLZB[GK]20260009-1",
@@ -67123,7 +67451,7 @@
       "decision": null
     },
     {
-      "rank": 369,
+      "rank": 371,
       "opportunity_id": "ccgp_he_a15ac7a7c87e3ea5",
       "facts": {
         "project_number": "SJZGK20261456",
@@ -67277,7 +67605,7 @@
       "decision": null
     },
     {
-      "rank": 370,
+      "rank": 372,
       "opportunity_id": "ccgp_he_e278dd212a38dfef",
       "facts": {
         "project_number": "RHP-C182667213209-1",
@@ -67431,7 +67759,7 @@
       "decision": null
     },
     {
-      "rank": 371,
+      "rank": 373,
       "opportunity_id": "ccgp_he_92fa197a4a6b49bb",
       "facts": {
         "project_number": "HBCT-261805-001",
@@ -67585,7 +67913,7 @@
       "decision": null
     },
     {
-      "rank": 372,
+      "rank": 374,
       "opportunity_id": "ccgp_he_5e0a8506a98c33f0",
       "facts": {
         "project_number": "ZHZB2026501",
@@ -67739,7 +68067,7 @@
       "decision": null
     },
     {
-      "rank": 373,
+      "rank": 375,
       "opportunity_id": "ccgp_he_f67074c057924473",
       "facts": {
         "project_number": "YCZB-2026-043",
@@ -67893,7 +68221,7 @@
       "decision": null
     },
     {
-      "rank": 374,
+      "rank": 376,
       "opportunity_id": "ccgp_d93612752b64414f",
       "facts": {
         "project_number": "XCSD-2026-A-813",
@@ -68047,7 +68375,7 @@
       "decision": null
     },
     {
-      "rank": 375,
+      "rank": 377,
       "opportunity_id": "ccgp_bj_e9b86c9ad0af468f",
       "facts": {
         "project_number": "TC260306Y",
@@ -68201,7 +68529,7 @@
       "decision": null
     },
     {
-      "rank": 376,
+      "rank": 378,
       "opportunity_id": "ccgp_jl_5dd5cc274173add9",
       "facts": {
         "project_number": "JLSZC20260009302",
@@ -68355,7 +68683,7 @@
       "decision": null
     },
     {
-      "rank": 377,
+      "rank": 379,
       "opportunity_id": "ccgp_jl_25f839fcad42c904",
       "facts": {
         "project_number": "采购计划备-[2026]-00451号-3次J2026ZCY045",
@@ -68509,7 +68837,7 @@
       "decision": null
     },
     {
-      "rank": 378,
+      "rank": 380,
       "opportunity_id": "ccgp_bj_4d67de9e75d74e20",
       "facts": {
         "project_number": "11000026210200183208-XM001",
@@ -68663,7 +68991,7 @@
       "decision": null
     },
     {
-      "rank": 379,
+      "rank": 381,
       "opportunity_id": "ccgp_bj_583c118e4764bc85",
       "facts": {
         "project_number": "11010626210200029853-XM002",
@@ -68817,7 +69145,7 @@
       "decision": null
     },
     {
-      "rank": 380,
+      "rank": 382,
       "opportunity_id": "ccgp_he_9cc792cfed71e285",
       "facts": {
         "project_number": "QXRMYY-2026-008",
@@ -68971,7 +69299,7 @@
       "decision": null
     },
     {
-      "rank": 381,
+      "rank": 383,
       "opportunity_id": "ccgp_he_478610b0f138d45b",
       "facts": {
         "project_number": "ZCZB-2026-322",
@@ -69125,7 +69453,7 @@
       "decision": null
     },
     {
-      "rank": 382,
+      "rank": 384,
       "opportunity_id": "ccgp_ln_0a1968302f45e8a9",
       "facts": {
         "project_number": "JH26-211300-01453",
@@ -69279,7 +69607,7 @@
       "decision": null
     },
     {
-      "rank": 383,
+      "rank": 385,
       "opportunity_id": "ccgp_ln_d3b4951c330e4b2f",
       "facts": {
         "project_number": "JH26-210000-05256",
@@ -69433,7 +69761,7 @@
       "decision": null
     },
     {
-      "rank": 384,
+      "rank": 386,
       "opportunity_id": "ccgp_jl_3edf4a29f776eebf",
       "facts": {
         "project_number": "采购计划-[2025]-16825号-1-20260802",
@@ -69600,7 +69928,7 @@
       "decision": null
     },
     {
-      "rank": 385,
+      "rank": 387,
       "opportunity_id": "ccgp_he_c6dc7d167f0754ef",
       "facts": {
         "project_number": "HB2026093610260006",
@@ -69754,7 +70082,7 @@
       "decision": null
     },
     {
-      "rank": 386,
+      "rank": 388,
       "opportunity_id": "ccgp_he_d54d0b359e145070",
       "facts": {
         "project_number": "RHP-C192668573178-1",
@@ -69915,7 +70243,7 @@
       "decision": null
     },
     {
-      "rank": 387,
+      "rank": 389,
       "opportunity_id": "ccgp_he_ed59ee7c166c5652",
       "facts": {
         "project_number": "XHZB(ZC)-2026-0939",
@@ -70069,7 +70397,7 @@
       "decision": null
     },
     {
-      "rank": 388,
+      "rank": 390,
       "opportunity_id": "ccgp_bj_14a6aab63d664cda",
       "facts": {
         "project_number": "清华一附院采招【2026】31号",
@@ -70230,7 +70558,7 @@
       "decision": null
     },
     {
-      "rank": 389,
+      "rank": 391,
       "opportunity_id": "ccgp_he_4101610fa0690ac6",
       "facts": {
         "project_number": "2026CK-083",
@@ -70384,7 +70712,7 @@
       "decision": null
     },
     {
-      "rank": 390,
+      "rank": 392,
       "opportunity_id": "ccgp_jl_8aed0c96c6cf0055",
       "facts": {
         "project_number": "采购计划-[2026]-21866号-JLSYY-ZBBXY-2026-ZB-028",
@@ -70538,7 +70866,7 @@
       "decision": null
     },
     {
-      "rank": 391,
+      "rank": 393,
       "opportunity_id": "ccgp_he_69c1029ed02eaaf8",
       "facts": {
         "project_number": "HXZB2026-E1-00071-001",
@@ -70692,7 +71020,7 @@
       "decision": null
     },
     {
-      "rank": 392,
+      "rank": 394,
       "opportunity_id": "ccgp_jl_483124d6a7205f38",
       "facts": {
         "project_number": "JD-012-ZZCC2026-17",
@@ -70846,7 +71174,7 @@
       "decision": null
     },
     {
-      "rank": 393,
+      "rank": 395,
       "opportunity_id": "ccgp_jl_4b543c1adfdd73c0",
       "facts": {
         "project_number": "CMEETC-267DP114BB179",
@@ -71007,7 +71335,7 @@
       "decision": null
     },
     {
-      "rank": 394,
+      "rank": 396,
       "opportunity_id": "ccgp_jl_58db5fc517e41ece",
       "facts": {
         "project_number": "CMEETC-267DP114BB180",
@@ -71168,7 +71496,7 @@
       "decision": null
     },
     {
-      "rank": 395,
+      "rank": 397,
       "opportunity_id": "ccgp_he_403b4a019d370029",
       "facts": {
         "project_number": "Z1310002604292001",
@@ -71322,7 +71650,7 @@
       "decision": null
     },
     {
-      "rank": 396,
+      "rank": 398,
       "opportunity_id": "ccgp_he_a88f432fdbc76f54",
       "facts": {
         "project_number": "CZZX20260730",
@@ -71476,7 +71804,7 @@
       "decision": null
     },
     {
-      "rank": 397,
+      "rank": 399,
       "opportunity_id": "ccgp_f53846b3cbb91448",
       "facts": {
         "project_number": "XCSD-2026-C-285",
@@ -71630,7 +71958,7 @@
       "decision": null
     },
     {
-      "rank": 398,
+      "rank": 400,
       "opportunity_id": "ccgp_he_c9c9e41948958a52",
       "facts": {
         "project_number": "HBZJ-2026N0829",
@@ -71784,7 +72112,7 @@
       "decision": null
     },
     {
-      "rank": 399,
+      "rank": 401,
       "opportunity_id": "ccgp_he_1530389c815cf47d",
       "facts": {
         "project_number": "ZYZB-2026-S-0135",
@@ -71938,7 +72266,7 @@
       "decision": null
     },
     {
-      "rank": 400,
+      "rank": 402,
       "opportunity_id": "ccgp_ln_8852c3a24aa33d7d",
       "facts": {
         "project_number": "DDZTB2026006",
@@ -72092,7 +72420,7 @@
       "decision": null
     },
     {
-      "rank": 401,
+      "rank": 403,
       "opportunity_id": "ccgp_bj_7ea571de603434b9",
       "facts": {
         "project_number": "TC260E03D/5",
@@ -72246,7 +72574,7 @@
       "decision": null
     },
     {
-      "rank": 402,
+      "rank": 404,
       "opportunity_id": "ccgp_he_2ccb47838a08807d",
       "facts": {
         "project_number": "2026CK-104",
@@ -72400,7 +72728,7 @@
       "decision": null
     },
     {
-      "rank": 403,
+      "rank": 405,
       "opportunity_id": "ccgp_ln_4c9423a62ce7e032",
       "facts": {
         "project_number": "JH26-211400-01914",
@@ -72554,7 +72882,7 @@
       "decision": null
     },
     {
-      "rank": 404,
+      "rank": 406,
       "opportunity_id": "tjzyefy_intent_20260804_030195986",
       "facts": {
         "project_number": null,
@@ -72719,7 +73047,7 @@
       "decision": null
     },
     {
-      "rank": 405,
+      "rank": 407,
       "opportunity_id": "ccgp_jl_de32a8454e809e06",
       "facts": {
         "project_number": "采购计划-[2026]-22391号-0773-2641GNJLHWGK2581",
@@ -72873,7 +73201,7 @@
       "decision": null
     },
     {
-      "rank": 406,
+      "rank": 408,
       "opportunity_id": "ccgp_ln_1af28fe653ad4e7e",
       "facts": {
         "project_number": "JH26-211321-00104",
@@ -73027,7 +73355,7 @@
       "decision": null
     },
     {
-      "rank": 407,
+      "rank": 409,
       "opportunity_id": "ccgp_bj_39df5c3075a92459",
       "facts": {
         "project_number": "11000026210200175041-XM001",
@@ -73181,7 +73509,7 @@
       "decision": null
     },
     {
-      "rank": 408,
+      "rank": 410,
       "opportunity_id": "ccgp_he_97a41c38edd2668e",
       "facts": {
         "project_number": "YC2026508011（CGP）",
@@ -73335,7 +73663,7 @@
       "decision": null
     },
     {
-      "rank": 409,
+      "rank": 411,
       "opportunity_id": "ccgp_ln_d753ec981c4dcb02",
       "facts": {
         "project_number": "JH26-211400-01673",
@@ -73489,7 +73817,7 @@
       "decision": null
     },
     {
-      "rank": 410,
+      "rank": 412,
       "opportunity_id": "ccgp_jl_8dba600296a27ff9",
       "facts": {
         "project_number": "采购计划-[2026]-10558号-",
@@ -73643,7 +73971,7 @@
       "decision": null
     },
     {
-      "rank": 411,
+      "rank": 413,
       "opportunity_id": "ccgp_ln_477145fe98153344",
       "facts": {
         "project_number": "DDZTB2026009",
@@ -73797,7 +74125,7 @@
       "decision": null
     },
     {
-      "rank": 412,
+      "rank": 414,
       "opportunity_id": "tjzyefy_intent_20260804_030195988",
       "facts": {
         "project_number": null,
@@ -73960,7 +74288,7 @@
       "decision": null
     },
     {
-      "rank": 413,
+      "rank": 415,
       "opportunity_id": "tjzyefy_intent_20260804_030195991",
       "facts": {
         "project_number": null,
@@ -74123,7 +74451,7 @@
       "decision": null
     },
     {
-      "rank": 414,
+      "rank": 416,
       "opportunity_id": "tjzyefy_intent_20260804_030195992",
       "facts": {
         "project_number": null,
@@ -74286,7 +74614,7 @@
       "decision": null
     },
     {
-      "rank": 415,
+      "rank": 417,
       "opportunity_id": "ccgp_jl_2ef67b2eece8e825",
       "facts": {
         "project_number": "采购计划-[2026]-13401号--0773-2641GNJLHWGK1739/05",
