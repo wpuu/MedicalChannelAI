@@ -6,6 +6,7 @@ import {
   getOrCreateSharedPublicAiBrief,
   getSharedPublicAiBrief,
   publicAiFactHash,
+  publicIntelligenceDatabaseConfigured,
 } from '../_publicIntelligenceDb.js'
 import {
   buildDecisionMessages,
@@ -572,7 +573,9 @@ async function getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunity
   if (cached) return cached
   const pending = inFlight.get(cacheKey)
   if (pending) return pending
-  if (warmRateLimitExceeded(request)) throw rateLimitError()
+  // Authenticated server-side prewarm is bounded by its own batch limits and
+  // must not be throttled by (or consume) the per-visitor IP budget.
+  if (!request?.__mcaiInternalPrewarm && warmRateLimitExceeded(request)) throw rateLimitError()
   const promise = callProviderWithTransientRetry(providerArgs, keys, opportunityId)
     .then((decision) => {
       cacheWarmDecision(cacheKey, decision)
@@ -729,6 +732,78 @@ async function analyzeSharedPublicBatchItem({
       runtime_window_status: windowStatus,
       public_cache_window_state: windowCacheState,
     }
+  }
+}
+
+export const PREWARM_MAX_GENERATE_PER_CALL = 10
+export const PREWARM_MAX_CANDIDATES = 100
+
+export function prewarmCandidateIds(snapshot, maxCandidates) {
+  const today = Array.isArray(snapshot?.cards) ? snapshot.cards : []
+  const pool = Array.isArray(snapshot?.opportunity_pool) ? [...snapshot.opportunity_pool] : []
+  pool.sort((left, right) => (Number(right?.priority?.score) || 0) - (Number(left?.priority?.score) || 0))
+  const seen = new Set()
+  const ids = []
+  for (const card of [...today, ...pool]) {
+    const id = cleanString(card?.opportunity_id, 200)
+    if (!id || seen.has(id)) continue
+    if (card?.model_decision_status === 'NOT_ELIGIBLE' || card?.model_decision_status === 'BLOCKED_GROUNDING') continue
+    seen.add(id)
+    ids.push(id)
+    if (ids.length >= maxCandidates) break
+  }
+  return ids
+}
+
+/**
+ * Pre-generate shared public AI decisions for the opportunities users are most
+ * likely to open (Today cards first, then the pool by priority score), so the
+ * "AI分析" click is served from the durable cache instead of waiting on the
+ * model. Each call generates at most `limit` missing decisions in parallel so
+ * it stays inside one function invocation; callers loop until
+ * `remaining_miss_count` reaches 0.
+ */
+export async function prewarmSharedPublicDecisions({ snapshot, request, limit, maxCandidates }) {
+  if (!publicIntelligenceDatabaseConfigured()) {
+    const error = new Error('PREWARM_REQUIRES_DURABLE_CACHE')
+    error.code = 'PREWARM_REQUIRES_DURABLE_CACHE'
+    throw error
+  }
+  if (getApiKeys().length === 0) {
+    const error = new Error('AI_NOT_CONFIGURED')
+    error.code = 'AI_NOT_CONFIGURED'
+    throw error
+  }
+  const generateLimit = Math.max(1, Math.min(PREWARM_MAX_GENERATE_PER_CALL, Number(limit) || PREWARM_MAX_GENERATE_PER_CALL))
+  const candidateLimit = Math.max(1, Math.min(PREWARM_MAX_CANDIDATES, Number(maxCandidates) || 40))
+  const internalRequest = { ...request, __mcaiInternalPrewarm: true }
+  const ids = prewarmCandidateIds(snapshot, candidateLimit)
+
+  const probes = await Promise.all(ids.map((opportunityId) =>
+    analyzeSharedPublicBatchItem({ snapshot, opportunityId, request: internalRequest, cacheOnly: true }),
+  ))
+  const missIds = probes.filter((item) => item.status === 'MISS').map((item) => item.opportunity_id)
+  const toGenerate = missIds.slice(0, generateLimit)
+  const generated = await Promise.all(toGenerate.map((opportunityId) =>
+    analyzeSharedPublicBatchItem({ snapshot, opportunityId, request: internalRequest, cacheOnly: false }),
+  ))
+  const errors = generated
+    .filter((item) => item.status !== 'READY')
+    .map((item) => ({ opportunity_id: item.opportunity_id, error: item.error || item.status }))
+
+  return {
+    schema_version: '0.1',
+    mode: 'PREWARM',
+    snapshot_as_of: cleanString(snapshot?.snapshot_as_of, 100),
+    prompt_version: PUBLIC_AI_PROMPT_VERSION,
+    candidate_count: ids.length,
+    already_cached_count: probes.filter((item) => item.status === 'READY').length,
+    not_eligible_count: probes.filter((item) => item.status === 'NOT_ELIGIBLE').length,
+    attempted_count: toGenerate.length,
+    generated_count: generated.filter((item) => item.status === 'READY').length,
+    error_count: errors.length,
+    errors: errors.slice(0, 10),
+    remaining_miss_count: Math.max(0, missIds.length - toGenerate.length) + errors.length,
   }
 }
 

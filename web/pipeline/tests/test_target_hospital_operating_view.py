@@ -14,7 +14,9 @@ class TargetHospitalOperatingViewTests(unittest.TestCase):
         self.assertIn("path=\"/targets\"", app)
         self.assertIn('TargetHospitalsPage', app)
         self.assertIn('loadCustomerProfile()', page)
-        self.assertIn('todayActionsService.getTodayActions()', page)
+        # Target matching needs the full verified pool (not only the 5 Today
+        # cards); hydrateFollowups:false selects the pool endpoint in API mode.
+        self.assertIn('todayActionsService.getTodayActions({ hydrateFollowups: false })', page)
         self.assertNotIn('/api/targets', page)
 
     def test_target_view_keeps_focus_relationship_and_public_channel_distinct(self):

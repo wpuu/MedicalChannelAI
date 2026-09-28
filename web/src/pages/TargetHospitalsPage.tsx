@@ -104,7 +104,7 @@ export function TargetHospitalsPage() {
 
     Promise.all([
       loadCustomerProfile(),
-      todayActionsService.getTodayActions().then((actions) => actions.opportunity_pool ?? actions.cards),
+      todayActionsService.getTodayActions({ hydrateFollowups: false }).then((actions) => actions.opportunity_pool ?? actions.cards),
     ])
       .then(([nextProfile, nextPool]) => {
         if (!active) return

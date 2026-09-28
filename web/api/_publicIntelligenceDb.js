@@ -392,6 +392,36 @@ export async function latestPublicVerifiedSnapshot() {
   }
 }
 
+/**
+ * Revision-aware read of the latest durable snapshot. Returns
+ * { snapshot_hash, payload } where payload is null when the latest row still
+ * has `knownHash` (the caller's in-memory copy is current), so warm instances
+ * avoid re-downloading ~1.5MB of JSONB on every request. Returns null when the
+ * database is unavailable or empty.
+ */
+export async function latestPublicVerifiedSnapshotIfChanged(knownHash = null) {
+  if (!publicIntelligenceDatabaseConfigured()) return null
+  try {
+    await ensurePublicIntelligenceSchema()
+    const sql = publicIntelligenceDb()
+    const rows = await sql`
+      SELECT
+        snapshot_hash,
+        CASE WHEN snapshot_hash = ${knownHash || ''} THEN NULL ELSE payload END AS payload
+      FROM public_verified_snapshots
+      ORDER BY snapshot_as_of DESC, materialized_at DESC
+      LIMIT 1
+    `
+    if (!rows[0]) return null
+    return { snapshot_hash: rows[0].snapshot_hash, payload: rows[0].payload ?? null }
+  } catch (error) {
+    console.warn('durable public snapshot revision read unavailable', {
+      error: error instanceof Error ? error.message : 'UNKNOWN',
+    })
+    return null
+  }
+}
+
 export async function materializeVerifiedSnapshot(snapshot) {
   if (!publicIntelligenceDatabaseConfigured()) return { configured: false, materialized: false, regions: [] }
   const snapshotAsOf = cleanText(snapshot?.snapshot_as_of, 100)

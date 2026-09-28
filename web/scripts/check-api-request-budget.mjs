@@ -9,7 +9,12 @@ const contract = readFileSync(resolve(scriptDir, '../src/services/TodayActionsSe
 const poolPage = readFileSync(resolve(scriptDir, '../src/pages/OpportunityPoolPage.tsx'), 'utf8')
 const targetPage = readFileSync(resolve(scriptDir, '../src/pages/TargetHospitalsPage.tsx'), 'utf8')
 const metrics = readFileSync(resolve(scriptDir, '../src/components/today/MetricCards.tsx'), 'utf8')
-const privateApi = readFileSync(resolve(scriptDir, '../api/private.js'), 'utf8')
+// private.js is the thin router; the feedback summary/followup decoration
+// lives in its _privateCore.js implementation.
+const privateApi = [
+  readFileSync(resolve(scriptDir, '../api/private.js'), 'utf8'),
+  readFileSync(resolve(scriptDir, '../api/_privateCore.js'), 'utf8'),
+].join('\n')
 
 assert(contract.includes('export interface TodayActionsLoadOptions'))
 assert(contract.includes('hydrateFollowups?: boolean'))
@@ -28,7 +33,10 @@ assert(!todaySource.includes('Promise.all('))
 assert(!todaySource.includes('this.enrichWithServerFollowup('))
 
 const opportunitySource = service.slice(opportunityStart)
-assert(opportunitySource.includes('this.enrichWithServerFollowup(mapPublicCard(card))'))
+// Detail view: card and followup state are fetched in parallel (one round-trip
+// of latency), then merged client-side.
+assert(opportunitySource.includes('const [card, state] = await Promise.all(['))
+assert(opportunitySource.includes('applyFollowupState(mapPublicCard(card), state)'))
 
 assert(poolPage.includes('todayActionsService.getTodayActions({ hydrateFollowups: false })'))
 assert(!poolPage.includes('getFollowedStatusIndex'))
