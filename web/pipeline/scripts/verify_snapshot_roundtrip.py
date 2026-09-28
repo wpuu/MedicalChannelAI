@@ -8,7 +8,9 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
-from urllib.parse import urlparse
+import secrets
+import time
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024
 DEFAULT_TIMEOUT_SECONDS = 12.0
@@ -61,14 +63,27 @@ def load_local_snapshot(path: Path) -> tuple[bytes, dict]:
     return payload, _load_json_bytes(payload, source="LOCAL")
 
 
+def fresh_read_url(url: str) -> str:
+    """Adds a unique ?fresh= token so the readback bypasses CDN caches.
+
+    The public snapshot endpoint is CDN-cached for visitors; round-trip
+    verification must observe the just-published payload instead.
+    """
+    parsed = urlparse(url)
+    query = [(key, value) for key, value in parse_qsl(parsed.query, keep_blank_values=True) if key != "fresh"]
+    query.append(("fresh", f"{int(time.time())}-{secrets.token_hex(4)}"))
+    return urlunparse(parsed._replace(query=urlencode(query)))
+
+
 def fetch_remote_snapshot(url: str, *, timeout_seconds: float) -> tuple[bytes, dict]:
     if timeout_seconds <= 0 or timeout_seconds > 60:
         raise SnapshotRoundTripError("SNAPSHOT_READ_TIMEOUT_INVALID")
-    read_url = validate_read_url(url)
+    read_url = fresh_read_url(validate_read_url(url))
     request = urllib.request.Request(
         read_url,
         headers={
             "Accept": "application/json",
+            "Cache-Control": "no-cache",
             "User-Agent": "MedicalChannelAI-SnapshotRoundTripVerifier/0.1",
         },
         method="GET",

@@ -32,6 +32,14 @@ def snapshot(*, as_of: str = "2026-08-31T20:00:00+08:00", ids: tuple[str, ...] =
 
 
 class SnapshotRoundTripTests(unittest.TestCase):
+    def test_fresh_read_url_bypasses_cdn_cache_with_unique_token(self) -> None:
+        first = verifier.fresh_read_url("https://example.com/api/public-snapshot?region=tj&fresh=old")
+        second = verifier.fresh_read_url("https://example.com/api/public-snapshot?region=tj&fresh=old")
+        self.assertTrue(first.startswith("https://example.com/api/public-snapshot?region=tj&fresh="))
+        self.assertEqual(first.count("fresh="), 1)
+        self.assertNotIn("fresh=old", first)
+        self.assertNotEqual(first, second)
+
     def test_read_url_requires_https(self) -> None:
         with self.assertRaisesRegex(
             verifier.SnapshotRoundTripError,

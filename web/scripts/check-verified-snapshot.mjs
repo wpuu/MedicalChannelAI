@@ -30,9 +30,9 @@ function mockResponse() {
   }
 }
 
-async function invokeSnapshot(method = 'GET', { body, headers = {} } = {}) {
+async function invokeSnapshot(method = 'GET', { body, headers = {}, query, url } = {}) {
   const response = mockResponse()
-  await snapshotHandler({ method, body, headers }, response)
+  await snapshotHandler({ method, body, headers, query, url }, response)
   return response
 }
 
@@ -187,6 +187,16 @@ try {
     endpoint.headers['x-medicalchannelai-snapshot-source'] === 'BUNDLED',
     'SNAPSHOT_ENDPOINT_BUNDLED_SOURCE',
   )
+  expect(
+    /s-maxage=\d+/.test(String(endpoint.headers['cache-control'])) &&
+      !String(endpoint.headers['cache-control']).includes('no-store'),
+    'SNAPSHOT_ENDPOINT_VISITOR_READ_CDN_CACHEABLE',
+  )
+  endpoint = await invokeSnapshot('GET', { query: { fresh: '1' } })
+  expect(endpoint.statusCode === 200, 'SNAPSHOT_ENDPOINT_FRESH_STATUS')
+  expect(endpoint.headers['cache-control'] === 'no-store, max-age=0', 'SNAPSHOT_READBACK_QUERY_NOT_CDN_CACHED')
+  endpoint = await invokeSnapshot('GET', { url: '/api/public-snapshot?fresh=abc' })
+  expect(endpoint.headers['cache-control'] === 'no-store, max-age=0', 'SNAPSHOT_READBACK_URL_NOT_CDN_CACHED')
   endpoint = await invokeSnapshot('DELETE')
   expect(endpoint.statusCode === 405, 'SNAPSHOT_ENDPOINT_DELETE_STATUS')
   endpoint = await invokeSnapshot('PUT', { body: bundledVerifiedSnapshot() })
