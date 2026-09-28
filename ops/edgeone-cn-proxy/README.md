@@ -1,47 +1,56 @@
 # MedicalChannelAI 中国大陆入口代理
 
-任务：MCAI-CN-ENTRY-006
+任务：MCAI-CN-ENTRY-010
 
-用途：使用 Tencent EdgeOne Pages + Edge Functions 作为 `medicalai.qd.je` 的公开入口，避免中国大陆浏览器直接访问 `*.vercel.app`。
+用途：使用 Tencent EdgeOne Makers Middleware 作为 `medicalai.qd.je` 的公开入口，避免中国大陆浏览器直接访问 `*.vercel.app`。
 
 ## 工作方式
 
 ```text
 浏览器
  -> medicalai.qd.je
- -> EdgeOne Pages Edge Function
+ -> EdgeOne Makers Middleware
+ -> internal rewrite
  -> medicalchannelai.vercel.app
 ```
 
 - 浏览器地址栏保持 `medicalai.qd.je`；
-- 根路径 `/` 内部映射到 Vercel 的 `/today`，不做浏览器 30x；
-- 其他 path/query 原样回源；
-- GET/HEAD/POST/PUT/PATCH/DELETE/OPTIONS 均由同一代理函数处理；
-- Vercel 返回的绝对 Location 若指向 Vercel，会改写回 `medicalai.qd.je`；
+- 根路径 `/` 内部 rewrite 到 Vercel 的 `/today`，不做浏览器 30x；
+- 其他 path/query 原样 rewrite 到 Vercel；
+- EdgeOne 预览参数 `eo_token` / `eo_time` 不传给 Vercel；
+- 不再使用自写 Edge Function fetch 代理；
 - 不存储 API Key，不包含用户数据；
 - Vercel 仍是权威业务源站。
 
-## EdgeOne Pages 项目配置
+## 为什么改成 Middleware
 
-导入仓库 `wpuu/MedicalChannelAI` 时：
+EdgeOne Makers 官方 Middleware：
 
+- 在项目根目录使用 `middleware.js`；
+- 默认可匹配所有路由；
+- 官方 `rewrite()` 支持绝对 URL；
+- 适合请求 rewrite / routing control；
+- 比手写 `fetch + Response` 代理更少运行时兼容面。
+
+## EdgeOne Makers 项目配置
+
+- Repository: `wpuu/MedicalChannelAI`
 - Root directory: `ops/edgeone-cn-proxy`
 - Build command: `npm run build`
 - Output directory: `public`
-- Acceleration region: 优先 `Global (Excluding Chinese Mainland)`，不依赖 ICP；
-- 自定义域名：`medicalai.qd.je`
-
-必须以 EdgeOne 控制台实际生成的 CNAME 为准，不在仓库中硬编码 DNS 目标。
+- Production branch: `main`
+- Acceleration region: `Global (Excluding Chinese Mainland)`，当前用于无备案技术验证
+- 自定义域名：后续绑定 `medicalai.qd.je`
 
 ## 验收
 
-切换 DNS 前先用 EdgeOne 预览域名验证：
+先用新部署预览地址验证：
 
-- `/` 能显示 Today 页面；
+- `/` 显示 Today 页面；
+- 地址栏仍是 EdgeOne Preview，不跳到 Vercel；
 - `/today` 正常；
 - `/api/status` 返回 `ready=true`；
 - 页面静态资源正常；
-- AI 请求可正常 POST；
-- 不出现浏览器跳转到 `*.vercel.app`。
+- AI 请求可正常 POST。
 
-通过后再把 DigitalPlat 当前临时 A 记录切换为 EdgeOne 提供的 CNAME。
+通过后再绑定 `medicalai.qd.je`。
