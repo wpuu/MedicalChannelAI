@@ -11,7 +11,7 @@ STATUS=READY_FOR_EXTERNAL_SETUP
 - `medicalai.qd.je` 继续可访问；
 - 不再依赖 `35.211.124.40` 常驻 GCP VPS；
 - HTTPS 正常；
-- 保留路径与查询参数；
+- 固定进入 `/today`，仅保留查询参数；
 - 不引入新的持续服务器账单；
 - 切换期间尽量不中断。
 
@@ -40,7 +40,7 @@ medicalai.qd.je
 - Source hostname: `medicalai.qd.je`；
 - Destination: `https://medicalchannelai.vercel.app/today`；
 - Redirect type: 302，切换稳定后可改 301；
-- 开启 path forwarding；
+- 关闭 path forwarding；
 - 开启 query parameter forwarding；
 - 自动 HTTPS；
 - 不使用 frame redirect。
@@ -55,7 +55,7 @@ medicalai.qd.je
 4. 若平台支持在 DNS 切换前完成 ownership/certificate 预验证，则先完成；
 5. 修改 DigitalPlat DNS；
 6. 等权威 DNS 和公共递归 DNS 都不再返回 `35.211.124.40`；
-7. 验证 HTTP、HTTPS、path forwarding、query forwarding；
+7. 验证 HTTP、HTTPS、固定 `/today` 路径和 query forwarding；
 8. 验证天津真实手机网络；
 9. 最后释放 GCP VM / 静态 IPv4。
 
@@ -84,7 +84,7 @@ medicalai.qd.je
 - `https://medicalai.qd.je` 正常跳转；
 - qd.je 不再解析到 `35.211.124.40`；
 - HTTPS 无证书错误；
-- path/query 转发正确；
+- Path forwarding 关闭、Query forwarding 开启，行为符合预期；
 - 天津真实手机网络通过；
 - GCP 旧入口资源已释放；
 - public-demo-smoke 两个入口均通过。
