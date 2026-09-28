@@ -20,3 +20,24 @@
 - verified snapshot 读取层仅允许经过完整 public snapshot validation 的 v1 → v2 一次性迁移；抓取失败不得覆盖最后一份已验证 snapshot。
 
 开发状态、验收条件和当前工作以仓库内 `docs/project/` 与机器可读 checkpoint 为准。
+
+## 仓库结构
+
+| 路径 | 说明 |
+|---|---|
+| `web/` | 生产应用：Vite + React 前端（`src/`）、Vercel Serverless API（`api/`）、Python 采集器与数据流水线（`pipeline/`、`collector_*.py`） |
+| `web/scripts/` | 构建前合约检查（`npm run build` 会通过 `run-prebuild.mjs` 全部执行） |
+| `ops/` | 国内入口代理（EdgeOne）与域名跳转配置 |
+| `docs/project/` | 当前项目状态、架构与 checkpoint（以此为准） |
+| `docs/ops/` | 运维与故障记录 |
+| `docs/archive/`、`archive/` | 历史记录与早期 UI 原型，不参与构建/部署 |
+
+## 本地验证
+
+```bash
+cd web
+npm ci
+npm run build          # 全部 pipeline 单测 + JS 合约检查 + 构建
+```
+
+CI（`verify.yml`）在 PR 上默认只跑快速检查；head commit message 含 `[full-verify]` 时执行完整构建。

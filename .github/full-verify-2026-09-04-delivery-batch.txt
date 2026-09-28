@@ -1,2 +1,0 @@
-Stage marker for full verification of the domestic-access pressure-reduction batch.
-No deployment is requested by this marker.
