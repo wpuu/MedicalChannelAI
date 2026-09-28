@@ -1,8 +1,8 @@
 {
   "schema_version": "0.1",
-  "observed_at": "2026-09-27T05:52:31.739523+00:00",
-  "start_date": "2026-09-25",
-  "end_date": "2026-09-27",
+  "observed_at": "2026-09-28T05:58:21.252886+00:00",
+  "start_date": "2026-09-26",
+  "end_date": "2026-09-28",
   "markets": [
     {
       "market_code": "BJ",
@@ -11,15 +11,76 @@
       "ccgp_zone_id": "11",
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
-      "national_fallback_used": true,
-      "skipped_candidate_count": 0,
-      "skipped_candidates": [],
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
-      "selected_unseen_candidate_count": 0,
+      "national_fallback_used": false,
+      "skipped_candidate_count": 1,
+      "skipped_candidates": [
+        {
+          "stage": "candidate_classification",
+          "market_code": "BJ",
+          "reason": "OUT_OF_MEDICAL_SCOPE",
+          "notice_type": "公开招标",
+          "candidate_notice_type": "公开招标公告",
+          "candidate_region": "北京",
+          "title": "其他公用经费（医疗行业定额）物业管理服务采购项目（保洁服务）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260928_27405814.htm"
+        }
+      ],
+      "unique_candidate_count": 7,
+      "selected_candidate_count": 7,
+      "selected_unseen_candidate_count": 7,
       "selected_existing_candidate_count": 0,
-      "selected_candidates": [],
-      "new_verified_record_count": 0,
+      "selected_candidates": [
+        {
+          "title": "中国中医科学院眼科医院手术耗材招标项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260928_27404853.htm",
+          "published_at": "2026-09-28",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "中国中医科学院眼科医院口腔科耗材招标公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260928_27404849.htm",
+          "published_at": "2026-09-28",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "经开区荣华社区卫生服务中心医疗设备购置（第二包）（二次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260928_27404903.htm",
+          "published_at": "2026-09-28",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "中国疾病预防控制中心二期工程开办费保藏实验相关仪器设备项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260928_27406309.htm",
+          "published_at": "2026-09-28",
+          "priority": 2,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "北京大学第六医院诊疗能力提升项目-眼动轨迹分析仪公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260928_27405061.htm",
+          "published_at": "2026-09-28",
+          "priority": 2,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "中国中医科学院眼科医院高水平中医医院临床科研业务费-设备第十一批公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260928_27404850.htm",
+          "published_at": "2026-09-28",
+          "priority": 2,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "事业支出其他维修和保养服务采购项目-北京市昌平区医院2026-2027年度门急诊综合楼弱电维保服务项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260928_27405617.htm",
+          "published_at": "2026-09-28",
+          "priority": 1,
+          "was_existing_verified_url": false
+        }
+      ],
+      "new_verified_record_count": 7,
       "failure_count": 0,
       "failures": []
     },
@@ -30,15 +91,30 @@
       "ccgp_zone_id": "13",
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
-      "national_fallback_used": true,
+      "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
-      "selected_unseen_candidate_count": 0,
+      "unique_candidate_count": 2,
+      "selected_candidate_count": 2,
+      "selected_unseen_candidate_count": 2,
       "selected_existing_candidate_count": 0,
-      "selected_candidates": [],
-      "new_verified_record_count": 0,
+      "selected_candidates": [
+        {
+          "title": "清河县基层血液透析服务能力提升项目-医疗设备购置（二次）招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260928_27406052.htm",
+          "published_at": "2026-09-28",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "清河县人民医院医疗责任险项目（三次）公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260928_27405653.htm",
+          "published_at": "2026-09-28",
+          "priority": 1,
+          "was_existing_verified_url": false
+        }
+      ],
+      "new_verified_record_count": 2,
       "failure_count": 0,
       "failures": []
     },
@@ -49,15 +125,23 @@
       "ccgp_zone_id": "21",
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
-      "national_fallback_used": true,
+      "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
-      "selected_unseen_candidate_count": 0,
+      "unique_candidate_count": 1,
+      "selected_candidate_count": 1,
+      "selected_unseen_candidate_count": 1,
       "selected_existing_candidate_count": 0,
-      "selected_candidates": [],
-      "new_verified_record_count": 0,
+      "selected_candidates": [
+        {
+          "title": "大连市市场监管食品安全检验检测领域设备更新项目（一）的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260928_27406085.htm",
+          "published_at": "2026-09-28",
+          "priority": 1,
+          "was_existing_verified_url": false
+        }
+      ],
+      "new_verified_record_count": 1,
       "failure_count": 0,
       "failures": []
     },
@@ -66,29 +150,41 @@
       "market_name": "吉林",
       "admin_code": "220000",
       "ccgp_zone_id": "22",
-      "scoped_query_success_count": 9,
+      "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
-      "national_fallback_used": true,
+      "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
-      "selected_unseen_candidate_count": 0,
+      "unique_candidate_count": 3,
+      "selected_candidate_count": 3,
+      "selected_unseen_candidate_count": 3,
       "selected_existing_candidate_count": 0,
-      "selected_candidates": [],
-      "new_verified_record_count": 0,
-      "failure_count": 1,
-      "failures": [
+      "selected_candidates": [
         {
-          "stage": "scoped_discovery",
-          "market_code": "JL",
-          "region": "吉林",
-          "keyword": "医院",
-          "notice_type": "公开招标",
-          "error": "TimeoutError",
-          "message": "The read operation timed out"
+          "title": "吉林大学中日联谊医院连续性血液净化设备采购项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260928_27406368.htm",
+          "published_at": "2026-09-28",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "吉林大学第一医院医用磁共振成像系统的维保服务项目公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260928_27406355.htm",
+          "published_at": "2026-09-28",
+          "priority": 3,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "吉林恒源建设有限公司关于舒兰市公立医院高质量发展项目（一标段：医学影像诊断资源共享中心）的公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260928_27405564.htm",
+          "published_at": "2026-09-28",
+          "priority": 3,
+          "was_existing_verified_url": false
         }
-      ]
+      ],
+      "new_verified_record_count": 3,
+      "failure_count": 0,
+      "failures": []
     },
     {
       "market_code": "HL",
@@ -97,25 +193,40 @@
       "ccgp_zone_id": "23",
       "scoped_query_success_count": 10,
       "scoped_region_mismatch_count": 0,
-      "national_fallback_used": true,
+      "national_fallback_used": false,
       "skipped_candidate_count": 0,
       "skipped_candidates": [],
-      "unique_candidate_count": 0,
-      "selected_candidate_count": 0,
-      "selected_unseen_candidate_count": 0,
+      "unique_candidate_count": 2,
+      "selected_candidate_count": 2,
+      "selected_unseen_candidate_count": 2,
       "selected_existing_candidate_count": 0,
-      "selected_candidates": [],
-      "new_verified_record_count": 0,
+      "selected_candidates": [
+        {
+          "title": "北大荒集团北安医院医疗专用设备购置项目(数字减影血管造影机）二次公开招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260927_27404621.htm",
+          "published_at": "2026-09-27",
+          "priority": 2,
+          "was_existing_verified_url": false
+        },
+        {
+          "title": "哈尔滨市胸科医院改革与高质量发展示范项目（2025）(三次)招标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260928_27406050.htm",
+          "published_at": "2026-09-28",
+          "priority": 1,
+          "was_existing_verified_url": false
+        }
+      ],
+      "new_verified_record_count": 2,
       "failure_count": 0,
       "failures": []
     }
   ],
-  "national_fallback_query_success_count": 20,
+  "national_fallback_query_success_count": 0,
   "national_fallback_failure_count": 0,
   "national_fallback_failures": [],
   "existing_record_count": 647,
-  "new_verified_record_count": 0,
-  "merged_record_count": 647,
+  "new_verified_record_count": 15,
+  "merged_record_count": 662,
   "policy": {
     "business_market_is_explicit_not_geolocated": true,
     "market_admin_codes_are_validated_against_configured_ccgp_zone": true,
