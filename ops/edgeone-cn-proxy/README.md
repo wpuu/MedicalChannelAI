@@ -1,56 +1,63 @@
 # MedicalChannelAI 中国大陆入口代理
 
-任务：MCAI-CN-ENTRY-010
+任务：MCAI-CN-ENTRY-011
 
-用途：使用 Tencent EdgeOne Makers Middleware 作为 `medicalai.qd.je` 的公开入口，避免中国大陆浏览器直接访问 `*.vercel.app`。
+用途：使用 Tencent EdgeOne Makers Edge Functions 作为 `medicalai.qd.je` 的公开入口，避免国内浏览器直接访问 `*.vercel.app`。
 
-## 工作方式
+## 当前实现
 
 ```text
 浏览器
- -> medicalai.qd.je
- -> EdgeOne Makers Middleware
- -> internal rewrite
+ -> EdgeOne Makers
+ -> V8 Edge Function
  -> medicalchannelai.vercel.app
 ```
 
-- 浏览器地址栏保持 `medicalai.qd.je`；
-- 根路径 `/` 内部 rewrite 到 Vercel 的 `/today`，不做浏览器 30x；
-- 其他 path/query 原样 rewrite 到 Vercel；
+- 根路径 `/` 内部映射到 Vercel 的 `/today`；
+- 其他 path/query 原样代理；
 - EdgeOne 预览参数 `eo_token` / `eo_time` 不传给 Vercel；
-- 不再使用自写 Edge Function fetch 代理；
-- 不存储 API Key，不包含用户数据；
+- 浏览器地址保持 EdgeOne / 自定义域名，不做 30x 跳转；
 - Vercel 仍是权威业务源站。
 
-## 为什么改成 Middleware
+## V8 兼容约束
 
-EdgeOne Makers 官方 Middleware：
+按 TencentEdgeOne 官方 Makers Edge Functions 规范：
 
-- 在项目根目录使用 `middleware.js`；
-- 默认可匹配所有路由；
-- 官方 `rewrite()` 支持绝对 URL；
-- 适合请求 rewrite / routing control；
-- 比手写 `fetch + Response` 代理更少运行时兼容面。
+- 不使用 `new Headers()`；
+- headers 使用普通对象；
+- 不使用 Node.js API；
+- 不使用 `process.env`；
+- 不使用 `Response.json()`；
+- 仅使用 V8/Web Standard API。
 
-## EdgeOne Makers 项目配置
+## 已确认的故障边界
+
+同一 EdgeOne 预览 token 下：
+
+- 静态文件 `/edgeone-placeholder.txt` 可访问；
+- 根路径曾返回 EdgeOne 404；
+- Vercel `/today` 和 `/api/status` 同时正常。
+
+因此当前故障位于 EdgeOne 路由/代理层，而非预览 token 或 Vercel 源站。
+
+## EdgeOne 项目配置
 
 - Repository: `wpuu/MedicalChannelAI`
 - Root directory: `ops/edgeone-cn-proxy`
 - Build command: `npm run build`
 - Output directory: `public`
 - Production branch: `main`
-- Acceleration region: `Global (Excluding Chinese Mainland)`，当前用于无备案技术验证
-- 自定义域名：后续绑定 `medicalai.qd.je`
+- Acceleration region: `Global (Excluding Chinese Mainland)`
 
 ## 验收
 
-先用新部署预览地址验证：
+新部署后使用完整带 `eo_token` 的预览地址验证：
 
 - `/` 显示 Today 页面；
-- 地址栏仍是 EdgeOne Preview，不跳到 Vercel；
 - `/today` 正常；
 - `/api/status` 返回 `ready=true`；
-- 页面静态资源正常；
-- AI 请求可正常 POST。
+- 静态资源正常；
+- AI POST 可正常工作；
+- 浏览器地址不跳到 `*.vercel.app`。
 
 通过后再绑定 `medicalai.qd.je`。
