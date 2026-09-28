@@ -34,6 +34,15 @@ class EdgeOneProxyContractTest(unittest.TestCase):
             self.assertIn('key !== "eo_token"', text)
             self.assertIn('key !== "eo_time"', text)
 
+    def test_transfer_encoding_headers_are_normalized(self):
+        for path in FUNCTIONS:
+            text = path.read_text(encoding="utf-8")
+            self.assertIn('lower !== "accept-encoding"', text)
+            self.assertIn('requestHeaders["accept-encoding"] = "identity"', text)
+            self.assertIn('lower !== "content-encoding"', text)
+            self.assertIn('lower !== "transfer-encoding"', text)
+            self.assertIn('lower !== "content-length"', text)
+
     def test_runtime_probe_exists(self):
         for path in FUNCTIONS:
             text = path.read_text(encoding="utf-8")
