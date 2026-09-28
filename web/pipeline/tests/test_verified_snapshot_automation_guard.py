@@ -82,7 +82,12 @@ class VerifiedSnapshotAutomationGuardTests(unittest.TestCase):
         self.assertIn("{ error: 'UNAUTHORIZED' }", source)
         self.assertIn("request.method === 'PUT' || request.method === 'POST'", source)
         self.assertIn("'no-store, max-age=0'", source)
+        # Visitors are CDN-cached; publisher readback (?fresh=) never is.
         self.assertNotIn('return sendJson(response, 200, snapshot, { cacheable: true })', source)
+        self.assertIn('const readback = wantsFreshSnapshot(request)', source)
+        self.assertIn('{ cacheable: !readback }', source)
+        verifier = (PUBLIC_SNAPSHOT.parents[1] / 'pipeline' / 'scripts' / 'verify_snapshot_roundtrip.py').read_text(encoding='utf-8')
+        self.assertIn('read_url = fresh_read_url(validate_read_url(url))', verifier)
 
     def test_both_daily_refreshes_can_publish_and_roundtrip_the_combined_snapshot(self) -> None:
         tianjin = TIANJIN_WORKFLOW.read_text(encoding='utf-8')

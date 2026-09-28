@@ -7,13 +7,31 @@ import {
 } from './_verifiedSnapshot.js'
 import { persistPublicVerifiedSnapshot } from './_publicIntelligenceDb.js'
 
+// Visitors read through the Vercel CDN (the CDN strips s-maxage/SWR before the
+// browser, which then revalidates with the ETag). Publisher readback must see
+// the just-published snapshot, so any request carrying ?fresh= bypasses the
+// CDN (unique URL) and is answered with no-store.
+export const PUBLIC_SNAPSHOT_CDN_CACHE_CONTROL = 'public, max-age=0, s-maxage=60, stale-while-revalidate=300'
+
+export function wantsFreshSnapshot(request) {
+  const direct = request?.query?.fresh
+  if (Array.isArray(direct) ? direct.length > 0 : direct !== undefined && direct !== null) return true
+  const rawUrl = typeof request?.url === 'string' ? request.url : ''
+  if (!rawUrl.includes('?')) return false
+  try {
+    return new URL(rawUrl, 'https://snapshot.invalid').searchParams.has('fresh')
+  } catch {
+    return false
+  }
+}
+
 function sendJson(response, status, payload, { cacheable = false } = {}) {
   response.setHeader('Content-Type', 'application/json; charset=utf-8')
   response.setHeader('X-Content-Type-Options', 'nosniff')
   response.setHeader(
     'Cache-Control',
     cacheable
-      ? 'public, max-age=0, s-maxage=60, stale-while-revalidate=120'
+      ? PUBLIC_SNAPSHOT_CDN_CACHE_CONTROL
       : 'no-store, max-age=0',
   )
   response.status(status).json(payload)
@@ -116,10 +134,10 @@ export default async function handler(request, response) {
   try {
     const snapshot = await loadVerifiedSnapshot()
     response.setHeader('X-MedicalChannelAI-Snapshot-Source', verifiedSnapshotSourceMode())
-    // This endpoint is also the publisher readback target. CDN caching here can
-    // make a successful PUT appear stale during immediate round-trip validation,
-    // so freshness is delegated to the validated Runtime Cache layer instead.
-    return sendJson(response, 200, snapshot)
+    // Publisher readback (?fresh=) must never be served from the CDN, or a
+    // successful PUT could appear stale during round-trip validation.
+    const readback = wantsFreshSnapshot(request)
+    return sendJson(response, 200, snapshot, { cacheable: !readback })
   } catch {
     return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
   }
