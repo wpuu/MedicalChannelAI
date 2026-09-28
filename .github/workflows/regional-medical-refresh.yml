@@ -175,3 +175,18 @@ jobs:
             web/pipeline/data/regional_live_ccgp_records.json \
             web/pipeline/data/regional_sync_report.json \
             web/public/data/today-actions.public.json
+
+      - name: Pre-generate AI decisions for top opportunities
+        # Best effort: users still get on-demand analysis if this is skipped.
+        # Runs after the data commit so it never delays or fails the refresh.
+        if: success()
+        continue-on-error: true
+        timeout-minutes: 8
+        shell: bash
+        env:
+          AI_PREWARM_URL: https://medicalchannelai.vercel.app/api/ai/analyze
+          AI_PREWARM_TOKEN: ${{ secrets.AI_PREWARM_TOKEN }}
+          VERIFIED_SNAPSHOT_PUBLISH_TOKEN: ${{ secrets.VERIFIED_SNAPSHOT_PUBLISH_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/prewarm_ai_decisions.py --rounds 5 --limit 10 --max-candidates 40
