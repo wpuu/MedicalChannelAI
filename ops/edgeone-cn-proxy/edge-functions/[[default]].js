@@ -3,14 +3,26 @@ const ORIGIN = "https://medicalchannelai.vercel.app";
 async function proxyRequest(request) {
   try {
     const incomingUrl = new URL(request.url);
-    const pathname = incomingUrl.pathname === "/" ? "/today" : incomingUrl.pathname;
 
+    if (incomingUrl.pathname === "/__mcai_edge_probe") {
+      return new Response("MCAI Edge proxy probe OK", {
+        status: 200,
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "no-store",
+          "x-mcai-edge-proxy": "probe",
+        },
+      });
+    }
+
+    const pathname = incomingUrl.pathname === "/" ? "/today" : incomingUrl.pathname;
     const targetUrl = new URL(pathname, ORIGIN);
-    for (const [key, value] of incomingUrl.searchParams) {
+
+    incomingUrl.searchParams.forEach((value, key) => {
       if (key !== "eo_token" && key !== "eo_time") {
         targetUrl.searchParams.append(key, value);
       }
-    }
+    });
 
     const requestHeaders = {};
     request.headers.forEach((value, key) => {
