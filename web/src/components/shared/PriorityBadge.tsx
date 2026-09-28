@@ -44,32 +44,3 @@ export function PriorityBadge({
     </span>
   )
 }
-
-export function PriorityScore({
-  score,
-  scoreScope,
-}: {
-  score: number
-  scoreScope?: PriorityScoreScope
-}) {
-  const usePublicScale = publicScale(scoreScope)
-  const tier = usePublicScale ? publicSignalTier(score) : getPriorityTier(score)
-  return (
-    <div className="flex items-baseline gap-1">
-      <span
-        className={cn(
-          'text-xl font-semibold tabular-nums',
-          tier === 'critical' && 'text-rose-800',
-          tier === 'high' && 'text-amber-800',
-          tier === 'medium' && 'text-sky-800',
-          tier === 'low' && 'text-slate-600',
-        )}
-      >
-        {score}
-      </span>
-      <span className="text-[11px] text-slate-400">
-        {usePublicScale ? '/ 60 公开分' : '/ 100 个性化分'}
-      </span>
-    </div>
-  )
-}

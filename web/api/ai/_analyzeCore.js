@@ -10,21 +10,28 @@ import {
   publicIntelligenceDatabaseConfigured,
 } from '../_publicIntelligenceDb.js'
 import {
-  buildDecisionMessages,
-  parseDecisionContent,
+  PUBLIC_RULE_VERSION,
+  buildRuleDecision,
 } from './_decisionContract.js'
+import {
+  MAX_PAGE_BRIEF_ITEMS,
+  PAGE_BRIEF_PROMPT_VERSION,
+  PAGE_BRIEF_TYPE,
+  annotateBriefItems,
+  buildPageBriefMessages,
+  buildRuleBrief,
+  parsePageBriefContent,
+} from './_pageBrief.js'
 
 export const config = { maxDuration: 60 }
 
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const DEFAULT_ALTERNATE_BASE_URL = 'https://apihub.agnes-ai.cn/v1'
 const MODEL_ID = 'agnes-3.0-flash'
-const PUBLIC_AI_PROMPT_VERSION = 'decision-action-selector-v3-public-v1'
 const MAX_FACT_TEXT = 1200
 const MAX_ARRAY_ITEMS = 30
 const MAX_BATCH_OPPORTUNITIES = 10
-const RESULT_CACHE_TTL_MS = 10 * 60 * 1000
-const RESULT_CACHE_MAX = 50
+const PAGE_BRIEF_MAX_TOKENS = 700
 const RATE_WINDOW_MS = 60 * 1000
 const RATE_MAX_PER_CLIENT = 10
 // Provider latency has a long tail: most answers arrive in 2-6s, a few take
@@ -43,7 +50,6 @@ const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
 const SOURCE_CATEGORY_TITLE_CONFLICT = 'SOURCE_CATEGORY_TITLE_CONFLICT'
 const RELATIVE_WINDOW_FLAG = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
 
-const resultCache = new Map()
 const inFlight = new Map()
 
 function sendJson(response, status, payload) {
@@ -113,28 +119,6 @@ function fingerprint(value) {
     hash = Math.imul(hash, 16777619)
   }
   return (hash >>> 0).toString(16).padStart(8, '0')
-}
-
-function snapshotCacheKey(snapshotAsOf, opportunityId, customerContext, runtimeWindowStatus) {
-  return `decision-action-selector-v3:${snapshotAsOf || 'snapshot-unknown'}:${opportunityId}:window-${runtimeWindowStatus}:ctx-${fingerprint(customerContext)}`
-}
-
-function getWarmCachedDecision(cacheKey) {
-  const entry = resultCache.get(cacheKey)
-  if (!entry) return null
-  if (Date.now() >= entry.expiresAt) {
-    resultCache.delete(cacheKey)
-    return null
-  }
-  return entry.decision
-}
-
-function cacheWarmDecision(cacheKey, decision) {
-  if (resultCache.size >= RESULT_CACHE_MAX) {
-    const oldestKey = resultCache.keys().next().value
-    if (oldestKey) resultCache.delete(oldestKey)
-  }
-  resultCache.set(cacheKey, { expiresAt: Date.now() + RESULT_CACHE_TTL_MS, decision })
 }
 
 function normalizeSnapshotBudget(value) {
@@ -342,43 +326,6 @@ export function runtimeWindowStatus(facts, nowMs = Date.now()) {
   return 'OPEN'
 }
 
-function endOfShanghaiDayMs(dateKey) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(dateKey || '')
-    ? Date.parse(`${dateKey}T23:59:59+08:00`)
-    : null
-}
-
-function nextActionDeadlineMs(facts, windowStatus, nowMs) {
-  if (windowStatus === 'LATE_WINDOW') return parsedTime(facts.bid_deadline)
-  if (windowStatus === 'RELATIVE_WINDOW') {
-    const relativeEnd = addDaysDateString(facts.publish_date, 7)
-    return relativeEnd ? endOfShanghaiDayMs(relativeEnd) : null
-  }
-  const registration = parsedTime(facts.registration_deadline)
-  if (registration !== null && registration > nowMs) return registration
-  const registrationDate = /^\d{4}-\d{2}-\d{2}$/.test(facts.registration_deadline_date || '')
-    ? endOfShanghaiDayMs(facts.registration_deadline_date)
-    : null
-  if (registrationDate !== null && registrationDate > nowMs) return registrationDate
-  const bid = parsedTime(facts.bid_deadline)
-  return bid !== null && bid > nowMs ? bid : null
-}
-
-function urgencyBucket(deadlineMs, nowMs) {
-  if (deadlineMs === null) return 'NO_DEADLINE'
-  const hours = Math.max(0, (deadlineMs - nowMs) / (60 * 60 * 1000))
-  if (hours <= 24) return 'H24'
-  if (hours <= 72) return 'H72'
-  if (hours <= 7 * 24) return 'D7'
-  if (hours <= 14 * 24) return 'D14'
-  if (hours <= 30 * 24) return 'D30'
-  return 'GT30D'
-}
-
-export function publicWindowCacheState(facts, windowStatus, nowMs = Date.now()) {
-  return `${windowStatus}:${urgencyBucket(nextActionDeadlineMs(facts, windowStatus, nowMs), nowMs)}`
-}
-
 function getApiKeys() {
   const raw = process.env.AGNES_API_KEYS || process.env.AGNES_API_KEY || ''
   return raw.split(/[\n,;]+/).map((item) => item.trim()).filter(Boolean)
@@ -428,7 +375,7 @@ function retryDelay() {
   return new Promise((resolve) => setTimeout(resolve, PROVIDER_RETRY_DELAY_MS))
 }
 
-async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerContext, windowStatus, analysisAsOf, signal }) {
+async function callProvider({ apiKey, baseUrl, messages, parse, maxTokens, signal }) {
   const response = await fetch(`${normalizeBaseUrl(baseUrl)}/chat/completions`, {
     method: 'POST',
     signal,
@@ -439,9 +386,9 @@ async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerCont
     },
     body: JSON.stringify({
       model: MODEL_ID,
-      messages: buildDecisionMessages(facts, evidenceUrls, customerContext, windowStatus, analysisAsOf),
+      messages,
       temperature: 0.1,
-      max_tokens: 900,
+      max_tokens: maxTokens,
       stream: false,
     }),
   })
@@ -453,12 +400,7 @@ async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerCont
   const payload = await response.json()
   const content = payload?.choices?.[0]?.message?.content
   if (typeof content !== 'string' || !content.trim()) throw new Error('UPSTREAM_CONTENT_EMPTY')
-  return parseDecisionContent(content, {
-    facts,
-    evidenceUrls,
-    customerContext,
-    windowStatus,
-  })
+  return parse(content)
 }
 
 function providerTimeoutError() {
@@ -492,8 +434,8 @@ function retryBaseUrlFor(error, baseUrl) {
   return null
 }
 
-export async function callProviderWithTransientRetry(providerArgs, keys, opportunityId, timing = {}) {
-  const apiKey = selectedKey(keys, opportunityId)
+export async function callProviderWithTransientRetry(providerArgs, keys, keySeed, timing = {}) {
+  const apiKey = selectedKey(keys, keySeed)
   const hedgeAfterMs = timing.hedgeAfterMs ?? PROVIDER_HEDGE_AFTER_MS
   const totalBudgetMs = timing.totalBudgetMs ?? PROVIDER_TOTAL_BUDGET_MS
 
@@ -554,63 +496,7 @@ export async function callProviderWithTransientRetry(providerArgs, keys, opportu
   })
 }
 
-async function getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request) {
-  const cached = getWarmCachedDecision(cacheKey)
-  if (cached) return cached
-  const pending = inFlight.get(cacheKey)
-  if (pending) return pending
-  // Authenticated server-side prewarm is bounded by its own batch limits and
-  // must not be throttled by (or consume) the per-visitor IP budget.
-  if (!request?.__mcaiInternalPrewarm && await warmRateLimitExceeded(request)) throw rateLimitError()
-  const promise = callProviderWithTransientRetry(providerArgs, keys, opportunityId)
-    .then((decision) => {
-      cacheWarmDecision(cacheKey, decision)
-      return decision
-    })
-    .finally(() => inFlight.delete(cacheKey))
-  inFlight.set(cacheKey, promise)
-  return promise
-}
-
-async function getOrCreateDecision({
-  cacheKey,
-  providerArgs,
-  keys,
-  opportunityId,
-  request,
-  sharedPublic,
-}) {
-  let createPromise = null
-  const createResult = () => {
-    if (keys.length === 0) {
-      const error = new Error('AI_NOT_CONFIGURED')
-      error.code = 'AI_NOT_CONFIGURED'
-      throw error
-    }
-    if (!createPromise) {
-      createPromise = getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunityId, request)
-    }
-    return createPromise
-  }
-  if (!sharedPublic) {
-    return {
-      decision: await createResult(),
-      cache: { cache_hit: false, durable: false, generated_at: providerArgs.analysisAsOf },
-    }
-  }
-  const cached = await getOrCreateSharedPublicAiBrief({
-    opportunityId,
-    factHash: sharedPublic.factHash,
-    windowState: sharedPublic.windowState,
-    briefType: 'PUBLIC_ACTION_DECISION',
-    promptVersion: PUBLIC_AI_PROMPT_VERSION,
-    createResult,
-  })
-  return { decision: cached.result, cache: cached }
-}
-
-
-function batchErrorCode(error) {
+function aiErrorCode(error) {
   const status = Number(error?.status)
   if (error?.code === 'AI_NOT_CONFIGURED') return 'AI_NOT_CONFIGURED'
   if (error?.code === 'AI_RESPONSE_INVALID') return 'AI_RESPONSE_INVALID'
@@ -620,19 +506,15 @@ function batchErrorCode(error) {
   return 'AI_PROVIDER_UNAVAILABLE'
 }
 
-async function analyzeSharedPublicBatchItem({
-  snapshot,
-  opportunityId,
-  request,
-  cacheOnly,
-}) {
+/**
+ * Per-card next step. Deterministic rules over verified facts: instant, the
+ * same for every visitor, and independent of AI keys or rate limits.
+ */
+function ruleDecisionItem({ snapshot, opportunityId, customerContext = null, nowMs = Date.now() }) {
   const grounded = findVerifiedOpportunity(snapshot, opportunityId)
   if (!grounded) {
     return { opportunity_id: opportunityId, status: 'ERROR', error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' }
   }
-
-  const analysisAsOf = new Date().toISOString()
-  const nowMs = Date.parse(analysisAsOf)
   const windowStatus = runtimeWindowStatus(grounded.facts, nowMs)
   if (windowStatus === 'CLOSED') {
     return {
@@ -642,114 +524,160 @@ async function analyzeSharedPublicBatchItem({
       runtime_window_status: windowStatus,
     }
   }
-
-  const snapshotAsOf = cleanString(snapshot.snapshot_as_of, 100)
-  const windowCacheState = publicWindowCacheState(grounded.facts, windowStatus, nowMs)
-  const factHash = publicAiFactHash(grounded.facts, grounded.evidenceUrls)
-
-  if (cacheOnly) {
-    const cached = await getSharedPublicAiBrief({
-      opportunityId,
-      factHash,
-      windowState: windowCacheState,
-      briefType: 'PUBLIC_ACTION_DECISION',
-      promptVersion: PUBLIC_AI_PROMPT_VERSION,
-    })
-    if (!cached.result) {
-      return {
-        opportunity_id: opportunityId,
-        status: 'MISS',
-        runtime_window_status: windowStatus,
-        public_cache_window_state: windowCacheState,
-      }
-    }
-    return {
-      opportunity_id: opportunityId,
-      status: 'READY',
-      decision: cached.result,
-      decision_generated_at: cached.generated_at,
-      runtime_window_status: windowStatus,
-      public_cache_window_state: windowCacheState,
-      shared_public_cache: {
-        cache_hit: true,
-        durable: cached.durable === true,
-        prompt_version: PUBLIC_AI_PROMPT_VERSION,
-      },
-    }
-  }
-
-  try {
-    const keys = getApiKeys()
-    const baseUrl = (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim()
-    const cacheKey = `shared-public:${PUBLIC_AI_PROMPT_VERSION}:${opportunityId}:${factHash}:${windowCacheState}`
-    const result = await getOrCreateDecision({
-      cacheKey,
-      providerArgs: {
-        baseUrl,
-        facts: grounded.facts,
-        evidenceUrls: grounded.evidenceUrls,
-        customerContext: null,
-        windowStatus,
-        analysisAsOf,
-      },
-      keys,
-      opportunityId,
-      request,
-      sharedPublic: { factHash, windowState: windowCacheState },
-    })
-    return {
-      opportunity_id: opportunityId,
-      status: 'READY',
-      decision: result.decision,
-      decision_generated_at: result.cache.generated_at,
-      runtime_window_status: windowStatus,
-      public_cache_window_state: windowCacheState,
-      shared_public_cache: {
-        cache_hit: result.cache.cache_hit === true,
-        durable: result.cache.durable === true,
-        prompt_version: PUBLIC_AI_PROMPT_VERSION,
-      },
-    }
-  } catch (error) {
-    return {
-      opportunity_id: opportunityId,
-      status: 'ERROR',
-      error: batchErrorCode(error),
-      runtime_window_status: windowStatus,
-      public_cache_window_state: windowCacheState,
-    }
+  return {
+    opportunity_id: opportunityId,
+    status: 'READY',
+    decision: buildRuleDecision(grounded.facts, grounded.evidenceUrls, customerContext, windowStatus),
+    decision_source: 'PUBLIC_FACT_RULES',
+    rule_version: PUBLIC_RULE_VERSION,
+    runtime_window_status: windowStatus,
   }
 }
 
-export const PREWARM_MAX_GENERATE_PER_CALL = 10
-export const PREWARM_MAX_CANDIDATES = 100
+// ---- Page brief -----------------------------------------------------------
 
-export function prewarmCandidateIds(snapshot, maxCandidates) {
-  const today = Array.isArray(snapshot?.cards) ? snapshot.cards : []
-  const pool = Array.isArray(snapshot?.opportunity_pool) ? [...snapshot.opportunity_pool] : []
-  pool.sort((left, right) => (Number(right?.priority?.score) || 0) - (Number(left?.priority?.score) || 0))
+export const PAGE_BRIEF_MARKETS = Object.freeze(['TJ', 'BJ', 'HE', 'LN', 'JL', 'HL'])
+const PAGE_BRIEF_MARKET_SET = new Set(PAGE_BRIEF_MARKETS)
+
+export function marketCodeForSnapshotCard(card) {
+  const explicit = String(card?.facts?.market_code ?? '').trim().toUpperCase()
+  if (PAGE_BRIEF_MARKET_SET.has(explicit)) return explicit
+  // Same compatibility rule as the frontend: legacy Tianjin ids carry no prefix.
+  const match = String(card?.opportunity_id || '').match(/^ccgp_(bj|he|ln|jl|hl)_/i)
+  return match ? match[1].toUpperCase() : 'TJ'
+}
+
+export function normalizePageBriefMarkets(value) {
+  if (!Array.isArray(value)) return null
+  const markets = [...new Set(value.map((item) => String(item || '').trim().toUpperCase()))]
+    .filter((item) => PAGE_BRIEF_MARKET_SET.has(item))
+    .sort()
+  return markets.length > 0 && markets.length === value.length ? markets : null
+}
+
+/** Open, verified opportunities of the given markets, best public signal first. */
+export function pageBriefCandidates(snapshot, markets, nowMs = Date.now()) {
+  const wanted = new Set(markets)
+  const pool = Array.isArray(snapshot?.opportunity_pool) && snapshot.opportunity_pool.length
+    ? snapshot.opportunity_pool
+    : Array.isArray(snapshot?.cards) ? snapshot.cards : []
+  const items = []
   const seen = new Set()
-  const ids = []
-  for (const card of [...today, ...pool]) {
-    const id = cleanString(card?.opportunity_id, 200)
-    if (!id || seen.has(id)) continue
-    if (card?.model_decision_status === 'NOT_ELIGIBLE' || card?.model_decision_status === 'BLOCKED_GROUNDING') continue
-    seen.add(id)
-    ids.push(id)
-    if (ids.length >= maxCandidates) break
+  const ordered = [...pool].sort(
+    (left, right) => (Number(right?.priority?.score) || 0) - (Number(left?.priority?.score) || 0),
+  )
+  for (const card of ordered) {
+    const opportunityId = cleanString(card?.opportunity_id, 200)
+    if (!opportunityId || seen.has(opportunityId)) continue
+    if (!wanted.has(marketCodeForSnapshotCard(card))) continue
+    const grounded = findVerifiedOpportunity(snapshot, opportunityId)
+    if (!grounded) continue
+    const windowStatus = runtimeWindowStatus(grounded.facts, nowMs)
+    if (windowStatus === 'CLOSED') continue
+    seen.add(opportunityId)
+    items.push({
+      opportunity_id: opportunityId,
+      facts: grounded.facts,
+      evidenceUrls: grounded.evidenceUrls,
+      windowStatus,
+    })
+    if (items.length >= MAX_PAGE_BRIEF_ITEMS) break
   }
-  return ids
+  return items
+}
+
+function pageBriefCacheKeys(items, markets, nowMs) {
+  return {
+    opportunityId: `page-brief:${markets.join('+')}`,
+    factHash: publicAiFactHash({
+      items: items.map((item) => ({
+        id: item.opportunity_id,
+        fact_hash: publicAiFactHash(item.facts, item.evidenceUrls),
+        window: item.windowStatus,
+      })),
+    }, []),
+    // Days-left wording changes daily, so a brief is valid for one Shanghai day.
+    windowState: `day:${shanghaiDateString(nowMs)}`,
+    briefType: PAGE_BRIEF_TYPE,
+    promptVersion: PAGE_BRIEF_PROMPT_VERSION,
+  }
+}
+
+function pageBriefResponse(brief, { markets, snapshot, items, nowMs, cache, aiError }) {
+  return {
+    schema_version: '0.1',
+    mode: 'PAGE_BRIEF',
+    markets,
+    snapshot_as_of: cleanString(snapshot?.snapshot_as_of, 100),
+    snapshot_source_mode: verifiedSnapshotSourceMode(),
+    generated_for_date: shanghaiDateString(nowMs),
+    prompt_version: PAGE_BRIEF_PROMPT_VERSION,
+    opportunity_ids: items.map((item) => item.opportunity_id),
+    brief,
+    brief_generated_at: cache?.generated_at ?? null,
+    shared_public_cache: cache
+      ? { cache_hit: cache.cache_hit === true, durable: cache.durable === true }
+      : null,
+    ai_error: aiError ?? null,
+  }
 }
 
 /**
- * Pre-generate shared public AI decisions for the opportunities users are most
- * likely to open (Today cards first, then the pool by priority score), so the
- * "AI分析" click is served from the durable cache instead of waiting on the
- * model. Each call generates at most `limit` missing decisions in parallel so
- * it stays inside one function invocation; callers loop until
- * `remaining_miss_count` reaches 0.
+ * One combined model call over the whole regional list. cacheOnly never calls
+ * the model: it returns the shared AI brief if someone already generated it
+ * today, otherwise the deterministic rule brief.
  */
-export async function prewarmSharedPublicDecisions({ snapshot, request, limit, maxCandidates }) {
+export async function analyzePageBrief({ snapshot, markets, request, cacheOnly, nowMs = Date.now() }) {
+  const items = annotateBriefItems(pageBriefCandidates(snapshot, markets, nowMs), nowMs)
+  const context = { markets, snapshot, items, nowMs }
+  if (items.length === 0) {
+    return pageBriefResponse(buildRuleBrief(items), { ...context, cache: null, aiError: 'NO_OPEN_OPPORTUNITIES' })
+  }
+  const cacheKeys = pageBriefCacheKeys(items, markets, nowMs)
+  const cached = await getSharedPublicAiBrief(cacheKeys)
+  if (cached.result) return pageBriefResponse(cached.result, { ...context, cache: cached })
+  if (cacheOnly) return pageBriefResponse(buildRuleBrief(items), { ...context, cache: null })
+
+  const keys = getApiKeys()
+  if (keys.length === 0) {
+    return pageBriefResponse(buildRuleBrief(items), { ...context, cache: null, aiError: 'AI_NOT_CONFIGURED' })
+  }
+  const inFlightKey = `${cacheKeys.opportunityId}:${cacheKeys.factHash}:${cacheKeys.windowState}`
+  try {
+    const created = await getOrCreateSharedPublicAiBrief({
+      ...cacheKeys,
+      createResult: async () => {
+        const pending = inFlight.get(inFlightKey)
+        if (pending) return pending
+        if (!request?.__mcaiInternalPrewarm && await warmRateLimitExceeded(request)) throw rateLimitError()
+        const analysisAsOf = new Date(nowMs).toISOString()
+        const promise = callProviderWithTransientRetry({
+          baseUrl: (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim(),
+          messages: buildPageBriefMessages(items, analysisAsOf),
+          parse: (content) => parsePageBriefContent(content, items),
+          maxTokens: PAGE_BRIEF_MAX_TOKENS,
+        }, keys, cacheKeys.opportunityId).finally(() => inFlight.delete(inFlightKey))
+        inFlight.set(inFlightKey, promise)
+        return promise
+      },
+    })
+    return pageBriefResponse(created.result, { ...context, cache: created })
+  } catch (error) {
+    // The page must always have a usable ordering: fall back to rules.
+    return pageBriefResponse(buildRuleBrief(items), { ...context, cache: null, aiError: aiErrorCode(error) })
+  }
+}
+
+export const PREWARM_MAX_GENERATE_PER_CALL = PAGE_BRIEF_MARKETS.length
+export const PREWARM_MAX_CANDIDATES = PAGE_BRIEF_MARKETS.length
+
+/**
+ * Pre-generate today's shared page brief for every single business region so
+ * the first visitor of the day sees the AI brief without waiting. Per-card
+ * next steps are rule-based and need no prewarm. Response shape is kept for
+ * the existing refresh workflow script (loops until remaining_miss_count = 0).
+ */
+export async function prewarmSharedPublicDecisions({ snapshot, request, limit }) {
   if (!publicIntelligenceDatabaseConfigured()) {
     const error = new Error('PREWARM_REQUIRES_DURABLE_CACHE')
     error.code = 'PREWARM_REQUIRES_DURABLE_CACHE'
@@ -761,35 +689,35 @@ export async function prewarmSharedPublicDecisions({ snapshot, request, limit, m
     throw error
   }
   const generateLimit = Math.max(1, Math.min(PREWARM_MAX_GENERATE_PER_CALL, Number(limit) || PREWARM_MAX_GENERATE_PER_CALL))
-  const candidateLimit = Math.max(1, Math.min(PREWARM_MAX_CANDIDATES, Number(maxCandidates) || 40))
   const internalRequest = { ...request, __mcaiInternalPrewarm: true }
-  const ids = prewarmCandidateIds(snapshot, candidateLimit)
-
-  const probes = await Promise.all(ids.map((opportunityId) =>
-    analyzeSharedPublicBatchItem({ snapshot, opportunityId, request: internalRequest, cacheOnly: true }),
-  ))
-  const missIds = probes.filter((item) => item.status === 'MISS').map((item) => item.opportunity_id)
-  const toGenerate = missIds.slice(0, generateLimit)
-  const generated = await Promise.all(toGenerate.map((opportunityId) =>
-    analyzeSharedPublicBatchItem({ snapshot, opportunityId, request: internalRequest, cacheOnly: false }),
-  ))
-  const errors = generated
-    .filter((item) => item.status !== 'READY')
-    .map((item) => ({ opportunity_id: item.opportunity_id, error: item.error || item.status }))
-
+  const nowMs = Date.now()
+  const probes = await Promise.all(PAGE_BRIEF_MARKETS.map(async (market) => {
+    const items = pageBriefCandidates(snapshot, [market], nowMs)
+    if (items.length === 0) return { market, status: 'EMPTY' }
+    const cached = await getSharedPublicAiBrief(pageBriefCacheKeys(items, [market], nowMs))
+    return { market, status: cached.result ? 'CACHED' : 'MISS' }
+  }))
+  const missMarkets = probes.filter((item) => item.status === 'MISS').map((item) => item.market)
+  const toGenerate = missMarkets.slice(0, generateLimit)
+  const generated = await Promise.all(toGenerate.map(async (market) => {
+    const result = await analyzePageBrief({ snapshot, markets: [market], request: internalRequest, cacheOnly: false, nowMs })
+    return { market, ok: result.brief?.brief_source === 'AI', error: result.ai_error }
+  }))
+  const errors = generated.filter((item) => !item.ok).map((item) => ({ market: item.market, error: item.error || 'PAGE_BRIEF_NOT_GENERATED' }))
   return {
-    schema_version: '0.1',
+    schema_version: '0.2',
     mode: 'PREWARM',
+    target: 'PAGE_BRIEF',
     snapshot_as_of: cleanString(snapshot?.snapshot_as_of, 100),
-    prompt_version: PUBLIC_AI_PROMPT_VERSION,
-    candidate_count: ids.length,
-    already_cached_count: probes.filter((item) => item.status === 'READY').length,
-    not_eligible_count: probes.filter((item) => item.status === 'NOT_ELIGIBLE').length,
+    prompt_version: PAGE_BRIEF_PROMPT_VERSION,
+    candidate_count: PAGE_BRIEF_MARKETS.length,
+    already_cached_count: probes.filter((item) => item.status === 'CACHED').length,
+    not_eligible_count: probes.filter((item) => item.status === 'EMPTY').length,
     attempted_count: toGenerate.length,
-    generated_count: generated.filter((item) => item.status === 'READY').length,
+    generated_count: generated.filter((item) => item.ok).length,
     error_count: errors.length,
-    errors: errors.slice(0, 10),
-    remaining_miss_count: Math.max(0, missIds.length - toGenerate.length) + errors.length,
+    errors,
+    remaining_miss_count: Math.max(0, missMarkets.length - toGenerate.length) + errors.length,
   }
 }
 
@@ -862,8 +790,33 @@ export default async function handler(request, response) {
     'opportunity_ids',
     'customer_context',
     'cache_only',
+    'page_brief',
   ].includes(key))) {
     return sendJson(response, 400, { error: 'UNEXPECTED_FIELDS' })
+  }
+  if (body.cache_only !== undefined && typeof body.cache_only !== 'boolean') {
+    return sendJson(response, 400, { error: 'CACHE_ONLY_BOOLEAN_REQUIRED' })
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, 'page_brief')) {
+    if (body.customer_context || body.opportunity_id || body.opportunity_ids) {
+      return sendJson(response, 400, { error: 'PAGE_BRIEF_FIELDS_EXCLUSIVE' })
+    }
+    const markets = normalizePageBriefMarkets(asObject(body.page_brief)?.markets)
+    if (!markets) return sendJson(response, 400, { error: 'PAGE_BRIEF_MARKETS_INVALID' })
+    let briefSnapshot
+    try {
+      briefSnapshot = await loadVerifiedSnapshot()
+    } catch {
+      return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
+    }
+    const result = await analyzePageBrief({
+      snapshot: briefSnapshot,
+      markets,
+      request,
+      cacheOnly: body.cache_only === true,
+    })
+    return sendJson(response, 200, result)
   }
 
   const batchRequested = Object.prototype.hasOwnProperty.call(body, 'opportunity_ids')
@@ -888,9 +841,6 @@ export default async function handler(request, response) {
         max_batch_size: MAX_BATCH_OPPORTUNITIES,
       })
     }
-    if (body.cache_only !== undefined && typeof body.cache_only !== 'boolean') {
-      return sendJson(response, 400, { error: 'CACHE_ONLY_BOOLEAN_REQUIRED' })
-    }
 
     let batchSnapshot
     try {
@@ -899,27 +849,21 @@ export default async function handler(request, response) {
       return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
     }
 
-    const cacheOnly = body.cache_only === true
-    const items = await Promise.all(
-      opportunityIds.map((opportunityId) =>
-        analyzeSharedPublicBatchItem({
-          snapshot: batchSnapshot,
-          opportunityId,
-          request,
-          cacheOnly,
-        }),
-      ),
+    // cache_only is accepted for compatibility; rule decisions need no cache.
+    const nowMs = Date.now()
+    const items = opportunityIds.map((opportunityId) =>
+      ruleDecisionItem({ snapshot: batchSnapshot, opportunityId, nowMs }),
     )
     return sendJson(response, 200, {
-      schema_version: '0.1',
+      schema_version: '0.2',
       mode: 'BATCH',
-      cache_only: cacheOnly,
+      cache_only: body.cache_only === true,
+      decision_source: 'PUBLIC_FACT_RULES',
+      rule_version: PUBLIC_RULE_VERSION,
       snapshot_as_of: cleanString(batchSnapshot.snapshot_as_of, 100),
       snapshot_source_mode: verifiedSnapshotSourceMode(),
       requested_count: opportunityIds.length,
       ready_count: items.filter((item) => item.status === 'READY').length,
-      cache_hit_count: items.filter((item) => item.shared_public_cache?.cache_hit === true).length,
-      miss_count: items.filter((item) => item.status === 'MISS').length,
       error_count: items.filter((item) => item.status === 'ERROR').length,
       items,
     })
@@ -934,78 +878,35 @@ export default async function handler(request, response) {
   } catch {
     return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
   }
-  const grounded = findVerifiedOpportunity(snapshot, opportunityId)
-  if (!grounded) return sendJson(response, 404, { error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' })
 
   const clientCustomerContext = sanitizeCustomerContext(body.customer_context)
   const privateOverlayContext = sanitizeCustomerContext(request.__medicalChannelPrivateDecisionOverlay)
-  const modelCustomerContext = privateOverlayContext ? null : clientCustomerContext
+  const ruleCustomerContext = privateOverlayContext ? null : clientCustomerContext
   const analysisAsOf = new Date().toISOString()
-  const nowMs = Date.parse(analysisAsOf)
-  const windowStatus = runtimeWindowStatus(grounded.facts, nowMs)
-  if (windowStatus === 'CLOSED') {
+  const item = ruleDecisionItem({
+    snapshot,
+    opportunityId,
+    customerContext: ruleCustomerContext,
+    nowMs: Date.parse(analysisAsOf),
+  })
+  if (item.status === 'ERROR') return sendJson(response, 404, { error: item.error })
+  if (item.status === 'NOT_ELIGIBLE') {
     return sendJson(response, 409, { error: 'OPPORTUNITY_WINDOW_CLOSED', analysis_as_of: analysisAsOf })
   }
-
-  const keys = getApiKeys()
-
-  const baseUrl = (process.env.AGNES_BASE_URL || DEFAULT_BASE_URL).trim()
-  const snapshotAsOf = cleanString(snapshot.snapshot_as_of, 100)
-  const windowCacheState = publicWindowCacheState(grounded.facts, windowStatus, nowMs)
-  const factHash = publicAiFactHash(grounded.facts, grounded.evidenceUrls)
-  const cacheKey = modelCustomerContext
-    ? snapshotCacheKey(snapshotAsOf, opportunityId, modelCustomerContext, windowCacheState)
-    : `shared-public:${PUBLIC_AI_PROMPT_VERSION}:${opportunityId}:${factHash}:${windowCacheState}`
-
-  try {
-    const result = await getOrCreateDecision({
-      cacheKey,
-      providerArgs: {
-        baseUrl,
-        facts: grounded.facts,
-        evidenceUrls: grounded.evidenceUrls,
-        customerContext: modelCustomerContext,
-        windowStatus,
-        analysisAsOf,
-      },
-      keys,
-      opportunityId,
-      request,
-      sharedPublic: modelCustomerContext
-        ? null
-        : { factHash, windowState: windowCacheState },
-    })
-    const decision = applyPrivateDecisionOverlay(result.decision, privateOverlayContext)
-    return sendJson(response, 200, {
-      schema_version: '0.1',
-      opportunity_id: opportunityId,
-      snapshot_as_of: snapshotAsOf,
-      snapshot_source_mode: verifiedSnapshotSourceMode(),
-      generated_at: analysisAsOf,
-      decision_generated_at: result.cache.generated_at,
-      runtime_window_status: windowStatus,
-      public_cache_window_state: windowCacheState,
-      decision,
-      decision_source: privateOverlayContext
-        ? 'SHARED_PUBLIC_AI_PLUS_PRIVATE_RULE_OVERLAY'
-        : modelCustomerContext
-          ? 'GROUNDED_AI_PUBLIC_FACTS_PLUS_CUSTOMER_CONTEXT'
-          : 'SHARED_GROUNDED_AI_PUBLIC_FACTS_ONLY',
-      shared_public_cache: modelCustomerContext
-        ? null
-        : {
-            cache_hit: result.cache.cache_hit === true,
-            durable: result.cache.durable === true,
-            prompt_version: PUBLIC_AI_PROMPT_VERSION,
-          },
-    })
-  } catch (error) {
-    const status = Number(error?.status)
-    if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })
-    if (error?.code === 'AI_RESPONSE_INVALID') return sendJson(response, 502, { error: 'AI_RESPONSE_INVALID' })
-    if (status === 429) return sendJson(response, 429, { error: 'AI_RATE_LIMITED' })
-    if (status === 401 || status === 403) return sendJson(response, 503, { error: 'AI_PROVIDER_AUTH_UNAVAILABLE' })
-    if (error?.code === 'AI_TIMEOUT' || status === 408 || error?.name === 'AbortError') return sendJson(response, 504, { error: 'AI_TIMEOUT' })
-    return sendJson(response, 502, { error: 'AI_PROVIDER_UNAVAILABLE' })
-  }
+  const decision = applyPrivateDecisionOverlay(item.decision, privateOverlayContext)
+  return sendJson(response, 200, {
+    schema_version: '0.2',
+    opportunity_id: opportunityId,
+    snapshot_as_of: cleanString(snapshot.snapshot_as_of, 100),
+    snapshot_source_mode: verifiedSnapshotSourceMode(),
+    generated_at: analysisAsOf,
+    runtime_window_status: item.runtime_window_status,
+    decision,
+    decision_source: privateOverlayContext
+      ? 'PUBLIC_FACT_RULES_PLUS_PRIVATE_RULE_OVERLAY'
+      : ruleCustomerContext
+        ? 'PUBLIC_FACT_RULES_PLUS_CUSTOMER_CONTEXT'
+        : 'PUBLIC_FACT_RULES',
+    rule_version: PUBLIC_RULE_VERSION,
+  })
 }

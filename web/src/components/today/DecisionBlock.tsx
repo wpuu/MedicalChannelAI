@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 import { Loader2, ShieldAlert, Sparkles } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import { MODEL_STATUS_COPY } from '@/utils/labels'
@@ -6,10 +6,6 @@ import { hasUserCustomerContext } from '@/utils/customerContext'
 import { SourceTag } from '@/components/shared/StageBadge'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
-import {
-  getAiRequestBusySnapshot,
-  subscribeAiRequestBusy,
-} from '@/services/aiRequestGate'
 
 interface DecisionBlockProps {
   card: TodayActionCard
@@ -43,12 +39,6 @@ export function DecisionBlock({
 }: DecisionBlockProps) {
   const copy = MODEL_STATUS_COPY[card.model_decision_status]
   const hasCustomerContext = hasUserCustomerContext(card.customer_context)
-  const globalAiBusy = useSyncExternalStore(
-    subscribeAiRequestBusy,
-    getAiRequestBusySnapshot,
-    () => false,
-  )
-  const anotherAiRequestBusy = globalAiBusy && !analyzing
   const slowAnalysis = useSlowAnalysisHint(Boolean(analyzing))
 
   if (card.model_decision_status === 'READY' && card.decision) {
@@ -57,18 +47,18 @@ export function DecisionBlock({
         <div className="mb-2 flex items-center justify-between gap-2">
           <p className="flex items-center gap-1.5 text-[13px] font-semibold text-indigo-950">
             <Sparkles className="h-3.5 w-3.5" />
-            AI行动建议
+            下一步行动
           </p>
           <SourceTag tone="ai">
             {isApiMode
               ? hasCustomerContext
                 ? '公开事实 + 账号资源'
-                : '已核验公开事实'
+                : '按已核验事实规则生成'
               : isVerifiedPublicDemo
                 ? hasCustomerContext
                   ? '公开信息 + 我的资源'
-                  : '基于公开信息'
-                : 'AI判断'}
+                  : '按公开事实规则生成'
+                : '规则生成'}
           </SourceTag>
         </div>
         <p className="text-[13px] leading-6 text-slate-800">
@@ -107,20 +97,16 @@ export function DecisionBlock({
     return (
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
         <div className="min-w-0">
-          <p className="text-[13px] font-semibold text-slate-800">AI行动分析</p>
+          <p className="text-[13px] font-semibold text-slate-800">下一步行动</p>
           <p className="mt-1 text-[12px] leading-5 text-slate-500">
-            {isApiMode
-              ? hasCustomerContext
-                ? '按需分析：AI会使用已核验公开事实，并由服务器只读取当前账号与这条商机相关的已确认资源。'
-                : '按需分析：AI只使用这条商机的已核验公开事实；不会替你猜测客户资源。'
-              : hasCustomerContext
-                ? '结合公开信息和你填写的资源，给出更具体的下一步动作。'
-                : '基于已核验公开信息，给出下一步动作和需要确认的事项。'}
+            {hasCustomerContext
+              ? '按已核验公开事实和你已确认的资源，用固定规则生成下一步动作。'
+              : '按这条商机的已核验公开事实，用固定规则生成下一步动作和需要确认的事项。'}
           </p>
           {onAnalyze ? (
             <button
               type="button"
-              disabled={Boolean(analyzing) || globalAiBusy || analysisDisabled}
+              disabled={Boolean(analyzing) || analysisDisabled}
               onClick={onAnalyze}
               className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-[12px] font-medium text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-500 disabled:opacity-70"
             >
@@ -130,25 +116,17 @@ export function DecisionBlock({
                 <Sparkles className="h-3.5 w-3.5" />
               )}
               {analyzing
-                ? 'AI分析中'
+                ? '生成中'
                 : analysisDisabled
-                  ? '暂不能AI分析'
-                  : anotherAiRequestBusy
-                    ? '已有AI任务处理中'
-                    : hasCustomerContext
-                      ? '结合我的资源分析'
-                      : analysisUnavailableReason
-                        ? '获取AI建议'
-                        : '用AI分析这条'}
+                  ? '暂不能生成'
+                  : hasCustomerContext
+                    ? '结合我的资源生成'
+                    : '生成下一步'}
             </button>
           ) : null}
           {analyzing && slowAnalysis ? (
             <p className="mt-2 text-[11px] leading-5 text-slate-500">
-              AI服务本次响应较慢，系统仍在继续处理，无需重复点击。
-            </p>
-          ) : anotherAiRequestBusy ? (
-            <p className="mt-2 text-[11px] leading-5 text-slate-500">
-              为避免重复消耗，当前一次只处理一条AI分析。
+              网络响应较慢，系统仍在继续处理，无需重复点击。
             </p>
           ) : analysisUnavailableReason ? (
             <p className="mt-2 text-[11px] leading-5 text-amber-700">

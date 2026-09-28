@@ -1,6 +1,6 @@
 import type { Priority } from '@/types'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { PriorityBadge, PriorityScore } from '@/components/shared/PriorityBadge'
+import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { clampPercent } from '@/utils/format'
 import { PRIORITY_COMPONENT_LABEL } from '@/utils/labels'
 
@@ -11,17 +11,12 @@ export function PriorityCard({ priority }: { priority: Priority }) {
   return (
     <SectionCard
       title="商机优先级"
-      subtitle={usePublicScale ? '公开事实维度（满分60）' : '公开事实 + 当前账号私有资源（满分100）'}
+      subtitle={usePublicScale ? '公开事实维度' : '公开事实 + 当前账号私有资源'}
       extra={<PriorityBadge score={priority.score} scoreScope={priority.score_scope} />}
     >
-      <div className="mb-4 flex items-end justify-between gap-3">
-        <div>
-          <p className="text-[12px] text-slate-500">
-            {usePublicScale ? '公开事实得分' : '个性化经营优先级'}
-          </p>
-          <PriorityScore score={priority.score} scoreScope={priority.score_scope} />
-        </div>
-      </div>
+      <p className="mb-4 text-[12px] leading-5 text-slate-500">
+        只用于排列查看顺序，不是可投评分，也不代表中标可能。
+      </p>
       <div className="space-y-3">
         {entries.map(([key, value]) => (
           <div key={key}>

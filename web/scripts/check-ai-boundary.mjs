@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import handler from '../api/ai/analyze.js'
-import { runtimeWindowStatus } from '../api/ai/_analyzeCore.js'
+import { marketCodeForSnapshotCard, runtimeWindowStatus } from '../api/ai/_analyzeCore.js'
 import { clearVerifiedSnapshotCacheForTests } from '../api/_verifiedSnapshot.js'
 
 const snapshot = JSON.parse(
@@ -48,7 +48,8 @@ function successfulProviderResponse() {
     status: 200,
     json: async () => ({
       choices: [{ message: { content: JSON.stringify({
-        action_codes: ['VERIFY_REQUIREMENTS'],
+        headline: '先核对官方原文',
+        focus: [{ ref: '#1', reason: 'CLEAR_DEVICE_DEMAND' }],
       }) } }],
     }),
   }
@@ -119,13 +120,39 @@ try {
   expectStatus(response, 404, 'AI_BOUNDARY_UNKNOWN_ID')
   if (response.body?.error !== 'VERIFIED_OPPORTUNITY_NOT_FOUND') throw new Error('AI_BOUNDARY_UNKNOWN_ID_CODE')
 
+  // Per-card next steps are deterministic public-fact rules: they work with no
+  // provider key and never call the model.
+  let providerCalls = 0
+  globalThis.fetch = async () => {
+    providerCalls += 1
+    throw new Error('PER_CARD_MUST_NOT_FETCH')
+  }
   response = await invoke({
     origin: 'https://trial.example',
     body: { opportunity_id: knownOpportunityId },
     ip: '198.51.100.4',
   })
-  expectStatus(response, 503, 'AI_BOUNDARY_UNCONFIGURED')
-  if (response.body?.error !== 'AI_NOT_CONFIGURED') throw new Error('AI_BOUNDARY_UNCONFIGURED_CODE')
+  expectStatus(response, 200, 'AI_BOUNDARY_RULES_WITHOUT_KEY')
+  if (response.body?.decision_source !== 'PUBLIC_FACT_RULES') throw new Error('AI_BOUNDARY_RULES_SOURCE')
+  if (!response.body?.decision?.action) throw new Error('AI_BOUNDARY_RULES_DECISION')
+  if (providerCalls !== 0) throw new Error(`AI_BOUNDARY_RULES_CALLED_PROVIDER:${providerCalls}`)
+  globalThis.fetch = savedFetch
+
+  response = await invoke({
+    origin: 'https://trial.example',
+    body: { opportunity_ids: [knownOpportunityId, 'not-a-verified-opportunity'] },
+    ip: '198.51.100.4',
+  })
+  expectStatus(response, 200, 'AI_BOUNDARY_BATCH_RULES')
+  if (response.body?.items?.[0]?.status !== 'READY') throw new Error('AI_BOUNDARY_BATCH_READY')
+  if (response.body?.items?.[1]?.status === 'READY') throw new Error('AI_BOUNDARY_BATCH_UNKNOWN_READY')
+
+  response = await invoke({
+    origin: 'https://trial.example',
+    body: { opportunity_id: knownOpportunityId, page_brief: { markets: ['TJ'] } },
+    ip: '198.51.100.4',
+  })
+  expectStatus(response, 400, 'AI_BOUNDARY_PAGE_BRIEF_EXCLUSIVE')
 
   const poolOnlyOpportunityId = 'verified-pool-only-regression'
   const poolOnlyCard = JSON.parse(JSON.stringify(snapshot.cards[0]))
@@ -148,8 +175,8 @@ try {
     body: { opportunity_id: poolOnlyOpportunityId },
     ip: '198.51.100.6',
   })
-  expectStatus(response, 503, 'AI_BOUNDARY_POOL_ONLY_ID')
-  if (response.body?.error !== 'AI_NOT_CONFIGURED') {
+  expectStatus(response, 200, 'AI_BOUNDARY_POOL_ONLY_ID')
+  if (response.body?.decision_source !== 'PUBLIC_FACT_RULES') {
     throw new Error('AI_BOUNDARY_POOL_ONLY_ID_NOT_GROUNDED')
   }
 
@@ -182,27 +209,63 @@ try {
     throw new Error('AI_BOUNDARY_DATE_ONLY_CLOSED_CODE')
   }
 
-  process.env.VERIFIED_SNAPSHOT_URL = ''
+  // ---- Page brief: the only path that calls the model ----------------------
+  // Build a snapshot whose cards stay open regardless of the test date.
+  const briefCard = JSON.parse(JSON.stringify(snapshot.cards[0]))
+  briefCard.opportunity_id = 'page-brief-boundary-card'
+  briefCard.facts.registration_deadline = '2099-01-10T16:00:00+08:00'
+  briefCard.facts.registration_deadline_date = null
+  briefCard.facts.registration_deadline_precision = 'MINUTE'
+  briefCard.facts.bid_deadline = '2099-01-20T10:00:00+08:00'
+  const briefMarket = marketCodeForSnapshotCard(briefCard)
+  if (!briefMarket) throw new Error('AI_BOUNDARY_BRIEF_MARKET_UNKNOWN')
+  const briefSnapshot = JSON.parse(JSON.stringify(snapshot))
+  // Keep only the synthetic open card in the brief's market so ref #1 is it.
+  briefSnapshot.cards = snapshot.cards.filter((card) => marketCodeForSnapshotCard(card) !== briefMarket)
+  briefSnapshot.card_count = briefSnapshot.cards.length
+  briefSnapshot.opportunity_pool = [...briefSnapshot.cards, briefCard]
+  briefSnapshot.opportunity_pool_count = briefSnapshot.opportunity_pool.length
+  briefSnapshot.matched_count = briefSnapshot.opportunity_pool.length
+  const snapshotText = JSON.stringify(briefSnapshot)
+  const isSnapshotUrl = (url) => String(url).startsWith('https://snapshot.example/')
+  const snapshotResponse = () => ({ ok: true, status: 200, headers: { get: () => null }, text: async () => snapshotText })
   clearVerifiedSnapshotCacheForTests()
+  const briefBody = (extra = {}) => ({ page_brief: { markets: [briefMarket] }, ...extra })
+
+  // Without a key: rule brief, never an error page.
+  globalThis.fetch = async (url) => {
+    if (isSnapshotUrl(url)) return snapshotResponse()
+    throw new Error('UNEXPECTED_PROVIDER_CALL')
+  }
+  response = await invoke({ origin: 'https://trial.example', body: briefBody(), ip: '198.51.100.11' })
+  expectStatus(response, 200, 'AI_BRIEF_UNCONFIGURED')
+  if (response.body?.brief?.brief_source !== 'RULES') throw new Error('AI_BRIEF_UNCONFIGURED_SOURCE')
+  if (response.body?.ai_error !== 'AI_NOT_CONFIGURED') throw new Error('AI_BRIEF_UNCONFIGURED_CODE')
 
   process.env.AGNES_API_KEYS = 'fake-key-a,fake-key-b'
+
+  // cache_only never calls the provider even with keys.
+  response = await invoke({ origin: 'https://trial.example', body: briefBody({ cache_only: true }), ip: '198.51.100.11' })
+  expectStatus(response, 200, 'AI_BRIEF_CACHE_ONLY')
+  if (response.body?.brief?.brief_source !== 'RULES') throw new Error('AI_BRIEF_CACHE_ONLY_SOURCE')
+
   let seenAuthorization = []
   let seenUrls = []
   let providerAttempt = 0
-
-  globalThis.fetch = async (url, options = {}) => {
+  const providerFetch = (provider) => async (url, options = {}) => {
+    if (isSnapshotUrl(url)) return snapshotResponse()
     providerAttempt += 1
     seenUrls.push(String(url))
     seenAuthorization.push(options.headers?.Authorization ?? null)
-    return { ok: false, status: 429 }
+    return provider(providerAttempt)
   }
-  response = await invoke({
-    origin: 'https://trial.example',
-    body: { opportunity_id: knownOpportunityId },
-    ip: '198.51.100.8',
-  })
-  expectStatus(response, 429, 'AI_PROVIDER_429_STOPS_IMMEDIATELY')
-  if (response.body?.error !== 'AI_RATE_LIMITED') throw new Error('AI_PROVIDER_429_CODE')
+
+  // Provider 429 stops immediately (no retry, no key rotation) and degrades to rules.
+  globalThis.fetch = providerFetch(() => ({ ok: false, status: 429 }))
+  response = await invoke({ origin: 'https://trial.example', body: briefBody(), ip: '198.51.100.8' })
+  expectStatus(response, 200, 'AI_PROVIDER_429_FALLS_BACK')
+  if (response.body?.ai_error !== 'AI_RATE_LIMITED') throw new Error('AI_PROVIDER_429_CODE')
+  if (response.body?.brief?.brief_source !== 'RULES') throw new Error('AI_PROVIDER_429_SOURCE')
   if (providerAttempt !== 1) throw new Error(`AI_PROVIDER_429_RETRIED:${providerAttempt}`)
   if (new Set(seenAuthorization).size !== 1) throw new Error('AI_PROVIDER_429_ROTATED_KEY')
   let responseText = JSON.stringify(response.body)
@@ -210,50 +273,32 @@ try {
     throw new Error('AI_MULTI_KEY_SECRET_LEAK')
   }
 
+  // Provider 503 is retried once on the same key and route.
   providerAttempt = 0
   seenAuthorization = []
   seenUrls = []
-  globalThis.fetch = async (url, options = {}) => {
-    providerAttempt += 1
-    seenUrls.push(String(url))
-    seenAuthorization.push(options.headers?.Authorization ?? null)
-    if (providerAttempt === 1) return { ok: false, status: 503 }
-    return successfulProviderResponse()
-  }
-  response = await invoke({
-    origin: 'https://trial.example',
-    body: { opportunity_id: knownOpportunityId },
-    ip: '198.51.100.9',
-  })
+  globalThis.fetch = providerFetch((attempt) => attempt === 1 ? { ok: false, status: 503 } : successfulProviderResponse())
+  response = await invoke({ origin: 'https://trial.example', body: briefBody(), ip: '198.51.100.9' })
   expectStatus(response, 200, 'AI_PROVIDER_503_RETRY_SUCCESS')
+  if (response.body?.brief?.brief_source !== 'AI') throw new Error('AI_PROVIDER_503_RETRY_NOT_AI')
+  if (response.body?.brief?.focus?.[0]?.opportunity_id !== 'page-brief-boundary-card') throw new Error('AI_PROVIDER_BRIEF_REF_NOT_RESOLVED')
   if (providerAttempt !== 2) throw new Error(`AI_PROVIDER_503_RETRY_ATTEMPTS:${providerAttempt}`)
   if (new Set(seenAuthorization).size !== 1) throw new Error('AI_PROVIDER_503_RETRY_ROTATED_KEY')
   if (new Set(seenUrls).size !== 1) throw new Error('AI_PROVIDER_503_RETRY_CHANGED_ROUTE')
 
+  // Network failure retries once on the alternate route.
   providerAttempt = 0
   seenAuthorization = []
   seenUrls = []
-  globalThis.fetch = async (url, options = {}) => {
-    providerAttempt += 1
-    seenUrls.push(String(url))
-    seenAuthorization.push(options.headers?.Authorization ?? null)
-    if (providerAttempt === 1) {
+  globalThis.fetch = providerFetch((attempt) => {
+    if (attempt === 1) {
       const error = new TypeError('fetch failed')
       error.cause = { code: 'ENOTFOUND' }
       throw error
     }
     return successfulProviderResponse()
-  }
-  response = await invoke({
-    origin: 'https://trial.example',
-    body: {
-      opportunity_id: knownOpportunityId,
-      customer_context: {
-        matching_product_capabilities: [{ category: '检验设备', capability_type: 'CHANNEL' }],
-      },
-    },
-    ip: '198.51.100.10',
   })
+  response = await invoke({ origin: 'https://trial.example', body: briefBody(), ip: '198.51.100.10' })
   expectStatus(response, 200, 'AI_PROVIDER_NETWORK_ALTERNATE_SUCCESS')
   if (providerAttempt !== 2) throw new Error(`AI_PROVIDER_NETWORK_RETRY_ATTEMPTS:${providerAttempt}`)
   if (new Set(seenAuthorization).size !== 1) throw new Error('AI_PROVIDER_NETWORK_RETRY_ROTATED_KEY')
@@ -268,44 +313,25 @@ try {
     throw new Error('AI_NETWORK_RETRY_SECRET_LEAK')
   }
 
-  // Rate limiting protects actual provider work. Cache hits and requests that
-  // stop before a provider call must not consume this scarce budget.
+  // Rate limiting protects actual provider work: 10 generations per client
+  // window, then the page degrades to the rule brief without a provider call.
+  // Rule next steps never consume this budget.
   providerAttempt = 0
-  globalThis.fetch = async () => {
-    providerAttempt += 1
-    return successfulProviderResponse()
+  globalThis.fetch = providerFetch(() => successfulProviderResponse())
+  for (let index = 0; index < 12; index += 1) {
+    response = await invoke({ origin: 'https://trial.example', body: { opportunity_id: 'page-brief-boundary-card' }, ip: '198.51.100.5' })
+    if (response.statusCode !== 200) throw new Error(`AI_RULES_RATE_${index}:${response.statusCode}`)
   }
+  if (providerAttempt !== 0) throw new Error('AI_RULES_USED_PROVIDER')
   for (let index = 0; index < 10; index += 1) {
-    response = await invoke({
-      origin: 'https://trial.example',
-      body: {
-        opportunity_id: knownOpportunityId,
-        customer_context: {
-          matching_product_capabilities: [{
-            category: `rate-limit-provider-call-${index}`,
-            capability_type: 'DIRECT_UNCONFIRMED',
-          }],
-        },
-      },
-      ip: '198.51.100.5',
-    })
+    response = await invoke({ origin: 'https://trial.example', body: briefBody(), ip: '198.51.100.5' })
     expectStatus(response, 200, `AI_BOUNDARY_RATE_PROVIDER_PRE_${index}`)
+    if (response.body?.brief?.brief_source !== 'AI') throw new Error(`AI_BOUNDARY_RATE_PRE_NOT_AI_${index}`)
   }
-  response = await invoke({
-    origin: 'https://trial.example',
-    body: {
-      opportunity_id: knownOpportunityId,
-      customer_context: {
-        matching_product_capabilities: [{
-          category: 'rate-limit-provider-call-10',
-          capability_type: 'DIRECT_UNCONFIRMED',
-        }],
-      },
-    },
-    ip: '198.51.100.5',
-  })
-  expectStatus(response, 429, 'AI_BOUNDARY_RATE_LIMIT')
-  if (response.body?.error !== 'AI_RATE_LIMITED') throw new Error('AI_BOUNDARY_RATE_LIMIT_CODE')
+  response = await invoke({ origin: 'https://trial.example', body: briefBody(), ip: '198.51.100.5' })
+  expectStatus(response, 200, 'AI_BOUNDARY_RATE_LIMIT')
+  if (response.body?.ai_error !== 'AI_RATE_LIMITED') throw new Error('AI_BOUNDARY_RATE_LIMIT_CODE')
+  if (response.body?.brief?.brief_source !== 'RULES') throw new Error('AI_BOUNDARY_RATE_LIMIT_SOURCE')
   if (providerAttempt !== 10) throw new Error(`AI_BOUNDARY_RATE_PROVIDER_CALL_COUNT:${providerAttempt}`)
 
   console.log('AI boundary checks: PASS')

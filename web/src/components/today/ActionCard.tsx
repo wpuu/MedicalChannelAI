@@ -5,7 +5,7 @@ import { formatBudget, pickDisplayDate } from '@/utils/format'
 import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
 import { OfficialText } from '@/components/shared/EmptyValue'
 import { PreMarketSignalNotice } from '@/components/shared/PreMarketSignalNotice'
-import { PriorityBadge, PriorityScore } from '@/components/shared/PriorityBadge'
+import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { FollowupChip, SourceTag, StageBadge } from '@/components/shared/StageBadge'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
 import { isApiMode } from '@/services/apiConfig'
@@ -121,7 +121,6 @@ export function ActionCard({
           <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-white">
             重点 {card.rank}
           </span>
-          <PriorityScore score={card.priority.score} scoreScope={card.priority.score_scope} />
           <PriorityBadge score={card.priority.score} scoreScope={card.priority.score_scope} />
         </div>
         <div className="flex flex-wrap items-center gap-1.5">

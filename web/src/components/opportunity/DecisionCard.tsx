@@ -27,15 +27,15 @@ export function DecisionCard({
 
   return (
     <SectionCard
-      title="AI行动建议"
+      title="下一步行动"
       subtitle={
         isApiMode
           ? hasCustomerContext
-            ? '已核验公开事实 + 当前账号已确认资源'
-            : '基于已核验公开事实'
+            ? '已核验公开事实 + 当前账号已确认资源，按固定规则生成'
+            : '按已核验公开事实的固定规则生成'
           : hasCustomerContext
-            ? '结合公开信息和我的资源'
-            : '基于已核验公开信息'
+            ? '结合公开信息和我的资源，按固定规则生成'
+            : '按已核验公开信息的固定规则生成'
       }
       tone="ai"
       extra={
@@ -48,7 +48,7 @@ export function DecisionCard({
               ? hasCustomerContext
                 ? '公开信息 + 我的资源'
                 : '公开信息'
-              : 'AI行动建议'}
+              : '规则生成'}
         </SourceTag>
       }
     >
@@ -91,11 +91,11 @@ export function DecisionCard({
           <p className="text-[13px] leading-6 text-slate-500">
             {isApiMode
               ? hasCustomerContext
-                ? '点击后，AI会使用已核验公开事实；账号私有资源由服务器按当前用户和当前商机最小化读取。'
-                : '点击后，AI只基于已核验公开事实分析，不会替你猜测医院关系或产品资源。'
+                ? '按已核验公开事实生成；账号私有资源由服务器按当前用户和当前商机最小化读取。'
+                : '按已核验公开事实生成，不会替你猜测医院关系或产品资源。'
               : hasCustomerContext
-                ? '让AI结合这条商机和你的资源，给出下一步动作。'
-                : '让AI基于这条公开商机，给出下一步动作和需要确认的事项。'}
+                ? '结合这条商机和你的资源，生成下一步动作。'
+                : '按这条公开商机生成下一步动作和需要确认的事项。'}
           </p>
           {onAnalyze ? (
             <button
@@ -110,14 +110,14 @@ export function DecisionCard({
                 <Sparkles className="h-3.5 w-3.5" />
               )}
               {analyzing
-                ? 'AI分析中'
+                ? '生成中'
                 : analysisDisabled
-                  ? '暂不能AI分析'
+                  ? '暂不能生成'
                   : hasCustomerContext
-                    ? '结合我的资源分析'
+                    ? '结合我的资源生成'
                     : analysisUnavailableReason
-                      ? '重试AI分析'
-                      : '用AI分析这条'}
+                      ? '重试'
+                      : '生成下一步'}
             </button>
           ) : null}
           {analysisUnavailableReason ? (

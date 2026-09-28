@@ -32,12 +32,14 @@ const items = [
     value: (data: TodayActionsResponse) => data.card_count,
   },
   {
-    key: 'ai_ready',
-    label: '重点已分析',
+    key: 'early_signal_count',
+    label: '早期信号',
     icon: CheckCircle2,
-    hint: '今日重点中已有AI建议',
+    hint: '采购意向等正式招标前的信号',
     value: (data: TodayActionsResponse) =>
-      data.cards.filter((card) => card.model_decision_status === 'READY' && card.decision).length,
+      (data.opportunity_pool ?? data.cards).filter(
+        (card) => card.facts.lifecycle_stage === 'PROCUREMENT_INTENT',
+      ).length,
   },
 ]
 

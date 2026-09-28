@@ -32,12 +32,19 @@ if (!/SNAPSHOT_CLIENT_TTL_MS\s*=\s*\d/.test(client)) failures.push('verifiedSnap
 if (!/if \(entry === created\) entry = null/.test(client)) failures.push('verifiedSnapshotClient must not memoize failed loads')
 
 const consumers = {
-  'services/aiDecisionApi.ts': 'getVerifiedSnapshotAsOf',
   'services/verifiedOpportunityPool.ts': 'loadVerifiedSnapshotPayload',
   'services/StaticSnapshotTodayActionsService.ts': 'loadVerifiedSnapshotPayload',
 }
 for (const [path, symbol] of Object.entries(consumers)) {
   if (!readFileSync(join(srcDir, path), 'utf8').includes(symbol)) failures.push(`${path} must use ${symbol}`)
+}
+
+// The AI client keeps no snapshot-keyed browser cache any more (next steps are
+// server rules; the page brief is cached server-side), so it must not fetch the
+// snapshot on its own either.
+const aiClient = readFileSync(join(srcDir, 'services/aiDecisionApi.ts'), 'utf8')
+if (/verified-snapshot|public-snapshot|fetch\(\s*verifiedSnapshotUrl/.test(aiClient)) {
+  failures.push('services/aiDecisionApi.ts must not fetch the verified snapshot directly')
 }
 
 if (failures.length) {
