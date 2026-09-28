@@ -1,7 +1,7 @@
 # MCAI-DEMO-AVAIL-001 · 演示站可用性 P0
 
 DATE=2026-09-27T21:22:00+08:00  
-UPDATED=2026-09-27T23:20:00+08:00  
+UPDATED=2026-09-28T09:22:00+08:00  
 MODEL=GPT-5.6 Sol High  
 SEVERITY=P0  
 STATUS=OPEN
@@ -35,45 +35,34 @@ STATUS=OPEN
 
 - `medicalai.qd.je` 仍解析到 `35.211.124.40`；
 - 该 A 记录暂时不能删除，否则 qd.je 会立即失去现有入口；
-- Vercel 对 qd.je 的直接 Custom Domain 验证存在 PSL/父域验证冲突，不能再把“直接绑定 Vercel”作为唯一解。
+- Vercel 对 qd.je 的直接 Custom Domain 验证存在 PSL/父域验证冲突；
+- 新入口完成前禁止释放旧 VPS。
 
-## 决策：零成本 Firebase Hosting 入口
+## 当前主方案
 
-为保留 `medicalai.qd.je`，采用 Firebase Hosting 作为极薄静态入口。
+主方案已从 Firebase Hosting 调整为托管 HTTPS redirect edge。
 
-理由：
+权威任务：
 
-1. Firebase Hosting 支持自定义域名和自动 SSL；
-2. 自定义域名可通过 TXT 验证和 A 记录接入；
-3. 不要求常驻 VM；
-4. Hosting 有免费额度；
-5. 本入口只负责把请求跳转到正式 Vercel Production，资源消耗极低。
+`docs/ops/MCAI-QDJE-ZEROCOST-004-2026-09-28.md`
 
-目标链路：
+主路线：
 
 ```text
 medicalai.qd.je
-  -> Firebase Hosting（免费静态入口）
-  -> 保留原 path/query/hash
-  -> https://medicalchannelai.vercel.app
+  -> redirect.pizza（免费托管 HTTPS Redirect）
+  -> medicalchannelai.vercel.app/today
 ```
 
-## 迁移顺序
+原因：
 
-必须零中断：
+- 不需要常驻 VM；
+- 免费计划足够当前流量；
+- 自动 HTTPS；
+- 支持 path/query forwarding；
+- 配置比新增 Firebase 项目更少。
 
-1. 保留现有 `35.211.124.40` A 记录；
-2. 创建 Firebase Hosting site；
-3. 部署 `ops/qd-je-firebase-redirect/`；
-4. 在 Firebase 中添加 `medicalai.qd.je`；
-5. 按 Firebase 提供的精确 TXT 验证记录配置 DNS；
-6. 等 Firebase ownership/SSL 准备完成；
-7. 再把 A 记录从 `35.211.124.40` 改成 Firebase 控制台提供的地址；
-8. 验证 `https://medicalai.qd.je` 可访问；
-9. 确认不再解析到 `35.211.124.40`；
-10. 最后才释放 GCP VM / 静态 IPv4。
-
-严禁先关 VPS 再配置 Firebase。
+Firebase Hosting 配置继续保留为 fallback，不再作为第一选择。
 
 ## P0 关闭条件
 
@@ -81,7 +70,7 @@ medicalai.qd.je
 2. `medicalai.qd.je` 正常；
 3. qd.je 不再解析到 `35.211.124.40`；
 4. qd.je HTTPS 正常；
-5. Firebase 入口能保留 path/query/hash 后跳转到 Vercel；
+5. path/query forwarding 正确；
 6. GCP 中不再保留仅为本入口计费的 VM / 静态 IPv4；
 7. 天津真实手机网络至少验证一次；
 8. public demo smoke 持续检查两个入口。
@@ -90,5 +79,5 @@ medicalai.qd.je
 
 - 不退役 medicalai.qd.je；
 - 不再为 qd.je 保留常驻付费 VPS；
-- 不删除当前 A 记录直到 Firebase 新入口完成；
+- 不在新入口准备好前删除当前 A 记录；
 - 不继续死磕 Vercel 的 qd.je Verification Required。
