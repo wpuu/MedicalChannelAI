@@ -1,5 +1,5 @@
 import { getCache } from '@vercel/functions'
-import { latestPublicVerifiedSnapshot } from './_publicIntelligenceDb.js'
+import { latestPublicVerifiedSnapshotIfChanged } from './_publicIntelligenceDb.js'
 import bundledSnapshot from '../public/data/today-actions.public.json' with { type: 'json' }
 import { filterSnapshotToMedicalChannel } from './_medicalChannelScope.js'
 
@@ -49,6 +49,18 @@ const FORBIDDEN_PUBLIC_PREFIXES = [
 ]
 
 let remoteCache = null
+// Warm-instance memo for the durable (Neon) snapshot. Every API request used to
+// download the full ~1.5MB JSONB payload and deep-validate it 3 times
+// (~90ms CPU); the pilot AI path did this twice per request. Now a warm
+// instance re-checks only the snapshot_hash at most every
+// DURABLE_RECHECK_MS and reuses the validated, scoped copy while the hash is
+// unchanged. Callers always receive a private deep copy, so accidental
+// mutation by one request can never leak into another.
+const DURABLE_RECHECK_MS = 15 * 1000
+let durableMemo = null
+let durableInFlight = null
+let durableSource = latestPublicVerifiedSnapshotIfChanged
+let bundledScopedMemo = null
 let lastSourceMode = 'BUNDLED'
 let lastRuntimeOrigin = null
 
@@ -324,6 +336,39 @@ async function loadRuntimeCachedSnapshot() {
     origin: 'BUNDLED',
   }
 }
+async function loadDurableSnapshotMemoized(nowMs = Date.now()) {
+  if (durableMemo && nowMs - durableMemo.checkedAt < DURABLE_RECHECK_MS) return durableMemo.snapshot
+  if (durableInFlight) return durableInFlight
+  durableInFlight = (async () => {
+    const latest = await durableSource(durableMemo?.hash ?? null)
+    if (!latest?.snapshot_hash) {
+      durableMemo = null
+      return null
+    }
+    if (latest.payload === null || latest.payload === undefined) {
+      if (durableMemo?.hash === latest.snapshot_hash) {
+        durableMemo = { ...durableMemo, checkedAt: nowMs }
+        return durableMemo.snapshot
+      }
+      durableMemo = null
+      return null
+    }
+    const durableValue = latest.payload
+    const selected = selectDurableVerifiedSnapshot(durableValue)
+    const snapshot = selected ? scopedVerifiedSnapshot(selected) : null
+    durableMemo = { hash: latest.snapshot_hash, snapshot, checkedAt: nowMs }
+    return snapshot
+  })().finally(() => {
+    durableInFlight = null
+  })
+  return durableInFlight
+}
+
+function bundledScopedSnapshot() {
+  if (!bundledScopedMemo) bundledScopedMemo = scopedVerifiedSnapshot(bundledVerifiedSnapshot())
+  return structuredClone(bundledScopedMemo)
+}
+
 export async function loadVerifiedSnapshot() {
   const remoteUrl = configuredRemoteUrl()
   if (remoteUrl) {
@@ -332,12 +377,11 @@ export async function loadVerifiedSnapshot() {
     return scopedVerifiedSnapshot(await loadRemoteSnapshot(remoteUrl))
   }
 
-  const durableValue = await latestPublicVerifiedSnapshot()
-  const durableSnapshot = durableValue ? selectDurableVerifiedSnapshot(durableValue) : null
+  const durableSnapshot = await loadDurableSnapshotMemoized()
   if (durableSnapshot) {
     lastSourceMode = 'DATABASE'
     lastRuntimeOrigin = null
-    return scopedVerifiedSnapshot(durableSnapshot)
+    return structuredClone(durableSnapshot)
   }
 
   try {
@@ -350,11 +394,11 @@ export async function loadVerifiedSnapshot() {
   } catch {
     lastSourceMode = 'BUNDLED_FALLBACK'
     lastRuntimeOrigin = null
-    return scopedVerifiedSnapshot(bundledVerifiedSnapshot())
+    return bundledScopedSnapshot()
   }
   lastSourceMode = 'BUNDLED'
   lastRuntimeOrigin = null
-  return scopedVerifiedSnapshot(bundledVerifiedSnapshot())
+  return bundledScopedSnapshot()
 }
 export function verifiedSnapshotSourceMode() {
   return lastSourceMode
@@ -362,8 +406,15 @@ export function verifiedSnapshotSourceMode() {
 export function verifiedSnapshotRuntimeOrigin() {
   return lastRuntimeOrigin
 }
+export function setDurableSnapshotSourceForTests(source) {
+  durableSource = typeof source === 'function' ? source : latestPublicVerifiedSnapshotIfChanged
+  durableMemo = null
+  durableInFlight = null
+}
 export function clearVerifiedSnapshotCacheForTests() {
   remoteCache = null
+  durableMemo = null
+  durableInFlight = null
   lastSourceMode = 'BUNDLED'
   lastRuntimeOrigin = null
 }

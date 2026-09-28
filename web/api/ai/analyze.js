@@ -1,4 +1,5 @@
-import coreHandler, { config } from './_analyzeCore.js'
+import { timingSafeEqual } from 'node:crypto'
+import coreHandler, { config, prewarmSharedPublicDecisions } from './_analyzeCore.js'
 import { authenticatedUser } from '../_auth.js'
 import { privateDatabaseConfigured } from '../_privateDb.js'
 import { minimalPrivateContextForOpportunity } from '../_privateProfileContext.js'
@@ -353,7 +354,60 @@ function outreachResponse(card, privateContext) {
  * The same authenticated wrapper serves a deterministic grounded outreach draft
  * through route=outreach without adding another Serverless Function.
  */
+function configuredPrewarmToken() {
+  // Dedicated token preferred; fall back to the existing snapshot publisher
+  // secret so the refresh workflow that just published the snapshot can warm it.
+  return String(process.env.AI_PREWARM_TOKEN || process.env.VERIFIED_SNAPSHOT_PUBLISH_TOKEN || '').trim()
+}
+
+function authorizedPrewarm(request, expectedToken) {
+  const authorization = firstHeaderValue(request.headers?.authorization) || ''
+  if (!authorization.startsWith('Bearer ')) return false
+  const supplied = authorization.slice('Bearer '.length).trim()
+  if (!supplied || !expectedToken) return false
+  const suppliedBuffer = Buffer.from(supplied)
+  const expectedBuffer = Buffer.from(expectedToken)
+  if (suppliedBuffer.length !== expectedBuffer.length) return false
+  return timingSafeEqual(suppliedBuffer, expectedBuffer)
+}
+
+/**
+ * POST /api/ai/analyze?route=prewarm  (Authorization: Bearer <token>)
+ * Body: { "limit": 1-10, "max_candidates": 1-100 }
+ * Server-to-server only; browsers never call this. Lives inside the existing
+ * analyze function so the Hobby serverless-function budget is unchanged.
+ */
+async function prewarmHandler(request, response) {
+  if (request.method !== 'POST') {
+    response.setHeader('Allow', 'POST')
+    return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
+  }
+  const expectedToken = configuredPrewarmToken()
+  if (!expectedToken) return sendJson(response, 503, { error: 'PREWARM_NOT_CONFIGURED' })
+  if (!authorizedPrewarm(request, expectedToken)) return sendJson(response, 401, { error: 'PREWARM_UNAUTHORIZED' })
+
+  const body = asObject(request.body) || {}
+  try {
+    const snapshot = await loadVerifiedSnapshot()
+    const snapshotError = verifiedSnapshotAutomationError(snapshot)
+    if (snapshotError) return sendJson(response, 409, { error: snapshotError })
+    const result = await prewarmSharedPublicDecisions({
+      snapshot,
+      request,
+      limit: body.limit,
+      maxCandidates: body.max_candidates,
+    })
+    return sendJson(response, 200, result)
+  } catch (error) {
+    if (error?.code === 'PREWARM_REQUIRES_DURABLE_CACHE') return sendJson(response, 409, { error: error.code })
+    if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503, { error: error.code })
+    console.error('AI prewarm failed', { error: error instanceof Error ? error.message : 'UNKNOWN' })
+    return sendJson(response, 503, { error: 'PREWARM_FAILED' })
+  }
+}
+
 export default async function handler(request, response) {
+  if (routeName(request) === 'prewarm') return prewarmHandler(request, response)
   const normalizedRequest = normalizeProxyOrigin(request)
   if (!privatePilotEnabled()) return coreHandler(normalizedRequest, response)
   if (request.method !== 'POST') return coreHandler(normalizedRequest, response)
