@@ -16,6 +16,8 @@ async function proxyRequest(request) {
     headers.delete("host");
     headers.delete("connection");
     headers.delete("content-length");
+    headers.set("origin", ORIGIN);
+    headers.set("referer", ORIGIN + "/");
 
     const init = {
       method: request.method,
@@ -40,6 +42,11 @@ async function proxyRequest(request) {
       }
     }
 
+    const allowOrigin = responseHeaders.get("access-control-allow-origin");
+    if (allowOrigin === ORIGIN) {
+      responseHeaders.set("access-control-allow-origin", incomingUrl.origin);
+    }
+
     responseHeaders.set("x-mcai-edge-proxy", "edgeone-makers");
 
     return new Response(originResponse.body, {
@@ -59,8 +66,6 @@ async function proxyRequest(request) {
   }
 }
 
-export async function onRequest({ request }) {
-  return proxyRequest(request);
+export default async function onRequest(context) {
+  return proxyRequest(context.request);
 }
-
-export default onRequest;
