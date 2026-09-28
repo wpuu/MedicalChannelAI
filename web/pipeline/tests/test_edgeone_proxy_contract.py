@@ -43,6 +43,20 @@ class EdgeOneProxyContractTest(unittest.TestCase):
             self.assertIn('lower !== "transfer-encoding"', text)
             self.assertIn('lower !== "content-length"', text)
 
+    def test_proxy_preserves_browser_origin_for_server_validation(self):
+        for path in FUNCTIONS:
+            text = path.read_text(encoding="utf-8")
+            self.assertNotIn("requestHeaders.origin = ORIGIN", text)
+            self.assertNotIn("requestHeaders.referer = ORIGIN", text)
+
+    def test_backend_trusts_only_official_https_entry_origins(self):
+        analyze = (ROOT / "web" / "api" / "ai" / "analyze.js").read_text(encoding="utf-8")
+        self.assertIn("'https://medicalai.qd.je'", analyze)
+        self.assertIn("'https://www.medicalai.qd.je'", analyze)
+        self.assertIn("PUBLIC_FIRST_PARTY_ORIGINS.has(origin)", analyze)
+        self.assertIn("host: originUrl.host", analyze)
+        self.assertNotIn("'http://www.medicalai.qd.je'", analyze)
+
     def test_runtime_probe_exists(self):
         for path in FUNCTIONS:
             text = path.read_text(encoding="utf-8")

@@ -36,9 +36,7 @@ async function proxyRequest(request) {
         requestHeaders[key] = value;
       }
     });
-    requestHeaders.origin = ORIGIN;
-    requestHeaders.referer = ORIGIN + "/";
-    requestHeaders["accept-encoding"] = "identity";
+requestHeaders["accept-encoding"] = "identity";
 
     const init = {
       method: request.method,

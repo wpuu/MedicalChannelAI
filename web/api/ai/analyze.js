@@ -6,7 +6,10 @@ import { loadVerifiedSnapshot } from '../_verifiedSnapshot.js'
 
 export { config }
 
-const PUBLIC_FIRST_PARTY_ORIGIN = 'https://medicalai.qd.je'
+const PUBLIC_FIRST_PARTY_ORIGINS = new Set([
+  'https://medicalai.qd.je',
+  'https://www.medicalai.qd.je',
+])
 const MAX_VERIFIED_SNAPSHOT_AGE_MS = 30 * 60 * 60 * 1000
 const MAX_VERIFIED_SNAPSHOT_FUTURE_SKEW_MS = 10 * 60 * 1000
 const RELATIVE_WINDOW_FLAG = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
@@ -90,15 +93,21 @@ function rawVerifiedFacts(snapshot, opportunityId) {
 
 function normalizeProxyOrigin(request) {
   const origin = firstHeaderValue(request.headers?.origin)
-  if (origin !== PUBLIC_FIRST_PARTY_ORIGIN) return request
+  if (!origin || !PUBLIC_FIRST_PARTY_ORIGINS.has(origin)) return request
+  let originUrl
+  try {
+    originUrl = new URL(origin)
+  } catch {
+    return request
+  }
   return {
     ...request,
     method: request.method,
     body: request.body,
     headers: {
       ...request.headers,
-      host: 'medicalai.qd.je',
-      'x-forwarded-host': 'medicalai.qd.je',
+      host: originUrl.host,
+      'x-forwarded-host': originUrl.host,
     },
   }
 }
@@ -330,11 +339,11 @@ function outreachResponse(card, privateContext) {
 }
 
 /**
- * medicalai.qd.je is reverse-proxied through Caddy to Vercel. The browser keeps
- * Origin=https://medicalai.qd.je while the upstream Host becomes a Vercel
- * hostname, so the core same-origin guard would otherwise reject our own UI.
- * Only the exact public first-party Origin is normalized; every other origin
- * continues through the strict core validation unchanged.
+ * medicalai.qd.je and www.medicalai.qd.je are reverse-proxied through EdgeOne
+ * to Vercel. The browser keeps its exact HTTPS Origin while the upstream Host
+ * becomes a Vercel hostname, so the core same-origin guard would otherwise
+ * reject our own UI. Only the exact public first-party HTTPS Origins are
+ * normalized; HTTP and every other origin remain subject to strict validation.
  *
  * Private Pilot adds a second boundary: the browser may submit only the
  * opportunity id. Customer-private facts are resolved from the authenticated
