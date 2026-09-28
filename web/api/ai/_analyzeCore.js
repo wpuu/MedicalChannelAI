@@ -1,3 +1,4 @@
+import { consumeRateLimit } from '../_sharedRateLimit.js'
 import {
   loadVerifiedSnapshot,
   verifiedSnapshotSourceMode,
@@ -44,7 +45,6 @@ const RELATIVE_WINDOW_FLAG = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
 
 const resultCache = new Map()
 const inFlight = new Map()
-const rateBuckets = new Map()
 
 function sendJson(response, status, payload) {
   response.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -90,27 +90,13 @@ function sameOriginAllowed(request) {
   return hosts.includes(originUrl.host.toLowerCase())
 }
 
-function clientKey(request) {
-  const forwarded = headerValue(request, 'x-forwarded-for')
-  const firstIp = forwarded?.split(',')[0]?.trim()
-  return firstIp || headerValue(request, 'x-real-ip') || 'unknown-client'
-}
-
-function warmRateLimitExceeded(request) {
-  const now = Date.now()
-  const key = clientKey(request)
-  const current = rateBuckets.get(key)
-  if (!current || now - current.windowStartedAt >= RATE_WINDOW_MS) {
-    rateBuckets.set(key, { windowStartedAt: now, count: 1 })
-    return false
-  }
-  current.count += 1
-  if (rateBuckets.size > 500) {
-    for (const [bucketKey, bucket] of rateBuckets) {
-      if (now - bucket.windowStartedAt >= RATE_WINDOW_MS) rateBuckets.delete(bucketKey)
-    }
-  }
-  return current.count > RATE_MAX_PER_CLIENT
+async function warmRateLimitExceeded(request) {
+  const { limited } = await consumeRateLimit(request, {
+    scope: 'ai-analyze',
+    limit: RATE_MAX_PER_CLIENT,
+    windowMs: RATE_WINDOW_MS,
+  })
+  return limited
 }
 
 function rateLimitError() {
@@ -575,7 +561,7 @@ async function getOrCreateWarmDecision(cacheKey, providerArgs, keys, opportunity
   if (pending) return pending
   // Authenticated server-side prewarm is bounded by its own batch limits and
   // must not be throttled by (or consume) the per-visitor IP budget.
-  if (!request?.__mcaiInternalPrewarm && warmRateLimitExceeded(request)) throw rateLimitError()
+  if (!request?.__mcaiInternalPrewarm && await warmRateLimitExceeded(request)) throw rateLimitError()
   const promise = callProviderWithTransientRetry(providerArgs, keys, opportunityId)
     .then((decision) => {
       cacheWarmDecision(cacheKey, decision)
