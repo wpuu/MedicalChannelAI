@@ -150,3 +150,28 @@ git config core.fileMode false
 **范围判断**：`is_medical_channel_relevant_award` 复用 `channel_scope`，并且**全部标的为 `工程类` 时直接排除**（否则"CT室、DR室改造项目"会因 CT/DR 缩写误判为医疗渠道相关）。
 
 **已知局限**：`procurement_method` 在天津镜像页面上没有 → `None`（不推断）；只解析 HTML 正文，附件里的信息不看；`人民币大写` 不解析。
+
+### 2026-09-29 · 会话 2 · 里程碑 C/D/E：中标结果全链路上线（`a5f0b4c` → `d52f1a4` → `f66654d`）
+**设计决定（已实现）**：中标/成交结果 = **独立的规范记录类型** `AWARD_RESULT`（不是事件、不进机会池），独立存储 + 独立同步 + 独立运行时阶段；机会池只按 `project_number` 关联：有已发布结果的项目从池子里**退役**（`awarded_project_count`），公开快照多一个紧凑有界的 `award_ledger`（≤40 条，只含公开事实：供应商、各包金额、品牌/型号/单价、法定质疑窗口 `RESULT_CHALLENGE`、官网 `source_url`；地址/电话/统一社会信用代码留在规范存储不进快照）。
+
+**文件地图**
+- 同步脚本 `web/pipeline/scripts/sync_ccgp_awards.py`：计划 `pipeline/data/tianjin_award_query_plan.json`（天津/TJ 锁定，5 个关键词 × `中标公告`(bidType 7) + `成交公告`(11)，lookback 7 天，unseen-first，`max_details` 8，延时 4 s）；`--detail-url` 可重复，用于运营手工补录/回填（跳过搜索，不跳过解析）；`time_budget_seconds` 到点后不再发新请求（已验证的结果照常合并）。输出 `tianjin_award_records.json` + `tianjin_award_sync_report.json`（含 `out_of_scope`、`matched_pool_project_numbers`、`skipped`）。
+- 快照：`public_snapshot.build_public_snapshot(records, as_of, notice_events, award_records)`；`publish_web_snapshot.py --award-input`（默认读天津 award 存储）；`refresh_bundled_snapshot.py` 自动读取；`combine_snapshots` 合并各市场 ledger（按 award_id 去重、最新在前、封顶）。
+- 运行时：`collector_runtime.py` 新阶段 `award`（在 `event6` 之后、`tjmugh` 之前），缓存键 `CCGP_AWARDS_KEY`（v2 命名空间 `medicalchannelai:collector-ccgp-awards:v2`）。**这个阶段永远 COMPLETED**：任何异常/发布门禁关闭 → 结果 `status: DEGRADED`、旧存储原样保留（`award_store_carried_forward`），后续阶段不受影响；请求预算 `AWARD_STAGE_TIME_BUDGET_SECONDS = 200`。`_run_publish` 把 award 存储当**可选输入**（没有就空 ledger，不阻塞发布）。
+- GitHub 兜底工作流 `.github/workflows/tianjin-medical-refresh.yml`：新增 award 同步步骤（`continue-on-error: true`），publish 加 `--award-input`，提交清单加两个 award 文件。
+- 前端/API：`src/types/public.ts`（`PublicAwardLedgerEntry` 等）、`types/index.ts`、`StaticSnapshotTodayActionsService.ts`、`api/_privateCore.js`（today 响应透传 `awarded_project_count` / `award_ledger` / `working_calendar`）。**还没有 UI**（见下一步）。
+
+**真实数据验证（2026-09-29 沙箱内实跑，非 mock）**
+- 先用 `--detail-url` 对 4 个真实页面做种子（3 条入库，CT室/DR室改造工程类被范围过滤排除）。
+- 然后完整计划实跑：9/10 查询成功（1 次超时），7 天窗口发现 **31 条**天津中标/成交公告，取 8 条详情，新增 4 条在范围内（药检院检测设备 汇像/岛津/梅特勒、中医一附院设备维保 3 包、东丽疾控 传染病监测设备 辉锦创兴 AutoPlex-12、中心妇产 液氮/医用气体），4 条被范围过滤（绿化养护、AI 急救实训平台、放射外科手术系统维保、**手术显微镜**）。合并后 7 条；与现有机会池匹配 3 个项目（泰达 腔镜 TJBHGP-2026-024、五中心 DSA XCSD-2026-A-589、中医一附院维保 ZCZBZC-GK-2026080547）→ 这 3 个项目在快照里退役为 AWARDED。用时 119 s。
+- 顺带发现共享范围词表的**漏判**：`手术显微镜`、`放射外科手术系统` 不在词表 → 已加 contextual terms `显微镜 / 腔镜 / 手术系统`（需要医疗语境，避免高校生物显微镜误入）。重建打包快照后机会池 417 → **425**，新增 8 条全部是腔镜/孔镜/手术系统类设备招标（北医三院设备购置、秦皇岛三院椎间孔镜手术系统、宝泉岭医院腹腔镜、吉大二院胸腔镜、保定宫腔镜等）——这些此前一直被公开池漏掉。
+- 打包快照压缩后 1,707,280 B（上限 1,945,600 B，余量 ~238 KB）。
+
+**注意（沙箱 IP）**：这次 `search.ccgp.gov.cn` 从沙箱可以访问了（上一节里 curl 被限频），说明限频是间歇性的；仍然遵守 4 s 延时、每天一次，不要在沙箱里反复实跑。
+
+**部署后要看什么**：`/api/collector-status` 里 `award` 阶段的 `result.status`（OK / DEGRADED）与 `new_award_record_count`；公开快照的 `awarded_project_count`、`award_ledger` 长度；`tianjin_award_sync_report.json` 的 `out_of_scope`（用来继续修词表）。
+
+**下一步（按优先级）**：
+1. §6 (6) 最小 UI：机会池页/首页加"最新中标结果"区块读取 `award_ledger`（供应商、金额、品牌/型号、质疑窗口倒计时、官网链接）；详情页对已退役项目显示"已中标：XX 公司 / 金额"。
+2. 让 `sync_tianjin_plan.py` 的事件监视复用 award 存储：项目已中标时不必再查更正/终止（省请求预算）。
+3. 词表：把 `tianjin_award_sync_report.json.out_of_scope` 作为每日词表回归输入。
