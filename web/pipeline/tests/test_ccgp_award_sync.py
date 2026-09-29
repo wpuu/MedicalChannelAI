@@ -23,10 +23,15 @@ WORKS_URL = "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260928_27411167.ht
 CORRECTION_URL = "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_00000001.htm"
 BROKEN_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_00000002.htm"
 
+LN_FAILED_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413417.htm"
+LN_AWARDED_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27407769.htm"
+
 DETAILS = {
     MULTI_URL: "ccgp_award_tianjin_multi_package.html",
     SINGLE_URL: "ccgp_award_tianjin_single_package.html",
     WORKS_URL: "ccgp_deal_tianjin_works_only.html",
+    LN_FAILED_URL: "ccgp_award_liaoning_all_packages_failed.html",
+    LN_AWARDED_URL: "ccgp_award_liaoning_single_item_awarded.html",
 }
 
 
@@ -92,6 +97,24 @@ class AwardPlanTests(unittest.TestCase):
         ]
         selected = sync.select_award_candidates(discovered, [seen], 2)
         self.assertEqual([item[1].detail_url for item in selected], [WORKS_URL, SINGLE_URL])
+
+
+class AwardTitleScreenTests(unittest.TestCase):
+    def test_explicit_exclusion_titles_never_consume_detail_budget(self) -> None:
+        discovered = [
+            ("中标公告", _candidate(MULTI_URL, "大连医科大学附属第一医院预包装食品类项目结果公告", published_at="2026-09-29")),
+            ("成交公告", _candidate(WORKS_URL, "某医院保洁服务项目成交公告", published_at="2026-09-29", notice_type="成交公告")),
+            ("中标公告", _candidate(SINGLE_URL, "某医院医用织物洗涤设备采购项目中标公告", published_at="2026-09-29")),
+            ("中标公告", _candidate(BROKEN_URL, "盛京医院大连医院医疗设备购置项目-除颤仪中标结果公告", published_at="2026-09-27")),
+            ("中标公告", _candidate(LN_FAILED_URL, "岫岩满族自治县中心人民医院医共体内涵建设项目-设备采购项目结果公告", published_at="2026-09-27")),
+        ]
+        kept, excluded = sync.screen_award_titles(discovered)
+        self.assertEqual([item[1].detail_url for item in kept], [BROKEN_URL, LN_FAILED_URL])
+        self.assertEqual([item["url"] for item in excluded], [MULTI_URL, WORKS_URL, SINGLE_URL])
+        self.assertTrue(all(item["reason"] == sync.TITLE_EXCLUSION_REASON for item in excluded))
+        # The budget is spent on the survivors only, unseen-first as before.
+        selected = sync.select_award_candidates(kept, [], 1)
+        self.assertEqual([item[1].detail_url for item in selected], [LN_FAILED_URL])
 
 
 class AwardSyncRunTests(unittest.TestCase):
@@ -225,6 +248,92 @@ class AwardSyncRunTests(unittest.TestCase):
         self.assertEqual(report["matched_pool_project_numbers"], ["XCSD-2026-A-589"])
         self.assertTrue(report["publish_allowed"])
         self.assertTrue(all(delay >= 3 for delay in self.sleeps))
+
+    def test_excluded_titles_are_reported_and_never_fetched(self) -> None:
+        fetched: list[str] = []
+
+        def fetch_detail(url: str) -> str:
+            fetched.append(url)
+            return _fetch_detail(url)
+
+        self.candidates = [
+            _candidate(MULTI_URL, "天津市第三中心医院彩色多普勒超声诊断仪采购项目中标公告", published_at="2026-09-27"),
+            _candidate(SINGLE_URL, "天津市某医院预包装食品类项目中标公告", published_at="2026-09-29"),
+            _candidate(WORKS_URL, "天津市某医院物业服务项目成交公告", published_at="2026-09-29", notice_type="成交公告"),
+        ]
+        plan = dict(self.plan, max_details=1)
+        awards, report = sync.run_award_sync(
+            plan=plan,
+            as_of=AS_OF,
+            existing_awards=[],
+            pool_records=[],
+            fetch_search=self._fetch_search,
+            fetch_detail=fetch_detail,
+            sleep=self.sleeps.append,
+        )
+        self.assertEqual(fetched, [MULTI_URL])
+        self.assertEqual(report["title_excluded_count"], 2)
+        self.assertEqual({item["url"] for item in report["title_excluded"]}, {SINGLE_URL, WORKS_URL})
+        self.assertEqual(report["selected_detail_count"], 1)
+        self.assertEqual([record["facts"]["project_number"] for record in awards], ["XCSD-2026-A-535"])
+        self.assertTrue(report["policy"]["candidate_prefilter_only_rejects_explicit_exclusions"])
+
+    def test_pool_matched_failed_result_bypasses_sparse_scope_text(self) -> None:
+        plan = sync.load_plan(PLAN_PATH, market_code="LN")
+        # Without a pool match the 废标 notice (no items, generic project name) stays out of scope.
+        awards, report = sync.run_award_sync(
+            plan=plan,
+            as_of=AS_OF,
+            existing_awards=[],
+            pool_records=[{"facts": {"project_number": "OTHER-1"}}],
+            detail_urls=[LN_FAILED_URL],
+            fetch_search=self._fetch_search,
+            fetch_detail=_fetch_detail,
+            sleep=self.sleeps.append,
+        )
+        self.assertEqual(awards, [])
+        self.assertEqual(report["out_of_scope_count"], 1)
+        self.assertEqual(report["scope_bypassed_for_pool_match_count"], 0)
+        # The same notice retires a pool project that already proved its scope with full facts.
+        awards, report = sync.run_award_sync(
+            plan=plan,
+            as_of=AS_OF,
+            existing_awards=[],
+            pool_records=[{"facts": {"project_number": "ＪＨ26-210323-00239"}}],
+            detail_urls=[LN_FAILED_URL],
+            fetch_search=self._fetch_search,
+            fetch_detail=_fetch_detail,
+            sleep=self.sleeps.append,
+        )
+        self.assertEqual([record["facts"]["award_status"] for record in awards], ["ALL_PACKAGES_FAILED"])
+        self.assertEqual(awards[0]["facts"]["market_code"], "LN")
+        self.assertEqual(report["out_of_scope_count"], 0)
+        self.assertEqual(report["scope_bypassed_for_pool_match_count"], 1)
+        self.assertEqual(report["scope_bypassed_for_pool_match"][0]["reason"], sync.POOL_MATCH_SCOPE_REASON)
+        self.assertEqual(report["matched_pool_project_numbers"], ["JH26-210323-00239"])
+        self.assertTrue(report["policy"]["pool_matched_results_bypass_sparse_scope_text"])
+
+    def test_liaoning_awarded_template_yields_priced_item(self) -> None:
+        plan = sync.load_plan(PLAN_PATH, market_code="LN")
+        awards, report = sync.run_award_sync(
+            plan=plan,
+            as_of=AS_OF,
+            existing_awards=[],
+            pool_records=[],
+            detail_urls=[LN_AWARDED_URL],
+            fetch_search=self._fetch_search,
+            fetch_detail=_fetch_detail,
+            sleep=self.sleeps.append,
+        )
+        self.assertEqual(report["failure_count"], 0)
+        facts = awards[0]["facts"]
+        self.assertEqual(facts["project_number"], "LNYCDL20260907")
+        self.assertEqual(facts["buyer_name"], "大连金普新区卫生健康局")
+        self.assertEqual(facts["award_status"], "AWARDED")
+        self.assertEqual((facts["total_amount_cny"], facts["amount_basis"]), (250000, "SUMMARY_TOTAL"))
+        self.assertEqual(facts["packages"][0]["supplier_name"], "大连锦皓辰商贸有限公司")
+        item = facts["items"][0]
+        self.assertEqual((item["name"], item["brand"], item["model"], item["quantity"], item["unit_price_cny"]), ("除颤仪", "科曼", "S1A", "10", 25000))
 
     def test_all_discovery_failures_block_publish_but_preserve_existing_awards(self) -> None:
         def failing_search(url: str) -> str:

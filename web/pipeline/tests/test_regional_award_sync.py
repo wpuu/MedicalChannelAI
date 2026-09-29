@@ -115,7 +115,7 @@ class RegionalAwardSyncTests(unittest.TestCase):
         self.assertEqual(report["markets"]["HE"]["matched_pool_project_numbers"], [])
         self.assertTrue(report["publish_allowed"])
         self.assertEqual(report["markets_publish_allowed"], {"BJ": True, "HE": True, "JL": True})
-        self.assertTrue(all(item["time_budget_seconds"] == 240.0 for item in report["markets"].values()))
+        self.assertTrue(all(item["time_budget_seconds"] == 150.0 for item in report["markets"].values()))
 
     def test_previous_awards_are_carried_forward_when_every_search_fails(self) -> None:
         stored = json.loads((PIPELINE_ROOT / "data" / "tianjin_award_records.json").read_text(encoding="utf-8"))

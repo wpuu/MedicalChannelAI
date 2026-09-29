@@ -124,6 +124,8 @@ def run_regional_award_sync(
         "elapsed_seconds": round(clock() - started, 3),
         "new_award_record_count": sum(item["new_award_record_count"] for item in reports.values()),
         "out_of_scope_count": sum(item["out_of_scope_count"] for item in reports.values()),
+        "title_excluded_count": sum(item.get("title_excluded_count", 0) for item in reports.values()),
+        "scope_bypassed_for_pool_match_count": sum(item.get("scope_bypassed_for_pool_match_count", 0) for item in reports.values()),
         "region_mismatch_count": sum(item["region_mismatch_count"] for item in reports.values()),
         "failure_count": sum(item["failure_count"] for item in reports.values()),
         "merged_award_record_count": len(merged),

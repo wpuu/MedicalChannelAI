@@ -21,9 +21,9 @@
     "成交公告"
   ],
   "lookback_days": 7,
-  "max_details": 6,
+  "max_details": 8,
   "delay_seconds": 4.0,
-  "per_market_time_budget_seconds": 240,
+  "per_market_time_budget_seconds": 150,
   "policy": {
     "purpose": "MULTI_REGION_MEDICAL_CHANNEL_AWARD_LEDGER",
     "runs_on_self_hosted_refresh_only": true,
@@ -35,6 +35,8 @@
     "medical_channel_scope_filter_required": true,
     "construction_only_awards_excluded": true,
     "unseen_result_notices_verified_first": true,
+    "explicit_exclusion_titles_never_consume_detail_budget": true,
+    "pool_matched_results_bypass_sparse_scope_text": true,
     "amount_scale_requires_explicit_unit": true,
     "rate_limit_bypass": false
   }

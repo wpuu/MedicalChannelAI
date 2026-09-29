@@ -29,6 +29,7 @@ from medical_channel_pipeline.ccgp_award import (  # noqa: E402
     normalize_project_number,
     parse_ccgp_award_html,
 )
+from medical_channel_pipeline.channel_scope import has_explicit_medical_channel_exclusion_text  # noqa: E402
 from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
 from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
     BID_TYPE_CODES,
@@ -171,6 +172,37 @@ def award_candidate_selection_key(candidate: DiscoveryCandidate, existing_urls: 
         candidate.published_at or "",
         candidate.detail_url,
     )
+
+
+TITLE_EXCLUSION_REASON = "EXPLICIT_EXCLUSION_TITLE"
+POOL_MATCH_SCOPE_REASON = "POOL_PROJECT_MATCH"
+
+
+def screen_award_titles(
+    discovered: list[tuple[str, DiscoveryCandidate]],
+) -> tuple[list[tuple[str, DiscoveryCandidate]], list[dict]]:
+    """Keep the detail budget for plausible device results.
+
+    Mirrors the opportunity discovery prefilter: only *explicit* exclusions in
+    the sparse search title (预包装食品 / 保洁服务 / 医用织物洗涤 …) are rejected
+    before the official detail is fetched; everything else is still verified
+    against the full notice. Operator-directed URLs carry no title and pass.
+    """
+    kept: list[tuple[str, DiscoveryCandidate]] = []
+    excluded: list[dict] = []
+    for notice_type, candidate in discovered:
+        if has_explicit_medical_channel_exclusion_text(candidate.title):
+            excluded.append(
+                {
+                    "title": candidate.title,
+                    "url": candidate.detail_url,
+                    "notice_type": notice_type,
+                    "reason": TITLE_EXCLUSION_REASON,
+                }
+            )
+            continue
+        kept.append((notice_type, candidate))
+    return kept, excluded
 
 
 def select_award_candidates(
@@ -363,10 +395,13 @@ def run_award_sync(
     discovery_failures = [item for item in failures if item.get("stage") == "award_discovery_search"]
     discovery_success_count = max(0, planned_queries - len(discovery_failures) - len(skipped))
     discovered = list(discovered_by_url.values())
-    selected = select_award_candidates(discovered, existing_awards, plan["max_details"])
+    screened, title_excluded = screen_award_titles(discovered)
+    selected = select_award_candidates(screened, existing_awards, plan["max_details"])
+    pool_numbers = pool_project_numbers(pool_records)
 
     new_awards: list[dict] = []
     out_of_scope: list[dict] = []
+    scope_bypassed: list[dict] = []
     for notice_type, candidate in selected:
         if budget_exhausted():
             skipped.append({"stage": "award_detail", "url": candidate.detail_url, "reason": "TIME_BUDGET_EXHAUSTED"})
@@ -396,19 +431,32 @@ def run_award_sync(
             )
             continue
         if not is_medical_channel_relevant_award(record):
-            out_of_scope.append(
-                {
-                    "title": candidate.title,
-                    "url": candidate.detail_url,
-                    "project_number": record["facts"]["project_number"],
-                    "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED",
-                }
-            )
-            continue
+            # A result whose project number is already in this market's pool
+            # belongs to a procurement that passed the scope check with its
+            # full facts; 废标/no-item notices carry too little text to prove
+            # scope again but must still retire that pool project.
+            if normalize_project_number(record["facts"]["project_number"]) in pool_numbers:
+                scope_bypassed.append(
+                    {
+                        "title": candidate.title,
+                        "url": candidate.detail_url,
+                        "project_number": record["facts"]["project_number"],
+                        "reason": POOL_MATCH_SCOPE_REASON,
+                    }
+                )
+            else:
+                out_of_scope.append(
+                    {
+                        "title": candidate.title,
+                        "url": candidate.detail_url,
+                        "project_number": record["facts"]["project_number"],
+                        "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED",
+                    }
+                )
+                continue
         new_awards.append(record)
 
     merged_awards = merge_award_records(existing_awards, new_awards)
-    pool_numbers = pool_project_numbers(pool_records)
     matched_pool_projects = sorted(
         {
             record["facts"]["project_number"]
@@ -440,10 +488,14 @@ def run_award_sync(
         "unique_discovered_result_count": len(discovered),
         "region_mismatch_count": len(region_mismatches),
         "region_mismatches": region_mismatches[:20],
+        "title_excluded_count": len(title_excluded),
+        "title_excluded": title_excluded[:20],
         "selected_detail_count": len(selected),
         "new_award_record_count": len(new_awards),
         "out_of_scope_count": len(out_of_scope),
         "out_of_scope": out_of_scope,
+        "scope_bypassed_for_pool_match_count": len(scope_bypassed),
+        "scope_bypassed_for_pool_match": scope_bypassed,
         "merged_award_record_count": len(merged_awards),
         "pool_record_count": len(pool_records),
         "matched_pool_project_count": len(matched_pool_projects),
@@ -464,6 +516,8 @@ def run_award_sync(
             "unseen_result_notices_verified_first": True,
             "amount_scale_requires_explicit_unit": True,
             "construction_only_awards_excluded": True,
+            "candidate_prefilter_only_rejects_explicit_exclusions": True,
+            "pool_matched_results_bypass_sparse_scope_text": True,
             "previous_award_state_is_preserved": True,
             "parse_failures_are_reported_not_published": True,
             "rate_limit_bypass": False,
@@ -511,8 +565,10 @@ def main() -> int:
     write_json(args.report_output, report)
     print(
         f"queries_ok={report['discovery_success_count']}/{report['planned_discovery_query_count']} "
-        f"discovered={report['unique_discovered_result_count']} selected={report['selected_detail_count']} "
+        f"discovered={report['unique_discovered_result_count']} title_excluded={report['title_excluded_count']} "
+        f"selected={report['selected_detail_count']} "
         f"new_awards={report['new_award_record_count']} out_of_scope={report['out_of_scope_count']} "
+        f"pool_scope_bypass={report['scope_bypassed_for_pool_match_count']} "
         f"merged={report['merged_award_record_count']} pool_matches={report['matched_pool_project_count']} "
         f"failures={report['failure_count']} publish_allowed={report['publish_allowed']}"
     )

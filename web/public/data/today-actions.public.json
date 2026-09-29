@@ -1275,6 +1275,56 @@
       "market_code": "TJ"
     },
     {
+      "award_id": "ccgpaward_4bab9bc9968a3b12",
+      "project_number": "LNYCDL20260907",
+      "project_name": "盛京医院大连医院黄海路院区旧楼改造及医疗设备购置项目-除颤仪",
+      "buyer_name": "大连金普新区卫生健康局",
+      "region": "大连市",
+      "notice_type": "中标结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-28",
+      "procurement_method": null,
+      "total_amount_cny": 250000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "大连锦皓辰商贸有限公司",
+          "amount_cny": 250000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": null,
+          "name": "除颤仪",
+          "brand": "科曼",
+          "model": "S1A",
+          "quantity": "10",
+          "unit_price_cny": 25000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27407769.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-28",
+          "deadline_date": "2026-10-14",
+          "remaining_working_days": 8,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-29"
+        }
+      ],
+      "market_code": "LN"
+    },
+    {
       "award_id": "ccgpaward_49e86a9151ae8764",
       "project_number": "RHP-C192668292816-1",
       "project_name": "CT、MRI维保",
@@ -1423,6 +1473,88 @@
       "market_code": "TJ"
     },
     {
+      "award_id": "ccgpaward_41cb6e53ffb5f55d",
+      "project_number": "A85WI2606K",
+      "project_name": "盛京医院大连医院黄海路院区旧楼改造及医疗设备购置项目-组织切片机、荧光显微镜及成像系统、包埋机",
+      "buyer_name": "大连金普新区卫生健康局",
+      "region": "大连市",
+      "notice_type": "中标(成交)结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-28",
+      "procurement_method": null,
+      "total_amount_cny": 602000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 3,
+      "item_count": 3,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "辽宁瑞创商贸有限公司",
+          "amount_cny": 100000,
+          "failure_reason": null
+        },
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "九州通金合（大连）药业有限公司",
+          "amount_cny": 413000,
+          "failure_reason": null
+        },
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "沈阳博维商贸有限公司",
+          "amount_cny": 89000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": null,
+          "name": "组织切片机",
+          "brand": "达科为",
+          "model": "MT1",
+          "quantity": "1",
+          "unit_price_cny": 100000
+        },
+        {
+          "package_no": null,
+          "category": null,
+          "name": "荧光显微镜及成像系统",
+          "brand": "奥伟登",
+          "model": "BX53F2C",
+          "quantity": "1",
+          "unit_price_cny": 413000
+        },
+        {
+          "package_no": null,
+          "category": null,
+          "name": "包埋机",
+          "brand": "科迪",
+          "model": "KD-BM5、BL5",
+          "quantity": "1",
+          "unit_price_cny": 89000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27407755.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-28",
+          "deadline_date": "2026-10-14",
+          "remaining_working_days": 8,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-29"
+        }
+      ],
+      "market_code": "LN"
+    },
+    {
       "award_id": "ccgpaward_b3c502d673de29b6",
       "project_number": "TJBHGP-2026-024",
       "project_name": "天津市泰达医院高清腔镜系统采购项目",
@@ -1505,6 +1637,156 @@
       "market_code": "TJ"
     },
     {
+      "award_id": "ccgpaward_13c7926c1bd7f11a",
+      "project_number": "YFZB202607010",
+      "project_name": "盛京医院大连医院黄海路院区旧楼改造及医疗设备购置项目-宫腔镜系统",
+      "buyer_name": "大连金普新区卫生健康局",
+      "region": "大连市",
+      "notice_type": "中标(成交)结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-24",
+      "procurement_method": null,
+      "total_amount_cny": 832900,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "大连今泰科技有限公司",
+          "amount_cny": 832900,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": null,
+          "name": "宫腔镜系统",
+          "brand": "科迈森",
+          "model": "KMS-4K-2088",
+          "quantity": "1",
+          "unit_price_cny": 832900
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27397247.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-24",
+          "deadline_date": "2026-10-13",
+          "remaining_working_days": 7,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-28"
+        }
+      ],
+      "market_code": "LN"
+    },
+    {
+      "award_id": "ccgpaward_136ba586a6e11123",
+      "project_number": "LNYCDL20260906",
+      "project_name": "盛京医院大连医院黄海路院区旧楼改造及医疗设备购置项目-转运呼吸机",
+      "buyer_name": "大连金普新区卫生健康局",
+      "region": "大连市",
+      "notice_type": "中标结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-24",
+      "procurement_method": null,
+      "total_amount_cny": 240000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "大连沐格科技有限公司",
+          "amount_cny": 240000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": null,
+          "name": "转运呼吸机",
+          "brand": "科曼",
+          "model": "EV20",
+          "quantity": "4",
+          "unit_price_cny": 60000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27398547.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-24",
+          "deadline_date": "2026-10-13",
+          "remaining_working_days": 7,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-28"
+        }
+      ],
+      "market_code": "LN"
+    },
+    {
+      "award_id": "ccgpaward_b7167a84ce92e24a",
+      "project_number": "LNYCDL20260904",
+      "project_name": "盛京医院大连医院黄海路院区旧楼改造及医疗设备购置项目-无创呼吸机",
+      "buyer_name": "大连金普新区卫生健康局",
+      "region": "大连市",
+      "notice_type": "中标结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-23",
+      "procurement_method": null,
+      "total_amount_cny": 352000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "赛腾（大连）生物技术有限公司",
+          "amount_cny": 352000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": null,
+          "name": "无创呼吸机",
+          "brand": "迈瑞",
+          "model": "SV70S",
+          "quantity": "4",
+          "unit_price_cny": 88000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260923_27388791.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-23",
+          "deadline_date": "2026-10-12",
+          "remaining_working_days": 6,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-24"
+        }
+      ],
+      "market_code": "LN"
+    },
+    {
       "award_id": "ccgpaward_aaff0acec4a47839",
       "project_number": "0701-264106070107",
       "project_name": "中国医学科学院北京协和医院检验科设备购置项目（2）",
@@ -1559,16 +1841,19 @@
     "schema_version": "0.1",
     "lookback_days": 365,
     "max_rows": 200,
-    "row_count": 44,
+    "row_count": 51,
     "truncated": false,
     "family_row_counts": {
-      "ANESTHESIA_RESP": 1,
+      "ANESTHESIA_RESP": 3,
       "DENTAL": 4,
       "DSA": 1,
+      "EMERGENCY": 1,
+      "ENDOSCOPY": 1,
       "IVD": 4,
       "LAB_INSTRUMENT": 5,
       "MONITORING": 2,
       "OBSTETRICS_NEONATAL": 1,
+      "PATHOLOGY": 3,
       "REAGENT": 3,
       "REHAB": 7,
       "STERILIZATION": 5,
@@ -2629,6 +2914,21 @@
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm"
       },
       {
+        "award_id": "ccgpaward_4bab9bc9968a3b12",
+        "market_code": "LN",
+        "published_at": "2026-09-28",
+        "buyer_name": "大连金普新区卫生健康局",
+        "project_number": "LNYCDL20260907",
+        "family": "EMERGENCY",
+        "name": "除颤仪",
+        "brand": "科曼",
+        "model": "S1A",
+        "quantity": "10",
+        "unit_price_cny": 25000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27407769.htm"
+      },
+      {
         "award_id": "ccgpaward_497bb929f0a5017b",
         "market_code": "TJ",
         "published_at": "2026-09-28",
@@ -2687,6 +2987,96 @@
         "unit_price_cny": 1865000,
         "line_count": 1,
         "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm"
+      },
+      {
+        "award_id": "ccgpaward_41cb6e53ffb5f55d",
+        "market_code": "LN",
+        "published_at": "2026-09-28",
+        "buyer_name": "大连金普新区卫生健康局",
+        "project_number": "A85WI2606K",
+        "family": "PATHOLOGY",
+        "name": "组织切片机",
+        "brand": "达科为",
+        "model": "MT1",
+        "quantity": "1",
+        "unit_price_cny": 100000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27407755.htm"
+      },
+      {
+        "award_id": "ccgpaward_41cb6e53ffb5f55d",
+        "market_code": "LN",
+        "published_at": "2026-09-28",
+        "buyer_name": "大连金普新区卫生健康局",
+        "project_number": "A85WI2606K",
+        "family": "PATHOLOGY",
+        "name": "荧光显微镜及成像系统",
+        "brand": "奥伟登",
+        "model": "BX53F2C",
+        "quantity": "1",
+        "unit_price_cny": 413000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27407755.htm"
+      },
+      {
+        "award_id": "ccgpaward_41cb6e53ffb5f55d",
+        "market_code": "LN",
+        "published_at": "2026-09-28",
+        "buyer_name": "大连金普新区卫生健康局",
+        "project_number": "A85WI2606K",
+        "family": "PATHOLOGY",
+        "name": "包埋机",
+        "brand": "科迪",
+        "model": "KD-BM5、BL5",
+        "quantity": "1",
+        "unit_price_cny": 89000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27407755.htm"
+      },
+      {
+        "award_id": "ccgpaward_13c7926c1bd7f11a",
+        "market_code": "LN",
+        "published_at": "2026-09-24",
+        "buyer_name": "大连金普新区卫生健康局",
+        "project_number": "YFZB202607010",
+        "family": "ENDOSCOPY",
+        "name": "宫腔镜系统",
+        "brand": "科迈森",
+        "model": "KMS-4K-2088",
+        "quantity": "1",
+        "unit_price_cny": 832900,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27397247.htm"
+      },
+      {
+        "award_id": "ccgpaward_136ba586a6e11123",
+        "market_code": "LN",
+        "published_at": "2026-09-24",
+        "buyer_name": "大连金普新区卫生健康局",
+        "project_number": "LNYCDL20260906",
+        "family": "ANESTHESIA_RESP",
+        "name": "转运呼吸机",
+        "brand": "科曼",
+        "model": "EV20",
+        "quantity": "4",
+        "unit_price_cny": 60000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27398547.htm"
+      },
+      {
+        "award_id": "ccgpaward_b7167a84ce92e24a",
+        "market_code": "LN",
+        "published_at": "2026-09-23",
+        "buyer_name": "大连金普新区卫生健康局",
+        "project_number": "LNYCDL20260904",
+        "family": "ANESTHESIA_RESP",
+        "name": "无创呼吸机",
+        "brand": "迈瑞",
+        "model": "SV70S",
+        "quantity": "4",
+        "unit_price_cny": 88000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260923_27388791.htm"
       }
     ]
   },
