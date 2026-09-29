@@ -192,3 +192,11 @@ cd web/pipeline && python3 -m unittest discover -s tests | tail -3     # 期望 
 cd .. && npm run build                                                 # prebuild + tsc + vite
 ```
 若 `.git/config` 丢失：`git remote add origin https://github.com/wpuu/MedicalChannelAI.git`，`git config credential.helper 'store --file=/home/user/.git-credentials-mca'`，`git config user.name/email`，`git config core.fileMode false`。
+
+### 2026-09-29 · 会话 3 · 里程碑 G/H：跟进×中标结果、项目编号归一化、事件监视省预算（`9f6680a`、`7d0aa7e`）
+- **G1 项目编号归一化**：池子里 ~1.4% 的项目编号带全角括号/破折号（`HBHX（Z）-2026-019`），结果公告常用半角 → 永远匹配不上。新增 `ccgp_award.normalize_project_number`（全角→半角、去空白、小写），用于 中标↔机会池 退役匹配、同步报告的 `matched_pool_project_numbers`；前端镜像 `src/utils/projectNumber.ts`。事件匹配（更正/终止）**没动**，仍是 `strip().lower()`。
+- **G2 跟进页 / 详情页显示中标结果**：`AwardResultNotice`（完整块：各包供应商+金额、质疑期倒计时、官方链接、明示"不会自动改你的跟进状态"；紧凑行：我的跟进列表项）。数据来自 `verifiedOpportunityPool.getAwardLedger()`（走去重的快照客户端，ETag 复用；API 模式下也是拉公开快照，不新增函数——Vercel 函数数 11/12 已接近上限，**不要**为此加 endpoint）。匹配用 `findAwardForProject`。
+- **H 事件监视跳过已中标项目**：`exclude_awarded_projects(watch, awards, as_of)`；Vercel `_run_ccgp` 用前一天的 award 存储（`_cached_list(CCGP_AWARDS_KEY)`，无缓存时从打包文件引导），`sync_tianjin_plan.py` 新参数 `--existing-awards-input`（默认打包存储）。两处都在 cap 检查**之前**排除并输出 `event_watch_skipped_awarded`。以天津当前数据算，省 3 个项目 × 2 次搜索/天，也减少了 `EVENT_WATCH_ALL_SEARCHES_FAILED` 的暴露面。
+- 套件 **818**；`npm run build` 通过。用 esbuild+react-dom/server 对真实 ledger 静态渲染核对过两个组件。
+
+**待办（顺序建议）**：① 区域（京冀辽吉黑）中标同步：`sync_ccgp_awards.py` 目前计划锁单一 `market_code`，运行时 award 阶段预算 200 s 只够天津；扩到区域应放在自托管 `regional-medical-refresh.yml`（无 300 s 限制）逐省跑 + publish 合并 ledger（`combine_snapshots` 已支持多市场 ledger 去重）。② `formatBudget` 对 10,499,940 显示 "1050.0 万元"（toFixed(1) 的进位），可改成保留两位或整万取整。③ 事件匹配也可以改用 `normalize_project_number`（需同步改 `_build_event_states`）。
