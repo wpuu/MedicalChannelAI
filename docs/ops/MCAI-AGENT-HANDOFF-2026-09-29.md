@@ -175,3 +175,20 @@ git config core.fileMode false
 1. §6 (6) 最小 UI：机会池页/首页加"最新中标结果"区块读取 `award_ledger`（供应商、金额、品牌/型号、质疑窗口倒计时、官网链接）；详情页对已退役项目显示"已中标：XX 公司 / 金额"。
 2. 让 `sync_tianjin_plan.py` 的事件监视复用 award 存储：项目已中标时不必再查更正/终止（省请求预算）。
 3. 词表：把 `tianjin_award_sync_report.json.out_of_scope` 作为每日词表回归输入。
+
+### 2026-09-29 · 会话 2 · 里程碑 F：中标结果最小 UI + 单价合理性护栏（`7e1320b`）
+- **UI**：`src/components/shared/AwardLedgerSection.tsx`，挂在商机池页（`OpportunityPoolPage`）列表下方："最新中标 / 成交结果"。每条：结果徽标（中标/成交/部分/全部包废标）、采购人、项目名、编号、总金额（注明"各包合计"还是公告总额）、每包供应商+金额（废标显示原因）、折叠的"品牌/型号/单价"、`RESULT_CHALLENGE` 质疑期倒计时（复用 `LegalWindowNotice`，仍带 94 号令免责）、官方公告链接。默认显示 5 条可展开；按用户业务地区过滤（`market_code`）；没有条目时整块不渲染。**没有胜率、没有推断**（页脚明示）。
+- 数据通路：`verifiedOpportunityPool.getVerifiedOpportunityPool()` 新返回 `award_ledger`（客户端按 `working_calendar` 重算剩余工作日，`refreshAwardLedger`）和 `awarded_project_count`；`ApiTodayActionsService` 也透传（依赖 `api/_privateCore.js` 已加的三个键）。首页/详情页尚未展示（详情页"已中标：XX 公司"仍是待办）。
+- 用 esbuild + `react-dom/server` 对真实 ledger 做了静态渲染核对（5 条 TJ、BJ-only 为空），顺手抓到一个**数据错误**：东丽疾控 `BJFHGJ-2026-038` 的标的单价渲染成 "312000 万元"——原公告表头写 `单价(万元)` 但单元格填的是元（312000，与包金额 ¥312,000 一致）。解析器按声明单位换算没有错，但结果荒谬。
+- **护栏** `ccgp_award.reconcile_item_prices(items, packages, total)`：单价×数量不得超过所在包金额（无包金额则用公告总额）；超过时不信任声明单位——若按"元"读能放进包内就用元，否则置 `None`（宁缺毋滥）。已对存储中的该记录离线修正（不重新抓取），新增夹具 `ccgp_award_tianjin_unit_price_misdeclared.html`（真实页）+ 2 个测试。套件 **814**。
+- 提醒：`quantity` 是自由文本（`1台`/`见附件`），护栏里解析不到数字按 1 计；`price/10000` 非整数时直接置 None。
+
+**当前 PR #74 提交链**：`14cac81` → `dcae64f` → `99c548a` → `281a3ef` → `39f5922` → `cc1592f` → `a5f0b4c` → `d52f1a4` → `f66654d` → `1660930` → `7e1320b`（+ 本条交接提交）。全部在特性分支，`main` 未动，PR 仍是 Draft。
+
+**给下一个 AI 的最短起手式**
+```bash
+cd /home/user/MedicalChannelAI && git status && git log --oneline -3
+cd web/pipeline && python3 -m unittest discover -s tests | tail -3     # 期望 814 OK
+cd .. && npm run build                                                 # prebuild + tsc + vite
+```
+若 `.git/config` 丢失：`git remote add origin https://github.com/wpuu/MedicalChannelAI.git`，`git config credential.helper 'store --file=/home/user/.git-credentials-mca'`，`git config user.name/email`，`git config core.fileMode false`。
