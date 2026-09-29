@@ -1,0 +1,623 @@
+{
+  "schema_version": "0.1",
+  "taxonomy_id": "MEDICAL_DEVICE_FAMILIES_CHANNEL_V1",
+  "notes": [
+    "Coarse device families used to group 中标/成交 line items (成交价参考) and to relate them to an opportunity's 标的.",
+    "Matching: normalise the name (full-width → ASCII, upper-case, collapse spaces), then take the FIRST family in this order that has a keyword contained in the name or an acronym present as a whole Latin/digit token.",
+    "Order matters: MAINTENANCE / REAGENT / HEALTH_IT / STERILIZATION come first so 'GE彩色多普勒超声诊断系统维保' is a service and '器械清洗工作站（内镜一体化清洗设备）' is CSSD equipment; DENTAL / NUCLEAR_RT come before CT so CBCT / PET-CT are classified correctly.",
+    "Python: medical_channel_pipeline/device_families.py · TS mirror: web/src/utils/deviceFamily.ts · parity_vectors are asserted by both."
+  ],
+  "families": [
+    {
+      "code": "MAINTENANCE",
+      "label": "维保 / 服务",
+      "keywords": [
+        "维保",
+        "维修",
+        "保养",
+        "保修",
+        "检测服务",
+        "服务项目",
+        "外包服务",
+        "运维"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "REAGENT",
+      "label": "试剂 / 耗材 / 标准物质",
+      "keywords": [
+        "试剂",
+        "耗材",
+        "标准物质",
+        "质控品",
+        "校准品",
+        "检测卡",
+        "采血管",
+        "培养基"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "HEALTH_IT",
+      "label": "信息化 / 软件",
+      "keywords": [
+        "软件",
+        "信息系统",
+        "信息平台",
+        "管理系统",
+        "服务器",
+        "存储设备",
+        "网络设备",
+        "一体化平台"
+      ],
+      "acronyms": [
+        "PACS",
+        "HIS",
+        "LIS",
+        "RIS",
+        "EMR"
+      ]
+    },
+    {
+      "code": "STERILIZATION",
+      "label": "消毒供应 / 感控",
+      "keywords": [
+        "灭菌",
+        "清洗消毒",
+        "清洗工作站",
+        "消毒机",
+        "消毒器",
+        "消毒柜",
+        "蒸汽发生器",
+        "封口机",
+        "干燥柜",
+        "污水处理",
+        "医废",
+        "超声波清洗"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "DENTAL",
+      "label": "口腔",
+      "keywords": [
+        "口腔",
+        "牙科",
+        "牙片",
+        "牙椅",
+        "综合治疗台",
+        "综合治疗仪",
+        "种植机",
+        "根管",
+        "洁牙"
+      ],
+      "acronyms": [
+        "CBCT"
+      ]
+    },
+    {
+      "code": "OPHTHALMOLOGY",
+      "label": "眼科",
+      "keywords": [
+        "眼科",
+        "眼底",
+        "裂隙灯",
+        "眼压",
+        "验光",
+        "角膜",
+        "视野计",
+        "眼用"
+      ],
+      "acronyms": [
+        "OCT"
+      ]
+    },
+    {
+      "code": "NUCLEAR_RT",
+      "label": "核医学 / 放疗",
+      "keywords": [
+        "核医学",
+        "直线加速器",
+        "放射治疗",
+        "放疗",
+        "后装",
+        "伽玛刀",
+        "伽马刀",
+        "回旋加速器"
+      ],
+      "acronyms": [
+        "PET",
+        "SPECT",
+        "PET-CT",
+        "PET/CT",
+        "PET-MR"
+      ]
+    },
+    {
+      "code": "CT",
+      "label": "CT",
+      "keywords": [
+        "计算机断层",
+        "螺旋CT",
+        "CT机",
+        "CT系统"
+      ],
+      "acronyms": [
+        "CT"
+      ]
+    },
+    {
+      "code": "MRI",
+      "label": "磁共振",
+      "keywords": [
+        "磁共振",
+        "核磁"
+      ],
+      "acronyms": [
+        "MRI",
+        "MR"
+      ]
+    },
+    {
+      "code": "DSA",
+      "label": "DSA / 血管造影",
+      "keywords": [
+        "血管造影",
+        "血管机",
+        "介入手术系统"
+      ],
+      "acronyms": [
+        "DSA"
+      ]
+    },
+    {
+      "code": "XRAY",
+      "label": "DR / X 线 / 乳腺机",
+      "keywords": [
+        "X射线",
+        "X线",
+        "乳腺机",
+        "钼靶",
+        "胃肠机",
+        "透视",
+        "移动式摄影",
+        "骨密度"
+      ],
+      "acronyms": [
+        "DR",
+        "CR",
+        "DRF"
+      ]
+    },
+    {
+      "code": "ULTRASOUND",
+      "label": "彩超 / 超声诊断",
+      "keywords": [
+        "彩色多普勒",
+        "彩色超声",
+        "超声诊断",
+        "彩超",
+        "B超",
+        "超声系统",
+        "超声波诊断",
+        "超声影像"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "ENDOSCOPY",
+      "label": "内窥镜 / 腔镜",
+      "keywords": [
+        "内窥镜",
+        "内镜",
+        "腔镜",
+        "胃镜",
+        "肠镜",
+        "支气管镜",
+        "宫腔镜",
+        "关节镜",
+        "膀胱镜",
+        "输尿管镜",
+        "胆道镜",
+        "摄像系统",
+        "冷光源",
+        "图像处理器"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "SURGERY",
+      "label": "手术室设备",
+      "keywords": [
+        "手术床",
+        "手术台",
+        "手术灯",
+        "无影灯",
+        "电刀",
+        "超声刀",
+        "吊塔",
+        "手术显微镜",
+        "超声骨",
+        "动力系统",
+        "碎石",
+        "手术机器人",
+        "手术导航",
+        "止血带",
+        "气腹机",
+        "麻醉深度",
+        "激光治疗"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "ANESTHESIA_RESP",
+      "label": "麻醉 / 呼吸",
+      "keywords": [
+        "麻醉机",
+        "麻醉工作站",
+        "呼吸机",
+        "高流量",
+        "无创通气",
+        "呼吸湿化",
+        "麻醉系统",
+        "制氧"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "MONITORING",
+      "label": "监护 / 心电",
+      "keywords": [
+        "监护仪",
+        "监护系统",
+        "中央监护",
+        "心电监护",
+        "心电图",
+        "动态心电",
+        "动态血压",
+        "遥测",
+        "生命体征",
+        "脉搏血氧",
+        "血氧仪",
+        "心电机"
+      ],
+      "acronyms": [
+        "ECG"
+      ]
+    },
+    {
+      "code": "EMERGENCY",
+      "label": "急救 / 输注",
+      "keywords": [
+        "除颤",
+        "心肺复苏",
+        "急救",
+        "输液泵",
+        "注射泵",
+        "输注泵",
+        "输注工作站",
+        "洗胃机",
+        "转运",
+        "抢救车"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "DIALYSIS",
+      "label": "透析 / 血液净化",
+      "keywords": [
+        "透析",
+        "血液净化",
+        "血液滤过",
+        "血滤",
+        "水处理系统"
+      ],
+      "acronyms": [
+        "CRRT"
+      ]
+    },
+    {
+      "code": "OBSTETRICS_NEONATAL",
+      "label": "妇产 / 新生儿",
+      "keywords": [
+        "胎心",
+        "胎儿监护",
+        "婴儿培养箱",
+        "暖箱",
+        "新生儿",
+        "蓝光",
+        "辐射保暖",
+        "产床",
+        "阴道镜",
+        "乳腺"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "REHAB",
+      "label": "康复 / 理疗",
+      "keywords": [
+        "康复",
+        "理疗",
+        "治疗仪",
+        "电刺激",
+        "训练机",
+        "训练系统",
+        "牵引",
+        "冲击波治疗",
+        "磁刺激",
+        "认知评估",
+        "言语",
+        "吞咽",
+        "步态",
+        "减重"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "IVD",
+      "label": "临床检验设备",
+      "keywords": [
+        "生化分析",
+        "免疫分析",
+        "化学发光",
+        "血细胞",
+        "血球",
+        "凝血",
+        "尿液分析",
+        "尿沉渣",
+        "微生物",
+        "药敏",
+        "血培养",
+        "核酸",
+        "基因扩增",
+        "测序",
+        "流式细胞",
+        "电解质",
+        "血气",
+        "糖化血红蛋白",
+        "特定蛋白",
+        "分析仪",
+        "检测一体机"
+      ],
+      "acronyms": [
+        "PCR",
+        "POCT",
+        "ELISA"
+      ]
+    },
+    {
+      "code": "PATHOLOGY",
+      "label": "病理",
+      "keywords": [
+        "病理",
+        "切片",
+        "包埋",
+        "脱水机",
+        "染色机",
+        "冷冻切片",
+        "数字切片",
+        "显微镜"
+      ],
+      "acronyms": []
+    },
+    {
+      "code": "LAB_INSTRUMENT",
+      "label": "实验室通用仪器",
+      "keywords": [
+        "色谱",
+        "光谱",
+        "离心机",
+        "移液",
+        "天平",
+        "纯水",
+        "超纯水",
+        "生物安全柜",
+        "超净",
+        "培养箱",
+        "冰箱",
+        "冷藏",
+        "低温",
+        "水浴",
+        "溶氧仪",
+        "氮气发生器",
+        "空压机",
+        "酶标",
+        "振荡器",
+        "均质",
+        "干燥箱",
+        "马弗炉",
+        "体积测量"
+      ],
+      "acronyms": [
+        "HPLC",
+        "GC",
+        "GCMS",
+        "LCMS",
+        "ICP"
+      ]
+    },
+    {
+      "code": "WARD_GENERAL",
+      "label": "病房 / 通用设备",
+      "keywords": [
+        "病床",
+        "护理床",
+        "护理设备",
+        "轮椅",
+        "推车",
+        "担架",
+        "医用车",
+        "诊察床",
+        "输液椅",
+        "空气消毒",
+        "净化",
+        "医用家具"
+      ],
+      "acronyms": []
+    }
+  ],
+  "parity_vectors": [
+    [
+      "彩色多普勒超声诊断仪",
+      "ULTRASOUND"
+    ],
+    [
+      "彩色超声诊断系统（具有肝功能剪切波量化功能）",
+      "ULTRASOUND"
+    ],
+    [
+      "GE彩色多普勒超声诊断系统维保",
+      "MAINTENANCE"
+    ],
+    [
+      "河北医科大学第三医院CT、MRI维保项目（三年）（二次）",
+      "MAINTENANCE"
+    ],
+    [
+      "CBCT",
+      "DENTAL"
+    ],
+    [
+      "口腔综合治疗仪",
+      "DENTAL"
+    ],
+    [
+      "PET-CT",
+      "NUCLEAR_RT"
+    ],
+    [
+      "64排螺旋CT",
+      "CT"
+    ],
+    [
+      "1.5T超导磁共振成像系统",
+      "MRI"
+    ],
+    [
+      "医用血管造影X射线机",
+      "DSA"
+    ],
+    [
+      "数字化医用X射线摄影系统(DR)",
+      "XRAY"
+    ],
+    [
+      "骨密度检测仪",
+      "XRAY"
+    ],
+    [
+      "4K内窥镜摄像系统",
+      "ENDOSCOPY"
+    ],
+    [
+      "超声骨组织手术设备",
+      "SURGERY"
+    ],
+    [
+      "骨科手术床",
+      "SURGERY"
+    ],
+    [
+      "体外冲击波碎石仪",
+      "SURGERY"
+    ],
+    [
+      "麻醉机1",
+      "ANESTHESIA_RESP"
+    ],
+    [
+      "转运呼吸机",
+      "ANESTHESIA_RESP"
+    ],
+    [
+      "多参数监护仪",
+      "MONITORING"
+    ],
+    [
+      "无接触史生命体征监测设备",
+      "MONITORING"
+    ],
+    [
+      "胎心检测仪",
+      "OBSTETRICS_NEONATAL"
+    ],
+    [
+      "干扰电治疗仪",
+      "REHAB"
+    ],
+    [
+      "智能言语训练机",
+      "REHAB"
+    ],
+    [
+      "全自动微生物鉴定药敏分析仪",
+      "IVD"
+    ],
+    [
+      "血源性病原体核酸检测一体机",
+      "IVD"
+    ],
+    [
+      "气相色谱质谱联用仪",
+      "LAB_INSTRUMENT"
+    ],
+    [
+      "洁净蒸汽发生器",
+      "STERILIZATION"
+    ],
+    [
+      "器械清洗工作站（内镜一体化清洗设备）",
+      "STERILIZATION"
+    ],
+    [
+      "医用等离子体空气消毒器-1",
+      "STERILIZATION"
+    ],
+    [
+      "色度溶液标准物质",
+      "REAGENT"
+    ],
+    [
+      "溶氧仪",
+      "LAB_INSTRUMENT"
+    ],
+    [
+      "智能过度包装体积测量系统",
+      "LAB_INSTRUMENT"
+    ],
+    [
+      "病房护理设备设施",
+      "WARD_GENERAL"
+    ],
+    [
+      "液氮等",
+      null
+    ],
+    [
+      "HPV检测服务",
+      "MAINTENANCE"
+    ],
+    [
+      "",
+      null
+    ],
+    [
+      "超声波清洗机",
+      "STERILIZATION"
+    ],
+    [
+      "二氧化碳激光治疗机",
+      "SURGERY"
+    ],
+    [
+      "心电机",
+      "MONITORING"
+    ],
+    [
+      "抢救车",
+      "EMERGENCY"
+    ]
+  ]
+}

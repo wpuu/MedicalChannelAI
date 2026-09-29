@@ -1,5 +1,5 @@
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
-import type { AwardLedgerEntry, TodayActionCard } from '@/types'
+import type { AwardPriceReference, AwardLedgerEntry, TodayActionCard } from '@/types'
 import type { PublicTodayActionCard, TodayActionsPublicResponse } from '@/types/public'
 import { refreshLegalWindows } from '@/utils/legalWindows'
 import { normalizeProjectNumber } from '@/utils/projectNumber'
@@ -270,6 +270,23 @@ export async function getAwardLedger(): Promise<{
   return {
     snapshot_as_of: data.snapshot_as_of,
     entries: refreshAwardLedger(data.award_ledger, Date.now(), data.working_calendar),
+  }
+}
+
+/**
+ * 成交价参考 rows (brand × model × unit price from official award notices) plus
+ * the device-family taxonomy they were classified with. Public snapshot data in
+ * both modes; absent on older snapshots.
+ */
+export async function getAwardPriceReference(): Promise<{
+  snapshot_as_of: string
+  reference: AwardPriceReference | null
+}> {
+  const data = await fetchSnapshot()
+  const reference = data.award_price_reference
+  return {
+    snapshot_as_of: data.snapshot_as_of,
+    reference: reference && Array.isArray(reference.rows) && Array.isArray(reference.families) ? reference : null,
   }
 }
 

@@ -246,6 +246,7 @@ async function todayRoute(request, response, user) {
       // Official 中标/成交 results: public facts only, same payload as the anonymous snapshot.
       awarded_project_count: Number(snapshot.awarded_project_count || 0),
       award_ledger: Array.isArray(snapshot.award_ledger) ? snapshot.award_ledger : [],
+      award_price_reference: snapshot.award_price_reference ?? null,
       cards,
       opportunity_pool: decoratedPool,
     })

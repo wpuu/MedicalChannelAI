@@ -183,11 +183,55 @@ export interface PublicAwardLedgerPackage {
 
 export interface PublicAwardLedgerItem {
   package_no: string | null
+  /** Catalogue category when the notice states one (黑龙江 品目名称, 河北 货物类/服务类). */
+  category?: string | null
   name: string | null
   brand: string | null
   model: string | null
   quantity: string | null
   unit_price_cny: number | null
+}
+
+/** One coarse device family of the shipped taxonomy (ordered; first match wins). */
+export interface PublicDeviceFamily {
+  code: string
+  label: string
+  /** Normalised (upper-case, half-width) substrings. */
+  keywords: string[]
+  /** Whole Latin/digit tokens such as CT, DR, MRI. */
+  acronyms: string[]
+}
+
+/**
+ * One 标的 line of a published 中标/成交 notice with a single brand and a
+ * parseable unit price. Pure evidence: no averages, no market price.
+ */
+export interface PublicAwardPriceReferenceRow {
+  award_id: string
+  market_code: string
+  published_at: string | null
+  buyer_name: string | null
+  project_number: string | null
+  family: string | null
+  name: string
+  brand: string
+  model: string | null
+  quantity: string | null
+  unit_price_cny: number
+  /** Identical lines folded into this row (e.g. three 品目号 rows for three units). */
+  line_count: number
+  source_url: string
+}
+
+export interface PublicAwardPriceReference {
+  schema_version: string
+  lookback_days: number
+  max_rows: number
+  row_count: number
+  truncated: boolean
+  family_row_counts: Record<string, number>
+  families: PublicDeviceFamily[]
+  rows: PublicAwardPriceReferenceRow[]
 }
 
 /**
@@ -243,6 +287,8 @@ export interface TodayActionsPublicResponse {
   awarded_project_count?: number
   /** Newest-first, bounded ledger of published awards (may be empty). */
   award_ledger?: PublicAwardLedgerEntry[]
+  /** 成交价参考: brand × model × unit price lines from published awards. */
+  award_price_reference?: PublicAwardPriceReference | null
   cards: PublicTodayActionCard[]
   opportunity_pool?: PublicTodayActionCard[]
 }

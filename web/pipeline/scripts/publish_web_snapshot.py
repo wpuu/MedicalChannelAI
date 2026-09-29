@@ -14,6 +14,7 @@ WEB_ROOT = PIPELINE_ROOT.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
+from medical_channel_pipeline.award_price_reference import combine_award_price_references  # noqa: E402
 from medical_channel_pipeline.ccgp_award import MAX_LEDGER_ENTRIES  # noqa: E402
 from medical_channel_pipeline.legal_windows import working_calendar_payload  # noqa: E402
 
@@ -182,6 +183,10 @@ def combine_snapshots(
         'awarded_project_count': int(tianjin_snapshot.get('awarded_project_count') or 0)
         + int(regional_snapshot.get('awarded_project_count') or 0),
         'award_ledger': combine_award_ledgers(tianjin_snapshot, regional_snapshot),
+        'award_price_reference': combine_award_price_references(
+            tianjin_snapshot.get('award_price_reference'),
+            regional_snapshot.get('award_price_reference'),
+        ),
         'cards': cards,
         'opportunity_pool': unique_pool,
     }

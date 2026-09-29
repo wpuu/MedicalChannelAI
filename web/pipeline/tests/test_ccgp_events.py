@@ -170,6 +170,31 @@ class CcgpEventTests(unittest.TestCase):
         self.assertIn(CORRECTION_URL, card['evidence_source_urls'])
         self.assertIn('OFFICIAL_CORRECTION_APPLIED', card['priority']['warnings'])
 
+    def test_correction_matches_project_number_typed_with_full_width_characters(self) -> None:
+        # Clerks type the same number with full-width brackets/dashes or stray
+        # spaces; matching must use the shared normalisation, not raw text.
+        event = parse_ccgp_event_text(
+            CORRECTION_FIXTURE,
+            source_url=CORRECTION_URL,
+            observed_at='2026-09-01T10:00:00+08:00',
+            event_id='correction_xcsd_2026_c_181_fullwidth',
+        )
+        raw_number = event['project_number']
+        event['project_number'] = raw_number.replace('-', '－').replace('(', '（').replace(')', '）') + '\u3000'
+        self.assertNotEqual(event['project_number'].strip().lower(), raw_number.strip().lower())
+        payload = build_public_snapshot(
+            copy.deepcopy(self.records),
+            datetime.fromisoformat('2026-09-01T12:00:00+08:00'),
+            [event],
+        )
+        card = next(
+            card
+            for card in payload['cards']
+            if card['opportunity_id'] == 'verified_bhcdc_2026_c_181'
+        )
+        self.assertEqual(card['facts']['bid_deadline'], '2026-09-18T09:30:00+08:00')
+        self.assertIn('OFFICIAL_CORRECTION_APPLIED', card['priority']['warnings'])
+
     def test_date_only_registration_change_remains_suppressed(self) -> None:
         event = parse_ccgp_event_text(
             INCOMPLETE_CORRECTION_FIXTURE,

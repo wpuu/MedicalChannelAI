@@ -1099,6 +1099,7 @@ _LEDGER_TEXT_LIMITS = {
     "project_name": 80,
     "buyer_name": 48,
     "supplier_name": 48,
+    "category": 24,
     "name": 48,
     "brand": 24,
     "model": 48,
@@ -1232,6 +1233,7 @@ def public_award_ledger_entry(record: dict[str, Any], as_of: datetime) -> dict[s
     items = [
         {
             "package_no": item.get("package_no"),
+            "category": _ledger_text(item.get("category"), "category"),
             "name": _ledger_text(item.get("name"), "name"),
             "brand": _ledger_text(item.get("brand"), "brand"),
             "model": _ledger_text(item.get("model"), "model"),

@@ -125,6 +125,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "口腔设备及器械",
           "name": "牙科电动抽吸系统",
           "brand": "迪珥",
           "model": "S10A",
@@ -133,6 +134,7 @@
         },
         {
           "package_no": "1",
+          "category": "口腔设备及器械",
           "name": "污水处理",
           "brand": "新华",
           "model": "XH-W",
@@ -141,6 +143,7 @@
         },
         {
           "package_no": "1",
+          "category": "口腔设备及器械",
           "name": "CBCT",
           "brand": "美亚光电",
           "model": "mDX-15Pro-Y30",
@@ -149,6 +152,7 @@
         },
         {
           "package_no": "1",
+          "category": "口腔设备及器械",
           "name": "牙片宝",
           "brand": "汉缔",
           "model": "HDS-500",
@@ -157,6 +161,7 @@
         },
         {
           "package_no": "1",
+          "category": "口腔设备及器械",
           "name": "口腔综合治疗仪",
           "brand": "上海菲曼特、康钛、啄木鸟、邦宁、上海菲曼特、优…",
           "model": "F1-S、KT101-K1Pro、UDS-N3 LED、Kavo LED Plus、F1D1、…",
@@ -165,6 +170,7 @@
         },
         {
           "package_no": "1",
+          "category": "口腔设备及器械",
           "name": "口腔内部扫描仪",
           "brand": "先临",
           "model": "Aoralscan Wireless G2",
@@ -173,6 +179,7 @@
         },
         {
           "package_no": "1",
+          "category": "消毒灭菌设备及器具",
           "name": "医用等离子体空气消毒器-1",
           "brand": "新华",
           "model": "YKX.P-B-1000型",
@@ -181,6 +188,7 @@
         },
         {
           "package_no": "1",
+          "category": "消毒灭菌设备及器具",
           "name": "医用等离子体空气消毒器-2",
           "brand": "新华",
           "model": "YKX.P-B-600K",
@@ -230,6 +238,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
           "name": "干扰电治疗仪",
           "brand": "兴汇",
           "model": "SV-IT401S",
@@ -238,6 +247,7 @@
         },
         {
           "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
           "name": "中频治疗仪",
           "brand": "一康",
           "model": "PE2-4",
@@ -246,6 +256,7 @@
         },
         {
           "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
           "name": "神经肌肉电刺激仪",
           "brand": "倍益康",
           "model": "QL/N-IV",
@@ -254,6 +265,7 @@
         },
         {
           "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
           "name": "经皮神经电刺激仪",
           "brand": "倍益康",
           "model": "QL/T-III",
@@ -262,6 +274,7 @@
         },
         {
           "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
           "name": "超声治疗仪",
           "brand": "西贝",
           "model": "Sonopuls 190",
@@ -270,6 +283,7 @@
         },
         {
           "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
           "name": "吞咽神经肌肉电刺激仪",
           "brand": "西贝",
           "model": "Titanium X94",
@@ -278,6 +292,7 @@
         },
         {
           "package_no": "1",
+          "category": "医用电子生理参数检测仪器设备",
           "name": "无接触史生命体征监测设备",
           "brand": "清雷",
           "model": "KY-36",
@@ -327,6 +342,7 @@
       "items": [
         {
           "package_no": null,
+          "category": null,
           "name": "器械清洗工作站（内镜一体化清洗设备）；高压蒸汽喷枪（医用蒸汽清洗机）",
           "brand": "东山；东山",
           "model": "DSQX-3000；DS-ZQQX-5L01",
@@ -376,6 +392,7 @@
       "items": [
         {
           "package_no": null,
+          "category": "货物类",
           "name": "转运呼吸机",
           "brand": "迈瑞",
           "model": "TV80S",
@@ -425,6 +442,7 @@
       "items": [
         {
           "package_no": null,
+          "category": null,
           "name": "吉林省神经精神病医院西门子核磁共振维保",
           "brand": null,
           "model": null,
@@ -474,6 +492,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "医用超声波仪器及设备",
           "name": "彩色多普勒超声诊断仪",
           "brand": "通用电气",
           "model": "LOGIQ E20 Pro",
@@ -482,6 +501,7 @@
         },
         {
           "package_no": "1",
+          "category": "医用超声波仪器及设备",
           "name": "彩色多普勒超声诊断仪",
           "brand": "通用电气",
           "model": "LOGIQ E20 Pro",
@@ -490,6 +510,7 @@
         },
         {
           "package_no": "1",
+          "category": "医用超声波仪器及设备",
           "name": "彩色多普勒超声诊断仪",
           "brand": "通用电气",
           "model": "LOGIQ E20 Pro",
@@ -498,6 +519,7 @@
         },
         {
           "package_no": "1",
+          "category": "医用超声波仪器及设备",
           "name": "彩色多普勒超声诊断仪",
           "brand": "飞利浦",
           "model": "EPIQ Elite Plus",
@@ -506,6 +528,7 @@
         },
         {
           "package_no": "1",
+          "category": "医用超声波仪器及设备",
           "name": "彩色多普勒超声诊断仪",
           "brand": "飞利浦",
           "model": "EPIQ Elite Plus",
@@ -555,6 +578,7 @@
       "items": [
         {
           "package_no": null,
+          "category": null,
           "name": "色度溶液标准物质",
           "brand": "河南标准物质研发中心",
           "model": "20mL/瓶",
@@ -563,6 +587,7 @@
         },
         {
           "package_no": null,
+          "category": null,
           "name": "邻苯二甲酸氢钾pH溶液标准物质",
           "brand": "河南标准物质研发中心",
           "model": "500mL/瓶",
@@ -571,6 +596,7 @@
         },
         {
           "package_no": null,
+          "category": null,
           "name": "硼砂pH溶液标准物质",
           "brand": "河南标准物质研发中心",
           "model": "500mL/瓶",
@@ -579,6 +605,7 @@
         },
         {
           "package_no": null,
+          "category": null,
           "name": "混合磷酸盐pH溶液标准物质等",
           "brand": "河南标准物质研发中心等",
           "model": "500mL/瓶等",
@@ -628,6 +655,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
           "name": "智能言语训练机",
           "brand": "好博医疗",
           "model": "HB-LRT(软件发布版本:01)/HB-CRT",
@@ -636,6 +664,7 @@
         },
         {
           "package_no": "1",
+          "category": "医用电子生理参数检测仪器设备",
           "name": "胎心检测仪",
           "brand": "理邦仪器",
           "model": "F6",
@@ -644,6 +673,7 @@
         },
         {
           "package_no": "1",
+          "category": "医用电子生理参数检测仪器设备",
           "name": "多参数监护仪",
           "brand": "理邦仪器",
           "model": "iX15",
@@ -652,6 +682,7 @@
         },
         {
           "package_no": "1",
+          "category": "手术室设备及附件",
           "name": "骨科手术床",
           "brand": "谊安医疗",
           "model": "OP830",
@@ -660,6 +691,7 @@
         },
         {
           "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
           "name": "体外冲击波碎石仪",
           "brand": "新元素",
           "model": "XYS.SUI-8A",
@@ -668,6 +700,7 @@
         },
         {
           "package_no": "1",
+          "category": "医用 X 线诊断设备",
           "name": "骨密度检测仪",
           "brand": "澳思托",
           "model": "SONOST-2000C",
@@ -717,6 +750,7 @@
       "items": [
         {
           "package_no": null,
+          "category": null,
           "name": "微生物培养监测仪",
           "brand": "安图",
           "model": "BC60-240",
@@ -725,6 +759,7 @@
         },
         {
           "package_no": null,
+          "category": null,
           "name": "全自动微生物鉴定药敏分析仪",
           "brand": "安图",
           "model": "AutoMic-i600",
@@ -733,6 +768,7 @@
         },
         {
           "package_no": null,
+          "category": null,
           "name": "全自动微生物质谱检测系统",
           "brand": "安图",
           "model": "Autof TCX",
@@ -782,6 +818,7 @@
       "items": [
         {
           "package_no": null,
+          "category": null,
           "name": "洁净蒸汽发生器",
           "brand": "斯派莎克",
           "model": "CSG-HS-125",
@@ -831,6 +868,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "其他医疗卫生服务",
           "name": "HPV检测服务",
           "brand": null,
           "model": null,
@@ -901,6 +939,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "服务类",
           "name": "佳能彩色多普勒超声诊断系统维保",
           "brand": null,
           "model": null,
@@ -909,6 +948,7 @@
         },
         {
           "package_no": "2",
+          "category": "服务类",
           "name": "迈瑞彩色多普勒超声诊断系统维保",
           "brand": null,
           "model": null,
@@ -917,6 +957,7 @@
         },
         {
           "package_no": "3",
+          "category": "服务类",
           "name": "GE彩色多普勒超声诊断系统维保",
           "brand": null,
           "model": null,
@@ -925,6 +966,7 @@
         },
         {
           "package_no": "4",
+          "category": "服务类",
           "name": "其他型号彩色多普勒超声诊断系统维保服务",
           "brand": null,
           "model": null,
@@ -974,6 +1016,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "货物类",
           "name": "血源性病原体核酸检测一体机",
           "brand": "辉锦创兴",
           "model": "AutoPlex-12",
@@ -1023,6 +1066,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "货物类",
           "name": "智能过度包装体积测量系统",
           "brand": "汇像",
           "model": "PHS750LV",
@@ -1031,6 +1075,7 @@
         },
         {
           "package_no": "1",
+          "category": "货物类",
           "name": "气相色谱质谱联用仪",
           "brand": "岛津",
           "model": "GCMS-TQ8040",
@@ -1039,6 +1084,7 @@
         },
         {
           "package_no": "1",
+          "category": "货物类",
           "name": "溶氧仪",
           "brand": "梅特勒",
           "model": "S4",
@@ -1047,6 +1093,7 @@
         },
         {
           "package_no": "1",
+          "category": "货物类",
           "name": "无油空压机",
           "brand": "岱洛",
           "model": "DA5002D",
@@ -1055,6 +1102,7 @@
         },
         {
           "package_no": "1",
+          "category": "货物类",
           "name": "氮气发生器",
           "brand": "楷来",
           "model": "KL35-1",
@@ -1104,6 +1152,7 @@
       "items": [
         {
           "package_no": null,
+          "category": "货物类",
           "name": "超声骨组织手术设备",
           "brand": "西山科技",
           "model": "UT-C-S1",
@@ -1153,6 +1202,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "货物类",
           "name": "液氮等",
           "brand": "霸州安兴",
           "model": "99.999%等",
@@ -1202,6 +1252,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "货物类",
           "name": "医用血管造影X射线机",
           "brand": "联影",
           "model": "uAngio960",
@@ -1251,6 +1302,7 @@
       "items": [
         {
           "package_no": null,
+          "category": "服务类",
           "name": "河北医科大学第三医院CT、MRI维保项目（三年）（二次）",
           "brand": null,
           "model": null,
@@ -1321,6 +1373,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "货物类",
           "name": "彩色多普勒超声诊断仪",
           "brand": "飞利浦",
           "model": "EPIQ CVx",
@@ -1329,6 +1382,7 @@
         },
         {
           "package_no": "2",
+          "category": "货物类",
           "name": "彩色多普勒超声诊断仪",
           "brand": "GE",
           "model": "Voluson Expert 22 Premium",
@@ -1337,6 +1391,7 @@
         },
         {
           "package_no": "3",
+          "category": "货物类",
           "name": "彩色多普勒超声诊断仪",
           "brand": "佳能",
           "model": "Aplio i900 TUS-AI900",
@@ -1345,6 +1400,7 @@
         },
         {
           "package_no": "4",
+          "category": "货物类",
           "name": "彩色超声诊断设备",
           "brand": "富士",
           "model": "ARIETTA 650",
@@ -1408,6 +1464,7 @@
       "items": [
         {
           "package_no": "1",
+          "category": "货物类",
           "name": "4K内窥镜摄像系统； 其他详见附件",
           "brand": "卡尔史托斯； 其他详见附件",
           "model": "IMAGE1 S 4U; 其他详见附件",
@@ -1416,6 +1473,7 @@
         },
         {
           "package_no": "2",
+          "category": "货物类",
           "name": "4K3D荧光医用内窥镜图像处理器； 4K医用内窥镜摄像系统-摄像头； 医用内窥镜荧光冷光源； …",
           "brand": "康基； 康基； 康基； 其他详见附件",
           "model": "KJ-EP4K3DNIR-02； KJ-EC-4KAIAF； KJ-CLS-NIR02； 其他…",
@@ -1424,6 +1482,7 @@
         },
         {
           "package_no": "3",
+          "category": "货物类",
           "name": "4K三维电子内窥镜图像处理器； 4K三维电子胸腹腔镜； 医用内窥镜冷光源； 其他详见附件",
           "brand": "图格； 图格； 图格； 其他详见附件",
           "model": "TDE-F410A；TUL-E3010W； TLS-M821A； 其他详见附件",
@@ -1473,6 +1532,7 @@
       "items": [
         {
           "package_no": "3",
+          "category": null,
           "name": "自动血液微生物培养系统; 全自动蛋白分析仪",
           "brand": "美国BD; 西门子",
           "model": "BD BACTEC FX; BN Ⅱ System",
@@ -1495,6 +1555,1141 @@
       "market_code": "BJ"
     }
   ],
+  "award_price_reference": {
+    "schema_version": "0.1",
+    "lookback_days": 365,
+    "max_rows": 200,
+    "row_count": 44,
+    "truncated": false,
+    "family_row_counts": {
+      "ANESTHESIA_RESP": 1,
+      "DENTAL": 4,
+      "DSA": 1,
+      "IVD": 4,
+      "LAB_INSTRUMENT": 5,
+      "MONITORING": 2,
+      "OBSTETRICS_NEONATAL": 1,
+      "REAGENT": 3,
+      "REHAB": 7,
+      "STERILIZATION": 5,
+      "SURGERY": 3,
+      "ULTRASOUND": 7,
+      "XRAY": 1
+    },
+    "families": [
+      {
+        "code": "MAINTENANCE",
+        "label": "维保 / 服务",
+        "keywords": [
+          "维保",
+          "维修",
+          "保养",
+          "保修",
+          "检测服务",
+          "服务项目",
+          "外包服务",
+          "运维"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "REAGENT",
+        "label": "试剂 / 耗材 / 标准物质",
+        "keywords": [
+          "试剂",
+          "耗材",
+          "标准物质",
+          "质控品",
+          "校准品",
+          "检测卡",
+          "采血管",
+          "培养基"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "HEALTH_IT",
+        "label": "信息化 / 软件",
+        "keywords": [
+          "软件",
+          "信息系统",
+          "信息平台",
+          "管理系统",
+          "服务器",
+          "存储设备",
+          "网络设备",
+          "一体化平台"
+        ],
+        "acronyms": [
+          "PACS",
+          "HIS",
+          "LIS",
+          "RIS",
+          "EMR"
+        ]
+      },
+      {
+        "code": "STERILIZATION",
+        "label": "消毒供应 / 感控",
+        "keywords": [
+          "灭菌",
+          "清洗消毒",
+          "清洗工作站",
+          "消毒机",
+          "消毒器",
+          "消毒柜",
+          "蒸汽发生器",
+          "封口机",
+          "干燥柜",
+          "污水处理",
+          "医废",
+          "超声波清洗"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "DENTAL",
+        "label": "口腔",
+        "keywords": [
+          "口腔",
+          "牙科",
+          "牙片",
+          "牙椅",
+          "综合治疗台",
+          "综合治疗仪",
+          "种植机",
+          "根管",
+          "洁牙"
+        ],
+        "acronyms": [
+          "CBCT"
+        ]
+      },
+      {
+        "code": "OPHTHALMOLOGY",
+        "label": "眼科",
+        "keywords": [
+          "眼科",
+          "眼底",
+          "裂隙灯",
+          "眼压",
+          "验光",
+          "角膜",
+          "视野计",
+          "眼用"
+        ],
+        "acronyms": [
+          "OCT"
+        ]
+      },
+      {
+        "code": "NUCLEAR_RT",
+        "label": "核医学 / 放疗",
+        "keywords": [
+          "核医学",
+          "直线加速器",
+          "放射治疗",
+          "放疗",
+          "后装",
+          "伽玛刀",
+          "伽马刀",
+          "回旋加速器"
+        ],
+        "acronyms": [
+          "PET",
+          "SPECT",
+          "PET-CT",
+          "PET/CT",
+          "PET-MR"
+        ]
+      },
+      {
+        "code": "CT",
+        "label": "CT",
+        "keywords": [
+          "计算机断层",
+          "螺旋CT",
+          "CT机",
+          "CT系统"
+        ],
+        "acronyms": [
+          "CT"
+        ]
+      },
+      {
+        "code": "MRI",
+        "label": "磁共振",
+        "keywords": [
+          "磁共振",
+          "核磁"
+        ],
+        "acronyms": [
+          "MRI",
+          "MR"
+        ]
+      },
+      {
+        "code": "DSA",
+        "label": "DSA / 血管造影",
+        "keywords": [
+          "血管造影",
+          "血管机",
+          "介入手术系统"
+        ],
+        "acronyms": [
+          "DSA"
+        ]
+      },
+      {
+        "code": "XRAY",
+        "label": "DR / X 线 / 乳腺机",
+        "keywords": [
+          "X射线",
+          "X线",
+          "乳腺机",
+          "钼靶",
+          "胃肠机",
+          "透视",
+          "移动式摄影",
+          "骨密度"
+        ],
+        "acronyms": [
+          "DR",
+          "CR",
+          "DRF"
+        ]
+      },
+      {
+        "code": "ULTRASOUND",
+        "label": "彩超 / 超声诊断",
+        "keywords": [
+          "彩色多普勒",
+          "彩色超声",
+          "超声诊断",
+          "彩超",
+          "B超",
+          "超声系统",
+          "超声波诊断",
+          "超声影像"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "ENDOSCOPY",
+        "label": "内窥镜 / 腔镜",
+        "keywords": [
+          "内窥镜",
+          "内镜",
+          "腔镜",
+          "胃镜",
+          "肠镜",
+          "支气管镜",
+          "宫腔镜",
+          "关节镜",
+          "膀胱镜",
+          "输尿管镜",
+          "胆道镜",
+          "摄像系统",
+          "冷光源",
+          "图像处理器"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "SURGERY",
+        "label": "手术室设备",
+        "keywords": [
+          "手术床",
+          "手术台",
+          "手术灯",
+          "无影灯",
+          "电刀",
+          "超声刀",
+          "吊塔",
+          "手术显微镜",
+          "超声骨",
+          "动力系统",
+          "碎石",
+          "手术机器人",
+          "手术导航",
+          "止血带",
+          "气腹机",
+          "麻醉深度",
+          "激光治疗"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "ANESTHESIA_RESP",
+        "label": "麻醉 / 呼吸",
+        "keywords": [
+          "麻醉机",
+          "麻醉工作站",
+          "呼吸机",
+          "高流量",
+          "无创通气",
+          "呼吸湿化",
+          "麻醉系统",
+          "制氧"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "MONITORING",
+        "label": "监护 / 心电",
+        "keywords": [
+          "监护仪",
+          "监护系统",
+          "中央监护",
+          "心电监护",
+          "心电图",
+          "动态心电",
+          "动态血压",
+          "遥测",
+          "生命体征",
+          "脉搏血氧",
+          "血氧仪",
+          "心电机"
+        ],
+        "acronyms": [
+          "ECG"
+        ]
+      },
+      {
+        "code": "EMERGENCY",
+        "label": "急救 / 输注",
+        "keywords": [
+          "除颤",
+          "心肺复苏",
+          "急救",
+          "输液泵",
+          "注射泵",
+          "输注泵",
+          "输注工作站",
+          "洗胃机",
+          "转运",
+          "抢救车"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "DIALYSIS",
+        "label": "透析 / 血液净化",
+        "keywords": [
+          "透析",
+          "血液净化",
+          "血液滤过",
+          "血滤",
+          "水处理系统"
+        ],
+        "acronyms": [
+          "CRRT"
+        ]
+      },
+      {
+        "code": "OBSTETRICS_NEONATAL",
+        "label": "妇产 / 新生儿",
+        "keywords": [
+          "胎心",
+          "胎儿监护",
+          "婴儿培养箱",
+          "暖箱",
+          "新生儿",
+          "蓝光",
+          "辐射保暖",
+          "产床",
+          "阴道镜",
+          "乳腺"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "REHAB",
+        "label": "康复 / 理疗",
+        "keywords": [
+          "康复",
+          "理疗",
+          "治疗仪",
+          "电刺激",
+          "训练机",
+          "训练系统",
+          "牵引",
+          "冲击波治疗",
+          "磁刺激",
+          "认知评估",
+          "言语",
+          "吞咽",
+          "步态",
+          "减重"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "IVD",
+        "label": "临床检验设备",
+        "keywords": [
+          "生化分析",
+          "免疫分析",
+          "化学发光",
+          "血细胞",
+          "血球",
+          "凝血",
+          "尿液分析",
+          "尿沉渣",
+          "微生物",
+          "药敏",
+          "血培养",
+          "核酸",
+          "基因扩增",
+          "测序",
+          "流式细胞",
+          "电解质",
+          "血气",
+          "糖化血红蛋白",
+          "特定蛋白",
+          "分析仪",
+          "检测一体机"
+        ],
+        "acronyms": [
+          "PCR",
+          "POCT",
+          "ELISA"
+        ]
+      },
+      {
+        "code": "PATHOLOGY",
+        "label": "病理",
+        "keywords": [
+          "病理",
+          "切片",
+          "包埋",
+          "脱水机",
+          "染色机",
+          "冷冻切片",
+          "数字切片",
+          "显微镜"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "LAB_INSTRUMENT",
+        "label": "实验室通用仪器",
+        "keywords": [
+          "色谱",
+          "光谱",
+          "离心机",
+          "移液",
+          "天平",
+          "纯水",
+          "超纯水",
+          "生物安全柜",
+          "超净",
+          "培养箱",
+          "冰箱",
+          "冷藏",
+          "低温",
+          "水浴",
+          "溶氧仪",
+          "氮气发生器",
+          "空压机",
+          "酶标",
+          "振荡器",
+          "均质",
+          "干燥箱",
+          "马弗炉",
+          "体积测量"
+        ],
+        "acronyms": [
+          "HPLC",
+          "GC",
+          "GCMS",
+          "LCMS",
+          "ICP"
+        ]
+      },
+      {
+        "code": "WARD_GENERAL",
+        "label": "病房 / 通用设备",
+        "keywords": [
+          "病床",
+          "护理床",
+          "护理设备",
+          "轮椅",
+          "推车",
+          "担架",
+          "医用车",
+          "诊察床",
+          "输液椅",
+          "空气消毒",
+          "净化",
+          "医用家具"
+        ],
+        "acronyms": []
+      }
+    ],
+    "rows": [
+      {
+        "award_id": "ccgpaward_c52d258eb8d650ed",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "佳木斯市口腔病防治院",
+        "project_number": "[230801]ZTZB[GK]20260012",
+        "family": "DENTAL",
+        "name": "牙科电动抽吸系统",
+        "brand": "迪珥",
+        "model": "S10A",
+        "quantity": "1.00(台/套)",
+        "unit_price_cny": 55000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm"
+      },
+      {
+        "award_id": "ccgpaward_c52d258eb8d650ed",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "佳木斯市口腔病防治院",
+        "project_number": "[230801]ZTZB[GK]20260012",
+        "family": "STERILIZATION",
+        "name": "污水处理",
+        "brand": "新华",
+        "model": "XH-W",
+        "quantity": "1.00(台/套)",
+        "unit_price_cny": 29800,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm"
+      },
+      {
+        "award_id": "ccgpaward_c52d258eb8d650ed",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "佳木斯市口腔病防治院",
+        "project_number": "[230801]ZTZB[GK]20260012",
+        "family": "DENTAL",
+        "name": "CBCT",
+        "brand": "美亚光电",
+        "model": "mDX-15Pro-Y30",
+        "quantity": "1.00(台/套)",
+        "unit_price_cny": 458000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm"
+      },
+      {
+        "award_id": "ccgpaward_c52d258eb8d650ed",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "佳木斯市口腔病防治院",
+        "project_number": "[230801]ZTZB[GK]20260012",
+        "family": "DENTAL",
+        "name": "牙片宝",
+        "brand": "汉缔",
+        "model": "HDS-500",
+        "quantity": "1.00(台/套)",
+        "unit_price_cny": 11000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm"
+      },
+      {
+        "award_id": "ccgpaward_c52d258eb8d650ed",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "佳木斯市口腔病防治院",
+        "project_number": "[230801]ZTZB[GK]20260012",
+        "family": "DENTAL",
+        "name": "口腔内部扫描仪",
+        "brand": "先临",
+        "model": "Aoralscan Wireless G2",
+        "quantity": "1.00(台/套)",
+        "unit_price_cny": 220000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm"
+      },
+      {
+        "award_id": "ccgpaward_c52d258eb8d650ed",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "佳木斯市口腔病防治院",
+        "project_number": "[230801]ZTZB[GK]20260012",
+        "family": "STERILIZATION",
+        "name": "医用等离子体空气消毒器-1",
+        "brand": "新华",
+        "model": "YKX.P-B-1000型",
+        "quantity": "1.00(台/套)",
+        "unit_price_cny": 6500,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm"
+      },
+      {
+        "award_id": "ccgpaward_c52d258eb8d650ed",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "佳木斯市口腔病防治院",
+        "project_number": "[230801]ZTZB[GK]20260012",
+        "family": "STERILIZATION",
+        "name": "医用等离子体空气消毒器-2",
+        "brand": "新华",
+        "model": "YKX.P-B-600K",
+        "quantity": "1.00(台/套)",
+        "unit_price_cny": 4500,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm"
+      },
+      {
+        "award_id": "ccgpaward_c52d258eb8d650ed",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "佳木斯市口腔病防治院",
+        "project_number": "[230801]ZTZB[GK]20260012",
+        "family": "STERILIZATION",
+        "name": "灭菌器",
+        "brand": "海德曼",
+        "model": "Q102B",
+        "quantity": "1.00(台/套)",
+        "unit_price_cny": 44000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm"
+      },
+      {
+        "award_id": "ccgpaward_c01bdb981983ce35",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "鹤岗市中医医院",
+        "project_number": "[230401]BZGC[GK]20260001",
+        "family": "REHAB",
+        "name": "干扰电治疗仪",
+        "brand": "兴汇",
+        "model": "SV-IT401S",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 114000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm"
+      },
+      {
+        "award_id": "ccgpaward_c01bdb981983ce35",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "鹤岗市中医医院",
+        "project_number": "[230401]BZGC[GK]20260001",
+        "family": "REHAB",
+        "name": "中频治疗仪",
+        "brand": "一康",
+        "model": "PE2-4",
+        "quantity": "2.00(台)",
+        "unit_price_cny": 5000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm"
+      },
+      {
+        "award_id": "ccgpaward_c01bdb981983ce35",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "鹤岗市中医医院",
+        "project_number": "[230401]BZGC[GK]20260001",
+        "family": "REHAB",
+        "name": "神经肌肉电刺激仪",
+        "brand": "倍益康",
+        "model": "QL/N-IV",
+        "quantity": "2.00(台)",
+        "unit_price_cny": 8200,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm"
+      },
+      {
+        "award_id": "ccgpaward_c01bdb981983ce35",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "鹤岗市中医医院",
+        "project_number": "[230401]BZGC[GK]20260001",
+        "family": "REHAB",
+        "name": "经皮神经电刺激仪",
+        "brand": "倍益康",
+        "model": "QL/T-III",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 4500,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm"
+      },
+      {
+        "award_id": "ccgpaward_c01bdb981983ce35",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "鹤岗市中医医院",
+        "project_number": "[230401]BZGC[GK]20260001",
+        "family": "REHAB",
+        "name": "超声治疗仪",
+        "brand": "西贝",
+        "model": "Sonopuls 190",
+        "quantity": "2.00(台)",
+        "unit_price_cny": 39500,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm"
+      },
+      {
+        "award_id": "ccgpaward_c01bdb981983ce35",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "鹤岗市中医医院",
+        "project_number": "[230401]BZGC[GK]20260001",
+        "family": "REHAB",
+        "name": "吞咽神经肌肉电刺激仪",
+        "brand": "西贝",
+        "model": "Titanium X94",
+        "quantity": "2.00(台)",
+        "unit_price_cny": 38500,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm"
+      },
+      {
+        "award_id": "ccgpaward_c01bdb981983ce35",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "鹤岗市中医医院",
+        "project_number": "[230401]BZGC[GK]20260001",
+        "family": "MONITORING",
+        "name": "无接触史生命体征监测设备",
+        "brand": "清雷",
+        "model": "KY-36",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 223000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm"
+      },
+      {
+        "award_id": "ccgpaward_9f9303e5f520e1f2",
+        "market_code": "HE",
+        "published_at": "2026-09-29",
+        "buyer_name": "保定市第二医院",
+        "project_number": "YM-260603030",
+        "family": "ANESTHESIA_RESP",
+        "name": "转运呼吸机",
+        "brand": "迈瑞",
+        "model": "TV80S",
+        "quantity": "1",
+        "unit_price_cny": 150000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm"
+      },
+      {
+        "award_id": "ccgpaward_917443ec69900ffb",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "黑龙江中医药大学附属第四医院",
+        "project_number": "[230001]ALZC[GK]20260007",
+        "family": "ULTRASOUND",
+        "name": "彩色多普勒超声诊断仪",
+        "brand": "通用电气",
+        "model": "LOGIQ E20 Pro",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 2418000,
+        "line_count": 3,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm"
+      },
+      {
+        "award_id": "ccgpaward_917443ec69900ffb",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "黑龙江中医药大学附属第四医院",
+        "project_number": "[230001]ALZC[GK]20260007",
+        "family": "ULTRASOUND",
+        "name": "彩色多普勒超声诊断仪",
+        "brand": "飞利浦",
+        "model": "EPIQ Elite Plus",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 2573000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm"
+      },
+      {
+        "award_id": "ccgpaward_917443ec69900ffb",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "黑龙江中医药大学附属第四医院",
+        "project_number": "[230001]ALZC[GK]20260007",
+        "family": "ULTRASOUND",
+        "name": "彩色多普勒超声诊断仪",
+        "brand": "飞利浦",
+        "model": "EPIQ Elite Plus",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 2873000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm"
+      },
+      {
+        "award_id": "ccgpaward_715caa710aab51be",
+        "market_code": "JL",
+        "published_at": "2026-09-29",
+        "buyer_name": "长春市疾病预防控制中心（长春市卫生监督所）",
+        "project_number": "JM-2026-06-05060-JM-2026-06-05060",
+        "family": "REAGENT",
+        "name": "色度溶液标准物质",
+        "brand": "河南标准物质研发中心",
+        "model": "20mL/瓶",
+        "quantity": "3",
+        "unit_price_cny": 300,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm"
+      },
+      {
+        "award_id": "ccgpaward_715caa710aab51be",
+        "market_code": "JL",
+        "published_at": "2026-09-29",
+        "buyer_name": "长春市疾病预防控制中心（长春市卫生监督所）",
+        "project_number": "JM-2026-06-05060-JM-2026-06-05060",
+        "family": "REAGENT",
+        "name": "邻苯二甲酸氢钾pH溶液标准物质",
+        "brand": "河南标准物质研发中心",
+        "model": "500mL/瓶",
+        "quantity": "1",
+        "unit_price_cny": 165,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm"
+      },
+      {
+        "award_id": "ccgpaward_715caa710aab51be",
+        "market_code": "JL",
+        "published_at": "2026-09-29",
+        "buyer_name": "长春市疾病预防控制中心（长春市卫生监督所）",
+        "project_number": "JM-2026-06-05060-JM-2026-06-05060",
+        "family": "REAGENT",
+        "name": "硼砂pH溶液标准物质",
+        "brand": "河南标准物质研发中心",
+        "model": "500mL/瓶",
+        "quantity": "1",
+        "unit_price_cny": 165,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm"
+      },
+      {
+        "award_id": "ccgpaward_701249a674aac552",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "林口县中医院",
+        "project_number": "[231025]FAGC[GK]20260002",
+        "family": "REHAB",
+        "name": "智能言语训练机",
+        "brand": "好博医疗",
+        "model": "HB-LRT(软件发布版本:01)/HB-CRT",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 410000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm"
+      },
+      {
+        "award_id": "ccgpaward_701249a674aac552",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "林口县中医院",
+        "project_number": "[231025]FAGC[GK]20260002",
+        "family": "OBSTETRICS_NEONATAL",
+        "name": "胎心检测仪",
+        "brand": "理邦仪器",
+        "model": "F6",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 49000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm"
+      },
+      {
+        "award_id": "ccgpaward_701249a674aac552",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "林口县中医院",
+        "project_number": "[231025]FAGC[GK]20260002",
+        "family": "MONITORING",
+        "name": "多参数监护仪",
+        "brand": "理邦仪器",
+        "model": "iX15",
+        "quantity": "5.00(台)",
+        "unit_price_cny": 39000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm"
+      },
+      {
+        "award_id": "ccgpaward_701249a674aac552",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "林口县中医院",
+        "project_number": "[231025]FAGC[GK]20260002",
+        "family": "SURGERY",
+        "name": "骨科手术床",
+        "brand": "谊安医疗",
+        "model": "OP830",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 190000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm"
+      },
+      {
+        "award_id": "ccgpaward_701249a674aac552",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "林口县中医院",
+        "project_number": "[231025]FAGC[GK]20260002",
+        "family": "SURGERY",
+        "name": "体外冲击波碎石仪",
+        "brand": "新元素",
+        "model": "XYS.SUI-8A",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 399000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm"
+      },
+      {
+        "award_id": "ccgpaward_701249a674aac552",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "林口县中医院",
+        "project_number": "[231025]FAGC[GK]20260002",
+        "family": "XRAY",
+        "name": "骨密度检测仪",
+        "brand": "澳思托",
+        "model": "SONOST-2000C",
+        "quantity": "1.00(台)",
+        "unit_price_cny": 187000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm"
+      },
+      {
+        "award_id": "ccgpaward_61a73bf9d4c6cfd2",
+        "market_code": "JL",
+        "published_at": "2026-09-29",
+        "buyer_name": "梅河口市中心医院",
+        "project_number": "采购计划-[2026]-00223号-1",
+        "family": "IVD",
+        "name": "微生物培养监测仪",
+        "brand": "安图",
+        "model": "BC60-240",
+        "quantity": "1台",
+        "unit_price_cny": 10000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm"
+      },
+      {
+        "award_id": "ccgpaward_61a73bf9d4c6cfd2",
+        "market_code": "JL",
+        "published_at": "2026-09-29",
+        "buyer_name": "梅河口市中心医院",
+        "project_number": "采购计划-[2026]-00223号-1",
+        "family": "IVD",
+        "name": "全自动微生物鉴定药敏分析仪",
+        "brand": "安图",
+        "model": "AutoMic-i600",
+        "quantity": "1台",
+        "unit_price_cny": 230000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm"
+      },
+      {
+        "award_id": "ccgpaward_61a73bf9d4c6cfd2",
+        "market_code": "JL",
+        "published_at": "2026-09-29",
+        "buyer_name": "梅河口市中心医院",
+        "project_number": "采购计划-[2026]-00223号-1",
+        "family": "IVD",
+        "name": "全自动微生物质谱检测系统",
+        "brand": "安图",
+        "model": "Autof TCX",
+        "quantity": "1台",
+        "unit_price_cny": 350000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm"
+      },
+      {
+        "award_id": "ccgpaward_4bc5d44cbf8df55e",
+        "market_code": "BJ",
+        "published_at": "2026-09-29",
+        "buyer_name": "北京大学人民医院",
+        "project_number": "0722-26FE3680ZB4",
+        "family": "STERILIZATION",
+        "name": "洁净蒸汽发生器",
+        "brand": "斯派莎克",
+        "model": "CSG-HS-125",
+        "quantity": "1套",
+        "unit_price_cny": 1196000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm"
+      },
+      {
+        "award_id": "ccgpaward_ee7a68c4ff241f7a",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市东丽区疾病预防控制中心",
+        "project_number": "BJFHGJ-2026-038",
+        "family": "IVD",
+        "name": "血源性病原体核酸检测一体机",
+        "brand": "辉锦创兴",
+        "model": "AutoPlex-12",
+        "quantity": "1",
+        "unit_price_cny": 312000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27411227.htm"
+      },
+      {
+        "award_id": "ccgpaward_df99b2a775f6de24",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市药品检验研究院",
+        "project_number": "TZSB-01-2026-032",
+        "family": "LAB_INSTRUMENT",
+        "name": "智能过度包装体积测量系统",
+        "brand": "汇像",
+        "model": "PHS750LV",
+        "quantity": "1",
+        "unit_price_cny": 239500,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412283.htm"
+      },
+      {
+        "award_id": "ccgpaward_df99b2a775f6de24",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市药品检验研究院",
+        "project_number": "TZSB-01-2026-032",
+        "family": "LAB_INSTRUMENT",
+        "name": "气相色谱质谱联用仪",
+        "brand": "岛津",
+        "model": "GCMS-TQ8040",
+        "quantity": "1",
+        "unit_price_cny": 249600,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412283.htm"
+      },
+      {
+        "award_id": "ccgpaward_df99b2a775f6de24",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市药品检验研究院",
+        "project_number": "TZSB-01-2026-032",
+        "family": "LAB_INSTRUMENT",
+        "name": "溶氧仪",
+        "brand": "梅特勒",
+        "model": "S4",
+        "quantity": "1",
+        "unit_price_cny": 14800,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412283.htm"
+      },
+      {
+        "award_id": "ccgpaward_df99b2a775f6de24",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市药品检验研究院",
+        "project_number": "TZSB-01-2026-032",
+        "family": "LAB_INSTRUMENT",
+        "name": "无油空压机",
+        "brand": "岱洛",
+        "model": "DA5002D",
+        "quantity": "1",
+        "unit_price_cny": 9900,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412283.htm"
+      },
+      {
+        "award_id": "ccgpaward_df99b2a775f6de24",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市药品检验研究院",
+        "project_number": "TZSB-01-2026-032",
+        "family": "LAB_INSTRUMENT",
+        "name": "氮气发生器",
+        "brand": "楷来",
+        "model": "KL35-1",
+        "quantity": "1",
+        "unit_price_cny": 54400,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412283.htm"
+      },
+      {
+        "award_id": "ccgpaward_d27ef38405a25ccd",
+        "market_code": "HE",
+        "published_at": "2026-09-28",
+        "buyer_name": "河北省唐县人民医院(唐县白求恩纪念医院)",
+        "project_number": "ZYTZC-2026-083",
+        "family": "SURGERY",
+        "name": "超声骨组织手术设备",
+        "brand": "西山科技",
+        "model": "UT-C-S1",
+        "quantity": "1",
+        "unit_price_cny": 496000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm"
+      },
+      {
+        "award_id": "ccgpaward_9429c600c8b04676",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市第五中心医院",
+        "project_number": "XCSD-2026-A-589",
+        "family": "DSA",
+        "name": "医用血管造影X射线机",
+        "brand": "联影",
+        "model": "uAngio960",
+        "quantity": "1台",
+        "unit_price_cny": 13950000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm"
+      },
+      {
+        "award_id": "ccgpaward_497bb929f0a5017b",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市第三中心医院",
+        "project_number": "XCSD-2026-A-535",
+        "family": "ULTRASOUND",
+        "name": "彩色多普勒超声诊断仪",
+        "brand": "飞利浦",
+        "model": "EPIQ CVx",
+        "quantity": "1套",
+        "unit_price_cny": 2375000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm"
+      },
+      {
+        "award_id": "ccgpaward_497bb929f0a5017b",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市第三中心医院",
+        "project_number": "XCSD-2026-A-535",
+        "family": "ULTRASOUND",
+        "name": "彩色多普勒超声诊断仪",
+        "brand": "GE",
+        "model": "Voluson Expert 22 Premium",
+        "quantity": "1套",
+        "unit_price_cny": 2570000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm"
+      },
+      {
+        "award_id": "ccgpaward_497bb929f0a5017b",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市第三中心医院",
+        "project_number": "XCSD-2026-A-535",
+        "family": "ULTRASOUND",
+        "name": "彩色多普勒超声诊断仪",
+        "brand": "佳能",
+        "model": "Aplio i900 TUS-AI900",
+        "quantity": "1套",
+        "unit_price_cny": 2510000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm"
+      },
+      {
+        "award_id": "ccgpaward_497bb929f0a5017b",
+        "market_code": "TJ",
+        "published_at": "2026-09-28",
+        "buyer_name": "天津市第三中心医院",
+        "project_number": "XCSD-2026-A-535",
+        "family": "ULTRASOUND",
+        "name": "彩色超声诊断设备",
+        "brand": "富士",
+        "model": "ARIETTA 650",
+        "quantity": "1套",
+        "unit_price_cny": 1865000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm"
+      }
+    ]
+  },
   "cards": [
     {
       "rank": 1,

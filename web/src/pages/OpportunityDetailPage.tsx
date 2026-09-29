@@ -12,6 +12,7 @@ import { PublicHistoryCard } from '@/components/opportunity/PublicHistoryCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
 import { AwardResultNotice } from '@/components/shared/AwardResultNotice'
+import { AwardPriceReferenceNotice } from '@/components/shared/AwardPriceReferenceNotice'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { LostModal } from '@/components/followup/LostModal'
 import { NotFitModal } from '@/components/followup/NotFitModal'
@@ -31,7 +32,7 @@ import {
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { getHistoricalFollowedOpportunityCard } from '@/services/followedApi'
 import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStore'
-import { findAwardForProject, getAwardLedger } from '@/services/verifiedOpportunityPool'
+import { findAwardForProject, getAwardLedger, getAwardPriceReference } from '@/services/verifiedOpportunityPool'
 import {
   getPublicOpportunityHistory,
   type PublicOpportunityHistory,
@@ -42,7 +43,7 @@ import {
   runtimeSnapshotWarning,
   type RuntimeStatus,
 } from '@/services/runtimeStatusApi'
-import type { AwardLedgerEntry, FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
+import type { AwardPriceReference, AwardLedgerEntry, FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
 
 const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'
 
@@ -163,6 +164,22 @@ export function OpportunityDetailPage() {
       cancelled = true
     }
   }, [projectCode])
+
+  const [priceReference, setPriceReference] = useState<AwardPriceReference | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    // Best effort: same-family 成交 lines from official notices (public snapshot data).
+    void getAwardPriceReference()
+      .then((result) => {
+        if (!cancelled) setPriceReference(result.reference)
+      })
+      .catch(() => {
+        if (!cancelled) setPriceReference(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     void load()
@@ -357,6 +374,7 @@ export function OpportunityDetailPage() {
       </section>
 
       {awardResult ? <AwardResultNotice entry={awardResult} /> : null}
+      {!historical ? <AwardPriceReferenceNotice card={card} reference={priceReference} /> : null}
 
       {!historical ? (
         <>

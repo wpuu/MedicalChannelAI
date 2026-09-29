@@ -18,6 +18,7 @@ import { StageBadge } from '@/components/shared/StageBadge'
 import { marketCodesForSelection, marketSelectionLabel } from '@/config/marketPreference'
 import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
 import { AwardLedgerSection } from '@/components/shared/AwardLedgerSection'
+import { AwardPriceReferenceSection } from '@/components/shared/AwardPriceReferenceSection'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { AiDecisionError, hydrateSharedAiDecisions, requestAiDecision } from '@/services/aiDecisionApi'
@@ -29,8 +30,8 @@ import {
   runtimeSnapshotWarning,
   type RuntimeStatus,
 } from '@/services/runtimeStatusApi'
-import { getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
-import type { AwardLedgerEntry, TodayActionCard } from '@/types'
+import { getAwardPriceReference, getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
+import type { AwardPriceReference, AwardLedgerEntry, TodayActionCard } from '@/types'
 import { formatBudget, formatDateTime, uid } from '@/utils/format'
 
 type WindowFilter = 'ALL' | 'OPEN' | 'PRE_MARKET_SIGNAL' | 'LATE_WINDOW'
@@ -291,6 +292,7 @@ export function OpportunityPoolPage() {
   const { toast } = useToast()
   const [cards, setCards] = useState<TodayActionCard[]>([])
   const [awardLedger, setAwardLedger] = useState<AwardLedgerEntry[]>([])
+  const [priceReference, setPriceReference] = useState<AwardPriceReference | null>(null)
   const [awardedProjectCount, setAwardedProjectCount] = useState(0)
   const [snapshotAsOf, setSnapshotAsOf] = useState<string | null>(null)
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
@@ -323,6 +325,15 @@ export function OpportunityPoolPage() {
         awarded_project_count: result.awarded_project_count,
       }
     }
+
+    // 成交价参考 is public snapshot data in both modes; failures leave the page unchanged.
+    void getAwardPriceReference()
+      .then((result) => {
+        if (!cancelled) setPriceReference(result.reference)
+      })
+      .catch(() => {
+        if (!cancelled) setPriceReference(null)
+      })
 
     void loadPool()
       .then((result) => {
@@ -596,6 +607,7 @@ export function OpportunityPoolPage() {
         marketCodes={selectedMarketCodes as ReadonlySet<string>}
         awardedProjectCount={awardedProjectCount}
       />
+      <AwardPriceReferenceSection reference={priceReference} marketCodes={selectedMarketCodes as ReadonlySet<string>} />
     </div>
   )
 }

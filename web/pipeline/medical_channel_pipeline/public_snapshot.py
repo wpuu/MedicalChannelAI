@@ -8,7 +8,8 @@ from zoneinfo import ZoneInfo
 
 from .ccgp_events import validate_notice_events
 from .state import market_code_for_record
-from .ccgp_award import awarded_project_keys, build_public_award_ledger, is_awarded_project
+from .award_price_reference import build_award_price_reference
+from .ccgp_award import awarded_project_keys, build_public_award_ledger, is_awarded_project, normalize_project_number
 from .legal_windows import legal_windows_for_facts, working_calendar_payload
 from .validation import validate_records
 
@@ -253,7 +254,9 @@ def _build_event_states(
     for event in events:
         if not _event_is_effective(event, as_of):
             continue
-        project_number = event["project_number"].strip().lower()
+        # Same key as award retirement: 更正/终止 notices quote the number with
+        # full-width brackets or stray spaces as often as result notices do.
+        project_number = normalize_project_number(event["project_number"])
         state = states.setdefault(
             project_number,
             {
@@ -525,7 +528,7 @@ def build_public_snapshot(
     sortable: list[tuple[int, float, float, str, dict[str, Any], list[str]]] = []
     for record in validated:
         facts = record["facts"]
-        project_number = str(facts.get("project_number") or "").strip().lower()
+        project_number = normalize_project_number(facts.get("project_number"))
         if project_number and is_awarded_project(awarded_projects, project_number, market_code_for_record(record)):
             awarded_project_count += 1
             continue
@@ -579,6 +582,7 @@ def build_public_snapshot(
         "working_calendar": working_calendar_payload(),
         "awarded_project_count": awarded_project_count,
         "award_ledger": build_public_award_ledger(award_records, as_of),
+        "award_price_reference": build_award_price_reference(award_records, as_of),
         "cards": cards,
         "opportunity_pool": opportunity_pool,
     }

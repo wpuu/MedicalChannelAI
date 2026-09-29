@@ -41,9 +41,11 @@ export function formatDateTime(value: string | null | undefined): string | null 
 export function formatBudget(value: number | null | undefined): string | null {
   if (value === null || value === undefined) return null
   if (value >= 10000) {
-    const wan = value / 10000
-    const text = Number.isInteger(wan) ? `${wan}` : wan.toFixed(1)
-    return `${text} 万元`
+    // Up to two decimals, trailing zeros dropped: 10,499,940 → "1049.99 万元"
+    // (toFixed(1) used to carry it to "1050.0 万元", which reads as a rounded
+    // budget rather than the published figure).
+    const wan = Math.round((value / 10000) * 100) / 100
+    return `${wan} 万元`
   }
   return `¥${value.toLocaleString('zh-CN')}`
 }
