@@ -14,7 +14,7 @@
 | 本会话产出的分支 / PR | `docs/strategy-competitive-review-20260929` → **Draft PR #73**（战略评审报告）；`feat/legal-windows-and-tianjin-coverage-20260929` → **Draft PR #74**（§6 工程改动） |
 | 报告位置 | `docs/reviews/MCAI-STRATEGY-COMPETITIVE-REVIEW-2026-09-29.md`（只在 PR #73 分支上） |
 | 当前正在做 | 报告 §6 工程改动表，按 (1)→(8) 顺序；owner 级决策项跳过（见 §4） |
-| 测试基线 | `web/pipeline` Python 套件 **839 通过**（`0701bef`）；`npm run build` 全绿。跑法：`cd web/pipeline && python3 -m unittest discover -s tests`（prebuild 也是这个 cwd） |
+| 测试基线 | `web/pipeline` Python 套件 **843 通过**（`8faf29d`）；`npm run build` 全绿。跑法：`cd web/pipeline && python3 -m unittest discover -s tests`（prebuild 也是这个 cwd） |
 | 用户指令 | "按照你的思路做，我相信你，每次过程和结果都保存好，方便下一个 AI 接手" |
 
 ---
@@ -229,4 +229,14 @@ cd .. && npm run build                                                 # prebuil
 - 套件 **839**；`npm run build` 通过（含新门禁）；用 esbuild + react-dom/server 对真实快照静态渲染核对过两个组件（彩超机会 → 7 行同类成交；无匹配/无数据时不渲染）。
 
 **待办（顺序建议）**：① 首个自托管区域工作流运行后看 `regional_award_sync_report.json`（辽宁若持续 `CCGP_AWARD_SUPPLIER_NOT_FOUND` 需补辽宁中标模板 fixture）。② 类别表长尾：池内 1,485 个标的名约 60% 能归类，未归类多为耗材/实验室小件，按需往 `device_families.json` 加关键词（改完跑 Python 套件 + `node scripts/check-device-family-parity.mjs`）。③ "参数"维度：等 PR #71 参数证据助手合并后，把 `award_price_reference` 行接到参数对照表旁边。④ 成交价参考若要给"我的跟进"页也用，直接复用 `relatedReferenceRows(card, reference)`。
+
+### 2026-09-29 · 会话 3 · 里程碑 K：中标同步精度 + 辽宁落地（`8faf29d`）
+- **动机**：首轮区域中标同步里辽宁 `selected=6` 全部 out_of_scope（预包装食品 ×2、中药饮片、岫岩 废标 ×3），6 个 detail 名额被浪费；同时岫岩 `JH26-210323-00239` 是一条"无标的表 + 项目名只有'设备采购项目'"的 废标 公告，scope 文本判不出医疗，但它本该让池内同号项目退出。
+- **改动**（`scripts/sync_ccgp_awards.py`）：
+  1. `screen_award_titles`：搜索标题命中 `has_explicit_medical_channel_exclusion_text`（与机会发现同一套"只拒绝显式排除"策略）的候选不再进入 detail 预算，报告 `title_excluded_count / title_excluded[]`（reason `EXPLICIT_EXCLUSION_TITLE`）；operator 直给 URL 无标题不受影响。
+  2. **池匹配绕过**：解析后 scope 不通过、但 `normalize_project_number` 命中本市场池内项目编号的结果照常入库（池记录已用完整事实证明过 scope；结果必须能退役它），报告 `scope_bypassed_for_pool_match[]`（reason `POOL_PROJECT_MATCH`）。区域同步汇总报告新增两项计数。
+  3. `regional_award_query_plan.json`：`max_details` 6→8，`per_market_time_budget_seconds` 240→150（实测每市场 80–108 s；最坏 5×150 s = 12.5 min，25 min job 之内）。`test_regional_award_sync` 的预算断言随之改成 150。
+- **辽宁模板核实 + 播种**：真实公告 `t20260928_27407769`（除颤仪 科曼 S1A ×10，单价 ¥25,000，总价 ¥250,000）解析正确，存为 fixture `ccgp_award_liaoning_single_item_awarded.html`；用 `--market-code LN --detail-url …`（报告写到 `/tmp`，不覆盖 `regional_award_sync_report.json`）给 `regional_award_records.json` 播种 5 条 盛京医院大连医院黄海路院区 结果（除颤仪、转运呼吸机 科曼 EV20 ¥60,000、无创呼吸机 迈瑞 SV70S ¥88,000、宫腔镜 科迈森 KMS-4K-2088 ¥832,900、组织切片机/荧光显微镜/包埋机）。区域 store 现 19 条（BJ 3 / HE 3 / LN 5 / JL 3 / HL 5）。
+- 快照：ledger 26、成交价参考 51 行 / 16 类、压缩 1,761,525 B；套件 843；`npm run build` 通过。
+- **给下一位**：首个自托管区域运行后，看 `regional_award_sync_report.json` 里各市场 `title_excluded_count`（应 >0）与 `scope_bypassed_for_pool_match_count`；辽宁若仍 0 新增，多半是 7 天窗口内没有设备类结果，而非模板问题（模板已核实）。盛京医院系列在 9 月还有 十余条（门诊发药机、低温等离子、关节镜体位架、智能麻醉药品柜…），需要更多辽宁样本时按同样 directed 方式补。
 
