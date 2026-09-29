@@ -1,6 +1,7 @@
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
-import type { TodayActionCard } from '@/types'
+import type { AwardLedgerEntry, TodayActionCard } from '@/types'
 import type { PublicTodayActionCard, TodayActionsPublicResponse } from '@/types/public'
+import { refreshLegalWindows } from '@/utils/legalWindows'
 import {
   backfillLocalFollowupSnapshots,
   hydrateLocalFollowups,
@@ -241,10 +242,24 @@ async function fetchSnapshot(): Promise<TodayActionsPublicResponse> {
   return data
 }
 
+export function refreshAwardLedger(
+  entries: AwardLedgerEntry[] | null | undefined,
+  now: number,
+  calendar: TodayActionsPublicResponse['working_calendar'],
+): AwardLedgerEntry[] {
+  if (!Array.isArray(entries)) return []
+  return entries.map((entry) => ({
+    ...entry,
+    legal_windows: refreshLegalWindows(entry.legal_windows, now, calendar),
+  }))
+}
+
 export async function getVerifiedOpportunityPool(): Promise<{
   snapshot_as_of: string
   total: number
   cards: TodayActionCard[]
+  award_ledger: AwardLedgerEntry[]
+  awarded_project_count: number
 }> {
   const data = await fetchSnapshot()
   const publicCards = Array.isArray(data.opportunity_pool) ? data.opportunity_pool : data.cards
@@ -256,6 +271,8 @@ export async function getVerifiedOpportunityPool(): Promise<{
   const followed = hydrateLocalFollowups(rerank(active))
   const personalized = personalizeTrialCards(followed)
   return {
+    award_ledger: refreshAwardLedger(data.award_ledger, Date.now(), data.working_calendar),
+    awarded_project_count: data.awarded_project_count ?? 0,
     snapshot_as_of: data.snapshot_as_of,
     total: personalized.length,
     cards: personalized,

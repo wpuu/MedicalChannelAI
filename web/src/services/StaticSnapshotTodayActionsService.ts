@@ -15,6 +15,7 @@ import { personalizeTrialCards } from './localCustomerProfile'
 import type { TodayActionsService } from './TodayActionsService'
 import { loadVerifiedSnapshotPayload } from './verifiedSnapshotClient'
 import { refreshLegalWindows } from '@/utils/legalWindows'
+import { refreshAwardLedger } from './verifiedOpportunityPool'
 
 const COVERAGE_WARNING = '当前业务地区 · 公开事实来自证据流水线快照；各地区仍为部分来源覆盖。'
 const INTERVENTION_MAX_POINTS = 25
@@ -504,7 +505,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       refreshed_at: data.snapshot_as_of,
       working_calendar: data.working_calendar ?? null,
       awarded_project_count: data.awarded_project_count ?? 0,
-      award_ledger: Array.isArray(data.award_ledger) ? data.award_ledger : [],
+      award_ledger: refreshAwardLedger(data.award_ledger, Date.now(), data.working_calendar),
       cards: mappedCards,
       opportunity_pool: mappedPool,
       model_requests: [],

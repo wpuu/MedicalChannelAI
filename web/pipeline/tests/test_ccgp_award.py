@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from medical_channel_pipeline.ccgp_award import (
+    reconcile_item_prices,
     CcgpAwardParseError,
     _parse_amount_cny,
     is_medical_channel_relevant_award,
@@ -20,6 +21,7 @@ TJ_MULTI_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443
 TJ_SINGLE_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm"
 TJ_WORKS_URL = "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260928_27411167.htm"
 NATIONAL_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202608/t20260804_27071574.htm"
+TJ_MISDECLARED_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27411227.htm"
 
 
 def _fixture(name: str) -> str:
@@ -165,6 +167,34 @@ class CcgpAwardParserTests(unittest.TestCase):
         for url in ("http://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm", "https://example.invalid/award.htm"):
             with self.assertRaisesRegex(CcgpAwardParseError, "CCGP_AWARD_SOURCE_HOST_REJECTED"):
                 parse_ccgp_award_html(html, source_url=url, observed_at=OBSERVED_AT, award_id="x")
+
+    def test_unit_price_under_misdeclared_wan_header_is_reconciled_with_package_amount(self) -> None:
+        # Real 2026-09-28 notice: column headed 单价(万元) but filled with 元
+        # (312000 for a ¥312,000 package). Literal reading = ¥3.12 billion.
+        record = _parse("ccgp_award_tianjin_unit_price_misdeclared.html", TJ_MISDECLARED_URL, market_code="TJ")
+        facts = record["facts"]
+        self.assertEqual(facts["project_number"], "BJFHGJ-2026-038")
+        self.assertEqual(facts["total_amount_cny"], 312_000)
+        self.assertEqual(facts["packages"][0]["amount_cny"], 312_000)
+        self.assertEqual(facts["items"][0]["brand"], "辉锦创兴")
+        self.assertEqual(facts["items"][0]["model"], "AutoPlex-12")
+        self.assertEqual(facts["items"][0]["unit_price_cny"], 312_000)
+        validate_award_records([record])
+
+    def test_reconcile_item_prices_drops_prices_that_cannot_fit_the_award(self) -> None:
+        packages = [{"package_no": "1", "status": "AWARDED", "supplier_name": "甲", "amount_cny": 312_000}]
+        items = [
+            {"package_no": "1", "name": "a", "quantity": "1", "unit_price_cny": 3_120_000_000},
+            {"package_no": "1", "name": "b", "quantity": "2", "unit_price_cny": 150_000},
+            {"package_no": "1", "name": "c", "quantity": "1台", "unit_price_cny": 5_000_000_000},
+            {"package_no": "9", "name": "d", "quantity": None, "unit_price_cny": 99_999_999_999},
+            {"package_no": None, "name": "e", "quantity": None, "unit_price_cny": None},
+        ]
+        result = reconcile_item_prices(items, packages, 312_000)
+        self.assertEqual([item["unit_price_cny"] for item in result], [312_000, 150_000, None, None, None])
+        # Plausible prices are never touched, and unknown ceilings never drop data.
+        self.assertEqual(reconcile_item_prices(items[1:2], packages, None)[0]["unit_price_cny"], 150_000)
+        self.assertEqual(reconcile_item_prices(items[:1], [], None)[0]["unit_price_cny"], 3_120_000_000)
 
     def test_amount_parsing_never_guesses_a_scale(self) -> None:
         self.assertIsNone(_parse_amount_cny("237.5"))

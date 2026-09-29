@@ -617,6 +617,66 @@ def _items_from_tables(blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]:
     return items
 
 
+_QUANTITY_RE = re.compile(r"([0-9]+(?:\.[0-9]+)?)")
+
+
+def _quantity_number(value: str | None) -> float:
+    """``1台`` → 1.0, ``3`` → 3.0; unknown or zero quantities count as one unit."""
+    match = _QUANTITY_RE.search(str(value or ""))
+    if not match:
+        return 1.0
+    try:
+        number = float(match.group(1))
+    except ValueError:
+        return 1.0
+    return number if number > 0 else 1.0
+
+
+def reconcile_item_prices(
+    items: list[dict[str, Any]],
+    packages: list[dict[str, Any]],
+    total_amount: int | None,
+) -> list[dict[str, Any]]:
+    """Guard unit prices against a misdeclared column unit.
+
+    Buyers occasionally head the 主要标的信息 column ``单价(万元)`` but fill in
+    元 (observed on CCGP 2026-09-28: ``312000`` under a 万元 header for a
+    ¥312,000 package, which the literal reading turns into ¥3.12 billion).
+    A line total (unit price × quantity) can never exceed the money actually
+    awarded, so when it does the declared unit is not trusted: if reading
+    the cell as 元 fits within the package (or the notice total) that value
+    is used, otherwise the price is dropped rather than published.
+    """
+    amount_by_package = {
+        str(package.get("package_no")): package.get("amount_cny")
+        for package in packages
+        if package.get("package_no") is not None and isinstance(package.get("amount_cny"), int)
+    }
+    reconciled: list[dict[str, Any]] = []
+    for item in items:
+        price = item.get("unit_price_cny")
+        if not isinstance(price, int) or price <= 0:
+            reconciled.append(item)
+            continue
+        ceiling = amount_by_package.get(str(item.get("package_no")))
+        if ceiling is None:
+            ceiling = total_amount
+        if not isinstance(ceiling, int) or ceiling <= 0:
+            reconciled.append(item)
+            continue
+        quantity = _quantity_number(item.get("quantity"))
+        tolerance = ceiling * 1.001 + 1
+        if price * quantity <= tolerance:
+            reconciled.append(item)
+            continue
+        fallback = price / 10000
+        if fallback == int(fallback) and int(fallback) * quantity <= tolerance:
+            reconciled.append({**item, "unit_price_cny": int(fallback)})
+        else:
+            reconciled.append({**item, "unit_price_cny": None})
+    return reconciled
+
+
 # --------------------------------------------------------------------------- #
 # Record assembly
 # --------------------------------------------------------------------------- #
@@ -677,6 +737,7 @@ def parse_ccgp_award_html(
     if total_amount is None and awarded and all(item.get("amount_cny") is not None for item in awarded):
         total_amount = sum(int(item["amount_cny"]) for item in awarded)
         amount_basis = "PACKAGE_SUM"
+    items = reconcile_item_prices(items, packages, total_amount)
 
     facts: dict[str, Any] = {
         "project_number": project_number,
