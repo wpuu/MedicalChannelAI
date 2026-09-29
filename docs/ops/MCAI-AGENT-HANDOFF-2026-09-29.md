@@ -14,7 +14,7 @@
 | 本会话产出的分支 / PR | `docs/strategy-competitive-review-20260929` → **Draft PR #73**（战略评审报告）；`feat/legal-windows-and-tianjin-coverage-20260929` → **Draft PR #74**（§6 工程改动） |
 | 报告位置 | `docs/reviews/MCAI-STRATEGY-COMPETITIVE-REVIEW-2026-09-29.md`（只在 PR #73 分支上） |
 | 当前正在做 | 报告 §6 工程改动表，按 (1)→(8) 顺序；owner 级决策项跳过（见 §4） |
-| 测试基线 | `web/pipeline` Python 套件 **778 通过**（`14cac81` 后 773，`dcae64f` 后 778）；`npm run build` 全绿 |
+| 测试基线 | `web/pipeline` Python 套件 **830 通过**（`53eb87c`）；`npm run build` 全绿。跑法：`cd web/pipeline && python3 -m unittest discover -s tests`（prebuild 也是这个 cwd） |
 | 用户指令 | "按照你的思路做，我相信你，每次过程和结果都保存好，方便下一个 AI 接手" |
 
 ---
@@ -79,11 +79,11 @@ git config core.fileMode false
 | # | 项 | 状态 | 说明 |
 |---|---|---|---|
 | 1 | 采集覆盖：启用中标/更正/终止、放宽天津窗口 | **部分完成** | 未见优先 + 7 天 / 16 条已做。中标/成交类型**未启用**：`load_plan` / `discover_candidates` 对无 VERIFIED 适配器的公告类型是 fail-closed，且 `_actionability` 会把无截止时间的记录判成 PUBLIC_OPPORTUNITY 25 分 → 必须先做 (2) |
-| 2 | 中标公告解析 → 品牌/型号/金额 + AWARDED 生命周期 | **进行中**（见进度日志） | — |
+| 2 | 中标公告解析 → 品牌/型号/金额 + AWARDED 生命周期 | **完成（A–I）** | 天津 + 京冀辽吉黑 六市场；解析器覆盖 国家模板 / 天津 / 河北 / 黑龙江 / 辽宁(废标) / 北京文本 五种版式；见进度日志 B–I |
 | 3 | 天津政府采购网直采适配器 | owner 决策 | 需要境内 VPS / 反爬策略，沙箱做不了 |
 | 4 | 法定窗口引擎 | **完成** `14cac81` | — |
 | 5 | LATE_WINDOW 倒计时 / 地区偏好账号化 | 倒计时**完成**；账号化**未做** | 账号化需要 `api/_privateDb.js` `ensurePrivateSchema` 增加 `private_user_ui_preferences` 列迁移 → owner 决策 |
-| 6 | 品牌×型号×参数 证据表 | 未开始 | 依赖 (2) 的中标解析输出 |
+| 6 | 品牌×型号×参数 证据表 | 数据已就位，UI 未做 | 21 条 ledger 里已有 品牌/型号/单价（如 GE LOGIQ E20 Pro ¥2,418,000、迈瑞 TV80S ¥150,000、安图 AutoMic-i600 ¥230,000）；下一步是按品牌/型号聚合的证据表页面 |
 | 7 | 微信 H5 准备 | owner 决策 | 需要公众号/小程序主体 |
 | 8 | 分支 / PR 收敛 | owner 决策 | 30 个分支、7+ 个开放 PR，不代 owner 关闭 |
 
@@ -200,3 +200,21 @@ cd .. && npm run build                                                 # prebuil
 - 套件 **818**；`npm run build` 通过。用 esbuild+react-dom/server 对真实 ledger 静态渲染核对过两个组件。
 
 **待办（顺序建议）**：① 区域（京冀辽吉黑）中标同步：`sync_ccgp_awards.py` 目前计划锁单一 `market_code`，运行时 award 阶段预算 200 s 只够天津；扩到区域应放在自托管 `regional-medical-refresh.yml`（无 300 s 限制）逐省跑 + publish 合并 ledger（`combine_snapshots` 已支持多市场 ledger 去重）。② `formatBudget` 对 10,499,940 显示 "1050.0 万元"（toFixed(1) 的进位），可改成保留两位或整万取整。③ 事件匹配也可以改用 `normalize_project_number`（需同步改 `_build_event_states`）。
+
+### 2026-09-29 · 会话 3 · 里程碑 I：五省中标/成交同步 + 市场隔离（`53eb87c`）
+- **同步**：`scripts/sync_regional_awards.py` + `data/regional_award_query_plan.json`（BJ/HE/LN/JL/HL 逐省串行，每省 5 关键词 × 中标/成交 = 10 次搜索、≤6 篇详情、240 s 预算，省间 4 s；每日共 50 次搜索）。复用 `sync_ccgp_awards.run_award_sync`，新增 `load_plan(path, market_code=)` 覆盖与 `--market-code`。**地理护栏**：搜索行 `地域` 必须经 `candidate_market_code` 映射到计划市场，否则丢弃并记入 `region_mismatch_count/region_mismatches`（详情页 `facts.region` 只是区县，不能证明省份）。定向 `--detail-url` 不走护栏。
+- **存储/发布**：`data/regional_award_records.json`（合并存储，`facts.market_code` 标市场）+ `data/regional_award_sync_report.json`（`markets{code}` 为每省 TJ 同款报告 + 汇总键）。`publish_web_snapshot.py` / `refresh_bundled_snapshot.py` 默认读两份存储并 `split_awards_by_market` → 天津 builder 只见天津 award，区域 builder 只见区域 award；ledger 合并去重、上限 40。退役键改为 `(market_code|None, normalize_project_number)`（`awarded_project_keys` / `is_awarded_project`；旧的无 market 记录匹配任意市场）。
+- **运行时**：`collector_runtime._bundled_award_records()` 读两份打包存储引导；`_run_award` 每轮把打包的区域 award 并入存储（区域不在运行时同步，靠部署包带过去），报告多一键 `bundled_regional_awards_added`。
+- **工作流**：`regional-medical-refresh.yml` 在区域机会同步后加 "Sync verified regional CCGP award/deal results"（`continue-on-error`），提交清单 + `paths:` 触发加了两份文件，单测子集加 `test_ccgp_award`/`test_regional_award_sync`；`tianjin-medical-refresh.yml` 发布步骤**去掉**了 `--award-input`（走默认双存储，否则两条工作流会来回覆盖 ledger）。`publish_generated_data_github.py` 对缺文件会 `GENERATED_FILE_MISSING` → 已把种子文件提交进仓库。
+- **解析器（真实页面驱动，全部有 fixture + 测试）**：
+  - 河北：中标信息表 `供应商名称|供应商地址|供应商编码` 无金额 → `_is_supplier_table` 接受身份列；主要标的表上方有跨列 `货物类/服务类` 行 → `_table_header` 定位真表头并作默认 `category`；金额在标的表 `中标金额` 列且**无单位** → `UNITLESS_YUAN_FLOOR=100000`（万元读法 ≥10 亿才按元读，更小的仍拒绝）；`_backfill_package_amounts`（同一供应商唯一包时按标的表回填，`amount_source: ITEM_TABLE`）；服务类表 `服务范围/服务要求/…` 也算标的表。
+  - 黑龙江：`三、采购结果` + `合同包1(…)：` + 表头 `品目号|品目名称|采购标的|品牌|规格型号|数量（单位）|单价(元)|总价(元)` → `_RESULT_SECTION_RE` 放宽、`_package_no_from_text` 认 `合同包N`/`包组编号`、标的名取 `采购标的`、`品目名称` 作 category。
+  - 辽宁：文本模板 `包组编号：002 / 结果类型：废标 / 废标情形：…` → 全包废标记录，`total_amount_cny` 置 None。
+  - 北京（中央）文本模板：`中标（成交）金额：182.0000000（万元）`（单位在括号里）；标的表首个"名称"列是供应商 → `_item_name_index` 排除 供应商/采购人/代理/品目名称。
+  - 概要 `中标金额 = 0` 视为未公布（大庆 HPV 检测服务按次计价）。
+- **种子数据（2026-09-29 沙箱实跑）**：14 条真实区域 award（BJ 3 / HE 3 / JL 3 / HL 5；辽宁本周发现的 6 条全部超出医疗渠道范围）。打包快照 ledger 7→21、退役 3→4、池子仍 425、压缩后 1,726,992 B（上限 1,945,600）。运行日志：北京 10/10 搜索成功；河北 1–2 次搜索超时（`search.ccgp.gov.cn` 间歇限流）；`region_mismatch` 1（河北一行无 `地域`）。
+- **UI**：`AwardLedgerSection` 每条加省份徽章（`ENABLED_MARKETS`）；已有的 `marketCodes` 过滤让用户地区偏好决定看哪些省的结果。
+- 套件 **830**；`npm run build` 通过。
+
+**待办（顺序建议）**：① `formatBudget` 对 10,499,940 显示 "1050.0 万元"（toFixed(1) 进位），改保留两位或整万取整。② 事件匹配改用 `normalize_project_number`（`_build_event_states`）。③ 品牌×型号×单价 证据表页面（§6 (6)）：数据已在 `award_ledger[].items`，先做按品牌/型号聚合的只读表。④ 观察首个自托管区域工作流日志：`regional_award_sync_report.json` 的 `failure_count`/`region_mismatch_count`，辽宁若持续 `CCGP_AWARD_SUPPLIER_NOT_FOUND` 需要再补一版辽宁中标（非废标）模板 fixture。
+
