@@ -134,3 +134,19 @@ git config core.fileMode false
 
 **验证来源**（fetch 于 2026-09-29，沙箱 curl 会被限频，用 fetch 工具）：
 `https://search.ccgp.gov.cn/bxsearch?searchtype=1&page_index=1&bidSort=0&buyerName=&projectId=&pinMu=0&bidType=<N>&dbselect=bidx&kw=医院&start_time=2026:09:01&end_time=2026:09:29&timeType=6&displayZone=天津&zoneId=12&pppStatus=0&agentName=`
+
+### 2026-09-29 · 会话 2 · 里程碑 B：中标/成交公告解析器（`39f5922`）
+**新增** `web/pipeline/medical_channel_pipeline/ccgp_award.py`（parser + validator + merge + scope）与 `pipeline/tests/test_ccgp_award.py`（11 个测试，夹具在 `pipeline/tests/fixtures/ccgp_award_*.html`，均由真实 CCGP 页面裁剪而来，正文未改）。全套 793 通过。
+
+**为什么是"独立记录类型"而不是事件**：中标结果承载的是新事实（供应商、金额、品牌/型号/单价），不是对既有机会的修饰；做成 `record_type = "AWARD_RESULT"`、`lifecycle_state = "AWARDED"` 的独立记录、独立存储（下一里程碑 `tianjin_award_records.json`），机会池只需按 `project_number` 关联即可。
+
+**两种模板都覆盖**（真实页面结构记录如下，改解析器前先看这里）：
+- 全国模板（`/cggg/dfgg/zbgg/`，如 CQS26A01493）：`一、项目号：` / `三、中标（成交）信息：` 是**文本块**（`包号：N` → `供应商名称：` → `供应商地址：` → `中标（成交）金额：…元`；废标包写 `废标（终止）原因：`）；`四、主要标的信息` 是每包一张表 `名称|品牌|规格型号|数量|单价`，且 `<th>` 直接挂在 `<table>` 下没有 `<tr>`（浏览器会自动补，解析器要自己补）。
+- 天津分站镜像（三中心 535、五中心 589、一中心 921）：整个正文包在一个外层 `<table>` 的单元格里（嵌套表），`三、中标信息`/`三、成交信息` 后每包一张 `供应商名称|供应商地址|统一社会信用代码|企业办公电话|中标金额(万元)|评审得分` 表，随后是带 `排序` 列的评审报价表（要排除），`四、主要标的信息` 每包 `类型|名称|品牌|规格型号|数量|单价(万元)`；工程类标的表是 `类型|名称|施工范围|施工工期|项目经理|执业证书信息`。
+- 解析器用**文档顺序的 block 模型**（文本块 / 表块）：外层含嵌套表的表被当作"布局包装"降级为文本流，最内层表才是数据表；`第N包 ：` / `包号：N` 文本块决定后续表属于哪个包。
+
+**金额规则（fail-closed）**：只有在值里或列头里明确出现 `万元` 才 ×10000；`元` 按原值；没有单位 → `None`（不猜）。`total_amount_cny` 优先取公告概要 `总中标金额/总成交金额`（`amount_basis = SUMMARY_TOTAL`），否则各包求和（`PACKAGE_SUM`）。
+
+**范围判断**：`is_medical_channel_relevant_award` 复用 `channel_scope`，并且**全部标的为 `工程类` 时直接排除**（否则"CT室、DR室改造项目"会因 CT/DR 缩写误判为医疗渠道相关）。
+
+**已知局限**：`procurement_method` 在天津镜像页面上没有 → `None`（不推断）；只解析 HTML 正文，附件里的信息不看；`人民币大写` 不解析。
