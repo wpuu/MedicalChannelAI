@@ -503,6 +503,8 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       generated_at: data.snapshot_as_of,
       refreshed_at: data.snapshot_as_of,
       working_calendar: data.working_calendar ?? null,
+      awarded_project_count: data.awarded_project_count ?? 0,
+      award_ledger: Array.isArray(data.award_ledger) ? data.award_ledger : [],
       cards: mappedCards,
       opportunity_pool: mappedPool,
       model_requests: [],

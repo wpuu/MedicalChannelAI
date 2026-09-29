@@ -135,10 +135,16 @@ def main() -> int:
         PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json',
         label='notice events',
     )
+    # 中标/成交 results are a separate canonical store; they retire awarded
+    # projects from the pool and feed the compact public award ledger.
+    award_records = load_optional_array(
+        PIPELINE_ROOT / 'data' / 'tianjin_award_records.json',
+        label='Tianjin award results',
+    )
 
     # Keep Tianjin notice events isolated from regional records. Regional event
     # monitoring remains disabled until those events carry explicit market identity.
-    tianjin_snapshot = build_public_snapshot(tianjin_records, published_as_of, notice_events)
+    tianjin_snapshot = build_public_snapshot(tianjin_records, published_as_of, notice_events, award_records)
     regional_snapshot = build_public_snapshot(regional_records, published_as_of, [])
     payload = combine_snapshots(
         tianjin_snapshot,
@@ -154,6 +160,7 @@ def main() -> int:
         'Bundled snapshot refreshed with current ranking logic from '
         f'{len(tianjin_records)} Tianjin + {len(regional_records)} regional verified canonical records; '
         f'published opportunities={payload["opportunity_pool_count"]}; '
+        f'awarded retired={payload["awarded_project_count"]}; award ledger={len(payload["award_ledger"])}; '
         f'markets={published_market_counts(payload)}'
     )
     return 0

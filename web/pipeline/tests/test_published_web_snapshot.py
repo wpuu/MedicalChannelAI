@@ -133,10 +133,14 @@ class PublishedWebSnapshotTests(unittest.TestCase):
         notice_events = load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json', label='notice events'
         )
+        award_records = load_optional_array(
+            PIPELINE_ROOT / 'data' / 'tianjin_award_records.json', label='Tianjin award results'
+        )
         tianjin_snapshot = build_public_snapshot(
             tianjin_records,
             published_as_of,
             notice_events,
+            award_records,
         )
         regional_snapshot = build_public_snapshot(
             regional_records,
@@ -180,6 +184,12 @@ class PublishedWebSnapshotTests(unittest.TestCase):
         self.assertIn(regional_filename, refresh_source)
         self.assertIn(regional_filename, publisher_source)
         self.assertIn('publish_web_snapshot.py', daily_workflow)
+
+        # 中标/成交 award store: refreshed by the workflow, consumed by both publishers.
+        self.assertIn('tianjin_award_records.json', refresh_source)
+        self.assertIn('tianjin_award_records.json', publisher_source)
+        self.assertIn('sync_ccgp_awards.py', daily_workflow)
+        self.assertIn('--award-input web/pipeline/data/tianjin_award_records.json', daily_workflow)
 
 
 if __name__ == '__main__':

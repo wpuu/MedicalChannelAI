@@ -170,6 +170,55 @@ export interface PublicProcurementIntentFollowupSummary {
   formal_candidates_needing_action?: number
 }
 
+export type PublicAwardPackageStatus = 'AWARDED' | 'FAILED'
+export type PublicAwardStatus = 'AWARDED' | 'PARTIALLY_FAILED' | 'ALL_PACKAGES_FAILED'
+
+export interface PublicAwardLedgerPackage {
+  package_no: string | null
+  status: PublicAwardPackageStatus
+  supplier_name: string | null
+  amount_cny: number | null
+  failure_reason: string | null
+}
+
+export interface PublicAwardLedgerItem {
+  package_no: string | null
+  name: string | null
+  brand: string | null
+  model: string | null
+  quantity: string | null
+  unit_price_cny: number | null
+}
+
+/**
+ * Compact projection of one official 中标/成交 result notice. Awards are a
+ * separate record type: they retire the matching project from the pool and
+ * expose supplier / brand / model / price evidence with the statutory
+ * RESULT_CHALLENGE window. Every number is verifiable at `source_url`.
+ */
+export interface PublicAwardLedgerEntry {
+  award_id: string
+  project_number: string
+  project_name: string | null
+  buyer_name: string | null
+  region: string | null
+  notice_type: string | null
+  result_kind: 'AWARD' | 'DEAL'
+  lifecycle_state: 'AWARDED'
+  published_at: string | null
+  procurement_method: string | null
+  total_amount_cny: number | null
+  amount_basis: 'SUMMARY_TOTAL' | 'PACKAGE_SUM' | null
+  award_status: PublicAwardStatus | null
+  package_count: number
+  item_count: number
+  packages: PublicAwardLedgerPackage[]
+  items: PublicAwardLedgerItem[]
+  source_url: string
+  legal_windows: PublicLegalWindow[] | null
+  market_code?: string
+}
+
 /**
  * Exact H5-safe response returned by the verified boundary. The authenticated
  * Pilot endpoint may choose the account's configured number of Today cards;
@@ -190,6 +239,10 @@ export interface TodayActionsPublicResponse {
   recommendation_feedback_summary?: PublicRecommendationFeedbackSummary
   procurement_intent_followup_summary?: PublicProcurementIntentFollowupSummary
   working_calendar?: PublicWorkingCalendar | null
+  /** Pool records retired because an official 中标/成交 result is published. */
+  awarded_project_count?: number
+  /** Newest-first, bounded ledger of published awards (may be empty). */
+  award_ledger?: PublicAwardLedgerEntry[]
   cards: PublicTodayActionCard[]
   opportunity_pool?: PublicTodayActionCard[]
 }

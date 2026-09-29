@@ -242,6 +242,10 @@ async function todayRoute(request, response, user) {
       today_limit: todayLimit,
       today_limit_options: ALLOWED_TODAY_LIMITS,
       recommendation_feedback_summary: recommendationFeedbackSummary(decoratedPool, feedback),
+      working_calendar: snapshot.working_calendar ?? null,
+      // Official 中标/成交 results: public facts only, same payload as the anonymous snapshot.
+      awarded_project_count: Number(snapshot.awarded_project_count || 0),
+      award_ledger: Array.isArray(snapshot.award_ledger) ? snapshot.award_ledger : [],
       cards,
       opportunity_pool: decoratedPool,
     })

@@ -95,6 +95,231 @@
     "complaint_working_days": 15,
     "award_notice_period_working_days": 1
   },
+  "awarded_project_count": 2,
+  "award_ledger": [
+    {
+      "award_id": "ccgpaward_9429c600c8b04676",
+      "project_number": "XCSD-2026-A-589",
+      "project_name": "天津市第五中心医院医疗设备更新项目-数字减影血管造影机采购项目",
+      "buyer_name": "天津市第五中心医院",
+      "region": "滨海新区",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-28",
+      "procurement_method": null,
+      "total_amount_cny": 13950000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "天津市联大医用设备有限公司",
+          "amount_cny": 13950000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "name": "医用血管造影X射线机",
+          "brand": "联影",
+          "model": "uAngio960",
+          "quantity": "1台",
+          "unit_price_cny": 13950000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-28",
+          "deadline_date": "2026-10-14",
+          "remaining_working_days": 8,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-29"
+        }
+      ],
+      "market_code": "TJ"
+    },
+    {
+      "award_id": "ccgpaward_497bb929f0a5017b",
+      "project_number": "XCSD-2026-A-535",
+      "project_name": "天津市第三中心医院彩色多普勒超声诊断仪采购项目",
+      "buyer_name": "天津市第三中心医院",
+      "region": "市辖区",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-28",
+      "procurement_method": null,
+      "total_amount_cny": 9320000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 4,
+      "item_count": 4,
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "华润天津医药有限公司",
+          "amount_cny": 2375000,
+          "failure_reason": null
+        },
+        {
+          "package_no": "2",
+          "status": "AWARDED",
+          "supplier_name": "天津市维迪电子有限公司",
+          "amount_cny": 2570000,
+          "failure_reason": null
+        },
+        {
+          "package_no": "3",
+          "status": "AWARDED",
+          "supplier_name": "中外运通（天津）科技有限公司",
+          "amount_cny": 2510000,
+          "failure_reason": null
+        },
+        {
+          "package_no": "4",
+          "status": "AWARDED",
+          "supplier_name": "北京合众汇美国际贸易有限公司",
+          "amount_cny": 1865000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "飞利浦",
+          "model": "EPIQ CVx",
+          "quantity": "1套",
+          "unit_price_cny": 2375000
+        },
+        {
+          "package_no": "2",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "GE",
+          "model": "Voluson Expert 22 Premium",
+          "quantity": "1套",
+          "unit_price_cny": 2570000
+        },
+        {
+          "package_no": "3",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "佳能",
+          "model": "Aplio i900 TUS-AI900",
+          "quantity": "1套",
+          "unit_price_cny": 2510000
+        },
+        {
+          "package_no": "4",
+          "name": "彩色超声诊断设备",
+          "brand": "富士",
+          "model": "ARIETTA 650",
+          "quantity": "1套",
+          "unit_price_cny": 1865000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-28",
+          "deadline_date": "2026-10-14",
+          "remaining_working_days": 8,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-29"
+        }
+      ],
+      "market_code": "TJ"
+    },
+    {
+      "award_id": "ccgpaward_b3c502d673de29b6",
+      "project_number": "TJBHGP-2026-024",
+      "project_name": "天津市泰达医院高清腔镜系统采购项目",
+      "buyer_name": "天津市泰达医院",
+      "region": "滨海新区",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-24",
+      "procurement_method": null,
+      "total_amount_cny": 10499940,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 3,
+      "item_count": 3,
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "天津市联大医用设备有限公司",
+          "amount_cny": 5239100,
+          "failure_reason": null
+        },
+        {
+          "package_no": "2",
+          "status": "AWARDED",
+          "supplier_name": "杭州康晟泽医疗器械有限公司",
+          "amount_cny": 3490840,
+          "failure_reason": null
+        },
+        {
+          "package_no": "3",
+          "status": "AWARDED",
+          "supplier_name": "天津长荣健康科技有限公司",
+          "amount_cny": 1770000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "name": "4K内窥镜摄像系统； 其他详见附件",
+          "brand": "卡尔史托斯； 其他详见附件",
+          "model": "IMAGE1 S 4U; 其他详见附件",
+          "quantity": "3套； 其他详见附件",
+          "unit_price_cny": 1410000
+        },
+        {
+          "package_no": "2",
+          "name": "4K3D荧光医用内窥镜图像处理器； 4K医用内窥镜摄像系统-摄像头； 医用内窥镜荧光冷光源； …",
+          "brand": "康基； 康基； 康基； 其他详见附件",
+          "model": "KJ-EP4K3DNIR-02； KJ-EC-4KAIAF； KJ-CLS-NIR02； 其他…",
+          "quantity": "1套； 1条； 1台； 其他详…",
+          "unit_price_cny": null
+        },
+        {
+          "package_no": "3",
+          "name": "4K三维电子内窥镜图像处理器； 4K三维电子胸腹腔镜； 医用内窥镜冷光源； 其他详见附件",
+          "brand": "图格； 图格； 图格； 其他详见附件",
+          "model": "TDE-F410A；TUL-E3010W； TLS-M821A； 其他详见附件",
+          "quantity": "1套； 1条； 1台； 其他详…",
+          "unit_price_cny": null
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-24",
+          "deadline_date": "2026-10-13",
+          "remaining_working_days": 7,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-28"
+        }
+      ],
+      "market_code": "TJ"
+    }
+  ],
   "cards": [
     {
       "rank": 1,

@@ -30,12 +30,14 @@ Formats verified against live pages on 2026-09-29:
 from __future__ import annotations
 
 import re
+from datetime import date, datetime, timezone
 from html.parser import HTMLParser
 from typing import Any
 from urllib.parse import urlparse
 
 from .ccgp_detail import _expand_spanning_table_rows, html_to_text
 from .channel_scope import is_medical_channel_relevant_record
+from .legal_windows import legal_windows_for_facts
 
 CCGP_HOSTS = {"ccgp.gov.cn", "www.ccgp.gov.cn"}
 AWARD_RECORD_TYPE = "AWARD_RESULT"
@@ -890,3 +892,129 @@ def is_medical_channel_relevant_award(record: dict[str, Any]) -> bool:
         ],
     }
     return is_medical_channel_relevant_record({"facts": pseudo_facts})
+
+
+# --------------------------------------------------------------------------- #
+# Public snapshot projection (compact, bounded award ledger)
+# --------------------------------------------------------------------------- #
+MAX_LEDGER_ENTRIES = 40
+MAX_LEDGER_PACKAGES = 8
+MAX_LEDGER_ITEMS = 8
+_LEDGER_TEXT_LIMITS = {
+    "project_name": 80,
+    "buyer_name": 48,
+    "supplier_name": 48,
+    "name": 48,
+    "brand": 24,
+    "model": 48,
+    "quantity": 16,
+    "failure_reason": 60,
+}
+
+
+def _ledger_text(value: Any, key: str) -> str | None:
+    if value is None:
+        return None
+    text = _normalize_space(str(value))
+    if not text:
+        return None
+    limit = _LEDGER_TEXT_LIMITS[key]
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
+def _award_is_effective(record: dict[str, Any], as_of: datetime) -> bool:
+    try:
+        published = date.fromisoformat(str(record["facts"]["published_at"]))
+    except (KeyError, TypeError, ValueError):
+        return False
+    return published <= as_of.date()
+
+
+def effective_award_records(award_records: list[dict[str, Any]] | None, as_of: datetime) -> list[dict[str, Any]]:
+    """Validated awards whose notice is already published at ``as_of``, newest first."""
+    if not award_records:
+        return []
+    if as_of.tzinfo is None:
+        as_of = as_of.replace(tzinfo=timezone.utc)
+    effective = [record for record in validate_award_records(list(award_records)) if _award_is_effective(record, as_of)]
+    effective.sort(key=lambda record: (record["facts"]["published_at"], record["award_id"]), reverse=True)
+    return effective
+
+
+def awarded_project_numbers(award_records: list[dict[str, Any]] | None, as_of: datetime) -> set[str]:
+    """Lower-cased project numbers that already have a published award/deal result."""
+    return {
+        str(record["facts"]["project_number"]).strip().lower()
+        for record in effective_award_records(award_records, as_of)
+    }
+
+
+def public_award_ledger_entry(record: dict[str, Any], as_of: datetime) -> dict[str, Any]:
+    """Project one award record onto the compact public ledger shape.
+
+    Only public facts are carried (supplier, package amounts, brand/model/unit
+    price, statutory challenge window); addresses, phone numbers and the full
+    evidence list stay in the canonical store. ``source_url`` is the official
+    notice so every number remains verifiable.
+    """
+    facts = record["facts"]
+    packages = [
+        {
+            "package_no": package.get("package_no"),
+            "status": package.get("status"),
+            "supplier_name": _ledger_text(package.get("supplier_name"), "supplier_name"),
+            "amount_cny": package.get("amount_cny"),
+            "failure_reason": _ledger_text(package.get("failure_reason"), "failure_reason"),
+        }
+        for package in list(facts.get("packages") or [])[:MAX_LEDGER_PACKAGES]
+    ]
+    items = [
+        {
+            "package_no": item.get("package_no"),
+            "name": _ledger_text(item.get("name"), "name"),
+            "brand": _ledger_text(item.get("brand"), "brand"),
+            "model": _ledger_text(item.get("model"), "model"),
+            "quantity": _ledger_text(item.get("quantity"), "quantity"),
+            "unit_price_cny": item.get("unit_price_cny"),
+        }
+        for item in list(facts.get("items") or [])[:MAX_LEDGER_ITEMS]
+    ]
+    entry: dict[str, Any] = {
+        "award_id": record["award_id"],
+        "project_number": facts["project_number"],
+        "project_name": _ledger_text(facts.get("project_name"), "project_name"),
+        "buyer_name": _ledger_text(facts.get("buyer_name"), "buyer_name"),
+        "region": facts.get("region"),
+        "notice_type": facts.get("notice_type"),
+        "result_kind": facts.get("result_kind"),
+        "lifecycle_state": facts.get("lifecycle_state"),
+        "published_at": facts.get("published_at"),
+        "procurement_method": facts.get("procurement_method"),
+        "total_amount_cny": facts.get("total_amount_cny"),
+        "amount_basis": facts.get("amount_basis"),
+        "award_status": facts.get("award_status"),
+        "package_count": len(facts.get("packages") or []),
+        "item_count": len(facts.get("items") or []),
+        "packages": packages,
+        "items": items,
+        "source_url": record["source"]["url"],
+        "legal_windows": legal_windows_for_facts(facts, as_of),
+    }
+    if facts.get("market_code"):
+        entry["market_code"] = facts["market_code"]
+    return entry
+
+
+def build_public_award_ledger(
+    award_records: list[dict[str, Any]] | None,
+    as_of: datetime,
+    *,
+    max_entries: int = MAX_LEDGER_ENTRIES,
+) -> list[dict[str, Any]]:
+    """Newest-first, bounded ledger of published awards for the public snapshot."""
+    if as_of.tzinfo is None:
+        as_of = as_of.replace(tzinfo=timezone.utc)
+    return [
+        public_award_ledger_entry(record, as_of)
+        for record in effective_award_records(award_records, as_of)[: max(0, int(max_entries))]
+    ]

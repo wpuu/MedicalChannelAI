@@ -1,4 +1,4 @@
-import type { PublicLegalWindow, PublicWorkingCalendar } from './public'
+import type { PublicAwardLedgerEntry, PublicLegalWindow, PublicWorkingCalendar } from './public'
 
 export type ModelDecisionStatus =
   | 'NOT_ELIGIBLE'
@@ -197,6 +197,7 @@ export interface FollowupRecord {
  */
 export type LegalWindow = PublicLegalWindow
 export type WorkingCalendar = PublicWorkingCalendar
+export type AwardLedgerEntry = PublicAwardLedgerEntry
 
 export interface TodayActionCard {
   rank: number
@@ -259,6 +260,8 @@ export interface TodayActionsResponse {
   recommendation_feedback_summary?: RecommendationFeedbackSummary
   procurement_intent_followup_summary?: ProcurementIntentFollowupSummary
   working_calendar?: WorkingCalendar | null
+  awarded_project_count?: number
+  award_ledger?: AwardLedgerEntry[]
   cards: TodayActionCard[]
   opportunity_pool?: TodayActionCard[]
   model_requests?: ModelRequest[]
