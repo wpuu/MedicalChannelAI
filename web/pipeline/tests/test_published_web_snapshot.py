@@ -144,6 +144,10 @@ class PublishedWebSnapshotTests(unittest.TestCase):
             if str((record.get('facts') or {}).get('market_code') or 'TJ').strip().upper() == 'TJ'
         ]
         regional_awards = [record for record in award_records if record not in tianjin_awards]
+        regional_events = load_optional_array(
+            PIPELINE_ROOT / 'data' / 'regional_notice_events.json', label='regional notice events'
+        )
+        self.assertTrue(all(str(event.get('market_code') or '').strip().upper() not in ('', 'TJ') for event in regional_events))
         tianjin_snapshot = build_public_snapshot(
             tianjin_records,
             published_as_of,
@@ -153,7 +157,7 @@ class PublishedWebSnapshotTests(unittest.TestCase):
         regional_snapshot = build_public_snapshot(
             regional_records,
             published_as_of,
-            [],
+            regional_events,
             regional_awards,
         )
         expected = combine_snapshots(
@@ -211,6 +215,17 @@ class PublishedWebSnapshotTests(unittest.TestCase):
         self.assertNotIn('--award-input', regional_workflow)
         for filename in ('regional_award_records.json', 'regional_award_sync_report.json'):
             self.assertIn(f'web/pipeline/data/{filename} \\', regional_workflow)
+        # Regional 更正/终止 monitoring: synced and committed by the regional
+        # workflow, picked up by default by both publishers (never pinned as a
+        # flag, so the Tianjin workflow keeps carrying the regional store too).
+        self.assertIn('sync_regional_events.py', regional_workflow)
+        self.assertIn('--events-output web/pipeline/data/regional_notice_events.json', regional_workflow)
+        self.assertNotIn('--regional-event-input', daily_workflow)
+        self.assertNotIn('--regional-event-input', regional_workflow)
+        for filename in ('regional_notice_events.json', 'regional_event_sync_report.json'):
+            self.assertIn(f'web/pipeline/data/{filename} \\', regional_workflow)
+        self.assertIn('regional_notice_events.json', refresh_source)
+        self.assertIn('regional_notice_events.json', publisher_source)
 
 
 if __name__ == '__main__':

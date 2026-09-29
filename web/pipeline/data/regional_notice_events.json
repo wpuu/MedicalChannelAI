@@ -1,0 +1,676 @@
+[
+  {
+    "schema_version": "0.1",
+    "event_id": "termination_b1f4ffef180621f6",
+    "event_type": "TERMINATION",
+    "project_number": "11000026210200175844-XM001",
+    "project_name": "北京市疾病预防控制中心新址其他设备设施采购",
+    "notice_title": "北京市疾病预防控制中心新址其他设备设施采购（第3包）废标公告",
+    "published_at": "2026-09-28",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260928_27406226.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "第3包：实质性响应招标文件的投标人不足3家，本包废标。",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [],
+    "requires_reconciliation": false,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "第3包"
+    ],
+    "market_code": "BJ"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_0b3d3be6a7802715",
+    "event_type": "CORRECTION",
+    "project_number": "清华一附院采招【2026】23号/XHTC-HW-2026-1163",
+    "project_name": "北京华信医院（清华大学第一附属医院）危重新生儿救治中心能力提升项目",
+    "notice_title": "北京华信医院（清华大学第一附属医院）危重新生儿救治中心能力提升项目更正公告",
+    "published_at": "2026-09-24",
+    "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gzgg/202609/t20260924_27395865.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购文件 更正内容： 1、删除原招标文件第五章 采购需求 中 2、输液采集系统(4通道)+注射泵 配置单-6道 的相关表格及内容： 配置单-6道 序号 名称 数量 1 输液信息采集系统 1 2 注射泵 6 3 电源线 1 4 紧固夹 1 5 手册包 1 更正日期：2026年09月24日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__material_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "BJ"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_be1798ffe01dc821",
+    "event_type": "CORRECTION",
+    "project_number": "11010226210200025327-XM001",
+    "project_name": "公改示范项目（第一批）-西城区骨健康特色诊疗中心项目（丰盛医院）",
+    "notice_title": "公改示范项目（第一批）-西城区骨健康特色诊疗中心项目（丰盛医院）06包更正公告",
+    "published_at": "2026-09-24",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397249.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购文件 更正内容： （一）对招标文件第五章采购需求的变更： 原标的名称二：手术床中第3.1条参数为：床面尺寸：≥50cm×2000cm； 现变更标的名称二：手术床中第3.1条参数为：床面尺寸：≥50cm×200cm； （二）对招标文件第七章投标文件格式的变更： 删除商务技术文件格式中“9-1耗材和易损件清单及报价”的格式。 更正日期：2026-09-24 14:56",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__material_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "第6包"
+    ],
+    "market_code": "BJ"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "termination_3c63b50008797429",
+    "event_type": "TERMINATION",
+    "project_number": "202601",
+    "project_name": "市属医院2026年医用设备集中带量采购放射组",
+    "notice_title": "市属医院2026年医用设备集中带量采购放射组第14包、第16包废标公告",
+    "published_at": "2026-09-24",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260924_27401689.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "第14包：通过符合性审查的投标人不足3家，本包废标。 第16包：通过符合性审查的投标人不足3家，本包废标。",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [],
+    "requires_reconciliation": false,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "第14包",
+      "第16包"
+    ],
+    "market_code": "BJ"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "termination_d9f6cc91df563d9b",
+    "event_type": "TERMINATION",
+    "project_number": "202601",
+    "project_name": "市属医院2026年医用设备集中带量采购放射组",
+    "notice_title": "市属医院2026年医用设备集中带量采购放射组（二）第8包废标公告",
+    "published_at": "2026-09-02",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260924_27397583.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "递交投标文件的供应商不足3家，本包废标",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [],
+    "requires_reconciliation": false,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "第8包"
+    ],
+    "market_code": "BJ"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "termination_2c05fdf5202b1ea1",
+    "event_type": "TERMINATION",
+    "project_number": "999100034000061089-JH001-XM001",
+    "project_name": "经开区荣华社区卫生服务中心医疗设备购置",
+    "notice_title": "经开区荣华社区卫生服务中心医疗设备购置（第二包）废标公告",
+    "published_at": "2026-09-24",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260924_27393414.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "通过资格性审查的供应商不足3家，本项目废标，重新开展采购程序。",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [],
+    "requires_reconciliation": false,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "第2包"
+    ],
+    "market_code": "BJ"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "termination_b0f9fbabf5be2499",
+    "event_type": "TERMINATION",
+    "project_number": "202601",
+    "project_name": "市属医院2026年医用设备集中带量采购放射组",
+    "notice_title": "市属医院2026年医用设备集中带量采购放射组（一）-第5包废标公告",
+    "published_at": "2026-09-23",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260923_27388449.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "第5包：通过符合性审查的投标人不足3家，本包废标。",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [],
+    "requires_reconciliation": false,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "第5包"
+    ],
+    "market_code": "BJ"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "termination_ee864dede53dab75",
+    "event_type": "TERMINATION",
+    "project_number": "11010826210200059052-XM001",
+    "project_name": "海淀区高层次人才专项经费医疗设备购置项目",
+    "notice_title": "海淀区高层次人才专项经费医疗设备购置项目射频消融设备废标公告",
+    "published_at": "2026-09-23",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260923_27387654.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "本包上传电子投标文件供应商不足三家，废标。",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [],
+    "requires_reconciliation": false,
+    "terminal": true,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "BJ"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "termination_3108235651985595",
+    "event_type": "TERMINATION",
+    "project_number": "11010126210200022046-XM001",
+    "project_name": "龙潭中心医疗设备购置",
+    "notice_title": "龙潭中心医疗设备购置第二包、第三包废标公告",
+    "published_at": "2026-09-23",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260923_27385479.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "参与本项目第二包、第三包投标的投标人不足三家，依据《中华人民共和国政府采购法》第三十六条款规定，本项目做废标处理，并依法重新组织招标活动。",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [],
+    "requires_reconciliation": false,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "第2包",
+      "第3包"
+    ],
+    "market_code": "BJ"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "termination_435dcf6f4324c487",
+    "event_type": "TERMINATION",
+    "project_number": "0733-26114578",
+    "project_name": "中国医学科学院北京协和医院彩色超声诊断仪（一）采购项目",
+    "notice_title": "中国医学科学院北京协和医院彩色超声诊断仪（一）采购项目第1包终止公告",
+    "published_at": "2026-09-22",
+    "source_url": "https://www.ccgp.gov.cn/cggg/zygg/fblbgg/202609/t20260922_27377505.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "中国医学科学院北京协和医院彩色超声诊断仪（一）采购项目第1包采购标的发生变化，因此终止。",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [],
+    "requires_reconciliation": false,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "第1包"
+    ],
+    "market_code": "BJ"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_b8c2328583826afa",
+    "event_type": "CORRECTION",
+    "project_number": "HBFY2026-BS-010",
+    "project_name": "首都医科大学附属北京儿童医院保定医院绩效方案及绩效系统升级优化采购项目",
+    "notice_title": "首都医科大学附属北京儿童医院保定医院绩效方案及绩效系统升级优化采购项目更正公告",
+    "published_at": "2026-09-29",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27413916.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购文件 更正内容：原招标文件：“第二部分 供应商须知 10.2.6页数要求：不超过200页。”现更正为：10.2.6页数要求：不超过150页。原投标截止时间、开标时间：2026年10月12日09时15分。现更正为：2026年10月15日09时15分。 更正日期：2026年09月29日",
+    "changed_fact_paths": [
+      "facts.bid_deadline"
+    ],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "facts.bid_deadline"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "HE"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_ca4db6825fb5ff3a",
+    "event_type": "CORRECTION",
+    "project_number": "HBCX-20260911",
+    "project_name": "邱县2026年医疗服务能力与保障能力提升（古城营镇卫生院核磁共振医学影像系统采购项目）",
+    "notice_title": "邱县2026年医疗服务能力与保障能力提升（古城营镇卫生院核磁共振医学影像系统采购项目）更正公告",
+    "published_at": "2026-09-24",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397680.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购文件 更正内容：招标文件第四部分采购需求一、商务标内容（一）商务要求6、其他 中新增：（3）本项目实行“统招分签”公开招标采购。政府采购工作由邱县卫生健康局统一组织实施，完成中标单位确定工作；邱县卫生健康局、古城营镇卫生院作为项目单位，共同与中标单位签署采购合同。项目款项对应的发票由中标单位开具至古城营镇卫生院，项目费用由古城营镇卫生院负责支付。请各潜在供应商登录河北省公共资源交易服务平台查看最终修订后的招标文件。 更正日期：2026年09月24日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__material_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "HE"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_f00c859a6a5e78b4",
+    "event_type": "CORRECTION",
+    "project_number": "HBDS2026-028ZC",
+    "project_name": "儿科一批医疗设备采购项目",
+    "notice_title": "儿科一批医疗设备采购项目二次C包更正公告",
+    "published_at": "2026-09-23",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260923_27391484.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：Annc-采购文件 更正内容：1.提交投标文件截止时间、开标时间更正为2026年10月13日09时00分。2.招标文件招标文件“第四部分采购需求”技术要求部分内容进行了调整，具体详见附件。 更正日期：2026年09月23日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__material_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "C包"
+    ],
+    "market_code": "HE"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_95fb4fdd5af1ddbf",
+    "event_type": "CORRECTION",
+    "project_number": "HBLY-2026-ZCGK022",
+    "project_name": "张北县妇幼保健院医疗服务与保障能力提升项目",
+    "notice_title": "张北县妇幼保健院医疗服务与保障能力提升项目B包更正公告",
+    "published_at": "2026-09-22",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260922_27379356.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 更正内容：四、提交投标文件截止时间、开标时间和地点2026年10月12日09:00（北京时间）更正为开标时间：2026年10月12日08:30（北京时间） 更正日期：2026年09月22日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "B包"
+    ],
+    "market_code": "HE"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_bec7bdd8815568ea",
+    "event_type": "CORRECTION",
+    "project_number": "HBLY-2026-ZCGK022",
+    "project_name": "张北县妇幼保健院医疗服务与保障能力提升项目",
+    "notice_title": "张北县妇幼保健院医疗服务与保障能力提升项目A包更正公告",
+    "published_at": "2026-09-22",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260922_27379344.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 更正内容：四、提交投标文件截止时间、开标时间和地点2026年10月12日09:00（北京时间）更正为开标时间：2026年10月12日08:30（北京时间） 更正日期：2026年09月22日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PACKAGE",
+    "packages": [
+      "A包"
+    ],
+    "market_code": "HE"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_50c19f25b8203a20",
+    "event_type": "CORRECTION",
+    "project_number": "JH25-210000-04401",
+    "project_name": "大连医科大学附属第二医院肿瘤内科会议服务项目",
+    "notice_title": "大连医科大学附属第二医院肿瘤内科会议服务项目更正公告",
+    "published_at": "2026-09-28",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27407407.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 采购文件 更正内容： 1.获取招标文件时间变更为：2026年9月18日23时00分至2026年10月11日00时00分，（北京时间，法定节假日除外）； 2.提交投标文件截止时间、开标时间变更为：2026年10月14日08点30分（北京时间）； 3.商务条款-★服务要求-1.质保要求增加“会议结束后7日内，对招标人使用回放、会议相关系统操作提供技术答疑支持。”、3.售后要求增加“会议结束后5个工作日内，交付完整会议录像文件、直播回放地址、交互记录等学术会议全部音视频、过程材料。回放链接保障可正常访问不少于15天。”。 其他内容不变，请各投标人登录系统下载更正后的招标文件。 更正日期：2026年09月28日14时52分",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "LN"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_41c21eaa796ec6c7",
+    "event_type": "CORRECTION",
+    "project_number": "JH26-211321-00113",
+    "project_name": "朝阳县中心医院高压氧仓设备采购",
+    "notice_title": "朝阳县中心医院高压氧仓设备采购更正公告",
+    "published_at": "2026-09-28",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27405744.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 采购文件 更正内容： 对第一章 投标人须知39.3质疑中联系方式进行变更 更正日期：2026年09月28日11时24分",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "LN"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_2cb80b2145a6e9ad",
+    "event_type": "CORRECTION",
+    "project_number": "JH26-210522-00828",
+    "project_name": "桓仁满族自治县人民医院能力提升设备采购项目",
+    "notice_title": "桓仁满族自治县人民医院能力提升设备采购项目更正公告",
+    "published_at": "2026-09-26",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260926_27404471.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 采购文件 更正内容： 1.对招标文件投标人须知17.1 加密备份投标文件递交要求 进行更正； 2.对招标文件投标文件内容及格式 格式11 分项报价表 进行更正； 3.对招标文件货物需求 品目26、品目27、品目32 部分参数进行更正。 其他内容不变，具体详见更正后的招标文件。 更正日期：2026年09月26日11时46分",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "LN"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_d480b177a365a454",
+    "event_type": "CORRECTION",
+    "project_number": "JH26-210000-47010",
+    "project_name": "辽宁省检验检测认证中心药检院购置基质辅助激光解吸电离飞行时间质谱仪（等）项目",
+    "notice_title": "辽宁省检验检测认证中心药检院购置基质辅助激光解吸电离飞行时间质谱仪（等）项目更正公告",
+    "published_at": "2026-09-24",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27395926.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 采购文件 更正内容： 1.招标文件技术参数变更：004包产品三：洗笼机，允许进口。 2.开标时间变更为：2026年10月10日 9:30（北京时间） 更正日期：2026年09月24日12时19分",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__material_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "LN"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_aac4a9279b1daef4",
+    "event_type": "CORRECTION",
+    "project_number": "ZY-HWZB-20260703",
+    "project_name": "吉林大学中日联谊医院泌尿外科二病区单元掺铥光纤激光治疗机（半导体激光治疗机）采购项目",
+    "notice_title": "吉林大学中日联谊医院泌尿外科二病区单元掺铥光纤激光治疗机(半导体激光治疗机)采购项目更正公告",
+    "published_at": "2026-09-29",
+    "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gzgg/202609/t20260929_27414992.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 更正内容： 1.原招标公告及招标文件中“提交投标文件截止时间、开标时间”现全部变更为：2026年10月22日09时30分（北京时间） 2.其他内容不变。 更正日期：2026年09月29日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "JL"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "termination_0f6f42ff217fde95",
+    "event_type": "TERMINATION",
+    "project_number": "ZY-HWZB-20260703",
+    "project_name": "吉林大学中日联谊医院泌尿外科二病区单元掺铥光纤激光治疗机(半导体激光治疗机)采购项目",
+    "notice_title": "吉林大学中日联谊医院泌尿外科二病区单元掺铥光纤激光治疗机(半导体激光治疗机)采购项目终止公告",
+    "published_at": "2026-09-24",
+    "source_url": "https://www.ccgp.gov.cn/cggg/zygg/fblbgg/202609/t20260924_27394222.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "本项目由于中标人吉林省亚泰医药物流有限责任公司因自身经营原因向吉林大学中日联谊医院提交了《放弃中标声明函》，明确表示自愿放弃本项目中标资格，拒绝签订采购合同，且经采购人研究决定，本项目不适用顺延至第二中标候选人的情形，故本项目终止招标。",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [],
+    "requires_reconciliation": false,
+    "terminal": true,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "JL"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_798d8b5781ebed95",
+    "event_type": "CORRECTION",
+    "project_number": "JM-2026-09-07714-JLZYHT2026-0901-CG20",
+    "project_name": "长春市第二中等专业学校卫生健康服务专业群临床护理虚拟仿真实训基地",
+    "notice_title": "吉林省中蕴华太科技发展有限公司关于长春市第二中等专业学校卫生健康服务专业群临床护理虚拟仿真实训基地的更正公告",
+    "published_at": "2026-09-23",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260923_27392693.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：更正采购公告 更正内容： 序号 更正项 更正前内容 更正后内容 1 项目编号 项目编号：JM-2026-09-07714 采购计划编号：JLZYHT2026-0901-CG20 项目编号：JLZYHT2026-0901-CG20 采购计划编号：JM-2026-09-07714 2 采购项目编号 采购项目编号：JM-2026-09-07714 采购项目编号：JLZYHT2026-0901-CG20 更正日期：2026年09月23日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "JL"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_b05f84784f064252",
+    "event_type": "CORRECTION",
+    "project_number": "[230001]ZKGS[GK]20260006",
+    "project_name": "自动化生物样本库样本检测设备采购",
+    "notice_title": "哈尔滨医科大学附属第四医院自动化生物样本库样本检测设备采购采购更正公告（第一次）",
+    "published_at": "2026-09-29",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27412718.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 更正原因： 开标时间变更 更正内容： 原公告的投标文件提交截止时间：2026-10-10 13:00:00，更正为：2026-10-12 13:00:00。 原公告的开标时间：2026-10-10 13:00:00，更正为：2026-10-12 13:00:00。 无 其他内容不变 更正日期：2026年09月29日",
+    "changed_fact_paths": [
+      "facts.bid_deadline"
+    ],
+    "fact_overrides": {
+      "facts.bid_deadline": "2026-10-12T13:00:00+08:00"
+    },
+    "unresolved_fact_paths": [],
+    "requires_reconciliation": false,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "HL"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_0857125ee802e78e",
+    "event_type": "CORRECTION",
+    "project_number": "[230231]BC[GK]20260030",
+    "project_name": "中医院医疗设备采购项目",
+    "notice_title": "拜泉县中医院中医院医疗设备采购项目采购更正公告（第一次）",
+    "published_at": "2026-09-28",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27409079.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购文件和采购公告 更正原因： 技术参数，采购标的“十二导联实时动态心电”，星号条款2.2条符号单位输入有误，现澄清 更正内容： 原公告的投标文件提交截止时间：2026-10-08 08:35:00，更正为：2026-10-14 08:35:00。 原公告的开标时间：2026-10-08 08:35:00，更正为：2026-10-14 08:35:00。 详见采购文件 其他内容不变 更正日期：2026年09月28日",
+    "changed_fact_paths": [
+      "facts.bid_deadline"
+    ],
+    "fact_overrides": {
+      "facts.bid_deadline": "2026-10-14T08:35:00+08:00"
+    },
+    "unresolved_fact_paths": [
+      "__material_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "HL"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_48d4330c9e597cbc",
+    "event_type": "CORRECTION",
+    "project_number": "[230225]CQXMGL[GK]20260003-1",
+    "project_name": "紧密型县域医共体五大共享中心改建及设备购置项目(透析设备)(二次)",
+    "notice_title": "甘南县人民医院紧密型县域医共体五大共享中心改建及设备购置项目(透析设备)(二次)采购更正公告（第一次）",
+    "published_at": "2026-09-28",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27407474.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 更正原因： 接到监管部门通知，本项目暂停，具体开标时间另行通知 更正内容： 其他内容不变 更正日期：2026年09月28日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "HL"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_d6859542002d6317",
+    "event_type": "CORRECTION",
+    "project_number": "[230101]FDGJ[GK]20260012",
+    "project_name": "医疗设备及检验设备采购项目二",
+    "notice_title": "哈尔滨市血液中心医疗设备及检验设备采购项目二采购更正公告（第一次）",
+    "published_at": "2026-09-28",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27406853.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购文件和采购公告 更正原因： 采购需求变更 更正内容： 第一包采购需求变更，详见采购文件 其他内容不变 更正日期：2026年09月28日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__material_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "HL"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_e19ed4e4e5f82fbb",
+    "event_type": "CORRECTION",
+    "project_number": "[230103]ALZC[GK]20260005",
+    "project_name": "南岗疾控生活饮用水放射性检测能力建设项目仪器采购",
+    "notice_title": "哈尔滨市南岗区疾病预防控制中心南岗疾控生活饮用水放射性检测能力建设项目仪器采购采购更正公告（第一次）",
+    "published_at": "2026-09-28",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27405643.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 更正原因： 标的提供时间变更为：合同签订后7日 更正内容： 标的提供时间：合同签订后7日 其他内容不变 更正日期：2026年09月28日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "HL"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_bbd388a86d23f95f",
+    "event_type": "CORRECTION",
+    "project_number": "[230001]SC[GK]20260339",
+    "project_name": "检验检测仪器设备更新项目-5",
+    "notice_title": "黑龙江省药品检验研究院检验检测仪器设备更新项目-5采购更正公告（第一次）",
+    "published_at": "2026-09-24",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397811.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购文件和采购公告 更正原因： 采购人增加商务要求 更正内容： 商务要求中验收要求增加“所供货物须为全新，出厂日期至现场货验收日期不超过3个月，出厂日期以设备机身铭牌或出厂合格证为准。” 其他内容不变 更正日期：2026年09月24日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "HL"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_bc14a972edaef674",
+    "event_type": "CORRECTION",
+    "project_number": "[230001]SC[GK]20260335",
+    "project_name": "检验检测仪器设备更新项目-1",
+    "notice_title": "黑龙江省药品检验研究院检验检测仪器设备更新项目-1采购更正公告（第一次）",
+    "published_at": "2026-09-24",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397766.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购文件和采购公告 更正原因： 商务要求中验收要求增加“所供货物须为全新，出厂日期至现场货验收日期不超过3个月，出厂日期以设备机身铭牌或出厂合格证为准。” 更正内容： 无 其他内容不变 更正日期：2026年09月24日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "HL"
+  },
+  {
+    "schema_version": "0.1",
+    "event_id": "correction_a742c49526edfd3c",
+    "event_type": "CORRECTION",
+    "project_number": "[230001]SC[GK]20260236",
+    "project_name": "基建项目第二批医疗设备",
+    "notice_title": "黑龙江省妇幼保健院基建项目第二批医疗设备采购更正公告（第一次）",
+    "published_at": "2026-09-24",
+    "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397262.htm",
+    "observed_at": "2026-09-29T07:40:42.975777+00:00",
+    "summary": "更正事项：采购公告 更正原因： 有潜在供应商对招标文件提出质疑，采购人拟修改招标文件，项目暂停。 更正内容： 无 其他内容不变 更正日期：2026年09月24日",
+    "changed_fact_paths": [],
+    "fact_overrides": {},
+    "unresolved_fact_paths": [
+      "__unparsed_correction__"
+    ],
+    "requires_reconciliation": true,
+    "terminal": false,
+    "scope": "PROJECT",
+    "packages": [],
+    "market_code": "HL"
+  }
+]

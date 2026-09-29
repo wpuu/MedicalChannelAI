@@ -1,4 +1,6 @@
 import type {
+  PublicNoticeSuppressedProject,
+  PublicOfficialNotice,
   PublicAwardLedgerEntry,
   PublicAwardPriceReference,
   PublicAwardPriceReferenceRow,
@@ -206,6 +208,8 @@ export type LegalWindow = PublicLegalWindow
 export type WorkingCalendar = PublicWorkingCalendar
 export type AwardLedgerEntry = PublicAwardLedgerEntry
 export type AwardPriceReference = PublicAwardPriceReference
+export type OfficialNotice = PublicOfficialNotice
+export type NoticeSuppressedProject = PublicNoticeSuppressedProject
 export type AwardPriceReferenceRow = PublicAwardPriceReferenceRow
 export type DeviceFamily = PublicDeviceFamily
 
@@ -216,6 +220,8 @@ export interface TodayActionCard {
   evidence_source_urls: string[]
   /** Derived 质疑期 countdown (财政部令第94号); estimate only, never an official deadline. */
   legal_windows?: LegalWindow[] | null
+  /** Package-scoped official 更正/终止 notices; the opportunity itself stays open. */
+  official_notices?: OfficialNotice[] | null
   customer_context: CustomerContext
   priority: Priority
   match_status: string
@@ -271,6 +277,8 @@ export interface TodayActionsResponse {
   procurement_intent_followup_summary?: ProcurementIntentFollowupSummary
   working_calendar?: WorkingCalendar | null
   awarded_project_count?: number
+  notice_suppressed_project_count?: number
+  notice_suppressed_projects?: NoticeSuppressedProject[]
   award_ledger?: AwardLedgerEntry[]
   award_price_reference?: AwardPriceReference | null
   cards: TodayActionCard[]

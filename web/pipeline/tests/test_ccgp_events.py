@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 from medical_channel_pipeline import build_public_snapshot
-from medical_channel_pipeline.ccgp_events import parse_ccgp_event_text
+from medical_channel_pipeline.ccgp_events import package_refs, parse_ccgp_event_html, parse_ccgp_event_text, validate_notice_events
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -94,6 +94,17 @@ TERMINATION_FIXTURE = """
 三、其他补充事宜：无
 """
 
+PACKAGE_TERMINATION_FIXTURE = """
+终止公告
+发布日期：2026年08月25日
+一、项目基本情况：
+采购项目编号：XCSD-2026-C-181
+采购项目名称：病原微生物能力提升相关设备购置
+二、项目终止的原因：第2包：通过符合性审查的投标人不足3家，本包废标。
+三、其他补充事宜：无
+"""
+
+FIXTURES = Path(__file__).resolve().parent / 'fixtures'
 CORRECTION_URL = 'https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260901_99999999.htm'
 RESPONSE_CORRECTION_URL = 'https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202605/t20260520_99999997.htm'
 
@@ -247,6 +258,106 @@ class CcgpEventTests(unittest.TestCase):
         self.assertEqual(event['event_type'], 'TERMINATION')
         self.assertEqual(event['published_at'], '2026-08-25')
         self.assertTrue(event['terminal'])
+
+    def test_package_refs_are_normalised_and_project_names_with_packages_do_not_count(self) -> None:
+        self.assertEqual(package_refs('市属医院2026年医用设备集中带量采购放射组第14包、第16包废标公告'), ['第14包', '第16包'])
+        self.assertEqual(package_refs('公改示范项目（第一批）-西城区骨健康特色诊疗中心项目（丰盛医院）06包更正公告'), ['第6包'])
+        self.assertEqual(package_refs('某项目第十二包、第二十包废标公告'), ['第12包', '第20包'])
+        self.assertEqual(package_refs('2026年第二批设备采购终止公告'), [])
+        self.assertEqual(package_refs('天津市第一中心医院CT室、DR室改造项目成交公告'), [])
+
+    def test_real_beijing_package_failed_bid_notice_is_package_scoped_not_terminal(self) -> None:
+        event = parse_ccgp_event_html(
+            (FIXTURES / 'ccgp_event_beijing_package_failed_bid.html').read_text(encoding='utf-8'),
+            source_url='https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260924_27401689.htm',
+            observed_at='2026-09-29T12:00:00+00:00',
+            event_id='termination_bj_202601_p14_16',
+        )
+        self.assertEqual(event['event_type'], 'TERMINATION')
+        self.assertEqual(event['project_number'], '202601')
+        self.assertEqual(event['notice_title'], '市属医院2026年医用设备集中带量采购放射组第14包、第16包废标公告')
+        self.assertEqual((event['scope'], event['packages']), ('PACKAGE', ['第14包', '第16包']))
+        self.assertFalse(event['terminal'])
+        self.assertIn('本包废标', event['summary'])
+        # Round-trips through the store validator with the new optional fields.
+        event['market_code'] = 'BJ'
+        self.assertEqual(validate_notice_events([event])[0]['scope'], 'PACKAGE')
+
+    def test_real_beijing_package_correction_and_heilongjiang_project_correction(self) -> None:
+        package = parse_ccgp_event_html(
+            (FIXTURES / 'ccgp_event_beijing_package_correction.html').read_text(encoding='utf-8'),
+            source_url='https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397249.htm',
+            observed_at='2026-09-29T12:00:00+00:00',
+            event_id='correction_bj_fengsheng_p06',
+        )
+        self.assertEqual(package['project_number'], '11010226210200025327-XM001')
+        self.assertEqual((package['scope'], package['packages']), ('PACKAGE', ['第6包']))
+        self.assertTrue(package['requires_reconciliation'])  # parameter change, unparsed
+        project = parse_ccgp_event_html(
+            (FIXTURES / 'ccgp_event_heilongjiang_project_correction.html').read_text(encoding='utf-8'),
+            source_url='https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27407474.htm',
+            observed_at='2026-09-29T12:00:00+00:00',
+            event_id='correction_hl_gannan',
+        )
+        self.assertEqual(project['project_number'], '[230225]CQXMGL[GK]20260003-1')
+        self.assertEqual((project['scope'], project['packages']), ('PROJECT', []))
+        self.assertIn('本项目暂停', project['summary'])
+
+    def test_package_scoped_termination_keeps_card_and_surfaces_official_notice(self) -> None:
+        event = parse_ccgp_event_text(
+            PACKAGE_TERMINATION_FIXTURE,
+            source_url='https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202608/t20260825_99999996.htm',
+            observed_at='2026-08-25T19:00:00+08:00',
+            event_id='termination_xcsd_2026_c_181_p2',
+        )
+        # Text fixtures have no page headline: package scope comes from the 终止原因 lines.
+        self.assertEqual((event['scope'], event['packages']), ('PACKAGE', ['第2包']))
+        self.assertFalse(event['terminal'])
+        as_of = datetime.fromisoformat('2026-08-31T15:00:00+08:00')
+        baseline = build_public_snapshot(copy.deepcopy(self.records), as_of, [])
+        payload = build_public_snapshot(copy.deepcopy(self.records), as_of, [event])
+        self.assertEqual(payload['opportunity_pool_count'], baseline['opportunity_pool_count'])
+        card = next(card for card in payload['opportunity_pool'] if card['opportunity_id'] == 'verified_bhcdc_2026_c_181')
+        self.assertEqual(card['facts']['bid_deadline'], next(
+            item for item in baseline['opportunity_pool'] if item['opportunity_id'] == 'verified_bhcdc_2026_c_181'
+        )['facts']['bid_deadline'])
+        self.assertIn('OFFICIAL_PACKAGE_NOTICE_REPORTED', card['facts']['quality_flags'])
+        self.assertEqual(card['official_notices'], [
+            {
+                'event_type': 'TERMINATION',
+                'scope': 'PACKAGE',
+                'packages': ['第2包'],
+                'published_at': '2026-08-25',
+                'source_url': 'https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202608/t20260825_99999996.htm',
+                'summary': '第2包：通过符合性审查的投标人不足3家，本包废标。',
+            }
+        ])
+        self.assertIn(event['source_url'], card['evidence_source_urls'])
+        other = next(card for card in payload['opportunity_pool'] if card['opportunity_id'] != 'verified_bhcdc_2026_c_181')
+        self.assertIsNone(other['official_notices'])
+
+    def test_events_with_market_code_only_reach_records_of_that_market(self) -> None:
+        event = parse_ccgp_event_text(
+            TERMINATION_FIXTURE,
+            source_url='https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202608/t20260825_99999998.htm',
+            observed_at='2026-08-25T19:00:00+08:00',
+            event_id='termination_xcsd_2026_c_181_bj',
+        )
+        as_of = datetime.fromisoformat('2026-08-31T15:00:00+08:00')
+        baseline = build_public_snapshot(copy.deepcopy(self.records), as_of, [])
+        self.assertTrue(any(card['opportunity_id'] == 'verified_bhcdc_2026_c_181' for card in baseline['opportunity_pool']))
+        # Same number, foreign market: the Tianjin record is untouched.
+        foreign = dict(event, market_code='BJ')
+        payload = build_public_snapshot(copy.deepcopy(self.records), as_of, [foreign])
+        self.assertTrue(any(card['opportunity_id'] == 'verified_bhcdc_2026_c_181' for card in payload['opportunity_pool']))
+        # Explicit Tianjin identity and the legacy market-less form both apply.
+        for applied in (dict(event, market_code='TJ'), event):
+            payload = build_public_snapshot(copy.deepcopy(self.records), as_of, [applied])
+            self.assertFalse(any(card['opportunity_id'] == 'verified_bhcdc_2026_c_181' for card in payload['opportunity_pool']))
+        with self.assertRaisesRegex(ValueError, 'EVENT_MARKET_CODE_INVALID'):
+            validate_notice_events([dict(event, market_code='SH')])
+        with self.assertRaisesRegex(ValueError, 'EVENT_PACKAGE_SCOPE_REQUIRES_PACKAGES'):
+            validate_notice_events([dict(event, scope='PACKAGE', packages=[])])
 
     def test_future_correction_does_not_apply_before_publication(self) -> None:
         event = parse_ccgp_event_text(

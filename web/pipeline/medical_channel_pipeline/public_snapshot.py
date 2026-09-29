@@ -6,7 +6,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from .ccgp_events import validate_notice_events
+from .ccgp_events import event_market_code, event_scope, validate_notice_events
 from .state import market_code_for_record
 from .award_price_reference import build_award_price_reference
 from .ccgp_award import awarded_project_keys, build_public_award_ledger, is_awarded_project, normalize_project_number
@@ -242,15 +242,43 @@ def _event_is_effective(event: dict[str, Any], as_of: datetime) -> bool:
     return published <= as_of.date()
 
 
+OFFICIAL_PACKAGE_NOTICE_FLAG = "OFFICIAL_PACKAGE_NOTICE_REPORTED"
+MAX_OFFICIAL_NOTICES_PER_CARD = 6
+MAX_NOTICE_SUPPRESSED_PROJECTS = 60
+_OFFICIAL_NOTICE_SUMMARY_LIMIT = 160
+
+
+def _official_notice(event: dict[str, Any]) -> dict[str, Any]:
+    summary = str(event.get("summary") or "").strip()
+    if len(summary) > _OFFICIAL_NOTICE_SUMMARY_LIMIT:
+        summary = summary[: _OFFICIAL_NOTICE_SUMMARY_LIMIT - 1].rstrip() + "…"
+    return {
+        "event_type": event["event_type"],
+        "scope": "PACKAGE",
+        "packages": list(event.get("packages") or []),
+        "published_at": event["published_at"],
+        "source_url": event["source_url"],
+        "summary": summary or None,
+    }
+
+
 def _build_event_states(
     notice_events: list[dict[str, Any]],
     as_of: datetime,
-) -> dict[str, dict[str, Any]]:
+) -> dict[tuple[str | None, str], dict[str, Any]]:
+    """Effective 更正/终止 state keyed by ``(market_code | None, project number)``.
+
+    Events carrying an explicit ``market_code`` only ever reach records of
+    that market (a Beijing 终止公告 must not close a Hebei tender with the
+    same number); legacy Tianjin events without one keep the old
+    market-agnostic key and are applied by the publisher to Tianjin records
+    only.
+    """
     events = sorted(
         validate_notice_events(notice_events),
         key=lambda event: (event["published_at"], event["event_id"]),
     )
-    states: dict[str, dict[str, Any]] = {}
+    states: dict[tuple[str | None, str], dict[str, Any]] = {}
     for event in events:
         if not _event_is_effective(event, as_of):
             continue
@@ -258,13 +286,15 @@ def _build_event_states(
         # full-width brackets or stray spaces as often as result notices do.
         project_number = normalize_project_number(event["project_number"])
         state = states.setdefault(
-            project_number,
+            (event_market_code(event), project_number),
             {
                 "terminated": False,
                 "fact_overrides": {},
                 "unresolved_fact_paths": set(),
                 "evidence_source_urls": [],
                 "applied_event_ids": [],
+                "package_notices": [],
+                "latest_project_event": None,
             },
         )
         source_url = event["source_url"]
@@ -272,6 +302,18 @@ def _build_event_states(
             state["evidence_source_urls"].append(source_url)
         state["applied_event_ids"].append(event["event_id"])
 
+        if event_scope(event) == "PACKAGE":
+            # A notice about named packages leaves the rest of the tender open:
+            # never suppress or rewrite the opportunity, surface the notice.
+            state["package_notices"].append(_official_notice(event))
+            continue
+
+        # Events are sorted oldest→newest, so the last project-scoped one wins.
+        state["latest_project_event"] = {
+            "event_type": event["event_type"],
+            "published_at": event["published_at"],
+            "source_url": source_url,
+        }
         if event["event_type"] == "TERMINATION":
             state["terminated"] = True
             continue
@@ -294,14 +336,42 @@ def _build_event_states(
     return states
 
 
+def _notice_suppressed_project(record: dict[str, Any], event_state: dict[str, Any]) -> dict[str, Any]:
+    """Compact public trace of an opportunity hidden because of an official
+    更正/终止 notice — so a vanished project is explainable, never silent."""
+    facts = record["facts"]
+    latest = event_state.get("latest_project_event") or {}
+    return {
+        "market_code": market_code_for_record(record),
+        "project_number": facts.get("project_number"),
+        "project_name": facts.get("project_name"),
+        "buyer_name": facts.get("buyer_name"),
+        "reason": "TERMINATED" if event_state["terminated"] else "CORRECTION_PENDING_REVIEW",
+        "event_type": latest.get("event_type"),
+        "published_at": latest.get("published_at"),
+        "source_url": latest.get("source_url"),
+    }
+
+
+def _lookup_event_state(
+    event_states: dict[tuple[str | None, str], dict[str, Any]],
+    project_number: str,
+    market_code: str | None,
+) -> dict[str, Any] | None:
+    if not project_number:
+        return None
+    normalized_market = str(market_code or "").strip().upper() or None
+    return event_states.get((normalized_market, project_number)) or event_states.get((None, project_number))
+
+
 def _apply_event_state(
     record: dict[str, Any],
     event_state: dict[str, Any] | None,
-) -> tuple[dict[str, Any] | None, list[str]]:
+) -> tuple[dict[str, Any] | None, list[str], list[dict[str, Any]]]:
     if not event_state:
-        return record, []
+        return record, [], []
     if event_state["terminated"] or event_state["unresolved_fact_paths"]:
-        return None, []
+        return None, [], []
 
     updated = deepcopy(record)
     facts = updated["facts"]
@@ -313,12 +383,17 @@ def _apply_event_state(
         facts[key] = value
         applied_paths.append(path)
 
-    if applied_paths:
-        flags = list(updated.get("quality_flags") or [])
-        if "OFFICIAL_CORRECTION_APPLIED" not in flags:
-            flags.append("OFFICIAL_CORRECTION_APPLIED")
+    flags = list(updated.get("quality_flags") or [])
+    if applied_paths and "OFFICIAL_CORRECTION_APPLIED" not in flags:
+        flags.append("OFFICIAL_CORRECTION_APPLIED")
+    package_notices = list(event_state.get("package_notices") or [])
+    if package_notices and OFFICIAL_PACKAGE_NOTICE_FLAG not in flags:
+        flags.append(OFFICIAL_PACKAGE_NOTICE_FLAG)
+    if flags != list(updated.get("quality_flags") or []):
         updated["quality_flags"] = flags
-    return updated, list(event_state["evidence_source_urls"])
+    # Newest notice first, bounded so a many-package 集采 cannot bloat the card.
+    package_notices.sort(key=lambda item: (item["published_at"], item["source_url"]), reverse=True)
+    return updated, list(event_state["evidence_source_urls"]), package_notices[:MAX_OFFICIAL_NOTICES_PER_CARD]
 
 
 def _record_evidence_urls(record: dict[str, Any]) -> list[str]:
@@ -339,6 +414,7 @@ def _public_card(
     rank: int,
     as_of: datetime,
     correction_evidence_urls: list[str] | None = None,
+    official_notices: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     facts = record["facts"]
     quality_flags = list(record.get("quality_flags") or [])
@@ -386,6 +462,10 @@ def _public_card(
         # Derived statutory windows (财政部令第94号). Deliberately outside
         # ``facts``: it is an estimate recomputed at runtime, not a verified fact.
         "legal_windows": legal_windows_for_facts(facts, as_of, quality_flags),
+        # Official 更正/终止/废标 notices that concern named packages only. The
+        # opportunity stays open for the other packages; the seller must read
+        # the notice. Empty → null.
+        "official_notices": list(official_notices) if official_notices else None,
         "customer_context": {
             "context_type": "CUSTOMER_PRIVATE_FACTS",
             "business_role": None,
@@ -524,17 +604,20 @@ def build_public_snapshot(
     # (the same way a termination does) and surface in the award ledger.
     awarded_projects = awarded_project_keys(award_records, as_of)
     awarded_project_count = 0
+    notice_suppressed: list[dict[str, Any]] = []
 
-    sortable: list[tuple[int, float, float, str, dict[str, Any], list[str]]] = []
+    sortable: list[tuple[int, float, float, str, dict[str, Any], list[str], list[dict[str, Any]]]] = []
     for record in validated:
         facts = record["facts"]
         project_number = normalize_project_number(facts.get("project_number"))
-        if project_number and is_awarded_project(awarded_projects, project_number, market_code_for_record(record)):
+        record_market = market_code_for_record(record)
+        if project_number and is_awarded_project(awarded_projects, project_number, record_market):
             awarded_project_count += 1
             continue
-        event_state = event_states.get(project_number) if project_number else None
-        effective_record, correction_urls = _apply_event_state(record, event_state)
+        event_state = _lookup_event_state(event_states, project_number, record_market)
+        effective_record, correction_urls, official_notices = _apply_event_state(record, event_state)
         if effective_record is None:
+            notice_suppressed.append(_notice_suppressed_project(record, event_state))
             continue
 
         effective_facts = effective_record["facts"]
@@ -560,12 +643,13 @@ def build_public_snapshot(
                 effective_record["opportunity_id"],
                 effective_record,
                 correction_urls,
+                official_notices,
             )
         )
 
     sortable.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
     opportunity_pool = [
-        _public_card(item[4], rank + 1, as_of, item[5])
+        _public_card(item[4], rank + 1, as_of, item[5], item[6])
         for rank, item in enumerate(sortable)
     ]
     cards = opportunity_pool[:MAX_TODAY_CARDS]
@@ -581,6 +665,14 @@ def build_public_snapshot(
         "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
         "working_calendar": working_calendar_payload(),
         "awarded_project_count": awarded_project_count,
+        # Opportunities hidden by an official 更正/终止 notice (project scope):
+        # the count is exact, the list is newest-first and bounded.
+        "notice_suppressed_project_count": len(notice_suppressed),
+        "notice_suppressed_projects": sorted(
+            notice_suppressed,
+            key=lambda item: (str(item.get("published_at") or ""), str(item.get("project_number") or "")),
+            reverse=True,
+        )[:MAX_NOTICE_SUPPRESSED_PROJECTS],
         "award_ledger": build_public_award_ledger(award_records, as_of),
         "award_price_reference": build_award_price_reference(award_records, as_of),
         "cards": cards,

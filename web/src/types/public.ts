@@ -138,12 +138,40 @@ export interface PublicWorkingCalendar {
   award_notice_period_working_days?: number
 }
 
+/**
+ * Official 更正/终止/废标 notice that concerns named packages only (see
+ * pipeline/medical_channel_pipeline/ccgp_events.py). Project-scoped notices
+ * never reach the card: they hide the opportunity and are listed in
+ * `notice_suppressed_projects` instead.
+ */
+export interface PublicOfficialNotice {
+  event_type: 'CORRECTION' | 'TERMINATION'
+  scope: 'PACKAGE'
+  packages: string[]
+  published_at: string
+  source_url: string
+  summary: string | null
+}
+
+/** An opportunity hidden because of an official project-scoped 更正/终止 notice. */
+export interface PublicNoticeSuppressedProject {
+  market_code: string | null
+  project_number: string | null
+  project_name: string | null
+  buyer_name: string | null
+  reason: 'TERMINATED' | 'CORRECTION_PENDING_REVIEW'
+  event_type: 'CORRECTION' | 'TERMINATION' | null
+  published_at: string | null
+  source_url: string | null
+}
+
 export interface PublicTodayActionCard {
   rank: number
   opportunity_id: string
   facts: PublicFacts
   evidence_source_urls: string[]
   legal_windows?: PublicLegalWindow[] | null
+  official_notices?: PublicOfficialNotice[] | null
   customer_context: PublicCustomerContext
   priority: PublicPriority
   match_status: PublicMatchStatus
@@ -285,6 +313,8 @@ export interface TodayActionsPublicResponse {
   working_calendar?: PublicWorkingCalendar | null
   /** Pool records retired because an official 中标/成交 result is published. */
   awarded_project_count?: number
+  notice_suppressed_project_count?: number
+  notice_suppressed_projects?: PublicNoticeSuppressedProject[]
   /** Newest-first, bounded ledger of published awards (may be empty). */
   award_ledger?: PublicAwardLedgerEntry[]
   /** 成交价参考: brand × model × unit price lines from published awards. */

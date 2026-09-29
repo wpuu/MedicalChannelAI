@@ -5,9 +5,41 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .ccgp_detail import html_to_text
+from .validation import MARKET_ADMIN_CODES
 
 CCGP_HOSTS = {"ccgp.gov.cn", "www.ccgp.gov.cn"}
 EVENT_TYPES = {"CORRECTION", "TERMINATION"}
+EVENT_SCOPES = {"PROJECT", "PACKAGE"}
+# "第14包、第16包废标公告" / "06包更正公告" / "第1包终止公告" / "A包" — a notice that
+# names packages in its title concerns those packages only; the rest of the
+# tender stays open.
+_PACKAGE_REF_RE = re.compile(
+    r"第\s*([0-9０-９]{1,3}|[一二三四五六七八九十]{1,3})\s*(?:包|标段|分包)"
+    r"|(?<![0-9０-９A-Za-z])([0-9０-９]{1,2})\s*(?:包|标段)(?![0-9０-９装])"
+    r"|(?<![A-Za-z0-9])([A-Z])\s*(?:包|标段)(?![A-Za-z装])"
+)
+_WHOLE_PROJECT_MARKERS = ("全部包", "所有包", "各包", "全部标段", "所有标段", "本项目全部", "整体终止")
+_NOTICE_TITLE_RE = re.compile(
+    r"(?:终止|更正|废标|流标|变更|澄清|暂停)公告\s+"
+    r"(?P<title>[^»|]{6,160}?(?:终止|废标|流标|更正|变更|澄清|暂停)公告(?:\s*[（(]第[^）)]{1,6}次[）)])?)"
+    r"\s+20\d{2}年\d{1,2}月\d{1,2}日"
+)
+_FULLWIDTH_DIGITS = str.maketrans("０１２３４５６７８９", "0123456789")
+_CN_DIGITS = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
+
+
+def _cn_numeral_to_int(value: str) -> int | None:
+    """一..九十九 → int (``None`` when not a plain Chinese numeral)."""
+    if not value or any(char not in _CN_DIGITS and char != "十" for char in value):
+        return None
+    if "十" not in value:
+        return _CN_DIGITS[value] if len(value) == 1 else None
+    tens, _, ones = value.partition("十")
+    tens_value = _CN_DIGITS[tens] if tens else 1
+    ones_value = _CN_DIGITS[ones] if ones else 0
+    if (tens and len(tens) != 1) or (ones and len(ones) != 1):
+        return None
+    return tens_value * 10 + ones_value
 TRACKED_CORRECTION_PATHS = {
     "facts.registration_deadline",
     "facts.bid_deadline",
@@ -65,6 +97,53 @@ def _extract_project_number(text: str) -> str:
         if match:
             return match.group(1).strip()
     raise CcgpEventParseError("CCGP_EVENT_PROJECT_NUMBER_NOT_FOUND")
+
+
+def _extract_notice_title(text: str) -> str | None:
+    """The notice headline (breadcrumb-free) as shown on the CCGP page."""
+    match = _NOTICE_TITLE_RE.search(text)
+    if not match:
+        return None
+    return _normalize_space(match.group("title"))
+
+
+def package_refs(value: str | None) -> list[str]:
+    """Package labels named in ``value`` (normalised to ``第14包`` / ``A包``)."""
+    refs: list[str] = []
+    for match in _PACKAGE_REF_RE.finditer(str(value or "")):
+        numeric, bare, letter = match.groups()
+        raw = numeric or bare or letter or ""
+        label = raw.translate(_FULLWIDTH_DIGITS)
+        cn_value = _cn_numeral_to_int(label)
+        if label.isdigit():
+            label = f"第{int(label)}包"
+        elif cn_value is not None:
+            label = f"第{cn_value}包"
+        elif letter:
+            label = f"{label}包"
+        else:
+            label = f"第{label}包"
+        if label not in refs:
+            refs.append(label)
+    return refs
+
+
+def _event_scope(title: str | None, project_name: str | None, summary: str | None) -> tuple[str, list[str]]:
+    """``("PACKAGE", [...])`` when the notice provably concerns named packages
+    only, otherwise ``("PROJECT", [])`` (the fail-closed default that suppresses
+    the whole opportunity, as before)."""
+    haystack = " ".join(part for part in (title, summary) if part)
+    if any(marker in haystack for marker in _WHOLE_PROJECT_MARKERS):
+        return "PROJECT", []
+    name_refs = set(package_refs(project_name))
+    title_refs = [ref for ref in package_refs(title) if ref not in name_refs]
+    if title_refs:
+        return "PACKAGE", title_refs
+    if summary and ("本包" in summary or "该包" in summary):
+        summary_refs = [ref for ref in package_refs(summary) if ref not in name_refs]
+        if summary_refs:
+            return "PACKAGE", summary_refs
+    return "PROJECT", []
 
 
 def _extract_project_name(text: str) -> str | None:
@@ -226,7 +305,7 @@ def parse_ccgp_event_text(
     _assert_source_url(source_url)
     normalized = _normalize_space(text.replace("\xa0", " "))
 
-    if "终止公告" in normalized:
+    if "终止公告" in normalized or "废标公告" in normalized or "流标公告" in normalized:
         event_type = "TERMINATION"
     elif "更正公告" in normalized or "更正信息" in normalized:
         event_type = "CORRECTION"
@@ -236,11 +315,12 @@ def parse_ccgp_event_text(
     project_number = _extract_project_number(normalized)
     project_name = _extract_project_name(normalized)
     published_at = _extract_published_date(normalized, event_type)
+    notice_title = _extract_notice_title(normalized)
 
     if event_type == "TERMINATION":
         summary = _extract_section(
             normalized,
-            r"二[、.]\s*项目终止的原因\s*[：:]?",
+            r"二[、.]\s*(?:项目终止的原因|废标(?:理由|原因)|流标(?:理由|原因)|终止原因)\s*[：:]?",
             r"三[、.]\s*其他补充事宜",
         )
         changed_fact_paths: list[str] = []
@@ -257,12 +337,14 @@ def parse_ccgp_event_text(
             summary,
         )
 
+    scope, packages = _event_scope(notice_title, project_name, summary)
     return {
         "schema_version": "0.1",
         "event_id": event_id,
         "event_type": event_type,
         "project_number": project_number,
         "project_name": project_name,
+        "notice_title": notice_title,
         "published_at": published_at,
         "source_url": source_url,
         "observed_at": observed_at,
@@ -271,8 +353,24 @@ def parse_ccgp_event_text(
         "fact_overrides": fact_overrides,
         "unresolved_fact_paths": unresolved_fact_paths,
         "requires_reconciliation": event_type == "CORRECTION" and bool(unresolved_fact_paths),
-        "terminal": event_type == "TERMINATION",
+        "terminal": event_type == "TERMINATION" and scope == "PROJECT",
+        # PACKAGE-scoped notices never suppress the opportunity; the snapshot
+        # surfaces them as official notices on the card instead.
+        "scope": scope,
+        "packages": packages,
     }
+
+
+def event_scope(event: dict[str, Any]) -> str:
+    """Scope of a stored event; legacy events without the field are PROJECT."""
+    scope = event.get("scope")
+    return scope if scope in EVENT_SCOPES else "PROJECT"
+
+
+def event_market_code(event: dict[str, Any]) -> str | None:
+    """Explicit market identity of an event (``None`` for legacy Tianjin-only stores)."""
+    code = str(event.get("market_code") or "").strip().upper()
+    return code or None
 
 
 def parse_ccgp_event_html(
@@ -328,6 +426,19 @@ def validate_notice_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]
         for value in fact_overrides.values():
             if not isinstance(value, str) or not value.endswith("+08:00"):
                 raise ValueError("EVENT_FACT_OVERRIDE_VALUE_INVALID")
+
+        market_code = event.get("market_code")
+        if market_code is not None:
+            if not isinstance(market_code, str) or market_code.strip().upper() not in MARKET_ADMIN_CODES:
+                raise ValueError(f"EVENT_MARKET_CODE_INVALID:{market_code}")
+        scope = event.get("scope")
+        if scope is not None and scope not in EVENT_SCOPES:
+            raise ValueError(f"EVENT_SCOPE_INVALID:{scope}")
+        packages = event.get("packages")
+        if packages is not None and (not isinstance(packages, list) or not all(isinstance(item, str) for item in packages)):
+            raise ValueError("EVENT_PACKAGES_INVALID")
+        if scope == "PACKAGE" and not packages:
+            raise ValueError("EVENT_PACKAGE_SCOPE_REQUIRES_PACKAGES")
 
         validated.append(event)
     return validated

@@ -1,0 +1,929 @@
+{
+  "schema_version": "0.1",
+  "record_type": "NOTICE_EVENT",
+  "observed_at": "2026-09-29T07:40:42.975777+00:00",
+  "market_codes": [
+    "BJ",
+    "HE",
+    "LN",
+    "JL",
+    "HL"
+  ],
+  "per_market_time_budget_seconds": 150.0,
+  "elapsed_seconds": 518.226,
+  "new_event_count": 30,
+  "matched_candidate_count": 37,
+  "number_mismatch_count": 4,
+  "region_mismatch_count": 0,
+  "failure_count": 2,
+  "merged_event_count": 30,
+  "merged_event_count_by_market": {
+    "BJ": 10,
+    "HE": 5,
+    "HL": 8,
+    "JL": 3,
+    "LN": 4
+  },
+  "markets_publish_allowed": {
+    "BJ": true,
+    "HE": true,
+    "LN": true,
+    "JL": true,
+    "HL": true
+  },
+  "publish_allowed": true,
+  "publish_gate_reason": "OK",
+  "markets": {
+    "BJ": {
+      "schema_version": "0.1",
+      "record_type": "NOTICE_EVENT",
+      "observed_at": "2026-09-29T07:40:42.975777+00:00",
+      "region": "北京",
+      "market_code": "BJ",
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "keywords": [
+        "医院",
+        "医疗",
+        "检验",
+        "疾病预防控制",
+        "卫生健康"
+      ],
+      "notice_types": [
+        "更正公告",
+        "终止公告"
+      ],
+      "planned_discovery_query_count": 10,
+      "discovery_success_count": 10,
+      "open_pool_project_count": 146,
+      "discovered_row_count": 26,
+      "region_mismatch_count": 0,
+      "region_mismatches": [],
+      "unmatched_title_count": 16,
+      "matched_candidate_count": 10,
+      "matched_candidates": [
+        {
+          "title": "北京市疾病预防控制中心新址其他设备设施采购（第3包）废标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260928_27406226.htm",
+          "published_at": "2026-09-28",
+          "match_kind": "NAME",
+          "pool_project_number": "11000026210200175844-xm001"
+        },
+        {
+          "title": "北京华信医院（清华大学第一附属医院）危重新生儿救治中心能力提升项目更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gzgg/202609/t20260924_27395865.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "清华一附院采招【2026】23号/xhtc-hw-2026-1163"
+        },
+        {
+          "title": "公改示范项目（第一批）-西城区骨健康特色诊疗中心项目（丰盛医院）06包更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397249.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "11010226210200025327-xm001"
+        },
+        {
+          "title": "市属医院2026年医用设备集中带量采购放射组第14包、第16包废标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260924_27401689.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "202601"
+        },
+        {
+          "title": "市属医院2026年医用设备集中带量采购放射组（二）第8包废标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260924_27397583.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "202601"
+        },
+        {
+          "title": "经开区荣华社区卫生服务中心医疗设备购置（第二包）废标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260924_27393414.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "999100034000061089-jh001-xm001"
+        },
+        {
+          "title": "市属医院2026年医用设备集中带量采购放射组（一）-第5包废标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260923_27388449.htm",
+          "published_at": "2026-09-23",
+          "match_kind": "NAME",
+          "pool_project_number": "202601"
+        },
+        {
+          "title": "海淀区高层次人才专项经费医疗设备购置项目射频消融设备废标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260923_27387654.htm",
+          "published_at": "2026-09-23",
+          "match_kind": "NAME",
+          "pool_project_number": "11010826210200059052-xm001"
+        },
+        {
+          "title": "龙潭中心医疗设备购置第二包、第三包废标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260923_27385479.htm",
+          "published_at": "2026-09-23",
+          "match_kind": "NAME",
+          "pool_project_number": "11010126210200022046-xm001"
+        },
+        {
+          "title": "中国医学科学院北京协和医院彩色超声诊断仪（一）采购项目第1包终止公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/fblbgg/202609/t20260922_27377505.htm",
+          "published_at": "2026-09-22",
+          "match_kind": "NAME",
+          "pool_project_number": "0733-26114578"
+        }
+      ],
+      "selected_detail_count": 10,
+      "new_event_count": 10,
+      "new_events": [
+        {
+          "event_id": "termination_b1f4ffef180621f6",
+          "event_type": "TERMINATION",
+          "scope": "PACKAGE",
+          "packages": [
+            "第3包"
+          ],
+          "project_number": "11000026210200175844-XM001",
+          "published_at": "2026-09-28",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260928_27406226.htm"
+        },
+        {
+          "event_id": "correction_0b3d3be6a7802715",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "清华一附院采招【2026】23号/XHTC-HW-2026-1163",
+          "published_at": "2026-09-24",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gzgg/202609/t20260924_27395865.htm"
+        },
+        {
+          "event_id": "correction_be1798ffe01dc821",
+          "event_type": "CORRECTION",
+          "scope": "PACKAGE",
+          "packages": [
+            "第6包"
+          ],
+          "project_number": "11010226210200025327-XM001",
+          "published_at": "2026-09-24",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397249.htm"
+        },
+        {
+          "event_id": "termination_3c63b50008797429",
+          "event_type": "TERMINATION",
+          "scope": "PACKAGE",
+          "packages": [
+            "第14包",
+            "第16包"
+          ],
+          "project_number": "202601",
+          "published_at": "2026-09-24",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260924_27401689.htm"
+        },
+        {
+          "event_id": "termination_d9f6cc91df563d9b",
+          "event_type": "TERMINATION",
+          "scope": "PACKAGE",
+          "packages": [
+            "第8包"
+          ],
+          "project_number": "202601",
+          "published_at": "2026-09-02",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260924_27397583.htm"
+        },
+        {
+          "event_id": "termination_2c05fdf5202b1ea1",
+          "event_type": "TERMINATION",
+          "scope": "PACKAGE",
+          "packages": [
+            "第2包"
+          ],
+          "project_number": "999100034000061089-JH001-XM001",
+          "published_at": "2026-09-24",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260924_27393414.htm"
+        },
+        {
+          "event_id": "termination_b0f9fbabf5be2499",
+          "event_type": "TERMINATION",
+          "scope": "PACKAGE",
+          "packages": [
+            "第5包"
+          ],
+          "project_number": "202601",
+          "published_at": "2026-09-23",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260923_27388449.htm"
+        },
+        {
+          "event_id": "termination_ee864dede53dab75",
+          "event_type": "TERMINATION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "11010826210200059052-XM001",
+          "published_at": "2026-09-23",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260923_27387654.htm"
+        },
+        {
+          "event_id": "termination_3108235651985595",
+          "event_type": "TERMINATION",
+          "scope": "PACKAGE",
+          "packages": [
+            "第2包",
+            "第3包"
+          ],
+          "project_number": "11010126210200022046-XM001",
+          "published_at": "2026-09-23",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260923_27385479.htm"
+        },
+        {
+          "event_id": "termination_435dcf6f4324c487",
+          "event_type": "TERMINATION",
+          "scope": "PACKAGE",
+          "packages": [
+            "第1包"
+          ],
+          "project_number": "0733-26114578",
+          "published_at": "2026-09-22",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/fblbgg/202609/t20260922_27377505.htm"
+        }
+      ],
+      "number_mismatch_count": 0,
+      "number_mismatches": [],
+      "failure_count": 0,
+      "failures": [],
+      "skipped_count": 0,
+      "skipped": [],
+      "time_budget_seconds": 150.0,
+      "time_budget_exhausted": false,
+      "elapsed_seconds": 105.217,
+      "publish_allowed": true,
+      "publish_gate_reason": "OK",
+      "policy": {
+        "keyword_discovery_not_per_project_search": true,
+        "row_geography_must_prove_market": true,
+        "detail_fetched_only_for_titles_matching_pool_number_or_name": true,
+        "event_kept_only_when_detail_project_number_matches_pool": true,
+        "discovery_only_fallback_requires_project_number_in_title": true,
+        "every_event_carries_market_code": true,
+        "package_scoped_notices_never_suppress_the_opportunity": true,
+        "requests_stop_when_time_budget_is_exhausted": true,
+        "rate_limit_bypass": false,
+        "minimum_request_delay_seconds": 4.0
+      }
+    },
+    "HE": {
+      "schema_version": "0.1",
+      "record_type": "NOTICE_EVENT",
+      "observed_at": "2026-09-29T07:40:42.975777+00:00",
+      "region": "河北",
+      "market_code": "HE",
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "keywords": [
+        "医院",
+        "医疗",
+        "检验",
+        "疾病预防控制",
+        "卫生健康"
+      ],
+      "notice_types": [
+        "更正公告",
+        "终止公告"
+      ],
+      "planned_discovery_query_count": 10,
+      "discovery_success_count": 9,
+      "open_pool_project_count": 160,
+      "discovered_row_count": 17,
+      "region_mismatch_count": 0,
+      "region_mismatches": [],
+      "unmatched_title_count": 12,
+      "matched_candidate_count": 5,
+      "matched_candidates": [
+        {
+          "title": "首都医科大学附属北京儿童医院保定医院绩效方案及绩效系统升级优化采购项目更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27413916.htm",
+          "published_at": "2026-09-29",
+          "match_kind": "NAME",
+          "pool_project_number": "hbfy2026-bs-010"
+        },
+        {
+          "title": "邱县2026年医疗服务能力与保障能力提升（古城营镇卫生院核磁共振医学影像系统采购项目）更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397680.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "hbcx-20260911"
+        },
+        {
+          "title": "儿科一批医疗设备采购项目二次C包更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260923_27391484.htm",
+          "published_at": "2026-09-23",
+          "match_kind": "NAME",
+          "pool_project_number": "hbds2026-028zc"
+        },
+        {
+          "title": "张北县妇幼保健院医疗服务与保障能力提升项目B包更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260922_27379356.htm",
+          "published_at": "2026-09-22",
+          "match_kind": "NAME",
+          "pool_project_number": "hbly-2026-zcgk022"
+        },
+        {
+          "title": "张北县妇幼保健院医疗服务与保障能力提升项目A包更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260922_27379344.htm",
+          "published_at": "2026-09-22",
+          "match_kind": "NAME",
+          "pool_project_number": "hbly-2026-zcgk022"
+        }
+      ],
+      "selected_detail_count": 5,
+      "new_event_count": 5,
+      "new_events": [
+        {
+          "event_id": "correction_b8c2328583826afa",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "HBFY2026-BS-010",
+          "published_at": "2026-09-29",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27413916.htm"
+        },
+        {
+          "event_id": "correction_ca4db6825fb5ff3a",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "HBCX-20260911",
+          "published_at": "2026-09-24",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397680.htm"
+        },
+        {
+          "event_id": "correction_f00c859a6a5e78b4",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "HBDS2026-028ZC",
+          "published_at": "2026-09-23",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260923_27391484.htm"
+        },
+        {
+          "event_id": "correction_95fb4fdd5af1ddbf",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "HBLY-2026-ZCGK022",
+          "published_at": "2026-09-22",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260922_27379356.htm"
+        },
+        {
+          "event_id": "correction_bec7bdd8815568ea",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "HBLY-2026-ZCGK022",
+          "published_at": "2026-09-22",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260922_27379344.htm"
+        }
+      ],
+      "number_mismatch_count": 0,
+      "number_mismatches": [],
+      "failure_count": 1,
+      "failures": [
+        {
+          "stage": "event_discovery_search",
+          "region": "河北",
+          "notice_type": "更正公告",
+          "keyword": "疾病预防控制",
+          "error": "TimeoutError",
+          "message": "The read operation timed out"
+        }
+      ],
+      "skipped_count": 0,
+      "skipped": [],
+      "time_budget_seconds": 150.0,
+      "time_budget_exhausted": false,
+      "elapsed_seconds": 107.974,
+      "publish_allowed": true,
+      "publish_gate_reason": "OK",
+      "policy": {
+        "keyword_discovery_not_per_project_search": true,
+        "row_geography_must_prove_market": true,
+        "detail_fetched_only_for_titles_matching_pool_number_or_name": true,
+        "event_kept_only_when_detail_project_number_matches_pool": true,
+        "discovery_only_fallback_requires_project_number_in_title": true,
+        "every_event_carries_market_code": true,
+        "package_scoped_notices_never_suppress_the_opportunity": true,
+        "requests_stop_when_time_budget_is_exhausted": true,
+        "rate_limit_bypass": false,
+        "minimum_request_delay_seconds": 4.0
+      }
+    },
+    "LN": {
+      "schema_version": "0.1",
+      "record_type": "NOTICE_EVENT",
+      "observed_at": "2026-09-29T07:40:42.975777+00:00",
+      "region": "辽宁",
+      "market_code": "LN",
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "keywords": [
+        "医院",
+        "医疗",
+        "检验",
+        "疾病预防控制",
+        "卫生健康"
+      ],
+      "notice_types": [
+        "更正公告",
+        "终止公告"
+      ],
+      "planned_discovery_query_count": 10,
+      "discovery_success_count": 9,
+      "open_pool_project_count": 79,
+      "discovered_row_count": 21,
+      "region_mismatch_count": 0,
+      "region_mismatches": [],
+      "unmatched_title_count": 17,
+      "matched_candidate_count": 4,
+      "matched_candidates": [
+        {
+          "title": "大连医科大学附属第二医院肿瘤内科会议服务项目更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27407407.htm",
+          "published_at": "2026-09-28",
+          "match_kind": "NAME",
+          "pool_project_number": "jh25-210000-04401"
+        },
+        {
+          "title": "朝阳县中心医院高压氧仓设备采购更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27405744.htm",
+          "published_at": "2026-09-28",
+          "match_kind": "NAME",
+          "pool_project_number": "jh26-211321-00113"
+        },
+        {
+          "title": "桓仁满族自治县人民医院能力提升设备采购项目更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260926_27404471.htm",
+          "published_at": "2026-09-26",
+          "match_kind": "NAME",
+          "pool_project_number": "jh26-210522-00828"
+        },
+        {
+          "title": "辽宁省检验检测认证中心药检院购置基质辅助激光解吸电离飞行时间质谱仪（等）项目更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27395926.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "jh26-210000-47010"
+        }
+      ],
+      "selected_detail_count": 4,
+      "new_event_count": 4,
+      "new_events": [
+        {
+          "event_id": "correction_50c19f25b8203a20",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "JH25-210000-04401",
+          "published_at": "2026-09-28",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27407407.htm"
+        },
+        {
+          "event_id": "correction_41c21eaa796ec6c7",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "JH26-211321-00113",
+          "published_at": "2026-09-28",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27405744.htm"
+        },
+        {
+          "event_id": "correction_2cb80b2145a6e9ad",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "JH26-210522-00828",
+          "published_at": "2026-09-26",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260926_27404471.htm"
+        },
+        {
+          "event_id": "correction_d480b177a365a454",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "JH26-210000-47010",
+          "published_at": "2026-09-24",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27395926.htm"
+        }
+      ],
+      "number_mismatch_count": 0,
+      "number_mismatches": [],
+      "failure_count": 1,
+      "failures": [
+        {
+          "stage": "event_discovery_search",
+          "region": "辽宁",
+          "notice_type": "更正公告",
+          "keyword": "医疗",
+          "error": "TimeoutError",
+          "message": "The read operation timed out"
+        }
+      ],
+      "skipped_count": 0,
+      "skipped": [],
+      "time_budget_seconds": 150.0,
+      "time_budget_exhausted": false,
+      "elapsed_seconds": 102.766,
+      "publish_allowed": true,
+      "publish_gate_reason": "OK",
+      "policy": {
+        "keyword_discovery_not_per_project_search": true,
+        "row_geography_must_prove_market": true,
+        "detail_fetched_only_for_titles_matching_pool_number_or_name": true,
+        "event_kept_only_when_detail_project_number_matches_pool": true,
+        "discovery_only_fallback_requires_project_number_in_title": true,
+        "every_event_carries_market_code": true,
+        "package_scoped_notices_never_suppress_the_opportunity": true,
+        "requests_stop_when_time_budget_is_exhausted": true,
+        "rate_limit_bypass": false,
+        "minimum_request_delay_seconds": 4.0
+      }
+    },
+    "JL": {
+      "schema_version": "0.1",
+      "record_type": "NOTICE_EVENT",
+      "observed_at": "2026-09-29T07:40:42.975777+00:00",
+      "region": "吉林",
+      "market_code": "JL",
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "keywords": [
+        "医院",
+        "医疗",
+        "检验",
+        "疾病预防控制",
+        "卫生健康"
+      ],
+      "notice_types": [
+        "更正公告",
+        "终止公告"
+      ],
+      "planned_discovery_query_count": 10,
+      "discovery_success_count": 10,
+      "open_pool_project_count": 117,
+      "discovered_row_count": 26,
+      "region_mismatch_count": 0,
+      "region_mismatches": [],
+      "unmatched_title_count": 21,
+      "matched_candidate_count": 5,
+      "matched_candidates": [
+        {
+          "title": "吉林大学中日联谊医院泌尿外科二病区单元掺铥光纤激光治疗机(半导体激光治疗机)采购项目更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gzgg/202609/t20260929_27414992.htm",
+          "published_at": "2026-09-29",
+          "match_kind": "NAME",
+          "pool_project_number": "zy-hwzb-20260703"
+        },
+        {
+          "title": "吉林大学中日联谊医院泌尿外科二病区单元掺铥光纤激光治疗机(半导体激光治疗机)采购项目终止公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/fblbgg/202609/t20260924_27394222.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "zy-hwzb-20260703"
+        },
+        {
+          "title": "吉林省人民医院血气分析仪等设备采购项目结果更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397649.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "采购计划-[2026]-13934号-3"
+        },
+        {
+          "title": "长白朝鲜族自治县人民医院放射科设备维保项目结果更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27395121.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "采购计划-[2026]-00157号--hczb2026-cbxm-05-3"
+        },
+        {
+          "title": "吉林省中蕴华太科技发展有限公司关于长春市第二中等专业学校卫生健康服务专业群临床护理虚拟仿真实训基地的更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260923_27392693.htm",
+          "published_at": "2026-09-23",
+          "match_kind": "NAME",
+          "pool_project_number": "jm-2026-09-07714-jlzyht2026-0901-cg20"
+        }
+      ],
+      "selected_detail_count": 5,
+      "new_event_count": 3,
+      "new_events": [
+        {
+          "event_id": "correction_aac4a9279b1daef4",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "ZY-HWZB-20260703",
+          "published_at": "2026-09-29",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/gzgg/202609/t20260929_27414992.htm"
+        },
+        {
+          "event_id": "termination_0f6f42ff217fde95",
+          "event_type": "TERMINATION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "ZY-HWZB-20260703",
+          "published_at": "2026-09-24",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/fblbgg/202609/t20260924_27394222.htm"
+        },
+        {
+          "event_id": "correction_798d8b5781ebed95",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "JM-2026-09-07714-JLZYHT2026-0901-CG20",
+          "published_at": "2026-09-23",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260923_27392693.htm"
+        }
+      ],
+      "number_mismatch_count": 2,
+      "number_mismatches": [
+        {
+          "title": "吉林省人民医院血气分析仪等设备采购项目结果更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397649.htm",
+          "detail_project_number": "采购计划-[2026]-13934号-2",
+          "matched_pool_project_number": "采购计划-[2026]-13934号-3",
+          "match_kind": "NAME",
+          "reason": "DETAIL_PROJECT_NUMBER_NOT_IN_POOL"
+        },
+        {
+          "title": "长白朝鲜族自治县人民医院放射科设备维保项目结果更正公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27395121.htm",
+          "detail_project_number": "采购计划-[2026]-00157号-HCZB2026-CBXM-05",
+          "matched_pool_project_number": "采购计划-[2026]-00157号--hczb2026-cbxm-05-3",
+          "match_kind": "NAME",
+          "reason": "DETAIL_PROJECT_NUMBER_NOT_IN_POOL"
+        }
+      ],
+      "failure_count": 0,
+      "failures": [],
+      "skipped_count": 0,
+      "skipped": [],
+      "time_budget_seconds": 150.0,
+      "time_budget_exhausted": false,
+      "elapsed_seconds": 79.824,
+      "publish_allowed": true,
+      "publish_gate_reason": "OK",
+      "policy": {
+        "keyword_discovery_not_per_project_search": true,
+        "row_geography_must_prove_market": true,
+        "detail_fetched_only_for_titles_matching_pool_number_or_name": true,
+        "event_kept_only_when_detail_project_number_matches_pool": true,
+        "discovery_only_fallback_requires_project_number_in_title": true,
+        "every_event_carries_market_code": true,
+        "package_scoped_notices_never_suppress_the_opportunity": true,
+        "requests_stop_when_time_budget_is_exhausted": true,
+        "rate_limit_bypass": false,
+        "minimum_request_delay_seconds": 4.0
+      }
+    },
+    "HL": {
+      "schema_version": "0.1",
+      "record_type": "NOTICE_EVENT",
+      "observed_at": "2026-09-29T07:40:42.975777+00:00",
+      "region": "黑龙江",
+      "market_code": "HL",
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "keywords": [
+        "医院",
+        "医疗",
+        "检验",
+        "疾病预防控制",
+        "卫生健康"
+      ],
+      "notice_types": [
+        "更正公告",
+        "终止公告"
+      ],
+      "planned_discovery_query_count": 10,
+      "discovery_success_count": 10,
+      "open_pool_project_count": 138,
+      "discovered_row_count": 48,
+      "region_mismatch_count": 0,
+      "region_mismatches": [],
+      "unmatched_title_count": 32,
+      "matched_candidate_count": 13,
+      "matched_candidates": [
+        {
+          "title": "牡丹江市肿瘤医院公立医院改革与高质量发展医疗设备采购项目采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27415709.htm",
+          "published_at": "2026-09-29",
+          "match_kind": "NAME",
+          "pool_project_number": "[231001]mdjzc[gk]20260035"
+        },
+        {
+          "title": "哈尔滨医科大学附属第二医院体检中心-超声经颅多普勒血流分析仪（2026291）采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27413698.htm",
+          "published_at": "2026-09-29",
+          "match_kind": "NAME",
+          "pool_project_number": "[230801]qlgs[gk]20260006"
+        },
+        {
+          "title": "哈尔滨医科大学附属第四医院自动化生物样本库样本检测设备采购采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27412718.htm",
+          "published_at": "2026-09-29",
+          "match_kind": "NAME",
+          "pool_project_number": "[230001]zkgs[gk]20260006"
+        },
+        {
+          "title": "拜泉县中医院中医院医疗设备采购项目采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27409079.htm",
+          "published_at": "2026-09-28",
+          "match_kind": "NAME",
+          "pool_project_number": "[230231]bc[gk]20260030"
+        },
+        {
+          "title": "甘南县人民医院紧密型县域医共体五大共享中心改建及设备购置项目(透析设备)(二次)采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27407474.htm",
+          "published_at": "2026-09-28",
+          "match_kind": "NAME",
+          "pool_project_number": "[230225]cqxmgl[gk]20260003-1"
+        },
+        {
+          "title": "哈尔滨市血液中心医疗设备及检验设备采购项目二采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27406853.htm",
+          "published_at": "2026-09-28",
+          "match_kind": "NAME",
+          "pool_project_number": "[230101]fdgj[gk]20260012"
+        },
+        {
+          "title": "哈尔滨市南岗区疾病预防控制中心南岗疾控生活饮用水放射性检测能力建设项目仪器采购采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27405643.htm",
+          "published_at": "2026-09-28",
+          "match_kind": "NAME",
+          "pool_project_number": "[230103]alzc[gk]20260005"
+        },
+        {
+          "title": "黑龙江省药品检验研究院检验检测仪器设备更新项目-5采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397811.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "[230001]sc[gk]20260339"
+        },
+        {
+          "title": "黑龙江省药品检验研究院检验检测仪器设备更新项目-1采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397766.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "[230001]sc[gk]20260335"
+        },
+        {
+          "title": "黑龙江省妇幼保健院基建项目第二批医疗设备采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397262.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "[230001]sc[gk]20260236"
+        },
+        {
+          "title": "大庆市中西医结合医院大同区紧密型医共体“五大共享中心”相关设施设备购置项目三采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27395679.htm",
+          "published_at": "2026-09-24",
+          "match_kind": "NAME",
+          "pool_project_number": "[230606]qc[gk]20260009"
+        },
+        {
+          "title": "大庆市第五医院2025年医疗设备更新项目3采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260923_27387418.htm",
+          "published_at": "2026-09-23",
+          "match_kind": "NAME",
+          "pool_project_number": "[230601]qc[gk]20260078"
+        },
+        {
+          "title": "孙吴县人民医院医共体五大共享中心提质扩优工程项目医疗设备采购采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260922_27382905.htm",
+          "published_at": "2026-09-22",
+          "match_kind": "NAME",
+          "pool_project_number": "[231124]zprj[gk]20260007"
+        }
+      ],
+      "selected_detail_count": 10,
+      "new_event_count": 8,
+      "new_events": [
+        {
+          "event_id": "correction_b05f84784f064252",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "[230001]ZKGS[GK]20260006",
+          "published_at": "2026-09-29",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27412718.htm"
+        },
+        {
+          "event_id": "correction_0857125ee802e78e",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "[230231]BC[GK]20260030",
+          "published_at": "2026-09-28",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27409079.htm"
+        },
+        {
+          "event_id": "correction_48d4330c9e597cbc",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "[230225]CQXMGL[GK]20260003-1",
+          "published_at": "2026-09-28",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27407474.htm"
+        },
+        {
+          "event_id": "correction_d6859542002d6317",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "[230101]FDGJ[GK]20260012",
+          "published_at": "2026-09-28",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27406853.htm"
+        },
+        {
+          "event_id": "correction_e19ed4e4e5f82fbb",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "[230103]ALZC[GK]20260005",
+          "published_at": "2026-09-28",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27405643.htm"
+        },
+        {
+          "event_id": "correction_bbd388a86d23f95f",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "[230001]SC[GK]20260339",
+          "published_at": "2026-09-24",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397811.htm"
+        },
+        {
+          "event_id": "correction_bc14a972edaef674",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "[230001]SC[GK]20260335",
+          "published_at": "2026-09-24",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397766.htm"
+        },
+        {
+          "event_id": "correction_a742c49526edfd3c",
+          "event_type": "CORRECTION",
+          "scope": "PROJECT",
+          "packages": [],
+          "project_number": "[230001]SC[GK]20260236",
+          "published_at": "2026-09-24",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397262.htm"
+        }
+      ],
+      "number_mismatch_count": 2,
+      "number_mismatches": [
+        {
+          "title": "牡丹江市肿瘤医院公立医院改革与高质量发展医疗设备采购项目采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27415709.htm",
+          "detail_project_number": "[231001]MDJZC[GK]20260031",
+          "matched_pool_project_number": "[231001]mdjzc[gk]20260035",
+          "match_kind": "NAME",
+          "reason": "DETAIL_PROJECT_NUMBER_NOT_IN_POOL"
+        },
+        {
+          "title": "哈尔滨医科大学附属第二医院体检中心-超声经颅多普勒血流分析仪（2026291）采购更正公告（第一次）",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27413698.htm",
+          "detail_project_number": "[230001]GZXMGL[GK]20260016",
+          "matched_pool_project_number": "[230801]qlgs[gk]20260006",
+          "match_kind": "NAME",
+          "reason": "DETAIL_PROJECT_NUMBER_NOT_IN_POOL"
+        }
+      ],
+      "failure_count": 0,
+      "failures": [],
+      "skipped_count": 0,
+      "skipped": [],
+      "time_budget_seconds": 150.0,
+      "time_budget_exhausted": false,
+      "elapsed_seconds": 106.439,
+      "publish_allowed": true,
+      "publish_gate_reason": "OK",
+      "policy": {
+        "keyword_discovery_not_per_project_search": true,
+        "row_geography_must_prove_market": true,
+        "detail_fetched_only_for_titles_matching_pool_number_or_name": true,
+        "event_kept_only_when_detail_project_number_matches_pool": true,
+        "discovery_only_fallback_requires_project_number_in_title": true,
+        "every_event_carries_market_code": true,
+        "package_scoped_notices_never_suppress_the_opportunity": true,
+        "requests_stop_when_time_budget_is_exhausted": true,
+        "rate_limit_bypass": false,
+        "minimum_request_delay_seconds": 4.0
+      }
+    }
+  },
+  "policy": {
+    "one_market_at_a_time_same_keyword_plan": true,
+    "row_geography_must_prove_market": true,
+    "every_event_carries_market_code": true,
+    "previous_event_state_is_preserved": true,
+    "network_failures_never_raise": true
+  }
+}

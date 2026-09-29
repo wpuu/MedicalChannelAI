@@ -1,0 +1,39 @@
+{
+  "schema_version": "0.1",
+  "market_codes": [
+    "BJ",
+    "HE",
+    "LN",
+    "JL",
+    "HL"
+  ],
+  "keywords": [
+    "医院",
+    "医疗",
+    "检验",
+    "疾病预防控制",
+    "卫生健康"
+  ],
+  "notice_types": [
+    "更正公告",
+    "终止公告"
+  ],
+  "lookback_days": 7,
+  "max_details": 10,
+  "delay_seconds": 4.0,
+  "per_market_time_budget_seconds": 150,
+  "min_name_match_chars": 10,
+  "policy": {
+    "purpose": "MULTI_REGION_CORRECTION_TERMINATION_MONITORING",
+    "runs_on_self_hosted_refresh_only": true,
+    "tianjin_events_use_per_project_scans": true,
+    "keyword_discovery_not_per_project_search": true,
+    "row_geography_must_prove_market": true,
+    "detail_fetched_only_for_titles_matching_pool_number_or_name": true,
+    "event_kept_only_when_detail_project_number_matches_pool": true,
+    "discovery_only_fallback_requires_project_number_in_title": true,
+    "every_event_carries_market_code": true,
+    "package_scoped_notices_never_suppress_the_opportunity": true,
+    "rate_limit_bypass": false
+  }
+}

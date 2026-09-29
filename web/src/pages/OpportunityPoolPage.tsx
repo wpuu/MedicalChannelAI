@@ -19,6 +19,8 @@ import { marketCodesForSelection, marketSelectionLabel } from '@/config/marketPr
 import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
 import { AwardLedgerSection } from '@/components/shared/AwardLedgerSection'
 import { AwardPriceReferenceSection } from '@/components/shared/AwardPriceReferenceSection'
+import { NoticeSuppressedSection } from '@/components/shared/NoticeSuppressedSection'
+import { OfficialNoticeInline } from '@/components/shared/OfficialNoticeBanner'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { AiDecisionError, hydrateSharedAiDecisions, requestAiDecision } from '@/services/aiDecisionApi'
@@ -31,7 +33,7 @@ import {
   type RuntimeStatus,
 } from '@/services/runtimeStatusApi'
 import { getAwardPriceReference, getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
-import type { AwardPriceReference, AwardLedgerEntry, TodayActionCard } from '@/types'
+import type { NoticeSuppressedProject, AwardPriceReference, AwardLedgerEntry, TodayActionCard } from '@/types'
 import { formatBudget, formatDateTime, uid } from '@/utils/format'
 
 type WindowFilter = 'ALL' | 'OPEN' | 'PRE_MARKET_SIGNAL' | 'LATE_WINDOW'
@@ -162,6 +164,11 @@ function PoolCard({
             {deadline ? <span>{deadline}</span> : null}
             {noticeRegion && noticeRegion !== marketName ? <span>公告区域 {noticeRegion}</span> : null}
           </div>
+          {card.official_notices?.length ? (
+            <div className="mt-2">
+              <OfficialNoticeInline notices={card.official_notices} />
+            </div>
+          ) : null}
           {preMarket ? (
             <div className="mt-2">
               <PreMarketSignalNotice
@@ -294,6 +301,8 @@ export function OpportunityPoolPage() {
   const [awardLedger, setAwardLedger] = useState<AwardLedgerEntry[]>([])
   const [priceReference, setPriceReference] = useState<AwardPriceReference | null>(null)
   const [awardedProjectCount, setAwardedProjectCount] = useState(0)
+  const [suppressedProjects, setSuppressedProjects] = useState<NoticeSuppressedProject[]>([])
+  const [suppressedCount, setSuppressedCount] = useState(0)
   const [snapshotAsOf, setSnapshotAsOf] = useState<string | null>(null)
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
   const [runtimeStatusChecked, setRuntimeStatusChecked] = useState(false)
@@ -315,6 +324,8 @@ export function OpportunityPoolPage() {
           snapshot_as_of: data.refreshed_at,
           award_ledger: data.award_ledger ?? [],
           awarded_project_count: data.awarded_project_count ?? 0,
+          notice_suppressed_project_count: data.notice_suppressed_project_count ?? 0,
+          notice_suppressed_projects: data.notice_suppressed_projects ?? [],
         }
       }
       const result = await getVerifiedOpportunityPool()
@@ -323,6 +334,8 @@ export function OpportunityPoolPage() {
         snapshot_as_of: result.snapshot_as_of,
         award_ledger: result.award_ledger,
         awarded_project_count: result.awarded_project_count,
+        notice_suppressed_project_count: result.notice_suppressed_project_count,
+        notice_suppressed_projects: result.notice_suppressed_projects,
       }
     }
 
@@ -341,6 +354,8 @@ export function OpportunityPoolPage() {
         setCards(result.cards)
         setAwardLedger(result.award_ledger)
         setAwardedProjectCount(result.awarded_project_count)
+        setSuppressedProjects(result.notice_suppressed_projects)
+        setSuppressedCount(result.notice_suppressed_project_count)
         setSnapshotAsOf(result.snapshot_as_of)
         setError(false)
       })
@@ -606,6 +621,11 @@ export function OpportunityPoolPage() {
         entries={awardLedger}
         marketCodes={selectedMarketCodes as ReadonlySet<string>}
         awardedProjectCount={awardedProjectCount}
+      />
+      <NoticeSuppressedSection
+        projects={suppressedProjects}
+        totalCount={suppressedCount}
+        marketCodes={selectedMarketCodes as ReadonlySet<string>}
       />
       <AwardPriceReferenceSection reference={priceReference} marketCodes={selectedMarketCodes as ReadonlySet<string>} />
     </div>

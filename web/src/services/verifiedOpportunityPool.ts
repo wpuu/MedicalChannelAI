@@ -1,5 +1,5 @@
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
-import type { AwardPriceReference, AwardLedgerEntry, TodayActionCard } from '@/types'
+import type { AwardPriceReference, AwardLedgerEntry, NoticeSuppressedProject, TodayActionCard } from '@/types'
 import type { PublicTodayActionCard, TodayActionsPublicResponse } from '@/types/public'
 import { refreshLegalWindows } from '@/utils/legalWindows'
 import { normalizeProjectNumber } from '@/utils/projectNumber'
@@ -129,6 +129,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
     },
     evidence_source_urls: [...card.evidence_source_urls],
     legal_windows: Array.isArray(card.legal_windows) ? card.legal_windows.map((item) => ({ ...item })) : null,
+    official_notices: Array.isArray(card.official_notices) ? card.official_notices.map((item) => ({ ...item, packages: [...item.packages] })) : null,
     customer_context: {
       hospital_relationship: null,
       matching_product_capabilities: [],
@@ -305,6 +306,8 @@ export async function getVerifiedOpportunityPool(): Promise<{
   cards: TodayActionCard[]
   award_ledger: AwardLedgerEntry[]
   awarded_project_count: number
+  notice_suppressed_project_count: number
+  notice_suppressed_projects: NoticeSuppressedProject[]
 }> {
   const data = await fetchSnapshot()
   const publicCards = Array.isArray(data.opportunity_pool) ? data.opportunity_pool : data.cards
@@ -318,6 +321,10 @@ export async function getVerifiedOpportunityPool(): Promise<{
   return {
     award_ledger: refreshAwardLedger(data.award_ledger, Date.now(), data.working_calendar),
     awarded_project_count: data.awarded_project_count ?? 0,
+    notice_suppressed_project_count: data.notice_suppressed_project_count ?? 0,
+    notice_suppressed_projects: Array.isArray(data.notice_suppressed_projects)
+      ? data.notice_suppressed_projects.map((item) => ({ ...item }))
+      : [],
     snapshot_as_of: data.snapshot_as_of,
     total: personalized.length,
     cards: personalized,

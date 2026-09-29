@@ -17,6 +17,7 @@ from medical_channel_pipeline import build_public_snapshot  # noqa: E402
 from medical_channel_pipeline.award_price_reference import combine_award_price_references  # noqa: E402
 from medical_channel_pipeline.ccgp_award import MAX_LEDGER_ENTRIES  # noqa: E402
 from medical_channel_pipeline.legal_windows import working_calendar_payload  # noqa: E402
+from medical_channel_pipeline.public_snapshot import MAX_NOTICE_SUPPRESSED_PROJECTS  # noqa: E402
 
 DEFAULT_INPUTS = [
     PIPELINE_ROOT / 'data' / 'tianjin_verified_seed.json',
@@ -24,12 +25,25 @@ DEFAULT_INPUTS = [
 ]
 REGIONAL_INPUT = PIPELINE_ROOT / 'data' / 'regional_live_ccgp_records.json'
 DEFAULT_EVENT_INPUTS = [PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json']
+REGIONAL_EVENT_INPUT = PIPELINE_ROOT / 'data' / 'regional_notice_events.json'
 DEFAULT_AWARD_INPUTS = [
     PIPELINE_ROOT / 'data' / 'tianjin_award_records.json',
     PIPELINE_ROOT / 'data' / 'regional_award_records.json',
 ]
 DEFAULT_OUTPUT = WEB_ROOT / 'public' / 'data' / 'today-actions.public.json'
 SHANGHAI = ZoneInfo('Asia/Shanghai')
+
+
+def regional_notice_events(events: list[dict]) -> list[dict]:
+    """Regional 更正/终止 events must carry their market: an event without one
+    could reach any regional record that reuses the project number."""
+    for event in events:
+        if not isinstance(event, dict):
+            raise ValueError('regional event must be an object')
+        market_code = str(event.get('market_code') or '').strip().upper()
+        if not market_code or market_code == 'TJ':
+            raise ValueError(f'REGIONAL_EVENT_MARKET_CODE_REQUIRED:{event.get("event_id")}')
+    return events
 
 
 def load_arrays(paths: list[Path], *, label: str) -> list[dict]:
@@ -130,6 +144,19 @@ def combine_award_ledgers(*snapshots: dict) -> list[dict]:
     return merged[:MAX_LEDGER_ENTRIES]
 
 
+def combine_notice_suppressed_projects(*snapshots: dict) -> tuple[int, list[dict]]:
+    """(exact total, bounded newest-first list) across per-market snapshots."""
+    total = sum(int(snapshot.get('notice_suppressed_project_count') or 0) for snapshot in snapshots)
+    merged: list[dict] = []
+    for snapshot in snapshots:
+        merged.extend(deepcopy(item) for item in snapshot.get('notice_suppressed_projects') or [])
+    merged.sort(
+        key=lambda item: (str(item.get('published_at') or ''), str(item.get('project_number') or '')),
+        reverse=True,
+    )
+    return total, merged[:MAX_NOTICE_SUPPRESSED_PROJECTS]
+
+
 def split_awards_by_market(award_records: list[dict]) -> tuple[list[dict], list[dict]]:
     """(Tianjin awards, other-market awards). Awards without a market code are
     legacy Tianjin-pilot records and stay on the Tianjin side."""
@@ -168,6 +195,7 @@ def combine_snapshots(
     cards = [deepcopy(card) for card in unique_pool[:5]]
     for index, card in enumerate(cards, start=1):
         card['rank'] = index
+    suppressed_count, suppressed_projects = combine_notice_suppressed_projects(tianjin_snapshot, regional_snapshot)
     return {
         'schema_version': '0.1',
         'mode': 'TODAY_ACTIONS',
@@ -182,6 +210,8 @@ def combine_snapshots(
         'working_calendar': working_calendar_payload(),
         'awarded_project_count': int(tianjin_snapshot.get('awarded_project_count') or 0)
         + int(regional_snapshot.get('awarded_project_count') or 0),
+        'notice_suppressed_project_count': suppressed_count,
+        'notice_suppressed_projects': suppressed_projects,
         'award_ledger': combine_award_ledgers(tianjin_snapshot, regional_snapshot),
         'award_price_reference': combine_award_price_references(
             tianjin_snapshot.get('award_price_reference'),
@@ -219,6 +249,13 @@ def main() -> int:
         default=None,
         help='AWARD_RESULT JSON arrays (中标/成交). Defaults to the Tianjin and regional award stores when present.',
     )
+    parser.add_argument(
+        '--regional-event-input',
+        action='append',
+        type=Path,
+        default=None,
+        help='Regional notice-event JSON arrays (every event carries market_code). Defaults to the regional event store when present.',
+    )
     args = parser.parse_args()
 
     input_paths = list(args.input or DEFAULT_INPUTS)
@@ -232,6 +269,10 @@ def main() -> int:
     ]
     award_records = load_arrays(award_paths, label='award input')
     tianjin_awards, regional_awards = split_awards_by_market(award_records)
+    regional_event_paths = args.regional_event_input if args.regional_event_input is not None else (
+        [REGIONAL_EVENT_INPUT] if REGIONAL_EVENT_INPUT.exists() else []
+    )
+    regional_events = regional_notice_events(load_arrays(regional_event_paths, label='regional event input'))
 
     as_of = datetime.fromisoformat(args.as_of.replace('Z', '+00:00'))
     if as_of.tzinfo is None:
@@ -246,14 +287,13 @@ def main() -> int:
         if str((record.get('facts') or {}).get('market_code') or '').strip().upper() != 'TJ'
     ]
 
-    # Critical boundary: the current notice-event store is Tianjin-only. Build it
-    # separately so a matching project number in another province can never inherit
-    # a Tianjin correction or termination. Regional event monitoring remains closed
-    # until event records carry an explicit market key.
-    # Awards follow the same boundary: a result notice may only retire (and be
-    # listed next to) opportunities of its own market.
+    # Critical boundary: the Tianjin notice-event store carries no market key, so
+    # it is applied to Tianjin records only. Regional events carry an explicit
+    # market_code and are keyed (market, project number) inside the builder, so
+    # a matching number in another province can never inherit a correction or
+    # termination. Awards follow the same boundary.
     tianjin_snapshot = build_public_snapshot(tianjin_records, as_of, notice_events, tianjin_awards)
-    regional_snapshot = build_public_snapshot(regional_records, as_of, [], regional_awards)
+    regional_snapshot = build_public_snapshot(regional_records, as_of, regional_events, regional_awards)
     snapshot = combine_snapshots(tianjin_snapshot, regional_snapshot, records, as_of)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -264,7 +304,7 @@ def main() -> int:
     print(
         f'published {len(snapshot["cards"])} cards from '
         f'{len(tianjin_records)} Tianjin + {len(regional_records)} regional records; '
-        f'Tianjin events={len(notice_events)} awards={len(award_records)} -> {args.output}'
+        f'Tianjin events={len(notice_events)} regional events={len(regional_events)} awards={len(award_records)} -> {args.output}'
     )
     return 0
 

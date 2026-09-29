@@ -308,6 +308,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
     },
     evidence_source_urls: card.evidence_source_urls,
     legal_windows: Array.isArray(card.legal_windows) ? card.legal_windows.map((item) => ({ ...item })) : null,
+    official_notices: Array.isArray(card.official_notices) ? card.official_notices.map((item) => ({ ...item, packages: [...item.packages] })) : null,
     customer_context: {
       target_hospital:
         target && target.watched_by_customer
@@ -500,6 +501,8 @@ export class ApiTodayActionsService implements TodayActionsService {
       procurement_intent_followup_summary: data.procurement_intent_followup_summary,
       working_calendar: data.working_calendar ?? null,
       awarded_project_count: data.awarded_project_count ?? 0,
+      notice_suppressed_project_count: data.notice_suppressed_project_count ?? 0,
+      notice_suppressed_projects: Array.isArray(data.notice_suppressed_projects) ? data.notice_suppressed_projects : [],
       award_ledger: Array.isArray(data.award_ledger) ? data.award_ledger : [],
       cards,
       opportunity_pool: mappedPool,

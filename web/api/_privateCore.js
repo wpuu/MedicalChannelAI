@@ -245,6 +245,9 @@ async function todayRoute(request, response, user) {
       working_calendar: snapshot.working_calendar ?? null,
       // Official 中标/成交 results: public facts only, same payload as the anonymous snapshot.
       awarded_project_count: Number(snapshot.awarded_project_count || 0),
+      // Opportunities hidden by an official 更正/终止 notice (explainable, never silent).
+      notice_suppressed_project_count: Number(snapshot.notice_suppressed_project_count || 0),
+      notice_suppressed_projects: Array.isArray(snapshot.notice_suppressed_projects) ? snapshot.notice_suppressed_projects : [],
       award_ledger: Array.isArray(snapshot.award_ledger) ? snapshot.award_ledger : [],
       award_price_reference: snapshot.award_price_reference ?? null,
       cards,

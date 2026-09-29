@@ -183,6 +183,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
     },
     evidence_source_urls: card.evidence_source_urls,
     legal_windows: Array.isArray(card.legal_windows) ? card.legal_windows.map((item) => ({ ...item })) : null,
+    official_notices: Array.isArray(card.official_notices) ? card.official_notices.map((item) => ({ ...item, packages: [...item.packages] })) : null,
     customer_context: {
       hospital_relationship: null,
       matching_product_capabilities: [],
@@ -505,6 +506,8 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       refreshed_at: data.snapshot_as_of,
       working_calendar: data.working_calendar ?? null,
       awarded_project_count: data.awarded_project_count ?? 0,
+      notice_suppressed_project_count: data.notice_suppressed_project_count ?? 0,
+      notice_suppressed_projects: Array.isArray(data.notice_suppressed_projects) ? data.notice_suppressed_projects : [],
       award_ledger: refreshAwardLedger(data.award_ledger, Date.now(), data.working_calendar),
       cards: mappedCards,
       opportunity_pool: mappedPool,

@@ -13,6 +13,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageSt
 import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
 import { AwardResultNotice } from '@/components/shared/AwardResultNotice'
 import { AwardPriceReferenceNotice } from '@/components/shared/AwardPriceReferenceNotice'
+import { OfficialNoticeBanner } from '@/components/shared/OfficialNoticeBanner'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { LostModal } from '@/components/followup/LostModal'
 import { NotFitModal } from '@/components/followup/NotFitModal'
@@ -374,6 +375,7 @@ export function OpportunityDetailPage() {
       </section>
 
       {awardResult ? <AwardResultNotice entry={awardResult} /> : null}
+      {card.official_notices?.length ? <OfficialNoticeBanner notices={card.official_notices} /> : null}
       {!historical ? <AwardPriceReferenceNotice card={card} reference={priceReference} /> : null}
 
       {!historical ? (

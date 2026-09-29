@@ -13,7 +13,7 @@ WEB_ROOT = PIPELINE_ROOT.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
-from publish_web_snapshot import combine_snapshots, split_awards_by_market  # noqa: E402
+from publish_web_snapshot import combine_snapshots, regional_notice_events, split_awards_by_market  # noqa: E402
 
 OPTIONAL_LIVE_SOURCES = (
     ('tianjin_live_tjnothop_records.json', 'live Tianjin Hospital state'),
@@ -142,12 +142,15 @@ def main() -> int:
         *load_optional_array(PIPELINE_ROOT / 'data' / 'regional_award_records.json', label='regional award results'),
     ]
     tianjin_awards, regional_awards = split_awards_by_market(award_records)
+    # Regional 更正/终止 events carry an explicit market_code (enforced here) and
+    # are keyed (market, project number) inside the builder; the Tianjin store
+    # has no market key and is applied to Tianjin records only.
+    regional_events = regional_notice_events(
+        load_optional_array(PIPELINE_ROOT / 'data' / 'regional_notice_events.json', label='regional notice events')
+    )
 
-    # Keep Tianjin notice events isolated from regional records. Regional event
-    # monitoring remains disabled until those events carry explicit market identity.
-    # Awards are split by market for the same reason.
     tianjin_snapshot = build_public_snapshot(tianjin_records, published_as_of, notice_events, tianjin_awards)
-    regional_snapshot = build_public_snapshot(regional_records, published_as_of, [], regional_awards)
+    regional_snapshot = build_public_snapshot(regional_records, published_as_of, regional_events, regional_awards)
     payload = combine_snapshots(
         tianjin_snapshot,
         regional_snapshot,
@@ -163,6 +166,7 @@ def main() -> int:
         f'{len(tianjin_records)} Tianjin + {len(regional_records)} regional verified canonical records; '
         f'published opportunities={payload["opportunity_pool_count"]}; '
         f'awarded retired={payload["awarded_project_count"]}; award ledger={len(payload["award_ledger"])}; '
+        f'regional events={len(regional_events)}; '
         f'markets={published_market_counts(payload)}'
     )
     return 0
