@@ -205,6 +205,8 @@ jobs:
             --report-output web/pipeline/data/tianjin_tjfch_test_sync_report.json
 
       - name: Publish H5-safe verified snapshot
+        # Award stores (Tianjin + regional, whichever exist) are picked up by
+        # default and split per market inside the publisher.
         shell: bash
         run: |
           set -euo pipefail
@@ -219,7 +221,6 @@ jobs:
             --input web/pipeline/data/tianjin_live_teda_records.json \
             --input web/pipeline/data/tianjin_live_tjfch_records.json \
             --event-input web/pipeline/data/tianjin_notice_events.json \
-            --award-input web/pipeline/data/tianjin_award_records.json \
             --output web/public/data/today-actions.public.json
 
       - name: Verify generated snapshot

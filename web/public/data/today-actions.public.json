@@ -95,8 +95,763 @@
     "complaint_working_days": 15,
     "award_notice_period_working_days": 1
   },
-  "awarded_project_count": 3,
+  "awarded_project_count": 4,
   "award_ledger": [
+    {
+      "award_id": "ccgpaward_c52d258eb8d650ed",
+      "project_number": "[230801]ZTZB[GK]20260012",
+      "project_name": "公立医院改革与高质量发展提升项目专用设备采购",
+      "buyer_name": "佳木斯市口腔病防治院",
+      "region": "佳木斯市",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 998800,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 9,
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "华润佳木斯医药有限公司",
+          "amount_cny": 998800,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "name": "牙科电动抽吸系统",
+          "brand": "迪珥",
+          "model": "S10A",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 55000
+        },
+        {
+          "package_no": "1",
+          "name": "污水处理",
+          "brand": "新华",
+          "model": "XH-W",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 29800
+        },
+        {
+          "package_no": "1",
+          "name": "CBCT",
+          "brand": "美亚光电",
+          "model": "mDX-15Pro-Y30",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 458000
+        },
+        {
+          "package_no": "1",
+          "name": "牙片宝",
+          "brand": "汉缔",
+          "model": "HDS-500",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 11000
+        },
+        {
+          "package_no": "1",
+          "name": "口腔综合治疗仪",
+          "brand": "上海菲曼特、康钛、啄木鸟、邦宁、上海菲曼特、优…",
+          "model": "F1-S、KT101-K1Pro、UDS-N3 LED、Kavo LED Plus、F1D1、…",
+          "quantity": "2.00(台/套)",
+          "unit_price_cny": 85000
+        },
+        {
+          "package_no": "1",
+          "name": "口腔内部扫描仪",
+          "brand": "先临",
+          "model": "Aoralscan Wireless G2",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 220000
+        },
+        {
+          "package_no": "1",
+          "name": "医用等离子体空气消毒器-1",
+          "brand": "新华",
+          "model": "YKX.P-B-1000型",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 6500
+        },
+        {
+          "package_no": "1",
+          "name": "医用等离子体空气消毒器-2",
+          "brand": "新华",
+          "model": "YKX.P-B-600K",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 4500
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "HL"
+    },
+    {
+      "award_id": "ccgpaward_c01bdb981983ce35",
+      "project_number": "[230401]BZGC[GK]20260001",
+      "project_name": "医养结合服务能力提升项目-康复及健康监测设备采购项目",
+      "buyer_name": "鹤岗市中医医院",
+      "region": "鹤岗市",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 523900,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 7,
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "沈阳众景医疗科技有限公司",
+          "amount_cny": 523900,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "name": "干扰电治疗仪",
+          "brand": "兴汇",
+          "model": "SV-IT401S",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 114000
+        },
+        {
+          "package_no": "1",
+          "name": "中频治疗仪",
+          "brand": "一康",
+          "model": "PE2-4",
+          "quantity": "2.00(台)",
+          "unit_price_cny": 5000
+        },
+        {
+          "package_no": "1",
+          "name": "神经肌肉电刺激仪",
+          "brand": "倍益康",
+          "model": "QL/N-IV",
+          "quantity": "2.00(台)",
+          "unit_price_cny": 8200
+        },
+        {
+          "package_no": "1",
+          "name": "经皮神经电刺激仪",
+          "brand": "倍益康",
+          "model": "QL/T-III",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 4500
+        },
+        {
+          "package_no": "1",
+          "name": "超声治疗仪",
+          "brand": "西贝",
+          "model": "Sonopuls 190",
+          "quantity": "2.00(台)",
+          "unit_price_cny": 39500
+        },
+        {
+          "package_no": "1",
+          "name": "吞咽神经肌肉电刺激仪",
+          "brand": "西贝",
+          "model": "Titanium X94",
+          "quantity": "2.00(台)",
+          "unit_price_cny": 38500
+        },
+        {
+          "package_no": "1",
+          "name": "无接触史生命体征监测设备",
+          "brand": "清雷",
+          "model": "KY-36",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 223000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "HL"
+    },
+    {
+      "award_id": "ccgpaward_b17e2e24398ff29c",
+      "project_number": "0722-26FE3684ZB4",
+      "project_name": "北京大学人民医院新增业务用房启用保障项目购医疗设备第三批",
+      "buyer_name": "北京大学人民医院",
+      "region": "北京市",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 740000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "北京希倍佳科贸有限公司",
+          "amount_cny": 740000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "name": "器械清洗工作站（内镜一体化清洗设备）；高压蒸汽喷枪（医用蒸汽清洗机）",
+          "brand": "东山；东山",
+          "model": "DSQX-3000；DS-ZQQX-5L01",
+          "quantity": "4台；2个",
+          "unit_price_cny": null
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "BJ"
+    },
+    {
+      "award_id": "ccgpaward_9f9303e5f520e1f2",
+      "project_number": "YM-260603030",
+      "project_name": "保定市第二医院公立医院改革与高质量发展示范项目2025年市级和自筹资金医疗设备采购项目",
+      "buyer_name": "保定市第二医院",
+      "region": "保定市",
+      "notice_type": "中标结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 150000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "河北睿兰科思医疗科技有限公司",
+          "amount_cny": 150000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "name": "转运呼吸机",
+          "brand": "迈瑞",
+          "model": "TV80S",
+          "quantity": "1",
+          "unit_price_cny": 150000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "HE"
+    },
+    {
+      "award_id": "ccgpaward_9a115a2622b23941",
+      "project_number": "采购计划-[2026]-23544号-1",
+      "project_name": "吉林省神经精神病医院西门子核磁共振维保",
+      "buyer_name": "吉林省神经精神病医院",
+      "region": "吉林省",
+      "notice_type": "中标(成交)结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 650000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "西门子医疗系统有限公司",
+          "amount_cny": 650000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "name": "吉林省神经精神病医院西门子核磁共振维保",
+          "brand": null,
+          "model": null,
+          "quantity": null,
+          "unit_price_cny": null
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "JL"
+    },
+    {
+      "award_id": "ccgpaward_917443ec69900ffb",
+      "project_number": "[230001]ALZC[GK]20260007",
+      "project_name": "医疗设备以旧更新项目第二批",
+      "buyer_name": "黑龙江中医药大学附属第四医院",
+      "region": "黑龙江省",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 12700000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 5,
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "哈药集团医药有限公司器化玻批发总汇",
+          "amount_cny": 12700000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "通用电气",
+          "model": "LOGIQ E20 Pro",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 2418000
+        },
+        {
+          "package_no": "1",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "通用电气",
+          "model": "LOGIQ E20 Pro",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 2418000
+        },
+        {
+          "package_no": "1",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "通用电气",
+          "model": "LOGIQ E20 Pro",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 2418000
+        },
+        {
+          "package_no": "1",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "飞利浦",
+          "model": "EPIQ Elite Plus",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 2573000
+        },
+        {
+          "package_no": "1",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "飞利浦",
+          "model": "EPIQ Elite Plus",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 2873000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "HL"
+    },
+    {
+      "award_id": "ccgpaward_715caa710aab51be",
+      "project_number": "JM-2026-06-05060-JM-2026-06-05060",
+      "project_name": "长春市疾控卫监双随机检验检测试剂及耗材采购项目（三次）",
+      "buyer_name": "长春市疾病预防控制中心（长春市卫生监督所）",
+      "region": "吉林省",
+      "notice_type": "成交结果公告",
+      "result_kind": "DEAL",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 114100,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 4,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "吉林省恒晟医疗器械有限公司",
+          "amount_cny": 114051,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "name": "色度溶液标准物质",
+          "brand": "河南标准物质研发中心",
+          "model": "20mL/瓶",
+          "quantity": "3",
+          "unit_price_cny": 300
+        },
+        {
+          "package_no": null,
+          "name": "邻苯二甲酸氢钾pH溶液标准物质",
+          "brand": "河南标准物质研发中心",
+          "model": "500mL/瓶",
+          "quantity": "1",
+          "unit_price_cny": 165
+        },
+        {
+          "package_no": null,
+          "name": "硼砂pH溶液标准物质",
+          "brand": "河南标准物质研发中心",
+          "model": "500mL/瓶",
+          "quantity": "1",
+          "unit_price_cny": 165
+        },
+        {
+          "package_no": null,
+          "name": "混合磷酸盐pH溶液标准物质等",
+          "brand": "河南标准物质研发中心等",
+          "model": "500mL/瓶等",
+          "quantity": "1等",
+          "unit_price_cny": 165
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "JL"
+    },
+    {
+      "award_id": "ccgpaward_701249a674aac552",
+      "project_number": "[231025]FAGC[GK]20260002",
+      "project_name": "医疗设备采购及服务",
+      "buyer_name": "林口县中医院",
+      "region": "林口县",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 1430000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 6,
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "国药集团黑龙江医疗器械有限公司",
+          "amount_cny": 1430000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "name": "智能言语训练机",
+          "brand": "好博医疗",
+          "model": "HB-LRT(软件发布版本:01)/HB-CRT",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 410000
+        },
+        {
+          "package_no": "1",
+          "name": "胎心检测仪",
+          "brand": "理邦仪器",
+          "model": "F6",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 49000
+        },
+        {
+          "package_no": "1",
+          "name": "多参数监护仪",
+          "brand": "理邦仪器",
+          "model": "iX15",
+          "quantity": "5.00(台)",
+          "unit_price_cny": 39000
+        },
+        {
+          "package_no": "1",
+          "name": "骨科手术床",
+          "brand": "谊安医疗",
+          "model": "OP830",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 190000
+        },
+        {
+          "package_no": "1",
+          "name": "体外冲击波碎石仪",
+          "brand": "新元素",
+          "model": "XYS.SUI-8A",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 399000
+        },
+        {
+          "package_no": "1",
+          "name": "骨密度检测仪",
+          "brand": "澳思托",
+          "model": "SONOST-2000C",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 187000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "HL"
+    },
+    {
+      "award_id": "ccgpaward_61a73bf9d4c6cfd2",
+      "project_number": "采购计划-[2026]-00223号-1",
+      "project_name": "2026年度梅河口市中心医院检验科设备采购项目",
+      "buyer_name": "梅河口市中心医院",
+      "region": "吉林省",
+      "notice_type": "中标(成交)结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 590000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 3,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "吉林鼎星医疗科技有限公司",
+          "amount_cny": 590000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "name": "微生物培养监测仪",
+          "brand": "安图",
+          "model": "BC60-240",
+          "quantity": "1台",
+          "unit_price_cny": 10000
+        },
+        {
+          "package_no": null,
+          "name": "全自动微生物鉴定药敏分析仪",
+          "brand": "安图",
+          "model": "AutoMic-i600",
+          "quantity": "1台",
+          "unit_price_cny": 230000
+        },
+        {
+          "package_no": null,
+          "name": "全自动微生物质谱检测系统",
+          "brand": "安图",
+          "model": "Autof TCX",
+          "quantity": "1台",
+          "unit_price_cny": 350000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "JL"
+    },
+    {
+      "award_id": "ccgpaward_4bc5d44cbf8df55e",
+      "project_number": "0722-26FE3680ZB4",
+      "project_name": "北京大学人民医院新增业务用房启用保障项目购医疗设备第一批",
+      "buyer_name": "北京大学人民医院",
+      "region": "北京市",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 1196000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "北京南合西商贸有限责任公司",
+          "amount_cny": 1196000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "name": "洁净蒸汽发生器",
+          "brand": "斯派莎克",
+          "model": "CSG-HS-125",
+          "quantity": "1套",
+          "unit_price_cny": 1196000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "BJ"
+    },
+    {
+      "award_id": "ccgpaward_46b79d3169a37905",
+      "project_number": "[230601]ZCGL[CS]20260007",
+      "project_name": "HPV检测服务",
+      "buyer_name": "大庆市人民医院",
+      "region": "大庆市",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": null,
+      "amount_basis": null,
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "吉林超然医学检验有限公司",
+          "amount_cny": null,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "name": "HPV检测服务",
+          "brand": null,
+          "model": null,
+          "quantity": null,
+          "unit_price_cny": null
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "HL"
+    },
     {
       "award_id": "ccgpaward_f5c06de241281d7b",
       "project_number": "ZCZBZC-GK-2026080547",
@@ -322,6 +1077,55 @@
       "market_code": "TJ"
     },
     {
+      "award_id": "ccgpaward_d27ef38405a25ccd",
+      "project_number": "ZYTZC-2026-083",
+      "project_name": "唐县人民医院区域医疗次高地建设工程-2026年度（第一批）医疗设备采购",
+      "buyer_name": "河北省唐县人民医院(唐县白求恩纪念医院)",
+      "region": "唐县",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-28",
+      "procurement_method": null,
+      "total_amount_cny": 496000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "河北增禄医疗器械贸易有限公司",
+          "amount_cny": 496000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "name": "超声骨组织手术设备",
+          "brand": "西山科技",
+          "model": "UT-C-S1",
+          "quantity": "1",
+          "unit_price_cny": 496000
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-28",
+          "deadline_date": "2026-10-14",
+          "remaining_working_days": 8,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-29"
+        }
+      ],
+      "market_code": "HE"
+    },
+    {
       "award_id": "ccgpaward_cf838cb7d986f43b",
       "project_number": "TGPC-2026-A-0236",
       "project_name": "天津市中心妇产科医院三院区液氮及其它医用气体采购项目",
@@ -418,6 +1222,55 @@
         }
       ],
       "market_code": "TJ"
+    },
+    {
+      "award_id": "ccgpaward_49e86a9151ae8764",
+      "project_number": "RHP-C192668292816-1",
+      "project_name": "CT、MRI维保",
+      "buyer_name": "河北医科大学第三医院",
+      "region": "河北省",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-28",
+      "procurement_method": null,
+      "total_amount_cny": 5733000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "河北瑞鹤医疗器械有限公司",
+          "amount_cny": 5733000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "name": "河北医科大学第三医院CT、MRI维保项目（三年）（二次）",
+          "brand": null,
+          "model": null,
+          "quantity": null,
+          "unit_price_cny": null
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-28",
+          "deadline_date": "2026-10-14",
+          "remaining_working_days": 8,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-29"
+        }
+      ],
+      "market_code": "HE"
     },
     {
       "award_id": "ccgpaward_497bb929f0a5017b",
@@ -591,6 +1444,55 @@
         }
       ],
       "market_code": "TJ"
+    },
+    {
+      "award_id": "ccgpaward_aaff0acec4a47839",
+      "project_number": "0701-264106070107",
+      "project_name": "中国医学科学院北京协和医院检验科设备购置项目（2）",
+      "buyer_name": "中国医学科学院北京协和医院",
+      "region": "北京市",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-08-28",
+      "procurement_method": null,
+      "total_amount_cny": 1820000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 1,
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "北京若华医疗器械有限公司",
+          "amount_cny": 1820000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "3",
+          "name": "自动血液微生物培养系统; 全自动蛋白分析仪",
+          "brand": "美国BD; 西门子",
+          "model": "BD BACTEC FX; BN Ⅱ System",
+          "quantity": "2; 1",
+          "unit_price_cny": null
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-08-28",
+          "deadline_date": "2026-09-09",
+          "remaining_working_days": 0,
+          "status": "CLOSED",
+          "clock_start_date": "2026-08-31"
+        }
+      ],
+      "market_code": "BJ"
     }
   ],
   "cards": [

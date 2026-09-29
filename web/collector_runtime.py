@@ -230,12 +230,24 @@ def _bootstrap_ccgp_events() -> list[dict[str, Any]]:
     return merge_notice_events([], _load_array(DATA_ROOT / "tianjin_notice_events.json"))
 
 
+AWARD_STORE_FILENAMES = ("tianjin_award_records.json", "regional_award_records.json")
+
+
+def _bundled_award_records() -> list[dict[str, Any]]:
+    """All bundled 中标/成交 stores (Tianjin runtime-synced + regional, which is
+    refreshed only by the self-hosted workflow and reaches the runtime through
+    the deployed bundle). Missing files are simply absent; awards are optional."""
+    records: list[dict[str, Any]] = []
+    for name in AWARD_STORE_FILENAMES:
+        path = DATA_ROOT / name
+        if path.exists():
+            records.extend(_load_array(path))
+    return merge_award_records([], records)
+
+
 def _bootstrap_ccgp_awards() -> list[dict[str, Any]]:
-    """Seed the 中标/成交 award store from the bundled file; awards are optional."""
-    path = DATA_ROOT / "tianjin_award_records.json"
-    if not path.exists():
-        return []
-    return merge_award_records([], _load_array(path))
+    """Seed the 中标/成交 award store from the bundled files; awards are optional."""
+    return _bundled_award_records()
 
 
 def _bootstrap_tjmugh_records() -> list[dict[str, Any]]:
@@ -660,6 +672,22 @@ def _run_award(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(pool_records, list):
         pool_records = []
 
+    # Regional awards are not synced at runtime (budget); fold in whatever the
+    # deployed bundle carries so the ledger and retirement stay multi-market.
+    bundled_regional_count = 0
+    try:
+        bundled = [
+            record
+            for record in _bundled_award_records()
+            if str(record.get("facts", {}).get("market_code") or "TJ").strip().upper() != "TJ"
+        ]
+        if bundled:
+            before = len(existing_awards)
+            existing_awards = merge_award_records(existing_awards, bundled)
+            bundled_regional_count = len(existing_awards) - before
+    except Exception:  # noqa: BLE001 - optional input
+        bundled_regional_count = 0
+
     try:
         plan = load_award_plan(DATA_ROOT / "tianjin_award_query_plan.json")
         merged_awards, report = run_award_sync(
@@ -705,6 +733,7 @@ def _run_award(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "award_store_updated": store_updated,
         "award_store_carried_forward": not store_updated,
         "bootstrapped_awards": bootstrapped,
+        "bundled_regional_awards_added": bundled_regional_count,
     }
 
 

@@ -57,7 +57,14 @@ def parse_as_of(value: str | None) -> datetime:
     return parsed
 
 
-def load_plan(path: Path) -> dict:
+def load_plan(path: Path, *, market_code: str | None = None) -> dict:
+    """Load and validate an award query plan.
+
+    ``market_code`` re-targets the same keyword plan at another market (the
+    regional refresh runs one plan per province); the plan's own
+    ``market_code``/``region`` pair is still validated so a broken file never
+    loads silently.
+    """
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
         raise ValueError("AWARD_QUERY_PLAN_INVALID")
@@ -78,12 +85,17 @@ def load_plan(path: Path) -> dict:
     if unsupported:
         raise ValueError(f"AWARD_QUERY_PLAN_NOTICE_TYPE_UNSUPPORTED:{unsupported}")
 
-    market_code = str(payload.get("market_code") or "").strip().upper()
-    if market_code not in MARKET_ADMIN_CODES:
-        raise ValueError(f"AWARD_QUERY_PLAN_MARKET_CODE_INVALID:{market_code}")
-    region = str(payload.get("region") or "").strip()
-    if region != MARKET_ADMIN_CODES[market_code][0]:
-        raise ValueError(f"AWARD_QUERY_PLAN_REGION_MARKET_MISMATCH:{region}:{market_code}")
+    plan_market_code = str(payload.get("market_code") or "").strip().upper()
+    if plan_market_code not in MARKET_ADMIN_CODES:
+        raise ValueError(f"AWARD_QUERY_PLAN_MARKET_CODE_INVALID:{plan_market_code}")
+    plan_region = str(payload.get("region") or "").strip()
+    if plan_region != MARKET_ADMIN_CODES[plan_market_code][0]:
+        raise ValueError(f"AWARD_QUERY_PLAN_REGION_MARKET_MISMATCH:{plan_region}:{plan_market_code}")
+    override = str(market_code or "").strip().upper()
+    if override and override not in MARKET_ADMIN_CODES:
+        raise ValueError(f"AWARD_QUERY_PLAN_MARKET_CODE_INVALID:{override}")
+    market_code = override or plan_market_code
+    region = MARKET_ADMIN_CODES[market_code][0]
 
     lookback_days = int(payload.get("lookback_days", 7))
     max_details = int(payload.get("max_details", 8))
@@ -112,6 +124,23 @@ def plan_date_window(as_of: datetime, lookback_days: int) -> tuple[str, str]:
     end = as_of.date()
     start = end - timedelta(days=lookback_days)
     return start.isoformat(), end.isoformat()
+
+
+def candidate_market_code(region: str | None) -> str | None:
+    """Market code proven by the official result-row geography field, else None.
+
+    Mirrors ``sync_regional_ccgp.candidate_market_code``: the search request's
+    zoneId is discovery-only, so a row is attributed to a market only when its
+    own 地域 field names that province/municipality.
+    """
+    normalized = "".join(str(region or "").split())
+    if not normalized:
+        return None
+    for code, (name, _admin_code) in MARKET_ADMIN_CODES.items():
+        aliases = (name, f"{name}省", f"{name}市")
+        if normalized in aliases or normalized.startswith(aliases):
+            return code
+    return None
 
 
 def is_award_result_candidate(candidate: DiscoveryCandidate) -> bool:
@@ -171,7 +200,12 @@ def discover_award_candidates(
     sleep=time.sleep,
     budget_exhausted=lambda: False,
     skipped: list[dict] | None = None,
+    market_code: str | None = None,
+    region_mismatches: list[dict] | None = None,
 ) -> list[tuple[str, DiscoveryCandidate]]:
+    """Result-notice rows for one keyword. When ``market_code`` is given, rows
+    whose own geography field does not prove that market are dropped and
+    listed in ``region_mismatches`` (the zoneId filter is not trusted)."""
     discovered: list[tuple[str, DiscoveryCandidate]] = []
     for index, notice_type in enumerate(notice_types):
         if budget_exhausted():
@@ -202,8 +236,22 @@ def discover_award_candidates(
             )
             candidates = []
         for candidate in candidates:
-            if is_award_result_candidate(candidate):
-                discovered.append((notice_type, candidate))
+            if not is_award_result_candidate(candidate):
+                continue
+            if market_code and candidate_market_code(candidate.region) != market_code:
+                if region_mismatches is not None:
+                    region_mismatches.append(
+                        {
+                            "keyword": keyword,
+                            "notice_type": notice_type,
+                            "title": candidate.title,
+                            "url": candidate.detail_url,
+                            "candidate_region": candidate.region,
+                            "expected_market_code": market_code,
+                        }
+                    )
+                continue
+            discovered.append((notice_type, candidate))
         if index + 1 < len(notice_types):
             sleep(delay_seconds)
     return discovered
@@ -283,6 +331,7 @@ def run_award_sync(
 
     failures: list[dict] = []
     skipped: list[dict] = []
+    region_mismatches: list[dict] = []
     discovered_by_url: dict[str, tuple[str, DiscoveryCandidate]] = {}
     discovered_keywords: dict[str, set[str]] = {}
     directed = _directed_candidates(list(detail_urls or []))
@@ -302,6 +351,8 @@ def run_award_sync(
             sleep=sleep,
             budget_exhausted=budget_exhausted,
             skipped=skipped,
+            market_code=plan["market_code"],
+            region_mismatches=region_mismatches,
         )
         merge_discovered(discovered_by_url, discovered_keywords, keyword=keyword, candidates=candidates)
         if index + 1 < len(discovery_keywords) and not budget_exhausted():
@@ -387,6 +438,8 @@ def run_award_sync(
         "planned_discovery_query_count": planned_queries,
         "discovery_success_count": discovery_success_count,
         "unique_discovered_result_count": len(discovered),
+        "region_mismatch_count": len(region_mismatches),
+        "region_mismatches": region_mismatches[:20],
         "selected_detail_count": len(selected),
         "new_award_record_count": len(new_awards),
         "out_of_scope_count": len(out_of_scope),
@@ -415,6 +468,7 @@ def run_award_sync(
             "parse_failures_are_reported_not_published": True,
             "rate_limit_bypass": False,
             "minimum_request_delay_seconds": plan["delay_seconds"],
+            "row_geography_must_prove_market": True,
         },
     }
     return merged_awards, report
@@ -432,11 +486,16 @@ def main() -> int:
         default=[],
         help="Repeatable. Parse these CCGP result notice URLs directly instead of running search discovery (operator seeding / backfill).",
     )
+    parser.add_argument(
+        "--market-code",
+        default=None,
+        help="Re-target the plan's keywords at another market (BJ/TJ/HE/LN/JL/HL); the plan file itself must still be valid.",
+    )
     parser.add_argument("--awards-output", required=True, type=Path)
     parser.add_argument("--report-output", required=True, type=Path)
     args = parser.parse_args()
 
-    plan = load_plan(args.plan)
+    plan = load_plan(args.plan, market_code=args.market_code)
     as_of = parse_as_of(args.as_of)
     existing_awards = load_json_arrays(args.existing_awards_input, label="existing award records")
     pool_records = load_json_arrays(args.records_input, label="opportunity records")

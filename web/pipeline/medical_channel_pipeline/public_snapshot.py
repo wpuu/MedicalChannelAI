@@ -7,7 +7,8 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from .ccgp_events import validate_notice_events
-from .ccgp_award import awarded_project_numbers, build_public_award_ledger, normalize_project_number
+from .state import market_code_for_record
+from .ccgp_award import awarded_project_keys, build_public_award_ledger, is_awarded_project
 from .legal_windows import legal_windows_for_facts, working_calendar_payload
 from .validation import validate_records
 
@@ -518,14 +519,14 @@ def build_public_snapshot(
     event_states = _build_event_states(notice_events or [], as_of)
     # Published 中标/成交 results retire the matching opportunity from the pool
     # (the same way a termination does) and surface in the award ledger.
-    awarded_projects = awarded_project_numbers(award_records, as_of)
+    awarded_projects = awarded_project_keys(award_records, as_of)
     awarded_project_count = 0
 
     sortable: list[tuple[int, float, float, str, dict[str, Any], list[str]]] = []
     for record in validated:
         facts = record["facts"]
         project_number = str(facts.get("project_number") or "").strip().lower()
-        if project_number and normalize_project_number(project_number) in awarded_projects:
+        if project_number and is_awarded_project(awarded_projects, project_number, market_code_for_record(record)):
             awarded_project_count += 1
             continue
         event_state = event_states.get(project_number) if project_number else None

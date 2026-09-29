@@ -133,19 +133,28 @@ class PublishedWebSnapshotTests(unittest.TestCase):
         notice_events = load_array(
             PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json', label='notice events'
         )
-        award_records = load_optional_array(
-            PIPELINE_ROOT / 'data' / 'tianjin_award_records.json', label='Tianjin award results'
-        )
+        # Award stores: Tianjin (runtime + daily workflow) and regional (regional
+        # workflow); each builder only sees awards of its own market(s).
+        award_records = [
+            *load_optional_array(PIPELINE_ROOT / 'data' / 'tianjin_award_records.json', label='Tianjin award results'),
+            *load_optional_array(PIPELINE_ROOT / 'data' / 'regional_award_records.json', label='regional award results'),
+        ]
+        tianjin_awards = [
+            record for record in award_records
+            if str((record.get('facts') or {}).get('market_code') or 'TJ').strip().upper() == 'TJ'
+        ]
+        regional_awards = [record for record in award_records if record not in tianjin_awards]
         tianjin_snapshot = build_public_snapshot(
             tianjin_records,
             published_as_of,
             notice_events,
-            award_records,
+            tianjin_awards,
         )
         regional_snapshot = build_public_snapshot(
             regional_records,
             published_as_of,
             [],
+            regional_awards,
         )
         expected = combine_snapshots(
             tianjin_snapshot,
@@ -185,11 +194,23 @@ class PublishedWebSnapshotTests(unittest.TestCase):
         self.assertIn(regional_filename, publisher_source)
         self.assertIn('publish_web_snapshot.py', daily_workflow)
 
-        # 中标/成交 award store: refreshed by the workflow, consumed by both publishers.
-        self.assertIn('tianjin_award_records.json', refresh_source)
-        self.assertIn('tianjin_award_records.json', publisher_source)
+        # 中标/成交 award stores (Tianjin + regional): refreshed by their workflows,
+        # consumed by both publishers by default and split per market. The daily
+        # workflow must not pin a single --award-input, or the two workflows would
+        # publish different ledgers on alternate runs.
+        for filename in ('tianjin_award_records.json', 'regional_award_records.json'):
+            self.assertIn(filename, refresh_source)
+            self.assertIn(filename, publisher_source)
+        self.assertIn('split_awards_by_market', refresh_source)
+        self.assertIn('split_awards_by_market(award_records)', publisher_source)
         self.assertIn('sync_ccgp_awards.py', daily_workflow)
-        self.assertIn('--award-input web/pipeline/data/tianjin_award_records.json', daily_workflow)
+        self.assertNotIn('--award-input', daily_workflow)
+        regional_workflow = (REPO_ROOT / '.github' / 'workflows' / 'regional-medical-refresh.yml').read_text(encoding='utf-8')
+        self.assertIn('sync_regional_awards.py', regional_workflow)
+        self.assertIn('--awards-output web/pipeline/data/regional_award_records.json', regional_workflow)
+        self.assertNotIn('--award-input', regional_workflow)
+        for filename in ('regional_award_records.json', 'regional_award_sync_report.json'):
+            self.assertIn(f'web/pipeline/data/{filename} \\', regional_workflow)
 
 
 if __name__ == '__main__':

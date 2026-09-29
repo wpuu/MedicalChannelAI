@@ -65,10 +65,22 @@ class VercelAwardRuntimeTests(unittest.TestCase):
         self.assertIn("run_award_sync,", self.runtime)
         self.assertRegex(self.runtime, r"from medical_channel_pipeline\.ccgp_award import [^\n]*merge_award_records")
         bootstrap = _function_source(self.runtime, "_bootstrap_ccgp_awards")
-        self.assertIn('DATA_ROOT / "tianjin_award_records.json"', bootstrap)
-        self.assertIn("if not path.exists():", bootstrap)
-        self.assertIn("return []", bootstrap)
-        self.assertIn("merge_award_records([], _load_array(path))", bootstrap)
+        self.assertIn("return _bundled_award_records()", bootstrap)
+        self.assertEqual(
+            _tuple_assignment(self.runtime, "AWARD_STORE_FILENAMES"),
+            ("tianjin_award_records.json", "regional_award_records.json"),
+        )
+        bundled = _function_source(self.runtime, "_bundled_award_records")
+        self.assertIn("if path.exists():", bundled)
+        self.assertIn("merge_award_records([], records)", bundled)
+        # Regional awards are refreshed by the self-hosted workflow only; the
+        # runtime folds the deployed bundle in every run instead of syncing them.
+        award = _function_source(self.runtime, "_run_award")
+        self.assertIn("_bundled_award_records()", award)
+        self.assertIn('!= "TJ"', award)
+        self.assertIn("existing_awards = merge_award_records(existing_awards, bundled)", award)
+        self.assertIn('"bundled_regional_awards_added": bundled_regional_count', award)
+        self.assertLess(award.index("_bundled_award_records()"), award.index("run_award_sync("))
 
     def test_publish_treats_awards_as_optional_input(self) -> None:
         publish = _function_source(self.runtime, "_run_publish")

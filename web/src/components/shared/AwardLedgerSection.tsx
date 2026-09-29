@@ -3,6 +3,7 @@ import { ExternalLink, Gavel } from 'lucide-react'
 import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
 import type { AwardLedgerEntry } from '@/types'
 import { formatBudget } from '@/utils/format'
+import { ENABLED_MARKETS } from '@/config/marketPreference'
 
 const MAX_ITEMS_PER_ENTRY = 6
 const DEFAULT_VISIBLE_ENTRIES = 5
@@ -18,6 +19,11 @@ interface AwardLedgerSectionProps {
 function amountText(value: number | null | undefined): string {
   const formatted = formatBudget(value)
   return formatted ?? '金额未公布'
+}
+
+function marketName(code?: string | null): string | null {
+  if (!code) return null
+  return ENABLED_MARKETS.find((market) => market.code === code)?.name ?? null
 }
 
 function resultLabel(entry: AwardLedgerEntry): string {
@@ -43,6 +49,11 @@ function AwardEntry({ entry }: { entry: AwardLedgerEntry }) {
           <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${toneFor(entry)}`}>
             {resultLabel(entry)}
           </span>
+          {marketName(entry.market_code) ? (
+            <span className="rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] text-sky-700">
+              {marketName(entry.market_code)}
+            </span>
+          ) : null}
           {entry.notice_type ? (
             <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] text-slate-600">
               {entry.notice_type}

@@ -267,15 +267,40 @@ def _header_key(value: str) -> str:
     return re.sub(r"\s+", "", value).replace("（", "(").replace("）", ")")
 
 
-def _find_header_index(headers: list[str], *needles: str) -> int | None:
-    for index, header in enumerate(headers):
-        key = _header_key(header)
-        if any(needle in key for needle in needles):
-            return index
+def _find_header_index(headers: list[str], *needles: str, exclude: tuple[str, ...] = ()) -> int | None:
+    """First column whose header contains any needle (needles tried in order,
+    so specific labels win over generic ones); ``exclude`` drops columns such
+    as ``供应商名称`` when the generic needle is just ``名称``."""
+    keys = [_header_key(header) for header in headers]
+    for needle in needles:
+        for index, key in enumerate(keys):
+            if needle in key and not any(item in key for item in exclude):
+                return index
     return None
 
 
-_AMOUNT_RE = re.compile(r"(?:[￥¥]\s*)?([0-9][0-9,]*(?:\.[0-9]+)?)\s*(万元|元)?")
+_ITEM_NAME_EXCLUDE = ("供应商", "采购人", "代理", "联系人", "项目名称")
+
+
+def _item_name_index(headers: list[str]) -> int | None:
+    # 黑龙江: ``品目号 | 品目名称 | 采购标的 | 品牌 | …`` — the product is 采购标的,
+    # 品目名称 is the catalogue category.
+    return _find_header_index(
+        headers,
+        "标的名称", "货物名称", "产品名称", "服务名称", "工程名称", "采购标的", "名称",
+        exclude=_ITEM_NAME_EXCLUDE + ("品目名称",),
+    )
+
+
+# Amount text: ``1,395``, ``237.5万元``, ``10,727,000.00元`` or the national
+# text template's ``182.0000000（万元）`` (unit in parentheses after the number).
+_AMOUNT_RE = re.compile(r"(?:[￥¥]\s*)?([0-9][0-9,]*(?:\.[0-9]+)?)\s*[（(]?\s*(万元|元)?\s*[）)]?")
+
+# A unit-less cell (河北 template: ``中标金额`` column holding ``5733000``) is
+# read as 元 only when the alternative 万元 reading would be at least ¥10亿,
+# which no medical-channel award in scope reaches; smaller unit-less numbers
+# stay ambiguous and are refused.
+UNITLESS_YUAN_FLOOR = 100_000
 
 
 def _parse_amount_cny(value: str | None, *, header_hint: str | None = None) -> int | None:
@@ -304,15 +329,21 @@ def _parse_amount_cny(value: str | None, *, header_hint: str | None = None) -> i
     if unit == "万元":
         number *= 10_000
     elif unit is None:
-        # No unit anywhere: refuse to guess a scale for a monetary fact.
-        return None
+        # No unit anywhere: refuse to guess a scale for a monetary fact unless
+        # the 万元 reading is implausible for this domain (see UNITLESS_YUAN_FLOOR).
+        if number < UNITLESS_YUAN_FLOOR:
+            return None
     if number < 0:
         return None
     return int(round(number))
 
 
 def _package_no_from_text(text: str) -> str | None:
-    match = re.search(r"包号\s*[：:]\s*([A-Za-z0-9\-]+)", text)
+    # 包号：1 (national) / 包组编号：002 (辽宁) / 合同包1(…) (黑龙江)
+    match = re.search(r"包(?:组)?(?:编)?号\s*[：:]\s*([A-Za-z0-9\-]+)", text)
+    if match:
+        return match.group(1)
+    match = re.match(r"^合同包\s*([A-Za-z0-9\-]+)", text)
     if match:
         return match.group(1)
     match = re.search(r"第\s*([0-9一二三四五六七八九十]+)\s*(?:分)?包", text)
@@ -409,7 +440,9 @@ def _extract_summary_total(summary: dict[str, str]) -> int | None:
         value = summary.get(key)
         if value:
             amount = _parse_amount_cny(value)
-            if amount is not None:
+            # ``0`` / ``0.00元`` is a placeholder (per-test service pricing,
+            # 废标), never a published award amount.
+            if amount is not None and amount > 0:
                 return amount
     return None
 
@@ -458,17 +491,41 @@ def _summary_fields(blocks: list[tuple[str, Any]]) -> dict[str, str]:
 # --------------------------------------------------------------------------- #
 # Package results (三、中标/成交信息)
 # --------------------------------------------------------------------------- #
+_CATEGORY_ROW_RE = re.compile(r"^(货物|服务|工程)类?$")
+
+
+def _table_header(rows: list[list[str]], is_header) -> tuple[int, list[str], str | None] | None:
+    """Locate the header row within the first three rows.
+
+    河北 pages put a spanning category row (``货物类`` / ``服务类``) above the
+    real header; that label is returned as the default item category.
+    """
+    category: str | None = None
+    for index, row in enumerate(rows[:3]):
+        if is_header(row):
+            return index, row, category
+        distinct = {_header_key(cell) for cell in row if _header_key(cell)}
+        if len(distinct) == 1 and _CATEGORY_ROW_RE.match(next(iter(distinct))):
+            category = next(iter(distinct))
+            continue
+        break
+    return None
+
+
 def _is_supplier_table(headers: list[str]) -> bool:
     keys = [_header_key(item) for item in headers]
     has_supplier = any("供应商名称" in key or key in {"中标供应商", "成交供应商", "中标人", "成交人"} for key in keys)
     has_amount = any(("金额" in key or "报价" in key) for key in keys)
-    return has_supplier and has_amount and not any("排序" in key or "排名" in key for key in keys)
+    # 河北 template: ``供应商名称 | 供应商地址 | 供应商编码`` carries no amount;
+    # the money then lives in the 主要标的信息 table (see _package_amounts_from_item_tables).
+    has_identity = any(("供应商地址" in key or "供应商编码" in key or "信用代码" in key) for key in keys)
+    return has_supplier and (has_amount or has_identity) and not any("排序" in key or "排名" in key for key in keys)
 
 
 def _is_item_table(headers: list[str]) -> bool:
     keys = [_header_key(item) for item in headers]
     has_name = any(
-        key in {"名称", "标的名称", "货物名称", "产品名称", "服务名称", "工程名称"}
+        key in {"名称", "标的名称", "货物名称", "产品名称", "服务名称", "工程名称", "采购标的"}
         or (key.endswith("名称") and "供应商" not in key)
         for key in keys
     )
@@ -476,7 +533,18 @@ def _is_item_table(headers: list[str]) -> bool:
     # only carry a 类型 column. Both are captured so the scope filter can see
     # that an award is construction-only.
     has_detail = any("品牌" in key or "规格" in key or "型号" in key or key in {"类型", "标的类型"} for key in keys)
-    return has_name and has_detail
+    # 河北 服务类 tables: 供应商名称 | 服务名称 | 服务范围 | 服务要求 | 服务标准 | 服务时间 | 中标金额 …
+    has_service_detail = any(key in {"服务范围", "服务要求", "服务标准", "服务时间"} for key in keys)
+    return has_name and (has_detail or has_service_detail)
+
+
+# ``三、中标（成交）信息`` (national/天津/河北/北京) or ``三、采购结果`` (黑龙江).
+_RESULT_SECTION_RE = re.compile(r"(?:三|四)[、.]\s*(?:(?:中标|成交|中标（成交）|中标\(成交\))信息|采购结果|(?:中标|成交|评审)结果)")
+_RESULT_SECTION_TEXT_RE = re.compile(
+    r"(?:三|四)[、.]\s*(?:(?:中标|成交|中标（成交）|中标\(成交\))信息|采购结果|(?:中标|成交|评审)结果)\s*[：:]?(.+?)"
+    r"(?=(?:四|五)[、.]\s*主要标的信息|(?:五|六)[、.]\s*评审专家|$)",
+    re.S,
+)
 
 
 def _packages_from_tables(blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]:
@@ -486,7 +554,7 @@ def _packages_from_tables(blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]
     for kind, payload in blocks:
         if kind == "text":
             text = payload
-            if re.search(r"(?:三|四)[、.]\s*(?:中标|成交|中标（成交）|中标\(成交\))信息", text):
+            if _RESULT_SECTION_RE.search(text):
                 in_result_section = True
             elif re.search(r"(?:四|五)[、.]\s*主要标的信息", text) or "评审报价" in text:
                 in_result_section = False
@@ -497,13 +565,14 @@ def _packages_from_tables(blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]
         if not in_result_section:
             continue
         rows: list[list[str]] = payload
-        if len(rows) < 2 or not _is_supplier_table(rows[0]):
+        located = _table_header(rows, _is_supplier_table) if len(rows) >= 2 else None
+        if located is None:
             continue
-        headers = rows[0]
+        header_row, headers, _ = located
         supplier_index = _find_header_index(headers, "供应商名称", "中标供应商", "成交供应商", "中标人", "成交人")
         address_index = _find_header_index(headers, "供应商地址", "地址")
         amount_index = _find_header_index(headers, "中标金额", "成交金额", "中标(成交)金额", "金额")
-        for row in rows[1:]:
+        for row in rows[header_row + 1:]:
             supplier = _clean(row[supplier_index]) if supplier_index is not None and supplier_index < len(row) else None
             if not supplier:
                 continue
@@ -525,24 +594,28 @@ def _packages_from_tables(blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]
 
 def _packages_from_text(text: str) -> list[dict[str, Any]]:
     """National template: ``包号：N`` blocks with 供应商名称 / 金额 or 废标原因 lines."""
-    section = re.search(
-        r"(?:三|四)[、.]\s*(?:中标|成交|中标（成交）|中标\(成交\))信息\s*[：:]?(.+?)(?=(?:四|五)[、.]\s*主要标的信息|(?:五|六)[、.]\s*评审专家|$)",
-        text,
-        re.S,
-    )
+    section = _RESULT_SECTION_TEXT_RE.search(text)
     if not section:
         return []
     body = section.group(1)
     packages: list[dict[str, Any]] = []
-    chunks = re.split(r"(?=包号\s*[：:])", body)
+    chunks = re.split(r"(?=包(?:组)?(?:编)?号\s*[：:])", body)
     for chunk in chunks:
         chunk = chunk.strip()
         if not chunk:
             continue
         package_no = _package_no_from_text(chunk)
         supplier = re.search(r"(?:中标|成交)?供应商名称\s*[：:]\s*(.+?)(?=\s+供应商地址|\s+(?:中标|成交)|\s+统一社会信用代码|$)", chunk, re.S)
-        amount_match = re.search(r"(?:中标|成交|中标（成交）|中标\(成交\))金额\s*[：:]\s*([￥¥]?\s*[0-9][0-9,]*(?:\.[0-9]+)?\s*(?:万元|元)?)", chunk)
-        failure = re.search(r"(?:废标|流标|终止)(?:（终止）|\(终止\))?原因\s*[：:]\s*(.+?)(?=\s+包号|$)", chunk, re.S)
+        amount_match = re.search(
+            r"(?:中标|成交|中标（成交）|中标\(成交\))金额\s*[：:]\s*([￥¥]?\s*[0-9][0-9,]*(?:\.[0-9]+)?\s*[（(]?\s*(?:万元|元)?\s*[）)]?)",
+            chunk,
+        )
+        # ``废标原因：`` (national) or ``结果类型：废标 … 废标情形：`` (辽宁).
+        failure = re.search(
+            r"(?:废标|流标|终止)(?:（终止）|\(终止\))?(?:原因|情形)\s*[：:]\s*(.+?)(?=\s+包(?:组)?(?:编)?号|$)",
+            chunk,
+            re.S,
+        )
         if supplier:
             packages.append(
                 {
@@ -589,24 +662,26 @@ def _items_from_tables(blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]:
         if not in_item_section:
             continue
         rows: list[list[str]] = payload
-        if len(rows) < 2 or not _is_item_table(rows[0]):
+        located = _table_header(rows, _is_item_table) if len(rows) >= 2 else None
+        if located is None:
             continue
-        headers = rows[0]
-        name_index = _find_header_index(headers, "标的名称", "货物名称", "产品名称", "名称")
+        header_row, headers, default_category = located
+        name_index = _item_name_index(headers)
         brand_index = _find_header_index(headers, "品牌")
         model_index = _find_header_index(headers, "规格型号", "型号", "规格")
         quantity_index = _find_header_index(headers, "数量")
         price_index = _find_header_index(headers, "单价")
-        category_index = _find_header_index(headers, "类型", "标的类型")
-        for row in rows[1:]:
+        category_index = _find_header_index(headers, "类型", "标的类型", "品目名称")
+        for row in rows[header_row + 1:]:
             name = _clean(row[name_index]) if name_index is not None and name_index < len(row) else None
             if not name:
                 continue
             price_text = row[price_index] if price_index is not None and price_index < len(row) else None
+            category = _clean(row[category_index], max_length=20) if category_index is not None and category_index < len(row) else None
             items.append(
                 {
                     "package_no": current_package,
-                    "category": _clean(row[category_index], max_length=20) if category_index is not None and category_index < len(row) else None,
+                    "category": category or default_category,
                     "name": name,
                     "brand": _clean(row[brand_index], max_length=80) if brand_index is not None and brand_index < len(row) else None,
                     "model": _clean(row[model_index], max_length=120) if model_index is not None and model_index < len(row) else None,
@@ -615,6 +690,65 @@ def _items_from_tables(blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]:
                 }
             )
     return items
+
+
+def _package_amounts_from_item_tables(blocks: list[tuple[str, Any]]) -> dict[str, int]:
+    """河北 template: the 主要标的信息 table carries ``供应商名称`` and ``中标金额``
+    per row while the 中标（成交）信息 table has no amount. Sum the awarded
+    amount per supplier; a supplier with any unparseable row is left out so
+    a partial sum is never published."""
+    totals: dict[str, int] = {}
+    broken: set[str] = set()
+    in_item_section = False
+    for kind, payload in blocks:
+        if kind == "text":
+            if re.search(r"(?:四|五)[、.]\s*主要标的信息", payload):
+                in_item_section = True
+            elif re.search(r"(?:五|六|七)[、.]\s*(?:评审专家|代理服务收费|中标（成交）候选)", payload):
+                in_item_section = False
+            continue
+        if not in_item_section:
+            continue
+        rows: list[list[str]] = payload
+        located = _table_header(rows, _is_item_table) if len(rows) >= 2 else None
+        if located is None:
+            continue
+        header_row, headers, _ = located
+        supplier_index = _find_header_index(headers, "供应商名称", "中标供应商", "成交供应商")
+        amount_index = _find_header_index(headers, "中标金额", "成交金额", "中标(成交)金额")
+        if supplier_index is None or amount_index is None:
+            continue
+        for row in rows[header_row + 1:]:
+            supplier = _clean(row[supplier_index]) if supplier_index < len(row) else None
+            if not supplier:
+                continue
+            amount = _parse_amount_cny(row[amount_index], header_hint=headers[amount_index]) if amount_index < len(row) else None
+            if amount is None:
+                broken.add(supplier)
+                continue
+            totals[supplier] = totals.get(supplier, 0) + amount
+    return {supplier: amount for supplier, amount in totals.items() if supplier not in broken}
+
+
+def _backfill_package_amounts(packages: list[dict[str, Any]], blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]:
+    if all(package.get("amount_cny") is not None for package in packages if package["status"] == "AWARDED"):
+        return packages
+    by_supplier = _package_amounts_from_item_tables(blocks)
+    if not by_supplier:
+        return packages
+    # Only unambiguous: one awarded package per supplier name.
+    supplier_counts: dict[str, int] = {}
+    for package in packages:
+        if package["status"] == "AWARDED" and package.get("supplier_name"):
+            supplier_counts[package["supplier_name"]] = supplier_counts.get(package["supplier_name"], 0) + 1
+    for package in packages:
+        if package["status"] != "AWARDED" or package.get("amount_cny") is not None:
+            continue
+        supplier = package.get("supplier_name")
+        if supplier and supplier_counts.get(supplier) == 1 and supplier in by_supplier:
+            package["amount_cny"] = by_supplier[supplier]
+            package["amount_source"] = "ITEM_TABLE"
+    return packages
 
 
 _QUANTITY_RE = re.compile(r"([0-9]+(?:\.[0-9]+)?)")
@@ -722,7 +856,7 @@ def parse_ccgp_award_html(
     region = _clean(summary.get("行政区域"), max_length=40)
 
     packages = _packages_from_tables(blocks) or _packages_from_text(text)
-    packages = packages[:MAX_PACKAGES]
+    packages = _backfill_package_amounts(packages[:MAX_PACKAGES], blocks)
     if not packages:
         raise CcgpAwardParseError("CCGP_AWARD_SUPPLIER_NOT_FOUND")
     awarded = [item for item in packages if item["status"] == "AWARDED"]
@@ -732,7 +866,7 @@ def parse_ccgp_award_html(
 
     items = _items_from_tables(blocks)[:MAX_ITEMS]
 
-    total_amount = _extract_summary_total(summary)
+    total_amount = _extract_summary_total(summary) if awarded else None
     amount_basis: str | None = "SUMMARY_TOTAL" if total_amount is not None else None
     if total_amount is None and awarded and all(item.get("amount_cny") is not None for item in awarded):
         total_amount = sum(int(item["amount_cny"]) for item in awarded)
@@ -1025,6 +1159,33 @@ def awarded_project_numbers(award_records: list[dict[str, Any]] | None, as_of: d
         normalize_project_number(record["facts"]["project_number"])
         for record in effective_award_records(award_records, as_of)
     }
+
+
+def awarded_project_keys(award_records: list[dict[str, Any]] | None, as_of: datetime) -> set[tuple[str | None, str]]:
+    """``(market_code | None, normalised project number)`` for effective awards.
+
+    A result notice may only retire an opportunity of the *same market*: a
+    Beijing 中标公告 must never conclude a Hebei tender that happens to reuse
+    the same project number. Awards without a market code (legacy stores)
+    keep the old market-agnostic behaviour via ``None``.
+    """
+    keys: set[tuple[str | None, str]] = set()
+    for record in effective_award_records(award_records, as_of):
+        market_code = str(record["facts"].get("market_code") or "").strip().upper() or None
+        keys.add((market_code, normalize_project_number(record["facts"]["project_number"])))
+    return keys
+
+
+def is_awarded_project(
+    awarded_keys: set[tuple[str | None, str]],
+    project_number: Any,
+    market_code: str | None,
+) -> bool:
+    key = normalize_project_number(project_number)
+    if not key:
+        return False
+    normalized_market = str(market_code or "").strip().upper() or None
+    return (normalized_market, key) in awarded_keys or (None, key) in awarded_keys
 
 
 def exclude_awarded_projects(

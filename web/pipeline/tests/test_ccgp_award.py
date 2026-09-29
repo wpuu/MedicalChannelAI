@@ -23,6 +23,11 @@ TJ_SINGLE_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_2741242
 TJ_WORKS_URL = "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260928_27411167.htm"
 NATIONAL_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202608/t20260804_27071574.htm"
 TJ_MISDECLARED_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27411227.htm"
+HE_GOODS_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409767.htm"
+HE_SERVICE_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm"
+BJ_TEXT_URL = "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm"
+HL_CONTRACT_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm"
+LN_FAILED_URL = "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413417.htm"
 
 
 def _fixture(name: str) -> str:
@@ -204,8 +209,113 @@ class CcgpAwardParserTests(unittest.TestCase):
         self.assertEqual(normalize_project_number("XCSD-2026 -A-589"), "xcsd-2026-a-589")
         self.assertEqual(normalize_project_number(None), "")
 
+    def test_hebei_goods_table_supplier_without_amount_column_is_backfilled_from_item_table(self) -> None:
+        # 河北 template (observed 2026-09-28): 中标（成交）信息 is ``供应商名称 | 供应商地址 |
+        # 供应商编码`` with no amount; a spanning ``货物类`` row precedes the 主要标的信息
+        # header, whose unit-less ``中标金额`` column carries the money.
+        record = _parse("ccgp_award_hebei_goods_table.html", HE_GOODS_URL, market_code="HE")
+        facts = record["facts"]
+        self.assertEqual(facts["project_number"], "ZHZB2026404")
+        self.assertEqual(facts["buyer_name"], "沧州市中心医院")
+        self.assertEqual(facts["market_code"], "HE")
+        self.assertEqual(facts["total_amount_cny"], 2_569_303)
+        self.assertEqual(len(facts["packages"]), 1)
+        package = facts["packages"][0]
+        self.assertEqual(package["supplier_name"], "吉荣家具有限公司")
+        self.assertEqual(package["amount_cny"], 2_569_303)
+        self.assertEqual(package["amount_source"], "ITEM_TABLE")
+        self.assertEqual(
+            [(item["category"], item["name"], item["brand"], item["quantity"]) for item in facts["items"]],
+            [("货物类", "病房护理设备设施", "吉荣", "一批")],
+        )
+        validate_award_records([record])
+        # Furniture-only award: parsed, stored, but not a medical-channel award.
+        self.assertFalse(is_medical_channel_relevant_award(record))
+
+    def test_hebei_service_table_is_captured_as_service_item(self) -> None:
+        record = _parse("ccgp_award_hebei_service_table.html", HE_SERVICE_URL, market_code="HE")
+        facts = record["facts"]
+        self.assertEqual(facts["project_number"], "RHP-C192668292816-1")
+        self.assertEqual(facts["buyer_name"], "河北医科大学第三医院")
+        self.assertEqual(facts["total_amount_cny"], 5_733_000)
+        self.assertEqual(facts["packages"][0]["supplier_name"], "河北瑞鹤医疗器械有限公司")
+        self.assertEqual(facts["packages"][0]["amount_cny"], 5_733_000)
+        self.assertEqual(
+            [(item["category"], item["name"], item["model"], item["unit_price_cny"]) for item in facts["items"]],
+            [("服务类", "河北医科大学第三医院CT、MRI维保项目（三年）（二次）", None, None)],
+        )
+        self.assertTrue(is_medical_channel_relevant_award(record))
+
+    def test_national_text_template_reads_parenthesised_unit_and_item_name_column(self) -> None:
+        # 北京 (central) template: ``中标（成交）金额：182.0000000（万元）`` in text and an
+        # item table whose first 名称 column is the supplier, not the 标的.
+        record = _parse("ccgp_award_beijing_text_template.html", BJ_TEXT_URL, market_code="BJ")
+        facts = record["facts"]
+        self.assertEqual(facts["project_number"], "0701-264106070107")
+        self.assertEqual(facts["buyer_name"], "中国医学科学院北京协和医院")
+        self.assertEqual(facts["total_amount_cny"], 1_820_000)
+        self.assertEqual(facts["packages"][0]["supplier_name"], "北京若华医疗器械有限公司")
+        self.assertEqual(facts["packages"][0]["amount_cny"], 1_820_000)
+        item = facts["items"][0]
+        self.assertEqual(item["name"], "自动血液微生物培养系统; 全自动蛋白分析仪")
+        self.assertEqual(item["brand"], "美国BD; 西门子")
+        self.assertEqual(item["model"], "BD BACTEC FX; BN Ⅱ System")
+        self.assertIsNone(item["unit_price_cny"])  # multi-valued cell, not attributable
+        self.assertTrue(is_medical_channel_relevant_award(record))
+
+    def test_heilongjiang_contract_package_template_yields_catalogue_category_and_unit_prices(self) -> None:
+        # 黑龙江 template: ``三、采购结果`` + ``合同包1(…)：`` + item table
+        # ``品目号 | 品目名称 | 采购标的 | 品牌 | 规格型号 | 数量（单位） | 单价(元) | 总价(元)``.
+        record = _parse("ccgp_award_heilongjiang_contract_package.html", HL_CONTRACT_URL, market_code="HL")
+        facts = record["facts"]
+        self.assertEqual(facts["project_number"], "[231025]FAGC[GK]20260002")
+        self.assertEqual(facts["buyer_name"], "林口县中医院")
+        self.assertEqual(facts["total_amount_cny"], 1_430_000)
+        self.assertEqual(facts["award_status"], "AWARDED")
+        self.assertEqual(
+            [(p["package_no"], p["supplier_name"], p["amount_cny"]) for p in facts["packages"]],
+            [("1", "国药集团黑龙江医疗器械有限公司", 1_430_000)],
+        )
+        first = facts["items"][0]
+        self.assertEqual(first["package_no"], "1")
+        self.assertEqual(first["category"], "物理治疗、康复及体育治疗仪器设备")
+        self.assertEqual(first["name"], "智能言语训练机")
+        self.assertEqual(first["brand"], "好博医疗")
+        self.assertEqual(first["unit_price_cny"], 410_000)
+        self.assertIn(("多参数监护仪", "理邦仪器", "iX15", 39_000), [(i["name"], i["brand"], i["model"], i["unit_price_cny"]) for i in facts["items"]])
+        validate_award_records([record])
+        self.assertTrue(is_medical_channel_relevant_award(record))
+
+    def test_liaoning_all_packages_failed_notice_has_no_amount(self) -> None:
+        # 辽宁 template: ``包组编号：002 … 结果类型：废标 … 废标情形：…`` and no 标的 table.
+        record = _parse("ccgp_award_liaoning_all_packages_failed.html", LN_FAILED_URL, market_code="LN")
+        facts = record["facts"]
+        self.assertEqual(facts["project_number"], "JH26-210323-00239")
+        self.assertEqual(facts["award_status"], "ALL_PACKAGES_FAILED")
+        self.assertIsNone(facts["total_amount_cny"])
+        self.assertIsNone(facts["amount_basis"])
+        self.assertEqual(facts["packages"][0]["package_no"], "002")
+        self.assertEqual(facts["packages"][0]["status"], "FAILED")
+        self.assertIn("通过符合性检查的供应商不足3家", facts["packages"][0]["failure_reason"])
+        self.assertEqual(facts["items"], [])
+        validate_award_records([record])
+
     def test_amount_parsing_never_guesses_a_scale(self) -> None:
         self.assertIsNone(_parse_amount_cny("237.5"))
+        # Unit-less cells are only read as 元 when the 万元 reading would be >= ¥10亿.
+        self.assertIsNone(_parse_amount_cny("12000"))
+        self.assertIsNone(_parse_amount_cny("99999.99"))
+        self.assertEqual(_parse_amount_cny("5733000"), 5_733_000)
+        self.assertEqual(_parse_amount_cny("2569303.17"), 2_569_303)
+        self.assertEqual(_parse_amount_cny("182.0000000（万元）"), 1_820_000)
+        self.assertEqual(_parse_amount_cny("1820000(元)"), 1_820_000)
+
+    def test_zero_summary_total_is_treated_as_unpublished(self) -> None:
+        from medical_channel_pipeline.ccgp_award import _extract_summary_total
+
+        self.assertIsNone(_extract_summary_total({"中标金额": "0元"}))
+        self.assertIsNone(_extract_summary_total({"成交金额": "0.00 万元"}))
+        self.assertEqual(_extract_summary_total({"中标金额": "52.39万元"}), 523_900)
         self.assertEqual(_parse_amount_cny("237.5", header_hint="中标金额(万元)"), 2_375_000)
         self.assertEqual(_parse_amount_cny("1,395", header_hint="中标金额(万元)"), 13_950_000)
         self.assertEqual(_parse_amount_cny("10,727,000.00元"), 10_727_000)

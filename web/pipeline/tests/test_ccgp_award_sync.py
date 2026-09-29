@@ -116,6 +116,85 @@ class AwardSyncRunTests(unittest.TestCase):
         self.search_urls.append(url)
         return url
 
+    def test_rows_whose_geography_does_not_prove_the_market_are_dropped(self) -> None:
+        # zoneId scoping is not trusted: a 河北 row (or one without a 地域 field)
+        # returned by the 天津-scoped search never becomes a Tianjin award.
+        self.candidates = [
+            _candidate(MULTI_URL, "天津市第三中心医院彩色多普勒超声诊断仪采购项目中标公告"),
+            DiscoveryCandidate(
+                title="河北某医院设备采购项目中标公告",
+                detail_url=SINGLE_URL,
+                published_at="2026-09-28",
+                buyer_name=None,
+                region="河北省石家庄市",
+                notice_type="中标公告",
+                search_keyword="医院",
+            ),
+            DiscoveryCandidate(
+                title="未知地域医院设备采购项目中标公告",
+                detail_url=BROKEN_URL,
+                published_at="2026-09-28",
+                buyer_name=None,
+                region=None,
+                notice_type="中标公告",
+                search_keyword="医院",
+            ),
+        ]
+        awards, report = sync.run_award_sync(
+            plan=self.plan,
+            as_of=AS_OF,
+            existing_awards=[],
+            pool_records=[],
+            fetch_search=self._fetch_search,
+            fetch_detail=_fetch_detail,
+            sleep=self.sleeps.append,
+        )
+        self.assertEqual([record["facts"]["project_number"] for record in awards], ["XCSD-2026-A-535"])
+        self.assertEqual(report["unique_discovered_result_count"], 1)
+        self.assertEqual(report["region_mismatch_count"], 4)  # 2 rows x 2 notice types
+        self.assertEqual(
+            sorted({item["candidate_region"] or "" for item in report["region_mismatches"]}),
+            ["", "河北省石家庄市"],
+        )
+        self.assertTrue(all(item["expected_market_code"] == "TJ" for item in report["region_mismatches"]))
+        self.assertTrue(report["policy"]["row_geography_must_prove_market"])
+
+    def test_plan_can_be_retargeted_at_another_market(self) -> None:
+        self.assertEqual(sync.candidate_market_code("北京市"), "BJ")
+        self.assertEqual(sync.candidate_market_code("黑龙江省哈尔滨市"), "HL")
+        self.assertEqual(sync.candidate_market_code("天津"), "TJ")
+        self.assertIsNone(sync.candidate_market_code("河南省"))
+        self.assertIsNone(sync.candidate_market_code(None))
+        plan = sync.load_plan(PLAN_PATH, market_code="he")
+        self.assertEqual((plan["market_code"], plan["region"]), ("HE", "河北"))
+        self.assertEqual(plan["keywords"], self.plan["keywords"])
+        with self.assertRaisesRegex(ValueError, "AWARD_QUERY_PLAN_MARKET_CODE_INVALID:XX"):
+            sync.load_plan(PLAN_PATH, market_code="XX")
+        # Retargeted runs search the other zone and stamp the other market.
+        self.candidates = [
+            DiscoveryCandidate(
+                title="河北某医院设备采购项目中标公告",
+                detail_url=SINGLE_URL,
+                published_at="2026-09-28",
+                buyer_name=None,
+                region="河北省",
+                notice_type="中标公告",
+                search_keyword="医院",
+            ),
+        ]
+        awards, report = sync.run_award_sync(
+            plan=plan,
+            as_of=AS_OF,
+            existing_awards=[],
+            pool_records=[],
+            fetch_search=self._fetch_search,
+            fetch_detail=_fetch_detail,
+            sleep=self.sleeps.append,
+        )
+        self.assertTrue(all("zoneId=13" in url for url in self.search_urls))
+        self.assertEqual([record["facts"]["market_code"] for record in awards], ["HE"])
+        self.assertEqual(report["market_code"], "HE")
+
     def test_run_merges_in_scope_awards_reports_scope_exclusions_and_parse_failures(self) -> None:
         pool = [{"facts": {"project_number": "XCSD-2026-A-589"}}, {"facts": {"project_number": "OTHER"}}]
         awards, report = sync.run_award_sync(

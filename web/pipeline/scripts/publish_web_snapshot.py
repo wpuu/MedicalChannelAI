@@ -23,7 +23,10 @@ DEFAULT_INPUTS = [
 ]
 REGIONAL_INPUT = PIPELINE_ROOT / 'data' / 'regional_live_ccgp_records.json'
 DEFAULT_EVENT_INPUTS = [PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json']
-DEFAULT_AWARD_INPUT = PIPELINE_ROOT / 'data' / 'tianjin_award_records.json'
+DEFAULT_AWARD_INPUTS = [
+    PIPELINE_ROOT / 'data' / 'tianjin_award_records.json',
+    PIPELINE_ROOT / 'data' / 'regional_award_records.json',
+]
 DEFAULT_OUTPUT = WEB_ROOT / 'public' / 'data' / 'today-actions.public.json'
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 
@@ -126,6 +129,17 @@ def combine_award_ledgers(*snapshots: dict) -> list[dict]:
     return merged[:MAX_LEDGER_ENTRIES]
 
 
+def split_awards_by_market(award_records: list[dict]) -> tuple[list[dict], list[dict]]:
+    """(Tianjin awards, other-market awards). Awards without a market code are
+    legacy Tianjin-pilot records and stay on the Tianjin side."""
+    tianjin: list[dict] = []
+    regional: list[dict] = []
+    for record in award_records:
+        code = str(((record.get('facts') or {}).get('market_code')) or 'TJ').strip().upper()
+        (tianjin if code == 'TJ' else regional).append(record)
+    return tianjin, regional
+
+
 def combine_snapshots(
     tianjin_snapshot: dict,
     regional_snapshot: dict,
@@ -198,7 +212,7 @@ def main() -> int:
         action='append',
         type=Path,
         default=None,
-        help='Tianjin AWARD_RESULT JSON array (中标/成交). Defaults to the Tianjin award store when present.',
+        help='AWARD_RESULT JSON arrays (中标/成交). Defaults to the Tianjin and regional award stores when present.',
     )
     args = parser.parse_args()
 
@@ -208,10 +222,11 @@ def main() -> int:
     event_paths = args.event_input or DEFAULT_EVENT_INPUTS
     records = load_arrays(input_paths, label='input')
     notice_events = load_arrays(event_paths, label='event input')
-    award_paths = args.award_input if args.award_input is not None else (
-        [DEFAULT_AWARD_INPUT] if DEFAULT_AWARD_INPUT.exists() else []
-    )
+    award_paths = args.award_input if args.award_input is not None else [
+        path for path in DEFAULT_AWARD_INPUTS if path.exists()
+    ]
     award_records = load_arrays(award_paths, label='award input')
+    tianjin_awards, regional_awards = split_awards_by_market(award_records)
 
     as_of = datetime.fromisoformat(args.as_of.replace('Z', '+00:00'))
     if as_of.tzinfo is None:
@@ -230,8 +245,10 @@ def main() -> int:
     # separately so a matching project number in another province can never inherit
     # a Tianjin correction or termination. Regional event monitoring remains closed
     # until event records carry an explicit market key.
-    tianjin_snapshot = build_public_snapshot(tianjin_records, as_of, notice_events, award_records)
-    regional_snapshot = build_public_snapshot(regional_records, as_of, [])
+    # Awards follow the same boundary: a result notice may only retire (and be
+    # listed next to) opportunities of its own market.
+    tianjin_snapshot = build_public_snapshot(tianjin_records, as_of, notice_events, tianjin_awards)
+    regional_snapshot = build_public_snapshot(regional_records, as_of, [], regional_awards)
     snapshot = combine_snapshots(tianjin_snapshot, regional_snapshot, records, as_of)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)

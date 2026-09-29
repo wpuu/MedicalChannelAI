@@ -1,0 +1,1792 @@
+[
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_aaff0acec4a47839",
+    "source": {
+      "source_id": "ccgp-award:0701-264106070107",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+      "observed_at": "2026-09-29T06:00:39.423464+00:00"
+    },
+    "facts": {
+      "project_number": "0701-264106070107",
+      "project_name": "中国医学科学院北京协和医院检验科设备购置项目（2）",
+      "buyer_name": "中国医学科学院北京协和医院",
+      "region": "北京市",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-08-28",
+      "procurement_method": null,
+      "total_amount_cny": 1820000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "北京若华医疗器械有限公司",
+          "supplier_address": "北京市门头沟区石龙经济开发区永安路20号3号楼2层208、209室",
+          "amount_cny": 1820000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "3",
+          "category": null,
+          "name": "自动血液微生物培养系统; 全自动蛋白分析仪",
+          "brand": "美国BD; 西门子",
+          "model": "BD BACTEC FX; BN Ⅱ System",
+          "quantity": "2; 1",
+          "unit_price_cny": null
+        }
+      ],
+      "public_contact": {
+        "name": "刘老师",
+        "title": "项目联系人",
+        "phone": "010-69156696",
+        "email": null
+      },
+      "market_code": "BJ"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "公告标题/中标公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "公告类型=中标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412753.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_b17e2e24398ff29c",
+    "source": {
+      "source_id": "ccgp-award:0722-26FE3684ZB4",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+      "observed_at": "2026-09-29T06:00:39.423464+00:00"
+    },
+    "facts": {
+      "project_number": "0722-26FE3684ZB4",
+      "project_name": "北京大学人民医院新增业务用房启用保障项目购医疗设备第三批",
+      "buyer_name": "北京大学人民医院",
+      "region": "北京市",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 740000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "北京希倍佳科贸有限公司",
+          "supplier_address": "北京市朝阳区北苑东路19号院3号楼27层2707",
+          "amount_cny": 740000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": null,
+          "name": "器械清洗工作站（内镜一体化清洗设备）；高压蒸汽喷枪（医用蒸汽清洗机）",
+          "brand": "东山；东山",
+          "model": "DSQX-3000；DS-ZQQX-5L01",
+          "quantity": "4台；2个",
+          "unit_price_cny": null
+        }
+      ],
+      "public_contact": {
+        "name": "于晓琳",
+        "title": "项目联系人",
+        "phone": "010-64291720-8075",
+        "email": null
+      },
+      "market_code": "BJ"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "公告标题/中标公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "公告类型=中标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412637.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_4bc5d44cbf8df55e",
+    "source": {
+      "source_id": "ccgp-award:0722-26FE3680ZB4",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+      "observed_at": "2026-09-29T06:00:39.423464+00:00"
+    },
+    "facts": {
+      "project_number": "0722-26FE3680ZB4",
+      "project_name": "北京大学人民医院新增业务用房启用保障项目购医疗设备第一批",
+      "buyer_name": "北京大学人民医院",
+      "region": "北京市",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 1196000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "北京南合西商贸有限责任公司",
+          "supplier_address": "北京市石景山区海特花园50-105室",
+          "amount_cny": 1196000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": null,
+          "name": "洁净蒸汽发生器",
+          "brand": "斯派莎克",
+          "model": "CSG-HS-125",
+          "quantity": "1套",
+          "unit_price_cny": 1196000
+        }
+      ],
+      "public_contact": {
+        "name": "于晓琳",
+        "title": "项目联系人",
+        "phone": "010-64291720-8075",
+        "email": null
+      },
+      "market_code": "BJ"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "公告标题/中标公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "公告类型=中标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412635.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_9f9303e5f520e1f2",
+    "source": {
+      "source_id": "ccgp-award:YM-260603030",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+      "observed_at": "2026-09-29T05:51:51.865717+00:00"
+    },
+    "facts": {
+      "project_number": "YM-260603030",
+      "project_name": "保定市第二医院公立医院改革与高质量发展示范项目2025年市级和自筹资金医疗设备采购项目",
+      "buyer_name": "保定市第二医院",
+      "region": "保定市",
+      "notice_type": "中标结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 150000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "河北睿兰科思医疗科技有限公司",
+          "supplier_address": "河北省石家庄市桥西区中山西路276号P座106室",
+          "amount_cny": 150000,
+          "failure_reason": null,
+          "amount_source": "ITEM_TABLE"
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": "货物类",
+          "name": "转运呼吸机",
+          "brand": "迈瑞",
+          "model": "TV80S",
+          "quantity": "1",
+          "unit_price_cny": 150000
+        }
+      ],
+      "public_contact": {
+        "name": "张晶",
+        "title": "项目联系人",
+        "phone": "0312-2110808",
+        "email": null
+      },
+      "market_code": "HE"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "公告标题/中标结果公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "公告类型=中标结果公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413978.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_49e86a9151ae8764",
+    "source": {
+      "source_id": "ccgp-award:RHP-C192668292816-1",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+      "observed_at": "2026-09-29T05:51:51.865717+00:00"
+    },
+    "facts": {
+      "project_number": "RHP-C192668292816-1",
+      "project_name": "CT、MRI维保",
+      "buyer_name": "河北医科大学第三医院",
+      "region": "河北省",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-28",
+      "procurement_method": null,
+      "total_amount_cny": 5733000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "河北瑞鹤医疗器械有限公司",
+          "supplier_address": "石家庄高新区秦岭大街599号",
+          "amount_cny": 5733000,
+          "failure_reason": null,
+          "amount_source": "ITEM_TABLE"
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": "服务类",
+          "name": "河北医科大学第三医院CT、MRI维保项目（三年）（二次）",
+          "brand": null,
+          "model": null,
+          "quantity": null,
+          "unit_price_cny": null
+        }
+      ],
+      "public_contact": {
+        "name": "高俊杰、赵玉梦",
+        "title": "项目联系人",
+        "phone": "0311-69052016",
+        "email": null
+      },
+      "market_code": "HE"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "公告标题/中标公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "公告类型=中标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410652.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_d27ef38405a25ccd",
+    "source": {
+      "source_id": "ccgp-award:ZYTZC-2026-083",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+      "observed_at": "2026-09-29T05:51:51.865717+00:00"
+    },
+    "facts": {
+      "project_number": "ZYTZC-2026-083",
+      "project_name": "唐县人民医院区域医疗次高地建设工程-2026年度（第一批）医疗设备采购",
+      "buyer_name": "河北省唐县人民医院(唐县白求恩纪念医院)",
+      "region": "唐县",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-28",
+      "procurement_method": null,
+      "total_amount_cny": 496000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "河北增禄医疗器械贸易有限公司",
+          "supplier_address": "河北省石家庄市新华区高柱路13号朗德E座3楼343室",
+          "amount_cny": 496000,
+          "failure_reason": null,
+          "amount_source": "ITEM_TABLE"
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": "货物类",
+          "name": "超声骨组织手术设备",
+          "brand": "西山科技",
+          "model": "UT-C-S1",
+          "quantity": "1",
+          "unit_price_cny": 496000
+        }
+      ],
+      "public_contact": {
+        "name": "周金航",
+        "title": "项目联系人",
+        "phone": "0312-5386816",
+        "email": null
+      },
+      "market_code": "HE"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "公告标题/中标公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "公告类型=中标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409312.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_61a73bf9d4c6cfd2",
+    "source": {
+      "source_id": "ccgp-award:采购计划-[2026]-00223号-1",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+      "observed_at": "2026-09-29T05:53:43.930129+00:00"
+    },
+    "facts": {
+      "project_number": "采购计划-[2026]-00223号-1",
+      "project_name": "2026年度梅河口市中心医院检验科设备采购项目",
+      "buyer_name": "梅河口市中心医院",
+      "region": "吉林省",
+      "notice_type": "中标(成交)结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 590000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "吉林鼎星医疗科技有限公司",
+          "supplier_address": "吉林省长春市净月开发区长春明宇广场A区二期A4栋1909、1910室",
+          "amount_cny": 590000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": null,
+          "name": "微生物培养监测仪",
+          "brand": "安图",
+          "model": "BC60-240",
+          "quantity": "1台",
+          "unit_price_cny": 10000
+        },
+        {
+          "package_no": null,
+          "category": null,
+          "name": "全自动微生物鉴定药敏分析仪",
+          "brand": "安图",
+          "model": "AutoMic-i600",
+          "quantity": "1台",
+          "unit_price_cny": 230000
+        },
+        {
+          "package_no": null,
+          "category": null,
+          "name": "全自动微生物质谱检测系统",
+          "brand": "安图",
+          "model": "Autof TCX",
+          "quantity": "1台",
+          "unit_price_cny": 350000
+        }
+      ],
+      "public_contact": {
+        "name": "余伟林",
+        "title": "项目联系人",
+        "phone": "0431-80545615",
+        "email": null
+      },
+      "market_code": "JL"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "公告标题/中标(成交)结果公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "公告类型=中标(成交)结果公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414783.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_9a115a2622b23941",
+    "source": {
+      "source_id": "ccgp-award:采购计划-[2026]-23544号-1",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+      "observed_at": "2026-09-29T05:53:43.930129+00:00"
+    },
+    "facts": {
+      "project_number": "采购计划-[2026]-23544号-1",
+      "project_name": "吉林省神经精神病医院西门子核磁共振维保",
+      "buyer_name": "吉林省神经精神病医院",
+      "region": "吉林省",
+      "notice_type": "中标(成交)结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 650000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "西门子医疗系统有限公司",
+          "supplier_address": "中国（上海）自由贸易试验区英伦路38号五层516室",
+          "amount_cny": 650000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": null,
+          "name": "吉林省神经精神病医院西门子核磁共振维保",
+          "brand": null,
+          "model": null,
+          "quantity": null,
+          "unit_price_cny": null
+        }
+      ],
+      "public_contact": {
+        "name": "钟柠",
+        "title": "项目联系人",
+        "phone": "0431-81107246",
+        "email": null
+      },
+      "market_code": "JL"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "公告标题/中标(成交)结果公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "公告类型=中标(成交)结果公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414074.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_715caa710aab51be",
+    "source": {
+      "source_id": "ccgp-award:JM-2026-06-05060-JM-2026-06-05060",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+      "observed_at": "2026-09-29T05:53:43.930129+00:00"
+    },
+    "facts": {
+      "project_number": "JM-2026-06-05060-JM-2026-06-05060",
+      "project_name": "长春市疾控卫监双随机检验检测试剂及耗材采购项目（三次）",
+      "buyer_name": "长春市疾病预防控制中心（长春市卫生监督所）",
+      "region": "吉林省",
+      "notice_type": "成交结果公告",
+      "result_kind": "DEAL",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 114100,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": null,
+          "status": "AWARDED",
+          "supplier_name": "吉林省恒晟医疗器械有限公司",
+          "supplier_address": "长春市净月区恒大檀溪郡18栋104",
+          "amount_cny": 114051,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": null,
+          "category": null,
+          "name": "色度溶液标准物质",
+          "brand": "河南标准物质研发中心",
+          "model": "20mL/瓶",
+          "quantity": "3",
+          "unit_price_cny": 300
+        },
+        {
+          "package_no": null,
+          "category": null,
+          "name": "邻苯二甲酸氢钾pH溶液标准物质",
+          "brand": "河南标准物质研发中心",
+          "model": "500mL/瓶",
+          "quantity": "1",
+          "unit_price_cny": 165
+        },
+        {
+          "package_no": null,
+          "category": null,
+          "name": "硼砂pH溶液标准物质",
+          "brand": "河南标准物质研发中心",
+          "model": "500mL/瓶",
+          "quantity": "1",
+          "unit_price_cny": 165
+        },
+        {
+          "package_no": null,
+          "category": null,
+          "name": "混合磷酸盐pH溶液标准物质等",
+          "brand": "河南标准物质研发中心等",
+          "model": "500mL/瓶等",
+          "quantity": "1等",
+          "unit_price_cny": 165
+        }
+      ],
+      "public_contact": {
+        "name": "钱金丹",
+        "title": "项目联系人",
+        "phone": "18088611018",
+        "email": null
+      },
+      "market_code": "JL"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "公告标题/成交结果公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "公告类型=成交结果公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412593.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_c01bdb981983ce35",
+    "source": {
+      "source_id": "ccgp-award:[230401]BZGC[GK]20260001",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+      "observed_at": "2026-09-29T06:00:59.703836+00:00"
+    },
+    "facts": {
+      "project_number": "[230401]BZGC[GK]20260001",
+      "project_name": "医养结合服务能力提升项目-康复及健康监测设备采购项目",
+      "buyer_name": "鹤岗市中医医院",
+      "region": "鹤岗市",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 523900,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "沈阳众景医疗科技有限公司",
+          "supplier_address": "26-1号(2116-10)",
+          "amount_cny": 523900,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
+          "name": "干扰电治疗仪",
+          "brand": "兴汇",
+          "model": "SV-IT401S",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 114000
+        },
+        {
+          "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
+          "name": "中频治疗仪",
+          "brand": "一康",
+          "model": "PE2-4",
+          "quantity": "2.00(台)",
+          "unit_price_cny": 5000
+        },
+        {
+          "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
+          "name": "神经肌肉电刺激仪",
+          "brand": "倍益康",
+          "model": "QL/N-IV",
+          "quantity": "2.00(台)",
+          "unit_price_cny": 8200
+        },
+        {
+          "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
+          "name": "经皮神经电刺激仪",
+          "brand": "倍益康",
+          "model": "QL/T-III",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 4500
+        },
+        {
+          "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
+          "name": "超声治疗仪",
+          "brand": "西贝",
+          "model": "Sonopuls 190",
+          "quantity": "2.00(台)",
+          "unit_price_cny": 39500
+        },
+        {
+          "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
+          "name": "吞咽神经肌肉电刺激仪",
+          "brand": "西贝",
+          "model": "Titanium X94",
+          "quantity": "2.00(台)",
+          "unit_price_cny": 38500
+        },
+        {
+          "package_no": "1",
+          "category": "医用电子生理参数检测仪器设备",
+          "name": "无接触史生命体征监测设备",
+          "brand": "清雷",
+          "model": "KY-36",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 223000
+        }
+      ],
+      "public_contact": {
+        "name": "孙女士",
+        "title": "项目联系人",
+        "phone": "0454-8888177",
+        "email": null
+      },
+      "market_code": "HL"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "公告标题/中标（成交）结果公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "公告类型=中标（成交）结果公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414882.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_701249a674aac552",
+    "source": {
+      "source_id": "ccgp-award:[231025]FAGC[GK]20260002",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+      "observed_at": "2026-09-29T06:00:59.703836+00:00"
+    },
+    "facts": {
+      "project_number": "[231025]FAGC[GK]20260002",
+      "project_name": "医疗设备采购及服务",
+      "buyer_name": "林口县中医院",
+      "region": "林口县",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 1430000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "国药集团黑龙江医疗器械有限公司",
+          "supplier_address": "哈尔滨经开区南岗集中区泰山路261号悦山国际M栋16层1-12号",
+          "amount_cny": 1430000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
+          "name": "智能言语训练机",
+          "brand": "好博医疗",
+          "model": "HB-LRT(软件发布版本:01)/HB-CRT",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 410000
+        },
+        {
+          "package_no": "1",
+          "category": "医用电子生理参数检测仪器设备",
+          "name": "胎心检测仪",
+          "brand": "理邦仪器",
+          "model": "F6",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 49000
+        },
+        {
+          "package_no": "1",
+          "category": "医用电子生理参数检测仪器设备",
+          "name": "多参数监护仪",
+          "brand": "理邦仪器",
+          "model": "iX15",
+          "quantity": "5.00(台)",
+          "unit_price_cny": 39000
+        },
+        {
+          "package_no": "1",
+          "category": "手术室设备及附件",
+          "name": "骨科手术床",
+          "brand": "谊安医疗",
+          "model": "OP830",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 190000
+        },
+        {
+          "package_no": "1",
+          "category": "物理治疗、康复及体育治疗仪器设备",
+          "name": "体外冲击波碎石仪",
+          "brand": "新元素",
+          "model": "XYS.SUI-8A",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 399000
+        },
+        {
+          "package_no": "1",
+          "category": "医用 X 线诊断设备",
+          "name": "骨密度检测仪",
+          "brand": "澳思托",
+          "model": "SONOST-2000C",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 187000
+        }
+      ],
+      "public_contact": {
+        "name": "黑龙江丰安工程项目咨询有限公司",
+        "title": "项目联系人",
+        "phone": "18646158468",
+        "email": null
+      },
+      "market_code": "HL"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "公告标题/中标（成交）结果公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "公告类型=中标（成交）结果公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414653.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_c52d258eb8d650ed",
+    "source": {
+      "source_id": "ccgp-award:[230801]ZTZB[GK]20260012",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+      "observed_at": "2026-09-29T06:00:59.703836+00:00"
+    },
+    "facts": {
+      "project_number": "[230801]ZTZB[GK]20260012",
+      "project_name": "公立医院改革与高质量发展提升项目专用设备采购",
+      "buyer_name": "佳木斯市口腔病防治院",
+      "region": "佳木斯市",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 998800,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "华润佳木斯医药有限公司",
+          "supplier_address": "黑龙江省佳木斯市向阳区长安西路121号",
+          "amount_cny": 998800,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "牙科电动抽吸系统",
+          "brand": "迪珥",
+          "model": "S10A",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 55000
+        },
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "污水处理",
+          "brand": "新华",
+          "model": "XH-W",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 29800
+        },
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "CBCT",
+          "brand": "美亚光电",
+          "model": "mDX-15Pro-Y30",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 458000
+        },
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "牙片宝",
+          "brand": "汉缔",
+          "model": "HDS-500",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 11000
+        },
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "口腔综合治疗仪",
+          "brand": "上海菲曼特、康钛、啄木鸟、邦宁、上海菲曼特、优视达诚",
+          "model": "F1-S、KT101-K1Pro、UDS-N3 LED、Kavo LED Plus、F1D1、YSD-880",
+          "quantity": "2.00(台/套)",
+          "unit_price_cny": 85000
+        },
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "口腔内部扫描仪",
+          "brand": "先临",
+          "model": "Aoralscan Wireless G2",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 220000
+        },
+        {
+          "package_no": "1",
+          "category": "消毒灭菌设备及器具",
+          "name": "医用等离子体空气消毒器-1",
+          "brand": "新华",
+          "model": "YKX.P-B-1000型",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 6500
+        },
+        {
+          "package_no": "1",
+          "category": "消毒灭菌设备及器具",
+          "name": "医用等离子体空气消毒器-2",
+          "brand": "新华",
+          "model": "YKX.P-B-600K",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 4500
+        },
+        {
+          "package_no": "1",
+          "category": "消毒灭菌设备及器具",
+          "name": "灭菌器",
+          "brand": "海德曼",
+          "model": "Q102B",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 44000
+        }
+      ],
+      "public_contact": {
+        "name": "黑龙江正天招投标有限公司",
+        "title": "项目联系人",
+        "phone": "0454-8159555",
+        "email": null
+      },
+      "market_code": "HL"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "公告标题/中标（成交）结果公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "公告类型=中标（成交）结果公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_917443ec69900ffb",
+    "source": {
+      "source_id": "ccgp-award:[230001]ALZC[GK]20260007",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+      "observed_at": "2026-09-29T06:00:59.703836+00:00"
+    },
+    "facts": {
+      "project_number": "[230001]ALZC[GK]20260007",
+      "project_name": "医疗设备以旧更新项目第二批",
+      "buyer_name": "黑龙江中医药大学附属第四医院",
+      "region": "黑龙江省",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 12700000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "哈药集团医药有限公司器化玻批发总汇",
+          "supplier_address": "哈尔滨市道外区靖宇街202号",
+          "amount_cny": 12700000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "category": "医用超声波仪器及设备",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "通用电气",
+          "model": "LOGIQ E20 Pro",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 2418000
+        },
+        {
+          "package_no": "1",
+          "category": "医用超声波仪器及设备",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "通用电气",
+          "model": "LOGIQ E20 Pro",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 2418000
+        },
+        {
+          "package_no": "1",
+          "category": "医用超声波仪器及设备",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "通用电气",
+          "model": "LOGIQ E20 Pro",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 2418000
+        },
+        {
+          "package_no": "1",
+          "category": "医用超声波仪器及设备",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "飞利浦",
+          "model": "EPIQ Elite Plus",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 2573000
+        },
+        {
+          "package_no": "1",
+          "category": "医用超声波仪器及设备",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "飞利浦",
+          "model": "EPIQ Elite Plus",
+          "quantity": "1.00(台)",
+          "unit_price_cny": 2873000
+        }
+      ],
+      "public_contact": {
+        "name": "黑龙江奥隆工程项目管理有限公司",
+        "title": "项目联系人",
+        "phone": "0451-82265948",
+        "email": null
+      },
+      "market_code": "HL"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "公告标题/中标（成交）结果公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "公告类型=中标（成交）结果公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27412554.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_46b79d3169a37905",
+    "source": {
+      "source_id": "ccgp-award:[230601]ZCGL[CS]20260007",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+      "observed_at": "2026-09-29T06:04:14.033530+00:00"
+    },
+    "facts": {
+      "project_number": "[230601]ZCGL[CS]20260007",
+      "project_name": "HPV检测服务",
+      "buyer_name": "大庆市人民医院",
+      "region": "大庆市",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": null,
+      "amount_basis": null,
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "吉林超然医学检验有限公司",
+          "supplier_address": "长春市高新技术产业开发区现状工业用地以西、卓越东街以东、现状工业用地以北、规划工业用地以南创投高新产业园项目1号孵化厂房1层一2层",
+          "amount_cny": null,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "category": "其他医疗卫生服务",
+          "name": "HPV检测服务",
+          "brand": null,
+          "model": null,
+          "quantity": null,
+          "unit_price_cny": null
+        }
+      ],
+      "public_contact": {
+        "name": "大庆高新资产管理有限公司",
+        "title": "项目联系人",
+        "phone": "0459-8888062",
+        "email": null
+      },
+      "market_code": "HL"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+        "locator": "公告标题/中标（成交）结果公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+        "locator": "公告类型=中标（成交）结果公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414995.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  }
+]

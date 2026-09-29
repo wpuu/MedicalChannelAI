@@ -1,0 +1,457 @@
+{
+  "schema_version": "0.1",
+  "record_type": "AWARD_RESULT",
+  "observed_at": "2026-09-29T06:00:59.703836+00:00",
+  "market_codes": [
+    "BJ",
+    "HE",
+    "LN",
+    "JL",
+    "HL"
+  ],
+  "per_market_time_budget_seconds": 240.0,
+  "elapsed_seconds": 434.635,
+  "new_award_record_count": 14,
+  "out_of_scope_count": 15,
+  "region_mismatch_count": 1,
+  "failure_count": 2,
+  "merged_award_record_count": 14,
+  "merged_award_record_count_by_market": {
+    "BJ": 3,
+    "HE": 3,
+    "HL": 5,
+    "JL": 3
+  },
+  "markets_publish_allowed": {
+    "BJ": true,
+    "HE": true,
+    "LN": true,
+    "JL": true,
+    "HL": true
+  },
+  "publish_allowed": true,
+  "publish_gate_reason": "OK",
+  "markets": {
+    "BJ": {
+      "schema_version": "0.1",
+      "record_type": "AWARD_RESULT",
+      "observed_at": "2026-09-29T05:43:16.924630+00:00",
+      "region": "北京",
+      "market_code": "BJ",
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "keywords": [
+        "医院",
+        "医疗",
+        "检验",
+        "疾病预防控制",
+        "卫生健康"
+      ],
+      "notice_types": [
+        "中标公告",
+        "成交公告"
+      ],
+      "discovery_skipped_for_operator_directed_urls": false,
+      "operator_directed_url_count": 0,
+      "planned_discovery_query_count": 10,
+      "discovery_success_count": 10,
+      "unique_discovered_result_count": 58,
+      "region_mismatch_count": 0,
+      "region_mismatches": [],
+      "selected_detail_count": 6,
+      "new_award_record_count": 3,
+      "out_of_scope_count": 2,
+      "out_of_scope": [
+        {
+          "title": "中国医学科学院北京协和医院中央专项彩票公益金支持罕见病诊疗水平能力提升项目（2026-2030）第一期-罕见病医生培训项目中标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27412757.htm",
+          "project_number": "0701-264106070793",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        },
+        {
+          "title": "北京中医药大学东直门医院国际部消防系统维护保养项目成交公告",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/cjgg/202609/t20260929_27413655.htm",
+          "project_number": "0686-26300C056017N",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        }
+      ],
+      "merged_award_record_count": 3,
+      "pool_record_count": 173,
+      "matched_pool_project_count": 0,
+      "matched_pool_project_numbers": [],
+      "failure_count": 1,
+      "failures": [
+        {
+          "stage": "award_detail",
+          "region": "北京",
+          "notice_type": "中标公告",
+          "keywords": [
+            "医疗",
+            "医院"
+          ],
+          "title": "应急总医院安全改造项目(急诊中心、影像介入中心、新建扩建医疗和配套用房)施工采购项目中标结果公示",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27414479.htm",
+          "error": "CcgpAwardParseError",
+          "message": "CCGP_AWARD_SUPPLIER_NOT_FOUND"
+        }
+      ],
+      "skipped_count": 0,
+      "skipped": [],
+      "time_budget_seconds": 240.0,
+      "time_budget_exhausted": false,
+      "elapsed_seconds": 80.267,
+      "publish_allowed": true,
+      "publish_gate_reason": "OK",
+      "policy": {
+        "requests_stop_when_time_budget_is_exhausted": true,
+        "awards_are_a_separate_record_type": true,
+        "awards_never_enter_opportunity_pool": true,
+        "unseen_result_notices_verified_first": true,
+        "amount_scale_requires_explicit_unit": true,
+        "construction_only_awards_excluded": true,
+        "previous_award_state_is_preserved": true,
+        "parse_failures_are_reported_not_published": true,
+        "rate_limit_bypass": false,
+        "minimum_request_delay_seconds": 4.0,
+        "row_geography_must_prove_market": true
+      }
+    },
+    "HE": {
+      "schema_version": "0.1",
+      "record_type": "AWARD_RESULT",
+      "observed_at": "2026-09-29T05:51:51.865717+00:00",
+      "region": "河北",
+      "market_code": "HE",
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "keywords": [
+        "医院",
+        "医疗",
+        "检验",
+        "疾病预防控制",
+        "卫生健康"
+      ],
+      "notice_types": [
+        "中标公告",
+        "成交公告"
+      ],
+      "discovery_skipped_for_operator_directed_urls": false,
+      "operator_directed_url_count": 0,
+      "planned_discovery_query_count": 10,
+      "discovery_success_count": 9,
+      "unique_discovered_result_count": 36,
+      "region_mismatch_count": 1,
+      "region_mismatches": [
+        {
+          "keyword": "医疗",
+          "notice_type": "中标公告",
+          "title": "滦州市人民医院腹腔镜系统等医疗设备一批采购项目公开招标中标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260923_27385263.htm",
+          "candidate_region": null,
+          "expected_market_code": "HE"
+        }
+      ],
+      "selected_detail_count": 6,
+      "new_award_record_count": 3,
+      "out_of_scope_count": 3,
+      "out_of_scope": [
+        {
+          "title": "蠡县医院医用织物洗涤租赁服务项目成交公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413089.htm",
+          "project_number": "HBHY-2026-0161",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        },
+        {
+          "title": "保定市第一医院中药饮片采购项目中标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409768.htm",
+          "project_number": "TD2026E346",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        },
+        {
+          "title": "沧州市中心医院病房护理设备设施采购项目公开招标中标公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27409767.htm",
+          "project_number": "ZHZB2026404",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        }
+      ],
+      "merged_award_record_count": 6,
+      "pool_record_count": 178,
+      "matched_pool_project_count": 1,
+      "matched_pool_project_numbers": [
+        "YM-260603030"
+      ],
+      "failure_count": 1,
+      "failures": [
+        {
+          "stage": "award_discovery_search",
+          "region": "河北",
+          "notice_type": "中标公告",
+          "keyword": "卫生健康",
+          "error": "TimeoutError",
+          "message": "The read operation timed out"
+        }
+      ],
+      "skipped_count": 0,
+      "skipped": [],
+      "time_budget_seconds": 240.0,
+      "time_budget_exhausted": false,
+      "elapsed_seconds": 108.565,
+      "publish_allowed": true,
+      "publish_gate_reason": "OK",
+      "policy": {
+        "requests_stop_when_time_budget_is_exhausted": true,
+        "awards_are_a_separate_record_type": true,
+        "awards_never_enter_opportunity_pool": true,
+        "unseen_result_notices_verified_first": true,
+        "amount_scale_requires_explicit_unit": true,
+        "construction_only_awards_excluded": true,
+        "previous_award_state_is_preserved": true,
+        "parse_failures_are_reported_not_published": true,
+        "rate_limit_bypass": false,
+        "minimum_request_delay_seconds": 4.0,
+        "row_geography_must_prove_market": true
+      }
+    },
+    "LN": {
+      "schema_version": "0.1",
+      "record_type": "AWARD_RESULT",
+      "observed_at": "2026-09-29T06:00:59.703836+00:00",
+      "region": "辽宁",
+      "market_code": "LN",
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "keywords": [
+        "医院",
+        "医疗",
+        "检验",
+        "疾病预防控制",
+        "卫生健康"
+      ],
+      "notice_types": [
+        "中标公告",
+        "成交公告"
+      ],
+      "discovery_skipped_for_operator_directed_urls": false,
+      "operator_directed_url_count": 0,
+      "planned_discovery_query_count": 10,
+      "discovery_success_count": 10,
+      "unique_discovered_result_count": 53,
+      "region_mismatch_count": 0,
+      "region_mismatches": [],
+      "selected_detail_count": 6,
+      "new_award_record_count": 0,
+      "out_of_scope_count": 6,
+      "out_of_scope": [
+        {
+          "title": "大连医科大学附属第一医院预包装食品类项目结果公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414113.htm",
+          "project_number": "JH26-210000-51909",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        },
+        {
+          "title": "大连医科大学附属第一医院预包装食品类项目结果公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414110.htm",
+          "project_number": "JH26-210000-51909",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        },
+        {
+          "title": "岫岩满族自治县中心人民医院医共体内涵建设项目-设备采购项目（第二次）结果公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413417.htm",
+          "project_number": "JH26-210323-00239",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        },
+        {
+          "title": "岫岩满族自治县中心人民医院医共体内涵建设项目-设备采购项目（第二次）结果公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413391.htm",
+          "project_number": "JH26-210323-00239",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        },
+        {
+          "title": "岫岩满族自治县中心人民医院医共体内涵建设项目-设备采购项目（第二次）结果公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27413387.htm",
+          "project_number": "JH26-210323-00239",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        },
+        {
+          "title": "锦州医科大学附属第一医院中药饮片供应及煎煮服务招标项目结果公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27410081.htm",
+          "project_number": "JH26-210000-49233",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        }
+      ],
+      "merged_award_record_count": 9,
+      "pool_record_count": 92,
+      "matched_pool_project_count": 0,
+      "matched_pool_project_numbers": [],
+      "failure_count": 0,
+      "failures": [],
+      "skipped_count": 0,
+      "skipped": [],
+      "time_budget_seconds": 240.0,
+      "time_budget_exhausted": false,
+      "elapsed_seconds": 87.467,
+      "publish_allowed": true,
+      "publish_gate_reason": "OK",
+      "policy": {
+        "requests_stop_when_time_budget_is_exhausted": true,
+        "awards_are_a_separate_record_type": true,
+        "awards_never_enter_opportunity_pool": true,
+        "unseen_result_notices_verified_first": true,
+        "amount_scale_requires_explicit_unit": true,
+        "construction_only_awards_excluded": true,
+        "previous_award_state_is_preserved": true,
+        "parse_failures_are_reported_not_published": true,
+        "rate_limit_bypass": false,
+        "minimum_request_delay_seconds": 4.0,
+        "row_geography_must_prove_market": true
+      }
+    },
+    "JL": {
+      "schema_version": "0.1",
+      "record_type": "AWARD_RESULT",
+      "observed_at": "2026-09-29T05:53:43.930129+00:00",
+      "region": "吉林",
+      "market_code": "JL",
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "keywords": [
+        "医院",
+        "医疗",
+        "检验",
+        "疾病预防控制",
+        "卫生健康"
+      ],
+      "notice_types": [
+        "中标公告",
+        "成交公告"
+      ],
+      "discovery_skipped_for_operator_directed_urls": false,
+      "operator_directed_url_count": 0,
+      "planned_discovery_query_count": 10,
+      "discovery_success_count": 10,
+      "unique_discovered_result_count": 36,
+      "region_mismatch_count": 0,
+      "region_mismatches": [],
+      "selected_detail_count": 6,
+      "new_award_record_count": 3,
+      "out_of_scope_count": 3,
+      "out_of_scope": [
+        {
+          "title": "吉林大学第一医院7号楼4层导管室改造工程中标候选人公示",
+          "url": "https://www.ccgp.gov.cn/cggg/zygg/zbgg/202609/t20260929_27414786.htm",
+          "project_number": "JD-021-20260902-GC04-G",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        },
+        {
+          "title": "吉林省肝胆病医院2026-2027年医疗废弃物清运处置服务项目（二次）中标(成交)结果公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414760.htm",
+          "project_number": "JM-2026-08-06847-",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        },
+        {
+          "title": "吉林省肿瘤医院湖光院区供暖外网管道及外科楼空调主管道阀门更换工程项目（二次）中标(成交)结果公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414512.htm",
+          "project_number": "采购计划-[2026]-15313号--2026-018",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        }
+      ],
+      "merged_award_record_count": 9,
+      "pool_record_count": 122,
+      "matched_pool_project_count": 0,
+      "matched_pool_project_numbers": [],
+      "failure_count": 0,
+      "failures": [],
+      "skipped_count": 0,
+      "skipped": [],
+      "time_budget_seconds": 240.0,
+      "time_budget_exhausted": false,
+      "elapsed_seconds": 79.326,
+      "publish_allowed": true,
+      "publish_gate_reason": "OK",
+      "policy": {
+        "requests_stop_when_time_budget_is_exhausted": true,
+        "awards_are_a_separate_record_type": true,
+        "awards_never_enter_opportunity_pool": true,
+        "unseen_result_notices_verified_first": true,
+        "amount_scale_requires_explicit_unit": true,
+        "construction_only_awards_excluded": true,
+        "previous_award_state_is_preserved": true,
+        "parse_failures_are_reported_not_published": true,
+        "rate_limit_bypass": false,
+        "minimum_request_delay_seconds": 4.0,
+        "row_geography_must_prove_market": true
+      }
+    },
+    "HL": {
+      "schema_version": "0.1",
+      "record_type": "AWARD_RESULT",
+      "observed_at": "2026-09-29T06:00:59.703836+00:00",
+      "region": "黑龙江",
+      "market_code": "HL",
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "keywords": [
+        "医院",
+        "医疗",
+        "检验",
+        "疾病预防控制",
+        "卫生健康"
+      ],
+      "notice_types": [
+        "中标公告",
+        "成交公告"
+      ],
+      "discovery_skipped_for_operator_directed_urls": false,
+      "operator_directed_url_count": 0,
+      "planned_discovery_query_count": 10,
+      "discovery_success_count": 10,
+      "unique_discovered_result_count": 59,
+      "region_mismatch_count": 0,
+      "region_mismatches": [],
+      "selected_detail_count": 6,
+      "new_award_record_count": 5,
+      "out_of_scope_count": 1,
+      "out_of_scope": [
+        {
+          "title": "海伦市人民医院采购全院室内保洁服务(二次)中标（成交）结果公告",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260929_27414789.htm",
+          "project_number": "[231283]HLCGZX[CS]20260023-1",
+          "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+        }
+      ],
+      "merged_award_record_count": 14,
+      "pool_record_count": 151,
+      "matched_pool_project_count": 0,
+      "matched_pool_project_numbers": [],
+      "failure_count": 0,
+      "failures": [],
+      "skipped_count": 0,
+      "skipped": [],
+      "time_budget_seconds": 240.0,
+      "time_budget_exhausted": false,
+      "elapsed_seconds": 79.01,
+      "publish_allowed": true,
+      "publish_gate_reason": "OK",
+      "policy": {
+        "requests_stop_when_time_budget_is_exhausted": true,
+        "awards_are_a_separate_record_type": true,
+        "awards_never_enter_opportunity_pool": true,
+        "unseen_result_notices_verified_first": true,
+        "amount_scale_requires_explicit_unit": true,
+        "construction_only_awards_excluded": true,
+        "previous_award_state_is_preserved": true,
+        "parse_failures_are_reported_not_published": true,
+        "rate_limit_bypass": false,
+        "minimum_request_delay_seconds": 4.0,
+        "row_geography_must_prove_market": true
+      }
+    }
+  },
+  "policy": {
+    "one_market_at_a_time_same_keyword_plan": true,
+    "row_geography_must_prove_market": true,
+    "previous_award_state_is_preserved": true,
+    "network_failures_never_raise": true
+  },
+  "seeding_note": "2026-09-29 sandbox seed: per-market reports come from separate live runs the same day (BJ re-parsed via directed URLs after the 北京 text-template fix; LN/HL re-run after the 辽宁/黑龙江 template fixes)."
+}

@@ -8,6 +8,8 @@ from pathlib import Path
 
 from medical_channel_pipeline import build_public_snapshot as build_scoped_public_snapshot
 from medical_channel_pipeline.ccgp_award import (
+    awarded_project_keys,
+    is_awarded_project,
     exclude_awarded_projects,
     MAX_LEDGER_ENTRIES,
     awarded_project_numbers,
@@ -79,6 +81,28 @@ class AwardSnapshotIntegrationTests(unittest.TestCase):
         # Awards published after as_of are not yet effective, so nothing is skipped.
         early = datetime(2026, 9, 1, tzinfo=timezone.utc)
         self.assertEqual(exclude_awarded_projects(watch, _awards(), early), (watch, []))
+
+    def test_award_only_retires_opportunities_of_its_own_market(self) -> None:
+        # Same project number in another market must not be concluded by a Tianjin result.
+        record = _pool_record("XCSD-2026-A-589")
+        record["facts"]["market_code"] = "HE"
+        record["facts"]["market_name"] = "河北"
+        record["facts"]["market_admin_code"] = "130000"
+        snapshot = build_public_snapshot([record], AS_OF, [], _awards())
+        self.assertEqual(snapshot["awarded_project_count"], 0)
+        self.assertEqual(snapshot["input_candidate_count"], 1)
+        # The ledger itself is market-agnostic; the entry still carries its own market.
+        self.assertEqual({entry["market_code"] for entry in snapshot["award_ledger"]}, {"TJ"})
+        # Legacy awards without a market code keep the market-agnostic behaviour.
+        legacy = copy.deepcopy(_awards())
+        for item in legacy:
+            item["facts"].pop("market_code", None)
+        self.assertEqual(build_public_snapshot([record], AS_OF, [], legacy)["awarded_project_count"], 1)
+        keys = awarded_project_keys(_awards(), AS_OF)
+        self.assertIn(("TJ", "xcsd-2026-a-589"), keys)
+        self.assertTrue(is_awarded_project(keys, "ＸＣＳＤ－2026－A－589", "tj"))
+        self.assertFalse(is_awarded_project(keys, "XCSD-2026-A-589", "HE"))
+        self.assertFalse(is_awarded_project(keys, "", "TJ"))
 
     def test_future_dated_award_is_not_effective_yet(self) -> None:
         awards = _awards()
