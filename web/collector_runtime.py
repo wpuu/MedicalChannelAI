@@ -75,7 +75,12 @@ from sync_teda_market_research import (  # noqa: E402
     discover_candidates as discover_teda_candidates,
     fetch_page_with_retry as fetch_teda_page_with_retry,
 )
-from sync_tianjin_plan import load_plan, plan_date_window, publish_gate as ccgp_publish_gate  # noqa: E402
+from sync_tianjin_plan import (  # noqa: E402
+    load_plan,
+    plan_date_window,
+    publish_gate as ccgp_publish_gate,
+    select_tianjin_candidates,
+)
 from sync_regional_ccgp import (  # noqa: E402
     CcgpSearchSession as RegionalCcgpSearchSession,
     NATIONAL_FALLBACK_MAX_PAGES as REGIONAL_FALLBACK_MAX_PAGES,
@@ -476,14 +481,10 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     discovery_failures = [item for item in failures if item.get("stage") == "discovery_search"]
     discovery_success_count = max(0, planned_queries - len(discovery_failures))
     discovered = list(discovered_by_url.values())
-    discovered.sort(
-        key=lambda item: (
-            getattr(item[1], "published_at", None) or "",
-            getattr(item[1], "detail_url", ""),
-        ),
-        reverse=True,
-    )
-    selected = discovered[: plan["max_candidates"]]
+    # Unseen official URLs first (same policy as the regional stages), then
+    # recency. Keeps the bounded detail budget from being spent re-verifying
+    # yesterday's notices while never-verified ones wait.
+    selected = select_tianjin_candidates(discovered, existing_records, plan["max_candidates"])
 
     new_records: list[dict[str, Any]] = []
     for notice_type, candidate in selected:

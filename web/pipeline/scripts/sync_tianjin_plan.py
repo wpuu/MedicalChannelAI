@@ -60,6 +60,49 @@ def ordered_unique_strings(values: list[str]) -> list[str]:
     return result
 
 
+def existing_source_urls_of(records: list[dict]) -> set[str]:
+    """Official detail URLs already verified in the canonical Tianjin record set."""
+    urls: set[str] = set()
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        url = str((record.get('source') or {}).get('url') or '').strip()
+        if url:
+            urls.add(url)
+    return urls
+
+
+def tianjin_candidate_selection_key(candidate: object, existing_source_urls: set[str] | frozenset[str]) -> tuple[int, str, str]:
+    """Spend the bounded detail budget on unseen official URLs first.
+
+    The regional stages already do this (regional_candidate_selection_key); the
+    Tianjin deep stage used to sort purely by recency, so on a busy day the
+    freshest already-verified notices crowded out slightly older notices that
+    had never been verified at all. Existing URLs stay eligible for
+    re-verification (deadline corrections) whenever budget remains.
+    """
+    url = str(getattr(candidate, 'detail_url', '') or '')
+    return (
+        1 if url and url not in existing_source_urls else 0,
+        str(getattr(candidate, 'published_at', None) or ''),
+        url,
+    )
+
+
+def select_tianjin_candidates(
+    discovered: list[tuple[str, object]],
+    existing_records: list[dict],
+    max_candidates: int,
+) -> list[tuple[str, object]]:
+    existing_urls = existing_source_urls_of(existing_records)
+    ordered = sorted(
+        discovered,
+        key=lambda item: tianjin_candidate_selection_key(item[1], existing_urls),
+        reverse=True,
+    )
+    return ordered[:max_candidates]
+
+
 def load_plan(path: Path) -> dict:
     payload = json.loads(path.read_text(encoding='utf-8'))
     if not isinstance(payload, dict) or payload.get('schema_version') != '0.1':
@@ -247,11 +290,7 @@ def main() -> int:
     discovery_success_count = max(0, planned_discovery_queries - len(discovery_failures))
 
     discovered = list(discovered_by_url.values())
-    discovered.sort(
-        key=lambda item: (getattr(item[1], 'published_at', None) or '', getattr(item[1], 'detail_url', '')),
-        reverse=True,
-    )
-    selected = discovered[: plan['max_candidates']]
+    selected = select_tianjin_candidates(discovered, existing_records, plan['max_candidates'])
 
     new_records: list[dict] = []
     for notice_type, candidate in selected:
