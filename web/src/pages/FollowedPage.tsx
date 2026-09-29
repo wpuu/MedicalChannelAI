@@ -2,8 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronRight, ExternalLink, Filter, RefreshCw, Search } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { OutcomeSummaryCard } from '@/components/followup/OutcomeSummaryCard'
+import { AwardResultNotice } from '@/components/shared/AwardResultNotice'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { isAuthRequiredError } from '@/services/apiConfig'
+import { findAwardForProject, getAwardLedger } from '@/services/verifiedOpportunityPool'
+import type { AwardLedgerEntry } from '@/types'
 import {
   getFollowedOpportunityById,
   getFollowedOpportunityPage,
@@ -122,6 +125,7 @@ export function FollowedPage() {
   const [searchParams] = useSearchParams()
   const focusedId = searchParams.get('focus')
   const [items, setItems] = useState<FollowedOpportunity[]>([])
+  const [awardLedger, setAwardLedger] = useState<AwardLedgerEntry[]>([])
   const [statusIndex, setStatusIndex] = useState<FollowedStatusIndexItem[]>([])
   const [nextOffset, setNextOffset] = useState(0)
   const [hasMore, setHasMore] = useState(false)
@@ -180,6 +184,22 @@ export function FollowedPage() {
       setLoadingMore(false)
     }
   }, [hasMore, loadingMore, navigate, nextOffset])
+
+  useEffect(() => {
+    let cancelled = false
+    // Best effort, public data: lets a followed project that has since been
+    // awarded show its result instead of looking silently stale.
+    void getAwardLedger()
+      .then((ledger) => {
+        if (!cancelled) setAwardLedger(ledger.entries)
+      })
+      .catch(() => {
+        if (!cancelled) setAwardLedger([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     void load()
@@ -302,6 +322,7 @@ export function FollowedPage() {
             const privateNote = notePresentation(item)
             const due = reminderIsDue(item)
             const pendingNextAction = needsNextAction(item)
+            const awardResult = findAwardForProject(awardLedger, item.facts.project_number)
             return (
               <article
                 key={item.opportunity_id}
@@ -339,6 +360,7 @@ export function FollowedPage() {
                         {item.facts.product_categories.slice(0, 4).join('、')}
                       </p>
                     ) : null}
+                    {awardResult ? <AwardResultNotice entry={awardResult} compact /> : null}
                   </div>
                   <button
                     type="button"

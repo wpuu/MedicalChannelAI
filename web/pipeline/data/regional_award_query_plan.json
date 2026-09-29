@@ -1,0 +1,41 @@
+{
+  "schema_version": "0.1",
+  "region": "北京",
+  "market_code": "BJ",
+  "market_codes": [
+    "BJ",
+    "HE",
+    "LN",
+    "JL",
+    "HL"
+  ],
+  "keywords": [
+    "医院",
+    "医疗",
+    "检验",
+    "疾病预防控制",
+    "卫生健康"
+  ],
+  "notice_types": [
+    "中标公告",
+    "成交公告"
+  ],
+  "lookback_days": 7,
+  "max_details": 6,
+  "delay_seconds": 4.0,
+  "per_market_time_budget_seconds": 240,
+  "policy": {
+    "purpose": "MULTI_REGION_MEDICAL_CHANNEL_AWARD_LEDGER",
+    "runs_on_self_hosted_refresh_only": true,
+    "tianjin_awards_use_the_dedicated_plan": true,
+    "one_market_at_a_time_same_keyword_plan": true,
+    "row_geography_must_prove_market": true,
+    "awards_are_a_separate_record_type": true,
+    "awards_never_enter_opportunity_pool": true,
+    "medical_channel_scope_filter_required": true,
+    "construction_only_awards_excluded": true,
+    "unseen_result_notices_verified_first": true,
+    "amount_scale_requires_explicit_unit": true,
+    "rate_limit_bypass": false
+  }
+}

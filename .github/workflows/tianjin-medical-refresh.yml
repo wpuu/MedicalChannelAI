@@ -69,6 +69,25 @@ jobs:
             --events-output web/pipeline/data/tianjin_notice_events.json \
             --report-output web/pipeline/data/tianjin_sync_report.json
 
+      - name: Sync verified Tianjin CCGP award/deal results (never blocks the refresh)
+        # 中标/成交 results are a separate canonical store (award ledger + pool
+        # retirement). A failure here must not stop opportunity publishing, so the
+        # previous award store is simply carried forward.
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing_args=()
+          if [[ -f web/pipeline/data/tianjin_award_records.json ]]; then
+            existing_args+=(--existing-awards-input web/pipeline/data/tianjin_award_records.json)
+          fi
+          python3 web/pipeline/scripts/sync_ccgp_awards.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            "${existing_args[@]}" \
+            --records-input web/pipeline/data/tianjin_live_ccgp_records.json \
+            --awards-output web/pipeline/data/tianjin_award_records.json \
+            --report-output web/pipeline/data/tianjin_award_sync_report.json
+
       - name: Sync verified TMUGH early-demand state
         shell: bash
         run: |
@@ -186,6 +205,8 @@ jobs:
             --report-output web/pipeline/data/tianjin_tjfch_test_sync_report.json
 
       - name: Publish H5-safe verified snapshot
+        # Award stores (Tianjin + regional, whichever exist) are picked up by
+        # default and split per market inside the publisher.
         shell: bash
         run: |
           set -euo pipefail
@@ -266,6 +287,8 @@ jobs:
             web/pipeline/data/tianjin_live_teda_records.json \
             web/pipeline/data/tianjin_live_tjfch_records.json \
             web/pipeline/data/tianjin_notice_events.json \
+            web/pipeline/data/tianjin_award_records.json \
+            web/pipeline/data/tianjin_award_sync_report.json \
             web/pipeline/data/tianjin_sync_report.json \
             web/pipeline/data/tianjin_tjmugh_sync_report.json \
             web/pipeline/data/tianjin_tjnothop_sync_report.json \

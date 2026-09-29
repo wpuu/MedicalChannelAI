@@ -105,11 +105,45 @@ export interface PublicDecision {
   requires_human_confirmation: boolean
 }
 
+/**
+ * Statutory challenge window (质疑期) derived from public facts under
+ * 财政部令第94号. An estimate, deliberately kept outside `facts`; see
+ * pipeline/medical_channel_pipeline/legal_windows.py for the rules.
+ */
+export interface PublicLegalWindow {
+  code: 'DOCUMENT_CHALLENGE' | 'RESULT_CHALLENGE'
+  anchor_kind: string
+  anchor_date: string
+  /** Present only when the statutory clock starts after the anchor (e.g. 中标公告期限). */
+  clock_start_date?: string
+  deadline_date: string
+  remaining_working_days: number
+  status: 'OPEN' | 'CLOSED'
+  /** Present only when the dates fall outside the official holiday calendar coverage. */
+  calendar?: string
+}
+
+/** Working-day calendar embedded in the snapshot (国务院办公厅节假日安排). */
+export interface PublicWorkingCalendar {
+  schema_version: string
+  code: string
+  coverage_from: string
+  coverage_to: string
+  holidays: string[]
+  adjusted_workdays: string[]
+  legal_basis?: string
+  challenge_working_days?: number
+  challenge_reply_working_days?: number
+  complaint_working_days?: number
+  award_notice_period_working_days?: number
+}
+
 export interface PublicTodayActionCard {
   rank: number
   opportunity_id: string
   facts: PublicFacts
   evidence_source_urls: string[]
+  legal_windows?: PublicLegalWindow[] | null
   customer_context: PublicCustomerContext
   priority: PublicPriority
   match_status: PublicMatchStatus
@@ -136,6 +170,55 @@ export interface PublicProcurementIntentFollowupSummary {
   formal_candidates_needing_action?: number
 }
 
+export type PublicAwardPackageStatus = 'AWARDED' | 'FAILED'
+export type PublicAwardStatus = 'AWARDED' | 'PARTIALLY_FAILED' | 'ALL_PACKAGES_FAILED'
+
+export interface PublicAwardLedgerPackage {
+  package_no: string | null
+  status: PublicAwardPackageStatus
+  supplier_name: string | null
+  amount_cny: number | null
+  failure_reason: string | null
+}
+
+export interface PublicAwardLedgerItem {
+  package_no: string | null
+  name: string | null
+  brand: string | null
+  model: string | null
+  quantity: string | null
+  unit_price_cny: number | null
+}
+
+/**
+ * Compact projection of one official 中标/成交 result notice. Awards are a
+ * separate record type: they retire the matching project from the pool and
+ * expose supplier / brand / model / price evidence with the statutory
+ * RESULT_CHALLENGE window. Every number is verifiable at `source_url`.
+ */
+export interface PublicAwardLedgerEntry {
+  award_id: string
+  project_number: string
+  project_name: string | null
+  buyer_name: string | null
+  region: string | null
+  notice_type: string | null
+  result_kind: 'AWARD' | 'DEAL'
+  lifecycle_state: 'AWARDED'
+  published_at: string | null
+  procurement_method: string | null
+  total_amount_cny: number | null
+  amount_basis: 'SUMMARY_TOTAL' | 'PACKAGE_SUM' | null
+  award_status: PublicAwardStatus | null
+  package_count: number
+  item_count: number
+  packages: PublicAwardLedgerPackage[]
+  items: PublicAwardLedgerItem[]
+  source_url: string
+  legal_windows: PublicLegalWindow[] | null
+  market_code?: string
+}
+
 /**
  * Exact H5-safe response returned by the verified boundary. The authenticated
  * Pilot endpoint may choose the account's configured number of Today cards;
@@ -155,6 +238,11 @@ export interface TodayActionsPublicResponse {
   today_limit_options?: number[]
   recommendation_feedback_summary?: PublicRecommendationFeedbackSummary
   procurement_intent_followup_summary?: PublicProcurementIntentFollowupSummary
+  working_calendar?: PublicWorkingCalendar | null
+  /** Pool records retired because an official 中标/成交 result is published. */
+  awarded_project_count?: number
+  /** Newest-first, bounded ledger of published awards (may be empty). */
+  award_ledger?: PublicAwardLedgerEntry[]
   cards: PublicTodayActionCard[]
   opportunity_pool?: PublicTodayActionCard[]
 }

@@ -2,8 +2,10 @@ import { Building2, Calendar, Mail, Phone, Wallet } from 'lucide-react'
 import type { TodayActionCard } from '@/types'
 import type { OpportunityFeedback } from '@/services/opportunityFeedbackStore'
 import { formatBudget, pickDisplayDate } from '@/utils/format'
+import { legalWindowSummary } from '@/utils/legalWindows'
 import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
 import { OfficialText } from '@/components/shared/EmptyValue'
+import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
 import { PreMarketSignalNotice } from '@/components/shared/PreMarketSignalNotice'
 import { PriorityBadge, PriorityScore } from '@/components/shared/PriorityBadge'
 import { FollowupChip, SourceTag, StageBadge } from '@/components/shared/StageBadge'
@@ -92,6 +94,11 @@ export function ActionCard({
   const outreachDisabledReason = automationUnavailableReason ||
     (groundingUnavailable ? '公开依据不足，暂不安全生成沟通话术' : null)
   const isLateWindow = card.recommendation_mode === 'LATE_WINDOW'
+  const legalWindow = legalWindowSummary(card)
+  const lateWindowBadge =
+    isLateWindow && legalWindow?.status === 'OPEN' && legalWindow.remaining > 0
+      ? '报名已结束 · 仍可质疑文件'
+      : '报名已结束'
   const isRelativeTestRecruitment =
     card.facts.notice_type?.includes('测试企业征集公告') === true &&
     !card.facts.registration_deadline &&
@@ -127,7 +134,7 @@ export function ActionCard({
         <div className="flex flex-wrap items-center gap-1.5">
           {isLateWindow ? (
             <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-900">
-              报名已结束
+              {lateWindowBadge}
             </span>
           ) : null}
           {card.followup_status !== 'NEW' ? (
@@ -172,6 +179,11 @@ export function ActionCard({
                 compact
               />
             </div>
+            {legalWindow ? (
+              <div className="mt-2">
+                <LegalWindowNotice card={card} />
+              </div>
+            ) : null}
             {isRelativeTestRecruitment ? (
               <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-900">
                 官方仅公布“自公告发布之日起7天”的相对报名窗口，未公布精确截止时刻。系统不会把推算日期当作官方截止；联系或报名时请先确认是否仍开放。

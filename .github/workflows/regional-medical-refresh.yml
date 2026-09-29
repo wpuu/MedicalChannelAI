@@ -10,16 +10,20 @@ on:
       - '.github/workflows/regional-medical-refresh.yml'
       - 'web/pipeline/data/admin_division_source.json'
       - 'web/pipeline/data/multi_region_query_plan.json'
+      - 'web/pipeline/data/regional_award_query_plan.json'
       - 'web/pipeline/data/medical_channel_scope.json'
       - 'web/pipeline/scripts/sync_national_admin_divisions.py'
       - 'web/pipeline/scripts/diagnose_ccgp_search.py'
       - 'web/pipeline/scripts/sync_regional_ccgp.py'
+      - 'web/pipeline/scripts/sync_ccgp_awards.py'
+      - 'web/pipeline/scripts/sync_regional_awards.py'
       - 'web/pipeline/scripts/publish_web_snapshot.py'
       - 'web/pipeline/scripts/publish_snapshot_http.py'
       - 'web/pipeline/scripts/verify_snapshot_roundtrip.py'
       - 'web/pipeline/scripts/publish_generated_data_github.py'
       - 'web/pipeline/medical_channel_pipeline/ccgp_discovery.py'
       - 'web/pipeline/medical_channel_pipeline/ccgp_detail.py'
+      - 'web/pipeline/medical_channel_pipeline/ccgp_award.py'
       - 'web/pipeline/medical_channel_pipeline/regional_candidate.py'
       - 'web/pipeline/medical_channel_pipeline/channel_scope.py'
       - 'web/pipeline/medical_channel_pipeline/state.py'
@@ -64,7 +68,9 @@ jobs:
             tests.test_ccgp_national_detail_formats \
             tests.test_ccgp_liaoning_detail_format \
             tests.test_snapshot_http_publish \
-            tests.test_snapshot_roundtrip
+            tests.test_snapshot_roundtrip \
+            tests.test_ccgp_award \
+            tests.test_regional_award_sync
 
       - name: Materialize nationwide administrative divisions
         shell: bash
@@ -103,7 +109,28 @@ jobs:
             --records-output web/pipeline/data/regional_live_ccgp_records.json \
             --report-output web/pipeline/data/regional_sync_report.json
 
+      - name: Sync verified regional CCGP award/deal results (never blocks the refresh)
+        # 中标/成交 results for 北京/河北/辽宁/吉林/黑龙江: one market at a time,
+        # row geography must prove the market, official detail required. A
+        # failure here carries the previous award store forward.
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing_args=()
+          if [[ -f web/pipeline/data/regional_award_records.json ]]; then
+            existing_args+=(--existing-awards-input web/pipeline/data/regional_award_records.json)
+          fi
+          python3 web/pipeline/scripts/sync_regional_awards.py \
+            --as-of '${{ steps.clock.outputs.as_of }}' \
+            "${existing_args[@]}" \
+            --records-input web/pipeline/data/regional_live_ccgp_records.json \
+            --awards-output web/pipeline/data/regional_award_records.json \
+            --report-output web/pipeline/data/regional_award_sync_report.json
+
       - name: Publish combined verified snapshot
+        # Award stores (Tianjin + regional, whichever exist) are picked up by
+        # default and split per market inside the publisher.
         shell: bash
         run: |
           set -euo pipefail
@@ -174,6 +201,8 @@ jobs:
             web/pipeline/data/national_admin_divisions.latest.json \
             web/pipeline/data/regional_live_ccgp_records.json \
             web/pipeline/data/regional_sync_report.json \
+            web/pipeline/data/regional_award_records.json \
+            web/pipeline/data/regional_award_sync_report.json \
             web/public/data/today-actions.public.json
 
       - name: Pre-generate AI decisions for top opportunities

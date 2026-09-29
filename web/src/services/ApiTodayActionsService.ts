@@ -307,6 +307,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       coverage_status: normalizeCoverage(card.facts.coverage_status),
     },
     evidence_source_urls: card.evidence_source_urls,
+    legal_windows: Array.isArray(card.legal_windows) ? card.legal_windows.map((item) => ({ ...item })) : null,
     customer_context: {
       target_hospital:
         target && target.watched_by_customer
@@ -497,6 +498,9 @@ export class ApiTodayActionsService implements TodayActionsService {
       today_limit_options: data.today_limit_options,
       recommendation_feedback_summary: data.recommendation_feedback_summary,
       procurement_intent_followup_summary: data.procurement_intent_followup_summary,
+      working_calendar: data.working_calendar ?? null,
+      awarded_project_count: data.awarded_project_count ?? 0,
+      award_ledger: Array.isArray(data.award_ledger) ? data.award_ledger : [],
       cards,
       opportunity_pool: mappedPool,
       model_requests: [],

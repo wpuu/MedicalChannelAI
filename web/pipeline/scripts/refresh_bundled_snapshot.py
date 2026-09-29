@@ -13,7 +13,7 @@ WEB_ROOT = PIPELINE_ROOT.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
-from publish_web_snapshot import combine_snapshots  # noqa: E402
+from publish_web_snapshot import combine_snapshots, split_awards_by_market  # noqa: E402
 
 OPTIONAL_LIVE_SOURCES = (
     ('tianjin_live_tjnothop_records.json', 'live Tianjin Hospital state'),
@@ -135,11 +135,19 @@ def main() -> int:
         PIPELINE_ROOT / 'data' / 'tianjin_notice_events.json',
         label='notice events',
     )
+    # 中标/成交 results are a separate canonical store; they retire awarded
+    # projects from the pool and feed the compact public award ledger.
+    award_records = [
+        *load_optional_array(PIPELINE_ROOT / 'data' / 'tianjin_award_records.json', label='Tianjin award results'),
+        *load_optional_array(PIPELINE_ROOT / 'data' / 'regional_award_records.json', label='regional award results'),
+    ]
+    tianjin_awards, regional_awards = split_awards_by_market(award_records)
 
     # Keep Tianjin notice events isolated from regional records. Regional event
     # monitoring remains disabled until those events carry explicit market identity.
-    tianjin_snapshot = build_public_snapshot(tianjin_records, published_as_of, notice_events)
-    regional_snapshot = build_public_snapshot(regional_records, published_as_of, [])
+    # Awards are split by market for the same reason.
+    tianjin_snapshot = build_public_snapshot(tianjin_records, published_as_of, notice_events, tianjin_awards)
+    regional_snapshot = build_public_snapshot(regional_records, published_as_of, [], regional_awards)
     payload = combine_snapshots(
         tianjin_snapshot,
         regional_snapshot,
@@ -154,6 +162,7 @@ def main() -> int:
         'Bundled snapshot refreshed with current ranking logic from '
         f'{len(tianjin_records)} Tianjin + {len(regional_records)} regional verified canonical records; '
         f'published opportunities={payload["opportunity_pool_count"]}; '
+        f'awarded retired={payload["awarded_project_count"]}; award ledger={len(payload["award_ledger"])}; '
         f'markets={published_market_counts(payload)}'
     )
     return 0

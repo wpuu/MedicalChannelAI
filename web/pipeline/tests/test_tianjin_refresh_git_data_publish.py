@@ -17,6 +17,8 @@ EXPECTED_GENERATED_PATHS = {
     'web/pipeline/data/tianjin_live_teda_records.json',
     'web/pipeline/data/tianjin_live_tjfch_records.json',
     'web/pipeline/data/tianjin_notice_events.json',
+    'web/pipeline/data/tianjin_award_records.json',
+    'web/pipeline/data/tianjin_award_sync_report.json',
     'web/pipeline/data/tianjin_sync_report.json',
     'web/pipeline/data/tianjin_tjmugh_sync_report.json',
     'web/pipeline/data/tianjin_tjnothop_sync_report.json',

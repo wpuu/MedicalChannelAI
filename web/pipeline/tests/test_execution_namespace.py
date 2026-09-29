@@ -13,6 +13,7 @@ from collector_namespace import (  # noqa: E402
     CCGP_EVENTS_KEY,
     CCGP_RECORDS_KEY,
     CCGP_WATCH_KEY,
+    CCGP_AWARDS_KEY,
     INCREMENTAL_ACTIVE_KEY,
     INCREMENTAL_CHAIN_KEY,
     LATEST_RUNTIME_SNAPSHOT_KEY,
@@ -40,6 +41,7 @@ class ExecutionNamespaceTests(unittest.TestCase):
             CCGP_RECORDS_KEY,
             CCGP_EVENTS_KEY,
             CCGP_WATCH_KEY,
+            CCGP_AWARDS_KEY,
             TJMUGH_RECORDS_KEY,
             TJNOTHOP_RECORDS_KEY,
             TEDA_RECORDS_KEY,
@@ -56,6 +58,7 @@ class ExecutionNamespaceTests(unittest.TestCase):
         self.assertEqual(runtime.CCGP_RECORDS_KEY, CCGP_RECORDS_KEY)
         self.assertEqual(runtime.CCGP_EVENTS_KEY, CCGP_EVENTS_KEY)
         self.assertEqual(runtime.CCGP_WATCH_KEY, CCGP_WATCH_KEY)
+        self.assertEqual(runtime.CCGP_AWARDS_KEY, CCGP_AWARDS_KEY)
         self.assertEqual(runtime.TJMUGH_RECORDS_KEY, TJMUGH_RECORDS_KEY)
         self.assertEqual(runtime.TJNOTHOP_RECORDS_KEY, TJNOTHOP_RECORDS_KEY)
         self.assertEqual(runtime.TEDA_RECORDS_KEY, TEDA_RECORDS_KEY)

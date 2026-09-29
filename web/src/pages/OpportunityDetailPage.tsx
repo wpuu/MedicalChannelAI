@@ -10,6 +10,8 @@ import { OpportunityExecutionCard } from '@/components/opportunity/OpportunityEx
 import { PriorityCard } from '@/components/opportunity/PriorityCard'
 import { PublicHistoryCard } from '@/components/opportunity/PublicHistoryCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
+import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
+import { AwardResultNotice } from '@/components/shared/AwardResultNotice'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { LostModal } from '@/components/followup/LostModal'
 import { NotFitModal } from '@/components/followup/NotFitModal'
@@ -29,6 +31,7 @@ import {
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { getHistoricalFollowedOpportunityCard } from '@/services/followedApi'
 import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStore'
+import { findAwardForProject, getAwardLedger } from '@/services/verifiedOpportunityPool'
 import {
   getPublicOpportunityHistory,
   type PublicOpportunityHistory,
@@ -39,7 +42,7 @@ import {
   runtimeSnapshotWarning,
   type RuntimeStatus,
 } from '@/services/runtimeStatusApi'
-import type { FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
+import type { AwardLedgerEntry, FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
 
 const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'
 
@@ -48,6 +51,7 @@ export function OpportunityDetailPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [card, setCard] = useState<TodayActionCard | null>(null)
+  const [awardResult, setAwardResult] = useState<AwardLedgerEntry | null>(null)
   const [historical, setHistorical] = useState(false)
   const [publicHistory, setPublicHistory] = useState<PublicOpportunityHistory | null>(null)
   const [publicHistoryLoading, setPublicHistoryLoading] = useState(false)
@@ -140,6 +144,25 @@ export function OpportunityDetailPage() {
       setLoading(false)
     }
   }, [id, navigate])
+
+  const projectCode = card?.facts.project_code ?? null
+  useEffect(() => {
+    let cancelled = false
+    setAwardResult(null)
+    if (!projectCode) return
+    // Best effort: a published 中标/成交 result for this project number. Failures
+    // leave the page unchanged; the award ledger is public snapshot data.
+    void getAwardLedger()
+      .then((ledger) => {
+        if (!cancelled) setAwardResult(findAwardForProject(ledger.entries, projectCode))
+      })
+      .catch(() => {
+        if (!cancelled) setAwardResult(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [projectCode])
 
   useEffect(() => {
     void load()
@@ -333,6 +356,8 @@ export function OpportunityDetailPage() {
         </p>
       </section>
 
+      {awardResult ? <AwardResultNotice entry={awardResult} /> : null}
+
       {!historical ? (
         <>
           <OpportunityExecutionCard card={card} onProfileChanged={() => load(true)} />
@@ -360,6 +385,14 @@ export function OpportunityDetailPage() {
         onRemind={() => setRemindOpen(true)}
       />
 
+      {!historical && card.legal_windows?.length ? (
+        <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+          <h2 className="text-[13px] font-semibold text-slate-900">法定窗口（推算）</h2>
+          <div className="mt-2">
+            <LegalWindowNotice card={card} />
+          </div>
+        </section>
+      ) : null}
       <FactsCard facts={card.facts} />
       {isApiMode ? (
         <PublicHistoryCard

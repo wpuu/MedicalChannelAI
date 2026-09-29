@@ -128,7 +128,7 @@ const scriptDir = dirname(fileURLToPath(import.meta.url))
 const pilot = readFileSync(resolve(scriptDir, '../api/_pilotOpportunity.js'), 'utf8')
 assert(pilot.includes("import { runtimeRefreshSnapshotPool } from './_runtimeOpportunityTime.js'"))
 assert(pilot.includes('runtimeSnapshotOpportunityPool(snapshot)'))
-assert(pilot.includes('return runtimeRefreshSnapshotPool(snapshotOpportunityPool(snapshot), now)'))
+assert(pilot.includes('return runtimeRefreshSnapshotPool(snapshotOpportunityPool(snapshot), now, snapshot?.working_calendar ?? null)'))
 
 const staticService = readFileSync(resolve(scriptDir, '../src/services/StaticSnapshotTodayActionsService.ts'), 'utf8')
 assert(staticService.includes('applyRuntimeActionability('), 'verified trial must keep runtime deadline handling')

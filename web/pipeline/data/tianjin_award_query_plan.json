@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1",
+  "region": "天津",
+  "market_code": "TJ",
+  "keywords": [
+    "医院",
+    "医疗",
+    "检验",
+    "疾病预防控制",
+    "卫生健康"
+  ],
+  "notice_types": [
+    "中标公告",
+    "成交公告"
+  ],
+  "lookback_days": 7,
+  "max_details": 8,
+  "delay_seconds": 4.0,
+  "policy": {
+    "purpose": "TIANJIN_MEDICAL_CHANNEL_PILOT_AWARD_LEDGER",
+    "region_locked": true,
+    "awards_are_a_separate_record_type": true,
+    "awards_never_enter_opportunity_pool": true,
+    "medical_channel_scope_filter_required": true,
+    "construction_only_awards_excluded": true,
+    "unseen_result_notices_verified_first": true,
+    "amount_scale_requires_explicit_unit": true
+  }
+}

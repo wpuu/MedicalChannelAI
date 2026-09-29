@@ -14,12 +14,22 @@ PRIMARY_OPPORTUNITY_EXCLUSION_MARKERS = (
     "中标公告", "中标结果公告", "成交公告", "成交结果公告", "结果公告",
     "终止公告", "废标公告", "更正公告", "变更公告",
 )
-PRIMARY_OPPORTUNITY_EXCLUSION_PATHS = ("/zbgg/", "/cjgg/", "/zzgg/", "/fbgg/", "/gzgg/")
+# CCGP detail-path segments: /zbgg/ 中标公告, /cjgg/ 成交公告, /gzgg/ 更正公告,
+# /fblbgg/ 废标·流标·终止公告 (observed 2026-09-29), plus legacy /zzgg/ and /fbgg/.
+PRIMARY_OPPORTUNITY_EXCLUSION_PATHS = ("/zbgg/", "/cjgg/", "/zzgg/", "/fbgg/", "/fblbgg/", "/gzgg/")
 
+# ``bidType`` follows the positional order of the type filter on
+# search.ccgp.gov.cn/bxsearch. Verified against live result pages on
+# 2026-09-29 (Tianjin, kw=医院): 7 -> 中标公告, 8 -> 更正公告, 10 -> 竞争性磋商,
+# 11 -> 成交公告, 12 -> 终止公告. The previous table (更正 6 / 磋商 7 / 中标 8 /
+# 成交 9 / 终止 10) silently returned the wrong notice classes, which is why the
+# Tianjin store never contained a 竞争性磋商 record or a correction/termination
+# event. Do not "simplify" this back into a dense 0..10 sequence.
 BID_TYPE_CODES = {
     "全部": "0", "公开招标": "1", "询价公告": "2", "竞争性谈判": "3",
-    "单一来源": "4", "资格预审": "5", "更正公告": "6", "竞争性磋商": "7",
-    "中标公告": "8", "成交公告": "9", "终止公告": "10",
+    "单一来源": "4", "资格预审": "5", "邀请公告": "6", "中标公告": "7",
+    "更正公告": "8", "其他公告": "9", "竞争性磋商": "10", "成交公告": "11",
+    "终止公告": "12",
 }
 
 NOTICE_TYPE_MARKERS = (

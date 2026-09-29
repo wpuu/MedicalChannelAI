@@ -16,6 +16,8 @@ import { PreMarketSignalNotice, isPreMarketSignal } from '@/components/shared/Pr
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { StageBadge } from '@/components/shared/StageBadge'
 import { marketCodesForSelection, marketSelectionLabel } from '@/config/marketPreference'
+import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
+import { AwardLedgerSection } from '@/components/shared/AwardLedgerSection'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { AiDecisionError, hydrateSharedAiDecisions, requestAiDecision } from '@/services/aiDecisionApi'
@@ -28,7 +30,7 @@ import {
   type RuntimeStatus,
 } from '@/services/runtimeStatusApi'
 import { getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
-import type { TodayActionCard } from '@/types'
+import type { AwardLedgerEntry, TodayActionCard } from '@/types'
 import { formatBudget, formatDateTime, uid } from '@/utils/format'
 
 type WindowFilter = 'ALL' | 'OPEN' | 'PRE_MARKET_SIGNAL' | 'LATE_WINDOW'
@@ -148,6 +150,7 @@ function PoolCard({
                 报名窗口已结束
               </span>
             ) : null}
+            <LegalWindowNotice card={card} compact />
           </div>
           <h3 className="mt-2 text-[15px] font-semibold leading-6 text-slate-900">{buyer}</h3>
           <p className="mt-0.5 text-[14px] leading-6 text-slate-700">
@@ -287,6 +290,8 @@ export function OpportunityPoolPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [cards, setCards] = useState<TodayActionCard[]>([])
+  const [awardLedger, setAwardLedger] = useState<AwardLedgerEntry[]>([])
+  const [awardedProjectCount, setAwardedProjectCount] = useState(0)
   const [snapshotAsOf, setSnapshotAsOf] = useState<string | null>(null)
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
   const [runtimeStatusChecked, setRuntimeStatusChecked] = useState(false)
@@ -306,16 +311,25 @@ export function OpportunityPoolPage() {
         return {
           cards: data.opportunity_pool ?? data.cards,
           snapshot_as_of: data.refreshed_at,
+          award_ledger: data.award_ledger ?? [],
+          awarded_project_count: data.awarded_project_count ?? 0,
         }
       }
       const result = await getVerifiedOpportunityPool()
-      return { cards: result.cards, snapshot_as_of: result.snapshot_as_of }
+      return {
+        cards: result.cards,
+        snapshot_as_of: result.snapshot_as_of,
+        award_ledger: result.award_ledger,
+        awarded_project_count: result.awarded_project_count,
+      }
     }
 
     void loadPool()
       .then((result) => {
         if (cancelled) return
         setCards(result.cards)
+        setAwardLedger(result.award_ledger)
+        setAwardedProjectCount(result.awarded_project_count)
         setSnapshotAsOf(result.snapshot_as_of)
         setError(false)
       })
@@ -576,6 +590,12 @@ export function OpportunityPoolPage() {
       ) : (
         <EmptyState title="没有符合条件的机会" hint="可以清空搜索词、在顶部切换业务地区或调整窗口筛选。" />
       )}
+
+      <AwardLedgerSection
+        entries={awardLedger}
+        marketCodes={selectedMarketCodes as ReadonlySet<string>}
+        awardedProjectCount={awardedProjectCount}
+      />
     </div>
   )
 }
