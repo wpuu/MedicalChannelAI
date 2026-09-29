@@ -1,0 +1,58 @@
+{
+  "schema_version": "0.1",
+  "record_type": "AWARD_RESULT",
+  "observed_at": "2026-09-29T04:32:19.477673+00:00",
+  "region": "天津",
+  "market_code": "TJ",
+  "start_date": "2026-09-22",
+  "end_date": "2026-09-29",
+  "keywords": [
+    "医院",
+    "医疗",
+    "检验",
+    "疾病预防控制",
+    "卫生健康"
+  ],
+  "notice_types": [
+    "中标公告",
+    "成交公告"
+  ],
+  "discovery_skipped_for_operator_directed_urls": true,
+  "operator_directed_url_count": 4,
+  "planned_discovery_query_count": 0,
+  "discovery_success_count": 0,
+  "unique_discovered_result_count": 4,
+  "selected_detail_count": 4,
+  "new_award_record_count": 3,
+  "out_of_scope_count": 1,
+  "out_of_scope": [
+    {
+      "title": "",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260928_27411167.htm",
+      "project_number": "0615-2641031970921",
+      "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+    }
+  ],
+  "merged_award_record_count": 3,
+  "pool_record_count": 56,
+  "matched_pool_project_count": 2,
+  "matched_pool_project_numbers": [
+    "TJBHGP-2026-024",
+    "XCSD-2026-A-589"
+  ],
+  "failure_count": 0,
+  "failures": [],
+  "publish_allowed": true,
+  "publish_gate_reason": "OK_OPERATOR_DIRECTED",
+  "policy": {
+    "awards_are_a_separate_record_type": true,
+    "awards_never_enter_opportunity_pool": true,
+    "unseen_result_notices_verified_first": true,
+    "amount_scale_requires_explicit_unit": true,
+    "construction_only_awards_excluded": true,
+    "previous_award_state_is_preserved": true,
+    "parse_failures_are_reported_not_published": true,
+    "rate_limit_bypass": false,
+    "minimum_request_delay_seconds": 4.0
+  }
+}

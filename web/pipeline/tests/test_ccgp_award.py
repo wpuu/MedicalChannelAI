@@ -174,6 +174,9 @@ class CcgpAwardParserTests(unittest.TestCase):
         self.assertEqual(_parse_amount_cny("￥932.000000 万元（人民币）"), 9_320_000)
         self.assertEqual(_parse_amount_cny("225,000.00元", header_hint="单价"), 225_000)
         self.assertIsNone(_parse_amount_cny("详见附件", header_hint="单价(万元)"))
+        # Multi-item cells (泰达 腔镜 template) cannot be attributed to one 标的.
+        self.assertIsNone(_parse_amount_cny("46.8万元； 14.8万元； 10.8万元； 其他详见附件。", header_hint="单价(万元)"))
+        self.assertEqual(_parse_amount_cny("141万元； 其他详见附件。", header_hint="单价(万元)"), 1_410_000)
 
 
 class AwardRecordValidationTests(unittest.TestCase):

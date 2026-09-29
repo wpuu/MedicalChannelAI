@@ -1,0 +1,417 @@
+[
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_497bb929f0a5017b",
+    "source": {
+      "source_id": "ccgp-award:XCSD-2026-A-535",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+      "observed_at": "2026-09-29T04:32:19.477673+00:00"
+    },
+    "facts": {
+      "project_number": "XCSD-2026-A-535",
+      "project_name": "天津市第三中心医院彩色多普勒超声诊断仪采购项目",
+      "buyer_name": "天津市第三中心医院",
+      "region": "市辖区",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-28",
+      "procurement_method": null,
+      "total_amount_cny": 9320000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "华润天津医药有限公司",
+          "supplier_address": "天津市河北区光复道街光明道24号C136（存在多址信息）",
+          "amount_cny": 2375000,
+          "failure_reason": null
+        },
+        {
+          "package_no": "2",
+          "status": "AWARDED",
+          "supplier_name": "天津市维迪电子有限公司",
+          "supplier_address": "天津市和平区五大道街道岳阳道71号集思创智大厦502-505室",
+          "amount_cny": 2570000,
+          "failure_reason": null
+        },
+        {
+          "package_no": "3",
+          "status": "AWARDED",
+          "supplier_name": "中外运通（天津）科技有限公司",
+          "supplier_address": "天津滨海高新区华苑产业区（环外）海泰发展二路二号5号楼512、513室",
+          "amount_cny": 2510000,
+          "failure_reason": null
+        },
+        {
+          "package_no": "4",
+          "status": "AWARDED",
+          "supplier_name": "北京合众汇美国际贸易有限公司",
+          "supplier_address": "北京市朝阳区光华路7号13层16B1号",
+          "amount_cny": 1865000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "category": "货物类",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "飞利浦",
+          "model": "EPIQ CVx",
+          "quantity": "1套",
+          "unit_price_cny": 2375000
+        },
+        {
+          "package_no": "2",
+          "category": "货物类",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "GE",
+          "model": "Voluson Expert 22 Premium",
+          "quantity": "1套",
+          "unit_price_cny": 2570000
+        },
+        {
+          "package_no": "3",
+          "category": "货物类",
+          "name": "彩色多普勒超声诊断仪",
+          "brand": "佳能",
+          "model": "Aplio i900 TUS-AI900",
+          "quantity": "1套",
+          "unit_price_cny": 2510000
+        },
+        {
+          "package_no": "4",
+          "category": "货物类",
+          "name": "彩色超声诊断设备",
+          "brand": "富士",
+          "model": "ARIETTA 650",
+          "quantity": "1套",
+          "unit_price_cny": 1865000
+        }
+      ],
+      "public_contact": {
+        "name": "张忠义、尤心霖",
+        "title": "项目联系人",
+        "phone": "022-23717450-8002",
+        "email": null
+      },
+      "market_code": "TJ"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "公告标题/中标公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "公告类型=中标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_9429c600c8b04676",
+    "source": {
+      "source_id": "ccgp-award:XCSD-2026-A-589",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+      "observed_at": "2026-09-29T04:32:19.477673+00:00"
+    },
+    "facts": {
+      "project_number": "XCSD-2026-A-589",
+      "project_name": "天津市第五中心医院医疗设备更新项目-数字减影血管造影机采购项目",
+      "buyer_name": "天津市第五中心医院",
+      "region": "滨海新区",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-28",
+      "procurement_method": null,
+      "total_amount_cny": 13950000,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "天津市联大医用设备有限公司",
+          "supplier_address": "天津市河北区望海楼街道新大路185号15号楼4层406-1室",
+          "amount_cny": 13950000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "category": "货物类",
+          "name": "医用血管造影X射线机",
+          "brand": "联影",
+          "model": "uAngio960",
+          "quantity": "1台",
+          "unit_price_cny": 13950000
+        }
+      ],
+      "public_contact": {
+        "name": "尤心霖",
+        "title": "项目联系人",
+        "phone": "022-23717450-8002",
+        "email": null
+      },
+      "market_code": "TJ"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "公告标题/中标公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "公告类型=中标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412423.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  },
+  {
+    "schema_version": "0.1",
+    "record_type": "AWARD_RESULT",
+    "award_id": "ccgpaward_b3c502d673de29b6",
+    "source": {
+      "source_id": "ccgp-award:TJBHGP-2026-024",
+      "source_type": "CCGP_NOTICE",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+      "observed_at": "2026-09-29T04:32:19.477673+00:00"
+    },
+    "facts": {
+      "project_number": "TJBHGP-2026-024",
+      "project_name": "天津市泰达医院高清腔镜系统采购项目",
+      "buyer_name": "天津市泰达医院",
+      "region": "滨海新区",
+      "notice_type": "中标公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-24",
+      "procurement_method": null,
+      "total_amount_cny": 10499940,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "天津市联大医用设备有限公司",
+          "supplier_address": "天津市河北区望海楼街道新大路185号15号楼4层406-1室",
+          "amount_cny": 5239100,
+          "failure_reason": null
+        },
+        {
+          "package_no": "2",
+          "status": "AWARDED",
+          "supplier_name": "杭州康晟泽医疗器械有限公司",
+          "supplier_address": "浙江省杭州市桐庐县江南镇徐畈村徐畈508号2号楼207室",
+          "amount_cny": 3490840,
+          "failure_reason": null
+        },
+        {
+          "package_no": "3",
+          "status": "AWARDED",
+          "supplier_name": "天津长荣健康科技有限公司",
+          "supplier_address": "天津市北辰区天津北辰经济技术开发区高端园永合道30号",
+          "amount_cny": 1770000,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "category": "货物类",
+          "name": "4K内窥镜摄像系统； 其他详见附件",
+          "brand": "卡尔史托斯； 其他详见附件",
+          "model": "IMAGE1 S 4U; 其他详见附件",
+          "quantity": "3套； 其他详见附件",
+          "unit_price_cny": 1410000
+        },
+        {
+          "package_no": "2",
+          "category": "货物类",
+          "name": "4K3D荧光医用内窥镜图像处理器； 4K医用内窥镜摄像系统-摄像头； 医用内窥镜荧光冷光源； 其他详见附件",
+          "brand": "康基； 康基； 康基； 其他详见附件",
+          "model": "KJ-EP4K3DNIR-02； KJ-EC-4KAIAF； KJ-CLS-NIR02； 其他详见附件",
+          "quantity": "1套； 1条； 1台； 其他详见附件",
+          "unit_price_cny": null
+        },
+        {
+          "package_no": "3",
+          "category": "货物类",
+          "name": "4K三维电子内窥镜图像处理器； 4K三维电子胸腹腔镜； 医用内窥镜冷光源； 其他详见附件",
+          "brand": "图格； 图格； 图格； 其他详见附件",
+          "model": "TDE-F410A；TUL-E3010W； TLS-M821A； 其他详见附件",
+          "quantity": "1套； 1条； 1台； 其他详见附件",
+          "unit_price_cny": null
+        }
+      ],
+      "public_contact": {
+        "name": "张明翔、闫学会、闫佳煜",
+        "title": "项目联系人",
+        "phone": "022-66629110",
+        "email": null
+      },
+      "market_code": "TJ"
+    },
+    "evidence": [
+      {
+        "field_path": "facts.project_number",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "一、项目编号"
+      },
+      {
+        "field_path": "facts.project_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "二、项目名称"
+      },
+      {
+        "field_path": "facts.buyer_name",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "公告概要/采购单位 或 采购人信息/名称"
+      },
+      {
+        "field_path": "facts.notice_type",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "公告标题/中标公告"
+      },
+      {
+        "field_path": "facts.lifecycle_state",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "公告类型=中标公告/确定性生命周期映射"
+      },
+      {
+        "field_path": "facts.published_at",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "发布日期"
+      },
+      {
+        "field_path": "facts.packages",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "三、中标（成交）信息"
+      },
+      {
+        "field_path": "facts.region",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "公告概要/行政区域"
+      },
+      {
+        "field_path": "facts.total_amount_cny",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "公告概要/总中标(成交)金额"
+      },
+      {
+        "field_path": "facts.items",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "四、主要标的信息"
+      },
+      {
+        "field_path": "facts.public_contact",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260924_27402542.htm",
+        "locator": "项目联系方式"
+      }
+    ]
+  }
+]

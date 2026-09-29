@@ -286,9 +286,12 @@ def _parse_amount_cny(value: str | None, *, header_hint: str | None = None) -> i
     if value is None:
         return None
     text = _normalize_space(str(value))
-    match = _AMOUNT_RE.search(text)
-    if not match:
+    matches = list(_AMOUNT_RE.finditer(text))
+    if len(matches) != 1:
+        # Either no number or several (``46.8万元； 14.8万元； …``): a single
+        # monetary fact cannot be attributed, keep the raw text only.
         return None
+    match = matches[0]
     number = float(match.group(1).replace(",", ""))
     unit = match.group(2)
     if unit is None and header_hint:
