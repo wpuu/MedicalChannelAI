@@ -1,7 +1,7 @@
 {
   "schema_version": "0.1",
   "record_type": "AWARD_RESULT",
-  "observed_at": "2026-09-29T04:32:19.477673+00:00",
+  "observed_at": "2026-09-29T04:44:47.346072+00:00",
   "region": "天津",
   "market_code": "TJ",
   "start_date": "2026-09-22",
@@ -17,34 +17,68 @@
     "中标公告",
     "成交公告"
   ],
-  "discovery_skipped_for_operator_directed_urls": true,
-  "operator_directed_url_count": 4,
-  "planned_discovery_query_count": 0,
-  "discovery_success_count": 0,
-  "unique_discovered_result_count": 4,
-  "selected_detail_count": 4,
-  "new_award_record_count": 3,
-  "out_of_scope_count": 1,
+  "discovery_skipped_for_operator_directed_urls": false,
+  "operator_directed_url_count": 0,
+  "planned_discovery_query_count": 10,
+  "discovery_success_count": 9,
+  "unique_discovered_result_count": 31,
+  "selected_detail_count": 8,
+  "new_award_record_count": 4,
+  "out_of_scope_count": 4,
   "out_of_scope": [
     {
-      "title": "",
-      "url": "https://www.ccgp.gov.cn/cggg/dfgg/cjgg/202609/t20260928_27411167.htm",
-      "project_number": "0615-2641031970921",
+      "title": "天津市第一中心医院 天津市第一中心医院放射外科手术系统维保服务项目 (项目编号:0615-2641031810847)中标公告",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27411249.htm",
+      "project_number": "0615-2641031810847",
+      "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+    },
+    {
+      "title": "天津市第一中心医院 天津市第一中心医院基于AI+的急救实训平台建设一期项目 (项目编号:0615-2641031800846)中标公告",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27411212.htm",
+      "project_number": "0615-2641031800846",
+      "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+    },
+    {
+      "title": "天津市环湖医院 天津市环湖医院天塔院区手术显微镜项目 (项目编号:XCSD-2026-A-590)中标公告",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27411211.htm",
+      "project_number": "XCSD-2026-A-590",
+      "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
+    },
+    {
+      "title": "天津医科大学总医院 天津医科大学总医院绿化养护服务项目  (项目编号:PYGP-2026-C-0618)中标公告",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27411162.htm",
+      "project_number": "PYGP-2026-C-0618",
       "reason": "MEDICAL_CHANNEL_SCOPE_EXCLUDED"
     }
   ],
-  "merged_award_record_count": 3,
+  "merged_award_record_count": 7,
   "pool_record_count": 56,
-  "matched_pool_project_count": 2,
+  "matched_pool_project_count": 3,
   "matched_pool_project_numbers": [
     "TJBHGP-2026-024",
-    "XCSD-2026-A-589"
+    "XCSD-2026-A-589",
+    "ZCZBZC-GK-2026080547"
   ],
-  "failure_count": 0,
-  "failures": [],
+  "failure_count": 1,
+  "failures": [
+    {
+      "stage": "award_discovery_search",
+      "region": "天津",
+      "notice_type": "中标公告",
+      "keyword": "卫生健康",
+      "error": "TimeoutError",
+      "message": "The read operation timed out"
+    }
+  ],
+  "skipped_count": 0,
+  "skipped": [],
+  "time_budget_seconds": null,
+  "time_budget_exhausted": false,
+  "elapsed_seconds": 118.746,
   "publish_allowed": true,
-  "publish_gate_reason": "OK_OPERATOR_DIRECTED",
+  "publish_gate_reason": "OK",
   "policy": {
+    "requests_stop_when_time_budget_is_exhausted": true,
     "awards_are_a_separate_record_type": true,
     "awards_never_enter_opportunity_pool": true,
     "unseen_result_notices_verified_first": true,

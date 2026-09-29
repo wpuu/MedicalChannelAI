@@ -69,6 +69,11 @@ from medical_channel_pipeline.tjnothop_discovery import (  # noqa: E402
     stable_opportunity_id as tjnothop_opportunity_id,
 )
 from medical_channel_pipeline.tjnothop_market_research import parse_tjnothop_market_research  # noqa: E402
+from medical_channel_pipeline.ccgp_award import merge_award_records  # noqa: E402
+from sync_ccgp_awards import (  # noqa: E402
+    load_plan as load_award_plan,
+    run_award_sync,
+)
 from sync_ccgp_query import VERIFIED_NOTICE_ADAPTERS, discover_candidates, scan_events, stable_id  # noqa: E402
 from sync_teda_market_research import (  # noqa: E402
     UNSUPPORTED_DETAIL_CODES as TEDA_UNSUPPORTED_DETAIL_CODES,
@@ -110,11 +115,16 @@ TJFCH_MAX_CANDIDATES = 20
 TJFCH_TEST_LOOKBACK_DAYS = 14
 TJFCH_TEST_MAX_CANDIDATES = 30
 TJFCH_REQUEST_DELAY_SECONDS = 3.0
+# The award stage runs under the same 300 s function limit as every other
+# stage; stop issuing new CCGP requests well before it so the stage always
+# returns and marks itself COMPLETED (possibly DEGRADED).
+AWARD_STAGE_TIME_BUDGET_SECONDS = 200.0
 
 META_KEY = "medicalchannelai:collector-runtime-state:v1"
 CCGP_RECORDS_KEY = "medicalchannelai:collector-ccgp-records:v1"
 CCGP_EVENTS_KEY = "medicalchannelai:collector-ccgp-events:v1"
 CCGP_WATCH_KEY = "medicalchannelai:collector-ccgp-watch-projects:v1"
+CCGP_AWARDS_KEY = "medicalchannelai:collector-ccgp-awards:v1"
 TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v1"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v1"
 TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v1"
@@ -148,6 +158,7 @@ STAGE_ORDER = (
     "event4",
     "event5",
     "event6",
+    "award",
     "tjmugh",
     "tjnothop",
     "teda",
@@ -172,6 +183,7 @@ EXPECTED_SCHEDULES = {
     "event4": "20 1 * * *",
     "event5": "35 1 * * *",
     "event6": "50 1 * * *",
+    "award": "57 1 * * *",
     "tjmugh": "5 2 * * *",
     "tjnothop": "20 2 * * *",
     "teda": "35 2 * * *",
@@ -216,6 +228,14 @@ def _bootstrap_ccgp_records() -> list[dict[str, Any]]:
 
 def _bootstrap_ccgp_events() -> list[dict[str, Any]]:
     return merge_notice_events([], _load_array(DATA_ROOT / "tianjin_notice_events.json"))
+
+
+def _bootstrap_ccgp_awards() -> list[dict[str, Any]]:
+    """Seed the 中标/成交 award store from the bundled file; awards are optional."""
+    path = DATA_ROOT / "tianjin_award_records.json"
+    if not path.exists():
+        return []
+    return merge_award_records([], _load_array(path))
 
 
 def _bootstrap_tjmugh_records() -> list[dict[str, Any]]:
@@ -605,6 +625,80 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> 
         "new_notice_event_count": len(new_events),
         "merged_event_count": len(merged_events),
         "failure_count": len(failures),
+    }
+
+
+def _run_award(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
+    """Best-effort 中标/成交 result stage.
+
+    Awards are a separate canonical store used by publish to retire awarded
+    projects and to render the award ledger. This stage must never block the
+    chain: any failure carries the previous store forward and still COMPLETES
+    with a DEGRADED result, so tjmugh..publish keep running.
+    """
+    as_of = _cycle_as_of(state)
+    existing_awards: list[dict[str, Any]] = []
+    bootstrapped = False
+    try:
+        existing_awards, bootstrapped = _cached_list(cache, CCGP_AWARDS_KEY, _bootstrap_ccgp_awards)
+    except Exception as exc:  # noqa: BLE001 - degraded, never blocking
+        return {
+            "status": "DEGRADED",
+            "error_code": getattr(exc, "code", type(exc).__name__),
+            "error": str(exc)[:300],
+            "award_store_carried_forward": False,
+            "merged_award_record_count": 0,
+        }
+
+    pool_records = cache.get(CCGP_RECORDS_KEY)
+    if not isinstance(pool_records, list):
+        pool_records = []
+
+    try:
+        plan = load_award_plan(DATA_ROOT / "tianjin_award_query_plan.json")
+        merged_awards, report = run_award_sync(
+            plan=plan,
+            as_of=as_of,
+            existing_awards=existing_awards,
+            pool_records=pool_records,
+            time_budget_seconds=AWARD_STAGE_TIME_BUDGET_SECONDS,
+        )
+    except Exception as exc:  # noqa: BLE001 - degraded, never blocking
+        return {
+            "status": "DEGRADED",
+            "error_code": getattr(exc, "code", type(exc).__name__),
+            "error": str(exc)[:300],
+            "award_store_carried_forward": True,
+            "bootstrapped_awards": bootstrapped,
+            "merged_award_record_count": len(existing_awards),
+        }
+
+    store_updated = False
+    if report["publish_allowed"]:
+        _cache_set(cache, CCGP_AWARDS_KEY, merged_awards, tag="medicalchannelai-collector-canonical")
+        store_updated = True
+
+    return {
+        "status": "OK" if report["publish_allowed"] else "DEGRADED",
+        "start_date": report["start_date"],
+        "end_date": report["end_date"],
+        "planned_discovery_query_count": report["planned_discovery_query_count"],
+        "discovery_success_count": report["discovery_success_count"],
+        "unique_discovered_result_count": report["unique_discovered_result_count"],
+        "selected_detail_count": report["selected_detail_count"],
+        "new_award_record_count": report["new_award_record_count"],
+        "out_of_scope_count": report["out_of_scope_count"],
+        "merged_award_record_count": report["merged_award_record_count"] if store_updated else len(existing_awards),
+        "matched_pool_project_count": report["matched_pool_project_count"],
+        "failure_count": report["failure_count"],
+        "failures": report["failures"][:10],
+        "skipped_count": report["skipped_count"],
+        "time_budget_exhausted": report["time_budget_exhausted"],
+        "elapsed_seconds": report["elapsed_seconds"],
+        "publish_gate_reason": report["publish_gate_reason"],
+        "award_store_updated": store_updated,
+        "award_store_carried_forward": not store_updated,
+        "bootstrapped_awards": bootstrapped,
     }
 
 
@@ -1345,7 +1439,15 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         + regional_records
     )
     as_of = _cycle_as_of(state)
-    snapshot = build_public_snapshot(records, as_of, list(events))
+    # Awards are optional for publish: a missing or unreadable award store must
+    # never block the opportunity snapshot, it only empties the award ledger.
+    try:
+        award_records, _ = _cached_list(cache, CCGP_AWARDS_KEY, _bootstrap_ccgp_awards)
+    except Exception:  # noqa: BLE001 - optional input
+        award_records = []
+    if not isinstance(award_records, list):
+        award_records = []
+    snapshot = build_public_snapshot(records, as_of, list(events), award_records)
     digest = _digest(snapshot)
     _cache_set(
         cache,
@@ -1375,6 +1477,9 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "opportunity_pool_count": len(pool) if isinstance(pool, list) else len(read_back.get("cards") or []),
         "canonical_record_count": len(records),
         "notice_event_count": len(events),
+        "award_record_count": len(award_records),
+        "awarded_project_count": int(read_back.get("awarded_project_count") or 0),
+        "award_ledger_count": len(read_back.get("award_ledger") or []),
         "sha256": digest,
         "durable_snapshot_persisted": True,
         "durable_snapshot_as_of": durable_result.get("snapshot_as_of"),
@@ -1403,6 +1508,8 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             result = _run_ccgp(cache, state)
         elif stage.startswith("event"):
             result = _run_event_batch(cache, state, stage)
+        elif stage == "award":
+            result = _run_award(cache, state)
         elif stage == "tjmugh":
             result = _run_tjmugh(cache, state)
         elif stage == "tjnothop":

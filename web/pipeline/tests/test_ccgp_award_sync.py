@@ -175,6 +175,35 @@ class AwardSyncRunTests(unittest.TestCase):
         self.assertEqual(report["publish_gate_reason"], "ALL_AWARD_DISCOVERY_QUERIES_FAILED")
         self.assertEqual({item["stage"] for item in report["failures"]}, {"award_discovery_search"})
 
+    def test_time_budget_stops_new_requests_but_keeps_verified_results(self) -> None:
+        ticks = iter([0.0] + [1.0] * 4 + [100.0] * 200)  # first search fits, everything after is over budget
+
+        awards, report = sync.run_award_sync(
+            plan=self.plan,
+            as_of=AS_OF,
+            existing_awards=[],
+            pool_records=[],
+            time_budget_seconds=50,
+            fetch_search=self._fetch_search,
+            fetch_detail=_fetch_detail,
+            sleep=self.sleeps.append,
+            clock=lambda: next(ticks),
+        )
+        self.assertTrue(report["time_budget_exhausted"])
+        self.assertGreater(report["skipped_count"], 0)
+        self.assertLess(len(self.search_urls), 10)
+        self.assertEqual(report["discovery_success_count"], len(self.search_urls))
+        self.assertTrue(all(item["reason"] == "TIME_BUDGET_EXHAUSTED" for item in report["skipped"]))
+        # Nothing was fetched after the budget ran out, so no awards were verified and the gate stays open
+        # only because at least one discovery query succeeded.
+        self.assertEqual(awards, [])
+        self.assertTrue(report["publish_allowed"])
+
+    def test_award_stage_runtime_passes_a_time_budget(self) -> None:
+        runtime = (ROOT.parent / "collector_runtime.py").read_text(encoding="utf-8")
+        self.assertIn("AWARD_STAGE_TIME_BUDGET_SECONDS = 200.0", runtime)
+        self.assertIn("time_budget_seconds=AWARD_STAGE_TIME_BUDGET_SECONDS,", runtime)
+
 
 if __name__ == "__main__":
     unittest.main()

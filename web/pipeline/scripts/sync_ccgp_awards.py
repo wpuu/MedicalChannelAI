@@ -168,9 +168,15 @@ def discover_award_candidates(
     failures: list[dict],
     fetch_search=fetch_search_page,
     sleep=time.sleep,
+    budget_exhausted=lambda: False,
+    skipped: list[dict] | None = None,
 ) -> list[tuple[str, DiscoveryCandidate]]:
     discovered: list[tuple[str, DiscoveryCandidate]] = []
     for index, notice_type in enumerate(notice_types):
+        if budget_exhausted():
+            if skipped is not None:
+                skipped.append({"stage": "award_discovery_search", "keyword": keyword, "notice_type": notice_type, "reason": "TIME_BUDGET_EXHAUSTED"})
+            continue
         search_url = build_search_url(
             keyword=keyword,
             notice_type=notice_type,
@@ -257,13 +263,24 @@ def run_award_sync(
     existing_awards: list[dict],
     pool_records: list[dict],
     detail_urls: list[str] | None = None,
+    time_budget_seconds: float | None = None,
     fetch_search=fetch_search_page,
     fetch_detail=fetch_ccgp_detail_html,
     sleep=time.sleep,
+    clock=time.monotonic,
 ) -> tuple[list[dict], dict]:
+    """Run one bounded award sync. ``time_budget_seconds`` (runtime stages run
+    under a hard function timeout) stops issuing new requests once exhausted;
+    whatever was verified so far is still merged and reported."""
     start_text, end_text = plan_date_window(as_of, plan["lookback_days"])
     observed_at = as_of.astimezone(timezone.utc).isoformat()
+    started = clock()
+
+    def budget_exhausted() -> bool:
+        return time_budget_seconds is not None and (clock() - started) >= float(time_budget_seconds)
+
     failures: list[dict] = []
+    skipped: list[dict] = []
     discovered_by_url: dict[str, tuple[str, DiscoveryCandidate]] = {}
     discovered_keywords: dict[str, set[str]] = {}
     directed = _directed_candidates(list(detail_urls or []))
@@ -281,21 +298,26 @@ def run_award_sync(
             failures=failures,
             fetch_search=fetch_search,
             sleep=sleep,
+            budget_exhausted=budget_exhausted,
+            skipped=skipped,
         )
         merge_discovered(discovered_by_url, discovered_keywords, keyword=keyword, candidates=candidates)
-        if index + 1 < len(discovery_keywords):
+        if index + 1 < len(discovery_keywords) and not budget_exhausted():
             sleep(plan["delay_seconds"])
     if directed:
         merge_discovered(discovered_by_url, discovered_keywords, keyword="__operator_directed__", candidates=directed)
 
     discovery_failures = [item for item in failures if item.get("stage") == "award_discovery_search"]
-    discovery_success_count = max(0, planned_queries - len(discovery_failures))
+    discovery_success_count = max(0, planned_queries - len(discovery_failures) - len(skipped))
     discovered = list(discovered_by_url.values())
     selected = select_award_candidates(discovered, existing_awards, plan["max_details"])
 
     new_awards: list[dict] = []
     out_of_scope: list[dict] = []
     for notice_type, candidate in selected:
+        if budget_exhausted():
+            skipped.append({"stage": "award_detail", "url": candidate.detail_url, "reason": "TIME_BUDGET_EXHAUSTED"})
+            continue
         try:
             sleep(plan["delay_seconds"])
             html = fetch_detail(candidate.detail_url)
@@ -373,9 +395,15 @@ def run_award_sync(
         "matched_pool_project_numbers": matched_pool_projects,
         "failure_count": len(failures),
         "failures": failures,
+        "skipped_count": len(skipped),
+        "skipped": skipped,
+        "time_budget_seconds": time_budget_seconds,
+        "time_budget_exhausted": budget_exhausted(),
+        "elapsed_seconds": round(clock() - started, 3),
         "publish_allowed": publish_allowed,
         "publish_gate_reason": publish_gate_reason,
         "policy": {
+            "requests_stop_when_time_budget_is_exhausted": True,
             "awards_are_a_separate_record_type": True,
             "awards_never_enter_opportunity_pool": True,
             "unseen_result_notices_verified_first": True,

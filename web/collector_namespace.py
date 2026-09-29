@@ -12,6 +12,7 @@ INCREMENTAL_CHAIN_KEY = "medicalchannelai:collector-incremental-chain:v2"
 CCGP_RECORDS_KEY = "medicalchannelai:collector-ccgp-records:v2"
 CCGP_EVENTS_KEY = "medicalchannelai:collector-ccgp-events:v2"
 CCGP_WATCH_KEY = "medicalchannelai:collector-ccgp-watch-projects:v2"
+CCGP_AWARDS_KEY = "medicalchannelai:collector-ccgp-awards:v2"
 TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v2"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v2"
 TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v2"
@@ -27,6 +28,7 @@ _RUNTIME_KEY_ASSIGNMENTS = {
     "CCGP_RECORDS_KEY": CCGP_RECORDS_KEY,
     "CCGP_EVENTS_KEY": CCGP_EVENTS_KEY,
     "CCGP_WATCH_KEY": CCGP_WATCH_KEY,
+    "CCGP_AWARDS_KEY": CCGP_AWARDS_KEY,
     "TJMUGH_RECORDS_KEY": TJMUGH_RECORDS_KEY,
     "TJNOTHOP_RECORDS_KEY": TJNOTHOP_RECORDS_KEY,
     "TEDA_RECORDS_KEY": TEDA_RECORDS_KEY,
