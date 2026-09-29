@@ -14,7 +14,7 @@
 | 本会话产出的分支 / PR | `docs/strategy-competitive-review-20260929` → **Draft PR #73**（战略评审报告）；`feat/legal-windows-and-tianjin-coverage-20260929` → **Draft PR #74**（§6 工程改动） |
 | 报告位置 | `docs/reviews/MCAI-STRATEGY-COMPETITIVE-REVIEW-2026-09-29.md`（只在 PR #73 分支上） |
 | 当前正在做 | 报告 §6 工程改动表，按 (1)→(8) 顺序；owner 级决策项跳过（见 §4） |
-| 测试基线 | `web/pipeline` Python 套件 **843 通过**（`8faf29d`）；`npm run build` 全绿。跑法：`cd web/pipeline && python3 -m unittest discover -s tests`（prebuild 也是这个 cwd） |
+| 测试基线 | `web/pipeline` Python 套件 **854 通过**（`0bc3c3c`）；`npm run build` 全绿。跑法：`cd web/pipeline && python3 -m unittest discover -s tests`（prebuild 也是这个 cwd） |
 | 用户指令 | "按照你的思路做，我相信你，每次过程和结果都保存好，方便下一个 AI 接手" |
 
 ---
@@ -239,4 +239,14 @@ cd .. && npm run build                                                 # prebuil
 - **辽宁模板核实 + 播种**：真实公告 `t20260928_27407769`（除颤仪 科曼 S1A ×10，单价 ¥25,000，总价 ¥250,000）解析正确，存为 fixture `ccgp_award_liaoning_single_item_awarded.html`；用 `--market-code LN --detail-url …`（报告写到 `/tmp`，不覆盖 `regional_award_sync_report.json`）给 `regional_award_records.json` 播种 5 条 盛京医院大连医院黄海路院区 结果（除颤仪、转运呼吸机 科曼 EV20 ¥60,000、无创呼吸机 迈瑞 SV70S ¥88,000、宫腔镜 科迈森 KMS-4K-2088 ¥832,900、组织切片机/荧光显微镜/包埋机）。区域 store 现 19 条（BJ 3 / HE 3 / LN 5 / JL 3 / HL 5）。
 - 快照：ledger 26、成交价参考 51 行 / 16 类、压缩 1,761,525 B；套件 843；`npm run build` 通过。
 - **给下一位**：首个自托管区域运行后，看 `regional_award_sync_report.json` 里各市场 `title_excluded_count`（应 >0）与 `scope_bypassed_for_pool_match_count`；辽宁若仍 0 新增，多半是 7 天窗口内没有设备类结果，而非模板问题（模板已核实）。盛京医院系列在 9 月还有 十余条（门诊发药机、低温等离子、关节镜体位架、智能麻醉药品柜…），需要更多辽宁样本时按同样 directed 方式补。
+
+### 2026-09-29 · 会话 3 · 里程碑 L：区域 更正/终止 监测 + 包级公告不再隐藏整个项目（`0bc3c3c`）
+- **动机**：机会池 425 条里 413 条是区域市场，此前只有天津有 更正/终止 监测（按项目逐个搜索，2 次搜索/项目，区域 ~640 个在途项目跑不动）。实测一次搜索：北京 更正 7 行/终止 5 行、黑龙江 更正 20 行/终止 5 行（7 天、关键词"医院"），其中约 1/3 标题能对上池内项目名。
+- **设计**（`scripts/sync_regional_events.py`，计划 `data/regional_event_query_plan.json`）：按市场用同一套 5 个关键词搜 更正公告(bidType 8)/终止公告(bidType 12)（终止搜索也会返回 `fblbgg` 废标公告）；行地域必须证明市场；**只对标题命中池内项目（编号 ≥8 位子串，或项目名互含 ≥10 字）的行取详情**（每市场 ≤10 条，未见 URL 优先、编号命中优先、新的优先）；详情解析出的项目编号必须在该市场池内，否则丢弃（`number_mismatches`，实测挡下了 4 条"同名兄弟项目"）；详情失败且标题含编号时才用 discovery-only 回退（同天津）；**每条事件都带 `market_code`**。每市场预算 150 s，实测 80–108 s，全程 518 s。
+- **快照**：`_build_event_states` 键改为 `(market_code|None, 规范化编号)`；发布端把区域事件传给区域 builder，并拒绝没有 market_code 的区域事件（`REGIONAL_EVENT_MARKET_CODE_REQUIRED`）；天津事件无 market_code、只进天津 builder，行为不变。
+- **包级范围**（`ccgp_events.py`）：解析器新增 `notice_title`（页面标题）、`scope`、`packages`。标题点名了包（"第14包、第16包废标公告"、"06包更正公告"、"A包/B包更正公告"；中文数字归一；项目名本身带的包不算）或 终止原因 里写"本包"的 → `PACKAGE`。**包级事件不再隐藏项目、不改事实**：卡片加 `quality_flags` `OFFICIAL_PACKAGE_NOTICE_REPORTED` + 顶层 `official_notices[]`（≤6，最新在前）；UI 是池卡片上的琥珀色一行 + 详情页横幅。之前"北京市属医院 2026 集采放射组"（几十个包）会因为 2 个包废标而整项消失——这就是修这个的原因。项目级事件维持原有 fail-closed（终止或未解析的更正 → 隐藏）。解析器还认 废标公告/流标公告 标题与 废标理由 段落。
+- **透明化**：快照新增 `notice_suppressed_project_count` + `notice_suppressed_projects[]`（原因 `TERMINATED` / `CORRECTION_PENDING_REVIEW`、公告日期、官方链接，≤60 条最新在前，发布端合并）。池页新增「因官方公告暂不展示的项目」区块，私有 today API 透传。
+- **首轮真实结果**：30 条事件（BJ 10 / HE 5 / LN 4 / JL 3 / HL 8）→ 17 个项目被隐藏（15 个是"更正待核对"，2 个终止）、5 张卡带包级公告（协和彩超 第1包终止、市属医院放射组 第5/8/14/16包废标、龙潭中心 第2/3包、经开区荣华 第2包、河北儿科设备 C包更正）；池 425→414；快照压缩 1,726,113 B。区域工作流加了同步步骤（`continue-on-error`），`regional_notice_events.json` + `regional_event_sync_report.json` 进提交清单；`test_published_web_snapshot` 钉住了这些。
+- **需要老板拍板（新增）**：项目级 更正 里有一半是"技术参数调整，详见更正后的文件"（`__material_correction__`）或无法解析（`__unparsed_correction__`），现行规则把整个项目隐藏。对销售来说，"参数改了"恰恰是最该看的信号。备选：改成"保留卡片 + 醒目的'事实可能已变，先读更正公告'横幅 + 截止时间标为未核实"。这会同时改天津行为并需要改 `test_ccgp_events` 里三条"remains suppressed"测试，所以没有擅自改。数据支持见 `notice_suppressed_projects`。
+- **给下一位**：① 首个自托管区域运行后看 `regional_event_sync_report.json`：`matched_candidate_count` 应为个位到十几、`number_mismatch_count` 少量正常、`failure_count` 里 `TimeoutError` 偶发正常（CCGP 搜索超时）；② 若某市场 `matched` 长期为 0，先看 `unmatched_title_count`——多半是项目名对不上（标题带采购人前缀），可考虑把 `min_name_match_chars` 降到 8 或加"去掉采购人前缀"的归一；③ `_PACKAGE_REF_RE` 是保守的：字母包只认单个大写字母且后面不跟字母/"装"，"CT包""DR包"不会误判。
 
