@@ -8,6 +8,7 @@ from pathlib import Path
 
 from medical_channel_pipeline import build_public_snapshot as build_scoped_public_snapshot
 from medical_channel_pipeline.ccgp_award import (
+    exclude_awarded_projects,
     MAX_LEDGER_ENTRIES,
     awarded_project_numbers,
     build_public_award_ledger,
@@ -68,6 +69,16 @@ class AwardSnapshotIntegrationTests(unittest.TestCase):
         snapshot = build_public_snapshot([record], AS_OF, [], _awards())
         self.assertEqual(snapshot["awarded_project_count"], 1)
         self.assertEqual(snapshot["opportunity_pool"], [])
+
+    def test_event_watch_list_drops_awarded_projects_in_order(self) -> None:
+        watch = ["XCSD-2026-A-641", "ＸＣＳＤ－2026－A－589", "TJBHGP-2026-024", "TJBD-2026-C-212"]
+        kept, skipped = exclude_awarded_projects(watch, _awards(), AS_OF)
+        self.assertEqual(kept, ["XCSD-2026-A-641", "TJBD-2026-C-212"])
+        self.assertEqual(skipped, ["ＸＣＳＤ－2026－A－589", "TJBHGP-2026-024"])
+        self.assertEqual(exclude_awarded_projects(watch, None, AS_OF), (watch, []))
+        # Awards published after as_of are not yet effective, so nothing is skipped.
+        early = datetime(2026, 9, 1, tzinfo=timezone.utc)
+        self.assertEqual(exclude_awarded_projects(watch, _awards(), early), (watch, []))
 
     def test_future_dated_award_is_not_effective_yet(self) -> None:
         awards = _awards()

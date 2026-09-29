@@ -63,7 +63,7 @@ class VercelAwardRuntimeTests(unittest.TestCase):
         self.assertIn("from sync_ccgp_awards import (", self.runtime)
         self.assertIn("load_plan as load_award_plan,", self.runtime)
         self.assertIn("run_award_sync,", self.runtime)
-        self.assertIn("from medical_channel_pipeline.ccgp_award import merge_award_records", self.runtime)
+        self.assertRegex(self.runtime, r"from medical_channel_pipeline\.ccgp_award import [^\n]*merge_award_records")
         bootstrap = _function_source(self.runtime, "_bootstrap_ccgp_awards")
         self.assertIn('DATA_ROOT / "tianjin_award_records.json"', bootstrap)
         self.assertIn("if not path.exists():", bootstrap)
@@ -82,6 +82,21 @@ class VercelAwardRuntimeTests(unittest.TestCase):
         # Awards are not part of the canonical completeness precondition.
         precondition = publish[: publish.index("missing_canonical")]
         self.assertNotIn("CCGP_AWARDS_KEY", precondition)
+
+    def test_event_watch_skips_projects_that_already_have_a_published_result(self) -> None:
+        # Both the Vercel ccgp stage and the GitHub-runner script drop awarded
+        # projects from the 更正/终止 watch list (two CCGP searches per project
+        # per day) and report what they skipped.
+        ccgp = _function_source(self.runtime, "_run_ccgp")
+        self.assertIn("exclude_awarded_projects(", ccgp)
+        self.assertIn("_cached_list(cache, CCGP_AWARDS_KEY, _bootstrap_ccgp_awards)", ccgp)
+        self.assertIn('"event_watch_skipped_awarded": awarded_watch_skipped', ccgp)
+        self.assertLess(ccgp.index("exclude_awarded_projects("), ccgp.index("ACTIVE_EVENT_WATCH_CAP_EXCEEDED"))
+        script = (WEB_ROOT / "pipeline" / "scripts" / "sync_tianjin_plan.py").read_text(encoding="utf-8")
+        main = _function_source(script, "main")
+        self.assertIn("'--existing-awards-input'", main)
+        self.assertIn("exclude_awarded_projects(", main)
+        self.assertIn("'event_watch_skipped_awarded': awarded_watch_skipped", main)
 
     def test_award_store_lives_in_the_isolated_v2_namespace(self) -> None:
         self.assertIn('CCGP_AWARDS_KEY = "medicalchannelai:collector-ccgp-awards:v1"', self.runtime)

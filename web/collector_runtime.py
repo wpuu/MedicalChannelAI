@@ -69,7 +69,7 @@ from medical_channel_pipeline.tjnothop_discovery import (  # noqa: E402
     stable_opportunity_id as tjnothop_opportunity_id,
 )
 from medical_channel_pipeline.tjnothop_market_research import parse_tjnothop_market_research  # noqa: E402
-from medical_channel_pipeline.ccgp_award import merge_award_records  # noqa: E402
+from medical_channel_pipeline.ccgp_award import exclude_awarded_projects, merge_award_records  # noqa: E402
 from sync_ccgp_awards import (  # noqa: E402
     load_plan as load_award_plan,
     run_award_sync,
@@ -548,7 +548,12 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}{suffix}")
 
     merged_records = merge_canonical_records(existing_records, new_records)
-    watch_projects = active_ccgp_project_numbers(merged_records, as_of)
+    # Projects with a published 中标/成交 result (yesterday's award store; the
+    # award stage runs later in the chain) no longer need 更正/终止 searches.
+    existing_awards, _ = _cached_list(cache, CCGP_AWARDS_KEY, _bootstrap_ccgp_awards)
+    watch_projects, awarded_watch_skipped = exclude_awarded_projects(
+        active_ccgp_project_numbers(merged_records, as_of), existing_awards, as_of
+    )
     if len(watch_projects) > plan["max_event_watch_projects"]:
         raise CollectorStageBlocked(
             f"ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>{plan['max_event_watch_projects']}"
@@ -568,6 +573,7 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "new_verified_record_count": len(new_records),
         "merged_record_count": len(merged_records),
         "event_watch_project_count": len(watch_projects),
+        "event_watch_skipped_awarded": awarded_watch_skipped,
         "failure_count": len(failures),
         "publish_gate_reason": reason,
         "bootstrapped_records": bootstrapped_records,

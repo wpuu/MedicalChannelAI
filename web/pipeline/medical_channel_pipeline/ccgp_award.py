@@ -1027,6 +1027,28 @@ def awarded_project_numbers(award_records: list[dict[str, Any]] | None, as_of: d
     }
 
 
+def exclude_awarded_projects(
+    project_numbers: list[str],
+    award_records: list[dict[str, Any]] | None,
+    as_of: datetime,
+) -> tuple[list[str], list[str]]:
+    """Split an event-watch list into (still worth watching, already awarded).
+
+    Once a 中标/成交 result is published the tender is concluded: the
+    opportunity is retired from the pool, so spending two CCGP searches a day
+    on its 更正/终止 notices buys nothing and only adds rate-limit exposure.
+    Order is preserved; matching uses ``normalize_project_number``.
+    """
+    awarded = awarded_project_numbers(award_records, as_of)
+    if not awarded:
+        return list(project_numbers), []
+    kept: list[str] = []
+    skipped: list[str] = []
+    for number in project_numbers:
+        (skipped if normalize_project_number(number) in awarded else kept).append(number)
+    return kept, skipped
+
+
 def public_award_ledger_entry(record: dict[str, Any], as_of: datetime) -> dict[str, Any]:
     """Project one award record onto the compact public ledger shape.
 

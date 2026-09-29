@@ -23,6 +23,7 @@ from medical_channel_pipeline.state import (  # noqa: E402
     merge_canonical_records,
     merge_notice_events,
 )
+from medical_channel_pipeline.ccgp_award import exclude_awarded_projects  # noqa: E402
 from sync_ccgp_query import (  # noqa: E402
     VERIFIED_NOTICE_ADAPTERS,
     discover_candidates,
@@ -34,6 +35,7 @@ from sync_ccgp_query import (  # noqa: E402
 
 DEFAULT_PLAN = PIPELINE_ROOT / 'data' / 'tianjin_query_plan.json'
 DEFAULT_INTENT_RECORDS = PIPELINE_ROOT / 'data' / 'tianjin_live_tjzyefy_intent_records.json'
+DEFAULT_AWARD_RECORDS = PIPELINE_ROOT / 'data' / 'tianjin_award_records.json'
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 PILOT_REGION = '天津'
 DIRECTED_FOLLOWUP_LOOKBACK_DAYS = 45
@@ -240,6 +242,13 @@ def main() -> int:
         type=Path,
         default=[DEFAULT_INTENT_RECORDS] if DEFAULT_INTENT_RECORDS.exists() else [],
     )
+    parser.add_argument(
+        '--existing-awards-input',
+        action='append',
+        type=Path,
+        default=[DEFAULT_AWARD_RECORDS] if DEFAULT_AWARD_RECORDS.exists() else [],
+        help='中标/成交 award stores; projects with a published result are dropped from the 更正/终止 watch list.',
+    )
     parser.add_argument('--records-output', required=True, type=Path)
     parser.add_argument('--events-output', required=True, type=Path)
     parser.add_argument('--report-output', required=True, type=Path)
@@ -255,6 +264,7 @@ def main() -> int:
     existing_records = load_json_arrays(args.existing_records_input, label='existing records')
     existing_events = load_json_arrays(args.existing_events_input, label='existing events')
     intent_records = load_json_arrays(args.intent_records_input, label='procurement intent records')
+    award_records = load_json_arrays(args.existing_awards_input, label='award records')
     followup_plan = build_procurement_intent_followup_plan(intent_records, as_of=as_of)
     base_keyword_set = set(plan['keywords'])
     directed_keywords = [
@@ -320,7 +330,9 @@ def main() -> int:
             )
 
     merged_records = merge_canonical_records(existing_records, new_records)
-    watch_projects = active_ccgp_project_numbers(merged_records, as_of)
+    watch_projects, awarded_watch_skipped = exclude_awarded_projects(
+        active_ccgp_project_numbers(merged_records, as_of), award_records, as_of
+    )
     if len(watch_projects) > plan['max_event_watch_projects']:
         raise RuntimeError(
             f'ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>'
@@ -369,6 +381,7 @@ def main() -> int:
         'new_verified_record_count': len(new_records),
         'merged_record_count': len(merged_records),
         'event_watch_project_count': len(watch_projects),
+        'event_watch_skipped_awarded': awarded_watch_skipped,
         'new_notice_event_count': len(new_events),
         'merged_event_count': len(merged_events),
         'failure_count': len(failures),
