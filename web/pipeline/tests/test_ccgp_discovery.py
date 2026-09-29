@@ -4,6 +4,7 @@ import unittest
 from urllib.parse import parse_qs, urlparse
 
 from medical_channel_pipeline.ccgp_discovery import (
+    BID_TYPE_CODES,
     build_search_url,
     is_primary_opportunity_candidate,
     parse_search_html,
@@ -194,6 +195,55 @@ class CcgpDiscoveryTests(unittest.TestCase):
     def test_rate_limit_page_fails_explicitly(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "CCGP_RATE_LIMITED"):
             parse_search_html("<html>您的访问过于频繁</html>", keyword="医疗")
+
+    def test_bid_type_codes_follow_live_ccgp_filter_order(self) -> None:
+        # Verified 2026-09-29 against search.ccgp.gov.cn result pages
+        # (Tianjin, kw=医院): every filtered page rendered only the class
+        # listed here. The pre-fix table (更正 6 / 磋商 7 / 中标 8 / 成交 9 /
+        # 终止 10) returned 邀请/中标/更正/其他/磋商 pages instead, so the
+        # competitive-consultation adapter and the correction/termination
+        # event watch never received a matching row.
+        self.assertEqual(
+            BID_TYPE_CODES,
+            {
+                "全部": "0",
+                "公开招标": "1",
+                "询价公告": "2",
+                "竞争性谈判": "3",
+                "单一来源": "4",
+                "资格预审": "5",
+                "邀请公告": "6",
+                "中标公告": "7",
+                "更正公告": "8",
+                "其他公告": "9",
+                "竞争性磋商": "10",
+                "成交公告": "11",
+                "终止公告": "12",
+            },
+        )
+
+    def test_event_and_result_search_urls_use_verified_bid_type_codes(self) -> None:
+        expected = {"竞争性磋商": "10", "更正公告": "8", "终止公告": "12", "中标公告": "7", "成交公告": "11"}
+        for notice_type, code in expected.items():
+            url = build_search_url(
+                keyword="XCSD-2026-A-535",
+                notice_type=notice_type,
+                start_date="2026-09-22",
+                end_date="2026-09-29",
+                region="天津",
+            )
+            params = parse_qs(urlparse(url).query)
+            self.assertEqual(params["bidType"], [code], notice_type)
+
+    def test_termination_result_path_fblbgg_is_excluded_from_primary_budget(self) -> None:
+        fixture = """
+        <html><body><ul class="vT-srch-result-list-bid"><li>
+          <a href="/cggg/dfgg/fblbgg/202609/t20260924_27401358.htm">天津市肿瘤医院B2报告厅设备升级项目</a>
+          <span>2026-09-24 | 采购人:天津市肿瘤医院 | 天津市 | 公开招标公告</span>
+        </li></ul></body></html>
+        """
+        candidate = parse_search_html(fixture, keyword="医院")[0]
+        self.assertFalse(is_primary_opportunity_candidate(candidate))
 
 
 if __name__ == "__main__":
