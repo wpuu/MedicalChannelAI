@@ -1,3 +1,5 @@
+import { refreshLegalWindows } from './_legalWindows.js'
+
 const TIANJIN_TIME_ZONE = 'Asia/Shanghai'
 const RELATIVE_REGISTRATION_WINDOW_7_DAYS = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -162,7 +164,7 @@ function refreshedPriority(priority, action, facts, now) {
   }
 }
 
-export function runtimeRefreshSnapshotCard(card, now = Date.now()) {
+export function runtimeRefreshSnapshotCard(card, now = Date.now(), workingCalendar = null) {
   if (!card || typeof card !== 'object' || !card.facts) return null
   const action = runtimeActionability(card.facts, now)
   if (action.mode === 'ARCHIVE') return null
@@ -173,7 +175,7 @@ export function runtimeRefreshSnapshotCard(card, now = Date.now()) {
   const temporalChanged = card.recommendation_mode !== action.mode || oldScore !== newScore
   const preserveBlock = ['BLOCKED_GROUNDING', 'NOT_ELIGIBLE'].includes(card.model_decision_status)
 
-  return {
+  const refreshed = {
     ...card,
     recommendation_mode: action.mode,
     priority,
@@ -181,6 +183,13 @@ export function runtimeRefreshSnapshotCard(card, now = Date.now()) {
     model_block_reason: temporalChanged && !preserveBlock ? null : card.model_block_reason,
     decision: temporalChanged ? null : card.decision,
   }
+  // Derived 质疑期 countdown lives outside `facts` on purpose: facts stay the
+  // verified public record, while the remaining-working-days figure is
+  // recomputed on every request from the calendar embedded in the snapshot.
+  if (Array.isArray(card.legal_windows)) {
+    refreshed.legal_windows = refreshLegalWindows(card.legal_windows, now, workingCalendar)
+  }
+  return refreshed
 }
 
 function publishedSortTimestamp(facts) {
@@ -194,9 +203,9 @@ function publishedSortTimestamp(facts) {
   return Number.isNaN(timestamp) ? 0 : timestamp
 }
 
-export function runtimeRefreshSnapshotPool(cards, now = Date.now()) {
+export function runtimeRefreshSnapshotPool(cards, now = Date.now(), workingCalendar = null) {
   const refreshed = (Array.isArray(cards) ? cards : [])
-    .map((card) => runtimeRefreshSnapshotCard(card, now))
+    .map((card) => runtimeRefreshSnapshotCard(card, now, workingCalendar))
     .filter(Boolean)
 
   return refreshed

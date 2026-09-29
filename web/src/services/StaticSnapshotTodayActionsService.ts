@@ -14,6 +14,7 @@ import {
 import { personalizeTrialCards } from './localCustomerProfile'
 import type { TodayActionsService } from './TodayActionsService'
 import { loadVerifiedSnapshotPayload } from './verifiedSnapshotClient'
+import { refreshLegalWindows } from '@/utils/legalWindows'
 
 const COVERAGE_WARNING = '当前业务地区 · 公开事实来自证据流水线快照；各地区仍为部分来源覆盖。'
 const INTERVENTION_MAX_POINTS = 25
@@ -180,6 +181,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
             : 'PARTIAL',
     },
     evidence_source_urls: card.evidence_source_urls,
+    legal_windows: Array.isArray(card.legal_windows) ? card.legal_windows.map((item) => ({ ...item })) : null,
     customer_context: {
       hospital_relationship: null,
       matching_product_capabilities: [],
@@ -443,6 +445,10 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
     const runtimeCards = publicPool
       .map((card) => applyRuntimeActionability(card, now, includeInactive))
       .filter((card): card is TodayActionCard => card !== null)
+      .map((card) => ({
+        ...card,
+        legal_windows: refreshLegalWindows(card.legal_windows, now, data.working_calendar),
+      }))
     const followedCards = hydrateLocalFollowups(rerank(runtimeCards))
     return personalizeTrialCards(followedCards)
   }
@@ -496,6 +502,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       coverage_warning: COVERAGE_WARNING,
       generated_at: data.snapshot_as_of,
       refreshed_at: data.snapshot_as_of,
+      working_calendar: data.working_calendar ?? null,
       cards: mappedCards,
       opportunity_pool: mappedPool,
       model_requests: [],

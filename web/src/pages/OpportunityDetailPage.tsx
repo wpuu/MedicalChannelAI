@@ -10,6 +10,7 @@ import { OpportunityExecutionCard } from '@/components/opportunity/OpportunityEx
 import { PriorityCard } from '@/components/opportunity/PriorityCard'
 import { PublicHistoryCard } from '@/components/opportunity/PublicHistoryCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
+import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { LostModal } from '@/components/followup/LostModal'
 import { NotFitModal } from '@/components/followup/NotFitModal'
@@ -360,6 +361,14 @@ export function OpportunityDetailPage() {
         onRemind={() => setRemindOpen(true)}
       />
 
+      {!historical && card.legal_windows?.length ? (
+        <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+          <h2 className="text-[13px] font-semibold text-slate-900">法定窗口（推算）</h2>
+          <div className="mt-2">
+            <LegalWindowNotice card={card} />
+          </div>
+        </section>
+      ) : null}
       <FactsCard facts={card.facts} />
       {isApiMode ? (
         <PublicHistoryCard

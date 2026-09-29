@@ -24,7 +24,7 @@ export function snapshotOpportunityPool(snapshot) {
 }
 
 export function runtimeSnapshotOpportunityPool(snapshot, now = Date.now()) {
-  return runtimeRefreshSnapshotPool(snapshotOpportunityPool(snapshot), now)
+  return runtimeRefreshSnapshotPool(snapshotOpportunityPool(snapshot), now, snapshot?.working_calendar ?? null)
 }
 
 export function findVerifiedSnapshotCard(snapshot, opportunityId) {

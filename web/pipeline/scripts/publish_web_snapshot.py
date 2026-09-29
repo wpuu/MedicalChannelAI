@@ -14,6 +14,7 @@ WEB_ROOT = PIPELINE_ROOT.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
+from medical_channel_pipeline.legal_windows import working_calendar_payload  # noqa: E402
 
 DEFAULT_INPUTS = [
     PIPELINE_ROOT / 'data' / 'tianjin_verified_seed.json',
@@ -146,6 +147,7 @@ def combine_snapshots(
         'opportunity_pool_count': len(unique_pool),
         'model_request_count': 0,
         'coverage_warning': 'PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY',
+        'working_calendar': working_calendar_payload(),
         'cards': cards,
         'opportunity_pool': unique_pool,
     }

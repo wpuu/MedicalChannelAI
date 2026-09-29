@@ -1,3 +1,5 @@
+import type { PublicLegalWindow, PublicWorkingCalendar } from './public'
+
 export type ModelDecisionStatus =
   | 'NOT_ELIGIBLE'
   | 'BLOCKED_GROUNDING'
@@ -193,11 +195,16 @@ export interface FollowupRecord {
  * UI view model. The backend wire shape is declared separately in public.ts.
  * Local follow-up state and display timestamps are intentionally UI-only fields.
  */
+export type LegalWindow = PublicLegalWindow
+export type WorkingCalendar = PublicWorkingCalendar
+
 export interface TodayActionCard {
   rank: number
   opportunity_id: string
   facts: Facts
   evidence_source_urls: string[]
+  /** Derived 质疑期 countdown (财政部令第94号); estimate only, never an official deadline. */
+  legal_windows?: LegalWindow[] | null
   customer_context: CustomerContext
   priority: Priority
   match_status: string
@@ -251,6 +258,7 @@ export interface TodayActionsResponse {
   today_limit_options?: number[]
   recommendation_feedback_summary?: RecommendationFeedbackSummary
   procurement_intent_followup_summary?: ProcurementIntentFollowupSummary
+  working_calendar?: WorkingCalendar | null
   cards: TodayActionCard[]
   opportunity_pool?: TodayActionCard[]
   model_requests?: ModelRequest[]

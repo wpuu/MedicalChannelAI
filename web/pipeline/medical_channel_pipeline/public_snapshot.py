@@ -7,6 +7,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from .ccgp_events import validate_notice_events
+from .legal_windows import legal_windows_for_facts, working_calendar_payload
 from .validation import validate_records
 
 MAX_TODAY_CARDS = 5
@@ -377,6 +378,9 @@ def _public_card(
         "opportunity_id": record["opportunity_id"],
         "facts": public_facts,
         "evidence_source_urls": evidence_source_urls,
+        # Derived statutory windows (财政部令第94号). Deliberately outside
+        # ``facts``: it is an estimate recomputed at runtime, not a verified fact.
+        "legal_windows": legal_windows_for_facts(facts, as_of, quality_flags),
         "customer_context": {
             "context_type": "CUSTOMER_PRIVATE_FACTS",
             "business_role": None,
@@ -562,6 +566,7 @@ def build_public_snapshot(
         "opportunity_pool_count": len(opportunity_pool),
         "model_request_count": 0,
         "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
+        "working_calendar": working_calendar_payload(),
         "cards": cards,
         "opportunity_pool": opportunity_pool,
     }

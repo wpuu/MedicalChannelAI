@@ -307,6 +307,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       coverage_status: normalizeCoverage(card.facts.coverage_status),
     },
     evidence_source_urls: card.evidence_source_urls,
+    legal_windows: Array.isArray(card.legal_windows) ? card.legal_windows.map((item) => ({ ...item })) : null,
     customer_context: {
       target_hospital:
         target && target.watched_by_customer

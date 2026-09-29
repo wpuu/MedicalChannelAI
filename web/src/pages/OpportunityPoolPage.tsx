@@ -16,6 +16,7 @@ import { PreMarketSignalNotice, isPreMarketSignal } from '@/components/shared/Pr
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { StageBadge } from '@/components/shared/StageBadge'
 import { marketCodesForSelection, marketSelectionLabel } from '@/config/marketPreference'
+import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { AiDecisionError, hydrateSharedAiDecisions, requestAiDecision } from '@/services/aiDecisionApi'
@@ -148,6 +149,7 @@ function PoolCard({
                 报名窗口已结束
               </span>
             ) : null}
+            <LegalWindowNotice card={card} compact />
           </div>
           <h3 className="mt-2 text-[15px] font-semibold leading-6 text-slate-900">{buyer}</h3>
           <p className="mt-0.5 text-[14px] leading-6 text-slate-700">
