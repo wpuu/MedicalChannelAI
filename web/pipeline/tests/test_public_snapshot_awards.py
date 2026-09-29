@@ -61,6 +61,14 @@ class AwardSnapshotIntegrationTests(unittest.TestCase):
             [record["facts"]["project_number"] for record in sorted(_awards(), key=lambda item: (item["facts"]["published_at"], item["award_id"]), reverse=True)],
         )
 
+    def test_full_width_or_spaced_pool_number_still_retires(self) -> None:
+        # Tender notice typed with full-width dashes/spaces; result notice with ASCII.
+        record = _pool_record("XCSD-2026-A-589")
+        record["facts"]["project_number"] = "ＸＣＳＤ－2026－A－589 "
+        snapshot = build_public_snapshot([record], AS_OF, [], _awards())
+        self.assertEqual(snapshot["awarded_project_count"], 1)
+        self.assertEqual(snapshot["opportunity_pool"], [])
+
     def test_future_dated_award_is_not_effective_yet(self) -> None:
         awards = _awards()
         future = copy.deepcopy(awards[0])

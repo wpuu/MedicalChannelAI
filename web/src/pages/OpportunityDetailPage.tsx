@@ -11,6 +11,7 @@ import { PriorityCard } from '@/components/opportunity/PriorityCard'
 import { PublicHistoryCard } from '@/components/opportunity/PublicHistoryCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { LegalWindowNotice } from '@/components/shared/LegalWindowNotice'
+import { AwardResultNotice } from '@/components/shared/AwardResultNotice'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { LostModal } from '@/components/followup/LostModal'
 import { NotFitModal } from '@/components/followup/NotFitModal'
@@ -30,6 +31,7 @@ import {
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { getHistoricalFollowedOpportunityCard } from '@/services/followedApi'
 import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStore'
+import { findAwardForProject, getAwardLedger } from '@/services/verifiedOpportunityPool'
 import {
   getPublicOpportunityHistory,
   type PublicOpportunityHistory,
@@ -40,7 +42,7 @@ import {
   runtimeSnapshotWarning,
   type RuntimeStatus,
 } from '@/services/runtimeStatusApi'
-import type { FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
+import type { AwardLedgerEntry, FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
 
 const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'
 
@@ -49,6 +51,7 @@ export function OpportunityDetailPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [card, setCard] = useState<TodayActionCard | null>(null)
+  const [awardResult, setAwardResult] = useState<AwardLedgerEntry | null>(null)
   const [historical, setHistorical] = useState(false)
   const [publicHistory, setPublicHistory] = useState<PublicOpportunityHistory | null>(null)
   const [publicHistoryLoading, setPublicHistoryLoading] = useState(false)
@@ -141,6 +144,25 @@ export function OpportunityDetailPage() {
       setLoading(false)
     }
   }, [id, navigate])
+
+  const projectCode = card?.facts.project_code ?? null
+  useEffect(() => {
+    let cancelled = false
+    setAwardResult(null)
+    if (!projectCode) return
+    // Best effort: a published 中标/成交 result for this project number. Failures
+    // leave the page unchanged; the award ledger is public snapshot data.
+    void getAwardLedger()
+      .then((ledger) => {
+        if (!cancelled) setAwardResult(findAwardForProject(ledger.entries, projectCode))
+      })
+      .catch(() => {
+        if (!cancelled) setAwardResult(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [projectCode])
 
   useEffect(() => {
     void load()
@@ -333,6 +355,8 @@ export function OpportunityDetailPage() {
             : '先决定怎么做，再按需查看官方事实、证据和评分解释。'}
         </p>
       </section>
+
+      {awardResult ? <AwardResultNotice entry={awardResult} /> : null}
 
       {!historical ? (
         <>

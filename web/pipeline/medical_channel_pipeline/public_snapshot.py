@@ -7,7 +7,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from .ccgp_events import validate_notice_events
-from .ccgp_award import awarded_project_numbers, build_public_award_ledger
+from .ccgp_award import awarded_project_numbers, build_public_award_ledger, normalize_project_number
 from .legal_windows import legal_windows_for_facts, working_calendar_payload
 from .validation import validate_records
 
@@ -525,7 +525,7 @@ def build_public_snapshot(
     for record in validated:
         facts = record["facts"]
         project_number = str(facts.get("project_number") or "").strip().lower()
-        if project_number and project_number in awarded_projects:
+        if project_number and normalize_project_number(project_number) in awarded_projects:
             awarded_project_count += 1
             continue
         event_state = event_states.get(project_number) if project_number else None

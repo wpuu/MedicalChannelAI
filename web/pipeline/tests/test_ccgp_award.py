@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from medical_channel_pipeline.ccgp_award import (
+    normalize_project_number,
     reconcile_item_prices,
     CcgpAwardParseError,
     _parse_amount_cny,
@@ -195,6 +196,13 @@ class CcgpAwardParserTests(unittest.TestCase):
         # Plausible prices are never touched, and unknown ceilings never drop data.
         self.assertEqual(reconcile_item_prices(items[1:2], packages, None)[0]["unit_price_cny"], 150_000)
         self.assertEqual(reconcile_item_prices(items[:1], [], None)[0]["unit_price_cny"], 3_120_000_000)
+
+    def test_project_number_normalisation_bridges_clerical_variants(self) -> None:
+        self.assertEqual(normalize_project_number("HBHX（Z）-2026-019"), "hbhx(z)-2026-019")
+        self.assertEqual(normalize_project_number(" hbhx(z)-2026-019 "), "hbhx(z)-2026-019")
+        self.assertEqual(normalize_project_number("ＸＣＳＤ－2026－A－589"), "xcsd-2026-a-589")
+        self.assertEqual(normalize_project_number("XCSD-2026 -A-589"), "xcsd-2026-a-589")
+        self.assertEqual(normalize_project_number(None), "")
 
     def test_amount_parsing_never_guesses_a_scale(self) -> None:
         self.assertIsNone(_parse_amount_cny("237.5"))

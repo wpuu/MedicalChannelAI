@@ -1002,10 +1002,27 @@ def effective_award_records(award_records: list[dict[str, Any]] | None, as_of: d
     return effective
 
 
+_FULLWIDTH_ASCII = {code: code - 0xFEE0 for code in range(0xFF01, 0xFF5F)}
+_FULLWIDTH_ASCII[0x3000] = 0x20
+
+
+def normalize_project_number(value: Any) -> str:
+    """Matching key for project numbers across notices.
+
+    Tender and result notices for the same project are typed by different
+    clerks: full-width brackets/dashes (``HBHX（Z）-2026-019`` vs
+    ``HBHX(Z)-2026-019``), stray spaces and letter case all occur. Keys are
+    half-width, whitespace-free and lower-cased; the displayed value is never
+    changed.
+    """
+    text = str(value or "").translate(_FULLWIDTH_ASCII)
+    return re.sub(r"\s+", "", text).lower()
+
+
 def awarded_project_numbers(award_records: list[dict[str, Any]] | None, as_of: datetime) -> set[str]:
-    """Lower-cased project numbers that already have a published award/deal result."""
+    """Normalised project numbers that already have a published award/deal result."""
     return {
-        str(record["facts"]["project_number"]).strip().lower()
+        normalize_project_number(record["facts"]["project_number"])
         for record in effective_award_records(award_records, as_of)
     }
 

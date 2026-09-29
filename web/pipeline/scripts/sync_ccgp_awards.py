@@ -26,6 +26,7 @@ sys.path.insert(0, str(ROOT))
 from medical_channel_pipeline.ccgp_award import (  # noqa: E402
     is_medical_channel_relevant_award,
     merge_award_records,
+    normalize_project_number,
     parse_ccgp_award_html,
 )
 from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
@@ -221,12 +222,13 @@ def merge_discovered(
 
 
 def pool_project_numbers(records: list[dict]) -> set[str]:
+    """Normalised (see ``normalize_project_number``) project numbers in the pool."""
     numbers: set[str] = set()
     for record in records:
         facts = record.get("facts") if isinstance(record, dict) else None
         value = facts.get("project_number") if isinstance(facts, dict) else None
         if isinstance(value, str) and value.strip():
-            numbers.add(value.strip())
+            numbers.add(normalize_project_number(value))
     return numbers
 
 
@@ -360,7 +362,7 @@ def run_award_sync(
         {
             record["facts"]["project_number"]
             for record in merged_awards
-            if record["facts"]["project_number"] in pool_numbers
+            if normalize_project_number(record["facts"]["project_number"]) in pool_numbers
         }
     )
     if directed:

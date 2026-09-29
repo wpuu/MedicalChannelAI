@@ -2,6 +2,7 @@ import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
 import type { AwardLedgerEntry, TodayActionCard } from '@/types'
 import type { PublicTodayActionCard, TodayActionsPublicResponse } from '@/types/public'
 import { refreshLegalWindows } from '@/utils/legalWindows'
+import { normalizeProjectNumber } from '@/utils/projectNumber'
 import {
   backfillLocalFollowupSnapshots,
   hydrateLocalFollowups,
@@ -252,6 +253,33 @@ export function refreshAwardLedger(
     ...entry,
     legal_windows: refreshLegalWindows(entry.legal_windows, now, calendar),
   }))
+}
+
+/**
+ * Published 中标/成交 results from the verified snapshot with the statutory
+ * challenge windows recomputed for "now". Shared by the followups and detail
+ * pages so a followed project that has since been awarded is visible as such.
+ * Goes through the deduplicated snapshot client (ETag revalidation), never a
+ * second download path.
+ */
+export async function getAwardLedger(): Promise<{
+  snapshot_as_of: string
+  entries: AwardLedgerEntry[]
+}> {
+  const data = await fetchSnapshot()
+  return {
+    snapshot_as_of: data.snapshot_as_of,
+    entries: refreshAwardLedger(data.award_ledger, Date.now(), data.working_calendar),
+  }
+}
+
+export function findAwardForProject(
+  entries: readonly AwardLedgerEntry[] | null | undefined,
+  projectNumber: string | null | undefined,
+): AwardLedgerEntry | null {
+  const key = normalizeProjectNumber(projectNumber)
+  if (!key || !Array.isArray(entries)) return null
+  return entries.find((entry) => normalizeProjectNumber(entry.project_number) === key) ?? null
 }
 
 export async function getVerifiedOpportunityPool(): Promise<{
