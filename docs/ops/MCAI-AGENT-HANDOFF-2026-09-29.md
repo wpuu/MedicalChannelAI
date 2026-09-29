@@ -14,12 +14,14 @@
 | 本会话产出的分支 / PR | `docs/strategy-competitive-review-20260929` → **Draft PR #73**（战略评审报告）；`feat/legal-windows-and-tianjin-coverage-20260929` → **Draft PR #74**（§6 工程改动） |
 | 报告位置 | `docs/reviews/MCAI-STRATEGY-COMPETITIVE-REVIEW-2026-09-29.md`（只在 PR #73 分支上） |
 | 当前正在做 | 报告 §6 工程改动表，按 (1)→(8) 顺序；owner 级决策项跳过（见 §4） |
-| 测试基线 | `web/pipeline` Python 套件 **830 通过**（`53eb87c`）；`npm run build` 全绿。跑法：`cd web/pipeline && python3 -m unittest discover -s tests`（prebuild 也是这个 cwd） |
+| 测试基线 | `web/pipeline` Python 套件 **839 通过**（`0701bef`）；`npm run build` 全绿。跑法：`cd web/pipeline && python3 -m unittest discover -s tests`（prebuild 也是这个 cwd） |
 | 用户指令 | "按照你的思路做，我相信你，每次过程和结果都保存好，方便下一个 AI 接手" |
 
 ---
 
 ## 1. 环境恢复（每个新会话先做）
+
+> 2026-09-29 会话 3 实测：沙箱恢复后 `web/node_modules` **和** `.git/config`（remote / 身份 / credential helper）都会丢，先 `cd web && npm ci`，再按下面恢复 git；`web/vite.preview.local.config.ts` 在 `.gitignore` 里（`git status --ignored` 可见），会保留。
 
 沙箱里 `.git/config` **不会跨会话保留**，其余文件会保留。开工前：
 
@@ -83,7 +85,7 @@ git config core.fileMode false
 | 3 | 天津政府采购网直采适配器 | owner 决策 | 需要境内 VPS / 反爬策略，沙箱做不了 |
 | 4 | 法定窗口引擎 | **完成** `14cac81` | — |
 | 5 | LATE_WINDOW 倒计时 / 地区偏好账号化 | 倒计时**完成**；账号化**未做** | 账号化需要 `api/_privateDb.js` `ensurePrivateSchema` 增加 `private_user_ui_preferences` 列迁移 → owner 决策 |
-| 6 | 品牌×型号×参数 证据表 | 数据已就位，UI 未做 | 21 条 ledger 里已有 品牌/型号/单价（如 GE LOGIQ E20 Pro ¥2,418,000、迈瑞 TV80S ¥150,000、安图 AutoMic-i600 ¥230,000）；下一步是按品牌/型号聚合的证据表页面 |
+| 6 | 品牌×型号×参数 证据表 | **成交价部分完成** `0701bef` | 快照 `award_price_reference`（品牌×型号×单价原文，按设备类别归组）+ 商机池页「成交价参考」+ 详情页「同类设备近期成交参考」。"参数"部分仍依赖 PR #71 参数证据助手（未合并） |
 | 7 | 微信 H5 准备 | owner 决策 | 需要公众号/小程序主体 |
 | 8 | 分支 / PR 收敛 | owner 决策 | 30 个分支、7+ 个开放 PR，不代 owner 关闭 |
 
@@ -217,4 +219,14 @@ cd .. && npm run build                                                 # prebuil
 - 套件 **830**；`npm run build` 通过。
 
 **待办（顺序建议）**：① `formatBudget` 对 10,499,940 显示 "1050.0 万元"（toFixed(1) 进位），改保留两位或整万取整。② 事件匹配改用 `normalize_project_number`（`_build_event_states`）。③ 品牌×型号×单价 证据表页面（§6 (6)）：数据已在 `award_ledger[].items`，先做按品牌/型号聚合的只读表。④ 观察首个自托管区域工作流日志：`regional_award_sync_report.json` 的 `failure_count`/`region_mismatch_count`，辽宁若持续 `CCGP_AWARD_SUPPLIER_NOT_FOUND` 需要再补一版辽宁中标（非废标）模板 fixture。
+
+### 2026-09-29 · 会话 3 · 里程碑 J：成交价参考（品牌×型号×单价证据表）+ 两个小修（`0701bef`）
+- **设备类别表** `data/device_families.json`（24 个粗粒度类别，有序、先匹配先赢；缩写按整词匹配，`CT` 不会命中 `CBCT`；维保/试剂/信息化/消毒供应排最前，口腔/核医学排在 CT 前）+ `medical_channel_pipeline/device_families.py`（`device_family_for_name`、`device_families_payload`）+ TS 镜像 `src/utils/deviceFamily.ts`。类别表随快照下发（`award_price_reference.families`），前端用同一张表给机会的 `标的` 归类。40 条 `parity_vectors` 同时被 Python 测试和 prebuild 门禁 `scripts/check-device-family-parity.mjs`（用 vite 的 esbuild 现场转译 TS）断言；门禁还核对快照里每一行的 `family` 与前端分类一致。**只用于展示归组，绝不进 scope / 排序 / actionability。**
+- **快照新键** `award_price_reference {schema_version, lookback_days 365, max_rows 200, row_count, truncated, family_row_counts, families[], rows[]}`；行 = 一条结果公告里"单一品牌 + 可解析单价"的标的行 `{award_id, market_code, published_at, buyer_name, project_number, family, name, brand, model, quantity, unit_price_cny, line_count, source_url}`。多值单元格（`；`/`、`/`其他详见附件`/`等`）不归属、直接跳过；同一公告完全相同的行折叠为一行 `line_count`（黑龙江每台一行）。发布端 `combine_award_price_references` 去重合并；私有 today API 原样透传。当前 44 行 / 13 个类别，压缩后快照 1,752,528 B。
+- **UI**：`AwardPriceReferenceSection`（商机池页 ledger 下方：类别 chips + 关键词框，关键词也匹配类别名所以搜"彩超"能命中"彩色多普勒超声诊断仪"；按业务地区过滤；每行带官方公告链接；默认 8 行可展开）；`AwardPriceReferenceNotice`（详情页：机会 `products[].name`（无则项目名）归类 → 同类别的行，跨六个市场，明示"类别相同不代表配置相同"）。数据都走 `getAwardPriceReference()`（复用去重快照客户端，不新增 Vercel 函数）。
+- ledger 的 `items[]` 新增 `category`（河北 货物类/服务类、黑龙江 品目名称）。
+- **小修**：事件匹配（更正/终止）改用 `normalize_project_number`（`_build_event_states` 与池侧匹配两处，`test_ccgp_events` 加全角编号用例）；`formatBudget` 改两位小数不进位（10,499,940 → "1049.99 万元"）。
+- 套件 **839**；`npm run build` 通过（含新门禁）；用 esbuild + react-dom/server 对真实快照静态渲染核对过两个组件（彩超机会 → 7 行同类成交；无匹配/无数据时不渲染）。
+
+**待办（顺序建议）**：① 首个自托管区域工作流运行后看 `regional_award_sync_report.json`（辽宁若持续 `CCGP_AWARD_SUPPLIER_NOT_FOUND` 需补辽宁中标模板 fixture）。② 类别表长尾：池内 1,485 个标的名约 60% 能归类，未归类多为耗材/实验室小件，按需往 `device_families.json` 加关键词（改完跑 Python 套件 + `node scripts/check-device-family-parity.mjs`）。③ "参数"维度：等 PR #71 参数证据助手合并后，把 `award_price_reference` 行接到参数对照表旁边。④ 成交价参考若要给"我的跟进"页也用，直接复用 `relatedReferenceRows(card, reference)`。
 
