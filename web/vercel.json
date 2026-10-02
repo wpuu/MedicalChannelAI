@@ -3,6 +3,7 @@
   "git": {
     "deploymentEnabled": {
       "main": true,
+      "fix/tjmugh-verification-20261002": false,
       "chatgpt/m1-evidence-pipeline-v1": true,
       "chatgpt/opportunity-ranking-v2-final": false
     }

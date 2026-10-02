@@ -16,12 +16,17 @@ sys.path.insert(0, str(PIPELINE_ROOT))
 from medical_channel_pipeline.state import merge_canonical_records  # noqa: E402
 from medical_channel_pipeline.tjmugh_discovery import (  # noqa: E402
     INDEX_URL,
+    TjmughDiscoveryError,
     fetch_tjmugh_page,
     parse_tjmugh_index_html,
     select_candidates_since,
     stable_opportunity_id,
 )
-from medical_channel_pipeline.tjmugh_market_research import parse_tjmugh_market_research  # noqa: E402
+from medical_channel_pipeline.tjmugh_market_research import (  # noqa: E402
+    TjmughParseError,
+    parse_tjmugh_market_research,
+)
+from medical_channel_pipeline.validation import ValidationError  # noqa: E402
 
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 MIN_DETAIL_DELAY_SECONDS = 3.0
@@ -59,6 +64,26 @@ def is_retryable_fetch_error(exc: Exception) -> bool:
         return True
     match = re.fullmatch(r'TJMUGH_HTTP_(\d{3})', message)
     return bool(match and int(match.group(1)) in RETRYABLE_HTTP_CODES)
+
+
+def failure_category(exc: Exception) -> str:
+    if str(exc) in {'TJMUGH_HTTP_401', 'TJMUGH_HTTP_403'}:
+        return 'ACCESS_DENIED'
+    if is_retryable_fetch_error(exc):
+        return 'TRANSIENT_FETCH_ERROR'
+    if re.fullmatch(r'TJMUGH_HTTP_\d{3}', str(exc)):
+        return 'PERMANENT_HTTP_ERROR'
+    if isinstance(exc, ValidationError):
+        return 'EVIDENCE_VALIDATION_FAILED'
+    if isinstance(exc, (TjmughParseError, TjmughDiscoveryError)):
+        # Missing fields can mean parser drift OR absent evidence. Preserve the
+        # exact error; do not infer drift or classify a rejected detail as empty.
+        return 'PARSER_REJECTED'
+    return 'UNEXPECTED_ERROR'
+
+
+def emit_failure(failure: dict) -> None:
+    print('TJMUGH_FAILURE=' + json.dumps(failure, ensure_ascii=False), file=sys.stderr)
 
 
 def fetch_page_with_retry(
@@ -129,6 +154,13 @@ def main() -> int:
         )
         discovered = parse_tjmugh_index_html(index_html)
     except Exception as exc:
+        failure = {
+            'stage': 'index_discovery',
+            'url': INDEX_URL,
+            'error': type(exc).__name__,
+            'message': str(exc)[:300],
+            'category': failure_category(exc),
+        }
         report = {
             'schema_version': '0.1',
             'observed_at': observed_at,
@@ -137,15 +169,11 @@ def main() -> int:
             'publish_allowed': False,
             'publish_gate_reason': 'INDEX_DISCOVERY_FAILED',
             'failure_count': 1,
-            'failures': [
-                {
-                    'stage': 'index_discovery',
-                    'error': type(exc).__name__,
-                    'message': str(exc)[:300],
-                }
-            ],
+            'failures': [failure],
+            'refresh_outcome': 'BLOCKED',
         }
         write_json(args.report_output, report)
+        emit_failure(failure)
         print('TMUGH index discovery failed; refusing to mark hospital-source state fresh', file=sys.stderr)
         return 2
 
@@ -180,8 +208,10 @@ def main() -> int:
                     'url': candidate.detail_url,
                     'error': type(exc).__name__,
                     'message': str(exc)[:300],
+                    'category': failure_category(exc),
                 }
             )
+            emit_failure(failures[-1])
 
     merged_records = merge_canonical_records(existing_records, new_records)
     merged_ids = {
@@ -214,6 +244,12 @@ def main() -> int:
         'failures': failures,
         'publish_allowed': publish_allowed,
         'publish_gate_reason': publish_gate_reason,
+        'refresh_outcome': (
+            'BLOCKED' if not publish_allowed else
+            'NO_CANDIDATES_IN_WINDOW' if not selected else
+            'EXISTING_VERIFIED_COVERAGE_WITH_FAILURES' if failures else
+            'VERIFIED'
+        ),
         'policy': {
             'official_index_required': True,
             'only_supported_medical_equipment_market_research_titles': True,
@@ -224,9 +260,13 @@ def main() -> int:
             'fetch_attempts': FETCH_ATTEMPTS,
             'rate_limit_bypass': False,
             'minimum_detail_delay_seconds': args.delay_seconds,
+            'blocked_refresh_preserves_records_output': True,
         },
     }
-    write_json(args.records_output, merged_records)
+    # The workflow commonly uses the same file for input and output. A blocked
+    # refresh must leave it byte-for-byte intact, including partial failures.
+    if publish_allowed:
+        write_json(args.records_output, merged_records)
     write_json(args.report_output, report)
     print(
         f'discovered={len(discovered)} selected={len(selected)} verified={len(new_records)} '
