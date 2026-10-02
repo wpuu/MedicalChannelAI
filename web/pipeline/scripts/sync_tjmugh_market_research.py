@@ -11,7 +11,9 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]
+SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(PIPELINE_ROOT))
+sys.path.insert(0, str(SCRIPT_DIR))
 
 from medical_channel_pipeline.state import merge_canonical_records  # noqa: E402
 from medical_channel_pipeline.tjmugh_discovery import (  # noqa: E402
@@ -27,6 +29,7 @@ from medical_channel_pipeline.tjmugh_market_research import (  # noqa: E402
     parse_tjmugh_market_research,
 )
 from medical_channel_pipeline.validation import ValidationError  # noqa: E402
+from tjmugh_failure_diagnostics import sanitize_failure, write_json_atomic  # noqa: E402
 
 SHANGHAI = ZoneInfo('Asia/Shanghai')
 MIN_DETAIL_DELAY_SECONDS = 3.0
@@ -54,8 +57,21 @@ def load_json_arrays(paths: list[Path]) -> list[dict]:
 
 
 def write_json(path: Path, payload: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    write_json_atomic(path, payload)
+
+
+def validate_report_output_paths(report_output: Path, records_output: Path, inputs: list[Path]) -> None:
+    report_resolved = report_output.resolve()
+    aliases = [records_output, *inputs]
+    for candidate in aliases:
+        if report_resolved == candidate.resolve():
+            raise ValueError('report output must not alias records output or existing-records input')
+        try:
+            same_file = report_output.exists() and candidate.exists() and report_output.samefile(candidate)
+        except OSError:
+            same_file = False
+        if same_file:
+            raise ValueError('report output must not alias records output or existing-records input')
 
 
 def is_retryable_fetch_error(exc: Exception) -> bool:
@@ -83,7 +99,7 @@ def failure_category(exc: Exception) -> str:
 
 
 def emit_failure(failure: dict) -> None:
-    print('TJMUGH_FAILURE=' + json.dumps(failure, ensure_ascii=False), file=sys.stderr)
+    print('TJMUGH_FAILURE=' + json.dumps(sanitize_failure(failure), ensure_ascii=False), file=sys.stderr)
 
 
 def fetch_page_with_retry(
@@ -140,6 +156,7 @@ def main() -> int:
     if args.delay_seconds < MIN_DETAIL_DELAY_SECONDS:
         raise ValueError(f'--delay-seconds must be >= {MIN_DETAIL_DELAY_SECONDS:g}')
 
+    validate_report_output_paths(args.report_output, args.records_output, args.existing_records_input)
     as_of = parse_as_of(args.as_of)
     local_date = as_of.astimezone(SHANGHAI).date()
     start_date = local_date - timedelta(days=args.lookback_days - 1)
@@ -265,9 +282,9 @@ def main() -> int:
     }
     # The workflow commonly uses the same file for input and output. A blocked
     # refresh must leave it byte-for-byte intact, including partial failures.
+    write_json(args.report_output, report)
     if publish_allowed:
         write_json(args.records_output, merged_records)
-    write_json(args.report_output, report)
     print(
         f'discovered={len(discovered)} selected={len(selected)} verified={len(new_records)} '
         f'records={len(merged_records)} missing={len(missing_selected_ids)} '

@@ -22,6 +22,7 @@ if spec is None or spec.loader is None:
     raise RuntimeError('SYNC_TJMUGH_IMPORT_FAILED')
 sync_tjmugh = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(sync_tjmugh)
+import tjmugh_failure_diagnostics
 
 
 class TjmughSyncTests(unittest.TestCase):
@@ -75,7 +76,8 @@ class TjmughSyncTests(unittest.TestCase):
         self.assertEqual(report['missing_selected_count'], 1)
         self.assertEqual(report['refresh_outcome'], 'BLOCKED')
         logged = json.loads(stderr.split('TJMUGH_FAILURE=', 1)[1].splitlines()[0])
-        self.assertEqual(logged, report['failures'][0])
+        self.assertEqual(logged['message'], report['failures'][0]['message'])
+        self.assertNotIn('title', logged)
         self.assertEqual(logged['message'], 'TJMUGH_REGISTRATION_DEADLINE_NOT_FOUND')
         self.assertEqual(logged['category'], 'PARSER_REJECTED')
         self.assertEqual(logged['url'], self.candidate('030326489').detail_url)
@@ -250,6 +252,133 @@ class TjmughSyncTests(unittest.TestCase):
     def test_parse_as_of_requires_timezone(self) -> None:
         with self.assertRaisesRegex(ValueError, 'timezone'):
             sync_tjmugh.parse_as_of('2026-08-31T12:00:00')
+
+    def test_atomic_json_failures_preserve_target_and_clean_temporary_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / 'records.json'
+            target.write_text('original\n', encoding='utf-8')
+            for method in ('replace', 'fsync'):
+                with self.subTest(stage=method), patch.object(
+                    tjmugh_failure_diagnostics.os, method, side_effect=OSError('write failed')
+                ), self.assertRaises(OSError):
+                    sync_tjmugh.write_json(target, [{'id': 'new'}])
+                self.assertEqual(target.read_text(encoding='utf-8'), 'original\n')
+                self.assertEqual(list(Path(directory).glob('.records.json.*.tmp')), [])
+
+            real_named_temporary = tjmugh_failure_diagnostics.tempfile.NamedTemporaryFile
+
+            class FailingWriter:
+                def __init__(self, wrapped):
+                    self.wrapped = wrapped
+                    self.name = wrapped.name
+
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, *args):
+                    self.wrapped.close()
+
+                def write(self, content):
+                    self.wrapped.write(content[:1])
+                    raise OSError('write failed')
+
+                def flush(self):
+                    self.wrapped.flush()
+
+                def fileno(self):
+                    return self.wrapped.fileno()
+
+            with (
+                patch.object(
+                    tjmugh_failure_diagnostics.tempfile, 'NamedTemporaryFile',
+                    side_effect=lambda *args, **kwargs: FailingWriter(real_named_temporary(*args, **kwargs)),
+                ),
+                self.assertRaisesRegex(OSError, 'write failed'),
+            ):
+                sync_tjmugh.write_json(target, [{'id': 'new'}])
+            self.assertEqual(target.read_text(encoding='utf-8'), 'original\n')
+            self.assertEqual(list(Path(directory).glob('.records.json.*.tmp')), [])
+            with self.assertRaises(TypeError):
+                sync_tjmugh.write_json(target, {'bad': object()})
+            self.assertEqual(target.read_text(encoding='utf-8'), 'original\n')
+            self.assertEqual(list(Path(directory).glob('.records.json.*.tmp')), [])
+
+    def test_report_write_failure_preserves_records(self):
+        with tempfile.TemporaryDirectory() as directory:
+            records = Path(directory) / 'records.json'
+            report = Path(directory) / 'report.json'
+            before = json.dumps([self.verified_record()], ensure_ascii=False) + '\n'
+            records.write_text(before, encoding='utf-8')
+            argv = [str(SCRIPT_PATH), '--as-of', '2026-08-05T08:00:00Z',
+                    '--records-output', str(records), '--existing-records-input', str(records),
+                    '--report-output', str(report)]
+            with (
+                patch.object(sync_tjmugh.sys, 'argv', argv),
+                patch.object(sync_tjmugh, 'fetch_tjmugh_page', return_value='index'),
+                patch.object(sync_tjmugh, 'parse_tjmugh_index_html', return_value=[]),
+                patch.object(sync_tjmugh, 'write_json', side_effect=OSError('report write')),
+                self.assertRaisesRegex(OSError, 'report write'),
+            ):
+                sync_tjmugh.main()
+            self.assertEqual(records.read_text(encoding='utf-8'), before)
+
+    def test_report_aliases_rejected_before_fetch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            records = root / 'records-output.json'
+            seed = root / 'seed.json'
+            records_before, seed_before = 'existing records output\n', '[]\n'
+            records.write_text(records_before, encoding='utf-8')
+            for alias_kind in ('records_output', 'direct_input', 'symlink_input', 'hardlink_input'):
+                seed.write_text(seed_before, encoding='utf-8')
+                if alias_kind == 'records_output':
+                    report_path = records
+                    input_path = None
+                elif alias_kind == 'direct_input':
+                    report_path, input_path = seed, seed
+                elif alias_kind == 'symlink_input':
+                    report_path = root / 'report-link.json'
+                    report_path.unlink(missing_ok=True)
+                    report_path.symlink_to(seed)
+                    input_path = seed
+                else:
+                    report_path = root / 'report-hardlink.json'
+                    report_path.unlink(missing_ok=True)
+                    report_path.hardlink_to(seed)
+                    input_path = seed
+                argv = [str(SCRIPT_PATH), '--records-output', str(records),
+                        '--report-output', str(report_path)]
+                if input_path:
+                    argv.extend(['--existing-records-input', str(input_path)])
+                with (
+                    patch.object(sync_tjmugh.sys, 'argv', argv),
+                    patch.object(sync_tjmugh, 'fetch_tjmugh_page') as fetch,
+                    self.assertRaisesRegex(ValueError, 'report output must not alias'),
+                ):
+                    sync_tjmugh.main()
+                fetch.assert_not_called()
+                self.assertEqual(records.read_text(encoding='utf-8'), records_before)
+                self.assertEqual(seed.read_text(encoding='utf-8'), seed_before)
+
+    def test_failure_log_redacts_untrusted_fields_and_rejects_unexpected_url(self):
+        failure = {
+            'stage': 'verified_detail', 'category': 'PARSER_REJECTED', 'error': 'ValueError',
+            'message': 'TJMUGH_REGISTRATION_DEADLINE_NOT_FOUND:SECRET_AUTH_TOKEN_ABC',
+            'title': 'private title SECRET_AUTH_TOKEN_ABC',
+            'url': 'https://user:password@www.tjmugh.com.cn/system/2026/08/05/12.shtml?token=SECRET#x',
+        }
+        stream = io.StringIO()
+        with redirect_stderr(stream):
+            sync_tjmugh.emit_failure(failure)
+        rendered = stream.getvalue()
+        self.assertIn('TJMUGH_REGISTRATION_DEADLINE_NOT_FOUND', rendered)
+        self.assertNotIn('SECRET_AUTH_TOKEN_ABC', rendered)
+        self.assertNotIn('private title', rendered)
+        self.assertNotIn('password', rendered)
+        self.assertNotIn('token=', rendered)
+        self.assertNotIn('url', json.loads(rendered.split('=', 1)[1]))
+        self.assertEqual(tjmugh_failure_diagnostics.safe_error_code('SECRET_AUTH_TOKEN_ABC'),
+                         'ERROR_CODE_UNAVAILABLE')
 
 
 if __name__ == '__main__':
