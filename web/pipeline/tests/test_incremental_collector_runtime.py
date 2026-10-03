@@ -131,10 +131,9 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         end = self.queue.index('if result.get("terminal") is True', start)
         terminal = self.queue[start:end]
         clear = terminal.index('incremental_runtime.clear_incremental_pending(RuntimeCache())')
-        schedule = terminal.index('await _start_intraday_chain_after_deep()')
         release = terminal.index('_release_active_cycle_if_owned(cycle_id)')
-        self.assertLess(clear, schedule)
-        self.assertLess(schedule, release)
+        self.assertLess(clear, release)
+        self.assertNotIn("await _start_intraday_chain_after_deep()", terminal)
 
     def test_incremental_status_is_aggregate_only(self) -> None:
         for field in (
@@ -158,7 +157,8 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         crons = self.vercel.get('crons') or []
         self.assertEqual(
             crons,
-            [{"path": "/api/collector-run", "schedule": "20 0 * * *"}],
+            [{"path": "/api/collector-run?period=morning", "schedule": "20 0 * * *"},
+             {"path": "/api/collector-run?period=noon", "schedule": "20 4 * * *"}],
         )
         functions = self.vercel.get('functions') or {}
         self.assertIn('api/collector-queue.py', functions)

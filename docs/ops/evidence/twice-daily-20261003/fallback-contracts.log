@@ -1,0 +1,9 @@
+test_legacy_fallback_has_only_one_automatic_deep_run_per_day (test_deep_refresh_schedule.DeepRefreshScheduleTests.test_legacy_fallback_has_only_one_automatic_deep_run_per_day) ... ok
+test_manual_fallback_remains_available_until_vercel_runtime_acceptance (test_deep_refresh_schedule.DeepRefreshScheduleTests.test_manual_fallback_remains_available_until_vercel_runtime_acceptance) ... ok
+test_regional_push_trigger_is_main_only_after_preview_acceptance (test_deep_refresh_schedule.DeepRefreshScheduleTests.test_regional_push_trigger_is_main_only_after_preview_acceptance) ... ok
+test_tianjin_and_regional_deep_refreshes_share_one_serialization_group (test_deep_refresh_schedule.DeepRefreshScheduleTests.test_tianjin_and_regional_deep_refreshes_share_one_serialization_group) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK

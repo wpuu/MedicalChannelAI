@@ -150,7 +150,7 @@ class ExecutionNamespaceTests(unittest.TestCase):
     def test_worker_checks_active_cycle_before_running_stage(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
         first_fence = source.index("if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):")
-        run_stage = source.index("runtime.run_stage(stage, now=cycle_as_of)")
+        run_stage = source.index("runtime.run_stage(stage, now=cycle_as_of, cycle_id=cycle_id)")
         self.assertLess(first_fence, run_stage)
         self.assertGreaterEqual(
             source.count("if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):"),

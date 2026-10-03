@@ -8,6 +8,7 @@ from vercel.queue import send
 
 import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
+from collector_schedule import SCHEDULE_VERSION, valid_cycle
 from collector_incremental import scan_bucket_id
 from collector_incremental_bootstrap import bootstrap_incremental_ledger_from_canonical
 from collector_incremental_scheduler import (
@@ -120,18 +121,26 @@ def _write_chain_state(
 
 
 async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) -> str:
-    message_id = await send(
-        QUEUE_TOPIC_NAME,
-        {
-            "schema_version": "0.1",
-            "stage": stage,
-            "cycle_as_of": cycle_as_of.isoformat(),
-            "cycle_id": cycle_id,
-        },
-        retention=MESSAGE_RETENTION,
-        delay=NEXT_STAGE_DELAY_SECONDS if stage != "ccgp" else 0,
-        idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:{stage}",
-    )
+    try:
+        message_id = await send(
+            QUEUE_TOPIC_NAME,
+            {
+                "schema_version": "0.1",
+                "schedule_version": SCHEDULE_VERSION,
+                "stage": stage,
+                "cycle_as_of": cycle_as_of.isoformat(),
+                "cycle_id": cycle_id,
+            },
+            retention=MESSAGE_RETENTION,
+            delay=NEXT_STAGE_DELAY_SECONDS if stage != "ccgp" else 0,
+            idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:{stage}",
+        )
+    except Exception as exc:
+        # This SDK exception means Queue accepted this exact idempotency key.
+        # Other transport/auth errors still propagate and remain retriable.
+        if type(exc).__name__ != "DuplicateIdempotencyKeyError":
+            raise
+        message_id = "ALREADY_QUEUED"
     return str(message_id)
 
 
@@ -361,6 +370,12 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
         return
 
+    # Acknowledge legacy backlog without executing it or creating continuations.
+    if payload.get("schedule_version") != SCHEDULE_VERSION:
+        return
+    if _is_incremental_tick_payload(payload) or _is_incremental_payload(payload):
+        return
+
     if _is_incremental_tick_payload(payload):
         await _process_incremental_tick_payload(payload)
         return
@@ -375,10 +390,14 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if stage not in STAGE_ORDER or not cycle_id or cycle_as_of is None:
         return
 
+    if not same_china_business_date(cycle_as_of, datetime.now(timezone.utc)):
+        return
+    if not valid_cycle(cycle_id, cycle_as_of):
+        return
     if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
         return
 
-    status, result = runtime.run_stage(stage, now=cycle_as_of)
+    status, result = runtime.run_stage(stage, now=cycle_as_of, cycle_id=cycle_id)
     action = str(result.get("action") or "")
     if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
         next_stage = _next_stage(stage)
@@ -387,7 +406,6 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
             # source-local staging. A degraded terminal cycle still gets its
             # intraday chain, but leaves incremental pending barriers intact.
             incremental_runtime.clear_incremental_pending(RuntimeCache())
-            await _start_intraday_chain_after_deep()
             _release_active_cycle_if_owned(cycle_id)
             return
         if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
@@ -402,7 +420,6 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
                 return
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         else:
-            await _start_intraday_chain_after_deep()
             _release_active_cycle_if_owned(cycle_id)
         return
 

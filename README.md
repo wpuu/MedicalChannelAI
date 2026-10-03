@@ -14,10 +14,11 @@
 
 ## Collector 执行面
 
-- 当前生产候选使用单一 Vercel Daily Cron 启动 `medicalchannelai-refresh-v2` Queue。
-- Collector canonical state、notice events、watch state、active cycle 与 latest verified snapshot 使用隔离的 Runtime Cache `:v2` namespace。
-- Queue worker 在每个 stage 执行前校验 active `cycle_id`；旧 deployment / 旧 cycle 的延迟重试不得写入新的 v2 执行状态。
-- verified snapshot 读取层仅允许经过完整 public snapshot validation 的 v1 → v2 一次性迁移；抓取失败不得覆盖最后一份已验证 snapshot。
+- 当前单用户候选为 `fix/tjmugh-verification-20261002` / 草稿 [PR #75](https://github.com/wpuu/MedicalChannelAI/pull/75)，分支 `deploymentEnabled=false`。
+- 每天两条独立每日 Cron：北京时间名义 08:20 / 12:20，Hobby 小时级精度；日期与明确时段识别周期，同周期幂等，自动 15 分钟增量链关闭，不升级套餐。
+- 保留现有 `medicalchannelai-refresh-v2` Queue 和 v2 canonical；新消息版本门禁隔离旧积压，完整覆盖、失败旧数据、canonical/缓存和 AI 版本保护继续生效。
+- 缓存长暂停后丢失完整 canonical 会阻断发布，不用旧种子或固定快照伪造自动更新。实际生产仍为旧主线 `6229959`；本候选未发布，不能宣称每天两次已恢复。
+- 线上控制面、canonical 恢复及一次发布/回退门禁见 [受控恢复清单](docs/ops/twice-daily-release-20261003.md)。实际套餐、Cron、消费者、在途和延迟重试仍需核验。
 
 开发状态、验收条件和当前工作以仓库内 `docs/project/` 与机器可读 checkpoint 为准。
 
@@ -40,4 +41,4 @@ npm ci
 npm run build          # 全部 pipeline 单测 + JS 合约检查 + 构建
 ```
 
-CI（`verify.yml`）在 PR 上默认只跑快速检查；head commit message 含 `[full-verify]` 时执行完整构建。
+CI（`verify.yml`）在代码 PR 上默认完整验证；仅显式 `[fast-verify]` 标记选择快速检查。文档更新受 paths-ignore 限制，不能把旧 HEAD 的绿灯当作新代码验证。

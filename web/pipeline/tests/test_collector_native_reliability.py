@@ -428,31 +428,33 @@ class CollectorNativeReliabilityTests(unittest.TestCase):
         for secret in ("Bearer", "secret-token", "patient-name", "?token", "#x"):
             self.assertNotIn(secret, serialized)
 
-    def test_terminal_failure_advances_queue_and_terminal_publish_starts_intraday(self):
+    def test_terminal_failure_advances_queue_without_starting_intraday(self):
         cycle_as_of = "2026-10-03T00:00:00+00:00"
         stage_result = {"action": "FAILED", "terminal": True, "error_code": "HTTP_403"}
-        with patch.object(queue, "_active_cycle_matches", return_value=True), \
+        with patch.object(queue, "same_china_business_date", return_value=True), \
+             patch.object(queue, "_active_cycle_matches", return_value=True), \
              patch.object(runtime, "run_stage", return_value=(503, stage_result)), \
              patch.object(queue, "_enqueue_stage", new_callable=AsyncMock) as enqueue, \
              patch.object(queue, "_release_active_cycle_if_owned") as release:
             asyncio.run(queue.process_collector_payload({
-                "schema_version": "0.1", "stage": "tjmugh", "cycle_id": "c1", "cycle_as_of": cycle_as_of,
+                "schema_version": "0.1", "schedule_version": queue.SCHEDULE_VERSION, "stage": "tjmugh", "cycle_id": "prod:2026-10-03:morning:twice-daily-v1", "cycle_as_of": cycle_as_of,
             }))
         enqueue.assert_awaited_once()
         self.assertEqual(enqueue.await_args.kwargs["stage"], "tjnothop")
         release.assert_not_called()
 
         blocked_publish = {"action": "BLOCKED", "terminal": True, "error_code": "COLLECTOR_PUBLISH_SOURCE_FAILED"}
-        with patch.object(queue, "_active_cycle_matches", return_value=True), \
+        with patch.object(queue, "same_china_business_date", return_value=True), \
+             patch.object(queue, "_active_cycle_matches", return_value=True), \
              patch.object(runtime, "run_stage", return_value=(409, blocked_publish)), \
              patch.object(queue, "_start_intraday_chain_after_deep", new_callable=AsyncMock) as intraday, \
              patch.object(queue, "_release_active_cycle_if_owned") as release, \
              patch.object(incremental, "clear_incremental_pending") as clear_pending:
             asyncio.run(queue.process_collector_payload({
-                "schema_version": "0.1", "stage": "publish", "cycle_id": "c1", "cycle_as_of": cycle_as_of,
+                "schema_version": "0.1", "schedule_version": queue.SCHEDULE_VERSION, "stage": "publish", "cycle_id": "prod:2026-10-03:morning:twice-daily-v1", "cycle_as_of": cycle_as_of,
             }))
-        intraday.assert_awaited_once()
-        release.assert_called_once_with("c1")
+        intraday.assert_not_awaited()
+        release.assert_called_once_with("prod:2026-10-03:morning:twice-daily-v1")
         clear_pending.assert_not_called()
 
     def test_run_stage_reports_state_read_failure_as_structured_503(self):

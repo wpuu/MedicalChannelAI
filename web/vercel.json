@@ -21,7 +21,9 @@
         {
           "type": "queue/v2beta",
           "topic": "medicalchannelai-refresh-v2",
-          "retryAfterSeconds": 150,
+          "retryAfterSeconds": 360,
+          "maxConcurrency": 1,
+          "maxDeliveries": 3,
           "initialDelaySeconds": 0
         }
       ]
@@ -35,8 +37,12 @@
   },
   "crons": [
     {
-      "path": "/api/collector-run",
+      "path": "/api/collector-run?period=morning",
       "schedule": "20 0 * * *"
+    },
+    {
+      "path": "/api/collector-run?period=noon",
+      "schedule": "20 4 * * *"
     }
   ],
   "rewrites": [

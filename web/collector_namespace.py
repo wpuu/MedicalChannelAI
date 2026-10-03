@@ -98,6 +98,9 @@ def deep_message_lease_disposition(
         state_date = str(runtime_state.get("local_date") or "").strip()
         if state_date and local_date and state_date > local_date:
             return "SUPERSEDED"
+        state_cycle = str(runtime_state.get("cycle_id") or "")
+        if state_cycle and state_cycle != cycle_id:
+            return "SUPERSEDED" if state_date >= local_date else "MISSING_UNSAFE"
         if state_date == local_date:
             stages = runtime_state.get("stages")
             if isinstance(stages, dict):

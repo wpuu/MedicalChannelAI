@@ -109,15 +109,12 @@ class IncrementalTickChainTests(unittest.TestCase):
             0,
         )
 
-    def test_queue_chain_is_accepted_before_terminal_deep_lease_is_released(self) -> None:
+    def test_terminal_deep_never_starts_intraday_chain(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
-        terminal_branch = source.index('result.get("terminal") is True')
-        terminal = source.index('await _start_intraday_chain_after_deep()', terminal_branch)
-        release = source.index('_release_active_cycle_if_owned(cycle_id)', terminal)
-        self.assertLess(terminal, release)
-        self.assertLess(terminal_branch, release)
-        self.assertIn('action in {"FAILED", "BLOCKED"}', source[terminal_branch:])
-        self.assertIn('await _enqueue_stage(stage=next_stage', source[terminal_branch:])
+        block = source[source.index('async def process_collector_payload'):]
+        self.assertNotIn('await _start_intraday_chain_after_deep()', block)
+        self.assertIn('payload.get("schedule_version") != SCHEDULE_VERSION', block)
+        self.assertIn('_release_active_cycle_if_owned(cycle_id)', block)
 
     def test_chain_start_send_failure_is_retriable_instead_of_silently_stopping_day(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")

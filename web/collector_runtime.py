@@ -7,6 +7,7 @@ import re
 import sys
 import time
 from collections import Counter
+from contextvars import ContextVar
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -93,6 +94,7 @@ from medical_channel_pipeline.regional_candidate import (  # noqa: E402
 )
 
 SCHEMA_VERSION = "0.1"
+_SCHEDULED_CYCLE = ContextVar("scheduled_collector_cycle", default=None)
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 STATE_TTL_SECONDS = 14 * 24 * 60 * 60
 SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
@@ -226,7 +228,16 @@ def _now_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _assert_cycle_owned(cache: RuntimeCache) -> None:
+    cycle_id = _SCHEDULED_CYCLE.get()
+    if cycle_id:
+        from collector_namespace import ACTIVE_CYCLE_KEY, active_cycle_id
+        if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) != cycle_id:
+            raise CollectorPrecondition("COLLECTOR_CYCLE_SUPERSEDED")
+
+
 def _cache_set(cache: RuntimeCache, key: str, value: Any, *, tag: str, ttl: int = STATE_TTL_SECONDS) -> None:
+    _assert_cycle_owned(cache)
     cache.set(key, value, {"ttl": ttl, "tags": [tag]})
 
 
@@ -294,7 +305,8 @@ def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[st
     # snapshot exists, an evicted source shard has unknown newer history and must
     # not be replaced by an older seed array.
     if (
-        isinstance(cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY), dict)
+        _SCHEDULED_CYCLE.get() is not None
+        or isinstance(cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY), dict)
         or isinstance(cache.get(LATEST_RUNTIME_SNAPSHOT_KEY), dict)
     ):
         raise CollectorPrecondition("COLLECTOR_CANONICAL_HISTORY_UNAVAILABLE")
@@ -306,6 +318,7 @@ def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[st
 def _new_cycle(now: datetime) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
+        "cycle_id": _SCHEDULED_CYCLE.get(),
         "local_date": now.astimezone(SHANGHAI).date().isoformat(),
         "cycle_as_of": now.astimezone(SHANGHAI).isoformat(),
         "stages": {},
@@ -344,14 +357,20 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     local_date = now.astimezone(SHANGHAI).date().isoformat()
     state = load_status(cache)
 
-    if stage == "ccgp" and state.get("local_date") != local_date:
+    cycle_id = _SCHEDULED_CYCLE.get()
+    different_cycle = cycle_id is not None and state.get("cycle_id") != cycle_id
+    if stage == "ccgp" and (state.get("local_date") != local_date or different_cycle):
         state = _new_cycle(now)
         _write_status(cache, state)
-    elif state.get("local_date") != local_date:
+    elif state.get("local_date") != local_date or different_cycle:
         raise CollectorPrecondition("COLLECTOR_CYCLE_NOT_STARTED_TODAY")
 
     stages = state.setdefault("stages", {})
     previous = stages.get(stage)
+    if cycle_id and isinstance(previous, dict) and previous.get("status") == "RUNNING":
+        from collector_schedule import running_stage_is_live
+        if running_stage_is_live({"stages": {stage: previous}}, _now_utc()):
+            raise CollectorPrecondition("COLLECTOR_STAGE_ALREADY_RUNNING")
     regional_cache_replay = False
     regional_stale_migration_replay = False
     if isinstance(previous, dict) and previous.get("status") == "COMPLETED":
@@ -507,7 +526,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
         "status": "RUNNING",
         "terminal": False,
         "attempt_count": attempts + 1,
-        "started_at": now.isoformat(),
+        "started_at": (_now_utc() if cycle_id else now).isoformat(),
         "completed_at": None,
         "error_code": None,
         "error_message": None,
@@ -524,7 +543,7 @@ def _latest_stage_state_for_update(
     stage: str,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     latest = load_status(cache)
-    if latest.get("local_date") != state.get("local_date"):
+    if latest.get("local_date") != state.get("local_date") or latest.get("cycle_id") != state.get("cycle_id"):
         raise CollectorPrecondition("COLLECTOR_STATE_DATE_CHANGED_DURING_STAGE")
     latest_stages = latest.setdefault("stages", {})
     latest_stage = latest_stages.get(stage)
@@ -1579,9 +1598,11 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     old_published = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
     # The public durable store is the acceptance point. Do not advance either
     # reader-facing cache before it confirms this exact candidate.
+    _assert_cycle_owned(cache)
     durable_result = _persist_verified_snapshot_durably(snapshot)
     try:
         # Node public serving reads this stable key without TTL/tags.
+        _assert_cycle_owned(cache)
         cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})
         serving_read_back = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
         if not isinstance(serving_read_back, dict) or _digest(serving_read_back) != digest:
@@ -1605,6 +1626,7 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             (LATEST_RUNTIME_SNAPSHOT_KEY, old_latest, {"ttl": SNAPSHOT_TTL_SECONDS, "tags": ["medicalchannelai-verified-snapshot"]}),
         ):
             try:
+                _assert_cycle_owned(cache)
                 if old_value is None:
                     cache.delete(key)
                 else:
@@ -1629,7 +1651,16 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str, Any]]:
+def run_stage(stage: str, *, now: datetime | None = None, cycle_id: str | None = None) -> tuple[int, dict[str, Any]]:
+    token = _SCHEDULED_CYCLE.set(cycle_id)
+    try:
+        _assert_cycle_owned(RuntimeCache())
+        return _run_stage(stage, now=now)
+    finally:
+        _SCHEDULED_CYCLE.reset(token)
+
+
+def _run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str, Any]]:
     now = now or _now_utc()
     cache = RuntimeCache()
     try:
