@@ -14,7 +14,7 @@
     "id": "dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1",
     "state": "READY",
     "candidate_deployed": false,
-    "readback_utc": "2026-10-03T13:00Z"
+    "readback_utc": "2026-10-03T13:46:26Z"
   },
   "verified_snapshot_at": "2026-10-02T14:19:15.713282+08:00",
   "opportunity_pool_count": 441,
@@ -97,8 +97,7 @@
     "distributed_atomic_claim": "Runtime Cache is not CAS; safety relies on one push consumer group with maxConcurrency1 and lease360 > function300, and exclusion of old deployments.",
     "production_verification": "Two independent configured-refresh cycles, accurate partial scope, durable/cache read recovery and AI/page version agreement NOT RUN.",
     "china_domain_and_tianjin403": "Separate unresolved live access checks; no DNS/source/architecture changes.",
-    "queue_stop_and_rollback": "Official push messages stay deployment-pinned; alias/rollback does not stop old deliveries. Require verified isolation/quiescence and failure-stop mechanism; conditional deletion ONLY of this release failed new deployment requires explicit approval. Never delete retained old rollback target.",
-    "github_branch_protection": "Rulesets list empty but legacy main protection read returns403 Resource not accessible by integration; manual existing-account readback required, no bypass/policy changes, ancestor879CI is not docs-head CI."
+    "queue_stop_and_rollback": "Official push messages stay deployment-pinned; alias/rollback does not stop old deliveries. Require verified isolation/quiescence and failure-stop mechanism; conditional deletion ONLY of this release failed new deployment requires explicit approval. Never delete retained old rollback target."
   },
   "canonical_recovery_audit": {
     "canonical_records": 911,
@@ -128,6 +127,15 @@
     "runtime_cache_inventory_verified": false,
     "actual_consumer_identity_verified": false,
     "prior_release_approval_applies": false,
-    "docs_commit_ci": "Docs-only commit uses [skip ci] per no-rerun instruction; ancestor879CI not claimed as final docs-head CI, no workflow/protection changes."
+    "docs_commit_ci": "Docs-only commit uses [skip ci] per no-rerun instruction; ancestor879CI not claimed as final docs-head CI, no workflow/protection changes.",
+    "github_merge_rules": {
+      "recorded_at": "2026-10-03T21:46:26+08:00",
+      "main_protected": false,
+      "protection_enabled": false,
+      "required_status_checks": "off/empty",
+      "rulesets": [],
+      "detail_endpoint": "403 Resource not accessible by integration",
+      "gate": "PASS for current reported rules; re-read before approved merge; no policy change; ancestor879CI remains separate from docs HEAD"
+    }
   }
 }

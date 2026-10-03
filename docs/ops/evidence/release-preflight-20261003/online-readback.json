@@ -388,5 +388,46 @@
       },
       "error": "gh: Resource not accessible by integration (HTTP 403)"
     }
-  ]
+  ],
+  "github_followup_readback": {
+    "recorded_at_utc": "2026-10-03T13:46:26Z",
+    "recorded_at_beijing": "2026-10-03T21:46:26+08:00",
+    "starting_candidate_head": "a503eed41ac1cb4ec0acddd3be3b44fd5cceb649",
+    "connection": "existing GitHub app",
+    "branch": {
+      "endpoint": "https://api.github.com/repos/wpuu/MedicalChannelAI/branches/main",
+      "name": "main",
+      "commit": "62299590dd3898e040ccc9db5fda1298d4509d51",
+      "protected": false,
+      "protection": {
+        "enabled": false,
+        "required_status_checks": {
+          "enforcement_level": "off",
+          "contexts": [],
+          "checks": []
+        }
+      }
+    },
+    "rulesets": {
+      "endpoint": "https://api.github.com/repos/wpuu/MedicalChannelAI/rulesets",
+      "result": []
+    },
+    "detail_endpoint": {
+      "endpoint": "https://api.github.com/repos/wpuu/MedicalChannelAI/branches/main/protection",
+      "error_code": "FORBIDDEN",
+      "error_data": {
+        "message": "Resource not accessible by integration",
+        "documentation_url": "https://docs.github.com/rest/branches/branch-protection#get-branch-protection",
+        "status": "403"
+      }
+    },
+    "gate": "PASS for currently reported main protection/status requirements: protected=false, enabled=false, required checks off/empty, rulesets empty. Detail read still403; repository admin metadata is not endpoint authorization. Re-read before future approved merge; no protection/policy changes.",
+    "production": {
+      "deployment_id": "dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1",
+      "commit": "62299590dd3898e040ccc9db5fda1298d4509d51",
+      "state": "READY",
+      "region": "iad1"
+    },
+    "other_gates": "BLOCKED: actual plan/Cron/queue inventory and complete canonical/baseline readback still unavailable via exposed supported tools."
+  }
 }

@@ -8,12 +8,13 @@
 - 沿用 [Verify37117043888](https://github.com/wpuu/MedicalChannelAI/actions/runs/37117043888) 的成功结果和此前879项记录；本轮读回该HEAD、成功构建/排名步骤和live探测skipped，未触发新运行。当前CLI/连接读取历史日志未返回测试正文，不声称本轮重新提取879项日志。已有独立审查的5份产品/测试文件哈希与冻结提交相符。
 - 本轮保存文档会产生新的PR HEAD；最终审批须绑定PR75最终读回的精确HEAD，不沿用8b4b749或更早提交的审批。文档提交的所有非文档blob须与8b4b749相同；879项CI属于该产品祖先。本轮文档提交使用`[skip ci]`遵守不重跑的要求：仅有paths-ignore并不能保证包含既有代码差异的PR synchronize不触发验证。没有修改workflow或分支保护；不为文档再次运行历史矩阵。如果仓库规则仍要求新HEAD的检查，此要求须由现有规则下解决，不能把祖先检查说成新HEAD检查。
 - 新线上证据在 [online-readback.json](evidence/release-preflight-20261003/online-readback.json)，官方条款及响应hash在同目录。此前911/441重建、98项定向及终点竞态审查均为已有证据，本轮未重跑。
+- 21:46北京时间续核验从文档HEAD `a503eed41ac1cb4ec0acddd3be3b44fd5cceb649` 开始。现有GitHub连接的`branches/main`实际返回`protected=false`、`protection.enabled=false`、必需检查off/空，rulesets再次为空；这补齐了先前仅详细保护接口403留下的缺项。main及Vercel生产仍为62299590…；只保存此新证据与文档修正，没有重复测试或发布。最终精确文档HEAD须以推送后PR读回为准。
 
 ## 逐项门禁
 
 | 门禁 | 本轮实际读取 | 结果与未满足条件 |
 | --- | --- | --- |
-| GitHub合并规则 | rulesets列表读取为空，main分支保护接口403 `Resource not accessible by integration` | **未通过**：没有读取branch protection的权限；空rulesets不证明旧保护不存在。不得绕过检查、修改保护或将祖先CI当新HEADCI |
+| GitHub合并规则 | 续核验`branches/main`返回protected=false、protection.enabled=false、required_status_checks off且contexts/checks均空；rulesets为空。详细保护接口仍403 | 当前规则读回**通过**：没有报告受保护分支或必需检查；详细接口仍不可读。执行前重新核对，不修改保护；祖先CI仍不是新HEADCI |
 | 精确候选及既有验证 | 初始PR8b4b749；成功CI元数据、独立审查冻结哈希 | 产品证据通过；最终文档HEAD必须重新读回，审批不能使用旧HEAD |
 | 实际生产 | Vercel生产别名：READY `dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1`，精确commit62299590…；当天部署列表为空 | 已确认仍旧生产，无候选部署 |
 | 套餐 | 团队及项目列表成功，但未返回billing plan；项目详情工具报INVALID_ARGUMENT | **未通过**：实际Hobby/其他套餐未知；不是账号权限被拒绝的证据 |
@@ -25,7 +26,7 @@
 | 早午互不破坏 | 8b4b749终点hook不再get/delete ACTIVE；同周期terminal重投不执行stage/清staging，已有确定性交错及冻结hash可复用 | 已有代码证据通过，未做线上交错。RuntimeCache无CAS；恢复仍须排除旧部署/旧在途，不能手工删ACTIVE/META来强行重开周期 |
 | 失败停止与回退 | 官方Queues说明别名/rollback不停止旧部署消费，停止投递方式为删除该部署 | **未通过**：未确认非破坏性停投递入口或旧分区完全静默；必须明确停投递机制及本次失败部署的删除授权边界 |
 
-现有Vercel连接的团队/项目列表/部署/日志/公开GET正常。`get_project(projectId,teamId)`的公开schema与后端要求`idOrName`冲突，本轮只调用一次并记录具体错误；未重复相同调用，也未把错误泛化为连接失效。现有工具没有billing/Cron/Queue inventory/RuntimeCache inventory入口。环境观测revision11为current，未绑定secret、runtime变量或outbound identity；没有Vercel CLI或现成CLI认证文件。本轮不索要令牌、不登录新账户、不生成保护绕过链接、不调用Queue receive/poll来“查看消息”。剩余需要**现有账户控制面受支持的只读字段或人工读回**，尚不能判断Vercel账号本身是否缺权限。GitHub唯一实际权限拒绝是main branch-protection读取403；其他PR/CI/rulesets读取正常，需要同一已有账号人工核对保护要求，不修改保护设置。
+现有Vercel连接的团队/项目列表/部署/日志/公开GET正常。`get_project(projectId,teamId)`的公开schema与后端要求`idOrName`冲突，本轮只调用一次并记录具体错误；未重复相同调用，也未把错误泛化为连接失效。现有工具没有billing/Cron/Queue inventory/RuntimeCache inventory入口。环境观测revision11为current，未绑定secret、runtime变量或outbound identity；没有Vercel CLI或现成CLI认证文件。本轮不索要令牌、不登录新账户、不生成保护绕过链接、不调用Queue receive/poll来“查看消息”。剩余需要**现有账户控制面受支持的只读字段或人工读回**，尚不能判断Vercel账号本身是否缺权限。GitHub详细main branch-protection读取仍403；续核验改用受支持的branch GET读到了当前保护停用及检查为空，并与rulesets空交叉核对，未修改保护。仓库元数据admin=true不代表该详细端点授权；分支搜索也未返回保护字段。
 
 ## 套餐与两个每日任务
 
@@ -89,6 +90,6 @@
 
 ## 集中审批对象
 
-本轮交付为**BLOCKED的发布前核验**。需要的人工输入集中为：main既有分支保护/文档HEAD检查要求、实际plan、Cron列表/enabled/暂停持久性；每个deployment/group的真实identity/cap/ready/in-flight/delayed/expiry和有效停投递方式；完整canonical/cache库存及恢复依据；确认是否接受“仅在本次失败时删除本次新部署”作为停止方式。均使用已有账户，不要求新token。
+本轮交付为**BLOCKED的发布前核验**。GitHub当前main保护及检查要求已从branch GET补齐，执行前再读。需要的人工输入集中为：实际plan、Cron列表/enabled/暂停持久性；每个deployment/group的真实identity/cap/ready/in-flight/delayed/expiry和有效停投递方式；完整canonical/cache库存及恢复依据；确认是否接受“仅在本次失败时删除本次新部署”作为停止方式。均使用已有账户，不要求新token。
 
 全部门禁补齐后，集中批准绑定PR75**最终精确HEAD**的一次合并、一次Production发布、一个当前周期受控验收、通过后启用两条每日Cron并观察另一时段自然周期，以及上述失败停止/代码alias回退和条件性删除本次失败部署。审批不包含付费升级、Preview、删除现有/旧生产部署、清队列、跨部署消费/补跑历史、未另行授权canonical重建或模型调用。此前HEAD批准不自动适用。

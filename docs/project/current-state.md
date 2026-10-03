@@ -12,6 +12,7 @@ MedicalChannelAI 是天津起步的医疗器械、IVD、耗材公开情报和单
 - 当前目标仅一个人使用：每天早间和午间各一次，候选北京时间 08:20 / 12:20，两条独立每日 Cron，Hobby 小时级精度，不升级套餐。
 - 2026-10-03 13:02Z生产status为DATABASE、STALE/degraded（旧数据版本不变）；此前healthy结果不能当当前状态。13:03Z公开441的地区字段/rank与生产发布文件一致，4条历史intent仍保留；这不是完整RuntimeCache恢复。
 - 两条 GitHub 采集入口只读回查为 `disabled_manually`；Vercel Cron、消费者、积压与在途任务状态尚未核验。项目详情工具参数契约冲突不代表整个连接不可用；团队、项目列表、部署与日志查询已成功。实际套餐未知。
+- 21:46北京时间续核验开始于文档HEAD `a503eed41ac1cb4ec0acddd3be3b44fd5cceb649`；main/生产未变。GitHub branch GET已读回main保护停用、必需检查off/空，rulesets为空，当前合并规则缺项解除；详细保护接口仍403。此次仅补存文档证据，最终文档HEAD见PR回读，旧HEAD批准不沿用。
 
 ## 候选验证与限制
 
@@ -21,6 +22,6 @@ MedicalChannelAI 是天津起步的医疗器械、IVD、耗材公开情报和单
 
 ## 剩余工作与发布边界
 
-**当前发布门禁BLOCKED。** 现有连接未暴露实际plan/Cron/Queue/完整RuntimeCache库存，项目详情有schema冲突；不索要新token。官方Queue的deployment分区意味着alias回退不停止旧消费，原“暂停consumer/新worker处理旧积压”操作假设已纠正，完整计划见 [只读发布前核验](../ops/release-preflight-20261003.md)。GitHub main保护读取403而rulesets列表空，不能据此判定无保护或跳过文档HEAD检查。需既有账户控制面/人工读回所有缺项，并确认有效停投递及仅删除本次失败部署的审批边界；建立完整canonical恢复条件；满足门禁后由用户批准一次指定 HEAD 合并＋Production 发布，再受控恢复单一当前周期；该周期验收通过后按批准范围启用两条每日Cron，观察另一时段自然触发，不额外手动补采。每天两次恢复成功必须有两个独立周期完成全部配置刷新stage、partial范围准确及页面版本一致的证据。本轮不合并、不发布，不能宣称搜索已经恢复。
+**当前发布门禁BLOCKED。** 现有连接未暴露实际plan/Cron/Queue/完整RuntimeCache库存，项目详情有schema冲突；不索要新token。官方Queue的deployment分区意味着alias回退不停止旧消费，原“暂停consumer/新worker处理旧积压”操作假设已纠正，完整计划见 [只读发布前核验](../ops/release-preflight-20261003.md)。GitHub main详细保护接口仍403，但受支持的branch GET已确认当前protected=false、保护停用且必需检查空，rulesets也为空；当前规则读回通过，执行前再核对，不修改保护或把祖先CI冒充新HEADCI。需既有账户控制面/人工读回剩余缺项，并确认有效停投递及仅删除本次失败部署的审批边界；建立完整canonical恢复条件；满足门禁后由用户批准一次指定 HEAD 合并＋Production 发布，再受控恢复单一当前周期；该周期验收通过后按批准范围启用两条每日Cron，观察另一时段自然触发，不额外手动补采。每天两次恢复成功必须有两个独立周期完成全部配置刷新stage、partial范围准确及页面版本一致的证据。本轮不合并、不发布，不能宣称搜索已经恢复。
 
 天津 403 与国内域名访问单独记录，不新增地区、不换架构或修改 DNS 绕过；它们不阻塞离线候选整理。发布前后、回退后检查以及失败恢复按 [受控恢复清单](../ops/twice-daily-release-20261003.md) 执行。旧 PR #6、581/558 项、2026-09-04 主线与部署状态不再代表当前项目。
