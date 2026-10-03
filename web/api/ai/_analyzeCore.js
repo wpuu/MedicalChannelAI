@@ -901,10 +901,12 @@ export default async function handler(request, response) {
 
     let batchSnapshot
     let batchSourceMode
+    let batchRuntimeOrigin
     try {
       const loaded = await loadVerifiedSnapshotWithMetadata()
       batchSnapshot = loaded.snapshot
       batchSourceMode = loaded.sourceMode
+      batchRuntimeOrigin = loaded.runtimeOrigin ?? null
     } catch {
       return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
     }
@@ -929,6 +931,7 @@ export default async function handler(request, response) {
       cache_only: cacheOnly,
       snapshot_as_of: cleanString(batchSnapshot.snapshot_as_of, 100),
       snapshot_source_mode: batchSourceMode,
+      snapshot_runtime_origin: batchRuntimeOrigin,
       requested_count: opportunityIds.length,
       ready_count: items.filter((item) => item.status === 'READY').length,
       cache_hit_count: items.filter((item) => item.shared_public_cache?.cache_hit === true).length,
@@ -943,10 +946,12 @@ export default async function handler(request, response) {
 
   let snapshot
   let sourceMode
+  let runtimeOrigin
   try {
     const loaded = await loadVerifiedSnapshotWithMetadata()
     snapshot = loaded.snapshot
     sourceMode = loaded.sourceMode
+    runtimeOrigin = loaded.runtimeOrigin ?? null
   } catch {
     return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
   }
@@ -999,6 +1004,7 @@ export default async function handler(request, response) {
       opportunity_id: opportunityId,
       snapshot_as_of: snapshotAsOf,
       snapshot_source_mode: sourceMode,
+      snapshot_runtime_origin: runtimeOrigin,
       generated_at: analysisAsOf,
       decision_generated_at: result.cache.generated_at,
       runtime_window_status: windowStatus,

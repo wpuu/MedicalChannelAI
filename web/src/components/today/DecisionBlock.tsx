@@ -99,6 +99,11 @@ export function DecisionBlock({
             </ul>
           </div>
         ) : null}
+        {analysisUnavailableReason ? (
+          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-800">
+            AI分析已暂停：{analysisUnavailableReason}
+          </p>
+        ) : null}
       </div>
     )
   }

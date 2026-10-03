@@ -220,7 +220,7 @@ export function TodayPage() {
       setData((current) => {
         if (!current) return current
         const updateCard = (item: TodayActionCard) =>
-          item.opportunity_id === id
+          item.opportunity_id === id && aiApi!.sameAiDecisionSnapshotVersion(item, card)
             ? { ...item, model_decision_status: 'READY' as const, model_block_reason: null, decision }
             : item
         return {
@@ -270,11 +270,13 @@ export function TodayPage() {
       const result = await aiApi.requestAiDecisionBatch(candidates)
       const readyIds = Object.keys(result.decisions)
       if (readyIds.length > 0) {
+        const requestedById = new Map(candidates.map((card) => [card.opportunity_id, card]))
         setData((current) => {
           if (!current) return current
           const updateCard = (item: TodayActionCard) => {
             const decision = result.decisions[item.opportunity_id]
-            return decision
+            const requestedCard = requestedById.get(item.opportunity_id)
+            return decision && requestedCard && aiApi!.sameAiDecisionSnapshotVersion(item, requestedCard)
               ? {
                   ...item,
                   model_decision_status: 'READY' as const,
@@ -425,7 +427,9 @@ export function TodayPage() {
           <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">业务地区：{marketSelectionLabel()}</span>
           <span>每条商机可查看官方依据</span>
           {runtimeStatus?.ai.configured ? (
-            <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-indigo-700">AI可用</span>
+            <span className={`rounded-full border px-2.5 py-1 ${aiUnavailableReason ? 'border-amber-100 bg-amber-50 text-amber-700' : 'border-indigo-100 bg-indigo-50 text-indigo-700'}`}>
+              {aiUnavailableReason ? 'AI分析已暂停' : 'AI可用'}
+            </span>
           ) : runtimeStatus?.ai.configured === false ? (
             <span className="rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700">AI建议按需加载</span>
           ) : null}

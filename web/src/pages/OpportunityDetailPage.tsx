@@ -25,6 +25,7 @@ import {
   aiDecisionErrorMessage,
   hydrateCachedAiDecisions,
   requestAiDecision,
+  sameAiDecisionSnapshotVersion,
 } from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { formatDateTime } from '@/utils/format'
@@ -207,12 +208,12 @@ export function OpportunityDetailPage() {
     setAiBusy(true)
     try {
       const decision = await requestAiDecision(card)
-      setCard({
-        ...card,
+      setCard((current) => current && current.opportunity_id === card.opportunity_id && sameAiDecisionSnapshotVersion(current, card) ? {
+        ...current,
         model_decision_status: 'READY',
         model_block_reason: null,
         decision,
-      })
+      } : current)
       toast('AI行动建议已生成', 'success')
     } catch (cause) {
       if (cause instanceof AiDecisionError && cause.code === 'AUTH_REQUIRED') {

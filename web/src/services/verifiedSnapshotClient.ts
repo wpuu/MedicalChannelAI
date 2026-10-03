@@ -48,15 +48,16 @@ function isFresh(current: CacheEntry | null, url: string, now: number): current 
 }
 
 function sourceForResponse(response: Response, url: string): string {
-  const declared = response.headers.get('X-MedicalChannelAI-Snapshot-Source')?.trim().toUpperCase()
-  if (declared) return declared
   try {
-    return new URL(url, window.location.origin).origin === window.location.origin
-      ? 'UNKNOWN'
-      : 'EXTERNAL'
+    const requestOrigin = new URL(url, window.location.origin).origin
+    const finalOrigin = response.url ? new URL(response.url, window.location.origin).origin : requestOrigin
+    if (requestOrigin !== window.location.origin || finalOrigin !== window.location.origin) return 'EXTERNAL'
   } catch {
     return 'UNKNOWN'
   }
+  const declared = response.headers.get('X-MedicalChannelAI-Snapshot-Source')?.trim().toUpperCase()
+  if (declared) return declared
+  return 'UNKNOWN'
 }
 
 export function loadVerifiedSnapshot(url: string = verifiedSnapshotUrl): Promise<VerifiedSnapshotEnvelope> {

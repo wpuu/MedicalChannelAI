@@ -32,7 +32,6 @@ if (!/SNAPSHOT_CLIENT_TTL_MS\s*=\s*\d/.test(client)) failures.push('verifiedSnap
 if (!/if \(entry === created\) entry = null/.test(client)) failures.push('verifiedSnapshotClient must not memoize failed loads')
 
 const consumers = {
-  'services/aiDecisionApi.ts': 'getVerifiedSnapshotAsOf',
   'services/verifiedOpportunityPool.ts': /loadVerifiedSnapshot(?:Payload)?\(/,
   'services/StaticSnapshotTodayActionsService.ts': /loadVerifiedSnapshot(?:Payload)?\(/,
 }
@@ -40,6 +39,14 @@ for (const [path, symbol] of Object.entries(consumers)) {
   const source = readFileSync(join(srcDir, path), 'utf8')
   const found = symbol instanceof RegExp ? symbol.test(source) : source.includes(symbol)
   if (!found) failures.push(`${path} must use the shared verifiedSnapshotClient loader`)
+}
+
+const aiClient = readFileSync(join(srcDir, 'services', 'aiDecisionApi.ts'), 'utf8')
+if (!aiClient.includes('snapshotProvenance(card.snapshot_meta)')) {
+  failures.push('aiDecisionApi must key decisions from each input card snapshot_meta')
+}
+if (/getVerifiedSnapshotAsOf|verifiedSnapshotUrl/.test(aiClient)) {
+  failures.push('aiDecisionApi must not use a later global snapshot clock to validate or hydrate an older card')
 }
 
 if (failures.length) {

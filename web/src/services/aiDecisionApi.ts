@@ -1,14 +1,20 @@
-import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
-import type { CustomerContext, Decision, TodayActionCard } from '@/types'
+import type { CustomerContext, Decision, SnapshotMeta, TodayActionCard } from '@/types'
 import { isApiMode } from './apiConfig'
 import { beginAiRequest, endAiRequest } from './aiRequestGate'
-import { getVerifiedSnapshotAsOf } from './verifiedSnapshotClient'
 
-const CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
+const CACHE_KEY = 'medopp.grounded-ai-decisions.v2'
 const MAX_CACHE_ENTRIES = 50
+
+interface SnapshotProvenance {
+  snapshot_as_of: string
+  source: string
+  runtime_origin: 'PUBLISHED' | 'BUNDLED' | null
+}
 
 interface CachedDecisionEntry {
   snapshot_as_of: string
+  snapshot_source_mode: string
+  snapshot_runtime_origin: 'PUBLISHED' | 'BUNDLED' | null
   opportunity_id: string
   context_fingerprint: string
   cached_at: string
@@ -53,6 +59,8 @@ export function aiDecisionErrorMessage(cause: unknown): string {
   if (cause.code === 'VERIFIED_SNAPSHOT_UNAVAILABLE') return '公开商机数据正在更新，请稍后再试AI分析'
   if (cause.code === 'VERIFIED_SNAPSHOT_NOT_FRESH') return '公开商机快照已超过安全刷新窗口，请先核对官方依据，待数据刷新后再使用AI分析'
   if (cause.code === 'VERIFIED_SNAPSHOT_COVERAGE_INCOMPLETE') return '当前数据版本仅覆盖部分来源或全量覆盖状态未知；页面保留已核验事实，待完整采集并核验后再使用AI分析'
+  if (cause.code === 'AI_SNAPSHOT_VERSION_MISMATCH') return '商机数据已更新，请刷新页面后再查看AI建议'
+  if (cause.code === 'AI_SNAPSHOT_PROVENANCE_UNAVAILABLE') return '当前商机快照来源或完整覆盖状态未知，暂不能安全使用AI建议'
   if (cause.code === 'SAME_ORIGIN_REQUIRED') return '当前访问地址未通过AI安全校验，请从正式站点进入'
   if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
   if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机暂不在已核验商机池中'
@@ -130,6 +138,42 @@ function decisionFingerprint(card: TodayActionCard): string {
   })
 }
 
+function validSource(value: unknown): value is string {
+  return value === 'DATABASE' || value === 'BUNDLED' || value === 'RUNTIME_CACHE' || value === 'REMOTE'
+}
+
+function snapshotProvenance(meta: SnapshotMeta | undefined): SnapshotProvenance | null {
+  if (!meta || meta.degraded !== false || !validSource(meta.source)) return null
+  if (typeof meta.snapshot_as_of !== 'string' || !Number.isFinite(Date.parse(meta.snapshot_as_of))) return null
+  const origin = meta.runtime_origin ?? null
+  if (meta.source === 'RUNTIME_CACHE') {
+    if (origin !== 'PUBLISHED' && origin !== 'BUNDLED') return null
+  } else if (origin !== null) {
+    return null
+  }
+  const coverage = meta.collection_coverage
+  if (!coverage || coverage.complete !== true || typeof coverage.last_complete_as_of !== 'string' ||
+    Date.parse(coverage.last_complete_as_of) !== Date.parse(meta.snapshot_as_of)) return null
+  const safeId = (id: unknown) => typeof id === 'string' && /^(?:[a-zA-Z0-9_.-]{1,80}|[a-zA-Z0-9_.-]{1,77}:[a-z]{2})$/.test(id)
+  if (!Array.isArray(coverage.updated_source_ids) || coverage.updated_source_ids.length > 20 || !coverage.updated_source_ids.every(safeId)) return null
+  if (!Array.isArray(coverage.failed_source_ids) || coverage.failed_source_ids.length !== 0) return null
+  return { snapshot_as_of: meta.snapshot_as_of, source: meta.source, runtime_origin: origin }
+}
+
+function responseMatchesProvenance(record: Record<string, unknown> | null, expected: SnapshotProvenance): boolean {
+  if (!record || record.snapshot_as_of !== expected.snapshot_as_of || record.snapshot_source_mode !== expected.source) return false
+  return (record.snapshot_runtime_origin ?? null) === expected.runtime_origin
+}
+
+export function sameAiDecisionSnapshotVersion(left: TodayActionCard, right: TodayActionCard): boolean {
+  const leftProvenance = snapshotProvenance(left.snapshot_meta)
+  const rightProvenance = snapshotProvenance(right.snapshot_meta)
+  return Boolean(leftProvenance && rightProvenance &&
+    leftProvenance.snapshot_as_of === rightProvenance.snapshot_as_of &&
+    leftProvenance.source === rightProvenance.source &&
+    leftProvenance.runtime_origin === rightProvenance.runtime_origin)
+}
+
 function readCache(): CachedDecisionEntry[] {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
@@ -139,11 +183,15 @@ function readCache(): CachedDecisionEntry[] {
     const entries: CachedDecisionEntry[] = []
     for (const item of parsed) {
       const record = asRecord(item)
-      if (!record || typeof record.snapshot_as_of !== 'string' || typeof record.opportunity_id !== 'string' || typeof record.cached_at !== 'string') continue
+      if (!record || typeof record.snapshot_as_of !== 'string' || typeof record.snapshot_source_mode !== 'string' ||
+        (record.snapshot_runtime_origin !== null && record.snapshot_runtime_origin !== 'PUBLISHED' && record.snapshot_runtime_origin !== 'BUNDLED') ||
+        typeof record.opportunity_id !== 'string' || typeof record.cached_at !== 'string') continue
       const decision = normalizeDecision(record.decision)
       if (!decision) continue
       entries.push({
         snapshot_as_of: record.snapshot_as_of,
+        snapshot_source_mode: record.snapshot_source_mode,
+        snapshot_runtime_origin: record.snapshot_runtime_origin as CachedDecisionEntry['snapshot_runtime_origin'],
         opportunity_id: record.opportunity_id,
         context_fingerprint: typeof record.context_fingerprint === 'string' ? record.context_fingerprint : fingerprint(null),
         cached_at: record.cached_at,
@@ -172,22 +220,30 @@ export function clearAiDecisionCache(): void {
   }
 }
 
-function getSnapshotAsOf(): Promise<string | null> {
-  return getVerifiedSnapshotAsOf(verifiedSnapshotUrl)
-}
-
-function findCachedDecision(opportunityId: string, snapshotAsOf: string, fingerprintValue: string): Decision | null {
+function findCachedDecision(opportunityId: string, provenance: SnapshotProvenance, fingerprintValue: string): Decision | null {
   const entry = readCache().find(
-    (item) => item.opportunity_id === opportunityId && item.snapshot_as_of === snapshotAsOf && item.context_fingerprint === fingerprintValue,
+    (item) => item.opportunity_id === opportunityId && item.snapshot_as_of === provenance.snapshot_as_of &&
+      item.snapshot_source_mode === provenance.source && item.snapshot_runtime_origin === provenance.runtime_origin &&
+      item.context_fingerprint === fingerprintValue,
   )
   return entry?.decision ?? null
 }
 
-function cacheDecision(opportunityId: string, snapshotAsOf: string, fingerprintValue: string, decision: Decision): void {
+function cacheDecision(opportunityId: string, provenance: SnapshotProvenance, fingerprintValue: string, decision: Decision): void {
   const existing = readCache().filter(
-    (item) => !(item.opportunity_id === opportunityId && item.snapshot_as_of === snapshotAsOf && item.context_fingerprint === fingerprintValue),
+    (item) => !(item.opportunity_id === opportunityId && item.snapshot_as_of === provenance.snapshot_as_of &&
+      item.snapshot_source_mode === provenance.source && item.snapshot_runtime_origin === provenance.runtime_origin &&
+      item.context_fingerprint === fingerprintValue),
   )
-  writeCache([{ snapshot_as_of: snapshotAsOf, opportunity_id: opportunityId, context_fingerprint: fingerprintValue, cached_at: new Date().toISOString(), decision }, ...existing])
+  writeCache([{
+    snapshot_as_of: provenance.snapshot_as_of,
+    snapshot_source_mode: provenance.source,
+    snapshot_runtime_origin: provenance.runtime_origin,
+    opportunity_id: opportunityId,
+    context_fingerprint: fingerprintValue,
+    cached_at: new Date().toISOString(),
+    decision,
+  }, ...existing])
 }
 
 export interface AiDecisionBatchResult {
@@ -215,7 +271,8 @@ function batchEligibleCards(cards: TodayActionCard[]): TodayActionCard[] {
   }).slice(0, 10)
 }
 
-async function postAiDecisionBatch(opportunityIds: string[], cacheOnly: boolean): Promise<AiDecisionBatchResult> {
+async function postAiDecisionBatch(cards: TodayActionCard[], cacheOnly: boolean): Promise<AiDecisionBatchResult> {
+  const opportunityIds = cards.map((card) => card.opportunity_id)
   const response = await fetch('/api/ai/analyze', {
     method: 'POST',
     credentials: 'include',
@@ -236,11 +293,20 @@ async function postAiDecisionBatch(opportunityIds: string[], cacheOnly: boolean)
   const decisions: Record<string, Decision> = {}
   const misses: string[] = []
   const errors: Record<string, string> = {}
+  const cardById = new Map(cards.map((card) => [card.opportunity_id, card]))
+  const provenanceById = new Map(cards.map((card) => [card.opportunity_id, snapshotProvenance(card.snapshot_meta)]))
   const items = Array.isArray(record?.items) ? record.items : []
   for (const rawItem of items) {
     const item = asRecord(rawItem)
     const opportunityId = typeof item?.opportunity_id === 'string' ? item.opportunity_id : ''
     if (!opportunityId) continue
+    const card = cardById.get(opportunityId)
+    if (!card) continue
+    const provenance = provenanceById.get(opportunityId)
+    if (!provenance || !responseMatchesProvenance(record, provenance)) {
+      errors[opportunityId] = provenance ? 'AI_SNAPSHOT_VERSION_MISMATCH' : 'AI_SNAPSHOT_PROVENANCE_UNAVAILABLE'
+      continue
+    }
     if (item?.status === 'READY') {
       const decision = normalizeDecision(item.decision)
       if (decision) decisions[opportunityId] = decision
@@ -278,6 +344,15 @@ export async function requestAiDecisionBatch(
     }
   }
 
+  const safeCards = eligible.filter((card) => snapshotProvenance(card.snapshot_meta))
+  const preflightErrors = Object.fromEntries(
+    eligible.filter((card) => !snapshotProvenance(card.snapshot_meta))
+      .map((card) => [card.opportunity_id, 'AI_SNAPSHOT_PROVENANCE_UNAVAILABLE']),
+  )
+  if (safeCards.length === 0) {
+    return { decisions: {}, misses: [], errors: preflightErrors, requested_count: 0, ready_count: 0, cache_hit_count: 0 }
+  }
+
   const cacheOnly = options.cacheOnly === true
   let gateAcquired = false
   if (!cacheOnly) {
@@ -286,21 +361,21 @@ export async function requestAiDecisionBatch(
   }
 
   try {
-    const first = await postAiDecisionBatch(eligible.map((card) => card.opportunity_id), cacheOnly)
-    if (cacheOnly) return first
+    const first = await postAiDecisionBatch(safeCards, cacheOnly)
+    if (cacheOnly) return { ...first, errors: { ...preflightErrors, ...first.errors } }
     const retryIds = Object.entries(first.errors)
       .filter(([, code]) => AUTO_RETRY_CODES.has(code))
       .map(([opportunityId]) => opportunityId)
-    if (retryIds.length === 0) return first
+    if (retryIds.length === 0) return { ...first, errors: { ...preflightErrors, ...first.errors } }
 
     // One automatic pass for items that failed transiently; anything the slow
     // first pass managed to store is now served from the shared cache.
     await wait(AUTO_RETRY_DELAY_MS)
     let second: AiDecisionBatchResult
     try {
-      second = await postAiDecisionBatch(retryIds, false)
+      second = await postAiDecisionBatch(safeCards.filter((card) => retryIds.includes(card.opportunity_id)), false)
     } catch {
-      return first
+      return { ...first, errors: { ...preflightErrors, ...first.errors } }
     }
     const errors = { ...first.errors }
     for (const opportunityId of retryIds) delete errors[opportunityId]
@@ -309,7 +384,7 @@ export async function requestAiDecisionBatch(
     return {
       decisions,
       misses: [...new Set([...first.misses, ...second.misses])],
-      errors,
+      errors: { ...preflightErrors, ...errors },
       requested_count: first.requested_count,
       ready_count: Object.keys(decisions).length,
       cache_hit_count: first.cache_hit_count + second.cache_hit_count,
@@ -344,12 +419,12 @@ export async function hydrateCachedAiDecisions(cards: TodayActionCard[]): Promis
   // authenticated user's private profile changed, so do not reuse personalized
   // decisions from localStorage in API mode.
   if (isApiMode) return sharedHydrated
-  const snapshotAsOf = await getSnapshotAsOf()
-  if (!snapshotAsOf) return sharedHydrated
   return sharedHydrated.map((card) => {
     if (card.decision) return card
     if (card.model_decision_status === 'NOT_ELIGIBLE' || card.model_decision_status === 'BLOCKED_GROUNDING') return card
-    const decision = findCachedDecision(card.opportunity_id, snapshotAsOf, decisionFingerprint(card))
+    const provenance = snapshotProvenance(card.snapshot_meta)
+    if (!provenance) return card
+    const decision = findCachedDecision(card.opportunity_id, provenance, decisionFingerprint(card))
     if (!decision) return card
     return { ...card, model_decision_status: 'READY', model_block_reason: null, decision }
   })
@@ -361,11 +436,12 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
   }
 
   const useLocalContext = !isApiMode
-  const snapshotAsOf = useLocalContext ? await getSnapshotAsOf() : null
+  const provenance = snapshotProvenance(card.snapshot_meta)
+  if (!provenance) throw new AiDecisionError('AI_SNAPSHOT_PROVENANCE_UNAVAILABLE', 409)
   const customerContext = useLocalContext ? customerContextPayload(card) : null
   const fingerprintValue = useLocalContext ? decisionFingerprint(card) : fingerprint(null)
-  if (snapshotAsOf) {
-    const cached = findCachedDecision(card.opportunity_id, snapshotAsOf, fingerprintValue)
+  if (useLocalContext) {
+    const cached = findCachedDecision(card.opportunity_id, provenance, fingerprintValue)
     if (cached) return cached
   }
 
@@ -388,6 +464,13 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
       throw new AiDecisionError(code, response.status)
     }
 
+    if (!responseMatchesProvenance(record, provenance)) {
+      throw new AiDecisionError('AI_SNAPSHOT_VERSION_MISMATCH', 409)
+    }
+    if (record?.opportunity_id !== card.opportunity_id) {
+      throw new AiDecisionError('AI_RESPONSE_INVALID', 502)
+    }
+
     const decision = normalizeDecision(record?.decision)
     if (!decision) throw new AiDecisionError('AI_RESPONSE_INVALID', 502)
     return decision
@@ -403,7 +486,7 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
       await wait(AUTO_RETRY_DELAY_MS)
       decision = await requestOnce()
     }
-    if (snapshotAsOf) cacheDecision(card.opportunity_id, snapshotAsOf, fingerprintValue, decision)
+    if (useLocalContext) cacheDecision(card.opportunity_id, provenance, fingerprintValue, decision)
     return decision
   } catch (cause) {
     if (cause instanceof TypeError) throw new AiDecisionError('AI_NETWORK_UNAVAILABLE', 0)

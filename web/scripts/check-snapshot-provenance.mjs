@@ -275,6 +275,18 @@ try {
   expect(clientFailure?.message === 'SNAPSHOT_HTTP_503', 'CLIENT_REJECTS_HTTP_FAILURE')
   await client.loadVerifiedSnapshot('https://other.example/snapshot.json')
   expect(clientCalls === 3, 'CLIENT_FAILED_REFRESH_RETRIES_IMMEDIATELY')
+  client.resetVerifiedSnapshotClient()
+  globalThis.fetch = async () => ({
+    ok: true,
+    url: 'https://attacker.example/redirected.json',
+    headers: { get(name) { return name.toLowerCase() === 'x-medicalchannelai-snapshot-source' ? 'DATABASE' : null } },
+    async json() { return { ...bundled, snapshot_as_of: revision } },
+  })
+  const spoofedExternal = await client.loadVerifiedSnapshot('https://other.example/snapshot.json')
+  expect(spoofedExternal.meta.source === 'EXTERNAL' && spoofedExternal.meta.degraded, 'EXTERNAL_HEADER_CANNOT_ASSERT_DATABASE')
+  client.resetVerifiedSnapshotClient()
+  const redirectedSameOrigin = await client.loadVerifiedSnapshot('https://app.example/api/public-snapshot')
+  expect(redirectedSameOrigin.meta.source === 'EXTERNAL' && redirectedSameOrigin.meta.degraded, 'CROSS_ORIGIN_REDIRECT_CANNOT_ASSERT_DATABASE')
   console.log('Snapshot client source and retry behavior checks: PASS')
 } finally {
   Date.now = realNow
