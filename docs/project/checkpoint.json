@@ -5,15 +5,16 @@
   "base_main_head": "62299590dd3898e040ccc9db5fda1298d4509d51",
   "active_work_branch": "fix/tjmugh-verification-20261002",
   "draft_pr": 75,
-  "candidate_base_head": "4038b5d1597d57277e67ea1d86fc40a05233223a",
-  "candidate_head_reference": "PR75 latest head; exact final CI readback recorded in PR body",
+  "candidate_base_head": "8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2",
+  "candidate_head_reference": "Final docs-only PR75 HEAD read back in PR body/final handoff; no previous-head approval carried forward.",
   "production_ready": false,
   "vercel_branch_preview_enabled": false,
   "production_deployment": {
     "commit": "62299590dd3898e040ccc9db5fda1298d4509d51",
     "id": "dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1",
     "state": "READY",
-    "candidate_deployed": false
+    "candidate_deployed": false,
+    "readback_utc": "2026-10-03T13:00Z"
   },
   "verified_snapshot_at": "2026-10-02T14:19:15.713282+08:00",
   "opportunity_pool_count": 441,
@@ -72,9 +73,15 @@
       "new_tests": 4
     },
     "resumed_fix": "Queue terminal retains active marker instead of unsafe read/delete; completed/terminal publish redelivery is rejected before active MATCH. Latest product CI must be checked on new HEAD.",
-    "terminal_entry_race_tests": 2
+    "terminal_entry_race_tests": 2,
+    "verified_product_head": "8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2",
+    "verified_product_ci_run": 37117043888,
+    "historical_python_tests": 879,
+    "historical_targeted_checks": 98,
+    "tests_rerun_this_readonly_turn": 0,
+    "terminal_race_tests": 2
   },
-  "release_checklist": "docs/ops/twice-daily-release-20261003.md",
+  "release_checklist": "docs/ops/release-preflight-20261003.md",
   "boundaries": {
     "merge": false,
     "deploy": false,
@@ -85,11 +92,13 @@
     "queue_purge": false
   },
   "known_incomplete_invariants": {
-    "control_plane": "Readback actual plan, Cron enablement, only new serialized consumer, in-flight and delayed messages before release.",
+    "control_plane": "Actual plan/Cron/queue identity/cap/in-flight/ready/delayed/expiry unavailable via exposed read tools; get_project schema mismatch, not evidence of whole connection/auth failure.",
     "canonical_recovery": "Strict independent v2 readers now preserve all three existing historical sources; scheduled projection matches static cards offline. Actual full canonical/history/baseline restoration, paused collection gaps and control-plane readback remain unresolved.",
     "distributed_atomic_claim": "Runtime Cache is not CAS; safety relies on one push consumer group with maxConcurrency1 and lease360 > function300, and exclusion of old deployments.",
     "production_verification": "Two independent configured-refresh cycles, accurate partial scope, durable/cache read recovery and AI/page version agreement NOT RUN.",
-    "china_domain_and_tianjin403": "Separate unresolved live access checks; no DNS/source/architecture changes."
+    "china_domain_and_tianjin403": "Separate unresolved live access checks; no DNS/source/architecture changes.",
+    "queue_stop_and_rollback": "Official push messages stay deployment-pinned; alias/rollback does not stop old deliveries. Require verified isolation/quiescence and failure-stop mechanism; conditional deletion ONLY of this release failed new deployment requires explicit approval. Never delete retained old rollback target.",
+    "github_branch_protection": "Rulesets list empty but legacy main protection read returns403 Resource not accessible by integration; manual existing-account readback required, no bypass/policy changes, ancestor879CI is not docs-head CI."
   },
   "canonical_recovery_audit": {
     "canonical_records": 911,
@@ -102,5 +111,23 @@
     "bare_worker_market_and_rank_parity": "Scheduled projection repaired and offline matched; production restoration NOT RUN.",
     "prior_worker_missing_published_ids": 4,
     "candidate_reader_missing_published_ids": 0
+  },
+  "release_gate_outcome": "BLOCKED",
+  "production_snapshot_status": {
+    "observed_at": "2026-10-03T13:02:04Z",
+    "source_mode": "DATABASE",
+    "freshness": "STALE",
+    "degraded": true,
+    "age_minutes_at_observation": 1842,
+    "coverage": "UNKNOWN_OLD_PRODUCTION"
+  },
+  "readonly_preflight": {
+    "evidence": "docs/ops/evidence/release-preflight-20261003/online-readback.json",
+    "public_pool_market_rank_matches_production_artifact": true,
+    "all_four_intents_present": true,
+    "runtime_cache_inventory_verified": false,
+    "actual_consumer_identity_verified": false,
+    "prior_release_approval_applies": false,
+    "docs_commit_ci": "Docs-only commit uses [skip ci] per no-rerun instruction; ancestor879CI not claimed as final docs-head CI, no workflow/protection changes."
   }
 }
