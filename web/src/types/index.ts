@@ -208,6 +208,23 @@ export interface TodayActionCard {
   followup_status: FollowupStatus
   followup_history: FollowupRecord[]
   remind_at: string | null
+  /** UI-only snapshot provenance retained when a card is opened in Detail. */
+  snapshot_meta?: SnapshotMeta
+}
+
+/** UI-only source and degradation state for the snapshot that produced a view. */
+export interface SnapshotMeta {
+  snapshot_as_of: string | null
+  source: string
+  runtime_origin?: 'PUBLISHED' | 'BUNDLED' | null
+  degraded: boolean
+  reason: string | null
+  collection_coverage?: {
+    complete: boolean | null
+    last_complete_as_of: string | null
+    updated_source_ids: string[]
+    failed_source_ids: string[]
+  } | null
 }
 
 /**
@@ -247,6 +264,7 @@ export interface TodayActionsResponse {
   coverage_warning: string
   generated_at: string
   refreshed_at: string
+  snapshot_meta?: SnapshotMeta
   today_limit?: number
   today_limit_options?: number[]
   recommendation_feedback_summary?: RecommendationFeedbackSummary

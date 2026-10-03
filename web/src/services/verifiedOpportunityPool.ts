@@ -6,7 +6,7 @@ import {
   hydrateLocalFollowups,
 } from './localFollowupStore'
 import { personalizeTrialCards } from './localCustomerProfile'
-import { loadVerifiedSnapshotPayload } from './verifiedSnapshotClient'
+import { loadVerifiedSnapshot } from './verifiedSnapshotClient'
 
 const LATE_WINDOW_PERCENT = 32
 
@@ -225,8 +225,9 @@ function rerank(cards: TodayActionCard[]): TodayActionCard[] {
     .map((card, index) => ({ ...card, rank: index + 1 }))
 }
 
-async function fetchSnapshot(): Promise<TodayActionsPublicResponse> {
-  const payload = await loadVerifiedSnapshotPayload(verifiedSnapshotUrl)
+async function fetchSnapshot(): Promise<{ data: TodayActionsPublicResponse; meta: import('@/types').SnapshotMeta }> {
+  const envelope = await loadVerifiedSnapshot(verifiedSnapshotUrl)
+  const payload = envelope.payload
   const data = payload as TodayActionsPublicResponse
   if (
     data.schema_version !== '0.1' ||
@@ -237,17 +238,18 @@ async function fetchSnapshot(): Promise<TodayActionsPublicResponse> {
   ) {
     throw new Error('SNAPSHOT_RESPONSE_INVALID')
   }
-  return data
+  return { data, meta: { ...envelope.meta, snapshot_as_of: data.snapshot_as_of } }
 }
 
 export async function getVerifiedOpportunityPool(): Promise<{
   snapshot_as_of: string
+  snapshot_meta: import('@/types').SnapshotMeta
   total: number
   cards: TodayActionCard[]
 }> {
-  const data = await fetchSnapshot()
+  const { data, meta } = await fetchSnapshot()
   const publicCards = Array.isArray(data.opportunity_pool) ? data.opportunity_pool : data.cards
-  const mapped = publicCards.map(mapPublicCard)
+  const mapped = publicCards.map((card) => ({ ...mapPublicCard(card), snapshot_meta: meta }))
   backfillLocalFollowupSnapshots(mapped)
   const active = mapped
     .map((card) => applyRuntimeActionability(card, Date.now()))
@@ -256,6 +258,7 @@ export async function getVerifiedOpportunityPool(): Promise<{
   const personalized = personalizeTrialCards(followed)
   return {
     snapshot_as_of: data.snapshot_as_of,
+    snapshot_meta: meta,
     total: personalized.length,
     cards: personalized,
   }

@@ -31,7 +31,7 @@ class IncrementalPendingBarrierTests(unittest.TestCase):
     def test_missing_failed_candidate_cannot_release_staged_siblings(self) -> None:
         runtime = (WEB_ROOT / "collector_incremental_runtime.py").read_text(encoding="utf-8")
         barrier = runtime.index("if pending_barrier:")
-        canonical = runtime.index("if staged_records:", barrier)
+        canonical = runtime.index("if staged_records and runtime._canonical_content_digest", barrier)
         block = runtime[barrier:canonical]
         self.assertIn('"deferred_reason": "PENDING_VERIFICATION_BARRIER"', block)
         self.assertIn('"snapshot_refreshed": False', block)
@@ -39,13 +39,13 @@ class IncrementalPendingBarrierTests(unittest.TestCase):
         self.assertNotIn("cache_key", block)
         self.assertNotIn("_publish_snapshot_if_ready", block)
 
-    def test_clean_barrier_is_cleared_before_public_publish(self) -> None:
+    def test_clean_barrier_is_cleared_after_public_publish_attempt(self) -> None:
         runtime = (WEB_ROOT / "collector_incremental_runtime.py").read_text(encoding="utf-8")
-        canonical = runtime.index("if staged_records:", runtime.index("if pending_barrier:"))
-        clear = runtime.index("_save_pending_barrier(cache, source, set())", canonical)
-        publish = runtime.index("_publish_snapshot_if_ready(cache, observed)", clear)
+        canonical = runtime.index("if staged_records and runtime._canonical_content_digest", runtime.index("if pending_barrier:"))
+        publish = runtime.index("_publish_snapshot_if_ready(cache, observed, source)", canonical)
+        clear = runtime.index("_save_pending_barrier(cache, source, set())", publish)
         self.assertLess(canonical, clear)
-        self.assertLess(clear, publish)
+        self.assertLess(publish, clear)
 
     def test_authoritative_deep_clear_removes_records_and_barriers(self) -> None:
         runtime = (WEB_ROOT / "collector_incremental_runtime.py").read_text(encoding="utf-8")

@@ -27,6 +27,7 @@ import {
   requestAiDecision,
 } from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
+import { formatDateTime } from '@/utils/format'
 import { getHistoricalFollowedOpportunityCard } from '@/services/followedApi'
 import { getStoredHistoricalOpportunityCard } from '@/services/localFollowupStore'
 import {
@@ -200,6 +201,7 @@ export function OpportunityDetailPage() {
     const automationUnavailableReason = runtimeAutomationUnavailableReason(
       runtimeStatus,
       runtimeStatusChecked,
+      card?.snapshot_meta,
     )
     if (!card || historical || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
     setAiBusy(true)
@@ -239,10 +241,10 @@ export function OpportunityDetailPage() {
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
   const automationUnavailableReason = historical
     ? null
-    : runtimeAutomationUnavailableReason(runtimeStatus, runtimeStatusChecked)
+    : runtimeAutomationUnavailableReason(runtimeStatus, runtimeStatusChecked, card.snapshot_meta)
   const snapshotWarning = historical
     ? null
-    : runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
+    : runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked, card.snapshot_meta)
   const groundingUnavailable =
     card.model_decision_status === 'BLOCKED_GROUNDING' ||
     card.model_decision_status === 'NOT_ELIGIBLE' ||
@@ -294,6 +296,18 @@ export function OpportunityDetailPage() {
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
           <p>{snapshotWarning}</p>
         </section>
+      ) : null}
+
+      {!historical ? (
+        <p className="px-1 text-[11px] leading-5 text-slate-500">
+          当前详情数据版本：{formatDateTime(card.snapshot_meta?.snapshot_as_of) ?? '时间未知'}
+          {' · '}
+          {card.snapshot_meta?.collection_coverage?.complete === true
+            ? `全量覆盖截至 ${formatDateTime(card.snapshot_meta.collection_coverage.last_complete_as_of) ?? '时间未知'}`
+            : card.snapshot_meta?.collection_coverage?.complete === false
+              ? `部分来源更新；上次完整覆盖 ${formatDateTime(card.snapshot_meta.collection_coverage.last_complete_as_of) ?? '未知'}`
+              : '全量覆盖状态未知'}
+        </p>
       ) : null}
 
       <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">

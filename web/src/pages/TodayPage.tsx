@@ -209,6 +209,7 @@ export function TodayPage() {
     const automationUnavailableReason = runtimeAutomationUnavailableReason(
       runtimeStatus,
       runtimeStatusChecked,
+      data?.snapshot_meta,
     )
     if (!card || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
     let aiApi: typeof import('@/services/aiDecisionApi') | null = null
@@ -247,6 +248,7 @@ export function TodayPage() {
     const automationUnavailableReason = runtimeAutomationUnavailableReason(
       runtimeStatus,
       runtimeStatusChecked,
+      data?.snapshot_meta,
     )
     const candidates = data?.cards.filter(
       (card) =>
@@ -342,13 +344,14 @@ export function TodayPage() {
   const automationUnavailableReason = runtimeAutomationUnavailableReason(
     runtimeStatus,
     runtimeStatusChecked,
+    data.snapshot_meta,
   )
   const aiUnavailableReason = automationUnavailableReason || (
     (isApiMode || isVerifiedPublicDemo) && runtimeStatus?.ai.configured === false
       ? AI_UNCONFIGURED_REASON
       : null
   )
-  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
+  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked, data.snapshot_meta)
   const pendingAiCount = visibleCards.filter(
     (card) => card.model_decision_status === 'AWAITING_MODEL' && !card.decision,
   ).length

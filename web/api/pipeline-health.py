@@ -56,7 +56,14 @@ def cron_secret_state() -> tuple[bool, bool]:
 def _snapshot_time(value: Any) -> datetime | None:
     if not isinstance(value, dict):
         return None
-    raw = str(value.get('snapshot_as_of') or '').strip()
+    coverage = value.get('collection_coverage')
+    if not isinstance(coverage, dict):
+        # Legacy revisions carry no proof that every required source completed.
+        return None
+    if isinstance(coverage, dict) and coverage.get('complete') is False:
+        raw = str(coverage.get('last_complete_as_of') or '').strip()
+    else:
+        raw = str(value.get('snapshot_as_of') or '').strip()
     if not raw:
         return None
     try:

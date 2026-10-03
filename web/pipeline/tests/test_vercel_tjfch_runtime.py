@@ -86,13 +86,13 @@ class VercelTjfchRuntimeTests(unittest.TestCase):
 
     def test_publish_requires_tjfch_and_uses_authoritative_cycle_clock(self) -> None:
         body = _function_source(self.runtime, "_run_publish")
-        self.assertIn("tjfch_records = cache.get(TJFCH_RECORDS_KEY)", body)
+        self.assertIn("tjfch_records, _ = _cached_list(cache, TJFCH_RECORDS_KEY, _bootstrap_tjfch_records)", body)
         self.assertIn("tjfch_records)", body)
         self.assertIn("+ list(tjfch_records)", body)
         self.assertIn("as_of = _cycle_as_of(state)", body)
         self.assertNotIn("as_of = _now_utc()", body)
         self.assertLess(
-            body.index("tjfch_records = cache.get(TJFCH_RECORDS_KEY)"),
+            body.index("tjfch_records, _ = _cached_list(cache, TJFCH_RECORDS_KEY, _bootstrap_tjfch_records)"),
             body.index("LATEST_RUNTIME_SNAPSHOT_KEY"),
         )
 

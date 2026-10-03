@@ -139,6 +139,60 @@ class RegionalCcgpSyncTests(unittest.TestCase):
         self.assertEqual(report['records_output_status'], 'PRESERVED_UNCHANGED')
         self.assertIsNone(report['merged_record_count'])
 
+    def test_one_market_discovery_failure_is_not_hidden_by_another_successful_empty_market(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            plan_path = root / 'plan.json'
+            records_path = root / 'records.json'
+            report_path = root / 'report.json'
+            plan_path.write_text(json.dumps({
+                'schema_version': '0.1',
+                'markets': [
+                    {'market_code': 'BJ', 'name': '北京', 'admin_code': '110000', 'ccgp_zone_id': '11'},
+                    {'market_code': 'HE', 'name': '河北', 'admin_code': '130000', 'ccgp_zone_id': '13'},
+                ],
+                'keywords': ['医疗'], 'notice_types': ['公开招标'], 'lookback_days': 3,
+                'max_candidates_per_market': 2, 'delay_seconds': 3.0,
+            }), encoding='utf-8')
+            before = self.canonical_existing_bytes()
+            records_path.write_bytes(before)
+            argv = [
+                str(SCRIPT_PATH), '--plan', str(plan_path), '--as-of', '2026-10-03T00:00:00Z',
+                '--records-output', str(records_path), '--existing-records-input', str(records_path),
+                '--report-output', str(report_path),
+            ]
+
+            def discovery(_session, *, region, **_kwargs):
+                if region == '北京':
+                    raise RuntimeError('SIMULATED_BJ_SCOPED_FAILURE')
+                if region == '河北':
+                    return []
+                raise RuntimeError('SIMULATED_NATIONAL_FALLBACK_FAILURE')
+
+            stderr = io.StringIO()
+            with (
+                patch.object(sync_regional.sys, 'argv', argv),
+                patch.object(sync_regional, 'fetch_candidates_page', side_effect=discovery),
+                patch.object(sync_regional.time, 'sleep'),
+                patch.object(sync_regional, 'fetch_ccgp_detail_html', side_effect=AssertionError('NO_CANDIDATES_SELECTED')),
+                redirect_stdout(io.StringIO()), redirect_stderr(stderr),
+            ):
+                result = sync_regional.main()
+            report = json.loads(report_path.read_text(encoding='utf-8'))
+            self.assertEqual(result, 2)
+            self.assertEqual(records_path.read_bytes(), before)
+            self.assertFalse(report['publish_allowed'])
+            self.assertEqual(report['publish_gate_reason'], 'REGIONAL_MARKET_DISCOVERY_FAILED')
+            self.assertEqual([item['market_code'] for item in report['blocked_markets']], ['BJ'])
+            self.assertEqual(report['blocked_markets'][0]['reason'], 'REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:BJ')
+            self.assertIn('SIMULATED_BJ_SCOPED_FAILURE', str(report['blocked_markets'][0]['failures']))
+            self.assertIn('SIMULATED_NATIONAL_FALLBACK_FAILURE', str(report['blocked_markets'][0]['failures']))
+            he_report = next(item for item in report['markets'] if item['market_code'] == 'HE')
+            self.assertTrue(he_report['discovery_successful'])
+            self.assertEqual(he_report['selected_candidate_count'], 0)
+            self.assertNotIn('HE', [item['market_code'] for item in report['blocked_markets']])
+            self.assertIn('REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:BJ', stderr.getvalue())
+
     def test_successful_search_with_zero_candidates_remains_publishable(self):
         result, _output, report, stderr = self.run_sync({}, {})
         self.assertEqual(result, 0)

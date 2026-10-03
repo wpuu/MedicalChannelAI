@@ -60,9 +60,9 @@ class VercelTedaRuntimeTests(unittest.TestCase):
 
     def test_teda_index_failure_keeps_bounded_page_level_diagnostics(self) -> None:
         body = _function_source(self.runtime, "_run_teda")
-        self.assertIn('message = str(exc)[:180]', body)
+        self.assertIn('diagnostics=[{"stage": "index_discovery"', body)
         self.assertIn(
-            'f"TEDA_INDEX_DISCOVERY_FAILED:{type(exc).__name__}:{message}"',
+            'f"TEDA_INDEX_DISCOVERY_FAILED:{type(exc).__name__}"',
             body,
         )
         self.assertIn("discover_teda_candidates", body)
@@ -78,13 +78,13 @@ class VercelTedaRuntimeTests(unittest.TestCase):
 
     def test_publish_requires_teda_and_uses_authoritative_cycle_clock(self) -> None:
         body = _function_source(self.runtime, "_run_publish")
-        self.assertIn("teda_records = cache.get(TEDA_RECORDS_KEY)", body)
+        self.assertIn("teda_records, _ = _cached_list(cache, TEDA_RECORDS_KEY, _bootstrap_teda_records)", body)
         self.assertIn("teda_records)", body)
         self.assertIn("+ list(teda_records)", body)
         self.assertIn("as_of = _cycle_as_of(state)", body)
         self.assertNotIn("as_of = _now_utc()", body)
         self.assertLess(
-            body.index("teda_records = cache.get(TEDA_RECORDS_KEY)"),
+            body.index("teda_records, _ = _cached_list(cache, TEDA_RECORDS_KEY, _bootstrap_teda_records)"),
             body.index("LATEST_RUNTIME_SNAPSHOT_KEY"),
         )
 

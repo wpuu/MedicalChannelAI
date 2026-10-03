@@ -10,8 +10,11 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(PIPELINE_ROOT))
 
+from atomic_json_io import validate_json_output_paths, write_json_atomic, write_json_bundle_atomic  # noqa: E402
 from medical_channel_pipeline.state import merge_canonical_records  # noqa: E402
 from medical_channel_pipeline.tjfch_test_discovery import (  # noqa: E402
     INDEX_URL,
@@ -49,8 +52,7 @@ def load_json_arrays(paths: list[Path]) -> list[dict]:
 
 
 def write_json(path: Path, payload: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_json_atomic(path, payload)
 
 
 def main() -> int:
@@ -63,6 +65,12 @@ def main() -> int:
     parser.add_argument("--records-output", required=True, type=Path)
     parser.add_argument("--report-output", required=True, type=Path)
     args = parser.parse_args()
+
+    validate_json_output_paths(
+        report_output=args.report_output,
+        data_outputs={'records': args.records_output},
+        input_paths={'records': args.existing_records_input},
+    )
 
     if not 1 <= args.lookback_days <= 30:
         raise ValueError("--lookback-days must be between 1 and 30")
@@ -88,6 +96,10 @@ def main() -> int:
             "index_url": INDEX_URL,
             "publish_allowed": False,
             "publish_gate_reason": "INDEX_DISCOVERY_FAILED",
+            "existing_record_count": len(existing_records),
+            "merged_record_count": len(existing_records),
+            "records_output_written": False,
+            "records_output_status": "PRESERVED_UNCHANGED",
             "failure_count": 1,
             "failures": [{"stage": "index_discovery", "error": type(exc).__name__, "message": str(exc)[:300]}],
         })
@@ -138,10 +150,7 @@ def main() -> int:
     publish_allowed = not failures
     reason = "PASS" if publish_allowed else "CANDIDATE_VERIFICATION_INCOMPLETE"
     merged = merge_canonical_records(existing_records, new_records) if publish_allowed else existing_records
-    if publish_allowed:
-        write_json(args.records_output, merged)
-
-    write_json(args.report_output, {
+    report = {
         "schema_version": "0.1",
         "observed_at": observed_at,
         "source": "TJFCH_TEST_ENTERPRISE_RECRUITMENT",
@@ -159,6 +168,8 @@ def main() -> int:
         "unsupported": unsupported,
         "publish_allowed": publish_allowed,
         "publish_gate_reason": reason,
+        "records_output_written": publish_allowed,
+        "records_output_status": "WRITTEN" if publish_allowed else "PRESERVED_UNCHANGED",
         "policy": {
             "official_ywgk_entry_required": True,
             "detail_publication_date_required": True,
@@ -168,7 +179,11 @@ def main() -> int:
             "rate_limit_bypass": False,
             "minimum_detail_delay_seconds": args.delay_seconds,
         },
-    })
+    }
+    if publish_allowed:
+        write_json_bundle_atomic({args.records_output: merged, args.report_output: report})
+    else:
+        write_json(args.report_output, report)
     return 0 if publish_allowed else 2
 
 

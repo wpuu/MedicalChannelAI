@@ -13,7 +13,7 @@ import {
 } from './localFollowupStore'
 import { personalizeTrialCards } from './localCustomerProfile'
 import type { TodayActionsService } from './TodayActionsService'
-import { loadVerifiedSnapshotPayload } from './verifiedSnapshotClient'
+import { loadVerifiedSnapshot, SNAPSHOT_CLIENT_TTL_MS } from './verifiedSnapshotClient'
 
 const COVERAGE_WARNING = '当前业务地区 · 公开事实来自证据流水线快照；各地区仍为部分来源覆盖。'
 const INTERVENTION_MAX_POINTS = 25
@@ -431,6 +431,8 @@ function rerank(cards: TodayActionCard[]): TodayActionCard[] {
 
 export class StaticSnapshotTodayActionsService implements TodayActionsService {
   private snapshot: TodayActionsResponse | null = null
+  private snapshotLoadedAt = 0
+  private snapshotLoadInFlight: Promise<TodayActionsResponse> | null = null
 
   constructor(private readonly snapshotUrl: string) {}
 
@@ -452,8 +454,9 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
     includeInactive = false,
   ): TodayActionsResponse {
     const now = Date.now()
-    const pool = this.derivePool(data, includeInactive)
-    const todayCards = includeInactive ? pool : pool.slice(0, MAX_TODAY_CARDS)
+    const snapshotMeta = data.snapshot_meta
+    const pool = this.derivePool(data, includeInactive).map((card) => ({ ...card, snapshot_meta: snapshotMeta }))
+    const todayCards = (includeInactive ? pool : pool.slice(0, MAX_TODAY_CARDS))
     return {
       ...data,
       matched_count: includeInactive ? data.matched_count : pool.length,
@@ -466,41 +469,77 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
   }
 
   private async ensureLoaded(): Promise<TodayActionsResponse> {
-    if (this.snapshot) return this.snapshot
-    const payload = await loadVerifiedSnapshotPayload(this.snapshotUrl)
-    assertNoInternalFields(payload)
-    const data = payload as TodayActionsPublicResponse
-    if (
-      data.schema_version !== '0.1' ||
-      data.mode !== 'TODAY_ACTIONS' ||
-      !Array.isArray(data.cards) ||
-      (data.opportunity_pool !== undefined && !Array.isArray(data.opportunity_pool)) ||
-      typeof data.snapshot_as_of !== 'string' ||
-      Number.isNaN(Date.parse(data.snapshot_as_of))
-    ) {
-      throw new Error('SNAPSHOT_RESPONSE_INVALID')
-    }
+    if (this.snapshot && Date.now() - this.snapshotLoadedAt < SNAPSHOT_CLIENT_TTL_MS) return this.snapshot
+    if (this.snapshotLoadInFlight) return this.snapshotLoadInFlight
 
-    const mappedCards = data.cards.map(mapPublicCard)
-    const mappedPool = (data.opportunity_pool ?? data.cards).map(mapPublicCard)
-    backfillLocalFollowupSnapshots(mappedPool)
+    const previous = this.snapshot
+    const request = (async () => {
+      try {
+        const envelope = await loadVerifiedSnapshot(this.snapshotUrl)
+        const payload = envelope.payload
+        assertNoInternalFields(payload)
+        const data = payload as TodayActionsPublicResponse
+        if (
+          data.schema_version !== '0.1' ||
+          data.mode !== 'TODAY_ACTIONS' ||
+          !Array.isArray(data.cards) ||
+          (data.opportunity_pool !== undefined && !Array.isArray(data.opportunity_pool)) ||
+          typeof data.snapshot_as_of !== 'string' ||
+          Number.isNaN(Date.parse(data.snapshot_as_of))
+        ) {
+          throw new Error('SNAPSHOT_RESPONSE_INVALID')
+        }
 
-    this.snapshot = {
-      schema_version: data.schema_version,
-      mode: data.mode,
-      input_candidate_count: data.input_candidate_count,
-      matched_count: data.matched_count,
-      card_count: data.card_count,
-      opportunity_pool_count: data.opportunity_pool_count ?? mappedPool.length,
-      model_request_count: data.model_request_count,
-      coverage_warning: COVERAGE_WARNING,
-      generated_at: data.snapshot_as_of,
-      refreshed_at: data.snapshot_as_of,
-      cards: mappedCards,
-      opportunity_pool: mappedPool,
-      model_requests: [],
+        const meta = { ...envelope.meta, snapshot_as_of: data.snapshot_as_of }
+        const mappedCards = data.cards.map((card) => ({ ...mapPublicCard(card), snapshot_meta: meta }))
+        const mappedPool = (data.opportunity_pool ?? data.cards).map((card) => ({ ...mapPublicCard(card), snapshot_meta: meta }))
+        backfillLocalFollowupSnapshots(mappedPool)
+
+        const loaded: TodayActionsResponse = {
+          schema_version: data.schema_version,
+          mode: data.mode,
+          input_candidate_count: data.input_candidate_count,
+          matched_count: data.matched_count,
+          card_count: data.card_count,
+          opportunity_pool_count: data.opportunity_pool_count ?? mappedPool.length,
+          model_request_count: data.model_request_count,
+          coverage_warning: COVERAGE_WARNING,
+          generated_at: data.snapshot_as_of,
+          refreshed_at: data.snapshot_as_of,
+          snapshot_meta: meta,
+          cards: mappedCards,
+          opportunity_pool: mappedPool,
+          model_requests: [],
+        }
+        this.snapshot = loaded
+        // Only a successful, parsed, validated response advances the local TTL.
+        this.snapshotLoadedAt = Date.now()
+        return loaded
+      } catch {
+        if (!previous) throw new Error('SNAPSHOT_RESPONSE_UNAVAILABLE')
+        const degraded: TodayActionsResponse = {
+          ...previous,
+          snapshot_meta: {
+            ...(previous.snapshot_meta ?? {
+              snapshot_as_of: previous.refreshed_at || null,
+              source: 'UNKNOWN',
+              degraded: true,
+              reason: 'SNAPSHOT_SOURCE_UNKNOWN',
+            }),
+            degraded: true,
+            reason: 'SNAPSHOT_REFRESH_FAILED',
+          },
+        }
+        this.snapshot = degraded
+        return degraded
+      }
+    })()
+    this.snapshotLoadInFlight = request
+    try {
+      return await request
+    } finally {
+      if (this.snapshotLoadInFlight === request) this.snapshotLoadInFlight = null
     }
-    return this.snapshot
   }
 
   async getTodayActions(): Promise<TodayActionsResponse> {

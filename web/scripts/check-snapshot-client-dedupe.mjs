@@ -33,11 +33,13 @@ if (!/if \(entry === created\) entry = null/.test(client)) failures.push('verifi
 
 const consumers = {
   'services/aiDecisionApi.ts': 'getVerifiedSnapshotAsOf',
-  'services/verifiedOpportunityPool.ts': 'loadVerifiedSnapshotPayload',
-  'services/StaticSnapshotTodayActionsService.ts': 'loadVerifiedSnapshotPayload',
+  'services/verifiedOpportunityPool.ts': /loadVerifiedSnapshot(?:Payload)?\(/,
+  'services/StaticSnapshotTodayActionsService.ts': /loadVerifiedSnapshot(?:Payload)?\(/,
 }
 for (const [path, symbol] of Object.entries(consumers)) {
-  if (!readFileSync(join(srcDir, path), 'utf8').includes(symbol)) failures.push(`${path} must use ${symbol}`)
+  const source = readFileSync(join(srcDir, path), 'utf8')
+  const found = symbol instanceof RegExp ? symbol.test(source) : source.includes(symbol)
+  if (!found) failures.push(`${path} must use the shared verifiedSnapshotClient loader`)
 }
 
 if (failures.length) {

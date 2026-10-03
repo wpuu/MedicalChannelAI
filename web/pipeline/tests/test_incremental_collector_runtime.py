@@ -75,10 +75,12 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
 
     def test_terminal_deep_paths_release_active_cycle_lease(self) -> None:
         publish_release = self.queue.index('_release_active_cycle_if_owned(cycle_id)')
-        retry_limit = self.queue.index('COLLECTOR_STAGE_RETRY_LIMIT')
         second_release = self.queue.index('_release_active_cycle_if_owned(cycle_id)', publish_release + 1)
-        self.assertLess(publish_release, retry_limit)
-        self.assertGreater(second_release, retry_limit)
+        terminal_branch = self.queue.index('result.get("terminal") is True')
+        self.assertLess(publish_release, terminal_branch)
+        self.assertGreater(second_release, terminal_branch)
+        self.assertIn('action in {"FAILED", "BLOCKED"}', self.queue)
+        self.assertIn('await _enqueue_stage(stage=next_stage', self.queue)
         self.assertIn('cache.delete(ACTIVE_CYCLE_KEY)', self.queue)
 
     def test_incremental_failures_leave_bucket_open_for_idempotent_retry(self) -> None:
@@ -91,8 +93,8 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
 
     def test_incremental_detail_failure_cannot_publish_partial_public_snapshot(self) -> None:
         failure_index = self.runtime.index('if failures:')
-        canonical_write = self.runtime.index('runtime._cache_set(\n            cache,\n            cache_key,', failure_index)
-        publish_index = self.runtime.index('_publish_snapshot_if_ready(cache, observed)', failure_index)
+        canonical_write = self.runtime.index('runtime._cache_set(\n                cache,\n                cache_key,', failure_index)
+        publish_index = self.runtime.index('_publish_snapshot_if_ready(cache, observed, source)', failure_index)
         failure_block = self.runtime[failure_index:canonical_write]
         self.assertLess(failure_index, canonical_write)
         self.assertLess(canonical_write, publish_index)
@@ -105,12 +107,12 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
 
     def test_staged_partial_records_commit_only_after_source_scan_is_clean(self) -> None:
         failure_index = self.runtime.index('if failures:')
-        commit_index = self.runtime.index('if staged_records:', failure_index)
-        clear_index = self.runtime.index('_save_pending_records(cache, source, [])', commit_index)
-        publish_index = self.runtime.index('_publish_snapshot_if_ready(cache, observed)', clear_index)
+        commit_index = self.runtime.index('if staged_records and runtime._canonical_content_digest', failure_index)
+        publish_index = self.runtime.index('_publish_snapshot_if_ready(cache, observed, source)', commit_index)
+        clear_index = self.runtime.index('_save_pending_records(cache, source, [])', publish_index)
         self.assertLess(failure_index, commit_index)
         self.assertLess(commit_index, clear_index)
-        self.assertLess(clear_index, publish_index)
+        self.assertLess(publish_index, clear_index)
         self.assertIn('runtime.merge_canonical_records(existing_records, staged_records)', self.runtime)
         self.assertIn('pending_record_count', self.runtime)
 
@@ -125,8 +127,8 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
 
     def test_authoritative_deep_publish_discards_all_older_incremental_staging(self) -> None:
         self.assertIn('def clear_incremental_pending(cache: RuntimeCache)', self.runtime)
-        start = self.queue.index('else:\n            # The completed deep cycle is authoritative')
-        end = self.queue.index('        return', start)
+        start = self.queue.index('if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:')
+        end = self.queue.index('if result.get("terminal") is True', start)
         terminal = self.queue[start:end]
         clear = terminal.index('incremental_runtime.clear_incremental_pending(RuntimeCache())')
         schedule = terminal.index('await _start_intraday_chain_after_deep()')

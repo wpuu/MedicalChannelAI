@@ -11,8 +11,11 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[1]
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(PIPELINE_ROOT))
 
+from atomic_json_io import validate_json_output_paths, write_json_atomic, write_json_bundle_atomic  # noqa: E402
 from medical_channel_pipeline.state import merge_canonical_records  # noqa: E402
 from medical_channel_pipeline.tjzyefy_discovery import (  # noqa: E402
     INDEX_URL,
@@ -56,8 +59,7 @@ def load_json_arrays(paths: list[Path]) -> list[dict]:
 
 
 def write_json(path: Path, payload: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    write_json_atomic(path, payload)
 
 
 def is_retryable_fetch_error(exc: Exception) -> bool:
@@ -81,9 +83,17 @@ def fetch_page_with_retry(url: str, *, delay_seconds: float, attempts: int = FET
     raise AssertionError('unreachable')
 
 
-def publish_gate(*, index_discovery_succeeded: bool, unresolved_failure_count: int) -> tuple[bool, str]:
+def publish_gate(
+    *,
+    index_discovery_succeeded: bool,
+    selected_candidate_count: int,
+    new_verified_record_count: int,
+    unresolved_failure_count: int,
+) -> tuple[bool, str]:
     if not index_discovery_succeeded:
         return False, 'INDEX_DISCOVERY_FAILED'
+    if selected_candidate_count and not new_verified_record_count:
+        return False, 'NO_SELECTED_DETAIL_VERIFIED'
     if unresolved_failure_count:
         return False, 'SUPPORTED_DETAILS_INCOMPLETE'
     return True, 'PASS'
@@ -101,6 +111,12 @@ def main() -> int:
     parser.add_argument('--records-output', required=True, type=Path)
     parser.add_argument('--report-output', required=True, type=Path)
     args = parser.parse_args()
+
+    validate_json_output_paths(
+        report_output=args.report_output,
+        data_outputs={'records': args.records_output},
+        input_paths={'records': args.existing_records_input},
+    )
 
     if not 1 <= args.lookback_days <= 60:
         raise ValueError('--lookback-days must be between 1 and 60')
@@ -126,6 +142,10 @@ def main() -> int:
             'index_url': INDEX_URL,
             'publish_allowed': False,
             'publish_gate_reason': 'INDEX_DISCOVERY_FAILED',
+            'existing_record_count': len(existing_records),
+            'merged_record_count': len(existing_records),
+            'records_output_written': False,
+            'records_output_status': 'PRESERVED_UNCHANGED',
             'failure_count': 1,
             'failures': [{'stage': 'index_discovery', 'error': type(exc).__name__, 'message': str(exc)[:300]}],
         }
@@ -187,16 +207,20 @@ def main() -> int:
                 'message': str(exc)[:300],
             })
 
-    merged_records = merge_canonical_records(existing_records, new_records)
-    merged_ids = {
-        record.get('opportunity_id') for record in merged_records
+    existing_ids = {
+        record.get('opportunity_id') for record in existing_records
         if isinstance(record, dict) and isinstance(record.get('opportunity_id'), str)
     }
-    unresolved_failure_ids = [opportunity_id for opportunity_id in failed_ids if opportunity_id not in merged_ids]
+    unresolved_failure_ids = [opportunity_id for opportunity_id in failed_ids if opportunity_id not in existing_ids]
     publish_allowed, publish_gate_reason = publish_gate(
         index_discovery_succeeded=True,
+        selected_candidate_count=len(selected),
+        new_verified_record_count=len(new_records),
         unresolved_failure_count=len(unresolved_failure_ids),
     )
+    # Preserve the detailed failure report even if old records are malformed;
+    # a blocked refresh does not need or attempt to merge records.
+    merged_records = merge_canonical_records(existing_records, new_records) if publish_allowed else existing_records
     report = {
         'schema_version': '0.1',
         'observed_at': observed_at,
@@ -207,6 +231,7 @@ def main() -> int:
         'discovered_supported_count': len(discovered),
         'selected_candidate_count': len(selected),
         'new_verified_record_count': len(new_records),
+        'existing_record_count': len(existing_records),
         'unsupported_count': len(unsupported),
         'unsupported': unsupported,
         'failure_count': len(failures),
@@ -216,6 +241,8 @@ def main() -> int:
         'merged_record_count': len(merged_records),
         'publish_allowed': publish_allowed,
         'publish_gate_reason': publish_gate_reason,
+        'records_output_written': publish_allowed,
+        'records_output_status': 'WRITTEN' if publish_allowed else 'PRESERVED_UNCHANGED',
         'policy': {
             'official_index_required': True,
             'shared_medical_scope_title_filter': True,
@@ -228,8 +255,11 @@ def main() -> int:
             'intraday_scheduler_enabled': False,
         },
     }
-    write_json(args.records_output, merged_records)
-    write_json(args.report_output, report)
+    if publish_allowed:
+        write_json_bundle_atomic({args.records_output: merged_records, args.report_output: report})
+    else:
+        report['merged_record_count'] = len(existing_records)
+        write_json(args.report_output, report)
     print(
         f'discovered={len(discovered)} selected={len(selected)} verified={len(new_records)} '
         f'unsupported={len(unsupported)} failures={len(failures)} unresolved={len(unresolved_failure_ids)} '

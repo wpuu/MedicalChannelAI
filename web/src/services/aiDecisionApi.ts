@@ -52,6 +52,7 @@ export function aiDecisionErrorMessage(cause: unknown): string {
   if (cause.code === 'AI_PROVIDER_UNAVAILABLE') return 'AI服务暂时连接失败，请稍后再试'
   if (cause.code === 'VERIFIED_SNAPSHOT_UNAVAILABLE') return '公开商机数据正在更新，请稍后再试AI分析'
   if (cause.code === 'VERIFIED_SNAPSHOT_NOT_FRESH') return '公开商机快照已超过安全刷新窗口，请先核对官方依据，待数据刷新后再使用AI分析'
+  if (cause.code === 'VERIFIED_SNAPSHOT_COVERAGE_INCOMPLETE') return '当前数据版本仅覆盖部分来源或全量覆盖状态未知；页面保留已核验事实，待完整采集并核验后再使用AI分析'
   if (cause.code === 'SAME_ORIGIN_REQUIRED') return '当前访问地址未通过AI安全校验，请从正式站点进入'
   if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
   if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机暂不在已核验商机池中'

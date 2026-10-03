@@ -79,7 +79,7 @@ def _active_cycle_matches(cycle_id: str, *, cycle_as_of: datetime) -> bool:
     )
     if disposition == "MATCH":
         return True
-    if disposition in {"SUPERSEDED", "COMPLETED_CYCLE", "EXPIRED_STALE"}:
+    if disposition in {"SUPERSEDED", "COMPLETED_CYCLE", "ENDED_DEGRADED_CYCLE", "EXPIRED_STALE"}:
         return False
     raise RuntimeError("COLLECTOR_ACTIVE_CYCLE_MISSING")
 
@@ -382,22 +382,29 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     action = str(result.get("action") or "")
     if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
         next_stage = _next_stage(stage)
+        if next_stage is None:
+            # Only a completed publish makes this cycle authoritative and clears
+            # source-local staging. A degraded terminal cycle still gets its
+            # intraday chain, but leaves incremental pending barriers intact.
+            incremental_runtime.clear_incremental_pending(RuntimeCache())
+            await _start_intraday_chain_after_deep()
+            _release_active_cycle_if_owned(cycle_id)
+            return
+        if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
+            return
+        await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+        return
+
+    if result.get("terminal") is True and action in {"FAILED", "BLOCKED"}:
+        next_stage = _next_stage(stage)
         if next_stage is not None:
             if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
                 return
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         else:
-            # The completed deep cycle is authoritative for every source. Any
-            # incremental partial staging from before this publish is obsolete and
-            # must not later overwrite the freshly reconciled canonical state.
-            incremental_runtime.clear_incremental_pending(RuntimeCache())
             await _start_intraday_chain_after_deep()
             _release_active_cycle_if_owned(cycle_id)
         return
 
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
-    if status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error:
-        _release_active_cycle_if_owned(cycle_id)
-        return
-
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")
