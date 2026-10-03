@@ -1,0 +1,147 @@
+{
+  "repository": "wpuu/MedicalChannelAI",
+  "production_commit": "62299590dd3898e040ccc9db5fda1298d4509d51",
+  "seed_files_used": false,
+  "files": [
+    {
+      "file": "tianjin_live_ccgp_records.json",
+      "sha256": "48d337d1ff814dabd4fe2f5e0571bb9ce7299fbe1608649eea68aabc8e4ee55a",
+      "count": 56,
+      "validation": "PASS",
+      "min_observed_at": "2026-08-30T13:30:00Z",
+      "max_observed_at": "2026-09-17T04:56:14.303006+00:00"
+    },
+    {
+      "file": "tianjin_live_tjmugh_records.json",
+      "sha256": "e576cea26f159f8994a32feb930b915460797f7a4f12f419461dacfaf35b70f7",
+      "count": 3,
+      "validation": "PASS",
+      "min_observed_at": "2026-08-31T08:42:00Z",
+      "max_observed_at": "2026-09-17T04:56:14.303006+00:00"
+    },
+    {
+      "file": "tianjin_live_tjnothop_records.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "count": 0,
+      "validation": "PASS",
+      "min_observed_at": null,
+      "max_observed_at": null
+    },
+    {
+      "file": "tianjin_live_tjzxfc_records.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "count": 0,
+      "validation": "PASS",
+      "min_observed_at": null,
+      "max_observed_at": null
+    },
+    {
+      "file": "tianjin_live_tjzyefy_records.json",
+      "sha256": "5b1f74e91f3e187c1ea3ab2d0afa22e51752e05e7f839fab2ffc530158c50191",
+      "count": 4,
+      "validation": "PASS",
+      "min_observed_at": "2026-09-05T17:02:46.269508+00:00",
+      "max_observed_at": "2026-09-27T05:22:04.051232+00:00"
+    },
+    {
+      "file": "tianjin_live_tjzyefy_intent_records.json",
+      "sha256": "b30433fe525648b6c48b87ecb11a3d207e1e532c8eaf283f3bd7960246450b58",
+      "count": 4,
+      "validation": "PASS",
+      "min_observed_at": "2026-09-04T15:19:41.874251+00:00",
+      "max_observed_at": "2026-09-04T15:19:41.874251+00:00"
+    },
+    {
+      "file": "tianjin_live_teda_records.json",
+      "sha256": "f3c849ceb5d9de461d8e69a2199957a5088b75764a35b8eb2a4f3de52ed8c8f8",
+      "count": 6,
+      "validation": "PASS",
+      "min_observed_at": "2026-09-03T05:31:21.991132+00:00",
+      "max_observed_at": "2026-09-27T05:22:04.051232+00:00"
+    },
+    {
+      "file": "tianjin_live_tjfch_records.json",
+      "sha256": "86a1f9810ed66ad4b5572bbfdd162eecd441d78bb43c5e0a3bbd5a7329a910a7",
+      "count": 2,
+      "validation": "PASS",
+      "min_observed_at": "2026-09-27T05:22:04.051232+00:00",
+      "max_observed_at": "2026-09-27T05:22:04.051232+00:00"
+    },
+    {
+      "file": "regional_live_ccgp_records.json",
+      "sha256": "72e0e865a639e96f4479bea7639b806402df910a68b305b049fb5e8f361ee0fc",
+      "count": 836,
+      "validation": "PASS",
+      "min_observed_at": "2026-09-08T08:51:46.822592+00:00",
+      "max_observed_at": "2026-10-02T06:19:15.713282+00:00"
+    },
+    {
+      "file": "tianjin_notice_events.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "count": 0,
+      "validation": "PASS",
+      "min_observed_at": null,
+      "max_observed_at": null
+    }
+  ],
+  "canonical_record_count": 911,
+  "canonical_ids_unique": 911,
+  "canonical_market_counts": {
+    "TJ": 75,
+    "BJ": 196,
+    "HE": 205,
+    "LN": 106,
+    "JL": 143,
+    "HL": 186
+  },
+  "durable_http_status": 200,
+  "durable_response_sha256": "14a3d2d7924edc1e55656f1f5a58b1f4717b1e5f90daa97c97e9dd69ef10fb8f",
+  "durable_source_mode": "DATABASE",
+  "snapshot_as_of": "2026-10-02T14:19:15.713282+08:00",
+  "snapshot_collection_coverage": null,
+  "durable_pool_count": 441,
+  "durable_ids_missing_from_repo_canonical": [],
+  "durable_source_counts": {
+    "UNKNOWN": 441
+  },
+  "historical_reconstruction_only": true,
+  "new_collection_performed": false,
+  "reconstructed_pool_count": 441,
+  "ids_only_in_durable": [],
+  "ids_only_in_reconstruction": [],
+  "reconstructed_card_differences_count": 0,
+  "reconstructed_different_fields": {},
+  "reconstructed_facts_equal": true,
+  "existing_sources_outside_current_runtime_shards": {
+    "files": [
+      "tianjin_live_tjzxfc_records.json",
+      "tianjin_live_tjzyefy_records.json",
+      "tianjin_live_tjzyefy_intent_records.json"
+    ],
+    "canonical_records": 8,
+    "currently_published_ids": [
+      "tjzyefy_intent_20260804_030195992",
+      "tjzyefy_intent_20260804_030195991",
+      "tjzyefy_intent_20260804_030195988",
+      "tjzyefy_intent_20260804_030195986"
+    ]
+  },
+  "candidate_restore_cleared": false,
+  "reason": "Repo historical canonical includes existing sources outside current runtime shard readers; control-plane/cache inventory unknown. Public projection cannot establish all historical runtime state.",
+  "durable_final_url": "https://medicalchannelai.vercel.app/api/public-snapshot?fresh=canonical-read-audit",
+  "readback_bytes_unchanged": true,
+  "checked_on": "2026-10-03 Asia/Shanghai",
+  "reconstruction_pipeline": "current checked-out static publication pipeline; load_arrays market normalization, separate TJ/events and regional builds, combine_snapshots metadata injection and global reranking",
+  "reconstruction_transform_sha256": {
+    "web/pipeline/scripts/publish_web_snapshot.py": "d5723712f6c7dc65a62e8c0b6bed30d1e535484d2b4fef24dce0a1218e7deb9e",
+    "web/pipeline/medical_channel_pipeline/public_snapshot.py": "f73e9010e397d14ddf9e43a84cb3bcb59b900fa3e799741df985e871999ba412",
+    "web/pipeline/medical_channel_pipeline/validation.py": "3b9ce2905c4db4a5480280209b9ffbb31864b12519fc6c83779967d6327fd9f8"
+  },
+  "reconstruction_script": "docs/ops/evidence/twice-daily-20261003/reconstruct_historical.py",
+  "candidate_runtime_recovery_verified": false,
+  "bare_runtime_serializer_review": {
+    "market_metadata_omitted_cards": 441,
+    "ranks_different": 235,
+    "status": "EXISTING_DIFFERENCE; must verify and resolve before controlled recovery; static reconstruction is not worker recovery evidence"
+  }
+}

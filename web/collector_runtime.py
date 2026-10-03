@@ -1486,6 +1486,53 @@ def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, An
     return result
 
 
+def _require_published_canonical_history(
+    cache: RuntimeCache,
+    records: list[dict[str, Any]],
+    *,
+    as_of: datetime,
+) -> None:
+    if _SCHEDULED_CYCLE.get() is None:
+        return
+    # The full, read-back published baseline is a recovery prerequisite. Public
+    # cards are only a projection: never fabricate canonical rows from them.
+    baseline = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+    if not isinstance(baseline, dict):
+        raise CollectorPrecondition("COLLECTOR_PUBLISHED_BASELINE_UNAVAILABLE")
+    pool = baseline.get("opportunity_pool")
+    count = baseline.get("opportunity_pool_count")
+    try:
+        clock = datetime.fromisoformat(str(baseline.get("snapshot_as_of") or "").replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise CollectorPrecondition("COLLECTOR_PUBLISHED_BASELINE_INVALID") from exc
+    if (
+        clock.tzinfo is None
+        or clock > as_of
+        or not isinstance(pool, list)
+        or type(count) is not int
+        or count != len(pool)
+    ):
+        raise CollectorPrecondition("COLLECTOR_PUBLISHED_BASELINE_INVALID")
+    published_ids: set[str] = set()
+    for card in pool:
+        opportunity_id = card.get("opportunity_id") if isinstance(card, dict) else None
+        if (
+            not isinstance(opportunity_id, str)
+            or not opportunity_id.strip()
+            or opportunity_id != opportunity_id.strip()
+            or opportunity_id in published_ids
+        ):
+            raise CollectorPrecondition("COLLECTOR_PUBLISHED_BASELINE_INVALID")
+        published_ids.add(opportunity_id)
+    canonical_ids = {
+        record.get("opportunity_id")
+        for record in records
+        if isinstance(record, dict) and isinstance(record.get("opportunity_id"), str)
+    }
+    if not published_ids.issubset(canonical_ids):
+        raise CollectorPrecondition("COLLECTOR_CANONICAL_PUBLISHED_HISTORY_MISSING")
+
+
 def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     stages = state.get("stages")
     if isinstance(stages, dict):
@@ -1543,6 +1590,7 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         + regional_records
     )
     as_of = _cycle_as_of(state)
+    _require_published_canonical_history(cache, records, as_of=as_of)
     snapshot = build_public_snapshot(records, as_of, list(events))
     incremental_source = str(state.get("incremental_source") or "").strip().lower()
     if incremental_source:

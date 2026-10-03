@@ -17,7 +17,7 @@
 - 当前单用户候选为 `fix/tjmugh-verification-20261002` / 草稿 [PR #75](https://github.com/wpuu/MedicalChannelAI/pull/75)，分支 `deploymentEnabled=false`。
 - 每天两条独立每日 Cron：北京时间名义 08:20 / 12:20，Hobby 小时级精度；日期与明确时段识别周期，同周期幂等，自动 15 分钟增量链关闭，不升级套餐。
 - 保留现有 `medicalchannelai-refresh-v2` Queue 和 v2 canonical；新消息版本门禁隔离旧积压，完整覆盖、失败旧数据、canonical/缓存和 AI 版本保护继续生效。
-- 缓存长暂停后丢失完整 canonical 会阻断发布，不用旧种子或固定快照伪造自动更新。实际生产仍为旧主线 `6229959`；本候选未发布，不能宣称每天两次已恢复。
+- 缓存长暂停后丢失完整 canonical 会阻断发布；发布前还要求完整已发布基线的每条机会仍有 canonical 历史。缺少既有来源记录或只有Top-N卡片时拒绝发布，不用旧种子或固定快照伪造自动更新。实际生产仍为旧主线 `6229959`；本候选未发布，不能宣称每天两次已恢复。
 - 线上控制面、canonical 恢复及一次发布/回退门禁见 [受控恢复清单](docs/ops/twice-daily-release-20261003.md)。实际套餐、Cron、消费者、在途和延迟重试仍需核验。
 
 开发状态、验收条件和当前工作以仓库内 `docs/project/` 与机器可读 checkpoint 为准。

@@ -245,3 +245,93 @@ class TwiceDailySearchTests(unittest.TestCase):
             clock.fromisoformat.side_effect = datetime.fromisoformat
             asyncio.run(queue.process_collector_payload(payload))
         run.assert_not_called()
+
+    def _publish_cache_and_state(self):
+        self.lease(self.mid, self.ma)
+        for key in (runtime.CCGP_RECORDS_KEY, runtime.CCGP_EVENTS_KEY,
+                    runtime.TJMUGH_RECORDS_KEY, runtime.TJNOTHOP_RECORDS_KEY,
+                    runtime.TEDA_RECORDS_KEY, runtime.TJFCH_RECORDS_KEY):
+            self.cache.set(key, [])
+        for code in runtime.REGIONAL_STAGE_MARKET_CODES.values():
+            self.cache.set(runtime._regional_records_key(code), [])
+        return {'cycle_as_of': self.ma.isoformat(), 'stages': {
+            stage: {'status': 'COMPLETED', 'terminal': True, 'result': {'fallback_required': False}}
+            for stage in runtime.STAGE_ORDER if stage != 'publish'
+        }}
+
+    def _baseline(self, ids):
+        return {'snapshot_as_of': '2026-10-02T14:19:15.713282+08:00',
+                'opportunity_pool': [{'opportunity_id': oid} for oid in ids],
+                'opportunity_pool_count': len(ids), 'cards': []}
+
+    def test_missing_published_baseline_prevents_durable_and_cache_publish(self):
+        state = self._publish_cache_and_state()
+        token = runtime._SCHEDULED_CYCLE.set(self.mid)
+        try:
+            with patch.object(runtime, '_persist_verified_snapshot_durably') as publish, patch.object(runtime, 'build_public_snapshot') as build:
+                with self.assertRaisesRegex(runtime.CollectorPrecondition, 'BASELINE_UNAVAILABLE'):
+                    runtime._run_publish(self.cache, state)
+                publish.assert_not_called()
+                build.assert_not_called()
+        finally:
+            runtime._SCHEDULED_CYCLE.reset(token)
+
+    def test_missing_historical_id_beyond_top_cards_blocks_without_overwrite(self):
+        state = self._publish_cache_and_state()
+        baseline = self._baseline(['known', 'outside-configured-shards'])
+        baseline['cards'] = baseline['opportunity_pool'][:1]
+        self.cache.set(runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY, baseline)
+        self.cache.set(runtime.LATEST_RUNTIME_SNAPSHOT_KEY, baseline)
+        self.cache.set(runtime.CCGP_RECORDS_KEY, [{'opportunity_id': 'known'}])
+        token = runtime._SCHEDULED_CYCLE.set(self.mid)
+        try:
+            with patch.object(runtime, '_persist_verified_snapshot_durably') as publish, patch.object(runtime, 'build_public_snapshot') as build:
+                with self.assertRaisesRegex(runtime.CollectorPrecondition, 'PUBLISHED_HISTORY_MISSING'):
+                    runtime._run_publish(self.cache, state)
+                publish.assert_not_called()
+                build.assert_not_called()
+            self.assertEqual(self.cache.get(runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY), baseline)
+            self.assertEqual(self.cache.get(runtime.LATEST_RUNTIME_SNAPSHOT_KEY), baseline)
+        finally:
+            runtime._SCHEDULED_CYCLE.reset(token)
+
+    def test_baseline_cannot_fallback_to_top_cards_or_filter_bad_pool_entries(self):
+        invalid = [
+            {'snapshot_as_of': self.ma.isoformat(), 'cards': [], 'opportunity_pool_count': 0},
+            {**self._baseline([]), 'opportunity_pool': [None], 'opportunity_pool_count': 1},
+            {**self._baseline(['']), 'opportunity_pool_count': 1},
+            self._baseline(['duplicate', 'duplicate']),
+            {**self._baseline(['known']), 'opportunity_pool_count': True},
+            {**self._baseline(['known']), 'opportunity_pool_count': 441},
+            {**self._baseline(['known']), 'opportunity_pool': 'not-a-list'},
+        ]
+        token = runtime._SCHEDULED_CYCLE.set(self.mid)
+        try:
+            for baseline in invalid:
+                self.cache.set(runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY, baseline)
+                with self.assertRaisesRegex(runtime.CollectorPrecondition, 'BASELINE_INVALID'):
+                    runtime._require_published_canonical_history(self.cache, [{'opportunity_id': 'known'}], as_of=self.ma)
+        finally:
+            runtime._SCHEDULED_CYCLE.reset(token)
+
+    def test_published_baseline_clock_must_be_known_aware_and_not_newer(self):
+        token = runtime._SCHEDULED_CYCLE.set(self.mid)
+        try:
+            for clock in (None, 'not-time', '2026-10-02T14:19:15', self.na.isoformat()):
+                self.cache.set(runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY, {**self._baseline([]), 'snapshot_as_of': clock})
+                with self.assertRaisesRegex(runtime.CollectorPrecondition, 'BASELINE_INVALID'):
+                    runtime._require_published_canonical_history(self.cache, [], as_of=self.ma)
+        finally:
+            runtime._SCHEDULED_CYCLE.reset(token)
+
+    def test_canonical_retains_expired_history_even_if_new_pool_excludes_it(self):
+        token = runtime._SCHEDULED_CYCLE.set(self.mid)
+        try:
+            self.cache.set(runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY, self._baseline(['now-expired']))
+            records = [{'opportunity_id': 'now-expired'}, {'opportunity_id': 'new-fact'}]
+            runtime._require_published_canonical_history(self.cache, records, as_of=self.ma)
+            self.assertEqual(records, [{'opportunity_id': 'now-expired'}, {'opportunity_id': 'new-fact'}])
+            self.cache.set(runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY, self._baseline([]))
+            runtime._require_published_canonical_history(self.cache, [], as_of=self.ma)
+        finally:
+            runtime._SCHEDULED_CYCLE.reset(token)

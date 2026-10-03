@@ -35,12 +35,26 @@
 
 国内域名/天津 403 的历史阻碍单独保留，未改 DNS、不绕访问限制；本轮不新增国内网络证明，代码候选整理可继续。
 
+## 续办：真实历史备份审计与已发布历史门禁
+
+核对起点 `e30b74a5e39c79ffd64727f470f2e19b039f88d1` 的 [Verify37108472339 SUCCESS](https://github.com/wpuu/MedicalChannelAI/actions/runs/37108472339)：865 Python及完整 prebuild/typecheck/Vite通过。没有新Vercel REST/CLI凭据、未出现新的Cron/queue读取工具，原get_project参数契约未变化；不重复相同失败调用、不把部署信息当套餐或队列控制面。
+
+从生产 commit `6229959` 的9个live记录文件和notice events读取911条唯一canonical、0条事件，全部通过现有验证器，未读seed。只读 `public-snapshot?fresh=canonical-read-audit` 确认DATABASE；在该版本真实时间 `2026-10-02T14:19:15.713282+08:00` 按静态发布流程（load_arrays补天津market、天津/区域分别build、combine_snapshots补metadata及全池复排）内存复建，441条卡片逐字段完全一致。完整离线命令：`python docs/ops/evidence/twice-daily-20261003/reconstruct_historical.py --baseline <保存的DATABASE响应.json>`；脚本只git show读取生产live文件，使用已冻结hash的候选静态转换代码，无网络/生产写入。文件hash、计数和公开响应hash见 [canonical-recovery-audit.json](evidence/twice-daily-20261003/canonical-recovery-audit.json)。这是历史备份可信起点，不是新采集、缓存恢复或新完整覆盖证明，未推进任何生产时钟。
+
+裸worker不经过此静态组合流程：独立比较发现441条卡片facts缺market附加字段、235条rank不同。这是既有发布路径差异，历史静态复建不能证明候选worker完整恢复；真实受控恢复前须解决并验证market身份、排序、事件隔离及版本完整性，未经验证继续阻断。
+
+具体发现：现worker的shard读取清单不包括既有 `tjzxfc`、`tjzyefy`、`tjzyefy_intent` 的8条历史；其中4条intent仍在当前公开441条中。直接仅恢复常规runtime分片可能在下次全量发布静默遗漏这4条，因此不能把历史备份候选标为可直接恢复。
+
+最小修正只增加scheduled发布门禁：必须有与真实durable读回核对过的完整published baseline，含timezone-aware版本时间、显式完整 `opportunity_pool` 和匹配整数count；不允许仅Top-N cards回退、不滤掉坏项/空ID/重复ID。baseline每个公开ID都必须仍存在于原始canonical历史集合；缺失返回 `COLLECTOR_CANONICAL_PUBLISHED_HISTORY_MISSING`，基线缺失/无效返回对应稳定原因码。检查在构建候选与durable/cache写入前执行；旧数据保留。canonical历史保留后，过期事实可合法从新公开池退出，不强迫永久展示。不能用public卡片投影生成假canonical绕过此门禁。
+
+本次新增5项门禁边界；30项周期/恢复与20项native发布定向检查通过，未无故重跑前轮全部历史矩阵。新增 [独立审查](evidence/twice-daily-20261003/independent-history-review.md) 与精确新HEAD的正常CI结果另在PR75回读登记。本次不新增来源/地区或架构；三个既有来源的完整历史映射及真实恢复仍是发布硬门禁。
+
 ## 发布前门禁（需要控制面读取；本轮未执行配置变更）
 
 1. 精确候选 HEAD 的 Verify 成功、独立审查无未解决阻断；PR 为 draft，先冻结预期 merge HEAD 和生产旧部署/配置/最后已验证数据版本、revision/hash。
 2. 读回实际 billing plan、两条每日 Cron 配置是否可接受和启用状态；不升级。取得可操作控制面后，先暂停 Cron 与所有旧/新 consumer，GitHub fallback 保持 disabled；记录配置回读，不凭日志无记录推断已暂停。
 3. 读取 v2 topic 的注册消费者及 deployment 归属、ready/in-flight/scheduled retry 数量与最晚可见投递。等在途函数超过最大时限＋缓冲并确认结束；旧消费者不能再订阅或写。保留旧积压，不清空队列；部署后只允许新消费者接收，旧 payload 在新处理器被隔离确认。旧部署直接回退时它会接受旧 payload，因此消费者在回退全过程保持暂停。
-4. **长暂停 canonical 恢复是硬门禁。** 只读检查所有 canonical 分片、notice events、watch 与最后真实 durable snapshot 的一致性。全部缓存过期时本候选禁止用旧种子/内置快照初始化，明确失败 `COLLECTOR_CANONICAL_HISTORY_UNAVAILABLE`。public snapshot 投影不足以反推出完整 canonical，不能复制快照伪造历史。只能从可验证完整 canonical 备份恢复，或在另行明确授权的真实完整来源重建后逐来源核验；缺任何必需历史时继续暂停，不伪造空数组，不宣称可自动成功恢复。本轮未证明备份存在，也未执行重建。
+4. **长暂停 canonical 恢复是硬门禁。** 只读检查所有 canonical 分片、notice events、watch 与最后真实 durable snapshot 的一致性；必须覆盖历史备份中的全部既有来源，包括审计发现的4条已公开intent。现有worker分片不能容纳/读回全部历史时继续阻断，不把记录塞入错误来源分片、不用伪造空数组绕过门禁。完整published baseline需与durable来源、时间、pool count/hash读回一致后才能进入新周期。全部缓存过期时本候选禁止用旧种子/内置快照初始化，明确失败 `COLLECTOR_CANONICAL_HISTORY_UNAVAILABLE`。public snapshot 投影不足以反推出完整 canonical，不能复制快照伪造历史。只能从可验证完整 canonical 备份恢复，或在另行明确授权的真实完整来源重建后逐来源核验；缺任何必需历史时继续暂停，不伪造空数组，不宣称可自动成功恢复。本轮核验了生产提交的历史记录备份，但未证明它包含全部运行时状态及暂停期间遗漏，也未执行真实恢复或来源重建。
 5. 读回发布/CRON 凭据配置、canonical 完整性和现有消费者串行设置；确认 snapshot/status 只读路径可用。权限、字段读取或 canonical 任何硬门禁未解决，不进行合并发布或恢复采集。
 
 ## 一次受控发布与验收

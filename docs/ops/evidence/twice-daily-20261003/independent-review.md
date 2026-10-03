@@ -1,5 +1,7 @@
 # 双时段候选独立审查（2026-10-03）
 
+> 本页25项测试及8文件冻结哈希对应历史候选 `e30b74a`。后续已发布历史门禁的新增审查与新哈希见 [independent-history-review.md](independent-history-review.md)。
+
 审查范围仅限 `wpuu/MedicalChannelAI`，基线 PR #75 HEAD `3af6db8c678c6f20f8b9d120badd7db102b9d69e`。本文件记录工作区冻结源的审查，最终提交号与 CI 由父任务提交后补充到主证据清单。未读取缺失的旧 patch 或所谓 85 项旧测试证据，不能据此认定历史验证已恢复。
 
 结论：代码可以保存为**有条件发布候选**。这里的同周期幂等依赖生产 Queue 的唯一消费者组和实际 push 串行派发；不是 RuntimeCache 原子锁或任意并发下的幂等证明。上线前必须读回控制面并完成下列门禁。本轮未合并、部署、创建 Preview、恢复 Cron/消费者、清空队列、触发采集或模型。
