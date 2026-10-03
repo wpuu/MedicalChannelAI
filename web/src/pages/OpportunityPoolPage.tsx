@@ -32,7 +32,6 @@ import type { TodayActionCard } from '@/types'
 import { formatBudget, formatDateTime, uid } from '@/utils/format'
 
 type WindowFilter = 'ALL' | 'OPEN' | 'PRE_MARKET_SIGNAL' | 'LATE_WINDOW'
-const AI_UNCONFIGURED_REASON = 'AI运行配置尚未完成；商机检索、官方依据和跟进功能仍可正常使用。'
 
 function normalizedSearchText(card: TodayActionCard): string {
   return [
@@ -85,16 +84,16 @@ function mailtoHref(value: string | null | undefined): string | null {
 }
 
 function aiErrorMessage(cause: unknown): string {
-  if (!(cause instanceof AiDecisionError)) return 'AI分析暂时不可用，请稍后重试'
+  if (!(cause instanceof AiDecisionError)) return '下一步行动暂时无法生成，请稍后重试'
   if (cause.code === 'AI_NOT_CONFIGURED') return 'AI服务端运行配置尚未完成'
   if (cause.code === 'AI_RATE_LIMITED') return 'AI服务当前限流，请稍后再试'
   if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') return 'AI服务端当前不可用'
-  if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，请稍后重试'
+  if (cause.code === 'AI_TIMEOUT') return '生成超时，请稍后重试'
   if (cause.code === 'VERIFIED_SNAPSHOT_NOT_FRESH') return '公开商机快照已超过安全刷新窗口，请先核对官方依据，待数据刷新后再分析'
   if (cause.code === 'VERIFIED_SNAPSHOT_UNAVAILABLE') return '当前无法确认公开商机快照，请先核对官方依据，待数据恢复后再分析'
   if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
   if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机不在服务端已核验商机池中'
-  return 'AI分析暂时不可用，请稍后重试'
+  return '下一步行动暂时无法生成，请稍后重试'
 }
 
 function PoolCard({
@@ -194,17 +193,12 @@ function PoolCard({
             </button>
           </div>
         </div>
-        <div className="shrink-0 text-right">
-          <div className="text-2xl font-semibold tabular-nums text-slate-900">{card.priority.score}</div>
-          <div className="text-[11px] text-slate-400">
-            {card.priority.score_scope === 'PERSONALIZED' ? '个性化优先级' : '公开优先级'}
-          </div>
-        </div>
+
       </div>
 
       <details className="border-t border-slate-100 px-4 py-3">
         <summary className="cursor-pointer select-none text-[12px] font-medium text-teal-700">
-          查看设备、联系人、官方依据和AI判断
+          查看设备、联系人、官方依据和下一步行动
         </summary>
         <div className="mt-3 grid gap-4 text-[12px] leading-5 text-slate-600 md:grid-cols-2">
           <div>
@@ -364,7 +358,9 @@ export function OpportunityPoolPage() {
           card.model_decision_status === 'AWAITING_MODEL' &&
           !card.decision,
       )
-      .slice(0, 10)
+      // Rule-based next steps are instant; the client sends up to 3 requests
+      // of 10 ids. Cards further down keep the one-click fallback.
+      .slice(0, 30)
     if (candidates.length === 0) return () => { cancelled = true }
 
     void hydrateSharedAiDecisions(candidates).then((hydrated) => {
@@ -485,9 +481,6 @@ export function OpportunityPoolPage() {
     runtimeStatusChecked,
   )
   const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
-  const aiUnavailableReason = automationUnavailableReason || (
-    runtimeStatus?.ai.configured === false ? AI_UNCONFIGURED_REASON : null
-  )
 
   return (
     <div className="space-y-4">
@@ -565,9 +558,9 @@ export function OpportunityPoolPage() {
               aiBusy={aiBusyId === card.opportunity_id}
               followBusy={followBusyId === card.opportunity_id}
               onAnalyze={
-                aiUnavailableReason ? undefined : () => void analyze(card.opportunity_id)
+                automationUnavailableReason ? undefined : () => void analyze(card.opportunity_id)
               }
-              analysisUnavailableReason={aiUnavailableReason}
+              analysisUnavailableReason={automationUnavailableReason}
               onFollow={() => void addToFollowups(card.opportunity_id)}
               onOpen={() => navigate(`/opportunity/${card.opportunity_id}`)}
             />

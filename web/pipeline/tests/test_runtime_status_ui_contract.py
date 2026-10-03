@@ -56,8 +56,8 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
         self.assertIn('analysisDisabled={Boolean(automationUnavailableReason)}', detail)
         self.assertIn('Boolean(automationUnavailableReason)', detail)
         self.assertIn('runtimeStatusChecked', pool)
-        self.assertIn('aiUnavailableReason ? undefined : () => void analyze', pool)
-        self.assertIn('analysisUnavailableReason={aiUnavailableReason}', pool)
+        self.assertIn('automationUnavailableReason ? undefined : () => void analyze', pool)
+        self.assertIn('analysisUnavailableReason={automationUnavailableReason}', pool)
 
     def test_stale_snapshot_blocks_only_automation_not_manual_crm_actions(self) -> None:
         today = TODAY_PAGE.read_text(encoding='utf-8')

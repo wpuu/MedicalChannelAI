@@ -1,14 +1,15 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Clock, Info, Loader2, Radar, Sparkles } from 'lucide-react'
+import { Clock, Info, Radar, ShieldCheck } from 'lucide-react'
 import { ActionCard } from '@/components/today/ActionCard'
 import { DueRemindersPanel } from '@/components/today/DueRemindersPanel'
 import { MetricCards } from '@/components/today/MetricCards'
+import { PageBriefPanel } from '@/components/today/PageBriefPanel'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/PageStates'
 import { NotFitModal } from '@/components/followup/NotFitModal'
 import { RemindModal } from '@/components/followup/RemindModal'
 import { isVerifiedPublicDemo } from '@/config/demoDataset'
-import { marketSelectionLabel } from '@/config/marketPreference'
+import { marketCodesForSelection, marketSelectionLabel } from '@/config/marketPreference'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
@@ -45,7 +46,9 @@ const DONE_FOR_TODAY = new Set<FollowupStatus>([
   'ARCHIVED',
 ])
 const MAX_TODAY_CARDS = 5
-const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'
+// Type-only reference: the AI client module itself stays lazy-loaded.
+type PageBrief = import('@/services/aiDecisionApi').PageBrief
+const AI_UNCONFIGURED_REASON = 'AI服务暂未启用；今日已生成的AI研判会直接复用，否则显示规则排序。'
 
 function shouldHideFromVerifiedTrialToday(card: TodayActionCard): boolean {
   if (DONE_FOR_TODAY.has(card.followup_status)) return true
@@ -86,7 +89,10 @@ export function TodayPage() {
   const [error, setError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [aiBusyId, setAiBusyId] = useState<string | null>(null)
-  const [aiBatchBusy, setAiBatchBusy] = useState(false)
+  const [brief, setBrief] = useState<PageBrief | null>(null)
+  const [briefLoading, setBriefLoading] = useState(false)
+  const [briefGenerating, setBriefGenerating] = useState(false)
+  const [briefAiError, setBriefAiError] = useState<string | null>(null)
   const [reminderBusyId, setReminderBusyId] = useState<string | null>(null)
   const [notFitId, setNotFitId] = useState<string | null>(null)
   const [remindId, setRemindId] = useState<string | null>(null)
@@ -130,8 +136,10 @@ export function TodayPage() {
       if (!isApiMode && isVerifiedPublicDemo) {
         const { hydrateCachedAiDecisions } = await import('@/services/aiDecisionApi')
         const pool = res.opportunity_pool ?? res.cards
-        const hydratedPool = await hydrateCachedAiDecisions(pool)
-        const cards = hydratedPool
+        // Pick today's cards first, then fetch their rule-based next steps, so
+        // exactly the visible cards get one (previously the first 10 of the
+        // unsorted pool were hydrated and visible cards could be missed).
+        const selected = pool
           .filter((card) => !shouldHideFromVerifiedTrialToday(card))
           .filter((card) => !localFeedbackHidesFromToday(card))
           .sort((left, right) =>
@@ -141,6 +149,9 @@ export function TodayPage() {
           )
           .slice(0, MAX_TODAY_CARDS)
           .map((card, index) => ({ ...card, rank: index + 1 }))
+        const cards = await hydrateCachedAiDecisions(selected)
+        const hydratedById = new Map(cards.map((card) => [card.opportunity_id, card]))
+        const hydratedPool = pool.map((card) => hydratedById.get(card.opportunity_id) ?? card)
         nextData = {
           ...res,
           matched_count: hydratedPool.length,
@@ -178,6 +189,28 @@ export function TodayPage() {
   useEffect(() => {
     void load()
   }, [load])
+
+  // Page brief: cache-only on load (never calls the model), so the page shows
+  // today's shared AI brief instantly if anyone generated it, else rules.
+  useEffect(() => {
+    if (!isApiMode && !isVerifiedPublicDemo) return
+    let cancelled = false
+    setBriefLoading(true)
+    void import('@/services/aiDecisionApi')
+      .then((aiApi) => aiApi.requestPageBrief(marketCodesForSelection(), { cacheOnly: true }))
+      .then((result) => {
+        if (!cancelled) setBrief(result.brief)
+      })
+      .catch(() => {
+        // The brief is an overlay; Today cards stay fully usable without it.
+      })
+      .finally(() => {
+        if (!cancelled) setBriefLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const updateStatus = async (
     id: string,
@@ -228,7 +261,7 @@ export function TodayPage() {
           opportunity_pool: current.opportunity_pool?.map(updateCard),
         }
       })
-      toast('AI行动建议已生成', 'success')
+      toast('下一步行动已生成', 'success')
     } catch (cause) {
       if (aiApi && cause instanceof aiApi.AiDecisionError && cause.code === 'AUTH_REQUIRED') {
         navigate('/login', { replace: true })
@@ -243,72 +276,36 @@ export function TodayPage() {
     }
   }
 
-  const analyzeVisibleOpportunities = async () => {
+  const generatePageBrief = async () => {
     const automationUnavailableReason = runtimeAutomationUnavailableReason(
       runtimeStatus,
       runtimeStatusChecked,
     )
-    const candidates = data?.cards.filter(
-      (card) =>
-        card.model_decision_status === 'AWAITING_MODEL' &&
-        !card.decision,
-    ) ?? []
-    if (
-      candidates.length === 0 ||
-      automationUnavailableReason ||
-      (!isApiMode && !isVerifiedPublicDemo)
-    ) {
-      return
-    }
-
+    if (automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
     let aiApi: typeof import('@/services/aiDecisionApi') | null = null
-    setAiBatchBusy(true)
+    setBriefGenerating(true)
+    setBriefAiError(null)
     try {
       aiApi = await import('@/services/aiDecisionApi')
-      const result = await aiApi.requestAiDecisionBatch(candidates)
-      const readyIds = Object.keys(result.decisions)
-      if (readyIds.length > 0) {
-        setData((current) => {
-          if (!current) return current
-          const updateCard = (item: TodayActionCard) => {
-            const decision = result.decisions[item.opportunity_id]
-            return decision
-              ? {
-                  ...item,
-                  model_decision_status: 'READY' as const,
-                  model_block_reason: null,
-                  decision,
-                }
-              : item
-          }
-          return {
-            ...current,
-            cards: current.cards.map(updateCard),
-            opportunity_pool: current.opportunity_pool?.map(updateCard),
-          }
-        })
-      }
-
-      const errorCount = Object.keys(result.errors).length
-      if (readyIds.length > 0 && errorCount === 0) {
-        toast(`AI已完成 ${readyIds.length} 条行动分析`, 'success')
-      } else if (readyIds.length > 0) {
-        toast(`已完成 ${readyIds.length} 条，另有 ${errorCount} 条未完成`)
-      } else if (errorCount > 0) {
-        const firstCode = Object.values(result.errors)[0]
-        toast(aiApi.aiDecisionErrorMessage(new aiApi.AiDecisionError(firstCode, 502)))
+      const result = await aiApi.requestPageBrief(marketCodesForSelection())
+      setBrief(result.brief)
+      if (result.brief.brief_source === 'AI') {
+        toast('AI整页研判已生成', 'success')
+      } else {
+        setBriefAiError(result.ai_error ?? 'AI_PROVIDER_UNAVAILABLE')
+        if (result.ai_error === 'AI_NOT_CONFIGURED') {
+          setRuntimeStatus((current) => current ? { ...current, ai: { configured: false } } : current)
+        }
+        toast(aiApi.aiDecisionErrorMessage(new aiApi.AiDecisionError(result.ai_error ?? 'AI_PROVIDER_UNAVAILABLE', 502)))
       }
     } catch (cause) {
       if (aiApi && cause instanceof aiApi.AiDecisionError && cause.code === 'AUTH_REQUIRED') {
         navigate('/login', { replace: true })
         return
       }
-      if (aiApi && cause instanceof aiApi.AiDecisionError && cause.code === 'AI_NOT_CONFIGURED') {
-        setRuntimeStatus((current) => current ? { ...current, ai: { configured: false } } : current)
-      }
-      toast(aiApi ? aiApi.aiDecisionErrorMessage(cause) : 'AI批量分析模块加载失败，请重试')
+      toast(aiApi ? aiApi.aiDecisionErrorMessage(cause) : 'AI研判模块加载失败，请重试')
     } finally {
-      setAiBatchBusy(false)
+      setBriefGenerating(false)
     }
   }
 
@@ -349,9 +346,6 @@ export function TodayPage() {
       : null
   )
   const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
-  const pendingAiCount = visibleCards.filter(
-    (card) => card.model_decision_status === 'AWAITING_MODEL' && !card.decision,
-  ).length
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -360,7 +354,7 @@ export function TodayPage() {
           <div>
             <h2 className="text-[17px] font-semibold text-slate-900 sm:text-lg">今天值得跟的医疗商机</h2>
             <p className="mt-1 text-[12px] leading-5 text-slate-500 sm:text-[13px] sm:leading-6">
-              先看重点，再决定联系、跟进或按需让AI分析。
+              先看今日研判，再逐条核对官方依据、决定联系或跟进。
             </p>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-slate-500 sm:text-[12px]">
@@ -374,18 +368,6 @@ export function TodayPage() {
             <span>{userCoverageWarning(data.coverage_warning)}</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {(isApiMode || isVerifiedPublicDemo) && pendingAiCount > 0 ? (
-              <button
-                type="button"
-                disabled={aiBatchBusy || Boolean(aiUnavailableReason)}
-                onClick={() => void analyzeVisibleOpportunities()}
-                title={aiUnavailableReason || '一次请求分析当前页面所有尚未分析的重点商机'}
-                className="inline-flex self-start items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[12px] font-medium text-indigo-800 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-500"
-              >
-                {aiBatchBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                {aiBatchBusy ? '批量分析中' : `AI分析未分析项（${pendingAiCount}）`}
-              </button>
-            ) : null}
             {(isApiMode || isVerifiedPublicDemo) ? (
               <button
                 type="button"
@@ -410,6 +392,19 @@ export function TodayPage() {
         </div>
       </section>
 
+      {isApiMode || isVerifiedPublicDemo ? (
+        <PageBriefPanel
+          brief={brief}
+          regionLabel={marketSelectionLabel()}
+          loading={briefLoading}
+          generating={briefGenerating}
+          aiUnavailableReason={aiUnavailableReason}
+          aiError={briefAiError}
+          onGenerate={() => void generatePageBrief()}
+          onOpen={(opportunityId) => navigate(`/opportunity/${opportunityId}`)}
+        />
+      ) : null}
+
       {snapshotWarning ? (
         <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12px] leading-5 text-amber-900">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
@@ -422,9 +417,9 @@ export function TodayPage() {
           <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">业务地区：{marketSelectionLabel()}</span>
           <span>每条商机可查看官方依据</span>
           {runtimeStatus?.ai.configured ? (
-            <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-indigo-700">AI可用</span>
+            <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-indigo-700">AI整页研判可用</span>
           ) : runtimeStatus?.ai.configured === false ? (
-            <span className="rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700">AI建议按需加载</span>
+            <span className="rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700">当前为规则排序</span>
           ) : null}
         </div>
       ) : null}
@@ -460,12 +455,17 @@ export function TodayPage() {
               }}
               onAnalyze={isApiMode || isVerifiedPublicDemo ? () => void analyzeOpportunity(card.opportunity_id) : undefined}
               onFeedbackChanged={() => load(true)}
-              analysisUnavailableReason={aiUnavailableReason}
+              analysisUnavailableReason={automationUnavailableReason}
               automationUnavailableReason={automationUnavailableReason}
             />
           ))}
         </div>
       )}
+
+      <p className="flex items-start gap-1.5 px-1 text-[11px] leading-5 text-slate-400">
+        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        所有建议只基于已核验官方公开信息：技术参数、资格条件和截止时间以官方原文为准；联系对象的答复只有明确回复才算事实；重点关注不等于已有关系；是否参与、报价和承诺由你人工决定。
+      </p>
 
       <NotFitModal
         open={Boolean(notFitId)}
