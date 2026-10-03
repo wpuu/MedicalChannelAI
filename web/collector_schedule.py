@@ -12,8 +12,8 @@ def scheduled_cycle(now: datetime, period: str) -> tuple[str, datetime]:
         raise ValueError('COLLECTOR_PERIOD_INVALID')
     local = now.astimezone(SHANGHAI)
     hour = PERIOD_HOURS[period]
-    # Hobby has hourly precision. Accept the configured hour and up to 59
-    # minutes after :20; reject late old-period triggers outside this window.
+    # Hobby has hourly precision. Allow the named hour and one recovery hour
+    # (08:00–10:00 / 12:00–14:00, end exclusive), independent of :20.
     if not hour <= local.hour < hour + 2:
         raise ValueError('COLLECTOR_PERIOD_OUTSIDE_WINDOW')
     anchor = local  # Freeze the actual first start, never synthesize a future freshness clock.

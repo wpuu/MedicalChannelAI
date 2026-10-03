@@ -8,12 +8,18 @@
 
 此前 840 Python、浏览器 36 项与独立审查记录是该旧 HEAD 的历史证据，参见 [原验收记录](../collection-reliability-verification.md)，不计成本轮运行。本轮定向日志保存在 [evidence](evidence/twice-daily-20261003/)。新增 25 项周期/恢复测试；既有相关 76 项 collector、14 项 tick、12 项 namespace、4 项 queue、4 项 fallback 与12项 stage-dispatch 合约通过（共 147 项）。不为更新数字重跑历史浏览器或全部历史矩阵。首推 `2b913388a20b6ac961394de8564dc4a5aa98d013` 的 [Verify 37108302750](https://github.com/wpuu/MedicalChannelAI/actions/runs/37108302750) 执行 865 Python 测试，2 项旧 AST 分派测试因新增周期保护 wrapper 提取范围改变而失败。仅修正两项测试提取 `_run_stage` 并保留 wrapper 委托断言，12 项分派定向检查通过，产品冻结源哈希不变。必要修正集中补推一次，未手动重跑 CI、未重复部署；最终结果在 PR 检查与 PR 描述按精确 HEAD 回读登记。
 
+## 本次续办核对
+
+本环境初始仍是干净旧主线，原本地patch、85项日志及真实DATABASE响应文件均缺失；没有将缺失文件视为已读取。本次实际读回远端 `4038b5d1597d57277e67ea1d86fc40a05233223a` 并检出，复用已提交的40文件候选和历史审查，不从头重做。原始重建报告仍是此前证据，本次没有重复声称复建441条真实响应。已读回该HEAD的 [Verify 37115608340 SUCCESS](https://github.com/wpuu/MedicalChannelAI/actions/runs/37115608340) 及日志：875项Python、全部prebuild、TypeScript/Vite通过，live步骤skipped。续办初始35项周期/恢复＋20项native可靠性定向复核通过。独立审查随后发现终点读后删除ACTIVE可能删除午间入口刚激活的marker：Queue串行不覆盖Cron入口。已修正为终点保留marker至新周期替换/TTL，结束周期重复投递先被META终点状态拒绝；新增保留/替换与结束重投边界，并保留旧反例实证：同一确定性交错复现旧hook删除午间marker，新hook保留午间marker。最终本地定向37周期＋2竞态＋20native＋13增量合约＋14tick＋12namespace，共98项通过；4项是新增测试，不将旧85项计入。两处旧调度注释、精确验证记录和恢复顺序同步修正；最终定向数字与冻结哈希见续办报告，不能将原4038b5d绿灯当新修复的验证。新增独立审查见 [续办报告](evidence/twice-daily-20261003/resumed-independent-review.md)，最终提交及其CI由PR75精确回读登记。
+
+续办只读Vercel团队、目标项目列表、生产别名、部署列表与24小时collector日志成功：生产仍为 `6229959` / `dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1`，无候选新部署，日志无记录不能证明暂停/无积压。`get_project(projectId=...)` 单次返回 `INVALID_ARGUMENT`：后端缺 `idOrName`；未把它泛化为连接不可用，未重复同一错误。实际套餐/Cron/queue控制面仍未知；两条GitHub采集workflow仍disabled_manually。本次再次只读官方Cron定价文档确认100个任务/每任务每天一次/小时级精度；不把这当作实际账号套餐。生产数据状态数值沿用此前读回，不当作本次重新读取。
+
 ## 时段、幂等与数据保护
 
 - 候选 Cron：`20 0 * * *` → `?period=morning`，`20 4 * * *` → `?period=noon`；北京时间名义 08:20 / 12:20。每条每天一次，不使用一个 `20 0,4 * * *`，不升级套餐。
 - [官方 usage-and-pricing](https://vercel.com/docs/cron-jobs/usage-and-pricing)，2026-10-03 实际读取：各套餐最多 100 个 Cron；Hobby 每个任务每天一次、小时级精度（±59 分钟），文档例子为小时内任意时刻。技能中“最多 2 个”过时。[Queue concepts](https://vercel.com/docs/queues/concepts) 与 [Python SDK](https://vercel.com/docs/queues/python-sdk) 同日读取确认 cap 控制 push dispatcher 的组内在途数量，满额直到 ACK/lease 到期才再投递；官方 JSON schema 确认 v2 trigger 支持 `maxConcurrency`/`maxDeliveries`。实际账号套餐仍未知，不能把文档条款当成该账号已核验的套餐。
 - 周期由中国日期与明确 `period` 标识，早间和午间独立；入口接受 08:00–10:00 / 12:00–14:00 的恢复容差窗口（右端不包含），窗口不是准时承诺。首次真实触发时间冻结为 `cycle_as_of`，重试不改变；小时初触发不会制造未来版本时间。所有 stage 使用相同周期时钟，但 RUNNING 租约使用真实 wall clock。
-- 同周期开始和各 stage 的 Queue key 保持幂等；已结束周期不重新发送。活跃 RUNNING 重复投递返回冲突；明确超过 300 秒函数上限＋60 秒缓冲后才允许重试。周期重试额度各自独立。
+- 同周期开始和各 stage 的 Queue key 保持幂等；已结束周期不重新发送或执行。完成/终止后保留ACTIVE marker，由新周期替换或TTL到期；不做无CAS的读后删除，避免Cron入口刚激活的新周期被旧终点删除。活跃 RUNNING 重复投递返回冲突；明确超过 300 秒函数上限＋60 秒缓冲后才允许重试。周期重试额度各自独立。
 - 新消息携带 `schedule_version=twice-daily-v1`。旧格式 deep、incremental、tick 仅确认不执行、不续链；任何自动增量分支关闭。完整或失败 deep 终点不再启动 15 分钟链；手动 incremental 入口拒绝。
 - 执行前、canonical/status 写前、持久发布前、读缓存提交和回滚前检查周期所有权；状态比较也包含 `cycle_id`。旧日消息丢弃，同日旧周期不能覆盖新周期。v2 Queue 和 canonical namespace 保持；无新来源、地区或架构。
 - 保留所有配置刷新stage成功门禁、真实覆盖标记及失败旧公开版本、canonical/缓存保护、durable 单调版本事务门禁、AI 版本/来源绑定。数据库和 Runtime Cache 没有跨存储事务；durable 已接受但缓存失败仍需线上验证读恢复。
@@ -63,7 +69,7 @@
 
 上述前置门禁满足、用户批准后，针对冻结且 CI 成功的 PR75 HEAD 合并到 `main`，只产生一次正式 Production 部署；main 现有 Git 集成会部署，不另外创建 Preview 或重复手动 deploy。Cron/消费者仍保持暂停直到实际新生产 commit、artifact、配置、canonical 与读路径核对通过。
 
-先核验 `/api/status` 的新 commit、旧数据还可读、Today/Pool/Detail 显示的版本和 AI cache-only 绑定；不要调用模型生成来验收。开启仅新 deployment 的串行 consumer，旧积压隔离结果与无自动 tick continuation 可回读后，在一个匹配时段只启动一个当前新周期（需要发布审批覆盖此真实采集动作），不补跑旧周期。核验全配置刷新 stage 门禁、明确partial历史范围、同周期重试、durable 接受、cache readback 与页面同一版本/真实partial范围；失败保留旧数据，停止自动恢复，不把 HTTP 202 当搜索成功。确认早间和午间分别形成独立 cycle 并通过配置刷新范围门禁、公开版本一致和partial展示验收后，才可称“每日两次配置来源搜索恢复”；不得称全部历史来源自动监控已恢复。随后按批准范围恢复两条每日 Cron，保留 GitHub fallback 关闭。
+先核验 `/api/status` 的新 commit、旧数据还可读、Today/Pool/Detail 显示的版本和 AI cache-only 绑定；不要调用模型生成来验收。开启仅新 deployment 的串行 consumer，旧积压隔离结果与无自动 tick continuation 可回读后，在一个匹配时段只启动一个当前新周期（需要发布审批覆盖此真实采集动作），不补跑旧周期。核验全配置刷新 stage 门禁、明确partial历史范围、同周期重试、durable 接受、cache readback 与页面同一版本/真实partial范围；失败保留旧数据，停止自动恢复，不把 HTTP 202 当搜索成功。单一当前周期通过上述验收后，才按本次明确批准范围启用两条每日Cron；保留GitHub fallback关闭，观察另一时段的自然触发，不额外手动补采。两个时段分别形成独立cycle并通过配置刷新范围门禁、公开版本一致和partial展示验收后，才可称“每日两次配置来源搜索恢复”；不得称全部历史来源自动监控已恢复。自然触发缺失或失败立即执行暂停/失败流程，不以首个周期成功代替双周期验收。若批准不包含启用两条Cron，则首个周期验收后继续暂停，并将另一周期验收明确标为待批准。
 
 ## 失败、回退与恢复
 
@@ -73,4 +79,4 @@
 
 ## 审批对象
 
-批准对象是**指定 HEAD 的 PR75 一次合并＋一次 Production 发布，以及通过门禁后的单一当前周期受控恢复**；不包括付费升级、Preview、清队列、任意补采或模型调用。此文没有授予发布权限。本轮只准备候选，控制面、canonical 恢复与两周期线上验收未完成。
+批准对象是**指定 HEAD 的 PR75 一次合并＋一次 Production 发布，以及通过门禁后的单一当前周期受控恢复、该周期验收后启用两条每日Cron并观察下一时段自然触发**；不包括付费升级、Preview、清队列、任意补采或模型调用。此文没有授予发布权限。本轮只准备候选，控制面、canonical 恢复与两周期线上验收未完成。

@@ -73,7 +73,7 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.assertIn('active_cycle_id(cache.get(ACTIVE_CYCLE_KEY))', self.trigger)
         self.assertIn('INCREMENTAL_BLOCKED_BY_DEEP_CYCLE', self.trigger)
 
-    def test_terminal_deep_paths_release_active_cycle_lease(self) -> None:
+    def test_terminal_deep_paths_retain_marker_without_unsafe_delete(self) -> None:
         publish_release = self.queue.index('_release_active_cycle_if_owned(cycle_id)')
         second_release = self.queue.index('_release_active_cycle_if_owned(cycle_id)', publish_release + 1)
         terminal_branch = self.queue.index('result.get("terminal") is True')
@@ -81,7 +81,7 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.assertGreater(second_release, terminal_branch)
         self.assertIn('action in {"FAILED", "BLOCKED"}', self.queue)
         self.assertIn('await _enqueue_stage(stage=next_stage', self.queue)
-        self.assertIn('cache.delete(ACTIVE_CYCLE_KEY)', self.queue)
+        self.assertNotIn('cache.delete(ACTIVE_CYCLE_KEY)', self.queue)
 
     def test_incremental_failures_leave_bucket_open_for_idempotent_retry(self) -> None:
         self.assertIn('INCREMENTAL_DETAIL_VERIFICATION_INCOMPLETE', self.runtime)

@@ -71,9 +71,19 @@ def _active_cycle_matches(cycle_id: str, *, cycle_as_of: datetime) -> bool:
     cache = RuntimeCache()
     cycle_local_date = cycle_as_of.astimezone(TICK_SHANGHAI).date().isoformat()
     current_local_date = datetime.now(timezone.utc).astimezone(TICK_SHANGHAI).date().isoformat()
+    state = cache.get(META_KEY)
+    if isinstance(state, dict) and state.get("cycle_id") == cycle_id:
+        stages = state.get("stages")
+        publish = stages.get("publish") if isinstance(stages, dict) else None
+        if isinstance(publish, dict) and (
+            publish.get("status") == "COMPLETED" or (
+                publish.get("status") in {"FAILED", "BLOCKED"} and publish.get("terminal") is True
+            )
+        ):
+            return False
     disposition = deep_message_lease_disposition(
         cache.get(ACTIVE_CYCLE_KEY),
-        cache.get(META_KEY),
+        state,
         cycle_id=cycle_id,
         cycle_local_date=cycle_local_date,
         current_local_date=current_local_date,
@@ -86,9 +96,15 @@ def _active_cycle_matches(cycle_id: str, *, cycle_as_of: datetime) -> bool:
 
 
 def _release_active_cycle_if_owned(cycle_id: str) -> None:
-    cache = RuntimeCache()
-    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) == cycle_id:
-        cache.delete(ACTIVE_CYCLE_KEY)
+    """Retain the ended marker; the next cycle replaces it or its TTL expires.
+
+    This historical completion hook must not read-then-delete: RuntimeCache has
+    no compare-and-delete, and a Cron entry can activate a newer period between
+    those operations even when Queue delivery is serialized. Terminal META
+    blocks redelivery; the start entry rejects the ended period and can replace
+    its stale marker for the next period.
+    """
+    return
 
 
 def _write_chain_state(
@@ -402,9 +418,9 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
         next_stage = _next_stage(stage)
         if next_stage is None:
-            # Only a completed publish makes this cycle authoritative and clears
-            # source-local staging. A degraded terminal cycle still gets its
-            # intraday chain, but leaves incremental pending barriers intact.
+            # Only a completed publish clears source-local pending staging.
+            # Neither successful nor degraded terminal cycles start an
+            # automatic incremental chain in the twice-daily schedule.
             incremental_runtime.clear_incremental_pending(RuntimeCache())
             _release_active_cycle_if_owned(cycle_id)
             return

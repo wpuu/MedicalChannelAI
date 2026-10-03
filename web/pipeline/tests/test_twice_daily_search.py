@@ -107,6 +107,32 @@ class TwiceDailySearchTests(unittest.TestCase):
         self.assertEqual(result[2], self.nid)
         send.assert_awaited_once()
 
+    def test_ended_marker_is_retained_and_next_period_replaces_it(self):
+        for publish in ({'status': 'COMPLETED'}, {'status': 'BLOCKED', 'terminal': True}):
+            self.lease(self.mid, self.ma)
+            self.cache.set(META_KEY, {'cycle_id': self.mid, 'cycle_as_of': self.ma.isoformat(), 'stages': {'publish': publish}})
+            with patch.object(queue, 'RuntimeCache', return_value=self.cache):
+                queue._release_active_cycle_if_owned(self.mid)
+            self.assertEqual(self.cache.get(ACTIVE_CYCLE_KEY)['cycle_id'], self.mid)
+            with patch.object(start, 'RuntimeCache', return_value=self.cache), patch.object(start, 'send', new_callable=AsyncMock), patch.object(start, 'datetime') as clock:
+                clock.now.return_value = NOON
+                clock.fromisoformat.side_effect = datetime.fromisoformat
+                result = asyncio.run(start._enqueue_start('OFFLINE', 'noon'))
+            self.assertEqual(result[2], self.nid)
+            self.assertEqual(self.cache.get(ACTIVE_CYCLE_KEY)['cycle_id'], self.nid)
+
+    def test_ended_period_redelivery_with_retained_marker_does_no_work(self):
+        payload = {'schema_version': '0.1', 'schedule_version': SCHEDULE_VERSION, 'stage': 'publish', 'cycle_id': self.mid, 'cycle_as_of': self.ma.isoformat()}
+        for publish in ({'status': 'COMPLETED'}, {'status': 'FAILED', 'terminal': True}, {'status': 'BLOCKED', 'terminal': True}):
+            self.lease(self.mid, self.ma)
+            self.cache.set(META_KEY, {'cycle_id': self.mid, 'cycle_as_of': self.ma.isoformat(), 'stages': {'publish': publish}})
+            with patch.object(queue, 'RuntimeCache', return_value=self.cache), patch.object(runtime, 'run_stage') as run, patch.object(queue.incremental_runtime, 'clear_incremental_pending') as clear, patch.object(queue, 'send', new_callable=AsyncMock) as send:
+                asyncio.run(queue.process_collector_payload(payload))
+            run.assert_not_called()
+            clear.assert_not_called()
+            send.assert_not_awaited()
+            self.assertEqual(self.cache.get(ACTIVE_CYCLE_KEY)['cycle_id'], self.mid)
+
     def test_noon_runtime_does_not_reuse_completed_morning(self):
         self.lease(self.mid, self.ma)
         with patch.object(runtime, 'RuntimeCache', return_value=self.cache), patch.object(runtime, '_run_ccgp', return_value={'ok': True}) as run:
