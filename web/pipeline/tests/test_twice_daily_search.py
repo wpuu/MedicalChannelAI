@@ -254,6 +254,8 @@ class TwiceDailySearchTests(unittest.TestCase):
             self.cache.set(key, [])
         for code in runtime.REGIONAL_STAGE_MARKET_CODES.values():
             self.cache.set(runtime._regional_records_key(code), [])
+        for key in runtime.PRESERVED_SOURCE_RECORDS_KEYS.values():
+            self.cache.set(key, [])
         return {'cycle_as_of': self.ma.isoformat(), 'stages': {
             stage: {'status': 'COMPLETED', 'terminal': True, 'result': {'fallback_required': False}}
             for stage in runtime.STAGE_ORDER if stage != 'publish'
@@ -333,5 +335,96 @@ class TwiceDailySearchTests(unittest.TestCase):
             self.assertEqual(records, [{'opportunity_id': 'now-expired'}, {'opportunity_id': 'new-fact'}])
             self.cache.set(runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY, self._baseline([]))
             runtime._require_published_canonical_history(self.cache, [], as_of=self.ma)
+        finally:
+            runtime._SCHEDULED_CYCLE.reset(token)
+
+    def _real_history(self):
+        files = ['ccgp', 'tjmugh', 'tjnothop', 'tjzxfc', 'tjzyefy',
+                 'tjzyefy_intent', 'teda', 'tjfch']
+        local = {name: json.loads((runtime.DATA_ROOT / f'tianjin_live_{name}_records.json').read_text())
+                 for name in files}
+        regional = json.loads((runtime.DATA_ROOT / 'regional_live_ccgp_records.json').read_text())
+        return local, regional
+
+    def test_preserved_history_requires_real_separate_valid_shards_without_bootstrap(self):
+        local, _ = self._real_history()
+        token = runtime._SCHEDULED_CYCLE.set(self.mid)
+        try:
+            for source, key in runtime.PRESERVED_SOURCE_RECORDS_KEYS.items():
+                with self.assertRaisesRegex(runtime.CollectorPrecondition, 'HISTORY_UNAVAILABLE'):
+                    runtime._preserved_source_history(self.cache)
+                self.cache.set(key, local[source.replace('-', '_')])
+            self.assertEqual(len(runtime._preserved_source_history(self.cache)), 8)
+            key = runtime.PRESERVED_SOURCE_RECORDS_KEYS['tjzyefy']
+            for invalid in ([None], local['tjzyefy_intent'], {}):
+                self.cache.set(key, invalid)
+                with self.assertRaisesRegex(runtime.CollectorPrecondition, 'HISTORY_(INVALID|UNAVAILABLE)'):
+                    runtime._preserved_source_history(self.cache)
+        finally:
+            runtime._SCHEDULED_CYCLE.reset(token)
+
+    def test_scheduled_projection_matches_real_static_cards_without_changing_canonical(self):
+        local, regional = self._real_history()
+        records = [row for rows in local.values() for row in rows]
+        before = json.dumps([records, regional], sort_keys=True)
+        baseline = json.loads((WEB / 'public/data/today-actions.public.json').read_text())
+        clock = datetime.fromisoformat(baseline['snapshot_as_of'])
+        events = json.loads((runtime.DATA_ROOT / 'tianjin_notice_events.json').read_text())
+        rebuilt = runtime._build_scheduled_public_snapshot(records, regional, clock, events)
+        self.assertEqual(rebuilt['opportunity_pool'], baseline['opportunity_pool'])
+        self.assertEqual(json.dumps([records, regional], sort_keys=True), before)
+        self.assertTrue(all(row['facts']['market_code'] for row in rebuilt['opportunity_pool']))
+
+    def test_scheduled_projection_rejects_cross_shard_duplicate_and_wrong_market(self):
+        local, regional = self._real_history()
+        row = local['tjzyefy_intent'][0]
+        with self.assertRaisesRegex(runtime.CollectorPrecondition, 'ID_CONFLICT'):
+            runtime._build_scheduled_public_snapshot([row], [row], self.ma, [])
+        with self.assertRaisesRegex(runtime.CollectorPrecondition, 'MARKET_MISMATCH'):
+            runtime._build_scheduled_public_snapshot([regional[0]], [], self.ma, [])
+        broken = json.loads(json.dumps(regional[:1]))
+        broken[0]['facts'].pop('market_code')
+        with self.assertRaisesRegex(runtime.CollectorPrecondition, 'MARKET_MISMATCH'):
+            runtime._build_scheduled_public_snapshot([], broken, self.ma, [])
+
+    def test_known_tianjin_history_null_market_metadata_is_normalized_only_in_copy(self):
+        local, _ = self._real_history()
+        for missing in (None, '', '   '):
+            row = json.loads(json.dumps(local['tjzyefy_intent'][0]))
+            for field in ('market_code', 'market_name', 'market_admin_code'):
+                row['facts'][field] = missing
+            rebuilt = runtime._build_scheduled_public_snapshot([row], [], self.ma, [])
+            facts = rebuilt['opportunity_pool'][0]['facts']
+            self.assertEqual((facts['market_code'], facts['market_name'], facts['market_admin_code']), ('TJ', '天津', '120000'))
+            self.assertIs(row['facts']['market_code'], missing)
+        row['facts']['market_name'] = '北京'
+        with self.assertRaisesRegex(ValueError, 'MARKET_NAME_MISMATCH'):
+            runtime._build_scheduled_public_snapshot([row], [], self.ma, [])
+
+    def test_real_history_publish_retains_intents_but_does_not_claim_refreshed_coverage(self):
+        state = self._publish_cache_and_state()
+        local, regional = self._real_history()
+        for name, key in [('ccgp', runtime.CCGP_RECORDS_KEY), ('tjmugh', runtime.TJMUGH_RECORDS_KEY),
+                          ('tjnothop', runtime.TJNOTHOP_RECORDS_KEY), ('teda', runtime.TEDA_RECORDS_KEY),
+                          ('tjfch', runtime.TJFCH_RECORDS_KEY)]:
+            self.cache.set(key, local[name])
+        for source, key in runtime.PRESERVED_SOURCE_RECORDS_KEYS.items():
+            self.cache.set(key, local[source.replace('-', '_')])
+        for code in runtime.REGIONAL_STAGE_MARKET_CODES.values():
+            self.cache.set(runtime._regional_records_key(code), [row for row in regional if row['facts']['market_code'] == code])
+        baseline = json.loads((WEB / 'public/data/today-actions.public.json').read_text())
+        self.cache.set(runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY, baseline)
+        token = runtime._SCHEDULED_CYCLE.set(self.mid)
+        try:
+            with patch.object(runtime, '_persist_verified_snapshot_durably', return_value={'snapshot_as_of': self.ma.isoformat()}):
+                result = runtime._run_publish(self.cache, state)
+            self.assertEqual(result['canonical_record_count'], 911)
+            published = self.cache.get(runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+            ids = {row['opportunity_id'] for row in published['opportunity_pool']}
+            self.assertTrue({row['opportunity_id'] for row in local['tjzyefy_intent']}.issubset(ids))
+            self.assertIs(published['collection_coverage']['complete'], False)
+            self.assertIsNone(published['collection_coverage']['last_complete_as_of'])
+            self.assertEqual(published['collection_coverage']['history_only_source_ids'], list(runtime.PRESERVED_SOURCE_RECORDS_KEYS))
+            self.assertEqual(published, self.cache.get(runtime.LATEST_RUNTIME_SNAPSHOT_KEY))
         finally:
             runtime._SCHEDULED_CYCLE.reset(token)

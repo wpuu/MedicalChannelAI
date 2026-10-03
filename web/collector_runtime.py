@@ -26,6 +26,8 @@ sys.path.insert(0, str(PIPELINE_ROOT))
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
+from medical_channel_pipeline.validation import validate_records  # noqa: E402
+from publish_web_snapshot import combine_snapshots  # noqa: E402
 from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
 from medical_channel_pipeline.state import (  # noqa: E402
     active_ccgp_project_numbers,
@@ -121,6 +123,13 @@ TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v1"
 REGIONAL_RECORDS_KEY_PREFIX = "medicalchannelai:collector-regional-records:v3"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 PUBLISHED_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:published:v2"
+# Historical stores already included in static publication. No acquisition
+# stage or bootstrap is added: verified restoration must provide these arrays.
+PRESERVED_SOURCE_RECORDS_KEYS = {
+    "tjzxfc": "medicalchannelai:collector-tjzxfc-records:v2",
+    "tjzyefy": "medicalchannelai:collector-tjzyefy-records:v2",
+    "tjzyefy-intent": "medicalchannelai:collector-tjzyefy-intent-records:v2",
+}
 DURABLE_PUBLISH_URL = "https://medicalchannelai.vercel.app/api/public-snapshot"
 DURABLE_PUBLISH_TIMEOUT_SECONDS = 30
 
@@ -1533,6 +1542,62 @@ def _require_published_canonical_history(
         raise CollectorPrecondition("COLLECTOR_CANONICAL_PUBLISHED_HISTORY_MISSING")
 
 
+def _preserved_source_history(cache: RuntimeCache) -> list[dict[str, Any]]:
+    if _SCHEDULED_CYCLE.get() is None:
+        return []
+    history = []
+    for source, key in PRESERVED_SOURCE_RECORDS_KEYS.items():
+        rows = cache.get(key)
+        if not isinstance(rows, list):
+            raise CollectorPrecondition("COLLECTOR_PRESERVED_HISTORY_UNAVAILABLE:" + source)
+        try:
+            validate_records(rows)
+            for row in rows:
+                if not str(row["source"]["source_id"]).startswith(source + ":"):
+                    raise ValueError("WRONG_HISTORICAL_SOURCE")
+                if str(row["facts"].get("market_code") or "TJ").upper() != "TJ":
+                    raise ValueError("WRONG_HISTORICAL_MARKET")
+        except (ValueError, TypeError, KeyError, AttributeError) as exc:
+            raise CollectorPrecondition("COLLECTOR_PRESERVED_HISTORY_INVALID:" + source) from exc
+        history.extend(rows)
+    return history
+
+
+def _build_scheduled_public_snapshot(
+    tianjin_records: list[dict[str, Any]],
+    regional_records: list[dict[str, Any]],
+    as_of: datetime,
+    events: list[dict[str, Any]],
+) -> dict[str, Any]:
+    ids = [row.get("opportunity_id") for row in tianjin_records + regional_records]
+    if len(ids) != len(set(ids)):
+        raise CollectorPrecondition("COLLECTOR_CANONICAL_ID_CONFLICT")
+    # Keep canonical immutable and follow the existing static publication
+    # transform, including market metadata and Tianjin-only event isolation.
+    local = json.loads(json.dumps(tianjin_records))
+    for row in local:
+        facts = row["facts"]
+        if (str(facts.get("market_code") or "").strip().upper() or "TJ") != "TJ":
+            raise CollectorPrecondition("COLLECTOR_CANONICAL_MARKET_MISMATCH")
+        facts["market_code"] = "TJ"
+        for field, value in (("market_name", "天津"), ("market_admin_code", "120000")):
+            if not str(facts.get(field) or "").strip():
+                facts[field] = value
+    for row in regional_records:
+        facts = row.get("facts") or {}
+        if (
+            facts.get("market_code") not in REGIONAL_STAGE_MARKET_CODES.values()
+            or not facts.get("market_name")
+            or not facts.get("market_admin_code")
+        ):
+            raise CollectorPrecondition("COLLECTOR_CANONICAL_MARKET_MISMATCH")
+    return combine_snapshots(
+        build_public_snapshot(local, as_of, events),
+        build_public_snapshot(regional_records, as_of, []),
+        local + regional_records, as_of,
+    )
+
+
 def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     stages = state.get("stages")
     if isinstance(stages, dict):
@@ -1581,17 +1646,22 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         for market_code in REGIONAL_STAGE_MARKET_CODES.values()
         for record in regional_records_by_market[market_code]
     ]
-    records = (
+    tianjin_records = (
         list(ccgp_records)
         + list(tjmugh_records)
         + list(tjnothop_records)
         + list(teda_records)
         + list(tjfch_records)
-        + regional_records
+        + _preserved_source_history(cache)
     )
+    records = tianjin_records + regional_records
     as_of = _cycle_as_of(state)
     _require_published_canonical_history(cache, records, as_of=as_of)
-    snapshot = build_public_snapshot(records, as_of, list(events))
+    snapshot = (
+        _build_scheduled_public_snapshot(tianjin_records, regional_records, as_of, list(events))
+        if _SCHEDULED_CYCLE.get() is not None
+        else build_public_snapshot(records, as_of, list(events))
+    )
     incremental_source = str(state.get("incremental_source") or "").strip().lower()
     if incremental_source:
         last_complete_as_of = str(state.get("last_complete_as_of") or "").strip()
@@ -1641,6 +1711,16 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             "updated_source_ids": updated_source_ids,
             "failed_source_ids": [],
         }
+        if _SCHEDULED_CYCLE.get() is not None:
+            prior = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+            prior_coverage = prior.get("collection_coverage") if isinstance(prior, dict) else None
+            snapshot["collection_coverage"].update({
+                # Preserving archived sources is not a fresh collection of them.
+                # Existing UI/AI and durable base-match gates honor partial scope.
+                "complete": False,
+                "last_complete_as_of": prior_coverage.get("last_complete_as_of") if isinstance(prior_coverage, dict) else None,
+                "history_only_source_ids": list(PRESERVED_SOURCE_RECORDS_KEYS),
+            })
     digest = _digest(snapshot)
     old_latest = cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
     old_published = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)

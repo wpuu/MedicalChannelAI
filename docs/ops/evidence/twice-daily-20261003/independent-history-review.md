@@ -45,3 +45,5 @@ python docs/ops/evidence/twice-daily-20261003/reconstruct_historical.py \
 | `web/collector_runtime.py` | `f0364cf145a2632547d4cb4fe5502c301d1e81e7b3e673bb197b2d7785bead61` |
 | `web/pipeline/tests/test_twice_daily_search.py` | `0dffd9d245c4888d8116ff1d3a940124a2176a2a1e25911bccdd48e6e44faefc` |
 | `docs/ops/evidence/twice-daily-20261003/reconstruct_historical.py` | `8b6ab893788d79d4f6002949ec0d34c10a12c1a97e0f0fceb656386294e5dea4` |
+
+后续版本说明：本报告哈希与裸worker差异针对`d435749`历史门禁提交；进一步history readers、scheduled投影及partial覆盖修复的冻结哈希/审查见`independent-projection-review.md`。原问题实证保留，不作为最终版本未修复断言。

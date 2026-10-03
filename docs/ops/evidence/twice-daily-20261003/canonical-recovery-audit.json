@@ -124,10 +124,11 @@
       "tjzyefy_intent_20260804_030195991",
       "tjzyefy_intent_20260804_030195988",
       "tjzyefy_intent_20260804_030195986"
-    ]
+    ],
+    "status": "HISTORICAL_PRE_FIX_READER_GAP; three separate existing-source v2 history readers added; no bootstrap/acquisition, production shards not restored."
   },
   "candidate_restore_cleared": false,
-  "reason": "Repo historical canonical includes existing sources outside current runtime shard readers; control-plane/cache inventory unknown. Public projection cannot establish all historical runtime state.",
+  "reason": "Historical backup does not prove all runtime state/paused collection gaps. Strict historical shards and published baseline must be restored and read back; control-plane/cache inventory remains unknown.",
   "durable_final_url": "https://medicalchannelai.vercel.app/api/public-snapshot?fresh=canonical-read-audit",
   "readback_bytes_unchanged": true,
   "checked_on": "2026-10-03 Asia/Shanghai",
@@ -142,6 +143,8 @@
   "bare_runtime_serializer_review": {
     "market_metadata_omitted_cards": 441,
     "ranks_different": 235,
-    "status": "EXISTING_DIFFERENCE; must verify and resolve before controlled recovery; static reconstruction is not worker recovery evidence"
-  }
+    "status": "HISTORICAL_PRE_FIX_DIFFERENCE; scheduled worker now reuses split/static combination. Offline parity proven; live recovery remains unverified."
+  },
+  "candidate_scheduled_projection_offline_parity": true,
+  "candidate_scheduled_projection_production_verified": false
 }

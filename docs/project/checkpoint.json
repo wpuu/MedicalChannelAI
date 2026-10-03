@@ -33,17 +33,24 @@
     "actual_plan": "UNKNOWN",
     "cron_enabled": "UNKNOWN",
     "queue_consumer_inflight_delayed_retry": "UNKNOWN",
-    "fallback_workflows": "disabled_manually"
+    "fallback_workflows": "disabled_manually",
+    "history_only_sources": [
+      "tjzxfc",
+      "tjzyefy",
+      "tjzyefy-intent"
+    ],
+    "candidate_coverage": "PARTIAL: current configured refresh stages all required; archived sources not freshly monitored; UI/AI partial gates preserved"
   },
   "validation": {
-    "new_period_recovery_tests": 30,
+    "new_period_recovery_tests": 35,
     "existing_related_tests": 122,
     "historical_840_tests_head": "3af6db8c678c6f20f8b9d120badd7db102b9d69e",
     "original_85_test_evidence": "MISSING_IN_CURRENT_ENVIRONMENT",
     "candidate_ci": "Read exact candidate head status in PR75; no manual rerun",
     "native_history_gate_tests": 20,
     "prior_candidate_865_ci_head": "e30b74a5e39c79ffd64727f470f2e19b039f88d1",
-    "existing_related_tests_reference": "147 directed checks were on e30b74a; not all rerun for this small history gate."
+    "existing_related_tests_reference": "147 directed checks were on e30b74a; not all rerun for this small history gate.",
+    "prior_candidate_870_ci_head": "d435749005bbb5444b7da78e615a93972224c9cc"
   },
   "release_checklist": "docs/ops/twice-daily-release-20261003.md",
   "boundaries": {
@@ -57,20 +64,21 @@
   },
   "known_incomplete_invariants": {
     "control_plane": "Readback actual plan, Cron enablement, only new serialized consumer, in-flight and delayed messages before release.",
-    "canonical_recovery": "Verified historical repo backup reproduces DATABASE441; current runtime shard readers omit 4 published intent IDs. New publication gate blocks loss; complete real cache restoration/mapping remains unresolved. Static transform exact match is not bare worker recovery: market metadata and ranking differences must be resolved and verified before controlled recovery.",
+    "canonical_recovery": "Strict independent v2 readers now preserve all three existing historical sources; scheduled projection matches static cards offline. Actual full canonical/history/baseline restoration, paused collection gaps and control-plane readback remain unresolved.",
     "distributed_atomic_claim": "Runtime Cache is not CAS; safety relies on one push consumer group with maxConcurrency1 and lease360 > function300, and exclusion of old deployments.",
-    "production_verification": "Two independent complete cycles, durable/cache read recovery and AI/page version agreement NOT RUN.",
+    "production_verification": "Two independent configured-refresh cycles, accurate partial scope, durable/cache read recovery and AI/page version agreement NOT RUN.",
     "china_domain_and_tianjin403": "Separate unresolved live access checks; no DNS/source/architecture changes."
   },
   "canonical_recovery_audit": {
     "canonical_records": 911,
     "seeds_used": false,
     "historical_public_cards_exact_match": 441,
-    "current_published_ids_not_in_runtime_shards": 4,
     "restore_approved": false,
     "restored_to_production": false,
     "artifact": "docs/ops/evidence/twice-daily-20261003/canonical-recovery-audit.json",
     "transform": "static load_arrays, partitioned builds and combine_snapshots; not worker publication",
-    "bare_worker_market_and_rank_parity": "UNVERIFIED_FOR_RECOVERY; observed existing difference"
+    "bare_worker_market_and_rank_parity": "Scheduled projection repaired and offline matched; production restoration NOT RUN.",
+    "prior_worker_missing_published_ids": 4,
+    "candidate_reader_missing_published_ids": 0
   }
 }
