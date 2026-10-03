@@ -159,6 +159,19 @@ def date_window(as_of: datetime, lookback_days: int) -> tuple[str, str]:
     return (local_date - timedelta(days=lookback_days - 1)).isoformat(), local_date.isoformat()
 
 
+def validate_report_output_paths(report_output: Path, records_output: Path, inputs: list[Path]) -> None:
+    report_resolved = report_output.resolve()
+    for candidate in [records_output, *inputs]:
+        if report_resolved == candidate.resolve():
+            raise ValueError('report output must not alias records output or existing-records input')
+        try:
+            same_file = report_output.exists() and candidate.exists() and report_output.samefile(candidate)
+        except OSError:
+            same_file = False
+        if same_file:
+            raise ValueError('report output must not alias records output or existing-records input')
+
+
 def annotate_market(record: dict, market: dict) -> dict:
     facts = record.setdefault('facts', {})
     facts['market_code'] = str(market['market_code']).strip().upper()
@@ -215,6 +228,8 @@ def main() -> int:
     parser.add_argument('--records-output', required=True, type=Path)
     parser.add_argument('--report-output', required=True, type=Path)
     args = parser.parse_args()
+
+    validate_report_output_paths(args.report_output, args.records_output, args.existing_records_input)
 
     plan = load_plan(args.plan)
     as_of = parse_as_of(args.as_of)
@@ -437,7 +452,6 @@ def main() -> int:
             f'failures={len(market_failures[code])}'
         )
 
-    merged_records = merge_canonical_records(existing_records, new_records)
     report = {
         'schema_version': '0.1',
         'observed_at': observed_at,
@@ -449,7 +463,6 @@ def main() -> int:
         'national_fallback_failures': fallback_failures,
         'existing_record_count': len(existing_records),
         'new_verified_record_count': len(new_records),
-        'merged_record_count': len(merged_records),
         'policy': {
             'business_market_is_explicit_not_geolocated': True,
             'market_admin_codes_are_validated_against_configured_ccgp_zone': True,
@@ -468,6 +481,50 @@ def main() -> int:
             'minimum_request_delay_seconds': plan['delay_seconds'],
         },
     }
+
+    blocked_markets = [
+        {
+            'market_code': market_report['market_code'],
+            'market_name': market_report['market_name'],
+            'reason': f"REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION:{market_report['market_code']}",
+            'selected_candidate_count': market_report['selected_candidate_count'],
+            'new_verified_record_count': market_report['new_verified_record_count'],
+            'failure_count': market_report['failure_count'],
+            'failures': market_report['failures'],
+        }
+        for market_report in market_reports
+        if market_report['selected_candidate_count'] > 0
+        and market_report['new_verified_record_count'] == 0
+    ]
+    if blocked_markets:
+        report.update({
+            'refresh_outcome': 'BLOCKED',
+            'publish_allowed': False,
+            'publish_gate_reason': 'REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION',
+            'blocked_markets': blocked_markets,
+            'records_output_written': False,
+            'records_output_status': 'PRESERVED_UNCHANGED',
+            'merged_record_count': None,
+        })
+        write_json(args.report_output, report)
+        for market in blocked_markets:
+            print(
+                f"refresh_blocked={market['reason']} "
+                f"failures={json.dumps(market['failures'], ensure_ascii=False)}",
+                file=sys.stderr,
+            )
+        return 2
+
+    merged_records = merge_canonical_records(existing_records, new_records)
+    report.update({
+        'refresh_outcome': 'VERIFIED' if new_records else 'NO_SELECTED_CANDIDATES',
+        'publish_allowed': True,
+        'publish_gate_reason': 'PASS',
+        'blocked_markets': [],
+        'records_output_written': True,
+        'records_output_status': 'WRITTEN',
+        'merged_record_count': len(merged_records),
+    })
     write_json(args.records_output, merged_records)
     write_json(args.report_output, report)
     print(
