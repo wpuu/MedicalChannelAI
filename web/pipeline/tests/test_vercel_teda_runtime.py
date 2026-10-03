@@ -45,7 +45,8 @@ class VercelTedaRuntimeTests(unittest.TestCase):
         self.assertIn("publish", order)
         self.assertLess(order.index("teda"), order.index("tjfch"))
         self.assertLess(order.index("tjfch"), order.index("publish"))
-        dispatch = _function_source(self.runtime, "run_stage")
+        self.assertIn("return _run_stage(stage, now=now)", _function_source(self.runtime, "run_stage"))
+        dispatch = _function_source(self.runtime, "_run_stage")
         self.assertIn('elif stage == "teda":', dispatch)
         self.assertIn("result = _run_teda(cache, state)", dispatch)
 

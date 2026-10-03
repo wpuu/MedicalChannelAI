@@ -6,7 +6,7 @@
 
 本环境最初是 `main` 的干净副本；未找到原 `.medicalchannelai-onboarding/schedule/twice-daily-search.patch` 或原 85 项测试日志。原任务可读记录未恢复其正文。本轮不声称读取或复用缺失资产；从远端实际 HEAD `3af6db8c678c6f20f8b9d120badd7db102b9d69e` 的已通过修复恢复候选，保留原 PR 所有修复。新生成的同名本地 patch 是本轮重建补丁，不是原文件。
 
-此前 840 Python、浏览器 36 项与独立审查记录是该旧 HEAD 的历史证据，参见 [原验收记录](../collection-reliability-verification.md)，不计成本轮运行。本轮定向日志保存在 [evidence](evidence/twice-daily-20261003/)。新增 25 项周期/恢复测试；既有相关 76 项 collector、14 项 tick、12 项 namespace、4 项 queue 与4项 fallback 合约通过（共 135 项）。不为更新数字重跑历史浏览器或全部历史矩阵。新 HEAD 的 GitHub Verify 由一次代码推送正常触发；最终结果在 PR 检查与 PR 描述按精确 HEAD 回读登记。
+此前 840 Python、浏览器 36 项与独立审查记录是该旧 HEAD 的历史证据，参见 [原验收记录](../collection-reliability-verification.md)，不计成本轮运行。本轮定向日志保存在 [evidence](evidence/twice-daily-20261003/)。新增 25 项周期/恢复测试；既有相关 76 项 collector、14 项 tick、12 项 namespace、4 项 queue、4 项 fallback 与12项 stage-dispatch 合约通过（共 147 项）。不为更新数字重跑历史浏览器或全部历史矩阵。首推 `2b913388a20b6ac961394de8564dc4a5aa98d013` 的 [Verify 37108302750](https://github.com/wpuu/MedicalChannelAI/actions/runs/37108302750) 执行 865 Python 测试，2 项旧 AST 分派测试因新增周期保护 wrapper 提取范围改变而失败。仅修正两项测试提取 `_run_stage` 并保留 wrapper 委托断言，12 项分派定向检查通过，产品冻结源哈希不变。必要修正集中补推一次，未手动重跑 CI、未重复部署；最终结果在 PR 检查与 PR 描述按精确 HEAD 回读登记。
 
 ## 时段、幂等与数据保护
 

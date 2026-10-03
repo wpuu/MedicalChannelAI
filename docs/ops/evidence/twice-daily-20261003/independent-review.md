@@ -37,3 +37,9 @@
 | `web/api/collector-queue.py` | `2957444751a170cd4b5ad8d39203aa9a4c3344a600010f209153d45bdb718417` |
 | `web/vercel.json` | `07f9a1b84119cfdfc3eb6c9657ac3c78d73385a0e8ffc2363126f29fe7dfe764` |
 | `web/pipeline/tests/test_twice_daily_search.py` | `8508fecf0bb01b92814e5f2d6b222a944459f86f36d4f3a4d7f6a7402e5487f3` |
+
+## 首次 CI 后测试定位修正
+
+首次提交 `2b913388a20b6ac961394de8564dc4a5aa98d013` 的 [CI 37108302750](https://github.com/wpuu/MedicalChannelAI/actions/runs/37108302750) 未通过。父任务报告 865 项测试中仅 TEDA/TJFCH 两个旧 AST 合约仍在公共 `run_stage` 函数中查找 dispatcher；新代码将该函数作为 cycle ContextVar/fence 包装入口，实际 stage dispatcher 已移至 `_run_stage`。
+
+本独立审查核对这两个 AST 提取目标的单行修改，确认仍检查 TEDA/TJFCH 实际 dispatch 分支及 adapter 调用；公共 `run_stage` 保留 `_run_stage` 委托。独立仅重跑两个相关模块，各 6 项、合计 12 项通过；未重跑 25 项或历史矩阵。重新计算本报告 8 个冻结源文件 SHA-256，全部保持一致。该修正只调整测试定位，没有产品代码变更。下一提交精确 HEAD 的远端 CI 结果尚待父任务读回，不能用本地 12 项通过替代远端通过。

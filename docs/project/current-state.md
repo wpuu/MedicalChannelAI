@@ -14,7 +14,7 @@ MedicalChannelAI 是天津起步的医疗器械、IVD、耗材公开情报和单
 
 ## 候选验证与限制
 
-原双时段 patch 和原 85 项日志在本环境缺失，不计为已读取证据。本轮从核验后的 PR75 HEAD 恢复改动，保留已通过修复。新增 25 项周期/恢复测试与既有相关 110 项通过，共 135；最终独立审查及精确新 HEAD CI 见 PR 记录与 [发布清单](../ops/twice-daily-release-20261003.md)。历史 `3af6db8` 840 项/浏览器 36 项等记录仅适用于该旧 HEAD，详见 [可靠性验收](../collection-reliability-verification.md)。未为本轮重跑全部历史矩阵。
+原双时段 patch 和原 85 项日志在本环境缺失，不计为已读取证据。本轮从核验后的 PR75 HEAD 恢复改动，保留已通过修复。新增 25 项周期/恢复测试与既有相关 122 项通过，共 147；最终独立审查及精确新 HEAD CI 见 PR 记录与 [发布清单](../ops/twice-daily-release-20261003.md)。历史 `3af6db8` 840 项/浏览器 36 项等记录仅适用于该旧 HEAD，详见 [可靠性验收](../collection-reliability-verification.md)。未为本轮重跑全部历史矩阵。
 
 候选实现周期独立、同周期幂等、旧周期写入 fence；禁用自动 15 分钟增量链；保留完整覆盖、失败旧数据、canonical/缓存与 AI 版本保护。长暂停后缺失 canonical 默认阻断旧种子初始化。真实 durable 与 cache 恢复、canonical 备份、旧队列隔离及两周期成功都尚未线上证明。Runtime Cache 无 CAS，发布必须排除旧消费者和旧在途写入，不能把代码 fence 当作分布式原子锁。
 

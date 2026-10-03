@@ -37,7 +37,7 @@
   },
   "validation": {
     "new_period_recovery_tests": 25,
-    "existing_related_tests": 110,
+    "existing_related_tests": 122,
     "historical_840_tests_head": "3af6db8c678c6f20f8b9d120badd7db102b9d69e",
     "original_85_test_evidence": "MISSING_IN_CURRENT_ENVIRONMENT",
     "candidate_ci": "Read exact candidate head status in PR75; no manual rerun"
