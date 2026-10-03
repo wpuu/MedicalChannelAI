@@ -1,5 +1,5 @@
 import { timingSafeEqual } from 'node:crypto'
-import coreHandler, { config, prewarmSharedPublicDecisions } from './_analyzeCore.js'
+import coreHandler, { config, prewarmSharedPublicDecisions, snapshotCoverageAutomationError } from './_analyzeCore.js'
 import { authenticatedUser } from '../_auth.js'
 import { privateDatabaseConfigured } from '../_privateDb.js'
 import { minimalPrivateContextForOpportunity } from '../_privateProfileContext.js'
@@ -67,6 +67,8 @@ function pilotSameOriginAllowed(request) {
 }
 
 function verifiedSnapshotAutomationError(snapshot, now = Date.now()) {
+  const coverageError = snapshotCoverageAutomationError(snapshot)
+  if (coverageError) return coverageError
   const raw = typeof snapshot?.snapshot_as_of === 'string'
     ? snapshot.snapshot_as_of.trim()
     : ''

@@ -327,7 +327,7 @@ export function publicAiFactHash(facts, evidenceUrls) {
   })
 }
 
-export async function persistPublicVerifiedSnapshot(snapshot) {
+export async function persistPublicVerifiedSnapshot(snapshot, options = {}) {
   if (!publicIntelligenceDatabaseConfigured()) {
     return { configured: false, persisted: false, snapshot_hash: null }
   }
@@ -343,7 +343,36 @@ export async function persistPublicVerifiedSnapshot(snapshot) {
   await ensurePublicIntelligenceSchema()
   const sql = publicIntelligenceDb()
   const result = await sql.begin(async (tx) => {
+    // Serialize publication checks across instances so an older concurrent
+    // publisher cannot insert after a newer public revision was accepted.
+    await tx`SELECT pg_advisory_xact_lock(hashtext('public-verified-snapshot-publish'), 0)`
     await tx`SELECT pg_advisory_xact_lock(hashtext('public-verified-snapshot'), hashtext(${snapshotAsOf}))`
+    const latest = await tx`
+      SELECT snapshot_as_of, snapshot_hash
+      FROM public_verified_snapshots
+      ORDER BY snapshot_as_of DESC, materialized_at DESC
+      LIMIT 1
+    `
+    if (options.requireBaseMatch === true) {
+      const actualBaseHash = latest[0]?.snapshot_hash ?? null
+      const actualBaseAsOf = latest[0]?.snapshot_as_of
+        ? new Date(latest[0].snapshot_as_of).toISOString()
+        : null
+      const expectedBaseAsOf = options.expectedBaseAsOf
+        ? new Date(options.expectedBaseAsOf).toISOString()
+        : null
+      if (actualBaseHash !== (options.expectedBaseHash ?? null) || actualBaseAsOf !== expectedBaseAsOf) {
+        throw new Error('PUBLIC_SNAPSHOT_BASE_CHANGED')
+      }
+    }
+    if (latest[0]) {
+      const latestMs = Date.parse(latest[0].snapshot_as_of)
+      const candidateMs = Date.parse(snapshotAsOf)
+      if (candidateMs < latestMs) throw new Error('PUBLIC_SNAPSHOT_ROLLBACK_REJECTED')
+      if (candidateMs === latestMs && latest[0].snapshot_hash !== snapshotHash) {
+        throw new Error('PUBLIC_SNAPSHOT_REVISION_CONFLICT')
+      }
+    }
     const existing = await tx`
       SELECT snapshot_hash
       FROM public_verified_snapshots
@@ -369,6 +398,28 @@ export async function persistPublicVerifiedSnapshot(snapshot) {
     persisted: true,
     inserted: result.inserted,
     snapshot_hash: snapshotHash,
+  }
+}
+
+/** Read the latest durable public revision without schema setup or writes. */
+export async function latestPublicVerifiedSnapshotForPublish() {
+  if (!publicIntelligenceDatabaseConfigured()) return null
+  const sql = publicIntelligenceDb()
+  try {
+    const rows = await sql`
+      SELECT snapshot_hash, payload
+      FROM public_verified_snapshots
+      ORDER BY snapshot_as_of DESC, materialized_at DESC
+      LIMIT 1
+    `
+    return rows[0] || null
+  } catch (error) {
+    // A fresh database may not have run application schema setup yet. Treat
+    // only this missing-table case as an empty durable store; persist performs
+    // the normal schema setup after candidate validation. Other read errors
+    // must stop publishing before any durable write.
+    if (error?.code === '42P01') return null
+    throw error
   }
 }
 
@@ -418,7 +469,9 @@ export async function latestPublicVerifiedSnapshotIfChanged(knownHash = null) {
     console.warn('durable public snapshot revision read unavailable', {
       error: error instanceof Error ? error.message : 'UNKNOWN',
     })
-    return null
+    // Keep database failure distinct from an empty/unconfigured database so
+    // callers can retain a validated last-good snapshot and report degradation.
+    throw error
   }
 }
 

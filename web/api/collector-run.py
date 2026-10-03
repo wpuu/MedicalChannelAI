@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 from vercel.functions import RuntimeCache
 from vercel.queue import send
 
+from collector_schedule import SCHEDULE_VERSION, scheduled_cycle, running_stage_is_live
 from collector_incremental import scan_bucket_id
 from collector_incremental_scheduler import (
     SCHEDULED_INCREMENTAL_SOURCES,
@@ -150,12 +151,14 @@ def _activate_cycle(
     local_date: str,
     source: str,
 ) -> None:
+    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) == cycle_id:
+        return
     current_state = cache.get(META_KEY)
-    if cycle_has_running_stage(current_state) and not _migration_recovery_running_stages_are_stale(
-        current_state,
-        local_date=local_date,
-        now=now,
-    ):
+    if isinstance(current_state, dict) and current_state.get("cycle_as_of"):
+        previous_as_of = datetime.fromisoformat(current_state["cycle_as_of"])
+        if previous_as_of >= now and current_state.get("cycle_id") != cycle_id:
+            raise CollectorStartConflict("COLLECTOR_CYCLE_SUPERSEDED")
+    if running_stage_is_live(current_state, datetime.now(timezone.utc)):
         raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
 
     active = {
@@ -175,16 +178,29 @@ def _activate_cycle(
         raise RuntimeError("COLLECTOR_ACTIVE_CYCLE_READBACK_FAILED")
 
 
-async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
+async def _enqueue_start(source: str, period: str) -> tuple[str, str, str, int]:
     now = datetime.now(timezone.utc)
     local_date = now.astimezone(SHANGHAI).date().isoformat()
 
     cache = RuntimeCache()
-    cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"
+    cycle_id, cycle_as_of = scheduled_cycle(now, period)
+    state = cache.get(META_KEY)
+    if isinstance(state, dict) and state.get("cycle_id") == cycle_id:
+        cycle_as_of = datetime.fromisoformat(state["cycle_as_of"])
+        publish = (state.get("stages") or {}).get("publish") or {}
+        if publish.get("terminal") is True or publish.get("status") == "COMPLETED":
+            return "ALREADY_ENDED", local_date, cycle_id, 0
+    active = cache.get(ACTIVE_CYCLE_KEY)
+    if active_cycle_id(active) == cycle_id:
+        cycle_as_of = datetime.fromisoformat(active["cycle_as_of"])
+    elif active_cycle_id(active) is not None:
+        active_as_of = datetime.fromisoformat(active["cycle_as_of"])
+        if active_as_of >= cycle_as_of or (now - active_as_of).total_seconds() < 360:
+            raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
     _activate_cycle(
         cache,
         cycle_id=cycle_id,
-        now=now,
+        now=cycle_as_of,
         local_date=local_date,
         source=source,
     )
@@ -198,18 +214,26 @@ async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
         if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) is not None
         else 0
     )
-    message_id = await send(
-        QUEUE_TOPIC_NAME,
-        {
-            "schema_version": "0.1",
-            "stage": "ccgp",
-            "cycle_as_of": now.isoformat(),
-            "cycle_id": cycle_id,
-        },
-        retention=MESSAGE_RETENTION,
-        delay=delay_seconds,
-        idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:ccgp",
-    )
+    try:
+        message_id = await send(
+            QUEUE_TOPIC_NAME,
+            {
+                "schema_version": "0.1",
+                "schedule_version": SCHEDULE_VERSION,
+                "stage": "ccgp",
+                "cycle_as_of": cycle_as_of.isoformat(),
+                "cycle_id": cycle_id,
+            },
+            retention=MESSAGE_RETENTION,
+            delay=delay_seconds,
+            idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:ccgp",
+        )
+    except Exception as exc:
+        # This SDK exception means Queue accepted this exact idempotency key.
+        # Other transport/auth errors still propagate and remain retriable.
+        if type(exc).__name__ != "DuplicateIdempotencyKeyError":
+            raise
+        message_id = "ALREADY_QUEUED"
     return str(message_id), local_date, cycle_id, delay_seconds
 
 
@@ -275,78 +299,17 @@ class handler(BaseHTTPRequestHandler):
             return self._send_json(400, {"error": "COLLECTOR_MODE_INVALID"})
 
         if mode == "incremental":
-            requested_source = _first_query(query, "source")
-            auto_decision = None
-            if not requested_source or requested_source == "auto":
-                auto_decision = choose_due_incremental_source(RuntimeCache())
-                if auto_decision.source_id is None:
-                    return self._send_json(
-                        200,
-                        {
-                            "schema_version": "0.1",
-                            "service": "MedicalChannelAI",
-                            "trigger_source": trigger_source,
-                            "collector": {
-                                "action": "NO_SOURCE_DUE",
-                                "execution_plane": "VERCEL_QUEUE_V2",
-                                "mode": "INCREMENTAL_AUTO",
-                                "evaluated_at": auto_decision.evaluated_at,
-                                "next_due_at": auto_decision.next_due_at,
-                            },
-                        },
-                    )
-                source_id = auto_decision.source_id
-            else:
-                source_id = requested_source
+            return self._send_json(409, {"error": "COLLECTOR_INCREMENTAL_DISABLED"})
 
-            if source_id not in INCREMENTAL_SOURCE_IDS:
-                return self._send_json(
-                    400,
-                    {
-                        "error": "INCREMENTAL_SOURCE_UNSUPPORTED",
-                        "supported_sources": list(INCREMENTAL_SOURCE_IDS),
-                    },
-                )
-            try:
-                message_id, bucket_id, observed_at = asyncio.run(
-                    _enqueue_incremental(source_id, trigger_source)
-                )
-            except CollectorStartConflict as exc:
-                error = str(exc) or "INCREMENTAL_SCAN_CONFLICT"
-                return self._send_json(409, {"error": error, "source_id": source_id})
-            except Exception as exc:
-                return self._send_json(
-                    503,
-                    {
-                        "error": "INCREMENTAL_QUEUE_START_FAILED",
-                        "source_id": source_id,
-                        "error_type": type(exc).__name__,
-                        "message": str(exc)[:180],
-                    },
-                )
-
-            return self._send_json(
-                202,
-                {
-                    "schema_version": "0.1",
-                    "service": "MedicalChannelAI",
-                    "trigger_source": trigger_source,
-                    "collector": {
-                        "action": "QUEUED",
-                        "execution_plane": "VERCEL_QUEUE_V2",
-                        "mode": "INCREMENTAL_AUTO" if auto_decision else "INCREMENTAL",
-                        "source_id": source_id,
-                        "scan_bucket_id": bucket_id,
-                        "observed_at": observed_at,
-                        "due_source_count": len(auto_decision.due_sources) if auto_decision else None,
-                        "message_id": message_id,
-                    },
-                },
-            )
+        period = _first_query(query, "period")
+        try:
+            scheduled_cycle(datetime.now(timezone.utc), period)
+        except ValueError as exc:
+            return self._send_json(400, {"error": str(exc)})
 
         try:
             message_id, local_date, cycle_id, start_delay_seconds = asyncio.run(
-                _enqueue_start(trigger_source)
+                _enqueue_start(trigger_source, period)
             )
         except CollectorStartConflict:
             return self._send_json(409, {"error": "COLLECTOR_CYCLE_ALREADY_RUNNING"})
@@ -367,9 +330,11 @@ class handler(BaseHTTPRequestHandler):
                 "service": "MedicalChannelAI",
                 "trigger_source": trigger_source,
                 "collector": {
-                    "action": "QUEUED",
+                    "action": "ALREADY_ENDED" if message_id == "ALREADY_ENDED" else "QUEUED",
                     "execution_plane": "VERCEL_QUEUE_V2",
-                    "mode": "DEEP_DAILY",
+                    "mode": "DEEP_TWICE_DAILY",
+                    "period": period,
+                    "schedule_version": SCHEDULE_VERSION,
                     "local_date": local_date,
                     "cycle_id": cycle_id,
                     "stage": "ccgp",
