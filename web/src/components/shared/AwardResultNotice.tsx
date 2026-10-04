@@ -75,7 +75,7 @@ export function AwardResultNotice({ entry, compact = false }: AwardResultNoticeP
             {pkg.status === 'AWARDED' ? (
               <>
                 <span className="font-medium text-slate-900">{pkg.supplier_name ?? '供应商未公布'}</span>
-                <span className="tabular-nums text-slate-600">{formatBudget(pkg.amount_cny) ?? '金额未公布'}</span>
+                <span className="tabular-nums text-slate-600">{formatBudget(pkg.amount_cny) ?? '金额待核验'}</span>
               </>
             ) : (
               <span className="text-rose-700">废标{pkg.failure_reason ? `：${pkg.failure_reason}` : ''}</span>

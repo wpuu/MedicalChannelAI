@@ -1,4 +1,5 @@
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
+import { normalizeAwardEvidenceSnapshot } from '../../shared/awardEvidence.js'
 
 /**
  * Shared, read-only loader for the public verified snapshot (~1.5 MB JSON).
@@ -35,7 +36,7 @@ export function loadVerifiedSnapshotPayload(url: string = verifiedSnapshotUrl): 
     cache: 'no-cache',
   }).then(async (response) => {
     if (!response.ok) throw new Error(`SNAPSHOT_HTTP_${response.status}`)
-    return (await response.json()) as unknown
+    return normalizeAwardEvidenceSnapshot((await response.json()) as unknown)
   })
   const created: CacheEntry = { url, loadedAt: now, payload }
   entry = created

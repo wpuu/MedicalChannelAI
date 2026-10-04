@@ -18,7 +18,7 @@ interface AwardLedgerSectionProps {
 
 function amountText(value: number | null | undefined): string {
   const formatted = formatBudget(value)
-  return formatted ?? '金额未公布'
+  return formatted ?? '金额待核验'
 }
 
 function marketName(code?: string | null): string | null {

@@ -1,0 +1,16 @@
+DATABASE rejects old derived closure and returns safe data: PASS
+REMOTE rejects old derived closure and returns safe data: PASS
+RUNTIME_CACHE rejects old derived closure and returns safe data: PASS
+BUNDLE rejects old derived closure and returns safe data: PASS
+DATABASE legacy zero retirement: PASS
+REMOTE legacy zero retirement: PASS
+RUNTIME_CACHE legacy zero retirement: PASS
+DATABASE current explicit evidence: PASS
+REMOTE current explicit evidence: PASS
+RUNTIME_CACHE current explicit evidence: PASS
+API rejects a legacy already-retired pool: PASS
+API masks total/package/unit and card/pool/ledger windows: PASS
+API preserves explicit total/package/unit evidence: PASS
+STATIC and POOL legacy without retired projects: PASS
+STATIC and POOL current explicit evidence: PASS
+PR77 legacy evidence read paths: PASS

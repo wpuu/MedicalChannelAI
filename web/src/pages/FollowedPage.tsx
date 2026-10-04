@@ -322,7 +322,7 @@ export function FollowedPage() {
             const privateNote = notePresentation(item)
             const due = reminderIsDue(item)
             const pendingNextAction = needsNextAction(item)
-            const awardResult = findAwardForProject(awardLedger, item.facts.project_number)
+            const awardResult = findAwardForProject(awardLedger, item.facts.project_number, item.facts.market_code)
             return (
               <article
                 key={item.opportunity_id}

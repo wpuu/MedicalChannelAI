@@ -1,3 +1,4 @@
+import { normalizeAwardEvidenceSnapshot } from '../../shared/awardEvidence.js'
 import type {
   CapabilityType,
   FollowupInput,
@@ -466,7 +467,7 @@ export class ApiTodayActionsService implements TodayActionsService {
       throw new Error(asString(root?.error) ?? `HTTP_${response.status}`)
     }
     assertNoInternalFields(payload)
-    return payload as T
+    return normalizeAwardEvidenceSnapshot(payload) as T
   }
 
   private async getFollowupState(id: string): Promise<ServerFollowupState> {

@@ -1,0 +1,2 @@
+PASS: normal prebuild has one unconditional top-level awaited PR77 read regression after PR74
+Full run-prebuild entry and read regression were NOT executed in this narrow integration check; no skip flag added

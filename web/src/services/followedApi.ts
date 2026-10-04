@@ -25,6 +25,7 @@ export interface FollowedOpportunity {
   latest_note: string | null
   followup_updated_at: string
   facts: {
+    market_code?: string | null
     project_number: string | null
     project_name: string | null
     buyer_name: string | null

@@ -29,6 +29,18 @@ def _awards() -> list[dict]:
     return json.loads(AWARD_STORE.read_text(encoding="utf-8"))
 
 
+def _completed_awards() -> list[dict]:
+    awards = _awards()
+    for record in awards:
+        record['facts']['project_completion_confirmed'] = True
+        record['evidence'].append({
+            'field_path': 'facts.project_completion_confirmed',
+            'source_url': record['source']['url'],
+            'locator': 'Synthetic test: official notice explicitly closes the whole project',
+        })
+    return awards
+
+
 def _pool_record(project_number: str) -> dict:
     for record in json.loads(POOL_STORE.read_text(encoding="utf-8")):
         if record["facts"].get("project_number") == project_number:
@@ -52,7 +64,7 @@ class AwardSnapshotIntegrationTests(unittest.TestCase):
     def test_published_award_retires_the_matching_pool_record(self) -> None:
         record = _pool_record("XCSD-2026-A-589")
         without = build_public_snapshot([record], AS_OF, [], [])
-        with_awards = build_public_snapshot([record], AS_OF, [], _awards())
+        with_awards = build_public_snapshot([record], AS_OF, [], _completed_awards())
         self.assertEqual(without["awarded_project_count"], 0)
         self.assertEqual(without["award_ledger"], [])
         self.assertEqual(with_awards["awarded_project_count"], 1)
@@ -68,15 +80,15 @@ class AwardSnapshotIntegrationTests(unittest.TestCase):
         # Tender notice typed with full-width dashes/spaces; result notice with ASCII.
         record = _pool_record("XCSD-2026-A-589")
         record["facts"]["project_number"] = "ＸＣＳＤ－2026－A－589 "
-        snapshot = build_public_snapshot([record], AS_OF, [], _awards())
+        snapshot = build_public_snapshot([record], AS_OF, [], _completed_awards())
         self.assertEqual(snapshot["awarded_project_count"], 1)
         self.assertEqual(snapshot["opportunity_pool"], [])
 
-    def test_event_watch_list_drops_awarded_projects_in_order(self) -> None:
+    def test_event_watch_list_keeps_awarded_projects_in_order(self) -> None:
         watch = ["XCSD-2026-A-641", "ＸＣＳＤ－2026－A－589", "TJBHGP-2026-024", "TJBD-2026-C-212"]
         kept, skipped = exclude_awarded_projects(watch, _awards(), AS_OF)
-        self.assertEqual(kept, ["XCSD-2026-A-641", "TJBD-2026-C-212"])
-        self.assertEqual(skipped, ["ＸＣＳＤ－2026－A－589", "TJBHGP-2026-024"])
+        self.assertEqual(kept, watch)
+        self.assertEqual(skipped, [])
         self.assertEqual(exclude_awarded_projects(watch, None, AS_OF), (watch, []))
         # Awards published after as_of are not yet effective, so nothing is skipped.
         early = datetime(2026, 9, 1, tzinfo=timezone.utc)
@@ -88,17 +100,17 @@ class AwardSnapshotIntegrationTests(unittest.TestCase):
         record["facts"]["market_code"] = "HE"
         record["facts"]["market_name"] = "河北"
         record["facts"]["market_admin_code"] = "130000"
-        snapshot = build_public_snapshot([record], AS_OF, [], _awards())
+        snapshot = build_public_snapshot([record], AS_OF, [], _completed_awards())
         self.assertEqual(snapshot["awarded_project_count"], 0)
         self.assertEqual(snapshot["input_candidate_count"], 1)
         # The ledger itself is market-agnostic; the entry still carries its own market.
         self.assertEqual({entry["market_code"] for entry in snapshot["award_ledger"]}, {"TJ"})
-        # Legacy awards without a market code keep the market-agnostic behaviour.
-        legacy = copy.deepcopy(_awards())
+        # Missing markets cannot retire any project, even with completion evidence.
+        legacy = _completed_awards()
         for item in legacy:
             item["facts"].pop("market_code", None)
-        self.assertEqual(build_public_snapshot([record], AS_OF, [], legacy)["awarded_project_count"], 1)
-        keys = awarded_project_keys(_awards(), AS_OF)
+        self.assertEqual(build_public_snapshot([record], AS_OF, [], legacy)["awarded_project_count"], 0)
+        keys = awarded_project_keys(_completed_awards(), AS_OF)
         self.assertIn(("TJ", "xcsd-2026-a-589"), keys)
         self.assertTrue(is_awarded_project(keys, "ＸＣＳＤ－2026－A－589", "tj"))
         self.assertFalse(is_awarded_project(keys, "XCSD-2026-A-589", "HE"))
@@ -119,14 +131,15 @@ class AwardSnapshotIntegrationTests(unittest.TestCase):
         self.assertEqual(entry["award_id"], target["award_id"])
         self.assertEqual(entry["market_code"], "TJ")
         self.assertEqual(entry["result_kind"], "AWARD")
-        self.assertEqual(entry["total_amount_cny"], 13_950_000)
+        self.assertIsNone(entry["total_amount_cny"])  # legacy numeric value lacks raw unit evidence
         self.assertEqual(entry["packages"][0]["supplier_name"], "天津市联大医用设备有限公司")
         self.assertEqual(entry["items"][0]["brand"], "联影")
         self.assertEqual(entry["items"][0]["model"], "uAngio960")
         self.assertEqual(entry["source_url"], target["source"]["url"])
         self.assertEqual(entry["legal_windows"][0]["code"], "RESULT_CHALLENGE")
-        self.assertEqual(entry["legal_windows"][0]["anchor_date"], "2026-09-28")
-        self.assertEqual(entry["legal_windows"][0]["deadline_date"], "2026-10-14")
+        self.assertIsNone(entry["legal_windows"][0]["anchor_date"])
+        self.assertIsNone(entry["legal_windows"][0]["deadline_date"])
+        self.assertEqual(entry["legal_windows"][0]["status"], "UNKNOWN")
         serialized = json.dumps(entry, ensure_ascii=False)
         for forbidden in ("supplier_address", "public_contact", "phone", "evidence", "统一社会信用代码"):
             self.assertNotIn(forbidden, serialized)
@@ -142,7 +155,7 @@ class AwardSnapshotIntegrationTests(unittest.TestCase):
 
     def test_scope_wrapper_and_combiner_pass_the_ledger_through(self) -> None:
         record = _pool_record("XCSD-2026-A-589")
-        tianjin = build_scoped_public_snapshot([record], AS_OF, [], _awards())
+        tianjin = build_scoped_public_snapshot([record], AS_OF, [], _completed_awards())
         regional = build_public_snapshot([], AS_OF, [], [])
         self.assertEqual(len(tianjin["award_ledger"]), len(_awards()))
         combined = combine_snapshots(tianjin, regional, [record], AS_OF)
