@@ -483,8 +483,11 @@ export class ApiTodayActionsService implements TodayActionsService {
     }
 
     const data = await this.requestJson<TodayActionsPublicResponse>('/today')
-    const mappedPool = (data.opportunity_pool ?? data.cards).map(mapPublicCard)
-    const cards = data.cards.map(mapPublicCard)
+    const mapCard = (card: PublicTodayActionCard): TodayActionCard => ({
+      ...mapPublicCard(card), snapshot_as_of: data.snapshot_as_of,
+    })
+    const mappedPool = (data.opportunity_pool ?? data.cards).map(mapCard)
+    const cards = data.cards.map(mapCard)
     const result: TodayActionsResponse = {
       schema_version: data.schema_version,
       mode: data.mode,

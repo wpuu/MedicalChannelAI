@@ -214,6 +214,8 @@ export type AwardPriceReferenceRow = PublicAwardPriceReferenceRow
 export type DeviceFamily = PublicDeviceFamily
 
 export interface TodayActionCard {
+  /** UI provenance from the containing response; not a new public wire field. */
+  snapshot_as_of?: string | null
   rank: number
   opportunity_id: string
   facts: Facts

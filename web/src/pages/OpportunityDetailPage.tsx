@@ -242,6 +242,7 @@ export function OpportunityDetailPage() {
     const automationUnavailableReason = runtimeAutomationUnavailableReason(
       runtimeStatus,
       runtimeStatusChecked,
+      isApiMode ? undefined : card?.snapshot_as_of ?? null,
     )
     if (!card || historical || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
     setAiBusy(true)
@@ -281,10 +282,10 @@ export function OpportunityDetailPage() {
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
   const automationUnavailableReason = historical
     ? null
-    : runtimeAutomationUnavailableReason(runtimeStatus, runtimeStatusChecked)
+    : runtimeAutomationUnavailableReason(runtimeStatus, runtimeStatusChecked, isApiMode ? undefined : card?.snapshot_as_of ?? null)
   const snapshotWarning = historical
     ? null
-    : runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
+    : runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked, isApiMode ? undefined : card?.snapshot_as_of ?? null)
   const groundingUnavailable =
     card.model_decision_status === 'BLOCKED_GROUNDING' ||
     card.model_decision_status === 'NOT_ELIGIBLE' ||

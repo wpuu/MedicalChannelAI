@@ -309,7 +309,9 @@ export async function getVerifiedOpportunityPool(): Promise<{
 }> {
   const data = await fetchSnapshot()
   const publicCards = Array.isArray(data.opportunity_pool) ? data.opportunity_pool : data.cards
-  const mapped = publicCards.map(mapPublicCard)
+  const mapped = publicCards.map((card) => ({
+    ...mapPublicCard(card), snapshot_as_of: data.snapshot_as_of,
+  }))
   backfillLocalFollowupSnapshots(mapped)
   const active = mapped
     .map((card) => applyRuntimeActionability(card, Date.now()))
