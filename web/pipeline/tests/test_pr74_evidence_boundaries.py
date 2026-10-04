@@ -36,6 +36,37 @@ class EvidenceBoundaryRegressionTests(unittest.TestCase):
         for text in ('1,00元', '(10元', '10元)', '10元附注', '+10元'):
             self.assertIsNone(_parse_amount_cny(text))
 
+    def test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body(self):
+        for header in ('单价美元(元)', '单价欧元(元)', '人民币(美元)',
+                       '单价美元(人民币元)', '单价USD(元)', '金额港元(万元)'):
+            for body in ('10', '10元', '10万元'):
+                with self.subTest(header=header, body=body):
+                    self.assertIsNone(_parse_amount_cny(body, header_hint=header))
+
+    def test_normal_cny_headers_keep_explicit_currency_and_scale(self):
+        for header, body, expected in (
+            ('单价(元)', '10元', 10),
+            ('单价(万元)', '10万元', 100000),
+            ('单价人民币(元)', '10', 10),
+            ('单价(人民币元)', '10元', 10),
+            ('单价人民币元', '10', 10),
+            ('金额(人民币万元)', '10万元', 100000),
+        ):
+            with self.subTest(header=header, body=body):
+                self.assertEqual(_parse_amount_cny(body, header_hint=header), expected)
+        self.assertIsNone(_parse_amount_cny('10元', header_hint='金额(人民币万元)'))
+        self.assertIsNone(_parse_amount_cny('10万元', header_hint='单价(人民币元)'))
+
+    def test_mixed_currency_headers_never_enter_price_or_package_projection(self):
+        award = self.award()
+        for item in award['facts']['items']:
+            item['unit_price_header'] = '单价美元(万元)'
+        award['facts']['packages'][0]['amount_header'] = '中标金额欧元(万元)'
+        self.assertEqual(award_price_reference_rows([award], AS_OF), [])
+        entry = public_award_ledger_entry(award, AS_OF)
+        self.assertIsNone(entry['packages'][0]['amount_cny'])
+        self.assertTrue(all(item['unit_price_cny'] is None for item in entry['items']))
+
     def test_price_uses_only_verified_bounds(self):
         award = self.award()
         facts = award['facts']

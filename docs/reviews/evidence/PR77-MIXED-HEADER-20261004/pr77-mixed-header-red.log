@@ -1,0 +1,107 @@
+FFFFFFFFFFFF
+======================================================================
+FAIL: test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body) (header='单价美元(元)', body='10')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 44, in test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body
+    self.assertIsNone(_parse_amount_cny(body, header_hint=header))
+AssertionError: 10 is not None
+
+======================================================================
+FAIL: test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body) (header='单价美元(元)', body='10元')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 44, in test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body
+    self.assertIsNone(_parse_amount_cny(body, header_hint=header))
+AssertionError: 10 is not None
+
+======================================================================
+FAIL: test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body) (header='单价欧元(元)', body='10')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 44, in test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body
+    self.assertIsNone(_parse_amount_cny(body, header_hint=header))
+AssertionError: 10 is not None
+
+======================================================================
+FAIL: test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body) (header='单价欧元(元)', body='10元')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 44, in test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body
+    self.assertIsNone(_parse_amount_cny(body, header_hint=header))
+AssertionError: 10 is not None
+
+======================================================================
+FAIL: test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body) (header='单价USD(元)', body='10')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 44, in test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body
+    self.assertIsNone(_parse_amount_cny(body, header_hint=header))
+AssertionError: 10 is not None
+
+======================================================================
+FAIL: test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body) (header='单价USD(元)', body='10元')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 44, in test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body
+    self.assertIsNone(_parse_amount_cny(body, header_hint=header))
+AssertionError: 10 is not None
+
+======================================================================
+FAIL: test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body) (header='金额港元(万元)', body='10')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 44, in test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body
+    self.assertIsNone(_parse_amount_cny(body, header_hint=header))
+AssertionError: 100000 is not None
+
+======================================================================
+FAIL: test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body) (header='金额港元(万元)', body='10万元')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 44, in test_mixed_currency_headers_are_unknown_even_with_explicit_cny_body
+    self.assertIsNone(_parse_amount_cny(body, header_hint=header))
+AssertionError: 100000 is not None
+
+======================================================================
+FAIL: test_normal_cny_headers_keep_explicit_currency_and_scale (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_normal_cny_headers_keep_explicit_currency_and_scale) (header='单价(人民币元)', body='10元')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 56, in test_normal_cny_headers_keep_explicit_currency_and_scale
+    self.assertEqual(_parse_amount_cny(body, header_hint=header), expected)
+AssertionError: None != 10
+
+======================================================================
+FAIL: test_normal_cny_headers_keep_explicit_currency_and_scale (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_normal_cny_headers_keep_explicit_currency_and_scale) (header='单价人民币元', body='10')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 56, in test_normal_cny_headers_keep_explicit_currency_and_scale
+    self.assertEqual(_parse_amount_cny(body, header_hint=header), expected)
+AssertionError: None != 10
+
+======================================================================
+FAIL: test_normal_cny_headers_keep_explicit_currency_and_scale (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_normal_cny_headers_keep_explicit_currency_and_scale) (header='金额(人民币万元)', body='10万元')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 56, in test_normal_cny_headers_keep_explicit_currency_and_scale
+    self.assertEqual(_parse_amount_cny(body, header_hint=header), expected)
+AssertionError: None != 100000
+
+======================================================================
+FAIL: test_mixed_currency_headers_never_enter_price_or_package_projection (test_pr74_evidence_boundaries.EvidenceBoundaryRegressionTests.test_mixed_currency_headers_never_enter_price_or_package_projection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/medical-pr74-evidence/web/pipeline/tests/test_pr74_evidence_boundaries.py", line 65, in test_mixed_currency_headers_never_enter_price_or_package_projection
+    self.assertEqual(award_price_reference_rows([award], AS_OF), [])
+AssertionError: Lists differ: [{'award_id': 'ccgpaward_ccgp_award_tianji[1940 chars]tm'}] != []
+
+First list contains 4 additional elements.
+First extra element 0:
+{'award_id': 'ccgpaward_ccgp_award_tianjin_multi_package', 'market_code': 'TJ', 'published_at': '2026-09-28', 'buyer_name': '天津市第三中心医院', 'project_number': 'XCSD-2026-A-535', 'family': 'ULTRASOUND', 'name': '彩色多普勒超声诊断仪', 'brand': '飞利浦', 'model': 'EPIQ CVx', 'quantity': '1套', 'unit_price_cny': 2375000, 'unit_price_basis': 'EXPLICIT_UNIT', 'projection_version': 'EXPLICIT_CNY_SCOPE_V1', 'line_count': 1, 'source_url': 'https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260928_27412443.htm'}
+
+Diff is 2228 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.025s
+
+FAILED (failures=12)

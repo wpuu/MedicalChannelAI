@@ -322,8 +322,12 @@ def _parse_amount_cny(value: str | None, *, header_hint: str | None = None) -> i
         key = _header_key(header_hint)
         if "%" in key or "％" in key:
             return None
+        # A CNY annotation cannot override a contradictory currency anywhere
+        # else in the header (e.g. 单价美元(元)). These currencies stay unsupported.
+        if re.search(r"美元|欧元|港元|澳元|日元|韩元|英镑|卢布|新加坡元|新台币|USD|EUR|HKD|JPY|GBP|[$€£]", key, re.IGNORECASE):
+            return None
         annotations = re.findall(r"[（(]([^（）()]+)[）)]", str(header_hint))
-        money_units = [_normalize_space(label) for label in annotations if "元" in label]
+        money_units = [_normalize_space(label).removeprefix("人民币") for label in annotations if "元" in label]
         if money_units:
             if any(label not in {"元", "万元"} for label in money_units) or len(set(money_units)) != 1:
                 return None
@@ -331,7 +335,7 @@ def _parse_amount_cny(value: str | None, *, header_hint: str | None = None) -> i
         elif "元" in key:
             # Plain suffixes must follow a money-column label. Never interpret
             # 美元/港元/亿元/千元 or another unsupported currency/scale as 元.
-            plain = re.fullmatch(r"(?:.*(?:金额|单价|总价|报价))?(万元|元)", key)
+            plain = re.fullmatch(r"(?:.*(?:金额|单价|总价|报价))?(?:人民币)?(万元|元)", key)
             if plain is None:
                 return None
             header_unit = plain.group(1)
