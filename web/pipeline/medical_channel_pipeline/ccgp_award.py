@@ -296,13 +296,6 @@ def _item_name_index(headers: list[str]) -> int | None:
 # text template's ``182.0000000（万元）`` (unit in parentheses after the number).
 _AMOUNT_RE = re.compile(r"(?:[￥¥]\s*)?([0-9][0-9,]*(?:\.[0-9]+)?)\s*[（(]?\s*(万元|元)?\s*[）)]?")
 
-# A unit-less cell (河北 template: ``中标金额`` column holding ``5733000``) is
-# read as 元 only when the alternative 万元 reading would be at least ¥10亿,
-# which no medical-channel award in scope reaches; smaller unit-less numbers
-# stay ambiguous and are refused.
-UNITLESS_YUAN_FLOOR = 100_000
-
-
 def _parse_amount_cny(value: str | None, *, header_hint: str | None = None) -> int | None:
     """Parse ``237.5`` (with a 万元 header), ``1,395`` or ``10,727,000.00元``.
 
@@ -321,18 +314,17 @@ def _parse_amount_cny(value: str | None, *, header_hint: str | None = None) -> i
     match = matches[0]
     number = float(match.group(1).replace(",", ""))
     unit = match.group(2)
-    if unit is None and header_hint:
-        if "万元" in _header_key(header_hint):
-            unit = "万元"
-        elif "元" in _header_key(header_hint):
-            unit = "元"
+    header_unit = None
+    if header_hint:
+        key = _header_key(header_hint)
+        header_unit = "万元" if "万元" in key else "元" if "元" in key else None
+    if unit and header_unit and unit != header_unit:
+        return None
+    unit = unit or header_unit
+    if unit is None:
+        return None
     if unit == "万元":
         number *= 10_000
-    elif unit is None:
-        # No unit anywhere: refuse to guess a scale for a monetary fact unless
-        # the 万元 reading is implausible for this domain (see UNITLESS_YUAN_FLOOR).
-        if number < UNITLESS_YUAN_FLOOR:
-            return None
     if number < 0:
         return None
     return int(round(number))
@@ -586,6 +578,8 @@ def _packages_from_tables(blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]
                     "supplier_name": supplier,
                     "supplier_address": _clean(row[address_index]) if address_index is not None and address_index < len(row) else None,
                     "amount_cny": amount,
+                    "amount_raw": _clean(row[amount_index], max_length=160) if amount_index is not None and amount_index < len(row) else None,
+                    "amount_header": _clean(headers[amount_index], max_length=80) if amount_index is not None else None,
                     "failure_reason": None,
                 }
             )
@@ -624,6 +618,7 @@ def _packages_from_text(text: str) -> list[dict[str, Any]]:
                     "supplier_name": _clean(supplier.group(1)),
                     "supplier_address": _clean((re.search(r"供应商地址\s*[：:]\s*(.+?)(?=\s+(?:中标|成交)|$)", chunk, re.S) or [None, None])[1]),
                     "amount_cny": _parse_amount_cny(amount_match.group(1)) if amount_match else None,
+                    "amount_raw": _clean(amount_match.group(1), max_length=160) if amount_match else None,
                     "failure_reason": None,
                 }
             )
@@ -671,6 +666,7 @@ def _items_from_tables(blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]:
         model_index = _find_header_index(headers, "规格型号", "型号", "规格")
         quantity_index = _find_header_index(headers, "数量")
         price_index = _find_header_index(headers, "单价")
+        award_amount_index = _find_header_index(headers, "中标金额", "成交金额")
         category_index = _find_header_index(headers, "类型", "标的类型", "品目名称")
         for row in rows[header_row + 1:]:
             name = _clean(row[name_index]) if name_index is not None and name_index < len(row) else None
@@ -686,6 +682,10 @@ def _items_from_tables(blocks: list[tuple[str, Any]]) -> list[dict[str, Any]]:
                     "brand": _clean(row[brand_index], max_length=80) if brand_index is not None and brand_index < len(row) else None,
                     "model": _clean(row[model_index], max_length=120) if model_index is not None and model_index < len(row) else None,
                     "quantity": _clean(row[quantity_index], max_length=40) if quantity_index is not None and quantity_index < len(row) else None,
+                    "award_amount_raw": _clean(row[award_amount_index], max_length=160) if award_amount_index is not None and award_amount_index < len(row) else None,
+                    "award_amount_header": _clean(headers[award_amount_index], max_length=80) if award_amount_index is not None else None,
+                    "unit_price_raw": _clean(price_text, max_length=160),
+                    "unit_price_header": _clean(headers[price_index], max_length=80) if price_index is not None else None,
                     "unit_price_cny": _parse_amount_cny(price_text, header_hint=headers[price_index]) if price_index is not None else None,
                 }
             )
@@ -771,15 +771,9 @@ def reconcile_item_prices(
     packages: list[dict[str, Any]],
     total_amount: int | None,
 ) -> list[dict[str, Any]]:
-    """Guard unit prices against a misdeclared column unit.
+    """Conflicting prices stay unknown; never infer a replacement unit.
 
-    Buyers occasionally head the 主要标的信息 column ``单价(万元)`` but fill in
-    元 (observed on CCGP 2026-09-28: ``312000`` under a 万元 header for a
-    ¥312,000 package, which the literal reading turns into ¥3.12 billion).
-    A line total (unit price × quantity) can never exceed the money actually
-    awarded, so when it does the declared unit is not trusted: if reading
-    the cell as 元 fits within the package (or the notice total) that value
-    is used, otherwise the price is dropped rather than published.
+    Raw cells and source evidence are preserved on the item/record.
     """
     amount_by_package = {
         str(package.get("package_no")): package.get("amount_cny")
@@ -803,11 +797,7 @@ def reconcile_item_prices(
         if price * quantity <= tolerance:
             reconciled.append(item)
             continue
-        fallback = price / 10000
-        if fallback == int(fallback) and int(fallback) * quantity <= tolerance:
-            reconciled.append({**item, "unit_price_cny": int(fallback)})
-        else:
-            reconciled.append({**item, "unit_price_cny": None})
+        reconciled.append({**item, "unit_price_cny": None, "unit_price_issue": "AMOUNT_CONFLICT"})
     return reconciled
 
 
@@ -874,6 +864,7 @@ def parse_ccgp_award_html(
     items = reconcile_item_prices(items, packages, total_amount)
 
     facts: dict[str, Any] = {
+        "amount_summary_raw": {key: _clean(value, max_length=160) for key, value in summary.items() if "金额" in key},
         "project_number": project_number,
         "project_name": project_name,
         "buyer_name": buyer_name,
@@ -1162,18 +1153,33 @@ def awarded_project_numbers(award_records: list[dict[str, Any]] | None, as_of: d
     }
 
 
-def awarded_project_keys(award_records: list[dict[str, Any]] | None, as_of: datetime) -> set[tuple[str | None, str]]:
-    """``(market_code | None, normalised project number)`` for effective awards.
+def _project_completion_proven(record: dict[str, Any]) -> bool:
+    """A package result alone never proves that the whole project is closed.
 
-    A result notice may only retire an opportunity of the *same market*: a
-    Beijing 中标公告 must never conclude a Hebei tender that happens to reuse
-    the same project number. Awards without a market code (legacy stores)
-    keep the old market-agnostic behaviour via ``None``.
+    Existing adapters do not establish this fact. Future verified input must
+    carry an explicit whole-project assertion and its official evidence.
     """
-    keys: set[tuple[str | None, str]] = set()
+    facts = record["facts"]
+    return (
+        facts.get("award_status") == "AWARDED"
+        and facts.get("project_completion_confirmed") is True
+        and any(
+            isinstance(item, dict)
+            and item.get("field_path") == "facts.project_completion_confirmed"
+            and item.get("source_url") == record["source"]["url"]
+            and str(item.get("locator") or "").strip()
+            for item in record.get("evidence", [])
+        )
+    )
+
+
+def awarded_project_keys(award_records: list[dict[str, Any]] | None, as_of: datetime) -> set[tuple[str, str]]:
+    """Only explicitly proven complete projects in a known market can retire."""
+    keys: set[tuple[str, str]] = set()
     for record in effective_award_records(award_records, as_of):
-        market_code = str(record["facts"].get("market_code") or "").strip().upper() or None
-        keys.add((market_code, normalize_project_number(record["facts"]["project_number"])))
+        market = str(record["facts"].get("market_code") or "").strip().upper()
+        if market and _project_completion_proven(record):
+            keys.add((market, normalize_project_number(record["facts"]["project_number"])))
     return keys
 
 
@@ -1183,10 +1189,8 @@ def is_awarded_project(
     market_code: str | None,
 ) -> bool:
     key = normalize_project_number(project_number)
-    if not key:
-        return False
-    normalized_market = str(market_code or "").strip().upper() or None
-    return (normalized_market, key) in awarded_keys or (None, key) in awarded_keys
+    market = str(market_code or "").strip().upper()
+    return bool(key and market and (market, key) in awarded_keys)
 
 
 def exclude_awarded_projects(
@@ -1194,21 +1198,35 @@ def exclude_awarded_projects(
     award_records: list[dict[str, Any]] | None,
     as_of: datetime,
 ) -> tuple[list[str], list[str]]:
-    """Split an event-watch list into (still worth watching, already awarded).
+    """Result publication never licenses stopping later correction monitoring."""
+    return list(project_numbers), []
 
-    Once a 中标/成交 result is published the tender is concluded: the
-    opportunity is retired from the pool, so spending two CCGP searches a day
-    on its 更正/终止 notices buys nothing and only adds rate-limit exposure.
-    Order is preserved; matching uses ``normalize_project_number``.
-    """
-    awarded = awarded_project_numbers(award_records, as_of)
-    if not awarded:
-        return list(project_numbers), []
-    kept: list[str] = []
-    skipped: list[str] = []
-    for number in project_numbers:
-        (skipped if normalize_project_number(number) in awarded else kept).append(number)
-    return kept, skipped
+
+def evidenced_unit_price(item: dict[str, Any], facts: dict[str, Any]) -> int | None:
+    """Recheck raw units and bounds, including canonical records parsed earlier."""
+    parsed = _parse_amount_cny(item.get("unit_price_raw"), header_hint=item.get("unit_price_header"))
+    price = item.get("unit_price_cny")
+    if not isinstance(price, int) or isinstance(price, bool) or price <= 0 or parsed != price:
+        return None
+    return reconcile_item_prices([item], facts.get("packages") or [], facts.get("total_amount_cny"))[0].get("unit_price_cny")
+
+
+def evidenced_package_amount(package: dict[str, Any]) -> int | None:
+    amount = package.get("amount_cny")
+    parsed = _parse_amount_cny(package.get("amount_raw"), header_hint=package.get("amount_header"))
+    return amount if isinstance(amount, int) and not isinstance(amount, bool) and parsed == amount else None
+
+
+def evidenced_total_amount(facts: dict[str, Any]) -> int | None:
+    total = facts.get("total_amount_cny")
+    if not isinstance(total, int) or isinstance(total, bool):
+        return None
+    if facts.get("amount_basis") == "SUMMARY_TOTAL":
+        raw = facts.get("amount_summary_raw") or {}
+        return total if isinstance(raw, dict) and any(_parse_amount_cny(value) == total for value in raw.values()) else None
+    packages = [p for p in facts.get("packages") or [] if p.get("status") == "AWARDED"]
+    amounts = [evidenced_package_amount(p) for p in packages]
+    return total if packages and all(amount is not None for amount in amounts) and sum(amounts) == total else None
 
 
 def public_award_ledger_entry(record: dict[str, Any], as_of: datetime) -> dict[str, Any]:
@@ -1225,7 +1243,7 @@ def public_award_ledger_entry(record: dict[str, Any], as_of: datetime) -> dict[s
             "package_no": package.get("package_no"),
             "status": package.get("status"),
             "supplier_name": _ledger_text(package.get("supplier_name"), "supplier_name"),
-            "amount_cny": package.get("amount_cny"),
+            "amount_cny": evidenced_package_amount(package),
             "failure_reason": _ledger_text(package.get("failure_reason"), "failure_reason"),
         }
         for package in list(facts.get("packages") or [])[:MAX_LEDGER_PACKAGES]
@@ -1238,7 +1256,8 @@ def public_award_ledger_entry(record: dict[str, Any], as_of: datetime) -> dict[s
             "brand": _ledger_text(item.get("brand"), "brand"),
             "model": _ledger_text(item.get("model"), "model"),
             "quantity": _ledger_text(item.get("quantity"), "quantity"),
-            "unit_price_cny": item.get("unit_price_cny"),
+            "unit_price_cny": evidenced_unit_price(item, facts),
+            "unit_price_basis": "EXPLICIT_UNIT" if evidenced_unit_price(item, facts) is not None else "UNKNOWN",
         }
         for item in list(facts.get("items") or [])[:MAX_LEDGER_ITEMS]
     ]
@@ -1253,7 +1272,7 @@ def public_award_ledger_entry(record: dict[str, Any], as_of: datetime) -> dict[s
         "lifecycle_state": facts.get("lifecycle_state"),
         "published_at": facts.get("published_at"),
         "procurement_method": facts.get("procurement_method"),
-        "total_amount_cny": facts.get("total_amount_cny"),
+        "total_amount_cny": evidenced_total_amount(facts),
         "amount_basis": facts.get("amount_basis"),
         "award_status": facts.get("award_status"),
         "package_count": len(facts.get("packages") or []),

@@ -113,12 +113,13 @@ export interface PublicDecision {
 export interface PublicLegalWindow {
   code: 'DOCUMENT_CHALLENGE' | 'RESULT_CHALLENGE'
   anchor_kind: string
-  anchor_date: string
+  anchor_date: string | null
   /** Present only when the statutory clock starts after the anchor (e.g. 中标公告期限). */
   clock_start_date?: string
-  deadline_date: string
+  deadline_date: string | null
   remaining_working_days: number
-  status: 'OPEN' | 'CLOSED'
+  status: 'OPEN' | 'CLOSED' | 'UNKNOWN'
+  uncertainty_reason?: string
   /** Present only when the dates fall outside the official holiday calendar coverage. */
   calendar?: string
 }
@@ -218,6 +219,7 @@ export interface PublicAwardLedgerItem {
   model: string | null
   quantity: string | null
   unit_price_cny: number | null
+  unit_price_basis?: 'EXPLICIT_UNIT' | 'UNKNOWN'
 }
 
 /** One coarse device family of the shipped taxonomy (ordered; first match wins). */
@@ -246,6 +248,7 @@ export interface PublicAwardPriceReferenceRow {
   model: string | null
   quantity: string | null
   unit_price_cny: number
+  unit_price_basis?: 'EXPLICIT_UNIT' | 'UNKNOWN'
   /** Identical lines folded into this row (e.g. three 品目号 rows for three units). */
   line_count: number
   source_url: string

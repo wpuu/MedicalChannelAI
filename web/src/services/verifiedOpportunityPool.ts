@@ -253,6 +253,7 @@ export function refreshAwardLedger(
   return entries.map((entry) => ({
     ...entry,
     legal_windows: refreshLegalWindows(entry.legal_windows, now, calendar),
+    items: (entry.items ?? []).map((item) => ({ ...item, unit_price_cny: item.unit_price_basis === 'EXPLICIT_UNIT' ? item.unit_price_cny : null })),
   }))
 }
 
@@ -287,17 +288,29 @@ export async function getAwardPriceReference(): Promise<{
   const reference = data.award_price_reference
   return {
     snapshot_as_of: data.snapshot_as_of,
-    reference: reference && Array.isArray(reference.rows) && Array.isArray(reference.families) ? reference : null,
+    reference: reference && Array.isArray(reference.rows) && Array.isArray(reference.families)
+      ? (() => {
+          const rows = reference.rows.filter((row) => row.unit_price_basis === 'EXPLICIT_UNIT')
+          const family_row_counts: Record<string, number> = {}
+          for (const row of rows) {
+            const family = row.family ?? 'OTHER'
+            family_row_counts[family] = (family_row_counts[family] ?? 0) + 1
+          }
+          return { ...reference, rows, row_count: rows.length, family_row_counts }
+        })()
+      : null,
   }
 }
 
 export function findAwardForProject(
   entries: readonly AwardLedgerEntry[] | null | undefined,
   projectNumber: string | null | undefined,
+  marketCode: string | null | undefined,
 ): AwardLedgerEntry | null {
   const key = normalizeProjectNumber(projectNumber)
-  if (!key || !Array.isArray(entries)) return null
-  return entries.find((entry) => normalizeProjectNumber(entry.project_number) === key) ?? null
+  const market = String(marketCode ?? '').trim().toUpperCase()
+  if (!key || !market || !Array.isArray(entries)) return null
+  return entries.find((entry) => entry.market_code?.trim().toUpperCase() === market && normalizeProjectNumber(entry.project_number) === key) ?? null
 }
 
 export async function getVerifiedOpportunityPool(): Promise<{

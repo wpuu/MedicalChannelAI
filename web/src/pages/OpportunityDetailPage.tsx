@@ -148,6 +148,7 @@ export function OpportunityDetailPage() {
   }, [id, navigate])
 
   const projectCode = card?.facts.project_code ?? null
+  const projectMarket = card?.facts.market_code ?? null
   useEffect(() => {
     let cancelled = false
     setAwardResult(null)
@@ -156,7 +157,7 @@ export function OpportunityDetailPage() {
     // leave the page unchanged; the award ledger is public snapshot data.
     void getAwardLedger()
       .then((ledger) => {
-        if (!cancelled) setAwardResult(findAwardForProject(ledger.entries, projectCode))
+        if (!cancelled) setAwardResult(findAwardForProject(ledger.entries, projectCode, projectMarket))
       })
       .catch(() => {
         if (!cancelled) setAwardResult(null)
@@ -164,7 +165,7 @@ export function OpportunityDetailPage() {
     return () => {
       cancelled = true
     }
-  }, [projectCode])
+  }, [projectCode, projectMarket])
 
   const [priceReference, setPriceReference] = useState<AwardPriceReference | null>(null)
   useEffect(() => {

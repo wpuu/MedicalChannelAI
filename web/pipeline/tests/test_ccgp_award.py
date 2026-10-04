@@ -174,7 +174,7 @@ class CcgpAwardParserTests(unittest.TestCase):
             with self.assertRaisesRegex(CcgpAwardParseError, "CCGP_AWARD_SOURCE_HOST_REJECTED"):
                 parse_ccgp_award_html(html, source_url=url, observed_at=OBSERVED_AT, award_id="x")
 
-    def test_unit_price_under_misdeclared_wan_header_is_reconciled_with_package_amount(self) -> None:
+    def test_unit_price_under_misdeclared_wan_header_stays_unknown(self) -> None:
         # Real 2026-09-28 notice: column headed 单价(万元) but filled with 元
         # (312000 for a ¥312,000 package). Literal reading = ¥3.12 billion.
         record = _parse("ccgp_award_tianjin_unit_price_misdeclared.html", TJ_MISDECLARED_URL, market_code="TJ")
@@ -184,7 +184,7 @@ class CcgpAwardParserTests(unittest.TestCase):
         self.assertEqual(facts["packages"][0]["amount_cny"], 312_000)
         self.assertEqual(facts["items"][0]["brand"], "辉锦创兴")
         self.assertEqual(facts["items"][0]["model"], "AutoPlex-12")
-        self.assertEqual(facts["items"][0]["unit_price_cny"], 312_000)
+        self.assertIsNone(facts["items"][0]["unit_price_cny"])
         validate_award_records([record])
 
     def test_reconcile_item_prices_drops_prices_that_cannot_fit_the_award(self) -> None:
@@ -197,7 +197,7 @@ class CcgpAwardParserTests(unittest.TestCase):
             {"package_no": None, "name": "e", "quantity": None, "unit_price_cny": None},
         ]
         result = reconcile_item_prices(items, packages, 312_000)
-        self.assertEqual([item["unit_price_cny"] for item in result], [312_000, 150_000, None, None, None])
+        self.assertEqual([item["unit_price_cny"] for item in result], [None, 150_000, None, None, None])
         # Plausible prices are never touched, and unknown ceilings never drop data.
         self.assertEqual(reconcile_item_prices(items[1:2], packages, None)[0]["unit_price_cny"], 150_000)
         self.assertEqual(reconcile_item_prices(items[:1], [], None)[0]["unit_price_cny"], 3_120_000_000)
@@ -222,8 +222,8 @@ class CcgpAwardParserTests(unittest.TestCase):
         self.assertEqual(len(facts["packages"]), 1)
         package = facts["packages"][0]
         self.assertEqual(package["supplier_name"], "吉荣家具有限公司")
-        self.assertEqual(package["amount_cny"], 2_569_303)
-        self.assertEqual(package["amount_source"], "ITEM_TABLE")
+        self.assertIsNone(package["amount_cny"])
+        self.assertNotIn("amount_source", package)
         self.assertEqual(
             [(item["category"], item["name"], item["brand"], item["quantity"]) for item in facts["items"]],
             [("货物类", "病房护理设备设施", "吉荣", "一批")],
@@ -239,7 +239,7 @@ class CcgpAwardParserTests(unittest.TestCase):
         self.assertEqual(facts["buyer_name"], "河北医科大学第三医院")
         self.assertEqual(facts["total_amount_cny"], 5_733_000)
         self.assertEqual(facts["packages"][0]["supplier_name"], "河北瑞鹤医疗器械有限公司")
-        self.assertEqual(facts["packages"][0]["amount_cny"], 5_733_000)
+        self.assertIsNone(facts["packages"][0]["amount_cny"])
         self.assertEqual(
             [(item["category"], item["name"], item["model"], item["unit_price_cny"]) for item in facts["items"]],
             [("服务类", "河北医科大学第三医院CT、MRI维保项目（三年）（二次）", None, None)],
@@ -302,11 +302,11 @@ class CcgpAwardParserTests(unittest.TestCase):
 
     def test_amount_parsing_never_guesses_a_scale(self) -> None:
         self.assertIsNone(_parse_amount_cny("237.5"))
-        # Unit-less cells are only read as 元 when the 万元 reading would be >= ¥10亿.
+        # Unit-less cells remain unknown regardless of magnitude.
         self.assertIsNone(_parse_amount_cny("12000"))
         self.assertIsNone(_parse_amount_cny("99999.99"))
-        self.assertEqual(_parse_amount_cny("5733000"), 5_733_000)
-        self.assertEqual(_parse_amount_cny("2569303.17"), 2_569_303)
+        self.assertIsNone(_parse_amount_cny("5733000"))
+        self.assertIsNone(_parse_amount_cny("2569303.17"))
         self.assertEqual(_parse_amount_cny("182.0000000（万元）"), 1_820_000)
         self.assertEqual(_parse_amount_cny("1820000(元)"), 1_820_000)
 

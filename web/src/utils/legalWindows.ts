@@ -5,7 +5,7 @@ import type { LegalWindow, TodayActionCard, WorkingCalendar } from '@/types'
  * pipeline/medical_channel_pipeline/legal_windows.py and arrives embedded in the
  * snapshot (`working_calendar`); this file never hard-codes holidays.
  *
- * Everything here is an estimate under 财政部令第94号 — the UI must always
+ * Unverified rules and notice-specific anchors stay UNKNOWN; the UI must always
  * render LEGAL_WINDOW_DISCLAIMER next to these figures.
  */
 
@@ -13,7 +13,7 @@ const DAY_MS = 24 * 60 * 60 * 1000
 const MAX_SPAN_DAYS = 4000
 
 export const LEGAL_WINDOW_DISCLAIMER =
-  '按《政府采购质疑和投诉办法》（财政部令第94号）以工作日推算，非官方截止时间；以采购文件、公告及财政部门答复为准。'
+  '条件性推算，非官方截止时间；适用制度、法源及起算事实尚待核验，以官方原文及主管部门答复为准。'
 
 export const LEGAL_WINDOW_LABELS: Record<LegalWindow['code'], string> = {
   DOCUMENT_CHALLENGE: '招标文件质疑期',
@@ -21,29 +21,15 @@ export const LEGAL_WINDOW_LABELS: Record<LegalWindow['code'], string> = {
 }
 
 export const LEGAL_WINDOW_BASIS_NOTES: Record<LegalWindow['code'], string> = {
-  DOCUMENT_CHALLENGE:
-    '自获取招标文件截止日起 7 个工作日（94号令第十一条）。若您更早获取文件，应自获取之日起算，实际截止会更早。',
-  RESULT_CHALLENGE:
-    '自中标/成交公告期限届满之日（公告发布后 1 个工作日，87号令第六十九条）起 7 个工作日（94号令第十条、实施条例第五十三条）。',
+  DOCUMENT_CHALLENGE: '报名截止日不能证明法定起算日；文件获取事实及公告期限尚待核验。',
+  RESULT_CHALLENGE: '结果发布日期不能单独证明适用制度或公告期限届满日。',
 }
 
-export const COMPLAINT_RULE_NOTE =
-  '质疑后采购人/代理机构应在 7 个工作日内答复（94号令第十三条）；对答复不满意或逾期未答复，可在答复期满后 15 个工作日内向同级财政部门投诉（第十七条）。'
+export const COMPLAINT_RULE_NOTE = '投诉规则的适用条件与起算事实尚待核验。'
 
 interface NormalizedCalendar {
   holidays: Set<string>
   adjustedWorkdays: Set<string>
-}
-
-function tianjinDateKey(nowMs: number): string {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(new Date(nowMs))
-  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
-  return `${values.year}-${values.month}-${values.day}`
 }
 
 function dateKeyToUtcMs(key: unknown): number | null {
@@ -97,27 +83,25 @@ export function workingDaysRemaining(
 
 export function refreshLegalWindows(
   windows: LegalWindow[] | null | undefined,
-  now: number,
-  calendar: WorkingCalendar | null | undefined,
+  _now: number,
+  _calendar: WorkingCalendar | null | undefined,
 ): LegalWindow[] | null {
   if (!Array.isArray(windows)) return null
-  const todayKey = tianjinDateKey(now)
-  return windows.map((item) => {
-    if (dateKeyToUtcMs(item.deadline_date) === null) return item
-    const remaining = workingDaysRemaining(todayKey, item.deadline_date, calendar)
-    return { ...item, remaining_working_days: remaining, status: remaining > 0 ? 'OPEN' : 'CLOSED' }
-  })
+  return windows.map((item) => ({
+    ...item,
+    anchor_kind: 'UNVERIFIED',
+    anchor_date: null,
+    clock_start_date: undefined,
+    deadline_date: null,
+    remaining_working_days: 0,
+    status: 'UNKNOWN',
+    uncertainty_reason: 'APPLICABILITY_ANCHOR_AND_LEGAL_SOURCE_UNVERIFIED',
+  }))
 }
 
 export function primaryLegalWindow(card: Pick<TodayActionCard, 'legal_windows'>): LegalWindow | null {
   const windows = Array.isArray(card.legal_windows) ? card.legal_windows : []
   return windows.find((item) => item.status === 'OPEN') ?? windows[0] ?? null
-}
-
-function shortDate(dateKey: string): string {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey)
-  if (!match) return dateKey
-  return `${Number(match[2])}月${Number(match[3])}日`
 }
 
 export interface LegalWindowSummary {
@@ -136,24 +120,19 @@ export function legalWindowSummary(card: Pick<TodayActionCard, 'legal_windows'>)
   const window = primaryLegalWindow(card)
   if (!window) return null
   const label = LEGAL_WINDOW_LABELS[window.code] ?? '质疑期'
-  const deadlineText = shortDate(window.deadline_date)
-  const remaining = window.remaining_working_days
-  let headline: string
-  if (window.status !== 'OPEN' || remaining <= 0) {
-    headline = `${label}已过（推算截止 ${deadlineText}）`
-  } else if (remaining === 1) {
-    headline = `${label}今天是最后一个工作日（推算截止 ${deadlineText}）`
-  } else {
-    headline = `${label}还剩 ${remaining} 个工作日（推算最晚 ${deadlineText}）`
-  }
+  // Older snapshots also lack verified legal applicability/anchor evidence.
+  const deadlineText = '待核验'
+  const remaining = 0
+  const headline = `${label}：条件性推算 · 适用制度及起算待核验`
+
   return {
     code: window.code,
     label,
-    status: window.status,
+    status: 'UNKNOWN',
     remaining,
     deadlineText,
     headline,
     basisNote: LEGAL_WINDOW_BASIS_NOTES[window.code] ?? '',
-    estimateOnly: Boolean(window.calendar),
+    estimateOnly: true,
   }
 }

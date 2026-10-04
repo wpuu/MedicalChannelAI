@@ -14,14 +14,14 @@ interface LegalWindowNoticeProps {
 
 /**
  * Renders the derived 质疑期 countdown. It is always labelled as an estimate
- * under 财政部令第94号 and never shown as an official deadline. Closed windows
+ * with unverified applicability/anchors and never shown as an official deadline. Closed windows
  * are shown only in the full variant so list cards stay quiet.
  */
 export function LegalWindowNotice({ card, compact = false }: LegalWindowNoticeProps) {
   const summary = legalWindowSummary(card)
   if (!summary) return null
   const open = summary.status === 'OPEN' && summary.remaining > 0
-  if (compact && !open) return null
+  if (compact && summary.status === 'CLOSED') return null
 
   const tone = open
     ? summary.remaining <= 2
@@ -36,7 +36,7 @@ export function LegalWindowNotice({ card, compact = false }: LegalWindowNoticePr
         title={LEGAL_WINDOW_DISCLAIMER}
       >
         <Scale className="h-3 w-3" />
-        {summary.headline}
+        <span>{summary.headline}<span className="block font-normal">{LEGAL_WINDOW_DISCLAIMER}</span></span>
       </span>
     )
   }
@@ -51,7 +51,6 @@ export function LegalWindowNotice({ card, compact = false }: LegalWindowNoticePr
           {open ? <p className="mt-0.5 opacity-90">{COMPLAINT_RULE_NOTE}</p> : null}
           <p className="mt-0.5 opacity-75">
             {LEGAL_WINDOW_DISCLAIMER}
-            {summary.estimateOnly ? ' 该日期超出已收录的官方节假日安排，仅按周末推算。' : ''}
           </p>
         </div>
       </div>

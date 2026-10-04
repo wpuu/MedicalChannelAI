@@ -6,6 +6,7 @@ import unittest
 from datetime import datetime
 from pathlib import Path
 
+from test_ccgp_award import _parse, TJ_MULTI_URL, TJ_SINGLE_URL, HL_CONTRACT_URL
 from medical_channel_pipeline import build_public_snapshot
 from medical_channel_pipeline.award_price_reference import (
     MAX_REFERENCE_ROWS,
@@ -29,8 +30,13 @@ def _store(name: str) -> list[dict]:
     return json.loads((PIPELINE_ROOT / "data" / name).read_text(encoding="utf-8"))
 
 
-def _all_awards() -> list[dict]:
-    return [*_store("tianjin_award_records.json"), *_store("regional_award_records.json")]
+def _priced_awards() -> list[dict]:
+    # Reparse captured official HTML; never manufacture unit provenance for old records.
+    return [
+        _parse('ccgp_award_tianjin_multi_package.html', TJ_MULTI_URL, market_code='TJ'),
+        _parse('ccgp_award_tianjin_single_package.html', TJ_SINGLE_URL, market_code='TJ'),
+        _parse('ccgp_award_heilongjiang_contract_package.html', HL_CONTRACT_URL, market_code='HL'),
+    ]
 
 
 class DeviceFamilyTests(unittest.TestCase):
@@ -69,8 +75,8 @@ class DeviceFamilyTests(unittest.TestCase):
 
 class AwardPriceReferenceTests(unittest.TestCase):
     def test_rows_come_from_real_award_lines_with_single_brand_and_unit_price(self) -> None:
-        rows = award_price_reference_rows(_all_awards(), AS_OF)
-        self.assertGreaterEqual(len(rows), 40)
+        rows = award_price_reference_rows(_priced_awards(), AS_OF)
+        self.assertGreaterEqual(len(rows), 5)
         for row in rows:
             with self.subTest(row=row["name"]):
                 self.assertIsInstance(row["unit_price_cny"], int)
@@ -81,12 +87,8 @@ class AwardPriceReferenceTests(unittest.TestCase):
                 self.assertTrue(row["source_url"].startswith("https://www.ccgp.gov.cn/"))
                 self.assertIn(row["market_code"], {"TJ", "BJ", "HE", "LN", "JL", "HL"})
         by_name = {(row["brand"], row["model"]): row for row in rows}
-        # Real evidence lines observed 2026-09-28/29.
-        self.assertEqual(by_name[("通用电气", "LOGIQ E20 Pro")]["unit_price_cny"], 2_418_000)
-        self.assertEqual(by_name[("通用电气", "LOGIQ E20 Pro")]["family"], "ULTRASOUND")
-        self.assertEqual(by_name[("通用电气", "LOGIQ E20 Pro")]["line_count"], 3)  # three 品目号 lines, one row
-        self.assertEqual(by_name[("迈瑞", "TV80S")]["line_count"], 1)
-        self.assertEqual(by_name[("迈瑞", "TV80S")]["unit_price_cny"], 150_000)
+        self.assertEqual(by_name[("飞利浦", "EPIQ CVx")]["unit_price_cny"], 2_375_000)
+        self.assertEqual(by_name[("飞利浦", "EPIQ CVx")]["family"], "ULTRASOUND")
         self.assertEqual(by_name[("联影", "uAngio960")]["family"], "DSA")
         # Multi-valued cells are never attributed to one price.
         self.assertNotIn(("卡尔史托斯； 其他详见附件", "IMAGE1 S 4U; 其他详见附件"), by_name)
@@ -95,14 +97,17 @@ class AwardPriceReferenceTests(unittest.TestCase):
         dates = [row["published_at"] for row in rows]
         self.assertEqual(dates, sorted(dates, reverse=True))
 
+    def test_legacy_stores_without_raw_unit_evidence_have_no_price_reference(self) -> None:
+        self.assertEqual(award_price_reference_rows([*_store('tianjin_award_records.json'), *_store('regional_award_records.json')], AS_OF), [])
+
     def test_lookback_and_cap_are_enforced_and_reported(self) -> None:
-        awards = _all_awards()
+        awards = _priced_awards()
         old = copy.deepcopy(awards[0])
         old["award_id"] = "ccgpaward_old_reference"
         old["source"]["url"] = old["source"]["url"].replace(".htm", "_old.htm")
         old["facts"]["published_at"] = "2025-01-15"
         old["facts"]["items"] = [
-            {"package_no": None, "category": None, "name": "老旧彩超", "brand": "老品牌", "model": "X1", "quantity": "1", "unit_price_cny": 100},
+            {"package_no": None, "category": None, "name": "老旧彩超", "brand": "老品牌", "model": "X1", "quantity": "1", "unit_price_raw": "100元", "unit_price_header": "单价(元)", "unit_price_cny": 100},
         ]
         rows = award_price_reference_rows([*awards, old], AS_OF, lookback_days=365)
         self.assertFalse(any(row["award_id"] == "ccgpaward_old_reference" for row in rows))
@@ -119,8 +124,8 @@ class AwardPriceReferenceTests(unittest.TestCase):
         self.assertFalse(full["truncated"])
 
     def test_combine_dedupes_and_keeps_newest_first(self) -> None:
-        tianjin = build_award_price_reference(_store("tianjin_award_records.json"), AS_OF)
-        regional = build_award_price_reference(_store("regional_award_records.json"), AS_OF)
+        tianjin = build_award_price_reference(_priced_awards()[:2], AS_OF)
+        regional = build_award_price_reference(_priced_awards()[2:], AS_OF)
         combined = combine_award_price_references(tianjin, regional)
         self.assertEqual(combined["row_count"], tianjin["row_count"] + regional["row_count"])
         again = combine_award_price_references(combined, tianjin, None)
@@ -134,13 +139,13 @@ class AwardPriceReferenceTests(unittest.TestCase):
 
     def test_snapshot_embeds_reference_and_ledger_items_carry_category(self) -> None:
         records = json.loads((PIPELINE_ROOT / "data" / "regional_live_ccgp_records.json").read_text(encoding="utf-8"))
-        snapshot = build_public_snapshot(records[:5], AS_OF, [], _store("regional_award_records.json"))
+        snapshot = build_public_snapshot(records[:5], AS_OF, [], _priced_awards()[2:])
         reference = snapshot["award_price_reference"]
         self.assertEqual(reference["schema_version"], "0.1")
         self.assertGreater(reference["row_count"], 0)
         self.assertEqual({tuple(sorted(row)) for row in reference["rows"]}, {(
             "award_id", "brand", "buyer_name", "family", "line_count", "market_code", "model", "name",
-            "project_number", "published_at", "quantity", "source_url", "unit_price_cny",
+            "project_number", "published_at", "quantity", "source_url", "unit_price_basis", "unit_price_cny",
         )})
         for row in reference["rows"]:
             self.assertNotIn("supplier_address", row)
