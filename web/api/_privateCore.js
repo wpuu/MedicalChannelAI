@@ -345,6 +345,7 @@ function publicSnapshotForFollowup(card) {
   const facts = card.facts || {}
   return {
     facts: {
+      market_code: snapshotText(facts.market_code, 40),
       project_number: snapshotText(facts.project_number, 300),
       project_name: snapshotText(facts.project_name, 1000),
       buyer_name: snapshotText(facts.buyer_name, 500),
@@ -640,6 +641,7 @@ function sanitizeStoredSnapshot(value) {
   const rawFacts = value.facts
   if (!rawFacts || typeof rawFacts !== 'object' || Array.isArray(rawFacts)) return null
   const facts = {
+    market_code: nullableText(rawFacts.market_code),
     project_number: nullableText(rawFacts.project_number),
     project_name: nullableText(rawFacts.project_name),
     buyer_name: nullableText(rawFacts.buyer_name),

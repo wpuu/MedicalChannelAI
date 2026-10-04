@@ -6,6 +6,7 @@ const LOCAL_REMINDER_PREFIX = 'local-reminder:'
 export interface StoredPublicOpportunity {
   opportunity_id: string
   facts: {
+    market_code?: string | null
     project_number: string | null
     project_name: string | null
     buyer_name: string | null
@@ -96,6 +97,7 @@ function parsePublicSnapshot(value: unknown): StoredPublicOpportunity | undefine
   return {
     opportunity_id: row.opportunity_id,
     facts: {
+      market_code: asNullableString(facts.market_code),
       project_number: asNullableString(facts.project_number),
       project_name: asNullableString(facts.project_name),
       buyer_name: asNullableString(facts.buyer_name),
@@ -148,6 +150,7 @@ function toStoredPublicOpportunity(card: TodayActionCard): StoredPublicOpportuni
   return {
     opportunity_id: card.opportunity_id,
     facts: {
+      market_code: card.facts.market_code ?? null,
       project_number: card.facts.project_code,
       project_name: card.facts.project_name,
       buyer_name: card.facts.buyer_name ?? null,
@@ -226,6 +229,7 @@ export function getStoredHistoricalOpportunityCard(opportunityId: string): Today
     rank: 0,
     opportunity_id: snapshot.opportunity_id,
     facts: {
+      market_code: snapshot.facts.market_code ?? null,
       project_code: snapshot.facts.project_number,
       project_name: snapshot.facts.project_name,
       hospital: snapshot.facts.hospital_name,
