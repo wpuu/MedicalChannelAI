@@ -25,6 +25,42 @@ class EvidenceBoundaryRegressionTests(unittest.TestCase):
     def test_conflicting_units_are_unknown(self):
         self.assertIsNone(_parse_amount_cny('10元', header_hint='单价(万元)'))
 
+    def test_unsupported_currency_scale_percentage_and_negative_are_unknown(self):
+        for body in ('10亿元', '10美元', '10欧元', '100%', '-10元'):
+            with self.subTest(body=body):
+                self.assertIsNone(_parse_amount_cny(body, header_hint='单价(元)'))
+
+    def test_unsupported_header_and_malformed_amount_are_unknown(self):
+        for header in ('单价(亿元)', '单价(美元)', '单价(欧元)', '单价(港元)', '金额(千元)', '单价美元', '比例(%)'):
+            self.assertIsNone(_parse_amount_cny('10', header_hint=header))
+        for text in ('1,00元', '(10元', '10元)', '10元附注', '+10元'):
+            self.assertIsNone(_parse_amount_cny(text))
+
+    def test_price_uses_only_verified_bounds(self):
+        award = self.award()
+        facts = award['facts']
+        item = {**facts['items'][0], 'quantity': '1', 'unit_price_cny': 1000, 'unit_price_raw': '1000元', 'unit_price_header': '单价(元)'}
+        facts['items'] = [item]
+        facts['packages'] = [{**facts['packages'][0], 'amount_cny': 500, 'amount_raw': '500元', 'amount_header': '中标金额(元)'}]
+        facts['total_amount_cny'] = None
+        facts['amount_summary_raw'] = {}
+        self.assertIsNone(public_award_ledger_entry(award, AS_OF)['items'][0]['unit_price_cny'])
+        # A stale ceiling with no raw evidence cannot reject/validate an otherwise
+        # explicitly evidenced unit price. The public package amount stays unknown.
+        facts['packages'][0]['amount_raw'] = None
+        ledger = public_award_ledger_entry(award, AS_OF)
+        self.assertEqual(ledger['items'][0]['unit_price_cny'], 1000)
+        self.assertIsNone(ledger['packages'][0]['amount_cny'])
+
+    def test_price_cannot_use_an_unverified_or_contradictory_bound(self):
+        award = self.award()
+        award['facts']['items'] = [{**award['facts']['items'][0], 'quantity': '1', 'unit_price_cny': 1000, 'unit_price_raw': '1000元', 'unit_price_header': '单价(元)'}]
+        award['facts']['packages'][0].update({'amount_cny': 10000000, 'amount_raw': '500元', 'amount_header': '中标金额(元)'})
+        award['facts']['total_amount_cny'] = 10000000
+        award['facts']['amount_summary_raw'] = {'总中标金额': '500元'}
+        self.assertEqual(award_price_reference_rows([award], AS_OF), [])
+        self.assertIsNone(public_award_ledger_entry(award, AS_OF)['items'][0]['unit_price_cny'])
+
     def test_explicit_units_still_parse(self):
         self.assertEqual(_parse_amount_cny('237.5', header_hint='金额(万元)'), 2375000)
         self.assertEqual(_parse_amount_cny('10,727,000.00元'), 10727000)

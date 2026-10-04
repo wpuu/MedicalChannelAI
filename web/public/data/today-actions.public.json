@@ -96,6 +96,7 @@
     "complaint_working_days": 15,
     "award_notice_period_working_days": 1
   },
+  "award_projection_version": "EXPLICIT_CNY_SCOPE_V1",
   "awarded_project_count": 0,
   "notice_suppressed_project_count": 17,
   "notice_suppressed_projects": [
@@ -273,6 +274,7 @@
   "award_ledger": [
     {
       "award_id": "ccgpaward_c52d258eb8d650ed",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "[230801]ZTZB[GK]20260012",
       "project_name": "公立医院改革与高质量发展提升项目专用设备采购",
       "buyer_name": "佳木斯市口腔病防治院",
@@ -283,6 +285,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -293,6 +296,7 @@
           "status": "AWARDED",
           "supplier_name": "华润佳木斯医药有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -394,6 +398,7 @@
     },
     {
       "award_id": "ccgpaward_c01bdb981983ce35",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "[230401]BZGC[GK]20260001",
       "project_name": "医养结合服务能力提升项目-康复及健康监测设备采购项目",
       "buyer_name": "鹤岗市中医医院",
@@ -404,6 +409,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -414,6 +420,7 @@
           "status": "AWARDED",
           "supplier_name": "沈阳众景医疗科技有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -505,6 +512,7 @@
     },
     {
       "award_id": "ccgpaward_b17e2e24398ff29c",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "0722-26FE3684ZB4",
       "project_name": "北京大学人民医院新增业务用房启用保障项目购医疗设备第三批",
       "buyer_name": "北京大学人民医院",
@@ -515,6 +523,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -525,6 +534,7 @@
           "status": "AWARDED",
           "supplier_name": "北京希倍佳科贸有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -556,6 +566,7 @@
     },
     {
       "award_id": "ccgpaward_9f9303e5f520e1f2",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "YM-260603030",
       "project_name": "保定市第二医院公立医院改革与高质量发展示范项目2025年市级和自筹资金医疗设备采购项目",
       "buyer_name": "保定市第二医院",
@@ -566,6 +577,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -576,6 +588,7 @@
           "status": "AWARDED",
           "supplier_name": "河北睿兰科思医疗科技有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -607,6 +620,7 @@
     },
     {
       "award_id": "ccgpaward_9a115a2622b23941",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "采购计划-[2026]-23544号-1",
       "project_name": "吉林省神经精神病医院西门子核磁共振维保",
       "buyer_name": "吉林省神经精神病医院",
@@ -617,6 +631,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -627,6 +642,7 @@
           "status": "AWARDED",
           "supplier_name": "西门子医疗系统有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -658,6 +674,7 @@
     },
     {
       "award_id": "ccgpaward_917443ec69900ffb",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "[230001]ALZC[GK]20260007",
       "project_name": "医疗设备以旧更新项目第二批",
       "buyer_name": "黑龙江中医药大学附属第四医院",
@@ -668,6 +685,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -678,6 +696,7 @@
           "status": "AWARDED",
           "supplier_name": "哈药集团医药有限公司器化玻批发总汇",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -749,6 +768,7 @@
     },
     {
       "award_id": "ccgpaward_715caa710aab51be",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "JM-2026-06-05060-JM-2026-06-05060",
       "project_name": "长春市疾控卫监双随机检验检测试剂及耗材采购项目（三次）",
       "buyer_name": "长春市疾病预防控制中心（长春市卫生监督所）",
@@ -759,6 +779,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -769,6 +790,7 @@
           "status": "AWARDED",
           "supplier_name": "吉林省恒晟医疗器械有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -830,6 +852,7 @@
     },
     {
       "award_id": "ccgpaward_701249a674aac552",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "[231025]FAGC[GK]20260002",
       "project_name": "医疗设备采购及服务",
       "buyer_name": "林口县中医院",
@@ -840,6 +863,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -850,6 +874,7 @@
           "status": "AWARDED",
           "supplier_name": "国药集团黑龙江医疗器械有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -931,6 +956,7 @@
     },
     {
       "award_id": "ccgpaward_61a73bf9d4c6cfd2",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "采购计划-[2026]-00223号-1",
       "project_name": "2026年度梅河口市中心医院检验科设备采购项目",
       "buyer_name": "梅河口市中心医院",
@@ -941,6 +967,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -951,6 +978,7 @@
           "status": "AWARDED",
           "supplier_name": "吉林鼎星医疗科技有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1002,6 +1030,7 @@
     },
     {
       "award_id": "ccgpaward_4bc5d44cbf8df55e",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "0722-26FE3680ZB4",
       "project_name": "北京大学人民医院新增业务用房启用保障项目购医疗设备第一批",
       "buyer_name": "北京大学人民医院",
@@ -1012,6 +1041,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1022,6 +1052,7 @@
           "status": "AWARDED",
           "supplier_name": "北京南合西商贸有限责任公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1053,6 +1084,7 @@
     },
     {
       "award_id": "ccgpaward_46b79d3169a37905",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "[230601]ZCGL[CS]20260007",
       "project_name": "HPV检测服务",
       "buyer_name": "大庆市人民医院",
@@ -1063,6 +1095,7 @@
       "published_at": "2026-09-29",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": null,
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1073,6 +1106,7 @@
           "status": "AWARDED",
           "supplier_name": "吉林超然医学检验有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1104,6 +1138,7 @@
     },
     {
       "award_id": "ccgpaward_f5c06de241281d7b",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "ZCZBZC-GK-2026080547",
       "project_name": "天津中医药大学第一附属医院医疗设备维保（二）采购项目",
       "buyer_name": "天津中医药大学第一附属医院",
@@ -1114,6 +1149,7 @@
       "published_at": "2026-09-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 4,
@@ -1124,6 +1160,7 @@
           "status": "AWARDED",
           "supplier_name": "中外运通（天津）科技有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         },
         {
@@ -1131,6 +1168,7 @@
           "status": "AWARDED",
           "supplier_name": "国控创科医疗技术（天津）有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         },
         {
@@ -1138,6 +1176,7 @@
           "status": "AWARDED",
           "supplier_name": "天津市铄城医疗器械贸易有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         },
         {
@@ -1145,6 +1184,7 @@
           "status": "AWARDED",
           "supplier_name": "天津德芬商贸有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1206,6 +1246,7 @@
     },
     {
       "award_id": "ccgpaward_ee7a68c4ff241f7a",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "BJFHGJ-2026-038",
       "project_name": "东丽疾控中心传染病监测设备采购项目",
       "buyer_name": "天津市东丽区疾病预防控制中心",
@@ -1216,6 +1257,7 @@
       "published_at": "2026-09-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1226,6 +1268,7 @@
           "status": "AWARDED",
           "supplier_name": "天津若信文康科技有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1257,6 +1300,7 @@
     },
     {
       "award_id": "ccgpaward_df99b2a775f6de24",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "TZSB-01-2026-032",
       "project_name": "天津市药品检验研究院2026年检验检测设备采购（第一批）",
       "buyer_name": "天津市药品检验研究院",
@@ -1267,6 +1311,7 @@
       "published_at": "2026-09-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1277,6 +1322,7 @@
           "status": "AWARDED",
           "supplier_name": "天津市国际医疗产业集团有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1348,6 +1394,7 @@
     },
     {
       "award_id": "ccgpaward_d27ef38405a25ccd",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "ZYTZC-2026-083",
       "project_name": "唐县人民医院区域医疗次高地建设工程-2026年度（第一批）医疗设备采购",
       "buyer_name": "河北省唐县人民医院(唐县白求恩纪念医院)",
@@ -1358,6 +1405,7 @@
       "published_at": "2026-09-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1368,6 +1416,7 @@
           "status": "AWARDED",
           "supplier_name": "河北增禄医疗器械贸易有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1399,6 +1448,7 @@
     },
     {
       "award_id": "ccgpaward_cf838cb7d986f43b",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "TGPC-2026-A-0236",
       "project_name": "天津市中心妇产科医院三院区液氮及其它医用气体采购项目",
       "buyer_name": "天津市中心妇产科医院",
@@ -1409,6 +1459,7 @@
       "published_at": "2026-09-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1419,6 +1470,7 @@
           "status": "AWARDED",
           "supplier_name": "晟玥空气产品（天津）有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1450,6 +1502,7 @@
     },
     {
       "award_id": "ccgpaward_9429c600c8b04676",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "XCSD-2026-A-589",
       "project_name": "天津市第五中心医院医疗设备更新项目-数字减影血管造影机采购项目",
       "buyer_name": "天津市第五中心医院",
@@ -1460,6 +1513,7 @@
       "published_at": "2026-09-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1470,6 +1524,7 @@
           "status": "AWARDED",
           "supplier_name": "天津市联大医用设备有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1501,6 +1556,7 @@
     },
     {
       "award_id": "ccgpaward_4bab9bc9968a3b12",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "LNYCDL20260907",
       "project_name": "盛京医院大连医院黄海路院区旧楼改造及医疗设备购置项目-除颤仪",
       "buyer_name": "大连金普新区卫生健康局",
@@ -1511,6 +1567,7 @@
       "published_at": "2026-09-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1521,6 +1578,7 @@
           "status": "AWARDED",
           "supplier_name": "大连锦皓辰商贸有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1552,6 +1610,7 @@
     },
     {
       "award_id": "ccgpaward_49e86a9151ae8764",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "RHP-C192668292816-1",
       "project_name": "CT、MRI维保",
       "buyer_name": "河北医科大学第三医院",
@@ -1562,6 +1621,7 @@
       "published_at": "2026-09-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1572,6 +1632,7 @@
           "status": "AWARDED",
           "supplier_name": "河北瑞鹤医疗器械有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1603,6 +1664,7 @@
     },
     {
       "award_id": "ccgpaward_497bb929f0a5017b",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "XCSD-2026-A-535",
       "project_name": "天津市第三中心医院彩色多普勒超声诊断仪采购项目",
       "buyer_name": "天津市第三中心医院",
@@ -1613,6 +1675,7 @@
       "published_at": "2026-09-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 4,
@@ -1623,6 +1686,7 @@
           "status": "AWARDED",
           "supplier_name": "华润天津医药有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         },
         {
@@ -1630,6 +1694,7 @@
           "status": "AWARDED",
           "supplier_name": "天津市维迪电子有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         },
         {
@@ -1637,6 +1702,7 @@
           "status": "AWARDED",
           "supplier_name": "中外运通（天津）科技有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         },
         {
@@ -1644,6 +1710,7 @@
           "status": "AWARDED",
           "supplier_name": "北京合众汇美国际贸易有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1705,6 +1772,7 @@
     },
     {
       "award_id": "ccgpaward_41cb6e53ffb5f55d",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "A85WI2606K",
       "project_name": "盛京医院大连医院黄海路院区旧楼改造及医疗设备购置项目-组织切片机、荧光显微镜及成像系统、包埋机",
       "buyer_name": "大连金普新区卫生健康局",
@@ -1715,6 +1783,7 @@
       "published_at": "2026-09-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 3,
@@ -1725,6 +1794,7 @@
           "status": "AWARDED",
           "supplier_name": "辽宁瑞创商贸有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         },
         {
@@ -1732,6 +1802,7 @@
           "status": "AWARDED",
           "supplier_name": "九州通金合（大连）药业有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         },
         {
@@ -1739,6 +1810,7 @@
           "status": "AWARDED",
           "supplier_name": "沈阳博维商贸有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1790,6 +1862,7 @@
     },
     {
       "award_id": "ccgpaward_b3c502d673de29b6",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "TJBHGP-2026-024",
       "project_name": "天津市泰达医院高清腔镜系统采购项目",
       "buyer_name": "天津市泰达医院",
@@ -1800,6 +1873,7 @@
       "published_at": "2026-09-24",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 3,
@@ -1810,6 +1884,7 @@
           "status": "AWARDED",
           "supplier_name": "天津市联大医用设备有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         },
         {
@@ -1817,6 +1892,7 @@
           "status": "AWARDED",
           "supplier_name": "杭州康晟泽医疗器械有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         },
         {
@@ -1824,6 +1900,7 @@
           "status": "AWARDED",
           "supplier_name": "天津长荣健康科技有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1875,6 +1952,7 @@
     },
     {
       "award_id": "ccgpaward_13c7926c1bd7f11a",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "YFZB202607010",
       "project_name": "盛京医院大连医院黄海路院区旧楼改造及医疗设备购置项目-宫腔镜系统",
       "buyer_name": "大连金普新区卫生健康局",
@@ -1885,6 +1963,7 @@
       "published_at": "2026-09-24",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1895,6 +1974,7 @@
           "status": "AWARDED",
           "supplier_name": "大连今泰科技有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1926,6 +2006,7 @@
     },
     {
       "award_id": "ccgpaward_136ba586a6e11123",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "LNYCDL20260906",
       "project_name": "盛京医院大连医院黄海路院区旧楼改造及医疗设备购置项目-转运呼吸机",
       "buyer_name": "大连金普新区卫生健康局",
@@ -1936,6 +2017,7 @@
       "published_at": "2026-09-24",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1946,6 +2028,7 @@
           "status": "AWARDED",
           "supplier_name": "大连沐格科技有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -1977,6 +2060,7 @@
     },
     {
       "award_id": "ccgpaward_b7167a84ce92e24a",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "LNYCDL20260904",
       "project_name": "盛京医院大连医院黄海路院区旧楼改造及医疗设备购置项目-无创呼吸机",
       "buyer_name": "大连金普新区卫生健康局",
@@ -1987,6 +2071,7 @@
       "published_at": "2026-09-23",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -1997,6 +2082,7 @@
           "status": "AWARDED",
           "supplier_name": "赛腾（大连）生物技术有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],
@@ -2028,6 +2114,7 @@
     },
     {
       "award_id": "ccgpaward_aaff0acec4a47839",
+      "projection_version": "EXPLICIT_CNY_SCOPE_V1",
       "project_number": "0701-264106070107",
       "project_name": "中国医学科学院北京协和医院检验科设备购置项目（2）",
       "buyer_name": "中国医学科学院北京协和医院",
@@ -2038,6 +2125,7 @@
       "published_at": "2026-08-28",
       "procurement_method": null,
       "total_amount_cny": null,
+      "total_amount_basis": "UNKNOWN",
       "amount_basis": "SUMMARY_TOTAL",
       "award_status": "AWARDED",
       "package_count": 1,
@@ -2048,6 +2136,7 @@
           "status": "AWARDED",
           "supplier_name": "北京若华医疗器械有限公司",
           "amount_cny": null,
+          "amount_basis": "UNKNOWN",
           "failure_reason": null
         }
       ],

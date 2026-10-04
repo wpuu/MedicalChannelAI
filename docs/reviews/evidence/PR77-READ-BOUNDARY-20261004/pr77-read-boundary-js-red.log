@@ -1,0 +1,23 @@
+BUNDLE rejects old derived closure and returns safe data: PASS
+Expected values to be strictly deep-equal:
++ actual - expected
+
++ [
++   'DATABASE rejects old derived closure and returns safe data: Expected values to be strictly equal:\n' +
++     '\n' +
++     "'OPEN' !== 'UNKNOWN'\n",
++   'REMOTE rejects old derived closure and returns safe data: Expected values to be strictly equal:\n' +
++     '\n' +
++     "'OPEN' !== 'UNKNOWN'\n",
++   'RUNTIME_CACHE rejects old derived closure and returns safe data: Expected values to be strictly equal:\n' +
++     '\n' +
++     "'OPEN' !== 'UNKNOWN'\n",
++   'API rejects a legacy already-retired pool: The expression evaluated to a falsy value:\n' +
++     '\n' +
++     '  assert(rejected)\n',
++   'API masks total/package/unit and card/pool/ledger windows: Expected values to be strictly equal:\n' +
++     '\n' +
++     "'OPEN' !== 'UNKNOWN'\n"
++ ]
+- []
+

@@ -1,5 +1,10 @@
 # PR74 offline evidence boundary fixes
 
+This records the initial candidate. The read-side residuals found after saving
+PR77 and their incremental validation are recorded in
+[PR77-READ-BOUNDARY-FIX-20261004.md](PR77-READ-BOUNDARY-FIX-20261004.md).
+The 865-test run below belongs to the initial implementation, not the later HEAD.
+
 Source: PR #74 HEAD `e3c3ff27a3f4120bfcc36c8a05f291f63d03c081`, tree
 `62ce258ecb70143fd10d2698b2e89f19fa6cb971`, independently read back from GitHub.
 The isolated local snapshot `37e21de1641e366bfe5556c4b1649dcb9b7d3fc2` has exactly

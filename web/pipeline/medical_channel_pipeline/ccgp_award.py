@@ -29,6 +29,7 @@ Formats verified against live pages on 2026-09-29:
 """
 from __future__ import annotations
 
+import math
 import re
 from datetime import date, datetime, timezone
 from html.parser import HTMLParser
@@ -294,7 +295,8 @@ def _item_name_index(headers: list[str]) -> int | None:
 
 # Amount text: ``1,395``, ``237.5万元``, ``10,727,000.00元`` or the national
 # text template's ``182.0000000（万元）`` (unit in parentheses after the number).
-_AMOUNT_RE = re.compile(r"(?:[￥¥]\s*)?([0-9][0-9,]*(?:\.[0-9]+)?)\s*[（(]?\s*(万元|元)?\s*[）)]?")
+_AMOUNT_RE = re.compile(r"(?:[￥¥]\s*)?((?:[0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)(?:\.[0-9]+)?)\s*(万元|元|（万元）|（元）|\(万元\)|\(元\))?(?:\s*(?:（人民币）|\(人民币\)))?")
+AWARD_EVIDENCE_VERSION = "EXPLICIT_CNY_SCOPE_V1"
 
 def _parse_amount_cny(value: str | None, *, header_hint: str | None = None) -> int | None:
     """Parse ``237.5`` (with a 万元 header), ``1,395`` or ``10,727,000.00元``.
@@ -306,18 +308,33 @@ def _parse_amount_cny(value: str | None, *, header_hint: str | None = None) -> i
     if value is None:
         return None
     text = _normalize_space(str(value))
-    matches = list(_AMOUNT_RE.finditer(text))
-    if len(matches) != 1:
+    match = _AMOUNT_RE.fullmatch(text)
+    if match is None:
         # Either no number or several (``46.8万元； 14.8万元； …``): a single
         # monetary fact cannot be attributed, keep the raw text only.
         return None
-    match = matches[0]
     number = float(match.group(1).replace(",", ""))
     unit = match.group(2)
+    if unit:
+        unit = unit.strip("（）()")
     header_unit = None
     if header_hint:
         key = _header_key(header_hint)
-        header_unit = "万元" if "万元" in key else "元" if "元" in key else None
+        if "%" in key or "％" in key:
+            return None
+        annotations = re.findall(r"[（(]([^（）()]+)[）)]", str(header_hint))
+        money_units = [_normalize_space(label) for label in annotations if "元" in label]
+        if money_units:
+            if any(label not in {"元", "万元"} for label in money_units) or len(set(money_units)) != 1:
+                return None
+            header_unit = money_units[0]
+        elif "元" in key:
+            # Plain suffixes must follow a money-column label. Never interpret
+            # 美元/港元/亿元/千元 or another unsupported currency/scale as 元.
+            plain = re.fullmatch(r"(?:.*(?:金额|单价|总价|报价))?(万元|元)", key)
+            if plain is None:
+                return None
+            header_unit = plain.group(1)
     if unit and header_unit and unit != header_unit:
         return None
     unit = unit or header_unit
@@ -325,7 +342,7 @@ def _parse_amount_cny(value: str | None, *, header_hint: str | None = None) -> i
         return None
     if unit == "万元":
         number *= 10_000
-    if number < 0:
+    if not math.isfinite(number) or number < 0:
         return None
     return int(round(number))
 
@@ -1208,7 +1225,21 @@ def evidenced_unit_price(item: dict[str, Any], facts: dict[str, Any]) -> int | N
     price = item.get("unit_price_cny")
     if not isinstance(price, int) or isinstance(price, bool) or price <= 0 or parsed != price:
         return None
-    return reconcile_item_prices([item], facts.get("packages") or [], facts.get("total_amount_cny"))[0].get("unit_price_cny")
+    verified_packages = []
+    for package in facts.get("packages") or []:
+        if package.get("package_no") != item.get("package_no"):
+            continue
+        amount = evidenced_package_amount(package)
+        # A conflicting raw bound invalidates this price; never trust the larger
+        # stale canonical ceiling or correct either value by guessing its scale.
+        if package.get("amount_raw") and amount is None:
+            return None
+        if amount is not None:
+            verified_packages.append({**package, "amount_cny": amount})
+    total = evidenced_total_amount(facts)
+    if facts.get("amount_summary_raw") and facts.get("amount_basis") == "SUMMARY_TOTAL" and total is None:
+        return None
+    return reconcile_item_prices([item], verified_packages, total)[0].get("unit_price_cny")
 
 
 def evidenced_package_amount(package: dict[str, Any]) -> int | None:
@@ -1244,6 +1275,7 @@ def public_award_ledger_entry(record: dict[str, Any], as_of: datetime) -> dict[s
             "status": package.get("status"),
             "supplier_name": _ledger_text(package.get("supplier_name"), "supplier_name"),
             "amount_cny": evidenced_package_amount(package),
+            "amount_basis": "EXPLICIT_CNY" if evidenced_package_amount(package) is not None else "UNKNOWN",
             "failure_reason": _ledger_text(package.get("failure_reason"), "failure_reason"),
         }
         for package in list(facts.get("packages") or [])[:MAX_LEDGER_PACKAGES]
@@ -1263,6 +1295,7 @@ def public_award_ledger_entry(record: dict[str, Any], as_of: datetime) -> dict[s
     ]
     entry: dict[str, Any] = {
         "award_id": record["award_id"],
+        "projection_version": AWARD_EVIDENCE_VERSION,
         "project_number": facts["project_number"],
         "project_name": _ledger_text(facts.get("project_name"), "project_name"),
         "buyer_name": _ledger_text(facts.get("buyer_name"), "buyer_name"),
@@ -1273,6 +1306,7 @@ def public_award_ledger_entry(record: dict[str, Any], as_of: datetime) -> dict[s
         "published_at": facts.get("published_at"),
         "procurement_method": facts.get("procurement_method"),
         "total_amount_cny": evidenced_total_amount(facts),
+        "total_amount_basis": ("VERIFIED_SUMMARY_TOTAL" if facts.get("amount_basis") == "SUMMARY_TOTAL" else "VERIFIED_PACKAGE_SUM") if evidenced_total_amount(facts) is not None else "UNKNOWN",
         "amount_basis": facts.get("amount_basis"),
         "award_status": facts.get("award_status"),
         "package_count": len(facts.get("packages") or []),

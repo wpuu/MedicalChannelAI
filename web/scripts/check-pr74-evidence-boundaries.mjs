@@ -55,13 +55,14 @@ const withoutImports = ts.factory.updateSourceFile(parsed, parsed.statements.fil
 const fixtureKey = '__pr74EvidenceSnapshot'
 const serviceJs = `import { refreshLegalWindows } from ${JSON.stringify(utilityUrl)};
 import { normalizeProjectNumber } from ${JSON.stringify(projectUrl)};
+import { normalizeAwardLedger, normalizeAwardPriceReference, normalizeEvidenceLegalWindows } from ${JSON.stringify(new URL('../shared/awardEvidence.js', import.meta.url).href)};
 const verifiedSnapshotUrl = 'offline:fixture';
 const loadVerifiedSnapshotPayload = async () => globalThis[${JSON.stringify(fixtureKey)}];
 ${compile(ts.createPrinter().printFile(withoutImports), 'verifiedOpportunityPool.ts')}`
 const service = await import(`data:text/javascript;base64,${Buffer.from(serviceJs).toString('base64')}`)
 const entries = [
   { project_number: 'TJ-1', market_code: undefined, items: [{ unit_price_cny: 312000 }], legal_windows: legacy },
-  { project_number: 'TJ-1', market_code: 'TJ', items: [{ unit_price_cny: 100, unit_price_basis: 'EXPLICIT_UNIT' }], legal_windows: legacy },
+  { project_number: 'TJ-1', market_code: 'TJ', projection_version: 'EXPLICIT_CNY_SCOPE_V1', items: [{ unit_price_cny: 100, unit_price_basis: 'EXPLICIT_UNIT' }], legal_windows: legacy },
 ]
 assert.equal(service.findAwardForProject(entries, 'TJ-1', 'HE'), null)
 assert.equal(service.findAwardForProject(entries, 'TJ-1', undefined), null)
@@ -71,7 +72,7 @@ assert.equal(ledger[0].items[0].unit_price_cny, null)
 assert.equal(ledger[1].items[0].unit_price_cny, 100)
 globalThis[fixtureKey] = {
   schema_version: '0.1', mode: 'TODAY_ACTIONS', cards: [], snapshot_as_of: '2026-09-29T00:00:00Z',
-  award_price_reference: { families: [], rows: [{ family: 'OTHER', unit_price_cny: 312000 }, { family: 'CT', unit_price_cny: 100, unit_price_basis: 'EXPLICIT_UNIT' }] },
+  award_price_reference: { families: [], rows: [{ family: 'OTHER', unit_price_cny: 312000 }, { family: 'CT', unit_price_cny: 100, unit_price_basis: 'EXPLICIT_UNIT', projection_version: 'EXPLICIT_CNY_SCOPE_V1' }] },
 }
 try {
   const { reference } = await service.getAwardPriceReference()

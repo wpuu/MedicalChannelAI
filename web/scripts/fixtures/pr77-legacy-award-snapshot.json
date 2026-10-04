@@ -1,0 +1,1232 @@
+{
+  "schema_version": "0.1",
+  "mode": "TODAY_ACTIONS",
+  "snapshot_as_of": "2026-09-29T00:43:40.252856+08:00",
+  "input_candidate_count": 791,
+  "matched_count": 1,
+  "card_count": 1,
+  "opportunity_pool_count": 1,
+  "model_request_count": 0,
+  "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
+  "working_calendar": {
+    "schema_version": "0.1",
+    "code": "CN_STATE_COUNCIL_2025_2026",
+    "coverage_from": "2025-01-01",
+    "coverage_to": "2026-12-31",
+    "holidays": [
+      "2025-01-01",
+      "2025-01-28",
+      "2025-01-29",
+      "2025-01-30",
+      "2025-01-31",
+      "2025-02-01",
+      "2025-02-02",
+      "2025-02-03",
+      "2025-02-04",
+      "2025-04-04",
+      "2025-04-05",
+      "2025-04-06",
+      "2025-05-01",
+      "2025-05-02",
+      "2025-05-03",
+      "2025-05-04",
+      "2025-05-05",
+      "2025-05-31",
+      "2025-06-01",
+      "2025-06-02",
+      "2025-10-01",
+      "2025-10-02",
+      "2025-10-03",
+      "2025-10-04",
+      "2025-10-05",
+      "2025-10-06",
+      "2025-10-07",
+      "2025-10-08",
+      "2026-01-01",
+      "2026-01-02",
+      "2026-01-03",
+      "2026-02-15",
+      "2026-02-16",
+      "2026-02-17",
+      "2026-02-18",
+      "2026-02-19",
+      "2026-02-20",
+      "2026-02-21",
+      "2026-02-22",
+      "2026-02-23",
+      "2026-04-04",
+      "2026-04-05",
+      "2026-04-06",
+      "2026-05-01",
+      "2026-05-02",
+      "2026-05-03",
+      "2026-05-04",
+      "2026-05-05",
+      "2026-06-19",
+      "2026-06-20",
+      "2026-06-21",
+      "2026-09-25",
+      "2026-09-26",
+      "2026-09-27",
+      "2026-10-01",
+      "2026-10-02",
+      "2026-10-03",
+      "2026-10-04",
+      "2026-10-05",
+      "2026-10-06",
+      "2026-10-07"
+    ],
+    "adjusted_workdays": [
+      "2025-01-26",
+      "2025-02-08",
+      "2025-04-27",
+      "2025-09-28",
+      "2025-10-11",
+      "2026-01-04",
+      "2026-02-14",
+      "2026-02-28",
+      "2026-05-09",
+      "2026-09-20",
+      "2026-10-10"
+    ],
+    "legal_basis": "MOF_ORDER_94",
+    "challenge_working_days": 7,
+    "challenge_reply_working_days": 7,
+    "complaint_working_days": 15,
+    "award_notice_period_working_days": 1
+  },
+  "awarded_project_count": 4,
+  "notice_suppressed_project_count": 17,
+  "notice_suppressed_projects": [
+    {
+      "market_code": "JL",
+      "project_number": "ZY-HWZB-20260703",
+      "project_name": "吉林大学中日联谊医院泌尿外科二病区单元掺铥光纤激光治疗机(半导体激光治疗机)采购项目",
+      "buyer_name": "吉林大学中日联谊医院",
+      "reason": "TERMINATED",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-29",
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gzgg/202609/t20260929_27414992.htm"
+    },
+    {
+      "market_code": "HE",
+      "project_number": "HBFY2026-BS-010",
+      "project_name": "首都医科大学附属北京儿童医院保定医院绩效方案及绩效系统升级优化采购项目",
+      "buyer_name": "首都医科大学附属北京儿童医院保定医院",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-29",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260929_27413916.htm"
+    },
+    {
+      "market_code": "HL",
+      "project_number": "[230231]BC[GK]20260030",
+      "project_name": "中医院医疗设备采购项目",
+      "buyer_name": "拜泉县中医院",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-28",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27409079.htm"
+    },
+    {
+      "market_code": "HL",
+      "project_number": "[230225]CQXMGL[GK]20260003-1",
+      "project_name": "紧密型县域医共体五大共享中心改建及设备购置项目(透析设备)(二次)",
+      "buyer_name": "甘南县人民医院",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-28",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27407474.htm"
+    },
+    {
+      "market_code": "HL",
+      "project_number": "[230103]ALZC[GK]20260005",
+      "project_name": "南岗疾控生活饮用水放射性检测能力建设项目仪器采购",
+      "buyer_name": "哈尔滨市南岗区疾病预防控制中心",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-28",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27405643.htm"
+    },
+    {
+      "market_code": "HL",
+      "project_number": "[230101]FDGJ[GK]20260012",
+      "project_name": "医疗设备及检验设备采购项目二",
+      "buyer_name": "哈尔滨市血液中心",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-28",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27406853.htm"
+    },
+    {
+      "market_code": "LN",
+      "project_number": "JH26-211321-00113",
+      "project_name": "朝阳县中心医院高压氧仓设备采购 包组编号：001",
+      "buyer_name": "朝阳县中心医院",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-28",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27405744.htm"
+    },
+    {
+      "market_code": "LN",
+      "project_number": "JH25-210000-04401",
+      "project_name": "大连医科大学附属第二医院肿瘤内科会议服务项目 包组编号：001",
+      "buyer_name": "大连医科大学附属第二医院",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-28",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260928_27407407.htm"
+    },
+    {
+      "market_code": "LN",
+      "project_number": "JH26-210522-00828",
+      "project_name": "桓仁满族自治县人民医院能力提升设备采购项目 包组编号：001",
+      "buyer_name": "桓仁满族自治县人民医院",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-26",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260926_27404471.htm"
+    },
+    {
+      "market_code": "BJ",
+      "project_number": "清华一附院采招【2026】23号/XHTC-HW-2026-1163",
+      "project_name": "北京华信医院（清华大学第一附属医院）危重新生儿救治中心能力提升项目",
+      "buyer_name": "北京华信医院",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-24",
+      "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gzgg/202609/t20260924_27395865.htm"
+    },
+    {
+      "market_code": "HL",
+      "project_number": "[230001]SC[GK]20260339",
+      "project_name": "检验检测仪器设备更新项目-5",
+      "buyer_name": "黑龙江省药品检验研究院",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-24",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397811.htm"
+    },
+    {
+      "market_code": "HL",
+      "project_number": "[230001]SC[GK]20260335",
+      "project_name": "检验检测仪器设备更新项目-1",
+      "buyer_name": "黑龙江省药品检验研究院",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-24",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397766.htm"
+    },
+    {
+      "market_code": "HL",
+      "project_number": "[230001]SC[GK]20260236",
+      "project_name": "基建项目第二批医疗设备",
+      "buyer_name": "黑龙江省妇幼保健院",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-24",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397262.htm"
+    },
+    {
+      "market_code": "LN",
+      "project_number": "JH26-210000-47010",
+      "project_name": "辽宁省检验检测认证中心药检院购置基质辅助激光解吸电离飞行时间质谱仪（等）项目 包组编号：001",
+      "buyer_name": "辽宁省检验检测认证中心",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-24",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27395926.htm"
+    },
+    {
+      "market_code": "HE",
+      "project_number": "HBCX-20260911",
+      "project_name": "邱县2026年医疗服务能力与保障能力提升（古城营镇卫生院核磁共振医学影像系统采购项目）",
+      "buyer_name": "邱县卫生健康局本级",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-24",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260924_27397680.htm"
+    },
+    {
+      "market_code": "JL",
+      "project_number": "JM-2026-09-07714-JLZYHT2026-0901-CG20",
+      "project_name": "长春市第二中等专业学校卫生健康服务专业群临床护理虚拟仿真实训基地",
+      "buyer_name": "长春市第二中等专业学校",
+      "reason": "CORRECTION_PENDING_REVIEW",
+      "event_type": "CORRECTION",
+      "published_at": "2026-09-23",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202609/t20260923_27392693.htm"
+    },
+    {
+      "market_code": "BJ",
+      "project_number": "11010826210200059052-XM001",
+      "project_name": "海淀区高层次人才专项经费医疗设备购置项目",
+      "buyer_name": "北京市海淀医院",
+      "reason": "TERMINATED",
+      "event_type": "TERMINATION",
+      "published_at": "2026-09-23",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/fblbgg/202609/t20260923_27387654.htm"
+    }
+  ],
+  "award_ledger": [
+    {
+      "award_id": "ccgpaward_c52d258eb8d650ed",
+      "project_number": "[230801]ZTZB[GK]20260012",
+      "project_name": "公立医院改革与高质量发展提升项目专用设备采购",
+      "buyer_name": "佳木斯市口腔病防治院",
+      "region": "佳木斯市",
+      "notice_type": "中标（成交）结果公告",
+      "result_kind": "AWARD",
+      "lifecycle_state": "AWARDED",
+      "published_at": "2026-09-29",
+      "procurement_method": null,
+      "total_amount_cny": 998800,
+      "amount_basis": "SUMMARY_TOTAL",
+      "award_status": "AWARDED",
+      "package_count": 1,
+      "item_count": 9,
+      "packages": [
+        {
+          "package_no": "1",
+          "status": "AWARDED",
+          "supplier_name": "华润佳木斯医药有限公司",
+          "amount_cny": 998800,
+          "failure_reason": null
+        }
+      ],
+      "items": [
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "牙科电动抽吸系统",
+          "brand": "迪珥",
+          "model": "S10A",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 55000
+        },
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "污水处理",
+          "brand": "新华",
+          "model": "XH-W",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 29800
+        },
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "CBCT",
+          "brand": "美亚光电",
+          "model": "mDX-15Pro-Y30",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 458000
+        },
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "牙片宝",
+          "brand": "汉缔",
+          "model": "HDS-500",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 11000
+        },
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "口腔综合治疗仪",
+          "brand": "上海菲曼特、康钛、啄木鸟、邦宁、上海菲曼特、优…",
+          "model": "F1-S、KT101-K1Pro、UDS-N3 LED、Kavo LED Plus、F1D1、…",
+          "quantity": "2.00(台/套)",
+          "unit_price_cny": 85000
+        },
+        {
+          "package_no": "1",
+          "category": "口腔设备及器械",
+          "name": "口腔内部扫描仪",
+          "brand": "先临",
+          "model": "Aoralscan Wireless G2",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 220000
+        },
+        {
+          "package_no": "1",
+          "category": "消毒灭菌设备及器具",
+          "name": "医用等离子体空气消毒器-1",
+          "brand": "新华",
+          "model": "YKX.P-B-1000型",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 6500
+        },
+        {
+          "package_no": "1",
+          "category": "消毒灭菌设备及器具",
+          "name": "医用等离子体空气消毒器-2",
+          "brand": "新华",
+          "model": "YKX.P-B-600K",
+          "quantity": "1.00(台/套)",
+          "unit_price_cny": 4500
+        }
+      ],
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm",
+      "legal_windows": [
+        {
+          "code": "RESULT_CHALLENGE",
+          "anchor_kind": "AWARD_NOTICE_PERIOD_END",
+          "anchor_date": "2026-09-29",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN",
+          "clock_start_date": "2026-09-30"
+        }
+      ],
+      "market_code": "HL"
+    }
+  ],
+  "award_price_reference": {
+    "schema_version": "0.1",
+    "lookback_days": 365,
+    "max_rows": 200,
+    "row_count": 1,
+    "truncated": false,
+    "family_row_counts": {
+      "ANESTHESIA_RESP": 3,
+      "DENTAL": 4,
+      "DSA": 1,
+      "EMERGENCY": 1,
+      "ENDOSCOPY": 1,
+      "IVD": 4,
+      "LAB_INSTRUMENT": 5,
+      "MONITORING": 2,
+      "OBSTETRICS_NEONATAL": 1,
+      "PATHOLOGY": 3,
+      "REAGENT": 3,
+      "REHAB": 7,
+      "STERILIZATION": 5,
+      "SURGERY": 3,
+      "ULTRASOUND": 7,
+      "XRAY": 1
+    },
+    "families": [
+      {
+        "code": "MAINTENANCE",
+        "label": "维保 / 服务",
+        "keywords": [
+          "维保",
+          "维修",
+          "保养",
+          "保修",
+          "检测服务",
+          "服务项目",
+          "外包服务",
+          "运维"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "REAGENT",
+        "label": "试剂 / 耗材 / 标准物质",
+        "keywords": [
+          "试剂",
+          "耗材",
+          "标准物质",
+          "质控品",
+          "校准品",
+          "检测卡",
+          "采血管",
+          "培养基"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "HEALTH_IT",
+        "label": "信息化 / 软件",
+        "keywords": [
+          "软件",
+          "信息系统",
+          "信息平台",
+          "管理系统",
+          "服务器",
+          "存储设备",
+          "网络设备",
+          "一体化平台"
+        ],
+        "acronyms": [
+          "PACS",
+          "HIS",
+          "LIS",
+          "RIS",
+          "EMR"
+        ]
+      },
+      {
+        "code": "STERILIZATION",
+        "label": "消毒供应 / 感控",
+        "keywords": [
+          "灭菌",
+          "清洗消毒",
+          "清洗工作站",
+          "消毒机",
+          "消毒器",
+          "消毒柜",
+          "蒸汽发生器",
+          "封口机",
+          "干燥柜",
+          "污水处理",
+          "医废",
+          "超声波清洗"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "DENTAL",
+        "label": "口腔",
+        "keywords": [
+          "口腔",
+          "牙科",
+          "牙片",
+          "牙椅",
+          "综合治疗台",
+          "综合治疗仪",
+          "种植机",
+          "根管",
+          "洁牙"
+        ],
+        "acronyms": [
+          "CBCT"
+        ]
+      },
+      {
+        "code": "OPHTHALMOLOGY",
+        "label": "眼科",
+        "keywords": [
+          "眼科",
+          "眼底",
+          "裂隙灯",
+          "眼压",
+          "验光",
+          "角膜",
+          "视野计",
+          "眼用"
+        ],
+        "acronyms": [
+          "OCT"
+        ]
+      },
+      {
+        "code": "NUCLEAR_RT",
+        "label": "核医学 / 放疗",
+        "keywords": [
+          "核医学",
+          "直线加速器",
+          "放射治疗",
+          "放疗",
+          "后装",
+          "伽玛刀",
+          "伽马刀",
+          "回旋加速器"
+        ],
+        "acronyms": [
+          "PET",
+          "SPECT",
+          "PET-CT",
+          "PET/CT",
+          "PET-MR"
+        ]
+      },
+      {
+        "code": "CT",
+        "label": "CT",
+        "keywords": [
+          "计算机断层",
+          "螺旋CT",
+          "CT机",
+          "CT系统"
+        ],
+        "acronyms": [
+          "CT"
+        ]
+      },
+      {
+        "code": "MRI",
+        "label": "磁共振",
+        "keywords": [
+          "磁共振",
+          "核磁"
+        ],
+        "acronyms": [
+          "MRI",
+          "MR"
+        ]
+      },
+      {
+        "code": "DSA",
+        "label": "DSA / 血管造影",
+        "keywords": [
+          "血管造影",
+          "血管机",
+          "介入手术系统"
+        ],
+        "acronyms": [
+          "DSA"
+        ]
+      },
+      {
+        "code": "XRAY",
+        "label": "DR / X 线 / 乳腺机",
+        "keywords": [
+          "X射线",
+          "X线",
+          "乳腺机",
+          "钼靶",
+          "胃肠机",
+          "透视",
+          "移动式摄影",
+          "骨密度"
+        ],
+        "acronyms": [
+          "DR",
+          "CR",
+          "DRF"
+        ]
+      },
+      {
+        "code": "ULTRASOUND",
+        "label": "彩超 / 超声诊断",
+        "keywords": [
+          "彩色多普勒",
+          "彩色超声",
+          "超声诊断",
+          "彩超",
+          "B超",
+          "超声系统",
+          "超声波诊断",
+          "超声影像"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "ENDOSCOPY",
+        "label": "内窥镜 / 腔镜",
+        "keywords": [
+          "内窥镜",
+          "内镜",
+          "腔镜",
+          "胃镜",
+          "肠镜",
+          "支气管镜",
+          "宫腔镜",
+          "关节镜",
+          "膀胱镜",
+          "输尿管镜",
+          "胆道镜",
+          "摄像系统",
+          "冷光源",
+          "图像处理器"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "SURGERY",
+        "label": "手术室设备",
+        "keywords": [
+          "手术床",
+          "手术台",
+          "手术灯",
+          "无影灯",
+          "电刀",
+          "超声刀",
+          "吊塔",
+          "手术显微镜",
+          "超声骨",
+          "动力系统",
+          "碎石",
+          "手术机器人",
+          "手术导航",
+          "止血带",
+          "气腹机",
+          "麻醉深度",
+          "激光治疗"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "ANESTHESIA_RESP",
+        "label": "麻醉 / 呼吸",
+        "keywords": [
+          "麻醉机",
+          "麻醉工作站",
+          "呼吸机",
+          "高流量",
+          "无创通气",
+          "呼吸湿化",
+          "麻醉系统",
+          "制氧"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "MONITORING",
+        "label": "监护 / 心电",
+        "keywords": [
+          "监护仪",
+          "监护系统",
+          "中央监护",
+          "心电监护",
+          "心电图",
+          "动态心电",
+          "动态血压",
+          "遥测",
+          "生命体征",
+          "脉搏血氧",
+          "血氧仪",
+          "心电机"
+        ],
+        "acronyms": [
+          "ECG"
+        ]
+      },
+      {
+        "code": "EMERGENCY",
+        "label": "急救 / 输注",
+        "keywords": [
+          "除颤",
+          "心肺复苏",
+          "急救",
+          "输液泵",
+          "注射泵",
+          "输注泵",
+          "输注工作站",
+          "洗胃机",
+          "转运",
+          "抢救车"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "DIALYSIS",
+        "label": "透析 / 血液净化",
+        "keywords": [
+          "透析",
+          "血液净化",
+          "血液滤过",
+          "血滤",
+          "水处理系统"
+        ],
+        "acronyms": [
+          "CRRT"
+        ]
+      },
+      {
+        "code": "OBSTETRICS_NEONATAL",
+        "label": "妇产 / 新生儿",
+        "keywords": [
+          "胎心",
+          "胎儿监护",
+          "婴儿培养箱",
+          "暖箱",
+          "新生儿",
+          "蓝光",
+          "辐射保暖",
+          "产床",
+          "阴道镜",
+          "乳腺"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "REHAB",
+        "label": "康复 / 理疗",
+        "keywords": [
+          "康复",
+          "理疗",
+          "治疗仪",
+          "电刺激",
+          "训练机",
+          "训练系统",
+          "牵引",
+          "冲击波治疗",
+          "磁刺激",
+          "认知评估",
+          "言语",
+          "吞咽",
+          "步态",
+          "减重"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "IVD",
+        "label": "临床检验设备",
+        "keywords": [
+          "生化分析",
+          "免疫分析",
+          "化学发光",
+          "血细胞",
+          "血球",
+          "凝血",
+          "尿液分析",
+          "尿沉渣",
+          "微生物",
+          "药敏",
+          "血培养",
+          "核酸",
+          "基因扩增",
+          "测序",
+          "流式细胞",
+          "电解质",
+          "血气",
+          "糖化血红蛋白",
+          "特定蛋白",
+          "分析仪",
+          "检测一体机"
+        ],
+        "acronyms": [
+          "PCR",
+          "POCT",
+          "ELISA"
+        ]
+      },
+      {
+        "code": "PATHOLOGY",
+        "label": "病理",
+        "keywords": [
+          "病理",
+          "切片",
+          "包埋",
+          "脱水机",
+          "染色机",
+          "冷冻切片",
+          "数字切片",
+          "显微镜"
+        ],
+        "acronyms": []
+      },
+      {
+        "code": "LAB_INSTRUMENT",
+        "label": "实验室通用仪器",
+        "keywords": [
+          "色谱",
+          "光谱",
+          "离心机",
+          "移液",
+          "天平",
+          "纯水",
+          "超纯水",
+          "生物安全柜",
+          "超净",
+          "培养箱",
+          "冰箱",
+          "冷藏",
+          "低温",
+          "水浴",
+          "溶氧仪",
+          "氮气发生器",
+          "空压机",
+          "酶标",
+          "振荡器",
+          "均质",
+          "干燥箱",
+          "马弗炉",
+          "体积测量"
+        ],
+        "acronyms": [
+          "HPLC",
+          "GC",
+          "GCMS",
+          "LCMS",
+          "ICP"
+        ]
+      },
+      {
+        "code": "WARD_GENERAL",
+        "label": "病房 / 通用设备",
+        "keywords": [
+          "病床",
+          "护理床",
+          "护理设备",
+          "轮椅",
+          "推车",
+          "担架",
+          "医用车",
+          "诊察床",
+          "输液椅",
+          "空气消毒",
+          "净化",
+          "医用家具"
+        ],
+        "acronyms": []
+      }
+    ],
+    "rows": [
+      {
+        "award_id": "ccgpaward_c52d258eb8d650ed",
+        "market_code": "HL",
+        "published_at": "2026-09-29",
+        "buyer_name": "佳木斯市口腔病防治院",
+        "project_number": "[230801]ZTZB[GK]20260012",
+        "family": "DENTAL",
+        "name": "牙科电动抽吸系统",
+        "brand": "迪珥",
+        "model": "S10A",
+        "quantity": "1.00(台/套)",
+        "unit_price_cny": 55000,
+        "line_count": 1,
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/zbgg/202609/t20260929_27414039.htm"
+      }
+    ]
+  },
+  "cards": [
+    {
+      "rank": 1,
+      "opportunity_id": "ccgp_hl_8f7932627550253f",
+      "facts": {
+        "project_number": "[230801]XRGCGL[GK]20260001-1",
+        "project_name": "急救中心120调度指挥平台及车载医疗设备智能化升级项目(二次)",
+        "buyer_name": "佳木斯市急救中心",
+        "hospital_name": null,
+        "department": null,
+        "region": "佳木斯市",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-22",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-30T23:59:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-10-13T09:00:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 5600000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [
+          "急救和生命支持设备"
+        ],
+        "product_items": [
+          {
+            "raw_name": "急救中心120调度指挥平台及车载医疗设备智能化升级项目",
+            "category": "急救和生命支持设备",
+            "quantity": "1(项)",
+            "specification": "详见采购文件"
+          }
+        ],
+        "public_contact": {
+          "name": "黑龙江星燃工程项目管理有限公司",
+          "title": "项目联系人",
+          "phone": "0454-8395788",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL",
+        "market_code": "HL",
+        "market_name": "黑龙江",
+        "market_admin_code": "230000"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260922_27376611.htm"
+      ],
+      "legal_windows": [
+        {
+          "code": "DOCUMENT_CHALLENGE",
+          "anchor_kind": "DOCUMENT_ACQUISITION_END",
+          "anchor_date": "2026-09-30",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN"
+        }
+      ],
+      "official_notices": null,
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 56,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 10,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 7,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    }
+  ],
+  "opportunity_pool": [
+    {
+      "rank": 1,
+      "opportunity_id": "ccgp_hl_8f7932627550253f",
+      "facts": {
+        "project_number": "[230801]XRGCGL[GK]20260001-1",
+        "project_name": "急救中心120调度指挥平台及车载医疗设备智能化升级项目(二次)",
+        "buyer_name": "佳木斯市急救中心",
+        "hospital_name": null,
+        "department": null,
+        "region": "佳木斯市",
+        "lifecycle_state": "BIDDING",
+        "notice_type": "公开招标公告",
+        "published_at": "2026-09-22",
+        "published_at_precision": "DAY",
+        "registration_deadline": "2026-09-30T23:59:00+08:00",
+        "registration_deadline_date": null,
+        "registration_deadline_precision": "MINUTE",
+        "bid_deadline": "2026-10-13T09:00:00+08:00",
+        "expected_procurement_at": null,
+        "expected_procurement_precision": null,
+        "budget": {
+          "amount_cny": 5600000,
+          "currency": "CNY"
+        },
+        "procurement_method": "公开招标",
+        "product_categories": [
+          "急救和生命支持设备"
+        ],
+        "product_items": [
+          {
+            "raw_name": "急救中心120调度指挥平台及车载医疗设备智能化升级项目",
+            "category": "急救和生命支持设备",
+            "quantity": "1(项)",
+            "specification": "详见采购文件"
+          }
+        ],
+        "public_contact": {
+          "name": "黑龙江星燃工程项目管理有限公司",
+          "title": "项目联系人",
+          "phone": "0454-8395788",
+          "email": null
+        },
+        "quality_flags": [],
+        "verification_status": "VERIFIED",
+        "coverage_status": "PARTIAL",
+        "market_code": "HL",
+        "market_name": "黑龙江",
+        "market_admin_code": "230000"
+      },
+      "evidence_source_urls": [
+        "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260922_27376611.htm"
+      ],
+      "legal_windows": [
+        {
+          "code": "DOCUMENT_CHALLENGE",
+          "anchor_kind": "DOCUMENT_ACQUISITION_END",
+          "anchor_date": "2026-09-30",
+          "deadline_date": "2026-10-15",
+          "remaining_working_days": 9,
+          "status": "OPEN"
+        }
+      ],
+      "official_notices": null,
+      "customer_context": {
+        "context_type": "CUSTOMER_PRIVATE_FACTS",
+        "business_role": null,
+        "hospital_relationship": null,
+        "matching_product_capabilities": [],
+        "partnering_policy": {
+          "can_seek_temporary_manufacturer": null,
+          "can_cooperate_with_channel_partner": null,
+          "can_do_rental_projects": null
+        }
+      },
+      "priority": {
+        "schema_version": "0.1",
+        "score": 56,
+        "score_type": "ZERO_CONFIG_PUBLIC_FACTS_V2",
+        "components": [
+          {
+            "code": "PRODUCT_EXECUTION_CAPABILITY",
+            "points": 0,
+            "max_points": 25,
+            "basis": "NO_CUSTOMER_PROFILE_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "RELATIONSHIP",
+            "points": 0,
+            "max_points": 10,
+            "basis": "NO_CUSTOMER_CONFIRMED_RELATIONSHIP",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "EXECUTION_FLEXIBILITY",
+            "points": 0,
+            "max_points": 5,
+            "basis": "NO_CUSTOMER_EXECUTION_POLICY_IN_ZERO_CONFIG_MODE",
+            "profile_paths": [],
+            "opportunity_paths": []
+          },
+          {
+            "code": "INTERVENTION_STAGE",
+            "points": 25,
+            "max_points": 25,
+            "basis": "PUBLIC_OPPORTUNITY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.lifecycle_state",
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "DEADLINE_URGENCY",
+            "points": 9,
+            "max_points": 10,
+            "basis": "NEXT_ACTIONABLE_DEADLINE",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.registration_deadline",
+              "facts.registration_deadline_date",
+              "facts.bid_deadline"
+            ]
+          },
+          {
+            "code": "PROJECT_AMOUNT",
+            "points": 10,
+            "max_points": 10,
+            "basis": "PUBLIC_BUDGET_ONLY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.budget_cny"
+            ]
+          },
+          {
+            "code": "PRODUCT_SPECIFICITY",
+            "points": 7,
+            "max_points": 8,
+            "basis": "VERIFIED_PRODUCT_IDENTITY_AND_EXECUTION_DETAIL",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.project_name",
+              "facts.product_items",
+              "facts.product_categories",
+              "facts.department",
+              "facts.procurement_method"
+            ]
+          },
+          {
+            "code": "PUBLICATION_FRESHNESS",
+            "points": 5,
+            "max_points": 7,
+            "basis": "OFFICIAL_PUBLICATION_RECENCY",
+            "profile_paths": [],
+            "opportunity_paths": [
+              "facts.published_at"
+            ]
+          }
+        ],
+        "warnings": [
+          "ZERO_CONFIG_PUBLIC_FACTS_ONLY"
+        ],
+        "interpretation": "BUSINESS_PRIORITY_NOT_WIN_PROBABILITY"
+      },
+      "match_status": "MATCHED_CANDIDATE",
+      "recommendation_mode": "PUBLIC_OPPORTUNITY",
+      "model_decision_status": "AWAITING_MODEL",
+      "model_block_reason": null,
+      "decision": null
+    }
+  ]
+}

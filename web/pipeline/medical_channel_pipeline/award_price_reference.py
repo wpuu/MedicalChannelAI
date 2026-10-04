@@ -15,7 +15,7 @@ from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
-from .ccgp_award import effective_award_records, evidenced_unit_price
+from .ccgp_award import AWARD_EVIDENCE_VERSION, effective_award_records, evidenced_unit_price
 from .device_families import device_families_payload, device_family_for_name, load_device_families
 
 MAX_REFERENCE_ROWS = 200
@@ -88,6 +88,7 @@ def award_price_reference_rows(
                 "quantity": _text(item.get("quantity"), "quantity"),
                 "unit_price_cny": price,
                 "unit_price_basis": "EXPLICIT_UNIT",
+                "projection_version": AWARD_EVIDENCE_VERSION,
                 # Identical lines of one notice (黑龙江 lists ``1.00(台)`` per 品目号
                 # three times for three units) are folded into one row.
                 "line_count": 1,

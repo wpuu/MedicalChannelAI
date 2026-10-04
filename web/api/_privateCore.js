@@ -244,6 +244,7 @@ async function todayRoute(request, response, user) {
       recommendation_feedback_summary: recommendationFeedbackSummary(decoratedPool, feedback),
       working_calendar: snapshot.working_calendar ?? null,
       // Official 中标/成交 results: public facts only, same payload as the anonymous snapshot.
+      award_projection_version: snapshot.award_projection_version,
       awarded_project_count: Number(snapshot.awarded_project_count || 0),
       // Opportunities hidden by an official 更正/终止 notice (explainable, never silent).
       notice_suppressed_project_count: Number(snapshot.notice_suppressed_project_count || 0),

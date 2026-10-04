@@ -14,6 +14,7 @@ WEB_ROOT = PIPELINE_ROOT.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
+from medical_channel_pipeline.ccgp_award import AWARD_EVIDENCE_VERSION  # noqa: E402
 from medical_channel_pipeline.award_price_reference import combine_award_price_references  # noqa: E402
 from medical_channel_pipeline.ccgp_award import MAX_LEDGER_ENTRIES  # noqa: E402
 from medical_channel_pipeline.legal_windows import working_calendar_payload  # noqa: E402
@@ -208,6 +209,7 @@ def combine_snapshots(
         'model_request_count': 0,
         'coverage_warning': 'PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY',
         'working_calendar': working_calendar_payload(),
+        'award_projection_version': AWARD_EVIDENCE_VERSION if all(s.get('award_projection_version') == AWARD_EVIDENCE_VERSION for s in (tianjin_snapshot, regional_snapshot)) else None,
         'awarded_project_count': int(tianjin_snapshot.get('awarded_project_count') or 0)
         + int(regional_snapshot.get('awarded_project_count') or 0),
         'notice_suppressed_project_count': suppressed_count,

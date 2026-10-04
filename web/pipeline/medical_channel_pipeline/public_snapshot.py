@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 from .ccgp_events import event_market_code, event_scope, validate_notice_events
 from .state import market_code_for_record
 from .award_price_reference import build_award_price_reference
-from .ccgp_award import awarded_project_keys, build_public_award_ledger, is_awarded_project, normalize_project_number
+from .ccgp_award import AWARD_EVIDENCE_VERSION, awarded_project_keys, build_public_award_ledger, is_awarded_project, normalize_project_number
 from .legal_windows import legal_windows_for_facts, working_calendar_payload
 from .validation import validate_records
 
@@ -664,6 +664,7 @@ def build_public_snapshot(
         "model_request_count": 0,
         "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
         "working_calendar": working_calendar_payload(),
+        "award_projection_version": AWARD_EVIDENCE_VERSION,
         "awarded_project_count": awarded_project_count,
         # Opportunities hidden by an official 更正/终止 notice (project scope):
         # the count is exact, the list is newest-first and bounded.

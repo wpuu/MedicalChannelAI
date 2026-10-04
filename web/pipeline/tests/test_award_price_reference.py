@@ -145,7 +145,7 @@ class AwardPriceReferenceTests(unittest.TestCase):
         self.assertGreater(reference["row_count"], 0)
         self.assertEqual({tuple(sorted(row)) for row in reference["rows"]}, {(
             "award_id", "brand", "buyer_name", "family", "line_count", "market_code", "model", "name",
-            "project_number", "published_at", "quantity", "source_url", "unit_price_basis", "unit_price_cny",
+            "project_number", "projection_version", "published_at", "quantity", "source_url", "unit_price_basis", "unit_price_cny",
         )})
         for row in reference["rows"]:
             self.assertNotIn("supplier_address", row)
