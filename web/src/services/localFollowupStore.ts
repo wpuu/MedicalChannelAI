@@ -211,6 +211,23 @@ export function persistLocalFollowup(card: TodayActionCard): void {
   writeLocalFollowups(stored)
 }
 
+export function appendStoredHistoricalFollowup(opportunityId: string, record: FollowupRecord): boolean {
+  const stored = readLocalFollowups()
+  const entry = stored[opportunityId]
+  if (!entry?.public_snapshot || entry.public_snapshot.opportunity_id !== opportunityId) return false
+  // Only private state changes here; never rebuild the frozen public snapshot.
+  stored[opportunityId] = {
+    ...entry,
+    status: record.status,
+    remind_at: REMINDER_TERMINAL_STATUSES.has(record.status)
+      ? null
+      : record.remind_at ?? entry.remind_at,
+    history: [record, ...entry.history],
+  }
+  writeLocalFollowups(stored)
+  return true
+}
+
 export function listStoredFollowups(): Array<{
   opportunity_id: string
   entry: StoredFollowupEntry

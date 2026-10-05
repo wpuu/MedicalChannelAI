@@ -7,6 +7,7 @@ import type {
 } from '@/types'
 import type { PublicTodayActionCard, TodayActionsPublicResponse } from '@/types/public'
 import {
+  appendStoredHistoricalFollowup,
   backfillLocalFollowupSnapshots,
   hydrateLocalFollowups,
   persistLocalFollowup,
@@ -535,7 +536,6 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
   async updateFollowup(id: string, input: FollowupInput): Promise<void> {
     const data = this.deriveLocalState(await this.ensureLoaded(), true)
     const card = (data.opportunity_pool ?? data.cards).find((item) => item.opportunity_id === id)
-    if (!card) throw new Error('未找到对应商机')
     const record: FollowupRecord = {
       id: uid('fu'),
       status: input.status,
@@ -544,6 +544,10 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       remind_at: input.remind_at,
       at: new Date().toISOString(),
       actor: '当前用户',
+    }
+    if (!card) {
+      if (appendStoredHistoricalFollowup(id, record)) return
+      throw new Error('未找到对应商机')
     }
     card.followup_status = input.status
     card.remind_at = input.remind_at ?? (input.status === 'MONITOR' ? card.remind_at : null)
