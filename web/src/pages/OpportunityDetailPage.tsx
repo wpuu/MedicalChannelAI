@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Archive, Info, MessageSquareText, ShieldCheck } from 'lucide-react'
 import { CustomerContextCard } from '@/components/opportunity/CustomerContextCard'
@@ -50,8 +50,18 @@ const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生�
 
 export function OpportunityDetailPage() {
   const { id } = useParams()
+  return <OpportunityDetailSession key={id} />
+}
+
+function OpportunityDetailSession() {
+  const { id } = useParams()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const activeSession = useRef(false)
+  useEffect(() => {
+    activeSession.current = true
+    return () => { activeSession.current = false }
+  }, [])
   const [card, setCard] = useState<TodayActionCard | null>(null)
   const [awardResult, setAwardResult] = useState<AwardLedgerEntry | null>(null)
   const [historical, setHistorical] = useState(false)
@@ -195,7 +205,9 @@ export function OpportunityDetailPage() {
     if (!card) return false
     try {
       await todayActionsService.updateFollowup(card.opportunity_id, { status, ...extra })
+      if (!activeSession.current) return true
       await load(true)
+      if (!activeSession.current) return true
       toast(
         extra?.remind_at
           ? '提醒已设置，当前销售阶段保持不变'
@@ -206,6 +218,7 @@ export function OpportunityDetailPage() {
       )
       return true
     } catch (cause) {
+      if (!activeSession.current) return false
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
         return false
