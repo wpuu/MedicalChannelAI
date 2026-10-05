@@ -105,7 +105,7 @@ function OpportunityDetailSession() {
       .finally(() => setPublicHistoryLoading(false))
   }, [navigate])
 
-  const load = useCallback(async (silent = false) => {
+  const load = useCallback(async (silent = false, sessionBound = false) => {
     if (!id) {
       setNotFound(true)
       setLoading(false)
@@ -151,6 +151,7 @@ function OpportunityDetailSession() {
         }
       }
     } catch (cause) {
+      if (sessionBound && !activeSession.current) return
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
         return
@@ -244,10 +245,13 @@ function OpportunityDetailSession() {
           ? { reason: latestNotFitReason }
           : {}),
       })
-      await load(true)
+      if (!activeSession.current) return true
+      await load(true, true)
+      if (!activeSession.current) return true
       toast('跟进备注已保存', 'success')
       return true
     } catch (cause) {
+      if (!activeSession.current) return false
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
         return false
