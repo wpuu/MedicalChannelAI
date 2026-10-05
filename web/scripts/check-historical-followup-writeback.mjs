@@ -173,3 +173,4 @@ try {
 }
 console.log(`Historical writeback: ${checks.length + failures.length} checks, ${failures.length} failures`)
 assert.equal(failures.length, 0, failures.join('; '))
+await import('./check-followup-storage-failures.mjs')

@@ -380,8 +380,8 @@ export function ProcurementIntentFollowupPage() {
     }
   }
 
-  const saveNextAction = async (card: TodayActionCard, remindAt: string, nextAction: string) => {
-    if (card.followup_status === 'NEW' || followBusyId) return
+  const saveNextAction = async (card: TodayActionCard, remindAt: string, nextAction: string): Promise<boolean> => {
+    if (card.followup_status === 'NEW' || followBusyId) return false
     setFollowBusyId(card.opportunity_id)
     try {
       await todayActionsService.updateFollowup(card.opportunity_id, {
@@ -389,14 +389,22 @@ export function ProcurementIntentFollowupPage() {
         remind_at: remindAt,
         note: `下次行动：${nextAction}`,
       })
-      await loadCards()
+      try {
+        await loadCards()
+      } catch (cause) {
+        if (isAuthRequiredError(cause)) navigate('/login', { replace: true })
+        else toast('下一步和提醒已保存，但页面刷新失败，请重新加载。')
+        return true
+      }
       toast('下一步和提醒已保存；当前销售阶段保持不变。', 'success')
+      return true
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
-        return
+        return false
       }
       toast('下一步保存失败，请重试')
+      return false
     } finally {
       setFollowBusyId(null)
     }
@@ -648,12 +656,12 @@ export function ProcurementIntentFollowupPage() {
         maxDate={reminderConstraint?.canSchedule ? reminderConstraint.maxDate : null}
         deadlineHint={reminderConstraint?.canSchedule ? reminderConstraint.deadlineHint : null}
         onClose={() => setRemindId(null)}
-        onConfirm={(remindAt, nextAction) => {
+        onConfirm={async (remindAt, nextAction) => {
           if (!remindId) return
           const card = cards.find((item) => item.opportunity_id === remindId)
-          setRemindId(null)
           if (!card || card.followup_status === 'NEW') return
-          void saveNextAction(card, remindAt, nextAction)
+          const saved = await saveNextAction(card, remindAt, nextAction)
+          if (saved) setRemindId(null)
         }}
       />
     </div>

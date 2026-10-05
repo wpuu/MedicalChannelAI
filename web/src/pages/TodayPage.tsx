@@ -183,7 +183,7 @@ export function TodayPage() {
     id: string,
     status: FollowupStatus,
     extra?: { reason?: string; remind_at?: string; note?: string },
-  ) => {
+  ): Promise<boolean> => {
     setBusyId(id)
     try {
       await todayActionsService.updateFollowup(id, { status, ...extra })
@@ -193,12 +193,14 @@ export function TodayPage() {
       else if (status === 'CONTACTED') toast('已联系，商机已移入“我的跟进”', 'success')
       else if (status === 'NOT_FIT') toast('已标记不适合，记录已保留在“我的跟进”', 'success')
       else toast('跟进状态已更新', 'success')
+      return true
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
-        return
+        return false
       }
       toast('跟进状态更新失败，请重试')
+      return false
     } finally {
       setBusyId(null)
     }
@@ -483,19 +485,19 @@ export function TodayPage() {
       <RemindModal
         open={Boolean(remindId)}
         onClose={() => setRemindId(null)}
-        onConfirm={(remindAt, nextAction) => {
+        onConfirm={async (remindAt, nextAction) => {
           if (!remindId || !data) return
           const id = remindId
           const currentCard = (data.opportunity_pool ?? data.cards).find(
             (item) => item.opportunity_id === id,
           )
-          setRemindId(null)
-          void updateStatus(id, currentCard?.followup_status ?? 'NEW', {
+          const saved = await updateStatus(id, currentCard?.followup_status ?? 'NEW', {
             remind_at: remindAt,
             note: nextAction
               ? `下次行动：${nextAction}`
               : '设置下次跟进提醒；销售阶段保持不变。',
           })
+          if (saved) setRemindId(null)
         }}
       />
       {outreachId ? (

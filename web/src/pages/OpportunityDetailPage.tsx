@@ -190,8 +190,8 @@ export function OpportunityDetailPage() {
   const updateStatus = async (
     status: FollowupStatus,
     extra?: { reason?: string; note?: string; remind_at?: string },
-  ) => {
-    if (!card) return
+  ): Promise<boolean> => {
+    if (!card) return false
     try {
       await todayActionsService.updateFollowup(card.opportunity_id, { status, ...extra })
       await load(true)
@@ -203,12 +203,14 @@ export function OpportunityDetailPage() {
             : '跟进状态已更新',
         'success',
       )
+      return true
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
-        return
+        return false
       }
       toast('跟进状态更新失败，请重试')
+      return false
     }
   }
 
@@ -469,14 +471,14 @@ export function OpportunityDetailPage() {
       <RemindModal
         open={remindOpen}
         onClose={() => setRemindOpen(false)}
-        onConfirm={(remindAt, nextAction) => {
-          setRemindOpen(false)
-          void updateStatus(card.followup_status, {
+        onConfirm={async (remindAt, nextAction) => {
+          const saved = await updateStatus(card.followup_status, {
             remind_at: remindAt,
             note: nextAction
               ? `下次行动：${nextAction}`
               : '设置下次跟进提醒；销售阶段保持不变。',
           })
+          if (saved) setRemindOpen(false)
         }}
       />
       {!historical ? (

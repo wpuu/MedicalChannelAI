@@ -114,36 +114,28 @@ function parsePublicSnapshot(value: unknown): StoredPublicOpportunity | undefine
 }
 
 export function readLocalFollowups(): Record<string, StoredFollowupEntry> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = asRecord(JSON.parse(raw))
-    if (!parsed) return {}
+  const raw = localStorage.getItem(STORAGE_KEY)
+  if (!raw) return {}
+  const parsed = asRecord(JSON.parse(raw))
+  if (!parsed) return {}
 
-    const result: Record<string, StoredFollowupEntry> = {}
-    for (const [opportunityId, value] of Object.entries(parsed)) {
-      const row = asRecord(value)
-      if (!row || typeof row.status !== 'string') continue
-      if (!FOLLOWUP_STATUSES.has(row.status as FollowupStatus)) continue
-      result[opportunityId] = {
-        status: row.status as FollowupStatus,
-        remind_at: asNullableString(row.remind_at),
-        history: parseHistory(row.history),
-        public_snapshot: parsePublicSnapshot(row.public_snapshot),
-      }
+  const result: Record<string, StoredFollowupEntry> = {}
+  for (const [opportunityId, value] of Object.entries(parsed)) {
+    const row = asRecord(value)
+    if (!row || typeof row.status !== 'string') continue
+    if (!FOLLOWUP_STATUSES.has(row.status as FollowupStatus)) continue
+    result[opportunityId] = {
+      status: row.status as FollowupStatus,
+      remind_at: asNullableString(row.remind_at),
+      history: parseHistory(row.history),
+      public_snapshot: parsePublicSnapshot(row.public_snapshot),
     }
-    return result
-  } catch {
-    return {}
   }
+  return result
 }
 
 function writeLocalFollowups(entries: Record<string, StoredFollowupEntry>): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
-  } catch {
-    // Trial persistence is best-effort. The current in-memory interaction still works.
-  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
 }
 
 function toStoredPublicOpportunity(card: TodayActionCard): StoredPublicOpportunity {
