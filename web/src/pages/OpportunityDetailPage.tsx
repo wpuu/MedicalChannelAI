@@ -81,6 +81,7 @@ function OpportunityDetailSession() {
   const [outreachOpen, setOutreachOpen] = useState(false)
   const closeOutreach = useCallback(() => setOutreachOpen(false), [])
   const [aiBusy, setAiBusy] = useState(false)
+  const [aiContextRefreshing, setAiContextRefreshing] = useState(false)
   const aiContextRevision = useRef(0)
 
   const loadPublicHistory = useCallback((opportunityId: string) => {
@@ -262,7 +263,7 @@ function OpportunityDetailSession() {
       runtimeStatusChecked,
       isApiMode ? undefined : card?.snapshot_as_of ?? null,
     )
-    if (!card || historical || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
+    if (!card || historical || aiContextRefreshing || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
     const requestRevision = aiContextRevision.current
     const requestFingerprint = decisionFingerprint(card)
     setAiBusy(true)
@@ -410,9 +411,14 @@ function OpportunityDetailSession() {
 
       {!historical ? (
         <>
-          <OpportunityExecutionCard card={card} onProfileChanged={() => {
+          <OpportunityExecutionCard card={card} onProfileChanged={async () => {
             aiContextRevision.current += 1
-            return load(true)
+            setAiContextRefreshing(true)
+            try {
+              await load(true)
+            } finally {
+              setAiContextRefreshing(false)
+            }
           }} />
           <DecisionCard
             card={card}
@@ -422,8 +428,8 @@ function OpportunityDetailSession() {
                 ? () => void analyze()
                 : undefined
             }
-            analysisUnavailableReason={aiUnavailableReason}
-            analysisDisabled={Boolean(automationUnavailableReason)}
+            analysisUnavailableReason={aiContextRefreshing ? '正在更新商机资源，请稍候再分析。' : aiUnavailableReason}
+            analysisDisabled={aiContextRefreshing || Boolean(automationUnavailableReason)}
           />
         </>
       ) : null}
