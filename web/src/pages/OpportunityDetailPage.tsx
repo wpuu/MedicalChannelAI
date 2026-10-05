@@ -27,6 +27,7 @@ import { todayActionsService } from '@/services'
 import {
   AiDecisionError,
   aiDecisionErrorMessage,
+  decisionFingerprint,
   hydrateCachedAiDecisions,
   requestAiDecision,
 } from '@/services/aiDecisionApi'
@@ -80,6 +81,7 @@ function OpportunityDetailSession() {
   const [outreachOpen, setOutreachOpen] = useState(false)
   const closeOutreach = useCallback(() => setOutreachOpen(false), [])
   const [aiBusy, setAiBusy] = useState(false)
+  const aiContextRevision = useRef(0)
 
   const loadPublicHistory = useCallback((opportunityId: string) => {
     if (!isApiMode) {
@@ -261,11 +263,18 @@ function OpportunityDetailSession() {
       isApiMode ? undefined : card?.snapshot_as_of ?? null,
     )
     if (!card || historical || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
+    const requestRevision = aiContextRevision.current
+    const requestFingerprint = decisionFingerprint(card)
     setAiBusy(true)
     try {
       const decision = await requestAiDecision(card)
+      if (requestRevision !== aiContextRevision.current) {
+        toast('资源已更新，请重新分析')
+        return
+      }
       setCard((current) => {
-        if (!current || current.opportunity_id !== card.opportunity_id) return current
+        if (!current || current.opportunity_id !== card.opportunity_id ||
+          decisionFingerprint(current) !== requestFingerprint) return current
         return {
           ...current,
           model_decision_status: 'READY',
@@ -401,7 +410,10 @@ function OpportunityDetailSession() {
 
       {!historical ? (
         <>
-          <OpportunityExecutionCard card={card} onProfileChanged={() => load(true)} />
+          <OpportunityExecutionCard card={card} onProfileChanged={() => {
+            aiContextRevision.current += 1
+            return load(true)
+          }} />
           <DecisionCard
             card={card}
             analyzing={aiBusy}
