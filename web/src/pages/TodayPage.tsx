@@ -91,6 +91,7 @@ export function TodayPage() {
   const [notFitId, setNotFitId] = useState<string | null>(null)
   const [remindId, setRemindId] = useState<string | null>(null)
   const [outreachId, setOutreachId] = useState<string | null>(null)
+  const closeOutreach = useCallback(() => setOutreachId(null), [])
 
   const loadReminders = useCallback(async () => {
     try {
@@ -502,7 +503,7 @@ export function TodayPage() {
       />
       {outreachId ? (
         <Suspense fallback={null}>
-          <OutreachDrawer open opportunityId={outreachId} onClose={() => setOutreachId(null)} />
+          <OutreachDrawer open opportunityId={outreachId} onClose={closeOutreach} />
         </Suspense>
       ) : null}
     </div>

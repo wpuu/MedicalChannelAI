@@ -68,6 +68,7 @@ export function OpportunityDetailPage() {
   const [lostOpen, setLostOpen] = useState(false)
   const [remindOpen, setRemindOpen] = useState(false)
   const [outreachOpen, setOutreachOpen] = useState(false)
+  const closeOutreach = useCallback(() => setOutreachOpen(false), [])
   const [aiBusy, setAiBusy] = useState(false)
 
   const loadPublicHistory = useCallback((opportunityId: string) => {
@@ -485,7 +486,7 @@ export function OpportunityDetailPage() {
         <OutreachDrawer
           open={outreachOpen}
           opportunityId={card.opportunity_id}
-          onClose={() => setOutreachOpen(false)}
+          onClose={closeOutreach}
         />
       ) : null}
     </div>
