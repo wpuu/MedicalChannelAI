@@ -251,11 +251,14 @@ export function OpportunityDetailPage() {
     setAiBusy(true)
     try {
       const decision = await requestAiDecision(card)
-      setCard({
-        ...card,
-        model_decision_status: 'READY',
-        model_block_reason: null,
-        decision,
+      setCard((current) => {
+        if (!current || current.opportunity_id !== card.opportunity_id) return current
+        return {
+          ...current,
+          model_decision_status: 'READY',
+          model_block_reason: null,
+          decision,
+        }
       })
       toast('AI行动建议已生成', 'success')
     } catch (cause) {
