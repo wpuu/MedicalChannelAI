@@ -244,6 +244,7 @@ async function todayRoute(request, response, user) {
       recommendation_feedback_summary: recommendationFeedbackSummary(decoratedPool, feedback),
       working_calendar: snapshot.working_calendar ?? null,
       // Official 中标/成交 results: public facts only, same payload as the anonymous snapshot.
+      award_projection_version: snapshot.award_projection_version,
       awarded_project_count: Number(snapshot.awarded_project_count || 0),
       // Opportunities hidden by an official 更正/终止 notice (explainable, never silent).
       notice_suppressed_project_count: Number(snapshot.notice_suppressed_project_count || 0),
@@ -344,6 +345,7 @@ function publicSnapshotForFollowup(card) {
   const facts = card.facts || {}
   return {
     facts: {
+      market_code: snapshotText(facts.market_code, 40),
       project_number: snapshotText(facts.project_number, 300),
       project_name: snapshotText(facts.project_name, 1000),
       buyer_name: snapshotText(facts.buyer_name, 500),
@@ -639,6 +641,7 @@ function sanitizeStoredSnapshot(value) {
   const rawFacts = value.facts
   if (!rawFacts || typeof rawFacts !== 'object' || Array.isArray(rawFacts)) return null
   const facts = {
+    market_code: nullableText(rawFacts.market_code),
     project_number: nullableText(rawFacts.project_number),
     project_name: nullableText(rawFacts.project_name),
     buyer_name: nullableText(rawFacts.buyer_name),

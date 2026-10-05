@@ -65,7 +65,7 @@ class MarketScopedTodayActionsService implements TodayActionsService {
       matched_count: pool.length,
       card_count: cards.length,
       opportunity_pool_count: pool.length,
-      coverage_warning: '当前业务地区的商机来自已核验官方公开信息；各地区仍为部分来源覆盖。',
+      coverage_warning: result.coverage_warning || '当前业务地区的商机来自已核验官方公开信息；各地区仍为部分来源覆盖。',
       cards,
       opportunity_pool: pool,
     }

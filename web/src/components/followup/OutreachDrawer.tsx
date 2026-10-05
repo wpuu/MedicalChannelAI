@@ -310,7 +310,7 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
     <>
       <Drawer
         open={open}
-        onClose={onClose}
+        onClose={recordingContact ? () => {} : onClose}
         title="沟通草稿"
         subtitle={
           contactRecorded
@@ -505,7 +505,7 @@ export function OutreachDrawer({ open, opportunityId, onClose }: OutreachDrawerP
       <RemindModal
         open={open && remindOpen && Boolean(opportunityId)}
         onClose={() => setRemindOpen(false)}
-        onConfirm={(remindAt, nextAction) => void scheduleNextAction(remindAt, nextAction)}
+        onConfirm={scheduleNextAction}
       />
     </>
   )

@@ -475,6 +475,7 @@ export function OpportunityPoolPage() {
     const automationUnavailableReason = runtimeAutomationUnavailableReason(
       runtimeStatus,
       runtimeStatusChecked,
+      snapshotAsOf,
     )
     const card = cards.find((item) => item.opportunity_id === id)
     if (!card || automationUnavailableReason) return
@@ -523,8 +524,9 @@ export function OpportunityPoolPage() {
   const automationUnavailableReason = runtimeAutomationUnavailableReason(
     runtimeStatus,
     runtimeStatusChecked,
+    snapshotAsOf,
   )
-  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
+  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked, snapshotAsOf)
   const aiUnavailableReason = automationUnavailableReason || (
     runtimeStatus?.ai.configured === false ? AI_UNCONFIGURED_REASON : null
   )

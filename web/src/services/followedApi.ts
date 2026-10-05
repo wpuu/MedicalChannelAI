@@ -25,6 +25,7 @@ export interface FollowedOpportunity {
   latest_note: string | null
   followup_updated_at: string
   facts: {
+    market_code?: string | null
     project_number: string | null
     project_name: string | null
     buyer_name: string | null
@@ -184,6 +185,7 @@ function validateItem(value: unknown): FollowedOpportunity {
   if (
     !facts ||
     !exactKeys(facts, [
+      ...(Object.prototype.hasOwnProperty.call(facts, 'market_code') ? ['market_code'] : []),
       'project_number',
       'project_name',
       'buyer_name',
@@ -205,6 +207,7 @@ function validateItem(value: unknown): FollowedOpportunity {
       'verification_status',
       'coverage_status',
     ]) ||
+    (Object.prototype.hasOwnProperty.call(facts, 'market_code') && !nullableString(facts.market_code)) ||
     !nullableString(facts.project_number) ||
     !nullableString(facts.project_name) ||
     !nullableString(facts.buyer_name) ||
@@ -235,6 +238,7 @@ function validateItem(value: unknown): FollowedOpportunity {
     latest_note: row.latest_note,
     followup_updated_at: row.followup_updated_at,
     facts: {
+      market_code: typeof facts.market_code === 'string' ? facts.market_code : null,
       project_number: facts.project_number,
       project_name: facts.project_name,
       buyer_name: facts.buyer_name,
@@ -330,6 +334,7 @@ async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
           followup_updated_at:
             latestRecord?.at ?? entry.remind_at ?? '1970-01-01T00:00:00.000Z',
           facts: {
+            market_code: snapshot.facts.market_code ?? null,
             project_number: snapshot.facts.project_number,
             project_name: snapshot.facts.project_name,
             buyer_name: snapshot.facts.buyer_name,
@@ -528,6 +533,7 @@ export async function getHistoricalFollowedOpportunityCard(
     rank: 0,
     opportunity_id: opportunityId,
     facts: {
+      market_code: item.facts.market_code ?? null,
       project_code: item.facts.project_number,
       project_name: item.facts.project_name,
       hospital: item.facts.hospital_name,

@@ -1,0 +1,68 @@
+command=node scripts/check-pr77-followed-market.mjs
+start_utc=2026-10-04T14:13:23.367409+00:00
+API verified source -> mutation JSON -> followed list/exact/history -> same-market award: FAIL: saved snapshot lost source market
+
+undefined !== 'TJ'
+
+API stored market survives server sanitizer and historical projection: FAIL: Expected values to be strictly equal:
+
+undefined !== 'TJ'
+
+API strict facts accepts only legacy or optional nullable market extension: FAIL: FOLLOWED_RESPONSE_INVALID
+Local actual persist -> JSON read -> followed list/exact/history -> same-market award: FAIL: Expected values to be strictly equal:
+
+undefined !== 'TJ'
+
+Local saved market survives reload without current source-card backfill: FAIL: Expected values to be strictly equal:
+
+undefined !== 'TJ'
+
+Missing/legacy market remains unmatched despite TJ id/region/buyer cues: PASS
+Same-number different markets and marketless award entries never substitute: FAIL: Expected values to be strictly equal:
++ actual - expected
+
++ null
+- {
+-   award_id: 'he',
+-   market_code: 'HE',
+-   project_number: 'SYNTHETIC-2026-001'
+- }
+
+Historical projection changes only market field; other snapshot facts preserved: PASS
+Followed market-chain regression: 8 cases, 6 failures
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ [
++   'API verified source -> mutation JSON -> followed list/exact/history -> same-market award',
++   'API stored market survives server sanitizer and historical projection',
++   'API strict facts accepts only legacy or optional nullable market extension',
++   'Local actual persist -> JSON read -> followed list/exact/history -> same-market award',
++   'Local saved market survives reload without current source-card backfill',
++   'Same-number different markets and marketless award entries never substitute'
++ ]
+- []
+
+    at file:///workspace/medical-pr74-evidence/web/scripts/check-pr77-followed-market.mjs:215:8 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [
+    'API verified source -> mutation JSON -> followed list/exact/history -> same-market award',
+    'API stored market survives server sanitizer and historical projection',
+    'API strict facts accepts only legacy or optional nullable market extension',
+    'Local actual persist -> JSON read -> followed list/exact/history -> same-market award',
+    'Local saved market survives reload without current source-card backfill',
+    'Same-number different markets and marketless award entries never substitute'
+  ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0
+finish_utc=2026-10-04T14:13:25.040768+00:00
+exit_code=1

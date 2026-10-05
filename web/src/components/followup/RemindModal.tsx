@@ -6,7 +6,7 @@ import { formatDateOnly, isoDaysFromNow } from '@/utils/format'
 interface RemindModalProps {
   open: boolean
   onClose: () => void
-  onConfirm: (remindAt: string, nextAction: string) => void
+  onConfirm: (remindAt: string, nextAction: string) => void | Promise<void>
   maxDate?: string | null
   deadlineHint?: string | null
 }
@@ -47,6 +47,7 @@ export function RemindModal({
   const fallbackSelected = presets[0]?.value ?? maxDate ?? isoDaysFromNow(1)
   const [selected, setSelected] = useState(fallbackSelected)
   const [nextAction, setNextAction] = useState('')
+  const [saving, setSaving] = useState(false)
   const selectedWithinDeadline = isOnOrBefore(selected, maxDate)
   const remindAt = selectedWithinDeadline ? localDateAtNineToIso(selected) : null
   const normalizedNextAction = nextAction.trim()
@@ -61,21 +62,28 @@ export function RemindModal({
     <Modal
       open={open}
       title="安排下一步"
-      onClose={onClose}
+      onClose={saving ? () => {} : onClose}
       footer={
         <div className="flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
+            disabled={saving}
             className="rounded-lg border border-slate-200 px-3 py-1.5 text-[13px] text-slate-600"
           >
             取消
           </button>
           <button
             type="button"
-            disabled={!remindAt || !normalizedNextAction}
-            onClick={() => {
-              if (remindAt && normalizedNextAction) onConfirm(remindAt, normalizedNextAction)
+            disabled={saving || !remindAt || !normalizedNextAction}
+            onClick={async () => {
+              if (saving || !remindAt || !normalizedNextAction) return
+              setSaving(true)
+              try {
+                await onConfirm(remindAt, normalizedNextAction)
+              } finally {
+                setSaving(false)
+              }
             }}
             className="rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] text-white disabled:cursor-not-allowed disabled:opacity-50"
           >

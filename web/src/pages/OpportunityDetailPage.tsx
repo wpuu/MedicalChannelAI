@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Archive, Info, MessageSquareText, ShieldCheck } from 'lucide-react'
 import { CustomerContextCard } from '@/components/opportunity/CustomerContextCard'
@@ -27,6 +27,7 @@ import { todayActionsService } from '@/services'
 import {
   AiDecisionError,
   aiDecisionErrorMessage,
+  decisionFingerprint,
   hydrateCachedAiDecisions,
   requestAiDecision,
 } from '@/services/aiDecisionApi'
@@ -50,8 +51,18 @@ const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生�
 
 export function OpportunityDetailPage() {
   const { id } = useParams()
+  return <OpportunityDetailSession key={id} />
+}
+
+function OpportunityDetailSession() {
+  const { id } = useParams()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const activeSession = useRef(false)
+  useEffect(() => {
+    activeSession.current = true
+    return () => { activeSession.current = false }
+  }, [])
   const [card, setCard] = useState<TodayActionCard | null>(null)
   const [awardResult, setAwardResult] = useState<AwardLedgerEntry | null>(null)
   const [historical, setHistorical] = useState(false)
@@ -68,7 +79,10 @@ export function OpportunityDetailPage() {
   const [lostOpen, setLostOpen] = useState(false)
   const [remindOpen, setRemindOpen] = useState(false)
   const [outreachOpen, setOutreachOpen] = useState(false)
+  const closeOutreach = useCallback(() => setOutreachOpen(false), [])
   const [aiBusy, setAiBusy] = useState(false)
+  const [aiContextRefreshing, setAiContextRefreshing] = useState(false)
+  const aiContextRevision = useRef(0)
 
   const loadPublicHistory = useCallback((opportunityId: string) => {
     if (!isApiMode) {
@@ -91,7 +105,7 @@ export function OpportunityDetailPage() {
       .finally(() => setPublicHistoryLoading(false))
   }, [navigate])
 
-  const load = useCallback(async (silent = false) => {
+  const load = useCallback(async (silent = false, sessionBound = false) => {
     if (!id) {
       setNotFound(true)
       setLoading(false)
@@ -137,6 +151,7 @@ export function OpportunityDetailPage() {
         }
       }
     } catch (cause) {
+      if (sessionBound && !activeSession.current) return
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
         return
@@ -148,6 +163,7 @@ export function OpportunityDetailPage() {
   }, [id, navigate])
 
   const projectCode = card?.facts.project_code ?? null
+  const projectMarket = card?.facts.market_code ?? null
   useEffect(() => {
     let cancelled = false
     setAwardResult(null)
@@ -156,7 +172,7 @@ export function OpportunityDetailPage() {
     // leave the page unchanged; the award ledger is public snapshot data.
     void getAwardLedger()
       .then((ledger) => {
-        if (!cancelled) setAwardResult(findAwardForProject(ledger.entries, projectCode))
+        if (!cancelled) setAwardResult(findAwardForProject(ledger.entries, projectCode, projectMarket))
       })
       .catch(() => {
         if (!cancelled) setAwardResult(null)
@@ -164,7 +180,7 @@ export function OpportunityDetailPage() {
     return () => {
       cancelled = true
     }
-  }, [projectCode])
+  }, [projectCode, projectMarket])
 
   const [priceReference, setPriceReference] = useState<AwardPriceReference | null>(null)
   useEffect(() => {
@@ -189,11 +205,13 @@ export function OpportunityDetailPage() {
   const updateStatus = async (
     status: FollowupStatus,
     extra?: { reason?: string; note?: string; remind_at?: string },
-  ) => {
-    if (!card) return
+  ): Promise<boolean> => {
+    if (!card) return false
     try {
       await todayActionsService.updateFollowup(card.opportunity_id, { status, ...extra })
+      if (!activeSession.current) return true
       await load(true)
+      if (!activeSession.current) return true
       toast(
         extra?.remind_at
           ? '提醒已设置，当前销售阶段保持不变'
@@ -202,12 +220,15 @@ export function OpportunityDetailPage() {
             : '跟进状态已更新',
         'success',
       )
+      return true
     } catch (cause) {
+      if (!activeSession.current) return false
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
-        return
+        return false
       }
       toast('跟进状态更新失败，请重试')
+      return false
     }
   }
 
@@ -224,10 +245,13 @@ export function OpportunityDetailPage() {
           ? { reason: latestNotFitReason }
           : {}),
       })
-      await load(true)
+      if (!activeSession.current) return true
+      await load(true, true)
+      if (!activeSession.current) return true
       toast('跟进备注已保存', 'success')
       return true
     } catch (cause) {
+      if (!activeSession.current) return false
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
         return false
@@ -241,16 +265,27 @@ export function OpportunityDetailPage() {
     const automationUnavailableReason = runtimeAutomationUnavailableReason(
       runtimeStatus,
       runtimeStatusChecked,
+      isApiMode ? undefined : card?.snapshot_as_of ?? null,
     )
-    if (!card || historical || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
+    if (!card || historical || aiContextRefreshing || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
+    const requestRevision = aiContextRevision.current
+    const requestFingerprint = decisionFingerprint(card)
     setAiBusy(true)
     try {
       const decision = await requestAiDecision(card)
-      setCard({
-        ...card,
-        model_decision_status: 'READY',
-        model_block_reason: null,
-        decision,
+      if (requestRevision !== aiContextRevision.current) {
+        toast('资源已更新，请重新分析')
+        return
+      }
+      setCard((current) => {
+        if (!current || current.opportunity_id !== card.opportunity_id ||
+          decisionFingerprint(current) !== requestFingerprint) return current
+        return {
+          ...current,
+          model_decision_status: 'READY',
+          model_block_reason: null,
+          decision,
+        }
       })
       toast('AI行动建议已生成', 'success')
     } catch (cause) {
@@ -280,10 +315,10 @@ export function OpportunityDetailPage() {
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
   const automationUnavailableReason = historical
     ? null
-    : runtimeAutomationUnavailableReason(runtimeStatus, runtimeStatusChecked)
+    : runtimeAutomationUnavailableReason(runtimeStatus, runtimeStatusChecked, isApiMode ? undefined : card?.snapshot_as_of ?? null)
   const snapshotWarning = historical
     ? null
-    : runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
+    : runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked, isApiMode ? undefined : card?.snapshot_as_of ?? null)
   const groundingUnavailable =
     card.model_decision_status === 'BLOCKED_GROUNDING' ||
     card.model_decision_status === 'NOT_ELIGIBLE' ||
@@ -380,7 +415,15 @@ export function OpportunityDetailPage() {
 
       {!historical ? (
         <>
-          <OpportunityExecutionCard card={card} onProfileChanged={() => load(true)} />
+          <OpportunityExecutionCard card={card} onProfileChanged={async () => {
+            aiContextRevision.current += 1
+            setAiContextRefreshing(true)
+            try {
+              await load(true)
+            } finally {
+              setAiContextRefreshing(false)
+            }
+          }} />
           <DecisionCard
             card={card}
             analyzing={aiBusy}
@@ -389,8 +432,8 @@ export function OpportunityDetailPage() {
                 ? () => void analyze()
                 : undefined
             }
-            analysisUnavailableReason={aiUnavailableReason}
-            analysisDisabled={Boolean(automationUnavailableReason)}
+            analysisUnavailableReason={aiContextRefreshing ? '正在更新商机资源，请稍候再分析。' : aiUnavailableReason}
+            analysisDisabled={aiContextRefreshing || Boolean(automationUnavailableReason)}
           />
         </>
       ) : null}
@@ -439,49 +482,44 @@ export function OpportunityDetailPage() {
       <WonModal
         open={wonOpen}
         onClose={() => setWonOpen(false)}
-        onConfirm={(reason: WonReason) => {
-          setWonOpen(false)
-          void updateStatus('WON', {
+        onConfirm={(reason: WonReason) =>
+          updateStatus('WON', {
             note: `成交复盘（当前用户判断）：${reason}`,
           })
-        }}
+        }
       />
       <NotFitModal
         open={notFitOpen}
         onClose={() => setNotFitOpen(false)}
-        onConfirm={(reason: NotFitReason) => {
-          setNotFitOpen(false)
-          void updateStatus('NOT_FIT', { reason })
-        }}
+        onConfirm={(reason: NotFitReason) => updateStatus('NOT_FIT', { reason })}
       />
       <LostModal
         open={lostOpen}
         onClose={() => setLostOpen(false)}
-        onConfirm={(reason: LostReason) => {
-          setLostOpen(false)
-          void updateStatus('LOST', {
+        onConfirm={(reason: LostReason) =>
+          updateStatus('LOST', {
             note: `未成交原因（当前用户判断）：${reason}`,
           })
-        }}
+        }
       />
       <RemindModal
         open={remindOpen}
         onClose={() => setRemindOpen(false)}
-        onConfirm={(remindAt, nextAction) => {
-          setRemindOpen(false)
-          void updateStatus(card.followup_status, {
+        onConfirm={async (remindAt, nextAction) => {
+          const saved = await updateStatus(card.followup_status, {
             remind_at: remindAt,
             note: nextAction
               ? `下次行动：${nextAction}`
               : '设置下次跟进提醒；销售阶段保持不变。',
           })
+          if (saved) setRemindOpen(false)
         }}
       />
       {!historical ? (
         <OutreachDrawer
           open={outreachOpen}
           opportunityId={card.opportunity_id}
-          onClose={() => setOutreachOpen(false)}
+          onClose={closeOutreach}
         />
       ) : null}
     </div>

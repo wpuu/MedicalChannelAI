@@ -134,7 +134,7 @@ const staticService = readFileSync(resolve(scriptDir, '../src/services/StaticSna
 assert(staticService.includes('applyRuntimeActionability('), 'verified trial must keep runtime deadline handling')
 assert(staticService.includes('LATE_WINDOW_POINTS = 8'), 'trial and API must share the same late-window intervention points')
 
-const trialRuntime = readFileSync(resolve(scriptDir, '../src/services/RuntimeTrialTodayActionsService.ts'), 'utf8')
+const trialRuntime = readFileSync(resolve(scriptDir, '../src/services/trialTemporalPriority.ts'), 'utf8')
 assert(trialRuntime.includes('DEADLINE_URGENCY_MAX_POINTS = 10'))
 assert(trialRuntime.includes('PUBLICATION_FRESHNESS_MAX_POINTS = 7'))
 assert(trialRuntime.includes('nextActionDeadline(card, now)'))
@@ -143,5 +143,7 @@ assert(trialRuntime.includes('card.priority.score - oldUrgency - oldFreshness + 
 const serviceIndex = readFileSync(resolve(scriptDir, '../src/services/index.ts'), 'utf8')
 assert(serviceIndex.includes('new RuntimeTrialTodayActionsService('))
 assert(serviceIndex.includes('new StaticSnapshotTodayActionsService(verifiedSnapshotUrl)'))
+
+await import('./check-trial-temporal-consistency.mjs')
 
 console.log('Runtime opportunity time boundary: PASS')

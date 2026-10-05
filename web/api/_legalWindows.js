@@ -5,11 +5,8 @@
 //
 // The snapshot embeds the working-day calendar (`snapshot.working_calendar`),
 // so this module never hard-codes holidays. Between two daily snapshot builds
-// it only recomputes `remaining_working_days` and `status`; the anchor and
-// deadline dates are left untouched because they come from the notice facts.
-//
-// Everything here is an estimate under 财政部令第94号 — never an official
-// deadline. The UI is responsible for labelling it that way.
+// it invalidates unsupported legacy derived deadlines and keeps them UNKNOWN.
+// The retained calendar helpers perform arithmetic, not legal verification.
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const MAX_SPAN_DAYS = 4000
@@ -72,14 +69,17 @@ export function workingDaysRemaining(todayKey, deadlineKey, calendar) {
 
 export function refreshLegalWindows(legalWindows, now = Date.now(), calendar = null) {
   if (!Array.isArray(legalWindows)) return legalWindows ?? null
-  const todayKey = tianjinDateKey(now)
   return legalWindows.map((item) => {
-    if (!item || typeof item !== 'object' || dateKeyToUtcMs(item.deadline_date) === null) return item
-    const remaining = workingDaysRemaining(todayKey, item.deadline_date, calendar)
+    if (!item || typeof item !== 'object') return item
     return {
       ...item,
-      remaining_working_days: remaining,
-      status: remaining > 0 ? 'OPEN' : 'CLOSED',
+      anchor_kind: 'UNVERIFIED',
+      anchor_date: null,
+      clock_start_date: undefined,
+      deadline_date: null,
+      remaining_working_days: 0,
+      status: 'UNKNOWN',
+      uncertainty_reason: 'APPLICABILITY_ANCHOR_AND_LEGAL_SOURCE_UNVERIFIED',
     }
   })
 }

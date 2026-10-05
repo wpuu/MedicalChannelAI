@@ -6,6 +6,7 @@ const LOCAL_REMINDER_PREFIX = 'local-reminder:'
 export interface StoredPublicOpportunity {
   opportunity_id: string
   facts: {
+    market_code?: string | null
     project_number: string | null
     project_name: string | null
     buyer_name: string | null
@@ -96,6 +97,7 @@ function parsePublicSnapshot(value: unknown): StoredPublicOpportunity | undefine
   return {
     opportunity_id: row.opportunity_id,
     facts: {
+      market_code: asNullableString(facts.market_code),
       project_number: asNullableString(facts.project_number),
       project_name: asNullableString(facts.project_name),
       buyer_name: asNullableString(facts.buyer_name),
@@ -112,42 +114,35 @@ function parsePublicSnapshot(value: unknown): StoredPublicOpportunity | undefine
 }
 
 export function readLocalFollowups(): Record<string, StoredFollowupEntry> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = asRecord(JSON.parse(raw))
-    if (!parsed) return {}
+  const raw = localStorage.getItem(STORAGE_KEY)
+  if (!raw) return {}
+  const parsed = asRecord(JSON.parse(raw))
+  if (!parsed) return {}
 
-    const result: Record<string, StoredFollowupEntry> = {}
-    for (const [opportunityId, value] of Object.entries(parsed)) {
-      const row = asRecord(value)
-      if (!row || typeof row.status !== 'string') continue
-      if (!FOLLOWUP_STATUSES.has(row.status as FollowupStatus)) continue
-      result[opportunityId] = {
-        status: row.status as FollowupStatus,
-        remind_at: asNullableString(row.remind_at),
-        history: parseHistory(row.history),
-        public_snapshot: parsePublicSnapshot(row.public_snapshot),
-      }
+  const result: Record<string, StoredFollowupEntry> = {}
+  for (const [opportunityId, value] of Object.entries(parsed)) {
+    const row = asRecord(value)
+    if (!row || typeof row.status !== 'string') continue
+    if (!FOLLOWUP_STATUSES.has(row.status as FollowupStatus)) continue
+    result[opportunityId] = {
+      status: row.status as FollowupStatus,
+      remind_at: asNullableString(row.remind_at),
+      history: parseHistory(row.history),
+      public_snapshot: parsePublicSnapshot(row.public_snapshot),
     }
-    return result
-  } catch {
-    return {}
   }
+  return result
 }
 
 function writeLocalFollowups(entries: Record<string, StoredFollowupEntry>): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
-  } catch {
-    // Trial persistence is best-effort. The current in-memory interaction still works.
-  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
 }
 
 function toStoredPublicOpportunity(card: TodayActionCard): StoredPublicOpportunity {
   return {
     opportunity_id: card.opportunity_id,
     facts: {
+      market_code: card.facts.market_code ?? null,
       project_number: card.facts.project_code,
       project_name: card.facts.project_name,
       buyer_name: card.facts.buyer_name ?? null,
@@ -208,6 +203,23 @@ export function persistLocalFollowup(card: TodayActionCard): void {
   writeLocalFollowups(stored)
 }
 
+export function appendStoredHistoricalFollowup(opportunityId: string, record: FollowupRecord): boolean {
+  const stored = readLocalFollowups()
+  const entry = stored[opportunityId]
+  if (!entry?.public_snapshot || entry.public_snapshot.opportunity_id !== opportunityId) return false
+  // Only private state changes here; never rebuild the frozen public snapshot.
+  stored[opportunityId] = {
+    ...entry,
+    status: record.status,
+    remind_at: REMINDER_TERMINAL_STATUSES.has(record.status)
+      ? null
+      : record.remind_at ?? entry.remind_at,
+    history: [record, ...entry.history],
+  }
+  writeLocalFollowups(stored)
+  return true
+}
+
 export function listStoredFollowups(): Array<{
   opportunity_id: string
   entry: StoredFollowupEntry
@@ -226,6 +238,7 @@ export function getStoredHistoricalOpportunityCard(opportunityId: string): Today
     rank: 0,
     opportunity_id: snapshot.opportunity_id,
     facts: {
+      market_code: snapshot.facts.market_code ?? null,
       project_code: snapshot.facts.project_number,
       project_name: snapshot.facts.project_name,
       hospital: snapshot.facts.hospital_name,

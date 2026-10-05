@@ -1,26 +1,8 @@
-"""Statutory challenge windows (质疑期) derived from public notice facts.
+"""Conditional legal-window display; rule applicability and anchors are unverified.
 
-Legal basis (all deadlines are counted in *working days*):
-
-* 《政府采购质疑和投诉办法》(财政部令第94号)
-  - 第十条  供应商可以在知道或者应知其权益受到损害之日起 7 个工作日内提出质疑。
-  - 第十一条 对采购文件提出质疑的，应当在获取采购文件或者采购文件公告期限届满之日起
-             7 个工作日内提出。
-  - 第十三条 采购人、采购代理机构应当在收到质疑函后 7 个工作日内作出答复。
-  - 第十七条 对答复不满意或未在规定时间内答复的，可以在答复期满后 15 个工作日内投诉。
-  - 第四十二条 期间开始之日不计算在期间内；届满最后一日是节假日的，顺延至节假日后第一日。
-* 《政府采购法实施条例》第五十三条  对中标或者成交结果提出质疑的，"应知之日"为
-  中标或者成交结果公告期限届满之日。
-* 《政府采购货物和服务招标投标管理办法》(财政部令第87号) 第六十九条  中标公告期限为 1 个工作日。
-
-Everything produced here is a *derived estimate* ("推算"), never an official
-deadline and never legal advice. The UI must label it as such and must point
-the user to the notice text and the finance department for the binding answer.
-
-The working-day calendar is the State Council holiday schedule (国务院办公厅
-节假日安排通知). It is the single source of truth for both the Python snapshot
-builder and the JS/TS runtime refreshers, which receive it embedded in the
-snapshot (``working_calendar``) instead of carrying their own copies.
+The retained calendar arithmetic is not evidence of an applicable legal deadline.
+No derived OPEN/CLOSED state is published until official rules and notice-specific
+anchors are independently verified.
 """
 
 from __future__ import annotations
@@ -32,7 +14,7 @@ from zoneinfo import ZoneInfo
 TIANJIN_TZ = ZoneInfo("Asia/Shanghai")
 
 LEGAL_WINDOWS_SCHEMA_VERSION = "0.1"
-LEGAL_BASIS_CODE = "MOF_ORDER_94"
+LEGAL_BASIS_CODE = "UNVERIFIED"
 
 CHALLENGE_WORKING_DAYS = 7          # 94号令 第十条 / 第十一条
 CHALLENGE_REPLY_WORKING_DAYS = 7    # 94号令 第十三条
@@ -42,7 +24,7 @@ AWARD_NOTICE_PERIOD_WORKING_DAYS = 1  # 87号令 第六十九条
 DOCUMENT_CHALLENGE = "DOCUMENT_CHALLENGE"
 RESULT_CHALLENGE = "RESULT_CHALLENGE"
 
-CALENDAR_OFFICIAL = "CN_STATE_COUNCIL_2025_2026"
+CALENDAR_OFFICIAL = "CN_2025_2026_UNVERIFIED"
 CALENDAR_WEEKENDS_ONLY = "WEEKENDS_ONLY_ESTIMATE"
 
 CALENDAR_COVERAGE_FROM = date(2025, 1, 1)
@@ -156,6 +138,7 @@ def working_calendar_payload() -> dict[str, Any]:
         # Constants shared by every card's ``legal_windows`` entries. They live
         # here once instead of being repeated ~400 times in the pool.
         "legal_basis": LEGAL_BASIS_CODE,
+        "verification_status": "UNVERIFIED",
         "challenge_working_days": CHALLENGE_WORKING_DAYS,
         "challenge_reply_working_days": CHALLENGE_REPLY_WORKING_DAYS,
         "complaint_working_days": COMPLAINT_WORKING_DAYS,
@@ -190,34 +173,16 @@ def _as_of_date(as_of: datetime) -> date:
     return as_of.astimezone(TIANJIN_TZ).date()
 
 
-def _window(
-    code: str,
-    anchor_kind: str,
-    anchor: date,
-    lead_working_days: int,
-    today: date,
-) -> dict[str, Any]:
-    # ``lead_working_days`` models a statutory notice period that must expire
-    # before the challenge clock starts (e.g. 中标公告期限 1 个工作日).
-    clock_start = add_working_days(anchor, lead_working_days) if lead_working_days else anchor
-    deadline = add_working_days(clock_start, CHALLENGE_WORKING_DAYS)
-    remaining = working_days_remaining(today, deadline)
-    covered = calendar_covers(anchor) and calendar_covers(deadline)
-    # Compact on purpose: the pool carries ~400 cards and the runtime-cache
-    # publisher enforces a hard byte budget on the whole snapshot.
-    item: dict[str, Any] = {
+def _unknown_window(code: str) -> dict[str, Any]:
+    return {
         "code": code,
-        "anchor_kind": anchor_kind,
-        "anchor_date": anchor.isoformat(),
-        "deadline_date": deadline.isoformat(),
-        "remaining_working_days": remaining,
-        "status": "OPEN" if remaining > 0 else "CLOSED",
+        "anchor_kind": "UNVERIFIED",
+        "anchor_date": None,
+        "deadline_date": None,
+        "remaining_working_days": 0,
+        "status": "UNKNOWN",
+        "uncertainty_reason": "APPLICABILITY_ANCHOR_AND_LEGAL_SOURCE_UNVERIFIED",
     }
-    if clock_start != anchor:
-        item["clock_start_date"] = clock_start.isoformat()
-    if not covered:
-        item["calendar"] = CALENDAR_WEEKENDS_ONLY
-    return item
 
 
 def _is_award_notice(facts: dict[str, Any]) -> bool:
@@ -233,70 +198,27 @@ def legal_windows_for_facts(
     as_of: datetime,
     quality_flags: list[str] | None = None,
 ) -> list[dict[str, Any]] | None:
-    """Compute the challenge windows that can be derived from public facts.
-
-    Returns a list of window items, or ``None`` when nothing can be derived
-    (e.g. procurement intents) so callers can keep the card payload compact.
-    Constant metadata (legal basis, statutory day counts, calendar) is emitted
-    once per snapshot by :func:`working_calendar_payload`.
-    """
-    del quality_flags  # reserved for relative-window handling; not used yet
-    today = _as_of_date(as_of)
-    items: list[dict[str, Any]] = []
-
+    """Notice dates alone do not establish the applicable regime or legal anchor."""
     if _is_award_notice(facts):
-        published = _local_date(facts.get("published_at"))
-        if published is not None:
-            # 实施条例 §53: 应知之日 = 中标/成交结果公告期限届满之日; 87号令 §69: 公告期限 1 个工作日.
-            items.append(
-                _window(
-                    RESULT_CHALLENGE,
-                    "AWARD_NOTICE_PERIOD_END",
-                    published,
-                    AWARD_NOTICE_PERIOD_WORKING_DAYS,
-                    today,
-                )
-            )
-    else:
-        registration = _local_date(facts.get("registration_deadline")) or _local_date(
-            facts.get("registration_deadline_date")
-        )
-        if registration is not None:
-            # 94号令 §11: 获取采购文件或采购文件公告期限届满之日起 7 个工作日。
-            # We only know the acquisition cutoff, so this is the *latest*
-            # possible deadline; a supplier who obtained the documents earlier
-            # has an earlier deadline. The UI states this explicitly.
-            items.append(
-                _window(
-                    DOCUMENT_CHALLENGE,
-                    "DOCUMENT_ACQUISITION_END",
-                    registration,
-                    0,
-                    today,
-                )
-            )
-
-    return items or None
+        return [_unknown_window(RESULT_CHALLENGE)]
+    if str(facts.get("lifecycle_state") or "").upper() == "PROCUREMENT_INTENT":
+        return None
+    if (facts.get("registration_deadline") or facts.get("registration_deadline_date")
+            or str(facts.get("lifecycle_state") or "").upper() == "BIDDING"
+            or "招标" in str(facts.get("notice_type") or "")):
+        return [_unknown_window(DOCUMENT_CHALLENGE)]
+    return None
 
 
 def refresh_legal_windows(
     legal_windows: list[dict[str, Any]] | None,
     as_of: datetime,
 ) -> list[dict[str, Any]] | None:
-    """Recompute ``remaining_working_days``/``status`` for existing window items.
-
-    Mirrors what the JS/TS runtime refreshers do between daily snapshot builds.
-    Kept here so the Python and JS behaviour can be tested against each other.
-    """
+    """Legacy derived dates have no verified legal basis; keep them unknown."""
     if not isinstance(legal_windows, list):
         return legal_windows
-    today = _as_of_date(as_of)
-    items = []
-    for item in legal_windows:
-        deadline = _local_date(item.get("deadline_date")) if isinstance(item, dict) else None
-        if deadline is None:
-            items.append(dict(item) if isinstance(item, dict) else item)
-            continue
-        remaining = working_days_remaining(today, deadline)
-        items.append({**item, "remaining_working_days": remaining, "status": "OPEN" if remaining > 0 else "CLOSED"})
-    return items
+    return [
+        {**{key: value for key, value in item.items() if key != "clock_start_date"}, **_unknown_window(item.get("code"))}
+        if isinstance(item, dict) else item
+        for item in legal_windows
+    ]

@@ -117,7 +117,7 @@ function fingerprint(value: unknown): string {
   return (hash >>> 0).toString(16).padStart(8, '0')
 }
 
-function decisionFingerprint(card: TodayActionCard): string {
+export function decisionFingerprint(card: TodayActionCard): string {
   return fingerprint({
     customer_context: customerContextPayload(card),
     runtime_window: {

@@ -83,9 +83,27 @@ async function fetchRuntimeStatus(): Promise<RuntimeStatus | null> {
   }
 }
 
+function displayedSnapshotWarning(status: RuntimeStatus, snapshotAsOf: string | null): string | null {
+  const displayedAt = Date.parse(snapshotAsOf ?? '')
+  const statusAt = Date.parse(status.snapshot.snapshot_as_of ?? '')
+  const ageMinutes = (Date.now() - displayedAt) / 60_000
+  if (!Number.isFinite(displayedAt) || ageMinutes < -15) {
+    return '当前展示的商机快照时间无法确认。请刷新页面并核对官方依据。'
+  }
+  const staleAfter = status.snapshot.stale_after_minutes
+  if (!Number.isFinite(staleAfter) || staleAfter <= 0 || ageMinutes > staleAfter) {
+    return '当前展示的商机快照已超过正常刷新窗口。请刷新页面并核对官方依据。'
+  }
+  if (!Number.isFinite(statusAt) || displayedAt !== statusAt) {
+    return '当前展示的商机快照与服务当前版本不一致。请刷新页面并核对官方依据。'
+  }
+  return null
+}
+
 export function runtimeSnapshotWarning(
   status: RuntimeStatus | null,
   checked = true,
+  displayedSnapshotAsOf?: string | null,
 ): string | null {
   if (!checked) return null
   if (!status) {
@@ -108,12 +126,13 @@ export function runtimeSnapshotWarning(
   if (status.snapshot.freshness === 'UNAVAILABLE' || !status.snapshot.available) {
     return '当前无法确认公开商机快照状态。联系或报价前请先核对官方依据。'
   }
-  return null
+  return displayedSnapshotAsOf === undefined ? null : displayedSnapshotWarning(status, displayedSnapshotAsOf)
 }
 
 export function runtimeAutomationUnavailableReason(
   status: RuntimeStatus | null,
   checked = true,
+  displayedSnapshotAsOf?: string | null,
 ): string | null {
   if (!checked) return '正在确认公开商机快照状态，自动分析与沟通草稿暂不可用。'
   if (!status) return '暂时无法确认商机数据新鲜度，已暂停自动分析与沟通草稿。'
@@ -126,7 +145,8 @@ export function runtimeAutomationUnavailableReason(
   if (status.snapshot.freshness === 'STALE') {
     return '公开商机快照已超过正常刷新窗口，已暂停自动分析与沟通草稿；请先核对官方依据。'
   }
-  return null
+  const warning = displayedSnapshotAsOf === undefined ? null : displayedSnapshotWarning(status, displayedSnapshotAsOf)
+  return warning ? `${warning}已暂停自动分析与沟通草稿。` : null
 }
 
 export async function getRuntimeStatus(force = false): Promise<RuntimeStatus | null> {

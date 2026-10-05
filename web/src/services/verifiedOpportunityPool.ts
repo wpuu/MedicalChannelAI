@@ -1,7 +1,7 @@
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
 import type { AwardPriceReference, AwardLedgerEntry, NoticeSuppressedProject, TodayActionCard } from '@/types'
 import type { PublicTodayActionCard, TodayActionsPublicResponse } from '@/types/public'
-import { refreshLegalWindows } from '@/utils/legalWindows'
+import { normalizeAwardLedger, normalizeAwardPriceReference, normalizeEvidenceLegalWindows } from '../../shared/awardEvidence.js'
 import { normalizeProjectNumber } from '@/utils/projectNumber'
 import {
   backfillLocalFollowupSnapshots,
@@ -9,6 +9,7 @@ import {
 } from './localFollowupStore'
 import { personalizeTrialCards } from './localCustomerProfile'
 import { loadVerifiedSnapshotPayload } from './verifiedSnapshotClient'
+import { rerankTrialTemporalCards } from './trialTemporalPriority'
 
 const LATE_WINDOW_PERCENT = 32
 
@@ -128,7 +129,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
             : 'PARTIAL',
     },
     evidence_source_urls: [...card.evidence_source_urls],
-    legal_windows: Array.isArray(card.legal_windows) ? card.legal_windows.map((item) => ({ ...item })) : null,
+    legal_windows: normalizeEvidenceLegalWindows(card.legal_windows),
     official_notices: Array.isArray(card.official_notices) ? card.official_notices.map((item) => ({ ...item, packages: [...item.packages] })) : null,
     customer_context: {
       hospital_relationship: null,
@@ -246,14 +247,10 @@ async function fetchSnapshot(): Promise<TodayActionsPublicResponse> {
 
 export function refreshAwardLedger(
   entries: AwardLedgerEntry[] | null | undefined,
-  now: number,
-  calendar: TodayActionsPublicResponse['working_calendar'],
+  _now: number,
+  _calendar: TodayActionsPublicResponse['working_calendar'],
 ): AwardLedgerEntry[] {
-  if (!Array.isArray(entries)) return []
-  return entries.map((entry) => ({
-    ...entry,
-    legal_windows: refreshLegalWindows(entry.legal_windows, now, calendar),
-  }))
+  return normalizeAwardLedger(entries)
 }
 
 /**
@@ -287,17 +284,19 @@ export async function getAwardPriceReference(): Promise<{
   const reference = data.award_price_reference
   return {
     snapshot_as_of: data.snapshot_as_of,
-    reference: reference && Array.isArray(reference.rows) && Array.isArray(reference.families) ? reference : null,
+    reference: normalizeAwardPriceReference(reference ?? null),
   }
 }
 
 export function findAwardForProject(
   entries: readonly AwardLedgerEntry[] | null | undefined,
   projectNumber: string | null | undefined,
+  marketCode: string | null | undefined,
 ): AwardLedgerEntry | null {
   const key = normalizeProjectNumber(projectNumber)
-  if (!key || !Array.isArray(entries)) return null
-  return entries.find((entry) => normalizeProjectNumber(entry.project_number) === key) ?? null
+  const market = String(marketCode ?? '').trim().toUpperCase()
+  if (!key || !market || !Array.isArray(entries)) return null
+  return entries.find((entry) => entry.market_code?.trim().toUpperCase() === market && normalizeProjectNumber(entry.project_number) === key) ?? null
 }
 
 export async function getVerifiedOpportunityPool(): Promise<{
@@ -311,15 +310,18 @@ export async function getVerifiedOpportunityPool(): Promise<{
 }> {
   const data = await fetchSnapshot()
   const publicCards = Array.isArray(data.opportunity_pool) ? data.opportunity_pool : data.cards
-  const mapped = publicCards.map(mapPublicCard)
+  const mapped = publicCards.map((card) => ({
+    ...mapPublicCard(card), snapshot_as_of: data.snapshot_as_of,
+  }))
   backfillLocalFollowupSnapshots(mapped)
+  const now = Date.now()
   const active = mapped
-    .map((card) => applyRuntimeActionability(card, Date.now()))
+    .map((card) => applyRuntimeActionability(card, now))
     .filter((card): card is TodayActionCard => card !== null)
   const followed = hydrateLocalFollowups(rerank(active))
-  const personalized = personalizeTrialCards(followed)
+  const personalized = rerankTrialTemporalCards(personalizeTrialCards(followed), now)
   return {
-    award_ledger: refreshAwardLedger(data.award_ledger, Date.now(), data.working_calendar),
+    award_ledger: refreshAwardLedger(data.award_ledger, now, data.working_calendar),
     awarded_project_count: data.awarded_project_count ?? 0,
     notice_suppressed_project_count: data.notice_suppressed_project_count ?? 0,
     notice_suppressed_projects: Array.isArray(data.notice_suppressed_projects)

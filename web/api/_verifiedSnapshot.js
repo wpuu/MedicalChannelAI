@@ -1,3 +1,4 @@
+import { assertAwardEvidenceCompatibility, normalizeAwardEvidenceSnapshot, LEGACY_AWARD_SCOPE_ERROR } from '../shared/awardEvidence.js'
 import { getCache } from '@vercel/functions'
 import { latestPublicVerifiedSnapshotIfChanged } from './_publicIntelligenceDb.js'
 import bundledSnapshot from '../public/data/today-actions.public.json' with { type: 'json' }
@@ -196,10 +197,11 @@ export function validateVerifiedSnapshot(value) {
   } else if (snapshot.matched_count !== snapshot.cards.length) {
     throw new Error('VERIFIED_SNAPSHOT_MATCHED_COUNT_MISMATCH')
   }
+  assertAwardEvidenceCompatibility(snapshot)
   return snapshot
 }
 function scopedVerifiedSnapshot(snapshot) {
-  return validateVerifiedSnapshot(filterSnapshotToMedicalChannel(snapshot))
+  return normalizeAwardEvidenceSnapshot(validateVerifiedSnapshot(filterSnapshotToMedicalChannel(snapshot)))
 }
 export function bundledVerifiedSnapshot() {
   return validateVerifiedSnapshot(bundledSnapshot)
@@ -374,7 +376,13 @@ export async function loadVerifiedSnapshot() {
   if (remoteUrl) {
     lastSourceMode = 'REMOTE'
     lastRuntimeOrigin = null
-    return scopedVerifiedSnapshot(await loadRemoteSnapshot(remoteUrl))
+    try {
+      return scopedVerifiedSnapshot(await loadRemoteSnapshot(remoteUrl))
+    } catch (error) {
+      if (error?.message !== LEGACY_AWARD_SCOPE_ERROR) throw error
+      lastSourceMode = 'BUNDLED_FALLBACK'
+      return bundledScopedSnapshot()
+    }
   }
 
   const durableSnapshot = await loadDurableSnapshotMemoized()

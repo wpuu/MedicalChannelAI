@@ -3,34 +3,38 @@ import { Modal } from '@/components/ui/Modal'
 import { NOT_FIT_REASONS } from '@/utils/labels'
 import { isApiMode } from '@/services/apiConfig'
 import type { NotFitReason } from '@/types'
+import { useOutcomeSave } from './useOutcomeSave'
 
 interface NotFitModalProps {
   open: boolean
   onClose: () => void
-  onConfirm: (reason: NotFitReason) => void
+  onConfirm: (reason: NotFitReason) => boolean | Promise<boolean>
 }
 
 export function NotFitModal({ open, onClose, onConfirm }: NotFitModalProps) {
   const [reason, setReason] = useState<NotFitReason>('没有对应产品')
+  const { saving, failed, close, confirm } = useOutcomeSave(onConfirm, onClose)
 
   return (
     <Modal
       open={open}
       title="标记为不适合"
-      onClose={onClose}
+      onClose={close}
       footer={
         <div className="flex justify-end gap-2">
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
+            disabled={saving}
             className="rounded-lg border border-slate-200 px-3 py-1.5 text-[13px] text-slate-600"
           >
             取消
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(reason)}
-            className="rounded-lg bg-slate-900 px-3 py-1.5 text-[13px] text-white"
+            onClick={() => void confirm(reason)}
+            disabled={saving}
+            className="rounded-lg bg-slate-900 px-3 py-1.5 text-[13px] text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             确认
           </button>
@@ -42,6 +46,7 @@ export function NotFitModal({ open, onClose, onConfirm }: NotFitModalProps) {
           ? '请选择原因。原因属于当前账号私有跟进数据，会保存到服务器，不会写入公开商机事实。'
           : '请选择原因。演示模式下只保存在当前浏览器，不会写入公开商机事实。'}
       </p>
+      {failed ? <p role="alert" className="mb-3 text-[12px] text-rose-700">保存失败，原因已保留，请重试。</p> : null}
       <div className="space-y-1.5">
         {NOT_FIT_REASONS.map((item) => (
           <label
@@ -52,6 +57,7 @@ export function NotFitModal({ open, onClose, onConfirm }: NotFitModalProps) {
               type="radio"
               name="not-fit-reason"
               checked={reason === item}
+              disabled={saving}
               onChange={() => setReason(item)}
               className="accent-teal-700"
             />

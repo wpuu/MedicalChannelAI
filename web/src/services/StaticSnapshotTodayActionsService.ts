@@ -7,6 +7,7 @@ import type {
 } from '@/types'
 import type { PublicTodayActionCard, TodayActionsPublicResponse } from '@/types/public'
 import {
+  appendStoredHistoricalFollowup,
   backfillLocalFollowupSnapshots,
   hydrateLocalFollowups,
   persistLocalFollowup,
@@ -435,6 +436,7 @@ function rerank(cards: TodayActionCard[]): TodayActionCard[] {
 
 export class StaticSnapshotTodayActionsService implements TodayActionsService {
   private snapshot: TodayActionsResponse | null = null
+  private snapshotPayload: unknown = null
 
   constructor(private readonly snapshotUrl: string) {}
 
@@ -474,8 +476,9 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
   }
 
   private async ensureLoaded(): Promise<TodayActionsResponse> {
-    if (this.snapshot) return this.snapshot
     const payload = await loadVerifiedSnapshotPayload(this.snapshotUrl)
+    // The shared client owns TTL and failures. Reuse mapping only for its exact payload.
+    if (this.snapshot && this.snapshotPayload === payload) return this.snapshot
     assertNoInternalFields(payload)
     const data = payload as TodayActionsPublicResponse
     if (
@@ -489,8 +492,11 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       throw new Error('SNAPSHOT_RESPONSE_INVALID')
     }
 
-    const mappedCards = data.cards.map(mapPublicCard)
-    const mappedPool = (data.opportunity_pool ?? data.cards).map(mapPublicCard)
+    const mapCard = (card: PublicTodayActionCard): TodayActionCard => ({
+      ...mapPublicCard(card), snapshot_as_of: data.snapshot_as_of,
+    })
+    const mappedCards = data.cards.map(mapCard)
+    const mappedPool = (data.opportunity_pool ?? data.cards).map(mapCard)
     backfillLocalFollowupSnapshots(mappedPool)
 
     this.snapshot = {
@@ -513,6 +519,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       opportunity_pool: mappedPool,
       model_requests: [],
     }
+    this.snapshotPayload = payload
     return this.snapshot
   }
 
@@ -529,7 +536,6 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
   async updateFollowup(id: string, input: FollowupInput): Promise<void> {
     const data = this.deriveLocalState(await this.ensureLoaded(), true)
     const card = (data.opportunity_pool ?? data.cards).find((item) => item.opportunity_id === id)
-    if (!card) throw new Error('未找到对应商机')
     const record: FollowupRecord = {
       id: uid('fu'),
       status: input.status,
@@ -538,6 +544,10 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       remind_at: input.remind_at,
       at: new Date().toISOString(),
       actor: '当前用户',
+    }
+    if (!card) {
+      if (appendStoredHistoricalFollowup(id, record)) return
+      throw new Error('未找到对应商机')
     }
     card.followup_status = input.status
     card.remind_at = input.remind_at ?? (input.status === 'MONITOR' ? card.remind_at : null)

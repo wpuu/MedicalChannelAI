@@ -91,6 +91,7 @@ export function TodayPage() {
   const [notFitId, setNotFitId] = useState<string | null>(null)
   const [remindId, setRemindId] = useState<string | null>(null)
   const [outreachId, setOutreachId] = useState<string | null>(null)
+  const closeOutreach = useCallback(() => setOutreachId(null), [])
 
   const loadReminders = useCallback(async () => {
     try {
@@ -183,7 +184,7 @@ export function TodayPage() {
     id: string,
     status: FollowupStatus,
     extra?: { reason?: string; remind_at?: string; note?: string },
-  ) => {
+  ): Promise<boolean> => {
     setBusyId(id)
     try {
       await todayActionsService.updateFollowup(id, { status, ...extra })
@@ -193,12 +194,14 @@ export function TodayPage() {
       else if (status === 'CONTACTED') toast('已联系，商机已移入“我的跟进”', 'success')
       else if (status === 'NOT_FIT') toast('已标记不适合，记录已保留在“我的跟进”', 'success')
       else toast('跟进状态已更新', 'success')
+      return true
     } catch (cause) {
       if (isAuthRequiredError(cause)) {
         navigate('/login', { replace: true })
-        return
+        return false
       }
       toast('跟进状态更新失败，请重试')
+      return false
     } finally {
       setBusyId(null)
     }
@@ -209,6 +212,7 @@ export function TodayPage() {
     const automationUnavailableReason = runtimeAutomationUnavailableReason(
       runtimeStatus,
       runtimeStatusChecked,
+      data?.refreshed_at ?? null,
     )
     if (!card || automationUnavailableReason || (!isApiMode && !isVerifiedPublicDemo)) return
     let aiApi: typeof import('@/services/aiDecisionApi') | null = null
@@ -247,6 +251,7 @@ export function TodayPage() {
     const automationUnavailableReason = runtimeAutomationUnavailableReason(
       runtimeStatus,
       runtimeStatusChecked,
+      data?.refreshed_at ?? null,
     )
     const candidates = data?.cards.filter(
       (card) =>
@@ -342,13 +347,14 @@ export function TodayPage() {
   const automationUnavailableReason = runtimeAutomationUnavailableReason(
     runtimeStatus,
     runtimeStatusChecked,
+    data?.refreshed_at ?? null,
   )
   const aiUnavailableReason = automationUnavailableReason || (
     (isApiMode || isVerifiedPublicDemo) && runtimeStatus?.ai.configured === false
       ? AI_UNCONFIGURED_REASON
       : null
   )
-  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
+  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked, data?.refreshed_at ?? null)
   const pendingAiCount = visibleCards.filter(
     (card) => card.model_decision_status === 'AWAITING_MODEL' && !card.decision,
   ).length
@@ -471,33 +477,31 @@ export function TodayPage() {
         open={Boolean(notFitId)}
         onClose={() => setNotFitId(null)}
         onConfirm={(reason: NotFitReason) => {
-          if (!notFitId) return
-          const id = notFitId
-          setNotFitId(null)
-          void updateStatus(id, 'NOT_FIT', { reason })
+          if (!notFitId) return false
+          return updateStatus(notFitId, 'NOT_FIT', { reason })
         }}
       />
       <RemindModal
         open={Boolean(remindId)}
         onClose={() => setRemindId(null)}
-        onConfirm={(remindAt, nextAction) => {
+        onConfirm={async (remindAt, nextAction) => {
           if (!remindId || !data) return
           const id = remindId
           const currentCard = (data.opportunity_pool ?? data.cards).find(
             (item) => item.opportunity_id === id,
           )
-          setRemindId(null)
-          void updateStatus(id, currentCard?.followup_status ?? 'NEW', {
+          const saved = await updateStatus(id, currentCard?.followup_status ?? 'NEW', {
             remind_at: remindAt,
             note: nextAction
               ? `下次行动：${nextAction}`
               : '设置下次跟进提醒；销售阶段保持不变。',
           })
+          if (saved) setRemindId(null)
         }}
       />
       {outreachId ? (
         <Suspense fallback={null}>
-          <OutreachDrawer open opportunityId={outreachId} onClose={() => setOutreachId(null)} />
+          <OutreachDrawer open opportunityId={outreachId} onClose={closeOutreach} />
         </Suspense>
       ) : null}
     </div>

@@ -15,7 +15,7 @@ const snapshot = JSON.parse(readFileSync(resolve(scriptDir, '../public/data/toda
 // 1. The bundled snapshot must carry the calendar emitted by the Python builder.
 const calendar = snapshot.working_calendar
 assert(calendar && typeof calendar === 'object', 'snapshot must embed working_calendar')
-assert.equal(calendar.legal_basis, 'MOF_ORDER_94')
+assert.equal(calendar.legal_basis, 'UNVERIFIED')
 assert.equal(calendar.challenge_working_days, 7)
 assert.equal(calendar.complaint_working_days, 15)
 assert(calendar.holidays.includes('2026-10-01'), '国庆 must be a holiday')
@@ -50,12 +50,12 @@ const windows = [
 ]
 const frozen = structuredClone(windows)
 const onLastDay = refreshLegalWindows(windows, Date.parse('2026-10-09T18:00:00+08:00'), calendar)
-assert.equal(onLastDay[0].remaining_working_days, 1)
-assert.equal(onLastDay[0].status, 'OPEN')
-assert.equal(onLastDay[0].deadline_date, '2026-10-09')
+assert.equal(onLastDay[0].remaining_working_days, 0)
+assert.equal(onLastDay[0].status, 'UNKNOWN')
+assert.equal(onLastDay[0].deadline_date, null)
 const afterDeadline = refreshLegalWindows(windows, Date.parse('2026-10-10T00:01:00+08:00'), calendar)
 assert.equal(afterDeadline[0].remaining_working_days, 0)
-assert.equal(afterDeadline[0].status, 'CLOSED')
+assert.equal(afterDeadline[0].status, 'UNKNOWN')
 assert.deepEqual(windows, frozen, 'refresh must not mutate its input')
 assert.equal(refreshLegalWindows(null, Date.now(), calendar), null)
 
@@ -84,7 +84,7 @@ const factsBefore = structuredClone(card.facts)
 const refreshedCard = runtimeRefreshSnapshotCard(card, Date.parse('2026-09-29T10:00:00+08:00'), calendar)
 assert(refreshedCard)
 assert.deepEqual(refreshedCard.facts, factsBefore, 'runtime evaluation must never rewrite verified public facts')
-assert.equal(refreshedCard.legal_windows[0].remaining_working_days, 4)
+assert.equal(refreshedCard.legal_windows[0].status, 'UNKNOWN')
 assert.equal(refreshedCard.recommendation_mode, 'LATE_WINDOW')
 
 // 6. Every bundled card with a window has a well-formed, compact payload.
@@ -96,11 +96,10 @@ for (const item of pool) {
   assert(Array.isArray(item.legal_windows), `legal_windows must be an array (${item.opportunity_id})`)
   for (const window of item.legal_windows) {
     assert(['DOCUMENT_CHALLENGE', 'RESULT_CHALLENGE'].includes(window.code), window.code)
-    assert(/^\d{4}-\d{2}-\d{2}$/.test(window.anchor_date))
-    assert(/^\d{4}-\d{2}-\d{2}$/.test(window.deadline_date))
-    assert(window.deadline_date > window.anchor_date, 'deadline must follow the anchor')
-    assert(['OPEN', 'CLOSED'].includes(window.status))
-    assert(Number.isInteger(window.remaining_working_days) && window.remaining_working_days >= 0)
+    assert.equal(window.status, 'UNKNOWN')
+    assert.equal(window.deadline_date, null)
+    assert.equal(window.anchor_date, null)
+    assert.equal(window.remaining_working_days, 0)
   }
   withWindows += 1
 }
