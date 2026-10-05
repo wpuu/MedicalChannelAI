@@ -9,6 +9,7 @@ import {
 } from './localFollowupStore'
 import { personalizeTrialCards } from './localCustomerProfile'
 import { loadVerifiedSnapshotPayload } from './verifiedSnapshotClient'
+import { rerankTrialTemporalCards } from './trialTemporalPriority'
 
 const LATE_WINDOW_PERCENT = 32
 
@@ -313,13 +314,14 @@ export async function getVerifiedOpportunityPool(): Promise<{
     ...mapPublicCard(card), snapshot_as_of: data.snapshot_as_of,
   }))
   backfillLocalFollowupSnapshots(mapped)
+  const now = Date.now()
   const active = mapped
-    .map((card) => applyRuntimeActionability(card, Date.now()))
+    .map((card) => applyRuntimeActionability(card, now))
     .filter((card): card is TodayActionCard => card !== null)
   const followed = hydrateLocalFollowups(rerank(active))
-  const personalized = personalizeTrialCards(followed)
+  const personalized = rerankTrialTemporalCards(personalizeTrialCards(followed), now)
   return {
-    award_ledger: refreshAwardLedger(data.award_ledger, Date.now(), data.working_calendar),
+    award_ledger: refreshAwardLedger(data.award_ledger, now, data.working_calendar),
     awarded_project_count: data.awarded_project_count ?? 0,
     notice_suppressed_project_count: data.notice_suppressed_project_count ?? 0,
     notice_suppressed_projects: Array.isArray(data.notice_suppressed_projects)
