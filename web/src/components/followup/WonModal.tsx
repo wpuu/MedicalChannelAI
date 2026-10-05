@@ -3,34 +3,38 @@ import { Modal } from '@/components/ui/Modal'
 import { WON_REASONS } from '@/utils/labels'
 import { isApiMode } from '@/services/apiConfig'
 import type { WonReason } from '@/types'
+import { useOutcomeSave } from './useOutcomeSave'
 
 interface WonModalProps {
   open: boolean
   onClose: () => void
-  onConfirm: (reason: WonReason) => void
+  onConfirm: (reason: WonReason) => boolean | Promise<boolean>
 }
 
 export function WonModal({ open, onClose, onConfirm }: WonModalProps) {
   const [reason, setReason] = useState<WonReason>('产品或参数匹配')
+  const { saving, failed, close, confirm } = useOutcomeSave(onConfirm, onClose)
 
   return (
     <Modal
       open={open}
       title="标记为已成交"
-      onClose={onClose}
+      onClose={close}
       footer={
         <div className="flex justify-end gap-2">
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
+            disabled={saving}
             className="rounded-lg border border-slate-200 px-3 py-1.5 text-[13px] text-slate-600"
           >
             取消
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(reason)}
-            className="rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] text-white"
+            onClick={() => void confirm(reason)}
+            disabled={saving}
+            className="rounded-lg bg-teal-700 px-3 py-1.5 text-[13px] text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             确认成交
           </button>
@@ -42,6 +46,7 @@ export function WonModal({ open, onClose, onConfirm }: WonModalProps) {
           ? '请选择你认为本次成交最值得复盘的因素。该内容属于当前账号私有商业判断，会保存到服务器；它不是医院或采购方公开确认的中标原因。'
           : '请选择你认为本次成交最值得复盘的因素。演示模式下只保存在当前浏览器；它不是医院或采购方公开确认的中标原因。'}
       </p>
+      {failed ? <p role="alert" className="mb-3 text-[12px] text-rose-700">保存失败，原因已保留，请重试。</p> : null}
       <div className="space-y-1.5">
         {WON_REASONS.map((item) => (
           <label
@@ -52,6 +57,7 @@ export function WonModal({ open, onClose, onConfirm }: WonModalProps) {
               type="radio"
               name="won-reason"
               checked={reason === item}
+              disabled={saving}
               onChange={() => setReason(item)}
               className="accent-teal-700"
             />

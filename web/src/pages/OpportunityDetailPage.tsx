@@ -447,30 +447,25 @@ export function OpportunityDetailPage() {
       <WonModal
         open={wonOpen}
         onClose={() => setWonOpen(false)}
-        onConfirm={(reason: WonReason) => {
-          setWonOpen(false)
-          void updateStatus('WON', {
+        onConfirm={(reason: WonReason) =>
+          updateStatus('WON', {
             note: `成交复盘（当前用户判断）：${reason}`,
           })
-        }}
+        }
       />
       <NotFitModal
         open={notFitOpen}
         onClose={() => setNotFitOpen(false)}
-        onConfirm={(reason: NotFitReason) => {
-          setNotFitOpen(false)
-          void updateStatus('NOT_FIT', { reason })
-        }}
+        onConfirm={(reason: NotFitReason) => updateStatus('NOT_FIT', { reason })}
       />
       <LostModal
         open={lostOpen}
         onClose={() => setLostOpen(false)}
-        onConfirm={(reason: LostReason) => {
-          setLostOpen(false)
-          void updateStatus('LOST', {
+        onConfirm={(reason: LostReason) =>
+          updateStatus('LOST', {
             note: `未成交原因（当前用户判断）：${reason}`,
           })
-        }}
+        }
       />
       <RemindModal
         open={remindOpen}

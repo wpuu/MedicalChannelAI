@@ -477,10 +477,8 @@ export function TodayPage() {
         open={Boolean(notFitId)}
         onClose={() => setNotFitId(null)}
         onConfirm={(reason: NotFitReason) => {
-          if (!notFitId) return
-          const id = notFitId
-          setNotFitId(null)
-          void updateStatus(id, 'NOT_FIT', { reason })
+          if (!notFitId) return false
+          return updateStatus(notFitId, 'NOT_FIT', { reason })
         }}
       />
       <RemindModal
