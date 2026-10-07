@@ -70,6 +70,7 @@ jobs:
             --report-output web/pipeline/data/tianjin_sync_report.json
 
       - name: Sync verified TMUGH early-demand state
+        id: tjmugh_sync
         shell: bash
         run: |
           set -euo pipefail
@@ -79,6 +80,33 @@ jobs:
             --existing-records-input web/pipeline/data/tianjin_live_tjmugh_records.json \
             --records-output web/pipeline/data/tianjin_live_tjmugh_records.json \
             --report-output web/pipeline/data/tianjin_tjmugh_sync_report.json
+
+      - name: Export safe TMUGH failure diagnostic
+        id: tjmugh_diagnostic
+        if: ${{ failure() && steps.tjmugh_sync.outcome == 'failure' }}
+        env:
+          EXPECTED_AS_OF: ${{ steps.clock.outputs.as_of }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          TMUGH_DIAGNOSTIC_DIR: ${{ runner.temp }}/tjmugh-failure
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 web/pipeline/scripts/export_tjmugh_failure_diagnostic.py \
+            --report-input web/pipeline/data/tianjin_tjmugh_sync_report.json \
+            --expected-as-of "$EXPECTED_AS_OF" \
+            --commit "$COMMIT_SHA" \
+            --run-id "$RUN_ID" \
+            --output "$TMUGH_DIAGNOSTIC_DIR/metadata.json"
+
+      - name: Upload safe TMUGH failure diagnostic
+        if: ${{ failure() && steps.tjmugh_diagnostic.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tjmugh-failure-${{ github.run_id }}
+          path: ${{ runner.temp }}/tjmugh-failure/metadata.json
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Sync verified Tianjin Hospital equipment-research state
         shell: bash

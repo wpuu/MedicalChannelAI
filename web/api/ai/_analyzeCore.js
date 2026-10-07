@@ -1,7 +1,6 @@
 import { consumeRateLimit } from '../_sharedRateLimit.js'
 import {
-  loadVerifiedSnapshot,
-  verifiedSnapshotSourceMode,
+  loadVerifiedSnapshotWithMetadata,
 } from '../_verifiedSnapshot.js'
 import {
   getOrCreateSharedPublicAiBrief,
@@ -15,6 +14,14 @@ import {
 } from './_decisionContract.js'
 
 export const config = { maxDuration: 60 }
+
+// A source-only revision can contain verified facts without representing a
+// completed collection cycle. Reject it before cache or provider work.
+export function snapshotCoverageAutomationError(snapshot) {
+  return snapshot?.collection_coverage?.complete === false
+    ? 'VERIFIED_SNAPSHOT_COVERAGE_INCOMPLETE'
+    : null
+}
 
 const DEFAULT_BASE_URL = 'https://apihub.agnes-ai.com/v1'
 const DEFAULT_ALTERNATE_BASE_URL = 'https://apihub.agnes-ai.cn/v1'
@@ -893,11 +900,19 @@ export default async function handler(request, response) {
     }
 
     let batchSnapshot
+    let batchSourceMode
+    let batchRuntimeOrigin
     try {
-      batchSnapshot = await loadVerifiedSnapshot()
+      const loaded = await loadVerifiedSnapshotWithMetadata()
+      batchSnapshot = loaded.snapshot
+      batchSourceMode = loaded.sourceMode
+      batchRuntimeOrigin = loaded.runtimeOrigin ?? null
     } catch {
       return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
     }
+
+    const coverageError = snapshotCoverageAutomationError(batchSnapshot)
+    if (coverageError) return sendJson(response, 409, { error: coverageError })
 
     const cacheOnly = body.cache_only === true
     const items = await Promise.all(
@@ -915,7 +930,8 @@ export default async function handler(request, response) {
       mode: 'BATCH',
       cache_only: cacheOnly,
       snapshot_as_of: cleanString(batchSnapshot.snapshot_as_of, 100),
-      snapshot_source_mode: verifiedSnapshotSourceMode(),
+      snapshot_source_mode: batchSourceMode,
+      snapshot_runtime_origin: batchRuntimeOrigin,
       requested_count: opportunityIds.length,
       ready_count: items.filter((item) => item.status === 'READY').length,
       cache_hit_count: items.filter((item) => item.shared_public_cache?.cache_hit === true).length,
@@ -929,11 +945,18 @@ export default async function handler(request, response) {
   if (!opportunityId) return sendJson(response, 400, { error: 'OPPORTUNITY_ID_REQUIRED' })
 
   let snapshot
+  let sourceMode
+  let runtimeOrigin
   try {
-    snapshot = await loadVerifiedSnapshot()
+    const loaded = await loadVerifiedSnapshotWithMetadata()
+    snapshot = loaded.snapshot
+    sourceMode = loaded.sourceMode
+    runtimeOrigin = loaded.runtimeOrigin ?? null
   } catch {
     return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
   }
+  const coverageError = snapshotCoverageAutomationError(snapshot)
+  if (coverageError) return sendJson(response, 409, { error: coverageError })
   const grounded = findVerifiedOpportunity(snapshot, opportunityId)
   if (!grounded) return sendJson(response, 404, { error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' })
 
@@ -980,7 +1003,8 @@ export default async function handler(request, response) {
       schema_version: '0.1',
       opportunity_id: opportunityId,
       snapshot_as_of: snapshotAsOf,
-      snapshot_source_mode: verifiedSnapshotSourceMode(),
+      snapshot_source_mode: sourceMode,
+      snapshot_runtime_origin: runtimeOrigin,
       generated_at: analysisAsOf,
       decision_generated_at: result.cache.generated_at,
       runtime_window_status: windowStatus,

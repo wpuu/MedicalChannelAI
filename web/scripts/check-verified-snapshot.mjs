@@ -3,6 +3,7 @@ import {
   bundledVerifiedSnapshot,
   clearVerifiedSnapshotCacheForTests,
   loadVerifiedSnapshot,
+  loadVerifiedSnapshotWithMetadata,
   publishVerifiedSnapshotToRuntimeCache,
   selectPublishedRuntimeSnapshot,
 } from '../api/_verifiedSnapshot.js'
@@ -367,6 +368,25 @@ try {
   const remote = await loadVerifiedSnapshot()
   expect(remote.snapshot_as_of === remotePayload.snapshot_as_of, 'SNAPSHOT_REMOTE_AS_OF')
   expect(remote !== bundled, 'SNAPSHOT_REMOTE_NOT_BUNDLED')
+  clearVerifiedSnapshotCacheForTests()
+  let concurrentRemoteReads = 0
+  globalThis.fetch = async () => {
+    concurrentRemoteReads += 1
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      text: async () => JSON.stringify(remotePayload),
+    }
+  }
+  const concurrentLoads = await Promise.all([
+    loadVerifiedSnapshotWithMetadata(),
+    loadVerifiedSnapshotWithMetadata(),
+    loadVerifiedSnapshotWithMetadata(),
+  ])
+  expect(concurrentRemoteReads === 1, 'SNAPSHOT_REMOTE_CONCURRENT_REQUESTS_DEDUPED')
+  expect(concurrentLoads.every((loaded) => loaded.sourceMode === 'REMOTE' && loaded.snapshot.snapshot_as_of === remotePayload.snapshot_as_of), 'SNAPSHOT_REMOTE_REQUEST_LOCAL_METADATA')
   endpoint = await invokeSnapshot('GET')
   expect(endpoint.statusCode === 200, 'SNAPSHOT_ENDPOINT_REMOTE_STATUS')
   expect(

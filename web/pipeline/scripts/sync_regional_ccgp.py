@@ -16,6 +16,7 @@ PIPELINE_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(PIPELINE_ROOT))
 
+from atomic_json_io import validate_json_output_paths, write_json_atomic, write_json_bundle_atomic  # noqa: E402
 from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
 from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
     CCGP_SEARCH_URL,
@@ -159,6 +160,14 @@ def date_window(as_of: datetime, lookback_days: int) -> tuple[str, str]:
     return (local_date - timedelta(days=lookback_days - 1)).isoformat(), local_date.isoformat()
 
 
+def validate_report_output_paths(report_output: Path, records_output: Path, inputs: list[Path]) -> None:
+    validate_json_output_paths(
+        report_output=report_output,
+        data_outputs={'records': records_output},
+        input_paths={'records': inputs},
+    )
+
+
 def annotate_market(record: dict, market: dict) -> dict:
     facts = record.setdefault('facts', {})
     facts['market_code'] = str(market['market_code']).strip().upper()
@@ -215,6 +224,12 @@ def main() -> int:
     parser.add_argument('--records-output', required=True, type=Path)
     parser.add_argument('--report-output', required=True, type=Path)
     args = parser.parse_args()
+
+    validate_json_output_paths(
+        report_output=args.report_output,
+        data_outputs={'records': args.records_output},
+        input_paths={'records': args.existing_records_input, 'plan': [args.plan]},
+    )
 
     plan = load_plan(args.plan)
     as_of = parse_as_of(args.as_of)
@@ -347,9 +362,6 @@ def main() -> int:
                     time.sleep(plan['delay_seconds'])
                 time.sleep(plan['delay_seconds'])
 
-    if sum(scoped_success.values()) + fallback_query_success <= 0:
-        raise RuntimeError('ALL_MULTI_REGION_DISCOVERY_QUERIES_FAILED')
-
     new_records: list[dict] = []
     market_reports: list[dict] = []
 
@@ -407,12 +419,25 @@ def main() -> int:
                     'message': str(exc)[:300],
                 })
 
+        market_discovery_failures = [
+            failure for failure in market_failures[code]
+            if failure.get('stage') == 'scoped_discovery'
+        ]
+        if code in empty_codes:
+            market_discovery_failures.extend(
+                {**failure, 'affected_market_code': code}
+                for failure in fallback_failures
+            )
         market_reports.append({
             'market_code': code,
             'market_name': market['name'],
             'admin_code': market['admin_code'],
             'ccgp_zone_id': market['ccgp_zone_id'],
             'scoped_query_success_count': scoped_success[code],
+            'national_fallback_query_success_count': fallback_query_success if code in empty_codes else 0,
+            'discovery_success_count': scoped_success[code] + (fallback_query_success if code in empty_codes else 0),
+            'discovery_successful': scoped_success[code] > 0 or (code in empty_codes and fallback_query_success > 0),
+            'discovery_failures': market_discovery_failures,
             'scoped_region_mismatch_count': scoped_region_mismatches[code],
             'national_fallback_used': code in empty_codes,
             'skipped_candidate_count': len(market_skips[code]),
@@ -437,7 +462,6 @@ def main() -> int:
             f'failures={len(market_failures[code])}'
         )
 
-    merged_records = merge_canonical_records(existing_records, new_records)
     report = {
         'schema_version': '0.1',
         'observed_at': observed_at,
@@ -449,7 +473,6 @@ def main() -> int:
         'national_fallback_failures': fallback_failures,
         'existing_record_count': len(existing_records),
         'new_verified_record_count': len(new_records),
-        'merged_record_count': len(merged_records),
         'policy': {
             'business_market_is_explicit_not_geolocated': True,
             'market_admin_codes_are_validated_against_configured_ccgp_zone': True,
@@ -468,8 +491,64 @@ def main() -> int:
             'minimum_request_delay_seconds': plan['delay_seconds'],
         },
     }
-    write_json(args.records_output, merged_records)
-    write_json(args.report_output, report)
+
+    blocked_markets = []
+    for market_report in market_reports:
+        code = market_report['market_code']
+        if not market_report['discovery_successful']:
+            blocked_markets.append({
+                'market_code': code,
+                'market_name': market_report['market_name'],
+                'reason': f'REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{code}',
+                'selected_candidate_count': market_report['selected_candidate_count'],
+                'new_verified_record_count': market_report['new_verified_record_count'],
+                'failure_count': len(market_report['discovery_failures']),
+                'failures': market_report['discovery_failures'],
+            })
+        elif market_report['selected_candidate_count'] > 0 and market_report['new_verified_record_count'] == 0:
+            blocked_markets.append({
+                'market_code': code,
+                'market_name': market_report['market_name'],
+                'reason': f'REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION:{code}',
+                'selected_candidate_count': market_report['selected_candidate_count'],
+                'new_verified_record_count': market_report['new_verified_record_count'],
+                'failure_count': market_report['failure_count'],
+                'failures': market_report['failures'],
+            })
+    if blocked_markets:
+        discovery_blocked = any(item['reason'].startswith('REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:') for item in blocked_markets)
+        report.update({
+            'refresh_outcome': 'BLOCKED',
+            'publish_allowed': False,
+            'publish_gate_reason': (
+                'REGIONAL_MARKET_DISCOVERY_FAILED' if discovery_blocked
+                else 'REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION'
+            ),
+            'blocked_markets': blocked_markets,
+            'records_output_written': False,
+            'records_output_status': 'PRESERVED_UNCHANGED',
+            'merged_record_count': None,
+        })
+        write_json_atomic(args.report_output, report)
+        for market in blocked_markets:
+            print(
+                f"refresh_blocked={market['reason']} "
+                f"failures={json.dumps(market['failures'], ensure_ascii=False)}",
+                file=sys.stderr,
+            )
+        return 2
+
+    merged_records = merge_canonical_records(existing_records, new_records)
+    report.update({
+        'refresh_outcome': 'VERIFIED' if new_records else 'NO_SELECTED_CANDIDATES',
+        'publish_allowed': True,
+        'publish_gate_reason': 'PASS',
+        'blocked_markets': [],
+        'records_output_written': True,
+        'records_output_status': 'WRITTEN',
+        'merged_record_count': len(merged_records),
+    })
+    write_json_bundle_atomic({args.records_output: merged_records, args.report_output: report})
     print(
         f'markets={len(markets)} scoped_queries_ok={sum(scoped_success.values())} '
         f'fallback_queries_ok={fallback_query_success} new_verified={len(new_records)} '

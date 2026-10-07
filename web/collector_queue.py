@@ -8,6 +8,7 @@ from vercel.queue import send
 
 import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
+from collector_schedule import SCHEDULE_VERSION, valid_cycle
 from collector_incremental import scan_bucket_id
 from collector_incremental_bootstrap import bootstrap_incremental_ledger_from_canonical
 from collector_incremental_scheduler import (
@@ -70,24 +71,40 @@ def _active_cycle_matches(cycle_id: str, *, cycle_as_of: datetime) -> bool:
     cache = RuntimeCache()
     cycle_local_date = cycle_as_of.astimezone(TICK_SHANGHAI).date().isoformat()
     current_local_date = datetime.now(timezone.utc).astimezone(TICK_SHANGHAI).date().isoformat()
+    state = cache.get(META_KEY)
+    if isinstance(state, dict) and state.get("cycle_id") == cycle_id:
+        stages = state.get("stages")
+        publish = stages.get("publish") if isinstance(stages, dict) else None
+        if isinstance(publish, dict) and (
+            publish.get("status") == "COMPLETED" or (
+                publish.get("status") in {"FAILED", "BLOCKED"} and publish.get("terminal") is True
+            )
+        ):
+            return False
     disposition = deep_message_lease_disposition(
         cache.get(ACTIVE_CYCLE_KEY),
-        cache.get(META_KEY),
+        state,
         cycle_id=cycle_id,
         cycle_local_date=cycle_local_date,
         current_local_date=current_local_date,
     )
     if disposition == "MATCH":
         return True
-    if disposition in {"SUPERSEDED", "COMPLETED_CYCLE", "EXPIRED_STALE"}:
+    if disposition in {"SUPERSEDED", "COMPLETED_CYCLE", "ENDED_DEGRADED_CYCLE", "EXPIRED_STALE"}:
         return False
     raise RuntimeError("COLLECTOR_ACTIVE_CYCLE_MISSING")
 
 
 def _release_active_cycle_if_owned(cycle_id: str) -> None:
-    cache = RuntimeCache()
-    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) == cycle_id:
-        cache.delete(ACTIVE_CYCLE_KEY)
+    """Retain the ended marker; the next cycle replaces it or its TTL expires.
+
+    This historical completion hook must not read-then-delete: RuntimeCache has
+    no compare-and-delete, and a Cron entry can activate a newer period between
+    those operations even when Queue delivery is serialized. Terminal META
+    blocks redelivery; the start entry rejects the ended period and can replace
+    its stale marker for the next period.
+    """
+    return
 
 
 def _write_chain_state(
@@ -120,18 +137,26 @@ def _write_chain_state(
 
 
 async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) -> str:
-    message_id = await send(
-        QUEUE_TOPIC_NAME,
-        {
-            "schema_version": "0.1",
-            "stage": stage,
-            "cycle_as_of": cycle_as_of.isoformat(),
-            "cycle_id": cycle_id,
-        },
-        retention=MESSAGE_RETENTION,
-        delay=NEXT_STAGE_DELAY_SECONDS if stage != "ccgp" else 0,
-        idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:{stage}",
-    )
+    try:
+        message_id = await send(
+            QUEUE_TOPIC_NAME,
+            {
+                "schema_version": "0.1",
+                "schedule_version": SCHEDULE_VERSION,
+                "stage": stage,
+                "cycle_as_of": cycle_as_of.isoformat(),
+                "cycle_id": cycle_id,
+            },
+            retention=MESSAGE_RETENTION,
+            delay=NEXT_STAGE_DELAY_SECONDS if stage != "ccgp" else 0,
+            idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:{stage}",
+        )
+    except Exception as exc:
+        # This SDK exception means Queue accepted this exact idempotency key.
+        # Other transport/auth errors still propagate and remain retriable.
+        if type(exc).__name__ != "DuplicateIdempotencyKeyError":
+            raise
+        message_id = "ALREADY_QUEUED"
     return str(message_id)
 
 
@@ -361,6 +386,12 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
         return
 
+    # Acknowledge legacy backlog without executing it or creating continuations.
+    if payload.get("schedule_version") != SCHEDULE_VERSION:
+        return
+    if _is_incremental_tick_payload(payload) or _is_incremental_payload(payload):
+        return
+
     if _is_incremental_tick_payload(payload):
         await _process_incremental_tick_payload(payload)
         return
@@ -375,29 +406,38 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if stage not in STAGE_ORDER or not cycle_id or cycle_as_of is None:
         return
 
+    if not same_china_business_date(cycle_as_of, datetime.now(timezone.utc)):
+        return
+    if not valid_cycle(cycle_id, cycle_as_of):
+        return
     if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
         return
 
-    status, result = runtime.run_stage(stage, now=cycle_as_of)
+    status, result = runtime.run_stage(stage, now=cycle_as_of, cycle_id=cycle_id)
     action = str(result.get("action") or "")
     if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
+        next_stage = _next_stage(stage)
+        if next_stage is None:
+            # Only a completed publish clears source-local pending staging.
+            # Neither successful nor degraded terminal cycles start an
+            # automatic incremental chain in the twice-daily schedule.
+            incremental_runtime.clear_incremental_pending(RuntimeCache())
+            _release_active_cycle_if_owned(cycle_id)
+            return
+        if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
+            return
+        await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+        return
+
+    if result.get("terminal") is True and action in {"FAILED", "BLOCKED"}:
         next_stage = _next_stage(stage)
         if next_stage is not None:
             if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
                 return
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         else:
-            # The completed deep cycle is authoritative for every source. Any
-            # incremental partial staging from before this publish is obsolete and
-            # must not later overwrite the freshly reconciled canonical state.
-            incremental_runtime.clear_incremental_pending(RuntimeCache())
-            await _start_intraday_chain_after_deep()
             _release_active_cycle_if_owned(cycle_id)
         return
 
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
-    if status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error:
-        _release_active_cycle_if_owned(cycle_id)
-        return
-
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")

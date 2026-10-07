@@ -18,16 +18,20 @@ spec.loader.exec_module(sync_tjzxfc)
 class TjzxfcSyncTests(unittest.TestCase):
     def test_publish_gate_blocks_index_failure_or_unresolved_detail(self) -> None:
         self.assertEqual(
-            sync_tjzxfc.publish_gate(index_discovery_succeeded=False, unresolved_failure_count=0),
+            sync_tjzxfc.publish_gate(index_discovery_succeeded=False, selected_candidate_count=0, new_verified_record_count=0, unresolved_failure_count=0),
             (False, 'INDEX_DISCOVERY_FAILED'),
         )
         self.assertEqual(
-            sync_tjzxfc.publish_gate(index_discovery_succeeded=True, unresolved_failure_count=1),
+            sync_tjzxfc.publish_gate(index_discovery_succeeded=True, selected_candidate_count=1, new_verified_record_count=1, unresolved_failure_count=1),
             (False, 'SUPPORTED_OR_UNKNOWN_DETAILS_INCOMPLETE'),
         )
         self.assertEqual(
-            sync_tjzxfc.publish_gate(index_discovery_succeeded=True, unresolved_failure_count=0),
+            sync_tjzxfc.publish_gate(index_discovery_succeeded=True, selected_candidate_count=0, new_verified_record_count=0, unresolved_failure_count=0),
             (True, 'PASS'),
+        )
+        self.assertEqual(
+            sync_tjzxfc.publish_gate(index_discovery_succeeded=True, selected_candidate_count=1, new_verified_record_count=0, unresolved_failure_count=0),
+            (False, 'NO_SELECTED_DETAIL_VERIFIED'),
         )
 
     def test_non_medical_market_research_is_explicitly_unsupported(self) -> None:

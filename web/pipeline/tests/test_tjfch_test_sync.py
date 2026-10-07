@@ -31,8 +31,10 @@ class TjfchTestSyncTests(unittest.TestCase):
     def test_script_keeps_true_failures_fail_closed_before_state_write(self) -> None:
         source = SCRIPT_PATH.read_text(encoding="utf-8")
         failure_gate = source.index("publish_allowed = not failures")
-        record_write = source.index("write_json(args.records_output, merged)")
+        record_write = source.index("write_json_bundle_atomic({args.records_output: merged, args.report_output: report})")
         self.assertLess(failure_gate, record_write)
+        self.assertIn("else:\n        write_json(args.report_output, report)", source)
+        self.assertNotIn("write_json(args.records_output, merged)", source)
         self.assertIn('"true_fetch_or_parse_failure_blocks_state_update": True', source)
         self.assertIn('"relative_seven_day_window_never_published_as_official_deadline": True', source)
 

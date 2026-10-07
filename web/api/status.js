@@ -1,4 +1,4 @@
-import { loadVerifiedSnapshot, verifiedSnapshotRuntimeOrigin, verifiedSnapshotSourceMode } from './_verifiedSnapshot.js'
+import { loadVerifiedSnapshotWithMetadata, loadCollectorCollectionStatus } from './_verifiedSnapshot.js'
 
 const APP_VERSION = '0.5.0'
 const SNAPSHOT_STALE_AFTER_MINUTES = 30 * 60
@@ -19,7 +19,15 @@ function buildCommit() {
   return value ? value.slice(0, 7) : null
 }
 function remoteConfigured() {
-  return Boolean((process.env.VERIFIED_SNAPSHOT_URL || process.env.VITE_VERIFIED_SNAPSHOT_URL || '').trim())
+  const raw = (process.env.VERIFIED_SNAPSHOT_URL || process.env.VITE_VERIFIED_SNAPSHOT_URL || '').trim()
+  if (!raw) return false
+  try {
+    const url = new URL(raw)
+    return url.protocol === 'https:' || (process.env.NODE_ENV !== 'production' &&
+      (url.hostname === 'localhost' || url.hostname === '127.0.0.1') && url.protocol === 'http:')
+  } catch {
+    return false
+  }
 }
 export function snapshotFreshness(snapshotAsOf, nowMs = Date.now()) {
   const parsed = Date.parse(snapshotAsOf || '')
@@ -41,31 +49,46 @@ export default async function handler(request, response) {
     commit: buildCommit(), production_ready: false, ai: { configured: aiConfigured() },
   }
   try {
-    const snapshot = await loadVerifiedSnapshot()
-    const sourceMode = verifiedSnapshotSourceMode()
-    const runtimeOrigin = verifiedSnapshotRuntimeOrigin()
+    const loaded = await loadVerifiedSnapshotWithMetadata()
+    const snapshot = loaded.snapshot
+    const sourceMode = loaded.sourceMode
+    const runtimeOrigin = loaded.runtimeOrigin
+    const collection = await loadCollectorCollectionStatus()
     const pool = Array.isArray(snapshot.opportunity_pool) ? snapshot.opportunity_pool : snapshot.cards
     const freshness = snapshotFreshness(snapshot.snapshot_as_of)
-    const fallbackDegraded = sourceMode === 'BUNDLED_FALLBACK'
+    const collectionHealthy = collection.available && collection.outcome === 'COMPLETED'
+    const coverage = snapshot.collection_coverage && typeof snapshot.collection_coverage.complete === 'boolean'
+      ? snapshot.collection_coverage
+      : null
+    const coverageDegraded = coverage?.complete !== true
+    const collectorDegraded = !collectionHealthy
+    const degraded = freshness.degraded || loaded.degraded || coverageDegraded || collectorDegraded
+    const degradedReason = loaded.reason || (coverageDegraded ? 'COLLECTION_COVERAGE_UNKNOWN' : null) ||
+      (collection.outcome === 'FAILED' || collection.outcome === 'BLOCKED' ? `COLLECTION_${collection.outcome}` : !collectionHealthy ? 'COLLECTION_STATUS_UNKNOWN' : null)
     return sendJson(response, freshness.freshness === 'INVALID' ? 503 : 200, {
       ...base,
       ready: freshness.freshness !== 'INVALID',
-      degraded: freshness.degraded || fallbackDegraded,
+      degraded,
+      degraded_reason: degradedReason,
+      collection,
       snapshot: {
         available: true, source_mode: sourceMode,
         runtime_origin: sourceMode === 'RUNTIME_CACHE' ? runtimeOrigin : null,
         snapshot_as_of: snapshot.snapshot_as_of ?? null,
         freshness: freshness.freshness, age_minutes: freshness.age_minutes,
+        degraded: loaded.degraded || coverageDegraded,
+        degraded_reason: loaded.reason || (coverageDegraded ? 'COLLECTION_COVERAGE_UNKNOWN' : null),
+        collection_coverage: coverage,
         stale_after_minutes: SNAPSHOT_STALE_AFTER_MINUTES,
         today_card_count: Array.isArray(snapshot.cards) ? snapshot.cards.length : 0,
         opportunity_pool_count: Array.isArray(pool) ? pool.length : 0,
       },
     })
   } catch {
-    const mode = verifiedSnapshotSourceMode()
-    const failureMode = remoteConfigured() ? (mode === 'REMOTE' ? 'REMOTE' : 'UNAVAILABLE') : 'UNAVAILABLE'
+    const failureMode = remoteConfigured() ? 'REMOTE' : 'UNAVAILABLE'
+    const collection = await loadCollectorCollectionStatus()
     return sendJson(response, 503, {
-      ...base, ready: false, degraded: true,
+      ...base, ready: false, degraded: true, degraded_reason: 'SNAPSHOT_LOAD_FAILED', collection,
       snapshot: {
         available: false, source_mode: failureMode, runtime_origin: null, snapshot_as_of: null,
         freshness: 'UNAVAILABLE', age_minutes: null, stale_after_minutes: SNAPSHOT_STALE_AFTER_MINUTES,

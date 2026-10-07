@@ -114,6 +114,19 @@ class ExecutionNamespaceTests(unittest.TestCase):
         )
         self.assertEqual(disposition, "MISSING_UNSAFE")
 
+    def test_missing_lease_after_terminal_degraded_publish_is_ended_degraded_cycle(self) -> None:
+        disposition = deep_message_lease_disposition(
+            None,
+            {
+                "local_date": "2026-10-03",
+                "stages": {"publish": {"status": "BLOCKED", "terminal": True}},
+            },
+            cycle_id="cycle-a",
+            cycle_local_date="2026-10-03",
+            current_local_date="2026-10-03",
+        )
+        self.assertEqual(disposition, "ENDED_DEGRADED_CYCLE")
+
     def test_older_cycle_message_is_acknowledged_after_newer_cycle_supersedes_it(self) -> None:
         disposition = deep_message_lease_disposition(
             None,
@@ -137,7 +150,7 @@ class ExecutionNamespaceTests(unittest.TestCase):
     def test_worker_checks_active_cycle_before_running_stage(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
         first_fence = source.index("if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):")
-        run_stage = source.index("runtime.run_stage(stage, now=cycle_as_of)")
+        run_stage = source.index("runtime.run_stage(stage, now=cycle_as_of, cycle_id=cycle_id)")
         self.assertLess(first_fence, run_stage)
         self.assertGreaterEqual(
             source.count("if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):"),

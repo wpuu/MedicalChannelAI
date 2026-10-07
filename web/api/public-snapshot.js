@@ -1,9 +1,8 @@
 import { timingSafeEqual } from 'node:crypto'
 import {
-  loadVerifiedSnapshot,
+  loadVerifiedSnapshotWithMetadata,
   publishVerifiedSnapshotToRuntimeCache,
-  validateVerifiedSnapshot,
-  verifiedSnapshotSourceMode,
+  preflightVerifiedSnapshotPublish,
 } from './_verifiedSnapshot.js'
 import { persistPublicVerifiedSnapshot } from './_publicIntelligenceDb.js'
 
@@ -83,6 +82,9 @@ function publishFailureStatus(error) {
     code === 'RUNTIME_SNAPSHOT_ROLLBACK_REJECTED' ||
     code === 'RUNTIME_SNAPSHOT_REVISION_CONFLICT' ||
     code === 'RUNTIME_SNAPSHOT_OLDER_THAN_BUNDLE' ||
+    code === 'PUBLIC_SNAPSHOT_ROLLBACK_REJECTED' ||
+    code === 'PUBLIC_SNAPSHOT_BASE_UNAVAILABLE' ||
+    code === 'PUBLIC_SNAPSHOT_BASE_CHANGED' ||
     code === 'RUNTIME_SNAPSHOT_FUTURE_REJECTED' ||
     code === 'PUBLIC_SNAPSHOT_REVISION_CONFLICT'
   ) return 409
@@ -104,10 +106,18 @@ async function publishSnapshot(request, response) {
     return sendJson(response, 401, { error: 'UNAUTHORIZED' })
   }
 
+  let validatedSnapshot = null
+  let durableReceipt = null
   try {
-    const snapshot = validateVerifiedSnapshot(await requestBodyValue(request))
-    await persistPublicVerifiedSnapshot(snapshot)
-    const published = await publishVerifiedSnapshotToRuntimeCache(snapshot)
+    const preflight = await preflightVerifiedSnapshotPublish(await requestBodyValue(request))
+    const snapshot = preflight.snapshot
+    validatedSnapshot = snapshot
+    durableReceipt = await persistPublicVerifiedSnapshot(snapshot, {
+      requireBaseMatch: preflight.requireBaseMatch,
+      expectedBaseHash: preflight.expectedBaseHash,
+      expectedBaseAsOf: preflight.expectedBaseAsOf,
+    })
+    const published = await publishVerifiedSnapshotToRuntimeCache(snapshot, { preflight })
     const pool = Array.isArray(published.opportunity_pool) ? published.opportunity_pool : published.cards
     return sendJson(response, 200, {
       ok: true,
@@ -118,6 +128,11 @@ async function publishSnapshot(request, response) {
   } catch (error) {
     return sendJson(response, publishFailureStatus(error), {
       error: String(error?.message || 'VERIFIED_SNAPSHOT_PUBLISH_FAILED'),
+      ...(durableReceipt?.persisted ? {
+        durable_accepted: true,
+        snapshot_as_of: validatedSnapshot?.snapshot_as_of ?? null,
+        snapshot_hash: durableReceipt.snapshot_hash,
+      } : {}),
     })
   }
 }
@@ -132,8 +147,19 @@ export default async function handler(request, response) {
   }
 
   try {
-    const snapshot = await loadVerifiedSnapshot()
-    response.setHeader('X-MedicalChannelAI-Snapshot-Source', verifiedSnapshotSourceMode())
+    const loaded = await loadVerifiedSnapshotWithMetadata()
+    const snapshot = loaded.snapshot
+    response.setHeader('X-MedicalChannelAI-Snapshot-Source', loaded.sourceMode)
+    if (loaded.runtimeOrigin) response.setHeader('X-MedicalChannelAI-Snapshot-Runtime-Origin', loaded.runtimeOrigin)
+    response.setHeader('X-MedicalChannelAI-Snapshot-As-Of', snapshot.snapshot_as_of)
+    response.setHeader('X-MedicalChannelAI-Snapshot-Degraded', String(loaded.degraded))
+    if (loaded.reason) response.setHeader('X-MedicalChannelAI-Snapshot-Degraded-Reason', loaded.reason)
+    const coverage = snapshot.collection_coverage
+    response.setHeader('X-MedicalChannelAI-Snapshot-Coverage-Complete',
+      typeof coverage?.complete === 'boolean' ? String(coverage.complete) : 'unknown')
+    if (typeof coverage?.last_complete_as_of === 'string') {
+      response.setHeader('X-MedicalChannelAI-Snapshot-Coverage-Last-Complete-As-Of', coverage.last_complete_as_of)
+    }
     // Publisher readback (?fresh=) must never be served from the CDN, or a
     // successful PUT could appear stale during round-trip validation.
     const readback = wantsFreshSnapshot(request)

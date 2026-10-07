@@ -213,12 +213,12 @@ class IncrementalCollectorSchedulerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "INCREMENTAL_SCHEDULER_SOURCE_UNSUPPORTED"):
             mark_incremental_source_attempt(cache, "ccgp", now=NOW)
 
-    def test_trigger_supports_auto_selection_without_activating_cron(self) -> None:
+    def test_trigger_disables_incremental_selection_in_twice_daily_mode(self) -> None:
         source = (WEB_ROOT / "api" / "collector-run.py").read_text(encoding="utf-8")
-        self.assertIn("choose_due_incremental_source(RuntimeCache())", source)
-        self.assertIn('requested_source == "auto"', source)
-        self.assertIn('"action": "NO_SOURCE_DUE"', source)
-        self.assertIn('"mode": "INCREMENTAL_AUTO"', source)
+        handler = source[source.index('    def do_GET'):]
+        self.assertIn('COLLECTOR_INCREMENTAL_DISABLED', handler)
+        self.assertNotIn('choose_due_incremental_source(RuntimeCache())', handler)
+
 
     def test_api_attempt_is_marked_only_after_queue_send_returns(self) -> None:
         source = (WEB_ROOT / "api" / "collector-run.py").read_text(encoding="utf-8")

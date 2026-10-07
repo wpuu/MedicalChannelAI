@@ -1,0 +1,23 @@
+{
+  "checked_on": "2026-10-03 Asia/Shanghai",
+  "read_only": true,
+  "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+  "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+  "production_deployment": "dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1",
+  "production_commit": "62299590dd3898e040ccc9db5fda1298d4509d51",
+  "production_state": "READY",
+  "public_status": {"http": 200, "commit": "6229959", "source_mode": "DATABASE", "snapshot_as_of": "2026-10-02T14:19:15.713282+08:00", "opportunity_pool_count": 441, "candidate_validation": false},
+  "public_collector_status": {"http": 200, "active_cycle_id": null, "active_scan_id": null, "stages": {}, "proves_empty_queue": false},
+  "fallback_workflows": {"tianjin-medical-refresh.yml": "disabled_manually", "regional-medical-refresh.yml": "disabled_manually"},
+  "connected_vercel_successful_reads": ["list_teams", "list_projects", "list_deployments", "get_deployment", "get_runtime_logs"],
+  "runtime_log_query": {"since": "24h", "query": "collector", "result": "No logs found", "proves_paused_or_empty": false},
+  "get_project_error": "Outer schema requires projectId; backend requires idOrName; idOrName is stripped by outer connector. INVALID_ARGUMENT, not total Vercel access failure.",
+  "actual_billing_plan": "UNKNOWN",
+  "production_cron_enabled": "UNKNOWN",
+  "queue_registered_consumers": "UNKNOWN",
+  "queue_inflight_delayed_retries_backlog": "UNKNOWN",
+  "canonical_backup_recovery": "NOT_VERIFIED",
+  "production_two_periods_restored": false,
+  "china_domain_access": "NOT_RETESTED; separate prior unresolved access observation",
+  "official_docs": ["https://vercel.com/docs/cron-jobs/usage-and-pricing", "https://vercel.com/docs/queues/concepts", "https://vercel.com/docs/queues/python-sdk", "https://openapi.vercel.sh/vercel.json"]
+}

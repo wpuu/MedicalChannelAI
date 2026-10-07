@@ -81,7 +81,9 @@ def deep_message_lease_disposition(
     the whole authoritative cycle has completed and publish was marked COMPLETED,
     or when the message is clearly from an older date that has been superseded.
     Missing lease during an unfinished same-day cycle remains unsafe and must be
-    retried/fail closed instead of being silently acknowledged.
+    retried/fail closed instead of being silently acknowledged. A terminal
+    publish FAILED/BLOCKED state is an ended degraded cycle and is idempotent on
+    redelivery just like a completed publish.
     """
     current = active_cycle_id(active_value)
     if current is not None:
@@ -96,11 +98,17 @@ def deep_message_lease_disposition(
         state_date = str(runtime_state.get("local_date") or "").strip()
         if state_date and local_date and state_date > local_date:
             return "SUPERSEDED"
+        state_cycle = str(runtime_state.get("cycle_id") or "")
+        if state_cycle and state_cycle != cycle_id:
+            return "SUPERSEDED" if state_date >= local_date else "MISSING_UNSAFE"
         if state_date == local_date:
             stages = runtime_state.get("stages")
             if isinstance(stages, dict):
                 publish = stages.get("publish")
-                if isinstance(publish, dict) and publish.get("status") == "COMPLETED":
-                    return "COMPLETED_CYCLE"
+                if isinstance(publish, dict):
+                    if publish.get("status") == "COMPLETED":
+                        return "COMPLETED_CYCLE"
+                    if publish.get("status") in {"FAILED", "BLOCKED"} and publish.get("terminal") is True:
+                        return "ENDED_DEGRADED_CYCLE"
 
     return "MISSING_UNSAFE"
