@@ -1,0 +1,134 @@
+{
+  "schema_version": "0.1",
+  "mode": "ACTION_RADAR_DETERMINISTIC_RELEVANCE_PROFILE",
+  "profiles": [
+    {
+      "profile_id": "A",
+      "items": [
+        {
+          "id": "A1",
+          "name": "包埋盒打号机",
+          "match_mode": "EXACT_PRODUCT",
+          "aliases": [
+            "包埋盒打号机"
+          ]
+        },
+        {
+          "id": "A2",
+          "name": "载玻片打号机",
+          "match_mode": "EXACT_PRODUCT",
+          "aliases": [
+            "载玻片打号机",
+            "切片打号机"
+          ]
+        },
+        {
+          "id": "A3",
+          "name": "免疫组化设备",
+          "match_mode": "CATEGORY",
+          "aliases": [
+            "免疫组化",
+            "免疫组化设备",
+            "免疫组化染色机"
+          ]
+        },
+        {
+          "id": "A4",
+          "name": "病理信息化设备",
+          "match_mode": "CATEGORY",
+          "aliases": [
+            "病理信息化",
+            "病理信息系统"
+          ]
+        }
+      ]
+    },
+    {
+      "profile_id": "B",
+      "items": [
+        {
+          "id": "B1",
+          "name": "脉动真空灭菌器",
+          "match_mode": "EXACT_PRODUCT",
+          "aliases": [
+            "脉动真空灭菌器"
+          ]
+        },
+        {
+          "id": "B2",
+          "name": "手术动力系统",
+          "match_mode": "CATEGORY",
+          "aliases": [
+            "手术动力系统",
+            "骨动力系统",
+            "电动骨动力系统"
+          ]
+        },
+        {
+          "id": "B3",
+          "name": "消融设备",
+          "match_mode": "CATEGORY",
+          "aliases": [
+            "消融设备",
+            "消融系统",
+            "微波消融",
+            "射频消融"
+          ]
+        },
+        {
+          "id": "B4",
+          "name": "手术器械",
+          "match_mode": "BROAD_CATEGORY",
+          "aliases": [
+            "手术器械"
+          ],
+          "related_categories": [
+            "医用内窥镜"
+          ]
+        }
+      ]
+    },
+    {
+      "profile_id": "C",
+      "items": [
+        {
+          "id": "C1",
+          "name": "检验设备",
+          "match_mode": "CATEGORY",
+          "aliases": [
+            "检验设备",
+            "临床检验设备",
+            "临检实验室设备",
+            "流式细胞仪"
+          ]
+        },
+        {
+          "id": "C2",
+          "name": "检验试剂",
+          "match_mode": "CATEGORY",
+          "aliases": [
+            "检验试剂",
+            "试剂"
+          ]
+        },
+        {
+          "id": "C3",
+          "name": "培养基",
+          "match_mode": "CATEGORY",
+          "aliases": [
+            "培养基"
+          ]
+        },
+        {
+          "id": "C4",
+          "name": "负压引流/吸痰耗材",
+          "match_mode": "CATEGORY",
+          "aliases": [
+            "负压引流",
+            "吸痰"
+          ]
+        }
+      ]
+    }
+  ]
+}
