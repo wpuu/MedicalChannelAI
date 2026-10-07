@@ -13,6 +13,9 @@ SCHEDULED_INCREMENTAL_SOURCES = (
     "tjfch",
     "tjfch_test",
     "teda",
+    "tjzyefy",
+    "tjzyefy_intent",
+    "tjzxfc",
 )
 ATTEMPT_TTL_SECONDS = 3 * 24 * 60 * 60
 QUIET_SCAN_INTERVAL_MULTIPLIER = 2
