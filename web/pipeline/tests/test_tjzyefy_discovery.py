@@ -21,6 +21,7 @@ class TjzyefyDiscoveryTests(unittest.TestCase):
         <a href="/system/2026/06/01/030191557.shtml">天津中医药大学第二附属医院院内调研公告--医院招标代理服务项目</a>
         <a href="/system/2026/06/02/030191558.shtml">病种成本核算服务系统调研公告</a>
         <a href="/system/2026/08/01/030200001.shtml">采购意向公告（2026年24号）-流式细胞仪等医疗设备采购项目</a>
+        <a href="/system/2026/09/30/030199248.shtml">天津中医药大学第二附属医院数据安全服务项目调研公告</a>
         '''
         result = parse_tjzyefy_index_html(html)
         self.assertEqual(len(result), 3)
@@ -31,6 +32,7 @@ class TjzyefyDiscoveryTests(unittest.TestCase):
         self.assertFalse(any('招标代理' in title for title in titles))
         self.assertFalse(any('病种成本核算' in title for title in titles))
         self.assertFalse(any('采购意向公告' in title for title in titles))
+        self.assertFalse(any('数据安全服务' in title for title in titles))
 
     def test_rejects_foreign_detail_host_and_deduplicates(self) -> None:
         html = '''
