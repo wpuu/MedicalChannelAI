@@ -1,0 +1,383 @@
+{
+  "schema_version": "0.1",
+  "benchmark": "MED_ACTION_RELEVANCE_HOLDOUT_B_2026_10_08",
+  "source_snapshot_as_of": "2026-10-07T08:27:29.025919+08:00",
+  "rules_frozen_commit": "aaa9e53432ea37eacb55acebe1e6338dcce64923",
+  "note": "Created after structural v1 rules were frozen. Cases were not used to design v1. Buyer/use-case and service-vs-product traps are intentional.",
+  "opportunities": [
+    {
+      "case_id": "J01",
+      "opportunity_id": "ccgp_hl_7656c1589a5f95ba",
+      "buyer_name": "首都医科大学附属北京儿童医院黑龙江医院",
+      "project_name": "北京儿童医院黑龙江医院建设项目设备采购（六）",
+      "product_categories": [
+        "手术室设备及附件",
+        "消毒灭菌设备及器具",
+        "临床检验设备",
+        "医用光学仪器"
+      ],
+      "product_items": [
+        "超高清腹腔镜系统",
+        "电动吸引器",
+        "空气消毒机",
+        "麻醉机"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "J02",
+      "opportunity_id": "ccgp_hl_7a4a2c7c4cae27ba",
+      "buyer_name": "黑龙江省质量监督检测研究院",
+      "project_name": "2026年度“双新建设”食品领域检验检测设备更新项目（六）",
+      "product_categories": [
+        "其他仪器仪表"
+      ],
+      "product_items": [
+        "离子色谱仪",
+        "电感耦合等离子体发射光谱仪"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J03",
+      "opportunity_id": "ccgp_hl_12da903735b548f7",
+      "buyer_name": "黑龙江省药品检验研究院",
+      "project_name": "检验检测仪器设备更新项目-8",
+      "product_categories": [
+        "生物、医学样品制备设备",
+        "其他分析仪器"
+      ],
+      "product_items": [
+        "脱水机",
+        "切片机",
+        "流式细胞仪",
+        "全自动生化分析仪"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J04",
+      "opportunity_id": "ccgp_bj_11de76c74c9b5025",
+      "buyer_name": "首都医科大学宣武医院",
+      "project_name": "灭菌器、床旁监护仪等医疗设备维保服务购置项目",
+      "product_categories": [],
+      "product_items": [
+        "灭菌器",
+        "眼科激光治疗仪",
+        "彩色超声诊断仪",
+        "床旁监护仪、除颤仪等"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J05",
+      "opportunity_id": "ccgp_he_d9bc3f7e4ee4441e",
+      "buyer_name": "河北省中医院",
+      "project_name": "超声内窥镜系统设备",
+      "product_categories": [],
+      "product_items": [
+        "超声内窥镜系统"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J06",
+      "opportunity_id": "ccgp_hl_31cf671b8847fd33",
+      "buyer_name": "黑龙江省社会康复医院（黑龙江省康复辅具服务中心）",
+      "project_name": "医疗设备采购项目（第一批次）",
+      "product_categories": [
+        "医用超声波仪器及设备",
+        "临床检验设备"
+      ],
+      "product_items": [
+        "彩色多普勒超声系统",
+        "全自动血细胞分析仪"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "J07",
+      "opportunity_id": "ccgp_he_e3e0b42c16c6f0e0",
+      "buyer_name": "河北医科大学第二医院",
+      "project_name": "河北医科大学第二医院正定院区101综合楼采购医疗设备项目（四）",
+      "product_categories": [],
+      "product_items": [
+        "清洗机",
+        "压力蒸汽灭菌器",
+        "环氧乙烷灭菌器"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J08",
+      "opportunity_id": "ccgp_jl_93beac3d698f0563",
+      "buyer_name": "吉林大学中日联谊医院",
+      "project_name": "吉林大学中日联谊医院微生物基因测序系统采购项目",
+      "product_categories": [],
+      "product_items": [],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "POSSIBLE_MATCH_NEEDS_CONFIRMATION"
+      }
+    },
+    {
+      "case_id": "J09",
+      "opportunity_id": "ccgp_bj_6f04b5c897c15399",
+      "buyer_name": "北京老年医院",
+      "project_name": "北京老年医院医用设备购置采购项目",
+      "product_categories": [],
+      "product_items": [
+        "复合式冷热消融系统",
+        "膀胱镜",
+        "超声骨密度仪"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "DIRECT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J10",
+      "opportunity_id": "ccgp_bj_d9e1012fead4c3f0",
+      "buyer_name": "首都医科大学附属北京口腔医院",
+      "project_name": "2026北京口腔医院无形资产系统采购项目",
+      "product_categories": [],
+      "product_items": [
+        "实验数据采集与管理系统",
+        "自动记账系统",
+        "业财一体化系统升级服务"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J11",
+      "opportunity_id": "ccgp_hl_d773be706e8683cf",
+      "buyer_name": "哈尔滨医科大学附属第二医院",
+      "project_name": "手术室麻醉科购置手术用具（2026227-2026231）",
+      "product_categories": [
+        "手术室设备及附件"
+      ],
+      "product_items": [
+        "电动负压吸引器",
+        "恒温水毯",
+        "病人推车",
+        "高频电刀"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J12",
+      "opportunity_id": "ccgp_hl_bb1b876102d32e05",
+      "buyer_name": "友谊县疾病预防控制中心（友谊县卫生监督所）",
+      "project_name": "友谊县疾控中心实验室能力提升(二次)",
+      "product_categories": [
+        "临床检验设备",
+        "色谱仪"
+      ],
+      "product_items": [
+        "气相色谱仪",
+        "智能全自动菌落分析仪",
+        "全自动酶底物鉴定系统",
+        "电热恒温培养箱",
+        "酶标仪"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J13",
+      "opportunity_id": "ccgp_hl_b0a6a23bb8073f32",
+      "buyer_name": "孙吴县人民医院",
+      "project_name": "医共体五大共享中心提质扩优工程项目医疗设备采购",
+      "product_categories": [
+        "临床检验设备",
+        "医用内窥镜",
+        "消毒灭菌设备及器具"
+      ],
+      "product_items": [
+        "电热恒温培养箱",
+        "电解质分析仪",
+        "生化仪",
+        "尿液分析流水线",
+        "全自动凝血仪"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "J14",
+      "opportunity_id": "ccgp_hl_238c7a6d1d62646d",
+      "buyer_name": "黑龙江省妇幼保健院",
+      "project_name": "基建项目第二批医疗设备",
+      "product_categories": [
+        "临床检验设备",
+        "医用内窥镜"
+      ],
+      "product_items": [
+        "全自动染色体扫描分析系统",
+        "自动细胞收获仪",
+        "自动制片机",
+        "自动染片机",
+        "全自动生化免疫检测仪及风险评估系统"
+      ],
+      "expected": {
+        "A": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "J15",
+      "opportunity_id": "ccgp_hl_31c1a1e1558702aa",
+      "buyer_name": "黑龙江省药品检验研究院",
+      "project_name": "检验检测仪器设备更新项目-4",
+      "product_categories": [
+        "色谱仪"
+      ],
+      "product_items": [
+        "高效液相色谱仪"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J16",
+      "opportunity_id": "ccgp_hl_bd21d5ad3e68b440",
+      "buyer_name": "黑龙江省神经精神病医院",
+      "project_name": "黑龙江神经精神病医院重症与心理健康服务能力提升项目第二批设备（三十三）(二次)",
+      "product_categories": [
+        "手术器械"
+      ],
+      "product_items": [
+        "超声神经外科吸引器（CUSA）",
+        "立体定向头架系统",
+        "脑科头架、钉字架"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J17",
+      "opportunity_id": "ccgp_hl_bae7a4d460533e26",
+      "buyer_name": "大庆市中西医结合医院",
+      "project_name": "大同区紧密型医共体“五大共享中心”相关设施设备购置项目三",
+      "product_categories": [
+        "消毒灭菌设备及器具"
+      ],
+      "product_items": [
+        "卡式消毒锅",
+        "过氧化氢低温等离子灭菌器",
+        "脉动真空灭菌器",
+        "小型全自动清洗消毒器"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "DIRECT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J18",
+      "opportunity_id": "ccgp_bj_2cec44893e36b2b0",
+      "buyer_name": "首都医科大学附属北京安贞医院",
+      "project_name": "北京安贞医院临床外送医学检验服务项目",
+      "product_categories": [],
+      "product_items": [
+        "临床外送医学检验服务"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J19",
+      "opportunity_id": "ccgp_bj_0d840175b4eb0590",
+      "buyer_name": "首都医科大学附属北京朝阳医院",
+      "project_name": "首都医科大学附属北京朝阳医院医疗设备维修保养项目（自有）",
+      "product_categories": [],
+      "product_items": [
+        "骨科手术导航定位系统维修保养服务",
+        "内窥镜系统维修保养服务"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "J20",
+      "opportunity_id": "ccgp_hl_879e677f58a08926",
+      "buyer_name": "哈尔滨市道外区人民医院",
+      "project_name": "医疗设备第三批次采购项目",
+      "product_categories": [
+        "临床检验设备",
+        "医用内窥镜",
+        "消毒灭菌设备及器具"
+      ],
+      "product_items": [
+        "生物显微镜",
+        "切片柜（含安全柜）",
+        "离心机",
+        "显微镜"
+      ],
+      "expected": {
+        "A": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "DIRECT_MATCH"
+      }
+    }
+  ]
+}
