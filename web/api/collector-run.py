@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 from vercel.functions import RuntimeCache
 from vercel.queue import send
 
+from collector_automation_health import update_automation_health
 from collector_incremental import scan_bucket_id
 from collector_incremental_scheduler import (
     SCHEDULED_INCREMENTAL_SOURCES,
@@ -187,6 +188,11 @@ async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
         now=now,
         local_date=local_date,
         source=source,
+    )
+    update_automation_health(
+        cache,
+        last_deep_trigger_at=now.isoformat(),
+        last_deep_cycle_id=cycle_id,
     )
 
     # Deep collection owns the authoritative mutation lease from this point.
