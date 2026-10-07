@@ -27,7 +27,6 @@ SUPPORTED_INCREMENTAL_SOURCES = (
     "tjfch",
     "tjfch_test",
     "tjzyefy",
-    "tjzyefy_intent",
     "tjzxfc",
 )
 
@@ -196,13 +195,6 @@ def _existing_records(cache: RuntimeCache, source_id: str) -> tuple[list[dict[st
             cache, runtime.TJZYEFY_RECORDS_KEY, runtime._bootstrap_tjzyefy_records
         )
         return rows, runtime.TJZYEFY_RECORDS_KEY
-    if source_id == "tjzyefy_intent":
-        rows, _ = runtime._cached_list(
-            cache,
-            runtime.TJZYEFY_INTENT_RECORDS_KEY,
-            runtime._bootstrap_tjzyefy_intent_records,
-        )
-        return rows, runtime.TJZYEFY_INTENT_RECORDS_KEY
     if source_id == "tjzxfc":
         rows, _ = runtime._cached_list(
             cache, runtime.TJZXFC_RECORDS_KEY, runtime._bootstrap_tjzxfc_records
@@ -389,40 +381,6 @@ def _verify_tjzyefy(candidate: Any, observed_at: str, now: datetime) -> dict[str
         raise
 
 
-def _discover_tjzyefy_intent(now: datetime) -> list[Any]:
-    local_date = now.astimezone(runtime.SHANGHAI).date()
-    html = runtime.fetch_tjzyefy_page(runtime.TJZYEFY_INDEX_URL)
-    discovered = runtime.parse_tjzyefy_intent_index_html(html)
-    return runtime.select_tjzyefy_intent_candidates(
-        discovered,
-        start_date=local_date - timedelta(days=runtime.TJZYEFY_INTENT_LOOKBACK_DAYS - 1),
-        end_date=local_date,
-        max_candidates=runtime.TJZYEFY_INTENT_MAX_CANDIDATES,
-    )
-
-
-def _verify_tjzyefy_intent(
-    candidate: Any,
-    observed_at: str,
-    now: datetime,
-) -> dict[str, Any] | None:
-    try:
-        html = runtime.fetch_tjzyefy_page(candidate.detail_url)
-        return runtime.parse_tjzyefy_procurement_intent(
-            html,
-            source_url=candidate.detail_url,
-            index_url=runtime.TJZYEFY_INDEX_URL,
-            index_published_at=candidate.published_at,
-            expected_title=candidate.title,
-            observed_at=observed_at,
-            opportunity_id=runtime.tjzyefy_intent_opportunity_id(candidate.detail_url),
-        )
-    except runtime.TjzyefyIntentParseError as exc:
-        if str(exc) == "TJZYEFY_INTENT_NON_MEDICAL":
-            return None
-        raise
-
-
 def _discover_tjzxfc(now: datetime) -> list[Any]:
     local_date = now.astimezone(runtime.SHANGHAI).date()
     html = runtime.fetch_tjzxfc_page(runtime.TJZXFC_INDEX_URL)
@@ -460,7 +418,6 @@ _DISCOVERY: dict[str, Callable[[datetime], list[Any]]] = {
     "tjfch": _discover_tjfch,
     "tjfch_test": _discover_tjfch_test,
     "tjzyefy": _discover_tjzyefy,
-    "tjzyefy_intent": _discover_tjzyefy_intent,
     "tjzxfc": _discover_tjzxfc,
 }
 _VERIFICATION: dict[str, Callable[[Any, str, datetime], dict[str, Any] | None]] = {
@@ -470,7 +427,6 @@ _VERIFICATION: dict[str, Callable[[Any, str, datetime], dict[str, Any] | None]] 
     "tjfch": _verify_tjfch,
     "tjfch_test": _verify_tjfch_test,
     "tjzyefy": _verify_tjzyefy,
-    "tjzyefy_intent": _verify_tjzyefy_intent,
     "tjzxfc": _verify_tjzxfc,
 }
 
