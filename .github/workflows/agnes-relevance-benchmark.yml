@@ -1,14 +1,6 @@
 name: Agnes Relevance Gate Benchmark
 
 on:
-  push:
-    branches:
-      - codex/medical-action-relevance-benchmark
-    paths:
-      - 'web/pipeline/data/action_radar_relevance_gold.json'
-      - 'web/pipeline/scripts/run_agnes_relevance_benchmark.py'
-      - 'web/pipeline/tests/test_agnes_relevance_benchmark.py'
-      - '.github/workflows/agnes-relevance-benchmark.yml'
   workflow_dispatch:
 
 permissions:
