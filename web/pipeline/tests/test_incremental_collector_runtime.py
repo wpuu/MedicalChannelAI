@@ -136,9 +136,11 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         start = self.queue.index('else:\n            # The completed deep cycle is authoritative')
         end = self.queue.index('        return', start)
         terminal = self.queue[start:end]
-        clear = terminal.index('incremental_runtime.clear_incremental_pending(RuntimeCache())')
+        health = terminal.index('update_automation_health(')
+        clear = terminal.index('incremental_runtime.clear_incremental_pending(terminal_cache)')
         schedule = terminal.index('await _start_intraday_chain_after_deep()')
         release = terminal.index('_release_active_cycle_if_owned(cycle_id)')
+        self.assertLess(health, clear)
         self.assertLess(clear, schedule)
         self.assertLess(schedule, release)
 
