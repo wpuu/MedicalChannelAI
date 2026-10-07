@@ -14,7 +14,6 @@ SCHEDULED_INCREMENTAL_SOURCES = (
     "tjfch_test",
     "teda",
     "tjzyefy",
-    "tjzyefy_intent",
     "tjzxfc",
 )
 ATTEMPT_TTL_SECONDS = 3 * 24 * 60 * 60
