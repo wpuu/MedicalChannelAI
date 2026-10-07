@@ -14,18 +14,22 @@ class IncrementalTianjinSourceParityTests(unittest.TestCase):
         self.policy = (WEB_ROOT / "collector_incremental.py").read_text(encoding="utf-8")
         self.scheduler = (WEB_ROOT / "collector_incremental_scheduler.py").read_text(encoding="utf-8")
 
-    def test_missing_tianjin_sources_have_explicit_incremental_policies_and_schedules(self) -> None:
-        for source in ("tjzyefy", "tjzyefy_intent", "tjzxfc"):
+    def test_time_sensitive_research_sources_have_explicit_intraday_policies(self) -> None:
+        for source in ("tjzyefy", "tjzxfc"):
             self.assertIn(f'"{source}": {{', self.policy)
             self.assertIn(f'"{source}"', self.scheduler)
             self.assertIn(f'"{source}"', self.incremental)
+
+    def test_procurement_intent_stays_daily_deep_only(self) -> None:
+        self.assertNotIn('"tjzyefy_intent": {', self.policy)
+        self.assertNotIn('"tjzyefy_intent"', self.scheduler)
+        self.assertNotIn('"tjzyefy_intent"', self.incremental)
+        self.assertIn('"tjzyefy_intent"', self.runtime)
 
     def test_incremental_runtime_reuses_existing_verified_adapters(self) -> None:
         required = (
             "runtime.parse_tjzyefy_index_html",
             "runtime.parse_tjzyefy_market_research",
-            "runtime.parse_tjzyefy_intent_index_html",
-            "runtime.parse_tjzyefy_procurement_intent",
             "runtime.parse_tjzxfc_index_html",
             "runtime.parse_tjzxfc_market_research",
         )
@@ -40,7 +44,6 @@ class IncrementalTianjinSourceParityTests(unittest.TestCase):
     def test_nonmedical_source_rows_remain_nonfacts(self) -> None:
         self.assertIn('"TJZYEFY_NON_MEDICAL_RESEARCH"', self.incremental)
         self.assertIn('"TJZYEFY_PROCUREMENT_INTENT_NOT_SUPPORTED"', self.incremental)
-        self.assertIn('"TJZYEFY_INTENT_NON_MEDICAL"', self.incremental)
         self.assertIn('"TJZXFC_NON_MEDICAL_EARLY_SIGNAL"', self.incremental)
 
     def test_deep_runtime_has_independent_canonical_state_for_all_three_sources(self) -> None:
