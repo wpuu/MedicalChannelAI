@@ -64,8 +64,10 @@ def classify_item(item, row):
         if any(hit(a, products, True) or hit(a, categories, True) or hit(a, title) for a in direct):
             return DIRECT
     elif mode == "BROAD_CATEGORY":
-        if any(a == v for a in direct for v in products + categories):
+        if any(a == v for a in direct for v in products):
             return DIRECT
+        if any(a == v for a in direct for v in categories):
+            return POSSIBLE
     else:
         raise ValueError(f"UNKNOWN_MATCH_MODE:{mode}")
 
