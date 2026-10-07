@@ -45,7 +45,16 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.assertIsNotNone(scheduled)
         self.assertNotIn('"ccgp"', block.group(1))
         self.assertNotIn('"ccgp"', scheduled.group(1))
-        for source in ('tjmugh', 'tjnothop', 'teda', 'tjfch', 'tjfch_test'):
+        for source in (
+            'tjmugh',
+            'tjnothop',
+            'teda',
+            'tjfch',
+            'tjfch_test',
+            'tjzyefy',
+            'tjzyefy_intent',
+            'tjzxfc',
+        ):
             self.assertIn(f'"{source}"', block.group(1))
             self.assertIn(f'"{source}"', scheduled.group(1))
 
