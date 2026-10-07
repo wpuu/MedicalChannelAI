@@ -54,6 +54,33 @@ class TjzyefyMarketResearchTests(unittest.TestCase):
         self.assertEqual(facts['public_contact']['phone'], '022-60637522')
         self.assertEqual(facts['public_contact']['email'], 'tjzyefygzk2026@126.com')
 
+    def test_parses_20260928_rehab_equipment_research_with_exact_deadline(self) -> None:
+        title = '院内调研公告（2026年23号）-肢体康复训练等医疗设备采购项目'
+        html = detail_html(
+            title,
+            '2026-09-28',
+            '我院拟对肢体康复训练等医疗设备采购项目进行院内调研。'
+            '项目背景与目标：康复设备调研。'
+            '核心需求清单 1. 肢体康复训练：用于康复治疗。'
+            '四、供应商资质与服务要求：提供合规资料。'
+            '方案报送截止：2026年10月9日16:00。'
+            '联系人：潘老师 联系电话：022-60637522。',
+        )
+        record = parse_tjzyefy_market_research(
+            html,
+            source_url='https://www.tjzyefy.com/system/2026/09/28/030199113.shtml',
+            index_url=INDEX_URL,
+            index_published_at='2026-09-28',
+            expected_title=title,
+            observed_at=OBSERVED_AT,
+            opportunity_id='tjzyefy_20260928_030199113',
+        )
+        facts = record['facts']
+        self.assertEqual(facts['lifecycle_state'], 'MARKET_RESEARCH')
+        self.assertEqual(facts['registration_deadline'], '2026-10-09T16:00:00+08:00')
+        self.assertEqual(facts['product_categories'], ['医疗设备'])
+        self.assertIn('肢体康复训练', [item['raw_name'] for item in facts['product_items']])
+
     def test_parses_consumable_research(self) -> None:
         title = '医用耗材（试剂）调研公告（2026年13号）-脱脂棉纱布耗材采购项目'
         html = detail_html(
