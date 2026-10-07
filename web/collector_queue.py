@@ -264,18 +264,15 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
         _release_incremental_lease(cache, scan_id)
 
     action = str(result.get("action") or "")
-    update_automation_health(
-        cache,
-        last_source_scan_at=delivered_at.isoformat(),
-        last_source_id=source_id,
-        last_source_action=action or None,
-        last_source_error=None if status == 200 else str(result.get("error") or "UNKNOWN")[:180],
-        last_intraday_snapshot_as_of=(
-            result.get("snapshot_as_of")
-            if result.get("snapshot_refreshed") is True
-            else None
-        ),
-    )
+    health_fields = {
+        "last_source_scan_at": delivered_at.isoformat(),
+        "last_source_id": source_id,
+        "last_source_action": action or None,
+        "last_source_error": None if status == 200 else str(result.get("error") or "UNKNOWN")[:180],
+    }
+    if result.get("snapshot_refreshed") is True and result.get("snapshot_as_of"):
+        health_fields["last_intraday_snapshot_as_of"] = result.get("snapshot_as_of")
+    update_automation_health(cache, **health_fields)
     if status == 200 and action in {"COMPLETED", "ALREADY_SCANNED_BUCKET"}:
         return
 
