@@ -8,6 +8,7 @@ from vercel.queue import send
 
 import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
+from collector_automation_health import update_automation_health
 from collector_incremental import scan_bucket_id
 from collector_incremental_bootstrap import bootstrap_incremental_ledger_from_canonical
 from collector_incremental_scheduler import (
@@ -263,6 +264,18 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
         _release_incremental_lease(cache, scan_id)
 
     action = str(result.get("action") or "")
+    update_automation_health(
+        cache,
+        last_source_scan_at=delivered_at.isoformat(),
+        last_source_id=source_id,
+        last_source_action=action or None,
+        last_source_error=None if status == 200 else str(result.get("error") or "UNKNOWN")[:180],
+        last_intraday_snapshot_as_of=(
+            result.get("snapshot_as_of")
+            if result.get("snapshot_refreshed") is True
+            else None
+        ),
+    )
     if status == 200 and action in {"COMPLETED", "ALREADY_SCANNED_BUCKET"}:
         return
 
@@ -290,6 +303,11 @@ async def _process_incremental_tick_payload(payload: dict[str, Any]) -> None:
         raise RuntimeError("INCREMENTAL_TICK_DELIVERED_EARLY")
 
     cache = RuntimeCache()
+    update_automation_health(
+        cache,
+        last_tick_delivered_at=now.isoformat(),
+        last_tick_id=tick.tick_id,
+    )
     next_tick = next_tick_after(tick, delivered_at=now)
     if next_tick is not None:
         await _enqueue_incremental_tick(next_tick, now=now)
@@ -317,6 +335,10 @@ async def _process_incremental_tick_payload(payload: dict[str, Any]) -> None:
 
     await _enqueue_incremental_source(decision.source_id, observed_at=now)
     mark_incremental_source_attempt(cache, decision.source_id, now=now)
+    update_automation_health(
+        cache,
+        last_tick_selected_source=decision.source_id,
+    )
     _write_chain_state(
         cache,
         state="SOURCE_QUEUED",
@@ -332,15 +354,32 @@ async def _start_intraday_chain_after_deep() -> None:
     now = datetime.now(timezone.utc)
     first_tick = first_tick_after_deep(now)
     if first_tick is None:
+        update_automation_health(
+            cache,
+            last_chain_schedule_attempt_at=now.isoformat(),
+            last_chain_schedule_status="WINDOW_CLOSED",
+            last_chain_tick_id=None,
+        )
         _write_chain_state(
             cache,
             state="WINDOW_CLOSED",
             business_date=now.astimezone(TICK_SHANGHAI).date().isoformat(),
         )
         return
+    update_automation_health(
+        cache,
+        last_chain_schedule_attempt_at=now.isoformat(),
+        last_chain_schedule_status="ATTEMPTING",
+        last_chain_tick_id=first_tick.tick_id,
+    )
     try:
         await _enqueue_incremental_tick(first_tick, now=now)
     except Exception as exc:
+        update_automation_health(
+            cache,
+            last_chain_schedule_status="RETRY_PENDING",
+            last_source_error=f"{type(exc).__name__}:{str(exc)[:140]}",
+        )
         _write_chain_state(
             cache,
             state="SCHEDULE_RETRY_PENDING",
@@ -349,6 +388,11 @@ async def _start_intraday_chain_after_deep() -> None:
             detail=f"{type(exc).__name__}:{str(exc)[:140]}",
         )
         raise
+    update_automation_health(
+        cache,
+        last_chain_schedule_status="SCHEDULED",
+        last_chain_tick_id=first_tick.tick_id,
+    )
     _write_chain_state(
         cache,
         state="SCHEDULED",
@@ -390,7 +434,13 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
             # The completed deep cycle is authoritative for every source. Any
             # incremental partial staging from before this publish is obsolete and
             # must not later overwrite the freshly reconciled canonical state.
-            incremental_runtime.clear_incremental_pending(RuntimeCache())
+            terminal_cache = RuntimeCache()
+            update_automation_health(
+                terminal_cache,
+                last_deep_completed_at=datetime.now(timezone.utc).isoformat(),
+                last_deep_snapshot_as_of=result.get("snapshot_as_of"),
+            )
+            incremental_runtime.clear_incremental_pending(terminal_cache)
             await _start_intraday_chain_after_deep()
             _release_active_cycle_if_owned(cycle_id)
         return
