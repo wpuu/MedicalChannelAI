@@ -85,6 +85,53 @@ https://www.tjzyefy.com/system/2026/09/30/030199248.shtml
 
 **在恢复天津源真实刷新之前，不能对外宣称“每日行动雷达”，也不能用当前 snapshot 做 7 天客户试验。**
 
+### 2.1 2026-10-07 线上只读诊断：不是 Collector 全停，而是 Runtime Source Parity 缺失
+
+后续读取生产公开只读端点：
+
+- `https://medicalchannelai.vercel.app/api/collector-status`
+- `https://medicalchannelai.vercel.app/api/public-snapshot`
+
+得到更精确的根因，因此修正“自动刷新整体失效”的过度概括：
+
+1. Vercel incremental collector 在 2026-10-07 当天仍正常运行。
+2. collector status 在约 15:30（Asia/Shanghai）仍显示 15 分钟 tick 链，状态为 `NO_SOURCE_DUE`，且 `tjmugh`、`tjnothop`、`tjfch`、`tjfch_test`、`teda` 均有当日 runtime ledger/scan 状态。
+3. 但生产 incremental source 列表**从代码层就没有**：
+   - `tjzyefy`（天津中医药大学第二附属医院调研）；
+   - `tjzyefy_intent`（同院采购意向）；
+   - `tjzxfc`（天津市中心妇产科医院早期信号）。
+4. 对应代码证据：
+   - `web/collector_incremental.py::SOURCE_POLICIES` 没有以上三源；
+   - `web/collector_incremental_runtime.py::SUPPORTED_INCREMENTAL_SOURCES` 没有以上三源；
+   - `web/collector_incremental_scheduler.py::SCHEDULED_INCREMENTAL_SOURCES` 没有以上三源；
+   - `web/collector_runtime.py` 的 RuntimeCache canonical keys / deep STAGE_ORDER / publish merge 同样没有以上三源。
+5. GitHub self-hosted deep workflow 虽然支持 `tjzyefy/tjzyefy_intent/tjzxfc`，但其持久化报告停在 2026-09-27。因此这三个源没有 Vercel 增量链兜底，造成 9/28、9/30 官方新公告真实漏失。
+6. 现有解析器并非缺失：
+   - `tjzyefy_discovery.py` / `tjzyefy_market_research.py`；
+   - `tjzyefy_intent_discovery.py` / `tjzyefy_procurement_intent.py`；
+   - `tjzxfc_discovery.py` / `tjzxfc_market_research.py`
+   已存在，并包含官方域名、标题/日期、医疗范围、截止时间和非医疗 unsupported 等验证逻辑。
+
+所以 P0 根因现在明确为：
+
+> **Runtime source parity 缺失：已有可靠 deep adapters 没有进入 Vercel-native incremental execution plane。**
+
+这比“定时任务坏了”更准确，也决定了最小修复范围：**复用已有 adapter 接入 RuntimeCache + incremental scheduler + publish merge；禁止重写爬虫。**
+
+### 2.2 当前 public snapshot 不是空，而是“太宽”
+
+同一只读检查中，公开 snapshot 返回：
+
+- `input_candidate_count = 903`
+- `opportunity_pool_count = 437`
+- `model_request_count = 0`
+
+这说明当前系统的另一个问题不是“没有项目”，而是：
+
+> **广域 verified pool 已经足够大；用户价值取决于从 437 条压缩成与其产品真正相关的极少行动项。**
+
+因此 P0 修复源覆盖之后，下一阶段优先级仍然是 relevance suppression，而不是继续扩更多省份/更多通用公告。
+
 ## 3. 第五中心医院 9/24 线索仍只能作为 discovery clue
 
 第三方聚合当前公开：
@@ -220,13 +267,25 @@ V0 建议：
 
 ## 8. P0/P1 执行顺序
 
-### P0-1｜先恢复/证明天津日刷新
+### P0-1｜补齐 Vercel incremental runtime source parity
+只接入已有 verified adapters，不重写 parser。
+
+最小范围：
+- tjzyefy market research；
+- tjzyefy procurement intent；
+- tjzxfc early-signal market research。
+
 验收：
-- 实际新 run 产生 2026-10-07 或之后 observed_at；
-- 能发现 9/28 tjzyefy 康复设备调研；
-- 能发现 9/30 数据安全调研并正确归为非医疗渠道 hard negative；
-- snapshot readback 与 GitHub live records 一致；
-- 不靠人工刷数据。
+- 三源进入 SOURCE_POLICIES / SUPPORTED_INCREMENTAL_SOURCES / SCHEDULED_INCREMENTAL_SOURCES；
+- 三源有独立 RuntimeCache canonical state 与 bootstrap；
+- incremental scan 可以复用既有 discovery/detail parser；
+- 9/28 tjzyefy 康复设备调研能被真实 incremental scan 发现并验证；
+- 9/30 数据安全调研被 discovery 看到后，必须由既有 medical-scope 验证拒绝为非医疗事实，而不是进入 public medical opportunity；
+- publish merge 包含新增三源的 verified canonical records；
+- snapshot durable readback 一致；
+- 不依赖 self-hosted runner；
+- 不靠人工写入数据；
+- 不修改 Production，先在隔离分支和测试中验收。
 
 ### P0-2｜检查 source freshness health
 每个 source 必须有：
@@ -266,9 +325,9 @@ P1 relevance gate 先不要写生产代码。
 
 - V0 产品定义：完成。
 - Gold set：完成。
-- 自动新鲜数据：FAIL / 未满足试验条件。
+- 自动新鲜数据：PARTIAL FAIL。Vercel incremental 对已接入源当天仍运行；tjzyefy/tjzyefy_intent/tjzxfc 因 runtime source parity 缺失而无法获得同等新鲜度，故整体仍未满足试验条件。
 - Agnes relevance benchmark：未执行，不能声称 PASS。
 - 真实客户付费验证：未开始。
 - Production：不改。
 - 独立仓库：不建。
-- 下一步：修复/证明天津同步 freshness；然后跑 Agnes 45-case benchmark。
+- 下一步：先完成 P0 runtime source parity 隔离修复与测试；再跑 Agnes 45-case relevance benchmark。
