@@ -23,7 +23,6 @@ SOURCE_POLICIES: dict[str, dict[str, int]] = {
     "tjfch": {"scan_interval_minutes": 60, "reverify_after_hours": 24, "max_details_per_scan": 12},
     "tjfch_test": {"scan_interval_minutes": 60, "reverify_after_hours": 12, "max_details_per_scan": 12},
     "tjzyefy": {"scan_interval_minutes": 60, "reverify_after_hours": 24, "max_details_per_scan": 12},
-    "tjzyefy_intent": {"scan_interval_minutes": 120, "reverify_after_hours": 24, "max_details_per_scan": 12},
     "tjzxfc": {"scan_interval_minutes": 60, "reverify_after_hours": 24, "max_details_per_scan": 12},
 }
 
