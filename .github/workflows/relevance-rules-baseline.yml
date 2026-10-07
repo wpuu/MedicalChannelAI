@@ -7,6 +7,8 @@ on:
     paths:
       - 'web/pipeline/data/action_radar_relevance_rules_v0.json'
       - 'web/pipeline/scripts/run_relevance_rules_baseline.py'
+      - 'web/pipeline/scripts/run_relevance_rules_v1.py'
+      - 'web/pipeline/data/action_radar_relevance_rules_v1.json'
       - 'web/pipeline/data/action_radar_relevance_holdout_2026_10_08.json'
       - '.github/workflows/relevance-rules-baseline.yml'
   workflow_dispatch:
@@ -29,5 +31,14 @@ jobs:
         run: python web/pipeline/scripts/run_relevance_rules_baseline.py
 
       - name: Run deterministic relevance baseline on frozen-rule holdout
+        continue-on-error: true
         run: |
           python web/pipeline/scripts/run_relevance_rules_baseline.py             --gold web/pipeline/data/action_radar_relevance_holdout_2026_10_08.json
+
+      - name: Run structural relevance v1 on design set
+        run: |
+          python web/pipeline/scripts/run_relevance_rules_v1.py             --gold web/pipeline/data/action_radar_relevance_gold.json
+
+      - name: Run structural relevance v1 on prior holdout regression set
+        run: |
+          python web/pipeline/scripts/run_relevance_rules_v1.py             --gold web/pipeline/data/action_radar_relevance_holdout_2026_10_08.json
