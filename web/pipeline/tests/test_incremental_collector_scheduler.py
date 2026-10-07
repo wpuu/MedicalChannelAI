@@ -58,7 +58,6 @@ class IncrementalCollectorSchedulerTests(unittest.TestCase):
                 "tjfch_test",
                 "teda",
                 "tjzyefy",
-                "tjzyefy_intent",
                 "tjzxfc",
             ),
         )
