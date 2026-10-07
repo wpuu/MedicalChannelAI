@@ -209,11 +209,11 @@ API trigger 继续继承 scheduler explicit allowlist。
 它是官方、有效、当前窗口开放，但不是医疗器械渠道机会。
 
 期望：
-- discovery 可以看到；
-- detail medical-scope gate 将其当 unsupported/non-fact；
 - 不写入 canonical opportunity；
 - 不进入 public snapshot；
-- 不把它当 verification failure 卡死整源。
+- 保持现有 adapter 的过滤层级：若 discovery scope gate 已判定非医疗，可以直接不进入 detail；若进入 detail，则必须作为 unsupported/non-fact 拒绝；
+- 不能为了满足测试而放宽现有医疗范围过滤；
+- 不把正常的 non-medical 排除误算成整源 verification failure。
 
 ### E. tjzyefy procurement intent
 至少一条现有 fixture：
