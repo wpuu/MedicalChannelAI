@@ -1,0 +1,215 @@
+{
+  "schema_version": "0.2",
+  "mode": "ACTION_RADAR_DETERMINISTIC_RELEVANCE_PROFILE",
+  "design_principles": [
+    "Buyer/use-case scope is evaluated before product token matching.",
+    "Exact aliases and direct categories may produce DIRECT_MATCH.",
+    "Adjacent aliases/categories only produce POSSIBLE_MATCH_NEEDS_CONFIRMATION.",
+    "Generic hospital identity alone never creates relevance.",
+    "Equipment and consumable terms must not be collapsed by substring alone."
+  ],
+  "profiles": [
+    {
+      "profile_id": "A",
+      "name": "病理设备渠道商",
+      "allowed_buyer_scopes": [
+        "CLINICAL_PROVIDER",
+        "UNKNOWN"
+      ],
+      "possible_terms": [
+        "病理设备",
+        "病理科设备"
+      ],
+      "items": [
+        {
+          "id": "A1",
+          "name": "包埋盒打号机",
+          "match_mode": "EXACT_PRODUCT",
+          "direct_aliases": [
+            "包埋盒打号机"
+          ],
+          "possible_aliases": []
+        },
+        {
+          "id": "A2",
+          "name": "载玻片打号机",
+          "match_mode": "EXACT_PRODUCT",
+          "direct_aliases": [
+            "载玻片打号机",
+            "切片打号机"
+          ],
+          "possible_aliases": []
+        },
+        {
+          "id": "A3",
+          "name": "免疫组化设备",
+          "match_mode": "CATEGORY",
+          "direct_aliases": [
+            "免疫组化设备",
+            "免疫组化染色机",
+            "全自动冰冻免疫组化染色机"
+          ],
+          "possible_aliases": [
+            "免疫组化"
+          ]
+        },
+        {
+          "id": "A4",
+          "name": "病理信息化设备",
+          "match_mode": "CATEGORY",
+          "direct_aliases": [
+            "病理信息系统",
+            "病理信息化设备"
+          ],
+          "possible_aliases": [
+            "病理信息化"
+          ]
+        }
+      ]
+    },
+    {
+      "profile_id": "B",
+      "name": "手术/消毒设备渠道商",
+      "allowed_buyer_scopes": [
+        "CLINICAL_PROVIDER",
+        "UNKNOWN"
+      ],
+      "possible_terms": [
+        "手术室设备及附件"
+      ],
+      "items": [
+        {
+          "id": "B1",
+          "name": "脉动真空灭菌器",
+          "match_mode": "EXACT_PRODUCT",
+          "direct_aliases": [
+            "脉动真空灭菌器"
+          ],
+          "possible_aliases": [
+            "灭菌器",
+            "灭菌锅"
+          ],
+          "related_categories": [
+            "消毒灭菌设备及器具"
+          ]
+        },
+        {
+          "id": "B2",
+          "name": "手术动力系统",
+          "match_mode": "CATEGORY",
+          "direct_aliases": [
+            "手术动力系统",
+            "骨动力系统",
+            "电动骨动力系统",
+            "电动骨组织手术设备",
+            "高速动力系统"
+          ],
+          "possible_aliases": [
+            "微动力系统",
+            "牙科微动力系统"
+          ]
+        },
+        {
+          "id": "B3",
+          "name": "消融设备",
+          "match_mode": "CATEGORY",
+          "direct_aliases": [
+            "消融设备",
+            "消融系统",
+            "微波消融系统",
+            "射频消融系统"
+          ],
+          "possible_aliases": [
+            "微波消融",
+            "射频消融"
+          ]
+        },
+        {
+          "id": "B4",
+          "name": "手术器械",
+          "match_mode": "BROAD_CATEGORY",
+          "direct_aliases": [
+            "手术器械"
+          ],
+          "possible_aliases": [
+            "内窥镜",
+            "腔镜器械"
+          ],
+          "related_categories": [
+            "医用内窥镜"
+          ]
+        }
+      ]
+    },
+    {
+      "profile_id": "C",
+      "name": "检验/试剂/常用耗材渠道商",
+      "allowed_buyer_scopes": [
+        "CLINICAL_PROVIDER",
+        "UNKNOWN"
+      ],
+      "possible_terms": [
+        "检验科医用耗材",
+        "检验科耗材",
+        "临床检验耗材"
+      ],
+      "items": [
+        {
+          "id": "C1",
+          "name": "检验设备",
+          "match_mode": "CATEGORY",
+          "direct_aliases": [
+            "临床检验设备",
+            "临检实验室设备",
+            "流式细胞仪",
+            "全自动化学发光免疫分析仪",
+            "微生物培养系统"
+          ],
+          "possible_aliases": [
+            "检验设备"
+          ]
+        },
+        {
+          "id": "C2",
+          "name": "检验试剂",
+          "match_mode": "CATEGORY",
+          "direct_aliases": [
+            "检验试剂",
+            "体外诊断试剂"
+          ],
+          "possible_aliases": [
+            "试剂耗材",
+            "试剂"
+          ]
+        },
+        {
+          "id": "C3",
+          "name": "培养基",
+          "match_mode": "CATEGORY",
+          "direct_aliases": [
+            "细菌培养基",
+            "真菌培养基",
+            "微生物培养基",
+            "培养基"
+          ],
+          "possible_aliases": []
+        },
+        {
+          "id": "C4",
+          "name": "负压引流/吸痰耗材",
+          "match_mode": "CATEGORY",
+          "direct_aliases": [
+            "可控负压吸痰管",
+            "吸痰管",
+            "负压引流管",
+            "负压引流耗材"
+          ],
+          "possible_aliases": [
+            "吸痰耗材",
+            "负压引流耗材"
+          ]
+        }
+      ]
+    }
+  ]
+}
