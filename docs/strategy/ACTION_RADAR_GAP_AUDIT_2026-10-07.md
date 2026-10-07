@@ -280,7 +280,7 @@ V0 建议：
 - 三源有独立 RuntimeCache canonical state 与 bootstrap；
 - incremental scan 可以复用既有 discovery/detail parser；
 - 9/28 tjzyefy 康复设备调研能被真实 incremental scan 发现并验证；
-- 9/30 数据安全调研被 discovery 看到后，必须由既有 medical-scope 验证拒绝为非医疗事实，而不是进入 public medical opportunity；
+- 9/30 数据安全调研不得进入 public medical opportunity；保持既有 adapter 的 fail-closed 语义，允许在 discovery scope gate 直接过滤，或在 detail scope gate 作为 unsupported/non-fact 拒绝；
 - publish merge 包含新增三源的 verified canonical records；
 - snapshot durable readback 一致；
 - 不依赖 self-hosted runner；
