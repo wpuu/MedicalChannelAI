@@ -1,0 +1,102 @@
+name: Agnes Relevance Gate Benchmark
+
+on:
+  push:
+    branches:
+      - codex/medical-action-relevance-benchmark
+    paths:
+      - 'web/pipeline/data/action_radar_relevance_gold.json'
+      - 'web/pipeline/scripts/run_agnes_relevance_benchmark.py'
+      - 'web/pipeline/tests/test_agnes_relevance_benchmark.py'
+      - '.github/workflows/agnes-relevance-benchmark.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  relevance-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run offline contract tests
+        working-directory: web/pipeline
+        run: python -m unittest tests.test_agnes_relevance_benchmark -v
+
+      - name: Verify Agnes secret exists
+        env:
+          AGNES_API_KEYS: \${{ secrets.AGNES_API_KEYS }}
+        run: |
+          if [[ -z "$AGNES_API_KEYS" ]]; then
+            echo 'AGNES_API_KEYS is not configured; refusing to fake relevance results.' >&2
+            exit 2
+          fi
+
+      - name: Run 45-case Agnes relevance benchmark
+        id: benchmark
+        continue-on-error: true
+        env:
+          AGNES_API_KEYS: \${{ secrets.AGNES_API_KEYS }}
+        run: |
+          python web/pipeline/scripts/run_agnes_relevance_benchmark.py \
+            --output /tmp/agnes-relevance-benchmark.json
+
+      - name: Print sanitized benchmark summary
+        if: always()
+        run: |
+          if [[ -f /tmp/agnes-relevance-benchmark.json ]]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('/tmp/agnes-relevance-benchmark.json')
+          d = json.loads(p.read_text(encoding='utf-8'))
+          print('BENCHMARK_PASS=' + str(d.get('benchmark_pass')))
+          print('METRICS=' + json.dumps(d.get('metrics') or {}, ensure_ascii=False, sort_keys=True))
+          print('GATES=' + json.dumps(d.get('gates') or {}, ensure_ascii=False, sort_keys=True))
+          failures = d.get('failures') or []
+          print('FAILURE_COUNT=' + str(len(failures)))
+          for row in failures[:20]:
+              print(
+                  'FAIL_CASE='
+                  + str(row.get('case_id')) + '/'
+                  + str(row.get('profile_id'))
+                  + ' expected=' + str(row.get('expected'))
+                  + ' predicted=' + str(row.get('predicted'))
+                  + ' ids=' + ','.join(row.get('matched_profile_item_ids') or [])
+                  + ' error=' + str(row.get('error') or '-')
+              )
+          PY
+          else
+            echo 'BENCHMARK_REPORT_MISSING'
+          fi
+
+      - name: Upload benchmark report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agnes-relevance-benchmark
+          path: /tmp/agnes-relevance-benchmark.json
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Enforce benchmark result
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('/tmp/agnes-relevance-benchmark.json')
+          if not p.exists():
+              raise SystemExit(2)
+          d = json.loads(p.read_text(encoding='utf-8'))
+          raise SystemExit(0 if d.get('benchmark_pass') is True else 3)
+          PY
