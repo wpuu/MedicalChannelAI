@@ -1,0 +1,418 @@
+{
+  "schema_version": "0.1",
+  "benchmark": "MED_ACTION_RELEVANCE_HOLDOUT_2026_10_08",
+  "source_snapshot_as_of": "2026-10-07T08:27:29.025919+08:00",
+  "source": "https://medicalchannelai.vercel.app/api/public-snapshot",
+  "rules_frozen_commit": "214ca59cc18035817992bfe22330dc8d813de81d",
+  "note": "Labels were assigned after freezing rules_v0. This holdout intentionally includes buyer/use-case traps and title-vs-product-detail cases.",
+  "opportunities": [
+    {
+      "case_id": "H01",
+      "opportunity_id": "ccgp_hl_9dab0ee46dec9cdb",
+      "project_name": "检验试剂采购项目(二次)",
+      "product_categories": [
+        "其他医药品"
+      ],
+      "product_items": [
+        "检验试剂采购",
+        "过敏原检验试剂项目采购"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "H02",
+      "opportunity_id": "ccgp_hl_2790354df8bb0615",
+      "project_name": "临床检验设备(二次)",
+      "product_categories": [
+        "临床检验设备"
+      ],
+      "product_items": [
+        "恒温培养箱",
+        "细胞计数器",
+        "高速低温离心机",
+        "低速离心机",
+        "试剂卡孵育器",
+        "恒温水箱",
+        "血型血清学多用离心机",
+        "自动高频热合机"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "H03",
+      "opportunity_id": "ccgp_hl_63e6475c5f3a5388",
+      "project_name": "检验检测仪器设备更新项目-7",
+      "product_categories": [
+        "物理特性分析仪器及校准仪器",
+        "光学式分析仪器",
+        "金属材料试验机",
+        "其他试验仪器及装置",
+        "振动台与冲击台",
+        "色谱仪",
+        "数字仪表及装置",
+        "其他仪器仪表"
+      ],
+      "product_items": [
+        "费休氏水分测定仪",
+        "拉曼光谱仪",
+        "硬度计(维氏)",
+        "硬度计(洛氏)",
+        "球磨机",
+        "振动试验台",
+        "运输颠簸试验台",
+        "气相色谱仪"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H04",
+      "opportunity_id": "ccgp_bj_12a4ad82883a05d6",
+      "project_name": "北京市丰台区食品药品安全监控中心药品检验检测设备更新项目",
+      "product_categories": [],
+      "product_items": [
+        "高效液相色谱仪 1"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H05",
+      "opportunity_id": "ccgp_hl_c1ca0631ec9622b1",
+      "project_name": "2026年食品药品检验耗材",
+      "product_categories": [
+        "其他基础化学品及相关产品",
+        "生物试剂盒",
+        "塑料制品",
+        "玻璃仪器及实验、医疗用玻璃器皿",
+        "其他橡胶、塑料、玻璃和陶瓷制品",
+        "分析仪器辅助装置",
+        "技术陶瓷制品",
+        "其他用具",
+        "教具",
+        "纸制品",
+        "病房护理及医院设备",
+        "化学试剂和助剂",
+        "微生物培养基"
+      ],
+      "product_items": [
+        "固相萃取小柱",
+        "萃取管",
+        "净化管",
+        "盐包",
+        "季铵盐交换柱"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H06",
+      "opportunity_id": "ccgp_hl_edc6775d4b4a188c",
+      "project_name": "检验科体外诊断试剂盒（流式细胞仪）(四次)",
+      "product_categories": [
+        "其他诊断用生物制品"
+      ],
+      "product_items": [
+        "CD3抗体试剂",
+        "CD4抗体试剂",
+        "CD8抗体试剂",
+        "PD-1(CD279)检测试剂（流式细胞仪法）",
+        "白细胞分化抗原CD19检测试剂盒(流式细胞仪法-APC)"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "H07",
+      "opportunity_id": "ccgp_hl_73153829a201f760",
+      "project_name": "全自动微生物培养系统、全自动化学发光免疫分析仪、全自动粪便分析仪(五次)",
+      "product_categories": [
+        "临床检验设备"
+      ],
+      "product_items": [
+        "全自动化学发光免疫分析仪"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "H08",
+      "opportunity_id": "ccgp_hl_3653386a43b17661",
+      "project_name": "医用吸引系统吸引器、手术器械、腔镜器械",
+      "product_categories": [
+        "急救和生命支持设备",
+        "手术器械"
+      ],
+      "product_items": [
+        "医用吸引系统吸引器",
+        "手术器械",
+        "腔镜器械"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "DIRECT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H09",
+      "opportunity_id": "ccgp_hl_901900d85388c0d7",
+      "project_name": "高质量发展项目（国产医疗设备类）1",
+      "product_categories": [
+        "手术室设备及附件",
+        "手术器械"
+      ],
+      "product_items": [
+        "高频电刀",
+        "常规手术器械",
+        "微创搭桥、瓣膜手术器械"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H10",
+      "opportunity_id": "ccgp_hl_80d64325f86dda18",
+      "project_name": "显微内镜手术器械、电动骨组织手术设备采购项目",
+      "product_categories": [
+        "手术器械",
+        "手术室设备及附件"
+      ],
+      "product_items": [
+        "显微内镜手术器械",
+        "电动骨组织手术设备"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "DIRECT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H11",
+      "opportunity_id": "ccgp_hl_2888b1c0b348326c",
+      "project_name": "神经外科经鼻颅底手术器械、高速动力系统及附件、小儿多功能头部固定系统采购项目(二次)",
+      "product_categories": [
+        "手术器械"
+      ],
+      "product_items": [
+        "神经外科经鼻颅底手术器械"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "DIRECT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H12",
+      "opportunity_id": "ccgp_hl_c9082eed94d029fa",
+      "project_name": "第五医院2025年医疗设备更新项目1",
+      "product_categories": [
+        "医用内窥镜"
+      ],
+      "product_items": [
+        "电子消化道内窥镜系统",
+        "超声内窥镜系统",
+        "电子支气管镜系统",
+        "全高清电子动态鼻咽喉镜系统"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H13",
+      "opportunity_id": "ccgp_bj_5f1f42d75ab9ab37",
+      "project_name": "2026年北京大学口腔医院医疗及技工类设备购置项目（第二批）",
+      "product_categories": [],
+      "product_items": [
+        "口腔数字印模仪",
+        "面部三维扫描仪",
+        "心肺复苏机",
+        "三维头戴系统",
+        "口外摄像系统",
+        "医用注射泵",
+        "超声洁牙喷砂一体机",
+        "牙科微动力系统"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H14",
+      "opportunity_id": "ccgp_hl_a9d38dd2109320fc",
+      "project_name": "CT设备更新(二次)",
+      "product_categories": [
+        "普通诊察器械"
+      ],
+      "product_items": [
+        "CT设备更新"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H15",
+      "opportunity_id": "ccgp_hl_ef29ecc91b070dc6",
+      "project_name": "彩色超声采购",
+      "product_categories": [
+        "医用超声波仪器及设备"
+      ],
+      "product_items": [
+        "北安市第一人民医院彩色超声采购"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H16",
+      "opportunity_id": "ccgp_hl_1356695bc42c937c",
+      "project_name": "麻醉科多功能监护仪",
+      "product_categories": [
+        "医用电子生理参数检测仪器设备"
+      ],
+      "product_items": [
+        "多功能监护仪1",
+        "多功能监护仪2"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H17",
+      "opportunity_id": "ccgp_hl_6ea949e51664252c",
+      "project_name": "大庆市120院前急救服务能力提升项目(二次)",
+      "product_categories": [
+        "其他医疗设备"
+      ],
+      "product_items": [
+        "监护仪",
+        "可视喉镜",
+        "自动心肺复苏机",
+        "心电图机",
+        "吸痰器",
+        "呼吸机",
+        "除颤仪"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H18",
+      "opportunity_id": "ccgp_hl_151c4379cd8cba29",
+      "project_name": "流式细胞仪、倒置相差显微镜等设备采购项目",
+      "product_categories": [
+        "医用低温、冷疗设备",
+        "临床检验设备",
+        "医用光学仪器",
+        "消毒灭菌设备及器具"
+      ],
+      "product_items": [
+        "-86℃超低温冰箱",
+        "A2生物安全柜",
+        "CO2细胞培养箱",
+        "倒置相差显微镜",
+        "流式细胞仪",
+        "灭菌锅",
+        "台式灭菌器",
+        "微生物培养箱"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "H19",
+      "opportunity_id": "ccgp_ln_883189964e9cb1fa",
+      "project_name": "沈阳市市场监管食品领域检验检测设备更新项目 包组编号：001",
+      "product_categories": [],
+      "product_items": [
+        "II级A2型生物安全柜",
+        "生物光学显微镜（三目）",
+        "酶标仪（连续波长）",
+        "96通道实时荧光定量PCR仪（六色）"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "H20",
+      "opportunity_id": "ccgp_bj_082a556e82d6e583",
+      "project_name": "检验科医用耗材购置项目",
+      "product_categories": [],
+      "product_items": [
+        "检验科医用耗材购置"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "POSSIBLE_MATCH_NEEDS_CONFIRMATION"
+      }
+    },
+    {
+      "case_id": "H21",
+      "opportunity_id": "ccgp_hl_e0fd2eba998cfd6a",
+      "project_name": "检验试剂耗材一批",
+      "product_categories": [
+        "其他病人医用试剂"
+      ],
+      "product_items": [
+        "医院检验试剂耗材一批"
+      ],
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    }
+  ]
+}
