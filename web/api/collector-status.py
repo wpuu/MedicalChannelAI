@@ -7,6 +7,7 @@ from typing import Any
 from vercel.functions import RuntimeCache
 
 import collector_runtime as runtime
+from collector_automation_health import public_automation_health
 from collector_incremental import SOURCE_POLICIES, normalize_ledger
 from collector_incremental_scheduler import SCHEDULED_INCREMENTAL_SOURCES
 from collector_incremental_ticks import (
@@ -172,6 +173,7 @@ class handler(BaseHTTPRequestHandler):
                         "completed_stage_count": completed,
                         "total_stage_count": len(STAGE_ORDER),
                         "incremental": _incremental_status(cache),
+                        "automation": public_automation_health(cache),
                     },
                 },
             )
