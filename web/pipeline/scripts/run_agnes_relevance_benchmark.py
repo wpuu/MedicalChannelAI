@@ -190,6 +190,7 @@ def main() -> int:
     results: list[dict] = []
     invalid_count = 0
     request_failure_count = 0
+    provider_auth_failure_count = 0
 
     case_index = 0
     for opportunity in opportunities:
@@ -224,6 +225,8 @@ def main() -> int:
                     error = f"{type(exc).__name__}:{str(exc)[:120]}"
                     if attempt + 1 == MAX_ATTEMPTS:
                         request_failure_count += 1
+                        if "AGNES_HTTP_401" in error or "AGNES_HTTP_403" in error:
+                            provider_auth_failure_count += 1
                 if attempt + 1 < MAX_ATTEMPTS:
                     time.sleep(0.25)
 
@@ -267,8 +270,17 @@ def main() -> int:
         "possible_to_direct_overclaim_pct": pct(possible_overclaim, len(possible)),
         "invalid_final_count": invalid_final,
         "request_failure_count": request_failure_count,
+        "provider_auth_failure_count": provider_auth_failure_count,
         "parser_invalid_final_count": invalid_count,
     }
+    benchmark_valid = request_failure_count == 0 and invalid_final == 0
+    benchmark_status = (
+        "BLOCKED_PROVIDER_AUTH"
+        if provider_auth_failure_count > 0
+        else "BLOCKED_PROVIDER_OR_TRANSPORT"
+        if request_failure_count > 0
+        else "VALID"
+    )
     gates = {
         "hard_negative_false_positive_pct_lte_5": (metrics["hard_negative_false_positive_pct"] or 0) <= 5.0,
         "direct_match_recall_pct_gte_90": (metrics["direct_match_recall_pct"] or 0) >= 90.0,
@@ -276,7 +288,7 @@ def main() -> int:
         "invalid_final_zero": invalid_final == 0,
         "exact_accuracy_pct_gte_90": (metrics["exact_accuracy_pct"] or 0) >= 90.0,
     }
-    passed = all(gates.values())
+    passed = benchmark_valid and all(gates.values())
     report = {
         "schema_version": "0.1",
         "mode": "AGNES_RELEVANCE_GATE_BENCHMARK",
@@ -288,14 +300,16 @@ def main() -> int:
         "raw_model_text_persisted": False,
         "metrics": metrics,
         "gates": gates,
-        "benchmark_pass": passed,
+        "benchmark_valid": benchmark_valid,
+        "benchmark_status": benchmark_status,
+        "benchmark_pass": passed if benchmark_valid else None,
         "failures": [row for row in results if not row["pass"]],
         "results": results,
     }
     write_json(args.output, report)
     print(
         "AGNES_RELEVANCE_BENCHMARK "
-        f"pass={passed} exact={metrics['exact_accuracy_pct']}% "
+        f"status={benchmark_status} pass={report['benchmark_pass']} exact={metrics['exact_accuracy_pct']}% "
         f"hard_negative_fp={metrics['hard_negative_false_positive_pct']}% "
         f"direct_recall={metrics['direct_match_recall_pct']}% "
         f"possible_overclaim={metrics['possible_to_direct_overclaim_pct']}% "
@@ -309,6 +323,8 @@ def main() -> int:
             f"ids={','.join(row['matched_profile_item_ids']) or '-'} "
             f"error={row['error'] or '-'}"
         )
+    if not benchmark_valid:
+        return 4
     return 0 if passed else 3
 
 
