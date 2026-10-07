@@ -1,0 +1,341 @@
+{
+  "schema_version": "0.1",
+  "benchmark": "MED_ACTION_RELEVANCE_V0",
+  "purpose": "Test Agnes 3.0 Flash as a semantic relevance gate only. Expected labels are never included in model input.",
+  "labels": [
+    "DIRECT_MATCH",
+    "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+    "NOT_MATCH"
+  ],
+  "profiles": [
+    {
+      "profile_id": "A",
+      "name": "病理设备渠道商",
+      "items": [
+        {
+          "id": "A1",
+          "name": "包埋盒打号机"
+        },
+        {
+          "id": "A2",
+          "name": "载玻片打号机"
+        },
+        {
+          "id": "A3",
+          "name": "免疫组化设备"
+        },
+        {
+          "id": "A4",
+          "name": "病理信息化设备"
+        }
+      ]
+    },
+    {
+      "profile_id": "B",
+      "name": "手术/消毒设备渠道商",
+      "items": [
+        {
+          "id": "B1",
+          "name": "脉动真空灭菌器"
+        },
+        {
+          "id": "B2",
+          "name": "手术动力系统"
+        },
+        {
+          "id": "B3",
+          "name": "消融设备"
+        },
+        {
+          "id": "B4",
+          "name": "手术器械"
+        }
+      ]
+    },
+    {
+      "profile_id": "C",
+      "name": "检验/试剂/常用耗材渠道商",
+      "items": [
+        {
+          "id": "C1",
+          "name": "检验设备"
+        },
+        {
+          "id": "C2",
+          "name": "检验试剂"
+        },
+        {
+          "id": "C3",
+          "name": "培养基"
+        },
+        {
+          "id": "C4",
+          "name": "负压引流/吸痰耗材"
+        }
+      ]
+    }
+  ],
+  "opportunities": [
+    {
+      "case_id": "G01",
+      "project_name": "天津市中心妇产科医院载玻片打号机采购项目市场调研邀请公告",
+      "product_categories": [
+        "病理设备"
+      ],
+      "product_items": [
+        "载玻片打号机"
+      ],
+      "lifecycle_state": "MARKET_RESEARCH",
+      "source_note": "Existing repository regression fixture based on official-hospital source contract.",
+      "expected": {
+        "A": "DIRECT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "G02",
+      "project_name": "可控负压吸痰管院内调研",
+      "product_categories": [
+        "医用耗材"
+      ],
+      "product_items": [
+        "可控负压吸痰管"
+      ],
+      "lifecycle_state": "MARKET_RESEARCH",
+      "source_note": "ACTION_RADAR_GOLDSET G01.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "G03",
+      "project_name": "刺探针、包皮切割吻合器、活检针调研",
+      "product_categories": [
+        "手术器械"
+      ],
+      "product_items": [
+        "刺探针",
+        "包皮切割吻合器",
+        "活检针"
+      ],
+      "lifecycle_state": "MARKET_RESEARCH",
+      "source_note": "ACTION_RADAR_GOLDSET G02; broad-category ambiguity case.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "G04",
+      "project_name": "脉动真空灭菌器采购意向",
+      "product_categories": [
+        "消毒灭菌设备及器具"
+      ],
+      "product_items": [
+        "脉动真空灭菌器"
+      ],
+      "lifecycle_state": "PROCUREMENT_INTENT",
+      "source_note": "ACTION_RADAR_GOLDSET G03.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "DIRECT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "G05",
+      "project_name": "流式细胞仪等医疗设备采购意向",
+      "product_categories": [
+        "临床检验设备"
+      ],
+      "product_items": [
+        "流式细胞仪"
+      ],
+      "lifecycle_state": "PROCUREMENT_INTENT",
+      "source_note": "ACTION_RADAR_GOLDSET G04.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "G06",
+      "project_name": "细菌室培养基询价",
+      "product_categories": [
+        "检验试剂",
+        "医用耗材"
+      ],
+      "product_items": [
+        "细菌培养基",
+        "真菌培养基"
+      ],
+      "lifecycle_state": "QUALIFICATION_WINDOW",
+      "source_note": "ACTION_RADAR_GOLDSET G05.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "G07",
+      "project_name": "人工智能法律数据库采购项目",
+      "product_categories": [
+        "软件服务"
+      ],
+      "product_items": [
+        "人工智能法律数据库"
+      ],
+      "lifecycle_state": "QUALIFICATION_WINDOW",
+      "source_note": "ACTION_RADAR_GOLDSET G06; hospital-identity hard negative.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "G08",
+      "project_name": "医院门禁项目",
+      "product_categories": [
+        "安防工程"
+      ],
+      "product_items": [
+        "门禁系统"
+      ],
+      "lifecycle_state": "QUALIFICATION_WINDOW",
+      "source_note": "ACTION_RADAR_GOLDSET G07; hospital-identity hard negative.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "G09",
+      "project_name": "手术器械公开招标",
+      "product_categories": [
+        "手术器械"
+      ],
+      "product_items": [
+        "手术器械"
+      ],
+      "lifecycle_state": "FORMAL_TENDER",
+      "source_note": "ACTION_RADAR_GOLDSET G08.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "DIRECT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "G10",
+      "project_name": "试剂耗材采购项目",
+      "product_categories": [
+        "检验试剂",
+        "医用耗材"
+      ],
+      "product_items": [
+        "试剂耗材"
+      ],
+      "lifecycle_state": "FORMAL_TENDER",
+      "source_note": "ACTION_RADAR_GOLDSET G10.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "G11",
+      "project_name": "临检实验室设备采购项目",
+      "product_categories": [
+        "临床检验设备"
+      ],
+      "product_items": [
+        "临检实验室设备"
+      ],
+      "lifecycle_state": "FORMAL_TENDER",
+      "source_note": "ACTION_RADAR_GOLDSET G11.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "DIRECT_MATCH"
+      }
+    },
+    {
+      "case_id": "G12",
+      "project_name": "数字减影血管造影机采购项目",
+      "product_categories": [
+        "医用X线诊断设备"
+      ],
+      "product_items": [
+        "数字减影血管造影机"
+      ],
+      "lifecycle_state": "AWARD_RESULT",
+      "source_note": "ACTION_RADAR_GOLDSET G12; high-value irrelevant equipment negative.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "G13",
+      "project_name": "医用内窥镜采购项目",
+      "product_categories": [
+        "医用内窥镜"
+      ],
+      "product_items": [
+        "医用内窥镜"
+      ],
+      "lifecycle_state": "AWARD_RESULT",
+      "source_note": "ACTION_RADAR_GOLDSET G13; broad surgery-related ambiguity.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "POSSIBLE_MATCH_NEEDS_CONFIRMATION",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "G14",
+      "project_name": "医院家具采购项目",
+      "product_categories": [
+        "家具"
+      ],
+      "product_items": [
+        "办公家具",
+        "医用家具"
+      ],
+      "lifecycle_state": "FORMAL_TENDER",
+      "source_note": "ACTION_RADAR_GOLDSET G14; hospital-identity hard negative.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    },
+    {
+      "case_id": "G15",
+      "project_name": "口腔牙冠类耗材限价挂网价格通知",
+      "product_categories": [
+        "口腔耗材"
+      ],
+      "product_items": [
+        "口腔牙冠"
+      ],
+      "lifecycle_state": "POLICY_OR_PRICING",
+      "source_note": "ACTION_RADAR_GOLDSET G15; medical but outside all three personas.",
+      "expected": {
+        "A": "NOT_MATCH",
+        "B": "NOT_MATCH",
+        "C": "NOT_MATCH"
+      }
+    }
+  ]
+}
