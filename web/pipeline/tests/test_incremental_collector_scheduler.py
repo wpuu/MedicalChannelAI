@@ -51,7 +51,16 @@ class IncrementalCollectorSchedulerTests(unittest.TestCase):
         self.assertNotIn("ccgp", SCHEDULED_INCREMENTAL_SOURCES)
         self.assertEqual(
             SCHEDULED_INCREMENTAL_SOURCES,
-            ("tjmugh", "tjnothop", "tjfch", "tjfch_test", "teda"),
+            (
+                "tjmugh",
+                "tjnothop",
+                "tjfch",
+                "tjfch_test",
+                "teda",
+                "tjzyefy",
+                "tjzyefy_intent",
+                "tjzxfc",
+            ),
         )
 
     def test_selection_is_side_effect_free_until_queue_accepts_source(self) -> None:
