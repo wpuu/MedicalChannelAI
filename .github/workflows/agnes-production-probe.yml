@@ -1,0 +1,50 @@
+name: Production Agnes Auth Probe
+
+on:
+  push:
+    branches:
+      - codex/medical-action-relevance-benchmark
+    paths:
+      - '.github/workflows/agnes-production-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe one verified public opportunity
+        env:
+          URL: https://medicalchannelai.vercel.app/api/ai/analyze
+          OPPORTUNITY_ID: ccgp_hl_151c4379cd8cba29
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          status="$(
+            curl -sS -o "$body" -w '%{http_code}' \
+              -X POST "$URL" \
+              -H 'Origin: https://medicalchannelai.vercel.app' \
+              -H 'Content-Type: application/json' \
+              --data "{\"opportunity_id\":\"$OPPORTUNITY_ID\"}"
+          )"
+          python - "$status" "$body" <<'PY'
+          import json,sys
+          status=int(sys.argv[1])
+          p=sys.argv[2]
+          try:
+              data=json.load(open(p,'r',encoding='utf-8'))
+          except Exception:
+              data={}
+          print('HTTP_STATUS='+str(status))
+          print('ERROR_CODE='+str(data.get('error') or '-'))
+          print('DECISION_SOURCE='+str(data.get('decision_source') or '-'))
+          print('OPPORTUNITY_ID='+str(data.get('opportunity_id') or '-'))
+          if status == 200 and data.get('opportunity_id'):
+              raise SystemExit(0)
+          if data.get('error') == 'AI_PROVIDER_AUTH_UNAVAILABLE':
+              raise SystemExit(3)
+          raise SystemExit(4)
+          PY
