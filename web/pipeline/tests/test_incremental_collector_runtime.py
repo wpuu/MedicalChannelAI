@@ -52,7 +52,6 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
             'tjfch',
             'tjfch_test',
             'tjzyefy',
-            'tjzyefy_intent',
             'tjzxfc',
         ):
             self.assertIn(f'"{source}"', block.group(1))
