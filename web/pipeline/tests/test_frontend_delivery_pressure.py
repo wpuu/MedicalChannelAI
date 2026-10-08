@@ -59,7 +59,7 @@ class FrontendDeliveryPressureTests(unittest.TestCase):
         self.assertNotIn("import { clearLocalCustomerProfile } from '@/services/localCustomerProfile'", layout)
         self.assertIn("const [mockModule, followupModule, profileModule] = await Promise.all([", layout)
 
-    def test_today_ai_client_is_loaded_only_for_demo_cache_or_explicit_analysis(self) -> None:
+    def test_today_ai_client_is_lazy_loaded_for_rules_brief_and_fallback(self) -> None:
         today = (WEB_ROOT / "src" / "pages" / "TodayPage.tsx").read_text(encoding="utf-8")
         self.assertNotIn("from '@/services/aiDecisionApi'", today)
         self.assertIn(
@@ -71,6 +71,8 @@ class FrontendDeliveryPressureTests(unittest.TestCase):
         self.assertIn("cause instanceof aiApi.AiDecisionError", today)
         self.assertIn("aiApi.aiDecisionErrorMessage(cause)", today)
         self.assertIn("if (!isApiMode && isVerifiedPublicDemo)", today)
+        self.assertIn("aiApi.requestPageBrief(marketCodesForSelection(), { cacheOnly: true })", today)
+        self.assertIn("aiApi.requestPageBrief(marketCodesForSelection())", today)
 
     def test_today_outreach_drawer_is_loaded_only_after_user_opens_it(self) -> None:
         today = (WEB_ROOT / "src" / "pages" / "TodayPage.tsx").read_text(encoding="utf-8")

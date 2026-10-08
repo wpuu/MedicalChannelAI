@@ -83,13 +83,6 @@ function actionableDeadline(card: TodayActionCard): string | null {
   return null
 }
 
-function scoreText(card: TodayActionCard): string {
-  const scope = card.priority.score_scope ?? 'PUBLIC'
-  const label = scope === 'PERSONALIZED' ? '个性化分' : '公开分'
-  const denominator = scope === 'PERSONALIZED' ? 100 : 60
-  return `${card.priority.score}/${denominator} ${label}`
-}
-
 export function TargetHospitalsPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -268,7 +261,7 @@ export function TargetHospitalsPage() {
                             <div className="min-w-0">
                               <p className="text-[13px] font-medium leading-5 text-slate-800">{card.facts.project_name ?? '未命名商机'}</p>
                               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500">
-                                <span>{scoreText(card)}</span>
+                                <span>{card.facts.notice_type ?? '公开采购信息'}</span>
                                 {budget ? <span>预算 {budget}</span> : null}
                                 {deadline ? <span>{deadline}</span> : null}
                               </div>

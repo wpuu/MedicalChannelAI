@@ -92,23 +92,23 @@ export const MODEL_STATUS_COPY: Record<
   { title: string; hint: string }
 > = {
   READY: {
-    title: 'AI行动建议',
-    hint: '基于已提供的公开事实与客户自有资源生成，不代表中标预测。',
+    title: '下一步行动',
+    hint: '按已核验公开事实（及你已确认的资源）用固定规则生成，不代表中标预测。',
   },
   AWAITING_MODEL: {
-    title: '可按需进行AI分析',
-    hint: '尚未发起AI请求。需要时由你主动分析这条商机，不会在后台自动消耗额度。',
+    title: '下一步行动待生成',
+    hint: '按已核验公开事实即时生成，不调用AI、不消耗额度。'
   },
   BLOCKED_GROUNDING: {
-    title: '公开依据不足，暂不生成AI建议',
+    title: '公开依据不足，暂不生成行动建议',
     hint: '缺少足够的官方公开信息，系统不会据此编造行动建议。',
   },
   MODEL_OUTPUT_REJECTED: {
-    title: 'AI输出未通过事实校验',
+    title: '生成内容未通过事实校验',
     hint: '生成内容无法被已有公开事实支撑，已拒绝展示。',
   },
   NOT_ELIGIBLE: {
-    title: '当前不需要AI建议',
+    title: '当前不需要行动建议',
     hint: '该商机暂未达到需要生成行动建议的条件。',
   },
 }

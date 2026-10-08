@@ -41,7 +41,6 @@ import {
 } from '@/services/runtimeStatusApi'
 import type { FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
 
-const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'
 
 export function OpportunityDetailPage() {
   const { id } = useParams()
@@ -211,7 +210,7 @@ export function OpportunityDetailPage() {
         model_block_reason: null,
         decision,
       })
-      toast('AI行动建议已生成', 'success')
+      toast('下一步行动已生成', 'success')
     } catch (cause) {
       if (cause instanceof AiDecisionError && cause.code === 'AUTH_REQUIRED') {
         navigate('/login', { replace: true })
@@ -250,11 +249,6 @@ export function OpportunityDetailPage() {
   const outreachDisabled = historical || groundingUnavailable || Boolean(automationUnavailableReason)
   const outreachDisabledReason = automationUnavailableReason ||
     (groundingUnavailable ? '公开依据不足，暂不能生成沟通草稿' : null)
-  const aiUnavailableReason = automationUnavailableReason || (
-    !historical && (isApiMode || isVerifiedPublicDemo) && runtimeStatus?.ai.configured === false
-      ? AI_UNCONFIGURED_REASON
-      : null
-  )
 
   return (
     <div className="space-y-4">
@@ -344,7 +338,7 @@ export function OpportunityDetailPage() {
                 ? () => void analyze()
                 : undefined
             }
-            analysisUnavailableReason={aiUnavailableReason}
+            analysisUnavailableReason={automationUnavailableReason}
             analysisDisabled={Boolean(automationUnavailableReason)}
           />
         </>

@@ -6,7 +6,7 @@ import {
   setDurableSnapshotSourceForTests,
   verifiedSnapshotSourceMode,
 } from '../api/_verifiedSnapshot.js'
-import { prewarmCandidateIds } from '../api/ai/_analyzeCore.js'
+import { marketCodeForSnapshotCard, normalizePageBriefMarkets } from '../api/ai/_analyzeCore.js'
 import handler from '../api/ai/analyze.js'
 
 const raw = JSON.parse(
@@ -117,23 +117,13 @@ try {
   setDurableSnapshotSourceForTests(null)
   clearVerifiedSnapshotCacheForTests()
 
-  // ---- Prewarm candidate selection ----------------------------------------
-  const synthetic = {
-    cards: [{ opportunity_id: 'today-1' }, { opportunity_id: 'dup' }],
-    opportunity_pool: [
-      { opportunity_id: 'low', priority: { score: 10 } },
-      { opportunity_id: 'dup', priority: { score: 99 } },
-      { opportunity_id: 'closed', priority: { score: 95 }, model_decision_status: 'NOT_ELIGIBLE' },
-      { opportunity_id: 'high', priority: { score: 80 } },
-      { opportunity_id: 'mid', priority: { score: 50 } },
-    ],
-  }
-  const ids = prewarmCandidateIds(synthetic, 10)
-  if (JSON.stringify(ids) !== JSON.stringify(['today-1', 'dup', 'high', 'mid', 'low'])) {
-    throw new Error(`PREWARM_CANDIDATE_ORDER:${ids.join(',')}`)
-  }
-  if (prewarmCandidateIds(synthetic, 3).length !== 3) throw new Error('PREWARM_CANDIDATE_LIMIT')
-  if (synthetic.opportunity_pool[0].opportunity_id !== 'low') throw new Error('PREWARM_MUTATED_SNAPSHOT')
+  // ---- Page-brief market scoping (prewarm target) ------------------------
+  if (marketCodeForSnapshotCard({ opportunity_id: 'ccgp_hl_x', facts: {} }) !== 'HL') throw new Error('BRIEF_MARKET_PREFIX')
+  if (marketCodeForSnapshotCard({ opportunity_id: 'tjzyefy_intent_1', facts: {} }) !== 'TJ') throw new Error('BRIEF_MARKET_LEGACY_TJ')
+  if (marketCodeForSnapshotCard({ opportunity_id: 'ccgp_hl_x', facts: { market_code: 'bj' } }) !== 'BJ') throw new Error('BRIEF_MARKET_EXPLICIT')
+  if (JSON.stringify(normalizePageBriefMarkets(['tj', 'BJ'])) !== JSON.stringify(['BJ', 'TJ'])) throw new Error('BRIEF_MARKETS_NORMALIZE')
+  if (normalizePageBriefMarkets(['TJ', 'XX']) !== null) throw new Error('BRIEF_MARKETS_UNKNOWN_ACCEPTED')
+  if (normalizePageBriefMarkets([]) !== null || normalizePageBriefMarkets('TJ') !== null) throw new Error('BRIEF_MARKETS_SHAPE')
 
   // ---- Prewarm route auth boundary ----------------------------------------
   delete process.env.AI_PREWARM_TOKEN

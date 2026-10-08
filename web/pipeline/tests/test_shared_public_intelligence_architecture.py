@@ -70,10 +70,10 @@ class SharedPublicIntelligenceArchitectureTests(unittest.TestCase):
 
     def test_existing_ai_cache_is_not_mistaken_for_durable_shared_public_cache(self) -> None:
         source = AI_CORE.read_text(encoding='utf-8')
-        self.assertIn('new Map()', source)
-        self.assertIn('RESULT_CACHE_TTL_MS', source)
-        # Durable regional public AI is a separate persistence layer. The current
-        # process-local decision cache remains private/personalized behavior.
+        self.assertIn('const inFlight = new Map()', source)
+        # The process-local map only collapses concurrent identical page-brief
+        # generations; persistence lives in _publicIntelligenceDb.js.
+        self.assertNotIn('RESULT_CACHE_TTL_MS', source)
         self.assertNotIn('public_ai_briefs', source)
 
 

@@ -110,7 +110,7 @@ export function CustomerResourceBlock({ context }: { context: CustomerContext })
       ) : (
         <div>
           <p className="text-[12px] leading-5 text-slate-500">
-            不填写也能看公开商机；填写后可优化关注范围和AI建议。只填写已确认资源，未知项可以留空。
+            不填写也能看公开商机；填写后可优化关注范围和下一步行动。只填写已确认资源，未知项可以留空。
           </p>
           {canEditResources ? (
             <Link

@@ -49,43 +49,53 @@ class DurablePublicIntelligenceTests(unittest.TestCase):
         self.assertNotIn('customer_context', payload)
         self.assertNotIn('priority', payload)
 
-    def test_public_ai_cache_key_binds_fact_window_and_prompt_version(self) -> None:
+    def test_page_brief_cache_key_binds_region_facts_day_and_prompt_version(self) -> None:
         db = (WEB_ROOT / 'api' / '_publicIntelligenceDb.js').read_text(encoding='utf-8')
         core = (WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js').read_text(encoding='utf-8')
+        brief = (WEB_ROOT / 'api' / 'ai' / '_pageBrief.js').read_text(encoding='utf-8')
         self.assertIn('PRIMARY KEY (opportunity_id, fact_hash, window_state, brief_type, prompt_version)', db)
         self.assertIn('export function publicAiFactHash', db)
         self.assertIn('export async function getOrCreateSharedPublicAiBrief', db)
-        self.assertIn("PUBLIC_AI_PROMPT_VERSION = 'decision-action-selector-v3-public-v1'", core)
-        self.assertIn('decision-action-selector-v3:', core)
-        self.assertIn('publicWindowCacheState(grounded.facts, windowStatus, nowMs)', core)
-        self.assertIn('publicAiFactHash(grounded.facts, grounded.evidenceUrls)', core)
-        self.assertIn('getOrCreateSharedPublicAiBrief({', core)
-        self.assertIn("briefType: 'PUBLIC_ACTION_DECISION'", core)
-        self.assertIn('promptVersion: PUBLIC_AI_PROMPT_VERSION', core)
+        self.assertIn("PAGE_BRIEF_PROMPT_VERSION = 'page-brief-v1'", brief)
+        self.assertIn("PAGE_BRIEF_TYPE = 'PAGE_BRIEF'", brief)
+        self.assertIn("opportunityId: `page-brief:${markets.join('+')}`", core)
+        self.assertIn('fact_hash: publicAiFactHash(item.facts, item.evidenceUrls)', core)
+        self.assertIn('windowState: `day:${shanghaiDateString(nowMs)}`', core)
+        self.assertIn('briefType: PAGE_BRIEF_TYPE', core)
+        self.assertIn('promptVersion: PAGE_BRIEF_PROMPT_VERSION', core)
 
-    def test_provider_result_is_memoized_across_durable_cache_fallback(self) -> None:
+    def test_per_card_next_step_is_deterministic_rules_without_model(self) -> None:
         core = (WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js').read_text(encoding='utf-8')
-        self.assertIn('let createPromise = null', core)
-        self.assertIn('if (!createPromise)', core)
-        self.assertIn('createPromise = getOrCreateWarmDecision(', core)
-        self.assertIn('max_tokens: 900', core)
+        contract = (WEB_ROOT / 'api' / 'ai' / '_decisionContract.js').read_text(encoding='utf-8')
+        start = core.index('function ruleDecisionItem(')
+        block = core[start:core.index('\n}\n', start)]
+        self.assertIn('buildRuleDecision(grounded.facts, grounded.evidenceUrls, customerContext, windowStatus)', block)
+        self.assertNotIn('callProvider', block)
+        self.assertNotIn('RateLimit', block)
+        self.assertIn("decision_source: 'PUBLIC_FACT_RULES'", block)
+        self.assertIn("PUBLIC_RULE_VERSION = 'public-fact-rules-v1'", contract)
+        self.assertIn('export function selectRuleActionCodes(', contract)
+        self.assertNotIn('parseDecisionContent', core)
+        self.assertNotIn('buildDecisionMessages', core)
 
-    def test_cached_public_ai_can_render_without_provider_key_or_false_status(self) -> None:
+    def test_page_brief_model_call_is_memoized_rate_limited_and_falls_back_to_rules(self) -> None:
         core = (WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js').read_text(encoding='utf-8')
+        start = core.index('export async function analyzePageBrief(')
+        block = core[start:core.index('\n}\n', start)]
+        self.assertIn('const pending = inFlight.get(inFlightKey)', block)
+        self.assertIn('if (!request?.__mcaiInternalPrewarm && await warmRateLimitExceeded(request)) throw rateLimitError()', block)
+        self.assertIn('if (cacheOnly) return pageBriefResponse(buildRuleBrief(items)', block)
+        self.assertIn("aiError: 'AI_NOT_CONFIGURED'", block)
+        self.assertIn('aiError: aiErrorCode(error)', block)
+        self.assertIn('max_tokens: maxTokens', core)
+        self.assertIn('const PAGE_BRIEF_MAX_TOKENS = 700', core)
+
+    def test_durable_cache_never_holds_transaction_during_generation(self) -> None:
         db = (WEB_ROOT / 'api' / '_publicIntelligenceDb.js').read_text(encoding='utf-8')
         today = (WEB_ROOT / 'src' / 'pages' / 'TodayPage.tsx').read_text(encoding='utf-8')
         detail = (WEB_ROOT / 'src' / 'pages' / 'OpportunityDetailPage.tsx').read_text(encoding='utf-8')
-
-        self.assertNotIn("if (keys.length === 0) return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })", core)
-        create_start = core.index('const createResult = () => {')
-        create_end = core.index('if (!sharedPublic)', create_start)
-        create_block = core[create_start:create_end]
-        self.assertIn('if (keys.length === 0)', create_block)
-        self.assertIn("error.code = 'AI_NOT_CONFIGURED'", create_block)
-        self.assertIn("if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503", core)
         brief_start = db.index('export async function getOrCreateSharedPublicAiBrief')
         self.assertLess(db.index('if (cached) return cached', brief_start), db.index('createdResult = await createResult()', brief_start))
-        # Generation must not run inside a DB transaction / advisory lock.
         brief_block = db[brief_start:db.index('\n}\n', brief_start)]
         self.assertNotIn('sql.begin', brief_block)
         self.assertNotIn('pg_advisory', brief_block)
@@ -109,10 +119,10 @@ class DurablePublicIntelligenceTests(unittest.TestCase):
         self.assertIn("body: { opportunity_id: opportunityId }", wrapper)
         self.assertNotIn('customer_context: privateContext.context', wrapper)
         self.assertIn('const privateOverlayContext = sanitizeCustomerContext(request.__medicalChannelPrivateDecisionOverlay)', core)
-        self.assertIn('const modelCustomerContext = privateOverlayContext ? null : clientCustomerContext', core)
-        self.assertIn('applyPrivateDecisionOverlay(result.decision, privateOverlayContext)', core)
+        self.assertIn('const ruleCustomerContext = privateOverlayContext ? null : clientCustomerContext', core)
+        self.assertIn('applyPrivateDecisionOverlay(item.decision, privateOverlayContext)', core)
         self.assertIn('这只表示经营目标，不代表已有院内关系', core)
-        self.assertIn("'SHARED_PUBLIC_AI_PLUS_PRIVATE_RULE_OVERLAY'", core)
+        self.assertIn("'PUBLIC_FACT_RULES_PLUS_PRIVATE_RULE_OVERLAY'", core)
 
     def test_unconfirmed_capability_overlay_never_claims_authorization(self) -> None:
         core = (WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js').read_text(encoding='utf-8')

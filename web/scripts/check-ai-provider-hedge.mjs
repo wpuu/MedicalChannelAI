@@ -12,31 +12,42 @@
 import { readFileSync } from 'node:fs'
 import {
   callProviderWithTransientRetry,
-  sanitizeSnapshotFacts,
+  pageBriefCandidates,
 } from '../api/ai/_analyzeCore.js'
+import {
+  annotateBriefItems,
+  buildPageBriefMessages,
+  parsePageBriefContent,
+} from '../api/ai/_pageBrief.js'
 
 const snapshot = JSON.parse(
   readFileSync(new URL('../public/data/today-actions.public.json', import.meta.url), 'utf8'),
 )
 const card = snapshot.cards?.[0]
 if (!card) throw new Error('AI_HEDGE_TEST_NO_VERIFIED_CARD')
+const nowMs = Date.parse(snapshot.snapshot_as_of) || Date.now()
+// The provider strategy is shared by every model call; exercise it with the
+// page-brief contract (the only remaining model call in /api/ai/analyze).
+const briefItems = annotateBriefItems(
+  pageBriefCandidates({ opportunity_pool: [card] }, ['TJ', 'BJ', 'HE', 'LN', 'JL', 'HL'], nowMs),
+  nowMs,
+)
+if (briefItems.length !== 1) throw new Error('AI_HEDGE_TEST_NO_OPEN_ITEM')
 
 const providerArgs = {
   baseUrl: 'https://apihub.agnes-ai.com/v1',
-  facts: sanitizeSnapshotFacts(card.facts),
-  evidenceUrls: (card.evidence_source_urls || []).filter((url) => /^https:\/\//.test(url)),
-  customerContext: null,
-  windowStatus: 'OPEN',
-  analysisAsOf: new Date().toISOString(),
+  messages: buildPageBriefMessages(briefItems, new Date(nowMs).toISOString()),
+  parse: (content) => parsePageBriefContent(content, briefItems),
+  maxTokens: 700,
 }
 const keys = ['fake-key-hedge']
 const timing = { hedgeAfterMs: 40, totalBudgetMs: 400 }
 
-function okResponse(actionCodes = ['VERIFY_REQUIREMENTS']) {
+function okResponse() {
   return {
     ok: true,
     status: 200,
-    json: async () => ({ choices: [{ message: { content: JSON.stringify({ action_codes: actionCodes }) } }] }),
+    json: async () => ({ choices: [{ message: { content: JSON.stringify({ focus: [{ ref: '#1', reason: 'CLEAR_DEVICE_DEMAND' }] }) } }] }),
   }
 }
 
@@ -102,7 +113,7 @@ try {
       : delayed(10, okResponse(), signal))
   const started = Date.now()
   const hedged = await callProviderWithTransientRetry(providerArgs, keys, card.opportunity_id, timing)
-  if (!hedged?.action) throw new Error('AI_HEDGE_WINNER_DECISION_MISSING')
+  if (hedged?.focus?.length !== 1) throw new Error('AI_HEDGE_WINNER_BRIEF_MISSING')
   if (attempts !== 2) throw new Error(`AI_HEDGE_ATTEMPTS:${attempts}`)
   if (aborted !== 1) throw new Error(`AI_HEDGE_LOSER_NOT_ABORTED:${aborted}`)
   if (new Set(urls).size !== 1) throw new Error('AI_HEDGE_CHANGED_ROUTE')
