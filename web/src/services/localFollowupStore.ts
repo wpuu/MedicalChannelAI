@@ -3,6 +3,34 @@ import type { FollowupRecord, FollowupStatus, TodayActionCard } from '@/types'
 const STORAGE_KEY = 'medopp.pipeline-followups.v1'
 const LOCAL_REMINDER_PREFIX = 'local-reminder:'
 
+let publicReadUnavailable = false
+let publicBackfillUnavailable = false
+const publicStorageListeners = new Set<() => void>()
+
+export function publicLocalFollowupWarning(): string | null {
+  if (publicReadUnavailable) {
+    return '本机跟进数据暂时无法读取，当前仅展示公开商机，跟进状态可能不完整。已有本机记录未清空；更改仍需成功保存。请检查浏览器存储设置后重试。'
+  }
+  if (publicBackfillUnavailable) {
+    return '本机跟进历史快照暂时无法补全，公开商机仍可浏览。已有本机记录未清空；更改仍需成功保存。请检查浏览器存储设置后重试。'
+  }
+  return null
+}
+
+export function subscribePublicLocalFollowupStorage(listener: () => void): () => void {
+  publicStorageListeners.add(listener)
+  return () => { publicStorageListeners.delete(listener) }
+}
+
+function updatePublicStorageAvailability(kind: 'read' | 'backfill', unavailable: boolean): void {
+  const previous = publicLocalFollowupWarning()
+  if (kind === 'read') publicReadUnavailable = unavailable
+  else publicBackfillUnavailable = unavailable
+  if (publicLocalFollowupWarning() !== previous) {
+    for (const listener of publicStorageListeners) listener()
+  }
+}
+
 export interface StoredPublicOpportunity {
   opportunity_id: string
   facts: {
@@ -138,6 +166,19 @@ function writeLocalFollowups(entries: Record<string, StoredFollowupEntry>): void
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
 }
 
+function readFollowupsForPublicBrowsing(): Record<string, StoredFollowupEntry> | null {
+  try {
+    const stored = readLocalFollowups()
+    updatePublicStorageAvailability('read', false)
+    return stored
+  } catch {
+    // Unavailable is not an empty private store. Only the public read overlay
+    // may degrade; every private writer still uses the strict reader above.
+    updatePublicStorageAvailability('read', true)
+    return null
+  }
+}
+
 function toStoredPublicOpportunity(card: TodayActionCard): StoredPublicOpportunity {
   return {
     opportunity_id: card.opportunity_id,
@@ -159,7 +200,8 @@ function toStoredPublicOpportunity(card: TodayActionCard): StoredPublicOpportuni
 }
 
 export function hydrateLocalFollowups(cards: TodayActionCard[]): TodayActionCard[] {
-  const stored = readLocalFollowups()
+  const stored = readFollowupsForPublicBrowsing()
+  if (stored === null) return cards
   return cards.map((card) => {
     const saved = stored[card.opportunity_id]
     return saved
@@ -174,7 +216,8 @@ export function hydrateLocalFollowups(cards: TodayActionCard[]): TodayActionCard
 }
 
 export function backfillLocalFollowupSnapshots(cards: TodayActionCard[]): void {
-  const stored = readLocalFollowups()
+  const stored = readFollowupsForPublicBrowsing()
+  if (stored === null) return
   let changed = false
   for (const card of cards) {
     const saved = stored[card.opportunity_id]
@@ -185,7 +228,14 @@ export function backfillLocalFollowupSnapshots(cards: TodayActionCard[]): void {
     }
     changed = true
   }
-  if (changed) writeLocalFollowups(stored)
+  try {
+    if (changed) writeLocalFollowups(stored)
+    updatePublicStorageAvailability('backfill', false)
+  } catch {
+    // Optional public snapshot enrichment must not block browsing or claim
+    // that private records were saved. Preserve the existing stored bytes.
+    updatePublicStorageAvailability('backfill', true)
+  }
 }
 
 export function persistLocalFollowup(card: TodayActionCard): void {

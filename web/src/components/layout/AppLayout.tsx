@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react'
+import { useState, useSyncExternalStore, type ChangeEvent } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Activity,
@@ -20,6 +20,10 @@ import {
 } from '@/config/marketPreference'
 import { useToast } from '@/context/ToastContext'
 import { isApiMode, logoutPilot } from '@/services/apiConfig'
+import {
+  publicLocalFollowupWarning,
+  subscribePublicLocalFollowupStorage,
+} from '@/services/localFollowupStore'
 import { cn } from '@/utils/cn'
 
 const GROUNDED_AI_CACHE_KEY = 'medopp.grounded-ai-decisions.v1'
@@ -44,6 +48,11 @@ export function AppLayout() {
   const { toast } = useToast()
   const [loggingOut, setLoggingOut] = useState(false)
   const [marketSelection, setMarketSelectionState] = useState<MarketSelection>(() => getMarketSelection())
+  const localFollowupWarning = useSyncExternalStore(
+    subscribePublicLocalFollowupStorage,
+    publicLocalFollowupWarning,
+    () => null,
+  )
 
   const desktopNavClass = ({ isActive }: { isActive: boolean }) =>
     cn(
@@ -194,6 +203,11 @@ export function AppLayout() {
       </header>
 
       <main className="mx-auto w-full max-w-[1200px] px-3 py-3 pb-28 sm:px-4 sm:py-6 sm:pb-16">
+        {!isApiMode && isVerifiedPublicDemo && localFollowupWarning ? (
+          <p role="status" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-5 text-amber-900">
+            {localFollowupWarning}
+          </p>
+        ) : null}
         <Outlet />
       </main>
 
