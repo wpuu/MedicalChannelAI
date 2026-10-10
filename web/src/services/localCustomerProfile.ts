@@ -242,11 +242,7 @@ export function saveLocalCustomerProfile(profile: LocalCustomerProfile): void {
 }
 
 export function clearLocalCustomerProfile(): void {
-  try {
-    localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    // Best effort only.
-  }
+  localStorage.removeItem(STORAGE_KEY)
 }
 
 function normalizeForMatch(value: string | null | undefined): string {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   BookmarkPlus,
@@ -297,6 +297,7 @@ function PoolCard({
 export function OpportunityPoolPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
+  const activeSession = useRef(false)
   const [cards, setCards] = useState<TodayActionCard[]>([])
   const [awardLedger, setAwardLedger] = useState<AwardLedgerEntry[]>([])
   const [priceReference, setPriceReference] = useState<AwardPriceReference | null>(null)
@@ -314,6 +315,7 @@ export function OpportunityPoolPage() {
   const [error, setError] = useState(false)
 
   useEffect(() => {
+    activeSession.current = true
     let cancelled = false
 
     const loadPool = async () => {
@@ -377,6 +379,7 @@ export function OpportunityPoolPage() {
       setRuntimeStatusChecked(true)
     })
     return () => {
+      activeSession.current = false
       cancelled = true
     }
   }, [navigate])
@@ -482,6 +485,7 @@ export function OpportunityPoolPage() {
     setAiBusyId(id)
     try {
       const decision = await requestAiDecision(card)
+      if (!activeSession.current) return
       setCards((current) =>
         current.map((item) =>
           item.opportunity_id === id
@@ -501,6 +505,7 @@ export function OpportunityPoolPage() {
         'success',
       )
     } catch (cause) {
+      if (!activeSession.current) return
       if (cause instanceof AiDecisionError && cause.code === 'AUTH_REQUIRED') {
         navigate('/login', { replace: true })
         return

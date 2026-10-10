@@ -105,7 +105,7 @@ function OpportunityDetailSession() {
       .finally(() => setPublicHistoryLoading(false))
   }, [navigate])
 
-  const load = useCallback(async (silent = false, sessionBound = false) => {
+  const load = useCallback(async (silent = false, sessionBound = true) => {
     if (!id) {
       setNotFound(true)
       setLoading(false)
@@ -210,7 +210,7 @@ function OpportunityDetailSession() {
     try {
       await todayActionsService.updateFollowup(card.opportunity_id, { status, ...extra })
       if (!activeSession.current) return true
-      await load(true)
+      await load(true, true)
       if (!activeSession.current) return true
       toast(
         extra?.remind_at
@@ -273,6 +273,7 @@ function OpportunityDetailSession() {
     setAiBusy(true)
     try {
       const decision = await requestAiDecision(card)
+      if (!activeSession.current) return
       if (requestRevision !== aiContextRevision.current) {
         toast('资源已更新，请重新分析')
         return
@@ -289,6 +290,7 @@ function OpportunityDetailSession() {
       })
       toast('AI行动建议已生成', 'success')
     } catch (cause) {
+      if (!activeSession.current) return
       if (cause instanceof AiDecisionError && cause.code === 'AUTH_REQUIRED') {
         navigate('/login', { replace: true })
         return

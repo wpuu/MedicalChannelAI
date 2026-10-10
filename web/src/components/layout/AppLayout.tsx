@@ -27,8 +27,8 @@ const AI_DECISION_CONTRACT_KEY = 'medopp.ai-decision-contract-version'
 const AI_DECISION_CONTRACT_VERSION = 'v2'
 
 function migrateAiDecisionCacheContract(): void {
-  if (typeof localStorage === 'undefined') return
   try {
+    if (typeof localStorage === 'undefined') return
     if (localStorage.getItem(AI_DECISION_CONTRACT_KEY) === AI_DECISION_CONTRACT_VERSION) return
     localStorage.removeItem(GROUNDED_AI_CACHE_KEY)
     localStorage.setItem(AI_DECISION_CONTRACT_KEY, AI_DECISION_CONTRACT_VERSION)
@@ -84,7 +84,14 @@ export function AppLayout() {
     ])
     mockModule.resetMockDemoState()
     followupModule.resetLocalFollowups()
-    if (isVerifiedPublicDemo) profileModule.clearLocalCustomerProfile()
+    if (isVerifiedPublicDemo) {
+      try {
+        profileModule.clearLocalCustomerProfile()
+      } catch {
+        toast('本地资源清空失败，试用重置未完成，请检查浏览器存储设置后重试')
+        return
+      }
+    }
     try {
       localStorage.removeItem(GROUNDED_AI_CACHE_KEY)
     } catch {

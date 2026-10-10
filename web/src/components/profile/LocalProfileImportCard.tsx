@@ -49,7 +49,13 @@ export function LocalProfileImportCard({
       // The local trial profile is unowned legacy device data. Once the user has
       // explicitly migrated it into one authenticated account, consume the local
       // copy so a later account on the same browser cannot import it again.
-      clearImportedLocalProfile()
+      try {
+        clearImportedLocalProfile()
+      } catch {
+        onImported(saved)
+        toast('资源已保存到当前账号，但本机副本未清除；请重试“仅清除本机副本”')
+        return
+      }
       setLocalProfile(null)
       onImported(saved)
       toast('本机试用资源已合并到当前账号；旧本机副本已清除', 'success')
@@ -61,9 +67,13 @@ export function LocalProfileImportCard({
   }
 
   const clearLocalCopy = () => {
-    clearImportedLocalProfile()
-    setLocalProfile(null)
-    toast('仅清除了这台设备上的旧试用资源；账号云端数据未改变', 'success')
+    try {
+      clearImportedLocalProfile()
+      setLocalProfile(null)
+      toast('仅清除了这台设备上的旧试用资源；账号云端数据未改变', 'success')
+    } catch {
+      toast('本机副本清除失败，数据仍保留，请检查浏览器存储设置后重试')
+    }
   }
 
   return (

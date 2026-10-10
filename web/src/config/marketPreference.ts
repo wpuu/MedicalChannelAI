@@ -34,8 +34,8 @@ const STORAGE_KEY = 'medicalchannelai.business-market.v1'
 const VALID_SELECTIONS = new Set<MarketSelection>(MARKET_SELECTION_OPTIONS.map((item) => item.value))
 
 export function getMarketSelection(): MarketSelection {
-  if (typeof localStorage === 'undefined') return 'TJ'
   try {
+    if (typeof localStorage === 'undefined') return 'TJ'
     const value = localStorage.getItem(STORAGE_KEY) as MarketSelection | null
     return value && VALID_SELECTIONS.has(value) ? value : 'TJ'
   } catch {

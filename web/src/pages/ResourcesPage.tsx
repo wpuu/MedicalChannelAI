@@ -59,7 +59,12 @@ export function ResourcesPage() {
     const ignoredGenericCount = profile.product_capabilities.filter(
       (item) => item.keyword.trim() && !isSpecificCapabilityKeyword(item.keyword),
     ).length
-    saveLocalCustomerProfile(profile)
+    try {
+      saveLocalCustomerProfile(profile)
+    } catch {
+      toast('本地资源保存失败，草稿和原有资源仍保留，请检查浏览器存储设置或可用空间后重试')
+      return
+    }
     toast(
       ignoredGenericCount > 0
         ? `资源已保存；${ignoredGenericCount} 个过于宽泛的关键词不会参与高分匹配`
@@ -70,7 +75,12 @@ export function ResourcesPage() {
   }
 
   const clear = () => {
-    clearLocalCustomerProfile()
+    try {
+      clearLocalCustomerProfile()
+    } catch {
+      toast('本地资源清空失败，原有资源仍保留，请检查浏览器存储设置后重试')
+      return
+    }
     toast('本地资源已清空', 'success')
     window.setTimeout(() => window.location.assign('/today'), 250)
   }
