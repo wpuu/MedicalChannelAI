@@ -7,8 +7,9 @@
     "dev": "vite",
     "verify": "node scripts/run-prebuild.mjs && tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "build": "node scripts/run-prebuild.mjs && tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "build": "node scripts/build-binding-preview.mjs",
+    "preview": "vite preview",
+    "check:preview-binding": "node scripts/check-preview-binding.mjs"
   },
   "dependencies": {
     "@vercel/functions": "3.9.5",
