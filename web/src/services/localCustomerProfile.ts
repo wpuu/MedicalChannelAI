@@ -130,10 +130,10 @@ export function emptyLocalCustomerProfile(): LocalCustomerProfile {
   return structuredClone(EMPTY_PROFILE)
 }
 
-export function loadLocalCustomerProfile(): LocalCustomerProfile {
+export function loadLocalCustomerProfile(options: { requireReadable?: boolean } = {}): LocalCustomerProfile {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return emptyLocalCustomerProfile()
+    if (raw === null) return emptyLocalCustomerProfile()
     const root = asRecord(JSON.parse(raw))
     if (!root) return emptyLocalCustomerProfile()
 
@@ -194,12 +194,16 @@ export function loadLocalCustomerProfile(): LocalCustomerProfile {
       can_handle_lease: triState(root.can_handle_lease),
       updated_at: updatedAt && !Number.isNaN(Date.parse(updatedAt)) ? updatedAt : null,
     }
-  } catch {
+  } catch (cause) {
+    // Public ranking may omit unavailable resources. Editors and writers must
+    // distinguish an unreadable record from a legitimately absent one.
+    if (options.requireReadable) throw cause
     return emptyLocalCustomerProfile()
   }
 }
 
 export function saveLocalCustomerProfile(profile: LocalCustomerProfile): void {
+  loadLocalCustomerProfile({ requireReadable: true })
   const targetKeys = new Set<string>()
   const normalizedTargets: LocalTargetHospital[] = []
   for (const item of profile.target_hospitals) {
@@ -242,6 +246,7 @@ export function saveLocalCustomerProfile(profile: LocalCustomerProfile): void {
 }
 
 export function clearLocalCustomerProfile(): void {
+  loadLocalCustomerProfile({ requireReadable: true })
   localStorage.removeItem(STORAGE_KEY)
 }
 

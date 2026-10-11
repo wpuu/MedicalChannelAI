@@ -4,6 +4,7 @@ import type { CapabilityType, RelationshipStrength } from '@/types'
 import { useToast } from '@/context/ToastContext'
 import {
   clearLocalCustomerProfile,
+  emptyLocalCustomerProfile,
   isSpecificCapabilityKeyword,
   loadLocalCustomerProfile,
   saveLocalCustomerProfile,
@@ -53,13 +54,41 @@ function TriStateSelect({
 
 export function ResourcesPage() {
   const { toast } = useToast()
-  const [profile, setProfile] = useState<LocalCustomerProfile>(() => loadLocalCustomerProfile())
+  const [initialRead] = useState(() => {
+    try {
+      return { profile: loadLocalCustomerProfile({ requireReadable: true }), readable: true }
+    } catch {
+      return { profile: emptyLocalCustomerProfile(), readable: false }
+    }
+  })
+  const [profile, setProfileState] = useState<LocalCustomerProfile>(initialRead.profile)
+  const [profileReadable, setProfileReadable] = useState(initialRead.readable)
+  const [draftChanged, setDraftChanged] = useState(false)
+  const setProfile = (update: (current: LocalCustomerProfile) => LocalCustomerProfile) => {
+    setProfileState(update)
+    setDraftChanged(true)
+  }
+
+  const reloadProfile = () => {
+    let next: LocalCustomerProfile
+    try {
+      next = loadLocalCustomerProfile({ requireReadable: true })
+    } catch {
+      toast('本地资源读取失败，草稿与原有资源未改动，请恢复浏览器存储后重试')
+      return
+    }
+    if (draftChanged && !window.confirm('重新读取成功。使用原有资源替换当前未保存草稿？取消会保留草稿，并继续暂停保存和清空。')) return
+    setProfileState(next)
+    setProfileReadable(true)
+    setDraftChanged(false)
+  }
 
   const save = () => {
     const ignoredGenericCount = profile.product_capabilities.filter(
       (item) => item.keyword.trim() && !isSpecificCapabilityKeyword(item.keyword),
     ).length
     try {
+      if (!profileReadable) throw new Error('LOCAL_PROFILE_NOT_LOADED')
       saveLocalCustomerProfile(profile)
     } catch {
       toast('本地资源保存失败，草稿和原有资源仍保留，请检查浏览器存储设置或可用空间后重试')
@@ -76,6 +105,7 @@ export function ResourcesPage() {
 
   const clear = () => {
     try {
+      if (!profileReadable) throw new Error('LOCAL_PROFILE_NOT_LOADED')
       clearLocalCustomerProfile()
     } catch {
       toast('本地资源清空失败，原有资源仍保留，请检查浏览器存储设置后重试')
@@ -87,6 +117,14 @@ export function ResourcesPage() {
 
   return (
     <div className="space-y-4">
+      {!profileReadable ? (
+        <section role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-5 text-amber-900">
+          <p>原有资源暂时无法读取，当前表单仅作为未保存草稿。保存和清空已暂停，原有资源未被改动。恢复浏览器存储后，请明确重新读取原有资源；替换已编辑草稿前会征求确认。</p>
+          <button type="button" onClick={reloadProfile} className="mt-2 rounded-lg border border-amber-300 px-3 py-1.5 font-medium hover:bg-amber-100">
+            重新读取原有资源
+          </button>
+        </section>
+      ) : null}
       <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
