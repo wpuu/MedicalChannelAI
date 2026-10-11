@@ -241,6 +241,7 @@ function OpportunityDetailSession() {
       await todayActionsService.updateFollowup(card.opportunity_id, {
         status: card.followup_status,
         note,
+        ...(!isApiMode && isVerifiedPublicDemo ? { preserve_local_status: true } : {}),
         ...(card.followup_status === 'NOT_FIT' && latestNotFitReason
           ? { reason: latestNotFitReason }
           : {}),

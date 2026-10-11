@@ -290,6 +290,8 @@ export interface TodayActionsResponse {
 
 export interface FollowupInput {
   status: FollowupStatus
+  /** Public-trial note writes use the strictly reread local stage, not UI state. */
+  preserve_local_status?: boolean
   note?: string
   reason?: string
   remind_at?: string

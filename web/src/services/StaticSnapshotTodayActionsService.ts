@@ -11,6 +11,7 @@ import {
   backfillLocalFollowupSnapshots,
   hydrateLocalFollowups,
   persistLocalFollowup,
+  readLocalFollowups,
 } from './localFollowupStore'
 import { personalizeTrialCards } from './localCustomerProfile'
 import type { TodayActionsService } from './TodayActionsService'
@@ -536,9 +537,12 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
   async updateFollowup(id: string, input: FollowupInput): Promise<void> {
     const data = this.deriveLocalState(await this.ensureLoaded(), true)
     const card = (data.opportunity_pool ?? data.cards).find((item) => item.opportunity_id === id)
+    const status = input.preserve_local_status
+      ? readLocalFollowups()[id]?.status ?? 'NEW'
+      : input.status
     const record: FollowupRecord = {
       id: uid('fu'),
-      status: input.status,
+      status,
       note: input.note,
       reason: input.reason,
       remind_at: input.remind_at,
@@ -549,8 +553,8 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
       if (appendStoredHistoricalFollowup(id, record)) return
       throw new Error('未找到对应商机')
     }
-    card.followup_status = input.status
-    card.remind_at = input.remind_at ?? (input.status === 'MONITOR' ? card.remind_at : null)
+    card.followup_status = status
+    card.remind_at = input.remind_at ?? (status === 'MONITOR' ? card.remind_at : null)
     card.followup_history = [record, ...card.followup_history]
     persistLocalFollowup(card)
   }
