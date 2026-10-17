@@ -8,9 +8,11 @@ import sys
 import time
 from collections import Counter
 from contextvars import ContextVar
-from datetime import datetime, timedelta, timezone
+from copy import deepcopy
+from dataclasses import dataclass
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from urllib.parse import urlsplit, urlunsplit
@@ -74,6 +76,14 @@ from medical_channel_pipeline.tjnothop_discovery import (  # noqa: E402
     stable_opportunity_id as tjnothop_opportunity_id,
 )
 from medical_channel_pipeline.tjnothop_market_research import parse_tjnothop_market_research  # noqa: E402
+from medical_channel_pipeline import (  # noqa: E402
+    tjzyefy_discovery,
+    tjzyefy_market_research,
+    tjzyefy_intent_discovery,
+    tjzyefy_procurement_intent,
+    tjzxfc_discovery,
+    tjzxfc_market_research,
+)
 from sync_ccgp_query import VERIFIED_NOTICE_ADAPTERS, discover_candidates, scan_events, stable_id  # noqa: E402
 from sync_teda_market_research import (  # noqa: E402
     UNSUPPORTED_DETAIL_CODES as TEDA_UNSUPPORTED_DETAIL_CODES,
@@ -130,6 +140,16 @@ PRESERVED_SOURCE_RECORDS_KEYS = {
     "tjzyefy": "medicalchannelai:collector-tjzyefy-records:v2",
     "tjzyefy-intent": "medicalchannelai:collector-tjzyefy-intent-records:v2",
 }
+# Offline preparation only. These sources are deliberately NOT registered in
+# STAGE_ORDER until a bounded transport and index-window verifier are available.
+OFFICIAL_SOURCE_STAGE_IDS = {
+    "tjzyefy": "tjzyefy",
+    "tjzyefy_intent": "tjzyefy-intent",
+    "tjzxfc": "tjzxfc",
+}
+OFFICIAL_SOURCE_LOOKBACK_DAYS = 30
+OFFICIAL_SOURCE_MAX_DETAILS = 3
+OFFICIAL_SOURCE_WORK_SECONDS = 240
 DURABLE_PUBLISH_URL = "https://medicalchannelai.vercel.app/api/public-snapshot"
 DURABLE_PUBLISH_TIMEOUT_SECONDS = 30
 
@@ -211,6 +231,247 @@ class CollectorPrecondition(CollectorError):
 
 class CollectorStageBlocked(CollectorError):
     code = "COLLECTOR_STAGE_BLOCKED"
+
+
+@dataclass(frozen=True)
+class OfficialSourceWindowProof:
+    """Internal adapter input, never an HTTP/request-controlled attestation.
+
+    A digest binds a page to the evidence; it does not authenticate coverage.
+    No production adapter constructs this proof yet. Tests use explicit mocks.
+    """
+
+    stage: str
+    index_url: str
+    html_sha256: str
+    start_date: date
+    end_date: date
+    observed_at: datetime
+
+
+@dataclass(frozen=True)
+class PreparedOfficialSourceRefresh:
+    stage: str
+    cycle_id: str
+    cycle_as_of: str
+    base_json: str
+    records_json: str
+    result_json: str
+    deadline: float
+
+
+def _official_source_adapter(stage: str) -> tuple[Any, Any, Any, Any, frozenset[str]]:
+    if stage == "tjzyefy":
+        return (
+            tjzyefy_discovery,
+            tjzyefy_discovery.parse_tjzyefy_index_html,
+            tjzyefy_market_research.parse_tjzyefy_market_research,
+            tjzyefy_discovery.stable_opportunity_id,
+            frozenset({"TJZYEFY_NON_MEDICAL_RESEARCH", "TJZYEFY_PROCUREMENT_INTENT_NOT_SUPPORTED"}),
+        )
+    if stage == "tjzyefy_intent":
+        return (
+            tjzyefy_intent_discovery,
+            tjzyefy_intent_discovery.parse_tjzyefy_intent_index_html,
+            tjzyefy_procurement_intent.parse_tjzyefy_procurement_intent,
+            tjzyefy_intent_discovery.stable_intent_opportunity_id,
+            frozenset({"TJZYEFY_INTENT_NON_MEDICAL"}),
+        )
+    if stage == "tjzxfc":
+        return (
+            tjzxfc_discovery,
+            tjzxfc_discovery.parse_tjzxfc_index_html,
+            tjzxfc_market_research.parse_tjzxfc_market_research,
+            tjzxfc_discovery.stable_opportunity_id,
+            frozenset({"TJZXFC_NON_MEDICAL_EARLY_SIGNAL"}),
+        )
+    raise CollectorPrecondition("COLLECTOR_OFFICIAL_SOURCE_INVALID")
+
+
+def _official_source_json(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+def _official_source_records(cache: RuntimeCache, stage: str) -> list[dict[str, Any]]:
+    source = OFFICIAL_SOURCE_STAGE_IDS[stage]
+    rows = cache.get(PRESERVED_SOURCE_RECORDS_KEYS[source])
+    if not isinstance(rows, list):
+        raise CollectorPrecondition("COLLECTOR_PRESERVED_HISTORY_UNAVAILABLE:" + source)
+    return _validated_official_source_records(rows, stage)
+
+
+def _validated_official_source_records(rows: list[dict[str, Any]], stage: str) -> list[dict[str, Any]]:
+    source = OFFICIAL_SOURCE_STAGE_IDS[stage]
+    rows = deepcopy(rows)
+    _, _, _, stable_id, _ = _official_source_adapter(stage)
+    try:
+        validate_records(rows)
+        for row in rows:
+            expected_id = stable_id(row["source"]["url"])
+            if row["opportunity_id"] != expected_id or row["source"]["source_id"] != f"{source}:{expected_id}":
+                raise ValueError("WRONG_SOURCE_IDENTITY")
+            if str(row["facts"].get("market_code") or "TJ").upper() != "TJ":
+                raise ValueError("WRONG_SOURCE_MARKET")
+        _official_source_json(rows)
+    except (ValueError, TypeError, KeyError, AttributeError) as exc:
+        raise CollectorPrecondition("COLLECTOR_PRESERVED_HISTORY_INVALID:" + source) from exc
+    return rows
+
+
+def _official_source_cycle(cache: RuntimeCache, state: dict[str, Any]) -> str:
+    from collector_schedule import valid_cycle
+
+    cycle_id = _SCHEDULED_CYCLE.get()
+    if not cycle_id or state.get("cycle_id") != cycle_id or not valid_cycle(cycle_id, _cycle_as_of(state)):
+        raise CollectorPrecondition("COLLECTOR_OFFICIAL_SOURCE_CYCLE_REQUIRED")
+    _assert_cycle_owned(cache)
+    latest = cache.get(META_KEY)
+    if (
+        not isinstance(latest, dict)
+        or latest.get("cycle_id") != cycle_id
+        or _cycle_as_of(latest) != _cycle_as_of(state)
+    ):
+        raise CollectorPrecondition("COLLECTOR_STATE_DATE_CHANGED_DURING_STAGE")
+    stages = latest.get("stages")
+    publish = stages.get("publish") if isinstance(stages, dict) else None
+    if isinstance(publish, dict) and (
+        publish.get("status") == "COMPLETED"
+        or (publish.get("status") in {"FAILED", "BLOCKED"} and publish.get("terminal") is True)
+    ):
+        raise CollectorPrecondition("COLLECTOR_OFFICIAL_SOURCE_CYCLE_ENDED")
+    return cycle_id
+
+
+def _check_official_source_budget(deadline: float) -> None:
+    if time.monotonic() >= deadline:
+        raise CollectorStageBlocked("COLLECTOR_OFFICIAL_SOURCE_BUDGET_EXHAUSTED")
+
+
+def _prepare_official_source_refresh(
+    cache: RuntimeCache,
+    state: dict[str, Any],
+    stage: str,
+    *,
+    index_html: str,
+    window: OfficialSourceWindowProof | None,
+    read_detail: Callable[[str, float], str],
+) -> PreparedOfficialSourceRefresh:
+    """Prepare one whole source without writes, network calls or bootstrap.
+
+    The injected reader supplies already-authorized detail bytes. Budget checks
+    reject an overrun AFTER it returns; they cannot cancel a blocked request.
+    This is not the production transport or an index coverage implementation.
+    """
+    adapter, discover, verify, stable_id, unsupported = _official_source_adapter(stage)
+    deadline = time.monotonic() + OFFICIAL_SOURCE_WORK_SECONDS
+    cycle_id = _official_source_cycle(cache, state)
+    existing = _official_source_records(cache, stage)
+    as_of = _cycle_as_of(state)
+    end_date = as_of.astimezone(SHANGHAI).date()
+    start_date = end_date - timedelta(days=OFFICIAL_SOURCE_LOOKBACK_DAYS - 1)
+    now = _now_utc()
+    if (
+        not isinstance(index_html, str)
+        or not index_html.strip()
+        or not isinstance(window, OfficialSourceWindowProof)
+        or window.stage != stage
+        or window.index_url != adapter.INDEX_URL
+        or window.html_sha256 != hashlib.sha256(index_html.encode("utf-8")).hexdigest()
+        or type(window.start_date) is not date
+        or type(window.end_date) is not date
+        or window.start_date > start_date
+        or window.end_date < end_date
+        or not isinstance(window.observed_at, datetime)
+        or window.observed_at.tzinfo is None
+        or not as_of <= window.observed_at <= now
+    ):
+        raise CollectorPrecondition("COLLECTOR_OFFICIAL_SOURCE_WINDOW_UNVERIFIED")
+    _check_official_source_budget(deadline)
+    # Count BEFORE applying any limit. A larger window needs a separate cursor
+    # protocol, not a successful stage after silently processing the first N.
+    candidates = [
+        candidate for candidate in discover(index_html, index_url=adapter.INDEX_URL)
+        if start_date <= date.fromisoformat(candidate.published_at) <= end_date
+    ]
+    _check_official_source_budget(deadline)
+    if len(candidates) > OFFICIAL_SOURCE_MAX_DETAILS:
+        raise CollectorStageBlocked("COLLECTOR_OFFICIAL_SOURCE_CANDIDATE_LIMIT")
+    verified = []
+    nonfacts = 0
+    for candidate in candidates:
+        _check_official_source_budget(deadline)
+        html = read_detail(candidate.detail_url, deadline)
+        _check_official_source_budget(deadline)
+        try:
+            record = verify(
+                html,
+                source_url=candidate.detail_url,
+                index_url=adapter.INDEX_URL,
+                index_published_at=candidate.published_at,
+                expected_title=candidate.title,
+                observed_at=_now_utc().isoformat(),
+                opportunity_id=stable_id(candidate.detail_url),
+            )
+        except (tjzyefy_market_research.TjzyefyParseError,
+                tjzyefy_procurement_intent.TjzyefyIntentParseError,
+                tjzxfc_market_research.TjzxfcParseError) as exc:
+            if str(exc) not in unsupported:
+                raise
+            nonfacts += 1
+        else:
+            verified.append(record)
+        _check_official_source_budget(deadline)
+    merged = merge_canonical_records(existing, verified)
+    if not {row["opportunity_id"] for row in existing}.issubset({row["opportunity_id"] for row in merged}):
+        raise CollectorStageBlocked("COLLECTOR_CANONICAL_PUBLISHED_HISTORY_MISSING")
+    changed = _canonical_content_digest(merged) != _canonical_content_digest(existing)
+    # An unchanged scan has its own observation. Do not retime old facts.
+    records = merged if changed else existing
+    result = {
+        "source_id": OFFICIAL_SOURCE_STAGE_IDS[stage],
+        "source_observed_at": _now_utc().isoformat(),
+        "discovered_candidate_count": len(candidates),
+        "verified_record_count": len(verified),
+        "verified_nonfact_count": nonfacts,
+        "canonical_record_count": len(records),
+        "canonical_changed": changed,
+    }
+    prepared = PreparedOfficialSourceRefresh(
+        stage, cycle_id, as_of.isoformat(), _official_source_json(existing),
+        _official_source_json(records), _official_source_json(result), deadline,
+    )
+    _check_official_source_budget(deadline)
+    _official_source_cycle(cache, state)
+    return prepared
+
+
+def _commit_official_source_refresh(
+    cache: RuntimeCache,
+    state: dict[str, Any],
+    prepared: PreparedOfficialSourceRefresh,
+) -> dict[str, Any]:
+    """Cycle/base-bound commit; read/check/write is NOT a CAS transaction."""
+    cycle_id = _official_source_cycle(cache, state)
+    if cycle_id != prepared.cycle_id or _cycle_as_of(state).isoformat() != prepared.cycle_as_of:
+        raise CollectorPrecondition("COLLECTOR_CYCLE_SUPERSEDED")
+    _check_official_source_budget(prepared.deadline)
+    current = _official_source_records(cache, prepared.stage)
+    candidate = _validated_official_source_records(json.loads(prepared.records_json), prepared.stage)
+    current_json = _official_source_json(current)
+    if current_json not in {prepared.base_json, prepared.records_json}:
+        raise CollectorPrecondition("COLLECTOR_OFFICIAL_SOURCE_BASE_CHANGED")
+    if not {row["opportunity_id"] for row in current}.issubset({row["opportunity_id"] for row in candidate}):
+        raise CollectorStageBlocked("COLLECTOR_CANONICAL_PUBLISHED_HISTORY_MISSING")
+    result = json.loads(prepared.result_json)
+    if current_json != prepared.records_json:
+        _check_official_source_budget(prepared.deadline)
+        _official_source_cycle(cache, state)
+        key = PRESERVED_SOURCE_RECORDS_KEYS[OFFICIAL_SOURCE_STAGE_IDS[prepared.stage]]
+        cache.set(key, candidate, {})
+        if _official_source_json(cache.get(key)) != prepared.records_json:
+            # Do not overwrite an unknown/newer state with the old array.
+            raise CollectorStageBlocked("COLLECTOR_OFFICIAL_SOURCE_READBACK_FAILED")
+    return result
 
 
 STAGE_DEPENDENCIES: dict[str, tuple[str, ...]] = {

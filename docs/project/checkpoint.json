@@ -3,10 +3,10 @@
   "updated_at": "2026-10-17",
   "timezone": "Asia/Shanghai",
   "base_main_head": "62299590dd3898e040ccc9db5fda1298d4509d51",
-  "active_work_branch": "fix/tjmugh-verification-20261002",
-  "draft_pr": 75,
-  "candidate_base_head": "8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2",
-  "candidate_head_reference": "Final docs-only PR75 HEAD read back in PR body/final handoff; no previous-head approval carried forward.",
+  "active_work_branch": "fix/twice-daily-source-parity-20261017",
+  "draft_pr": null,
+  "candidate_base_head": "a2131e4733939e07b9531ea4626c9378e0826953",
+  "candidate_head_reference": "Exact implementation SHA and stacked draft PR read back at save; PR75 parent remains a2131e4. Product code changed; ancestor CI is not inherited.",
   "production_ready": false,
   "vercel_branch_preview_enabled": false,
   "production_deployment": {
@@ -79,7 +79,19 @@
     "historical_python_tests": 879,
     "historical_targeted_checks": 98,
     "tests_rerun_this_readonly_turn": 0,
-    "terminal_race_tests": 2
+    "terminal_race_tests": 2,
+    "source_parity_offline_slice": {
+      "new_tests": 25,
+      "related_tests": 107,
+      "total": 132,
+      "result": "PASS",
+      "outbound_connections": "BLOCKED",
+      "full_verify": "NOT_RUN",
+      "independent_review": "PENDING",
+      "three_sources_activated": false,
+      "stage_count": 22,
+      "official_html_fixtures": "NOT_CAPTURED; synthetic contract tests only"
+    }
   },
   "release_checklist": "docs/ops/release-preflight-20261003.md",
   "boundaries": {
@@ -143,7 +155,7 @@
   "next_task": {
     "id": "MED-ACTION-P0-001",
     "artifact": "docs/tasks/MED_ACTION_P0_001_TWICE_DAILY_INTEGRATION_2026-10-17.md",
-    "status": "DESIGN_SAVED_IMPLEMENTATION_PENDING",
+    "status": "OFFLINE_CORE_IMPLEMENTED_NOT_ACTIVATED",
     "starting_pr_head": "ca91df269636d8604814d2e744d12587b8fadc82",
     "verified_product_ancestor": "8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2",
     "proposed_stage_ids": [
@@ -156,7 +168,7 @@
     "automatic_incremental_remains_disabled": true,
     "canonical_bootstrap_allowed": false,
     "production_operations_authorized": false,
-    "tests_run_this_turn": 0,
+    "tests_run_this_turn": 132,
     "open_implementation_gates": [
       "bounded HTTP total deadline (socket timeout is insufficient)",
       "candidate/window completeness without silent truncation",
@@ -164,9 +176,13 @@
       "source-level history-only and partial coverage contract",
       "Beijing real budget continuation remains outside this design"
     ],
-    "next_action": "Isolated deployment-disabled offline implementation: reuse three parsers, existing v2 keys and cycle-protected source commits; then budget/publish regressions. No release.",
+    "next_action": "Implement and verify actual request total deadlines plus index-window provenance before registering three stages; then 25-stage publish/coverage regression, full new-product verification and independent review.",
     "recommended_model": "GPT-6.1-sol",
     "recommended_reasoning_effort": "xhigh",
-    "routine_adapter_mapping_effort": "high"
-  }
+    "routine_adapter_mapping_effort": "high",
+    "implementation_report": "docs/ops/source-parity-offline-20261017.md",
+    "implementation_starting_pr_head": "a2131e4733939e07b9531ea4626c9378e0826953"
+  },
+  "parent_draft_pr": 75,
+  "parent_pr_head": "a2131e4733939e07b9531ea4626c9378e0826953"
 }
