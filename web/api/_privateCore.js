@@ -9,7 +9,22 @@ import {
   ALLOWED_TODAY_LIMITS,
   setTodayLimitForUser,
 } from './_todayDisplayPreference.js'
-import { loadVerifiedSnapshot } from './_verifiedSnapshot.js'
+import { loadVerifiedSnapshot, loadVerifiedSnapshotWithMetadata } from './_verifiedSnapshot.js'
+
+function setSnapshotProvenanceHeaders(response, loaded) {
+  if (typeof response?.setHeader !== 'function') return
+  response.setHeader('X-MedicalChannelAI-Snapshot-Source', loaded.sourceMode)
+  if (loaded.runtimeOrigin) response.setHeader('X-MedicalChannelAI-Snapshot-Runtime-Origin', loaded.runtimeOrigin)
+  response.setHeader('X-MedicalChannelAI-Snapshot-As-Of', loaded.snapshot.snapshot_as_of)
+  response.setHeader('X-MedicalChannelAI-Snapshot-Degraded', String(loaded.degraded))
+  if (loaded.reason) response.setHeader('X-MedicalChannelAI-Snapshot-Degraded-Reason', loaded.reason)
+  const coverage = loaded.snapshot.collection_coverage
+  response.setHeader('X-MedicalChannelAI-Snapshot-Coverage-Complete',
+    typeof coverage?.complete === 'boolean' ? String(coverage.complete) : 'unknown')
+  if (typeof coverage?.last_complete_as_of === 'string') {
+    response.setHeader('X-MedicalChannelAI-Snapshot-Coverage-Last-Complete-As-Of', coverage.last_complete_as_of)
+  }
+}
 
 const FOLLOWUP_STATUSES = new Set([
   'NEW', 'REVIEWING', 'CONTACTED', 'RELATIONSHIP_VERIFIED', 'PREPARING',
@@ -221,7 +236,9 @@ async function todayRoute(request, response, user) {
   }
 
   try {
-    const snapshot = await loadVerifiedSnapshot()
+    const loaded = await loadVerifiedSnapshotWithMetadata()
+    const snapshot = loaded.snapshot
+    setSnapshotProvenanceHeaders(response, loaded)
     const pool = await personalizedOpportunityPoolForUser(user, snapshot)
     const { followups, feedback, todayLimit } = await todayPrivateState(sql, user)
     const decoratedPool = pool.map((card) =>
@@ -233,6 +250,7 @@ async function todayRoute(request, response, user) {
       schema_version: '0.1',
       mode: 'TODAY_ACTIONS',
       snapshot_as_of: snapshot.snapshot_as_of,
+      collection_coverage: snapshot.collection_coverage ?? null,
       input_candidate_count: Number(snapshot.input_candidate_count || pool.length),
       matched_count: pool.length,
       card_count: cards.length,
@@ -256,7 +274,9 @@ async function opportunityRoute(request, response, user) {
   const id = opportunityId(request)
   if (!id) return sendJson(response, 400, { error: 'OPPORTUNITY_ID_INVALID' })
   try {
-    const snapshot = await loadVerifiedSnapshot()
+    const loaded = await loadVerifiedSnapshotWithMetadata()
+    const snapshot = loaded.snapshot
+    setSnapshotProvenanceHeaders(response, loaded)
     const pool = await personalizedOpportunityPoolForUser(user, snapshot)
     const card = pool.find((item) => item.opportunity_id === id)
     if (!card) return sendJson(response, 404, { error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' })

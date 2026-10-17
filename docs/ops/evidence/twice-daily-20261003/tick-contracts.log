@@ -1,0 +1,19 @@
+test_business_date_guard_uses_china_date_not_utc_date (test_incremental_tick_chain.IncrementalTickChainTests.test_business_date_guard_uses_china_date_not_utc_date) ... ok
+test_chain_runs_every_fifteen_minutes_and_stops_same_day (test_incremental_tick_chain.IncrementalTickChainTests.test_chain_runs_every_fifteen_minutes_and_stops_same_day) ... ok
+test_chain_start_send_failure_is_retriable_instead_of_silently_stopping_day (test_incremental_tick_chain.IncrementalTickChainTests.test_chain_start_send_failure_is_retriable_instead_of_silently_stopping_day) ... ok
+test_deep_publish_after_business_window_does_not_start_chain (test_incremental_tick_chain.IncrementalTickChainTests.test_deep_publish_after_business_window_does_not_start_chain) ... ok
+test_first_tick_waits_until_china_business_window (test_incremental_tick_chain.IncrementalTickChainTests.test_first_tick_waits_until_china_business_window) ... ok
+test_incremental_source_redelivery_checks_business_date_before_lease (test_incremental_tick_chain.IncrementalTickChainTests.test_incremental_source_redelivery_checks_business_date_before_lease) ... ok
+test_intraday_attempt_is_marked_only_after_source_queue_accepts (test_incremental_tick_chain.IncrementalTickChainTests.test_intraday_attempt_is_marked_only_after_source_queue_accepts) ... ok
+test_late_delivery_skips_backlog_to_first_future_aligned_tick (test_incremental_tick_chain.IncrementalTickChainTests.test_late_delivery_skips_backlog_to_first_future_aligned_tick) ... ok
+test_small_delivery_delay_does_not_double_tick_interval (test_incremental_tick_chain.IncrementalTickChainTests.test_small_delivery_delay_does_not_double_tick_interval) ... ok
+test_terminal_deep_never_starts_intraday_chain (test_incremental_tick_chain.IncrementalTickChainTests.test_terminal_deep_never_starts_intraday_chain) ... ok
+test_tick_delay_never_becomes_negative (test_incremental_tick_chain.IncrementalTickChainTests.test_tick_delay_never_becomes_negative) ... ok
+test_tick_payload_is_self_authenticating_by_schedule_contract (test_incremental_tick_chain.IncrementalTickChainTests.test_tick_payload_is_self_authenticating_by_schedule_contract) ... ok
+test_tick_payload_never_contains_customer_private_context (test_incremental_tick_chain.IncrementalTickChainTests.test_tick_payload_never_contains_customer_private_context) ... ok
+test_tick_schedules_next_before_selecting_or_running_source (test_incremental_tick_chain.IncrementalTickChainTests.test_tick_schedules_next_before_selecting_or_running_source) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.002s
+
+OK

@@ -49,7 +49,7 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertIn('publish.get("status") != "FAILED"', source)
         self.assertIn('startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")', source)
         self.assertIn("now - started.astimezone(timezone.utc) < MIGRATION_STALE_RUNNING_AFTER", source)
-        self.assertIn("cycle_has_running_stage(current_state) and not _migration_recovery_running_stages_are_stale(", source)
+        self.assertIn("running_stage_is_live(current_state, datetime.now(timezone.utc))", source)
 
     def test_trigger_requires_cron_secret_and_bearer_auth_fail_closed(self) -> None:
         source = COLLECTOR_RUN.read_text(encoding="utf-8")
@@ -61,7 +61,7 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertNotIn('x-vercel-cron-schedule', source)
         self.assertLess(source.index("if not cron_secret:"), source.index('return True, "VERCEL_CRON"'))
         self.assertLess(source.index("hmac.compare_digest"), source.index('return True, "VERCEL_CRON"'))
-        self.assertIn('cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"', source)
+        self.assertIn('cycle_id, cycle_as_of = scheduled_cycle(now, period)', source)
 
 
 if __name__ == "__main__":

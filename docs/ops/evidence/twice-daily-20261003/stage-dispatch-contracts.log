@@ -1,0 +1,17 @@
+test_publish_requires_teda_and_uses_authoritative_cycle_clock (test_vercel_teda_runtime.VercelTedaRuntimeTests.test_publish_requires_teda_and_uses_authoritative_cycle_clock) ... ok
+test_teda_cache_is_namespaced_v2 (test_vercel_teda_runtime.VercelTedaRuntimeTests.test_teda_cache_is_namespaced_v2) ... ok
+test_teda_failure_blocks_before_canonical_cache_write (test_vercel_teda_runtime.VercelTedaRuntimeTests.test_teda_failure_blocks_before_canonical_cache_write) ... ok
+test_teda_index_failure_keeps_bounded_page_level_diagnostics (test_vercel_teda_runtime.VercelTedaRuntimeTests.test_teda_index_failure_keeps_bounded_page_level_diagnostics) ... ok
+test_teda_is_a_first_class_runtime_stage_before_downstream_publish (test_vercel_teda_runtime.VercelTedaRuntimeTests.test_teda_is_a_first_class_runtime_stage_before_downstream_publish) ... ok
+test_teda_reuses_verified_sync_fetch_and_parser_contract (test_vercel_teda_runtime.VercelTedaRuntimeTests.test_teda_reuses_verified_sync_fetch_and_parser_contract) ... ok
+test_publish_requires_tjfch_and_uses_authoritative_cycle_clock (test_vercel_tjfch_runtime.VercelTjfchRuntimeTests.test_publish_requires_tjfch_and_uses_authoritative_cycle_clock) ... ok
+test_tjfch_cache_is_namespaced_v2 (test_vercel_tjfch_runtime.VercelTjfchRuntimeTests.test_tjfch_cache_is_namespaced_v2) ... ok
+test_tjfch_is_a_first_class_runtime_stage_between_teda_and_publish (test_vercel_tjfch_runtime.VercelTjfchRuntimeTests.test_tjfch_is_a_first_class_runtime_stage_between_teda_and_publish) ... ok
+test_tjfch_policy_recovery_retry_is_narrowly_scoped (test_vercel_tjfch_runtime.VercelTjfchRuntimeTests.test_tjfch_policy_recovery_retry_is_narrowly_scoped) ... ok
+test_tjfch_reuses_verified_procurement_and_early_signal_parsers (test_vercel_tjfch_runtime.VercelTjfchRuntimeTests.test_tjfch_reuses_verified_procurement_and_early_signal_parsers) ... ok
+test_tjfch_true_failure_from_either_feed_blocks_before_cache_write (test_vercel_tjfch_runtime.VercelTjfchRuntimeTests.test_tjfch_true_failure_from_either_feed_blocks_before_cache_write) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.132s
+
+OK

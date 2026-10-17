@@ -1,0 +1,433 @@
+{
+  "repository": "wpuu/MedicalChannelAI",
+  "checked_on": "2026-10-03 UTC; HTTP Date fields record the exact 13:02/13:03 reads; connector deployment responses have no observed-at field.",
+  "frozen_product_head": "8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2",
+  "production": {
+    "id": "dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1",
+    "commit": "62299590dd3898e040ccc9db5fda1298d4509d51",
+    "target": "production",
+    "state": "READY",
+    "alias": [
+      "medicalchannelai.vercel.app",
+      "medicalchannelai-rerisse7-1717s-projects.vercel.app",
+      "medicalchannelai-git-main-rerisse7-1717s-projects.vercel.app"
+    ],
+    "regions": [
+      "iad1"
+    ]
+  },
+  "team": {
+    "id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "actual_billing_plan": "UNKNOWN",
+    "team_response_contains_plan": false
+  },
+  "project": {
+    "id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "list_read_succeeded": true,
+    "detail_tool_error": {
+      "error_code": "INVALID_ARGUMENT",
+      "message": "projectId required publicly; downstream idOrName expected but undefined",
+      "response_text": "Input validation error: Invalid arguments for tool get_project: idOrName: Invalid input: expected string, received undefined"
+    },
+    "control_plane_fields_not_exposed": [
+      "actual_plan",
+      "cron_configuration_and_enabled",
+      "queue_registration_and_consumer_identity",
+      "ready_inflight_delayed_counts",
+      "runtime_canonical_history_baseline_inventory"
+    ]
+  },
+  "deployments_since_utc_midnight": {
+    "pagination": {
+      "count": 0,
+      "prev": 1790985600000
+    },
+    "deployments": []
+  },
+  "public_status": {
+    "http_status": 200,
+    "date": "Sat, 03 Oct 2026 13:02:04 GMT",
+    "payload": {
+      "schema_version": "0.1",
+      "service": "MedicalChannelAI",
+      "version": "0.5.0",
+      "commit": "6229959",
+      "production_ready": false,
+      "ai": {
+        "configured": true
+      },
+      "ready": true,
+      "degraded": true,
+      "snapshot": {
+        "available": true,
+        "source_mode": "DATABASE",
+        "runtime_origin": null,
+        "snapshot_as_of": "2026-10-02T14:19:15.713282+08:00",
+        "freshness": "STALE",
+        "age_minutes": 1842,
+        "stale_after_minutes": 1800,
+        "today_card_count": 5,
+        "opportunity_pool_count": 441
+      }
+    }
+  },
+  "collector_status": {
+    "http_status": 200,
+    "date": "Sat, 03 Oct 2026 13:02:03 GMT",
+    "payload": {
+      "schema_version": "0.1",
+      "service": "MedicalChannelAI",
+      "collector": {
+        "schema_version": "0.1",
+        "local_date": null,
+        "cycle_as_of": null,
+        "stages": {},
+        "updated_at": null,
+        "active_cycle_id": null,
+        "execution_namespace": "v2",
+        "stage_order": [
+          "ccgp",
+          "event1",
+          "event2",
+          "event3",
+          "event4",
+          "event5",
+          "event6",
+          "tjmugh",
+          "tjnothop",
+          "teda",
+          "tjfch",
+          "regional_bj",
+          "regional_bj_fallback",
+          "regional_he",
+          "regional_he_fallback",
+          "regional_ln",
+          "regional_ln_fallback",
+          "regional_jl",
+          "regional_jl_fallback",
+          "regional_hl",
+          "regional_hl_fallback",
+          "publish"
+        ],
+        "completed_stage_count": 0,
+        "total_stage_count": 22,
+        "incremental": {
+          "active_scan_id": null,
+          "tick_policy": {
+            "timezone": "Asia/Shanghai",
+            "business_window_start": "11:30",
+            "business_window_end": "19:00",
+            "tick_interval_minutes": 15
+          },
+          "chain": null,
+          "sources": {
+            "tjmugh": {
+              "policy": {
+                "scan_interval_minutes": 60,
+                "reverify_after_hours": 24,
+                "max_details_per_scan": 12
+              },
+              "ledger": {
+                "candidate_count": 0,
+                "verified_count": 0,
+                "failed_count": 0,
+                "unverified_count": 0,
+                "updated_at": null
+              },
+              "staging": {
+                "record_count": 0,
+                "barrier_count": 0
+              },
+              "last_completed_scan": {
+                "bucket_id": null,
+                "completed_at": null,
+                "result": null
+              }
+            },
+            "tjnothop": {
+              "policy": {
+                "scan_interval_minutes": 60,
+                "reverify_after_hours": 24,
+                "max_details_per_scan": 12
+              },
+              "ledger": {
+                "candidate_count": 0,
+                "verified_count": 0,
+                "failed_count": 0,
+                "unverified_count": 0,
+                "updated_at": null
+              },
+              "staging": {
+                "record_count": 0,
+                "barrier_count": 0
+              },
+              "last_completed_scan": {
+                "bucket_id": null,
+                "completed_at": null,
+                "result": null
+              }
+            },
+            "tjfch": {
+              "policy": {
+                "scan_interval_minutes": 60,
+                "reverify_after_hours": 24,
+                "max_details_per_scan": 12
+              },
+              "ledger": {
+                "candidate_count": 0,
+                "verified_count": 0,
+                "failed_count": 0,
+                "unverified_count": 0,
+                "updated_at": null
+              },
+              "staging": {
+                "record_count": 0,
+                "barrier_count": 0
+              },
+              "last_completed_scan": {
+                "bucket_id": null,
+                "completed_at": null,
+                "result": null
+              }
+            },
+            "tjfch_test": {
+              "policy": {
+                "scan_interval_minutes": 60,
+                "reverify_after_hours": 12,
+                "max_details_per_scan": 12
+              },
+              "ledger": {
+                "candidate_count": 0,
+                "verified_count": 0,
+                "failed_count": 0,
+                "unverified_count": 0,
+                "updated_at": null
+              },
+              "staging": {
+                "record_count": 0,
+                "barrier_count": 0
+              },
+              "last_completed_scan": {
+                "bucket_id": null,
+                "completed_at": null,
+                "result": null
+              }
+            },
+            "teda": {
+              "policy": {
+                "scan_interval_minutes": 120,
+                "reverify_after_hours": 24,
+                "max_details_per_scan": 12
+              },
+              "ledger": {
+                "candidate_count": 0,
+                "verified_count": 0,
+                "failed_count": 0,
+                "unverified_count": 0,
+                "updated_at": null
+              },
+              "staging": {
+                "record_count": 0,
+                "barrier_count": 0
+              },
+              "last_completed_scan": {
+                "bucket_id": null,
+                "completed_at": null,
+                "result": null
+              }
+            }
+          }
+        }
+      }
+    },
+    "does_not_prove_consumers_stopped_or_queue_empty": true,
+    "canonical_history_inventory_not_exposed": true
+  },
+  "public_snapshot": {
+    "http_status": 200,
+    "date": "Sat, 03 Oct 2026 13:03:29 GMT",
+    "source": "DATABASE",
+    "etag": "W/\"19a777-NSz8OwHTgFi80FRb+Ma4ta/7Rv4\"",
+    "snapshot_as_of": "2026-10-02T14:19:15.713282+08:00",
+    "pool_count": 441,
+    "declared_count": 441,
+    "coverage": null,
+    "fact_identity_comparison": {
+      "production_ref": "62299590dd3898e040ccc9db5fda1298d4509d51",
+      "fresh_published_count": 441,
+      "metadata_and_rank_equal_production_artifact": true,
+      "metadata_identity_sha256": "1277f0da96634223369d72bf886e764373c9dd14fe874dcb6854bb9954c28c6c",
+      "published_ids_missing_from_historical_backup": [],
+      "historical_intent_ids": [
+        "tjzyefy_intent_20260804_030195992",
+        "tjzyefy_intent_20260804_030195991",
+        "tjzyefy_intent_20260804_030195988",
+        "tjzyefy_intent_20260804_030195986"
+      ],
+      "all_four_intents_present": true,
+      "canonical_backup_count": 911,
+      "files": [
+        {
+          "file": "tianjin_live_ccgp_records.json",
+          "count": 56,
+          "sha256": "48d337d1ff814dabd4fe2f5e0571bb9ce7299fbe1608649eea68aabc8e4ee55a"
+        },
+        {
+          "file": "tianjin_live_tjmugh_records.json",
+          "count": 3,
+          "sha256": "e576cea26f159f8994a32feb930b915460797f7a4f12f419461dacfaf35b70f7"
+        },
+        {
+          "file": "tianjin_live_tjnothop_records.json",
+          "count": 0,
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        },
+        {
+          "file": "tianjin_live_tjzxfc_records.json",
+          "count": 0,
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        },
+        {
+          "file": "tianjin_live_tjzyefy_records.json",
+          "count": 4,
+          "sha256": "5b1f74e91f3e187c1ea3ab2d0afa22e51752e05e7f839fab2ffc530158c50191"
+        },
+        {
+          "file": "tianjin_live_tjzyefy_intent_records.json",
+          "count": 4,
+          "sha256": "b30433fe525648b6c48b87ecb11a3d207e1e532c8eaf283f3bd7960246450b58"
+        },
+        {
+          "file": "tianjin_live_teda_records.json",
+          "count": 6,
+          "sha256": "f3c849ceb5d9de461d8e69a2199957a5088b75764a35b8eb2a4f3de52ed8c8f8"
+        },
+        {
+          "file": "tianjin_live_tjfch_records.json",
+          "count": 2,
+          "sha256": "86a1f9810ed66ad4b5572bbfdd162eecd441d78bb43c5e0a3bbd5a7329a910a7"
+        },
+        {
+          "file": "regional_live_ccgp_records.json",
+          "count": 836,
+          "sha256": "72e0e865a639e96f4479bea7639b806402df910a68b305b049fb5e8f361ee0fc"
+        },
+        {
+          "file": "tianjin_notice_events.json",
+          "count": 0,
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        }
+      ],
+      "actual_runtime_cache_inventory_verified": false,
+      "tests_or_reconstruction_rerun": false
+    }
+  },
+  "runtime_logs": {
+    "deployment_id": "dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1",
+    "query": "collector",
+    "since": "24h",
+    "result": "No logs found for the specified criteria",
+    "does_not_prove_no_invocations_or_queue_work": true
+  },
+  "existing_environment_fallback": {
+    "observed_spec_revision": "11",
+    "observations_current": true,
+    "configured_secrets": 0,
+    "runtime_variables": 0,
+    "outbound_identities": 0,
+    "vercel_cli_present": false,
+    "existing_cli_auth_file_present": false,
+    "new_token_requested": false
+  },
+  "github_collection_workflows": [
+    {
+      "path": ".github/workflows/tianjin-medical-refresh.yml",
+      "state": "disabled_manually"
+    },
+    {
+      "path": ".github/workflows/regional-medical-refresh.yml",
+      "state": "disabled_manually"
+    }
+  ],
+  "release_gate_outcome": "BLOCKED: actual control-plane and canonical recovery unverified; rollback/deployment switch does not stop old queue deliveries",
+  "boundaries": {
+    "merge": false,
+    "deploy": false,
+    "preview": false,
+    "cron_or_consumer_mutation": false,
+    "queue_receive_ack_purge": false,
+    "real_collection": false,
+    "model_calls": false,
+    "paid_resources": false,
+    "tests_rerun": false
+  },
+  "github_existing_ci": {
+    "head": "8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2",
+    "run_id": 37117043888,
+    "conclusion": "success",
+    "historical_reported_python_count": 879,
+    "new_run_requested": false,
+    "build_and_ranking_steps_readback": "success",
+    "live_probe_steps": "skipped",
+    "historical_log_body_unavailable_this_turn": true
+  },
+  "github_merge_rules_readback": [
+    {
+      "endpoint": "repos/wpuu/MedicalChannelAI/rulesets",
+      "exit_code": 0,
+      "result": [],
+      "error": null
+    },
+    {
+      "endpoint": "repos/wpuu/MedicalChannelAI/branches/main/protection",
+      "exit_code": 1,
+      "result": {
+        "message": "Resource not accessible by integration",
+        "documentation_url": "https://docs.github.com/rest/branches/branch-protection#get-branch-protection",
+        "status": "403"
+      },
+      "error": "gh: Resource not accessible by integration (HTTP 403)"
+    }
+  ],
+  "github_followup_readback": {
+    "recorded_at_utc": "2026-10-03T13:46:26Z",
+    "recorded_at_beijing": "2026-10-03T21:46:26+08:00",
+    "starting_candidate_head": "a503eed41ac1cb4ec0acddd3be3b44fd5cceb649",
+    "connection": "existing GitHub app",
+    "branch": {
+      "endpoint": "https://api.github.com/repos/wpuu/MedicalChannelAI/branches/main",
+      "name": "main",
+      "commit": "62299590dd3898e040ccc9db5fda1298d4509d51",
+      "protected": false,
+      "protection": {
+        "enabled": false,
+        "required_status_checks": {
+          "enforcement_level": "off",
+          "contexts": [],
+          "checks": []
+        }
+      }
+    },
+    "rulesets": {
+      "endpoint": "https://api.github.com/repos/wpuu/MedicalChannelAI/rulesets",
+      "result": []
+    },
+    "detail_endpoint": {
+      "endpoint": "https://api.github.com/repos/wpuu/MedicalChannelAI/branches/main/protection",
+      "error_code": "FORBIDDEN",
+      "error_data": {
+        "message": "Resource not accessible by integration",
+        "documentation_url": "https://docs.github.com/rest/branches/branch-protection#get-branch-protection",
+        "status": "403"
+      }
+    },
+    "gate": "PASS for currently reported main protection/status requirements: protected=false, enabled=false, required checks off/empty, rulesets empty. Detail read still403; repository admin metadata is not endpoint authorization. Re-read before future approved merge; no protection/policy changes.",
+    "production": {
+      "deployment_id": "dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1",
+      "commit": "62299590dd3898e040ccc9db5fda1298d4509d51",
+      "state": "READY",
+      "region": "iad1"
+    },
+    "other_gates": "BLOCKED: actual plan/Cron/queue inventory and complete canonical/baseline readback still unavailable via exposed supported tools."
+  }
+}

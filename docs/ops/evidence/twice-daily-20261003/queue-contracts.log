@@ -1,0 +1,9 @@
+test_private_queue_consumer_group_matches_vercel_function_path (test_queue_consumer_registration.QueueConsumerRegistrationTests.test_private_queue_consumer_group_matches_vercel_function_path) ... ok
+test_queue_topic_matches_v2_runtime_namespace (test_queue_consumer_registration.QueueConsumerRegistrationTests.test_queue_topic_matches_v2_runtime_namespace) ... ok
+test_no_duplicate_v2_queue_function_is_configured (test_vercel_queue_triggers.VercelQueueTriggerTests.test_no_duplicate_v2_queue_function_is_configured) ... ok
+test_queue_trigger_is_bound_to_v2_topic (test_vercel_queue_triggers.VercelQueueTriggerTests.test_queue_trigger_is_bound_to_v2_topic) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.003s
+
+OK

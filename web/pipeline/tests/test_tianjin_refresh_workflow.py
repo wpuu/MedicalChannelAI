@@ -137,6 +137,25 @@ class TianjinRefreshWorkflowTests(unittest.TestCase):
     def test_temporary_teda_probe_workflow_is_removed(self) -> None:
         self.assertFalse(TEMP_PROBE_PATH.exists())
 
+    def test_tjmugh_failure_diagnostic_upload_is_current_run_metadata_only(self) -> None:
+        sync = self.workflow.index('id: tjmugh_sync')
+        export = self.workflow.index('id: tjmugh_diagnostic')
+        upload = self.workflow.index('Upload safe TMUGH failure diagnostic')
+        next_sync = self.workflow.index('Sync verified Tianjin Hospital equipment-research state')
+        self.assertLess(sync, export)
+        self.assertLess(export, upload)
+        self.assertLess(upload, next_sync)
+        section = self.workflow[export:next_sync]
+        self.assertIn("failure() && steps.tjmugh_sync.outcome == 'failure'", section)
+        self.assertIn("failure() && steps.tjmugh_diagnostic.outcome == 'success'", section)
+        self.assertIn('actions/upload-artifact@v4', section)
+        self.assertIn('path: ${{ runner.temp }}/tjmugh-failure/metadata.json', section)
+        self.assertIn('retention-days: 7', section)
+        self.assertIn('if-no-files-found: error', section)
+        self.assertIn('name: tjmugh-failure-${{ github.run_id }}', section)
+        self.assertNotIn('web/pipeline/data/tianjin_tjmugh_sync_report.json\n          web/', section)
+        self.assertNotIn('continue-on-error', section)
+
 
 if __name__ == '__main__':
     unittest.main()

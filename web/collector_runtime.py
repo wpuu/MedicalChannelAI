@@ -3,14 +3,17 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 from collections import Counter
+from contextvars import ContextVar
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from urllib.parse import urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 from vercel.functions import RuntimeCache
@@ -23,6 +26,8 @@ sys.path.insert(0, str(PIPELINE_ROOT))
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
+from medical_channel_pipeline.validation import validate_records  # noqa: E402
+from publish_web_snapshot import combine_snapshots  # noqa: E402
 from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
 from medical_channel_pipeline.state import (  # noqa: E402
     active_ccgp_project_numbers,
@@ -91,6 +96,7 @@ from medical_channel_pipeline.regional_candidate import (  # noqa: E402
 )
 
 SCHEMA_VERSION = "0.1"
+_SCHEDULED_CYCLE = ContextVar("scheduled_collector_cycle", default=None)
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 STATE_TTL_SECONDS = 14 * 24 * 60 * 60
 SNAPSHOT_TTL_SECONDS = 7 * 24 * 60 * 60
@@ -117,6 +123,13 @@ TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v1"
 REGIONAL_RECORDS_KEY_PREFIX = "medicalchannelai:collector-regional-records:v3"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 PUBLISHED_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:published:v2"
+# Historical stores already included in static publication. No acquisition
+# stage or bootstrap is added: verified restoration must provide these arrays.
+PRESERVED_SOURCE_RECORDS_KEYS = {
+    "tjzxfc": "medicalchannelai:collector-tjzxfc-records:v2",
+    "tjzyefy": "medicalchannelai:collector-tjzyefy-records:v2",
+    "tjzyefy-intent": "medicalchannelai:collector-tjzyefy-intent-records:v2",
+}
 DURABLE_PUBLISH_URL = "https://medicalchannelai.vercel.app/api/public-snapshot"
 DURABLE_PUBLISH_TIMEOUT_SECONDS = 30
 
@@ -178,6 +191,19 @@ EXPECTED_SCHEDULES = {
 class CollectorError(RuntimeError):
     code = "COLLECTOR_ERROR"
 
+    def __init__(
+        self,
+        message: str,
+        *,
+        diagnostics: list[dict[str, Any]] | None = None,
+        durable_accepted: bool = False,
+        durable_snapshot_as_of: str | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.diagnostics = diagnostics or []
+        self.durable_accepted = durable_accepted
+        self.durable_snapshot_as_of = durable_snapshot_as_of
+
 
 class CollectorPrecondition(CollectorError):
     code = "COLLECTOR_PRECONDITION_FAILED"
@@ -187,11 +213,40 @@ class CollectorStageBlocked(CollectorError):
     code = "COLLECTOR_STAGE_BLOCKED"
 
 
+STAGE_DEPENDENCIES: dict[str, tuple[str, ...]] = {
+    **{f"event{index}": ("ccgp",) for index in range(1, 7)},
+    **{f"{stage}_fallback": (stage,) for stage in REGIONAL_STAGE_MARKET_CODES},
+}
+PUBLISH_REQUIRED_STAGES = (
+    "ccgp", "event1", "event2", "event3", "event4", "event5", "event6",
+    "tjmugh", "tjnothop", "teda", "tjfch",
+    "regional_bj", "regional_he", "regional_ln", "regional_jl", "regional_hl",
+)
+DIAGNOSTIC_STAGES = {
+    "index_discovery", "scoped_discovery", "national_fallback_discovery",
+    "verified_detail", "event_search", "publish", "dependency",
+}
+DIAGNOSTIC_CATEGORIES = {
+    "ACCESS_DENIED", "TRANSIENT_FETCH_ERROR", "PERMANENT_HTTP_ERROR",
+    "PARSER_REJECTED", "EVIDENCE_VALIDATION_FAILED", "DEPENDENCY_BLOCKED",
+    "PUBLISH_REJECTED", "UNEXPECTED_ERROR",
+}
+
+
 def _now_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _assert_cycle_owned(cache: RuntimeCache) -> None:
+    cycle_id = _SCHEDULED_CYCLE.get()
+    if cycle_id:
+        from collector_namespace import ACTIVE_CYCLE_KEY, active_cycle_id
+        if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) != cycle_id:
+            raise CollectorPrecondition("COLLECTOR_CYCLE_SUPERSEDED")
+
+
 def _cache_set(cache: RuntimeCache, key: str, value: Any, *, tag: str, ttl: int = STATE_TTL_SECONDS) -> None:
+    _assert_cycle_owned(cache)
     cache.set(key, value, {"ttl": ttl, "tags": [tag]})
 
 
@@ -255,6 +310,15 @@ def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[st
     value = cache.get(key)
     if isinstance(value, list):
         return value, False
+    # Seed data can initialize a brand-new runtime. Once any confirmed public
+    # snapshot exists, an evicted source shard has unknown newer history and must
+    # not be replaced by an older seed array.
+    if (
+        _SCHEDULED_CYCLE.get() is not None
+        or isinstance(cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY), dict)
+        or isinstance(cache.get(LATEST_RUNTIME_SNAPSHOT_KEY), dict)
+    ):
+        raise CollectorPrecondition("COLLECTOR_CANONICAL_HISTORY_UNAVAILABLE")
     records = bootstrap()
     _cache_set(cache, key, records, tag="medicalchannelai-collector-canonical")
     return records, True
@@ -263,6 +327,7 @@ def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[st
 def _new_cycle(now: datetime) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
+        "cycle_id": _SCHEDULED_CYCLE.get(),
         "local_date": now.astimezone(SHANGHAI).date().isoformat(),
         "cycle_as_of": now.astimezone(SHANGHAI).isoformat(),
         "stages": {},
@@ -301,14 +366,20 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     local_date = now.astimezone(SHANGHAI).date().isoformat()
     state = load_status(cache)
 
-    if stage == "ccgp" and state.get("local_date") != local_date:
+    cycle_id = _SCHEDULED_CYCLE.get()
+    different_cycle = cycle_id is not None and state.get("cycle_id") != cycle_id
+    if stage == "ccgp" and (state.get("local_date") != local_date or different_cycle):
         state = _new_cycle(now)
         _write_status(cache, state)
-    elif state.get("local_date") != local_date:
+    elif state.get("local_date") != local_date or different_cycle:
         raise CollectorPrecondition("COLLECTOR_CYCLE_NOT_STARTED_TODAY")
 
     stages = state.setdefault("stages", {})
     previous = stages.get(stage)
+    if cycle_id and isinstance(previous, dict) and previous.get("status") == "RUNNING":
+        from collector_schedule import running_stage_is_live
+        if running_stage_is_live({"stages": {stage: previous}}, _now_utc()):
+            raise CollectorPrecondition("COLLECTOR_STAGE_ALREADY_RUNNING")
     regional_cache_replay = False
     regional_stale_migration_replay = False
     if isinstance(previous, dict) and previous.get("status") == "COMPLETED":
@@ -320,6 +391,10 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
             )
         if not regional_cache_replay:
             return state, previous
+    elif isinstance(previous, dict) and previous.get("status") == "BLOCKED" and previous.get("terminal") is True:
+        return state, previous
+    elif isinstance(previous, dict) and previous.get("status") == "FAILED" and previous.get("terminal") is True:
+        return state, previous
     elif (
         isinstance(previous, dict)
         and previous.get("status") == "RUNNING"
@@ -345,8 +420,73 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     if index > 0:
         required = STAGE_ORDER[index - 1]
         required_state = stages.get(required)
-        if not isinstance(required_state, dict) or required_state.get("status") != "COMPLETED":
+        if not isinstance(required_state, dict):
+            raise CollectorPrecondition(f"COLLECTOR_PREVIOUS_STAGE_STATE_MISSING:{required}")
+        if required_state.get("status") not in {"COMPLETED", "FAILED", "BLOCKED"} or (
+            required_state.get("status") in {"FAILED", "BLOCKED"} and required_state.get("terminal") is not True
+        ):
             raise CollectorPrecondition(f"COLLECTOR_PREVIOUS_STAGE_INCOMPLETE:{required}")
+
+    dependencies = STAGE_DEPENDENCIES.get(stage, ())
+    failed_dependencies = []
+    incomplete_dependencies = []
+    for dependency in dependencies:
+        dependency_state = stages.get(dependency)
+        if isinstance(dependency_state, dict) and dependency_state.get("status") in {"FAILED", "BLOCKED"} and dependency_state.get("terminal") is True:
+            failed_dependencies.append(dependency)
+        elif not isinstance(dependency_state, dict) or dependency_state.get("status") != "COMPLETED":
+            incomplete_dependencies.append(dependency)
+    if incomplete_dependencies:
+        raise CollectorPrecondition("COLLECTOR_DEPENDENCY_INCOMPLETE:" + ",".join(incomplete_dependencies))
+    if failed_dependencies:
+        diagnostic = {
+            "source_id": _source_id_for_stage(stage),
+            "market_code": REGIONAL_STAGE_MARKET_CODES.get(stage) or REGIONAL_FALLBACK_STAGE_MARKET_CODES.get(stage),
+            "stage": "dependency",
+            "category": "DEPENDENCY_BLOCKED",
+            "error_code": "COLLECTOR_DEPENDENCY_FAILED",
+            "error_type": "CollectorPrecondition",
+        }
+        stages[stage] = {
+            "status": "BLOCKED",
+            "terminal": True,
+            "attempt_count": int(previous.get("attempt_count", 0)) if isinstance(previous, dict) else 0,
+            "started_at": None,
+            "completed_at": now.isoformat(),
+            "error_code": "COLLECTOR_DEPENDENCY_FAILED",
+            "error_message": "COLLECTOR_DEPENDENCY_FAILED",
+            "diagnostics": [diagnostic],
+            "result": {"blocked_by": failed_dependencies},
+        }
+        _write_status(cache, state)
+        return state, stages[stage]
+
+    if stage == "publish":
+        failed_sources, incomplete_sources = _publish_stage_requirements(stages)
+        if incomplete_sources:
+            raise CollectorPrecondition("COLLECTOR_PUBLISH_SOURCE_STATE_INCOMPLETE:" + ",".join(incomplete_sources))
+        if failed_sources:
+            diagnostic = {
+                "source_id": "publish",
+                "market_code": None,
+                "stage": "dependency",
+                "category": "DEPENDENCY_BLOCKED",
+                "error_code": "COLLECTOR_PUBLISH_SOURCE_FAILED",
+                "error_type": "CollectorPrecondition",
+            }
+            stages[stage] = {
+                "status": "BLOCKED",
+                "terminal": True,
+                "attempt_count": int(previous.get("attempt_count", 0)) if isinstance(previous, dict) else 0,
+                "started_at": None,
+                "completed_at": now.isoformat(),
+                "error_code": "COLLECTOR_PUBLISH_SOURCE_FAILED",
+                "error_message": "COLLECTOR_PUBLISH_SOURCE_FAILED",
+                "diagnostics": [diagnostic],
+                "result": {"blocked_by": failed_sources},
+            }
+            _write_status(cache, state)
+            return state, stages[stage]
 
     attempts = int(previous.get("attempt_count", 0)) if isinstance(previous, dict) else 0
     tjfch_policy_recovery_retry = (
@@ -380,15 +520,26 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
         and not publish_cache_migration_retry
         and not regional_timeout_split_replay
     ):
-        raise CollectorPrecondition(f"COLLECTOR_STAGE_RETRY_LIMIT:{stage}")
+        current = previous if isinstance(previous, dict) else {}
+        current["status"] = "FAILED"
+        current["terminal"] = True
+        current["completed_at"] = current.get("completed_at") or now.isoformat()
+        current["error_code"] = current.get("error_code") or "COLLECTOR_STAGE_RETRY_LIMIT"
+        current["error_message"] = current.get("error_message") or "COLLECTOR_STAGE_RETRY_LIMIT"
+        current.setdefault("diagnostics", [_make_diagnostic(stage, CollectorStageBlocked("COLLECTOR_STAGE_RETRY_LIMIT"), market_code=REGIONAL_STAGE_MARKET_CODES.get(stage) or REGIONAL_FALLBACK_STAGE_MARKET_CODES.get(stage))])
+        stages[stage] = current
+        _write_status(cache, state)
+        return state, current
 
     stages[stage] = {
         "status": "RUNNING",
+        "terminal": False,
         "attempt_count": attempts + 1,
-        "started_at": now.isoformat(),
+        "started_at": (_now_utc() if cycle_id else now).isoformat(),
         "completed_at": None,
         "error_code": None,
         "error_message": None,
+        "diagnostics": [],
         "result": None,
     }
     _write_status(cache, state)
@@ -401,7 +552,7 @@ def _latest_stage_state_for_update(
     stage: str,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     latest = load_status(cache)
-    if latest.get("local_date") != state.get("local_date"):
+    if latest.get("local_date") != state.get("local_date") or latest.get("cycle_id") != state.get("cycle_id"):
         raise CollectorPrecondition("COLLECTOR_STATE_DATE_CHANGED_DURING_STAGE")
     latest_stages = latest.setdefault("stages", {})
     latest_stage = latest_stages.get(stage)
@@ -417,19 +568,23 @@ def _latest_stage_state_for_update(
 def _mark_completed(cache: RuntimeCache, state: dict[str, Any], stage: str, result: dict[str, Any]) -> None:
     latest, current = _latest_stage_state_for_update(cache, state, stage)
     current["status"] = "COMPLETED"
+    current["terminal"] = True
     current["completed_at"] = _now_utc().isoformat()
     current["result"] = result
     current["error_code"] = None
     current["error_message"] = None
+    current["diagnostics"] = result.get("diagnostics", []) if isinstance(result.get("diagnostics"), list) else []
     _write_status(cache, latest)
 
 
 def _mark_failed(cache: RuntimeCache, state: dict[str, Any], stage: str, exc: Exception) -> None:
     latest, current = _latest_stage_state_for_update(cache, state, stage)
     current["status"] = "FAILED"
+    current["terminal"] = False
     current["completed_at"] = _now_utc().isoformat()
-    current["error_code"] = getattr(exc, "code", type(exc).__name__)
-    current["error_message"] = str(exc)[:300]
+    current["error_code"] = _safe_error_code(exc)
+    current["error_message"] = _safe_error_code(exc)
+    current["diagnostics"] = _bounded_diagnostics(stage, exc)
     _write_status(cache, latest)
 
 
@@ -524,7 +679,10 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             for item in detail_failures[:3]
         )
         suffix = f";DETAIL_FAILURES:{diagnostic}" if diagnostic else ""
-        raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}{suffix}")
+        raise CollectorStageBlocked(
+            f"CCGP_PUBLISH_GATE:{reason}{suffix}",
+            diagnostics=detail_failures[:5],
+        )
 
     merged_records = merge_canonical_records(existing_records, new_records)
     watch_projects = active_ccgp_project_numbers(merged_records, as_of)
@@ -545,9 +703,11 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "unique_discovered_candidate_count": len(discovered),
         "selected_candidate_count": len(selected),
         "new_verified_record_count": len(new_records),
+        "canonical_changed": _canonical_content_digest(merged_records) != _canonical_content_digest(existing_records),
         "merged_record_count": len(merged_records),
         "event_watch_project_count": len(watch_projects),
         "failure_count": len(failures),
+        "diagnostics": _diagnostics_from_items("ccgp", failures),
         "publish_gate_reason": reason,
         "bootstrapped_records": bootstrapped_records,
         "bootstrapped_events": bootstrapped_events,
@@ -602,8 +762,10 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> 
         "project_count": len(projects),
         "projects": projects,
         "new_notice_event_count": len(new_events),
+        "canonical_changed": _canonical_content_digest(merged_events) != _canonical_content_digest(existing_events),
         "merged_event_count": len(merged_events),
         "failure_count": len(failures),
+        "diagnostics": _diagnostics_from_items(stage, failures),
     }
 
 
@@ -619,7 +781,10 @@ def _run_tjmugh(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         index_html = fetch_tjmugh_page(TJMUGH_INDEX_URL)
         discovered = parse_tjmugh_index_html(index_html)
     except Exception as exc:
-        raise CollectorStageBlocked(f"TJMUGH_INDEX_DISCOVERY_FAILED:{type(exc).__name__}") from exc
+        raise CollectorStageBlocked(
+            f"TJMUGH_INDEX_DISCOVERY_FAILED:{type(exc).__name__}",
+            diagnostics=[{"stage": "index_discovery", "error": type(exc).__name__, "message": str(exc), "url": TJMUGH_INDEX_URL}],
+        ) from exc
 
     selected = select_tjmugh_candidates(
         discovered,
@@ -651,7 +816,7 @@ def _run_tjmugh(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
                 }
             )
     if selected and not new_records:
-        raise CollectorStageBlocked("TJMUGH_ALL_SELECTED_DETAILS_FAILED_VERIFICATION")
+        raise CollectorStageBlocked("TJMUGH_ALL_SELECTED_DETAILS_FAILED_VERIFICATION", diagnostics=failures[:5])
 
     merged = merge_canonical_records(existing_records, new_records)
     _cache_set(cache, TJMUGH_RECORDS_KEY, merged, tag="medicalchannelai-collector-canonical")
@@ -659,8 +824,10 @@ def _run_tjmugh(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "discovered_supported_count": len(discovered),
         "selected_candidate_count": len(selected),
         "new_verified_record_count": len(new_records),
+        "canonical_changed": _canonical_content_digest(merged) != _canonical_content_digest(existing_records),
         "merged_record_count": len(merged),
         "failure_count": len(failures),
+        "diagnostics": _diagnostics_from_items("tjmugh", failures),
         "bootstrapped_records": bootstrapped,
         "publish_gate_reason": "PASS",
     }
@@ -678,7 +845,10 @@ def _run_tjnothop(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         index_html = fetch_tjnothop_page(TJNOTHOP_INDEX_URL)
         discovered = parse_tjnothop_index_html(index_html)
     except Exception as exc:
-        raise CollectorStageBlocked(f"TJNOTHOP_INDEX_DISCOVERY_FAILED:{type(exc).__name__}") from exc
+        raise CollectorStageBlocked(
+            f"TJNOTHOP_INDEX_DISCOVERY_FAILED:{type(exc).__name__}",
+            diagnostics=[{"stage": "index_discovery", "error": type(exc).__name__, "message": str(exc), "url": TJNOTHOP_INDEX_URL}],
+        ) from exc
 
     selected = select_tjnothop_candidates(
         discovered,
@@ -715,7 +885,7 @@ def _run_tjnothop(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
                 }
             )
     if selected and not new_records:
-        raise CollectorStageBlocked("TJNOTHOP_ALL_SELECTED_DETAILS_FAILED_VERIFICATION")
+        raise CollectorStageBlocked("TJNOTHOP_ALL_SELECTED_DETAILS_FAILED_VERIFICATION", diagnostics=failures[:5])
 
     merged = merge_canonical_records(existing_records, new_records)
     _cache_set(cache, TJNOTHOP_RECORDS_KEY, merged, tag="medicalchannelai-collector-canonical")
@@ -723,8 +893,10 @@ def _run_tjnothop(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "discovered_supported_count": len(discovered),
         "selected_candidate_count": len(selected),
         "new_verified_record_count": len(new_records),
+        "canonical_changed": _canonical_content_digest(merged) != _canonical_content_digest(existing_records),
         "merged_record_count": len(merged),
         "failure_count": len(failures),
+        "diagnostics": _diagnostics_from_items("tjnothop", failures),
         "bootstrapped_records": bootstrapped,
         "publish_gate_reason": "PASS",
     }
@@ -743,9 +915,9 @@ def _run_teda(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             delay_seconds=TEDA_REQUEST_DELAY_SECONDS,
         )
     except Exception as exc:
-        message = str(exc)[:180]
         raise CollectorStageBlocked(
-            f"TEDA_INDEX_DISCOVERY_FAILED:{type(exc).__name__}:{message}"
+            f"TEDA_INDEX_DISCOVERY_FAILED:{type(exc).__name__}",
+            diagnostics=[{"stage": "index_discovery", "error": type(exc).__name__, "message": str(exc), "url": "https://www.tedahospital.com.cn/article/plist/9"}],
         ) from exc
 
     new_records: list[dict[str, Any]] = []
@@ -814,7 +986,8 @@ def _run_teda(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             for item in failures[:3]
         )
         raise CollectorStageBlocked(
-            f"TEDA_CANDIDATE_VERIFICATION_INCOMPLETE:{len(failures)}:{diagnostic}"
+            f"TEDA_CANDIDATE_VERIFICATION_INCOMPLETE:{len(failures)}",
+            diagnostics=failures[:5],
         )
 
     merged = merge_canonical_records(existing_records, new_records)
@@ -823,10 +996,12 @@ def _run_teda(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "discovered_early_title_count": len(discovered),
         "considered_candidate_count": len(considered),
         "new_verified_record_count": len(new_records),
+        "canonical_changed": _canonical_content_digest(merged) != _canonical_content_digest(existing_records),
         "out_of_window_count": out_of_window_count,
         "unsupported_candidate_count": len(unsupported),
         "merged_record_count": len(merged),
         "failure_count": 0,
+        "diagnostics": [],
         "bootstrapped_records": bootstrapped,
         "publish_gate_reason": "PASS",
     }
@@ -845,7 +1020,10 @@ def _run_tjfch(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         index_html = fetch_tjfch_page(TJFCH_INDEX_URL)
         discovered = parse_tjfch_index_html(index_html)
     except Exception as exc:
-        raise CollectorStageBlocked(f"TJFCH_INDEX_DISCOVERY_FAILED:{type(exc).__name__}") from exc
+        raise CollectorStageBlocked(
+            f"TJFCH_INDEX_DISCOVERY_FAILED:{type(exc).__name__}",
+            diagnostics=[{"stage": "index_discovery", "error": type(exc).__name__, "message": str(exc), "url": TJFCH_INDEX_URL}],
+        ) from exc
 
     selected = select_tjfch_candidates(
         discovered,
@@ -912,7 +1090,10 @@ def _run_tjfch(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             max_candidates=TJFCH_TEST_MAX_CANDIDATES,
         )
     except Exception as exc:
-        raise CollectorStageBlocked(f"TJFCH_TEST_INDEX_DISCOVERY_FAILED:{type(exc).__name__}") from exc
+        raise CollectorStageBlocked(
+            f"TJFCH_TEST_INDEX_DISCOVERY_FAILED:{type(exc).__name__}",
+            diagnostics=[{"stage": "index_discovery", "error": type(exc).__name__, "message": str(exc), "url": TJFCH_TEST_INDEX_URL}],
+        ) from exc
 
     early_new_verified_record_count = 0
     early_out_of_window_count = 0
@@ -972,12 +1153,9 @@ def _run_tjfch(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     # combined state is written. Unsupported relative/exact-deadline formats are
     # explicit non-facts and never become invented public deadlines.
     if failures:
-        diagnostic = ";".join(
-            f"{item.get('feed')}:{item.get('error')}:{item.get('message')}"
-            for item in failures[:3]
-        )
         raise CollectorStageBlocked(
-            f"TJFCH_CANDIDATE_VERIFICATION_INCOMPLETE:{len(failures)}:{diagnostic}"
+            f"TJFCH_CANDIDATE_VERIFICATION_INCOMPLETE:{len(failures)}",
+            diagnostics=failures[:5],
         )
 
     merged = merge_canonical_records(existing_records, new_records)
@@ -986,12 +1164,14 @@ def _run_tjfch(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "discovered_supported_count": len(discovered),
         "selected_candidate_count": len(selected),
         "new_verified_record_count": len(new_records) - early_new_verified_record_count,
+        "canonical_changed": _canonical_content_digest(merged) != _canonical_content_digest(existing_records),
         "early_discovered": len(early_discovered),
         "early_new_verified_record_count": early_new_verified_record_count,
         "early_out_of_window_count": early_out_of_window_count,
         "unsupported_candidate_count": len(unsupported),
         "merged_record_count": len(merged),
         "failure_count": 0,
+        "diagnostics": [],
         "bootstrapped_records": bootstrapped,
         "publish_gate_reason": "PASS",
     }
@@ -1147,10 +1327,11 @@ def _run_regional_market(
                     time.sleep(plan["delay_seconds"])
                 time.sleep(plan["delay_seconds"])
 
-    if not fallback_only and scoped_query_success_count <= 0:
-        raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}")
     if fallback_only and fallback_query_success_count <= 0:
-        raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}")
+        raise CollectorStageBlocked(
+            f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}",
+            diagnostics=failures[:5],
+        )
 
     if stage == "regional_bj" and not scoped_found_candidates:
         _cache_set(
@@ -1172,8 +1353,10 @@ def _run_regional_market(
             "unique_candidate_count": 0,
             "selected_candidate_count": 0,
             "new_verified_record_count": 0,
+            "canonical_changed": False,
             "merged_record_count": len(existing_records),
             "failure_count": len(failures),
+            "diagnostics": _diagnostics_from_items(stage, failures),
             "bootstrapped_records": bootstrapped,
         }
 
@@ -1219,7 +1402,8 @@ def _run_regional_market(
 
     if selected and not new_records:
         raise CollectorStageBlocked(
-            f"REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION:{market_code}"
+            f"REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION:{market_code}",
+            diagnostics=failures[:5],
         )
 
     merged = merge_canonical_records(existing_records, new_records)
@@ -1242,8 +1426,10 @@ def _run_regional_market(
         "unique_candidate_count": len(discovered),
         "selected_candidate_count": len(selected),
         "new_verified_record_count": len(new_records),
+        "canonical_changed": _canonical_content_digest(merged) != _canonical_content_digest(existing_records),
         "merged_record_count": len(merged),
         "failure_count": len(failures),
+        "diagnostics": _diagnostics_from_items(stage, failures),
         "bootstrapped_records": bootstrapped,
     }
 
@@ -1270,12 +1456,23 @@ def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, An
             status = int(getattr(response, "status", 0) or 0)
             body = response.read()
     except HTTPError as exc:
+        durable_receipt: Any = None
         try:
-            detail = exc.read().decode("utf-8", errors="replace")[:180]
+            body = exc.read(16_384)
+            durable_receipt = json.loads(body.decode("utf-8"))
         except Exception:
-            detail = ""
+            durable_receipt = None
+        durable_accepted = (
+            isinstance(durable_receipt, dict)
+            and durable_receipt.get("durable_accepted") is True
+            and durable_receipt.get("snapshot_as_of") == snapshot.get("snapshot_as_of")
+        )
         raise CollectorStageBlocked(
-            f"DURABLE_SNAPSHOT_PUBLISH_HTTP_{exc.code}:{detail}"
+            f"DURABLE_SNAPSHOT_PUBLISH_HTTP_{exc.code}",
+            durable_accepted=durable_accepted,
+            durable_snapshot_as_of=(
+                str(durable_receipt.get("snapshot_as_of")) if durable_accepted else None
+            ),
         ) from exc
     except URLError as exc:
         raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_NETWORK_FAILED") from exc
@@ -1292,22 +1489,136 @@ def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, An
         raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_AS_OF_MISMATCH")
     expected_pool = snapshot.get("opportunity_pool")
     expected_count = len(expected_pool) if isinstance(expected_pool, list) else len(snapshot.get("cards") or [])
-    if int(result.get("opportunity_pool_count") or -1) != expected_count:
+    acknowledged_count = result.get("opportunity_pool_count")
+    if type(acknowledged_count) is not int or acknowledged_count < 0 or acknowledged_count != expected_count:
         raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_POOL_MISMATCH")
     return result
 
 
-def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
-    ccgp_records = cache.get(CCGP_RECORDS_KEY)
-    events = cache.get(CCGP_EVENTS_KEY)
-    tjmugh_records = cache.get(TJMUGH_RECORDS_KEY)
-    tjnothop_records = cache.get(TJNOTHOP_RECORDS_KEY)
-    teda_records = cache.get(TEDA_RECORDS_KEY)
-    tjfch_records = cache.get(TJFCH_RECORDS_KEY)
-    regional_records_by_market = {
-        market_code: cache.get(_regional_records_key(market_code))
-        for market_code in REGIONAL_STAGE_MARKET_CODES.values()
+def _require_published_canonical_history(
+    cache: RuntimeCache,
+    records: list[dict[str, Any]],
+    *,
+    as_of: datetime,
+) -> None:
+    if _SCHEDULED_CYCLE.get() is None:
+        return
+    # The full, read-back published baseline is a recovery prerequisite. Public
+    # cards are only a projection: never fabricate canonical rows from them.
+    baseline = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+    if not isinstance(baseline, dict):
+        raise CollectorPrecondition("COLLECTOR_PUBLISHED_BASELINE_UNAVAILABLE")
+    pool = baseline.get("opportunity_pool")
+    count = baseline.get("opportunity_pool_count")
+    try:
+        clock = datetime.fromisoformat(str(baseline.get("snapshot_as_of") or "").replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise CollectorPrecondition("COLLECTOR_PUBLISHED_BASELINE_INVALID") from exc
+    if (
+        clock.tzinfo is None
+        or clock > as_of
+        or not isinstance(pool, list)
+        or type(count) is not int
+        or count != len(pool)
+    ):
+        raise CollectorPrecondition("COLLECTOR_PUBLISHED_BASELINE_INVALID")
+    published_ids: set[str] = set()
+    for card in pool:
+        opportunity_id = card.get("opportunity_id") if isinstance(card, dict) else None
+        if (
+            not isinstance(opportunity_id, str)
+            or not opportunity_id.strip()
+            or opportunity_id != opportunity_id.strip()
+            or opportunity_id in published_ids
+        ):
+            raise CollectorPrecondition("COLLECTOR_PUBLISHED_BASELINE_INVALID")
+        published_ids.add(opportunity_id)
+    canonical_ids = {
+        record.get("opportunity_id")
+        for record in records
+        if isinstance(record, dict) and isinstance(record.get("opportunity_id"), str)
     }
+    if not published_ids.issubset(canonical_ids):
+        raise CollectorPrecondition("COLLECTOR_CANONICAL_PUBLISHED_HISTORY_MISSING")
+
+
+def _preserved_source_history(cache: RuntimeCache) -> list[dict[str, Any]]:
+    if _SCHEDULED_CYCLE.get() is None:
+        return []
+    history = []
+    for source, key in PRESERVED_SOURCE_RECORDS_KEYS.items():
+        rows = cache.get(key)
+        if not isinstance(rows, list):
+            raise CollectorPrecondition("COLLECTOR_PRESERVED_HISTORY_UNAVAILABLE:" + source)
+        try:
+            validate_records(rows)
+            for row in rows:
+                if not str(row["source"]["source_id"]).startswith(source + ":"):
+                    raise ValueError("WRONG_HISTORICAL_SOURCE")
+                if str(row["facts"].get("market_code") or "TJ").upper() != "TJ":
+                    raise ValueError("WRONG_HISTORICAL_MARKET")
+        except (ValueError, TypeError, KeyError, AttributeError) as exc:
+            raise CollectorPrecondition("COLLECTOR_PRESERVED_HISTORY_INVALID:" + source) from exc
+        history.extend(rows)
+    return history
+
+
+def _build_scheduled_public_snapshot(
+    tianjin_records: list[dict[str, Any]],
+    regional_records: list[dict[str, Any]],
+    as_of: datetime,
+    events: list[dict[str, Any]],
+) -> dict[str, Any]:
+    ids = [row.get("opportunity_id") for row in tianjin_records + regional_records]
+    if len(ids) != len(set(ids)):
+        raise CollectorPrecondition("COLLECTOR_CANONICAL_ID_CONFLICT")
+    # Keep canonical immutable and follow the existing static publication
+    # transform, including market metadata and Tianjin-only event isolation.
+    local = json.loads(json.dumps(tianjin_records))
+    for row in local:
+        facts = row["facts"]
+        if (str(facts.get("market_code") or "").strip().upper() or "TJ") != "TJ":
+            raise CollectorPrecondition("COLLECTOR_CANONICAL_MARKET_MISMATCH")
+        facts["market_code"] = "TJ"
+        for field, value in (("market_name", "天津"), ("market_admin_code", "120000")):
+            if not str(facts.get(field) or "").strip():
+                facts[field] = value
+    for row in regional_records:
+        facts = row.get("facts") or {}
+        if (
+            facts.get("market_code") not in REGIONAL_STAGE_MARKET_CODES.values()
+            or not facts.get("market_name")
+            or not facts.get("market_admin_code")
+        ):
+            raise CollectorPrecondition("COLLECTOR_CANONICAL_MARKET_MISMATCH")
+    return combine_snapshots(
+        build_public_snapshot(local, as_of, events),
+        build_public_snapshot(regional_records, as_of, []),
+        local + regional_records, as_of,
+    )
+
+
+def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
+    stages = state.get("stages")
+    if isinstance(stages, dict):
+        failed_sources, incomplete_sources = _publish_stage_requirements(stages)
+        if incomplete_sources:
+            raise CollectorPrecondition("COLLECTOR_PUBLISH_SOURCE_STATE_INCOMPLETE:" + ",".join(incomplete_sources))
+        if failed_sources:
+            raise CollectorStageBlocked("COLLECTOR_PUBLISH_SOURCE_FAILED:" + ",".join(failed_sources))
+    ccgp_records, _ = _cached_list(cache, CCGP_RECORDS_KEY, _bootstrap_ccgp_records)
+    events, _ = _cached_list(cache, CCGP_EVENTS_KEY, _bootstrap_ccgp_events)
+    tjmugh_records, _ = _cached_list(cache, TJMUGH_RECORDS_KEY, _bootstrap_tjmugh_records)
+    tjnothop_records, _ = _cached_list(cache, TJNOTHOP_RECORDS_KEY, _bootstrap_tjnothop_records)
+    teda_records, _ = _cached_list(cache, TEDA_RECORDS_KEY, _bootstrap_teda_records)
+    tjfch_records, _ = _cached_list(cache, TJFCH_RECORDS_KEY, _bootstrap_tjfch_records)
+    regional_records_by_market = {}
+    for market_code in REGIONAL_STAGE_MARKET_CODES.values():
+        regional_records_by_market[market_code], _ = _cached_list(
+            cache,
+            _regional_records_key(market_code),
+            lambda code=market_code: _bootstrap_regional_records(code),
+        )
     canonical_by_name = {
         "ccgp": ccgp_records,
         "events": events,
@@ -1335,37 +1646,125 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         for market_code in REGIONAL_STAGE_MARKET_CODES.values()
         for record in regional_records_by_market[market_code]
     ]
-    records = (
+    tianjin_records = (
         list(ccgp_records)
         + list(tjmugh_records)
         + list(tjnothop_records)
         + list(teda_records)
         + list(tjfch_records)
-        + regional_records
+        + _preserved_source_history(cache)
     )
+    records = tianjin_records + regional_records
     as_of = _cycle_as_of(state)
-    snapshot = build_public_snapshot(records, as_of, list(events))
-    digest = _digest(snapshot)
-    _cache_set(
-        cache,
-        LATEST_RUNTIME_SNAPSHOT_KEY,
-        snapshot,
-        tag="medicalchannelai-verified-snapshot",
-        ttl=SNAPSHOT_TTL_SECONDS,
+    _require_published_canonical_history(cache, records, as_of=as_of)
+    snapshot = (
+        _build_scheduled_public_snapshot(tianjin_records, regional_records, as_of, list(events))
+        if _SCHEDULED_CYCLE.get() is not None
+        else build_public_snapshot(records, as_of, list(events))
     )
-    read_back = cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
-    if not isinstance(read_back, dict) or _digest(read_back) != digest:
-        raise CollectorStageBlocked("RUNTIME_SNAPSHOT_READBACK_MISMATCH")
-
-    # Node public serving reads this exact stable key. It is intentionally written
-    # without TTL/tags so the collector cannot expire the serving snapshot merely
-    # because the short-lived collector state ages out.
+    incremental_source = str(state.get("incremental_source") or "").strip().lower()
+    if incremental_source:
+        last_complete_as_of = str(state.get("last_complete_as_of") or "").strip()
+        current = load_status(cache)
+        prior_snapshot = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+        prior_coverage = prior_snapshot.get("collection_coverage") if isinstance(prior_snapshot, dict) else None
+        prior_failed = set(prior_coverage.get("failed_source_ids") or []) if isinstance(prior_coverage, dict) else set()
+        stage_to_source = {
+            **{f"event{index}": "ccgp_events" for index in range(1, 7)},
+            **{stage: f"ccgp_regional:{code.lower()}" for stage, code in REGIONAL_STAGE_MARKET_CODES.items()},
+            **{f"{stage}_fallback": f"ccgp_regional:{code.lower()}" for stage, code in REGIONAL_STAGE_MARKET_CODES.items()},
+        }
+        stage_to_source.update({stage: stage for stage in ("ccgp", "tjmugh", "tjnothop", "teda", "tjfch")})
+        current_stages = current.get("stages") or {}
+        cleared_sources = {
+            stage_to_source[stage]
+            for stage, item in current_stages.items()
+            if stage in stage_to_source and isinstance(item, dict) and item.get("status") == "COMPLETED"
+        }
+        resolved_by_incremental = {incremental_source}
+        failed_source_ids = prior_failed - cleared_sources
+        failed_source_ids.update(
+            f"ccgp_regional:{item.get('market_code', '').lower()}" if item.get("source_id") == "ccgp_regional" and item.get("market_code") else str(item.get("source_id"))
+            for stage_state in current_stages.values()
+            if isinstance(stage_state, dict) and stage_state.get("status") in {"FAILED", "BLOCKED"}
+            for item in (stage_state.get("diagnostics") or [])
+            if isinstance(item, dict) and item.get("source_id") not in {None, "publish"}
+        )
+        failed_source_ids.difference_update(resolved_by_incremental)
+        snapshot["collection_coverage"] = {
+            "complete": False,
+            "last_complete_as_of": last_complete_as_of or None,
+            "updated_source_ids": [incremental_source],
+            "failed_source_ids": sorted(failed_source_ids),
+        }
+        snapshot["source_refresh"] = {
+            "source_id": incremental_source,
+            "observed_at": as_of.isoformat(),
+            "scope": "SOURCE_ONLY",
+        }
+    else:
+        stages = state.get("stages") if isinstance(state.get("stages"), dict) else {}
+        updated_source_ids = _changed_sources_from_stages(stages)
+        snapshot["collection_coverage"] = {
+            "complete": True,
+            "last_complete_as_of": snapshot.get("snapshot_as_of"),
+            "updated_source_ids": updated_source_ids,
+            "failed_source_ids": [],
+        }
+        if _SCHEDULED_CYCLE.get() is not None:
+            prior = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+            prior_coverage = prior.get("collection_coverage") if isinstance(prior, dict) else None
+            snapshot["collection_coverage"].update({
+                # Preserving archived sources is not a fresh collection of them.
+                # Existing UI/AI and durable base-match gates honor partial scope.
+                "complete": False,
+                "last_complete_as_of": prior_coverage.get("last_complete_as_of") if isinstance(prior_coverage, dict) else None,
+                "history_only_source_ids": list(PRESERVED_SOURCE_RECORDS_KEYS),
+            })
+    digest = _digest(snapshot)
+    old_latest = cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
+    old_published = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+    # The public durable store is the acceptance point. Do not advance either
+    # reader-facing cache before it confirms this exact candidate.
+    _assert_cycle_owned(cache)
     durable_result = _persist_verified_snapshot_durably(snapshot)
-
-    cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})
-    serving_read_back = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
-    if not isinstance(serving_read_back, dict) or _digest(serving_read_back) != digest:
-        raise CollectorStageBlocked("SERVING_SNAPSHOT_READBACK_MISMATCH")
+    try:
+        # Node public serving reads this stable key without TTL/tags.
+        _assert_cycle_owned(cache)
+        cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})
+        serving_read_back = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+        if not isinstance(serving_read_back, dict) or _digest(serving_read_back) != digest:
+            raise CollectorStageBlocked("SERVING_SNAPSHOT_READBACK_MISMATCH", durable_accepted=True)
+        _cache_set(
+            cache,
+            LATEST_RUNTIME_SNAPSHOT_KEY,
+            snapshot,
+            tag="medicalchannelai-verified-snapshot",
+            ttl=SNAPSHOT_TTL_SECONDS,
+        )
+        read_back = cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
+        if not isinstance(read_back, dict) or _digest(read_back) != digest:
+            raise CollectorStageBlocked("RUNTIME_SNAPSHOT_READBACK_MISMATCH", durable_accepted=True)
+    except Exception as exc:
+        # Best-effort rollback prevents failed cache commits from replacing the
+        # prior cache snapshot. Cache plus durable storage has no cross-store
+        # transaction; a failed rollback remains visible as an operational limit.
+        for key, old_value, options in (
+            (PUBLISHED_RUNTIME_SNAPSHOT_KEY, old_published, {}),
+            (LATEST_RUNTIME_SNAPSHOT_KEY, old_latest, {"ttl": SNAPSHOT_TTL_SECONDS, "tags": ["medicalchannelai-verified-snapshot"]}),
+        ):
+            try:
+                _assert_cycle_owned(cache)
+                if old_value is None:
+                    cache.delete(key)
+                else:
+                    cache.set(key, old_value, options)
+            except Exception:
+                pass
+        if isinstance(exc, CollectorError):
+            exc.durable_accepted = True
+            raise
+        raise CollectorStageBlocked("RUNTIME_SNAPSHOT_CACHE_COMMIT_FAILED", durable_accepted=True) from exc
 
     pool = read_back.get("opportunity_pool")
     return {
@@ -1380,15 +1779,52 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str, Any]]:
+def run_stage(stage: str, *, now: datetime | None = None, cycle_id: str | None = None) -> tuple[int, dict[str, Any]]:
+    token = _SCHEDULED_CYCLE.set(cycle_id)
+    try:
+        _assert_cycle_owned(RuntimeCache())
+        return _run_stage(stage, now=now)
+    finally:
+        _SCHEDULED_CYCLE.reset(token)
+
+
+def _run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str, Any]]:
     now = now or _now_utc()
     cache = RuntimeCache()
     try:
         state, previous = _prepare_stage(cache, stage, now)
     except CollectorPrecondition as exc:
         return 409, {"action": "REJECTED", "stage": stage, "error": str(exc), "error_code": exc.code}
+    except Exception as exc:
+        return 503, {
+            "action": "FAILED",
+            "terminal": False,
+            "stage": stage,
+            "error_code": "COLLECTOR_STATE_READ_FAILED",
+            "diagnostics": [_make_diagnostic(stage, exc, failure_stage="publish")],
+        }
 
     if previous is not None:
+        if previous.get("status") == "BLOCKED" and previous.get("terminal") is True:
+            return 409, {
+                "action": "BLOCKED",
+                "terminal": True,
+                "stage": stage,
+                "local_date": state.get("local_date"),
+                "completed_at": previous.get("completed_at"),
+                "error_code": previous.get("error_code"),
+                "diagnostics": previous.get("diagnostics") or [],
+            }
+        if previous.get("status") == "FAILED" and previous.get("terminal") is True:
+            return 503, {
+                "action": "FAILED",
+                "terminal": True,
+                "stage": stage,
+                "local_date": state.get("local_date"),
+                "completed_at": previous.get("completed_at"),
+                "error_code": previous.get("error_code"),
+                "diagnostics": previous.get("diagnostics") or [],
+            }
         return 200, {
             "action": "ALREADY_COMPLETED_TODAY",
             "stage": stage,
@@ -1417,19 +1853,249 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
         else:
             raise CollectorPrecondition(f"COLLECTOR_STAGE_INVALID:{stage}")
     except Exception as exc:
-        _mark_failed(cache, state, stage, exc)
+        try:
+            _mark_failed(cache, state, stage, exc)
+        except Exception as persist_exc:
+            diagnostics = _bounded_diagnostics(stage, exc)
+            # State persistence failures need a stable public code; arbitrary
+            # cache exception text is intentionally not surfaced.
+            diagnostics.append(_make_diagnostic(stage, RuntimeError("CACHE_WRITE_FAILED"), failure_stage="publish"))
+            diagnostics = diagnostics[:5]
+            return 503, {
+                "action": "FAILED",
+                "terminal": False,
+                "state_persisted": False,
+                "stage": stage,
+                "local_date": state.get("local_date"),
+                "error_code": "COLLECTOR_FAILURE_STATE_PERSIST_FAILED",
+                "durable_snapshot_accepted": bool(getattr(exc, "durable_accepted", False)),
+                "durable_snapshot_as_of": getattr(exc, "durable_snapshot_as_of", None),
+                "diagnostics": diagnostics,
+            }
         return 503, {
             "action": "FAILED",
+            "terminal": False,
             "stage": stage,
             "local_date": state.get("local_date"),
-            "error_code": getattr(exc, "code", type(exc).__name__),
-            "error": str(exc)[:300],
+            "error_code": _safe_error_code(exc),
+            "error": _safe_error_code(exc),
+            "durable_snapshot_accepted": bool(getattr(exc, "durable_accepted", False)),
+            "durable_snapshot_as_of": getattr(exc, "durable_snapshot_as_of", None),
+            "diagnostics": _bounded_diagnostics(stage, exc),
         }
 
-    _mark_completed(cache, state, stage, result)
+    try:
+        _mark_completed(cache, state, stage, result)
+    except Exception as exc:
+        return 503, {
+            "action": "FAILED",
+            "terminal": False,
+            "state_persisted": False,
+            "stage": stage,
+            "local_date": state.get("local_date"),
+            "error_code": "COLLECTOR_COMPLETION_STATE_PERSIST_FAILED",
+            "diagnostics": [_make_diagnostic(stage, exc, failure_stage="publish")],
+        }
     return 200, {
         "action": "COMPLETED",
         "stage": stage,
         "local_date": state.get("local_date"),
         "result": result,
     }
+
+
+def _safe_error_code(exc: Exception) -> str:
+    if isinstance(exc, HTTPError):
+        status = int(getattr(exc, "code", 0) or 0)
+        return f"HTTP_{status}" if 100 <= status <= 599 else "HTTP_ERROR"
+    message = str(exc)
+    match = re.match(r"^([A-Z][A-Z0-9_]{2,79})(?::|$)", message)
+    if match:
+        return match.group(1)
+    code = str(getattr(exc, "code", "") or "")
+    return code if re.fullmatch(r"[A-Z][A-Z0-9_]{2,79}", code) else "ERROR_CODE_UNAVAILABLE"
+
+
+def _source_id_for_stage(stage: str) -> str:
+    if stage.startswith("event"):
+        return "ccgp_events"
+    if stage == "ccgp":
+        return "ccgp"
+    if stage.startswith("regional_"):
+        return "ccgp_regional"
+    return stage if stage in {"tjmugh", "tjnothop", "teda", "tjfch", "publish"} else "collector"
+
+
+def _diagnostic_category(exc: Exception) -> str:
+    if isinstance(exc, HTTPError):
+        status = int(getattr(exc, "code", 0) or 0)
+        if status in {401, 403}:
+            return "ACCESS_DENIED"
+        return "TRANSIENT_FETCH_ERROR" if status >= 500 or status in {408, 425, 429} else "PERMANENT_HTTP_ERROR"
+    if isinstance(exc, (TimeoutError, URLError)):
+        return "TRANSIENT_FETCH_ERROR"
+    wrapped_http = re.search(r"(?:^|_)HTTP_(\d{3})(?:$|:)", str(exc))
+    if wrapped_http:
+        status = int(wrapped_http.group(1))
+        if status in {401, 403}:
+            return "ACCESS_DENIED"
+        return "TRANSIENT_FETCH_ERROR" if status >= 500 or status in {408, 425, 429} else "PERMANENT_HTTP_ERROR"
+    if "parse" in type(exc).__name__.lower() or "parser" in str(exc).lower():
+        return "PARSER_REJECTED"
+    if "VALIDATION" in _safe_error_code(exc):
+        return "EVIDENCE_VALIDATION_FAILED"
+    return "UNEXPECTED_ERROR"
+
+
+def _official_url(value: Any, stage: str) -> str | None:
+    if not isinstance(value, str) or len(value) > 2048:
+        return None
+    source = _source_id_for_stage(stage)
+    known_urls = [TJMUGH_INDEX_URL, TJNOTHOP_INDEX_URL, TJFCH_INDEX_URL, TJFCH_TEST_INDEX_URL]
+    if source == "teda":
+        known_urls.append("https://www.tedahospital.com.cn/article/plist/9")
+    if source in {"ccgp", "ccgp_regional"}:
+        known_urls.extend(["https://search.ccgp.gov.cn/bxsearch", "https://www.ccgp.gov.cn/"])
+    try:
+        parsed = urlsplit(value)
+        if parsed.scheme != "https" or parsed.username is not None or parsed.password is not None:
+            return None
+        if parsed.port not in (None, 443):
+            return None
+        allowed_hosts = {urlsplit(item).hostname for item in known_urls if urlsplit(item).hostname}
+        if parsed.hostname not in allowed_hosts:
+            return None
+        if parsed.query or parsed.fragment:
+            return None
+        return urlunsplit(("https", parsed.hostname or "", parsed.path[:240], "", ""))
+    except ValueError:
+        return None
+
+
+def _make_diagnostic(
+    stage: str,
+    exc: Exception,
+    *,
+    market_code: str | None = None,
+    failure_stage: str | None = None,
+    official_url: Any = None,
+) -> dict[str, Any]:
+    error_code = _safe_error_code(exc)
+    inferred_stage = (
+        "event_search" if stage.startswith("event") else
+        "publish" if stage == "publish" else
+        "index_discovery" if "INDEX" in error_code or "DISCOVERY" in error_code else
+        "national_fallback_discovery" if stage.endswith("_fallback") and "DISCOVERY" in error_code else
+        "scoped_discovery" if stage.startswith("regional_") and "DISCOVERY" in error_code else
+        "verified_detail" if stage in {"ccgp", "tjmugh", "tjnothop", "teda", "tjfch"} else
+        "publish"
+    )
+    safe_stage = failure_stage if failure_stage in DIAGNOSTIC_STAGES else stage if stage in DIAGNOSTIC_STAGES else inferred_stage
+    result: dict[str, Any] = {
+        "source_id": _source_id_for_stage(stage),
+        "market_code": market_code if market_code in set(REGIONAL_STAGE_MARKET_CODES.values()) else None,
+        "stage": safe_stage,
+        "category": _diagnostic_category(exc),
+        "error_code": error_code,
+        "error_type": type(exc).__name__[:60],
+    }
+    safe_url = _official_url(official_url or getattr(exc, "url", None), stage)
+    if safe_url:
+        result["official_url"] = safe_url
+    return result
+
+
+def _bounded_diagnostics(stage: str, exc: Exception) -> list[dict[str, Any]]:
+    provided = getattr(exc, "diagnostics", None)
+    if not isinstance(provided, list) or not provided:
+        market_code = REGIONAL_STAGE_MARKET_CODES.get(stage) or REGIONAL_FALLBACK_STAGE_MARKET_CODES.get(stage)
+        return [_make_diagnostic(stage, exc, market_code=market_code)]
+    result = []
+    for item in provided[:5]:
+        if not isinstance(item, dict):
+            continue
+        nested = RuntimeError(str(item.get("message") or item.get("error") or "ERROR_CODE_UNAVAILABLE"))
+        diagnostic = _make_diagnostic(
+            stage, nested,
+            market_code=item.get("market_code"),
+            failure_stage=item.get("stage"),
+            official_url=item.get("url"),
+        )
+        error_type = str(item.get("error") or "")
+        if re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,59}", error_type):
+            diagnostic["error_type"] = error_type
+        if error_type == "HTTPError":
+            match = re.search(r"HTTP Error (\d{3})", str(item.get("message") or ""))
+            if match:
+                status = int(match.group(1))
+                diagnostic["error_code"] = f"HTTP_{status}"
+                diagnostic["category"] = (
+                    "ACCESS_DENIED" if status in {401, 403} else
+                    "TRANSIENT_FETCH_ERROR" if status >= 500 or status in {408, 425, 429} else
+                    "PERMANENT_HTTP_ERROR"
+                )
+        elif "parse" in error_type.lower():
+            diagnostic["category"] = "PARSER_REJECTED"
+        result.append(diagnostic)
+    return result[:5] or [_make_diagnostic(stage, exc)]
+
+
+def _diagnostics_from_items(stage: str, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not items:
+        return []
+    return _bounded_diagnostics(stage, CollectorStageBlocked("SOURCE_PARTIAL_FAILURE", diagnostics=items))
+
+
+def _publish_stage_requirements(stages: dict[str, Any]) -> tuple[list[str], list[str]]:
+    required = list(PUBLISH_REQUIRED_STAGES)
+    for stage in REGIONAL_STAGE_MARKET_CODES:
+        primary = stages.get(stage)
+        result = primary.get("result") if isinstance(primary, dict) else None
+        if isinstance(result, dict) and result.get("fallback_required") is True:
+            required.append(f"{stage}_fallback")
+    failed: list[str] = []
+    incomplete: list[str] = []
+    for stage in required:
+        value = stages.get(stage)
+        if isinstance(value, dict) and value.get("status") in {"FAILED", "BLOCKED"} and value.get("terminal") is True:
+            failed.append(stage)
+        elif not isinstance(value, dict) or value.get("status") != "COMPLETED":
+            incomplete.append(stage)
+    return failed, incomplete
+
+
+def _changed_sources_from_stages(stages: dict[str, Any]) -> list[str]:
+    changed: set[str] = set()
+    for stage, item in stages.items():
+        if not isinstance(item, dict) or item.get("status") != "COMPLETED":
+            continue
+        result = item.get("result")
+        if not isinstance(result, dict):
+            continue
+        if result.get("canonical_changed") is not True:
+            continue
+        if stage.startswith("event"):
+            changed.add("ccgp_events")
+        elif stage.startswith("regional_"):
+            code = REGIONAL_STAGE_MARKET_CODES.get(stage) or REGIONAL_FALLBACK_STAGE_MARKET_CODES.get(stage)
+            if code:
+                changed.add(f"ccgp_regional:{code.lower()}")
+        elif stage in {"ccgp", "tjmugh", "tjnothop", "teda", "tjfch"}:
+            changed.add(stage)
+    return sorted(changed)
+
+
+def _canonical_content_digest(records: list[dict[str, Any]]) -> str:
+    stable = []
+    for record in records:
+        if not isinstance(record, dict):
+            stable.append(record)
+            continue
+        item = dict(record)
+        source = item.get("source")
+        if isinstance(source, dict):
+            stable_source = dict(source)
+            stable_source.pop("observed_at", None)
+            item["source"] = stable_source
+        stable.append(item)
+    return _digest(stable)

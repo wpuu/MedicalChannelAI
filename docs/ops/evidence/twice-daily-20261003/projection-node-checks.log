@@ -1,0 +1,9 @@
+2026-10-03: network/database replaced by test doubles; no deployment or model calls.
+node scripts/check-publish-preflight.mjs
+Publish preflight: PASS (invalid writes=0; accepted durable/cache failure and concurrent advance reported accurately)
+node scripts/check-publish-durable-base.mjs
+Durable publication base: PASS (transaction rejects stale partial base before insert; empty/matching/full and read errors covered)
+node scripts/check-partial-coverage-ai.mjs
+Partial coverage AI boundary: PASS (single, batch, cache-only, prewarm; no provider/database requests)
+node scripts/check-ai-decision-provenance.mjs
+AI decision provenance: PASS (batch isolation, source gate, single mismatch/no retry, card-scoped local cache, legacy cache rejection)

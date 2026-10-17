@@ -21,6 +21,8 @@ class TjzyefySyncTests(unittest.TestCase):
     def test_publish_gate_blocks_index_failure(self) -> None:
         allowed, reason = sync_tjzyefy.publish_gate(
             index_discovery_succeeded=False,
+            selected_candidate_count=0,
+            new_verified_record_count=0,
             unresolved_failure_count=0,
         )
         self.assertFalse(allowed)
@@ -29,6 +31,8 @@ class TjzyefySyncTests(unittest.TestCase):
     def test_publish_gate_blocks_unresolved_supported_detail(self) -> None:
         allowed, reason = sync_tjzyefy.publish_gate(
             index_discovery_succeeded=True,
+            selected_candidate_count=1,
+            new_verified_record_count=1,
             unresolved_failure_count=1,
         )
         self.assertFalse(allowed)
@@ -37,10 +41,22 @@ class TjzyefySyncTests(unittest.TestCase):
     def test_publish_gate_allows_complete_or_historically_covered_refresh(self) -> None:
         allowed, reason = sync_tjzyefy.publish_gate(
             index_discovery_succeeded=True,
+            selected_candidate_count=0,
+            new_verified_record_count=0,
             unresolved_failure_count=0,
         )
         self.assertTrue(allowed)
         self.assertEqual(reason, 'PASS')
+
+    def test_publish_gate_blocks_when_all_selected_details_fail_even_if_history_exists(self) -> None:
+        allowed, reason = sync_tjzyefy.publish_gate(
+            index_discovery_succeeded=True,
+            selected_candidate_count=2,
+            new_verified_record_count=0,
+            unresolved_failure_count=0,
+        )
+        self.assertFalse(allowed)
+        self.assertEqual(reason, 'NO_SELECTED_DETAIL_VERIFIED')
 
     def test_only_transient_fetch_errors_are_retryable(self) -> None:
         self.assertTrue(sync_tjzyefy.is_retryable_fetch_error(RuntimeError('TJZYEFY_NETWORK_ERROR')))

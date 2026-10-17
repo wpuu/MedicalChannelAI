@@ -10,8 +10,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(ROOT))
 
+from atomic_json_io import validate_json_output_paths, write_json_atomic, write_json_bundle_atomic  # noqa: E402
 from medical_channel_pipeline.ccgp_detail import (  # noqa: E402
     fetch_ccgp_detail_html,
     parse_ccgp_competitive_consultation_html,
@@ -44,13 +47,25 @@ def stable_id(prefix: str, value: str) -> str:
     return f'{prefix}_{digest}'
 
 
+def publish_gate(
+    *,
+    discovery_success_count: int,
+    selected_candidate_count: int,
+    new_verified_record_count: int,
+) -> tuple[bool, str]:
+    if discovery_success_count <= 0:
+        return False, 'ALL_DISCOVERY_QUERIES_FAILED'
+    if selected_candidate_count > 0 and new_verified_record_count <= 0:
+        return False, 'ALL_SELECTED_DETAILS_FAILED_VERIFICATION'
+    return True, 'PASS'
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
 def write_json(path: Path, payload: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    write_json_atomic(path, payload)
 
 
 def load_json_arrays(paths: list[Path], *, label: str) -> list[dict]:
@@ -253,6 +268,12 @@ def main() -> int:
     parser.add_argument('--report-output', required=True, type=Path)
     args = parser.parse_args()
 
+    validate_json_output_paths(
+        report_output=args.report_output,
+        data_outputs={'records': args.records_output, 'events': args.events_output},
+        input_paths={'records': args.existing_records_input, 'events': args.existing_events_input},
+    )
+
     if not 1 <= args.max_candidates <= 20:
         raise ValueError('--max-candidates must be between 1 and 20')
     if not 1 <= args.max_event_watch_projects <= 100:
@@ -306,28 +327,40 @@ def main() -> int:
                 }
             )
 
-    merged_records = merge_canonical_records(existing_records, new_records)
-    watch_projects = active_ccgp_project_numbers(merged_records, observed_datetime)
-    if len(watch_projects) > args.max_event_watch_projects:
-        raise RuntimeError(
-            f'ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>'
-            f'{args.max_event_watch_projects}'
-        )
+    discovery_failure_count = sum(1 for item in failures if item.get('stage') == 'discovery_search')
+    discovery_success_count = max(0, len(notice_types) - discovery_failure_count)
+    publish_allowed, publish_gate_reason = publish_gate(
+        discovery_success_count=discovery_success_count,
+        selected_candidate_count=len(candidates),
+        new_verified_record_count=len(new_records),
+    )
 
-    for project_number in watch_projects:
-        new_events.extend(
-            scan_events(
-                project_number,
-                region=args.region,
-                start_date=args.start_date,
-                end_date=args.end_date,
-                delay_seconds=args.delay_seconds,
-                observed_at=observed_at,
-                failures=failures,
+    if publish_allowed:
+        merged_records = merge_canonical_records(existing_records, new_records)
+        watch_projects = active_ccgp_project_numbers(merged_records, observed_datetime)
+        if len(watch_projects) > args.max_event_watch_projects:
+            raise RuntimeError(
+                f'ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>'
+                f'{args.max_event_watch_projects}'
             )
-        )
 
-    merged_events = merge_notice_events(existing_events, new_events)
+        for project_number in watch_projects:
+            new_events.extend(
+                scan_events(
+                    project_number,
+                    region=args.region,
+                    start_date=args.start_date,
+                    end_date=args.end_date,
+                    delay_seconds=args.delay_seconds,
+                    observed_at=observed_at,
+                    failures=failures,
+                )
+            )
+        merged_events = merge_notice_events(existing_events, new_events)
+    else:
+        merged_records = existing_records
+        watch_projects = []
+        merged_events = existing_events
 
     report = {
         'schema_version': '0.1',
@@ -337,6 +370,8 @@ def main() -> int:
         'keyword': args.keyword,
         'notice_types': notice_types,
         'candidate_count': len(candidates),
+        'discovery_success_count': discovery_success_count,
+        'discovery_failure_count': discovery_failure_count,
         'existing_record_count': len(existing_records),
         'new_verified_record_count': len(new_records),
         'merged_record_count': len(merged_records),
@@ -346,6 +381,12 @@ def main() -> int:
         'merged_event_count': len(merged_events),
         'failure_count': len(failures),
         'failures': failures,
+        'publish_allowed': publish_allowed,
+        'publish_gate_reason': publish_gate_reason,
+        'records_output_written': publish_allowed,
+        'records_output_status': 'WRITTEN' if publish_allowed else 'PRESERVED_UNCHANGED',
+        'events_output_written': publish_allowed,
+        'events_output_status': 'WRITTEN' if publish_allowed else 'PRESERVED_UNCHANGED',
         'policy': {
             'region_is_explicitly_scoped_in_ccgp_query': True,
             'previous_canonical_state_is_preserved': True,
@@ -359,15 +400,22 @@ def main() -> int:
         },
     }
 
-    write_json(args.records_output, merged_records)
-    write_json(args.events_output, merged_events)
-    write_json(args.report_output, report)
+    if publish_allowed:
+        write_json_bundle_atomic({
+            args.records_output: merged_records,
+            args.events_output: merged_events,
+            args.report_output: report,
+        })
+    else:
+        report['merged_record_count'] = len(existing_records)
+        report['merged_event_count'] = len(existing_events)
+        write_json(args.report_output, report)
     print(
         f'region={args.region} candidates={len(candidates)} new_verified={len(new_records)} '
         f'merged_records={len(merged_records)} watched={len(watch_projects)} '
         f'new_events={len(new_events)} failures={len(failures)}'
     )
-    return 0
+    return 0 if publish_allowed else 2
 
 
 if __name__ == '__main__':

@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://vercel.com/docs/queues/concepts",
+    "status": 200,
+    "response_sha256": "900d77b9ad3b11a5a1c4cbac93720d570ad00e38669df7fad77ff487275fd66b",
+    "excerpts": [
+      "\nVercel Queues is a durable event streaming system for asynchronous workloads. You publish messages to topics, and consumer groups process those messages independently with at-least-once delivery, retries, and visibility timeouts.\n\n",
+      "- Producers publish messages to a topic.\n- Consumer groups read and process those messages independently.\n- Messages persist until they are acknowledged or expire.\n- Failed processing attempts are retried automatically.",
+      "| ----------------------- | -------------------------------------------------------- | ------------------------------------------------------------ |\n| **Primary abstraction** | Topics, messages, and consumer groups                    | Durable steps and workflow runs                              |\n| **Best for**            | Event delivery, fan-out consumers, and routing control   | Stateful, multi-step application logic                       |\n| **Execution model**     | Message-driven consumers (push or poll)                  | Step-driven orchestration with built-in state between steps  |",
+      "1. A producer publishes a message to a topic.\n2. The topic makes that message available to each consumer group.\n3. A consumer in a group receives the message under a visibility timeout lease.\n4. If processing succeeds, the consumer acknowledges the message and removes it from that group.",
+      "\n## Topics and consumer groups\n\n### Topics",
+      "\nA topic is a durable, append-only log of messages. Producers publish messages to a topic, and the topic fans them out to all subscribed consumer groups. Messages are retained until they expire, regardless of whether any consumer has processed them. Retention is configurable per-message from 60 seconds to 7 days, defaulting to 24 hours.\n\n### Consumer groups",
+      "\n### Consumer groups\n\nA consumer group is an independent subscriber to a topic. Each group tracks its own position in the log and processes messages at its own pace. Because groups are fully isolated, a slow or failing consumer in one group has no effect on any other.",
+      "\nA consumer group is an independent subscriber to a topic. Each group tracks its own position in the log and processes messages at its own pace. Because groups are fully isolated, a slow or failing consumer in one group has no effect on any other.\n\n```mermaid",
+      "\n> **💡 Note:** In poll mode, you can add a new consumer group at any time. New groups start reading from the beginning of the topic, giving you access to all non-expired messages. This makes it straightforward to backfill data or add new processing pipelines without republishing. Push mode consumers are configured at deploy time and cannot be added dynamically. JavaScript and TypeScript projects define triggers in `vercel.json`. Python projects declare subscriber entrypoints in `pyproject.toml`.\n\n### Scaling",
+      "\nVercel Queues provides **at-least-once** delivery semantics. Every accepted message is delivered to each consumer group at least one time, as long as it becomes visible before its retention period (TTL) expires. In most cases, a message is delivered exactly once, but there are edge cases where a message may be delivered more than once:\n\n- **Consumer timeouts**: If your function processes a message but doesn't acknowledge it before the visibility timeout expires, Vercel assumes the delivery failed and redelivers the message.",
+      "3. **ReceiveMessages** claims the message and starts a lease ([visibility timeout](#visibility-timeout)). The message is now **in-flight**.\n4. **AcknowledgeMessage** permanently removes the message from the consumer group.\n5. **ExtendLease** resets the visibility timeout if your consumer needs more processing time.\n6. If the lease expires without acknowledgment, the message becomes **visible** again with an incremented delivery count.",
+      "\n## Deployments and versioning\n\nOn Vercel, topics are **partitioned by deployment ID** by default. In push mode, Vercel delivers messages back to the same deployment that published them.",
+      "\nOn Vercel, topics are **partitioned by deployment ID** by default. In push mode, Vercel delivers messages back to the same deployment that published them.\n\n```mermaid",
+      "\nThis design means you don't have to worry about message compatibility across deployments. When you change a message schema or update your consumer logic, the new deployment produces and consumes its own messages. There's no risk of a new deployment consuming messages published by an older version with a different format.\n\nThis is useful during rollouts: both the current and previous deployments can have active queues processing their own messages independently until the old deployment drains.",
+      "\n> **💡 Note:** In [poll mode](/docs/queues/poll-mode), you can reference the deployment ID as an opaque version identifier to partition your consumers manually, or omit it entirely and handle versioning at the application level.\n\n### Stopping deliveries to a deployment",
+      "\nMultiple route files with the same topic create separate consumer groups, each receiving a copy of every message.\n\nWith this configuration, the function is completely air-gapped from the internet. It has no public URL and can only be invoked by Vercel's internal queue infrastructure.",
+      "\nIn push mode, you can set a maximum concurrency per consumer group. This limits how many messages can be in-flight simultaneously for that group. If the limit is reached, Vercel holds back delivery until an in-flight message is acknowledged or its lease expires.\n\nThis is useful when your consumer calls a rate-limited downstream service, or when you need to control resource usage.",
+      "\n### Consumer groups across services\n\nIn push mode, triggers in different services have independent [consumer groups](#topics-and-consumer-groups), so each consumer in a service receives its own copy of every message. In [poll mode](/docs/queues/poll-mode#poll-mode-in-services), you need to manage consumer groups manually to avoid collisions across services."
+    ]
+  },
+  {
+    "url": "https://vercel.com/docs/cron-jobs/manage-cron-jobs",
+    "status": 200,
+    "response_sha256": "4970e114e12350bbddf92af619a597bdbd0cb7471278e68243082d7688394751",
+    "excerpts": [
+      "- **Deleting Cron Jobs**: Remove the configuration from the `vercel.json` file or the function's configuration, and then redeploy\n- **Disabling Cron Jobs**: Click the **Disable Cron Jobs** button\n\n> **💡 Note:** Disabled cron jobs will still be listed and will count towards your [cron jobs",
+      "\n> **💡 Note:** Disabled cron jobs will still be listed and will count towards your [cron jobs\n> limits](/docs/cron-jobs/usage-and-pricing)\n",
+      "\nFor those using TypeScript versions below 5.2, it's important to adapt the code to `import NextResponse from 'next/server'` and use `NextResponse.json` for the response. This ensures compatibility with earlier TypeScript versions in Next.js applications. In TypeScript 5.2 and above, the standard `new Response` pattern should be used.\n\n## Reading the cron schedule header",
+      "- Check state before making changes (e.g., \"if not already active, then activate\")\n- Store results with timestamps or version numbers\n- Query and process all work since the last successful run to catch up after a missed invocation\n"
+    ]
+  }
+]

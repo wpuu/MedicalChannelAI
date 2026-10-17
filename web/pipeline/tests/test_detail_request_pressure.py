@@ -18,7 +18,10 @@ class DetailRequestPressureTests(unittest.TestCase):
         self.assertIn("Promise.all([", block)
         self.assertIn("/opportunity/${encodedId}", block)
         self.assertIn("this.getFollowupState(id)", block)
-        self.assertIn("applyFollowupState(mapPublicCard(card), state)", block)
+        self.assertIn(
+            "applyFollowupState({ ...mapPublicCard(card), snapshot_meta: card.snapshot_meta }, state)",
+            block,
+        )
         self.assertNotIn("enrichWithServerFollowup", block)
 
 

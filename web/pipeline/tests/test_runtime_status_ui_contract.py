@@ -19,10 +19,12 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
         for mode in ['DATABASE', 'BUNDLED', 'RUNTIME_CACHE', 'REMOTE', 'BUNDLED_FALLBACK', 'UNAVAILABLE']:
             self.assertIn(mode, client)
         snapshot_loader = (WEB_ROOT / 'api' / '_verifiedSnapshot.js').read_text(encoding='utf-8')
-        self.assertIn("lastSourceMode = 'DATABASE'", snapshot_loader)
-        self.assertIn("lastSourceMode = 'RUNTIME_CACHE'", snapshot_loader)
-        self.assertIn("lastSourceMode = 'BUNDLED_FALLBACK'", snapshot_loader)
-        self.assertIn("lastRuntimeOrigin = runtimeResult.origin", snapshot_loader)
+        self.assertIn('export async function loadVerifiedSnapshotWithMetadata()', snapshot_loader)
+        self.assertIn("sourceMode: 'DATABASE'", snapshot_loader)
+        self.assertIn("sourceMode: 'RUNTIME_CACHE'", snapshot_loader)
+        self.assertIn("sourceMode: 'BUNDLED_FALLBACK'", snapshot_loader)
+        self.assertIn("return { snapshot: durableMemo.snapshot, degraded: true, reason: 'DURABLE_READ_FAILED' }", snapshot_loader)
+        self.assertIn("X-MedicalChannelAI-Snapshot-Source", (WEB_ROOT / 'api' / 'public-snapshot.js').read_text(encoding='utf-8'))
         self.assertIn("runtime_origin: sourceMode === 'RUNTIME_CACHE' ? runtimeOrigin : null", server)
         self.assertIn("runtime_origin?: 'PUBLISHED' | 'BUNDLED' | null", client)
         self.assertIn('SNAPSHOT_STALE_AFTER_MINUTES = 30 * 60', server)
@@ -35,7 +37,9 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
 
         # Keep source-mode/freshness policy in one shared helper instead of
         # duplicating fragile comparisons inside individual pages.
-        self.assertIn("status.snapshot.source_mode === 'BUNDLED_FALLBACK'", helper)
+        self.assertIn("displayed.source === 'EXTERNAL'", helper)
+        self.assertIn('displayedMs !== statusMs', helper)
+        self.assertIn("status.collection.outcome !== 'COMPLETED'", helper)
         for freshness in ['STALE', 'INVALID', 'UNAVAILABLE']:
             self.assertIn(f"status.snapshot.freshness === '{freshness}'", helper)
         self.assertIn('runtimeSnapshotWarning', helper)
@@ -50,6 +54,10 @@ class RuntimeStatusUiContractTests(unittest.TestCase):
             self.assertIn('getRuntimeStatus()', source)
             self.assertIn('runtimeSnapshotWarning', source)
             self.assertIn('runtimeAutomationUnavailableReason', source)
+
+        self.assertIn('data.snapshot_meta', today)
+        self.assertIn('card.snapshot_meta', detail)
+        self.assertIn('snapshotMeta', pool)
 
         self.assertIn('automationUnavailableReason={automationUnavailableReason}', today)
         self.assertIn('if (!automationUnavailableReason) setOutreachId', today)

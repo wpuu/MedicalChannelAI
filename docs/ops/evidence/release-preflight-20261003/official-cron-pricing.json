@@ -1,0 +1,13 @@
+{
+  "url": "https://vercel.com/docs/cron-jobs/usage-and-pricing",
+  "status": 200,
+  "html_sha256": "cb8b480f30e821947e98f88b3036e35097ec9bb15159b40d277fde48dc4cf300",
+  "excerpts": [
+    "- [Cron jobs now support 100 per project on every plan](https://vercel.com/changelog/cron-jobs-now-support-100-per-project-on-every-plan?from=related&source_path=%2Fdocs%2Fcron-jobs%2Fusage-and-pricing&source_site=vercel-docs&relationship=related)",
+    "| **Hobby**      | 100 cron jobs                       | Once per day         | Per-hour (±59 min)       |",
+    "> **💡 Note:** Hobby accounts are limited to cron jobs that run **once per day**. Cron",
+    "1. **Daily execution limit**: Cron jobs can only run once per day. Expressions like `0 * * * *` (per-hour) or `*/30 * * * *` (every 30 minutes) will fail deployment with the error:",
+    "   *Hobby accounts are limited to daily cron jobs. This cron expression would run more than once per day.*",
+    "2. **Timing precision**: Vercel cannot assure a timely cron job invocation. For example, a cron job configured as `0 1 * * *` (every day at 1 am) will trigger anywhere between 1:00 am and 1:59 am."
+  ]
+}

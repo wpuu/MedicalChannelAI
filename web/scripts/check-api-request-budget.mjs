@@ -28,7 +28,7 @@ const todayStart = service.indexOf('async getTodayActions(')
 const opportunityStart = service.indexOf('async getOpportunity(', todayStart)
 assert(todayStart >= 0 && opportunityStart > todayStart)
 const todaySource = service.slice(todayStart, opportunityStart)
-assert(todaySource.includes("this.requestJson<TodayActionsPublicResponse>('/today')"))
+assert(todaySource.includes("this.requestJson<TodayActionsPublicResponse & { snapshot_meta?: SnapshotMeta; collection_coverage?: SnapshotMeta['collection_coverage'] }>('/today')"))
 assert(!todaySource.includes('Promise.all('))
 assert(!todaySource.includes('this.enrichWithServerFollowup('))
 
@@ -36,7 +36,7 @@ const opportunitySource = service.slice(opportunityStart)
 // Detail view: card and followup state are fetched in parallel (one round-trip
 // of latency), then merged client-side.
 assert(opportunitySource.includes('const [card, state] = await Promise.all(['))
-assert(opportunitySource.includes('applyFollowupState(mapPublicCard(card), state)'))
+assert(opportunitySource.includes('applyFollowupState({ ...mapPublicCard(card), snapshot_meta: card.snapshot_meta }, state)'))
 
 assert(poolPage.includes('todayActionsService.getTodayActions({ hydrateFollowups: false })'))
 assert(!poolPage.includes('getFollowedStatusIndex'))

@@ -1,0 +1,11 @@
+2026-10-03; /workspace/MedicalChannelAI/web; no real source or model requests.
+node scripts/check-publish-preflight.mjs: PASS
+node scripts/check-publish-durable-base.mjs: PASS
+node scripts/check-partial-coverage-ai.mjs: PASS
+node scripts/check-ai-decision-provenance.mjs: PASS
+npm run typecheck: PASS
+npx vite build: PASS (1937 modules; index-Bt3f5dxK.js 362.56kB, gzip116.66kB)
+Existing dynamic/static import warning for localFollowupStore; build succeeded.
+No prebuild/snapshot regeneration or historical browser rerun locally.
+Git diff --check: PASS before staged review.
+Precise new-HEAD full Verify follows one normal PR code push; see PR75.

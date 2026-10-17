@@ -1,0 +1,84 @@
+# 单用户每日两次搜索候选与受控恢复清单
+
+> **最新只读核验：门禁未通过，当前不可发布。** 见 [发布前核验与审批范围](release-preflight-20261003.md)。官方Queues确认旧消息按deployment分区，切alias/rollback不停止旧投递；本文件历史描述的“暂停consumer/新处理器接管旧积压”不可当作已验证控制面能力。实际plan、Cron、Queue inventory及canonical恢复仍未知；最终审批必须绑定本轮文档保存后PR75实际HEAD，879项既有CI属于产品提交8b4b749，不重跑；文档提交用`[skip ci]`，未修改workflow/保护，不把祖先CI冒充新HEAD检查。
+
+记录日期：2026-10-03，北京时间。候选分支 `fix/tjmugh-verification-20261002`，草稿 [PR #75](https://github.com/wpuu/MedicalChannelAI/pull/75)。未合并、未部署、未创建 Preview、未恢复 Cron/消费者、未清队列、未调用真实来源或模型。`production_ready=false`，该分支 `deploymentEnabled=false`。
+
+## 资产与证据来源
+
+本环境最初是 `main` 的干净副本；未找到原 `.medicalchannelai-onboarding/schedule/twice-daily-search.patch` 或原 85 项测试日志。原任务可读记录未恢复其正文。本轮不声称读取或复用缺失资产；从远端实际 HEAD `3af6db8c678c6f20f8b9d120badd7db102b9d69e` 的已通过修复恢复候选，保留原 PR 所有修复。新生成的同名本地 patch 是本轮重建补丁，不是原文件。
+
+此前 840 Python、浏览器 36 项与独立审查记录是该旧 HEAD 的历史证据，参见 [原验收记录](../collection-reliability-verification.md)，不计成本轮运行。本轮定向日志保存在 [evidence](evidence/twice-daily-20261003/)。新增 25 项周期/恢复测试；既有相关 76 项 collector、14 项 tick、12 项 namespace、4 项 queue、4 项 fallback 与12项 stage-dispatch 合约通过（共 147 项）。不为更新数字重跑历史浏览器或全部历史矩阵。首推 `2b913388a20b6ac961394de8564dc4a5aa98d013` 的 [Verify 37108302750](https://github.com/wpuu/MedicalChannelAI/actions/runs/37108302750) 执行 865 Python 测试，2 项旧 AST 分派测试因新增周期保护 wrapper 提取范围改变而失败。仅修正两项测试提取 `_run_stage` 并保留 wrapper 委托断言，12 项分派定向检查通过，产品冻结源哈希不变。必要修正集中补推一次，未手动重跑 CI、未重复部署；最终结果在 PR 检查与 PR 描述按精确 HEAD 回读登记。
+
+## 本次续办核对
+
+本环境初始仍是干净旧主线，原本地patch、85项日志及真实DATABASE响应文件均缺失；没有将缺失文件视为已读取。本次实际读回远端 `4038b5d1597d57277e67ea1d86fc40a05233223a` 并检出，复用已提交的40文件候选和历史审查，不从头重做。原始重建报告仍是此前证据，本次没有重复声称复建441条真实响应。已读回该HEAD的 [Verify 37115608340 SUCCESS](https://github.com/wpuu/MedicalChannelAI/actions/runs/37115608340) 及日志：875项Python、全部prebuild、TypeScript/Vite通过，live步骤skipped。续办初始35项周期/恢复＋20项native可靠性定向复核通过。独立审查随后发现终点读后删除ACTIVE可能删除午间入口刚激活的marker：Queue串行不覆盖Cron入口。已修正为终点保留marker至新周期替换/TTL，结束周期重复投递先被META终点状态拒绝；新增保留/替换与结束重投边界，并保留旧反例实证：同一确定性交错复现旧hook删除午间marker，新hook保留午间marker。最终本地定向37周期＋2竞态＋20native＋13增量合约＋14tick＋12namespace，共98项通过；4项是新增测试，不将旧85项计入。两处旧调度注释、精确验证记录和恢复顺序同步修正；最终定向数字与冻结哈希见续办报告，不能将原4038b5d绿灯当新修复的验证。新增独立审查见 [续办报告](evidence/twice-daily-20261003/resumed-independent-review.md)，最终提交及其CI由PR75精确回读登记。
+
+续办只读Vercel团队、目标项目列表、生产别名、部署列表与24小时collector日志成功：生产仍为 `6229959` / `dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1`，无候选新部署，日志无记录不能证明暂停/无积压。`get_project(projectId=...)` 单次返回 `INVALID_ARGUMENT`：后端缺 `idOrName`；未把它泛化为连接不可用，未重复同一错误。实际套餐/Cron/queue控制面仍未知；两条GitHub采集workflow仍disabled_manually。本次再次只读官方Cron定价文档确认100个任务/每任务每天一次/小时级精度；不把这当作实际账号套餐。生产数据状态数值沿用此前读回，不当作本次重新读取。
+
+## 时段、幂等与数据保护
+
+- 候选 Cron：`20 0 * * *` → `?period=morning`，`20 4 * * *` → `?period=noon`；北京时间名义 08:20 / 12:20。每条每天一次，不使用一个 `20 0,4 * * *`，不升级套餐。
+- [官方 usage-and-pricing](https://vercel.com/docs/cron-jobs/usage-and-pricing)，2026-10-03 实际读取：各套餐最多 100 个 Cron；Hobby 每个任务每天一次、小时级精度（±59 分钟），文档例子为小时内任意时刻。技能中“最多 2 个”过时。[Queue concepts](https://vercel.com/docs/queues/concepts) 与 [Python SDK](https://vercel.com/docs/queues/python-sdk) 同日读取确认 cap 控制 push dispatcher 的组内在途数量，满额直到 ACK/lease 到期才再投递；官方 JSON schema 确认 v2 trigger 支持 `maxConcurrency`/`maxDeliveries`。实际账号套餐仍未知，不能把文档条款当成该账号已核验的套餐。
+- 周期由中国日期与明确 `period` 标识，早间和午间独立；入口接受 08:00–10:00 / 12:00–14:00 的恢复容差窗口（右端不包含），窗口不是准时承诺。首次真实触发时间冻结为 `cycle_as_of`，重试不改变；小时初触发不会制造未来版本时间。所有 stage 使用相同周期时钟，但 RUNNING 租约使用真实 wall clock。
+- 同周期开始和各 stage 的 Queue key 保持幂等；已结束周期不重新发送或执行。完成/终止后保留ACTIVE marker，由新周期替换或TTL到期；不做无CAS的读后删除，避免Cron入口刚激活的新周期被旧终点删除。活跃 RUNNING 重复投递返回冲突；明确超过 300 秒函数上限＋60 秒缓冲后才允许重试。周期重试额度各自独立。
+- 新消息携带 `schedule_version=twice-daily-v1`。旧格式 deep、incremental、tick 仅确认不执行、不续链；任何自动增量分支关闭。完整或失败 deep 终点不再启动 15 分钟链；手动 incremental 入口拒绝。
+- 执行前、canonical/status 写前、持久发布前、读缓存提交和回滚前检查周期所有权；状态比较也包含 `cycle_id`。旧日消息丢弃，同日旧周期不能覆盖新周期。v2 Queue 和 canonical namespace 保持；无新来源、地区或架构。
+- 保留所有配置刷新stage成功门禁、真实覆盖标记及失败旧公开版本、canonical/缓存保护、durable 单调版本事务门禁、AI 版本/来源绑定。数据库和 Runtime Cache 没有跨存储事务；durable 已接受但缓存失败仍需线上验证读恢复。
+- Runtime Cache 无 CAS，不能把读后写 fence 称作分布式原子锁。依赖官方 push group 在途串行上限：候选 decorator 和 JSON trigger 均显式 `maxConcurrency=1`，消息 lease 与 retry interval 改为 360 秒，大于函数 300 秒上限；发布前必须排除旧部署消费者和仍在途函数。该控制面门禁未满足时禁止恢复执行。
+
+## 独立审查发现与修正
+
+审查复现两个并行 handler 绕过 Queue cap 时可同时首次读取空 META 并执行相同 stage；这说明缓存读后写不是锁。候选显式修正部署 trigger 串行 cap 与 360 秒租约/重试配置，保留实际控制面串行、旧 consumer 排除与在途结束为硬门禁，不能用此文声称任意并发 exactly-once。审查另验证 durable 返回间 lease 切到午间时，早间失败仍准确 `durable_accepted=true`，回滚不覆盖午间缓存。新测试也覆盖已接受重复 Queue key 的 SDK 异常，真实发送失败继续重试。详见 [独立审查](evidence/twice-daily-20261003/independent-review.md)。
+
+四项 Node 发布/AI 行为检查通过：publish-preflight、publish-durable-base、partial-coverage-ai、ai-decision-provenance；网络/数据库为替身。TypeScript 与 Vite build 通过，未运行 prebuild 以免再次运行全历史矩阵或改写 bundled snapshot；完整候选 CI 由一次推送执行。
+
+## 本轮线上只读结果与未知项
+
+已有连接成功读取 Vercel 团队、MedicalChannelAI 项目列表、部署列表和部署详情。目标项目 `prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM`，团队 `team_jEy8Ex9vRDBdXj1cQPKF8sRd`。当前生产别名对应 `dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1`，READY，主线 `62299590dd3898e040ccc9db5fda1298d4509d51`，不是候选。
+
+`get_project` 按公开 schema 传 `projectId` 后，后端报缺 `idOrName`；按报错传 `idOrName` 后，连接器外层移除该字段并报必需 `projectId` 缺失。这是此单个工具外层/内层参数契约冲突，不是 Vercel 全部不可访问。团队列表没有返回 billing plan；现有可用工具没有返回 Cron enablement 或 queue consumer/backlog/in-flight/delayed retry 控制面清单。本轮环境无配置好的 Vercel REST/CLI 凭据，不读取或猜测令牌，不进行额外登录。
+
+近 24 小时生产部署 `collector` 日志查询成功但无记录，不能据此认定 Cron 已停、消费者已停或队列为空。只读 `/api/collector-status` 返回 active cycle/scan 为 null、stages/ledger 为空；缓存过期也会产生同样结果，不能证明没有在途或延迟消息。只读 `/api/status`：旧提交 `6229959`，DATABASE，版本 `2026-10-02T14:19:15.713282+08:00`，441 条；旧版本 `ready=true/degraded=false` 不证明候选完整覆盖或搜索已恢复。两条 GitHub 采集入口回读仍为 `disabled_manually`。
+
+国内域名/天津 403 的历史阻碍单独保留，未改 DNS、不绕访问限制；本轮不新增国内网络证明，代码候选整理可继续。
+
+## 续办：真实历史备份审计与已发布历史门禁
+
+核对起点 `e30b74a5e39c79ffd64727f470f2e19b039f88d1` 的 [Verify37108472339 SUCCESS](https://github.com/wpuu/MedicalChannelAI/actions/runs/37108472339)：865 Python及完整 prebuild/typecheck/Vite通过。没有新Vercel REST/CLI凭据、未出现新的Cron/queue读取工具，原get_project参数契约未变化；不重复相同失败调用、不把部署信息当套餐或队列控制面。
+
+从生产 commit `6229959` 的9个live记录文件和notice events读取911条唯一canonical、0条事件，全部通过现有验证器，未读seed。只读 `public-snapshot?fresh=canonical-read-audit` 确认DATABASE；在该版本真实时间 `2026-10-02T14:19:15.713282+08:00` 按静态发布流程（load_arrays补天津market、天津/区域分别build、combine_snapshots补metadata及全池复排）内存复建，441条卡片逐字段完全一致。完整离线命令：`python docs/ops/evidence/twice-daily-20261003/reconstruct_historical.py --baseline <保存的DATABASE响应.json>`；脚本只git show读取生产live文件，使用已冻结hash的候选静态转换代码，无网络/生产写入。文件hash、计数和公开响应hash见 [canonical-recovery-audit.json](evidence/twice-daily-20261003/canonical-recovery-audit.json)。这是历史备份可信起点，不是新采集、缓存恢复或新完整覆盖证明，未推进任何生产时钟。
+
+修复前的裸worker不经过此静态组合流程：独立比较发现441条卡片facts缺market附加字段、235条rank不同。这是既有发布路径差异，历史静态复建不能证明候选worker完整恢复；真实受控恢复前须解决并验证market身份、排序、事件隔离及版本完整性，未经验证继续阻断。
+
+具体发现：修复前worker的shard读取清单不包括既有 `tjzxfc`、`tjzyefy`、`tjzyefy_intent` 的8条历史；其中4条intent仍在当前公开441条中。直接仅恢复常规runtime分片可能在下次全量发布静默遗漏这4条，因此不能把历史备份候选标为可直接恢复。
+
+最小修正只增加scheduled发布门禁：必须有与真实durable读回核对过的完整published baseline，含timezone-aware版本时间、显式完整 `opportunity_pool` 和匹配整数count；不允许仅Top-N cards回退、不滤掉坏项/空ID/重复ID。baseline每个公开ID都必须仍存在于原始canonical历史集合；缺失返回 `COLLECTOR_CANONICAL_PUBLISHED_HISTORY_MISSING`，基线缺失/无效返回对应稳定原因码。检查在构建候选与durable/cache写入前执行；旧数据保留。canonical历史保留后，过期事实可合法从新公开池退出，不强迫永久展示。不能用public卡片投影生成假canonical绕过此门禁。
+
+本次首批新增5项门禁边界，`d435749`的870项正常Verify已通过；续补5项真实历史/投影边界后，35项周期/恢复与20项native发布定向检查通过，未无故重跑前轮全部历史矩阵。新增 [独立审查](evidence/twice-daily-20261003/independent-history-review.md) 与精确新HEAD的正常CI结果另在PR75回读登记。本次不新增来源/地区或架构。审查续补已解决离线可推进的映射/投影问题：scheduled发布严格读取 `medicalchannelai:collector-tjzxfc-records:v2`、`medicalchannelai:collector-tjzyefy-records:v2`、`medicalchannelai:collector-tjzyefy-intent-records:v2` 三个已有来源历史数组，无bootstrap与网络采集stage；schema、source prefix、天津归属必须合法，缺键阻断。天津已有shard的copy补metadata、区域要求完整合法market元信息，跨shard ID冲突拒绝，天津events只影响天津；复用现有combine后441真实历史投影离线逐字段一致。之前裸worker差异是修复前证据，生产未接受新版本。
+
+这三个来源只保留历史，scheduled snapshot `collection_coverage.complete=false`，保留真实已知旧 `last_complete_as_of` 或null，声明history-only source IDs；现有刷新stage仍全部通过才能发布。partial沿用durable锁内基线匹配、页面部分更新提示和AI自动化拒绝，不新增模型调用或放宽覆盖门禁。发布验收应验证两个独立周期完成已配置刷新阶段及真实partial范围，不能称全部来源最新完整覆盖。历史恢复时按published stable-key约定无主动TTL保存；RuntimeCache仍可能逐出，逐出后明确阻断，不自动从Git/bundled初始化、不改事实observed_at。实际完整canonical恢复/暂停期间缺口仍是线上硬门禁。新增独立报告见 [投影审查](evidence/twice-daily-20261003/independent-projection-review.md)。
+
+## 发布前门禁（需要控制面读取；本轮未执行配置变更）
+
+1. 精确候选 HEAD 的 Verify 成功、独立审查无未解决阻断；PR 为 draft，先冻结预期 merge HEAD 和生产旧部署/配置/最后已验证数据版本、revision/hash。
+2. 读回实际 billing plan、两条每日 Cron 配置是否可接受和启用状态；不升级。在未来获准操作且控制面门禁补齐后，先停止实际Cron/生产入口，GitHubfallback保持disabled；对旧部署分区使用经核验的停投递机制，或取得全部旧工作已静默的控制面证据。不能假设存在通用consumer暂停按钮。
+3. 读取所有相关deployment/region/topic/group及ready/in-flight/delayed/expiry、实际cap/lease。旧消息默认留在发布它的部署，不能强制交给新处理器；保留积压，不poll/ack/清队列。按最新核验方案排除旧投递和旧在途，旧回退目标不得被删除。切换alias不停止消费；无法确认隔离/静默和失败停投递机制时继续阻断。
+4. **长暂停 canonical 恢复是硬门禁。** 只读检查所有 canonical 分片、notice events、watch 与最后真实 durable snapshot 的一致性；必须覆盖历史备份中的全部既有来源，包括审计发现的4条已公开intent。新增三个独立history分片必须读回可验证的完整数组与来源；worker不能读回全部历史时继续阻断，不把记录塞入错误来源分片、不用伪造空数组绕过门禁。完整published baseline需与durable来源、时间、pool count/hash读回一致后才能进入新周期。全部缓存过期时本候选禁止用旧种子/内置快照初始化，明确失败 `COLLECTOR_CANONICAL_HISTORY_UNAVAILABLE`。public snapshot 投影不足以反推出完整 canonical，不能复制快照伪造历史。只能从可验证完整 canonical 备份恢复，或在另行明确授权的真实完整来源重建后逐来源核验；缺任何必需历史时继续暂停，不伪造空数组，不宣称可自动成功恢复。本轮核验了生产提交的历史记录备份，但未证明它包含全部运行时状态及暂停期间遗漏，也未执行真实恢复或来源重建。
+5. 读回发布/CRON 凭据配置、canonical 完整性和现有消费者串行设置；确认 snapshot/status 只读路径可用。权限、字段读取或 canonical 任何硬门禁未解决，不进行合并发布或恢复采集。
+
+## 一次受控发布与验收
+
+上述前置门禁满足、用户批准后，针对冻结且 CI 成功的 PR75 HEAD 合并到 `main`，只产生一次正式 Production 部署；main 现有 Git 集成会部署，不另外创建 Preview 或重复手动 deploy。项目级Cron停用及旧分区隔离/静默在新部署后必须再次读回，不能假设deploy会暂停新注册trigger。新分区无意外消息、实际consumer和canonical核对通过才可受控启动。
+
+先核验 `/api/status` 的新 commit、旧数据还可读、Today/Pool/Detail 显示的版本和 AI cache-only 绑定；不要调用模型生成来验收。确认新deployment分区唯一串行consumer实际生效，旧分区已隔离/静默且无自动tick continuation后，在一个匹配时段只启动一个当前新周期（需要发布审批覆盖此真实采集动作），不补跑旧周期。核验全配置刷新 stage 门禁、明确partial历史范围、同周期重试、durable 接受、cache readback 与页面同一版本/真实partial范围；失败保留旧数据，停止自动恢复，不把 HTTP 202 当搜索成功。单一当前周期通过上述验收后，才按本次明确批准范围启用两条每日Cron；保留GitHub fallback关闭，观察另一时段的自然触发，不额外手动补采。两个时段分别形成独立cycle并通过配置刷新范围门禁、公开版本一致和partial展示验收后，才可称“每日两次配置来源搜索恢复”；不得称全部历史来源自动监控已恢复。自然触发缺失或失败立即执行暂停/失败流程，不以首个周期成功代替双周期验收。若批准不包含启用两条Cron，则首个周期验收后继续暂停，并将另一周期验收明确标为待批准。
+
+## 失败、回退与恢复
+
+执行 [最新核验的失败顺序](release-preflight-20261003.md#失败停止数据保护和回退)。先停实际Cron/生产入口，采用已确认的停投递机制；若只有官方删除方式，必须有针对**本次新失败部署**的明确条件性删除批准，先恢复并保护旧READY alias，再删除本次新失败部署、等待且读回在途结束。不得删除旧回退目标；切alias/rollback本身不能当作停Queue证据。
+
+保留canonical、队列及最后较新durable事实，不自动回写旧snapshot。回退旧目标 `dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1`、commit62299590…前再次核对，回退后所有生产入口继续停用、旧分区仍须静默、AI仅验证版本/partial门禁，不恢复旧15分钟链。停投递机制或真实数据读恢复未证实时，不称回退成功。更具体的阶段失败与验收证据见最新方案，本轮未执行任何操作。
+
+## 审批对象
+
+批准对象是**指定 HEAD 的 PR75 一次合并＋一次 Production 发布，以及通过门禁后的单一当前周期受控恢复、该周期验收后启用两条每日Cron并观察下一时段自然触发**；失败范围还须明确是否接受仅删除本次新失败部署来停投递；不包括删除既有旧生产/回退部署、付费升级、Preview、清队列、跨部署补采、未另行授权的数据重建或模型调用。此文没有授予发布权限。本轮只准备候选，控制面、canonical 恢复与两周期线上验收未完成。

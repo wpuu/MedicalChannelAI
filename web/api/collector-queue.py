@@ -14,7 +14,7 @@ CONSUMER_GROUP = "api/collector-queue.py"
 @subscribe(
     topic=QUEUE_TOPIC,
     consumer_group=CONSUMER_GROUP,
-    retry_after=150,
+    retry_after=360,
     max_concurrency=1,
     max_attempts=3,
 )
@@ -35,7 +35,7 @@ class handler(BaseHTTPRequestHandler):
         headers = {str(key): str(value) for key, value in self.headers.items()}
 
         try:
-            asyncio.run(accept_and_handle(body, headers, lease_duration=300))
+            asyncio.run(accept_and_handle(body, headers, lease_duration=360))
         except Exception:
             self.send_response(500)
             self.end_headers()

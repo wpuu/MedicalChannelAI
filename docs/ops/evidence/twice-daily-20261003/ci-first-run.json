@@ -1,0 +1,16 @@
+{
+  "head": "2b913388a20b6ac961394de8564dc4a5aa98d013",
+  "run_id": 37108302750,
+  "url": "https://github.com/wpuu/MedicalChannelAI/actions/runs/37108302750",
+  "result": "failure",
+  "python_tests": 865,
+  "failures": 2,
+  "failed_tests": [
+    "test_vercel_teda_runtime.VercelTedaRuntimeTests.test_teda_is_a_first_class_runtime_stage_before_downstream_publish",
+    "test_vercel_tjfch_runtime.VercelTjfchRuntimeTests.test_tjfch_is_a_first_class_runtime_stage_between_teda_and_publish"
+  ],
+  "cause": "AST source extractor selected cycle-protection wrapper rather than delegated dispatcher.",
+  "repair": "Point only these two existing contracts to _run_stage and verify run_stage delegates; product source frozen hashes unchanged.",
+  "manual_rerun": false,
+  "deployment_triggered": false
+}

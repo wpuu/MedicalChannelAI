@@ -3,6 +3,7 @@ import type {
   FollowupInput,
   FollowupRecord,
   FollowupStatus,
+  SnapshotMeta,
   NotFitReason,
   OutreachDraft,
   RelationshipStrength,
@@ -464,6 +465,37 @@ export class ApiTodayActionsService implements TodayActionsService {
       throw new Error(asString(root?.error) ?? `HTTP_${response.status}`)
     }
     assertNoInternalFields(payload)
+    const root = asRecord(payload)
+    const asOfHeader = response.headers.get('X-MedicalChannelAI-Snapshot-As-Of')
+    const sourceHeader = response.headers.get('X-MedicalChannelAI-Snapshot-Source')?.trim().toUpperCase()
+    if (root && (asOfHeader || typeof root.snapshot_as_of === 'string')) {
+      const rawCoverage = root.collection_coverage && typeof root.collection_coverage === 'object'
+        ? asRecord(root.collection_coverage)
+        : null
+      const headerCoverage = response.headers.get('X-MedicalChannelAI-Snapshot-Coverage-Complete')
+      const coverageComplete = typeof rawCoverage?.complete === 'boolean'
+        ? rawCoverage.complete
+        : headerCoverage === 'true' ? true : headerCoverage === 'false' ? false : null
+      const reason = response.headers.get('X-MedicalChannelAI-Snapshot-Degraded-Reason') || null
+      const snapshotMeta: SnapshotMeta = {
+        snapshot_as_of: asOfHeader || (typeof root.snapshot_as_of === 'string' ? root.snapshot_as_of : null),
+        source: sourceHeader || 'UNKNOWN',
+        runtime_origin: response.headers.get('X-MedicalChannelAI-Snapshot-Runtime-Origin') === 'PUBLISHED' || response.headers.get('X-MedicalChannelAI-Snapshot-Runtime-Origin') === 'BUNDLED'
+          ? response.headers.get('X-MedicalChannelAI-Snapshot-Runtime-Origin') as 'PUBLISHED' | 'BUNDLED'
+          : null,
+        degraded: response.headers.get('X-MedicalChannelAI-Snapshot-Degraded') === 'true' || !sourceHeader || coverageComplete !== true,
+        reason: reason || (!sourceHeader ? 'SNAPSHOT_SOURCE_UNKNOWN' : coverageComplete === false ? 'COLLECTION_COVERAGE_PARTIAL' : coverageComplete === null ? 'COLLECTION_COVERAGE_UNKNOWN' : null),
+        collection_coverage: coverageComplete === null ? null : {
+          complete: coverageComplete,
+          last_complete_as_of: typeof rawCoverage?.last_complete_as_of === 'string'
+            ? rawCoverage.last_complete_as_of
+            : response.headers.get('X-MedicalChannelAI-Snapshot-Coverage-Last-Complete-As-Of'),
+          updated_source_ids: Array.isArray(rawCoverage?.updated_source_ids) ? rawCoverage.updated_source_ids.filter((value): value is string => typeof value === 'string') : [],
+          failed_source_ids: Array.isArray(rawCoverage?.failed_source_ids) ? rawCoverage.failed_source_ids.filter((value): value is string => typeof value === 'string') : [],
+        },
+      }
+      return { ...root, snapshot_meta: snapshotMeta } as T
+    }
     return payload as T
   }
 
@@ -479,9 +511,16 @@ export class ApiTodayActionsService implements TodayActionsService {
       return pending.value
     }
 
-    const data = await this.requestJson<TodayActionsPublicResponse>('/today')
-    const mappedPool = (data.opportunity_pool ?? data.cards).map(mapPublicCard)
-    const cards = data.cards.map(mapPublicCard)
+    const data = await this.requestJson<TodayActionsPublicResponse & { snapshot_meta?: SnapshotMeta; collection_coverage?: SnapshotMeta['collection_coverage'] }>('/today')
+    const snapshotMeta = data.snapshot_meta ?? {
+      snapshot_as_of: data.snapshot_as_of,
+      source: 'UNKNOWN',
+      degraded: true,
+      reason: 'SNAPSHOT_SOURCE_UNKNOWN',
+      collection_coverage: data.collection_coverage ?? null,
+    }
+    const mappedPool = (data.opportunity_pool ?? data.cards).map((card) => ({ ...mapPublicCard(card), snapshot_meta: snapshotMeta }))
+    const cards = data.cards.map((card) => ({ ...mapPublicCard(card), snapshot_meta: snapshotMeta }))
     const result: TodayActionsResponse = {
       schema_version: data.schema_version,
       mode: data.mode,
@@ -493,6 +532,7 @@ export class ApiTodayActionsService implements TodayActionsService {
       coverage_warning: COVERAGE_WARNING,
       generated_at: data.snapshot_as_of,
       refreshed_at: data.snapshot_as_of,
+      snapshot_meta: snapshotMeta,
       today_limit: data.today_limit,
       today_limit_options: data.today_limit_options,
       recommendation_feedback_summary: data.recommendation_feedback_summary,
@@ -518,10 +558,10 @@ export class ApiTodayActionsService implements TodayActionsService {
     try {
       const encodedId = encodeURIComponent(id)
       const [card, state] = await Promise.all([
-        this.requestJson<PublicTodayActionCard>(`/opportunity/${encodedId}`),
+        this.requestJson<PublicTodayActionCard & { snapshot_meta?: SnapshotMeta }>(`/opportunity/${encodedId}`),
         this.getFollowupState(id),
       ])
-      const result = applyFollowupState(mapPublicCard(card), state)
+      const result = applyFollowupState({ ...mapPublicCard(card), snapshot_meta: card.snapshot_meta }, state)
       this.latestOpportunity = result
       return result
     } catch (error) {

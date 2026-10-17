@@ -18,7 +18,7 @@ import { StageBadge } from '@/components/shared/StageBadge'
 import { marketCodesForSelection, marketSelectionLabel } from '@/config/marketPreference'
 import { useToast } from '@/context/ToastContext'
 import { todayActionsService } from '@/services'
-import { AiDecisionError, hydrateSharedAiDecisions, requestAiDecision } from '@/services/aiDecisionApi'
+import { AiDecisionError, hydrateSharedAiDecisions, requestAiDecision, sameAiDecisionSnapshotVersion } from '@/services/aiDecisionApi'
 import { isApiMode, isAuthRequiredError } from '@/services/apiConfig'
 import { persistLocalFollowup } from '@/services/localFollowupStore'
 import {
@@ -90,7 +90,10 @@ function aiErrorMessage(cause: unknown): string {
   if (cause.code === 'AI_RATE_LIMITED') return 'AI服务当前限流，请稍后再试'
   if (cause.code === 'AI_PROVIDER_AUTH_UNAVAILABLE') return 'AI服务端当前不可用'
   if (cause.code === 'AI_TIMEOUT') return 'AI分析超时，请稍后重试'
+  if (cause.code === 'AI_SNAPSHOT_VERSION_MISMATCH') return '商机数据已更新，请刷新页面后再查看AI建议'
+  if (cause.code === 'AI_SNAPSHOT_PROVENANCE_UNAVAILABLE') return '当前商机快照来源或完整覆盖状态未知，请刷新并核对官方依据后再分析'
   if (cause.code === 'VERIFIED_SNAPSHOT_NOT_FRESH') return '公开商机快照已超过安全刷新窗口，请先核对官方依据，待数据刷新后再分析'
+  if (cause.code === 'VERIFIED_SNAPSHOT_COVERAGE_INCOMPLETE') return '当前数据版本仅覆盖部分来源或全量覆盖状态未知；待完整采集并核验后再分析'
   if (cause.code === 'VERIFIED_SNAPSHOT_UNAVAILABLE') return '当前无法确认公开商机快照，请先核对官方依据，待数据恢复后再分析'
   if (cause.code === 'OPPORTUNITY_WINDOW_CLOSED') return '该项目公开窗口已经结束，当前不再生成行动建议'
   if (cause.code === 'VERIFIED_OPPORTUNITY_NOT_FOUND') return '该商机不在服务端已核验商机池中'
@@ -288,6 +291,7 @@ export function OpportunityPoolPage() {
   const { toast } = useToast()
   const [cards, setCards] = useState<TodayActionCard[]>([])
   const [snapshotAsOf, setSnapshotAsOf] = useState<string | null>(null)
+  const [snapshotMeta, setSnapshotMeta] = useState<TodayActionCard['snapshot_meta']>(undefined)
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null)
   const [runtimeStatusChecked, setRuntimeStatusChecked] = useState(false)
   const [query, setQuery] = useState('')
@@ -306,10 +310,11 @@ export function OpportunityPoolPage() {
         return {
           cards: data.opportunity_pool ?? data.cards,
           snapshot_as_of: data.refreshed_at,
+          snapshot_meta: data.snapshot_meta,
         }
       }
       const result = await getVerifiedOpportunityPool()
-      return { cards: result.cards, snapshot_as_of: result.snapshot_as_of }
+      return { cards: result.cards, snapshot_as_of: result.snapshot_as_of, snapshot_meta: result.snapshot_meta }
     }
 
     void loadPool()
@@ -317,6 +322,7 @@ export function OpportunityPoolPage() {
         if (cancelled) return
         setCards(result.cards)
         setSnapshotAsOf(result.snapshot_as_of)
+        setSnapshotMeta(result.snapshot_meta)
         setError(false)
       })
       .catch((cause) => {
@@ -376,7 +382,7 @@ export function OpportunityPoolPage() {
         let changed = false
         const next = current.map((card) => {
           const hydratedCard = byId.get(card.opportunity_id)
-          if (!hydratedCard || hydratedCard.decision === card.decision) return card
+          if (!hydratedCard || hydratedCard.decision === card.decision || !sameAiDecisionSnapshotVersion(card, hydratedCard)) return card
           changed = true
           return hydratedCard
         })
@@ -435,6 +441,7 @@ export function OpportunityPoolPage() {
     const automationUnavailableReason = runtimeAutomationUnavailableReason(
       runtimeStatus,
       runtimeStatusChecked,
+      snapshotMeta,
     )
     const card = cards.find((item) => item.opportunity_id === id)
     if (!card || automationUnavailableReason) return
@@ -443,7 +450,7 @@ export function OpportunityPoolPage() {
       const decision = await requestAiDecision(card)
       setCards((current) =>
         current.map((item) =>
-          item.opportunity_id === id
+          item.opportunity_id === id && sameAiDecisionSnapshotVersion(item, card)
             ? {
                 ...item,
                 model_decision_status: 'READY',
@@ -483,8 +490,9 @@ export function OpportunityPoolPage() {
   const automationUnavailableReason = runtimeAutomationUnavailableReason(
     runtimeStatus,
     runtimeStatusChecked,
+    snapshotMeta,
   )
-  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked)
+  const snapshotWarning = runtimeSnapshotWarning(runtimeStatus, runtimeStatusChecked, snapshotMeta)
   const aiUnavailableReason = automationUnavailableReason || (
     runtimeStatus?.ai.configured === false ? AI_UNCONFIGURED_REASON : null
   )
@@ -503,7 +511,8 @@ export function OpportunityPoolPage() {
             <span>{snapshotAsOf ? `快照 ${formatDateTime(snapshotAsOf) ?? snapshotAsOf}` : null}</span>
             {runtimeStatus ? (
               <span className={runtimeStatus.ai.configured ? 'text-indigo-700' : 'text-amber-700'}>
-                {runtimeStatus.ai.configured ? 'AI服务已连接' : 'AI服务待配置'}
+                {runtimeStatus.ai.configured ? 'AI已配置' : 'AI服务待配置'}
+                {runtimeStatus.ai.configured && aiUnavailableReason ? ' · 分析已暂停' : ''}
               </span>
             ) : null}
           </div>

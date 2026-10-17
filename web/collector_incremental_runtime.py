@@ -49,6 +49,10 @@ def _pending_barrier_cache_key(source_id: str) -> str:
     return f"medicalchannelai:collector-incremental-pending-barrier:{source_id}:v2"
 
 
+def _pending_commit_cache_key(source_id: str) -> str:
+    return f"medicalchannelai:collector-incremental-pending-commit:{source_id}:v1"
+
+
 def _cache_set(cache: RuntimeCache, key: str, value: Any, *, ttl: int, tag: str) -> None:
     cache.set(key, value, {"ttl": ttl, "tags": [tag]})
 
@@ -118,11 +122,30 @@ def _save_pending_barrier(cache: RuntimeCache, source_id: str, urls: set[str]) -
     )
 
 
+def _pending_commit_required(cache: RuntimeCache, source_id: str) -> bool:
+    return cache.get(_pending_commit_cache_key(source_id)) is True
+
+
+def _save_pending_commit_required(cache: RuntimeCache, source_id: str, required: bool) -> None:
+    key = _pending_commit_cache_key(source_id)
+    if not required:
+        cache.delete(key)
+        return
+    _cache_set(
+        cache,
+        key,
+        True,
+        ttl=PENDING_TTL_SECONDS,
+        tag="medicalchannelai-collector-incremental-pending-commit",
+    )
+
+
 def clear_incremental_pending(cache: RuntimeCache) -> None:
     """Discard staging superseded by a fully completed authoritative deep cycle."""
     for source_id in SUPPORTED_INCREMENTAL_SOURCES:
         cache.delete(_pending_cache_key(source_id))
         cache.delete(_pending_barrier_cache_key(source_id))
+        cache.delete(_pending_commit_cache_key(source_id))
 
 
 def _last_completed_bucket(cache: RuntimeCache, source_id: str) -> str | None:
@@ -365,11 +388,38 @@ def _candidate_from_decision(decision: VerificationDecision, discovered_by_url: 
     raise RuntimeError("INCREMENTAL_SELECTED_CANDIDATE_MISSING")
 
 
-def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime) -> tuple[bool, dict[str, Any] | None]:
-    try:
-        result = runtime._run_publish(cache, {"cycle_as_of": now.isoformat()})
-    except runtime.CollectorPrecondition:
-        return False, None
+def _incremental_diagnostic(source_id: str, stage: str, exc: Exception, official_url: Any = None) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "source_id": source_id,
+        "market_code": None,
+        "stage": stage,
+        "category": runtime._diagnostic_category(exc),
+        "error_code": runtime._safe_error_code(exc),
+        "error_type": type(exc).__name__[:60],
+    }
+    safe_url = runtime._official_url(official_url or getattr(exc, "url", None), source_id)
+    if safe_url:
+        result["official_url"] = safe_url
+    return result
+
+
+def _publish_snapshot_if_ready(
+    cache: RuntimeCache,
+    now: datetime,
+    source_id: str,
+) -> tuple[bool, dict[str, Any] | None]:
+    last_good = cache.get(runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+    last_good_as_of = ""
+    coverage = last_good.get("collection_coverage") if isinstance(last_good, dict) else None
+    if isinstance(coverage, dict):
+        last_good_as_of = str(coverage.get("last_complete_as_of") or "")
+        if coverage.get("complete") is True and not last_good_as_of and isinstance(last_good, dict):
+            last_good_as_of = str(last_good.get("snapshot_as_of") or "")
+    result = runtime._run_publish(cache, {
+        "cycle_as_of": now.isoformat(),
+        "incremental_source": source_id,
+        "last_complete_as_of": last_good_as_of or None,
+    })
     return True, result
 
 
@@ -403,11 +453,13 @@ def run_incremental_source(
     try:
         discovered = _DISCOVERY[source](observed)
     except Exception as exc:
+        diagnostic = _incremental_diagnostic(source, "index_discovery", exc)
         return 503, {
             "action": "FAILED",
             "source_id": source,
             "bucket_id": bucket_id,
-            "error": f"INCREMENTAL_DISCOVERY_FAILED:{type(exc).__name__}:{str(exc)[:180]}",
+            "error": "INCREMENTAL_DISCOVERY_FAILED",
+            "diagnostics": [diagnostic],
         }
 
     # Bootstrap is an optimization for a brand-new ledger, but it must reuse the
@@ -440,8 +492,24 @@ def run_incremental_source(
         for item in discovered
     }
     verified_records: list[dict[str, Any]] = []
+    # A verified fact must be staged before its ledger row can say VERIFIED.
+    # This makes the two cache writes replay-safe: if pending persistence fails,
+    # the candidate remains eligible for verification; if the later canonical
+    # commit fails, the already durable pending row carries the fact forward.
+    try:
+        pending_records = _load_pending_records(cache, source)
+    except Exception as exc:
+        return 503, {
+            "action": "FAILED",
+            "source_id": source,
+            "bucket_id": bucket_id,
+            "error": "INCREMENTAL_PENDING_RECORD_READ_FAILED",
+            "diagnostics": [_incremental_diagnostic(source, "publish", exc)],
+        }
+    pending_commit_required = _pending_commit_required(cache, source)
     nonfact_verified_count = 0
     failures: list[dict[str, str]] = []
+    pending_persist_failure: Exception | None = None
     successful_urls: set[str] = set()
     observed_at = observed.isoformat()
     delay_seconds = _source_delay_seconds(source)
@@ -452,15 +520,16 @@ def run_incremental_source(
             runtime.time.sleep(delay_seconds)
         try:
             record = _VERIFICATION[source](candidate, observed_at, observed)
-            ledger = record_verification_success(
-                ledger,
-                decision.candidate,
-                verified_at=observed,
-            )
-            successful_urls.add(decision.candidate.detail_url)
             if record is None:
                 nonfact_verified_count += 1
             else:
+                next_pending = runtime.merge_canonical_records(pending_records, [record])
+                try:
+                    _save_pending_records(cache, source, next_pending)
+                except Exception as persist_exc:
+                    pending_persist_failure = persist_exc
+                    break
+                pending_records = next_pending
                 verified_records.append(record)
         except Exception as exc:
             ledger = record_verification_failure(
@@ -476,11 +545,31 @@ def run_incremental_source(
                     "message": str(exc)[:180],
                 }
             )
-        finally:
             _save_ledger(cache, source, ledger)
+            continue
+
+        ledger = record_verification_success(
+            ledger,
+            decision.candidate,
+            verified_at=observed,
+        )
+        successful_urls.add(decision.candidate.detail_url)
+        _save_ledger(cache, source, ledger)
+
+    if pending_persist_failure is not None:
+        return 503, {
+            "action": "FAILED",
+            "source_id": source,
+            "bucket_id": bucket_id,
+            "verified_record_count": len(verified_records),
+            "pending_record_count": len(pending_records),
+            "snapshot_refreshed": False,
+            "snapshot_as_of": None,
+            "error": "INCREMENTAL_PENDING_RECORD_PERSIST_FAILED",
+            "diagnostics": [_incremental_diagnostic(source, "publish", pending_persist_failure)],
+        }
 
     existing_records, cache_key = _existing_records(cache, source)
-    pending_records = _load_pending_records(cache, source)
     pending_barrier = _load_pending_barrier(cache, source)
     pending_barrier.difference_update(successful_urls)
     pending_barrier.update(item["url"] for item in failures)
@@ -514,7 +603,15 @@ def run_incremental_source(
             "snapshot_refreshed": False,
             "snapshot_as_of": None,
             "error": "INCREMENTAL_DETAIL_VERIFICATION_INCOMPLETE",
-            "failures": failures[:5],
+            "diagnostics": [
+                _incremental_diagnostic(
+                    source,
+                    "verified_detail",
+                    RuntimeError(str(item.get("message") or "ERROR_CODE_UNAVAILABLE")),
+                    item.get("url"),
+                )
+                for item in failures[:5]
+            ],
         }
 
     if pending_barrier:
@@ -540,18 +637,63 @@ def run_incremental_source(
         )
         return 200, {"action": "COMPLETED", **result}
 
-    if staged_records:
-        merged = runtime.merge_canonical_records(existing_records, staged_records)
-        runtime._cache_set(
+    merged = runtime.merge_canonical_records(existing_records, staged_records) if staged_records else existing_records
+    if staged_records and runtime._canonical_content_digest(merged) != runtime._canonical_content_digest(existing_records):
+        # Persist recovery state before touching the canonical shard. Every newly
+        # verified fact was also staged before its ledger was marked VERIFIED;
+        # this aggregate write preserves older pending rows alongside it.
+        try:
+            _save_pending_records(cache, source, staged_records)
+        except Exception as exc:
+            return 503, {
+                "action": "FAILED",
+                **base_result,
+                "snapshot_refreshed": False,
+                "snapshot_as_of": None,
+                "error": "INCREMENTAL_PENDING_RECORD_PERSIST_FAILED",
+                "diagnostics": [_incremental_diagnostic(source, "publish", exc)],
+            }
+        try:
+            _save_pending_commit_required(cache, source, True)
+            runtime._cache_set(
+                cache,
+                cache_key,
+                merged,
+                tag="medicalchannelai-collector-canonical",
+            )
+        except Exception as exc:
+            return 503, {
+                "action": "FAILED",
+                **base_result,
+                "snapshot_refreshed": False,
+                "snapshot_as_of": None,
+                "error": "INCREMENTAL_CANONICAL_COMMIT_FAILED",
+                "diagnostics": [_incremental_diagnostic(source, "publish", exc)],
+            }
+    elif not staged_records or not pending_commit_required:
+        _save_pending_records(cache, source, [])
+        _save_pending_barrier(cache, source, set())
+        _save_pending_commit_required(cache, source, False)
+        result = {
+            **base_result,
+            "canonical_record_count": len(existing_records),
+            "pending_record_count": 0,
+            "pending_barrier_count": 0,
+            "snapshot_refreshed": False,
+            "snapshot_as_of": None,
+            "deferred_reason": "NO_SOURCE_CANONICAL_CHANGE",
+        }
+        _mark_bucket_completed(
             cache,
-            cache_key,
-            merged,
-            tag="medicalchannelai-collector-canonical",
+            source_id=source,
+            bucket_id=bucket_id,
+            completed_at=observed,
+            result=result,
         )
-    else:
-        merged = existing_records
-    _save_pending_records(cache, source, [])
-    _save_pending_barrier(cache, source, set())
+        return 200, {"action": "COMPLETED", **result}
+    # If staged records exist but the canonical digest is already equal, a prior
+    # cache write may have committed before its acknowledgement failed. Publish
+    # the current canonical state before clearing that recovery marker.
 
     completed_result = {
         **base_result,
@@ -560,15 +702,29 @@ def run_incremental_source(
         "pending_barrier_count": 0,
     }
     try:
-        snapshot_refreshed, publish_result = _publish_snapshot_if_ready(cache, observed)
+        snapshot_refreshed, publish_result = _publish_snapshot_if_ready(cache, observed, source)
     except Exception as exc:
+        if not getattr(exc, "durable_accepted", False):
+            runtime._cache_set(cache, cache_key, existing_records, tag="medicalchannelai-collector-canonical")
+            _save_pending_records(cache, source, staged_records)
+            _save_pending_barrier(cache, source, set())
+        else:
+            _save_pending_records(cache, source, [])
+            _save_pending_barrier(cache, source, set())
         return 503, {
             "action": "FAILED",
             **completed_result,
             "snapshot_refreshed": False,
-            "snapshot_as_of": None,
-            "error": f"INCREMENTAL_SNAPSHOT_REFRESH_FAILED:{type(exc).__name__}:{str(exc)[:180]}",
+            "snapshot_as_of": getattr(exc, "durable_snapshot_as_of", None),
+            "durable_snapshot_accepted": bool(getattr(exc, "durable_accepted", False)),
+            "durable_snapshot_as_of": getattr(exc, "durable_snapshot_as_of", None),
+            "error": "INCREMENTAL_SNAPSHOT_REFRESH_FAILED",
+            "diagnostics": [_incremental_diagnostic(source, "publish", exc)],
         }
+
+    _save_pending_records(cache, source, [])
+    _save_pending_barrier(cache, source, set())
+    _save_pending_commit_required(cache, source, False)
 
     result = {
         **completed_result,

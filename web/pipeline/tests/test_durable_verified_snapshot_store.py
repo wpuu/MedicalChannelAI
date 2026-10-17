@@ -24,11 +24,14 @@ class DurableVerifiedSnapshotStoreTests(unittest.TestCase):
 
     def test_authenticated_publish_validates_then_persists_before_runtime_cache(self) -> None:
         self.assertIn("persistPublicVerifiedSnapshot", self.endpoint)
-        validated = self.endpoint.index("validateVerifiedSnapshot(await requestBodyValue(request))")
-        durable = self.endpoint.index("await persistPublicVerifiedSnapshot(snapshot)")
-        cache = self.endpoint.index("await publishVerifiedSnapshotToRuntimeCache(snapshot)")
+        validated = self.endpoint.index("preflightVerifiedSnapshotPublish(await requestBodyValue(request))")
+        durable = self.endpoint.index("await persistPublicVerifiedSnapshot(snapshot, {")
+        cache = self.endpoint.index("await publishVerifiedSnapshotToRuntimeCache(snapshot, { preflight })")
         self.assertLess(validated, durable)
         self.assertLess(durable, cache)
+        self.assertIn("requireBaseMatch: preflight.requireBaseMatch", self.endpoint)
+        self.assertIn("expectedBaseHash: preflight.expectedBaseHash", self.endpoint)
+        self.assertIn("expectedBaseAsOf: preflight.expectedBaseAsOf", self.endpoint)
 
     def test_same_timestamp_conflicting_payload_fails_closed(self) -> None:
         self.assertIn("PUBLIC_SNAPSHOT_REVISION_CONFLICT", self.db)
@@ -40,9 +43,14 @@ class DurableVerifiedSnapshotStoreTests(unittest.TestCase):
         self.assertIn("selectDurableVerifiedSnapshot(durableValue)", self.verified)
         self.assertIn("if (candidateMs < baselineMs) return null", self.verified)
         self.assertIn("if (candidateMs <= baselineMs) return null", self.verified)
-        db_mode = self.verified.index("lastSourceMode = 'DATABASE'")
+        loader_start = self.verified.index("export async function loadVerifiedSnapshotWithMetadata()")
+        loader_end = self.verified.index("/** Compatibility adapter", loader_start)
+        loader = self.verified[loader_start:loader_end]
         runtime_load = self.verified.index("const runtimeResult = await loadRuntimeCachedSnapshot()")
-        self.assertLess(db_mode, runtime_load)
+        self.assertIn("const durableResult = await loadDurableSnapshotMemoized()", loader)
+        self.assertIn("sourceMode: 'DATABASE'", loader)
+        self.assertLess(loader.index("if (durableResult.snapshot)"), loader.index("const runtimeResult"))
+        self.assertNotIn("lastSourceMode =", loader)
 
     def test_runtime_and_durable_snapshot_freshness_rules_stay_distinct(self) -> None:
         runtime_start = self.verified.index("export function selectPublishedRuntimeSnapshot")

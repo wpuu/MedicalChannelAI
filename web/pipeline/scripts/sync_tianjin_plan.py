@@ -14,6 +14,7 @@ PIPELINE_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(PIPELINE_ROOT))
 
+from atomic_json_io import validate_json_output_paths, write_json_atomic, write_json_bundle_atomic  # noqa: E402
 from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
 from medical_channel_pipeline.procurement_intent_followup_plan import (  # noqa: E402
     build_procurement_intent_followup_plan,
@@ -202,6 +203,17 @@ def main() -> int:
     parser.add_argument('--report-output', required=True, type=Path)
     args = parser.parse_args()
 
+    validate_json_output_paths(
+        report_output=args.report_output,
+        data_outputs={'records': args.records_output, 'events': args.events_output},
+        input_paths={
+            'records': args.existing_records_input,
+            'events': args.existing_events_input,
+            'intents': args.intent_records_input,
+            'plan': [args.plan],
+        },
+    )
+
     plan = load_plan(args.plan)
     as_of = parse_as_of(args.as_of)
     start_text, end_text = plan_date_window(as_of, plan['lookback_days'])
@@ -280,34 +292,40 @@ def main() -> int:
                 }
             )
 
-    merged_records = merge_canonical_records(existing_records, new_records)
-    watch_projects = active_ccgp_project_numbers(merged_records, as_of)
-    if len(watch_projects) > plan['max_event_watch_projects']:
-        raise RuntimeError(
-            f'ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>'
-            f"{plan['max_event_watch_projects']}"
-        )
-
-    new_events: list[dict] = []
-    for project_number in watch_projects:
-        new_events.extend(
-            scan_events(
-                project_number,
-                region=plan['region'],
-                start_date=start_text,
-                end_date=end_text,
-                delay_seconds=plan['delay_seconds'],
-                observed_at=observed_at,
-                failures=failures,
-            )
-        )
-    merged_events = merge_notice_events(existing_events, new_events)
-
     publish_allowed, publish_gate_reason = publish_gate(
         discovery_success_count=discovery_success_count,
         selected_candidate_count=len(selected),
         new_verified_record_count=len(new_records),
     )
+
+    # Gate before canonical validation, event-watch limits, or event fetches so
+    # blocked detail refreshes always preserve outputs and still produce a report.
+    merged_records = existing_records
+    watch_projects: list[str] = []
+    new_events: list[dict] = []
+    merged_events = existing_events
+    if publish_allowed:
+        merged_records = merge_canonical_records(existing_records, new_records)
+        watch_projects = active_ccgp_project_numbers(merged_records, as_of)
+        if len(watch_projects) > plan['max_event_watch_projects']:
+            raise RuntimeError(
+                f'ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>'
+                f"{plan['max_event_watch_projects']}"
+            )
+
+        for project_number in watch_projects:
+            new_events.extend(
+                scan_events(
+                    project_number,
+                    region=plan['region'],
+                    start_date=start_text,
+                    end_date=end_text,
+                    delay_seconds=plan['delay_seconds'],
+                    observed_at=observed_at,
+                    failures=failures,
+                )
+            )
+        merged_events = merge_notice_events(existing_events, new_events)
 
     report = {
         'schema_version': '0.1',
@@ -328,6 +346,7 @@ def main() -> int:
         'unique_discovered_candidate_count': len(discovered),
         'selected_candidate_count': len(selected),
         'new_verified_record_count': len(new_records),
+        'existing_record_count': len(existing_records),
         'merged_record_count': len(merged_records),
         'event_watch_project_count': len(watch_projects),
         'new_notice_event_count': len(new_events),
@@ -336,6 +355,10 @@ def main() -> int:
         'failures': failures,
         'publish_allowed': publish_allowed,
         'publish_gate_reason': publish_gate_reason,
+        'records_output_written': publish_allowed,
+        'records_output_status': 'WRITTEN' if publish_allowed else 'PRESERVED_UNCHANGED',
+        'events_output_written': publish_allowed,
+        'events_output_status': 'WRITTEN' if publish_allowed else 'PRESERVED_UNCHANGED',
         'policy': {
             'region_locked_to_tianjin': True,
             'multi_keyword_discovery_is_deduplicated_before_detail_fetch': True,
@@ -352,9 +375,16 @@ def main() -> int:
         },
     }
 
-    write_json(args.records_output, merged_records)
-    write_json(args.events_output, merged_events)
-    write_json(args.report_output, report)
+    if publish_allowed:
+        write_json_bundle_atomic({
+            args.records_output: merged_records,
+            args.events_output: merged_events,
+            args.report_output: report,
+        })
+    else:
+        report['merged_record_count'] = len(existing_records)
+        report['merged_event_count'] = len(existing_events)
+        write_json(args.report_output, report)
 
     print(
         f"queries_ok={discovery_success_count}/{planned_discovery_queries} "

@@ -21,6 +21,8 @@ class AiBatchCacheV2Tests(unittest.TestCase):
         self.assertIn("Promise.all(", core)
         self.assertIn("status: 'MISS'", core)
         self.assertIn("shared-public:", core)
+        self.assertIn("snapshot_runtime_origin: batchRuntimeOrigin", core)
+        self.assertIn("snapshot_runtime_origin: runtimeOrigin", core)
 
         self.assertIn("export async function getSharedPublicAiBrief", db)
         self.assertIn("FROM public_ai_briefs", db)
@@ -37,11 +39,16 @@ class AiBatchCacheV2Tests(unittest.TestCase):
 
         self.assertIn("export async function requestAiDecisionBatch", client)
         self.assertIn("opportunity_ids: opportunityIds", client)
-        self.assertIn("postAiDecisionBatch(eligible.map((card) => card.opportunity_id), cacheOnly)", client)
+        self.assertIn("postAiDecisionBatch(safeCards, cacheOnly)", client)
         self.assertIn("cache_only: cacheOnly", client)
         # Transient per-item failures get exactly one automatic follow-up pass.
-        self.assertIn("postAiDecisionBatch(retryIds, false)", client)
-        self.assertIn("if (cacheOnly) return first", client)
+        self.assertIn("postAiDecisionBatch(safeCards.filter((card) => retryIds.includes(card.opportunity_id)), false)", client)
+        self.assertIn("if (cacheOnly) return { ...first, errors: { ...preflightErrors, ...first.errors } }", client)
+        self.assertIn("responseMatchesProvenance(record, provenance)", client)
+        self.assertIn("const CACHE_KEY = 'medopp.grounded-ai-decisions.v2'", client)
+        self.assertIn("sameAiDecisionSnapshotVersion", today)
+        self.assertIn("sameAiDecisionSnapshotVersion", detail)
+        self.assertIn("sameAiDecisionSnapshotVersion", pool)
         self.assertIn("export async function hydrateSharedAiDecisions", client)
         self.assertIn("requestAiDecisionBatch(cards, { cacheOnly: true })", client)
 
