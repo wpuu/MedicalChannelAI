@@ -95,7 +95,7 @@
       "operation": "github_fetch actions/workflows collection and named workflow GET",
       "status": 400,
       "message": "URL is not an allowed public GitHub repository or search endpoint",
-      "meaning": "This wrapper rejects the endpoint; current workflow enabled state was not read."
+      "meaning": "Wrapper rejects this endpoint. Follow-up public REST GETs at 06:37Z succeeded and both workflows are disabled_manually; see github-workflows.json. Not an API authorization denial."
     }
   ],
   "gates": {
@@ -124,5 +124,11 @@
     "paid_change": false,
     "account_security_change": false
   },
-  "tests_rerun": 0
+  "tests_rerun": 0,
+  "github_fallback_followup": {
+    "observed_at_utc": "2026-10-17T06:37:00Z",
+    "result": "BOTH_DISABLED_MANUALLY",
+    "evidence": "github-workflows.json",
+    "does_not_prove_vercel_cron_or_queue_disabled": true
+  }
 }

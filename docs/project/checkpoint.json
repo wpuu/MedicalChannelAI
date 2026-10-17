@@ -35,7 +35,7 @@
     "actual_plan": "HOBBY_REPORTED_BY_RUNTIME_LOGS_API; team billing field not returned",
     "cron_enabled": "UNKNOWN",
     "queue_consumer_inflight_delayed_retry": "UNKNOWN",
-    "fallback_workflows": "NOT_RECHECKED_THIS_TURN; disabled_manually is 2026-10-03 historical evidence",
+    "fallback_workflows": "BOTH_DISABLED_MANUALLY; public GitHub REST GETs 200 at 2026-10-17T06:37:00Z",
     "history_only_sources": [
       "tjzxfc",
       "tjzyefy",
@@ -166,7 +166,15 @@
       "gate": "PASS for current reported rules; re-read before approved merge; no policy change; ancestor879CI remains separate from docs HEAD"
     },
     "latest_evidence": "docs/ops/evidence/release-readback-20261017/control-plane.json",
-    "latest_report": "docs/ops/release-readback-20261017.md"
+    "latest_report": "docs/ops/release-readback-20261017.md",
+    "github_fallback": {
+      "observed_at_utc": "2026-10-17T06:37:00Z",
+      "tianjin": "disabled_manually",
+      "regional": "disabled_manually",
+      "gate": "PASS",
+      "evidence": "docs/ops/evidence/release-readback-20261017/github-workflows.json",
+      "vercel_cron_or_queue_state_proven": false
+    }
   },
   "observed_main_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "production_state_this_turn": "RECHECKED: alias and deployment bind 3216fd940dabfa7714383b6436908f9b72ff8a9c / dpl_4LPKoTdusrvbExXuzbMKtnyiT86C; status DATABASE STALE/degraded 437; older Oct03 observations remain historical.",

@@ -8,7 +8,7 @@
 - **当前生产已变化**：`medicalchannelai.vercel.app`别名实际指向READY `dpl_4LPKoTdusrvbExXuzbMKtnyiT86C`，精确提交`3216fd940dabfa7714383b6436908f9b72ff8a9c`、main、iad1、Git来源，创建时间`2026-10-07T07:42:29.650Z`。别名GET、部署详情和公开status的短SHA一致。10月3日6229959/dpl_DW5…仅保留历史，不能继续当作本次默认回退目标。
 - `get_project({idOrName,teamId})`本轮成功；旧schema冲突已不再阻断这个入口。返回的`latestDeployment`是`dpl_FjZACpMQZfx4NDcww4nzHoJ6xyeN`、target=null，不能当Production；生产归属由上述别名和详情确定。团队GET也成功，但没有返回billing plan字段。
 - 24h runtime logs请求返回400，API明确说 **“The hobby plan does not retain runtime logs for the requested time range.”** 因此记录实际API按Hobby分类，不再笼统写完全未知；不是billing页面直接读回。按建议改为30m后查询成功、无`collector`记录，窗口`04:58:13.666Z–05:28:13.666Z`。前一结果是查询失败，后一结果才是无匹配日志；两者均不能证明队列为空或消费者停用。不升级日志套餐。
-- 部署文件树GET返回404 `File tree not found`；旧observability schema路径GET返回404 `Observability Data not found`。不猜指标、不从这些单项错误推断整个Vercel连接失效。GitHub workflow目录/具名GET被当前fetch包装器拒绝，未重试同类路径；两条采集workflow的`disabled_manually`仍只是10月3日历史读回。
+- 部署文件树GET返回404 `File tree not found`；旧observability schema路径GET返回404 `Observability Data not found`。不猜指标、不从这些单项错误推断整个Vercel连接失效。GitHub workflow目录/具名GET曾被fetch包装器拒绝；**06:37Z改用公开GitHub REST只读路径，两个具名GET均200，天津和区域工作流当前均为`disabled_manually`**。不使用新token、不登录或触发工作流；原错误只代表包装器不支持该路径，并非GitHub API权限不足。
 - 本地三个checkout只找到应用/原型HTML；没有医院原始索引、分页或9/28、9/30正文。PR78评论为空，main最近提交仍3216fd9；没有新官方存档可供注册。官方结构注册表继续为空，仍22stage、history-only/partial及AI限制。
 
 ## 当前公开数据与具体差异
@@ -34,7 +34,7 @@
 | --- | --- | --- |
 | 精确生产归属 | READ_BACK | 当前3216fd9与别名已绑定；执行前再冻结READY目标及数据版本/revision/hash |
 | 套餐/两个每日任务 | PARTIAL | API按Hobby分类；billing字段未返回。沿用两个独立每日任务`20 0 * * *`、`20 4 * * *`，北京名义08:20/12:20，小时级精度；不是线上列表/enabled证明 |
-| 实际Cron及其他入口 | BLOCKED | 现有返回无Cron配置/enabled/暂停持久性；GitHubfallback本轮状态未读回 |
+| 实际Cron及其他入口 | BLOCKED；GitHub fallback子项PASS | 06:37Z两个公开REST GET确认采集workflow均disabled_manually；Vercel实际Cron配置/enabled/暂停持久性仍未返回，不能从GitHub停用推断Vercel已停 |
 | 唯一串行消费者与旧分区 | BLOCKED | 每个deployment/region/topic/group身份、其他订阅者、实际cap/lease/retry/函数时限、ready/in-flight/delayed/最晚expiry及复读静默证据均缺 |
 | canonical与历史保留 | BLOCKED | 完整源级canonical/history/events/watch/staging及最后真实published baseline库存、schema/ID/hash/时钟与durable一致；旧911/441审计不能覆盖10月7日后状态或暂停缺口 |
 | 早午状态保护 | OFFLINE_EVIDENCE_ONLY | PR75既有fence、终点重投及回滚证据保留；不得删除ACTIVE/META或强开旧早间周期，旧消费者仍必须排除 |
@@ -55,6 +55,8 @@
 ## 证据、边界与下一步
 
 [证据目录](evidence/release-readback-20261017)：control-plane.json为必要字段的规范化工具读回；status/collector-status保存原始JSON；public-readback.json保存HTTP时间/响应hash、池及静态对比；public-pool-projection.json仅保存437条ID/rank/地区投影。完整1.6MB公开响应仅在本地`/tmp/medicalchannelai-readback-20261017/public-snapshot.json`，不声称随PR保存完整原文；投影不是canonical备份。没有新增医院采集、数据库/RuntimeCache修复、账户或安全修改。
+
+06:37Z续核验另存`github-workflows.json`：两条公开API响应必要字段的规范化记录及各自读取时间/URL，state均disabled_manually；没有重跑工作流或采集。对离线transport/index/core的人工代码边界审阅未确认新的阻断缺陷，不把此次同一执行者审阅称为独立审查完成，也不重复既有164项。
 
 已有164项离线证据仍绑定产品c0d0215；本轮不重跑164/879或已通过的定向检查。c0d0215远端Actions为0，不标CI通过；文档提交使用`[skip ci]`，产品blob必须与c0d0215完全相同，保存后读回精确HEAD、CI及无部署记录。
 

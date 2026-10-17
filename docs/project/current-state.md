@@ -30,7 +30,7 @@ MedicalChannelAI 是天津起步的医疗器械、IVD、耗材公开情报和单
 
 `get_project({idOrName,teamId})`现已成功，旧schema错误不再是本入口阻碍。团队/项目未返回billing字段；runtime logs API明确按Hobby保留期拒绝24h查询，改30m成功无collector记录。记录API报告的Hobby和billing页面未读回两个事实。部署文件树和旧observability schema各404，不是整个连接不可访问。无可用本地Vercel CLI/现成认证入口，不索要新token。
 
-仍缺：实际Cron列表/enabled及暂停持久性；所有deployment/region/topic/group消费者身份、实际cap/lease及其他订阅者；ready/in-flight/delayed/expiry和有效停投递；完整canonical/history/events/watch/staging及published baseline与真实durable版本/hash的库存。active=null、stages空、15分钟策略/chain=null及30m无日志不能证明旧链已停或队列为空。GitHub fallback的disabled_manually只有10月3日历史，本轮workflow GET被包装器拒绝。
+仍缺：实际Cron列表/enabled及暂停持久性；所有deployment/region/topic/group消费者身份、实际cap/lease及其他订阅者；ready/in-flight/delayed/expiry和有效停投递；完整canonical/history/events/watch/staging及published baseline与真实durable版本/hash的库存。active=null、stages空、15分钟策略/chain=null及30m无日志不能证明旧链已停或队列为空。**06:37Z公开GitHub REST确认天津/区域两条采集workflow均disabled_manually**，该子项已读回；先前只是连接器包装器拒绝对应端点，不是GitHub API权限不足，也不能由GitHub停用推断Vercel已停。
 
 三个旧来源必须保留历史及准确partial/AI限制。旧911canonical/441静态审计是历史候选，不能覆盖当前10月7日版本、最后未发布事实和暂停缺口；禁止Git/seed/bundled自动恢复、伪造空数组或推进observed_at。
 
