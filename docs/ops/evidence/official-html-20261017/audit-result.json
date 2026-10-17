@@ -1,0 +1,133 @@
+{
+  "repository": "wpuu/MedicalChannelAI",
+  "product_head": "c0d0215d99a8f109cfe62a313f0bf6daf9d8a771",
+  "capture_root_local_only": "/workspace/.medicalchannelai-onboarding/MedicalChannelAI/official-html-20261017",
+  "raw_html_in_git": false,
+  "source_requests_in_this_offline_audit": 0,
+  "network_connections_blocked": true,
+  "captures": [
+    {
+      "name": "tjzyefy-index",
+      "url": "https://www.tjzyefy.com/xwgg/ggtz/",
+      "http_status": 200,
+      "observed_at_utc": "2026-10-17T15:54:53.991499+00:00",
+      "bytes": 105532,
+      "raw_sha256": "11aca503409462a85e4a16a3ca185886ab27271393f28f6696b060ce699aa6c8",
+      "http_charset": null,
+      "meta_charset": "utf-8",
+      "diagnostic_decoding": "utf-8",
+      "decoded_utf8_sha256": "11aca503409462a85e4a16a3ca185886ab27271393f28f6696b060ce699aa6c8"
+    },
+    {
+      "name": "tjzxfc-index",
+      "url": "https://www.tjzxfc.cn/ywgk/zbgg/index.shtml",
+      "http_status": 200,
+      "observed_at_utc": "2026-10-17T15:55:00.360361+00:00",
+      "bytes": 12605,
+      "raw_sha256": "807dac20e7ae7583215159c80a16dfe5f62b235f1ad89b57938f51fb9e4fa9f1",
+      "http_charset": null,
+      "meta_charset": "gb2312",
+      "diagnostic_decoding": "gb2312",
+      "decoded_utf8_sha256": "81fd0838a97ee81fdc6544213ebe5f647baf06988da1fd5e1cdbb1b9c737299f"
+    },
+    {
+      "name": "tjzyefy-20260928-030199113",
+      "url": "https://www.tjzyefy.com/system/2026/09/28/030199113.shtml",
+      "http_status": 200,
+      "observed_at_utc": "2026-10-17T15:55:05.359647+00:00",
+      "bytes": 98792,
+      "raw_sha256": "3b9599c59da2dfc4340dde58c25a87e7a66f30c156d3d2e7731361ce4c316863",
+      "http_charset": null,
+      "meta_charset": "utf-8",
+      "diagnostic_decoding": "utf-8",
+      "decoded_utf8_sha256": "3b9599c59da2dfc4340dde58c25a87e7a66f30c156d3d2e7731361ce4c316863"
+    },
+    {
+      "name": "tjzyefy-20260930-030199248",
+      "url": "https://www.tjzyefy.com/system/2026/09/30/030199248.shtml",
+      "http_status": 200,
+      "observed_at_utc": "2026-10-17T15:55:09.670000+00:00",
+      "bytes": 94735,
+      "raw_sha256": "5369c9e7824a5ba73680e036cf8ea3b33a36e590dc7683f98bad502e08535793",
+      "http_charset": null,
+      "meta_charset": "utf-8",
+      "diagnostic_decoding": "utf-8",
+      "decoded_utf8_sha256": "5369c9e7824a5ba73680e036cf8ea3b33a36e590dc7683f98bad502e08535793"
+    }
+  ],
+  "indexes": [
+    {
+      "source": "tjzyefy",
+      "row_analysis": "unscoped diagnostic only, not a registered coverage proof",
+      "dated_links": 20,
+      "unique_dated_urls": 20,
+      "newest_date": "2026-10-14",
+      "oldest_date": "2026-10-09",
+      "requested_start_date": "2026-09-18",
+      "requested_end_date": "2026-10-17",
+      "single_page_reaches_start": false,
+      "pagination_scripts_not_fetched": [
+        "https://www.tjzyefy.com/system/count/0002002/002000000000/count_page_list_0002002002000000000.js"
+      ]
+    },
+    {
+      "source": "tjzxfc",
+      "row_analysis": "unscoped diagnostic only, not a registered coverage proof",
+      "dated_links": 10,
+      "unique_dated_urls": 10,
+      "newest_date": "2026-10-16",
+      "oldest_date": "2026-10-12",
+      "requested_start_date": "2026-09-18",
+      "requested_end_date": "2026-10-17",
+      "single_page_reaches_start": false,
+      "pagination_scripts_not_fetched": [
+        "https://www.tjzxfc.cn/system/count/0114004/002000000000/count_page_list_0114004002000000000.js"
+      ]
+    }
+  ],
+  "unscoped_discovery_counts": {
+    "tjzyefy": 2,
+    "tjzyefy_intent": 14,
+    "tjzxfc": 1
+  },
+  "intent_limit": {
+    "configured_max_details": 3,
+    "observed_first_page_candidates": 14,
+    "full_window_unknown": true,
+    "stage_was_not_invoked_with_fake_window": true
+  },
+  "details": [
+    {
+      "sample": "tjzyefy-20260928-030199113",
+      "expected_title_source": "saved detail title; historical index pairing NOT verified",
+      "outcome": "PARSER_DIAGNOSTIC_ONLY_NOT_CANONICAL",
+      "product_count": 17,
+      "deadline": "2026-10-09T16:00:00+08:00",
+      "current_actionability": [
+        "ARCHIVE",
+        0,
+        "NOT_ELIGIBLE"
+      ],
+      "historical_actionability": [
+        "PUBLIC_OPPORTUNITY",
+        25,
+        "AWAITING_MODEL"
+      ]
+    },
+    {
+      "sample": "tjzyefy-20260930-030199248",
+      "expected_title_source": "saved detail title; historical index pairing NOT verified",
+      "outcome": "REJECTED",
+      "reason": "TJZYEFY_NOT_MARKET_RESEARCH",
+      "constructed_anchor_discovery_count": 0,
+      "anchor_is_captured_index": false
+    }
+  ],
+  "current_transport_replay": "OFFICIAL_PAGE_DECODE_FAILED",
+  "current_index_shape_replay": "OFFICIAL_INDEX_STRUCTURE_UNKNOWN",
+  "official_contracts_registered": 0,
+  "full_verify": "NOT_RUN",
+  "independent_review": "PENDING",
+  "release": "BLOCKED",
+  "audit_script_sha256": "b0a0911e458fc1f7425e8e3dbec7e27e615e8502cb83b910da1919aadc76ea7a"
+}

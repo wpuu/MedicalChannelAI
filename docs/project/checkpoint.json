@@ -91,7 +91,7 @@
       "independent_review": "PENDING",
       "three_sources_activated": false,
       "stage_count": 22,
-      "official_html_fixtures": "NOT_CAPTURED; synthetic contract tests only"
+      "official_html_fixtures": "NOT_CAPTURED_AT_17ed861; later four-page raw evidence is local only, see official_html_capture"
     },
     "source_transport_index_patch": {
       "starting_head": "17ed8615328721946a5b353341190b4fcf27d82a",
@@ -105,6 +105,24 @@
       "full_verify": "NOT_RUN",
       "independent_review": "PENDING",
       "target_vercel_runtime": "UNVERIFIED"
+    },
+    "official_html_capture": {
+      "report": "docs/ops/official-html-20261017.md",
+      "evidence": "docs/ops/evidence/official-html-20261017",
+      "starting_head": "74f07dd6813db3c47bed42070aa24f8adc901794",
+      "authorized_http_gets": 4,
+      "http_200": 4,
+      "raw_bytes": 311664,
+      "redirects_or_pagination_followed": 0,
+      "retries": 0,
+      "raw_html_in_git": false,
+      "raw_local_root": "/workspace/.medicalchannelai-onboarding/MedicalChannelAI/official-html-20261017",
+      "offline_audit": "COMPLETED with sockets blocked; current charset/structure failures reproduced; not full CI",
+      "history_index_detail_pairing": "UNVERIFIED",
+      "positive_detail": "17 products, 2026-10-09T16:00:00+08:00 deadline, ARCHIVE at actual capture time",
+      "negative_detail": "TJZYEFY_NOT_MARKET_RESEARCH; constructed anchor discovery count0",
+      "official_contracts_registered": 0,
+      "product_code_changed": false
     }
   },
   "release_checklist": "docs/ops/release-readback-20261017.md",
@@ -115,7 +133,10 @@
     "real_collection": false,
     "model_calls": false,
     "paid_resources": false,
-    "queue_purge": false
+    "queue_purge": false,
+    "approved_readonly_official_page_gets": 4,
+    "four_page_evidence_scope_consumed": true,
+    "real_collection_scope_note": "real_collection=false means no product collector invocation. Four explicitly approved public HTML GETs were performed for local offline evidence; no additional source requests authorized."
   },
   "known_incomplete_invariants": {
     "control_plane": "get_project(idOrName,teamId) now succeeds. Runtime logs API explicitly reports Hobby retention. Returned project/team/deployment fields omit actual Cron enabled/config, consumer inventory/cap, ready/inflight/delayed/expiry and full canonical/history/baseline. 30m collector logs empty is not queue-state proof.",
@@ -181,7 +202,7 @@
   "next_task": {
     "id": "MED-ACTION-P0-001",
     "artifact": "docs/tasks/MED_ACTION_P0_001_TWICE_DAILY_INTEGRATION_2026-10-17.md",
-    "status": "OFFLINE_TRANSPORT_INDEX_GUARDS_IMPLEMENTED_NOT_ACTIVATED",
+    "status": "OFFICIAL_HTML_LOCAL_IMPLEMENTATION_GAPS_CONFIRMED_NOT_ACTIVATED",
     "starting_pr_head": "ca91df269636d8604814d2e744d12587b8fadc82",
     "verified_product_ancestor": "8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2",
     "proposed_stage_ids": [
@@ -196,14 +217,16 @@
     "production_operations_authorized": false,
     "tests_run_this_turn": 0,
     "open_implementation_gates": [
-      "official index HTML and 9/28/9/30 detail provenance",
-      "reviewed list structure and actual pagination; registry empty",
+      "bounded charset selection: HTTP missing charset + actual GB2312 fails current transport",
+      "actual table/nested-anchor row extraction and reviewed contracts; registry empty",
+      "30-day pagination coverage: captured first pages stop Oct09/Oct12, need Sep18; JS/pages not fetched",
+      "14 intent candidates already on first page exceed3; same-Queue bounded continuation contract pending",
+      "historical 9/28 and 9/30 index/detail pairing unverified",
       "target Vercel child spawn/bundle/cleanup unverified",
-      "25-stage dispatch and coverage wiring not implemented",
-      "full new-product verification and independent review pending",
-      "canonical recovery, old partitions and live release gates unresolved"
+      "25-stage dispatch/coverage, full new-product verification and independent review pending",
+      "actual Cron/Queue/canonical inventory, old partitions and live release gates unresolved"
     ],
-    "next_action": "Obtain existing official HTML captures and actual pagination plus existing-account Cron/Queue/canonical readback. Register reviewed contracts, then wire 25 stages and validate new product. Before any release consolidate a single target-main candidate; PR78 currently targets PR75 branch.",
+    "next_action": "Offline fix bounded header/meta charset selection and actual list row extraction; keep registry empty and short windows blocked. Review bounded same-Queue continuation before stage activation. No extra source HTTP/JS/pages or publishing raw captures; Vercel control-plane readback still required.",
     "recommended_model": "GPT-6.1-sol",
     "recommended_reasoning_effort": "xhigh",
     "routine_adapter_mapping_effort": "high",
@@ -215,7 +238,8 @@
       "result": "PASS",
       "full_verify": "NOT_RUN",
       "independent_review": "PENDING"
-    }
+    },
+    "latest_evidence_report": "docs/ops/official-html-20261017.md"
   },
   "parent_draft_pr": 75,
   "parent_pr_head": "a2131e4733939e07b9531ea4626c9378e0826953",

@@ -2,6 +2,8 @@
 
 Updated: 2026-10-17。`production_ready=false`，**发布门禁BLOCKED**；每天两次搜索尚未恢复。最新生产与发布/回退依据是[10月17日续核验](../ops/release-readback-20261017.md)，10月3日记录保留为历史。
 
+最新增量：[4页官方HTML取证](../ops/official-html-20261017.md)已在一次明确批准范围内完成，原文仅保存在本地，非生产采集。确认GB2312解码、真实table/嵌套链接结构、第一页30日覆盖不足和intent 14候选超过3详情上限等实现缺口；本轮先保存证据及最小范围，没有修改产品/配置或激活三源。
+
 MedicalChannelAI 是天津起步的医疗器械、IVD、耗材公开情报和单用户销售助手。公共事实必须有官方证据，模型不创造事实；客户私有资源与公共情报分离。
 
 ## 候选与实际生产
@@ -16,12 +18,13 @@ MedicalChannelAI 是天津起步的医疗器械、IVD、耗材公开情报和单
 
 [三源离线核心](../ops/source-parity-offline-20261017.md)复用六个既有parser、stable ID和三个独立v2历史key；准备不写入，提交绑定cycle/base、保留历史、无主动TTL。缺失历史、失败、超限、旧周期或base变化阻断，不seed/bootstrap，不把Runtime Cache读后写称CAS。
 
-[取页与索引保护](../ops/source-transport-index-20261017.md)已实现：同函数内短生命周期子进程请求/回收、20秒请求与240秒source共享预算、重试/间隔/URL/大小/编码约束，以及指定列表结构、顺序、identity和窗口起点检查。**官方结构注册表为空**，仅单页检查，不猜selector/分页。目标Vercel打包、spawn和清理行为未验收。
+[取页与索引保护](../ops/source-transport-index-20261017.md)已有离线实现：同函数内短生命周期子进程请求/回收、20秒请求与240秒source共享预算，以及指定列表结构、顺序、identity和窗口起点检查。真实捕获已证明当前HTTP缺charset时默认UTF-8不支持妇产GB2312页，且列表shape尚不能处理两院实际结构。**官方注册表仍为空**，实际分页/30日窗口未验证，不因取得原文就注册或标完整。目标Vercel打包、spawn和清理行为仍未验收。
 
 仍22stage，三源没有接入正式driver/必需列表，仍history-only、coverage partial及AI限制。设计期望25stage不是产品事实；synthetic HTML/mock/hash不是官方来源证明。
 
 - c0d0215已有32项新增＋132项相关，共**164项本地离线PASS**；此前132项是17ed861阶段，不重复累加。证据明确区分父进程禁外连和仅stubbed网络的本地子进程。
 - 本轮产品/测试/配置未改，测试重跑**0项**；不重复164/879及历史矩阵。c0d0215远端Actions为0，完整新产品Verify及独立审查仍未完成。保存后读回文档HEAD和检查，不把本地测试或祖先CI称新HEAD CI。
+- 新原文离线审计使用真实保存字节、socket外连阻断：9/28正文解析17项产品/10月9日截止，当前归档；9/30被拒绝，未生成医疗记录。历史index/detail配对未核实，不写canonical。审计脚本与hash/元数据入Git，原文留在`/workspace/.medicalchannelai-onboarding/MedicalChannelAI/official-html-20261017`；不是完整新产品测试或独立审查。
 - 8b4b749历史[Verify37117043888 SUCCESS](https://github.com/wpuu/MedicalChannelAI/actions/runs/37117043888)、98项定向和终点竞态审查保留原提交归属。原patch/85项日志在当前环境缺失，不声称已读；更早840/865/870/875项不代表当前候选。
 
 ## 当前线上差异与未通过项
@@ -42,4 +45,4 @@ PR75保留早午独立、同周期幂等、终点标记与旧周期fence，候�
 
 门禁全通过后，针对最终精确HEAD申请一次合并/一次Production；调度保持停止先验收一个当前真实周期，再按批准范围启用两条各每日一次Cron，观察另一时段自然周期。北京名义08:20/12:20，UTC `20 0 * * *` / `20 4 * * *`，Hobby小时级精度，不依赖精确到点。未完成两个独立周期线上验收不得声称每日两次恢复。
 
-**下一步**：取得已有官方索引/正文存档与真实分页、现有账户Cron/Queue/canonical只读读回；注册经审查contract后再接25stage并验证新产品。资料缺失时保留阻断，不重复造mock/报告或申请上线。建议 **GPT-6.1-sol · xhigh**；固定字段归档可用high。天津403和国内域名访问单独待验，不改来源地区、DNS或架构绕过。
+**下一步**：先离线修复受限编码选择和两院实际列表解析，保持注册表为空/30日覆盖不足时阻断；在既有Queue边界内审阅每批最多3详情的续批门禁。分页JS及后续页不在本次4请求授权内，不自动追加；原文继续仅本地保存。仍需现有账户Cron/Queue/canonical读回，正式contract/25stage与完整新产品验证及独立审查未完成。建议 **GPT-6.1-sol · xhigh**；天津403和国内域名访问单独待验，不改来源地区、DNS或架构绕过。

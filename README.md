@@ -20,7 +20,7 @@
 - 周期终点保留标记，由后续周期替换或TTL过期；已结束周期重投不执行，避免旧终点读后删除误删午间新标记。
 - 保留现有 `medicalchannelai-refresh-v2` Queue 和 v2 canonical；新消息版本门禁隔离旧积压，完整覆盖、失败旧数据、canonical/缓存和 AI 版本保护继续生效。
 - 缓存长暂停后丢失完整canonical会阻断发布；完整已发布基线的每条机会必须仍有canonical历史。缺历史或只有Top-N时拒绝发布，不用旧种子/固定快照伪造更新。10月17日实际生产已核对为`3216fd9`、READY `dpl_4LPKoTdusrvbExXuzbMKtnyiT86C`；DATABASE版本10月7日、437条、STALE/degraded，候选未上线。
-- 三源目前仍history-only、22stage及partial/AI限制；离线核心与取页/索引保护已实现，但官方HTML/分页缺失、结构注册表为空、目标平台和25stage接线未完成。历史保留不能称新监控。
+- 三源仍history-only、22stage及partial/AI限制。经一次明确批准，[4页官方HTML已仅本地保存](docs/ops/official-html-20261017.md)；发现GB2312解码、真实列表结构及首页14条intent超过3条上限的问题。分页/30日覆盖、正式注册、目标平台和25stage接线仍未完成，历史保留不能称新监控。
 - [最新只读核验与发布/回退门禁](docs/ops/release-readback-20261017.md)记录生产公开池缺4条历史intent、437条缺地区身份字段；PR75已有最小读取/投影修复，尚未上线。API按Hobby分类，但实际Cron、消费者、队列与完整canonical库存仍缺，当前不可发布、不能宣称每天两次恢复。
 
 开发状态、验收条件和当前工作以仓库内 `docs/project/` 与机器可读 checkpoint 为准。
