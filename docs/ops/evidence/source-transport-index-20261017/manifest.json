@@ -1,0 +1,52 @@
+{
+  "repository": "wpuu/MedicalChannelAI",
+  "starting_head": "17ed8615328721946a5b353341190b4fcf27d82a",
+  "branch": "fix/twice-daily-source-parity-20261017",
+  "pr": 78,
+  "scope": "OFFLINE_TRANSPORT_AND_SINGLE_PAGE_GUARDS_ONLY_NOT_ACTIVATED",
+  "new_tests": 32,
+  "related_tests": 132,
+  "total": 164,
+  "focused_modules": {
+    "test_twice_daily_source_parity": 25,
+    "test_twice_daily_search": 37,
+    "test_twice_daily_terminal_race": 2,
+    "test_collector_native_reliability": 20,
+    "test_execution_namespace": 12,
+    "test_tjzyefy_discovery": 6,
+    "test_tjzyefy_market_research": 7,
+    "test_tjzyefy_intent_discovery": 4,
+    "test_tjzyefy_procurement_intent": 8,
+    "test_tjzxfc_discovery": 5,
+    "test_tjzxfc_market_research": 6,
+    "test_official_source_transport": 19,
+    "test_official_source_index": 13
+  },
+  "result": "PASS",
+  "network": "Parent sockets blocked. Local child tests stub DNS/read or use only a timer; no official HTTP.",
+  "sha256": {
+    "web/collector_runtime.py": "45359b7dc8570f011ec7f22aeb19413fa18f46da66f075630543c70f36d58a02",
+    "web/collector_official_transport.py": "1ea598757a258bd5abcff951f4c07a13130802ffd25f190e3180ba33f61965ef",
+    "web/collector_official_index.py": "bbcaa7c2e00da765e08eaf06da9759f47d312dc8cc217d7b74303948264ffe94",
+    "web/pipeline/tests/test_official_source_transport.py": "1c5029412424fc187bf8d91eb5e2e4a02453064ee8ea12950285b838470ba680",
+    "web/pipeline/tests/test_official_source_index.py": "cc314ca2f15f934a7e61bc18f21a8989b1ee88a581e1b9aa3c8d0f9d446f95e6",
+    "docs/ops/evidence/source-transport-index-20261017/verify_focused.py": "4a4223d46218516e18fd41f0433d2684b316e1160b2755aa791a4027648bdadd"
+  },
+  "focused_log_sha256": "341bb52199dd37cd4af6f1e5e323cf93559a0194adffb6c773b07a062820d5af",
+  "official_html_captures_found": false,
+  "registered_official_index_contracts": 0,
+  "production_stage_count": 22,
+  "target_vercel_child_support": "UNVERIFIED",
+  "full_verify": "NOT_RUN",
+  "independent_review": "PENDING",
+  "production_changes": false,
+  "real_collection": false,
+  "model_calls": false,
+  "limitations": [
+    "OS/process creation and target bundle/runtime need verification",
+    "single-page coverage only; no guessed pagination",
+    "synthetic shapes are not official captures",
+    "three stages remain unregistered",
+    "live control-plane/canonical recovery gates remain blocked"
+  ]
+}

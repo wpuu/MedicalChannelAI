@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import re
 import sys
@@ -355,6 +356,7 @@ def _prepare_official_source_refresh(
     index_html: str,
     window: OfficialSourceWindowProof | None,
     read_detail: Callable[[str, float], str],
+    work_deadline: float | None = None,
 ) -> PreparedOfficialSourceRefresh:
     """Prepare one whole source without writes, network calls or bootstrap.
 
@@ -363,7 +365,11 @@ def _prepare_official_source_refresh(
     This is not the production transport or an index coverage implementation.
     """
     adapter, discover, verify, stable_id, unsupported = _official_source_adapter(stage)
-    deadline = time.monotonic() + OFFICIAL_SOURCE_WORK_SECONDS
+    started = time.monotonic()
+    if work_deadline is not None and (type(work_deadline) not in {int, float} or not math.isfinite(work_deadline)):
+        raise CollectorPrecondition("COLLECTOR_OFFICIAL_SOURCE_DEADLINE_INVALID")
+    deadline = min(started + OFFICIAL_SOURCE_WORK_SECONDS, work_deadline) if work_deadline is not None else started + OFFICIAL_SOURCE_WORK_SECONDS
+    _check_official_source_budget(deadline)
     cycle_id = _official_source_cycle(cache, state)
     existing = _official_source_records(cache, stage)
     as_of = _cycle_as_of(state)

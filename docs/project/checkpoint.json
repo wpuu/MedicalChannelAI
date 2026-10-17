@@ -91,6 +91,19 @@
       "three_sources_activated": false,
       "stage_count": 22,
       "official_html_fixtures": "NOT_CAPTURED; synthetic contract tests only"
+    },
+    "source_transport_index_patch": {
+      "starting_head": "17ed8615328721946a5b353341190b4fcf27d82a",
+      "new_tests": 32,
+      "related_tests": 132,
+      "total": 164,
+      "result": "PASS",
+      "official_http_calls": 0,
+      "actual_local_child_timeout_and_reap": "PASS with blocked-phase markers",
+      "official_contracts_registered": 0,
+      "full_verify": "NOT_RUN",
+      "independent_review": "PENDING",
+      "target_vercel_runtime": "UNVERIFIED"
     }
   },
   "release_checklist": "docs/ops/release-preflight-20261003.md",
@@ -155,7 +168,7 @@
   "next_task": {
     "id": "MED-ACTION-P0-001",
     "artifact": "docs/tasks/MED_ACTION_P0_001_TWICE_DAILY_INTEGRATION_2026-10-17.md",
-    "status": "OFFLINE_CORE_IMPLEMENTED_NOT_ACTIVATED",
+    "status": "OFFLINE_TRANSPORT_INDEX_GUARDS_IMPLEMENTED_NOT_ACTIVATED",
     "starting_pr_head": "ca91df269636d8604814d2e744d12587b8fadc82",
     "verified_product_ancestor": "8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2",
     "proposed_stage_ids": [
@@ -168,19 +181,20 @@
     "automatic_incremental_remains_disabled": true,
     "canonical_bootstrap_allowed": false,
     "production_operations_authorized": false,
-    "tests_run_this_turn": 132,
+    "tests_run_this_turn": 164,
     "open_implementation_gates": [
-      "bounded HTTP total deadline (socket timeout is insufficient)",
-      "candidate/window completeness without silent truncation",
-      "traceable official 9/28 and 9/30 HTML fixtures",
-      "source-level history-only and partial coverage contract",
-      "Beijing real budget continuation remains outside this design"
+      "official index HTML and 9/28/9/30 detail provenance",
+      "reviewed list structure and actual pagination; registry empty",
+      "target Vercel child spawn/bundle/cleanup unverified",
+      "25-stage dispatch and coverage wiring not implemented",
+      "full new-product verification and independent review pending",
+      "canonical recovery, old partitions and live release gates unresolved"
     ],
-    "next_action": "Implement and verify actual request total deadlines plus index-window provenance before registering three stages; then 25-stage publish/coverage regression, full new-product verification and independent review.",
+    "next_action": "Obtain existing official index/detail HTML captures and verified pagination; review/register index contracts; then connect shared session/scoped window/core and three required stages. No live collection/deployment.",
     "recommended_model": "GPT-6.1-sol",
     "recommended_reasoning_effort": "xhigh",
     "routine_adapter_mapping_effort": "high",
-    "implementation_report": "docs/ops/source-parity-offline-20261017.md",
+    "implementation_report": "docs/ops/source-transport-index-20261017.md",
     "implementation_starting_pr_head": "a2131e4733939e07b9531ea4626c9378e0826953"
   },
   "parent_draft_pr": 75,
