@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "updated_at": "2026-10-03",
+  "updated_at": "2026-10-17",
   "timezone": "Asia/Shanghai",
   "base_main_head": "62299590dd3898e040ccc9db5fda1298d4509d51",
   "active_work_branch": "fix/tjmugh-verification-20261002",
@@ -137,5 +137,36 @@
       "detail_endpoint": "403 Resource not accessible by integration",
       "gate": "PASS for current reported rules; re-read before approved merge; no policy change; ancestor879CI remains separate from docs HEAD"
     }
+  },
+  "observed_main_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+  "production_state_this_turn": "NOT_RECHECKED; production_deployment and snapshot observations retain their original 2026-10-03 timestamps",
+  "next_task": {
+    "id": "MED-ACTION-P0-001",
+    "artifact": "docs/tasks/MED_ACTION_P0_001_TWICE_DAILY_INTEGRATION_2026-10-17.md",
+    "status": "DESIGN_SAVED_IMPLEMENTATION_PENDING",
+    "starting_pr_head": "ca91df269636d8604814d2e744d12587b8fadc82",
+    "verified_product_ancestor": "8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2",
+    "proposed_stage_ids": [
+      "tjzyefy",
+      "tjzyefy_intent",
+      "tjzxfc"
+    ],
+    "proposed_stage_count": 25,
+    "stage_count_current_code": 22,
+    "automatic_incremental_remains_disabled": true,
+    "canonical_bootstrap_allowed": false,
+    "production_operations_authorized": false,
+    "tests_run_this_turn": 0,
+    "open_implementation_gates": [
+      "bounded HTTP total deadline (socket timeout is insufficient)",
+      "candidate/window completeness without silent truncation",
+      "traceable official 9/28 and 9/30 HTML fixtures",
+      "source-level history-only and partial coverage contract",
+      "Beijing real budget continuation remains outside this design"
+    ],
+    "next_action": "Isolated deployment-disabled offline implementation: reuse three parsers, existing v2 keys and cycle-protected source commits; then budget/publish regressions. No release.",
+    "recommended_model": "GPT-6.1-sol",
+    "recommended_reasoning_effort": "xhigh",
+    "routine_adapter_mapping_effort": "high"
   }
 }

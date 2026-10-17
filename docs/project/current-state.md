@@ -1,17 +1,18 @@
 # MedicalChannelAI current state
 
-Updated: 2026-10-03 (Asia/Shanghai).
+Updated: 2026-10-17. 本轮只核对GitHub、阅读产品代码并保存兼容设计；下列10月3日线上观测仍是历史证据，不冒充今日生产状态。
 
 MedicalChannelAI 是天津起步的医疗器械、IVD、耗材公开情报和单用户销售助手。公共事实必须有官方证据；模型不创造事实。客户私有资源与公共情报分离，关注医院不代表关系分。`production_ready=false`。
 
 ## 候选与实际生产
 
-- 当前候选：`fix/tjmugh-verification-20261002`，草稿 [PR #75](https://github.com/wpuu/MedicalChannelAI/pull/75)，未合并。本轮开始时实际HEAD与用户冻结一致：`8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2`。本轮只提交发布文档；最终精确HEAD见PR回读，不能沿用旧提交批准，产品blob仍绑定8b4b749的既有验证。
+- 当前候选：`fix/tjmugh-verification-20261002`，草稿 [PR #75](https://github.com/wpuu/MedicalChannelAI/pull/75)，未合并。10月17日本轮起点为实际读回的`ca91df269636d8604814d2e744d12587b8fadc82`；产品blob仍绑定8b4b749的既有验证。本轮只提交设计文档；最终精确HEAD见PR回读，旧提交批准不沿用。
+- GitHub main读回为`3216fd940dabfa7714383b6436908f9b72ff8a9c`。10月7日新增的是4份行动雷达任务/策略文档，不是runtime修复；当前完整产品集成仍以PR75为唯一基线，不覆盖为旧main代码。
 - 分支 `deploymentEnabled=false`，本轮未部署/生成 Preview、未恢复 Cron/消费者、未清队列、未真实采集或调用模型。
-- Vercel 只读实际生产：`62299590dd3898e040ccc9db5fda1298d4509d51`，READY 部署 `dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1`。数据库数据版本 `2026-10-02T14:19:15.713282+08:00`，441 条。这是旧主线，不是候选上线证明。
+- 10月3日Vercel历史只读生产：`62299590dd3898e040ccc9db5fda1298d4509d51`，READY 部署 `dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1`。数据库数据版本 `2026-10-02T14:19:15.713282+08:00`，441 条。本轮未重查Vercel；这不是10月17日实际生产或候选上线证明。
 - 当前目标仅一个人使用：每天早间和午间各一次，候选北京时间 08:20 / 12:20，两条独立每日 Cron，Hobby 小时级精度，不升级套餐。
 - 2026-10-03 13:02Z生产status为DATABASE、STALE/degraded（旧数据版本不变）；此前healthy结果不能当当前状态。13:03Z公开441的地区字段/rank与生产发布文件一致，4条历史intent仍保留；这不是完整RuntimeCache恢复。
-- 两条 GitHub 采集入口只读回查为 `disabled_manually`；Vercel Cron、消费者、积压与在途任务状态尚未核验。项目详情工具参数契约冲突不代表整个连接不可用；团队、项目列表、部署与日志查询已成功。实际套餐未知。
+- 两条 GitHub 采集入口此前只读回查为 `disabled_manually`；Vercel Cron、消费者、积压与在途任务状态尚未核验。项目详情工具参数契约冲突不代表整个连接不可用；此前团队、项目列表、部署与日志查询成功。实际套餐未知。
 - 21:46北京时间续核验开始于文档HEAD `a503eed41ac1cb4ec0acddd3be3b44fd5cceb649`；main/生产未变。GitHub branch GET已读回main保护停用、必需检查off/空，rulesets为空，当前合并规则缺项解除；详细保护接口仍403。此次仅补存文档证据，最终文档HEAD见PR回读，旧HEAD批准不沿用。
 
 ## 候选验证与限制
@@ -21,6 +22,10 @@ MedicalChannelAI 是天津起步的医疗器械、IVD、耗材公开情报和单
 候选实现周期独立、同周期幂等、旧周期写入 fence；禁用自动 15 分钟增量链；保留所有配置刷新stage成功门禁、准确覆盖范围、失败旧数据、canonical/缓存与 AI 版本保护。长暂停后缺失 canonical 默认阻断旧种子初始化。生产提交的911条live canonical全部schema验证通过，经静态发布流程的market补全、分区构建及combine复排，在真实旧版本时间上复建的441条卡片与DATABASE读回逐字段一致；这只是历史备份候选，不证明生产缓存已恢复。审查发现的三个既有来源8条历史（含4条公开intent）读取缺口，已用独立v2历史缓存严格读取修正；不从Git/seed自动初始化，不新增采集stage。scheduled worker复用静态分区/组合流程，441条离线投影逐字段相同，修正market/rank差异。三个历史来源没有新监控，coverage明确partial，保留页面提示、AI限制及durable基线比对；不能宣称全量覆盖时间已推进。实际canonical缓存恢复、跨分片完整性、旧队列隔离及两周期成功仍未线上证明。Runtime Cache 无 CAS，发布必须排除旧消费者和旧在途写入，不能把代码 fence 当作分布式原子锁。
 
 ## 剩余工作与发布边界
+
+10月17日已保存[三源双时段集成设计](../tasks/MED_ACTION_P0_001_TWICE_DAILY_INTEGRATION_2026-10-17.md)，**尚未实现**。三源拟复用既有parser、独立v2 key，作为每周期三个必需Queue stage；不恢复15分钟链、不从repo/seed自动bootstrap。新增阶段从22变25是设计期望，不是当前产品事实。当前三源仍history-only、coverage partial及AI限制保持；预算、官方fixture、缺口覆盖和新产品HEAD验证仍待完成。10月7日审计关于旧生产15分钟链运行是当日观测，不能把候选禁用链的代码当作线上已停。
+
+下一步：从最终设计文档HEAD创建禁用部署的隔离分支，实施三源parser/key/失败保护的离线切片，再验证请求总预算及发布契约。建议GPT-6.1-sol使用xhigh处理预算与周期/缓存边界，明确的adapter映射可用high。本轮不重跑879项或历史定向测试，不把文档HEAD当新产品CI。
 
 **当前发布门禁BLOCKED。** 现有连接未暴露实际plan/Cron/Queue/完整RuntimeCache库存，项目详情有schema冲突；不索要新token。官方Queue的deployment分区意味着alias回退不停止旧消费，原“暂停consumer/新worker处理旧积压”操作假设已纠正，完整计划见 [只读发布前核验](../ops/release-preflight-20261003.md)。GitHub main详细保护接口仍403，但受支持的branch GET已确认当前protected=false、保护停用且必需检查空，rulesets也为空；当前规则读回通过，执行前再核对，不修改保护或把祖先CI冒充新HEADCI。需既有账户控制面/人工读回剩余缺项，并确认有效停投递及仅删除本次失败部署的审批边界；建立完整canonical恢复条件；满足门禁后由用户批准一次指定 HEAD 合并＋Production 发布，再受控恢复单一当前周期；该周期验收通过后按批准范围启用两条每日Cron，观察另一时段自然触发，不额外手动补采。每天两次恢复成功必须有两个独立周期完成全部配置刷新stage、partial范围准确及页面版本一致的证据。本轮不合并、不发布，不能宣称搜索已经恢复。
 
