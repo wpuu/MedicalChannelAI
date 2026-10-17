@@ -4,20 +4,21 @@
   "timezone": "Asia/Shanghai",
   "base_main_head": "62299590dd3898e040ccc9db5fda1298d4509d51",
   "active_work_branch": "fix/twice-daily-source-parity-20261017",
-  "draft_pr": null,
+  "draft_pr": 78,
   "candidate_base_head": "a2131e4733939e07b9531ea4626c9378e0826953",
-  "candidate_head_reference": "Exact implementation SHA and stacked draft PR read back at save; PR75 parent remains a2131e4. Product code changed; ancestor CI is not inherited.",
+  "candidate_head_reference": "Product frozen at c0d0215d99a8f109cfe62a313f0bf6daf9d8a771; final docs HEAD is read back from PR78 after push; no old approval inherited.",
   "production_ready": false,
   "vercel_branch_preview_enabled": false,
   "production_deployment": {
-    "commit": "62299590dd3898e040ccc9db5fda1298d4509d51",
-    "id": "dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1",
+    "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+    "id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
     "state": "READY",
     "candidate_deployed": false,
-    "readback_utc": "2026-10-03T13:46:26Z"
+    "readback_utc": "2026-10-17T05:29:18Z",
+    "alias": "medicalchannelai.vercel.app"
   },
-  "verified_snapshot_at": "2026-10-02T14:19:15.713282+08:00",
-  "opportunity_pool_count": 441,
+  "verified_snapshot_at": "2026-10-07T08:27:29.025919+08:00",
+  "opportunity_pool_count": 437,
   "single_user_schedule": {
     "timezone": "Asia/Shanghai",
     "nominal_times": [
@@ -31,10 +32,10 @@
     "schedule_version": "twice-daily-v1",
     "automatic_incremental_enabled_in_candidate": false,
     "production_schedule_restored": false,
-    "actual_plan": "UNKNOWN",
+    "actual_plan": "HOBBY_REPORTED_BY_RUNTIME_LOGS_API; team billing field not returned",
     "cron_enabled": "UNKNOWN",
     "queue_consumer_inflight_delayed_retry": "UNKNOWN",
-    "fallback_workflows": "disabled_manually",
+    "fallback_workflows": "NOT_RECHECKED_THIS_TURN; disabled_manually is 2026-10-03 historical evidence",
     "history_only_sources": [
       "tjzxfc",
       "tjzyefy",
@@ -48,7 +49,7 @@
     "existing_related_tests": 122,
     "historical_840_tests_head": "3af6db8c678c6f20f8b9d120badd7db102b9d69e",
     "original_85_test_evidence": "MISSING_IN_CURRENT_ENVIRONMENT",
-    "candidate_ci": "Exact final post-push HEAD CI must be read back in PR75; prior green is not relabeled.",
+    "candidate_ci": "Product c0d0215 has 0 Actions; 164 local checks are not CI. Ancestor879CI belongs to 8b4b749; final docs HEAD is read back after push.",
     "native_history_gate_tests": 20,
     "prior_candidate_865_ci_head": "e30b74a5e39c79ffd64727f470f2e19b039f88d1",
     "existing_related_tests_reference": "147 directed checks were on e30b74a; not all rerun for this small history gate.",
@@ -106,7 +107,7 @@
       "target_vercel_runtime": "UNVERIFIED"
     }
   },
-  "release_checklist": "docs/ops/release-preflight-20261003.md",
+  "release_checklist": "docs/ops/release-readback-20261017.md",
   "boundaries": {
     "merge": false,
     "deploy": false,
@@ -117,7 +118,7 @@
     "queue_purge": false
   },
   "known_incomplete_invariants": {
-    "control_plane": "Actual plan/Cron/queue identity/cap/in-flight/ready/delayed/expiry unavailable via exposed read tools; get_project schema mismatch, not evidence of whole connection/auth failure.",
+    "control_plane": "get_project(idOrName,teamId) now succeeds. Runtime logs API explicitly reports Hobby retention. Returned project/team/deployment fields omit actual Cron enabled/config, consumer inventory/cap, ready/inflight/delayed/expiry and full canonical/history/baseline. 30m collector logs empty is not queue-state proof.",
     "canonical_recovery": "Strict independent v2 readers now preserve all three existing historical sources; scheduled projection matches static cards offline. Actual full canonical/history/baseline restoration, paused collection gaps and control-plane readback remain unresolved.",
     "distributed_atomic_claim": "Runtime Cache is not CAS; safety relies on one push consumer group with maxConcurrency1 and lease360 > function300, and exclusion of old deployments.",
     "production_verification": "Two independent configured-refresh cycles, accurate partial scope, durable/cache read recovery and AI/page version agreement NOT RUN.",
@@ -138,17 +139,19 @@
   },
   "release_gate_outcome": "BLOCKED",
   "production_snapshot_status": {
-    "observed_at": "2026-10-03T13:02:04Z",
+    "observed_at": "2026-10-17T05:28:11.523791+00:00",
     "source_mode": "DATABASE",
+    "snapshot_as_of": "2026-10-07T08:27:29.025919+08:00",
     "freshness": "STALE",
     "degraded": true,
-    "age_minutes_at_observation": 1842,
-    "coverage": "UNKNOWN_OLD_PRODUCTION"
+    "age_minutes_at_observation": 14700,
+    "coverage": "UNKNOWN_OLD_PRODUCTION; generic coverage_warning only",
+    "opportunity_pool_count": 437
   },
   "readonly_preflight": {
     "evidence": "docs/ops/evidence/release-preflight-20261003/online-readback.json",
-    "public_pool_market_rank_matches_production_artifact": true,
-    "all_four_intents_present": true,
+    "public_pool_market_rank_matches_production_artifact": false,
+    "all_four_intents_present": false,
     "runtime_cache_inventory_verified": false,
     "actual_consumer_identity_verified": false,
     "prior_release_approval_applies": false,
@@ -161,10 +164,12 @@
       "rulesets": [],
       "detail_endpoint": "403 Resource not accessible by integration",
       "gate": "PASS for current reported rules; re-read before approved merge; no policy change; ancestor879CI remains separate from docs HEAD"
-    }
+    },
+    "latest_evidence": "docs/ops/evidence/release-readback-20261017/control-plane.json",
+    "latest_report": "docs/ops/release-readback-20261017.md"
   },
   "observed_main_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
-  "production_state_this_turn": "NOT_RECHECKED; production_deployment and snapshot observations retain their original 2026-10-03 timestamps",
+  "production_state_this_turn": "RECHECKED: alias and deployment bind 3216fd940dabfa7714383b6436908f9b72ff8a9c / dpl_4LPKoTdusrvbExXuzbMKtnyiT86C; status DATABASE STALE/degraded 437; older Oct03 observations remain historical.",
   "next_task": {
     "id": "MED-ACTION-P0-001",
     "artifact": "docs/tasks/MED_ACTION_P0_001_TWICE_DAILY_INTEGRATION_2026-10-17.md",
@@ -181,7 +186,7 @@
     "automatic_incremental_remains_disabled": true,
     "canonical_bootstrap_allowed": false,
     "production_operations_authorized": false,
-    "tests_run_this_turn": 164,
+    "tests_run_this_turn": 0,
     "open_implementation_gates": [
       "official index HTML and 9/28/9/30 detail provenance",
       "reviewed list structure and actual pagination; registry empty",
@@ -190,13 +195,31 @@
       "full new-product verification and independent review pending",
       "canonical recovery, old partitions and live release gates unresolved"
     ],
-    "next_action": "Obtain existing official index/detail HTML captures and verified pagination; review/register index contracts; then connect shared session/scoped window/core and three required stages. No live collection/deployment.",
+    "next_action": "Obtain existing official HTML captures and actual pagination plus existing-account Cron/Queue/canonical readback. Register reviewed contracts, then wire 25 stages and validate new product. Before any release consolidate a single target-main candidate; PR78 currently targets PR75 branch.",
     "recommended_model": "GPT-6.1-sol",
     "recommended_reasoning_effort": "xhigh",
     "routine_adapter_mapping_effort": "high",
     "implementation_report": "docs/ops/source-transport-index-20261017.md",
-    "implementation_starting_pr_head": "a2131e4733939e07b9531ea4626c9378e0826953"
+    "implementation_starting_pr_head": "a2131e4733939e07b9531ea4626c9378e0826953",
+    "last_product_checks": {
+      "head": "c0d0215d99a8f109cfe62a313f0bf6daf9d8a771",
+      "local_focused_tests": 164,
+      "result": "PASS",
+      "full_verify": "NOT_RUN",
+      "independent_review": "PENDING"
+    }
   },
   "parent_draft_pr": 75,
-  "parent_pr_head": "a2131e4733939e07b9531ea4626c9378e0826953"
+  "parent_pr_head": "a2131e4733939e07b9531ea4626c9378e0826953",
+  "production_public_differences": {
+    "evidence": "docs/ops/evidence/release-readback-20261017/public-readback.json",
+    "static_production_artifact_pool_count": 441,
+    "current_database_pool_count": 437,
+    "missing_historical_intents": 4,
+    "records_missing_market_identity_fields": 437,
+    "common_id_rank_differences": 428,
+    "rank_difference_cause": "UNDETERMINED; versions have different timestamps; no reranking run",
+    "canonical_deletion_proven": false,
+    "minimal_product_fix": "Already scoped in PR75 history readers and scheduled static projection; not deployed; no new code in this turn"
+  }
 }

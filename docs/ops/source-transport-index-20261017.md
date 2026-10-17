@@ -2,6 +2,8 @@
 
 日期：2026-10-17。状态：**OFFLINE_GUARDS_IMPLEMENTED / OFFICIAL_CONTRACTS_UNREGISTERED / RELEASE_BLOCKED**。
 
+> 后续仅文档/证据更新见[生产只读续核验](release-readback-20261017.md)：已核对生产3216fd9、437条陈旧数据及历史/地区差异；get_project现已成功、日志API按Hobby分类，Cron/Queue/canonical仍阻断。以下“本轮未重查生产”指本实现补丁阶段；164项仍绑定c0d0215，本次只读续核验未改产品或重跑测试。
+
 分支与草稿：`fix/twice-daily-source-parity-20261017`、PR78，叠加PR75。起点为`17ed8615328721946a5b353341190b4fcf27d82a`；本次集中保存后的精确HEAD须从远端读回，不能继承该起点或祖先CI/发布批准。PR75保持`a2131e4…`不变。
 
 ## 本轮实现
