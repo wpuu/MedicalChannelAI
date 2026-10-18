@@ -1,16 +1,16 @@
 # MedicalChannelAI current state
 
-Updated: 2026-10-17。`production_ready=false`，**发布门禁BLOCKED**；每天两次搜索尚未恢复。最新生产与发布/回退依据是[10月17日续核验](../ops/release-readback-20261017.md)，10月3日记录保留为历史。
+Updated: 2026-10-18。`production_ready=false`，**发布门禁BLOCKED**；每天两次搜索尚未恢复。最近生产与发布/回退依据仍是[10月17日续核验](../ops/release-readback-20261017.md)，本轮未重查生产。
 
-最新增量：[4页官方HTML取证](../ops/official-html-20261017.md)已在一次明确批准范围内完成，原文仅保存在本地，非生产采集。确认GB2312解码、真实table/嵌套链接结构、第一页30日覆盖不足和intent 14候选超过3详情上限等实现缺口；本轮先保存证据及最小范围，没有修改产品/配置或激活三源。
+最新增量：[编码与真实列表离线修复](../ops/source-capture-fixes-20261018.md)已完成，20项新增＋57项相关共77项通过。复用[4页本地原文](../ops/official-html-20261017.md)，新增来源请求0、未上传原文；两院20/10行识别成功，仍明确返回窗口不足/未注册，14候选上限及22stage不变。续批门禁仅审阅、尚未实现。
 
 MedicalChannelAI 是天津起步的医疗器械、IVD、耗材公开情报和单用户销售助手。公共事实必须有官方证据，模型不创造事实；客户私有资源与公共情报分离。
 
 ## 候选与实际生产
 
 - 基础草稿[PR75](https://github.com/wpuu/MedicalChannelAI/pull/75)：`fix/tjmugh-verification-20261002`，HEAD `a2131e4733939e07b9531ea4626c9378e0826953`，未合并。产品祖先8b4b749有879项及完整构建历史CI，不能转移给不同产品代码。
-- 实现草稿[PR78](https://github.com/wpuu/MedicalChannelAI/pull/78)：`fix/twice-daily-source-parity-20261017`，产品冻结`c0d0215d99a8f109cfe62a313f0bf6daf9d8a771`；本轮仅保存只读证据/文档，最终文档HEAD从PR读回。base是PR75分支，合并它不会直接更新main；未来须先整理成一份目标为main且验证通过的最终候选，才能提出一次合并/一次Production审批。PR74/76/77不混入。
-- GitHub main与**实际生产提交**均为`3216fd940dabfa7714383b6436908f9b72ff8a9c`。10月17日别名GET、部署详情和公开status一致：`medicalchannelai.vercel.app` → READY `dpl_4LPKoTdusrvbExXuzbMKtnyiT86C`、iad1。旧6229959/dpl_DW5…是10月3日历史，不能继续当当前生产/默认回退目标。
+- 实现草稿[PR78](https://github.com/wpuu/MedicalChannelAI/pull/78)：`fix/twice-daily-source-parity-20261017`，本轮起点dd97bee；产品已改编码/列表模块，不能再声称494个产品tree与c0d0215相同。最终精确代码HEAD及检查保存后从PR读回，旧批准/CI不继承。base仍为PR75分支，未来须先整理目标main的最终候选再申请一次合并/Production；PR74/76/77不混入。
+- 10月17日最近确认的main/生产提交为`3216fd940dabfa7714383b6436908f9b72ff8a9c`，别名GET、部署详情和公开status一致：`medicalchannelai.vercel.app` → READY `dpl_4LPKoTdusrvbExXuzbMKtnyiT86C`、iad1。旧6229959/dpl_DW5…仅为历史；执行前仍需重查实际生产及READY回退目标。
 - 生产status为DATABASE、STALE/degraded；版本`2026-10-07T08:27:29.025919+08:00`，437条。可读不代表自动更新成功。上述READY只是代码回退候选，仍须核验隔离/兼容性；回退不得覆盖较新数据库事实。
 - 两个候选分支配置`deploymentEnabled=false`；本轮无合并、部署/Preview、Cron/consumer变更、Queue receive/ACK/purge、部署删除、真实来源采集、模型调用、账户/安全变更或付费升级。
 
@@ -18,12 +18,12 @@ MedicalChannelAI 是天津起步的医疗器械、IVD、耗材公开情报和单
 
 [三源离线核心](../ops/source-parity-offline-20261017.md)复用六个既有parser、stable ID和三个独立v2历史key；准备不写入，提交绑定cycle/base、保留历史、无主动TTL。缺失历史、失败、超限、旧周期或base变化阻断，不seed/bootstrap，不把Runtime Cache读后写称CAS。
 
-[取页与索引保护](../ops/source-transport-index-20261017.md)已有离线实现：同函数内短生命周期子进程请求/回收、20秒请求与240秒source共享预算，以及指定列表结构、顺序、identity和窗口起点检查。真实捕获已证明当前HTTP缺charset时默认UTF-8不支持妇产GB2312页，且列表shape尚不能处理两院实际结构。**官方注册表仍为空**，实际分页/30日窗口未验证，不因取得原文就注册或标完整。目标Vercel打包、spawn和清理行为仍未验收。
+[取页与索引保护](../ops/source-transport-index-20261017.md)保留短生命周期子进程、20秒请求/240秒source预算及顺序/identity/窗口保护。最新补丁已支持受限header/meta/BOM编码选择和两院捕获模板的table/嵌套相同href结构；冲突/未知结构、跨行重复及额外链接仍拒绝。**官方注册表仍为空**，分页/30日窗口未验证，目标Vercel打包/spawn/清理仍待验收。
 
 仍22stage，三源没有接入正式driver/必需列表，仍history-only、coverage partial及AI限制。设计期望25stage不是产品事实；synthetic HTML/mock/hash不是官方来源证明。
 
 - c0d0215已有32项新增＋132项相关，共**164项本地离线PASS**；此前132项是17ed861阶段，不重复累加。证据明确区分父进程禁外连和仅stubbed网络的本地子进程。
-- 本轮产品/测试/配置未改，测试重跑**0项**；不重复164/879及历史矩阵。c0d0215远端Actions为0，完整新产品Verify及独立审查仍未完成。保存后读回文档HEAD和检查，不把本地测试或祖先CI称新HEAD CI。
+- 本轮20项新增＋57项受影响检查共**77项PASS**，没有重复整套164/879。真实4页经新decoder解码后hash与前轮严格转码逐页相同；20/10行识别通过，三stage窗口仍不足/未注册。完整新产品Verify及独立审查待完成，不能把本地77项或祖先绿灯称新HEAD CI。
 - 新原文离线审计使用真实保存字节、socket外连阻断：9/28正文解析17项产品/10月9日截止，当前归档；9/30被拒绝，未生成医疗记录。历史index/detail配对未核实，不写canonical。审计脚本与hash/元数据入Git，原文留在`/workspace/.medicalchannelai-onboarding/MedicalChannelAI/official-html-20261017`；不是完整新产品测试或独立审查。
 - 8b4b749历史[Verify37117043888 SUCCESS](https://github.com/wpuu/MedicalChannelAI/actions/runs/37117043888)、98项定向和终点竞态审查保留原提交归属。原patch/85项日志在当前环境缺失，不声称已读；更早840/865/870/875项不代表当前候选。
 
@@ -45,4 +45,4 @@ PR75保留早午独立、同周期幂等、终点标记与旧周期fence，候�
 
 门禁全通过后，针对最终精确HEAD申请一次合并/一次Production；调度保持停止先验收一个当前真实周期，再按批准范围启用两条各每日一次Cron，观察另一时段自然周期。北京名义08:20/12:20，UTC `20 0 * * *` / `20 4 * * *`，Hobby小时级精度，不依赖精确到点。未完成两个独立周期线上验收不得声称每日两次恢复。
 
-**下一步**：先离线修复受限编码选择和两院实际列表解析，保持注册表为空/30日覆盖不足时阻断；在既有Queue边界内审阅每批最多3详情的续批门禁。分页JS及后续页不在本次4请求授权内，不自动追加；原文继续仅本地保存。仍需现有账户Cron/Queue/canonical读回，正式contract/25stage与完整新产品验证及独立审查未完成。建议 **GPT-6.1-sol · xhigh**；天津403和国内域名访问单独待验，不改来源地区、DNS或架构绕过。
+**下一步**：在不激活的分支实现并验证既有Queue内的manifest/批次暂存/整源提交；全部候选完成前不得更新canonical或标stage成功，旧早间不能改午间状态。分页JS/后续页不在已用完的4请求授权内，不追加、不上传原文。仍需真实分页、正式contract/25stage、完整新产品验证/独立审查及线上控制面。建议 **GPT-6.1-sol · xhigh**；天津403和国内域名访问单独待验，不改地区、DNS或架构绕过。

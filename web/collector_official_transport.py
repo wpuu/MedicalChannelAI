@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
+from email.message import Message
+from html.parser import HTMLParser
 import hashlib
 import json
 import math
@@ -40,6 +42,9 @@ WORK_SECONDS = 240.0
 MIN_GAP_SECONDS = 3.0
 CLEANUP_SECONDS = 2.0
 RETRYABLE_HTTP = frozenset({408, 425, 429, 500, 502, 503, 504})
+CHARSET_SCAN_BYTES = 8192
+_CHARSETS = {"utf-8": "utf-8", "utf8": "utf-8", "gb2312": "gb2312",
+             "gb_2312-80": "gb2312", "gbk": "gbk", "gb18030": "gb18030"}
 
 
 class OfficialFetchError(RuntimeError):
@@ -55,6 +60,74 @@ class OfficialPage:
     html: str
     html_sha256: str
     observed_at: datetime
+
+
+def _charset_name(value) -> str:
+    if not isinstance(value, str) or value.strip().lower() not in _CHARSETS:
+        raise OfficialFetchError("OFFICIAL_CHARSET_REJECTED")
+    return _CHARSETS[value.strip().lower()]
+
+
+def _header_charset(headers) -> str | None:
+    if len(headers.get_all("Content-Type", [])) > 1:
+        raise OfficialFetchError("OFFICIAL_CHARSET_REJECTED")
+    values = [value for key, value in (headers.get_params() or []) if key.lower() == "charset"]
+    if len(values) > 1:
+        raise OfficialFetchError("OFFICIAL_CHARSET_REJECTED")
+    return _charset_name(values[0]) if values else None
+
+
+class _HTMLCharsets(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.values = []
+        self.ended = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "body":
+            self.ended = True
+        if self.ended or tag != "meta":
+            return
+        attributes = dict(attrs)
+        if len(attributes) != len(attrs):
+            raise OfficialFetchError("OFFICIAL_CHARSET_REJECTED")
+        if "charset" in attributes:
+            self.values.append(_charset_name(attributes["charset"]))
+        if (attributes.get("http-equiv") or "").strip().lower() == "content-type":
+            content = attributes.get("content")
+            if not isinstance(content, str):
+                raise OfficialFetchError("OFFICIAL_CHARSET_REJECTED")
+            header = Message()
+            header["Content-Type"] = content
+            value = _header_charset(header)
+            if value:
+                self.values.append(value)
+
+    def handle_endtag(self, tag):
+        if tag == "head":
+            self.ended = True
+
+
+def _decode_official_html(body: bytes, headers) -> str:
+    """Only bounded head declarations; no guessed codecs or replacement text."""
+    declared = _HTMLCharsets()
+    # Latin-1 preserves ASCII markup while inspecting undecoded response bytes.
+    declared.feed(body[:CHARSET_SCAN_BYTES].decode("latin-1"))
+    declared.close()
+    values = set(declared.values)
+    header = _header_charset(headers)
+    if header:
+        values.add(header)
+    bom = body.startswith(b"\xef\xbb\xbf")
+    if bom:
+        values.add("utf-8")
+    if len(values) > 1:
+        raise OfficialFetchError("OFFICIAL_CHARSET_CONFLICT")
+    charset = next(iter(values), "utf-8")
+    try:
+        return body.decode("utf-8-sig" if bom else charset)
+    except UnicodeError as exc:
+        raise OfficialFetchError("OFFICIAL_PAGE_DECODE_FAILED") from exc
 
 
 def validate_official_url(stage: str, url: str) -> str:
@@ -119,13 +192,7 @@ def _worker_fetch(stage: str, url: str, deadline: float) -> dict:
             body = response.read(MAX_PAGE_BYTES + 1)
             if len(body) > MAX_PAGE_BYTES:
                 raise OfficialFetchError("OFFICIAL_PAGE_TOO_LARGE")
-            charset = (response.headers.get_content_charset() or "utf-8").lower()
-            if charset not in {"utf-8", "gb18030", "gbk", "gb2312"}:
-                raise OfficialFetchError("OFFICIAL_CHARSET_REJECTED")
-            try:
-                html = body.decode(charset)
-            except UnicodeError as exc:
-                raise OfficialFetchError("OFFICIAL_PAGE_DECODE_FAILED") from exc
+            html = _decode_official_html(body, response.headers)
             if not html.strip():
                 raise OfficialFetchError("OFFICIAL_PAGE_EMPTY")
             return {"html": html, "url": response.geturl(), "observed_at": datetime.now(timezone.utc).isoformat()}
@@ -194,7 +261,8 @@ def fetch_official_page(stage: str, url: str, *, deadline: float) -> OfficialPag
             codes = {"OFFICIAL_NETWORK_ERROR", "OFFICIAL_REQUEST_DEADLINE", "OFFICIAL_URL_REJECTED",
                      "OFFICIAL_WORKER_UNAVAILABLE", "OFFICIAL_WORKER_RESULT_INVALID", "OFFICIAL_REDIRECT_LIMIT",
                      "OFFICIAL_HTTP_REJECTED", "OFFICIAL_CONTENT_TYPE_REJECTED", "OFFICIAL_CONTENT_ENCODING_REJECTED",
-                     "OFFICIAL_PAGE_TOO_LARGE", "OFFICIAL_CHARSET_REJECTED", "OFFICIAL_PAGE_DECODE_FAILED", "OFFICIAL_PAGE_EMPTY"}
+                     "OFFICIAL_PAGE_TOO_LARGE", "OFFICIAL_CHARSET_REJECTED", "OFFICIAL_CHARSET_CONFLICT",
+                     "OFFICIAL_PAGE_DECODE_FAILED", "OFFICIAL_PAGE_EMPTY"}
             code = result.get("error")
             if code not in codes and not (isinstance(code, str) and re.fullmatch(r"OFFICIAL_HTTP_[1-5]\d\d", code)):
                 raise ValueError()

@@ -1,0 +1,36 @@
+{
+  "repository": "wpuu/MedicalChannelAI",
+  "starting_head": "dd97beedcd7ef3ec8c1eb91fdef4780afbbea883",
+  "date": "2026-10-18",
+  "new_tests": 20,
+  "related_tests": 57,
+  "total": 77,
+  "result": "PASS",
+  "module_counts": {
+    "test_official_source_capture_fixes": 20,
+    "test_official_source_transport": 19,
+    "test_official_source_index": 13,
+    "test_twice_daily_source_parity": 25
+  },
+  "hashes": {
+    "web/collector_official_transport.py": "3ba494dbfc822196308e741c010e9382946485444d60c8932ad8cd603e239d4b",
+    "web/collector_official_index.py": "aa4596c6982dd16f9d1fd3e39f3f4b07fad80803b8808f22771ca1d1da296cd8",
+    "web/pipeline/tests/test_official_source_capture_fixes.py": "ebf727703e34bbb4591e936372af45ffa6dbb47eba0001c3e18aa3e980bc7e38",
+    "web/pipeline/tests/test_official_source_transport.py": "1c5029412424fc187bf8d91eb5e2e4a02453064ee8ea12950285b838470ba680",
+    "web/pipeline/tests/test_official_source_index.py": "cc314ca2f15f934a7e61bc18f21a8989b1ee88a581e1b9aa3c8d0f9d446f95e6",
+    "web/pipeline/tests/test_twice_daily_source_parity.py": "ccf9d71f581b557cfffdb01c65bbf90bf91190dcd057cf737cd92ee037f0be38",
+    "docs/ops/evidence/source-capture-fixes-20261018/verify_focused.py": "cb4dd7c5e4e284b0fb7fe3f65b83510f9cb175d4de4268078710af52e414ed39",
+    "docs/ops/evidence/source-capture-fixes-20261018/replay_captures.py": "3ab99a01d517023dd8050815a85b467d9544300ac39cab56e1b4d0020c89643d"
+  },
+  "focused_log_sha256": "1b44af48e468bca0f22794eba9786634c857d0e10341532107f1bab0555e6e5e",
+  "replay_result_sha256": "ea49d15fafe7567e19efcec6a1201c97dcf36451a78437784bd7214d3f672083",
+  "source_requests_this_turn": 0,
+  "official_contracts_registered": 0,
+  "stage_count": 22,
+  "source_max_details": 3,
+  "continuation_implemented": false,
+  "full_verify": "NOT_RUN",
+  "independent_review": "PENDING",
+  "target_vercel_runtime": "UNVERIFIED",
+  "prior_164_and_879_suites": "NOT_RERUN; only affected57 plus new20"
+}

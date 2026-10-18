@@ -1,12 +1,12 @@
 {
   "schema_version": "0.1",
-  "updated_at": "2026-10-17",
+  "updated_at": "2026-10-18",
   "timezone": "Asia/Shanghai",
   "base_main_head": "62299590dd3898e040ccc9db5fda1298d4509d51",
   "active_work_branch": "fix/twice-daily-source-parity-20261017",
   "draft_pr": 78,
   "candidate_base_head": "a2131e4733939e07b9531ea4626c9378e0826953",
-  "candidate_head_reference": "Product frozen at c0d0215d99a8f109cfe62a313f0bf6daf9d8a771; final docs HEAD is read back from PR78 after push; no old approval inherited.",
+  "candidate_head_reference": "Product code changed in charset/list fixes after dd97beedcd7ef3ec8c1eb91fdef4780afbbea883; exact HEAD is read back from PR78 after push. File hashes bind docs/ops/evidence/source-capture-fixes-20261018/manifest.json; no old approval/CI inherited.",
   "production_ready": false,
   "vercel_branch_preview_enabled": false,
   "production_deployment": {
@@ -49,7 +49,7 @@
     "existing_related_tests": 122,
     "historical_840_tests_head": "3af6db8c678c6f20f8b9d120badd7db102b9d69e",
     "original_85_test_evidence": "MISSING_IN_CURRENT_ENVIRONMENT",
-    "candidate_ci": "Product c0d0215 has 0 Actions; 164 local checks are not CI. Ancestor879CI belongs to 8b4b749; final docs HEAD is read back after push.",
+    "candidate_ci": "Latest product has 77 affected offline checks; full new-product Verify/independent review pending. Exact new HEAD CI must be read back; prior local164 and ancestor879 are historical.",
     "native_history_gate_tests": 20,
     "prior_candidate_865_ci_head": "e30b74a5e39c79ffd64727f470f2e19b039f88d1",
     "existing_related_tests_reference": "147 directed checks were on e30b74a; not all rerun for this small history gate.",
@@ -79,7 +79,7 @@
     "verified_product_ci_run": 37117043888,
     "historical_python_tests": 879,
     "historical_targeted_checks": 98,
-    "tests_rerun_this_readonly_turn": 0,
+    "tests_rerun_this_readonly_turn": 77,
     "terminal_race_tests": 2,
     "source_parity_offline_slice": {
       "new_tests": 25,
@@ -123,6 +123,22 @@
       "negative_detail": "TJZYEFY_NOT_MARKET_RESEARCH; constructed anchor discovery count0",
       "official_contracts_registered": 0,
       "product_code_changed": false
+    },
+    "source_capture_fixes_20261018": {
+      "starting_head": "dd97beedcd7ef3ec8c1eb91fdef4780afbbea883",
+      "new_tests": 20,
+      "related_tests": 57,
+      "total": 77,
+      "result": "PASS",
+      "evidence": "docs/ops/evidence/source-capture-fixes-20261018/manifest.json",
+      "local_capture_replay": "4/4 decoding hashes match prior strict conversion; 20/20/10 rows; all windows short, registry empty",
+      "source_http_requests": 0,
+      "stage_count": 22,
+      "max_details": 3,
+      "continuation_implemented": false,
+      "full_verify": "NOT_RUN",
+      "independent_review": "PENDING",
+      "target_platform": "UNVERIFIED"
     }
   },
   "release_checklist": "docs/ops/release-readback-20261017.md",
@@ -136,7 +152,8 @@
     "queue_purge": false,
     "approved_readonly_official_page_gets": 4,
     "four_page_evidence_scope_consumed": true,
-    "real_collection_scope_note": "real_collection=false means no product collector invocation. Four explicitly approved public HTML GETs were performed for local offline evidence; no additional source requests authorized."
+    "real_collection_scope_note": "No product collector invocation. Four approved official GETs occurred on2026-10-17 only; source GETs on2026-10-18 are0; no further source HTTP/JS/pages or raw HTML publication authorized.",
+    "source_http_gets_this_turn": 0
   },
   "known_incomplete_invariants": {
     "control_plane": "get_project(idOrName,teamId) now succeeds. Runtime logs API explicitly reports Hobby retention. Returned project/team/deployment fields omit actual Cron enabled/config, consumer inventory/cap, ready/inflight/delayed/expiry and full canonical/history/baseline. 30m collector logs empty is not queue-state proof.",
@@ -198,11 +215,11 @@
     }
   },
   "observed_main_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
-  "production_state_this_turn": "RECHECKED: alias and deployment bind 3216fd940dabfa7714383b6436908f9b72ff8a9c / dpl_4LPKoTdusrvbExXuzbMKtnyiT86C; status DATABASE STALE/degraded 437; older Oct03 observations remain historical.",
+  "production_state_this_turn": "NOT_RECHECKED_ON_2026-10-18; production_deployment/status retain actual 2026-10-17 05:28/05:29Z timestamps. Do not label old facts today or candidate deployed.",
   "next_task": {
     "id": "MED-ACTION-P0-001",
     "artifact": "docs/tasks/MED_ACTION_P0_001_TWICE_DAILY_INTEGRATION_2026-10-17.md",
-    "status": "OFFICIAL_HTML_LOCAL_IMPLEMENTATION_GAPS_CONFIRMED_NOT_ACTIVATED",
+    "status": "OFFLINE_CHARSET_AND_CAPTURE_LAYOUT_FIXES_VERIFIED_NOT_ACTIVATED",
     "starting_pr_head": "ca91df269636d8604814d2e744d12587b8fadc82",
     "verified_product_ancestor": "8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2",
     "proposed_stage_ids": [
@@ -215,31 +232,39 @@
     "automatic_incremental_remains_disabled": true,
     "canonical_bootstrap_allowed": false,
     "production_operations_authorized": false,
-    "tests_run_this_turn": 0,
+    "tests_run_this_turn": 77,
     "open_implementation_gates": [
-      "bounded charset selection: HTTP missing charset + actual GB2312 fails current transport",
-      "actual table/nested-anchor row extraction and reviewed contracts; registry empty",
-      "30-day pagination coverage: captured first pages stop Oct09/Oct12, need Sep18; JS/pages not fetched",
-      "14 intent candidates already on first page exceed3; same-Queue bounded continuation contract pending",
+      "reviewed production contracts remain unregistered; raw HTML local only",
+      "30-day pagination coverage missing; first pages stop Oct09/Oct12, need Sep18 for captured date; no extra JS/page fetch authorization",
+      "14 intent candidates exceed3; same-Queue manifest/staging/whole-source commit continuation not implemented",
       "historical 9/28 and 9/30 index/detail pairing unverified",
       "target Vercel child spawn/bundle/cleanup unverified",
       "25-stage dispatch/coverage, full new-product verification and independent review pending",
       "actual Cron/Queue/canonical inventory, old partitions and live release gates unresolved"
     ],
-    "next_action": "Offline fix bounded header/meta charset selection and actual list row extraction; keep registry empty and short windows blocked. Review bounded same-Queue continuation before stage activation. No extra source HTTP/JS/pages or publishing raw captures; Vercel control-plane readback still required.",
+    "next_action": "Implement and verify same-Queue cycle-bound manifest, <=3-detail batch staging and whole-source commit; keep canonical unchanged until all candidates verified, preserve old-period fences and fail closed on lost progress. No activation, extra source HTTP/JS/pages, raw publication or online operations.",
     "recommended_model": "GPT-6.1-sol",
     "recommended_reasoning_effort": "xhigh",
     "routine_adapter_mapping_effort": "high",
     "implementation_report": "docs/ops/source-transport-index-20261017.md",
     "implementation_starting_pr_head": "a2131e4733939e07b9531ea4626c9378e0826953",
     "last_product_checks": {
+      "head_reference": "Exact post-push PR78 HEAD; manifest file hashes bind current code",
+      "local_focused_tests": 77,
+      "new_tests": 20,
+      "result": "PASS",
+      "full_verify": "NOT_RUN",
+      "independent_review": "PENDING"
+    },
+    "latest_evidence_report": "docs/ops/source-capture-fixes-20261018.md",
+    "historical_product_checks": {
       "head": "c0d0215d99a8f109cfe62a313f0bf6daf9d8a771",
       "local_focused_tests": 164,
       "result": "PASS",
       "full_verify": "NOT_RUN",
       "independent_review": "PENDING"
     },
-    "latest_evidence_report": "docs/ops/official-html-20261017.md"
+    "continuation_review": "Design constraints reviewed in report; not an implemented cursor, CAS or independent review"
   },
   "parent_draft_pr": 75,
   "parent_pr_head": "a2131e4733939e07b9531ea4626c9378e0826953",

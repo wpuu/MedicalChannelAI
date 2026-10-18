@@ -2,6 +2,8 @@
 
 状态：**FOUR_CAPTURES_SAVED_LOCALLY / IMPLEMENTATION_GAPS_CONFIRMED / RELEASE_BLOCKED**。
 
+> 10月18日[离线修复](source-capture-fixes-20261018.md)已解决本报告复现的编码/列表支持问题，通过77项及本地原文回放；窗口/注册/14候选上限仍阻断。以下失败审计和audit_offline.py绑定dd97bee/c0d0215历史代码，旧失败assert不适用于修复后代码；当前核验使用新报告的replay_captures.py。原文仍仅本地保存。
+
 起点：PR78 `74f07dd6813db3c47bed42070aa24f8adc901794`；产品代码仍为`c0d0215d99a8f109cfe62a313f0bf6daf9d8a771`，PR75保持a2131e4。本轮仅取证、离线核对及保存元数据/文档，不改产品代码、parser或配置，不把历史164/879项检查当新HEAD CI。
 
 ## 授权、实际请求与本地原文

@@ -4,6 +4,8 @@
 
 > 后续15:54–15:55Z在单独明确批准的4请求范围内取得[四页官方HTML](official-html-20261017.md)，原文仅本地保存。此前“未找到原始HTML”保留为5:29Z时事实；当前缺口已变为编码/实际列表适配、分页/30日覆盖和超上限续批。没有激活采集、注册contract或改变下列生产控制面门禁。
 
+> 10月18日[编码/列表离线修复](source-capture-fixes-20261018.md)通过77项及真实本地原文回放；相应两项缺口已修复，未新增来源请求。其余控制面、分页/覆盖、14候选续批和正式集成门禁仍阻断，生产读回时间不变。
+
 ## 精确对象与新证据
 
 - 实现草稿[PR78](https://github.com/wpuu/MedicalChannelAI/pull/78)开始及核验时HEAD为`c0d0215d99a8f109cfe62a313f0bf6daf9d8a771`，仍draft/open/unmerged；基础PR75保持`a2131e4733939e07b9531ea4626c9378e0826953`。本轮文档保存会产生新HEAD，最终精确SHA从远端读回；旧HEAD批准不继承。
@@ -40,7 +42,7 @@
 | 唯一串行消费者与旧分区 | BLOCKED | 每个deployment/region/topic/group身份、其他订阅者、实际cap/lease/retry/函数时限、ready/in-flight/delayed/最晚expiry及复读静默证据均缺 |
 | canonical与历史保留 | BLOCKED | 完整源级canonical/history/events/watch/staging及最后真实published baseline库存、schema/ID/hash/时钟与durable一致；旧911/441审计不能覆盖10月7日后状态或暂停缺口 |
 | 早午状态保护 | OFFLINE_EVIDENCE_ONLY | PR75既有fence、终点重投及回滚证据保留；不得删除ACTIVE/META或强开旧早间周期，旧消费者仍必须排除 |
-| 三源正式集成 | BLOCKED | 4页原文已local；GB2312/实际列表适配、真实分页/30日覆盖、14候选续批、历史index/detail配对、注册contract、25stage driver、目标平台及完整新产品验证/独立审查仍缺 |
+| 三源正式集成 | BLOCKED | 4页local，编码/列表已离线修复；真实分页/30日覆盖、14候选续批、历史index/detail配对、注册contract、25stage driver、目标平台及完整新产品验证/独立审查仍缺 |
 | 发布/失败停止 | BLOCKED | alias切换不停止deployment-pinned Queue；尚无旧分区静默或有效非破坏性停投递证据，不能执行发布 |
 
 ## 一次发布与回退范围（未获准执行）
@@ -62,4 +64,4 @@
 
 已有164项离线证据仍绑定产品c0d0215；本轮不重跑164/879或已通过的定向检查。c0d0215远端Actions为0，不标CI通过；文档提交使用`[skip ci]`，产品blob必须与c0d0215完全相同，保存后读回精确HEAD、CI及无部署记录。
 
-**下一步**：按[四页取证报告](official-html-20261017.md)先离线修复编码/真实列表支持、审阅既有Queue内续批；4请求范围已用完，不追加分页/JS取证，不上传原始HTML。现有账户Cron/Queue/canonical读回仍缺，未满足前不申请发布批准。建议 **GPT-6.1-sol · xhigh**；固定字段归档可用high。
+**下一步**：按[离线修复及续批门禁](source-capture-fixes-20261018.md)实现并验证既有Queue内manifest/批次暂存/整源提交；4请求范围已用完，不追加分页/JS或上传原文。现有账户Cron/Queue/canonical读回仍缺，未满足前不申请发布批准。建议 **GPT-6.1-sol · xhigh**。
