@@ -1,0 +1,121 @@
+{
+  "repository": "wpuu/MedicalChannelAI",
+  "starting_candidate_head": "74f07dd6813db3c47bed42070aa24f8adc901794",
+  "authorization": "User said 继续 after the explicit four-page one-GET proposal; no release approval.",
+  "started_at_utc": "2026-10-17T15:54:50.287854+00:00",
+  "finished_at_utc": "2026-10-17T15:55:09.722515+00:00",
+  "status": "COMPLETED_FOUR_ATTEMPTS_NO_RETRY",
+  "bounds": {
+    "total_http_requests": 4,
+    "attempts_per_url": 1,
+    "deadline_seconds_per_url": 20,
+    "max_response_bytes_per_url": 1048576,
+    "minimum_gap_seconds": 3,
+    "follow_redirects": false,
+    "follow_pagination": false,
+    "authentication": false,
+    "local_html_provenance_and_hash_only": true,
+    "online_database_or_cache_write": false,
+    "queue_or_collector_invocation": false,
+    "cron_or_consumer_change": false,
+    "model_calls": false,
+    "deploy_or_preview": false,
+    "paid_resources": false
+  },
+  "results": [
+    {
+      "url": "https://www.tjzyefy.com/xwgg/ggtz/",
+      "method": "GET",
+      "attempt": 1,
+      "started_at_utc": "2026-10-17T15:54:50.331105+00:00",
+      "http_status": 200,
+      "accepted_official_html": true,
+      "redirects_followed": 0,
+      "request_started_at_utc": "2026-10-17T15:54:50.331307+00:00",
+      "response_url": "https://www.tjzyefy.com/xwgg/ggtz/",
+      "response_headers": {
+        "server": "envoy",
+        "date": "Sat, 17 Oct 2026 15:54:53 GMT",
+        "content-type": "text/html"
+      },
+      "body_file": "tjzyefy-index.body",
+      "bytes_saved": 105532,
+      "body_sha256": "11aca503409462a85e4a16a3ca185886ab27271393f28f6696b060ce699aa6c8",
+      "completeness": "EOF",
+      "declared_charset": null,
+      "finished_at_utc": "2026-10-17T15:54:53.991499+00:00"
+    },
+    {
+      "url": "https://www.tjzxfc.cn/ywgk/zbgg/index.shtml",
+      "method": "GET",
+      "attempt": 1,
+      "started_at_utc": "2026-10-17T15:54:57.055573+00:00",
+      "http_status": 200,
+      "accepted_official_html": true,
+      "redirects_followed": 0,
+      "request_started_at_utc": "2026-10-17T15:54:57.055767+00:00",
+      "response_url": "https://www.tjzxfc.cn/ywgk/zbgg/index.shtml",
+      "response_headers": {
+        "date": "Sat, 17 Oct 2026 15:55:00 GMT",
+        "content-type": "text/html",
+        "server": "envoy"
+      },
+      "body_file": "tjzxfc-index.body",
+      "bytes_saved": 12605,
+      "body_sha256": "807dac20e7ae7583215159c80a16dfe5f62b235f1ad89b57938f51fb9e4fa9f1",
+      "completeness": "EOF",
+      "declared_charset": null,
+      "finished_at_utc": "2026-10-17T15:55:00.360361+00:00"
+    },
+    {
+      "url": "https://www.tjzyefy.com/system/2026/09/28/030199113.shtml",
+      "method": "GET",
+      "attempt": 1,
+      "started_at_utc": "2026-10-17T15:55:03.428666+00:00",
+      "http_status": 200,
+      "accepted_official_html": true,
+      "redirects_followed": 0,
+      "request_started_at_utc": "2026-10-17T15:55:03.428847+00:00",
+      "response_url": "https://www.tjzyefy.com/system/2026/09/28/030199113.shtml",
+      "response_headers": {
+        "server": "envoy",
+        "date": "Sat, 17 Oct 2026 15:55:04 GMT",
+        "content-type": "text/html"
+      },
+      "body_file": "tjzyefy-20260928-030199113.body",
+      "bytes_saved": 98792,
+      "body_sha256": "3b9599c59da2dfc4340dde58c25a87e7a66f30c156d3d2e7731361ce4c316863",
+      "completeness": "EOF",
+      "declared_charset": null,
+      "finished_at_utc": "2026-10-17T15:55:05.359647+00:00"
+    },
+    {
+      "url": "https://www.tjzyefy.com/system/2026/09/30/030199248.shtml",
+      "method": "GET",
+      "attempt": 1,
+      "started_at_utc": "2026-10-17T15:55:08.446954+00:00",
+      "http_status": 200,
+      "accepted_official_html": true,
+      "redirects_followed": 0,
+      "request_started_at_utc": "2026-10-17T15:55:08.447130+00:00",
+      "response_url": "https://www.tjzyefy.com/system/2026/09/30/030199248.shtml",
+      "response_headers": {
+        "server": "envoy",
+        "date": "Sat, 17 Oct 2026 15:55:09 GMT",
+        "content-type": "text/html"
+      },
+      "body_file": "tjzyefy-20260930-030199248.body",
+      "bytes_saved": 94735,
+      "body_sha256": "5369c9e7824a5ba73680e036cf8ea3b33a36e590dc7683f98bad502e08535793",
+      "completeness": "EOF",
+      "declared_charset": null,
+      "finished_at_utc": "2026-10-17T15:55:09.670000+00:00"
+    }
+  ],
+  "raw_html_saved_in_git": false,
+  "raw_html_local_root": "/workspace/.medicalchannelai-onboarding/MedicalChannelAI/official-html-20261017",
+  "product_collector_invocations": 0,
+  "model_calls": 0,
+  "production_data_writes": 0,
+  "cron_queue_or_deployment_changes": 0
+}

@@ -14,14 +14,14 @@
 
 ## Collector 执行面
 
-- 当前单用户候选为 `fix/tjmugh-verification-20261002` / 草稿 [PR #75](https://github.com/wpuu/MedicalChannelAI/pull/75)，分支 `deploymentEnabled=false`。
-- 已验证产品逻辑 HEAD `4038b5d1597d57277e67ea1d86fc40a05233223a`：[Verify 37115608340 SUCCESS](https://github.com/wpuu/MedicalChannelAI/actions/runs/37115608340)，875 项 Python、prebuild、TypeScript、Vite 通过；后续候选精确 HEAD/CI 在 PR75 回读记录，不能借用旧绿灯。
-- 每天两条独立每日 Cron：北京时间名义 08:20 / 12:20，Hobby 小时级精度；日期与明确时段识别周期，同周期幂等，自动 15 分钟增量链关闭，不升级套餐。
+- 基础草稿[PR #75](https://github.com/wpuu/MedicalChannelAI/pull/75)为`fix/tjmugh-verification-20261002`、a2131e4；实现草稿[PR #78](https://github.com/wpuu/MedicalChannelAI/pull/78)为`fix/twice-daily-source-parity-20261017`，叠加PR75。最新编码/列表补丁已改变产品，精确HEAD按PR读回。两分支`deploymentEnabled=false`，尚未合并/部署。
+- PR75产品祖先`8b4b749bf057ed3f5a9b830fdef84ecc04bb1bd2`有[Verify 37117043888 SUCCESS](https://github.com/wpuu/MedicalChannelAI/actions/runs/37117043888)、879项Python及完整构建历史证据。PR78最新编码/列表修复通过20项新增＋57项相关，共77项；此前164项属于c0d0215。完整新产品CI/独立审查未完成，祖先绿灯不转移给新代码。
+- 候选每天两条独立每日Cron：北京名义08:20/12:20，Hobby小时级精度；日期与明确时段识别周期、同周期幂等，候选关闭自动15分钟链，不升级套餐。这不是实际线上Cron启用证明。
 - 周期终点保留标记，由后续周期替换或TTL过期；已结束周期重投不执行，避免旧终点读后删除误删午间新标记。
 - 保留现有 `medicalchannelai-refresh-v2` Queue 和 v2 canonical；新消息版本门禁隔离旧积压，完整覆盖、失败旧数据、canonical/缓存和 AI 版本保护继续生效。
-- 缓存长暂停后丢失完整 canonical 会阻断发布；发布前还要求完整已发布基线的每条机会仍有 canonical 历史。缺少既有来源记录或只有Top-N卡片时拒绝发布，不用旧种子或固定快照伪造自动更新。实际生产仍为旧主线 `6229959`；本候选未发布，不能宣称每天两次已恢复。
-- 三个既有来源只保留历史，不新增采集；候选严格读取独立历史缓存，worker公开投影与静态流程一致。覆盖标记为部分来源更新，继续保留AI限制，不能把历史保留当新监控。
-- 线上控制面、canonical 恢复及一次发布/回退门禁见 [受控恢复清单](docs/ops/twice-daily-release-20261003.md)。实际套餐、Cron、消费者、在途和延迟重试仍需核验。
+- 缓存长暂停后丢失完整canonical会阻断发布；完整已发布基线的每条机会必须仍有canonical历史。缺历史或只有Top-N时拒绝发布，不用旧种子/固定快照伪造更新。10月17日实际生产已核对为`3216fd9`、READY `dpl_4LPKoTdusrvbExXuzbMKtnyiT86C`；DATABASE版本10月7日、437条、STALE/degraded，候选未上线。
+- 三源仍history-only、22stage及partial/AI限制。[编码与真实列表离线修复](docs/ops/source-capture-fixes-20261018.md)已支持现有4页本地原文，未新增请求/上传原文；两院首页仍不足30日、14条intent仍超3条上限。正式注册、续批协议、分页、目标平台和25stage接线未完成，历史保留不能称新监控。
+- [最新只读核验与发布/回退门禁](docs/ops/release-readback-20261017.md)记录生产公开池缺4条历史intent、437条缺地区身份字段；PR75已有最小读取/投影修复，尚未上线。API按Hobby分类，但实际Cron、消费者、队列与完整canonical库存仍缺，当前不可发布、不能宣称每天两次恢复。
 
 开发状态、验收条件和当前工作以仓库内 `docs/project/` 与机器可读 checkpoint 为准。
 

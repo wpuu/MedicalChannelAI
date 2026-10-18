@@ -1,0 +1,134 @@
+{
+  "repository": "wpuu/MedicalChannelAI",
+  "checked_at_utc": "2026-10-17T05:29:18Z",
+  "starting_candidate_head": "c0d0215d99a8f109cfe62a313f0bf6daf9d8a771",
+  "candidate_branch": "fix/twice-daily-source-parity-20261017",
+  "draft_pr": 78,
+  "parent_pr": 75,
+  "parent_head": "a2131e4733939e07b9531ea4626c9378e0826953",
+  "production": {
+    "id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+    "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+    "target": "production",
+    "state": "READY",
+    "regions": [
+      "iad1"
+    ],
+    "created_at_utc": "2026-10-07T07:42:29.650Z",
+    "source": "git",
+    "alias": [
+      "medicalchannelai.vercel.app",
+      "medicalchannelai-rerisse7-1717s-projects.vercel.app",
+      "medicalchannelai-git-main-rerisse7-1717s-projects.vercel.app"
+    ]
+  },
+  "alias_readback": {
+    "alias": "medicalchannelai.vercel.app",
+    "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM"
+  },
+  "project_readback": {
+    "id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "name": "medicalchannelai",
+    "account_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "detail_read_succeeded": true,
+    "arguments": {
+      "idOrName": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+      "teamId": "team_jEy8Ex9vRDBdXj1cQPKF8sRd"
+    },
+    "latest_deployment": {
+      "id": "dpl_FjZACpMQZfx4NDcww4nzHoJ6xyeN",
+      "url": "medicalchannelai-r871s9mrg-rerisse7-1717s-projects.vercel.app",
+      "createdAt": 1791718972092,
+      "readyState": "READY",
+      "target": null
+    },
+    "note": "latestDeployment is not the production alias; production resolved separately."
+  },
+  "plan": {
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "team_slug": "rerisse7-1717s-projects",
+    "team_billing_field_returned": false,
+    "api_reported_plan": "hobby",
+    "evidence": "Runtime logs API rejected a 24h query: The hobby plan does not retain runtime logs for the requested time range.",
+    "billing_panel_verified": false
+  },
+  "logs": {
+    "rejected_24h": {
+      "state": "error",
+      "error": {
+        "message": "Vercel API request failed (400: bad_request). The hobby plan does not retain runtime logs for the requested time range.",
+        "recovery": "Check the API message, arguments, target team and resource state. Correct the request before retrying.",
+        "remediation": {
+          "actor": "agent",
+          "action": "correct_request"
+        },
+        "status": 400,
+        "code": "bad_request",
+        "operation": "get_runtime_logs",
+        "requestId": "iad1:iad1:sfo1:sfo1:iad1:iad1:sfo1:sfo1::sfo1::h9c6t-1792214879375-5803d769b838"
+      }
+    },
+    "corrected_30m": {
+      "result": "NO_LOGS_FOR_CRITERIA",
+      "since_utc": "2026-10-17T04:58:13.666Z",
+      "until_utc": "2026-10-17T05:28:13.666Z",
+      "query": "collector",
+      "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C"
+    },
+    "does_not_prove_queue_empty_or_consumer_stopped": true
+  },
+  "additional_read_errors": [
+    {
+      "operation": "GET /v6/deployments/{id}/files",
+      "status": 404,
+      "message": "File tree not found",
+      "meaning": "No deployed source tree returned; not an authentication or entire connection failure."
+    },
+    {
+      "operation": "GET /v2/observability/schema",
+      "status": 404,
+      "message": "Observability Data not found",
+      "meaning": "Legacy schema endpoint returned no catalog; no guessed metrics query performed."
+    },
+    {
+      "operation": "github_fetch actions/workflows collection and named workflow GET",
+      "status": 400,
+      "message": "URL is not an allowed public GitHub repository or search endpoint",
+      "meaning": "Wrapper rejects this endpoint. Follow-up public REST GETs at 06:37Z succeeded and both workflows are disabled_manually; see github-workflows.json. Not an API authorization denial."
+    }
+  ],
+  "gates": {
+    "production_commit_and_alias": "READ_BACK_CHANGED_FROM_OCT03_RECORD",
+    "candidate_deployed": false,
+    "candidate_ci": "0 workflow runs on starting c0d0215; 164 local tests are prior evidence, not CI",
+    "plan": "HOBBY_REPORTED_BY_LOGS_API; billing field not returned",
+    "cron_configuration_and_enabled": "NOT_RETURNED",
+    "consumer_identity_cap_and_all_subscribers": "NOT_RETURNED",
+    "per_deployment_ready_inflight_delayed_expiry": "NOT_RETURNED",
+    "canonical_history_and_published_baseline_inventory": "NOT_RETURNED",
+    "official_html_captures": "NOT_FOUND_IN_THREE_CHECKOUTS_OR_NEW_PR78_COMMENTS",
+    "active_old_incremental_chain": "UNKNOWN; null collector status is not proof of disabled scheduling",
+    "target_platform_worker_spawn_bundle_cleanup": "UNVERIFIED",
+    "release": "BLOCKED"
+  },
+  "unchanged_boundaries": {
+    "merge": false,
+    "deploy": false,
+    "preview": false,
+    "cron_or_consumer_changes": false,
+    "queue_receive_ack_purge": false,
+    "deployment_delete": false,
+    "real_source_collection": false,
+    "model_call": false,
+    "paid_change": false,
+    "account_security_change": false
+  },
+  "tests_rerun": 0,
+  "github_fallback_followup": {
+    "observed_at_utc": "2026-10-17T06:37:00Z",
+    "result": "BOTH_DISABLED_MANUALLY",
+    "evidence": "github-workflows.json",
+    "does_not_prove_vercel_cron_or_queue_disabled": true
+  }
+}

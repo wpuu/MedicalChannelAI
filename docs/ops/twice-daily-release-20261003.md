@@ -1,5 +1,7 @@
 # 单用户每日两次搜索候选与受控恢复清单
 
+> **10月17日实际生产/恢复依据已更新**：[最新续核验](release-readback-20261017.md)。READY `dpl_4LPKoTdusrvbExXuzbMKtnyiT86C` / commit `3216fd940dabfa7714383b6436908f9b72ff8a9c`，10月7日DATABASE437条、STALE/degraded，缺4条历史intent及437条地区身份字段。项目详情入口现已成功、API按Hobby分类；Cron/Queue/canonical库存仍未核实。PR78为PR75之上的未激活实现，未来须先整理为目标main的一份最终候选，再申请一次合并/一次Production。以下10月3日记录仅为历史，不能当当前状态或沿用旧审批；实际回退候选及每项门禁以新报告为准。
+
 > **最新只读核验：门禁未通过，当前不可发布。** 见 [发布前核验与审批范围](release-preflight-20261003.md)。官方Queues确认旧消息按deployment分区，切alias/rollback不停止旧投递；本文件历史描述的“暂停consumer/新处理器接管旧积压”不可当作已验证控制面能力。实际plan、Cron、Queue inventory及canonical恢复仍未知；最终审批必须绑定本轮文档保存后PR75实际HEAD，879项既有CI属于产品提交8b4b749，不重跑；文档提交用`[skip ci]`，未修改workflow/保护，不把祖先CI冒充新HEAD检查。
 
 记录日期：2026-10-03，北京时间。候选分支 `fix/tjmugh-verification-20261002`，草稿 [PR #75](https://github.com/wpuu/MedicalChannelAI/pull/75)。未合并、未部署、未创建 Preview、未恢复 Cron/消费者、未清队列、未调用真实来源或模型。`production_ready=false`，该分支 `deploymentEnabled=false`。
@@ -77,7 +79,7 @@
 
 执行 [最新核验的失败顺序](release-preflight-20261003.md#失败停止数据保护和回退)。先停实际Cron/生产入口，采用已确认的停投递机制；若只有官方删除方式，必须有针对**本次新失败部署**的明确条件性删除批准，先恢复并保护旧READY alias，再删除本次新失败部署、等待且读回在途结束。不得删除旧回退目标；切alias/rollback本身不能当作停Queue证据。
 
-保留canonical、队列及最后较新durable事实，不自动回写旧snapshot。回退旧目标 `dpl_DW5wrMzvVXS7TLmbqUL1vSfcyuh1`、commit62299590…前再次核对，回退后所有生产入口继续停用、旧分区仍须静默、AI仅验证版本/partial门禁，不恢复旧15分钟链。停投递机制或真实数据读恢复未证实时，不称回退成功。更具体的阶段失败与验收证据见最新方案，本轮未执行任何操作。
+保留canonical、队列及最后较新durable事实，不自动回写旧snapshot。10月17日代码回退候选为`dpl_4LPKoTdusrvbExXuzbMKtnyiT86C`、commit3216fd9…，执行前再次核对READY/alias、隔离和兼容性；旧6229959目标只保留历史。回退不得将10月7日437条或10月2日441条覆盖到最后真实数据库；所有入口继续停用、旧分区静默、AI仅检查版本/partial门禁，不恢复旧15分钟链。停投递或读恢复未证实时不称回退成功。具体顺序见[最新核验](release-readback-20261017.md)，本轮未执行任何操作。
 
 ## 审批对象
 

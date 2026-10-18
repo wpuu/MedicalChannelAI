@@ -1,0 +1,426 @@
+[
+  {
+    "endpoint": "status",
+    "url": "https://medicalchannelai.vercel.app/api/status",
+    "observed_at": "2026-10-17T05:28:11.523791+00:00",
+    "status": 200,
+    "sha256": "85322513d2bbf34e6d1c4c41271e13b70733bf81e6b1e06f79d9bc7f477b6d71",
+    "bytes": 415,
+    "response_headers": {
+      "age": "0",
+      "cache-control": "no-store, max-age=0",
+      "date": "Sat, 17 Oct 2026 05:28:13 GMT",
+      "x-vercel-cache": "MISS",
+      "x-vercel-id": "cle1::iad1::fr9dz-1792214891804-eb684f09829b"
+    },
+    "data": {
+      "schema_version": "0.1",
+      "service": "MedicalChannelAI",
+      "version": "0.5.0",
+      "commit": "3216fd9",
+      "production_ready": false,
+      "ai": {
+        "configured": true
+      },
+      "ready": true,
+      "degraded": true,
+      "snapshot": {
+        "available": true,
+        "source_mode": "DATABASE",
+        "runtime_origin": null,
+        "snapshot_as_of": "2026-10-07T08:27:29.025919+08:00",
+        "freshness": "STALE",
+        "age_minutes": 14700,
+        "stale_after_minutes": 1800,
+        "today_card_count": 5,
+        "opportunity_pool_count": 437
+      }
+    }
+  },
+  {
+    "endpoint": "collector-status",
+    "url": "https://medicalchannelai.vercel.app/api/collector-status",
+    "observed_at": "2026-10-17T05:28:11.524663+00:00",
+    "status": 200,
+    "sha256": "7a456bd37e76a8e1c7e184f4de971d8129cb291e4ef55378d73679204fa098a3",
+    "bytes": 2622,
+    "response_headers": {
+      "age": "0",
+      "cache-control": "no-store, max-age=0",
+      "date": "Sat, 17 Oct 2026 05:28:13 GMT",
+      "x-vercel-cache": "MISS",
+      "x-vercel-id": "cle1::iad1::xxt4z-1792214891793-64df566aec0f"
+    },
+    "data": {
+      "schema_version": "0.1",
+      "service": "MedicalChannelAI",
+      "collector": {
+        "schema_version": "0.1",
+        "local_date": null,
+        "cycle_as_of": null,
+        "stages": {},
+        "updated_at": null,
+        "active_cycle_id": null,
+        "execution_namespace": "v2",
+        "stage_order": [
+          "ccgp",
+          "event1",
+          "event2",
+          "event3",
+          "event4",
+          "event5",
+          "event6",
+          "tjmugh",
+          "tjnothop",
+          "teda",
+          "tjfch",
+          "regional_bj",
+          "regional_bj_fallback",
+          "regional_he",
+          "regional_he_fallback",
+          "regional_ln",
+          "regional_ln_fallback",
+          "regional_jl",
+          "regional_jl_fallback",
+          "regional_hl",
+          "regional_hl_fallback",
+          "publish"
+        ],
+        "completed_stage_count": 0,
+        "total_stage_count": 22,
+        "incremental": {
+          "active_scan_id": null,
+          "tick_policy": {
+            "timezone": "Asia/Shanghai",
+            "business_window_start": "11:30",
+            "business_window_end": "19:00",
+            "tick_interval_minutes": 15
+          },
+          "chain": null,
+          "sources": {
+            "tjmugh": {
+              "policy": {
+                "scan_interval_minutes": 60,
+                "reverify_after_hours": 24,
+                "max_details_per_scan": 12
+              },
+              "ledger": {
+                "candidate_count": 0,
+                "verified_count": 0,
+                "failed_count": 0,
+                "unverified_count": 0,
+                "updated_at": null
+              },
+              "staging": {
+                "record_count": 0,
+                "barrier_count": 0
+              },
+              "last_completed_scan": {
+                "bucket_id": null,
+                "completed_at": null,
+                "result": null
+              }
+            },
+            "tjnothop": {
+              "policy": {
+                "scan_interval_minutes": 60,
+                "reverify_after_hours": 24,
+                "max_details_per_scan": 12
+              },
+              "ledger": {
+                "candidate_count": 0,
+                "verified_count": 0,
+                "failed_count": 0,
+                "unverified_count": 0,
+                "updated_at": null
+              },
+              "staging": {
+                "record_count": 0,
+                "barrier_count": 0
+              },
+              "last_completed_scan": {
+                "bucket_id": null,
+                "completed_at": null,
+                "result": null
+              }
+            },
+            "tjfch": {
+              "policy": {
+                "scan_interval_minutes": 60,
+                "reverify_after_hours": 24,
+                "max_details_per_scan": 12
+              },
+              "ledger": {
+                "candidate_count": 0,
+                "verified_count": 0,
+                "failed_count": 0,
+                "unverified_count": 0,
+                "updated_at": null
+              },
+              "staging": {
+                "record_count": 0,
+                "barrier_count": 0
+              },
+              "last_completed_scan": {
+                "bucket_id": null,
+                "completed_at": null,
+                "result": null
+              }
+            },
+            "tjfch_test": {
+              "policy": {
+                "scan_interval_minutes": 60,
+                "reverify_after_hours": 12,
+                "max_details_per_scan": 12
+              },
+              "ledger": {
+                "candidate_count": 0,
+                "verified_count": 0,
+                "failed_count": 0,
+                "unverified_count": 0,
+                "updated_at": null
+              },
+              "staging": {
+                "record_count": 0,
+                "barrier_count": 0
+              },
+              "last_completed_scan": {
+                "bucket_id": null,
+                "completed_at": null,
+                "result": null
+              }
+            },
+            "teda": {
+              "policy": {
+                "scan_interval_minutes": 120,
+                "reverify_after_hours": 24,
+                "max_details_per_scan": 12
+              },
+              "ledger": {
+                "candidate_count": 0,
+                "verified_count": 0,
+                "failed_count": 0,
+                "unverified_count": 0,
+                "updated_at": null
+              },
+              "staging": {
+                "record_count": 0,
+                "barrier_count": 0
+              },
+              "last_completed_scan": {
+                "bucket_id": null,
+                "completed_at": null,
+                "result": null
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "endpoint": "public-snapshot",
+    "url": "https://medicalchannelai.vercel.app/api/public-snapshot",
+    "observed_at": "2026-10-17T05:28:11.525307+00:00",
+    "status": 200,
+    "sha256": "987fd8a483c1c5e637fb7e4af60e93e94452e06c56db68d85cf7e641392f33cf",
+    "bytes": 1639896,
+    "response_headers": {
+      "age": "0",
+      "cache-control": "public, max-age=0",
+      "date": "Sat, 17 Oct 2026 05:28:13 GMT",
+      "x-vercel-cache": "MISS",
+      "x-vercel-id": "cle1::iad1::5gb82-1792214891828-7f64a524a00c"
+    },
+    "summary": {
+      "snapshot_as_of": "2026-10-07T08:27:29.025919+08:00",
+      "pool_count": 437,
+      "unique_opportunity_ids": 437,
+      "missing_ids": 0,
+      "ranks_continuous": true,
+      "facts_market_fields": {
+        "": 437
+      },
+      "regions": {
+        "黑龙江省": 67,
+        "大庆市": 5,
+        "双鸭山市": 1,
+        "哈尔滨市": 14,
+        "齐齐哈尔市": 1,
+        "北安市": 1,
+        "牡丹江市": 10,
+        "宾县": 1,
+        "北京市": 102,
+        "石家庄市": 7,
+        "大连市": 7,
+        "凤城市": 1,
+        "河北省": 22,
+        "同江市": 2,
+        "海伦市": 1,
+        "丰南区": 2,
+        "井陉县": 1,
+        "辽宁省": 19,
+        "秦皇岛市": 6,
+        "沈阳市": 4,
+        "保定市": 7,
+        "吉林省": 40,
+        "香河县": 1,
+        "赵县": 1,
+        "邯郸市": 2,
+        "衡水市": 5,
+        "爱辉区": 1,
+        "承德市": 1,
+        "营口市": 3,
+        "海城市": 1,
+        "承德县": 1,
+        "沧州市": 7,
+        "苏家屯区": 1,
+        "市辖区": 12,
+        "长春市": 5,
+        "邢台市": 8,
+        "佳木斯市": 9,
+        "凌源市": 1,
+        "绥中县": 1,
+        "鞍山市": 3,
+        "南皮县": 3,
+        "清河县": 3,
+        "涿鹿县": 1,
+        "献县": 1,
+        "饶阳县": 1,
+        "赤城县": 1,
+        "孙吴县": 1,
+        "友谊县": 1,
+        "甘南县": 1,
+        "拜泉县": 1,
+        "鸡西市": 3,
+        "大同区": 1,
+        "道外区": 1,
+        "唐山市": 1,
+        "克山县": 1,
+        "定州市": 1,
+        "兴隆县": 1,
+        "成安县": 1,
+        "南岗区": 2,
+        "宁安市": 1,
+        "建昌县": 1,
+        "邱县": 1,
+        "景县": 2,
+        "卢龙县": 1,
+        "朝阳区": 1,
+        "大兴安岭地区": 1,
+        "绥棱县": 1,
+        "滨海新区": 2,
+        "宝坻区": 1,
+        "张家口市": 4,
+        "沙河市": 1,
+        "高阳县": 1,
+        "易县": 1,
+        "义县": 1,
+        "青县": 1,
+        "东宁市": 1,
+        "朝阳市": 1,
+        "廊坊市": 1,
+        "葫芦岛市": 2,
+        "朝阳县": 1
+      },
+      "canonical_pool_sha256": "819e9c6c62d866d3220417fc548427f176aa80a9668d45efaa819050bf949004",
+      "id_set_sha256": "61d7fc7198188cb9f2836537cedbeda60fe403e89a00e07550643daffdffb8fc",
+      "history": [
+        {
+          "source": "tjzxfc",
+          "canonical_count": 0,
+          "entries": []
+        },
+        {
+          "source": "tjzyefy",
+          "canonical_count": 4,
+          "entries": [
+            {
+              "id": "tjzyefy_20260902_030197669",
+              "present_in_current_public_pool": false,
+              "published_at": "2026-09-02",
+              "title": "天津中医药大学第二附属医院AI全自动菌落计数与药敏分析仪和薄层色谱成像仪采购项目调研公告"
+            },
+            {
+              "id": "tjzyefy_20260819_030196862",
+              "present_in_current_public_pool": false,
+              "published_at": "2026-08-19",
+              "title": "院内调研公告（2026年19号）-血气生化分析仪等医疗设备采购项目"
+            },
+            {
+              "id": "tjzyefy_20260810_030196192",
+              "present_in_current_public_pool": false,
+              "published_at": "2026-08-10",
+              "title": "关于租赁算力服务器及配套网络专线的调研公告"
+            },
+            {
+              "id": "tjzyefy_20260910_030198165",
+              "present_in_current_public_pool": false,
+              "published_at": "2026-09-10",
+              "title": "院内调研公告（2026年22号）-医用排痰机等医疗设备采购项目"
+            }
+          ]
+        },
+        {
+          "source": "tjzyefy_intent",
+          "canonical_count": 4,
+          "entries": [
+            {
+              "id": "tjzyefy_intent_20260804_030195992",
+              "present_in_current_public_pool": false,
+              "published_at": "2026-08-04",
+              "title": "采购意向公告（2026年48号）-云影像服务项目"
+            },
+            {
+              "id": "tjzyefy_intent_20260804_030195991",
+              "present_in_current_public_pool": false,
+              "published_at": "2026-08-04",
+              "title": "采购意向公告（2026年47号）-高分辨液质联用系统维保服务项目"
+            },
+            {
+              "id": "tjzyefy_intent_20260804_030195988",
+              "present_in_current_public_pool": false,
+              "published_at": "2026-08-04",
+              "title": "采购意向公告（2026年44号）-空气压力治疗仪（淋巴水肿专用）采购项目"
+            },
+            {
+              "id": "tjzyefy_intent_20260804_030195986",
+              "present_in_current_public_pool": false,
+              "published_at": "2026-08-04",
+              "title": "采购意向公告（2026年42号）-肺功能仪等医疗设备采购项目"
+            }
+          ]
+        }
+      ],
+      "static_artifact_comparison": {
+        "static_commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+        "static_path": "web/public/data/today-actions.public.json",
+        "static_file_sha256": "10f063964b6003154c0fb417fe2ed697a5eabee3792d733948f30f7b1c5c8891",
+        "static_snapshot_as_of": "2026-10-02T14:19:15.713282+08:00",
+        "static_count": 441,
+        "runtime_count": 437,
+        "missing_from_runtime": [
+          "tjzyefy_intent_20260804_030195986",
+          "tjzyefy_intent_20260804_030195988",
+          "tjzyefy_intent_20260804_030195991",
+          "tjzyefy_intent_20260804_030195992"
+        ],
+        "added_in_runtime": [],
+        "runtime_missing_market_code": 437,
+        "runtime_missing_market_name": 437,
+        "runtime_missing_market_admin_code": 437,
+        "static_market_counts": {
+          "HL": 129,
+          "BJ": 103,
+          "HE": 98,
+          "LN": 47,
+          "JL": 53,
+          "TJ": 11
+        },
+        "common_id_rank_differences": 428,
+        "rank_difference_limitation": "Versions have different real timestamps; differences alone do not prove wrong prioritization. No static rebuild or re-ranking performed.",
+        "historical_cache_contents": "NOT_READ; omission from public pool does not prove canonical deletion"
+      }
+    }
+  }
+]

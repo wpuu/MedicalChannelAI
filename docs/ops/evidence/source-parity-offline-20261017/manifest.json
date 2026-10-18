@@ -1,0 +1,54 @@
+{
+  "repository": "wpuu/MedicalChannelAI",
+  "starting_head": "a2131e4733939e07b9531ea4626c9378e0826953",
+  "branch": "fix/twice-daily-source-parity-20261017",
+  "scope": "OFFLINE_CORE_ONLY_NOT_ACTIVATED",
+  "focused_modules": {
+    "test_twice_daily_source_parity": 25,
+    "test_twice_daily_search": 37,
+    "test_twice_daily_terminal_race": 2,
+    "test_collector_native_reliability": 20,
+    "test_execution_namespace": 12,
+    "test_tjzyefy_discovery": 6,
+    "test_tjzyefy_market_research": 7,
+    "test_tjzyefy_intent_discovery": 4,
+    "test_tjzyefy_procurement_intent": 8,
+    "test_tjzxfc_discovery": 5,
+    "test_tjzxfc_market_research": 6
+  },
+  "new_tests": 25,
+  "related_tests": 107,
+  "total": 132,
+  "result": "PASS",
+  "outbound_sockets": "blocked connect/connect_ex/create_connection",
+  "fixtures": "SYNTHETIC_CONTRACT_ONLY_NOT_OFFICIAL_CAPTURE",
+  "sha256": {
+    "web/collector_runtime.py": "442cb0bd7699ca8f356c5d9c05d70db9c4262f9fe5e0d808c044cb898ef86f9b",
+    "web/vercel.json": "89ae7bcbfb5cbf9aacdb802f181e1e37a84444011da0de6197a867e17f4997c4",
+    "web/pipeline/tests/test_twice_daily_source_parity.py": "ccf9d71f581b557cfffdb01c65bbf90bf91190dcd057cf737cd92ee037f0be38",
+    "docs/ops/evidence/source-parity-offline-20261017/verify_focused.py": "ead169045e10d92980048167109e1b5476a4c8da940119321df94fdfdf803283"
+  },
+  "unchanged_adapter_sha256": {
+    "web/pipeline/medical_channel_pipeline/tjzxfc_discovery.py": "c2db28a4e6fffa77e277307dfba7a346a5d98f4e278518210bf50169c60b9af1",
+    "web/pipeline/medical_channel_pipeline/tjzxfc_market_research.py": "2344373fb9edfc928c0e9813270c48dc76498af74b753192aff1acc66f0b3670",
+    "web/pipeline/medical_channel_pipeline/tjzyefy_discovery.py": "0c23cab11038d7138352242d72461f643202775f14c9d325807331a8e2c00b70",
+    "web/pipeline/medical_channel_pipeline/tjzyefy_intent_discovery.py": "593c345fa77be443b6605da74bee064ed5cdf536065fe02db7ea50f38e673f7e",
+    "web/pipeline/medical_channel_pipeline/tjzyefy_market_research.py": "fba5f32f04d1690d3275646ae8644ad4e12d223d6895ce4153454a06d0e0e545",
+    "web/pipeline/medical_channel_pipeline/tjzyefy_procurement_intent.py": "2211162e9c960d40c01929a04a53b45e54639856e1ceac616d89a96fb87fba48"
+  },
+  "production_stage_count": 22,
+  "new_source_stages_activated": false,
+  "full_verify": "NOT_RUN",
+  "independent_review": "PENDING",
+  "real_collection": false,
+  "model_calls": false,
+  "production_changes": false,
+  "limitations": [
+    "window proof is internal mock evidence, not authenticated coverage",
+    "budget checks do not cancel blocked requests or include externally supplied index acquisition",
+    "RuntimeCache commit is not CAS",
+    "official 9/28 and 9/30 HTML missing",
+    "online release gates remain blocked"
+  ],
+  "focused_log_sha256": "ea9ff6c514933def569cd7160d88b4bdba23a880bce6bfc056af61e70ca6b12c"
+}

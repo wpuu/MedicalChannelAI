@@ -1,0 +1,68 @@
+{
+  "raw_capture_root_local_only": "/workspace/.medicalchannelai-onboarding/MedicalChannelAI/official-html-20261017",
+  "source_requests": 0,
+  "raw_html_in_git": false,
+  "capture_decode": [
+    {
+      "name": "tjzyefy-index",
+      "raw_sha256": "11aca503409462a85e4a16a3ca185886ab27271393f28f6696b060ce699aa6c8",
+      "decoded_utf8_sha256": "11aca503409462a85e4a16a3ca185886ab27271393f28f6696b060ce699aa6c8",
+      "matches_previous_strict_diagnostic_decode": true
+    },
+    {
+      "name": "tjzxfc-index",
+      "raw_sha256": "807dac20e7ae7583215159c80a16dfe5f62b235f1ad89b57938f51fb9e4fa9f1",
+      "decoded_utf8_sha256": "81fd0838a97ee81fdc6544213ebe5f647baf06988da1fd5e1cdbb1b9c737299f",
+      "matches_previous_strict_diagnostic_decode": true
+    },
+    {
+      "name": "tjzyefy-20260928-030199113",
+      "raw_sha256": "3b9599c59da2dfc4340dde58c25a87e7a66f30c156d3d2e7731361ce4c316863",
+      "decoded_utf8_sha256": "3b9599c59da2dfc4340dde58c25a87e7a66f30c156d3d2e7731361ce4c316863",
+      "matches_previous_strict_diagnostic_decode": true
+    },
+    {
+      "name": "tjzyefy-20260930-030199248",
+      "raw_sha256": "5369c9e7824a5ba73680e036cf8ea3b33a36e590dc7683f98bad502e08535793",
+      "decoded_utf8_sha256": "5369c9e7824a5ba73680e036cf8ea3b33a36e590dc7683f98bad502e08535793",
+      "matches_previous_strict_diagnostic_decode": true
+    }
+  ],
+  "row_and_window_checks": [
+    {
+      "stage": "tjzyefy",
+      "logical_rows": 20,
+      "oldest_date": "2026-10-09",
+      "requested_start_date": "2026-09-18",
+      "window_result": "OFFICIAL_INDEX_WINDOW_NOT_COVERED",
+      "registered_result": "OFFICIAL_INDEX_CONTRACT_UNVERIFIED"
+    },
+    {
+      "stage": "tjzyefy_intent",
+      "logical_rows": 20,
+      "oldest_date": "2026-10-09",
+      "requested_start_date": "2026-09-18",
+      "window_result": "OFFICIAL_INDEX_WINDOW_NOT_COVERED",
+      "registered_result": "OFFICIAL_INDEX_CONTRACT_UNVERIFIED"
+    },
+    {
+      "stage": "tjzxfc",
+      "logical_rows": 10,
+      "oldest_date": "2026-10-12",
+      "requested_start_date": "2026-09-18",
+      "window_result": "OFFICIAL_INDEX_WINDOW_NOT_COVERED",
+      "registered_result": "OFFICIAL_INDEX_CONTRACT_UNVERIFIED"
+    }
+  ],
+  "scoped_diagnostic_discovery_counts": {
+    "tjzyefy": 2,
+    "tjzyefy_intent": 14,
+    "tjzxfc": 1
+  },
+  "official_contracts_registered": 0,
+  "intent_limit_remains": 3,
+  "intent_14_requires_continuation": true,
+  "stage_invocations": 0,
+  "model_calls": 0,
+  "release": "BLOCKED"
+}
