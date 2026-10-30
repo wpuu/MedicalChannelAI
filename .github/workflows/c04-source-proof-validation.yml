@@ -29,11 +29,9 @@ jobs:
       - name: C04 proof / schedule / Queue boundaries
         working-directory: web/pipeline
         run: |
-          python -m unittest \
-            tests.test_collector_proof_c04 \
-            tests.test_twice_daily_search \
-            tests.test_twice_daily_source_parity \
-            -v
+          python -m unittest discover -s tests -p 'test_collector_proof_c04.py' -v
+          python -m unittest discover -s tests -p 'test_twice_daily_search.py' -v
+          python -m unittest discover -s tests -p 'test_twice_daily_source_parity.py' -v
       - name: Full Python regression
         working-directory: web/pipeline
         run: python -m unittest discover -s tests -q
