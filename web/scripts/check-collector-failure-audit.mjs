@@ -6,7 +6,15 @@ import {
   persistCollectorFailureEvent,
   listCollectorFailureAudit,
 } from '../api/_collectorFailureAudit.js'
-import { authenticatedCollectorAuditRequest, collectorAuditHandler } from '../api/collector-audit.js'
+import { authenticatedCollectorAuditRequest, collectorAuditHandler } from '../api/_collectorAuditHandler.js'
+
+
+const vercelConfig = JSON.parse(
+  readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'),
+)
+const auditRewrite = (vercelConfig.rewrites || []).find(x => x.source === '/api/collector-audit')
+assert.equal(auditRewrite?.destination, '/api/public-snapshot?route=collector-audit')
+assert.equal(vercelConfig.git.deploymentEnabled['fix/c05-durable-failure-audit-20261031'], false)
 
 const token = 'audit-only-collector-permission-secret-00001'
 const cycle = 'prod:2026-10-31:morning:twice-daily-v1'
