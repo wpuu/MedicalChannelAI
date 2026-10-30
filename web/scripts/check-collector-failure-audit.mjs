@@ -10,13 +10,13 @@ import { authenticatedCollectorAuditRequest, collectorAuditHandler } from '../ap
 
 const token = 'audit-only-collector-permission-secret-00001'
 const cycle = 'prod:2026-10-31:morning:twice-daily-v1'
-const now = new Date('2026-10-30T16:30:00Z')
+const now = new Date('2026-10-31T00:30:00Z')
 const input = {
   cycle_id: cycle,
   stage_id: 'ccgp',
   event_kind: 'CRON_QUEUE_FAILED',
   error_code: 'COLLECTOR_QUEUE_START_FAILED',
-  occurred_at: '2026-10-30T16:20:00.000Z',
+  occurred_at: '2026-10-31T00:20:00.000Z',
 }
 const result = validateCollectorFailureEvent(input, now)
 assert.equal(result.event_id.length, 64)
@@ -36,7 +36,7 @@ bad({ error_code: 'HTTP 403 https://private.example?token=SECRET' }, 'ERROR_CODE
 bad({ stage_id: 'test/../../secrets' }, 'STAGE_INVALID')
 bad({ event_kind: 'SNAPSHOT_CONFIRMED' }, 'KIND_INVALID')
 bad({ occurred_at: '2026-09-01T16:20:00Z' }, 'TIME_OUT_OF_RANGE')
-bad({ occurred_at: '2026-10-30T16:55:00Z' }, 'TIME_OUT_OF_RANGE')
+bad({ occurred_at: '2026-10-31T00:55:00Z' }, 'TIME_OUT_OF_RANGE')
 bad({ cycle_id: 'prod:2026-10-29:morning:twice-daily-v1' }, 'CYCLE_DATE_MISMATCH')
 assert.throws(
   () => validateCollectorFailureEvent({ ...input, customer_name: 'Hospital Relationship' }, now),
