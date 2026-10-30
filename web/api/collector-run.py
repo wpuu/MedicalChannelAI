@@ -14,6 +14,7 @@ from vercel.queue import send
 
 from collector_schedule import SCHEDULE_VERSION, scheduled_cycle, running_stage_is_live
 from collector_proof import try_record
+from collector_durable_audit import try_persist_failure
 from collector_incremental import scan_bucket_id
 from collector_incremental_scheduler import (
     SCHEDULED_INCREMENTAL_SOURCES,
@@ -233,6 +234,16 @@ async def _enqueue_start(source: str, period: str) -> tuple[str, str, str, int]:
         # This SDK exception means Queue accepted this exact idempotency key.
         # Other transport/auth errors still propagate and remain retriable.
         if type(exc).__name__ != "DuplicateIdempotencyKeyError":
+            # A failed initial Queue send cannot generate a C04 success stamp.
+            # Durable failure receipt is independent and explicitly opt-in.
+            # It never consumes a retry, releases a lease or masks this error.
+            try_persist_failure(
+                cycle_id=cycle_id,
+                stage="ccgp",
+                event_kind="CRON_QUEUE_FAILED",
+                error_code="COLLECTOR_QUEUE_START_FAILED",
+                occurred_at=datetime.now(timezone.utc),
+            )
             raise
         message_id = "ALREADY_QUEUED"
     # Only an actual Queue acceptance may leave an accepted trigger witness.
