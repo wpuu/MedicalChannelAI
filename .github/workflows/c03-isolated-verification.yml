@@ -1,0 +1,45 @@
+name: C03 Isolated AI Clock and Package Regression
+on:
+  push:
+    branches:
+      - fix/c03-ai-clock-official-provenance-20261031
+    paths:
+      - "web/scripts/check-ai-boundary.mjs"
+      - "web/pipeline/medical_channel_pipeline/ccgp_tianjin_package_table.py"
+      - "web/pipeline/medical_channel_pipeline/ccgp_detail.py"
+      - "web/pipeline/medical_channel_pipeline/public_snapshot.py"
+      - ".github/workflows/c03-isolated-verification.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: C02 targeted package evidence regression
+        working-directory: web/pipeline
+        run: python -m unittest tests.test_ccgp_tianjin_package_table_c02 -v
+      - name: Full pipeline regression
+        working-directory: web/pipeline
+        run: python -m unittest discover -s tests -q
+      - name: Install immutable dependencies
+        working-directory: web
+        run: npm ci
+      - name: Historical AI boundary test with fixture clock
+        working-directory: web
+        run: node scripts/check-ai-boundary.mjs
+      - name: Full prebuild + type check + Vite build
+        working-directory: web
+        run: npm run build
