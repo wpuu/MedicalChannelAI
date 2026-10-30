@@ -1,0 +1,132 @@
+{
+  "audit_id": "MED-ACTION-20261031/C04",
+  "timezone": "Asia/Shanghai",
+  "completed_at_date": "2026-10-31",
+  "phase": "C04_ISOLATED_IMPLEMENTATION_TESTED_RELEASE_HOLD",
+  "base_branch": "fix/c03-ai-clock-official-provenance-20261031",
+  "base_sha": "b756407bd058b69b949c655d47a02da2ee43c077",
+  "candidate_branch": "fix/c04-source-proof-20261031",
+  "tested_sha": "90c4832379aeae01cc91b1048fe73e425d5673b8",
+  "full_ci": {
+    "run_id": 41092275503,
+    "url": "https://github.com/wpuu/MedicalChannelAI/actions/runs/41092275503",
+    "status": "SUCCESS",
+    "focused_collector_proof_tests": 20,
+    "focused_twice_daily_search_tests": 37,
+    "focused_twice_daily_source_parity_tests": 25,
+    "full_python_pipeline_tests": 986,
+    "prebuild_python_tests": 986,
+    "ai_boundary": "PASS",
+    "prebuild": "PASS",
+    "typescript": "PASS",
+    "vite_build": "PASS",
+    "public_snapshot_optional_collector_witness": "PASS",
+    "public_snapshot_forbidden_api_key": "REJECTED",
+    "isolated_runner": "GitHub Actions ubuntu-latest, not Production"
+  },
+  "implementation": {
+    "python_module": "web/collector_proof.py",
+    "changes": [
+      "Record accepted Cron->Queue send only after real send succeeded, dedupe does not forge proof",
+      "Record Queue stage deliveries only after valid lease/date/schema and successful runtime terminal stages",
+      "Record explicit failure/retry and durable snapshot acceptance+cache readback receipt",
+      "Add each-stage per-event cache key with readback, strict whitelisted fields and 21-day best-effort TTL",
+      "Optional pre-publication bounded witness in published verified snapshot JSONB, not controlling publish gate",
+      "Expose read-only per-source proof UNKNOWN/STALE/RECENT_STAGE_WITH_SNAPSHOT_RECEIPT",
+      "Reject non-owned Queue messages, sensitive fields, bogus cycle/stage, and missing receipt in tests",
+      "Validate public snapshot schema accepts optional witness but rejects api_key"
+    ],
+    "code_paths": [
+      "web/collector_proof.py",
+      "web/api/collector-run.py",
+      "web/collector_queue.py",
+      "web/collector_runtime.py",
+      "web/api/collector-status.py",
+      "web/pipeline/tests/test_collector_proof_c04.py",
+      "web/scripts/check-collector-proof-public-snapshot.mjs",
+      ".github/workflows/c04-source-proof-validation.yml",
+      "web/vercel.json"
+    ]
+  },
+  "official_notice": {
+    "project_numbers": [
+      "XCSD-2026-A-939",
+      "XCSD-2026-A-944"
+    ],
+    "october_27_A939": {
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27573388.htm",
+      "verified_public_text": true,
+      "verified_original_html_bytes": false,
+      "verified_official_docx_bytes": false,
+      "package_count": 4,
+      "named_items_minimum": 8,
+      "budget_cny": 5091900,
+      "ceiling_cny": 4281900
+    },
+    "october_30_A939": {
+      "indexed_correction_detected": true,
+      "correction_index_url": "https://m.chinabidding.cn/xdwzb_3/zbbx/",
+      "evidence": "THIRD_PARTY_INDEX_ONLY",
+      "official_correction_url": null,
+      "correction_attachment_sha256": null,
+      "updated_items": null,
+      "technical_parameters_diff": null,
+      "updated_file_deadline": null,
+      "updated_bid_deadline": null
+    },
+    "october_30_A944": {
+      "indexed_correction_detected": true,
+      "third_party_excerpt_url": "https://www.czhaobiao.com/zb-196981466-3.html",
+      "evidence": "SECONDARY_REPRINT_WITH_REFERENCE_TO_COLORED_ATTACHMENT",
+      "official_correction_url": null,
+      "correction_attachment_sha256": null,
+      "technical_parameters_diff": null,
+      "updated_file_deadline": null,
+      "updated_bid_deadline": null
+    },
+    "official_docx_url": "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=yUJ.S_Ra1oE%2A&method=downEnId",
+    "attachment_access": "CACHE_MISS",
+    "previous_official_html_raw_get": "HTTP_403",
+    "blocked": "NO_OFFICIAL_CORRECTION_TEXT_OR_COLORED_DOCX",
+    "comparison_json": "docs/research/2026-10-31/C04_official_version_comparison.json",
+    "prohibition": "DO_NOT_PROMOTE_OLDER_NOTICE_TO_CURRENT_TERMS_OR_SECONDARY_COPY_TO_OFFICIAL"
+  },
+  "production_readonly": {
+    "verified_deployment_sha": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+    "deployed_schedule": "daily 08:20 Asia/Shanghai only",
+    "pr75_pr78_twice_daily_not_deployed": true,
+    "latest_confirmed_public_snapshot_from_previous_round": {
+      "as_of": "2026-10-28T08:27:29.111217+08:00",
+      "status": "STALE",
+      "degraded": true,
+      "pipeline_health_http": 503,
+      "stage_progress": "0/22",
+      "chain": null
+    },
+    "c04_fresh_live_status": "FETCH_TOOL_UNAVAILABLE",
+    "c04_logs_recent_30m": "NO_COLLECTOR_LOGS_AT_NON_CRON_WINDOW",
+    "c04_live_chained_events_verified": false,
+    "c04_full_seven_day_audit_verified": false
+  },
+  "evidence_quality": {
+    "runtime_cache": "NON_DURABLE_BEST_EFFORT_21_DAY_TTL",
+    "successful_snapshot_witness": "CAN_BE_EMBEDDED_IN_DURABLE_VERIFIED_SNAPSHOT_IF_COMPLETE",
+    "historical_failure_events": "NOT_DURABLY_PERSISTED_UNTIL_DEDICATED_STORE_ADDED",
+    "official_source_page_coverage": "NOT_ATTESTED_BY_STAGE_SUCCESS_ALONE",
+    "queue_delivery": "AT_LEAST_ONCE_WITH_DEDUPLICATION_GUARDS",
+    "no_model_facts_generated": true
+  },
+  "side_effects": {
+    "main_unchanged": true,
+    "PR75_unchanged": true,
+    "PR78_unchanged": true,
+    "production_untouched": true,
+    "cron_and_queue_untouched": true,
+    "preview_deployment_created": false,
+    "secrets_read_or_modified": false,
+    "customers_contacted": false,
+    "purchase_or_payment": false
+  },
+  "release_decision": "HOLD",
+  "next_task": "MED-ACTION-20261031/C05: Get legitimate official correction DOCX+raw HTML and exact version diff; add durable failure audit and end-to-end source-window proof in isolated branch; establish true natural 7-day Cron/Queue/Source/Snapshot proof only after explicitly authorized Production release."
+}
