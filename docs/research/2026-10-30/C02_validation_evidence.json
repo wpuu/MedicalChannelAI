@@ -1,0 +1,69 @@
+{
+  "id": "MED-ACTION-20261030/C02",
+  "research_date": "2026-10-30",
+  "source_starting_commit": "d158f8648db17b904300671b0f1ccbae795c324c",
+  "branch": "fix/c02-ccgp-package-products-20261030",
+  "evaluated_commit": "802f163a5c8d4b351f27e92c59c9854a350d1511",
+  "official_source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27573388.htm",
+  "observation": "Official readable page verified, raw HTML GET from GitHub hosted runner returned HTTP 403; no raw original HTML hash and no live raw markup parser confirmation.",
+  "fixture_kind": "OFFLINE_SYNTHETIC_HTML_TRANSCRIBED_FROM_OFFICIAL_TEXT",
+  "result": {
+    "baseline": {
+      "run_id": 41067224428,
+      "focused_tests": 9,
+      "expected_failures": 2,
+      "missing_product_count": 8,
+      "observed_items": 0
+    },
+    "fixed_run": {
+      "run_id": 41068437787,
+      "focused_step": "PASS",
+      "existing_ccgp_tests": "PASS",
+      "full_python_test_step": "PASS",
+      "typescript_typecheck": "PASS",
+      "vite_build": "PASS",
+      "npm_run_build": "FAIL_PREEXISTING_AI_BOUNDARY"
+    },
+    "baseline_comparison": {
+      "run_id": 41068437787,
+      "baseline_sha": "d158f8648db17b904300671b0f1ccbae795c324c",
+      "same_build_error": "AI_BOUNDARY_UNCONFIGURED: expected 503, got 409"
+    },
+    "live_original_html": {
+      "run_id": 41068131756,
+      "result": "BLOCKED_HTTP_403",
+      "retry_count": 0,
+      "bypass_attempts": 0,
+      "sha256": null
+    },
+    "synthetic_expected": {
+      "package_count": 4,
+      "product_count": 8,
+      "budget_total_cny": 5091900,
+      "ceiling_total_cny": 4281900,
+      "product_quantities": "UNKNOWN_NULL",
+      "non_exhaustive": true,
+      "coverage_status": "PARTIAL"
+    },
+    "production": {
+      "deployed_commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+      "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+      "snapshot_at": "2026-10-28T08:27:29.111217+08:00",
+      "source_mode": "DATABASE",
+      "freshness": "STALE",
+      "degraded": true,
+      "opportunity_pool_count": 65,
+      "collector_completed_stages": 0,
+      "collector_total_stages": 22,
+      "incremental_chain": null,
+      "pipeline_health_http": 503,
+      "preview_deployments_for_c02_branch": 0
+    }
+  },
+  "runtime_changes_authorized": false,
+  "production_changed": false,
+  "main_merged": false,
+  "published_to_preview": false,
+  "gate": "HOLD",
+  "next": "C03: obtain authorized raw official HTML readback, resolve existing dated AI boundary test baseline in a separate isolated change, review PR75/78 source-contract/Queue and verify 7-day automatic freshness before any paid pilot."
+}
