@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import unittest
+from datetime import datetime
 
+from medical_channel_pipeline.public_snapshot import build_public_snapshot
 from medical_channel_pipeline.ccgp_detail import (
     CcgpDetailParseError,
     parse_ccgp_public_tender_html,
@@ -125,6 +127,19 @@ class CcgpTianjinPackageTableRegressionTests(unittest.TestCase):
 
         fields = {row["field_path"] for row in record["evidence"]}
         self.assertTrue({"facts.product_items", "facts.product_categories", "facts.procurement_packages"} <= fields)
+
+    def test_verified_package_ids_amounts_and_partial_state_reach_public_snapshot(self) -> None:
+        record = parse_fixture(synthetic_html(nested=True))
+        snapshot = build_public_snapshot([record], datetime.fromisoformat(OBSERVED))
+        card = snapshot["opportunity_pool"][0]
+        public = card["facts"]
+        self.assertEqual(public["coverage_status"], "PARTIAL")
+        self.assertEqual(len(public["product_items"]), 8)
+        self.assertEqual(len(public["procurement_packages"]), 4)
+        self.assertEqual(public["procurement_packages"][0]["budget_cny"], 2480000)
+        self.assertEqual(public["procurement_packages"][0]["ceiling_cny"], 2270000)
+        self.assertTrue(public["procurement_packages"][0]["non_exhaustive"])
+        self.assertIn(SOURCE_URL, card["evidence_source_urls"])
 
     def test_nested_wrapper_table_and_unpublished_quantities(self) -> None:
         record = parse_fixture(synthetic_html(nested=True))
