@@ -260,3 +260,28 @@ C01 真实商业差距审计完成，找到可复现的同案产品缺口和生�
 建议模型：GPT-6.1 Sol High；如果要跨 PR75/PR78 重建 source Queue cycle、窗口、部分提交和回滚安全合同，使用 Extra High。
 
 本轮未改变 main、Production、账户、Cron、Queue、Secrets 或任何对外业务状态。
+
+
+## 八、补充同案资料：三批产品及跨境聚合错误
+
+本轮随后查到三个更多同批次的公开转引：
+
+- 第一批 XCSD-2026-A-942，预算2400万元、最高限价800万元。公开转引采购需求出现全自动生化免疫流水线。
+  https://tj.zhaobiao.lanyancloud.com/notice/451caeec538e4d4a
+- 第二批 XCSD-2026-A-943，预算983万元、最高限价600万元，公开转引采购需求出现免疫流水线、全自动酶免仪。
+  https://www.lfzct.com/info/Rmzxcgr8AAAALw1HvFxvaFeAAAAQ%3D%3D?city=%E5%A4%A9%E6%B4%A5%E5%B8%82
+- 第四批 XCSD-2026-A-944，预算490.1万元、最高限价482.1万元，公开转引第1包有生物显微镜、医学显微镜、生物安全柜；第2包有医用冷藏/冷冻冰箱与负80度冰箱。
+  https://www.lfzct.com/info/KL43PqviwfHGMk1wciNodw%3D%3D?city=%E5%A4%A9%E6%B4%A5%E5%B8%82
+- **证据分级**：以上第一、第二、第四批原始中国政府采购网 URL 此轮重新打开受到访问限制，因此这些具体产品和最高限价只能记为 SECONDARY_REPRINT，**不得称已独立重开官方正文**；进入生产 verified canonical 之前必须由正式官方原文或官方附件重新确认。
+- 第五批 XCSD-2026-A-939 的四包八个明示产品及各包预算/限价则已通过政府采购网直接复核。其公告使用“等”且另附需求书，因此八个名称不是完整采购清单。
+- 以上带证据级别的回归数据保存为同目录 C01_same_hospital_package_fixture.json，可用于工程师的包级解析验收，但所有 SECONDARY_REPRINT 条目必须先复核才能升级为 VERIFIED。
+
+还发现同案国际聚合商的实际错误：
+- GlobalTenders 在第一批/第四批页面将医疗设备标成 X-ray inspection equipment / Fire Safety and Security，并显示截止 2026-11-11，与国内官方开标信息（第一批11/18、第四批11/17）不一致。
+- https://www.globaltenders.com/tender-detail/public-tender-for-the-first-project-for-the-AuQJRdem0V09WOWT
+- https://www.globaltenders.com/tender-detail/public-call-for-tenders-for-the-fourth-batch-X9AXEHNwyAKxuLDk
+- 它展示的 secondary deadline 不可当正式投标截止；**信息源冲突发现+官方纠错**可能是面向跨境用户的价值之一，但仅两例不能推定这类平台整体错误率。
+
+以上发现使下轮 C02 增加两项验收：
+1. 每个采购包事实必须有 source confidence，允许“官方原文待核”，不把第三方复制内容提升为权威；
+2. 若第三方与官方时间/类别冲突，不能选一个看似合理的数值，应高亮冲突并以可验证的官方事实为准。
