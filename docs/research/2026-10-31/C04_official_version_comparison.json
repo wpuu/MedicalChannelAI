@@ -1,0 +1,106 @@
+{
+  "audit_id": "MED-ACTION-20261031-C04",
+  "as_of_date": "2026-10-31",
+  "evaluation_timezone": "Asia/Shanghai",
+  "release_gate": "OFFICIAL_CORRECTION_SOURCE_BLOCKED",
+  "provenance_policy": "Never promote secondary indexed corrections to authoritative tender facts; compare only facts supported by official primary source.",
+  "cases": [
+    {
+      "project_number": "XCSD-2026-A-939",
+      "name": "天津市第三中心医院（东丽院区）第五批检验科设备采购项目",
+      "original": {
+        "issued_at": "2026-10-27",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27573388.htm",
+        "evidence": "PRIMARY_OFFICIAL_TEXT_VISIBLE_NO_ORIGINAL_HTML_BYTES",
+        "html_bytes_sha256": null,
+        "docx_sha256": null,
+        "published_aggregate": {
+          "total_budget_cny": 5091900,
+          "total_ceiling_cny": 4281900,
+          "package_count": 4,
+          "minimum_named_products": 8,
+          "file_acquisition_end_as_original": "2026-11-03T16:00:00+08:00",
+          "bid_deadline_as_original": "2026-11-17T09:30:00+08:00"
+        }
+      },
+      "correction": {
+        "indexed_date": "2026-10-30",
+        "source_url": "https://m.chinabidding.cn/xdwzb_3/zbbx/",
+        "evidence": "SECONDARY_INDEX_TITLE_ONLY",
+        "official_correction_url": null,
+        "official_notice_body": null,
+        "official_attachment_url": null,
+        "official_correction_attachment_sha256": null
+      },
+      "compared_fields": {
+        "project_identity": "UNCHANGED_IN_INDEX_TITLE_ONLY",
+        "package_count": "UNKNOWN",
+        "products": "UNKNOWN",
+        "technical_specs": "UNKNOWN",
+        "purchase_documents": "UNKNOWN",
+        "original_file_acquisition_deadline_still_valid": "UNKNOWN",
+        "original_bid_deadline_still_valid": "UNKNOWN",
+        "import_restrictions": "UNKNOWN"
+      },
+      "recommended_alert": "CORRECTION_DISCOVERY_CLUE_HUMAN_REVIEW_REQUIRED",
+      "prohibited_claim": "DO_NOT_ASSERT_ORIGINAL_TERMS_CURRENT_OR_EXTENDED"
+    },
+    {
+      "project_number": "XCSD-2026-A-944",
+      "name": "天津市第三中心医院（东丽院区）第四批检验科设备采购项目",
+      "original": {
+        "issued_at": "2026-10-27",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27572316.htm",
+        "evidence": "PRIMARY_OFFICIAL_SOURCE_LINK_IN_C01_WITH_PARTIAL_SECONDARY_PRODUCT_DETAILS",
+        "html_bytes_sha256": null,
+        "docx_sha256": null,
+        "published_aggregate": {
+          "total_budget_cny": 4901000,
+          "total_ceiling_cny": 4821000,
+          "package_count": 2,
+          "file_acquisition_end_as_original": "2026-11-03T16:00:00+08:00",
+          "bid_deadline_as_original": "2026-11-17T14:00:00+08:00"
+        }
+      },
+      "correction": {
+        "indexed_date": "2026-10-30",
+        "source_url": "https://www.czhaobiao.com/zb-196981466-3.html",
+        "evidence": "THIRD_PARTY_EXCERPT_ONLY_NOT_OFFICIAL_ATTACHMENT",
+        "quoted_scope": "Project demand document changed, details said to appear in highlighted attached file; not independently verified official",
+        "official_correction_url": null,
+        "official_correction_attachment_sha256": null
+      },
+      "compared_fields": {
+        "project_identity": "MATCHES_INDEX_TITLE",
+        "package_count": "UNKNOWN",
+        "products": "UNKNOWN",
+        "technical_specs": "UNKNOWN_ATTACHMENT_REQUIRED",
+        "purchase_documents": "POSSIBLE_UPDATE_UNVERIFIED_PRIMARY",
+        "original_file_acquisition_deadline_still_valid": "UNKNOWN",
+        "original_bid_deadline_still_valid": "UNKNOWN",
+        "import_restrictions": "UNKNOWN"
+      },
+      "recommended_alert": "CORRECTION_DISCOVERY_CLUE_HUMAN_REVIEW_REQUIRED",
+      "prohibited_claim": "DO_NOT_COPY_A944_TERMS_TO_A939_OR_VICE_VERSA"
+    }
+  ],
+  "official_attachment_access": [
+    {
+      "url": "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=yUJ.S_Ra1oE%2A&method=downEnId",
+      "result": "CACHE_MISS_OR_ORIGIN_INACCESSIBLE",
+      "raw_bytes": null,
+      "sha256": null
+    },
+    {
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27573388.htm",
+      "result": "PUBLIC_OFFICIAL_TEXT_VISIBLE_WITH_CCGP_HTML_RAW_GET_403_FROM_GITHUB",
+      "raw_bytes": null,
+      "sha256": null
+    }
+  ],
+  "next_gate": {
+    "must_have": "Official correction notice full text & associated demand/colored-docx attachments; original raw HTML or official DOCX bytes; source hashes; line-by-line package/parameter/deadline diff",
+    "if_not_accessible": "HOLD_SOURCE_INCOMPLETE",
+    "no_captcha_or_403_bypass": true
+  }
+}
