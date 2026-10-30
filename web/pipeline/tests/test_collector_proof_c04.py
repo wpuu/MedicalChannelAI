@@ -280,12 +280,15 @@ class CollectorExecutionProofWiringTests(unittest.TestCase):
         self.assertIsNone(read_event(self.cache, self.mid, "ccgp", "TRIGGER_ACCEPTED"))
 
     def test_unowned_queue_message_does_not_create_delivery_evidence(self):
-        self.run_queue(
-            status=200,
-            result={"action": "COMPLETED"},
-            stage="publish",
-            lease=False,
-        )
+        # Existing production behavior is fail-closed with an exception; Queue
+        # retries the unowned delivery instead of silently acknowledging it.
+        with self.assertRaisesRegex(RuntimeError, "COLLECTOR_ACTIVE_CYCLE_MISSING"):
+            self.run_queue(
+                status=200,
+                result={"action": "COMPLETED"},
+                stage="publish",
+                lease=False,
+            )
         self.assertIsNone(read_event(self.cache, self.mid, "publish", "STAGE_DELIVERED"))
 
     def test_terminal_failure_never_creates_successful_publish_receipt(self):
