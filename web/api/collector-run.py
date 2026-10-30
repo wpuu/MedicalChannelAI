@@ -13,6 +13,7 @@ from vercel.functions import RuntimeCache
 from vercel.queue import send
 
 from collector_schedule import SCHEDULE_VERSION, scheduled_cycle, running_stage_is_live
+from collector_proof import try_record
 from collector_incremental import scan_bucket_id
 from collector_incremental_scheduler import (
     SCHEDULED_INCREMENTAL_SOURCES,
@@ -234,6 +235,25 @@ async def _enqueue_start(source: str, period: str) -> tuple[str, str, str, int]:
         if type(exc).__name__ != "DuplicateIdempotencyKeyError":
             raise
         message_id = "ALREADY_QUEUED"
+    # Only an actual Queue acceptance may leave an accepted trigger witness.
+    # Duplicate idempotency responses do not forge a previously missing proof.
+    if message_id != "ALREADY_QUEUED":
+        try_record(
+            cache,
+            cycle_id=cycle_id,
+            cycle_as_of=cycle_as_of,
+            stage="ccgp",
+            event="TRIGGER_ACCEPTED",
+            when=datetime.now(timezone.utc),
+        )
+        try_record(
+            cache,
+            cycle_id=cycle_id,
+            cycle_as_of=cycle_as_of,
+            stage="ccgp",
+            event="STAGE_ENQUEUED",
+            when=datetime.now(timezone.utc),
+        )
     return str(message_id), local_date, cycle_id, delay_seconds
 
 
