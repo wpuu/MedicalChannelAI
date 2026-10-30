@@ -116,6 +116,10 @@
       "destination": "/api/ai/discover?route=continuation"
     },
     {
+      "source": "/api/collector-audit",
+      "destination": "/api/public-snapshot?route=collector-audit"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
