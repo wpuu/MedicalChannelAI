@@ -1,0 +1,126 @@
+{
+  "id": "MED-ACTION-20261030/C03",
+  "prepared_on": "2026-10-31",
+  "timezone": "Asia/Shanghai",
+  "gate": "C03_FULL_BUILD_PASS_RELEASE_HOLD",
+  "source_branch": "fix/c02-ccgp-package-products-20261030",
+  "source_sha": "8ed6bd0917f76b41ae48fba22b326ba1aa0be01b",
+  "candidate_branch": "fix/c03-ai-clock-official-provenance-20261031",
+  "implementation_sha": "3ef18842c199e141d010bdc77c3e6cac56e40063",
+  "main_sha_unchanged": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+  "pr75": {
+    "state": "draft_open",
+    "head": "a2131e4733939e07b9531ea4626c9378e0826953"
+  },
+  "pr78": {
+    "state": "draft_open",
+    "head": "d158f8648db17b904300671b0f1ccbae795c324c"
+  },
+  "changed_runtime_api": false,
+  "changes": [
+    "web/scripts/check-ai-boundary.mjs (test-only historical snapshot time fixture)",
+    "web/vercel.json (disable auto-preview for isolated C03 branch)",
+    ".github/workflows/c03-isolated-verification.yml (isolated CI)"
+  ],
+  "test": {
+    "github_actions_url": "https://github.com/wpuu/MedicalChannelAI/actions/runs/41087486515",
+    "run_id": 41087486515,
+    "conclusion": "success",
+    "c02_focused_tests": {
+      "run": 10,
+      "passed": 10
+    },
+    "pipeline_python_tests": {
+      "run": 966,
+      "passed": 966
+    },
+    "ai_boundary_checks": "PASS",
+    "full_npm_run_build": "PASS",
+    "vite_build": "PASS",
+    "time_fixture": "test clock derives from bundled verified snapshot's snapshot_as_of; global Date restored in finally",
+    "guard": "runtimeWindowStatus of definitively expired notice tested using real Date.now, must stay CLOSED",
+    "production_handler_modified": false
+  },
+  "official": {
+    "primary_notice": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27573388.htm",
+    "public_web_text_verified": true,
+    "main_notice_as_of": "2026-10-27",
+    "procurement_packages": 4,
+    "explicit_product_names": 8,
+    "main_notice_total_budget_cny": 5091900,
+    "main_notice_total_ceiling_cny": 4281900,
+    "original_html_bytes_accessible": false,
+    "raw_html_sha256": null,
+    "official_docx_accessible": false,
+    "official_attachment_url": "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=yUJ.S_Ra1oE%2A&method=downEnId",
+    "official_attachment_access_error": "WEB_CACHE_MISS",
+    "prior_github_official_html_access_error": "HTTP_403",
+    "retries_or_workarounds_used": false,
+    "verified_live_html_parser": false,
+    "original_as_current_terms_status": "SUPERSEDED_POSSIBLE_CORRECTION_RECONCILIATION_REQUIRED",
+    "correction_clues": [
+      {
+        "project_number": "XCSD-2026-A-939",
+        "date": "2026-10-30",
+        "evidence_level": "THIRD_PARTY_INDEX_TITLE_ONLY",
+        "url": "https://m.chinabidding.cn/xdwzb_3/zbbx/",
+        "content": "同号第五批更正公告标题索引出现，无法取得官方正文/附件，不能判断具体更改"
+      },
+      {
+        "project_number": "XCSD-2026-A-944",
+        "date": "2026-10-30",
+        "evidence_level": "THIRD_PARTY_QUOTED_DETAIL",
+        "url": "https://www.czhaobiao.com/zb-196981466-3.html",
+        "content": "转引更正采购文件及项目需求书，具体修改见彩色标注附件；不推定第五批更正事项相同"
+      }
+    ]
+  },
+  "production": {
+    "confirmed_deployment": {
+      "id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+      "sha": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+      "target": "production",
+      "state": "READY"
+    },
+    "deployed_cron_configuration": {
+      "count": 1,
+      "path": "/api/collector-run",
+      "utc": "20 0 * * *",
+      "beijing": "08:20 daily",
+      "queue_topic": "medicalchannelai-refresh-v2",
+      "real_execution_confirmed": false
+    },
+    "pr75_pr78_two_cron_design_not_deployed": true,
+    "last_successful_readback_from_c02": {
+      "observed_on": "2026-10-30",
+      "snapshot_as_of": "2026-10-28T08:27:29.111217+08:00",
+      "status": "STALE",
+      "degraded": true,
+      "pipeline_health_http": 503,
+      "collector_stages_completed": 0,
+      "collector_stage_count": 22,
+      "incremental_chain": null
+    },
+    "october31_live_status_readback": "TOOL_UNAVAILABLE",
+    "vlogs_recent_30m": "NO_COLLECTOR_LOGS_DURING_NON_SCHEDULED_WINDOW",
+    "vlogs_historical": "UNAVAILABLE_DUE_HOBBY_RETENTION_OR_ERROR",
+    "last7d_error_clusters": "NONE_RETURNED_NOT_PROOF_OF_EXECUTION",
+    "cron_execution_proven": false,
+    "queue_delivery_proven": false,
+    "source_freshness_proven": false,
+    "durable_snapshot_auto_publication_proven": false
+  },
+  "side_effects": {
+    "main_modified": false,
+    "pr75_modified": false,
+    "pr78_modified": false,
+    "preview_deployments_created": 0,
+    "production_modified": false,
+    "cron_changed": false,
+    "queue_changed": false,
+    "secrets_read_or_changed": false,
+    "customer_contacted": false,
+    "payment_started": false
+  },
+  "next": "C04: verify 2026-10-30 official corrections & current demands via authorized official attachment/raw HTML; safely validate parser against real DOM; instrument read-only or isolated collector proof and plan seven continuous Cron-to-snapshot validations; keep production HOLD."
+}
