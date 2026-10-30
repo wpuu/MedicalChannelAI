@@ -10,6 +10,7 @@ import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
 from collector_schedule import SCHEDULE_VERSION, valid_cycle
 from collector_proof import try_record
+from collector_durable_audit import try_persist_failure
 from collector_incremental import scan_bucket_id
 from collector_incremental_bootstrap import bootstrap_incremental_ledger_from_canonical
 from collector_incremental_scheduler import (
@@ -472,6 +473,13 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
         return
 
     if result.get("terminal") is True and action in {"FAILED", "BLOCKED"}:
+        try_persist_failure(
+            cycle_id=cycle_id,
+            stage=stage,
+            event_kind="STAGE_TERMINAL_FAILURE",
+            error_code=str(result.get("error_code") or "COLLECTOR_TERMINAL_FAILURE"),
+            occurred_at=datetime.now(timezone.utc),
+        )
         try_record(
             witness_cache, cycle_id=cycle_id, cycle_as_of=cycle_as_of,
             stage=stage, event="STAGE_TERMINAL_FAILURE", when=datetime.now(timezone.utc),
@@ -495,6 +503,13 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
         witness_cache, cycle_id=cycle_id, cycle_as_of=cycle_as_of,
         stage=stage, event="STAGE_RETRY_ERROR", when=datetime.now(timezone.utc),
         fields={"error_code": result.get("error_code")},
+    )
+    try_persist_failure(
+        cycle_id=cycle_id,
+        stage=stage,
+        event_kind="STAGE_RETRY_ERROR",
+        error_code=str(result.get("error_code") or "COLLECTOR_STAGE_RETRY"),
+        occurred_at=datetime.now(timezone.utc),
     )
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")
