@@ -1,0 +1,311 @@
+{
+  "title": "MED-ACTION-20261030/C01 真实客户行动卡验证样本",
+  "created_on": "2026-10-30",
+  "evaluation_timezone": "Asia/Shanghai",
+  "source_levels": {
+    "official_detail": "直接官方正文已可读",
+    "official_detail_search_indexed": "官方发布记录可从搜索索引抽取，详情页本轮可能拒绝重复访问，按不超过可核实内容处理",
+    "official_listing_no_detail": "只核官方列表，缺详情不得断言",
+    "production_verified_source_url_not_reopened": "生产 VERIFIED 源URL和字段已读回，本轮未独立重开该源页面"
+  },
+  "sample_is_customer_paid_validation": false,
+  "sample_is_agnes_benchmark": false,
+  "labels_are_manual_provisional": true,
+  "cases": [
+    {
+      "id": "C01-001",
+      "segment": "IVD_检验设备",
+      "name": "天津市第三中心医院（东丽院区）第五批检验科设备采购",
+      "source_type": "official_detail",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27573388.htm",
+      "published_at": "2026-10-27",
+      "buyer": "天津市第三中心医院",
+      "project_no": "XCSD-2026-A-939",
+      "lifecycle": "FORMAL_TENDER",
+      "budget_cny": 5091900,
+      "ceiling_cny": 4281900,
+      "file_acquisition_end": "2026-11-03T16:00:00+08:00",
+      "bid_deadline": "2026-11-17T09:30:00+08:00",
+      "known_products": [
+        "全自动生殖道分泌物分析仪",
+        "血气分析仪",
+        "全自动化学发光免疫分析仪",
+        "血液分析仪",
+        "全自动尿液分析流水线",
+        "微生物样本前处理系统",
+        "生化培养箱",
+        "二氧化碳温箱"
+      ],
+      "scope": "Tianjin",
+      "customer_match": "CONDITIONAL_EXACT_PRODUCT_MATCH",
+      "recommended_status": "ACTION_NOW_FOR_MATCHED_CAPABILITIES",
+      "recommended_next_action": "在截止前核对经营/注册证、具体采购包、是否进口及报名文件要求；以官方采购文件为准",
+      "fact_unknowns": [
+        "采购包全文参数及证照逐条适用",
+        "客户实际代理产品授权"
+      ],
+      "deployed_pool_presence": "PRESENT_AS_PARTIAL_WITHOUT_PRODUCT_ITEMS"
+    },
+    {
+      "id": "C01-002",
+      "segment": "IVD_检验设备",
+      "name": "天津市第三中心医院（东丽院区）第一批检验科设备采购",
+      "source_type": "production_verified_source_url_not_reopened",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27572315.htm",
+      "published_at": "2026-10-27",
+      "buyer": "天津市第三中心医院",
+      "project_no": "XCSD-2026-A-942",
+      "lifecycle": "FORMAL_TENDER",
+      "budget_cny": 24000000,
+      "file_acquisition_end": "2026-11-03T16:00:00+08:00",
+      "bid_deadline": "2026-11-18T09:00:00+08:00",
+      "known_products": [],
+      "scope": "Tianjin",
+      "customer_match": "UNKNOWN_PRODUCT_ITEMS_MISSING",
+      "recommended_status": "HUMAN_REVIEW_NOT_AUTO_MATCH",
+      "fact_unknowns": [
+        "采购包明细/具体产品尚未核原文"
+      ],
+      "deployed_pool_presence": "PRESENT_AS_PARTIAL_WITHOUT_PRODUCT_ITEMS"
+    },
+    {
+      "id": "C01-003",
+      "segment": "IVD_检验设备",
+      "name": "天津市第三中心医院（东丽院区）第二批检验科设备采购",
+      "source_type": "production_verified_source_url_not_reopened",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27572314.htm",
+      "published_at": "2026-10-27",
+      "buyer": "天津市第三中心医院",
+      "project_no": "XCSD-2026-A-943",
+      "lifecycle": "FORMAL_TENDER",
+      "budget_cny": 9830000,
+      "file_acquisition_end": "2026-11-03T16:00:00+08:00",
+      "bid_deadline": "2026-11-18T14:00:00+08:00",
+      "known_products": [],
+      "scope": "Tianjin",
+      "customer_match": "UNKNOWN_PRODUCT_ITEMS_MISSING",
+      "recommended_status": "HUMAN_REVIEW_NOT_AUTO_MATCH",
+      "fact_unknowns": [
+        "采购包明细尚未核原文"
+      ],
+      "deployed_pool_presence": "PRESENT_AS_PARTIAL_WITHOUT_PRODUCT_ITEMS"
+    },
+    {
+      "id": "C01-004",
+      "segment": "IVD_检验设备",
+      "name": "天津市第三中心医院（东丽院区）第四批检验科设备采购",
+      "source_type": "production_verified_source_url_not_reopened",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27572316.htm",
+      "published_at": "2026-10-27",
+      "buyer": "天津市第三中心医院",
+      "project_no": "XCSD-2026-A-944",
+      "lifecycle": "FORMAL_TENDER",
+      "budget_cny": 4901000,
+      "file_acquisition_end": "2026-11-03T16:00:00+08:00",
+      "bid_deadline": "2026-11-17T14:00:00+08:00",
+      "known_products": [],
+      "scope": "Tianjin",
+      "customer_match": "UNKNOWN_PRODUCT_ITEMS_MISSING",
+      "recommended_status": "HUMAN_REVIEW_NOT_AUTO_MATCH",
+      "fact_unknowns": [
+        "采购包明细尚未核原文"
+      ],
+      "deployed_pool_presence": "PRESENT_AS_PARTIAL_WITHOUT_PRODUCT_ITEMS"
+    },
+    {
+      "id": "C01-005",
+      "segment": "病理设备",
+      "name": "静海区医共体医学检验设备项目第3包",
+      "source_type": "official_detail_search_indexed",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261012_27476215.htm",
+      "published_at": "2026-10-12",
+      "buyer": "天津市静海区医院",
+      "project_no": "0615-2641032190995",
+      "lifecycle": "FORMAL_TENDER",
+      "budget_cny": 632873.39,
+      "file_acquisition_end": "2026-10-19T16:30:00+08:00",
+      "bid_deadline": "2026-11-02T09:00:00+08:00",
+      "known_products": [
+        "组织包埋机",
+        "轮转式组织切片机",
+        "全自动组织脱水机",
+        "全自动染色封片机"
+      ],
+      "scope": "Tianjin",
+      "customer_match": "DIRECT_IF_PATHOLOGY_EQUIPMENT",
+      "recommended_status": "CLOSED_FOR_NEW_DOCUMENT_ACQUISITION; FOLLOWUP_IF_ALREADY_PARTICIPATING",
+      "fact_unknowns": [
+        "是否有合法例外/延期需另核",
+        "实际厂家及注册资质"
+      ],
+      "source_warning": "官方品类为临床检验设备但第3包为病理设备；不能只按品类筛选"
+    },
+    {
+      "id": "C01-006",
+      "segment": "手术_消毒",
+      "name": "静海区医共体手术急救设备第7包",
+      "source_type": "official_detail_search_indexed",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261014_27494080.htm",
+      "published_at": "2026-10-14",
+      "buyer": "天津市静海区医院",
+      "project_no": "HYGP-2026-A-050",
+      "lifecycle": "FORMAL_TENDER",
+      "budget_cny": 383559.63,
+      "file_acquisition_end": "2026-10-21T17:00:00+08:00",
+      "bid_deadline": "2026-11-04T09:30:00+08:00",
+      "known_products": [
+        "射频消融治疗系统"
+      ],
+      "scope": "Tianjin",
+      "customer_match": "DIRECT_IF_RF_ABLATION_PRODUCT",
+      "recommended_status": "CLOSED_FOR_NEW_DOCUMENT_ACQUISITION; FOLLOWUP_IF_ALREADY_PARTICIPATING",
+      "hard_requirements": [
+        "不接受进口产品",
+        "产品注册/经营资质需按公告核验"
+      ],
+      "fact_unknowns": [
+        "是否变更/延期仍需复核"
+      ]
+    },
+    {
+      "id": "C01-007",
+      "segment": "检验耗材",
+      "name": "微生物检验用培养基和培养液采购项目调研",
+      "source_type": "official_detail_search_indexed",
+      "source_url": "https://www.tjzyefy.com/system/2026/10/09/030199590.shtml",
+      "published_at": "2026-10-09",
+      "buyer": "天津中医药大学第二附属医院",
+      "lifecycle": "MARKET_RESEARCH",
+      "known_products": [
+        "胰酪大豆胨液体培养基",
+        "麦康凯液体培养基",
+        "沙氏葡萄糖琼脂培养基"
+      ],
+      "scope": "Tianjin",
+      "registration_deadline": "2026-10-11T17:00:00+08:00",
+      "customer_match": "DIRECT_IF_MICROBIOLOGY_MEDIA",
+      "recommended_status": "HISTORICAL_FOLLOWUP_ONLY",
+      "source_warning": "院内调研不是正式招标"
+    },
+    {
+      "id": "C01-008",
+      "segment": "医用耗材",
+      "name": "一次性无菌留置引流导管耗材采购院内调研",
+      "source_type": "official_detail_search_indexed",
+      "source_url": "https://www.tjzyefy.com/system/2026/10/26/030201578.shtml",
+      "published_at": "2026-10-26",
+      "buyer": "天津中医药大学第二附属医院",
+      "lifecycle": "MARKET_RESEARCH",
+      "known_products": [
+        "一次性无菌留置引流导管"
+      ],
+      "scope": "Tianjin",
+      "registration_deadline": "2026-10-30T16:00:00+08:00",
+      "customer_match": "POSSIBLE_NOT_SAME_AS_NEGATIVE_PRESSURE_SUCTION_TUBE",
+      "recommended_status": "CLOSED_AT_2026_10_30_EVALUATION",
+      "hard_requirements": [
+        "天津市医药采购中心入围厂家或供应商"
+      ],
+      "source_warning": "截止已过不能说今天仍可报名"
+    },
+    {
+      "id": "C01-009",
+      "segment": "反例_医院非医疗",
+      "name": "安防设备新增及改造项目院内调研",
+      "source_type": "official_detail_search_indexed",
+      "source_url": "https://www.tjzyefy.com/system/2026/10/28/030202117.shtml",
+      "published_at": "2026-10-28",
+      "buyer": "天津中医药大学第二附属医院",
+      "lifecycle": "MARKET_RESEARCH",
+      "scope": "Tianjin",
+      "registration_deadline": "2026-11-02T16:30:00+08:00",
+      "known_products": [
+        "安防设备新增及改造"
+      ],
+      "customer_match": "NOT_MATCH_FOR_ALL_THREE_MEDICAL_PERSONAS",
+      "recommended_status": "PASS_NEVER_PUSH"
+    },
+    {
+      "id": "C01-010",
+      "segment": "反例_教学非临床",
+      "name": "教学训练设备模型采购项目院内调研",
+      "source_type": "official_detail_search_indexed",
+      "source_url": "https://www.tjzyefy.com/system/2026/10/29/030202182.shtml",
+      "published_at": "2026-10-29",
+      "buyer": "天津中医药大学第二附属医院",
+      "lifecycle": "MARKET_RESEARCH",
+      "scope": "Tianjin",
+      "registration_deadline": "2026-11-04T16:00:00+08:00",
+      "known_products": [
+        "颅骨模型",
+        "腰椎穿刺训练模型",
+        "关节腔注射训练模型"
+      ],
+      "customer_match": "NOT_MATCH_FOR_MEDICAL_SURGERY_EQUIPMENT_UNLESS_EDUCATION_MODELS_SOLD",
+      "recommended_status": "PASS_BY_DEFAULT"
+    },
+    {
+      "id": "C01-011",
+      "segment": "病理_竞品情报",
+      "name": "全自动免疫组化染色机成交结果公示",
+      "source_type": "official_listing_no_detail",
+      "source_url": "https://zbcg.301hospital.com.cn/admin-portal-proclamation.html",
+      "published_at": "2026-10-29",
+      "buyer": "中国人民解放军总医院",
+      "project_no": "2026-JQ06-W3257",
+      "lifecycle": "AWARD_RESULT",
+      "scope": "Beijing",
+      "known_products": [
+        "全自动免疫组化染色机"
+      ],
+      "customer_match": "DIRECT_IF_IHC_EQUIPMENT",
+      "recommended_status": "COMPETITOR_WATCH_NOT_NEW_BID",
+      "fact_unknowns": [
+        "成交品牌/金额/供应商未从可读取详情页核实"
+      ]
+    },
+    {
+      "id": "C01-012",
+      "segment": "病理_区域反例",
+      "name": "嘉定区中医医院新院开办病理科类设备",
+      "source_type": "official_detail_search_indexed",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261028_27573424.htm",
+      "published_at": "2026-10-28",
+      "buyer": "上海市嘉定区中医医院",
+      "lifecycle": "FORMAL_TENDER",
+      "scope": "Shanghai",
+      "budget_cny": 1930000,
+      "bid_deadline": "2026-11-17T09:30:00+08:00",
+      "known_products": [
+        "组织脱水机",
+        "包埋机",
+        "冷冻切片机",
+        "全自动免疫组化机"
+      ],
+      "customer_match": "DIRECT_PRODUCT_BUT_OUTSIDE_TIANJIN_BEIJING_PROFILE",
+      "recommended_status": "PASS_GEO_UNLESS_EXPANDED",
+      "fact_unknowns": [
+        "获取文件窗口未独立核验"
+      ]
+    },
+    {
+      "id": "C01-013",
+      "segment": "公告一致性",
+      "name": "全自动核酸提取纯化仪公告与流标公示同日出现",
+      "source_type": "official_listing_no_detail",
+      "source_url": "https://zbcg.301hospital.com.cn/admin-portal-proclamation.html",
+      "published_at": "2026-10-29",
+      "buyer": "中国人民解放军总医院",
+      "project_no": "2026-JQ06-W3260",
+      "lifecycle": "CONFLICT_REQUIRES_STATUS_REVIEW",
+      "scope": "Beijing",
+      "known_products": [
+        "全自动核酸提取纯化仪"
+      ],
+      "recommended_status": "DO_NOT_PROMOTE_AS_OPEN_TENDER_UNTIL_VERSION_RESOLVED",
+      "fact_unknowns": [
+        "同日两公告的先后顺序与是否针对同一轮采购未核实"
+      ]
+    }
+  ]
+}
