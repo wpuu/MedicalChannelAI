@@ -41,3 +41,33 @@ jobs:
       - name: Complete prebuild, types, and Vite build
         working-directory: web
         run: npm run build
+      - name: Independent TypeScript type check (even when prebuild fails)
+        if: always()
+        working-directory: web
+        run: npm run typecheck
+      - name: Independent Vite production bundle compilation (no deployment)
+        if: always()
+        working-directory: web
+        run: npx vite build
+
+  compare-pr78-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d158f8648db17b904300671b0f1ccbae795c324c
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install exact PR78 dependencies
+        working-directory: web
+        run: npm ci
+      - name: Re-run unmodified PR78 build under identical CI environment
+        working-directory: web
+        run: npm run build
