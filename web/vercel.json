@@ -8,7 +8,8 @@
       "chatgpt/m1-evidence-pipeline-v1": true,
       "chatgpt/opportunity-ranking-v2-final": false,
       "fix/c02-ccgp-package-products-20261030": false,
-      "fix/c03-ai-clock-official-provenance-20261031": false
+      "fix/c03-ai-clock-official-provenance-20261031": false,
+      "fix/c04-source-proof-20261031": false
     }
   },
   "functions": {
