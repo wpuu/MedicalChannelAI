@@ -1,0 +1,56 @@
+name: C05 Isolated Durable Failure Audit Verification
+
+on:
+  push:
+    branches:
+      - fix/c05-durable-failure-audit-20261031
+    paths:
+      - "web/api/_collectorFailureAudit.js"
+      - "web/api/collector-audit.js"
+      - "web/collector_durable_audit.py"
+      - "web/api/collector-run.py"
+      - "web/collector_queue.py"
+      - "web/scripts/check-collector-failure-audit.mjs"
+      - "web/pipeline/tests/test_collector_durable_audit_c05.py"
+      - ".github/workflows/c05-durable-audit-verify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  c05-offline-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Focused C05 and C04 collector proof tests
+        working-directory: web/pipeline
+        run: |
+          python -m unittest discover -s tests -p 'test_collector_durable_audit_c05.py' -v
+          python -m unittest discover -s tests -p 'test_collector_proof_c04.py' -v
+      - name: Legacy two-window and Queue boundaries
+        working-directory: web/pipeline
+        run: |
+          python -m unittest discover -s tests -p 'test_twice_daily_search.py' -v
+          python -m unittest discover -s tests -p 'test_twice_daily_source_parity.py' -v
+      - name: Full Python pipeline
+        working-directory: web/pipeline
+        run: python -m unittest discover -s tests -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install frozen NPM dependencies
+        working-directory: web
+        run: npm ci
+      - name: Isolated append-only SQL and audit API contract
+        working-directory: web
+        run: node scripts/check-collector-failure-audit.mjs
+      - name: Full prebuild TypeScript and Vite
+        working-directory: web
+        run: npm run build
