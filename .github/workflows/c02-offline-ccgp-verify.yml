@@ -1,0 +1,43 @@
+name: C02 Offline CCGP Package Parser Verification
+on:
+  push:
+    branches:
+      - fix/c02-ccgp-package-products-20261030
+    paths:
+      - "web/pipeline/medical_channel_pipeline/ccgp_detail.py"
+      - "web/pipeline/tests/test_ccgp_tianjin_package_table_c02.py"
+      - ".github/workflows/c02-offline-ccgp-verify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-c02:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Focused C02 parser reproduction / regression
+        working-directory: web/pipeline
+        run: python -m unittest tests.test_ccgp_tianjin_package_table_c02 -v
+      - name: Existing CCGP parser regression tests
+        working-directory: web/pipeline
+        run: python -m unittest tests.test_ccgp_detail tests.test_ccgp_national_detail_formats tests.test_ccgp_liaoning_detail_format -v
+      - name: Complete pipeline tests
+        working-directory: web/pipeline
+        run: python -m unittest discover -s tests -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: web
+        run: npm ci
+      - name: Complete prebuild, types, and Vite build
+        working-directory: web
+        run: npm run build
