@@ -282,6 +282,62 @@ def snapshot_source_witness(
     }
 
 
+
+def source_stage_freshness(
+    cache: Any,
+    *,
+    now: datetime,
+    source_stages: Iterable[str],
+    lookback_days: int = 7,
+    stale_after_hours: int = 36,
+) -> dict[str, dict[str, Any]]:
+    """Fail-closed stage freshness, never a declaration of market coverage.
+
+    Only a VERIFIED durable+cache snapshot receipt from that cycle counts:
+    a source stage completing alone cannot mean a customer got current data.
+    Cache evidence may be lost/evicted: missing is UNKNOWN, not healthy.
+    """
+    _utc(now)
+    if not 1 <= lookback_days <= 7 or not 1 <= stale_after_hours <= 168:
+        raise ValueError("PROOF_SOURCE_WINDOW_INVALID")
+    stages = list(dict.fromkeys(source_stages))
+    if len(stages) > 25 or not stages or any(not _STAGE_RE.fullmatch(str(s)) for s in stages):
+        raise ValueError("PROOF_SOURCE_SET_INVALID")
+    latest: dict[str, datetime | None] = {s: None for s in stages}
+    for cycle_id, _, anchor in recent_cycle_ids(now, lookback_days):
+        if read_event(cache, cycle_id, "ccgp", "TRIGGER_ACCEPTED") is None:
+            continue
+        if read_event(cache, cycle_id, "publish", "SNAPSHOT_CONFIRMED") is None:
+            continue
+        for stage in stages:
+            evidence = read_event(cache, cycle_id, stage, "STAGE_COMPLETED")
+            if not evidence or evidence.get("source_quality") != "NO_FAILURES_REPORTED":
+                continue
+            if read_event(cache, cycle_id, stage, "STAGE_DELIVERED") is None:
+                continue
+            try:
+                when = _utc(datetime.fromisoformat(evidence["recorded_at"]))
+            except (ValueError, KeyError, TypeError):
+                continue
+            if when > _utc(now) + timedelta(minutes=15):
+                continue
+            if latest[stage] is None or when > latest[stage]:
+                latest[stage] = when
+    results: dict[str, dict[str, Any]] = {}
+    for stage, timestamp in latest.items():
+        age = max(0, (_utc(now) - timestamp).total_seconds() / 3600) if timestamp else None
+        results[stage] = {
+            "status": (
+                "UNKNOWN_NO_END_TO_END_PROOF" if age is None else
+                "STALE" if age > stale_after_hours else
+                "RECENT_STAGE_WITH_SNAPSHOT_RECEIPT"
+            ),
+            "last_verified_stage_completion_at": timestamp.isoformat() if timestamp else None,
+            "age_hours": round(age, 2) if age is not None else None,
+            "scope": "RECORDED_STAGE_SUCCESS_NOT_OFFICIAL_SOURCE_WINDOW_COVERAGE",
+        }
+    return results
+
 def recent_cycle_ids(now: datetime, lookback_days: int = 7) -> list[tuple[str, str, datetime]]:
     """Read-only calendar of expected cycles. Missing rows are UNKNOWN."""
     if not 1 <= lookback_days <= 7:
