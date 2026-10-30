@@ -230,6 +230,58 @@ def audit_cycle(cache: Any, cycle_id: str, required_stages: Iterable[str], *, pe
     }
 
 
+
+def snapshot_source_witness(
+    cache: Any,
+    *,
+    cycle_id: str,
+    cycle_as_of: datetime,
+    completed_stages: Iterable[str],
+) -> dict[str, Any] | None:
+    """Bounded pre-publish evidence that may be carried inside durable snapshot.
+
+    The database receipt still determines publication success. This witness
+    attests to an accepted trigger and observed delivery/completion of all
+    the stages supplied by the authoritative runtime state, not to 100%
+    market coverage or source-page completeness. A missing cache event
+    means no witness (not automatic proof repair).
+    """
+    if not valid_cycle(cycle_id, _utc(cycle_as_of)):
+        return None
+    stages = list(dict.fromkeys(completed_stages))
+    if not stages or len(stages) > 40 or "publish" in stages:
+        return None
+    if any(not _STAGE_RE.fullmatch(str(x or "")) for x in stages):
+        return None
+    trigger = read_event(cache, cycle_id, "ccgp", "TRIGGER_ACCEPTED")
+    if trigger is None:
+        return None
+    proofs = []
+    partial = False
+    for stage in stages:
+        delivered = read_event(cache, cycle_id, stage, "STAGE_DELIVERED")
+        completed = read_event(cache, cycle_id, stage, "STAGE_COMPLETED")
+        failed = read_event(cache, cycle_id, stage, "STAGE_TERMINAL_FAILURE")
+        if not delivered or not completed or failed:
+            return None
+        if completed.get("source_quality") != "NO_FAILURES_REPORTED":
+            partial = True
+        proofs.append([stage, delivered["recorded_at"], completed["recorded_at"], completed.get("source_quality")])
+    stable = json.dumps(
+        [cycle_id, trigger["recorded_at"], proofs],
+        ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+    )
+    return {
+        "schema_version": PROOF_SCHEMA,
+        "cycle_id": cycle_id,
+        "trigger_accepted_at": trigger["recorded_at"],
+        "witnessed_stage_count": len(proofs),
+        "witness_sha256": hashlib.sha256(stable.encode("utf-8")).hexdigest(),
+        "source_quality": "PARTIAL_OR_UNREPORTED" if partial else "NO_STAGE_FAILURES_REPORTED",
+        "attestation_level": "CACHE_EVENTS_OBSERVED_BEFORE_DURABLE_PUBLISH",
+    }
+
+
 def recent_cycle_ids(now: datetime, lookback_days: int = 7) -> list[tuple[str, str, datetime]]:
     """Read-only calendar of expected cycles. Missing rows are UNKNOWN."""
     if not 1 <= lookback_days <= 7:
