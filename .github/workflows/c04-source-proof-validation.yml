@@ -1,0 +1,50 @@
+name: C04 Isolated Collector Proof Regression
+
+on:
+  push:
+    branches:
+      - fix/c04-source-proof-20261031
+    paths:
+      - "web/collector_proof.py"
+      - "web/collector_queue.py"
+      - "web/collector_runtime.py"
+      - "web/api/collector-run.py"
+      - "web/api/collector-status.py"
+      - "web/pipeline/tests/test_collector_proof_c04.py"
+      - ".github/workflows/c04-source-proof-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-proof-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: C04 proof / schedule / Queue boundaries
+        working-directory: web/pipeline
+        run: |
+          python -m unittest \
+            tests.test_collector_proof_c04 \
+            tests.test_twice_daily_search \
+            tests.test_twice_daily_source_parity \
+            -v
+      - name: Full Python regression
+        working-directory: web/pipeline
+        run: python -m unittest discover -s tests -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install frozen dependencies
+        working-directory: web
+        run: npm ci
+      - name: Complete prebuild, TypeScript and Vite
+        working-directory: web
+        run: npm run build
