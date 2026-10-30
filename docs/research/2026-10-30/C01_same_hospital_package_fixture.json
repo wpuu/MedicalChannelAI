@@ -1,0 +1,170 @@
+{
+  "schema_version": "0.1",
+  "audit_id": "MED-ACTION-20261030-C01",
+  "extraction_basis": "FOUR_BATCH_OFFICIAL_AND_SECONDARY_COMPARISON",
+  "audit_as_of": "2026-10-30T17:36:00+08:00",
+  "intended_use": "OFFLINE_REGRESSION_EVIDENCE_ONLY",
+  "assumptions": "Only batch 5 primary-source body fetched directly this turn; batches 1/2/4 product text from publicly indexed mirrors of government notices, pending fresh official readback. All four production product arrays verified empty.",
+  "source_disagreements": [
+    {
+      "project_number": "XCSD-2026-A-944",
+      "source": "https://www.globaltenders.com/tender-detail/public-call-for-tenders-for-the-fourth-batch-X9AXEHNwyAKxuLDk",
+      "observed_secondary_deadline": "2026-11-11",
+      "current_official_or_local_tender_clock": "2026-11-17T14:00:00+08:00",
+      "warning": "Secondary aggregator deadline differs from project official tender clock and mislabeled medical equipment as X-ray/fire safety; do not rely on it for actions."
+    },
+    {
+      "project_number": "XCSD-2026-A-942",
+      "source": "https://www.globaltenders.com/tender-detail/public-tender-for-the-first-project-for-the-AuQJRdem0V09WOWT",
+      "observed_secondary_deadline": "2026-11-11",
+      "current_official_or_local_tender_clock": "2026-11-18T09:00:00+08:00",
+      "warning": "Secondary aggregator mislabeled procurement classification/deadline; use original official notice."
+    }
+  ],
+  "batches": [
+    {
+      "batch": "第一批",
+      "project_number": "XCSD-2026-A-942",
+      "budget_cny": 24000000,
+      "ceiling_cny": 8000000,
+      "official_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27572315.htm",
+      "product_evidence_level": "SECONDARY_REPRINT_OF_OFFICIAL_BODY_NOT_INDEPENDENTLY_REOPENED",
+      "secondary_urls": [
+        "https://tj.zhaobiao.lanyancloud.com/notice/451caeec538e4d4a"
+      ],
+      "packages": [
+        {
+          "package_number": 1,
+          "budget_cny": 24000000,
+          "ceiling_cny": 8000000,
+          "products": [
+            "全自动生化免疫流水线"
+          ]
+        }
+      ],
+      "file_end": "2026-11-03T16:00:00+08:00",
+      "bid_end": "2026-11-18T09:00:00+08:00",
+      "production_products_count": 0,
+      "production_coverage": "PARTIAL"
+    },
+    {
+      "batch": "第二批",
+      "project_number": "XCSD-2026-A-943",
+      "budget_cny": 9830000,
+      "ceiling_cny": 6000000,
+      "official_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27572314.htm",
+      "product_evidence_level": "SECONDARY_REPRINT_OF_OFFICIAL_BODY_NOT_INDEPENDENTLY_REOPENED",
+      "secondary_urls": [
+        "https://www.lfzct.com/info/Rmzxcgr8AAAALw1HvFxvaFeAAAAQ%3D%3D?city=%E5%A4%A9%E6%B4%A5%E5%B8%82",
+        "https://tj.zhaobiao.lanyancloud.com/notice/62c1f2b39eb940c5"
+      ],
+      "packages": [
+        {
+          "package_number": 1,
+          "budget_cny": 9830000,
+          "ceiling_cny": 6000000,
+          "products": [
+            "免疫流水线",
+            "全自动酶免仪"
+          ]
+        }
+      ],
+      "file_end": "2026-11-03T16:00:00+08:00",
+      "bid_end": "2026-11-18T14:00:00+08:00",
+      "production_products_count": 0,
+      "production_coverage": "PARTIAL"
+    },
+    {
+      "batch": "第四批",
+      "project_number": "XCSD-2026-A-944",
+      "budget_cny": 4901000,
+      "ceiling_cny": 4821000,
+      "official_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27572316.htm",
+      "product_evidence_level": "SECONDARY_REPRINT_OF_OFFICIAL_BODY_NOT_INDEPENDENTLY_REOPENED",
+      "secondary_urls": [
+        "https://www.lfzct.com/info/KL43PqviwfHGMk1wciNodw%3D%3D?city=%E5%A4%A9%E6%B4%A5%E5%B8%82",
+        "https://tj.zhaobiao.lanyancloud.com/notice/c54426aa95de4265"
+      ],
+      "packages": [
+        {
+          "package_number": 1,
+          "budget_cny": 2020000,
+          "ceiling_cny": 1940000,
+          "products": [
+            "生物显微镜",
+            "医学显微镜",
+            "生物安全柜"
+          ]
+        },
+        {
+          "package_number": 2,
+          "budget_cny": 2881000,
+          "ceiling_cny": 2881000,
+          "products": [
+            "冷藏加冷冻医用冰箱",
+            "负80度冰箱"
+          ]
+        }
+      ],
+      "file_end": "2026-11-03T16:00:00+08:00",
+      "bid_end": "2026-11-17T14:00:00+08:00",
+      "production_products_count": 0,
+      "production_coverage": "PARTIAL"
+    },
+    {
+      "batch": "第五批",
+      "project_number": "XCSD-2026-A-939",
+      "budget_cny": 5091900,
+      "ceiling_cny": 4281900,
+      "official_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27573388.htm",
+      "product_evidence_level": "OFFICIAL_BODY_DIRECTLY_VERIFIED",
+      "secondary_urls": [
+        "https://tj.zhaobiao.lanyancloud.com/notice/aa31dd3bf55b410e"
+      ],
+      "packages": [
+        {
+          "package_number": 1,
+          "budget_cny": 2480000,
+          "ceiling_cny": 2270000,
+          "products": [
+            "全自动生殖道分泌物分析仪",
+            "血气分析仪"
+          ]
+        },
+        {
+          "package_number": 2,
+          "budget_cny": 1049900,
+          "ceiling_cny": 599900,
+          "products": [
+            "全自动化学发光免疫分析仪",
+            "血液分析仪"
+          ]
+        },
+        {
+          "package_number": 3,
+          "budget_cny": 950000,
+          "ceiling_cny": 800000,
+          "products": [
+            "全自动尿液分析流水线",
+            "微生物样本前处理系统"
+          ]
+        },
+        {
+          "package_number": 4,
+          "budget_cny": 612000,
+          "ceiling_cny": 612000,
+          "products": [
+            "生化培养箱",
+            "二氧化碳温箱"
+          ]
+        }
+      ],
+      "product_list_is_non_exhaustive": true,
+      "source_notes": "Official main announcement uses '等' and directs to project demand DOCX for details; product item list is a minimum visible proof, not full BOM.",
+      "file_end": "2026-11-03T16:00:00+08:00",
+      "bid_end": "2026-11-17T09:30:00+08:00",
+      "production_products_count": 0,
+      "production_coverage": "PARTIAL"
+    }
+  ]
+}
