@@ -78,6 +78,12 @@ try {
   endpointSource = replaceImport(endpointSource,
     /import \{ persistPublicVerifiedSnapshot \} from '\.\/_publicIntelligenceDb\.js'/,
     `const { persistPublicVerifiedSnapshot } = globalThis.${registryName}`)
+  // This offline publish test moves the endpoint into a temporary folder.
+  // Its collector-audit subroute is exercised by a separate C05 contract
+  // suite; never execute an audit DB import from the temporary publish clone.
+  endpointSource = replaceImport(endpointSource,
+    /import \{ collectorAuditHandler \} from '\.\/_collectorAuditHandler\.js'/,
+    `const collectorAuditHandler = () => { throw new Error('OFFLINE_AUDIT_SUBROUTE_FORBIDDEN') }`)
   const endpointPath = join(directory, 'endpoint.mjs')
   await writeFile(endpointPath, endpointSource)
   const handler = (await import(pathToFileURL(endpointPath).href)).default
