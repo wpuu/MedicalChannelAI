@@ -1,0 +1,84 @@
+name: C02 Single Official CCGP Read-Only Validation
+on:
+  push:
+    branches:
+      - fix/c02-ccgp-package-products-20261030
+    paths:
+      - ".github/workflows/c02-one-shot-official-read.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-official-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Single bounded GET of official CCGP notice and in-memory parse
+        working-directory: web/pipeline
+        run: |
+          python - <<'PY'
+          import hashlib
+          from urllib.request import Request, urlopen
+          from urllib.parse import urlsplit
+          from medical_channel_pipeline.ccgp_detail import parse_ccgp_public_tender_html
+
+          url = "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27573388.htm"
+          wanted = (
+              "全自动生殖道分泌物分析仪",
+              "血气分析仪",
+              "全自动化学发光免疫分析仪",
+              "血液分析仪",
+              "全自动尿液分析流水线",
+              "微生物样本前处理系统",
+              "生化培养箱",
+              "二氧化碳温箱",
+          )
+          # One GET; no retry, authentication, CAPTCHA, proxy, mirroring,
+          # raw HTML upload or persistence. Error is a BLOCKED source test,
+          # not a failed parser regression.
+          request = Request(
+              url,
+              headers={
+                  "User-Agent": "MedicalChannelAI/0.1 (one-read official CCGP evidence verification)",
+                  "Accept": "text/html",
+              },
+          )
+          with urlopen(request, timeout=16) as response:
+              final = response.geturl()
+              if urlsplit(final).hostname not in {"www.ccgp.gov.cn", "ccgp.gov.cn"}:
+                  raise RuntimeError("OFFICIAL_HOST_REDIRECT_REJECTED")
+              content_type = response.headers.get_content_type()
+              if content_type != "text/html":
+                  raise RuntimeError("OFFICIAL_CONTENT_TYPE_UNEXPECTED")
+              raw = response.read(2_000_001)
+              if len(raw) > 2_000_000:
+                  raise RuntimeError("OFFICIAL_BODY_EXCEEDS_BOUNDED_LIMIT")
+              declared_charset = response.headers.get_content_charset() or "utf-8"
+          body = raw.decode(declared_charset, errors="strict")
+          print("OFFICIAL_READ_STATUS=200")
+          print("OFFICIAL_BODY_SHA256="+hashlib.sha256(raw).hexdigest())
+          print("OFFICIAL_BODY_BYTES="+str(len(raw)))
+          print("OFFICIAL_BODY_CHARSET="+declared_charset)
+          record = parse_ccgp_public_tender_html(
+              body,
+              source_url=url,
+              observed_at="2026-10-30T21:48:00+08:00",
+              opportunity_id="c02_official_read_once_20261030",
+          )
+          products = record["facts"].get("product_items") or []
+          packages = record["facts"].get("procurement_packages") or []
+          observed = [item.get("raw_name") for item in products]
+          print("CCGP_REAL_HTML_EXPLICIT_PRODUCTS="+str(len(observed)))
+          print("CCGP_REAL_HTML_PACKAGE_ROWS="+str(len(packages)))
+          print("CCGP_REAL_HTML_KNOWN_NAMES_MISSING="+str(len([item for item in wanted if item not in observed])))
+          if any(item not in observed for item in wanted):
+              raise RuntimeError("OFFICIAL_REAL_HTML_PRODUCT_RECALL_BELOW_100")
+          if len(packages) != 4:
+              raise RuntimeError("OFFICIAL_REAL_HTML_PACKAGE_COUNT_NOT_FOUR")
+          print("C02_OFFICIAL_REAL_HTML_SMOKE=PASS")
+          PY
