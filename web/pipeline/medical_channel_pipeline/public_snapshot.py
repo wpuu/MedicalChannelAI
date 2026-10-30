@@ -367,6 +367,33 @@ def _public_card(
         "verification_status": "VERIFIED",
         "coverage_status": "PARTIAL",
     }
+    # Only project package-level facts that carry their own official evidence.
+    # Never expose invented item-level prices/quantities or imply the list is a
+    # complete attachment BOM. Legacy notices retain the identical public shape.
+    package_rows = facts.get("procurement_packages")
+    package_evidence = any(
+        row.get("field_path") == "facts.procurement_packages"
+        and row.get("source_url") == record["source"]["url"]
+        for row in record.get("evidence") or []
+        if isinstance(row, dict)
+    )
+    if (
+        record["source"].get("source_type") == "CCGP_NOTICE"
+        and package_evidence
+        and isinstance(package_rows, list)
+        and package_rows
+    ):
+        public_facts["procurement_packages"] = [
+            {
+                "package_id": item["package_id"],
+                "category": item["category"],
+                "budget_cny": item["budget_cny"],
+                "ceiling_cny": item["ceiling_cny"],
+                "product_names": list(item["product_names"]),
+                "non_exhaustive": bool(item.get("non_exhaustive")),
+            }
+            for item in package_rows
+        ]
     evidence_source_urls = _record_evidence_urls(record)
     for url in correction_evidence_urls or []:
         if url not in evidence_source_urls:
