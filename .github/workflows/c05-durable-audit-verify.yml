@@ -11,6 +11,10 @@ on:
       - "web/api/collector-run.py"
       - "web/collector_queue.py"
       - "web/scripts/check-collector-failure-audit.mjs"
+      - "web/scripts/check-publish-preflight.mjs"
+      - "web/api/_collectorAuditHandler.js"
+      - "web/api/public-snapshot.js"
+      - "web/vercel.json"
       - "web/pipeline/tests/test_collector_durable_audit_c05.py"
       - ".github/workflows/c05-durable-audit-verify.yml"
   workflow_dispatch:
