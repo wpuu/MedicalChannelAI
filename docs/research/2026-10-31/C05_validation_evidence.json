@@ -1,0 +1,132 @@
+{
+  "audit_id": "MED-ACTION-20261031/C05",
+  "as_of": "2026-10-31",
+  "timezone": "Asia/Shanghai",
+  "status": "ISOLATED_AUDIT_CODE_TESTED_PRODUCTION_RELEASE_HOLD",
+  "base_branch": "fix/c04-source-proof-20261031",
+  "base_sha": "815489fb15425137c0ae09850ff0251700764407",
+  "tested_sha": "740193927f00aeda924afc131e9f05bea007b5bd",
+  "candidate_branch": "fix/c05-durable-failure-audit-20261031",
+  "github_actions": {
+    "run_id": 41097695830,
+    "url": "https://github.com/wpuu/MedicalChannelAI/actions/runs/41097695830",
+    "conclusion": "SUCCESS",
+    "focused_C05_tests": 7,
+    "focused_C04_tests": 20,
+    "existing_twice_daily_tests": 37,
+    "existing_source_parity_tests": 25,
+    "full_python_tests": 993,
+    "prebuild_python_tests": 993,
+    "js_audit_security_contract": "PASS",
+    "publish_preflight": "PASS",
+    "ai_boundary": "PASS",
+    "typescript": "PASS",
+    "vite_bundle": "PASS",
+    "full_npm_build": "PASS"
+  },
+  "implementation": {
+    "audit_backend": "NEW_OPTIONAL_APPEND_ONLY_POSTGRES_TABLE",
+    "table_name": "public_collector_audit_events",
+    "stored_only": [
+      "event_id_sha256",
+      "cycle_id",
+      "stage_id",
+      "event_kind",
+      "bounded_error_code",
+      "occurred_at",
+      "recorded_at"
+    ],
+    "serverless_function_budget": "NO_NEW_FUNCTION_SHARED_PUBLIC_SNAPSHOT_HANDLER",
+    "api_route": "/api/collector-audit => /api/public-snapshot?route=collector-audit",
+    "required_flags": [
+      "COLLECTOR_AUDIT_ENABLED=true",
+      "COLLECTOR_AUDIT_TOKEN>=32 characters",
+      "DATABASE_URL or POSTGRES_URL"
+    ],
+    "production_flag_configured_by_this_run": false,
+    "enablement": "DISABLED_BY_DEFAULT",
+    "does_not_reuse_snapshot_publish_token": true,
+    "python_client": "web/collector_durable_audit.py",
+    "python_client_timeout_seconds": 2,
+    "python_client_retry_count": 0,
+    "durable_readback_required": true,
+    "duplicate_event_behavior": "ON CONFLICT DO NOTHING plus durable row readback",
+    "fails_open_for_collector_schedule": false,
+    "diagnostic_failures_do_not_mask_original_collector_exceptions": true,
+    "events": [
+      "CRON_QUEUE_FAILED",
+      "STAGE_RETRY_ERROR",
+      "STAGE_TERMINAL_FAILURE",
+      "SOURCE_WINDOW_BLOCKED"
+    ],
+    "omitted_from_failure_table": "SUCCESSFUL_SNAPSHOT_WITNESS_IN_C04_DURABLE_VERIFIED_SNAPSHOT",
+    "in_flight_delivery_provenance": "NOT_LIVE_VERIFIED",
+    "migration_ran_in_production": false,
+    "table_created_in_production": false,
+    "historical_failure_audit": "NOT_YET_RUNNING"
+  },
+  "official_corrections": {
+    "A939": {
+      "project_number": "XCSD-2026-A-939",
+      "initial_official_notice": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27573388.htm",
+      "original_main_notice_product_names_minimum": 8,
+      "correction_date_indexed": "2026-10-30",
+      "correction_evidence": "THIRD_PARTY_TITLE_ONLY",
+      "official_corrected_notice_url": null,
+      "corrected_docx_sha256": null,
+      "changed_product_details": "UNKNOWN",
+      "changed_deadlines": "UNKNOWN",
+      "raw_html_download_verified": false
+    },
+    "A944": {
+      "project_number": "XCSD-2026-A-944",
+      "initial_official_notice": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202610/t20261027_27572316.htm",
+      "correction_date_indexed": "2026-10-30",
+      "correction_evidence": "THIRD_PARTY_REPRINT_DOCUMENT_CHANGE_CLAIM",
+      "official_corrected_notice_url": null,
+      "corrected_docx_sha256": null,
+      "changed_technical_parameters": "UNKNOWN",
+      "changed_deadlines": "UNKNOWN",
+      "raw_html_download_verified": false
+    },
+    "official_attachment_url": "https://www.ccgp-tianjin.gov.cn/portal/documentView.do?id=yUJ.S_Ra1oE%2A&method=downEnId",
+    "official_attachment_readback": "WEB_CACHE_MISS",
+    "bypass_attempted": false
+  },
+  "production_readonly": {
+    "main_sha": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+    "PR75_draft_open": true,
+    "PR78_draft_open": true,
+    "deployed_cron_from_main": "20 0 * * *",
+    "deployed_cron_beijing": "08:20 once daily",
+    "latest_successful_citable_snapshot_status": {
+      "date_checked": "2026-10-30",
+      "snapshot_at": "2026-10-28T08:27:29.111217+08:00",
+      "freshness": "STALE",
+      "degraded": true,
+      "pool_count": 65,
+      "pipeline_health_http": 503,
+      "collector_stages": "0/22",
+      "incremental_chain": null
+    },
+    "current_status_requery_result": "PUBLIC_API_FETCH_UNAVAILABLE_NO_NEW_STATUS",
+    "vercel_preview_for_C05_created": false,
+    "new_db_connection_or_schema_change": false,
+    "prod_cron_or_queue_triggered": false
+  },
+  "seven_day_acceptance": {
+    "protocol_path": "docs/research/2026-10-31/C05_seven_day_natural_cron_protocol.md",
+    "tested_in_real_production": false,
+    "evidence_recorded_days": 0,
+    "release_eligible": false
+  },
+  "warnings": [
+    "Existing official demand attachment HTTP access not established; no original raw HTML file SHA verified",
+    "Correction details for both projects still UNKNOWN, do not tell prospective clients old tender specs are current",
+    "DB failure audit uses best-effort writes; when database unavailable events can be missing, and missing must mean UNKNOWN",
+    "Runtime Cache C04 events are ephemeral; only successful snapshot witness is persisted in old DB",
+    "PR78 source-window full-pagination and <=3 details batching remain unactivated and need separate acceptance",
+    "Offline CI is not a true Vercel Cron-to-Queue-to-source-to-Neon seven-day test"
+  ],
+  "next_task": "MED-ACTION-20261031/C06: Obtain official correction DOCX/HTML in authorized manner; audit DB opt-in rollout and an end-to-end natural 7day pilot only with separate explicit Production approval; compare source coverage and no partial publish; retain HOLD until verified."
+}
