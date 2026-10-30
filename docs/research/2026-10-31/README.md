@@ -42,3 +42,28 @@ SUCCESS：
 - Production自然Cron连续7天真实链仍未验收；不得声称“每天稳定自动监控”。
 - main/PR75/PR78/Production/Secrets/Cron/Queue/付费与客户联系均没有改变。
 - 后续按 C05_execution_task.md 推进；每轮末尾提供下一步按钮。
+
+
+## C05 新增交付（2026-10-31）
+
+当前结论：C05_ISOLATED_FULL_BUILD_PASS / OFFICIAL_CORRECTIONS_UNVERIFIED / PROD_RELEASE_HOLD。
+
+- C05_implementation_and_audit.md：正式中文审计，A939/A944官方更正仍UNKNOWN、独立失败审计系统设计、Hobby限制修复、真实CI、真实生产阻碍。
+- C05_validation_evidence.json：逐项机器证据，审计default-off/未迁移DB、7项C05及993项全量测试、官方更正缺原件。
+- C05_seven_day_natural_cron_protocol.md：七个自然日的真实平台Cron→Queue→官方索引/详情→Canonical→Postgres/Serving读回验收，不允许手工数据替代。
+- C06_execution_task.md：官方更正原件、SQL迁移预检、PR78完整30日窗口/<=3详情/批回归，以及生产Canary授权前置。
+- web/api/_collectorFailureAudit.js：追加式Postgres失败周期事件表，严格白名单与持久读回。
+- web/api/_collectorAuditHandler.js：独立token和default-off子路由，不泄漏错误详情。
+- web/api/public-snapshot.js：复用既有函数的受保护审计路由，原快照逻辑不改变。
+- web/collector_durable_audit.py、collector-run.py、collector_queue.py：2秒/无重试/失败不掩盖原异常的可选失败记录。
+- web/scripts/check-collector-failure-audit.mjs：SQL幂等、默认关闭、鉴权与敏感字段防护。
+- web/pipeline/tests/test_collector_durable_audit_c05.py：7项Python单元及Queue/Cron模拟。
+- .github/workflows/c05-durable-audit-verify.yml：隔离CI，不触发生产部署。
+
+精确已测试源码SHA：740193927f00aeda924afc131e9f05bea007b5bd
+GitHub Actions：https://github.com/wpuu/MedicalChannelAI/actions/runs/41097695830
+SUCCESS：C05专项7、C04专项20、旧双时段37、旧来源25、Python全量993、prebuild再次993、Node安全合约、AI边界、TS/Vite全部通过。
+
+安全：C05新审计DDL仅在未来拥有专用token/启用标志及DB后按授权执行；本分支未创建生产表、未配置凭证、未改main/PR75/PR78/Prod/Cron/Queue，预览部署关闭。
+
+下一步：C06_execution_task.md；不要将隔离成功等同原始官方附件、生产审计或七天自然运行已通过。
