@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from .validation import validate_record
+from .ccgp_tianjin_package_table import extract_clinical_lab_package_table
 
 CCGP_HOSTS = {"ccgp.gov.cn", "www.ccgp.gov.cn"}
 
@@ -897,6 +898,88 @@ def _apply_structured_html_products(record: dict[str, Any], html: str) -> dict[s
     return validate_record(record)
 
 
+
+def _apply_ccgp_tianjin_package_table(record: dict[str, Any], html: str, text: str) -> dict[str, Any]:
+    """Add strictly evidenced package rows only when stronger product facts are absent.
+
+    This is a narrow adapter for the exact six-column clinical-lab notice table.
+    The official HTML page is checked by parse_ccgp_public_tender_text before
+    reaching this function; this code never trusts third-party mirror pages.
+    """
+    facts = record["facts"]
+    if facts.get("product_items"):
+        return record
+
+    # The table contains per-package ceiling amounts, and the official main
+    # notice separately states the total. Require exact reconciliation.
+    official_header = text.split("采购需求：", 1)[0]
+    ceiling_match = re.search(
+        r"最高限价\s*[：:]\s*([0-9,]+(?:\.[0-9]+)?)\s*万元",
+        official_header,
+    )
+    if ceiling_match is None:
+        return record
+    try:
+        from decimal import Decimal, InvalidOperation
+        total_ceiling_decimal = Decimal(ceiling_match.group(1).replace(",", "")) * Decimal(10000)
+    except (InvalidOperation, ValueError):
+        return record
+    if total_ceiling_decimal != total_ceiling_decimal.to_integral_value():
+        return record
+    total_ceiling_cny = int(total_ceiling_decimal)
+
+    packages = extract_clinical_lab_package_table(
+        html,
+        expected_total_budget_cny=facts.get("budget_cny"),
+        expected_total_ceiling_cny=total_ceiling_cny,
+    )
+    if not packages:
+        return record
+
+    # Do not assign package-level budget/limit to any specific device.
+    # The main notice lists some device names but not quantities; attachment
+    # reading and complete package BOM remain a separate verified step.
+    items = [
+        {
+            "raw_name": name,
+            "category": package["category"],
+            "quantity": None,
+            "specification": None,
+            "package_id": package["package_id"],
+        }
+        for package in packages
+        for name in package["product_names"]
+    ]
+    categories = list(dict.fromkeys(package["category"] for package in packages))
+    facts["procurement_packages"] = packages
+    facts["product_items"] = items
+    facts["product_categories"] = categories
+    source_url = record["source"]["url"]
+    record["evidence"] = [
+        row for row in record.get("evidence", [])
+        if row.get("field_path") not in {
+            "facts.procurement_packages", "facts.product_items", "facts.product_categories",
+        }
+    ] + [
+        {
+            "field_path": "facts.procurement_packages",
+            "source_url": source_url,
+            "locator": "一、项目基本情况/采购需求/包号、预算、最高限价和采购需求原表",
+        },
+        {
+            "field_path": "facts.product_items",
+            "source_url": source_url,
+            "locator": "一、项目基本情况/采购需求/各包明示产品名称（数量未披露，名单不完整）",
+        },
+        {
+            "field_path": "facts.product_categories",
+            "source_url": source_url,
+            "locator": "一、项目基本情况/采购需求/采购目录",
+        },
+    ]
+    return validate_record(record)
+
+
 def _assert_source_url(source_url: str) -> None:
     parsed = urlparse(source_url)
     if parsed.scheme != "https" or parsed.hostname not in CCGP_HOSTS:
@@ -1313,6 +1396,7 @@ def parse_ccgp_public_tender_html(
         opportunity_id=opportunity_id,
     )
     record = _apply_structured_html_products(record, html)
+    record = _apply_ccgp_tianjin_package_table(record, html, text)
     return _apply_grounded_text_products(record, text)
 
 
