@@ -9,6 +9,7 @@ from vercel.queue import send
 import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
 from collector_schedule import SCHEDULE_VERSION, valid_cycle
+from collector_proof import try_record
 from collector_incremental import scan_bucket_id
 from collector_incremental_bootstrap import bootstrap_incremental_ledger_from_canonical
 from collector_incremental_scheduler import (
@@ -413,9 +414,45 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
         return
 
+    # Instrument *after* schema/date/lease validation. Old Queue partitions
+    # and unowned messages must never invent fresh successful stage evidence.
+    witness_cache = RuntimeCache()
+    try_record(
+        witness_cache, cycle_id=cycle_id, cycle_as_of=cycle_as_of,
+        stage=stage, event="STAGE_DELIVERED", when=datetime.now(timezone.utc),
+    )
+
     status, result = runtime.run_stage(stage, now=cycle_as_of, cycle_id=cycle_id)
     action = str(result.get("action") or "")
     if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
+        if action == "COMPLETED":
+            stage_facts = result.get("result") if isinstance(result.get("result"), dict) else {}
+            try_record(
+                witness_cache, cycle_id=cycle_id, cycle_as_of=cycle_as_of,
+                stage=stage, event="STAGE_COMPLETED", when=datetime.now(timezone.utc),
+                fields={
+                    "failure_count": stage_facts.get("failure_count"),
+                    "verified_count": stage_facts.get("new_verified_record_count"),
+                },
+            )
+            if (
+                stage == "publish"
+                and stage_facts.get("durable_snapshot_persisted") is True
+                and isinstance(stage_facts.get("sha256"), str)
+            ):
+                # run_stage() has already received durable-store acceptance,
+                # completed canonical/published-cache readback and persisted
+                # the terminal stage state. Never emit on publish failure.
+                try_record(
+                    witness_cache, cycle_id=cycle_id, cycle_as_of=cycle_as_of,
+                    stage="publish", event="SNAPSHOT_CONFIRMED", when=datetime.now(timezone.utc),
+                    fields={
+                        "snapshot_sha256": stage_facts.get("sha256"),
+                        "snapshot_as_of": stage_facts.get("snapshot_as_of"),
+                        "durable_snapshot_persisted": True,
+                    },
+                )
+
         next_stage = _next_stage(stage)
         if next_stage is None:
             # Only a completed publish clears source-local pending staging.
@@ -426,18 +463,38 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
             return
         if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
             return
-        await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+        message_id = await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+        if message_id != "ALREADY_QUEUED":
+            try_record(
+                witness_cache, cycle_id=cycle_id, cycle_as_of=cycle_as_of,
+                stage=next_stage, event="STAGE_ENQUEUED", when=datetime.now(timezone.utc),
+            )
         return
 
     if result.get("terminal") is True and action in {"FAILED", "BLOCKED"}:
+        try_record(
+            witness_cache, cycle_id=cycle_id, cycle_as_of=cycle_as_of,
+            stage=stage, event="STAGE_TERMINAL_FAILURE", when=datetime.now(timezone.utc),
+            fields={"error_code": result.get("error_code")},
+        )
         next_stage = _next_stage(stage)
         if next_stage is not None:
             if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
                 return
-            await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+            message_id = await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+            if message_id != "ALREADY_QUEUED":
+                try_record(
+                    witness_cache, cycle_id=cycle_id, cycle_as_of=cycle_as_of,
+                    stage=next_stage, event="STAGE_ENQUEUED", when=datetime.now(timezone.utc),
+                )
         else:
             _release_active_cycle_if_owned(cycle_id)
         return
 
+    try_record(
+        witness_cache, cycle_id=cycle_id, cycle_as_of=cycle_as_of,
+        stage=stage, event="STAGE_RETRY_ERROR", when=datetime.now(timezone.utc),
+        fields={"error_code": result.get("error_code")},
+    )
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")
