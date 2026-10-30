@@ -29,6 +29,7 @@ sys.path.insert(0, str(PIPELINE_ROOT))
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
+from collector_proof import snapshot_source_witness  # noqa: E402
 from medical_channel_pipeline.validation import validate_records  # noqa: E402
 from publish_web_snapshot import combine_snapshots  # noqa: E402
 from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
@@ -1988,6 +1989,33 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
                 "last_complete_as_of": prior_coverage.get("last_complete_as_of") if isinstance(prior_coverage, dict) else None,
                 "history_only_source_ids": list(PRESERVED_SOURCE_RECORDS_KEYS),
             })
+        # Optional publication-time witness. Only a chain that has valid
+        # authenticated-Cron acceptance and per-stage delivery/completion
+        # records may contribute a bounded receipt to the DURABLE snapshot.
+        # Missing/evicted cache evidence means no witness; it never fabricates
+        # freshness, and it cannot change existing publication authority.
+        if _SCHEDULED_CYCLE.get() is not None and not any(
+            isinstance(item, dict) and item.get("status") in {"FAILED", "BLOCKED"}
+            for item in stages.values()
+        ):
+            successful = [
+                stage_name
+                for stage_name, item in stages.items()
+                if stage_name != "publish"
+                and isinstance(item, dict)
+                and item.get("status") == "COMPLETED"
+            ]
+            try:
+                witness = snapshot_source_witness(
+                    cache,
+                    cycle_id=_SCHEDULED_CYCLE.get(),
+                    cycle_as_of=as_of,
+                    completed_stages=successful,
+                )
+            except Exception:
+                witness = None
+            if witness is not None:
+                snapshot["collection_coverage"]["collector_source_witness"] = witness
     digest = _digest(snapshot)
     old_latest = cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
     old_published = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
