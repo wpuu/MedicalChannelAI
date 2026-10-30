@@ -6,8 +6,26 @@ import { clearVerifiedSnapshotCacheForTests } from '../api/_verifiedSnapshot.js'
 const snapshot = JSON.parse(
   readFileSync(new URL('../public/data/today-actions.public.json', import.meta.url), 'utf8'),
 )
-const knownOpportunityId = snapshot.cards?.[0]?.opportunity_id
-if (!knownOpportunityId) throw new Error('AI_BOUNDARY_TEST_NO_VERIFIED_CARD')
+// The bundled snapshot is an immutable historical test fixture. Testing an
+// active-opportunity provider path against the host wall clock months later
+// correctly receives HTTP 409 (window closed). Freeze time *inside this test
+// only* at the signed snapshot's own as-of timestamp, never in runtime code.
+// Retain separate expiry assertions below to prove that CLOSED still returns
+// HTTP 409. Always restore global Date in the finally block.
+const savedDateConstructor = globalThis.Date
+const testNowMs = savedDateConstructor.parse(snapshot.snapshot_as_of)
+if (!Number.isFinite(testNowMs)) throw new Error('AI_BOUNDARY_FIXTURE_CLOCK_INVALID')
+const knownCard = [...(snapshot.cards || []), ...(snapshot.opportunity_pool || [])].find(
+  (card) => card?.opportunity_id && runtimeWindowStatus(card.facts, testNowMs) !== 'CLOSED',
+)
+const knownOpportunityId = knownCard?.opportunity_id
+if (!knownOpportunityId) throw new Error('AI_BOUNDARY_TEST_NO_OPEN_VERIFIED_CARD')
+globalThis.Date = class FixedSnapshotFixtureDate extends savedDateConstructor {
+  constructor(...args) {
+    super(...(args.length ? args : [testNowMs]))
+  }
+  static now() { return testNowMs }
+}
 
 function mockResponse() {
   return {
@@ -77,6 +95,17 @@ try {
   // mask request-shape, grounding, provider, retry, and rate-limit assertions.
   process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED = ''
 
+  // Assert real clock semantics separately. The production window evaluator
+  // must still reject genuinely expired projects even though this test harness
+  // uses the historical snapshot clock for the unrelated provider assertions.
+  const definitivelyExpired = {
+    registration_deadline: '2001-01-01T09:00:00+08:00',
+    registration_deadline_date: null,
+    bid_deadline: '2001-01-10T09:00:00+08:00',
+  }
+  if (runtimeWindowStatus(definitivelyExpired, savedDateConstructor.now()) !== 'CLOSED') {
+    throw new Error('AI_REAL_CLOCK_EXPIRED_WINDOW_MUST_REMAIN_CLOSED')
+  }
   const dateOnlyFacts = {
     registration_deadline: null,
     registration_deadline_date: '2026-07-10',
@@ -312,6 +341,7 @@ try {
 } finally {
   clearVerifiedSnapshotCacheForTests()
   globalThis.fetch = savedFetch
+  globalThis.Date = savedDateConstructor
   if (savedKeys === undefined) delete process.env.AGNES_API_KEYS
   else process.env.AGNES_API_KEYS = savedKeys
   if (savedKey === undefined) delete process.env.AGNES_API_KEY
