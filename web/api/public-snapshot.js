@@ -5,6 +5,7 @@ import {
   preflightVerifiedSnapshotPublish,
 } from './_verifiedSnapshot.js'
 import { persistPublicVerifiedSnapshot } from './_publicIntelligenceDb.js'
+import { collectorAuditHandler } from './_collectorAuditHandler.js'
 
 // Visitors read through the Vercel CDN (the CDN strips s-maxage/SWR before the
 // browser, which then revalidates with the ETag). Publisher readback must see
@@ -137,7 +138,23 @@ async function publishSnapshot(request, response) {
   }
 }
 
+export function wantsCollectorAuditRoute(request) {
+  const direct = request?.query?.route
+  if (direct === 'collector-audit' || (Array.isArray(direct) && direct.includes('collector-audit'))) return true
+  try {
+    return new URL(String(request?.url || ''), 'https://internal.invalid').searchParams.get('route') === 'collector-audit'
+  } catch {
+    return false
+  }
+}
+
 export default async function handler(request, response) {
+  // Separate 32+ char audit-only credential is mandatory on this subroute;
+  // normal public snapshot GET/PUT semantics and publish token stay unchanged.
+  // This reuses an existing Vercel Function instead of consuming a Hobby slot.
+  if (wantsCollectorAuditRoute(request)) {
+    return collectorAuditHandler(request, response)
+  }
   if (request.method === 'PUT' || request.method === 'POST') {
     return publishSnapshot(request, response)
   }
