@@ -19,7 +19,7 @@ from collector_durable_audit import ENDPOINT, audit_enabled, try_persist_failure
 from collector_schedule import scheduled_cycle
 from test_collector_native_reliability import MemoryCache, queue
 
-NOW = datetime(2026, 10, 30, 16, 24, tzinfo=timezone.utc)
+NOW = datetime(2026, 10, 31, 0, 24, tzinfo=timezone.utc)
 CYCLE, _ = scheduled_cycle(NOW, "morning")
 ENABLED = {
     "COLLECTOR_AUDIT_ENABLED": "true",
