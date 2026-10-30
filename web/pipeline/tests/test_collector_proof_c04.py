@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import unittest
 import sys
+import asyncio
+import importlib.util
+from unittest.mock import AsyncMock, patch
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
@@ -21,6 +24,15 @@ from collector_proof import (
     try_record,
 )
 from collector_schedule import scheduled_cycle
+
+from collector_namespace import ACTIVE_CYCLE_KEY, META_KEY
+from test_collector_native_reliability import runtime, queue
+
+starter_spec = importlib.util.spec_from_file_location("c04_scheduled_start", WEB_ROOT / "api/collector-run.py")
+if starter_spec is None or starter_spec.loader is None:
+    raise RuntimeError("C04_START_MODULE_UNAVAILABLE")
+starter = importlib.util.module_from_spec(starter_spec)
+starter_spec.loader.exec_module(starter)
 
 UTC = timezone.utc
 ANCHOR = datetime(2026, 10, 30, 0, 35, tzinfo=UTC)
@@ -205,6 +217,108 @@ class CollectorExecutionProofTests(unittest.TestCase):
         out = audit_cycle(self.cache, CYCLE, ("ccgp",), period="morning", anchor=ANCHOR)
         self.assertEqual(out["state"], "INCOMPLETE_OR_EXPIRED")
         self.assertFalse(out["trigger_recorded"])
+
+
+class CollectorExecutionProofWiringTests(unittest.TestCase):
+    def setUp(self):
+        self.cache = MemoryCache()
+        self.mid, self.as_of = scheduled_cycle(ANCHOR, "morning")
+
+    def lease(self):
+        self.cache.set(
+            ACTIVE_CYCLE_KEY,
+            {"cycle_id": self.mid, "cycle_as_of": self.as_of.isoformat()},
+        )
+        self.cache.set(
+            META_KEY,
+            {"cycle_id": self.mid, "cycle_as_of": self.as_of.isoformat(), "stages": {}},
+        )
+
+    def run_queue(self, *, status, result, stage="publish", lease=True):
+        if lease:
+            self.lease()
+        payload = {
+            "schema_version": "0.1",
+            "schedule_version": "twice-daily-v1",
+            "stage": stage,
+            "cycle_id": self.mid,
+            "cycle_as_of": self.as_of.isoformat(),
+        }
+        with (
+            patch.object(queue, "RuntimeCache", return_value=self.cache),
+            patch.object(queue.runtime, "run_stage", return_value=(status, result)),
+            patch.object(queue.incremental_runtime, "clear_incremental_pending"),
+            patch.object(queue, "datetime") as fake_clock,
+        ):
+            fake_clock.now.return_value = ANCHOR + timedelta(minutes=15)
+            fake_clock.fromisoformat.side_effect = datetime.fromisoformat
+            return asyncio.run(queue.process_collector_payload(payload))
+
+    def test_real_queue_send_adds_trigger_proof_only_after_acceptance(self):
+        with (
+            patch.object(starter, "RuntimeCache", return_value=self.cache),
+            patch.object(starter, "send", new_callable=AsyncMock, return_value="queue-accepted"),
+            patch.object(starter, "datetime") as fake_clock,
+        ):
+            fake_clock.now.return_value = ANCHOR
+            fake_clock.fromisoformat.side_effect = datetime.fromisoformat
+            result = asyncio.run(starter._enqueue_start("VERCEL_CRON", "morning"))
+        self.assertEqual(result[0], "queue-accepted")
+        self.assertIsNotNone(read_event(self.cache, self.mid, "ccgp", "TRIGGER_ACCEPTED"))
+        self.assertIsNotNone(read_event(self.cache, self.mid, "ccgp", "STAGE_ENQUEUED"))
+
+    def test_failed_queue_send_does_not_claim_trigger_success(self):
+        with (
+            patch.object(starter, "RuntimeCache", return_value=self.cache),
+            patch.object(starter, "send", new_callable=AsyncMock, side_effect=RuntimeError("QUEUE_DOWN")),
+            patch.object(starter, "datetime") as fake_clock,
+        ):
+            fake_clock.now.return_value = ANCHOR
+            fake_clock.fromisoformat.side_effect = datetime.fromisoformat
+            with self.assertRaisesRegex(RuntimeError, "QUEUE_DOWN"):
+                asyncio.run(starter._enqueue_start("VERCEL_CRON", "morning"))
+        self.assertIsNone(read_event(self.cache, self.mid, "ccgp", "TRIGGER_ACCEPTED"))
+
+    def test_unowned_queue_message_does_not_create_delivery_evidence(self):
+        self.run_queue(
+            status=200,
+            result={"action": "COMPLETED"},
+            stage="publish",
+            lease=False,
+        )
+        self.assertIsNone(read_event(self.cache, self.mid, "publish", "STAGE_DELIVERED"))
+
+    def test_terminal_failure_never_creates_successful_publish_receipt(self):
+        self.run_queue(
+            status=503,
+            result={"action": "FAILED", "terminal": True, "error_code": "SOURCE_PARTIAL_FAILURE"},
+        )
+        self.assertIsNotNone(read_event(self.cache, self.mid, "publish", "STAGE_DELIVERED"))
+        self.assertIsNotNone(read_event(self.cache, self.mid, "publish", "STAGE_TERMINAL_FAILURE"))
+        self.assertIsNone(read_event(self.cache, self.mid, "publish", "SNAPSHOT_CONFIRMED"))
+
+    def test_publish_completion_with_durable_receipt_records_confirmed_snapshot(self):
+        self.run_queue(
+            status=200,
+            result={
+                "action": "COMPLETED",
+                "result": {
+                    "durable_snapshot_persisted": True,
+                    "sha256": "b" * 64,
+                    "snapshot_as_of": ANCHOR.isoformat(),
+                },
+            },
+        )
+        self.assertIsNotNone(read_event(self.cache, self.mid, "publish", "STAGE_COMPLETED"))
+        proof = read_event(self.cache, self.mid, "publish", "SNAPSHOT_CONFIRMED")
+        self.assertEqual(proof["snapshot_sha256"], "b" * 64)
+
+    def test_publish_completed_without_durable_receipt_is_not_confirmed(self):
+        self.run_queue(
+            status=200,
+            result={"action": "COMPLETED", "result": {"snapshot_as_of": ANCHOR.isoformat()}},
+        )
+        self.assertIsNone(read_event(self.cache, self.mid, "publish", "SNAPSHOT_CONFIRMED"))
 
 
 if __name__ == "__main__":
