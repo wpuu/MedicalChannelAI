@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler
 from typing import Any
 
 from vercel.functions import RuntimeCache
 
 import collector_runtime as runtime
+from collector_proof import audit_cycle, recent_cycle_ids, source_stage_freshness
 from collector_incremental import SOURCE_POLICIES, normalize_ledger
 from collector_incremental_scheduler import SCHEDULED_INCREMENTAL_SOURCES
 from collector_incremental_ticks import (
@@ -137,6 +139,38 @@ def _incremental_status(cache: RuntimeCache) -> dict[str, Any]:
     }
 
 
+def _read_collector_execution_proof(cache: RuntimeCache) -> dict[str, Any]:
+    """Read-only, fail-closed dashboard; missing cache does not mean no Cron."""
+    now = datetime.now(timezone.utc)
+    try:
+        todays = [
+            audit_cycle(cache, cycle_id, runtime.STAGE_ORDER, period=period, anchor=anchor)
+            for cycle_id, period, anchor in recent_cycle_ids(now, lookback_days=1)
+        ]
+        # Only implemented source stages may return a recent receipt.
+        sources = source_stage_freshness(
+            cache,
+            now=now,
+            source_stages=("ccgp", "tjmugh", "tjnothop", "teda", "tjfch"),
+            lookback_days=2,
+            stale_after_hours=36,
+        )
+        return {
+            "state": "CACHE_EVIDENCE_ONLY_NOT_DURABLE_DATABASE",
+            "cycles_today": todays,
+            "source_stage_freshness": sources,
+            "seven_day_acceptance": "NOT_PROVEN_BY_THIS_SHORT_WINDOW",
+            "source_coverage_claim": "NO_OFFICIAL_SOURCE_WINDOW_COVERAGE_ATTESTED",
+        }
+    except Exception:
+        return {
+            "state": "UNKNOWN_EVIDENCE_CACHE_UNAVAILABLE",
+            "cycles_today": [],
+            "source_stage_freshness": {},
+            "seven_day_acceptance": "NOT_PROVEN",
+        }
+
+
 class handler(BaseHTTPRequestHandler):
     def _send_json(self, status: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -172,6 +206,7 @@ class handler(BaseHTTPRequestHandler):
                         "completed_stage_count": completed,
                         "total_stage_count": len(STAGE_ORDER),
                         "incremental": _incremental_status(cache),
+                        "execution_proof": _read_collector_execution_proof(cache),
                     },
                 },
             )
