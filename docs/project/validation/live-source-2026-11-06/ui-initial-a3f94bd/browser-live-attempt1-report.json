@@ -1,0 +1,49 @@
+{
+  "target": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+  "deployment": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+  "expectedCommit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+  "startedAt": "2026-11-05T18:30:25.499Z",
+  "expectedAsOf": "2026-11-06T01:43:03.095559+08:00",
+  "authorityHash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "expectedDbHash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "publicationProof": "Root supplies canonical-stage and independent DB acknowledgement; this browser report verifies its payload is the ordinary UI input.",
+  "checks": [
+    {
+      "name": "share token removed after same-origin cookie bootstrap",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "ordinarySnapshots": [],
+  "uiSnapshotReads": [
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "error": "response.json: Target page, context or browser has been closed"
+    }
+  ],
+  "pages": [],
+  "sourceHealth": null,
+  "pageErrors": [],
+  "failedRequests": [],
+  "blockedRequests": [],
+  "aiRequests": [
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 8
+    }
+  ],
+  "aiResponses": [],
+  "notExercised": [],
+  "error": "page.evaluate: TypeError: response.status is not a function\n    at eval (eval at evaluate (:311:30), <anonymous>:1:84)\n    at async <anonymous>:337:30",
+  "endedAt": "2026-11-05T18:30:30.353Z",
+  "singleAiCount": 0
+}

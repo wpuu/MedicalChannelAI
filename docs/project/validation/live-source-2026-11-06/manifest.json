@@ -1,0 +1,815 @@
+{
+  "schema_version": "0.1",
+  "recorded_at": "2026-11-05T18:48:30.744646+00:00",
+  "client_timezone": "Asia/Shanghai",
+  "scope": "VERSIONED_INITIAL_SCANS_RECOVERY_DEGRADED_REAL_PUBLICATION_AND_FINAL_UI_ACCEPTANCE",
+  "production_modified": false,
+  "current_final_deployment_claimed": true,
+  "full_deep_triggered_by_this_evidence_collection": false,
+  "full_publication_proven": true,
+  "initial_scope": {
+    "target": "preview",
+    "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+    "url": "https://medicalchannelai-g6u8ue0nw-rerisse7-1717s-projects.vercel.app",
+    "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "recovery_scope": {
+    "target": "preview",
+    "deployment_id": "dpl_2Mp5oaPMfjC6NZjwVDnVKEsW9dge",
+    "url": "https://medicalchannelai-ili7fnkqd-rerisse7-1717s-projects.vercel.app",
+    "commit": "afca3d07a3e6178cb9cf422198e86a4c41c81a4f",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "source_runs": [
+    {
+      "source_id": "tjzyefy",
+      "phase": "initial-0520fa0",
+      "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+      "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+      "complete": false,
+      "pass": false,
+      "client_trigger_response_recorded_at": "2026-11-05T17:22:04.206265+00:00",
+      "client_last_poll_recorded_at": "2026-11-05T17:22:46.039478+00:00",
+      "scan_observed_at": "2026-11-05T17:22:03.759635+00:00",
+      "queue_message_id": "60-1M1eB48dUwAXr38kcGg4EQMfjbXiWNIg",
+      "ledger": {
+        "candidate_count": 8,
+        "verified_count": 6,
+        "failed_count": 2,
+        "unverified_count": 0,
+        "updated_at": "2026-11-05T17:22:04.406565+00:00"
+      },
+      "staging": {
+        "record_count": 6,
+        "barrier_count": 2
+      },
+      "scan_result": null,
+      "scan_health": {
+        "last_attempt_at": "2026-11-05T17:22:04.406565+00:00",
+        "last_successful_scan_at": null,
+        "failure_reason": "DETAIL_VERIFICATION_PENDING",
+        "stale_after_seconds": 86400
+      },
+      "snapshot_refreshed": null,
+      "interpretation": "Counts describe this scan and retained canonical state, not new or currently actionable opportunities. Poll timestamps are client observations; scan clocks do not measure wall-clock completion."
+    },
+    {
+      "source_id": "tjzyefy_intent",
+      "phase": "initial-0520fa0",
+      "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+      "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+      "complete": true,
+      "pass": true,
+      "client_trigger_response_recorded_at": "2026-11-05T17:24:01.522646+00:00",
+      "client_last_poll_recorded_at": "2026-11-05T17:24:22.621576+00:00",
+      "scan_observed_at": "2026-11-05T17:24:01.358817+00:00",
+      "queue_message_id": "26-1M1mpkz4QQhL3pmjAwac22kLgzzLV3wI",
+      "ledger": {
+        "candidate_count": 3,
+        "verified_count": 3,
+        "failed_count": 0,
+        "unverified_count": 0,
+        "updated_at": "2026-11-05T17:24:01.642074+00:00"
+      },
+      "staging": {
+        "record_count": 0,
+        "barrier_count": 0
+      },
+      "scan_result": {
+        "discovered_candidate_count": 3,
+        "selected_detail_count": 3,
+        "deferred_detail_count": 0,
+        "skipped_unchanged_count": 0,
+        "verified_record_count": 2,
+        "verified_nonfact_count": 1,
+        "verification_failure_count": 0,
+        "canonical_record_count": 6,
+        "pending_record_count": 0,
+        "pending_barrier_count": 0,
+        "snapshot_refreshed": false,
+        "snapshot_as_of": null,
+        "deferred_reason": null
+      },
+      "scan_health": {
+        "last_attempt_at": "2026-11-05T17:24:01.642074+00:00",
+        "last_successful_scan_at": "2026-11-05T17:24:01.642074+00:00",
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      },
+      "snapshot_refreshed": false,
+      "interpretation": "Counts describe this scan and retained canonical state, not new or currently actionable opportunities. Poll timestamps are client observations; scan clocks do not measure wall-clock completion."
+    },
+    {
+      "source_id": "tjzxfc",
+      "phase": "initial-0520fa0",
+      "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+      "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+      "complete": true,
+      "pass": true,
+      "client_trigger_response_recorded_at": "2026-11-05T17:25:00.868490+00:00",
+      "client_last_poll_recorded_at": "2026-11-05T17:25:32.411729+00:00",
+      "scan_observed_at": "2026-11-05T17:25:00.761551+00:00",
+      "queue_message_id": "6s-1M1hNkxsv8xObUX236LW7RbKHANO14b4",
+      "ledger": {
+        "candidate_count": 5,
+        "verified_count": 5,
+        "failed_count": 0,
+        "unverified_count": 0,
+        "updated_at": "2026-11-05T17:25:01.143686+00:00"
+      },
+      "staging": {
+        "record_count": 0,
+        "barrier_count": 0
+      },
+      "scan_result": {
+        "discovered_candidate_count": 5,
+        "selected_detail_count": 5,
+        "deferred_detail_count": 0,
+        "skipped_unchanged_count": 0,
+        "verified_record_count": 1,
+        "verified_nonfact_count": 4,
+        "verification_failure_count": 0,
+        "canonical_record_count": 1,
+        "pending_record_count": 0,
+        "pending_barrier_count": 0,
+        "snapshot_refreshed": false,
+        "snapshot_as_of": null,
+        "deferred_reason": null
+      },
+      "scan_health": {
+        "last_attempt_at": "2026-11-05T17:25:01.143686+00:00",
+        "last_successful_scan_at": "2026-11-05T17:25:01.143686+00:00",
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      },
+      "snapshot_refreshed": false,
+      "interpretation": "Counts describe this scan and retained canonical state, not new or currently actionable opportunities. Poll timestamps are client observations; scan clocks do not measure wall-clock completion."
+    },
+    {
+      "source_id": "tjzyefy",
+      "phase": "recovery-afca3d0",
+      "commit": "afca3d07a3e6178cb9cf422198e86a4c41c81a4f",
+      "deployment_id": "dpl_2Mp5oaPMfjC6NZjwVDnVKEsW9dge",
+      "complete": true,
+      "pass": true,
+      "client_trigger_response_recorded_at": "2026-11-05T17:35:19.615418+00:00",
+      "client_last_poll_recorded_at": "2026-11-05T17:35:40.798165+00:00",
+      "scan_observed_at": "2026-11-05T17:35:19.099338+00:00",
+      "queue_message_id": "60-1M1eB48dUwAXr38mGpb6BSzfHcUnJELy",
+      "ledger": {
+        "candidate_count": 8,
+        "verified_count": 8,
+        "failed_count": 0,
+        "unverified_count": 0,
+        "updated_at": "2026-11-05T17:35:19.841047+00:00",
+        "failed_reason_counts": {},
+        "failed_candidates": []
+      },
+      "staging": {
+        "record_count": 0,
+        "barrier_count": 0
+      },
+      "scan_result": {
+        "discovered_candidate_count": 8,
+        "selected_detail_count": 2,
+        "deferred_detail_count": 0,
+        "skipped_unchanged_count": 6,
+        "verified_record_count": 2,
+        "verified_nonfact_count": 0,
+        "verification_failure_count": 0,
+        "canonical_record_count": 12,
+        "pending_record_count": 0,
+        "pending_barrier_count": 0,
+        "snapshot_refreshed": false,
+        "snapshot_as_of": null,
+        "deferred_reason": null
+      },
+      "scan_health": {
+        "last_attempt_at": "2026-11-05T17:35:19.841047+00:00",
+        "last_successful_scan_at": "2026-11-05T17:35:19.841047+00:00",
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      },
+      "snapshot_refreshed": false,
+      "interpretation": "Counts describe this scan and retained canonical state, not new or currently actionable opportunities. Poll timestamps are client observations; scan clocks do not measure wall-clock completion.",
+      "before": {
+        "policy": {
+          "scan_interval_minutes": 60,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 8,
+          "verified_count": 6,
+          "failed_count": 2,
+          "unverified_count": 0,
+          "updated_at": "2026-11-05T17:32:14.646447+00:00",
+          "failed_reason_counts": {
+            "TJZYEFY_PRODUCT_ITEMS_NOT_FOUND": 2
+          },
+          "failed_candidates": [
+            {
+              "candidate_ref": "a5cb5ecfe313ef2dd3751b9ffa361990b2d9bb226e73ede6686da1e7202d326a",
+              "reason": "TJZYEFY_PRODUCT_ITEMS_NOT_FOUND"
+            },
+            {
+              "candidate_ref": "f049d46fb57e672932c692a0a5022eaaa20da5e3524ca649c118d5d75ada04aa",
+              "reason": "TJZYEFY_PRODUCT_ITEMS_NOT_FOUND"
+            }
+          ]
+        },
+        "staging": {
+          "record_count": 6,
+          "barrier_count": 2
+        },
+        "last_completed_scan": {
+          "bucket_id": null,
+          "completed_at": null,
+          "result": null
+        }
+      },
+      "before_scan_health": {
+        "last_attempt_at": "2026-11-05T17:32:14.646447+00:00",
+        "last_successful_scan_at": null,
+        "failure_reason": "DETAIL_VERIFICATION_PENDING",
+        "stale_after_seconds": 86400
+      }
+    }
+  ],
+  "scan_versus_publication": {
+    "initial_authority_unchanged": true,
+    "authority_snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+    "recovery_snapshot_refreshed": false,
+    "interpretation": "Initial successful source scans left the prior QA authority unchanged. Recovery reports snapshot_refreshed=false. No complete Queue-to-authority publication is established by these artifacts.",
+    "scope": "INITIAL_0520FA0_AND_AFCA3D0_RECOVERY_ONLY"
+  },
+  "operator_read_only_diagnostics": {
+    "preflight_metadata_files": 3,
+    "preflight_recorded_get_requests": 5,
+    "tjzyefy_recorded_detail_get_requests": 8,
+    "raw_html_copied": false,
+    "frozen_parser_replay_record_count": 8,
+    "replay_interpretation": "Replay is local against already captured HTML, not another official HTTP request or cloud scan. Original replay metadata does not bind an exact executable commit.",
+    "additional_TEDA_normal_gets": 1
+  },
+  "limitations": [
+    "Initial tjzyefy failed with 6 staged records and 2 unresolved barriers; preserve this failure even after successful recovery.",
+    "Recovery afca3d0 selected 2 details and skipped 6 unchanged; canonical count 12 is retained total, not 12 new or 12 active opportunities.",
+    "Intent initial scan verified 2 facts and 1 supported exclusion; its canonical count 6 is retained total.",
+    "Obstetrics initial scan verified 1 fact and 4 supported exclusions; the one fact may already be temporally ineligible.",
+    "Ledger VERIFIED counts include verified non-facts; use verified_record_count for fact counts.",
+    "completed_at in scan buckets currently uses the source observation clock; it is not an observed wall-clock finish time.",
+    "No real model output, sustained scheduling, all-source recall, domestic latency or Production acceptance is established.",
+    "Do not infer more than three native deliveries from the 150-second retry setting. Three source-entry clocks are observed, and the handler lease is 300 seconds; see queue-retry-policy-correction.json.",
+    "Initial/recovery source results remain bound to 0520fa0 and afca3d0; subsequent a3f94bd completed the three adapters and published the complete merged canonical snapshot with two degraded sources.",
+    "Complete publication is not all-source success: 25 stages include 22 completed and 3 degraded stages from 2 logical sources (TEDA and LN).",
+    "964 canonical records are retained merged state; 47 published active opportunities and 5 Today cards are different counts. No unique newly-discovered count is established by these totals.",
+    "deep-monitor-summary.json retains ROOT_PENDING for database/authority checks at its earlier capture time; later publication-proof.json and the independently recomputed payload hashes resolve that check.",
+    "The original DB-row timestamp comparison is not exact at microsecond precision. Preserve the 559-microsecond discrepancy rather than claiming exact SQL timestamp equality.",
+    "The first browser attempt aborted on a harness response.status error; the later denominator assertions were corrected separately from the confirmed product defect.",
+    "One normal TEDA GET returned 403; no bypass was attempted. LN detail failure cause was not observed because two runtime-log connector queries timed out.",
+    "An intraday tick was scheduled for 2026-11-06 11:30 Asia/Shanghai but its execution is not proven by this completed deep run.",
+    "A successful deep run does not exercise or establish the native maximum-delivery boundary, sustained scheduling, all-source recovery, model success, customer relevance or Production readiness.",
+    "Initial a3 UI omitted 11 of 47 cards; that defect and wrong harness assertions remain preserved. Final UI 4575fa4 separately passed all 34 checks and recovered all 11 without changing producer data.",
+    "Final UI browser guard intentionally aborted 23 automatic cache-only requests. Zero genuine failures excludes these explicit test-aborted requests; no real model generation was exercised.",
+    "Final temporary Preview access links were revoked. Evidence proves the recorded run, not ongoing anonymous access to the protected deployment."
+  ],
+  "artifacts": [
+    {
+      "path": "initial-0520fa0/scope.json",
+      "evidence_kind": "sanitized_original_observation",
+      "sha256": "e084f76a8a9ffcc7527632e8f2418eb3db671d165fc6967405d3623c99576016",
+      "source_files": [
+        {
+          "name": "initial-0520fa0/scope.json",
+          "sha256": "7f3406321e95bcda5de23d3f4b15b3accb3691ea3da48e1cef3cbcf61da9ac69"
+        }
+      ]
+    },
+    {
+      "path": "initial-0520fa0/baseline-status.json",
+      "evidence_kind": "sanitized_original_observation",
+      "sha256": "3577d80ce1588485de504e713fa837d03cd390c66eb299fa8c65a57441d67852",
+      "source_files": [
+        {
+          "name": "initial-0520fa0/baseline-status.json",
+          "sha256": "a7a88cc57d55caaabd3c5ac6a358b2aa58a9dc32d4c1c9535f88e5564e425003"
+        }
+      ]
+    },
+    {
+      "path": "initial-0520fa0/baseline-collector.json",
+      "evidence_kind": "sanitized_original_observation",
+      "sha256": "f1ce21bda243e5b9d7bab34e5a5ede00cb7ff499a4b4fb494fd6042c5a8a40d5",
+      "source_files": [
+        {
+          "name": "initial-0520fa0/baseline-collector.json",
+          "sha256": "c98f718ab3e50918959b267bfb821961c2e0d0f61d62a45aee1d59bd9ba2f166"
+        }
+      ]
+    },
+    {
+      "path": "initial-0520fa0/tjzyefy-result.json",
+      "evidence_kind": "sanitized_original_observation",
+      "sha256": "28d1e0591e39eb53341b1492bd117b0f331596f25fdf2182d4288d1c4d18152c",
+      "source_files": [
+        {
+          "name": "initial-0520fa0/tjzyefy-result.json",
+          "sha256": "4b214288c9d32f186c6d83fef8c5c5c51c37bbe2cbce6ccbba5282423a99c945"
+        }
+      ]
+    },
+    {
+      "path": "initial-0520fa0/tjzyefy_intent-result.json",
+      "evidence_kind": "sanitized_original_observation",
+      "sha256": "34c90adf3ff2ec2be25b85b827cec85ffd74e456b718693dde37290cdfa71dc9",
+      "source_files": [
+        {
+          "name": "initial-0520fa0/tjzyefy_intent-result.json",
+          "sha256": "057f1a36382a77bf78f1bfb2c9b56caa765cc03f8f0a29985c39723fb330b00c"
+        }
+      ]
+    },
+    {
+      "path": "initial-0520fa0/tjzxfc-result.json",
+      "evidence_kind": "sanitized_original_observation",
+      "sha256": "a1ff65efdbb926bb8412439003c1297e958c07652d28669db2570064b38a509a",
+      "source_files": [
+        {
+          "name": "initial-0520fa0/tjzxfc-result.json",
+          "sha256": "7623b16f641d51da0f699aa6e78af02835810aa5ef46e30080e612f9564c13a9"
+        }
+      ]
+    },
+    {
+      "path": "initial-0520fa0/scan-versus-publication.json",
+      "evidence_kind": "sanitized_original_observation",
+      "sha256": "37d2b1cc536d8dad74d0aba595cd6be3969a1116799e26817d1ed570c8d507d6",
+      "source_files": [
+        {
+          "name": "initial-0520fa0/scan-versus-publication.json",
+          "sha256": "de3e8d6848c51d4b7989c6a89ee80c6bdfb7b9f72435f8443fa02d29a51a1c08"
+        }
+      ]
+    },
+    {
+      "path": "initial-0520fa0/baseline-authority-summary.json",
+      "evidence_kind": "derived_baseline_authority_summary",
+      "sha256": "4a54fbfcef51ebe829af918e3ef339b99558818d125f9d1ef010faae296e13e5",
+      "source_files": [
+        {
+          "name": "initial-0520fa0/baseline-authority.json",
+          "sha256": "71ee17fd1e741cc176bc9af9d6287fc23a71ced49d0840f90d683cbed48554a5"
+        }
+      ]
+    },
+    {
+      "path": "recovery-afca3d0/tjzyefy-result.json",
+      "evidence_kind": "sanitized_original_observation",
+      "sha256": "49b9197c926fc08e1d26a51b9d9b3a8183f9e89967bf52d6bbb4bbe2001cb1e4",
+      "source_files": [
+        {
+          "name": "tjzyefy-result.json",
+          "sha256": "742a2f26301016aaf52ff27121691bc0ea8a09daaa2322de0026501b345a0ef0"
+        }
+      ]
+    },
+    {
+      "path": "diagnostics/official-index-preflight.json",
+      "evidence_kind": "sanitized_metadata_only",
+      "sha256": "26c3c9939e40820998364b44e51ffa5ef881566d486305d4e02c5c08d6136cda",
+      "source_files": [
+        {
+          "name": "official-index-preflight.json",
+          "sha256": "9d29192b07407aa8f22d86ad34a9ebe8129d7a2db93254db595af7935681d26f"
+        }
+      ]
+    },
+    {
+      "path": "diagnostics/tjzxfc-charset-preflight.json",
+      "evidence_kind": "sanitized_metadata_only",
+      "sha256": "9f93a17db6f041f82eb5a1cfdc98231cdb69de2eb1ee81f0e9cccc409838ca96",
+      "source_files": [
+        {
+          "name": "tjzxfc-charset-preflight.json",
+          "sha256": "2cf5d050c6c647f871e28389d39665cbe7bb6eddbcfa4079b41dc15b2e0f94ab"
+        }
+      ]
+    },
+    {
+      "path": "diagnostics/tjzxfc-detail-preflight.json",
+      "evidence_kind": "sanitized_metadata_only",
+      "sha256": "bd4b41e3fbf17226416d621172ed6f132d39014ddb7cf5cb00b248dc959dee76",
+      "source_files": [
+        {
+          "name": "tjzxfc-detail-preflight.json",
+          "sha256": "2f9291ab67254b9c5623597eb3888184867cc3cb62f865809e8dce0562a7dd3f"
+        }
+      ]
+    },
+    {
+      "path": "diagnostics/tjzyefy-detail-diagnostics.json",
+      "evidence_kind": "sanitized_metadata_only",
+      "sha256": "c2636bcd994e7aa09ae75e41cafba28dfed19d52e45f712d7ac93ed4510a0a40",
+      "source_files": [
+        {
+          "name": "tjzyefy-diagnostics/summary.json",
+          "sha256": "b1836ed3a38e147b84d3515eb99a33e6f5f4a158196897871f7131260024d388"
+        }
+      ]
+    },
+    {
+      "path": "diagnostics/tjzyefy-parser-replay-after-fix.json",
+      "evidence_kind": "sanitized_metadata_only",
+      "sha256": "a5a9a53b53ed5c713c9cd9e7fc8583f0178ae3d44927b7effe58b875a04ece9c",
+      "source_files": [
+        {
+          "name": "tjzyefy-diagnostics/parser-replay-after-fix.json",
+          "sha256": "3f191cc5130dd59f6efc2b0cfe660b6ffac06c4c60e2551a7d7664c6ccd3a342"
+        }
+      ]
+    },
+    {
+      "path": "queue-retry-policy-correction.json",
+      "evidence_kind": "derived_retry_inference_correction_and_pending_fix_descriptor",
+      "sha256": "c69aba7a80e04ea1c1b42e85c7ee2609fa53c75c598cb159dfcb6ac764b92ba1",
+      "source_files": []
+    },
+    {
+      "path": "complete-deep-a3f94bd/scope.json",
+      "evidence_kind": "recorded_deployment_scope",
+      "sha256": "8ba184c8fc9dfaa301e805c984091a71f5de829dcd9620295d9b4db6dad6be92",
+      "source_files": [
+        {
+          "name": "publication-proof.json",
+          "sha256": "b2a48e180dab3edbf41413bf21ee0f4b24262fd6cf7c9c26fe0ad52d8e42deb3"
+        }
+      ]
+    },
+    {
+      "path": "complete-deep-a3f94bd/publication-proof.json",
+      "evidence_kind": "sanitized_original_publication_verification",
+      "sha256": "aa798c744b9ed546d625f85f4cdd280491aeb2c4c69dad8d800af7a0c976305b",
+      "source_files": [
+        {
+          "name": "publication-proof.json",
+          "sha256": "b2a48e180dab3edbf41413bf21ee0f4b24262fd6cf7c9c26fe0ad52d8e42deb3"
+        }
+      ]
+    },
+    {
+      "path": "complete-deep-a3f94bd/published-payload.json",
+      "evidence_kind": "complete_unmodified_public_payload_for_canonical_hash_reproduction",
+      "sha256": "567132e6cb6c07f152157dfff1df2d74cf1b2f57acc041478edfabd98c0bfec1",
+      "source_files": [
+        {
+          "name": "published-db-row.json",
+          "sha256": "bf3b3a20f6595a8615db13c2d72492ce9513ea5fa97a3bf507586c6e155f87e1"
+        }
+      ]
+    },
+    {
+      "path": "complete-deep-a3f94bd/published-db-row-summary.json",
+      "evidence_kind": "database_acknowledgement_without_duplicate_payload",
+      "sha256": "10cbbae2680170a02bd150b41ff2d4d3ee44a35f4bae40182f7b00660fc853c3",
+      "source_files": [
+        {
+          "name": "published-db-row.json",
+          "sha256": "bf3b3a20f6595a8615db13c2d72492ce9513ea5fa97a3bf507586c6e155f87e1"
+        }
+      ]
+    },
+    {
+      "path": "complete-deep-a3f94bd/published-authority-summary.json",
+      "evidence_kind": "authority_get_summary_with_independent_hash",
+      "sha256": "ba295cf834b641dda8cb41a8686c1ade8c2e600ce97073dc285d00eae567a420",
+      "source_files": [
+        {
+          "name": "published-authority.json",
+          "sha256": "5908c21003c34e91c18fabbef884cc6884a5e81932bfef0622a11238e15d509a"
+        }
+      ]
+    },
+    {
+      "path": "complete-deep-a3f94bd/published-serving-state.json",
+      "evidence_kind": "sanitized_serving_status_and_internal_health",
+      "sha256": "568b9d2be7f395dd61bf91d1109fa5c953fd7c3b715c8357da72ad0104e65dc8",
+      "source_files": [
+        {
+          "name": "published-serving-state.json",
+          "sha256": "e63b60791d647b2e665a529a84c7b57e2fd68004da4616447c0e5663644ea62e"
+        }
+      ]
+    },
+    {
+      "path": "complete-deep-a3f94bd/deep-monitor-summary.json",
+      "evidence_kind": "sanitized_monitor_capture_before_independent_publication_verification",
+      "sha256": "55b48ab13d85e915d066d8a7bf7ccf3a02f7ef487f42b69b8693f4734e45ce2c",
+      "source_files": [
+        {
+          "name": "deep-monitor-summary.json",
+          "sha256": "98440931c4e9bd22519a35f7e374b1b47df75b806bd5e0a074bd00425c9ba5e2"
+        }
+      ]
+    },
+    {
+      "path": "complete-deep-a3f94bd/timestamp-precision-note.json",
+      "evidence_kind": "exact_timestamp_precision_limitation",
+      "sha256": "f3e1392631ab6e87f1face1b7172d6067a05519cc798cd2fb85a51530c5dca51",
+      "source_files": [
+        {
+          "name": "timestamp-precision-note.json",
+          "sha256": "e5166cf4381950d81bf188ef1af0c5736c3e61b79148088276cfa9d4b547ab9d"
+        }
+      ]
+    },
+    {
+      "path": "complete-deep-a3f94bd/deep-history-summary.json",
+      "evidence_kind": "read_only_monitor_history_summary",
+      "sha256": "bd6f9f454c12deef5f53f764237c616eba08dd29cf73ab1fb2214d6258411fd1",
+      "source_files": [
+        {
+          "name": "deep-history.jsonl",
+          "sha256": "4460b5334f9bd047d9836667a6cdc933faed92d03c8c7f344b440e4fd0ccad87"
+        }
+      ]
+    },
+    {
+      "path": "complete-deep-a3f94bd/deep-runtime-log-read-errors-summary.json",
+      "evidence_kind": "runtime_log_connector_timeout_limitations",
+      "sha256": "64e67987f73194b78dc8d057ef8f89cc25637a27d9d1458b57abcc0343461a06",
+      "source_files": [
+        {
+          "name": "deep-runtime-log-read-errors.json",
+          "sha256": "0570856d6c18b7784e360a3405fb9a3e18a303e2b07a8817d9852e80449faadb"
+        }
+      ]
+    },
+    {
+      "path": "complete-deep-a3f94bd/teda-readonly-403.json",
+      "evidence_kind": "single_normal_official_get_metadata_no_bypass",
+      "sha256": "4cc3efd4bc6aca9e919f8a56d23d40a192e3a2586fc7ae1c5c5adc90ae0a90e5",
+      "source_files": [
+        {
+          "name": "teda-readonly-diagnostic.json",
+          "sha256": "f1a07d19ae16532ce9805a359bb929e923bef0d66a8fba88fd99f5e2df311c81"
+        }
+      ]
+    },
+    {
+      "path": "ui-initial-a3f94bd/browser-live-findings.json",
+      "evidence_kind": "initial_ui_bug_and_harness_corrections",
+      "sha256": "1c4541a1622a371941748cbabbdcdf1e0925df221df497e3a5b103e17e847fe0",
+      "source_files": [
+        {
+          "name": "browser-live-findings.json",
+          "sha256": "84eb18bb7ad5d270d3daf2086e4fb1bd94cdfc427d9be147e7c8e3ffad582a82"
+        }
+      ]
+    },
+    {
+      "path": "ui-initial-a3f94bd/browser-live-report-summary.json",
+      "evidence_kind": "initial_browser_checks_with_raw_failures_preserved",
+      "sha256": "2add4ad78b4cd4c3b7d07cc860b8e9b268ca82f743165b2b36e1e1f9be4c4ded",
+      "source_files": [
+        {
+          "name": "browser-live-report.json",
+          "sha256": "3c7850913fd5c4bd10b7ee70249c1e1df157ce4d2f6a367feaa7518535ae43ae"
+        }
+      ]
+    },
+    {
+      "path": "ui-initial-a3f94bd/browser-live-attempt1-report.json",
+      "evidence_kind": "first_browser_harness_error_preserved",
+      "sha256": "1a6d15cd6dc12c9756b19017cb610962d1c73ef3d59d45df4ce053000a6790dd",
+      "source_files": [
+        {
+          "name": "browser-live-attempt1-report.json",
+          "sha256": "fa3d597223195e441d7ea41ffbbb49b6b24f1010935950f91959df07a4c68fbd"
+        }
+      ]
+    },
+    {
+      "path": "ui-initial-a3f94bd/harness-correction-record.json",
+      "evidence_kind": "explicit_harness_assertion_corrections_without_erasing_product_defect",
+      "sha256": "4332b0fc790d684a7858956ef921764468f8e027b96bfd04b7ce7bcb2ce88ee6",
+      "source_files": [
+        {
+          "name": "browser-live-attempt1-report.json",
+          "sha256": "fa3d597223195e441d7ea41ffbbb49b6b24f1010935950f91959df07a4c68fbd"
+        },
+        {
+          "name": "browser-live-findings.json",
+          "sha256": "84eb18bb7ad5d270d3daf2086e4fb1bd94cdfc427d9be147e7c8e3ffad582a82"
+        }
+      ]
+    },
+    {
+      "path": "diagnostics/teda-readonly-403.json",
+      "evidence_kind": "same_single_normal_GET_metadata_also_copied_in_complete_deep_phase",
+      "sha256": "4cc3efd4bc6aca9e919f8a56d23d40a192e3a2586fc7ae1c5c5adc90ae0a90e5",
+      "source_files": [
+        {
+          "name": "teda-readonly-diagnostic.json",
+          "sha256": "f1a07d19ae16532ce9805a359bb929e923bef0d66a8fba88fd99f5e2df311c81"
+        }
+      ]
+    },
+    {
+      "path": "ui-final-4575fa4/scope.json",
+      "evidence_kind": "recorded_final_UI_deployment_scope",
+      "sha256": "e994d1b37f5139d351756bca6b3c32b9ea8b539e3f658457abeb78aca83c9483",
+      "source_files": [
+        {
+          "name": "ui-final-serving-state.json",
+          "sha256": "00d1e778418faa388f81bcfc8af610d9034efdf1b92994e340ab8616301ad597"
+        }
+      ]
+    },
+    {
+      "path": "ui-final-4575fa4/ui-final-deployment.json",
+      "evidence_kind": "final_UI_READY_identity",
+      "sha256": "91510cae60bb9ba41c9181d168a07fcde2b8caec044cac15b1d1ea6c97c0e375",
+      "source_files": [
+        {
+          "name": "ui-final-deployment.json",
+          "sha256": "91510cae60bb9ba41c9181d168a07fcde2b8caec044cac15b1d1ea6c97c0e375"
+        }
+      ]
+    },
+    {
+      "path": "ui-final-4575fa4/ui-final-serving-state-summary.json",
+      "evidence_kind": "forced_authority_GET_and_final_UI_status_without_duplicate_payload",
+      "sha256": "3b599a6352768a527e4aa2cca1ad525163245a560988533dac01674423cc1291",
+      "source_files": [
+        {
+          "name": "ui-final-serving-state.json",
+          "sha256": "00d1e778418faa388f81bcfc8af610d9034efdf1b92994e340ab8616301ad597"
+        }
+      ]
+    },
+    {
+      "path": "ui-final-4575fa4/local-build-summary.json",
+      "evidence_kind": "final_UI_local_full_build_log_summary",
+      "sha256": "0ab41ce8f542fc1fd39c3a19e84909d55791bc0dc8839faa9ac56a9bb97c444d",
+      "source_files": [
+        {
+          "name": "final-ui-build.log",
+          "sha256": "e0c768dc938495ea7d6141604afd75b0c33101bb2ff1c631d239744df513efd2"
+        }
+      ]
+    },
+    {
+      "path": "ui-final-4575fa4/local-all-47-id-and-market-proof.json",
+      "evidence_kind": "local_readonly_market_resolver_and_exact_ID_hash_identity",
+      "sha256": "4a87b9a031bf8fbac4da04080627cef8643dac2c55edfdfc37230586a219a410",
+      "source_files": [
+        {
+          "name": "ui-final-serving-state.json",
+          "sha256": "00d1e778418faa388f81bcfc8af610d9034efdf1b92994e340ab8616301ad597"
+        }
+      ]
+    },
+    {
+      "path": "ui-final-4575fa4/browser-ui-final-report-summary.json",
+      "evidence_kind": "final_UI_34_checks_with_23_intentional_cache_only_aborts_preserved",
+      "sha256": "5ac2d0ff900af1bc0488bbc8be2fe859253804d6c2ca32c64b8b8776c5f1a847",
+      "source_files": [
+        {
+          "name": "browser-ui-final-report.json",
+          "sha256": "9431cb79130f670a3eae3e6cfba8f89dce0d4afde3b886665ad51cde5c17f959"
+        }
+      ]
+    },
+    {
+      "path": "ui-final-4575fa4/final-deployment-boundary.json",
+      "evidence_kind": "final_access_revocation_and_unchanged_Production_acknowledgement",
+      "sha256": "41bcb0211a0b8dac8126e833fce613f7859c8b276911296f35e557d51f863ab0",
+      "source_files": [
+        {
+          "name": "final-deployment-boundary.json",
+          "sha256": "41bcb0211a0b8dac8126e833fce613f7859c8b276911296f35e557d51f863ab0"
+        }
+      ]
+    }
+  ],
+  "updated_at": "2026-11-05T18:48:30.744646+00:00",
+  "all_source_success_proven": false,
+  "complete_deep_publication": {
+    "phase": "complete-deep-a3f94bd",
+    "scope": {
+      "target": "preview",
+      "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+      "url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+      "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+      "git_branch": "codex/p0-reliability-contracts",
+      "database": "mcai_p0_acceptance_final",
+      "neon_branch": "br-cold-tooth-a5clhljh"
+    },
+    "runtime_publish_success": true,
+    "manual_qa": false,
+    "stage_count": 25,
+    "completed_stage_count": 22,
+    "degraded_stage_count": 3,
+    "logical_failed_source_count": 2,
+    "logical_failed_sources": [
+      "teda",
+      "regional_ln"
+    ],
+    "source_success_count": 12,
+    "required_source_count": 14,
+    "canonical_record_count": 964,
+    "opportunity_pool_count": 47,
+    "today_card_count": 5,
+    "canonical_payload_sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "producer_database_authority_hashes_match": true,
+    "canonicalization": "Recursively sort object keys lexicographically, preserve array order, JSON.stringify the parsed JSON value without whitespace/newline, SHA-256 of UTF-8. The artifact file hash differs from this canonical payload digest.",
+    "complete_payload_artifact": "complete-deep-a3f94bd/published-payload.json",
+    "timestamp_equality_scope": "Payload version string and canonical payload/hash match exactly across producer/DB/authority. SQL column matches only at JavaScript milliseconds; payload is 559 microseconds later.",
+    "automatic_tick_execution_verified": false,
+    "next_tick_at": "2026-11-06T11:30:00+08:00",
+    "ui_before_fix": {
+      "phase": "ui-initial-a3f94bd",
+      "raw_checks_passed": 27,
+      "raw_checks_failed": 2,
+      "omitted_cards": 11,
+      "active_pool": 47,
+      "subsequent_ui_fix_deployment_result": "4575fa4_FINAL_UI_34_CHECKS_PASS_WITH_INTENTIONAL_CACHE_ONLY_GUARDS"
+    }
+  },
+  "teda_readonly_403": {
+    "artifact": "complete-deep-a3f94bd/teda-readonly-403.json",
+    "normal_get_count": 1,
+    "http": 403,
+    "bypass_attempted": false,
+    "diagnostics_alias_artifact": "diagnostics/teda-readonly-403.json",
+    "duplicate_metadata_files_do_not_add_requests": true
+  },
+  "initial_manifest_recorded_at": "2026-11-05T17:41:18.657334+00:00",
+  "sanitization_scope": "Only credential-bearing keys and their actual values are private. Commit hashes, deployment IDs, public Preview hosts and database names are non-secret scope metadata and are preserved.",
+  "evidence_collection_finalized": true,
+  "final_ui_acceptance": {
+    "phase": "ui-final-4575fa4",
+    "scope": {
+      "target": "preview",
+      "deployment_id": "dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm",
+      "url": "https://medicalchannelai-j4ktac1cu-rerisse7-1717s-projects.vercel.app",
+      "commit": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+      "git_branch": "codex/p0-reliability-contracts",
+      "database": "mcai_p0_acceptance_final",
+      "neon_branch": "br-cold-tooth-a5clhljh"
+    },
+    "deployment_ready": true,
+    "producer_scope": {
+      "deployment": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+      "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03"
+    },
+    "unchanged_public_payload_sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "ordinary_CDN_first_request": {
+      "retry": 0,
+      "waitSeconds": 0,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47,
+      "age": "1",
+      "cache": "HIT"
+    },
+    "browser_checks": 34,
+    "browser_checks_passed": 34,
+    "initially_omitted_cards_restored": 11,
+    "all_pool_visible": 47,
+    "tianjin_pool_visible": 8,
+    "source_health_healthy": 12,
+    "source_health_required": 14,
+    "degraded": true,
+    "automatic_cache_only_request_attempts_intentionally_aborted": 23,
+    "other_failed_requests": 0,
+    "application_page_errors": 0,
+    "model_success_proven": false,
+    "full_local_build_python_tests": 878,
+    "local_exact_id_and_market_count": 47,
+    "browser_artifact": "ui-final-4575fa4/browser-ui-final-report-summary.json",
+    "boundary_artifact": "ui-final-4575fa4/final-deployment-boundary.json",
+    "interpretation": "UI-only resolver fix; the producer remains a3f94bd and the same DATABASE snapshot/hash. No new collection, recollection or manual publication is inferred from the UI deployment."
+  },
+  "final_deployment_boundary": {
+    "artifact": "ui-final-4575fa4/final-deployment-boundary.json",
+    "production_modified": false,
+    "merge_performed": false,
+    "dns_domains_edgeone_modified": false,
+    "producer_temporary_access_revoked_at": "2026-11-05T18:41:48.868Z",
+    "final_ui_temporary_access_revoked_at": "2026-11-05T18:46:25.581Z",
+    "production_commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+    "production_deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+    "production_ready_state": "READY",
+    "project_SSO_unchanged": true,
+    "interpretation": "Revocation acknowledgements and Production/SSO readback only; no claim of probing removed credentials afterward."
+  }
+}

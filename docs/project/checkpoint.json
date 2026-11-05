@@ -2,36 +2,26 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-06",
   "timezone": "Asia/Shanghai",
-  "state_scope": "CURRENT_P0_CODE_AND_ISOLATED_PREVIEW_ACCEPTANCE",
+  "state_scope": "CURRENT_P0_CODE_AND_ISOLATED_LIVE_PREVIEW_PUBLICATION_ACCEPTANCE",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
-  "runtime_implementation_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
-  "latest_code_validated_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
-  "current_runtime_candidate_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+  "runtime_implementation_head": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+  "latest_code_validated_head": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+  "current_runtime_candidate_head": "4575fa4e7721a234d74dd87e35163631019ec2c9",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "PREVIEW_CONTROLLED_ACCEPTANCE_COMPLETE",
-  "latest_changes_validation_status": "PREVIEW_CONTROLLED_PASS_WITH_ONE_HTTP_RETRY",
+  "milestone": "PREVIEW_LIVE_PUBLICATION_AND_UI_VERIFIED_WITH_TWO_DEGRADED_SOURCES",
+  "latest_changes_validation_status": "PASS_878_LOCAL_TESTS_REAL_PUBLICATION_AND_34_UI_CHECKS_WITH_REMAINING_SOURCE_FAILURES",
   "current_runtime_candidate_validation": {
-    "head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
-    "result": "PASS_WITH_ONE_PREVIEW_HTTP_RETRY",
-    "validation_scope": "LOCAL_BUILD_AND_ISOLATED_PREVIEW_CONTROLLED_ACCEPTANCE",
+    "head": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+    "result": "PASS_LOCAL_BUILD_AND_34_CURRENT_UI_PREVIEW_CHECKS",
+    "validation_scope": "LOCAL_ENGINEERING_BUILD_WITH_SEPARATELY_BOUND_REAL_QUEUE_PUBLICATION_EVIDENCE",
     "node": "24.19.0",
     "python": "3.12.14",
     "focused_p0_regressions": "PASS",
-    "focused_runtime_queue_behavior_tests": 36,
-    "additional_focused_checks": [
-      "publication",
-      "public_AI_freshness",
-      "source_health",
-      "fixed_origin_proxy",
-      "frozen_current_TJMUGH_official_notice_parser",
-      "Preview self-host isolation and SDK request-context OIDC",
-      "Shared Today/Pool market scope for runtime snapshots missing market metadata"
-    ],
-    "python_contract_tests": 832,
+    "python_contract_tests": 878,
     "python_contract_result": "PASS_ALL",
     "javascript_contract_checks": "PASS_ALL",
     "prebuild": "PASS",
@@ -40,9 +30,26 @@
     "build_command": "npm run build",
     "build_exit_code": 0,
     "serverless_entrypoints": "11/12",
-    "main_js_gzip_kib": 115.57,
-    "final_review": "PASS_NO_REMAINING_BLOCKERS",
-    "interpretation": "832 Python tests, JS contracts, TypeScript and Vite pass. Final Preview has 45 logical HTTP checks passed: 44 first attempt, one oversized request returned 502 then 400 on a single retry, with authority unchanged. Browser 18 checks plus 9 empty-state checks pass. This is controlled Preview acceptance, not full source recovery or Production readiness."
+    "main_js_gzip_kb": 116.0,
+    "local_build_log": "/tmp/mcai-live-20261106/final-ui-build.log",
+    "final_code_review": "PASS_NO_REMAINING_BLOCKERS_IN_IMPLEMENTED_SCOPE",
+    "authority_market_regression": {
+      "scope": "LOCAL_REAL_47_CARD_PAYLOAD_AT_PUBLICATION_CLOCK",
+      "result": "PASS",
+      "counts": {
+        "ALL": 47,
+        "TJ": 8,
+        "BJ": 10,
+        "HL": 10,
+        "HE": 10,
+        "JL": 9,
+        "LN": 0
+      },
+      "harbin_top_card_market": "HL",
+      "authority_payload_modified": false,
+      "latest_ui_browser_result": "PASS_34_OF_34"
+    },
+    "interpretation": "878 Python tests, all JS contracts, TypeScript and Vite pass. Current UI Preview 4575fa4 passes 34/34 browser checks and ordinary full-payload SHA matches the real a3f94bd producer/DB. Two logical sources remain degraded; this is not full-source recovery, recall, sustained scheduling, model success, qualification or commercial acceptance."
   },
   "implementation_scope": [
     "Three-source runtime parity: tjzyefy, tjzyefy_intent, tjzxfc; reuse existing official adapters.",
@@ -56,7 +63,13 @@
     "Deterministic baseline test clocks.",
     "TJMUGH official numbered-list compatibility, preserving raw products and published deadline.",
     "Preview-only publishing target and protected internal OIDC requests.",
-    "Shared market inference prevents runtime opportunities disappearing from Opportunity Pool."
+    "Shared market inference prevents runtime opportunities disappearing from Opportunity Pool.",
+    "Official entry-page integrity and HTTP/meta charset decoding prevent malformed or challenged indexes being counted as quiet successful scans.",
+    "Bounded deferred-detail barriers, durable staging before VERIFIED ledger updates and interrupted-scan recovery.",
+    "Evidence-backed generic hospital research content, medical use and distinct research-event closure across projection, APIs and browser caches.",
+    "Grounded pharmacy inspection-service templates with safe bounded incremental failure diagnostics.",
+    "Explicit Queue trigger maxDeliveries=3 for bounded manual-subscriber retries.",
+    "Registered-source market fallback preserves actual city/county records without assigning unknown or unsupported regions to Tianjin."
   ],
   "out_of_scope": [
     "Product relevance and qualification gates.",
@@ -68,30 +81,45 @@
     "preview_actions_performed": true,
     "production_actions_performed": false,
     "merge_performed": false,
-    "current_head_runtime_acceptance": "CONTROLLED_PREVIEW_PASS_WITH_ONE_HTTP_RETRY_FULL_OPERATIONS_PENDING",
+    "current_head_runtime_acceptance": "CURRENT_UI_PREVIEW_PASS_34_WITH_SEPARATELY_VERIFIED_A3_DATA_PRODUCER",
     "remote_deployment_state": "READY_PREVIEW_PRODUCTION_UNCHANGED",
     "preview": {
-      "deployment_id": "dpl_CoT8dKET2N1dwrWKd5NCQQ9e1MTR",
-      "url": "https://medicalchannelai-bi9frg0oq-rerisse7-1717s-projects.vercel.app",
-      "commit": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+      "deployment_id": "dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm",
+      "url": "https://medicalchannelai-j4ktac1cu-rerisse7-1717s-projects.vercel.app",
+      "commit": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+      "target": "preview",
+      "ready_state": "READY",
       "database": "mcai_p0_acceptance_final",
       "neon_branch": "br-cold-tooth-a5clhljh",
-      "http_checks": 45,
-      "http_first_attempt_pass": 44,
-      "http_pass_after_one_retry": 1,
-      "browser_checks": 18,
-      "empty_browser_checks": 9,
-      "report": "docs/project/preview-acceptance-2026-11-06.md",
-      "final_state_browser_checks": 5
+      "deployment_acceptance": "PASS_EXACT_COMMIT_STATUS_AUTHORITY_AND_ORDINARY_READBACK",
+      "browser_final_validation": "PASS_34_OF_34",
+      "report": "docs/project/live-source-publication-acceptance-2026-11-06.md",
+      "interpretation": "Latest UI-only market-display fix. No new collection or manual publication is attributed to this deployment; the data producer remains a3f94bd."
+    },
+    "data_producer_preview": {
+      "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+      "url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+      "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+      "target": "preview",
+      "ready_state": "READY",
+      "database": "mcai_p0_acceptance_final",
+      "neon_branch": "br-cold-tooth-a5clhljh",
+      "runtime_acceptance": "REAL_THREE_SOURCE_SCANS_RECOVERY_AND_DEGRADED_COMPLETE_PUBLICATION_VERIFIED",
+      "report": "docs/project/live-source-publication-acceptance-2026-11-06.md"
     },
     "production_baseline_and_recheck": {
       "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
       "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
       "target": "production",
       "ready_state": "READY",
-      "unchanged": true
+      "unchanged": true,
+      "recheck_scope": "LATEST_READ_ONLY_DEPLOYMENT_AND_SSO_PROTECTION_RECHECK_REPORTED_BY_ROOT",
+      "sso_protection_unchanged": true,
+      "production_actions_performed": false,
+      "rechecked_at": "2026-11-05T18:46:26.401Z"
     },
-    "interpretation": "Only isolated Preview resources and branch-scoped Preview environment variables changed; no Production actions or promotion."
+    "interpretation": "Only isolated Preview resources and branch-scoped Preview credentials changed. Latest UI deployment and the a3f94bd Queue/data producer are distinct versioned observations. Production deployment and SSO protection were read-only rechecked and unchanged; no merge, promotion or Production modification.",
+    "temporary_acceptance_access": "Producer and final UI share links revoked; project protection unchanged"
   },
   "gold_set_status": {
     "document": "docs/strategy/ACTION_RADAR_GOLDSET_2026-10-07.md",
@@ -107,11 +135,173 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "PARTIAL: controlled Preview API/UI passed; no full-source durable publication or sustained scheduling claim.",
-    "relevance_qualification_and_delivery": "OUT_OF_SCOPE: contract rules do not mean implementation or customer validation.",
-    "historical_runtime_and_ci_state": "Historical records remain historical. Current Production deployment was read-only rechecked and unchanged.",
-    "source_freshness_runtime_acceptance": "PARTIAL: intermediate Preview 002a2e7 ran one real tjmugh Queue scan, 1 verified / 0 failed, snapshot_refreshed=false because complete canonical state is absent. Other sources and sustained ticks remain unverified.",
-    "http_request_reliability": "One oversized-request attempt returned unexplained 502, then expected 400 on one retry. Authority unchanged after both; observe reliability before Production."
+    "current_head_runtime_acceptance": "PASS_IMPLEMENTED_SCOPE: exact UI 4575fa4 Preview 34/34 checks with ordinary payload hash equal to a3 producer/DB; source failures and sustained operations remain open.",
+    "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
+    "source_freshness_runtime_acceptance": "PARTIAL: all three added sources completed actual scans and a3f94bd completed one degraded deep publication, with 12/14 successful source clocks. TEDA and regional_ln remain failed; no all-source-recovery or sustained scheduling claim.",
+    "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
+    "regional_ln_failure_diagnostics": "UNRESOLVED: REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN is only an aggregate gate. Underlying query/detail reasons were not persisted and cannot be inferred as network or parsing failures. Safe incremental-ledger diagnostics do not close this regional deep diagnostic gap.",
+    "regional_fallback_dependency_retries": "UNRESOLVED: after regional_ln degraded, its fallback retried REGIONAL_PRIMARY_RESULT_MISSING:LN despite the missing prerequisite being deterministic; the fallback performed no official request. Two degraded LN stages represent one failed source.",
+    "coverage_and_detail_budget": "NOT_FULL_RECALL: bounded entry-page/window scans are not complete archive or outage backfill. New hospital sources retain the 30-day, 20-candidate/12-detail bounds; ccgp scanned 2026-11-04 through 2026-11-06. Beijing discovered 29 candidates but verified only 10, leaving 19 outside this detail budget. A complete canonical publication does not prove all discovered candidates were verified.",
+    "nonempty_ccgp_events": "NOT_VERIFIED: six CCGP event stages completed with an empty watch list and notice_event_count=0; no nonempty event-watch chain was exercised.",
+    "automatic_intraday_execution": "PENDING: next tick is SCHEDULED for 2026-11-06T11:30:00+08:00; execution and sustained refresh have not been observed. Queue messages remain bound to their originating deployment.",
+    "publication_timestamp_precision": "UNRESOLVED: producer/DB-payload/authority JSON and hashes match exactly, but SQL timestamptz is 559 microseconds earlier than the payload; equality and version comparisons are established only at JavaScript millisecond precision, not full microseconds.",
+    "scan_completion_clock": "UNRESOLVED: last_completed_scan.completed_at uses the scan entry observation clock rather than actual completion wall time; use separately recorded client/publish wall-clock observations for duration.",
+    "ui_revalidation_and_static_clock": "MARKET_OMISSION_FIXED_AND_BROWSER_VERIFIED: all 47 cards preserved including 11 restored city/county records. No TSX timer added; idle-page labels wait for re-read while service/AI/outreach operations recheck current time.",
+    "ai_and_product_runtime_acceptance": "NOT_VERIFIED: model keys remain unconfigured; a 503 AI_NOT_CONFIGURED response proves safe degradation only. Real model success, China-side P95, Gold benchmark and commercial validation remain unverified.",
+    "historical_runtime_and_ci_state": "Historical observations remain historical. Current Production commit/deployment and SSO protection were read-only rechecked and unchanged.",
+    "http_request_reliability": "UNRESOLVED_HISTORICAL_OBSERVATION: one earlier oversized-request attempt returned unexplained 502, then expected 400 on one retry; authority stayed unchanged. The cause remains unknown and is not explained away by later successful publication."
+  },
+  "final_code_head": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+  "code_validation_head": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+  "documentation_followup": "Documentation follows validated executable commits: final UI/local build and 34 browser checks bind to 4575fa4e, real Queue/data production to a3f94bd. A later docs-only repository HEAD does not change either binding.",
+  "source_freshness_policy": {
+    "hospital_source_stale_after_hours": 24,
+    "ccgp_and_regional_source_stale_after_hours": 48,
+    "public_ai_snapshot_max_age_hours": 30,
+    "policy_status": "INITIAL_ENGINEERING_THRESHOLDS_WITH_PARTIAL_REAL_RUNTIME_EVIDENCE",
+    "runtime_acceptance": "REAL_THREE_SOURCE_SCANS_AND_ONE_DEGRADED_DEEP_PUBLICATION_12_OF_14_SOURCES",
+    "interpretation": "Three added sources and one complete canonical publication have real Preview evidence. Twelve source clocks are healthy; TEDA/LN failures, budget-limited coverage, automatic ticks and sustained SLA remain open."
+  },
+  "real_source_publication_acceptance": {
+    "report": "docs/project/live-source-publication-acceptance-2026-11-06.md",
+    "evidence_manifest": "docs/project/validation/live-source-2026-11-06/manifest.json",
+    "publication_proof": "docs/project/validation/live-source-2026-11-06/complete-deep-a3f94bd/publication-proof.json",
+    "deep_monitor_summary": "docs/project/validation/live-source-2026-11-06/complete-deep-a3f94bd/deep-monitor-summary.json",
+    "producer_commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+    "producer_deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "result": "PASS_DEGRADED_COMPLETE_CANONICAL_PUBLICATION",
+    "triggered_at": "2026-11-05T17:43:03.522555+00:00",
+    "publish_completed_at": "2026-11-05T18:27:47.698032+00:00",
+    "wall_seconds_to_publish": 2684.175477,
+    "stage_count": 25,
+    "completed_stage_count": 22,
+    "degraded_stage_count": 3,
+    "degraded_stages": [
+      "teda",
+      "regional_ln",
+      "regional_ln_fallback"
+    ],
+    "logical_failed_source_count": 2,
+    "logical_failed_sources": [
+      "regional_ln",
+      "teda"
+    ],
+    "healthy_source_count": 12,
+    "required_source_count": 14,
+    "canonical_record_count": 964,
+    "opportunity_pool_count": 47,
+    "today_card_count": 5,
+    "notice_event_count": 0,
+    "manual_qa": false,
+    "three_source_results": {
+      "tjzyefy": {
+        "discovered_supported_count": 8,
+        "selected_candidate_count": 8,
+        "deferred_detail_count": 0,
+        "new_verified_record_count": 8,
+        "unsupported_count": 0,
+        "failure_count": 0,
+        "merged_record_count": 12,
+        "publish_gate_reason": "PASS"
+      },
+      "tjzyefy_intent": {
+        "discovered_supported_count": 3,
+        "selected_candidate_count": 3,
+        "deferred_detail_count": 0,
+        "new_verified_record_count": 2,
+        "unsupported_count": 1,
+        "failure_count": 0,
+        "merged_record_count": 6,
+        "publish_gate_reason": "PASS"
+      },
+      "tjzxfc": {
+        "discovered_supported_count": 5,
+        "selected_candidate_count": 5,
+        "deferred_detail_count": 0,
+        "new_verified_record_count": 1,
+        "unsupported_count": 4,
+        "failure_count": 0,
+        "merged_record_count": 1,
+        "publish_gate_reason": "PASS"
+      }
+    },
+    "three_source_staging": {
+      "tjzyefy": {
+        "record_count": 0,
+        "barrier_count": 0
+      },
+      "tjzyefy_intent": {
+        "record_count": 0,
+        "barrier_count": 0
+      },
+      "tjzxfc": {
+        "record_count": 0,
+        "barrier_count": 0
+      }
+    },
+    "producer_payload_sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "database_payload_sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "authority_payload_sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "producer_database_authority_hashes_match": true,
+    "timestamp_alignment": {
+      "sql_snapshot_as_of": "2026-11-05 17:43:03.095+00",
+      "payload_snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+      "timestamp_matches_payload_exactly": false,
+      "payload_minus_column_microseconds": 559,
+      "matches_at_javascript_millisecond_precision": true
+    },
+    "tick_chain_state": "SCHEDULED",
+    "next_tick_at": "2026-11-06T11:30:00+08:00",
+    "automatic_tick_execution_verified": false,
+    "interpretation": "These counts describe one real a3f94bd Preview cycle and retained canonical data, not net-new facts, all-source recovery, recall completeness or customer eligibility. The monitor captured DB verification as pending before the later independent publication proof completed it."
+  },
+  "preview_authoritative_data_state": {
+    "snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+    "source": "DATABASE",
+    "manual_qa_publication": false,
+    "degraded": true,
+    "healthy_source_count": 12,
+    "required_source_count": 14,
+    "failed_sources": [
+      "regional_ln",
+      "teda"
+    ],
+    "producer_commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+    "producer_deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "latest_ui_deployment_readback": "PASS_EXACT_FULL_PAYLOAD_SHA_AND_SNAPSHOT",
+    "interpretation": "Real Queue publication replaced manual QA. Final UI Preview reads the same complete JSON/hash from DATABASE; 12/14 sources healthy and two failures remain visible."
+  },
+  "latest_ui_browser_acceptance": {
+    "commit": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+    "deployment_id": "dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm",
+    "url": "https://medicalchannelai-j4ktac1cu-rerisse7-1717s-projects.vercel.app",
+    "result": "PASS_34_OF_34",
+    "ordinary_get_payload_hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "desktop_market_matrix": {
+      "ALL": 47,
+      "TJ": 8,
+      "BJ": 10,
+      "HL": 10,
+      "HE": 10,
+      "JL": 9,
+      "LN": 0
+    },
+    "mobile_full_pool": "PASS_390PX_TODAY_POOL_FOLLOWED_INTENT",
+    "interpretation": "34 checks belong to this exact UI deployment; data remains the a3 real publication. All 23 cache_only AI attempts were intentionally aborted by the test guard, not AI successes or live service failures. No collection, publication or account writes.",
+    "browser_report": "docs/project/validation/live-source-2026-11-06/ui-final-4575fa4/browser-ui-final-report-summary.json",
+    "ordinary_get_first_attempt": {
+      "http": 200,
+      "cdn": "HIT",
+      "age_seconds": 1
+    },
+    "restored_city_county_cards": 11,
+    "intentionally_blocked_cache_only_ai_requests": 23,
+    "actual_ai_requests_sent": 0,
+    "other_blocked_requests": 0,
+    "page_errors": 0,
+    "unexpected_failed_requests": 0,
+    "local_follow_refresh": true,
+    "completed_at": "2026-11-05T18:45:57.069Z"
   },
   "historical_records": {
     "interpretation": "Historical observations only; these records do not describe the current branch, CI, deployment or P0 acceptance.",
@@ -353,46 +543,162 @@
       "reported_python_contract_tests": 581,
       "reported_result": "SUCCESS",
       "remote_verification_this_round": "NOT_PERFORMED"
+    },
+    "previous_controlled_preview_079fa2e": {
+      "schema_version": "0.2",
+      "updated_at": "2026-11-06",
+      "timezone": "Asia/Shanghai",
+      "state_scope": "CURRENT_P0_CODE_AND_ISOLATED_PREVIEW_ACCEPTANCE",
+      "active_work_branch": "codex/p0-reliability-contracts",
+      "worktree": "/workspace/MedicalChannelAI-p0",
+      "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+      "starting_head_short": "3216fd9",
+      "runtime_implementation_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+      "latest_code_validated_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+      "current_runtime_candidate_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+      "production_ready": false,
+      "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
+      "milestone": "PREVIEW_CONTROLLED_ACCEPTANCE_COMPLETE",
+      "latest_changes_validation_status": "PREVIEW_CONTROLLED_PASS_WITH_ONE_HTTP_RETRY",
+      "current_runtime_candidate_validation": {
+        "head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+        "result": "PASS_WITH_ONE_PREVIEW_HTTP_RETRY",
+        "validation_scope": "LOCAL_BUILD_AND_ISOLATED_PREVIEW_CONTROLLED_ACCEPTANCE",
+        "node": "24.19.0",
+        "python": "3.12.14",
+        "focused_p0_regressions": "PASS",
+        "focused_runtime_queue_behavior_tests": 36,
+        "additional_focused_checks": [
+          "publication",
+          "public_AI_freshness",
+          "source_health",
+          "fixed_origin_proxy",
+          "frozen_current_TJMUGH_official_notice_parser",
+          "Preview self-host isolation and SDK request-context OIDC",
+          "Shared Today/Pool market scope for runtime snapshots missing market metadata"
+        ],
+        "python_contract_tests": 832,
+        "python_contract_result": "PASS_ALL",
+        "javascript_contract_checks": "PASS_ALL",
+        "prebuild": "PASS",
+        "typescript_typecheck": "PASS",
+        "vite_production_build": "PASS",
+        "build_command": "npm run build",
+        "build_exit_code": 0,
+        "serverless_entrypoints": "11/12",
+        "main_js_gzip_kib": 115.57,
+        "final_review": "PASS_NO_REMAINING_BLOCKERS",
+        "interpretation": "832 Python tests, JS contracts, TypeScript and Vite pass. Final Preview has 45 logical HTTP checks passed: 44 first attempt, one oversized request returned 502 then 400 on a single retry, with authority unchanged. Browser 18 checks plus 9 empty-state checks pass. This is controlled Preview acceptance, not full source recovery or Production readiness."
+      },
+      "implementation_scope": [
+        "Three-source runtime parity: tjzyefy, tjzyefy_intent, tjzxfc; reuse existing official adapters.",
+        "Source-isolated failures, independent intraday tick fallback, stale RUNNING recovery.",
+        "Conservative pending/barrier cleanup preserving unresolved URLs.",
+        "Committed-snapshot and per-source freshness health.",
+        "Validation before the single authoritative snapshot commit.",
+        "Server-enforced 30-hour freshness gate for public AI.",
+        "EdgeOne fixed trusted origin and credential forwarding boundary.",
+        "Authoritative empty-pool behavior and existing-reminder ACK.",
+        "Deterministic baseline test clocks.",
+        "TJMUGH official numbered-list compatibility, preserving raw products and published deadline.",
+        "Preview-only publishing target and protected internal OIDC requests.",
+        "Shared market inference prevents runtime opportunities disappearing from Opportunity Pool."
+      ],
+      "out_of_scope": [
+        "Product relevance and qualification gates.",
+        "Project lifecycle linking, historical followup or customer-profile redesign.",
+        "Real customer delivery, commercial readiness or renewal validation.",
+        "Production deployment, merge, domain/DNS, production credentials or production-data changes."
+      ],
+      "deployment_boundary": {
+        "preview_actions_performed": true,
+        "production_actions_performed": false,
+        "merge_performed": false,
+        "current_head_runtime_acceptance": "CONTROLLED_PREVIEW_PASS_WITH_ONE_HTTP_RETRY_FULL_OPERATIONS_PENDING",
+        "remote_deployment_state": "READY_PREVIEW_PRODUCTION_UNCHANGED",
+        "preview": {
+          "deployment_id": "dpl_CoT8dKET2N1dwrWKd5NCQQ9e1MTR",
+          "url": "https://medicalchannelai-bi9frg0oq-rerisse7-1717s-projects.vercel.app",
+          "commit": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+          "database": "mcai_p0_acceptance_final",
+          "neon_branch": "br-cold-tooth-a5clhljh",
+          "http_checks": 45,
+          "http_first_attempt_pass": 44,
+          "http_pass_after_one_retry": 1,
+          "browser_checks": 18,
+          "empty_browser_checks": 9,
+          "report": "docs/project/preview-acceptance-2026-11-06.md",
+          "final_state_browser_checks": 5
+        },
+        "production_baseline_and_recheck": {
+          "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+          "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+          "target": "production",
+          "ready_state": "READY",
+          "unchanged": true
+        },
+        "interpretation": "Only isolated Preview resources and branch-scoped Preview environment variables changed; no Production actions or promotion."
+      },
+      "gold_set_status": {
+        "document": "docs/strategy/ACTION_RADAR_GOLDSET_2026-10-07.md",
+        "purpose": "RULE_SMOKE_DRAFT_ONLY",
+        "statistical_benchmark_pass_claimed": false,
+        "missing_evidence_cases": [
+          "G03",
+          "G04",
+          "G15"
+        ],
+        "relevance_or_qualification_gate_implemented_by_this_document_change": false,
+        "agnes_relevance_benchmark": "NOT_EXECUTED",
+        "commercial_validation": "NOT_STARTED"
+      },
+      "known_incomplete_invariants": {
+        "current_head_runtime_acceptance": "PARTIAL: controlled Preview API/UI passed; no full-source durable publication or sustained scheduling claim.",
+        "relevance_qualification_and_delivery": "OUT_OF_SCOPE: contract rules do not mean implementation or customer validation.",
+        "historical_runtime_and_ci_state": "Historical records remain historical. Current Production deployment was read-only rechecked and unchanged.",
+        "source_freshness_runtime_acceptance": "PARTIAL: intermediate Preview 002a2e7 ran one real tjmugh Queue scan, 1 verified / 0 failed, snapshot_refreshed=false because complete canonical state is absent. Other sources and sustained ticks remain unverified.",
+        "http_request_reliability": "One oversized-request attempt returned unexplained 502, then expected 400 on one retry. Authority unchanged after both; observe reliability before Production."
+      },
+      "final_code_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+      "code_validation_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+      "documentation_followup": "A subsequent status/contract documentation commit does not change the executable code validated at code_validation_head; no final repository HEAD is asserted here.",
+      "source_freshness_policy": {
+        "hospital_source_stale_after_hours": 24,
+        "ccgp_and_regional_source_stale_after_hours": 48,
+        "public_ai_snapshot_max_age_hours": 30,
+        "policy_status": "INITIAL_ENGINEERING_THRESHOLDS_CODE_VALIDATED",
+        "runtime_acceptance": "CONTROLLED_STATUS_GATES_AND_ONE_REAL_SOURCE_SCAN_ONLY",
+        "interpretation": "Controlled source-clock gates pass; one actual tjmugh scan is observed. Source thresholds, all-source freshness and sustained scheduling still require operational validation."
+      },
+      "official_source_diagnostic": {
+        "source_id": "tjmugh",
+        "request_count": 2,
+        "read_only": true,
+        "source_url": "https://www.tjmugh.com.cn/system/2026/11/05/030368176.shtml",
+        "root_cause": "TJMUGH_PROJECT_ITEMS_NOT_FOUND for official 1、/2、 numbered list",
+        "frozen_fixture": "web/pipeline/tests/fixtures/tjmugh_market_research_20261105.html",
+        "parser_regression_result": "PASS",
+        "continuous_runtime_acceptance": "NOT_PERFORMED",
+        "preview_single_scan": {
+          "commit": "002a2e7",
+          "deployment_id": "dpl_4nyhZSFd6wXMUScit5tAhYgBrBEX",
+          "verified_count": 1,
+          "failure_count": 0,
+          "snapshot_refreshed": false,
+          "scope": "SINGLE_SOURCE_SCAN_NOT_CANONICAL_PUBLICATION"
+        }
+      },
+      "preview_final_serving_state": {
+        "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+        "source": "DATABASE",
+        "manual_qa_publication": true,
+        "controlled_healthy_clocks_removed": true,
+        "degraded": true,
+        "healthy_source_count": 1,
+        "required_source_count": 14,
+        "other_sources": "UNKNOWN",
+        "interpretation": "Only actual observed tjmugh scan clock retained. This manually published QA snapshot is not a Queue canonical publication."
+      }
     }
-  },
-  "final_code_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
-  "code_validation_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
-  "documentation_followup": "A subsequent status/contract documentation commit does not change the executable code validated at code_validation_head; no final repository HEAD is asserted here.",
-  "source_freshness_policy": {
-    "hospital_source_stale_after_hours": 24,
-    "ccgp_and_regional_source_stale_after_hours": 48,
-    "public_ai_snapshot_max_age_hours": 30,
-    "policy_status": "INITIAL_ENGINEERING_THRESHOLDS_CODE_VALIDATED",
-    "runtime_acceptance": "CONTROLLED_STATUS_GATES_AND_ONE_REAL_SOURCE_SCAN_ONLY",
-    "interpretation": "Controlled source-clock gates pass; one actual tjmugh scan is observed. Source thresholds, all-source freshness and sustained scheduling still require operational validation."
-  },
-  "official_source_diagnostic": {
-    "source_id": "tjmugh",
-    "request_count": 2,
-    "read_only": true,
-    "source_url": "https://www.tjmugh.com.cn/system/2026/11/05/030368176.shtml",
-    "root_cause": "TJMUGH_PROJECT_ITEMS_NOT_FOUND for official 1、/2、 numbered list",
-    "frozen_fixture": "web/pipeline/tests/fixtures/tjmugh_market_research_20261105.html",
-    "parser_regression_result": "PASS",
-    "continuous_runtime_acceptance": "NOT_PERFORMED",
-    "preview_single_scan": {
-      "commit": "002a2e7",
-      "deployment_id": "dpl_4nyhZSFd6wXMUScit5tAhYgBrBEX",
-      "verified_count": 1,
-      "failure_count": 0,
-      "snapshot_refreshed": false,
-      "scope": "SINGLE_SOURCE_SCAN_NOT_CANONICAL_PUBLICATION"
-    }
-  },
-  "preview_final_serving_state": {
-    "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
-    "source": "DATABASE",
-    "manual_qa_publication": true,
-    "controlled_healthy_clocks_removed": true,
-    "degraded": true,
-    "healthy_source_count": 1,
-    "required_source_count": 14,
-    "other_sources": "UNKNOWN",
-    "interpretation": "Only actual observed tjmugh scan clock retained. This manually published QA snapshot is not a Queue canonical publication."
   }
 }

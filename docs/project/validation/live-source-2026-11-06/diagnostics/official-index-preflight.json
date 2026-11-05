@@ -1,0 +1,30 @@
+{
+  "evidence_kind": "operator_read_only_official_get_metadata",
+  "deployment_binding": null,
+  "exact_execution_commit_recorded": false,
+  "raw_html_in_repository": false,
+  "records": [
+    {
+      "source": "tjzyefy",
+      "url": "https://www.tjzyefy.com/xwgg/ggtz/",
+      "requested_at": "2026-11-05T16:58:02.699553+00:00",
+      "http": 200,
+      "final_url": "https://www.tjzyefy.com/xwgg/ggtz/",
+      "content_type": "text/html",
+      "bytes": 105681,
+      "sha256": "ca51ec4e510164fed7c2e1a5e18692af69a83f77fdc3346991641a6da8868934",
+      "completed_at": "2026-11-05T16:58:10.329679+00:00"
+    },
+    {
+      "source": "tjzxfc",
+      "url": "https://www.tjzxfc.cn/ywgk/zbgg/index.shtml",
+      "requested_at": "2026-11-05T16:58:02.700493+00:00",
+      "http": 200,
+      "final_url": "https://www.tjzxfc.cn/ywgk/zbgg/index.shtml",
+      "content_type": "text/html",
+      "bytes": 12679,
+      "sha256": "5edb72391dd033d4645c709ec62467160b0e457f6d27e7544fc3eac4f2dde43b",
+      "completed_at": "2026-11-05T16:58:05.912232+00:00"
+    }
+  ]
+}

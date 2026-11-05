@@ -1,0 +1,181 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+    "url": "https://medicalchannelai-g6u8ue0nw-rerisse7-1717s-projects.vercel.app",
+    "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "started": {
+    "at": "2026-11-05T17:24:01.522646+00:00",
+    "scope": {
+      "target": "preview",
+      "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+      "url": "https://medicalchannelai-g6u8ue0nw-rerisse7-1717s-projects.vercel.app",
+      "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+      "git_branch": "codex/p0-reliability-contracts",
+      "database": "mcai_p0_acceptance_final",
+      "neon_branch": "br-cold-tooth-a5clhljh"
+    },
+    "http": 202,
+    "response": {
+      "schema_version": "0.1",
+      "service": "MedicalChannelAI",
+      "trigger_source": "VERCEL_CRON",
+      "collector": {
+        "action": "QUEUED",
+        "execution_plane": "VERCEL_QUEUE_V2",
+        "mode": "INCREMENTAL",
+        "source_id": "tjzyefy_intent",
+        "scan_bucket_id": "tjzyefy_intent:120m:249152",
+        "observed_at": "2026-11-05T17:24:01.358817+00:00",
+        "due_source_count": null,
+        "message_id": "26-1M1mpkz4QQhL3pmjAwac22kLgzzLV3wI"
+      }
+    }
+  },
+  "history": [
+    {
+      "at": "2026-11-05T17:24:01.908276+00:00",
+      "active": "tjzyefy_intent:120m:249152:2026-11-05T17:24:01.358817+00:00",
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 120,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 0,
+          "verified_count": 0,
+          "failed_count": 0,
+          "unverified_count": 0,
+          "updated_at": null
+        },
+        "staging": {
+          "record_count": 0,
+          "barrier_count": 0
+        },
+        "last_completed_scan": {
+          "bucket_id": null,
+          "completed_at": null,
+          "result": null
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": null,
+        "last_successful_scan_at": null,
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      }
+    },
+    {
+      "at": "2026-11-05T17:24:12.324628+00:00",
+      "active": "tjzyefy_intent:120m:249152:2026-11-05T17:24:01.358817+00:00",
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 120,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 3,
+          "verified_count": 2,
+          "failed_count": 0,
+          "unverified_count": 1,
+          "updated_at": "2026-11-05T17:24:01.642074+00:00"
+        },
+        "staging": {
+          "record_count": 1,
+          "barrier_count": 1
+        },
+        "last_completed_scan": {
+          "bucket_id": null,
+          "completed_at": null,
+          "result": null
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": null,
+        "last_successful_scan_at": null,
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      }
+    },
+    {
+      "at": "2026-11-05T17:24:22.621576+00:00",
+      "active": null,
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 120,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 3,
+          "verified_count": 3,
+          "failed_count": 0,
+          "unverified_count": 0,
+          "updated_at": "2026-11-05T17:24:01.642074+00:00"
+        },
+        "staging": {
+          "record_count": 0,
+          "barrier_count": 0
+        },
+        "last_completed_scan": {
+          "bucket_id": "tjzyefy_intent:120m:249152",
+          "completed_at": "2026-11-05T17:24:01.642074+00:00",
+          "result": {
+            "discovered_candidate_count": 3,
+            "selected_detail_count": 3,
+            "deferred_detail_count": 0,
+            "skipped_unchanged_count": 0,
+            "verified_record_count": 2,
+            "verified_nonfact_count": 1,
+            "verification_failure_count": 0,
+            "canonical_record_count": 6,
+            "pending_record_count": 0,
+            "pending_barrier_count": 0,
+            "snapshot_refreshed": false,
+            "snapshot_as_of": null,
+            "deferred_reason": null
+          }
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": "2026-11-05T17:24:01.642074+00:00",
+        "last_successful_scan_at": "2026-11-05T17:24:01.642074+00:00",
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      }
+    }
+  ],
+  "complete": true,
+  "pass": true,
+  "scan": {
+    "bucket_id": "tjzyefy_intent:120m:249152",
+    "completed_at": "2026-11-05T17:24:01.642074+00:00",
+    "result": {
+      "discovered_candidate_count": 3,
+      "selected_detail_count": 3,
+      "deferred_detail_count": 0,
+      "skipped_unchanged_count": 0,
+      "verified_record_count": 2,
+      "verified_nonfact_count": 1,
+      "verification_failure_count": 0,
+      "canonical_record_count": 6,
+      "pending_record_count": 0,
+      "pending_barrier_count": 0,
+      "snapshot_refreshed": false,
+      "snapshot_as_of": null,
+      "deferred_reason": null
+    }
+  },
+  "scan_health": {
+    "last_attempt_at": "2026-11-05T17:24:01.642074+00:00",
+    "last_successful_scan_at": "2026-11-05T17:24:01.642074+00:00",
+    "failure_reason": null,
+    "stale_after_seconds": 86400
+  }
+}

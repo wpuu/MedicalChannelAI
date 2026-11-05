@@ -1,0 +1,200 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+    "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "pass": true,
+  "stage_result": {
+    "snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+    "today_card_count": 5,
+    "opportunity_pool_count": 47,
+    "canonical_record_count": 964,
+    "notice_event_count": 0,
+    "sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "durable_snapshot_persisted": true,
+    "durable_snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+    "cache_status": "READY"
+  },
+  "db_snapshot_hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "authority_hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "stage_hash_matches_node_canonical": true,
+  "snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+  "opportunity_count": 47,
+  "today_card_count": 5,
+  "manual_qa": false,
+  "source": "DATABASE",
+  "stage_summary": {
+    "ccgp": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "event1": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "event2": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "event3": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "event4": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "event5": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "event6": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "tjmugh": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "tjnothop": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "tjzyefy": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "tjzyefy_intent": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "tjzxfc": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "teda": {
+      "status": "DEGRADED",
+      "attempt_count": 2,
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+    },
+    "tjfch": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "regional_bj": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "regional_bj_fallback": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "regional_he": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "regional_he_fallback": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "regional_ln": {
+      "status": "DEGRADED",
+      "attempt_count": 2,
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error_message": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN"
+    },
+    "regional_ln_fallback": {
+      "status": "DEGRADED",
+      "attempt_count": 2,
+      "error_code": "COLLECTOR_PRECONDITION_FAILED",
+      "error_message": "REGIONAL_PRIMARY_RESULT_MISSING:LN"
+    },
+    "regional_jl": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "regional_jl_fallback": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "regional_hl": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "regional_hl_fallback": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    },
+    "publish": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error_code": null,
+      "error_message": null
+    }
+  },
+  "intraday_chain": {
+    "state": "SCHEDULED",
+    "business_date": "2026-11-06",
+    "tick_id": null,
+    "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+    "selected_source": null,
+    "detail": null,
+    "updated_at": "2026-11-05T18:27:47.871918+00:00"
+  },
+  "timestamp_alignment": {
+    "sql_snapshot_as_of": "2026-11-05 17:43:03.095+00",
+    "payload_snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+    "timestamp_matches_payload_exactly": false,
+    "payload_minus_column_microseconds": 559,
+    "matches_at_javascript_millisecond_precision": true
+  },
+  "verification_scope": "Published JSON/hash/version equality verified; SQL timestamp column aligns at JavaScript millisecond precision, not exact microsecond precision."
+}

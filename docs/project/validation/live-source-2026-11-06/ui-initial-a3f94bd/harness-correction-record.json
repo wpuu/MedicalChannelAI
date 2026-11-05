@@ -1,0 +1,38 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+    "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "first_attempt_error": "page.evaluate: TypeError: response.status is not a function\n    at eval (eval at evaluate (:311:30), <anonymous>:1:84)\n    at async <anonymous>:337:30",
+  "first_attempt_interpretation": "The browser harness used response.status as a function inside page.evaluate. Preserve the aborted attempt; this is not evidence of an application HTTP failure.",
+  "later_raw_results": {
+    "passed": 27,
+    "failed": 2
+  },
+  "denominator_corrections": [
+    {
+      "check": "TJ Pool displayed count follows regional visible / global active rule",
+      "observed": "当前显示 8 / 47 条",
+      "result": "PASS",
+      "reason": "Harness denominator incorrectly excluded unscoped markets; actual global active pool is47. Does not invalidate observed source-mapping bug."
+    },
+    {
+      "check": "ALL Pool displayed count follows regional visible / global active rule",
+      "observed": "当前显示 36 / 47 条",
+      "result": "PASS for honest displayed count; coverage FAIL below",
+      "reason": "Same denominator harness error; counter accurately exposes11 omitted opportunities."
+    }
+  ],
+  "confirmed_product_bug_preserved": {
+    "omitted_opportunities": 11,
+    "published_active_pool": 47,
+    "ui_all_visible_before_fix": 36,
+    "server_top_card_omitted": true
+  },
+  "no_product_fix_claimed_by_harness_correction": true
+}

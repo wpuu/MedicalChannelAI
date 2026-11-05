@@ -1,0 +1,7 @@
+{
+  "sql_snapshot_as_of": "2026-11-05 17:43:03.095+00",
+  "payload_snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+  "timestamp_matches_payload_exactly": false,
+  "payload_minus_column_microseconds": 559,
+  "matches_at_javascript_millisecond_precision": true
+}

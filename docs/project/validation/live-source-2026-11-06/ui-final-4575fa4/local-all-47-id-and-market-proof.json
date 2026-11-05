@@ -1,0 +1,316 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm",
+    "url": "https://medicalchannelai-j4ktac1cu-rerisse7-1717s-projects.vercel.app",
+    "commit": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "validation": {
+    "pass": true,
+    "snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+    "frozen_payload_sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "served_payload_sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "full_payloads_equal": true,
+    "published_ids": [
+      "ccgp_bj_193a9d32dc3d4829",
+      "ccgp_bj_30ad61c98f8c607b",
+      "ccgp_bj_7c443bd5da3f78a5",
+      "ccgp_bj_87ed61190ca088f1",
+      "ccgp_bj_94a31e06a609b25b",
+      "ccgp_bj_96bf141d69deffe9",
+      "ccgp_bj_a8dec002633a2045",
+      "ccgp_bj_b099b9b6266837f3",
+      "ccgp_bj_b5bbfcd8ca11b2b3",
+      "ccgp_bj_d82cfee3b2cc99ad",
+      "ccgp_he_256d41444e936d50",
+      "ccgp_he_57dcc8d3d1b9fe87",
+      "ccgp_he_80a3cb4d30c401af",
+      "ccgp_he_9ac5da38c4aa4c66",
+      "ccgp_he_9aff0f5650523242",
+      "ccgp_he_a00d0fb3edbb3898",
+      "ccgp_he_a33b11ae4ce7304d",
+      "ccgp_he_bc02321f1127f1fb",
+      "ccgp_he_f5ec0da3f23445df",
+      "ccgp_he_f9949fcd0f9dfe93",
+      "ccgp_hl_15a2fc571ecb2867",
+      "ccgp_hl_3f2880a5585d3e5f",
+      "ccgp_hl_5a6044487bad535b",
+      "ccgp_hl_65fa0bf43261c5d9",
+      "ccgp_hl_7e85f77140090d88",
+      "ccgp_hl_843de80036a38195",
+      "ccgp_hl_94d69e874631aa63",
+      "ccgp_hl_9c1bf78e44cced7d",
+      "ccgp_hl_9c513edc16b22d94",
+      "ccgp_hl_be17744f48e2bdc1",
+      "ccgp_jl_0ce6d69dbb99f2b0",
+      "ccgp_jl_298e2a6332911cb1",
+      "ccgp_jl_5805203615f2d373",
+      "ccgp_jl_5c21a4ec113a8b6e",
+      "ccgp_jl_74cddb340c0c92e0",
+      "ccgp_jl_834800b4bf0f06f3",
+      "ccgp_jl_9f88c1dd490b85d3",
+      "ccgp_jl_a5326656a079ada9",
+      "ccgp_jl_ae7d9a08ecb48166",
+      "tjmugh_20261105_030368176",
+      "tjzyefy_20261104_030202660",
+      "tjzyefy_intent_20260804_030195986",
+      "tjzyefy_intent_20260804_030195988",
+      "tjzyefy_intent_20260804_030195991",
+      "tjzyefy_intent_20260804_030195992",
+      "tjzyefy_intent_20261013_030200055",
+      "tjzyefy_intent_20261013_030200057"
+    ],
+    "served_ids": [
+      "ccgp_bj_193a9d32dc3d4829",
+      "ccgp_bj_30ad61c98f8c607b",
+      "ccgp_bj_7c443bd5da3f78a5",
+      "ccgp_bj_87ed61190ca088f1",
+      "ccgp_bj_94a31e06a609b25b",
+      "ccgp_bj_96bf141d69deffe9",
+      "ccgp_bj_a8dec002633a2045",
+      "ccgp_bj_b099b9b6266837f3",
+      "ccgp_bj_b5bbfcd8ca11b2b3",
+      "ccgp_bj_d82cfee3b2cc99ad",
+      "ccgp_he_256d41444e936d50",
+      "ccgp_he_57dcc8d3d1b9fe87",
+      "ccgp_he_80a3cb4d30c401af",
+      "ccgp_he_9ac5da38c4aa4c66",
+      "ccgp_he_9aff0f5650523242",
+      "ccgp_he_a00d0fb3edbb3898",
+      "ccgp_he_a33b11ae4ce7304d",
+      "ccgp_he_bc02321f1127f1fb",
+      "ccgp_he_f5ec0da3f23445df",
+      "ccgp_he_f9949fcd0f9dfe93",
+      "ccgp_hl_15a2fc571ecb2867",
+      "ccgp_hl_3f2880a5585d3e5f",
+      "ccgp_hl_5a6044487bad535b",
+      "ccgp_hl_65fa0bf43261c5d9",
+      "ccgp_hl_7e85f77140090d88",
+      "ccgp_hl_843de80036a38195",
+      "ccgp_hl_94d69e874631aa63",
+      "ccgp_hl_9c1bf78e44cced7d",
+      "ccgp_hl_9c513edc16b22d94",
+      "ccgp_hl_be17744f48e2bdc1",
+      "ccgp_jl_0ce6d69dbb99f2b0",
+      "ccgp_jl_298e2a6332911cb1",
+      "ccgp_jl_5805203615f2d373",
+      "ccgp_jl_5c21a4ec113a8b6e",
+      "ccgp_jl_74cddb340c0c92e0",
+      "ccgp_jl_834800b4bf0f06f3",
+      "ccgp_jl_9f88c1dd490b85d3",
+      "ccgp_jl_a5326656a079ada9",
+      "ccgp_jl_ae7d9a08ecb48166",
+      "tjmugh_20261105_030368176",
+      "tjzyefy_20261104_030202660",
+      "tjzyefy_intent_20260804_030195986",
+      "tjzyefy_intent_20260804_030195988",
+      "tjzyefy_intent_20260804_030195991",
+      "tjzyefy_intent_20260804_030195992",
+      "tjzyefy_intent_20261013_030200055",
+      "tjzyefy_intent_20261013_030200057"
+    ],
+    "resolved": [
+      {
+        "opportunity_id": "ccgp_hl_be17744f48e2bdc1",
+        "market_code": "HL"
+      },
+      {
+        "opportunity_id": "ccgp_hl_3f2880a5585d3e5f",
+        "market_code": "HL"
+      },
+      {
+        "opportunity_id": "ccgp_bj_87ed61190ca088f1",
+        "market_code": "BJ"
+      },
+      {
+        "opportunity_id": "ccgp_he_57dcc8d3d1b9fe87",
+        "market_code": "HE"
+      },
+      {
+        "opportunity_id": "ccgp_he_bc02321f1127f1fb",
+        "market_code": "HE"
+      },
+      {
+        "opportunity_id": "ccgp_bj_d82cfee3b2cc99ad",
+        "market_code": "BJ"
+      },
+      {
+        "opportunity_id": "ccgp_bj_193a9d32dc3d4829",
+        "market_code": "BJ"
+      },
+      {
+        "opportunity_id": "ccgp_bj_b5bbfcd8ca11b2b3",
+        "market_code": "BJ"
+      },
+      {
+        "opportunity_id": "ccgp_he_f5ec0da3f23445df",
+        "market_code": "HE"
+      },
+      {
+        "opportunity_id": "ccgp_hl_7e85f77140090d88",
+        "market_code": "HL"
+      },
+      {
+        "opportunity_id": "ccgp_hl_843de80036a38195",
+        "market_code": "HL"
+      },
+      {
+        "opportunity_id": "ccgp_hl_65fa0bf43261c5d9",
+        "market_code": "HL"
+      },
+      {
+        "opportunity_id": "ccgp_bj_7c443bd5da3f78a5",
+        "market_code": "BJ"
+      },
+      {
+        "opportunity_id": "ccgp_he_80a3cb4d30c401af",
+        "market_code": "HE"
+      },
+      {
+        "opportunity_id": "ccgp_he_9aff0f5650523242",
+        "market_code": "HE"
+      },
+      {
+        "opportunity_id": "ccgp_jl_5c21a4ec113a8b6e",
+        "market_code": "JL"
+      },
+      {
+        "opportunity_id": "ccgp_jl_0ce6d69dbb99f2b0",
+        "market_code": "JL"
+      },
+      {
+        "opportunity_id": "ccgp_bj_30ad61c98f8c607b",
+        "market_code": "BJ"
+      },
+      {
+        "opportunity_id": "ccgp_bj_a8dec002633a2045",
+        "market_code": "BJ"
+      },
+      {
+        "opportunity_id": "ccgp_hl_5a6044487bad535b",
+        "market_code": "HL"
+      },
+      {
+        "opportunity_id": "ccgp_hl_94d69e874631aa63",
+        "market_code": "HL"
+      },
+      {
+        "opportunity_id": "ccgp_he_a33b11ae4ce7304d",
+        "market_code": "HE"
+      },
+      {
+        "opportunity_id": "ccgp_he_f9949fcd0f9dfe93",
+        "market_code": "HE"
+      },
+      {
+        "opportunity_id": "tjzyefy_20261104_030202660",
+        "market_code": "TJ"
+      },
+      {
+        "opportunity_id": "ccgp_jl_ae7d9a08ecb48166",
+        "market_code": "JL"
+      },
+      {
+        "opportunity_id": "ccgp_hl_15a2fc571ecb2867",
+        "market_code": "HL"
+      },
+      {
+        "opportunity_id": "ccgp_hl_9c1bf78e44cced7d",
+        "market_code": "HL"
+      },
+      {
+        "opportunity_id": "ccgp_hl_9c513edc16b22d94",
+        "market_code": "HL"
+      },
+      {
+        "opportunity_id": "ccgp_jl_834800b4bf0f06f3",
+        "market_code": "JL"
+      },
+      {
+        "opportunity_id": "ccgp_bj_94a31e06a609b25b",
+        "market_code": "BJ"
+      },
+      {
+        "opportunity_id": "ccgp_bj_b099b9b6266837f3",
+        "market_code": "BJ"
+      },
+      {
+        "opportunity_id": "ccgp_jl_a5326656a079ada9",
+        "market_code": "JL"
+      },
+      {
+        "opportunity_id": "ccgp_bj_96bf141d69deffe9",
+        "market_code": "BJ"
+      },
+      {
+        "opportunity_id": "ccgp_he_256d41444e936d50",
+        "market_code": "HE"
+      },
+      {
+        "opportunity_id": "ccgp_he_9ac5da38c4aa4c66",
+        "market_code": "HE"
+      },
+      {
+        "opportunity_id": "ccgp_jl_298e2a6332911cb1",
+        "market_code": "JL"
+      },
+      {
+        "opportunity_id": "ccgp_he_a00d0fb3edbb3898",
+        "market_code": "HE"
+      },
+      {
+        "opportunity_id": "tjmugh_20261105_030368176",
+        "market_code": "TJ"
+      },
+      {
+        "opportunity_id": "ccgp_jl_9f88c1dd490b85d3",
+        "market_code": "JL"
+      },
+      {
+        "opportunity_id": "ccgp_jl_74cddb340c0c92e0",
+        "market_code": "JL"
+      },
+      {
+        "opportunity_id": "ccgp_jl_5805203615f2d373",
+        "market_code": "JL"
+      },
+      {
+        "opportunity_id": "tjzyefy_intent_20261013_030200057",
+        "market_code": "TJ"
+      },
+      {
+        "opportunity_id": "tjzyefy_intent_20260804_030195986",
+        "market_code": "TJ"
+      },
+      {
+        "opportunity_id": "tjzyefy_intent_20261013_030200055",
+        "market_code": "TJ"
+      },
+      {
+        "opportunity_id": "tjzyefy_intent_20260804_030195988",
+        "market_code": "TJ"
+      },
+      {
+        "opportunity_id": "tjzyefy_intent_20260804_030195991",
+        "market_code": "TJ"
+      },
+      {
+        "opportunity_id": "tjzyefy_intent_20260804_030195992",
+        "market_code": "TJ"
+      }
+    ],
+    "market_counts": {
+      "HL": 10,
+      "BJ": 10,
+      "HE": 10,
+      "JL": 9,
+      "TJ": 8
+    },
+    "top_1_id": "ccgp_hl_be17744f48e2bdc1",
+    "top_1_market": "HL",
+    "scope": "Local resolver and exact 47-ID/payload identity only; browser evidence is recorded separately."
+  }
+}

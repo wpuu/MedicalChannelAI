@@ -1,0 +1,38 @@
+{
+  "recorded_at": "2026-11-05T18:46:26.401Z",
+  "target": "preview",
+  "production_modified": false,
+  "merge_performed": false,
+  "dns_domains_edgeone_modified": false,
+  "production": {
+    "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+    "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+    "ready_state": "READY",
+    "target": "production",
+    "unchanged": true
+  },
+  "project_sso": {
+    "enabled": true,
+    "deploymentType": "all_except_custom_domains",
+    "unchanged": true
+  },
+  "test_database": {
+    "neon_project": "orange-band-79103824",
+    "neon_branch": "br-cold-tooth-a5clhljh",
+    "database": "mcai_p0_acceptance_final"
+  },
+  "producer_access_cleanup": {
+    "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "at": "2026-11-05T18:41:48.868Z",
+    "revoked": true,
+    "already_absent": false,
+    "code": null
+  },
+  "ui_final_access_cleanup": {
+    "deployment_id": "dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm",
+    "at": "2026-11-05T18:46:25.581Z",
+    "revoked": true,
+    "already_absent": false,
+    "code": null
+  }
+}

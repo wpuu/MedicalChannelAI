@@ -1,0 +1,36 @@
+{
+  "scope": {
+    "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "target": "preview"
+  },
+  "query_failures": [
+    {
+      "query": "wide",
+      "isError": true,
+      "time_range": {
+        "since": "2026-11-05T17:45:03.795Z",
+        "until": "2026-11-05T18:05:03.795Z"
+      },
+      "state": "timeout",
+      "returned_row_count": 0,
+      "error_code": "INVALID_ARGUMENT",
+      "operation": "get_runtime_logs",
+      "message": "Vercel API request did not produce a usable response."
+    },
+    {
+      "query": "narrow",
+      "isError": true,
+      "time_range": {
+        "since": "2026-11-05T18:02:15.260Z",
+        "until": "2026-11-05T18:05:15.260Z"
+      },
+      "state": "timeout",
+      "returned_row_count": 0,
+      "error_code": "INVALID_ARGUMENT",
+      "operation": "get_runtime_logs",
+      "message": "Vercel API request did not produce a usable response."
+    }
+  ],
+  "underlying_LN_detail_failure_reason_observed": false,
+  "interpretation": "Two runtime-log connector requests timed out with no usable rows. These are observability failures, not evidence of two collector HTTP failures, and do not establish the underlying LN detail failure cause."
+}

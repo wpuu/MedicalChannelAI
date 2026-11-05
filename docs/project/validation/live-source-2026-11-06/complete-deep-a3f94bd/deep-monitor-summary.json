@@ -1,0 +1,122 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+    "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "triggered_at": "2026-11-05T17:43:03.522555+00:00",
+  "observed_terminal_at": "2026-11-05T18:27:49.978576+00:00",
+  "publish_completed_at": "2026-11-05T18:27:47.698032+00:00",
+  "wall_seconds_to_publish": 2684.175477,
+  "runtime_publish_success": true,
+  "stage_counts": {
+    "COMPLETED": 22,
+    "DEGRADED": 3
+  },
+  "degraded_stages": {
+    "teda": {
+      "attempt_count": 2,
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403",
+      "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:teda"
+    },
+    "regional_ln": {
+      "attempt_count": 2,
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error_message": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN",
+      "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_ln"
+    },
+    "regional_ln_fallback": {
+      "attempt_count": 2,
+      "error_code": "COLLECTOR_PRECONDITION_FAILED",
+      "error_message": "REGIONAL_PRIMARY_RESULT_MISSING:LN",
+      "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_ln_fallback"
+    }
+  },
+  "logical_failed_sources": [
+    "regional_ln",
+    "teda"
+  ],
+  "sources_with_successful_scan": 12,
+  "required_source_count": 14,
+  "publish_result": {
+    "snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+    "today_card_count": 5,
+    "opportunity_pool_count": 47,
+    "canonical_record_count": 964,
+    "notice_event_count": 0,
+    "sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "durable_snapshot_persisted": true,
+    "durable_snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+    "cache_status": "READY"
+  },
+  "three_source_results": {
+    "tjzyefy": {
+      "discovered_supported_count": 8,
+      "selected_candidate_count": 8,
+      "deferred_detail_count": 0,
+      "new_verified_record_count": 8,
+      "unsupported_count": 0,
+      "failure_count": 0,
+      "merged_record_count": 12,
+      "publish_gate_reason": "PASS"
+    },
+    "tjzyefy_intent": {
+      "discovered_supported_count": 3,
+      "selected_candidate_count": 3,
+      "deferred_detail_count": 0,
+      "new_verified_record_count": 2,
+      "unsupported_count": 1,
+      "failure_count": 0,
+      "merged_record_count": 6,
+      "publish_gate_reason": "PASS"
+    },
+    "tjzxfc": {
+      "discovered_supported_count": 5,
+      "selected_candidate_count": 5,
+      "deferred_detail_count": 0,
+      "new_verified_record_count": 1,
+      "unsupported_count": 4,
+      "failure_count": 0,
+      "merged_record_count": 1,
+      "publish_gate_reason": "PASS"
+    }
+  },
+  "three_source_staging": {
+    "tjzyefy": {
+      "record_count": 0,
+      "barrier_count": 0
+    },
+    "tjzyefy_intent": {
+      "record_count": 0,
+      "barrier_count": 0
+    },
+    "tjzxfc": {
+      "record_count": 0,
+      "barrier_count": 0
+    }
+  },
+  "first_tick_at": "2026-11-06T11:30:00+08:00",
+  "tick_chain": {
+    "state": "SCHEDULED",
+    "business_date": "2026-11-06",
+    "tick_id": null,
+    "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+    "selected_source": null,
+    "detail": null,
+    "updated_at": "2026-11-05T18:27:47.871918+00:00"
+  },
+  "automatic_tick_execution_verified": false,
+  "database_and_authority_verification": "ROOT_PENDING",
+  "collector_status_get_error_count": 0,
+  "runtime_log_connector_query_timeouts": 2,
+  "limitations": [
+    "TEDA_OFFICIAL_HTTP_403",
+    "LN_CANDIDATE_VERIFICATION_INCOMPLETE_UNDERLYING_DETAIL_REASON_NOT_OBSERVABLE",
+    "LN_FALLBACK_PRIMARY_RESULT_MISSING_RETRIED_BEFORE_DEGRADED"
+  ]
+}

@@ -1,0 +1,1360 @@
+{
+  "target": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+  "deployment": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+  "expectedCommit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+  "startedAt": "2026-11-05T18:30:38.566Z",
+  "expectedAsOf": "2026-11-06T01:43:03.095559+08:00",
+  "authorityHash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "expectedDbHash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "publicationProof": "Root supplies canonical-stage and independent DB acknowledgement; this browser report verifies its payload is the ordinary UI input.",
+  "checks": [
+    {
+      "name": "share token removed after same-origin cookie bootstrap",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ordinary GET exactly matches authoritative full committed payload",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "status identifies allowed commit and committed DATABASE snapshot",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "source statuses and committed scan clocks match actual published metadata",
+      "pass": true,
+      "detail": {
+        "summary": "FAILING",
+        "healthy": 12,
+        "total": 14
+      }
+    },
+    {
+      "name": "degraded axis reflects actual source and snapshot freshness",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "new context defaults to Tianjin without local profile",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "TJ today card count and fact order match payload actionability rules",
+      "pass": true,
+      "detail": {
+        "expectedCount": 5,
+        "actualCount": 5,
+        "expectedIds": [
+          "tjzyefy_20261104_030202660",
+          "tjmugh_20261105_030368176",
+          "tjzyefy_intent_20261013_030200057",
+          "tjzyefy_intent_20260804_030195986",
+          "tjzyefy_intent_20261013_030200055"
+        ]
+      }
+    },
+    {
+      "name": "TJ today exposes actual degradation warning",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "TJ pool card count and fact order match payload actionability rules",
+      "pass": true,
+      "detail": {
+        "expectedCount": 8,
+        "actualCount": 8,
+        "expectedIds": [
+          "tjzyefy_20261104_030202660",
+          "tjmugh_20261105_030368176",
+          "tjzyefy_intent_20261013_030200057",
+          "tjzyefy_intent_20260804_030195986",
+          "tjzyefy_intent_20261013_030200055",
+          "tjzyefy_intent_20260804_030195988",
+          "tjzyefy_intent_20260804_030195991",
+          "tjzyefy_intent_20260804_030195992"
+        ]
+      }
+    },
+    {
+      "name": "TJ Pool official evidence links preserve payload",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "TJ Pool displayed count follows regional visible / global active rule",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "name": "TJ pool exposes actual degradation warning",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ALL today card count and fact order match payload actionability rules",
+      "pass": true,
+      "detail": {
+        "expectedCount": 5,
+        "actualCount": 5,
+        "expectedIds": [
+          "ccgp_hl_3f2880a5585d3e5f",
+          "ccgp_bj_87ed61190ca088f1",
+          "ccgp_he_57dcc8d3d1b9fe87",
+          "ccgp_he_bc02321f1127f1fb",
+          "ccgp_bj_d82cfee3b2cc99ad"
+        ]
+      }
+    },
+    {
+      "name": "ALL today exposes actual degradation warning",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ALL pool card count and fact order match payload actionability rules",
+      "pass": true,
+      "detail": {
+        "expectedCount": 36,
+        "actualCount": 36,
+        "expectedIds": [
+          "ccgp_hl_3f2880a5585d3e5f",
+          "ccgp_bj_87ed61190ca088f1",
+          "ccgp_he_57dcc8d3d1b9fe87",
+          "ccgp_he_bc02321f1127f1fb",
+          "ccgp_bj_d82cfee3b2cc99ad",
+          "ccgp_bj_193a9d32dc3d4829",
+          "ccgp_bj_b5bbfcd8ca11b2b3",
+          "ccgp_he_f5ec0da3f23445df",
+          "ccgp_hl_7e85f77140090d88",
+          "ccgp_hl_843de80036a38195",
+          "ccgp_bj_7c443bd5da3f78a5",
+          "ccgp_jl_0ce6d69dbb99f2b0",
+          "ccgp_bj_30ad61c98f8c607b",
+          "ccgp_bj_a8dec002633a2045",
+          "ccgp_hl_5a6044487bad535b",
+          "ccgp_hl_94d69e874631aa63",
+          "ccgp_he_a33b11ae4ce7304d",
+          "ccgp_he_f9949fcd0f9dfe93",
+          "tjzyefy_20261104_030202660",
+          "ccgp_jl_ae7d9a08ecb48166",
+          "ccgp_hl_9c1bf78e44cced7d",
+          "ccgp_jl_834800b4bf0f06f3",
+          "ccgp_bj_94a31e06a609b25b",
+          "ccgp_bj_b099b9b6266837f3",
+          "ccgp_bj_96bf141d69deffe9",
+          "ccgp_jl_298e2a6332911cb1",
+          "tjmugh_20261105_030368176",
+          "ccgp_jl_9f88c1dd490b85d3",
+          "ccgp_jl_74cddb340c0c92e0",
+          "ccgp_jl_5805203615f2d373",
+          "tjzyefy_intent_20261013_030200057",
+          "tjzyefy_intent_20260804_030195986",
+          "tjzyefy_intent_20261013_030200055",
+          "tjzyefy_intent_20260804_030195988",
+          "tjzyefy_intent_20260804_030195991",
+          "tjzyefy_intent_20260804_030195992"
+        ]
+      }
+    },
+    {
+      "name": "ALL Pool official evidence links preserve payload",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ALL Pool displayed count follows regional visible / global active rule",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "name": "ALL pool exposes actual degradation warning",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "local follow appears in isolated followed page",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "local follow survives page refresh",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "one normal AI click returns friendly unconfigured 503",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mobile390 today renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile390 pool renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile390 followed renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile390 intent renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile390 resources renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile390 detail renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "all later ordinary UI payload reads keep authoritative version",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "no page errors or unexpected blocked writes or external requests",
+      "pass": true,
+      "detail": {
+        "pageErrors": [],
+        "blockedRequests": []
+      }
+    }
+  ],
+  "ordinarySnapshots": [
+    {
+      "attempt": 0,
+      "waitSeconds": 0,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47,
+      "cache": "HIT",
+      "age": "14"
+    }
+  ],
+  "uiSnapshotReads": [
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    },
+    {
+      "path": "/api/public-snapshot",
+      "ordinary": true,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47
+    }
+  ],
+  "sourceHealth": {
+    "schema_version": "0.1",
+    "status": "FAILING",
+    "required_source_count": 14,
+    "healthy_source_count": 12,
+    "sources": {
+      "ccgp": {
+        "last_successful_scan_at": "2026-11-05T17:45:35.134763+00:00",
+        "last_attempt_at": "2026-11-05T17:45:35.134763+00:00",
+        "stale_after_seconds": 172800,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 2706
+      },
+      "tjmugh": {
+        "last_successful_scan_at": "2026-11-05T17:45:43.311182+00:00",
+        "last_attempt_at": "2026-11-05T17:45:43.311182+00:00",
+        "stale_after_seconds": 86400,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 2698
+      },
+      "tjnothop": {
+        "last_successful_scan_at": "2026-11-05T17:45:46.930144+00:00",
+        "last_attempt_at": "2026-11-05T17:45:46.930144+00:00",
+        "stale_after_seconds": 86400,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 2694
+      },
+      "teda": {
+        "last_successful_scan_at": null,
+        "last_attempt_at": "2026-11-05T17:57:18.706259+00:00",
+        "stale_after_seconds": 86400,
+        "failure_reason": "SOURCE_SCAN_FAILED",
+        "status": "FAILING",
+        "age_seconds": null
+      },
+      "tjfch": {
+        "last_successful_scan_at": "2026-11-05T17:57:39.473535+00:00",
+        "last_attempt_at": "2026-11-05T17:57:39.473535+00:00",
+        "stale_after_seconds": 86400,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 1982
+      },
+      "tjfch_test": {
+        "last_successful_scan_at": "2026-11-05T17:57:39.480605+00:00",
+        "last_attempt_at": "2026-11-05T17:57:39.480605+00:00",
+        "stale_after_seconds": 86400,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 1982
+      },
+      "tjzyefy": {
+        "last_successful_scan_at": "2026-11-05T17:46:25.574132+00:00",
+        "last_attempt_at": "2026-11-05T17:46:25.574132+00:00",
+        "stale_after_seconds": 86400,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 2656
+      },
+      "tjzyefy_intent": {
+        "last_successful_scan_at": "2026-11-05T17:46:42.514712+00:00",
+        "last_attempt_at": "2026-11-05T17:46:42.514712+00:00",
+        "stale_after_seconds": 86400,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 2639
+      },
+      "tjzxfc": {
+        "last_successful_scan_at": "2026-11-05T17:47:05.921643+00:00",
+        "last_attempt_at": "2026-11-05T17:47:05.921643+00:00",
+        "stale_after_seconds": 86400,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 2615
+      },
+      "regional_bj": {
+        "last_successful_scan_at": "2026-11-05T18:00:36.970384+00:00",
+        "last_attempt_at": "2026-11-05T18:00:36.970384+00:00",
+        "stale_after_seconds": 172800,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 1804
+      },
+      "regional_he": {
+        "last_successful_scan_at": "2026-11-05T18:02:29.894077+00:00",
+        "last_attempt_at": "2026-11-05T18:02:29.894077+00:00",
+        "stale_after_seconds": 172800,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 1691
+      },
+      "regional_ln": {
+        "last_successful_scan_at": null,
+        "last_attempt_at": "2026-11-05T18:24:00.165147+00:00",
+        "stale_after_seconds": 172800,
+        "failure_reason": "SOURCE_SCAN_FAILED",
+        "status": "FAILING",
+        "age_seconds": null
+      },
+      "regional_jl": {
+        "last_successful_scan_at": "2026-11-05T18:25:48.298254+00:00",
+        "last_attempt_at": "2026-11-05T18:25:48.298254+00:00",
+        "stale_after_seconds": 172800,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 293
+      },
+      "regional_hl": {
+        "last_successful_scan_at": "2026-11-05T18:27:38.927348+00:00",
+        "last_attempt_at": "2026-11-05T18:27:38.927348+00:00",
+        "stale_after_seconds": 172800,
+        "failure_reason": null,
+        "status": "HEALTHY",
+        "age_seconds": 182
+      }
+    }
+  },
+  "pageErrors": [],
+  "failedRequests": [],
+  "blockedRequests": [],
+  "aiRequests": [
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 8
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 8
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 8
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 8
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 8
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 10
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 10
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 10
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 10
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 10
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 10
+    },
+    {
+      "cacheOnly": false,
+      "single": true,
+      "count": 1,
+      "id": "ccgp_hl_3f2880a5585d3e5f"
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 10
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 10
+    },
+    {
+      "cacheOnly": true,
+      "single": false,
+      "count": 1
+    }
+  ],
+  "aiResponses": [
+    {
+      "http": 503,
+      "error": "AI_NOT_CONFIGURED",
+      "id": "ccgp_hl_3f2880a5585d3e5f"
+    }
+  ],
+  "notExercised": [],
+  "status": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "version": "0.5.0",
+    "commit": "a3f94bd",
+    "production_ready": false,
+    "ai": {
+      "configured": false
+    },
+    "ready": true,
+    "degraded": true,
+    "snapshot": {
+      "available": true,
+      "source_mode": "DATABASE",
+      "runtime_origin": null,
+      "snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+      "freshness": "FRESH",
+      "age_minutes": 47,
+      "stale_after_minutes": 1800,
+      "source_health": {
+        "schema_version": "0.1",
+        "status": "FAILING",
+        "required_source_count": 14,
+        "healthy_source_count": 12,
+        "sources": {
+          "ccgp": {
+            "last_successful_scan_at": "2026-11-05T17:45:35.134763+00:00",
+            "last_attempt_at": "2026-11-05T17:45:35.134763+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2706
+          },
+          "tjmugh": {
+            "last_successful_scan_at": "2026-11-05T17:45:43.311182+00:00",
+            "last_attempt_at": "2026-11-05T17:45:43.311182+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2698
+          },
+          "tjnothop": {
+            "last_successful_scan_at": "2026-11-05T17:45:46.930144+00:00",
+            "last_attempt_at": "2026-11-05T17:45:46.930144+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2694
+          },
+          "teda": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-05T17:57:18.706259+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "tjfch": {
+            "last_successful_scan_at": "2026-11-05T17:57:39.473535+00:00",
+            "last_attempt_at": "2026-11-05T17:57:39.473535+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 1982
+          },
+          "tjfch_test": {
+            "last_successful_scan_at": "2026-11-05T17:57:39.480605+00:00",
+            "last_attempt_at": "2026-11-05T17:57:39.480605+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 1982
+          },
+          "tjzyefy": {
+            "last_successful_scan_at": "2026-11-05T17:46:25.574132+00:00",
+            "last_attempt_at": "2026-11-05T17:46:25.574132+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2656
+          },
+          "tjzyefy_intent": {
+            "last_successful_scan_at": "2026-11-05T17:46:42.514712+00:00",
+            "last_attempt_at": "2026-11-05T17:46:42.514712+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2639
+          },
+          "tjzxfc": {
+            "last_successful_scan_at": "2026-11-05T17:47:05.921643+00:00",
+            "last_attempt_at": "2026-11-05T17:47:05.921643+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2615
+          },
+          "regional_bj": {
+            "last_successful_scan_at": "2026-11-05T18:00:36.970384+00:00",
+            "last_attempt_at": "2026-11-05T18:00:36.970384+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 1804
+          },
+          "regional_he": {
+            "last_successful_scan_at": "2026-11-05T18:02:29.894077+00:00",
+            "last_attempt_at": "2026-11-05T18:02:29.894077+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 1691
+          },
+          "regional_ln": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-05T18:24:00.165147+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "regional_jl": {
+            "last_successful_scan_at": "2026-11-05T18:25:48.298254+00:00",
+            "last_attempt_at": "2026-11-05T18:25:48.298254+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 293
+          },
+          "regional_hl": {
+            "last_successful_scan_at": "2026-11-05T18:27:38.927348+00:00",
+            "last_attempt_at": "2026-11-05T18:27:38.927348+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 182
+          }
+        }
+      },
+      "today_card_count": 5,
+      "opportunity_pool_count": 47
+    }
+  },
+  "completed": true,
+  "endedAt": "2026-11-05T18:31:11.176Z",
+  "singleAiCount": 1,
+  "page_observation_count": 12,
+  "page_summaries": [
+    {
+      "name": "tj-today",
+      "path": "/today",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "expectedIds": [
+        "tjzyefy_20261104_030202660",
+        "tjmugh_20261105_030368176",
+        "tjzyefy_intent_20261013_030200057",
+        "tjzyefy_intent_20260804_030195986",
+        "tjzyefy_intent_20261013_030200055"
+      ],
+      "excluded": [
+        {
+          "id": "ccgp_hl_be17744f48e2bdc1",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_hl_3f2880a5585d3e5f",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_87ed61190ca088f1",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_57dcc8d3d1b9fe87",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_bc02321f1127f1fb",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_d82cfee3b2cc99ad",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_193a9d32dc3d4829",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_b5bbfcd8ca11b2b3",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_f5ec0da3f23445df",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_7e85f77140090d88",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_843de80036a38195",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_65fa0bf43261c5d9",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_bj_7c443bd5da3f78a5",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_80a3cb4d30c401af",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_9aff0f5650523242",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_5c21a4ec113a8b6e",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_0ce6d69dbb99f2b0",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_30ad61c98f8c607b",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_a8dec002633a2045",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_5a6044487bad535b",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_94d69e874631aa63",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_a33b11ae4ce7304d",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_f9949fcd0f9dfe93",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_jl_ae7d9a08ecb48166",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_15a2fc571ecb2867",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_hl_9c1bf78e44cced7d",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_9c513edc16b22d94",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_834800b4bf0f06f3",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_94a31e06a609b25b",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_b099b9b6266837f3",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_jl_a5326656a079ada9",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_bj_96bf141d69deffe9",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_256d41444e936d50",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_9ac5da38c4aa4c66",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_298e2a6332911cb1",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_a00d0fb3edbb3898",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_9f88c1dd490b85d3",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_jl_74cddb340c0c92e0",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_jl_5805203615f2d373",
+          "reason": "OTHER_MARKET"
+        }
+      ]
+    },
+    {
+      "name": "tj-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "expectedIds": [
+        "tjzyefy_20261104_030202660",
+        "tjmugh_20261105_030368176",
+        "tjzyefy_intent_20261013_030200057",
+        "tjzyefy_intent_20260804_030195986",
+        "tjzyefy_intent_20261013_030200055",
+        "tjzyefy_intent_20260804_030195988",
+        "tjzyefy_intent_20260804_030195991",
+        "tjzyefy_intent_20260804_030195992"
+      ],
+      "excluded": [
+        {
+          "id": "ccgp_hl_be17744f48e2bdc1",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_hl_3f2880a5585d3e5f",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_87ed61190ca088f1",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_57dcc8d3d1b9fe87",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_bc02321f1127f1fb",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_d82cfee3b2cc99ad",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_193a9d32dc3d4829",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_b5bbfcd8ca11b2b3",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_f5ec0da3f23445df",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_7e85f77140090d88",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_843de80036a38195",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_65fa0bf43261c5d9",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_bj_7c443bd5da3f78a5",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_80a3cb4d30c401af",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_9aff0f5650523242",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_5c21a4ec113a8b6e",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_0ce6d69dbb99f2b0",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_30ad61c98f8c607b",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_a8dec002633a2045",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_5a6044487bad535b",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_94d69e874631aa63",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_a33b11ae4ce7304d",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_f9949fcd0f9dfe93",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_jl_ae7d9a08ecb48166",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_15a2fc571ecb2867",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_hl_9c1bf78e44cced7d",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_hl_9c513edc16b22d94",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_834800b4bf0f06f3",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_94a31e06a609b25b",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_bj_b099b9b6266837f3",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_jl_a5326656a079ada9",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_bj_96bf141d69deffe9",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_256d41444e936d50",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_9ac5da38c4aa4c66",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_298e2a6332911cb1",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_he_a00d0fb3edbb3898",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_9f88c1dd490b85d3",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_jl_74cddb340c0c92e0",
+          "reason": "OTHER_MARKET"
+        },
+        {
+          "id": "ccgp_jl_5805203615f2d373",
+          "reason": "OTHER_MARKET"
+        }
+      ]
+    },
+    {
+      "name": "all-today",
+      "path": "/today",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "expectedIds": [
+        "ccgp_hl_3f2880a5585d3e5f",
+        "ccgp_bj_87ed61190ca088f1",
+        "ccgp_he_57dcc8d3d1b9fe87",
+        "ccgp_he_bc02321f1127f1fb",
+        "ccgp_bj_d82cfee3b2cc99ad"
+      ],
+      "excluded": [
+        {
+          "id": "ccgp_hl_be17744f48e2bdc1",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_hl_65fa0bf43261c5d9",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_80a3cb4d30c401af",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_9aff0f5650523242",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_5c21a4ec113a8b6e",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_hl_15a2fc571ecb2867",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_hl_9c513edc16b22d94",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_a5326656a079ada9",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_256d41444e936d50",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_9ac5da38c4aa4c66",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_a00d0fb3edbb3898",
+          "reason": "UNKNOWN_MARKET"
+        }
+      ]
+    },
+    {
+      "name": "all-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "expectedIds": [
+        "ccgp_hl_3f2880a5585d3e5f",
+        "ccgp_bj_87ed61190ca088f1",
+        "ccgp_he_57dcc8d3d1b9fe87",
+        "ccgp_he_bc02321f1127f1fb",
+        "ccgp_bj_d82cfee3b2cc99ad",
+        "ccgp_bj_193a9d32dc3d4829",
+        "ccgp_bj_b5bbfcd8ca11b2b3",
+        "ccgp_he_f5ec0da3f23445df",
+        "ccgp_hl_7e85f77140090d88",
+        "ccgp_hl_843de80036a38195",
+        "ccgp_bj_7c443bd5da3f78a5",
+        "ccgp_jl_0ce6d69dbb99f2b0",
+        "ccgp_bj_30ad61c98f8c607b",
+        "ccgp_bj_a8dec002633a2045",
+        "ccgp_hl_5a6044487bad535b",
+        "ccgp_hl_94d69e874631aa63",
+        "ccgp_he_a33b11ae4ce7304d",
+        "ccgp_he_f9949fcd0f9dfe93",
+        "tjzyefy_20261104_030202660",
+        "ccgp_jl_ae7d9a08ecb48166",
+        "ccgp_hl_9c1bf78e44cced7d",
+        "ccgp_jl_834800b4bf0f06f3",
+        "ccgp_bj_94a31e06a609b25b",
+        "ccgp_bj_b099b9b6266837f3",
+        "ccgp_bj_96bf141d69deffe9",
+        "ccgp_jl_298e2a6332911cb1",
+        "tjmugh_20261105_030368176",
+        "ccgp_jl_9f88c1dd490b85d3",
+        "ccgp_jl_74cddb340c0c92e0",
+        "ccgp_jl_5805203615f2d373",
+        "tjzyefy_intent_20261013_030200057",
+        "tjzyefy_intent_20260804_030195986",
+        "tjzyefy_intent_20261013_030200055",
+        "tjzyefy_intent_20260804_030195988",
+        "tjzyefy_intent_20260804_030195991",
+        "tjzyefy_intent_20260804_030195992"
+      ],
+      "excluded": [
+        {
+          "id": "ccgp_hl_be17744f48e2bdc1",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_hl_65fa0bf43261c5d9",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_80a3cb4d30c401af",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_9aff0f5650523242",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_5c21a4ec113a8b6e",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_hl_15a2fc571ecb2867",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_hl_9c513edc16b22d94",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_jl_a5326656a079ada9",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_256d41444e936d50",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_9ac5da38c4aa4c66",
+          "reason": "UNKNOWN_MARKET"
+        },
+        {
+          "id": "ccgp_he_a00d0fb3edbb3898",
+          "reason": "UNKNOWN_MARKET"
+        }
+      ]
+    },
+    {
+      "name": "followed-refresh",
+      "path": "/followed",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "ai-friendly-503",
+      "path": "/today",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "mobile-today",
+      "path": "/today",
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-followed",
+      "path": "/followed",
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-intent",
+      "path": "/intent-followup",
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-resources",
+      "path": "/resources",
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-detail",
+      "path": "/opportunity/ccgp_hl_3f2880a5585d3e5f",
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    }
+  ],
+  "raw_check_results_are_uncorrected": true,
+  "corrections_artifact": "browser-live-findings.json",
+  "rendered_page_text_not_duplicated": true
+}

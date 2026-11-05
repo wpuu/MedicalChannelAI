@@ -1,0 +1,11 @@
+{
+  "database_name": "mcai_p0_acceptance_final",
+  "snapshot_hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "sql_snapshot_as_of": "2026-11-05 17:43:03.095+00",
+  "timestamp_matches_payload": false,
+  "opportunity_count": 47,
+  "materialized_at": "2026-11-05 18:27:47.201022+00",
+  "payload_artifact": "published-payload.json",
+  "canonical_payload_sha256_recomputed": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "timestamp_interpretation": "Original timestamp_matches_payload is preserved; exact SQL microsecond equality is false. Canonical JSON payload/hash equality is separately proven, and times match at JavaScript millisecond precision."
+}

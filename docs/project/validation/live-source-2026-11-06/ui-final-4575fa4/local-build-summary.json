@@ -1,0 +1,33 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm",
+    "url": "https://medicalchannelai-j4ktac1cu-rerisse7-1717s-projects.vercel.app",
+    "commit": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "command": "npm run build",
+  "command_chain": "node scripts/run-prebuild.mjs && tsc --noEmit && vite build",
+  "exit_code_reported_by_task_root": 0,
+  "python_tests": 878,
+  "python_result": "PASS_ALL",
+  "prebuild": "PASS",
+  "javascript_contracts": "PASS_ALL",
+  "typescript": "PASS",
+  "vite": "PASS",
+  "main_asset": {
+    "path": "dist/assets/index-D2hk_s6p.js",
+    "size_reported": 359.45,
+    "gzip_reported": 116.0,
+    "unit_as_reported_by_Vite": "kB"
+  },
+  "selected_log_evidence": [
+    "Ran 878 tests in 2.387s",
+    "OK",
+    "Prebuild verification: PASS",
+    "✓ built in 3.08s"
+  ],
+  "interpretation": "Local full build associated with the final UI code. Bundled historical build data is not substituted for the real published 47-opportunity snapshot."
+}

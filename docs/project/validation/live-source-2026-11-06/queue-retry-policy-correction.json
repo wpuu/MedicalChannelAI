@@ -1,0 +1,46 @@
+{
+  "schema_version": "0.1",
+  "recorded_at": "2026-11-05T17:42:49.653317+00:00",
+  "subject": "Initial source retry inference correction and pending native-delivery cap verification",
+  "initial_scan_entry_clocks_observed": [
+    {
+      "clock": "2026-11-05T17:22:04.406565+00:00",
+      "evidence": "initial-0520fa0/tjzyefy-result.json",
+      "field": "scan_health.last_attempt_at"
+    },
+    {
+      "clock": "2026-11-05T17:27:09.503264+00:00",
+      "evidence": "initial-0520fa0/scan-versus-publication.json",
+      "field": "source_scan_health.tjzyefy.last_attempt_at"
+    },
+    {
+      "clock": "2026-11-05T17:32:14.646447+00:00",
+      "evidence": "recovery-afca3d0/tjzyefy-result.json",
+      "field": "started.before_scan_health.last_attempt_at"
+    }
+  ],
+  "proven_delivery_count": null,
+  "delivery_count_above_three_proven": false,
+  "withdrawn_inference": "A 150-second retry setting does not establish at least five deliveries during this interval. The handler lease duration is 300 seconds, so delivery count cannot be inferred by dividing elapsed wall time by 150. Only the three recorded scan-entry clocks above are directly observed.",
+  "static_findings_reported_by_task_root": {
+    "sdk_runtime_max_attempts_enforced_before_patch": false,
+    "manual_trigger_native_maxDeliveries_before_patch": "Unlimited default",
+    "retry_after_seconds": 150,
+    "handler_lease_duration_seconds": 300,
+    "scope": "Static SDK/configuration findings, not an observed delivery-count trace."
+  },
+  "pending_fix_scope_reported_by_task_root": {
+    "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+    "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "preview_url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+    "native_maxDeliveries": 3,
+    "local_python_tests_reported": 878,
+    "local_build_result_reported": "PASS",
+    "deployment_status_at_report": "DEPLOYING",
+    "online_native_cap_enforcement_proven": false,
+    "complete_deep_triggered_at_report": false,
+    "interpretation": "Patch/build and pending deployment descriptors only. Add subsequent live Queue/publication evidence separately; these identifiers do not replace the initial or afca3d0 recovery runs."
+  },
+  "production_modified": false,
+  "external_requests_performed_by_this_collection": 0
+}

@@ -1,0 +1,13 @@
+{
+  "purpose": "One normal read to classify TEDA HTTP403; no bypass or alternate endpoint",
+  "url": "https://www.tedahospital.com.cn/article/plist/9",
+  "requested_at": "2026-11-05T17:50:59.856154+00:00",
+  "http": 403,
+  "final_url": "https://www.tedahospital.com.cn/article/plist/9",
+  "bytes": 199,
+  "sha256": "5b13fb5957b84ef7bb9d0b6cd509c947ff6a37d67efdac2b896ddd3b908aad10",
+  "content_type": "text/html; charset=iso-8859-1",
+  "server": "envoy",
+  "proxy_block_reason": null,
+  "completed_at": "2026-11-05T17:51:03.514979+00:00"
+}

@@ -1,0 +1,162 @@
+{
+  "at": "2026-11-05T17:21:53.264875+00:00",
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+    "url": "https://medicalchannelai-g6u8ue0nw-rerisse7-1717s-projects.vercel.app",
+    "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "http": 200,
+  "response": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "version": "0.5.0",
+    "commit": "0520fa0",
+    "production_ready": false,
+    "ai": {
+      "configured": false
+    },
+    "ready": true,
+    "degraded": true,
+    "snapshot": {
+      "available": true,
+      "source_mode": "DATABASE",
+      "runtime_origin": null,
+      "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+      "freshness": "FRESH",
+      "age_minutes": 30,
+      "stale_after_minutes": 1800,
+      "source_health": {
+        "schema_version": "0.1",
+        "status": "UNKNOWN",
+        "required_source_count": 14,
+        "healthy_source_count": 1,
+        "sources": {
+          "ccgp": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjmugh": {
+            "last_successful_scan_at": "2026-11-05T16:40:27.354690+00:00",
+            "last_attempt_at": "2026-11-05T16:40:27.354690+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2485
+          },
+          "tjnothop": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "teda": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch_test": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy_intent": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzxfc": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_bj": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_he": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_ln": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_jl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_hl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          }
+        }
+      },
+      "today_card_count": 2,
+      "opportunity_pool_count": 2
+    }
+  },
+  "headers": {
+    "x-vercel-id": "cle1::iad1::ntmn6-1793899313195-231833ba1292",
+    "x-vercel-cache": "MISS",
+    "age": "0",
+    "cache-control": "no-store, max-age=0"
+  }
+}

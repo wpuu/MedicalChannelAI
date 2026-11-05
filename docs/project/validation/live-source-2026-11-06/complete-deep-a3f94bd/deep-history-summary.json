@@ -1,0 +1,3423 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+    "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "observation_count": 22,
+  "client_first_observation_at": "2026-11-05T17:44:21.350761+00:00",
+  "client_last_observation_at": "2026-11-05T18:27:49.978576+00:00",
+  "history": [
+    {
+      "at": "2026-11-05T17:44:21.350761+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T17:45:24.598786+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 2
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T17:45:40.018852+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 7,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T17:45:55.445003+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 9,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T17:46:26.187596+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 10
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T17:46:41.585251+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 10,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T17:46:57.028901+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 11,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T17:47:12.436405+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 12,
+        "FAILED": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "teda": {
+          "status": "FAILED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:47:08.261461+00:00",
+          "completed_at": "2026-11-05T17:47:10.077582+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T17:52:20.460633+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 12,
+        "FAILED": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "teda": {
+          "status": "FAILED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:52:15.021551+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T17:57:28.737088+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 12,
+        "DEGRADED": 1,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T17:57:44.058311+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 13,
+        "DEGRADED": 1,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:00:48.924457+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 15,
+        "DEGRADED": 1,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:02:36.696217+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 17,
+        "DEGRADED": 1,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": "2026-11-05T18:02:29.889059+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:32.262029+00:00",
+          "completed_at": "2026-11-05T18:02:32.400324+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_ln": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:34.783169+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:04:24.528197+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 17,
+        "DEGRADED": 1,
+        "FAILED": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": "2026-11-05T18:02:29.889059+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:32.262029+00:00",
+          "completed_at": "2026-11-05T18:02:32.400324+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_ln": {
+          "status": "FAILED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:34.783169+00:00",
+          "completed_at": "2026-11-05T18:04:19.349523+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN"
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:07:45.262768+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 17,
+        "DEGRADED": 1,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": "2026-11-05T18:02:29.889059+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:32.262029+00:00",
+          "completed_at": "2026-11-05T18:02:32.400324+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_ln": {
+          "status": "RUNNING",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:07:40.061301+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:09:32.747967+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 17,
+        "DEGRADED": 1,
+        "FAILED": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": "2026-11-05T18:02:29.889059+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:32.262029+00:00",
+          "completed_at": "2026-11-05T18:02:32.400324+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_ln": {
+          "status": "FAILED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:07:40.061301+00:00",
+          "completed_at": "2026-11-05T18:09:26.562580+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN"
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:13:54.828022+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 17,
+        "DEGRADED": 2,
+        "FAILED": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": "2026-11-05T18:02:29.889059+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:32.262029+00:00",
+          "completed_at": "2026-11-05T18:02:32.400324+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_ln": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:07:40.061301+00:00",
+          "completed_at": "2026-11-05T18:13:45.365204+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN"
+        },
+        "regional_ln_fallback": {
+          "status": "FAILED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:13:47.746391+00:00",
+          "completed_at": "2026-11-05T18:13:47.755059+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_PRECONDITION_FAILED",
+          "error_message": "REGIONAL_PRIMARY_RESULT_MISSING:LN"
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:14:42.206134+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 17,
+        "DEGRADED": 2,
+        "FAILED": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": "2026-11-05T18:02:29.889059+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:32.262029+00:00",
+          "completed_at": "2026-11-05T18:02:32.400324+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_ln": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:07:40.061301+00:00",
+          "completed_at": "2026-11-05T18:13:45.365204+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN"
+        },
+        "regional_ln_fallback": {
+          "status": "FAILED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:13:47.746391+00:00",
+          "completed_at": "2026-11-05T18:13:47.755059+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_PRECONDITION_FAILED",
+          "error_message": "REGIONAL_PRIMARY_RESULT_MISSING:LN"
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:19:04.077730+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 17,
+        "DEGRADED": 2,
+        "FAILED": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": "2026-11-05T18:02:29.889059+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:32.262029+00:00",
+          "completed_at": "2026-11-05T18:02:32.400324+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_ln": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:07:40.061301+00:00",
+          "completed_at": "2026-11-05T18:13:45.365204+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN"
+        },
+        "regional_ln_fallback": {
+          "status": "FAILED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:18:54.212476+00:00",
+          "completed_at": "2026-11-05T18:18:54.220122+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_PRECONDITION_FAILED",
+          "error_message": "REGIONAL_PRIMARY_RESULT_MISSING:LN"
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:24:12.700090+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 17,
+        "DEGRADED": 3,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": "2026-11-05T18:02:29.889059+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:32.262029+00:00",
+          "completed_at": "2026-11-05T18:02:32.400324+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_jl": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:24:02.471906+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_ln": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:07:40.061301+00:00",
+          "completed_at": "2026-11-05T18:13:45.365204+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN"
+        },
+        "regional_ln_fallback": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:18:54.212476+00:00",
+          "completed_at": "2026-11-05T18:24:00.165147+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_PRECONDITION_FAILED",
+          "error_message": "REGIONAL_PRIMARY_RESULT_MISSING:LN"
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:26:02.123416+00:00",
+      "active_cycle_id": "prod:2026-11-06",
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T17:43:03.424848+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 19,
+        "DEGRADED": 3,
+        "RUNNING": 1
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": "2026-11-05T18:02:29.889059+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:32.262029+00:00",
+          "completed_at": "2026-11-05T18:02:32.400324+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_hl": {
+          "status": "RUNNING",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:25:53.260355+00:00",
+          "completed_at": null,
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_jl": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:24:02.471906+00:00",
+          "completed_at": "2026-11-05T18:25:48.292364+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_jl_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:25:50.794775+00:00",
+          "completed_at": "2026-11-05T18:25:50.902590+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_ln": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:07:40.061301+00:00",
+          "completed_at": "2026-11-05T18:13:45.365204+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN"
+        },
+        "regional_ln_fallback": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:18:54.212476+00:00",
+          "completed_at": "2026-11-05T18:24:00.165147+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_PRECONDITION_FAILED",
+          "error_message": "REGIONAL_PRIMARY_RESULT_MISSING:LN"
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    },
+    {
+      "at": "2026-11-05T18:27:49.978576+00:00",
+      "active_cycle_id": null,
+      "chain": {
+        "business_date": "2026-11-06",
+        "detail": null,
+        "next_tick_id": "incremental-tick:20261106T1130+0800:01",
+        "selected_source": null,
+        "state": "SCHEDULED",
+        "tick_id": null,
+        "updated_at": "2026-11-05T18:27:47.871918+00:00"
+      },
+      "stage_counts": {
+        "COMPLETED": 22,
+        "DEGRADED": 3
+      },
+      "stages": {
+        "ccgp": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:43:03.802209+00:00",
+          "completed_at": "2026-11-05T17:45:20.409638+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event1": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:22.887085+00:00",
+          "completed_at": "2026-11-05T17:45:22.917649+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event2": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:25.245617+00:00",
+          "completed_at": "2026-11-05T17:45:25.277715+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event3": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:27.668490+00:00",
+          "completed_at": "2026-11-05T17:45:27.702571+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event4": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:30.340490+00:00",
+          "completed_at": "2026-11-05T17:45:30.366967+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event5": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:32.669669+00:00",
+          "completed_at": "2026-11-05T17:45:32.704908+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "event6": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:35.086489+00:00",
+          "completed_at": "2026-11-05T17:45:35.126743+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "publish": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:27:44.037299+00:00",
+          "completed_at": "2026-11-05T18:27:47.698032+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:42.017210+00:00",
+          "completed_at": "2026-11-05T18:00:36.965980+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_bj_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:39.334969+00:00",
+          "completed_at": "2026-11-05T18:00:39.469630+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:00:42.014543+00:00",
+          "completed_at": "2026-11-05T18:02:29.889059+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_he_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:02:32.262029+00:00",
+          "completed_at": "2026-11-05T18:02:32.400324+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_hl": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:25:53.260355+00:00",
+          "completed_at": "2026-11-05T18:27:38.923055+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_hl_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:27:41.527873+00:00",
+          "completed_at": "2026-11-05T18:27:41.667274+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_jl": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:24:02.471906+00:00",
+          "completed_at": "2026-11-05T18:25:48.292364+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_jl_fallback": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T18:25:50.794775+00:00",
+          "completed_at": "2026-11-05T18:25:50.902590+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "regional_ln": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:07:40.061301+00:00",
+          "completed_at": "2026-11-05T18:13:45.365204+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN"
+        },
+        "regional_ln_fallback": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T18:18:54.212476+00:00",
+          "completed_at": "2026-11-05T18:24:00.165147+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_PRECONDITION_FAILED",
+          "error_message": "REGIONAL_PRIMARY_RESULT_MISSING:LN"
+        },
+        "teda": {
+          "status": "DEGRADED",
+          "attempt_count": 2,
+          "wall_started_at": "2026-11-05T17:52:13.529969+00:00",
+          "completed_at": "2026-11-05T17:57:18.706259+00:00",
+          "degraded_at": null,
+          "error_code": "COLLECTOR_STAGE_BLOCKED",
+          "error_message": "TEDA_INDEX_DISCOVERY_FAILED:RuntimeError:TEDA_INDEX_PAGE_FAILED:1:https://www.tedahospital.com.cn/article/plist/9:RuntimeError:TEDA_HTTP_403"
+        },
+        "tjfch": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:57:21.041020+00:00",
+          "completed_at": "2026-11-05T17:57:39.469061+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjmugh": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:37.403638+00:00",
+          "completed_at": "2026-11-05T17:45:43.307093+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjnothop": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:45.661873+00:00",
+          "completed_at": "2026-11-05T17:45:46.925752+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzxfc": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:44.861002+00:00",
+          "completed_at": "2026-11-05T17:47:05.917658+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:45:49.312767+00:00",
+          "completed_at": "2026-11-05T17:46:25.569149+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        },
+        "tjzyefy_intent": {
+          "status": "COMPLETED",
+          "attempt_count": 1,
+          "wall_started_at": "2026-11-05T17:46:27.925858+00:00",
+          "completed_at": "2026-11-05T17:46:42.510851+00:00",
+          "degraded_at": null,
+          "error_code": null,
+          "error_message": null
+        }
+      }
+    }
+  ],
+  "interpretation": "These are read-only client polls and observed stage state, not a complete native Queue delivery trace. No duration is inferred from source scan entry timestamps."
+}

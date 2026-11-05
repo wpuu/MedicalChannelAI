@@ -1,0 +1,16 @@
+{
+  "recorded_at": "2026-11-05T18:45:49.638Z",
+  "target": "preview",
+  "deployment_id": "dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm",
+  "url": "https://medicalchannelai-j4ktac1cu-rerisse7-1717s-projects.vercel.app",
+  "ready_state": "READY",
+  "vercel_target": null,
+  "git_commit": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+  "git_branch": "codex/p0-reliability-contracts",
+  "expected_commit": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+  "commit_matches": true,
+  "producer_commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+  "producer_deployment": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+  "change_scope": "UI market resolver and regression script only; no recollection or manual publication",
+  "production_modified": false
+}

@@ -1,0 +1,215 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+    "url": "https://medicalchannelai-g6u8ue0nw-rerisse7-1717s-projects.vercel.app",
+    "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "started": {
+    "at": "2026-11-05T17:22:04.206265+00:00",
+    "scope": {
+      "target": "preview",
+      "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+      "url": "https://medicalchannelai-g6u8ue0nw-rerisse7-1717s-projects.vercel.app",
+      "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+      "git_branch": "codex/p0-reliability-contracts",
+      "database": "mcai_p0_acceptance_final",
+      "neon_branch": "br-cold-tooth-a5clhljh"
+    },
+    "http": 202,
+    "response": {
+      "schema_version": "0.1",
+      "service": "MedicalChannelAI",
+      "trigger_source": "VERCEL_CRON",
+      "collector": {
+        "action": "QUEUED",
+        "execution_plane": "VERCEL_QUEUE_V2",
+        "mode": "INCREMENTAL",
+        "source_id": "tjzyefy",
+        "scan_bucket_id": "tjzyefy:60m:498305",
+        "observed_at": "2026-11-05T17:22:03.759635+00:00",
+        "due_source_count": null,
+        "message_id": "60-1M1eB48dUwAXr38kcGg4EQMfjbXiWNIg"
+      }
+    }
+  },
+  "history": [
+    {
+      "at": "2026-11-05T17:22:04.524346+00:00",
+      "active": "tjzyefy:60m:498305:2026-11-05T17:22:03.759635+00:00",
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 60,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 0,
+          "verified_count": 0,
+          "failed_count": 0,
+          "unverified_count": 0,
+          "updated_at": null
+        },
+        "staging": {
+          "record_count": 0,
+          "barrier_count": 0
+        },
+        "last_completed_scan": {
+          "bucket_id": null,
+          "completed_at": null,
+          "result": null
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": null,
+        "last_successful_scan_at": null,
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      }
+    },
+    {
+      "at": "2026-11-05T17:22:14.932336+00:00",
+      "active": "tjzyefy:60m:498305:2026-11-05T17:22:03.759635+00:00",
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 60,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 8,
+          "verified_count": 1,
+          "failed_count": 0,
+          "unverified_count": 7,
+          "updated_at": "2026-11-05T17:22:04.406565+00:00"
+        },
+        "staging": {
+          "record_count": 1,
+          "barrier_count": 7
+        },
+        "last_completed_scan": {
+          "bucket_id": null,
+          "completed_at": null,
+          "result": null
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": null,
+        "last_successful_scan_at": null,
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      }
+    },
+    {
+      "at": "2026-11-05T17:22:25.359530+00:00",
+      "active": "tjzyefy:60m:498305:2026-11-05T17:22:03.759635+00:00",
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 60,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 8,
+          "verified_count": 4,
+          "failed_count": 0,
+          "unverified_count": 4,
+          "updated_at": "2026-11-05T17:22:04.406565+00:00"
+        },
+        "staging": {
+          "record_count": 4,
+          "barrier_count": 4
+        },
+        "last_completed_scan": {
+          "bucket_id": null,
+          "completed_at": null,
+          "result": null
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": null,
+        "last_successful_scan_at": null,
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      }
+    },
+    {
+      "at": "2026-11-05T17:22:35.715678+00:00",
+      "active": "tjzyefy:60m:498305:2026-11-05T17:22:03.759635+00:00",
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 60,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 8,
+          "verified_count": 6,
+          "failed_count": 0,
+          "unverified_count": 2,
+          "updated_at": "2026-11-05T17:22:04.406565+00:00"
+        },
+        "staging": {
+          "record_count": 6,
+          "barrier_count": 2
+        },
+        "last_completed_scan": {
+          "bucket_id": null,
+          "completed_at": null,
+          "result": null
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": null,
+        "last_successful_scan_at": null,
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      }
+    },
+    {
+      "at": "2026-11-05T17:22:46.039478+00:00",
+      "active": null,
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 60,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 8,
+          "verified_count": 6,
+          "failed_count": 2,
+          "unverified_count": 0,
+          "updated_at": "2026-11-05T17:22:04.406565+00:00"
+        },
+        "staging": {
+          "record_count": 6,
+          "barrier_count": 2
+        },
+        "last_completed_scan": {
+          "bucket_id": null,
+          "completed_at": null,
+          "result": null
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": "2026-11-05T17:22:04.406565+00:00",
+        "last_successful_scan_at": null,
+        "failure_reason": "DETAIL_VERIFICATION_PENDING",
+        "stale_after_seconds": 86400
+      }
+    }
+  ],
+  "complete": false,
+  "pass": false,
+  "scan_health": {
+    "last_attempt_at": "2026-11-05T17:22:04.406565+00:00",
+    "last_successful_scan_at": null,
+    "failure_reason": "DETAIL_VERIFICATION_PENDING",
+    "stale_after_seconds": 86400
+  },
+  "retry_may_be_pending": true
+}

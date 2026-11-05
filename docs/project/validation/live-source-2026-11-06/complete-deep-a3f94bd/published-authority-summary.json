@@ -1,0 +1,32 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+    "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "http": 200,
+  "headers": {
+    "x-vercel-id": "cle1::iad1::tnnmw-1793903327619-e76a43e48669",
+    "x-vercel-cache": "MISS",
+    "age": "0",
+    "cache-control": "no-store, max-age=0",
+    "x-medicalchannelai-snapshot-source": "DATABASE"
+  },
+  "response_summary": {
+    "schema_version": "0.1",
+    "mode": "TODAY_ACTIONS",
+    "snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+    "card_count": 5,
+    "opportunity_pool_count": 47,
+    "matched_count": 47,
+    "input_candidate_count": 964,
+    "model_request_count": 0
+  },
+  "response_payload_identical_to_database": true,
+  "response_canonical_sha256_recomputed": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "complete_equal_payload_artifact": "published-payload.json"
+}

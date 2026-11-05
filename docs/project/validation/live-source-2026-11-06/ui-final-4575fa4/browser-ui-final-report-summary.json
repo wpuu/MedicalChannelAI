@@ -1,0 +1,1175 @@
+{
+  "target": "https://medicalchannelai-j4ktac1cu-rerisse7-1717s-projects.vercel.app",
+  "uiDeployment": "dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm",
+  "uiCommit": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+  "realProducer": {
+    "deployment": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03"
+  },
+  "expectedAsOf": "2026-11-06T01:43:03.095559+08:00",
+  "expectedHash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "startedAt": "2026-11-05T18:45:15.594Z",
+  "checks": [
+    {
+      "name": "same-origin cookie bootstrap removes share query",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ordinary full payload exactly preserves canonical producer and DB hash",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "new UI commit serves unchanged committed DATABASE version",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "real12of14 degradation remains visible in runtime status",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "new context defaults to Tianjin",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "TJ pool exact fact set and evidence links 8of47",
+      "pass": true,
+      "detail": {
+        "expected": 8,
+        "actual": 8,
+        "actualIds": [
+          "tjzyefy_20261104_030202660",
+          "tjmugh_20261105_030368176",
+          "tjzyefy_intent_20261013_030200057",
+          "tjzyefy_intent_20260804_030195986",
+          "tjzyefy_intent_20261013_030200055",
+          "tjzyefy_intent_20260804_030195988",
+          "tjzyefy_intent_20260804_030195991",
+          "tjzyefy_intent_20260804_030195992"
+        ]
+      }
+    },
+    {
+      "name": "TJ Today renders regional Top5 or proper empty",
+      "pass": true,
+      "detail": {
+        "expected": 5,
+        "actual": 5
+      }
+    },
+    {
+      "name": "TJ Today keeps truthful degradation warning",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ALL pool exact fact set and evidence links 47of47",
+      "pass": true,
+      "detail": {
+        "expected": 47,
+        "actual": 47,
+        "actualIds": [
+          "ccgp_hl_be17744f48e2bdc1",
+          "ccgp_hl_3f2880a5585d3e5f",
+          "ccgp_bj_87ed61190ca088f1",
+          "ccgp_he_57dcc8d3d1b9fe87",
+          "ccgp_he_bc02321f1127f1fb",
+          "ccgp_bj_d82cfee3b2cc99ad",
+          "ccgp_bj_193a9d32dc3d4829",
+          "ccgp_bj_b5bbfcd8ca11b2b3",
+          "ccgp_he_f5ec0da3f23445df",
+          "ccgp_hl_7e85f77140090d88",
+          "ccgp_hl_843de80036a38195",
+          "ccgp_hl_65fa0bf43261c5d9",
+          "ccgp_bj_7c443bd5da3f78a5",
+          "ccgp_he_80a3cb4d30c401af",
+          "ccgp_he_9aff0f5650523242",
+          "ccgp_jl_5c21a4ec113a8b6e",
+          "ccgp_jl_0ce6d69dbb99f2b0",
+          "ccgp_bj_30ad61c98f8c607b",
+          "ccgp_bj_a8dec002633a2045",
+          "ccgp_hl_5a6044487bad535b",
+          "ccgp_hl_94d69e874631aa63",
+          "ccgp_he_a33b11ae4ce7304d",
+          "ccgp_he_f9949fcd0f9dfe93",
+          "tjzyefy_20261104_030202660",
+          "ccgp_jl_ae7d9a08ecb48166",
+          "ccgp_hl_15a2fc571ecb2867",
+          "ccgp_hl_9c1bf78e44cced7d",
+          "ccgp_hl_9c513edc16b22d94",
+          "ccgp_jl_834800b4bf0f06f3",
+          "ccgp_bj_94a31e06a609b25b",
+          "ccgp_bj_b099b9b6266837f3",
+          "ccgp_jl_a5326656a079ada9",
+          "ccgp_bj_96bf141d69deffe9",
+          "ccgp_he_256d41444e936d50",
+          "ccgp_he_9ac5da38c4aa4c66",
+          "ccgp_jl_298e2a6332911cb1",
+          "ccgp_he_a00d0fb3edbb3898",
+          "tjmugh_20261105_030368176",
+          "ccgp_jl_9f88c1dd490b85d3",
+          "ccgp_jl_74cddb340c0c92e0",
+          "ccgp_jl_5805203615f2d373",
+          "tjzyefy_intent_20261013_030200057",
+          "tjzyefy_intent_20260804_030195986",
+          "tjzyefy_intent_20261013_030200055",
+          "tjzyefy_intent_20260804_030195988",
+          "tjzyefy_intent_20260804_030195991",
+          "tjzyefy_intent_20260804_030195992"
+        ]
+      }
+    },
+    {
+      "name": "ALL restores all11 previously omitted city and county notices",
+      "pass": true,
+      "detail": {
+        "restoredIds": [
+          "ccgp_hl_be17744f48e2bdc1",
+          "ccgp_hl_65fa0bf43261c5d9",
+          "ccgp_he_80a3cb4d30c401af",
+          "ccgp_he_9aff0f5650523242",
+          "ccgp_jl_5c21a4ec113a8b6e",
+          "ccgp_hl_15a2fc571ecb2867",
+          "ccgp_hl_9c513edc16b22d94",
+          "ccgp_jl_a5326656a079ada9",
+          "ccgp_he_256d41444e936d50",
+          "ccgp_he_9ac5da38c4aa4c66",
+          "ccgp_he_a00d0fb3edbb3898"
+        ]
+      }
+    },
+    {
+      "name": "ALL pool preserves official HarbinTop1",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ALL Today renders regional Top5 or proper empty",
+      "pass": true,
+      "detail": {
+        "expected": 5,
+        "actual": 5
+      }
+    },
+    {
+      "name": "ALL Today includes published HarbinTop1",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ALL Today keeps truthful degradation warning",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "BJ pool exact fact set and evidence links 10of47",
+      "pass": true,
+      "detail": {
+        "expected": 10,
+        "actual": 10,
+        "actualIds": [
+          "ccgp_bj_87ed61190ca088f1",
+          "ccgp_bj_d82cfee3b2cc99ad",
+          "ccgp_bj_193a9d32dc3d4829",
+          "ccgp_bj_b5bbfcd8ca11b2b3",
+          "ccgp_bj_7c443bd5da3f78a5",
+          "ccgp_bj_30ad61c98f8c607b",
+          "ccgp_bj_a8dec002633a2045",
+          "ccgp_bj_94a31e06a609b25b",
+          "ccgp_bj_b099b9b6266837f3",
+          "ccgp_bj_96bf141d69deffe9"
+        ]
+      }
+    },
+    {
+      "name": "HL pool exact fact set and evidence links 10of47",
+      "pass": true,
+      "detail": {
+        "expected": 10,
+        "actual": 10,
+        "actualIds": [
+          "ccgp_hl_be17744f48e2bdc1",
+          "ccgp_hl_3f2880a5585d3e5f",
+          "ccgp_hl_7e85f77140090d88",
+          "ccgp_hl_843de80036a38195",
+          "ccgp_hl_65fa0bf43261c5d9",
+          "ccgp_hl_5a6044487bad535b",
+          "ccgp_hl_94d69e874631aa63",
+          "ccgp_hl_15a2fc571ecb2867",
+          "ccgp_hl_9c1bf78e44cced7d",
+          "ccgp_hl_9c513edc16b22d94"
+        ]
+      }
+    },
+    {
+      "name": "HL pool preserves official HarbinTop1",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "HL Today renders regional Top5 or proper empty",
+      "pass": true,
+      "detail": {
+        "expected": 5,
+        "actual": 5
+      }
+    },
+    {
+      "name": "HL Today includes published HarbinTop1",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "HL Today keeps truthful degradation warning",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "HE pool exact fact set and evidence links 10of47",
+      "pass": true,
+      "detail": {
+        "expected": 10,
+        "actual": 10,
+        "actualIds": [
+          "ccgp_he_57dcc8d3d1b9fe87",
+          "ccgp_he_bc02321f1127f1fb",
+          "ccgp_he_f5ec0da3f23445df",
+          "ccgp_he_80a3cb4d30c401af",
+          "ccgp_he_9aff0f5650523242",
+          "ccgp_he_a33b11ae4ce7304d",
+          "ccgp_he_f9949fcd0f9dfe93",
+          "ccgp_he_256d41444e936d50",
+          "ccgp_he_9ac5da38c4aa4c66",
+          "ccgp_he_a00d0fb3edbb3898"
+        ]
+      }
+    },
+    {
+      "name": "JL pool exact fact set and evidence links 9of47",
+      "pass": true,
+      "detail": {
+        "expected": 9,
+        "actual": 9,
+        "actualIds": [
+          "ccgp_jl_5c21a4ec113a8b6e",
+          "ccgp_jl_0ce6d69dbb99f2b0",
+          "ccgp_jl_ae7d9a08ecb48166",
+          "ccgp_jl_834800b4bf0f06f3",
+          "ccgp_jl_a5326656a079ada9",
+          "ccgp_jl_298e2a6332911cb1",
+          "ccgp_jl_9f88c1dd490b85d3",
+          "ccgp_jl_74cddb340c0c92e0",
+          "ccgp_jl_5805203615f2d373"
+        ]
+      }
+    },
+    {
+      "name": "LN pool exact fact set and evidence links 0of47",
+      "pass": true,
+      "detail": {
+        "expected": 0,
+        "actual": 0,
+        "actualIds": []
+      }
+    },
+    {
+      "name": "LN Today renders regional Top5 or proper empty",
+      "pass": true,
+      "detail": {
+        "expected": 0,
+        "actual": 0
+      }
+    },
+    {
+      "name": "LN Today keeps truthful degradation warning",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "restored Harbin card supports local follow",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "restored Harbin local follow survives refresh",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "390px today renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "390px pool renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "390px followed renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "390px detail renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "all post-convergence UI reads use unchanged ordinary canonical payload",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "no application page errors or unapproved request attempts",
+      "pass": true,
+      "detail": {
+        "pageErrors": [],
+        "blockedRequests": []
+      }
+    },
+    {
+      "name": "no genuine failed requests beyond intentionally blocked cache-only reads",
+      "pass": true,
+      "detail": {
+        "intentionallyBlocked": 23,
+        "genuineFailures": []
+      }
+    }
+  ],
+  "ordinarySnapshots": [
+    {
+      "retry": 0,
+      "waitSeconds": 0,
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "cards": 5,
+      "pool": 47,
+      "age": "1",
+      "cache": "HIT"
+    }
+  ],
+  "uiReads": [
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    },
+    {
+      "http": 200,
+      "as_of": "2026-11-06T01:43:03.095559+08:00",
+      "hash": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+      "ordinary": true
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": [
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    },
+    {
+      "path": "/api/ai/analyze",
+      "method": "POST",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "intentionalReadBlock": true
+    }
+  ],
+  "blockedRequests": [],
+  "intentionallyBlockedAiReads": [
+    {
+      "path": "/api/ai/analyze",
+      "count": 8
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 8
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 8
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 8
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 9
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 9
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 10
+    },
+    {
+      "path": "/api/ai/analyze",
+      "count": 1
+    }
+  ],
+  "notExercised": [],
+  "status": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "version": "0.5.0",
+    "commit": "4575fa4",
+    "production_ready": false,
+    "ai": {
+      "configured": false
+    },
+    "ready": true,
+    "degraded": true,
+    "snapshot": {
+      "available": true,
+      "source_mode": "DATABASE",
+      "runtime_origin": null,
+      "snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+      "freshness": "FRESH",
+      "age_minutes": 62,
+      "stale_after_minutes": 1800,
+      "source_health": {
+        "schema_version": "0.1",
+        "status": "FAILING",
+        "required_source_count": 14,
+        "healthy_source_count": 12,
+        "sources": {
+          "ccgp": {
+            "last_successful_scan_at": "2026-11-05T17:45:35.134763+00:00",
+            "last_attempt_at": "2026-11-05T17:45:35.134763+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3583
+          },
+          "tjmugh": {
+            "last_successful_scan_at": "2026-11-05T17:45:43.311182+00:00",
+            "last_attempt_at": "2026-11-05T17:45:43.311182+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3575
+          },
+          "tjnothop": {
+            "last_successful_scan_at": "2026-11-05T17:45:46.930144+00:00",
+            "last_attempt_at": "2026-11-05T17:45:46.930144+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3571
+          },
+          "teda": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-05T17:57:18.706259+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "tjfch": {
+            "last_successful_scan_at": "2026-11-05T17:57:39.473535+00:00",
+            "last_attempt_at": "2026-11-05T17:57:39.473535+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2859
+          },
+          "tjfch_test": {
+            "last_successful_scan_at": "2026-11-05T17:57:39.480605+00:00",
+            "last_attempt_at": "2026-11-05T17:57:39.480605+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2859
+          },
+          "tjzyefy": {
+            "last_successful_scan_at": "2026-11-05T17:46:25.574132+00:00",
+            "last_attempt_at": "2026-11-05T17:46:25.574132+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3533
+          },
+          "tjzyefy_intent": {
+            "last_successful_scan_at": "2026-11-05T17:46:42.514712+00:00",
+            "last_attempt_at": "2026-11-05T17:46:42.514712+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3516
+          },
+          "tjzxfc": {
+            "last_successful_scan_at": "2026-11-05T17:47:05.921643+00:00",
+            "last_attempt_at": "2026-11-05T17:47:05.921643+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3492
+          },
+          "regional_bj": {
+            "last_successful_scan_at": "2026-11-05T18:00:36.970384+00:00",
+            "last_attempt_at": "2026-11-05T18:00:36.970384+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2681
+          },
+          "regional_he": {
+            "last_successful_scan_at": "2026-11-05T18:02:29.894077+00:00",
+            "last_attempt_at": "2026-11-05T18:02:29.894077+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2568
+          },
+          "regional_ln": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-05T18:24:00.165147+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "regional_jl": {
+            "last_successful_scan_at": "2026-11-05T18:25:48.298254+00:00",
+            "last_attempt_at": "2026-11-05T18:25:48.298254+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 1170
+          },
+          "regional_hl": {
+            "last_successful_scan_at": "2026-11-05T18:27:38.927348+00:00",
+            "last_attempt_at": "2026-11-05T18:27:38.927348+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 1059
+          }
+        }
+      },
+      "today_card_count": 5,
+      "opportunity_pool_count": 47
+    }
+  },
+  "completed": true,
+  "endedAt": "2026-11-05T18:45:57.069Z",
+  "page_observation_count": 16,
+  "page_summaries": [
+    {
+      "name": "tj-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "actualIds": [
+        "tjzyefy_20261104_030202660",
+        "tjmugh_20261105_030368176",
+        "tjzyefy_intent_20261013_030200057",
+        "tjzyefy_intent_20260804_030195986",
+        "tjzyefy_intent_20261013_030200055",
+        "tjzyefy_intent_20260804_030195988",
+        "tjzyefy_intent_20260804_030195991",
+        "tjzyefy_intent_20260804_030195992"
+      ]
+    },
+    {
+      "name": "tj-today",
+      "path": "/today",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "all-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "actualIds": [
+        "ccgp_hl_be17744f48e2bdc1",
+        "ccgp_hl_3f2880a5585d3e5f",
+        "ccgp_bj_87ed61190ca088f1",
+        "ccgp_he_57dcc8d3d1b9fe87",
+        "ccgp_he_bc02321f1127f1fb",
+        "ccgp_bj_d82cfee3b2cc99ad",
+        "ccgp_bj_193a9d32dc3d4829",
+        "ccgp_bj_b5bbfcd8ca11b2b3",
+        "ccgp_he_f5ec0da3f23445df",
+        "ccgp_hl_7e85f77140090d88",
+        "ccgp_hl_843de80036a38195",
+        "ccgp_hl_65fa0bf43261c5d9",
+        "ccgp_bj_7c443bd5da3f78a5",
+        "ccgp_he_80a3cb4d30c401af",
+        "ccgp_he_9aff0f5650523242",
+        "ccgp_jl_5c21a4ec113a8b6e",
+        "ccgp_jl_0ce6d69dbb99f2b0",
+        "ccgp_bj_30ad61c98f8c607b",
+        "ccgp_bj_a8dec002633a2045",
+        "ccgp_hl_5a6044487bad535b",
+        "ccgp_hl_94d69e874631aa63",
+        "ccgp_he_a33b11ae4ce7304d",
+        "ccgp_he_f9949fcd0f9dfe93",
+        "tjzyefy_20261104_030202660",
+        "ccgp_jl_ae7d9a08ecb48166",
+        "ccgp_hl_15a2fc571ecb2867",
+        "ccgp_hl_9c1bf78e44cced7d",
+        "ccgp_hl_9c513edc16b22d94",
+        "ccgp_jl_834800b4bf0f06f3",
+        "ccgp_bj_94a31e06a609b25b",
+        "ccgp_bj_b099b9b6266837f3",
+        "ccgp_jl_a5326656a079ada9",
+        "ccgp_bj_96bf141d69deffe9",
+        "ccgp_he_256d41444e936d50",
+        "ccgp_he_9ac5da38c4aa4c66",
+        "ccgp_jl_298e2a6332911cb1",
+        "ccgp_he_a00d0fb3edbb3898",
+        "tjmugh_20261105_030368176",
+        "ccgp_jl_9f88c1dd490b85d3",
+        "ccgp_jl_74cddb340c0c92e0",
+        "ccgp_jl_5805203615f2d373",
+        "tjzyefy_intent_20261013_030200057",
+        "tjzyefy_intent_20260804_030195986",
+        "tjzyefy_intent_20261013_030200055",
+        "tjzyefy_intent_20260804_030195988",
+        "tjzyefy_intent_20260804_030195991",
+        "tjzyefy_intent_20260804_030195992"
+      ]
+    },
+    {
+      "name": "all-today",
+      "path": "/today",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "bj-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "actualIds": [
+        "ccgp_bj_87ed61190ca088f1",
+        "ccgp_bj_d82cfee3b2cc99ad",
+        "ccgp_bj_193a9d32dc3d4829",
+        "ccgp_bj_b5bbfcd8ca11b2b3",
+        "ccgp_bj_7c443bd5da3f78a5",
+        "ccgp_bj_30ad61c98f8c607b",
+        "ccgp_bj_a8dec002633a2045",
+        "ccgp_bj_94a31e06a609b25b",
+        "ccgp_bj_b099b9b6266837f3",
+        "ccgp_bj_96bf141d69deffe9"
+      ]
+    },
+    {
+      "name": "hl-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "actualIds": [
+        "ccgp_hl_be17744f48e2bdc1",
+        "ccgp_hl_3f2880a5585d3e5f",
+        "ccgp_hl_7e85f77140090d88",
+        "ccgp_hl_843de80036a38195",
+        "ccgp_hl_65fa0bf43261c5d9",
+        "ccgp_hl_5a6044487bad535b",
+        "ccgp_hl_94d69e874631aa63",
+        "ccgp_hl_15a2fc571ecb2867",
+        "ccgp_hl_9c1bf78e44cced7d",
+        "ccgp_hl_9c513edc16b22d94"
+      ]
+    },
+    {
+      "name": "hl-today",
+      "path": "/today",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "he-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "actualIds": [
+        "ccgp_he_57dcc8d3d1b9fe87",
+        "ccgp_he_bc02321f1127f1fb",
+        "ccgp_he_f5ec0da3f23445df",
+        "ccgp_he_80a3cb4d30c401af",
+        "ccgp_he_9aff0f5650523242",
+        "ccgp_he_a33b11ae4ce7304d",
+        "ccgp_he_f9949fcd0f9dfe93",
+        "ccgp_he_256d41444e936d50",
+        "ccgp_he_9ac5da38c4aa4c66",
+        "ccgp_he_a00d0fb3edbb3898"
+      ]
+    },
+    {
+      "name": "jl-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "actualIds": [
+        "ccgp_jl_5c21a4ec113a8b6e",
+        "ccgp_jl_0ce6d69dbb99f2b0",
+        "ccgp_jl_ae7d9a08ecb48166",
+        "ccgp_jl_834800b4bf0f06f3",
+        "ccgp_jl_a5326656a079ada9",
+        "ccgp_jl_298e2a6332911cb1",
+        "ccgp_jl_9f88c1dd490b85d3",
+        "ccgp_jl_74cddb340c0c92e0",
+        "ccgp_jl_5805203615f2d373"
+      ]
+    },
+    {
+      "name": "ln-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      },
+      "actualIds": []
+    },
+    {
+      "name": "ln-today",
+      "path": "/today",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "local-followed-refresh",
+      "path": "/followed",
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "mobile-today",
+      "path": "/today",
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-pool",
+      "path": "/opportunities",
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-followed",
+      "path": "/followed",
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-detail",
+      "path": "/opportunity/ccgp_hl_be17744f48e2bdc1",
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    }
+  ],
+  "request_interpretation": {
+    "raw_failed_request_count": 23,
+    "intentionally_aborted_cache_only_request_count": 23,
+    "other_failed_request_count": 0,
+    "unapproved_blocked_request_count": 0,
+    "application_page_error_count": 0,
+    "model_success_proven": false,
+    "note": "All 23 failures are read-only test guard aborts of automatic cache-only POST attempts. They did not reach the server and are not product HTTP failures or successful model calls."
+  },
+  "screenshots_copied": false
+}

@@ -1,0 +1,9 @@
+{
+  "target": "preview",
+  "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+  "url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+  "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+  "git_branch": "codex/p0-reliability-contracts",
+  "database": "mcai_p0_acceptance_final",
+  "neon_branch": "br-cold-tooth-a5clhljh"
+}

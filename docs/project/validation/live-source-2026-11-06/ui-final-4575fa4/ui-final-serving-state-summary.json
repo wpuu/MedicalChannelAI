@@ -1,0 +1,174 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm",
+    "url": "https://medicalchannelai-j4ktac1cu-rerisse7-1717s-projects.vercel.app",
+    "commit": "4575fa4e7721a234d74dd87e35163631019ec2c9",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "status": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "version": "0.5.0",
+    "commit": "4575fa4",
+    "production_ready": false,
+    "ai": {
+      "configured": false
+    },
+    "ready": true,
+    "degraded": true,
+    "snapshot": {
+      "available": true,
+      "source_mode": "DATABASE",
+      "runtime_origin": null,
+      "snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+      "freshness": "FRESH",
+      "age_minutes": 62,
+      "stale_after_minutes": 1800,
+      "source_health": {
+        "schema_version": "0.1",
+        "status": "FAILING",
+        "required_source_count": 14,
+        "healthy_source_count": 12,
+        "sources": {
+          "ccgp": {
+            "last_successful_scan_at": "2026-11-05T17:45:35.134763+00:00",
+            "last_attempt_at": "2026-11-05T17:45:35.134763+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3571
+          },
+          "tjmugh": {
+            "last_successful_scan_at": "2026-11-05T17:45:43.311182+00:00",
+            "last_attempt_at": "2026-11-05T17:45:43.311182+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3563
+          },
+          "tjnothop": {
+            "last_successful_scan_at": "2026-11-05T17:45:46.930144+00:00",
+            "last_attempt_at": "2026-11-05T17:45:46.930144+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3559
+          },
+          "teda": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-05T17:57:18.706259+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "tjfch": {
+            "last_successful_scan_at": "2026-11-05T17:57:39.473535+00:00",
+            "last_attempt_at": "2026-11-05T17:57:39.473535+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2847
+          },
+          "tjfch_test": {
+            "last_successful_scan_at": "2026-11-05T17:57:39.480605+00:00",
+            "last_attempt_at": "2026-11-05T17:57:39.480605+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2847
+          },
+          "tjzyefy": {
+            "last_successful_scan_at": "2026-11-05T17:46:25.574132+00:00",
+            "last_attempt_at": "2026-11-05T17:46:25.574132+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3521
+          },
+          "tjzyefy_intent": {
+            "last_successful_scan_at": "2026-11-05T17:46:42.514712+00:00",
+            "last_attempt_at": "2026-11-05T17:46:42.514712+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3504
+          },
+          "tjzxfc": {
+            "last_successful_scan_at": "2026-11-05T17:47:05.921643+00:00",
+            "last_attempt_at": "2026-11-05T17:47:05.921643+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 3480
+          },
+          "regional_bj": {
+            "last_successful_scan_at": "2026-11-05T18:00:36.970384+00:00",
+            "last_attempt_at": "2026-11-05T18:00:36.970384+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2669
+          },
+          "regional_he": {
+            "last_successful_scan_at": "2026-11-05T18:02:29.894077+00:00",
+            "last_attempt_at": "2026-11-05T18:02:29.894077+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2556
+          },
+          "regional_ln": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-05T18:24:00.165147+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "regional_jl": {
+            "last_successful_scan_at": "2026-11-05T18:25:48.298254+00:00",
+            "last_attempt_at": "2026-11-05T18:25:48.298254+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 1158
+          },
+          "regional_hl": {
+            "last_successful_scan_at": "2026-11-05T18:27:38.927348+00:00",
+            "last_attempt_at": "2026-11-05T18:27:38.927348+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 1047
+          }
+        }
+      },
+      "today_card_count": 5,
+      "opportunity_pool_count": 47
+    }
+  },
+  "authority": {
+    "http": 200,
+    "headers": {
+      "x-vercel-id": "cle1::iad1::pqgm6-1793904307109-402af2a5c7a0",
+      "x-vercel-cache": "MISS",
+      "age": "0",
+      "cache-control": "no-store, max-age=0",
+      "x-medicalchannelai-snapshot-source": "DATABASE"
+    },
+    "snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+    "opportunity_pool_count": 47,
+    "today_card_count": 5,
+    "canonical_sha256_recomputed": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+    "complete_payload_identical_to": "../complete-deep-a3f94bd/published-payload.json"
+  },
+  "real_producer": {
+    "deployment": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+    "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03"
+  },
+  "interpretation": "Final UI serves the unchanged real producer DATABASE snapshot. This forced authority read does not establish ordinary CDN behavior; the separate browser report does."
+}

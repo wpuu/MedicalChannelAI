@@ -1,0 +1,131 @@
+{
+  "at": "2026-11-05T17:21:54.413282+00:00",
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+    "url": "https://medicalchannelai-g6u8ue0nw-rerisse7-1717s-projects.vercel.app",
+    "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "http": 200,
+  "headers": {
+    "x-vercel-id": "cle1::iad1::wg7p5-1793899313963-3857220b78f5",
+    "x-vercel-cache": "MISS",
+    "age": "0",
+    "cache-control": "no-store, max-age=0"
+  },
+  "authority": {
+    "schema_version": "0.1",
+    "mode": "TODAY_ACTIONS",
+    "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+    "card_count": 2,
+    "opportunity_pool_count": 2,
+    "matched_count": 2,
+    "input_candidate_count": 2,
+    "model_request_count": 0,
+    "coverage_warning": "PARTIAL_OR_SOURCE_SPECIFIC_COVERAGE_MAY_APPLY",
+    "qa_fixture": {
+      "purpose": "Isolated Preview acceptance facts. Source scan clocks contain only observed successful scan evidence; all other sources UNKNOWN. This is a manual QA publication, not the Queue canonical publication.",
+      "scan_evidence_commit": "002a2e7ec96a9cc19b702a7f0d4a9e0202b4bc2a",
+      "official_facts_source": "https://www.tjmugh.com.cn/system/2026/11/05/030368176.shtml",
+      "scan_evidence_deployment": "dpl_4nyhZSFd6wXMUScit5tAhYgBrBEX",
+      "controlled_healthy_clocks_removed": true
+    },
+    "source_health": {
+      "sources": {
+        "ccgp": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 172800,
+          "last_successful_scan_at": null
+        },
+        "teda": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 86400,
+          "last_successful_scan_at": null
+        },
+        "tjfch": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 86400,
+          "last_successful_scan_at": null
+        },
+        "tjmugh": {
+          "failure_reason": null,
+          "last_attempt_at": "2026-11-05T16:40:27.354690+00:00",
+          "stale_after_seconds": 86400,
+          "last_successful_scan_at": "2026-11-05T16:40:27.354690+00:00"
+        },
+        "tjzxfc": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 86400,
+          "last_successful_scan_at": null
+        },
+        "tjzyefy": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 86400,
+          "last_successful_scan_at": null
+        },
+        "tjnothop": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 86400,
+          "last_successful_scan_at": null
+        },
+        "tjfch_test": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 86400,
+          "last_successful_scan_at": null
+        },
+        "regional_bj": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 172800,
+          "last_successful_scan_at": null
+        },
+        "regional_he": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 172800,
+          "last_successful_scan_at": null
+        },
+        "regional_hl": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 172800,
+          "last_successful_scan_at": null
+        },
+        "regional_jl": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 172800,
+          "last_successful_scan_at": null
+        },
+        "regional_ln": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 172800,
+          "last_successful_scan_at": null
+        },
+        "tjzyefy_intent": {
+          "failure_reason": null,
+          "last_attempt_at": null,
+          "stale_after_seconds": 86400,
+          "last_successful_scan_at": null
+        }
+      },
+      "schema_version": "0.1"
+    }
+  },
+  "opportunity_ids": [
+    "tjmugh_20261105_030368176",
+    "ccgp_jl_74cddb340c0c92e0"
+  ],
+  "interpretation": "Previous manually published QA snapshot; baseline identity and counts only. This is not a live-source Queue publication."
+}

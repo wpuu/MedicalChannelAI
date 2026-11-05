@@ -1,0 +1,84 @@
+{
+  "evidence_kind": "local_frozen_response_parser_replay",
+  "deployment_binding": null,
+  "exact_execution_commit_recorded": false,
+  "raw_html_in_repository": false,
+  "records": [
+    {
+      "opportunity_id": "tjzyefy_20261104_030202660",
+      "before": "VERIFIED",
+      "after": "VERIFIED",
+      "previous_verified_record_unchanged": true,
+      "registration_deadline": "2026-11-06T16:00:00+08:00",
+      "product_categories": [
+        "医疗设备"
+      ]
+    },
+    {
+      "opportunity_id": "tjzyefy_20261103_030202550",
+      "before": "VERIFIED",
+      "after": "VERIFIED",
+      "previous_verified_record_unchanged": true,
+      "registration_deadline": "2026-11-05T16:00:00+08:00",
+      "product_categories": [
+        "医疗设备"
+      ]
+    },
+    {
+      "opportunity_id": "tjzyefy_20261030_030202219",
+      "before": "VERIFIED",
+      "after": "VERIFIED",
+      "previous_verified_record_unchanged": true,
+      "registration_deadline": "2026-11-03T16:00:00+08:00",
+      "product_categories": [
+        "医疗设备"
+      ]
+    },
+    {
+      "opportunity_id": "tjzyefy_20261026_030201578",
+      "before": "VERIFIED",
+      "after": "VERIFIED",
+      "previous_verified_record_unchanged": true,
+      "registration_deadline": "2026-10-30T16:00:00+08:00",
+      "product_categories": [
+        "医用耗材"
+      ]
+    },
+    {
+      "opportunity_id": "tjzyefy_20261023_030201485",
+      "before": "VERIFIED",
+      "after": "VERIFIED",
+      "previous_verified_record_unchanged": true,
+      "registration_deadline": "2026-10-23T17:00:00+08:00",
+      "product_categories": [
+        "医用耗材"
+      ]
+    },
+    {
+      "opportunity_id": "tjzyefy_20261022_030201455",
+      "before": "VERIFIED",
+      "after": "VERIFIED",
+      "previous_verified_record_unchanged": true,
+      "registration_deadline": "2026-10-26T16:00:00+08:00",
+      "product_categories": [
+        "医疗设备"
+      ]
+    },
+    {
+      "opportunity_id": "tjzyefy_20261020_030201209",
+      "before": "FAILED",
+      "after": "VERIFIED",
+      "previous_verified_record_unchanged": null,
+      "registration_deadline": "2026-10-29T17:00:00+08:00",
+      "product_categories": []
+    },
+    {
+      "opportunity_id": "tjzyefy_20261013_030200135",
+      "before": "FAILED",
+      "after": "VERIFIED",
+      "previous_verified_record_unchanged": null,
+      "registration_deadline": "2026-10-15T17:00:00+08:00",
+      "product_categories": []
+    }
+  ]
+}

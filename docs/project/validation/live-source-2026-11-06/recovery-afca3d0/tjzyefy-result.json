@@ -1,0 +1,240 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_2Mp5oaPMfjC6NZjwVDnVKEsW9dge",
+    "url": "https://medicalchannelai-ili7fnkqd-rerisse7-1717s-projects.vercel.app",
+    "commit": "afca3d07a3e6178cb9cf422198e86a4c41c81a4f",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "started": {
+    "at": "2026-11-05T17:35:19.615418+00:00",
+    "scope": {
+      "target": "preview",
+      "deployment_id": "dpl_2Mp5oaPMfjC6NZjwVDnVKEsW9dge",
+      "url": "https://medicalchannelai-ili7fnkqd-rerisse7-1717s-projects.vercel.app",
+      "commit": "afca3d07a3e6178cb9cf422198e86a4c41c81a4f",
+      "git_branch": "codex/p0-reliability-contracts",
+      "database": "mcai_p0_acceptance_final",
+      "neon_branch": "br-cold-tooth-a5clhljh"
+    },
+    "http": 202,
+    "response": {
+      "schema_version": "0.1",
+      "service": "MedicalChannelAI",
+      "trigger_source": "VERCEL_CRON",
+      "collector": {
+        "action": "QUEUED",
+        "execution_plane": "VERCEL_QUEUE_V2",
+        "mode": "INCREMENTAL",
+        "source_id": "tjzyefy",
+        "scan_bucket_id": "tjzyefy:60m:498305",
+        "observed_at": "2026-11-05T17:35:19.099338+00:00",
+        "due_source_count": null,
+        "message_id": "60-1M1eB48dUwAXr38mGpb6BSzfHcUnJELy"
+      }
+    },
+    "before": {
+      "policy": {
+        "scan_interval_minutes": 60,
+        "reverify_after_hours": 24,
+        "max_details_per_scan": 12
+      },
+      "ledger": {
+        "candidate_count": 8,
+        "verified_count": 6,
+        "failed_count": 2,
+        "unverified_count": 0,
+        "updated_at": "2026-11-05T17:32:14.646447+00:00",
+        "failed_reason_counts": {
+          "TJZYEFY_PRODUCT_ITEMS_NOT_FOUND": 2
+        },
+        "failed_candidates": [
+          {
+            "candidate_ref": "a5cb5ecfe313ef2dd3751b9ffa361990b2d9bb226e73ede6686da1e7202d326a",
+            "reason": "TJZYEFY_PRODUCT_ITEMS_NOT_FOUND"
+          },
+          {
+            "candidate_ref": "f049d46fb57e672932c692a0a5022eaaa20da5e3524ca649c118d5d75ada04aa",
+            "reason": "TJZYEFY_PRODUCT_ITEMS_NOT_FOUND"
+          }
+        ]
+      },
+      "staging": {
+        "record_count": 6,
+        "barrier_count": 2
+      },
+      "last_completed_scan": {
+        "bucket_id": null,
+        "completed_at": null,
+        "result": null
+      }
+    },
+    "before_scan_health": {
+      "last_attempt_at": "2026-11-05T17:32:14.646447+00:00",
+      "last_successful_scan_at": null,
+      "failure_reason": "DETAIL_VERIFICATION_PENDING",
+      "stale_after_seconds": 86400
+    }
+  },
+  "history": [
+    {
+      "at": "2026-11-05T17:35:20.050974+00:00",
+      "active": "tjzyefy:60m:498305:2026-11-05T17:35:19.099338+00:00",
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 60,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 8,
+          "verified_count": 6,
+          "failed_count": 2,
+          "unverified_count": 0,
+          "updated_at": "2026-11-05T17:32:14.646447+00:00",
+          "failed_reason_counts": {
+            "TJZYEFY_PRODUCT_ITEMS_NOT_FOUND": 2
+          },
+          "failed_candidates": [
+            {
+              "candidate_ref": "a5cb5ecfe313ef2dd3751b9ffa361990b2d9bb226e73ede6686da1e7202d326a",
+              "reason": "TJZYEFY_PRODUCT_ITEMS_NOT_FOUND"
+            },
+            {
+              "candidate_ref": "f049d46fb57e672932c692a0a5022eaaa20da5e3524ca649c118d5d75ada04aa",
+              "reason": "TJZYEFY_PRODUCT_ITEMS_NOT_FOUND"
+            }
+          ]
+        },
+        "staging": {
+          "record_count": 6,
+          "barrier_count": 2
+        },
+        "last_completed_scan": {
+          "bucket_id": null,
+          "completed_at": null,
+          "result": null
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": "2026-11-05T17:32:14.646447+00:00",
+        "last_successful_scan_at": null,
+        "failure_reason": "DETAIL_VERIFICATION_PENDING",
+        "stale_after_seconds": 86400
+      }
+    },
+    {
+      "at": "2026-11-05T17:35:30.451372+00:00",
+      "active": "tjzyefy:60m:498305:2026-11-05T17:35:19.099338+00:00",
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 60,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 8,
+          "verified_count": 8,
+          "failed_count": 0,
+          "unverified_count": 0,
+          "updated_at": "2026-11-05T17:35:19.841047+00:00",
+          "failed_reason_counts": {},
+          "failed_candidates": []
+        },
+        "staging": {
+          "record_count": 0,
+          "barrier_count": 0
+        },
+        "last_completed_scan": {
+          "bucket_id": null,
+          "completed_at": null,
+          "result": null
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": "2026-11-05T17:32:14.646447+00:00",
+        "last_successful_scan_at": null,
+        "failure_reason": "DETAIL_VERIFICATION_PENDING",
+        "stale_after_seconds": 86400
+      }
+    },
+    {
+      "at": "2026-11-05T17:35:40.798165+00:00",
+      "active": null,
+      "source": {
+        "policy": {
+          "scan_interval_minutes": 60,
+          "reverify_after_hours": 24,
+          "max_details_per_scan": 12
+        },
+        "ledger": {
+          "candidate_count": 8,
+          "verified_count": 8,
+          "failed_count": 0,
+          "unverified_count": 0,
+          "updated_at": "2026-11-05T17:35:19.841047+00:00",
+          "failed_reason_counts": {},
+          "failed_candidates": []
+        },
+        "staging": {
+          "record_count": 0,
+          "barrier_count": 0
+        },
+        "last_completed_scan": {
+          "bucket_id": "tjzyefy:60m:498305",
+          "completed_at": "2026-11-05T17:35:19.841047+00:00",
+          "result": {
+            "discovered_candidate_count": 8,
+            "selected_detail_count": 2,
+            "deferred_detail_count": 0,
+            "skipped_unchanged_count": 6,
+            "verified_record_count": 2,
+            "verified_nonfact_count": 0,
+            "verification_failure_count": 0,
+            "canonical_record_count": 12,
+            "pending_record_count": 0,
+            "pending_barrier_count": 0,
+            "snapshot_refreshed": false,
+            "snapshot_as_of": null,
+            "deferred_reason": null
+          }
+        }
+      },
+      "scan_health": {
+        "last_attempt_at": "2026-11-05T17:35:19.841047+00:00",
+        "last_successful_scan_at": "2026-11-05T17:35:19.841047+00:00",
+        "failure_reason": null,
+        "stale_after_seconds": 86400
+      }
+    }
+  ],
+  "complete": true,
+  "pass": true,
+  "scan": {
+    "bucket_id": "tjzyefy:60m:498305",
+    "completed_at": "2026-11-05T17:35:19.841047+00:00",
+    "result": {
+      "discovered_candidate_count": 8,
+      "selected_detail_count": 2,
+      "deferred_detail_count": 0,
+      "skipped_unchanged_count": 6,
+      "verified_record_count": 2,
+      "verified_nonfact_count": 0,
+      "verification_failure_count": 0,
+      "canonical_record_count": 12,
+      "pending_record_count": 0,
+      "pending_barrier_count": 0,
+      "snapshot_refreshed": false,
+      "snapshot_as_of": null,
+      "deferred_reason": null
+    }
+  },
+  "scan_health": {
+    "last_attempt_at": "2026-11-05T17:35:19.841047+00:00",
+    "last_successful_scan_at": "2026-11-05T17:35:19.841047+00:00",
+    "failure_reason": null,
+    "stale_after_seconds": 86400
+  }
+}

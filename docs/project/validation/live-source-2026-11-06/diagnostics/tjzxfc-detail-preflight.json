@@ -1,0 +1,28 @@
+{
+  "evidence_kind": "operator_read_only_official_get_metadata",
+  "deployment_binding": null,
+  "exact_execution_commit_recorded": false,
+  "raw_html_in_repository": false,
+  "records": [
+    {
+      "name": "tjzxfc-generic",
+      "url": "https://www.tjzxfc.cn/system/2026/10/28/030364590.shtml",
+      "requested_at": "2026-11-05T17:02:21.071853+00:00",
+      "http": 200,
+      "bytes": 12321,
+      "sha256": "da22279fac0b43f7f58a3f027eb86131f13c85f82426e38c76903257a50476df",
+      "http_charset": null,
+      "completed_at": "2026-11-05T17:02:24.119556+00:00"
+    },
+    {
+      "name": "tjzxfc-samplebank",
+      "url": "https://www.tjzxfc.cn/system/2026/11/02/030366728.shtml",
+      "requested_at": "2026-11-05T17:02:27.119753+00:00",
+      "http": 200,
+      "bytes": 11315,
+      "sha256": "e7e34b0fef4af38f3872005cf831b65fa1502a94f2ebf878ca0816759a24cb0a",
+      "http_charset": null,
+      "completed_at": "2026-11-05T17:02:30.264393+00:00"
+    }
+  ]
+}

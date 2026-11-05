@@ -2,35 +2,35 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前 P0 与 Preview 状态
+## 当前 Preview 真实采集与发布状态
 
-- 工作树：`/workspace/MedicalChannelAI-p0`；分支：`codex/p0-reliability-contracts`。原工作树保持干净。
-- 最终可执行代码 / 已部署代码：`079fa2e26bb29ea9807ce6763118d8959efc3e68`；后续证据文档提交不改变该代码版本。
-- 当前阶段：**PREVIEW_CONTROLLED_ACCEPTANCE_COMPLETE**。`production_ready=false`；完整采集发布及持续调度尚未通过运行验收。
-- 最终 [Preview](https://medicalchannelai-bi9frg0oq-rerisse7-1717s-projects.vercel.app)：`dpl_CoT8dKET2N1dwrWKd5NCQQ9e1MTR`，READY；保持部署保护。
-- [验收合同](action-radar-acceptance-contract.md)及[本轮 Preview 完整报告与证据](preview-acceptance-2026-11-06.md)为当前依据。
-- 用户追加授权仅部署 Preview 并验收；未合并、部署/提升 Production，未改域名、DNS、EdgeOne、生产凭据或生产数据。
+- 工作树 `/workspace/MedicalChannelAI-p0`，分支 `codex/p0-reliability-contracts`；原工作树保持干净。
+- 最新可执行/UI代码 `4575fa4e7721a234d74dd87e35163631019ec2c9`，对应 [UI Preview](https://medicalchannelai-j4ktac1cu-rerisse7-1717s-projects.vercel.app)，`dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm`；READY；当前部署浏览器34/34通过，保持部署保护。
+- 完整采集发布由 `a3f94bdd45ec1442c2031b46f640e8ca7a52be03` / `dpl_CCdUVJdpao3rse7QbczHVxvLsx8y` 实际执行；新 UI 未重新采集或手工发布。后续文档提交不改变这两个代码/部署绑定。
+- 阶段：**LIVE_PUBLICATION_VERIFIED_WITH_DEGRADED_SOURCES**。`production_ready=false`；12/14来源成功，不能称全部来源恢复或持续调度通过。
+- 当前依据：[验收合同](action-radar-acceptance-contract.md)、[本轮真实采集及发布报告](live-source-publication-acceptance-2026-11-06.md)、[冻结证据清单](validation/live-source-2026-11-06/manifest.json)。[此前受控验收](preview-acceptance-2026-11-06.md)保留079fa2e版本的45项HTTP及18/9/5项浏览器记录，不充当本轮新版本实测。
+- 用户授权继续 Preview 三源与完整发布验收；未合并、部署/提升 Production，未改域名、DNS、EdgeOne、生产凭据或生产数据。
 
-本轮修复包括三源 runtime parity、单源失败隔离和过期任务恢复、pending 保守清理、源级健康与 30 小时 AI 门禁、权威快照提交/读回、空池、固定可信代理，以及总医院真实编号格式解析。Preview 实测又修复两项：Python 内部请求改用官方 SDK 的请求 context OIDC；Today/商机池共用地区识别，避免 runtime 缺 market 元数据时漏天津卡。
+本轮真实页面及运行又修复：官方入口空壳检查、GB2312无损解码、妇产泛调研及正文用途解析、独立现场调研时间和跨端窗口关闭、未完成详情的 staging/barrier、硬停恢复事实丢失、二附院实际药品检验服务模板、增量失败安全诊断、原生 Queue 最大投递3次，以及市县地区造成11条记录漏显。之前的P0权威写入/读回、AI30小时门禁、账户隔离及固定可信代理继续通过回归。
 
 | 验证 | 结果与边界 |
 |---|---|
-| 正常完整构建 | PASS；832 Python 测试、全部 JS 合约/Prebuild、TypeScript、Vite；Node 24.19.0 / Python 3.12.14，main JS gzip 115.57 KiB |
-| 最终 Preview HTTP | 45 项逻辑检查通过；44 项首次通过，超大包首次 502、一次重试后正确 400；两次均未改变权威快照，首个 502 原因未明并保留证据 |
-| 最终 Preview 浏览器 | 18 项通过；地区一致性、关注/跟进刷新、AI 友好503、390px手机布局 |
-| 空池浏览器 | 9 项通过；普通 CDN GET 返回准确空版本，4 页面不回填旧卡；记录1次被只读规则拦截的自动AI POST |
-| 收尾普通浏览器 | 5 项通过；普通 CDN GET 返回最终版本，Today 明确提示来源覆盖不完整 |
-| 受保护内部 health | 最终部署 HTTP 200，读取同部署 DATABASE 状态 |
-| 真实单源 Queue | 中间部署 `002a2e7` 的天津总医院任务 202→消费，1候选核验成功/0失败；其他 canonical 未齐，`snapshot_refreshed=false`，未声称完整发布 |
-| Production 对照 | 仍为 `dpl_4LPKoTdusrvbExXuzbMKtnyiT86C` / `3216fd9` / READY；SSO 设置不变 |
+| 最新完整构建 | PASS；878个Python测试、全部JS合约/Prebuild、TypeScript、Vite；主JS gzip116.00kB |
+| 三源真实deep | 调研8条事实；意向2条事实+1条不支持；妇产1条事实+4条设施类排除；三源deferred/staging/barrier均0，不等于净新增数 |
+| 完整Queue周期 | 25阶段：22完成、3降级；3降级阶段对应TEDA/辽宁两个逻辑来源；触发响应至发布约44分44秒 |
+| 权威发布 | canonical总数964、当前池47、Today5、事件0；durable确认、cache READY、active cycle释放、无人工qa_fixture |
+| 数据一致性 | producer、Neon完整JSON、强制authority GET三SHA一致：`2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1` |
+| 最终普通浏览器 | 普通GET首次CDN HIT/Age1，完整SHA一致；34/34检查、地区逐ID/依据链接、11条恢复、跟进刷新、390px四页通过；23次自动cache_only由测试护栏阻断，未发AI请求 |
+| 首次普通浏览器 | 普通CDN GET相同SHA；发现真实11条漏显bug，已修复；首次脚本2处分母断言错误另记，不计产品故障 |
+| 地区服务回归 | 原47条完整payload不变；ALL47/TJ8/BJ10/HL10/HE10/JL9/LN0；哈尔滨首卡保持HL；新UI浏览器34/34通过 |
+| 真实降级 | TEDA官方403；辽宁详情核验聚合gate失败、原因明细缺失；辽宁fallback缺上游结果仍无效重试 |
+| Production对照 | 仍为`dpl_4LPKoTdusrvbExXuzbMKtnyiT86C` / `3216fd9` / READY；SSO设置不变 |
 
-所有测试数据库均为独立 Neon 测试分支中新建的空数据库；最终使用 `mcai_p0_acceptance_final`。模型 key 为空，503 验证的是正确降级，不代表 AI 成功输出。
+唯一测试目标为独立Neon分支 `br-cold-tooth-a5clhljh` 的 `mcai_p0_acceptance_final`。权威逻辑时钟 `2026-11-06T01:43:03.095559+08:00`，实际发布 `2026-11-05T18:27:47.698032Z`。payload与哈希完整一致；SQL timestamptz列因Postgres.js/JavaScript Date截到毫秒，相差559微秒，不能称SQL列微秒精确相等。模型key为空，前一a3真实503仅验证降级提示；最终UI复验未再发AI请求。临时验收访问已撤销；Production与SSO于2026-11-05T18:46:26.401Z再次只读确认不变。
 
-测试曾受控设置14源 HEALTHY，以验证门禁。收尾已移除该测试时钟：最终人工 QA 快照时间 `2026-11-05T16:51:40.751996+00:00`，数据库读回确认；只保留实际观测到的总医院扫描时钟，其余13源 UNKNOWN，整体 `degraded=true`。这是人工发布的已验证官方事实测试快照，不是 Queue canonical 发布成功。
+仍待推进：TEDA合法入口恢复、辽宁安全失败明细及依赖降级时跳过无效重试；版本时钟精度统一；来源分页/详情预算补齐和连续水位回补；非空事件链、持续自动tick、真实模型、国内P95及客户相关性/资格。已登记 `2026-11-06 11:30+08` 首个tick，尚未观察执行。CCGP仅扫描11月4日至6日；北京29候选只核验所选10条，其余是否医疗/有效未知。47条当前池不代表47条客户合格商机，964不代表本轮新增。
 
-仍待验证：新三源真实在线闭环、全源完整采集发布、持续自动 tick、生产调度与长时间恢复、真实模型成功路径、国内访问 P95。采购意向跟进只测了合法空态，没有正例状态流转。本轮不实施相关性/资格门禁、生命周期串联或商业交付；Gold Set 15 例仍为规则冒烟稿，缺证案例不计 PASS。
-
-源级24/48小时阈值仍是工程初值，整体AI门禁30小时；受控时钟或单次扫描均不证明长期来源新鲜度。
+源级24/48小时、AI30小时阈值仍是工程初值；Gold Set15例仍是缺证规则冒烟稿。建议先修来源故障和依赖重试，再设计每源独立提交＋显式覆盖/水位，随后实施产品子项匹配与资格三态；不以单个健康标签或测试数代替产品/商业验收。
 
 ## 历史记录（截至 2026-09-04；以下不表示当前状态）
 

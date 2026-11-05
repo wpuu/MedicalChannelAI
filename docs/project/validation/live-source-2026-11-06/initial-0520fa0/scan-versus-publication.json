@@ -1,0 +1,341 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_74s3kLody28YWrsfSak9Jb2E4Yr8",
+    "url": "https://medicalchannelai-g6u8ue0nw-rerisse7-1717s-projects.vercel.app",
+    "commit": "0520fa0d0166d23d27deb0f4ac1e9c3fab4aef8b",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "authority_unchanged": true,
+  "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+  "serving_status": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "version": "0.5.0",
+    "commit": "0520fa0",
+    "production_ready": false,
+    "ai": {
+      "configured": false
+    },
+    "ready": true,
+    "degraded": true,
+    "snapshot": {
+      "available": true,
+      "source_mode": "DATABASE",
+      "runtime_origin": null,
+      "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+      "freshness": "FRESH",
+      "age_minutes": 36,
+      "stale_after_minutes": 1800,
+      "source_health": {
+        "schema_version": "0.1",
+        "status": "UNKNOWN",
+        "required_source_count": 14,
+        "healthy_source_count": 1,
+        "sources": {
+          "ccgp": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjmugh": {
+            "last_successful_scan_at": "2026-11-05T16:40:27.354690+00:00",
+            "last_attempt_at": "2026-11-05T16:40:27.354690+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2881
+          },
+          "tjnothop": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "teda": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch_test": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy_intent": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzxfc": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_bj": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_he": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_ln": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_jl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_hl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          }
+        }
+      },
+      "today_card_count": 2,
+      "opportunity_pool_count": 2
+    }
+  },
+  "source_scan_health": {
+    "ccgp": {
+      "last_attempt_at": null,
+      "last_successful_scan_at": null,
+      "failure_reason": null,
+      "stale_after_seconds": 172800
+    },
+    "tjmugh": {
+      "last_attempt_at": "2026-11-05T16:40:27.354690+00:00",
+      "last_successful_scan_at": "2026-11-05T16:40:27.354690+00:00",
+      "failure_reason": null,
+      "stale_after_seconds": 86400
+    },
+    "tjnothop": {
+      "last_attempt_at": null,
+      "last_successful_scan_at": null,
+      "failure_reason": null,
+      "stale_after_seconds": 86400
+    },
+    "teda": {
+      "last_attempt_at": null,
+      "last_successful_scan_at": null,
+      "failure_reason": null,
+      "stale_after_seconds": 86400
+    },
+    "tjfch": {
+      "last_attempt_at": null,
+      "last_successful_scan_at": null,
+      "failure_reason": null,
+      "stale_after_seconds": 86400
+    },
+    "tjfch_test": {
+      "last_attempt_at": null,
+      "last_successful_scan_at": null,
+      "failure_reason": null,
+      "stale_after_seconds": 86400
+    },
+    "tjzyefy": {
+      "last_attempt_at": "2026-11-05T17:27:09.503264+00:00",
+      "last_successful_scan_at": null,
+      "failure_reason": "DETAIL_VERIFICATION_PENDING",
+      "stale_after_seconds": 86400
+    },
+    "tjzyefy_intent": {
+      "last_attempt_at": "2026-11-05T17:24:01.642074+00:00",
+      "last_successful_scan_at": "2026-11-05T17:24:01.642074+00:00",
+      "failure_reason": null,
+      "stale_after_seconds": 86400
+    },
+    "tjzxfc": {
+      "last_attempt_at": "2026-11-05T17:25:01.143686+00:00",
+      "last_successful_scan_at": "2026-11-05T17:25:01.143686+00:00",
+      "failure_reason": null,
+      "stale_after_seconds": 86400
+    },
+    "regional_bj": {
+      "last_attempt_at": null,
+      "last_successful_scan_at": null,
+      "failure_reason": null,
+      "stale_after_seconds": 172800
+    },
+    "regional_he": {
+      "last_attempt_at": null,
+      "last_successful_scan_at": null,
+      "failure_reason": null,
+      "stale_after_seconds": 172800
+    },
+    "regional_ln": {
+      "last_attempt_at": null,
+      "last_successful_scan_at": null,
+      "failure_reason": null,
+      "stale_after_seconds": 172800
+    },
+    "regional_jl": {
+      "last_attempt_at": null,
+      "last_successful_scan_at": null,
+      "failure_reason": null,
+      "stale_after_seconds": 172800
+    },
+    "regional_hl": {
+      "last_attempt_at": null,
+      "last_successful_scan_at": null,
+      "failure_reason": null,
+      "stale_after_seconds": 172800
+    }
+  },
+  "scan_bucket_results": {
+    "tjzyefy": {
+      "policy": {
+        "scan_interval_minutes": 60,
+        "reverify_after_hours": 24,
+        "max_details_per_scan": 12
+      },
+      "ledger": {
+        "candidate_count": 8,
+        "verified_count": 6,
+        "failed_count": 2,
+        "unverified_count": 0,
+        "updated_at": "2026-11-05T17:27:09.503264+00:00"
+      },
+      "staging": {
+        "record_count": 6,
+        "barrier_count": 2
+      },
+      "last_completed_scan": {
+        "bucket_id": null,
+        "completed_at": null,
+        "result": null
+      }
+    },
+    "tjzyefy_intent": {
+      "policy": {
+        "scan_interval_minutes": 120,
+        "reverify_after_hours": 24,
+        "max_details_per_scan": 12
+      },
+      "ledger": {
+        "candidate_count": 3,
+        "verified_count": 3,
+        "failed_count": 0,
+        "unverified_count": 0,
+        "updated_at": "2026-11-05T17:24:01.642074+00:00"
+      },
+      "staging": {
+        "record_count": 0,
+        "barrier_count": 0
+      },
+      "last_completed_scan": {
+        "bucket_id": "tjzyefy_intent:120m:249152",
+        "completed_at": "2026-11-05T17:24:01.642074+00:00",
+        "result": {
+          "discovered_candidate_count": 3,
+          "selected_detail_count": 3,
+          "deferred_detail_count": 0,
+          "skipped_unchanged_count": 0,
+          "verified_record_count": 2,
+          "verified_nonfact_count": 1,
+          "verification_failure_count": 0,
+          "canonical_record_count": 6,
+          "pending_record_count": 0,
+          "pending_barrier_count": 0,
+          "snapshot_refreshed": false,
+          "snapshot_as_of": null,
+          "deferred_reason": null
+        }
+      }
+    },
+    "tjzxfc": {
+      "policy": {
+        "scan_interval_minutes": 60,
+        "reverify_after_hours": 24,
+        "max_details_per_scan": 12
+      },
+      "ledger": {
+        "candidate_count": 5,
+        "verified_count": 5,
+        "failed_count": 0,
+        "unverified_count": 0,
+        "updated_at": "2026-11-05T17:25:01.143686+00:00"
+      },
+      "staging": {
+        "record_count": 0,
+        "barrier_count": 0
+      },
+      "last_completed_scan": {
+        "bucket_id": "tjzxfc:60m:498305",
+        "completed_at": "2026-11-05T17:25:01.143686+00:00",
+        "result": {
+          "discovered_candidate_count": 5,
+          "selected_detail_count": 5,
+          "deferred_detail_count": 0,
+          "skipped_unchanged_count": 0,
+          "verified_record_count": 1,
+          "verified_nonfact_count": 4,
+          "verification_failure_count": 0,
+          "canonical_record_count": 1,
+          "pending_record_count": 0,
+          "pending_barrier_count": 0,
+          "snapshot_refreshed": false,
+          "snapshot_as_of": null,
+          "deferred_reason": null
+        }
+      }
+    }
+  }
+}

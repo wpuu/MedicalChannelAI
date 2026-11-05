@@ -1,0 +1,35 @@
+{
+  "schema_version": "0.1",
+  "scope": "Finalized evidence collection: all initial, recovery, complete-deep, initial-UI and final-UI JSON artifacts",
+  "files_checked": 40,
+  "result": "PASS",
+  "checks": {
+    "known_private_value_matches": 0,
+    "database_uri_matches": 0,
+    "signed_payload_pattern_matches": 0,
+    "credential_field_matches": 0,
+    "url_with_query_fragment_or_userinfo": 0,
+    "parse_failures": 0,
+    "redacted_public_scope_fields": 0
+  },
+  "sanitization": {
+    "sensitive_fields_removed": 0,
+    "url_query_or_userinfo_removed": 0,
+    "local_raw_capture_references_removed": 5,
+    "private_value_replacements": 8,
+    "credential_pattern_replacements": 0
+  },
+  "private_configuration_copied": false,
+  "raw_html_copied": false,
+  "external_requests_performed_by_this_collection": 0,
+  "notes": "Known private values were compared locally without printing or copying them. No secrets, request credentials, connection URIs or JWTs are retained.",
+  "public_scope_identifiers_preserved": true,
+  "credential_inventory_scope": "Only credential-bearing configuration values are private. Public commits/deployment IDs remain visible. Available credentials and structural URL/header/connection/signed-value checks were tested locally; earlier scans preceded removal of temporary access credentials.",
+  "canonical_payload_digest_verified_with_node": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+  "manifest_references_and_hashes": "PASS",
+  "duplicate_TEDA_metadata_is_one_recorded_request": true,
+  "recorded_at": "2026-11-05T18:48:30.744646+00:00",
+  "final_UI_payload_digest_matches_producer": true,
+  "evidence_collection_finalized": true,
+  "final_manifest_file_sha256": "d014ed694049625d10135284a2580906fd8c588c59ec3713920df00300c8d8b4"
+}
