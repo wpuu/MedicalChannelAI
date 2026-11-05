@@ -1,0 +1,744 @@
+{
+  "target": "https://medicalchannelai-aovvk4mww-rerisse7-1717s-projects.vercel.app",
+  "phase": "fresh-final-local-followup",
+  "checks": [
+    {
+      "name": "fresh committed snapshot healthy",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "two fact cards served",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "today renders both cards in all markets",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "unconfigured AI feedback and disabled analysis",
+      "pass": false,
+      "detail": null,
+      "resolution": "Batch disabled; individual cached-advice lookup remains enabled by current design. Real click returns friendly 503 without blank screen."
+    },
+    {
+      "name": "single AI request reports unconfigured 503",
+      "pass": true,
+      "detail": {
+        "status": 503,
+        "error": "AI_NOT_CONFIGURED"
+      }
+    },
+    {
+      "name": "opportunity pool renders both cards",
+      "pass": false,
+      "detail": null,
+      "resolution": "Confirmed runtime card market metadata omission plus strict pool filtering; real compatibility defect, not removed fixture data."
+    },
+    {
+      "name": "local follow acknowledged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "followed page shows local follow",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "local follow persists after refresh",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "intent followup handles no intent fixtures",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "detail route renders selected facts",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mobile today renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile opportunities renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile followed renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile resources renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile detail renders without horizontal overflow",
+      "pass": true,
+      "detail": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "real AI button provides friendly unconfigured feedback",
+      "pass": true
+    }
+  ],
+  "pages": [
+    {
+      "name": "desktop-today",
+      "path": "/today",
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n公开试用\nAI雷达\n今日行动\n目标医院\n商机池\n我的跟进\n我的资源\n重置试用\n今天值得跟的医疗商机\n\n先看重点，再决定联系、跟进或按需让AI分析。\n\n最近刷新 2026年11月5日 16:31\n当前业务地区的商机来自已核验官方公开信息；各地区仍为部分来源覆盖。\nAI分析未分析项（2）\n采购意向跟进\n业务地区：全部已开通\n每条商机可查看官方依据\nAI建议按需加载\n已核验候选\n2\n\n进入事实筛选的公开项目\n\n商机池\n2\n\n当前仍值得判断或跟进\n\n今日重点\n2\n\n优先处理的前几条商机\n\n重点已分析\n0\n\n今日重点中已有AI建议\n\n有效惊喜率\n—\n\n至少反馈1条后开始统计\n\n重点 1\n43\n/ 60 公开分\n值得查看\n公开信息\n\n天津医科大学总医院\n\n天津医科大学总医院医疗设备项目市场调研论证邀请函\n\n采购调研\n暂无公开信息\n报名截止 2026年11月9日\n\n主要匹配维度（完成度）：介入时机 100% · 信息新鲜度 100% · 窗口紧迫度 70%。维度百分比不是直接加分，也不代表中标概率。\n\n公告公开联系人：张老师 · 设备采购科\n电话 60361777\n\n我的资源匹配\n\n可选\n\n不填写也能看公开商机；填写后可优化关注范围和AI建议。只填写已确认资源，未知项可以留空。\n\n填写我的资源\n\nAI行动分析\n\n基于已核验公开信息，给出下一步动作和需要确认的事项。\n\n获取AI建议\n\n已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。\n\n这条推荐对你？反馈不改变业务优先级分；尚未跟进的“没价值”项目会退出今日队列，“早就知道”会降低新发现优先级。\n\n早就知道\n新，但没价值\n新，而且值得跟\n查看详情\n已联系\n继续跟进\n不适合\n稍后提醒\n生成沟通话术\n重点 2\n30\n/ 60 公开分\n持续观察\n报名已结束\n公开信息\n\n吉林大学中日联谊医院\n\n吉林大学中日联谊医院彩超采购项目\n\n招标中\n预算 100 万元\n投标截止 2026年11月6日\n\n主要匹配维度（完成度）：窗口紧迫度 100% · 项目金额 70% · 产品明确度 63%。维度百分比不是直接加分，也不代表中标概率。\n\n公告公开联系人：张龙天 · 项目联系人\n电话 19729070278\n\n报名/获取文件时间已过，但投标或响应截止尚未到。建议先确认是否仍有可执行路径。\n\n我的资源匹配\n\n可选\n\n不填写也能看公开商机；填写后可优化关注范围和AI建议。只填写已确认资源，未知项可以留空。\n\n填写我的资源\n\nAI行动分析\n\n基于已核验公开信息，给出下一步动作和需要确认的事项。\n\n获取AI建议\n\n已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。\n\n这条推荐对你？反馈不改变业务优先级分；尚未跟进的“没价值”项目会退出今日队列，“早就知道”会降低新发现优先级。\n\n早就知道\n新，但没价值\n新，而且值得跟\n查看详情\n已联系\n继续跟进\n不适合\n稍后提醒\n生成沟通话术",
+      "buttons": [
+        {
+          "text": "重置试用",
+          "disabled": false
+        },
+        {
+          "text": "AI分析未分析项（2）",
+          "disabled": true
+        },
+        {
+          "text": "采购意向跟进",
+          "disabled": false
+        },
+        {
+          "text": "获取AI建议",
+          "disabled": false
+        },
+        {
+          "text": "早就知道",
+          "disabled": false
+        },
+        {
+          "text": "新，但没价值",
+          "disabled": false
+        },
+        {
+          "text": "新，而且值得跟",
+          "disabled": false
+        },
+        {
+          "text": "查看详情",
+          "disabled": false
+        },
+        {
+          "text": "已联系",
+          "disabled": false
+        },
+        {
+          "text": "继续跟进",
+          "disabled": false
+        },
+        {
+          "text": "不适合",
+          "disabled": false
+        },
+        {
+          "text": "稍后提醒",
+          "disabled": false
+        },
+        {
+          "text": "生成沟通话术",
+          "disabled": false
+        },
+        {
+          "text": "获取AI建议",
+          "disabled": false
+        },
+        {
+          "text": "早就知道",
+          "disabled": false
+        },
+        {
+          "text": "新，但没价值",
+          "disabled": false
+        },
+        {
+          "text": "新，而且值得跟",
+          "disabled": false
+        },
+        {
+          "text": "查看详情",
+          "disabled": false
+        },
+        {
+          "text": "已联系",
+          "disabled": false
+        },
+        {
+          "text": "继续跟进",
+          "disabled": false
+        },
+        {
+          "text": "不适合",
+          "disabled": false
+        },
+        {
+          "text": "稍后提醒",
+          "disabled": false
+        },
+        {
+          "text": "生成沟通话术",
+          "disabled": false
+        }
+      ],
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "desktop-opportunities",
+      "path": "/opportunities",
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n公开试用\nAI雷达\n今日行动\n目标医院\n商机池\n我的跟进\n我的资源\n重置试用\n全部已核验机会与早期信号\n\n首页按账号设置展示今日重点；这里保留同一事实快照中全部仍有效正式机会，以及可提前布局但尚未进入正式报名/投标窗口的采购意向。真实账号下使用完整个性化排序，并与“我的跟进”同步。\n\n快照 2026年11月5日 16:31\nAI服务待配置\n业务地区：全部已开通\n全部\n窗口开放\n提前布局\n晚窗口\n当前显示 1 / 2 条\n#2\n持续观察\n招标中\n吉林\n报名窗口已结束\n吉林大学中日联谊医院\n\n吉林大学中日联谊医院彩超采购项目\n\n公开预算 100 万元\n投标/响应截止 2026年11月6日 01:30\n公告区域 吉林省\n加入我的跟进\n完整详情\n31\n公开优先级\n查看设备、联系人、官方依据和AI判断",
+      "buttons": [
+        {
+          "text": "重置试用",
+          "disabled": false
+        },
+        {
+          "text": "全部",
+          "disabled": false
+        },
+        {
+          "text": "窗口开放",
+          "disabled": false
+        },
+        {
+          "text": "提前布局",
+          "disabled": false
+        },
+        {
+          "text": "晚窗口",
+          "disabled": false
+        },
+        {
+          "text": "加入我的跟进",
+          "disabled": false
+        },
+        {
+          "text": "完整详情",
+          "disabled": false
+        }
+      ],
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "desktop-followed",
+      "path": "/followed",
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n公开试用\nAI雷达\n今日行动\n目标医院\n商机池\n我的跟进\n我的资源\n重置试用\n我的跟进\n\n已到期和近期安排的下一步优先显示，再看其他推进、观察和已结束项目。标记“待安排下一步”的推进项目还没有私有提醒时间，需要你明确决定后续动作；系统不会自动替你生成。即使商机退出当前公开机会池，私有跟进记录仍会保留并可继续更新。\n\n刷新\n\n全部跟进\n\n1\n\n正在推进\n\n1\n\n待处理\n\n0\n\n已成交\n\n0\n\n全部\n待处理\n推进中\n观察\n成交\n已结束\n\n当前显示 1 条 · 已加载详情 1 / 全部 1 条\n\n正在评估\n待安排下一步\n吉林大学中日联谊医院\n\n吉林大学中日联谊医院彩超采购项目\n\n查看详情\n项目阶段：BIDDING\n公开预算：100 万元\n关键日期：2026年11月6日\n最近跟进：2026年11月5日 16:38\n\n最近备注：从商机池加入跟进\n\n公开快照与当前账号私有跟进分开保存；下一步、结果与复盘均属于私有跟进数据。\n\n官方依据",
+      "buttons": [
+        {
+          "text": "重置试用",
+          "disabled": false
+        },
+        {
+          "text": "刷新",
+          "disabled": false
+        },
+        {
+          "text": "全部",
+          "disabled": false
+        },
+        {
+          "text": "待处理",
+          "disabled": false
+        },
+        {
+          "text": "推进中",
+          "disabled": false
+        },
+        {
+          "text": "观察",
+          "disabled": false
+        },
+        {
+          "text": "成交",
+          "disabled": false
+        },
+        {
+          "text": "已结束",
+          "disabled": false
+        },
+        {
+          "text": "查看详情",
+          "disabled": false
+        }
+      ],
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "desktop-intent-followup",
+      "path": "/intent-followup",
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n公开试用\nAI雷达\n今日行动\n目标医院\n商机池\n我的跟进\n我的资源\n重置试用\n\n当前没有可跟进的采购意向\n\n后续核验到新的采购意向后，会在这里自动进入跟进视图。",
+      "buttons": [
+        {
+          "text": "重置试用",
+          "disabled": false
+        }
+      ],
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "desktop-detail",
+      "path": "/opportunity/ccgp_jl_74cddb340c0c92e0",
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n公开试用\nAI雷达\n今日行动\n目标医院\n商机池\n我的跟进\n我的资源\n重置试用\n全部已核验机会与早期信号\n\n首页按账号设置展示今日重点；这里保留同一事实快照中全部仍有效正式机会，以及可提前布局但尚未进入正式报名/投标窗口的采购意向。真实账号下使用完整个性化排序，并与“我的跟进”同步。\n\n快照 2026年11月5日 16:31\nAI服务待配置\n业务地区：全部已开通\n全部\n窗口开放\n提前布局\n晚窗口\n当前显示 1 / 2 条\n#2\n持续观察\n招标中\n吉林\n报名窗口已结束\n吉林大学中日联谊医院\n\n吉林大学中日联谊医院彩超采购项目\n\n公开预算 100 万元\n投标/响应截止 2026年11月6日 01:30\n公告区域 吉林省\n已在我的跟进\n完整详情\n31\n公开优先级\n查看设备、联系人、官方依据和AI判断",
+      "buttons": [
+        {
+          "text": "重置试用",
+          "disabled": false
+        },
+        {
+          "text": "全部",
+          "disabled": false
+        },
+        {
+          "text": "窗口开放",
+          "disabled": false
+        },
+        {
+          "text": "提前布局",
+          "disabled": false
+        },
+        {
+          "text": "晚窗口",
+          "disabled": false
+        },
+        {
+          "text": "已在我的跟进",
+          "disabled": true
+        },
+        {
+          "text": "完整详情",
+          "disabled": false
+        }
+      ],
+      "dimensions": {
+        "viewport": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "mobile-today",
+      "path": "/today",
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n今天值得跟的医疗商机\n\n先看重点，再决定联系、跟进或按需让AI分析。\n\n最近刷新 2026年11月5日 16:31\n当前业务地区的商机来自已核验官方公开信息；各地区仍为部分来源覆盖。\nAI分析未分析项（2）\n采购意向跟进\n业务地区：全部已开通\n每条商机可查看官方依据\nAI建议按需加载\n已核验候选\n2\n\n进入事实筛选的公开项目\n\n商机池\n2\n\n当前仍值得判断或跟进\n\n今日重点\n2\n\n优先处理的前几条商机\n\n重点已分析\n0\n\n今日重点中已有AI建议\n\n有效惊喜率\n—\n\n至少反馈1条后开始统计\n\n重点 1\n43\n/ 60 公开分\n值得查看\n公开信息\n\n天津医科大学总医院\n\n天津医科大学总医院医疗设备项目市场调研论证邀请函\n\n采购调研\n暂无公开信息\n报名截止 2026年11月9日\n\n主要匹配维度（完成度）：介入时机 100% · 信息新鲜度 100% · 窗口紧迫度 70%。维度百分比不是直接加分，也不代表中标概率。\n\n公告公开联系人：张老师 · 设备采购科\n电话 60361777\n\n我的资源匹配\n\n可选\n\n不填写也能看公开商机；填写后可优化关注范围和AI建议。只填写已确认资源，未知项可以留空。\n\n填写我的资源\n\nAI行动分析\n\n基于已核验公开信息，给出下一步动作和需要确认的事项。\n\n获取AI建议\n\n已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。\n\n这条推荐对你？反馈不改变业务优先级分；尚未跟进的“没价值”项目会退出今日队列，“早就知道”会降低新发现优先级。\n\n早就知道\n新，但没价值\n新，而且值得跟\n查看详情\n已联系\n继续跟进\n不适合\n稍后提醒\n生成沟通话术\n重点 2\n30\n/ 60 公开分\n持续观察\n报名已结束\n正在评估\n公开信息\n\n吉林大学中日联谊医院\n\n吉林大学中日联谊医院彩超采购项目\n\n招标中\n预算 100 万元\n投标截止 2026年11月6日\n\n主要匹配维度（完成度）：窗口紧迫度 100% · 项目金额 70% · 产品明确度 63%。维度百分比不是直接加分，也不代表中标概率。\n\n公告公开联系人：张龙天 · 项目联系人\n电话 19729070278\n\n报名/获取文件时间已过，但投标或响应截止尚未到。建议先确认是否仍有可执行路径。\n\n我的资源匹配\n\n可选\n\n不填写也能看公开商机；填写后可优化关注范围和AI建议。只填写已确认资源，未知项可以留空。\n\n填写我的资源\n\nAI行动分析\n\n基于已核验公开信息，给出下一步动作和需要确认的事项。\n\n获取AI建议\n\n已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。\n\n这条推荐对你？反馈不改变业务优先级分；尚未跟进的“没价值”项目会退出今日队列，“早就知道”会降低新发现优先级。\n\n早就知道\n新，但没价值\n新，而且值得跟\n查看详情\n已联系\n继续跟进\n不适合\n稍后提醒\n生成沟通话术\n雷达\n今日\n目标\n跟进\n资源",
+      "buttons": [
+        {
+          "text": "AI分析未分析项（2）",
+          "disabled": true
+        },
+        {
+          "text": "采购意向跟进",
+          "disabled": false
+        },
+        {
+          "text": "获取AI建议",
+          "disabled": false
+        },
+        {
+          "text": "早就知道",
+          "disabled": false
+        },
+        {
+          "text": "新，但没价值",
+          "disabled": false
+        },
+        {
+          "text": "新，而且值得跟",
+          "disabled": false
+        },
+        {
+          "text": "查看详情",
+          "disabled": false
+        },
+        {
+          "text": "已联系",
+          "disabled": false
+        },
+        {
+          "text": "继续跟进",
+          "disabled": false
+        },
+        {
+          "text": "不适合",
+          "disabled": false
+        },
+        {
+          "text": "稍后提醒",
+          "disabled": false
+        },
+        {
+          "text": "生成沟通话术",
+          "disabled": false
+        },
+        {
+          "text": "获取AI建议",
+          "disabled": false
+        },
+        {
+          "text": "早就知道",
+          "disabled": false
+        },
+        {
+          "text": "新，但没价值",
+          "disabled": false
+        },
+        {
+          "text": "新，而且值得跟",
+          "disabled": false
+        },
+        {
+          "text": "查看详情",
+          "disabled": false
+        },
+        {
+          "text": "已联系",
+          "disabled": false
+        },
+        {
+          "text": "继续跟进",
+          "disabled": false
+        },
+        {
+          "text": "不适合",
+          "disabled": false
+        },
+        {
+          "text": "稍后提醒",
+          "disabled": false
+        },
+        {
+          "text": "生成沟通话术",
+          "disabled": false
+        }
+      ],
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-opportunities",
+      "path": "/opportunities",
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n全部已核验机会与早期信号\n\n首页按账号设置展示今日重点；这里保留同一事实快照中全部仍有效正式机会，以及可提前布局但尚未进入正式报名/投标窗口的采购意向。真实账号下使用完整个性化排序，并与“我的跟进”同步。\n\n快照 2026年11月5日 16:31\nAI服务待配置\n业务地区：全部已开通\n全部\n窗口开放\n提前布局\n晚窗口\n当前显示 1 / 2 条\n#2\n持续观察\n招标中\n吉林\n报名窗口已结束\n吉林大学中日联谊医院\n\n吉林大学中日联谊医院彩超采购项目\n\n公开预算 100 万元\n投标/响应截止 2026年11月6日 01:30\n公告区域 吉林省\n已在我的跟进\n完整详情\n31\n公开优先级\n查看设备、联系人、官方依据和AI判断\n雷达\n今日\n目标\n跟进\n资源",
+      "buttons": [
+        {
+          "text": "全部",
+          "disabled": false
+        },
+        {
+          "text": "窗口开放",
+          "disabled": false
+        },
+        {
+          "text": "提前布局",
+          "disabled": false
+        },
+        {
+          "text": "晚窗口",
+          "disabled": false
+        },
+        {
+          "text": "已在我的跟进",
+          "disabled": true
+        },
+        {
+          "text": "完整详情",
+          "disabled": false
+        }
+      ],
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-followed",
+      "path": "/followed",
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n我的跟进\n\n已到期和近期安排的下一步优先显示，再看其他推进、观察和已结束项目。标记“待安排下一步”的推进项目还没有私有提醒时间，需要你明确决定后续动作；系统不会自动替你生成。即使商机退出当前公开机会池，私有跟进记录仍会保留并可继续更新。\n\n刷新\n\n全部跟进\n\n1\n\n正在推进\n\n1\n\n待处理\n\n0\n\n已成交\n\n0\n\n全部\n待处理\n推进中\n观察\n成交\n已结束\n\n当前显示 1 条 · 已加载详情 1 / 全部 1 条\n\n正在评估\n待安排下一步\n吉林大学中日联谊医院\n\n吉林大学中日联谊医院彩超采购项目\n\n查看详情\n项目阶段：BIDDING\n公开预算：100 万元\n关键日期：2026年11月6日\n最近跟进：2026年11月5日 16:38\n\n最近备注：从商机池加入跟进\n\n公开快照与当前账号私有跟进分开保存；下一步、结果与复盘均属于私有跟进数据。\n\n官方依据\n雷达\n今日\n目标\n跟进\n资源",
+      "buttons": [
+        {
+          "text": "刷新",
+          "disabled": false
+        },
+        {
+          "text": "全部",
+          "disabled": false
+        },
+        {
+          "text": "待处理",
+          "disabled": false
+        },
+        {
+          "text": "推进中",
+          "disabled": false
+        },
+        {
+          "text": "观察",
+          "disabled": false
+        },
+        {
+          "text": "成交",
+          "disabled": false
+        },
+        {
+          "text": "已结束",
+          "disabled": false
+        },
+        {
+          "text": "查看详情",
+          "disabled": false
+        }
+      ],
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-resources",
+      "path": "/resources",
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n我的资源\n\n可选填写。零配置也能继续看公开商机；填写后，系统才会把你的产品能力和医院关系加入经营优先级排序。\n\n默认仅保存在当前浏览器\n这些内容属于你自己确认的业务资源，不是医院公开事实。平时只保存在当前浏览器；只有你主动点击“结合我的资源分析”时，与该商机匹配到的最小相关资源会发送给本站 AI 服务端用于本次分析。系统仍会把用户自报资源与医院公开事实分开处理。\n产品 / 服务能力\n\n尽量填写具体产品或能力，例如“生化分析仪”“DR”“病原微生物质谱”“医疗设备租赁”。“医疗”“设备”“服务”等过于宽泛的词可以保存，但不会用于高分匹配。\n\n添加能力\n暂未填写产品能力。当前商机仍只按公开事实排序。\n医院关系\n\n只填你自己确认过的关系。医院名称与公开采购单位匹配后才会影响排序；如果填写了具体关系科室，这条关系只对同科室项目生效，不会自动扩大为全院关系。\n\n添加关系\n暂未填写医院关系。系统不会从公开联系人或历史项目推断你的院内关系。\n合作能力\n\n用于以后判断“没有现成产品但能否借助厂家、渠道或租赁模式参与”。未确认就保持“未确认”。\n\n可临时寻找厂家\n未确认\n可以\n不可以\n可与其他渠道合作\n未确认\n可以\n不可以\n可参与租赁项目\n未确认\n可以\n不可以\n清空我的资源\n保存并重新排序\n雷达\n今日\n目标\n跟进\n资源",
+      "buttons": [
+        {
+          "text": "添加能力",
+          "disabled": false
+        },
+        {
+          "text": "添加关系",
+          "disabled": false
+        },
+        {
+          "text": "清空我的资源",
+          "disabled": false
+        },
+        {
+          "text": "保存并重新排序",
+          "disabled": false
+        }
+      ],
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "mobile-detail",
+      "path": "/opportunity/ccgp_jl_74cddb340c0c92e0",
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n返回今日行动\n生成沟通草稿\n重点 2\n持续观察\n已核验官方事实 · 1 个依据\n吉林大学中日联谊医院\n\n吉林大学中日联谊医院彩超采购项目\n\n先决定怎么做，再按需查看官方事实、证据和评分解释。\n\n这条商机的执行准备\n\n把“看到商机”直接接到你的经营动作。只有你确认过的关系和产品能力才会保存，并立即重新计算当前商机的个性化优先级。\n\n管理全部资源\n\n目标医院\n\n待补充\n\n当前还未加入重点关注\n\n公告未单列医院字段，但采购单位名称明确包含医疗机构称谓；仍只作为重点关注，不代表已有关系。\n\n院内关系\n\n待补充\n\n尚未确认真实院内关系\n\n公开联系人不会被自动当成你的私人关系。\n\n产品 / 执行能力\n\n待补充\n\n暂无匹配的自有产品能力\n\n公告产品/项目提示：彩超（高端彩色多普勒诊断仪）。确认你能做后再录入资源。\n\n一键加入目标医院\n我确实有院内关系\n我能做这个产品/服务\nAI行动建议\n\n基于已核验公开信息\n\n公开信息\n\n让AI基于这条公开商机，给出下一步动作和需要确认的事项。\n\n重试AI分析\n\n已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。\n\n跟进记录\n\n销售跟进时间线 · 试用状态保存在当前浏览器\n\n更新跟进状态\n新发现\n正在评估\n已联系\n关系已确认\n准备中\n已投标\n已成交\n未成交\n不适合\n持续观察\n已归档\n保存状态\n\n“持续观察”只是销售阶段；提醒时间独立保存，不会自动改写当前阶段。\n\n设置提醒\n记录本次跟进\n0/2000 · 备注属于当前账号私有数据\n保存备注\n\n正在评估\n\n当前用户 · 2026年11月5日 16:38\n\n从商机池加入跟进\n\n项目公开信息\n\n真实公开事实快照 · 空值不会自行补全；客户侧资源另行标注\n\n真实公开事实\n已核实\n项目编号\nZRME20260826-112\n项目名称\n吉林大学中日联谊医院彩超采购项目\n采购单位\n吉林大学中日联谊医院\n医院\n暂无公开信息\n科室\n暂无公开信息\n地区\n吉林省\n项目阶段\n招标中\n公告类型\n公开招标公告\n发布时间\n2026年9月30日\n报名截止\n2026年10月13日\n投标截止\n2026年11月6日\n预计采购时间\n暂无公开信息\n项目预算\n100 万元\n采购方式\n公开招标\n采购产品\n\n彩超（高端彩色多普勒诊断仪）\n\n暂无公开信息 · 1台\n\n公开联系人\n\n姓名：张龙天\n\n职务：项目联系人\n\n电话：19729070278\n\n邮箱：暂无公开信息\n\n点击仅打开系统拨号或邮件应用，不会自动把商机标记为“已联系”。\n\n官方依据\n\n真实公开数据演示：下面链接对应当前卡片的官方采购公告，可直接核对项目编号、金额和时间\n\n查看官方依据\n已核实\n\nhttps://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260930_27424134.htm\n\n打开官方来源\n商机优先级\n\n公开事实维度（满分60）\n\n持续观察\n\n公开事实得分\n\n30\n/ 60 公开分\n产品执行能力\n完成度 0%\n医院关系\n完成度 0%\n找货/合作执行能力\n完成度 0%\n可介入阶段\n完成度 32%\n截止时间紧迫度\n完成度 100%\n项目金额\n完成度 70%\n产品与采购信息明确度\n完成度 63%\n信息新鲜度\n完成度 0%\n\n当前总分为公开事实0–60分，不包含账号私有产品能力和医院关系。上方百分比表示各维度在自身满分中的完成度，不能直接相加，也不是中标概率。\n\n个性化资源（可选）\n\n当前尚未填写客户资源 · 不影响查看公开商机\n\n未填写资源\n首次体验不需要填写目标医院、医院关系或产品资源。需要更精准关注时，再补充你自己确认的资源。\n填写我的资源\n重点关注\n未设为目标医院\n医院关系\n尚未确认院内关系\n关系科室\n尚未确认院内关系\n关系强度\n尚未确认院内关系\n内部负责人\n未指定\n最近确认\n未确认\n产品能力\n暂无匹配产品能力\n品牌/方案\n未配置品牌\n合作厂家能力\n未确认\n渠道合作能力\n未确认\n租赁能力\n未确认\n雷达\n今日\n目标\n跟进\n资源",
+      "buttons": [
+        {
+          "text": "生成沟通草稿",
+          "disabled": false
+        },
+        {
+          "text": "一键加入目标医院",
+          "disabled": false
+        },
+        {
+          "text": "我确实有院内关系",
+          "disabled": false
+        },
+        {
+          "text": "我能做这个产品/服务",
+          "disabled": false
+        },
+        {
+          "text": "重试AI分析",
+          "disabled": false
+        },
+        {
+          "text": "保存状态",
+          "disabled": false
+        },
+        {
+          "text": "设置提醒",
+          "disabled": false
+        },
+        {
+          "text": "保存备注",
+          "disabled": true
+        }
+      ],
+      "dimensions": {
+        "viewport": 390,
+        "scrollWidth": 390
+      }
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": [],
+  "rejectedMutations": [],
+  "allowedAiRequests": [
+    {
+      "path": "/api/ai/analyze",
+      "cacheOnly": true,
+      "single": false,
+      "count": 1
+    },
+    {
+      "path": "/api/ai/analyze",
+      "cacheOnly": true,
+      "single": false,
+      "count": 2
+    },
+    {
+      "path": "/api/ai/analyze",
+      "cacheOnly": false,
+      "single": true,
+      "count": 1
+    },
+    {
+      "path": "/api/ai/analyze",
+      "cacheOnly": true,
+      "single": false,
+      "count": 1
+    },
+    {
+      "path": "/api/ai/analyze",
+      "cacheOnly": true,
+      "single": false,
+      "count": 1
+    },
+    {
+      "path": "/api/ai/analyze",
+      "cacheOnly": true,
+      "single": false,
+      "count": 1
+    },
+    {
+      "path": "/api/ai/analyze",
+      "cacheOnly": true,
+      "single": false,
+      "count": 2
+    },
+    {
+      "path": "/api/ai/analyze",
+      "cacheOnly": true,
+      "single": false,
+      "count": 1
+    },
+    {
+      "path": "/api/ai/analyze",
+      "cacheOnly": true,
+      "single": false,
+      "count": 1
+    }
+  ],
+  "aiResponses": [
+    {
+      "status": 200,
+      "path": "/api/ai/analyze"
+    },
+    {
+      "status": 200,
+      "path": "/api/ai/analyze"
+    },
+    {
+      "status": 503,
+      "path": "/api/ai/analyze"
+    },
+    {
+      "status": 200,
+      "path": "/api/ai/analyze"
+    },
+    {
+      "status": 200,
+      "path": "/api/ai/analyze"
+    },
+    {
+      "status": 200,
+      "path": "/api/ai/analyze"
+    },
+    {
+      "status": 200,
+      "path": "/api/ai/analyze"
+    },
+    {
+      "status": 200,
+      "path": "/api/ai/analyze"
+    },
+    {
+      "status": 200,
+      "path": "/api/ai/analyze"
+    }
+  ],
+  "blockedExternal": [],
+  "served": {
+    "ready": true,
+    "degraded": false,
+    "freshness": "FRESH",
+    "sourceStatus": "HEALTHY",
+    "aiConfigured": false,
+    "cards": [
+      {
+        "id": "tjmugh_20261105_030368176",
+        "project": "天津医科大学总医院医疗设备项目市场调研论证邀请函",
+        "stage": "MARKET_RESEARCH"
+      },
+      {
+        "id": "ccgp_jl_74cddb340c0c92e0",
+        "project": "吉林大学中日联谊医院彩超采购项目",
+        "stage": "BIDDING"
+      }
+    ]
+  },
+  "localFollowups": [
+    {
+      "id": "ccgp_jl_74cddb340c0c92e0",
+      "status": "REVIEWING"
+    }
+  ],
+  "intentPositiveCase": "NOT_EXERCISED: final fixture has MARKET_RESEARCH and BIDDING; no PROCUREMENT_INTENT",
+  "completed": true,
+  "aiButtonObservation": {
+    "requests": [
+      {
+        "cacheOnly": true,
+        "single": false
+      },
+      {
+        "cacheOnly": false,
+        "single": true
+      }
+    ],
+    "blocked": [],
+    "status": 503,
+    "error": "AI_NOT_CONFIGURED",
+    "friendlyFeedbackVisible": true,
+    "noBlankScreen": true
+  }
+}

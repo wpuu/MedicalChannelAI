@@ -1,0 +1,265 @@
+{
+  "preview_url": "https://medicalchannelai-aovvk4mww-rerisse7-1717s-projects.vercel.app",
+  "production_modified": false,
+  "controlled_fixture_clocks": true,
+  "results": [
+    {
+      "case": "preview_status_baseline",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "stale_status",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "stale_single",
+      "http": 409,
+      "expected_http": 409,
+      "pass": true,
+      "error": "VERIFIED_SNAPSHOT_NOT_FRESH"
+    },
+    {
+      "case": "stale_cache_only_batch",
+      "http": 409,
+      "expected_http": 409,
+      "pass": true,
+      "error": "VERIFIED_SNAPSHOT_NOT_FRESH"
+    },
+    {
+      "case": "unknown_publish",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "unknown_readback",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "unknown_status",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "unknown_status_after_memo_ttl",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "unknown_source_single",
+      "http": 409,
+      "expected_http": 409,
+      "pass": true,
+      "error": "SOURCE_HEALTH_UNAVAILABLE"
+    },
+    {
+      "case": "source_stale_publish",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "source_stale_readback",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "source_stale_status",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "source_stale_status_after_memo_ttl",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "stale_source_single",
+      "http": 409,
+      "expected_http": 409,
+      "pass": true,
+      "error": "SOURCE_HEALTH_UNAVAILABLE"
+    },
+    {
+      "case": "source_isolated_cache_only_batch",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "healthy_publish",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "healthy_readback",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "healthy_status",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "healthy_status_after_memo_ttl",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "healthy_cache_only_batch",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "healthy_provider_unconfigured",
+      "http": 503,
+      "expected_http": 503,
+      "pass": true,
+      "error": "AI_NOT_CONFIGURED"
+    },
+    {
+      "case": "unknown_opportunity",
+      "http": 404,
+      "expected_http": 404,
+      "pass": true,
+      "error": "VERIFIED_OPPORTUNITY_NOT_FOUND"
+    },
+    {
+      "case": "cross_origin_rejected",
+      "http": 403,
+      "expected_http": 403,
+      "pass": true,
+      "error": "SAME_ORIGIN_REQUIRED"
+    },
+    {
+      "case": "forged_facts_rejected",
+      "http": 400,
+      "expected_http": 400,
+      "pass": true,
+      "error": "UNEXPECTED_FIELDS"
+    },
+    {
+      "case": "authority_before_invalid_publishes",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "future_publish_rejected",
+      "http": 409,
+      "expected_http": 409,
+      "pass": true,
+      "error": "RUNTIME_SNAPSHOT_FUTURE_REJECTED"
+    },
+    {
+      "case": "future_authority_unchanged",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "revision_conflict_publish_rejected",
+      "http": 409,
+      "expected_http": 409,
+      "pass": true,
+      "error": "PUBLIC_SNAPSHOT_REVISION_CONFLICT"
+    },
+    {
+      "case": "revision_conflict_authority_unchanged",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "rollback_publish_rejected",
+      "http": 409,
+      "expected_http": 409,
+      "pass": true,
+      "error": "PUBLIC_SNAPSHOT_ROLLBACK_REJECTED"
+    },
+    {
+      "case": "rollback_authority_unchanged",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "oversized_publish_rejected",
+      "http": 400,
+      "expected_http": 400,
+      "pass": true,
+      "error": "RUNTIME_SNAPSHOT_TOO_LARGE"
+    },
+    {
+      "case": "oversized_authority_unchanged",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "empty_publish",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "empty_readback",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "empty_status",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "empty_status_after_memo_ttl",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "final_publish",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "final_readback",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "final_status",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    },
+    {
+      "case": "final_status_after_memo_ttl",
+      "http": 200,
+      "expected_http": 200,
+      "pass": true
+    }
+  ]
+}

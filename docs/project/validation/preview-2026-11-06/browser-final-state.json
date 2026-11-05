@@ -1,0 +1,296 @@
+{
+  "target": "https://medicalchannelai-bi9frg0oq-rerisse7-1717s-projects.vercel.app",
+  "expectedAsOf": "2026-11-05T16:51:40.751996+00:00",
+  "checks": [
+    {
+      "name": "ordinary CDN snapshot exposes final two-card version",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "serving status reports available database with source degradation",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "one real source clock and thirteen unknown sources",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "today renders real Tianjin fact in final degraded state",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "today visibly warns of degraded source coverage",
+      "pass": true,
+      "detail": "部分信息源刷新异常或尚未确认，当前商机覆盖可能不完整。"
+    }
+  ],
+  "regularSnapshots": [
+    {
+      "elapsedWaitSeconds": 0,
+      "status": 200,
+      "as_of": "2026-11-05T16:51:40.751996+00:00",
+      "cardCount": 2,
+      "poolCount": 2,
+      "age": "1",
+      "cache": "HIT",
+      "cards": [
+        {
+          "id": "tjmugh_20261105_030368176",
+          "project": "天津医科大学总医院医疗设备项目市场调研论证邀请函"
+        },
+        {
+          "id": "ccgp_jl_74cddb340c0c92e0",
+          "project": "吉林大学中日联谊医院彩超采购项目"
+        }
+      ],
+      "sourceHealth": {
+        "sources": {
+          "ccgp": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "last_successful_scan_at": null
+          },
+          "teda": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "last_successful_scan_at": null
+          },
+          "tjfch": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "last_successful_scan_at": null
+          },
+          "tjmugh": {
+            "failure_reason": null,
+            "last_attempt_at": "2026-11-05T16:40:27.354690+00:00",
+            "stale_after_seconds": 86400,
+            "last_successful_scan_at": "2026-11-05T16:40:27.354690+00:00"
+          },
+          "tjzxfc": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "last_successful_scan_at": null
+          },
+          "tjzyefy": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "last_successful_scan_at": null
+          },
+          "tjnothop": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "last_successful_scan_at": null
+          },
+          "tjfch_test": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "last_successful_scan_at": null
+          },
+          "regional_bj": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "last_successful_scan_at": null
+          },
+          "regional_he": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "last_successful_scan_at": null
+          },
+          "regional_hl": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "last_successful_scan_at": null
+          },
+          "regional_jl": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "last_successful_scan_at": null
+          },
+          "regional_ln": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "last_successful_scan_at": null
+          },
+          "tjzyefy_intent": {
+            "failure_reason": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "last_successful_scan_at": null
+          }
+        },
+        "schema_version": "0.1"
+      }
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": [],
+  "cacheProbes": [
+    {
+      "count": 1
+    }
+  ],
+  "blockedRequests": [],
+  "status": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "version": "0.5.0",
+    "commit": "079fa2e",
+    "production_ready": false,
+    "ai": {
+      "configured": false
+    },
+    "ready": true,
+    "degraded": true,
+    "snapshot": {
+      "available": true,
+      "source_mode": "DATABASE",
+      "runtime_origin": null,
+      "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+      "freshness": "FRESH",
+      "age_minutes": 1,
+      "stale_after_minutes": 1800,
+      "source_health": {
+        "schema_version": "0.1",
+        "status": "UNKNOWN",
+        "required_source_count": 14,
+        "healthy_source_count": 1,
+        "sources": {
+          "ccgp": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjmugh": {
+            "last_successful_scan_at": "2026-11-05T16:40:27.354690+00:00",
+            "last_attempt_at": "2026-11-05T16:40:27.354690+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 739
+          },
+          "tjnothop": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "teda": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch_test": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy_intent": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzxfc": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_bj": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_he": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_ln": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_jl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_hl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          }
+        }
+      },
+      "today_card_count": 2,
+      "opportunity_pool_count": 2
+    }
+  },
+  "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n公开试用\nAI雷达\n今日行动\n目标医院\n商机池\n我的跟进\n我的资源\n重置试用\n今天值得跟的医疗商机\n\n先看重点，再决定联系、跟进或按需让AI分析。\n\n最近刷新 2026年11月5日 16:51\n当前业务地区的商机来自已核验官方公开信息；各地区仍为部分来源覆盖。\nAI分析未分析项（1）\n采购意向跟进\n部分信息源刷新异常或尚未确认，当前商机覆盖可能不完整。联系或报价前请先核对该项目的官方依据。\n业务地区：天津\n每条商机可查看官方依据\nAI建议按需加载\n已核验候选\n2\n\n进入事实筛选的公开项目\n\n商机池\n1\n\n当前仍值得判断或跟进\n\n今日重点\n1\n\n优先处理的前几条商机\n\n重点已分析\n0\n\n今日重点中已有AI建议\n\n有效惊喜率\n—\n\n至少反馈1条后开始统计\n\n重点 1\n43\n/ 60 公开分\n值得查看\n公开信息\n\n天津医科大学总医院\n\n天津医科大学总医院医疗设备项目市场调研论证邀请函\n\n采购调研\n暂无公开信息\n报名截止 2026年11月9日\n\n主要匹配维度（完成度）：介入时机 100% · 信息新鲜度 100% · 窗口紧迫度 70%。维度百分比不是直接加分，也不代表中标概率。\n\n公告公开联系人：张老师 · 设备采购科\n电话 60361777\n\n我的资源匹配\n\n可选\n\n不填写也能看公开商机；填写后可优化关注范围和AI建议。只填写已确认资源，未知项可以留空。\n\n填写我的资源\n\nAI行动分析\n\n基于已核验公开信息，给出下一步动作和需要确认的事项。\n\n获取AI建议\n\n已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。\n\n这条推荐对你？反馈不改变业务优先级分；尚未跟进的“没价值”项目会退出今日队列，“早就知道”会降低新发现优先级。\n\n早就知道\n新，但没价值\n新，而且值得跟\n查看详情\n已联系\n继续跟进\n不适合\n稍后提醒\n生成沟通话术",
+  "finalPath": "/today",
+  "sameOrigin": true,
+  "completed": true
+}

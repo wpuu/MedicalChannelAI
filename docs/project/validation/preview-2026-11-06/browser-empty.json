@@ -1,0 +1,107 @@
+{
+  "target": "https://medicalchannelai-bi9frg0oq-rerisse7-1717s-projects.vercel.app",
+  "expectedAsOf": "2026-11-05T16:49:49.937363+00:00",
+  "checks": [
+    {
+      "name": "ordinary snapshot GET returns committed empty version",
+      "pass": true,
+      "detail": {
+        "status": 200,
+        "snapshot_as_of": "2026-11-05T16:49:49.937363+00:00",
+        "cards": 0,
+        "pool": 0,
+        "age": "1",
+        "cache": "HIT"
+      }
+    },
+    {
+      "name": "/today renders intended empty state",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "/today does not refill old fact cards",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "/opportunities renders intended empty state",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "/opportunities does not refill old fact cards",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "/intent-followup renders intended empty state",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "/intent-followup does not refill old fact cards",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "/followed renders intended empty state",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "/followed does not refill old fact cards",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "regularSnapshots": [
+    {
+      "elapsedWaitSeconds": 0,
+      "status": 200,
+      "snapshot_as_of": "2026-11-05T16:49:49.937363+00:00",
+      "cards": 0,
+      "pool": 0,
+      "age": "1",
+      "cache": "HIT"
+    }
+  ],
+  "pages": [
+    {
+      "path": "/today",
+      "status": 200,
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n公开试用\nAI雷达\n今日行动\n目标医院\n商机池\n我的跟进\n我的资源\n重置试用\n今天值得跟的医疗商机\n\n先看重点，再决定联系、跟进或按需让AI分析。\n\n最近刷新 2026年11月5日 16:49\n当前业务地区的商机来自已核验官方公开信息；各地区仍为部分来源覆盖。\n采购意向跟进\n业务地区：天津\n每条商机可查看官方依据\nAI建议按需加载\n已核验候选\n0\n\n进入事实筛选的公开项目\n\n商机池\n0\n\n当前仍值得判断或跟进\n\n今日重点\n0\n\n优先处理的前几条商机\n\n重点已分析\n0\n\n今日重点中已有AI建议\n\n有效惊喜率\n—\n\n至少反馈1条后开始统计\n\n今日暂无重点行动\n\n当前重点已处理，或暂无需要今天采取行动的项目。"
+    },
+    {
+      "path": "/opportunities",
+      "status": 200,
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n公开试用\nAI雷达\n今日行动\n目标医院\n商机池\n我的跟进\n我的资源\n重置试用\n全部已核验机会与早期信号\n\n首页按账号设置展示今日重点；这里保留同一事实快照中全部仍有效正式机会，以及可提前布局但尚未进入正式报名/投标窗口的采购意向。真实账号下使用完整个性化排序，并与“我的跟进”同步。\n\n快照 2026年11月5日 16:49\nAI服务待配置\n业务地区：天津\n全部\n窗口开放\n提前布局\n晚窗口\n当前显示 0 / 0 条\n\n没有符合条件的机会\n\n可以清空搜索词、在顶部切换业务地区或调整窗口筛选。"
+    },
+    {
+      "path": "/intent-followup",
+      "status": 200,
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n公开试用\nAI雷达\n今日行动\n目标医院\n商机池\n我的跟进\n我的资源\n重置试用\n\n当前没有可跟进的采购意向\n\n后续核验到新的采购意向后，会在这里自动进入跟进视图。"
+    },
+    {
+      "path": "/followed",
+      "status": 200,
+      "body": "医疗商机助手\nv0.5.0\n天津\n北京\n河北\n辽宁\n吉林\n黑龙江\n京津\n京津冀\n东北三省\n全部已开通\n公开试用\nAI雷达\n今日行动\n目标医院\n商机池\n我的跟进\n我的资源\n重置试用\n\n暂无跟进中的商机\n\n在今日行动或商机池中加入跟进、标记已联系或安排下一步后，会进入这里。"
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": [
+    {
+      "method": "POST",
+      "path": "/api/ai/analyze",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector"
+    }
+  ],
+  "blockedRequests": [
+    {
+      "method": "POST",
+      "origin": "https://medicalchannelai-bi9frg0oq-rerisse7-1717s-projects.vercel.app",
+      "path": "/api/ai/analyze"
+    }
+  ],
+  "completed": true
+}

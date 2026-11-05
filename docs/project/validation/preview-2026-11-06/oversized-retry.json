@@ -1,0 +1,15 @@
+{
+  "first_attempt": {
+    "http": 502,
+    "expected_http": 400,
+    "pass": false
+  },
+  "authority_unchanged_after_first_attempt": true,
+  "retry": {
+    "http": 400,
+    "body": {
+      "error": "RUNTIME_SNAPSHOT_TOO_LARGE"
+    }
+  },
+  "authority_unchanged_after_retry": true
+}

@@ -1,0 +1,16 @@
+{
+  "http": 200,
+  "ack": {
+    "ok": true,
+    "durable_committed": true,
+    "cache_status": "UPDATED",
+    "snapshot_as_of": "2026-11-05T16:49:49.937363+00:00",
+    "today_card_count": 0,
+    "opportunity_pool_count": 0
+  },
+  "counts": {
+    "cards": 0,
+    "pool": 0
+  },
+  "snapshot_as_of": "2026-11-05T16:49:49.937363+00:00"
+}

@@ -1,0 +1,301 @@
+{
+  "preview_url": "https://medicalchannelai-bi9frg0oq-rerisse7-1717s-projects.vercel.app",
+  "deployment_id": "dpl_CoT8dKET2N1dwrWKd5NCQQ9e1MTR",
+  "commit": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+  "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+  "manual_QA_publication": true,
+  "controlled_healthy_clocks_removed": true,
+  "production_modified": false,
+  "publish_ack": {
+    "ok": true,
+    "durable_committed": true,
+    "cache_status": "UPDATED",
+    "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+    "today_card_count": 2,
+    "opportunity_pool_count": 2
+  },
+  "status": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "version": "0.5.0",
+    "commit": "079fa2e",
+    "production_ready": false,
+    "ai": {
+      "configured": false
+    },
+    "ready": true,
+    "degraded": true,
+    "snapshot": {
+      "available": true,
+      "source_mode": "DATABASE",
+      "runtime_origin": null,
+      "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+      "freshness": "FRESH",
+      "age_minutes": 0,
+      "stale_after_minutes": 1800,
+      "source_health": {
+        "schema_version": "0.1",
+        "status": "UNKNOWN",
+        "required_source_count": 14,
+        "healthy_source_count": 1,
+        "sources": {
+          "ccgp": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjmugh": {
+            "last_successful_scan_at": "2026-11-05T16:40:27.354690+00:00",
+            "last_attempt_at": "2026-11-05T16:40:27.354690+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 690
+          },
+          "tjnothop": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "teda": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch_test": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy_intent": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzxfc": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_bj": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_he": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_ln": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_jl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_hl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          }
+        }
+      },
+      "today_card_count": 2,
+      "opportunity_pool_count": 2
+    }
+  },
+  "health": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "ready": true,
+    "degraded": true,
+    "pipeline_runtime": {
+      "available": true,
+      "module_import": true,
+      "data_bundle": true,
+      "runtime_cache": true,
+      "cron_secret_configured": true,
+      "cron_secret_required": false,
+      "verified_snapshot_available": true,
+      "verified_snapshot_fresh": false,
+      "verified_snapshot_freshness_required": false,
+      "verified_snapshot_source": "DATABASE",
+      "verified_snapshot_age_seconds": 0,
+      "verified_snapshot_freshness": "FRESH",
+      "source_health": {
+        "schema_version": "0.1",
+        "status": "UNKNOWN",
+        "required_source_count": 14,
+        "healthy_source_count": 1,
+        "sources": {
+          "ccgp": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjmugh": {
+            "last_successful_scan_at": "2026-11-05T16:40:27.354690+00:00",
+            "last_attempt_at": "2026-11-05T16:40:27.354690+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 691
+          },
+          "tjnothop": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "teda": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch_test": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy_intent": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzxfc": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_bj": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_he": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_ln": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_jl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_hl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          }
+        }
+      },
+      "verified_snapshot_max_age_seconds": 108000
+    }
+  }
+}

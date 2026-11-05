@@ -1,0 +1,292 @@
+{
+  "/api/status": {
+    "http": 200,
+    "data": {
+      "schema_version": "0.1",
+      "service": "MedicalChannelAI",
+      "version": "0.5.0",
+      "commit": "002a2e7",
+      "production_ready": false,
+      "ai": {
+        "configured": false
+      },
+      "ready": true,
+      "degraded": false,
+      "snapshot": {
+        "available": true,
+        "source_mode": "DATABASE",
+        "runtime_origin": null,
+        "snapshot_as_of": "2026-11-05T16:31:35.656989+00:00",
+        "freshness": "FRESH",
+        "age_minutes": 8,
+        "stale_after_minutes": 1800,
+        "source_health": {
+          "schema_version": "0.1",
+          "status": "HEALTHY",
+          "required_source_count": 14,
+          "healthy_source_count": 14,
+          "sources": {
+            "ccgp": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjmugh": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjnothop": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "teda": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjfch": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjfch_test": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjzyefy": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjzyefy_intent": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjzxfc": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "regional_bj": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "regional_he": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "regional_ln": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "regional_jl": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "regional_hl": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            }
+          }
+        },
+        "today_card_count": 2,
+        "opportunity_pool_count": 2
+      }
+    }
+  },
+  "/api/pipeline-health": {
+    "http": 200,
+    "data": {
+      "schema_version": "0.1",
+      "service": "MedicalChannelAI",
+      "ready": true,
+      "degraded": false,
+      "pipeline_runtime": {
+        "available": true,
+        "module_import": true,
+        "data_bundle": true,
+        "runtime_cache": true,
+        "cron_secret_configured": true,
+        "cron_secret_required": false,
+        "verified_snapshot_available": true,
+        "verified_snapshot_fresh": true,
+        "verified_snapshot_freshness_required": false,
+        "verified_snapshot_source": "DATABASE",
+        "verified_snapshot_age_seconds": 480,
+        "verified_snapshot_freshness": "FRESH",
+        "source_health": {
+          "schema_version": "0.1",
+          "status": "HEALTHY",
+          "required_source_count": 14,
+          "healthy_source_count": 14,
+          "sources": {
+            "ccgp": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjmugh": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjnothop": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "teda": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjfch": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjfch_test": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjzyefy": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjzyefy_intent": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "tjzxfc": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 86400,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "regional_bj": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "regional_he": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "regional_ln": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "regional_jl": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            },
+            "regional_hl": {
+              "last_successful_scan_at": "2026-11-05T16:31:29.656989+00:00",
+              "last_attempt_at": "2026-11-05T16:31:29.656989+00:00",
+              "stale_after_seconds": 172800,
+              "failure_reason": null,
+              "status": "HEALTHY",
+              "age_seconds": 514
+            }
+          }
+        },
+        "verified_snapshot_max_age_seconds": 108000
+      }
+    }
+  }
+}

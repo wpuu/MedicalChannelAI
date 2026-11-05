@@ -2,22 +2,22 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-06",
   "timezone": "Asia/Shanghai",
-  "state_scope": "LOCAL_P0_WORKTREE_ONLY",
+  "state_scope": "CURRENT_P0_CODE_AND_ISOLATED_PREVIEW_ACCEPTANCE",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
-  "runtime_implementation_head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
-  "latest_code_validated_head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
-  "current_runtime_candidate_head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
+  "runtime_implementation_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+  "latest_code_validated_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+  "current_runtime_candidate_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "LOCAL_CODE_VALIDATED_NOT_DEPLOYED",
-  "latest_changes_validation_status": "LOCAL_CODE_VALIDATED_NOT_DEPLOYED",
+  "milestone": "PREVIEW_CONTROLLED_ACCEPTANCE_COMPLETE",
+  "latest_changes_validation_status": "PREVIEW_CONTROLLED_PASS_WITH_ONE_HTTP_RETRY",
   "current_runtime_candidate_validation": {
-    "head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
-    "result": "PASS",
-    "validation_scope": "LOCAL_CODE_ONLY_NOT_DEPLOYED",
+    "head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+    "result": "PASS_WITH_ONE_PREVIEW_HTTP_RETRY",
+    "validation_scope": "LOCAL_BUILD_AND_ISOLATED_PREVIEW_CONTROLLED_ACCEPTANCE",
     "node": "24.19.0",
     "python": "3.12.14",
     "focused_p0_regressions": "PASS",
@@ -27,9 +27,11 @@
       "public_AI_freshness",
       "source_health",
       "fixed_origin_proxy",
-      "frozen_current_TJMUGH_official_notice_parser"
+      "frozen_current_TJMUGH_official_notice_parser",
+      "Preview self-host isolation and SDK request-context OIDC",
+      "Shared Today/Pool market scope for runtime snapshots missing market metadata"
     ],
-    "python_contract_tests": 810,
+    "python_contract_tests": 832,
     "python_contract_result": "PASS_ALL",
     "javascript_contract_checks": "PASS_ALL",
     "prebuild": "PASS",
@@ -38,9 +40,9 @@
     "build_command": "npm run build",
     "build_exit_code": 0,
     "serverless_entrypoints": "11/12",
-    "main_js_gzip_kib": 115.4,
+    "main_js_gzip_kib": 115.57,
     "final_review": "PASS_NO_REMAINING_BLOCKERS",
-    "interpretation": "Complete local build, 810 Python tests, JS contracts/prebuild, TypeScript, Vite and focused regression checks passed for this code commit. The current TJMUGH official page failure was diagnosed with two read-only GETs and fixed against a frozen official fixture. No sustained source, Queue, database runtime, Preview, Production or commercial acceptance is claimed."
+    "interpretation": "832 Python tests, JS contracts, TypeScript and Vite pass. Final Preview has 45 logical HTTP checks passed: 44 first attempt, one oversized request returned 502 then 400 on a single retry, with authority unchanged. Browser 18 checks plus 9 empty-state checks pass. This is controlled Preview acceptance, not full source recovery or Production readiness."
   },
   "implementation_scope": [
     "Three-source runtime parity: tjzyefy, tjzyefy_intent, tjzxfc; reuse existing official adapters.",
@@ -52,21 +54,44 @@
     "EdgeOne fixed trusted origin and credential forwarding boundary.",
     "Authoritative empty-pool behavior and existing-reminder ACK.",
     "Deterministic baseline test clocks.",
-    "TJMUGH official numbered-list compatibility, preserving raw products and published deadline."
+    "TJMUGH official numbered-list compatibility, preserving raw products and published deadline.",
+    "Preview-only publishing target and protected internal OIDC requests.",
+    "Shared market inference prevents runtime opportunities disappearing from Opportunity Pool."
   ],
   "out_of_scope": [
     "Product relevance and qualification gates.",
     "Project lifecycle linking, historical followup or customer-profile redesign.",
     "Real customer delivery, commercial readiness or renewal validation.",
-    "Preview or Production deployment, merge, domain, credentials or production-data changes."
+    "Production deployment, merge, domain/DNS, production credentials or production-data changes."
   ],
   "deployment_boundary": {
-    "preview_actions_performed": false,
+    "preview_actions_performed": true,
     "production_actions_performed": false,
     "merge_performed": false,
-    "current_head_runtime_acceptance": "NOT_PERFORMED",
-    "remote_deployment_state": "NOT_REQUERIED",
-    "interpretation": "Local implementation and tests only. No deployment or live production claim is made."
+    "current_head_runtime_acceptance": "CONTROLLED_PREVIEW_PASS_WITH_ONE_HTTP_RETRY_FULL_OPERATIONS_PENDING",
+    "remote_deployment_state": "READY_PREVIEW_PRODUCTION_UNCHANGED",
+    "preview": {
+      "deployment_id": "dpl_CoT8dKET2N1dwrWKd5NCQQ9e1MTR",
+      "url": "https://medicalchannelai-bi9frg0oq-rerisse7-1717s-projects.vercel.app",
+      "commit": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+      "database": "mcai_p0_acceptance_final",
+      "neon_branch": "br-cold-tooth-a5clhljh",
+      "http_checks": 45,
+      "http_first_attempt_pass": 44,
+      "http_pass_after_one_retry": 1,
+      "browser_checks": 18,
+      "empty_browser_checks": 9,
+      "report": "docs/project/preview-acceptance-2026-11-06.md",
+      "final_state_browser_checks": 5
+    },
+    "production_baseline_and_recheck": {
+      "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+      "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+      "target": "production",
+      "ready_state": "READY",
+      "unchanged": true
+    },
+    "interpretation": "Only isolated Preview resources and branch-scoped Preview environment variables changed; no Production actions or promotion."
   },
   "gold_set_status": {
     "document": "docs/strategy/ACTION_RADAR_GOLDSET_2026-10-07.md",
@@ -82,10 +107,11 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "NOT_PERFORMED: no Preview or Production actions.",
+    "current_head_runtime_acceptance": "PARTIAL: controlled Preview API/UI passed; no full-source durable publication or sustained scheduling claim.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: contract rules do not mean implementation or customer validation.",
-    "historical_runtime_and_ci_state": "Historical records are preserved below and were not re-queried this round.",
-    "source_freshness_runtime_acceptance": "NOT_PERFORMED: source-level 24/48-hour initial thresholds and sustained scheduling require separately authorized runtime acceptance."
+    "historical_runtime_and_ci_state": "Historical records remain historical. Current Production deployment was read-only rechecked and unchanged.",
+    "source_freshness_runtime_acceptance": "PARTIAL: intermediate Preview 002a2e7 ran one real tjmugh Queue scan, 1 verified / 0 failed, snapshot_refreshed=false because complete canonical state is absent. Other sources and sustained ticks remain unverified.",
+    "http_request_reliability": "One oversized-request attempt returned unexplained 502, then expected 400 on one retry. Authority unchanged after both; observe reliability before Production."
   },
   "historical_records": {
     "interpretation": "Historical observations only; these records do not describe the current branch, CI, deployment or P0 acceptance.",
@@ -329,16 +355,16 @@
       "remote_verification_this_round": "NOT_PERFORMED"
     }
   },
-  "final_code_head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
-  "code_validation_head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
+  "final_code_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+  "code_validation_head": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
   "documentation_followup": "A subsequent status/contract documentation commit does not change the executable code validated at code_validation_head; no final repository HEAD is asserted here.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
     "public_ai_snapshot_max_age_hours": 30,
     "policy_status": "INITIAL_ENGINEERING_THRESHOLDS_CODE_VALIDATED",
-    "runtime_acceptance": "NOT_PERFORMED",
-    "interpretation": "The source-level thresholds require runtime validation against observed scheduling and source behavior. Passing local checks does not establish online freshness recovery."
+    "runtime_acceptance": "CONTROLLED_STATUS_GATES_AND_ONE_REAL_SOURCE_SCAN_ONLY",
+    "interpretation": "Controlled source-clock gates pass; one actual tjmugh scan is observed. Source thresholds, all-source freshness and sustained scheduling still require operational validation."
   },
   "official_source_diagnostic": {
     "source_id": "tjmugh",
@@ -348,6 +374,25 @@
     "root_cause": "TJMUGH_PROJECT_ITEMS_NOT_FOUND for official 1、/2、 numbered list",
     "frozen_fixture": "web/pipeline/tests/fixtures/tjmugh_market_research_20261105.html",
     "parser_regression_result": "PASS",
-    "continuous_runtime_acceptance": "NOT_PERFORMED"
+    "continuous_runtime_acceptance": "NOT_PERFORMED",
+    "preview_single_scan": {
+      "commit": "002a2e7",
+      "deployment_id": "dpl_4nyhZSFd6wXMUScit5tAhYgBrBEX",
+      "verified_count": 1,
+      "failure_count": 0,
+      "snapshot_refreshed": false,
+      "scope": "SINGLE_SOURCE_SCAN_NOT_CANONICAL_PUBLICATION"
+    }
+  },
+  "preview_final_serving_state": {
+    "snapshot_as_of": "2026-11-05T16:51:40.751996+00:00",
+    "source": "DATABASE",
+    "manual_qa_publication": true,
+    "controlled_healthy_clocks_removed": true,
+    "degraded": true,
+    "healthy_source_count": 1,
+    "required_source_count": 14,
+    "other_sources": "UNKNOWN",
+    "interpretation": "Only actual observed tjmugh scan clock retained. This manually published QA snapshot is not a Queue canonical publication."
   }
 }

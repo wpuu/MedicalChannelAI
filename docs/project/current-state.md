@@ -2,37 +2,35 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前本地 P0 工作状态
+## 当前 P0 与 Preview 状态
 
-- 工作树：`/workspace/MedicalChannelAI-p0`；原工作树保持不动。
-- 分支：`codex/p0-reliability-contracts`。
-- 起始 HEAD：`3216fd940dabfa7714383b6436908f9b72ff8a9c`（`3216fd9`）。
-- 最终可执行代码 / 验证 HEAD：`afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27`（`afc19c5`）；前置合同提交为 `e62c2a9`。后续状态文档提交不改变该版本已验证的可执行代码。
-- 权威规则：[行动雷达验收合同](action-radar-acceptance-contract.md)。Gold Set 15 例已改为规则冒烟稿，缺证用例不计 PASS。
-- 当前阶段：**LOCAL_CODE_VALIDATED_NOT_DEPLOYED**。本轮 P0 本地实现、聚焦回归、完整构建及独立终审完成；无剩余本地阻塞。
-- 当前验证环境：Node `24.19.0`、Python `3.12.14`。本轮实际输出为 810 个 Python 测试全部 PASS，不沿用下方历史 CI 数字。
-- `production_ready=false`。未进行 Preview/Production 部署、合并、域名或凭据变更；本轮没有实时生产验收结论。
+- 工作树：`/workspace/MedicalChannelAI-p0`；分支：`codex/p0-reliability-contracts`。原工作树保持干净。
+- 最终可执行代码 / 已部署代码：`079fa2e26bb29ea9807ce6763118d8959efc3e68`；后续证据文档提交不改变该代码版本。
+- 当前阶段：**PREVIEW_CONTROLLED_ACCEPTANCE_COMPLETE**。`production_ready=false`；完整采集发布及持续调度尚未通过运行验收。
+- 最终 [Preview](https://medicalchannelai-bi9frg0oq-rerisse7-1717s-projects.vercel.app)：`dpl_CoT8dKET2N1dwrWKd5NCQQ9e1MTR`，READY；保持部署保护。
+- [验收合同](action-radar-acceptance-contract.md)及[本轮 Preview 完整报告与证据](preview-acceptance-2026-11-06.md)为当前依据。
+- 用户追加授权仅部署 Preview 并验收；未合并、部署/提升 Production，未改域名、DNS、EdgeOne、生产凭据或生产数据。
 
-本轮实现边界：三源（`tjzyefy`、`tjzyefy_intent`、`tjzxfc`）runtime parity；单源失败隔离、日内 tick 独立兜底及过期 RUNNING 恢复；pending/barrier 保守清理；已提交快照与源级 freshness health；发布前校验及权威唯一提交；公开 AI 的 30 小时服务器新鲜度门禁；EdgeOne 固定 origin；空完整池与提醒 ACK；基线测试时钟稳定。
+本轮修复包括三源 runtime parity、单源失败隔离和过期任务恢复、pending 保守清理、源级健康与 30 小时 AI 门禁、权威快照提交/读回、空池、固定可信代理，以及总医院真实编号格式解析。Preview 实测又修复两项：Python 内部请求改用官方 SDK 的请求 context OIDC；Today/商机池共用地区识别，避免 runtime 缺 market 元数据时漏天津卡。
 
-追加修复了总医院当前公告的真实解析故障：官方索引与 11 月 5 日详情各一次只读 GET 均为 HTTP 200，失败原因是项目以 `1、2、3、` 编号，旧解析器只识别括号编号。已冻结官方原文，新增 5 个回归；完整原文与 fixture 解析事实一致，保留 3 条原文产品和官方报名截止 `2026-11-09 17:00 +08:00`。本轮未手工写入生产商机，也未验证持续调度恢复。
-
-本轮不实施相关性/资格门禁、项目生命周期串联、历史跟进与画像重构或商业交付。规则合同不等于这些能力已经实现，代码测试也不等于来源持续在线或客户续费价值已经成立。
-
-本轮本地验证记录（对应上述代码 HEAD）：
-
-| 项目 | 本轮状态 |
+| 验证 | 结果与边界 |
 |---|---|
-| 聚焦 P0 回归 | PASS；36 个 runtime/queue 行为测试及 publication、AI、source health、proxy 等聚焦检查通过 |
-| 完整 Python pipeline tests | PASS；810 个全部通过 |
-| JS 合约检查 / prebuild | PASS；全部检查通过，serverless entrypoints 11/12 |
-| TypeScript / Vite build | PASS；`npm run build` exit 0，main JS gzip 115.40 KiB |
-| 最终变更复核 | PASS；独立终审无剩余阻塞 |
-| Preview / Production 运行验收 | NOT_PERFORMED；本轮禁止部署 |
+| 正常完整构建 | PASS；832 Python 测试、全部 JS 合约/Prebuild、TypeScript、Vite；Node 24.19.0 / Python 3.12.14，main JS gzip 115.57 KiB |
+| 最终 Preview HTTP | 45 项逻辑检查通过；44 项首次通过，超大包首次 502、一次重试后正确 400；两次均未改变权威快照，首个 502 原因未明并保留证据 |
+| 最终 Preview 浏览器 | 18 项通过；地区一致性、关注/跟进刷新、AI 友好503、390px手机布局 |
+| 空池浏览器 | 9 项通过；普通 CDN GET 返回准确空版本，4 页面不回填旧卡；记录1次被只读规则拦截的自动AI POST |
+| 收尾普通浏览器 | 5 项通过；普通 CDN GET 返回最终版本，Today 明确提示来源覆盖不完整 |
+| 受保护内部 health | 最终部署 HTTP 200，读取同部署 DATABASE 状态 |
+| 真实单源 Queue | 中间部署 `002a2e7` 的天津总医院任务 202→消费，1候选核验成功/0失败；其他 canonical 未齐，`snapshot_refreshed=false`，未声称完整发布 |
+| Production 对照 | 仍为 `dpl_4LPKoTdusrvbExXuzbMKtnyiT86C` / `3216fd9` / READY；SSO 设置不变 |
 
-源级过期阈值当前配置为医院源 24 小时、CCGP/区域源 48 小时；这些是已通过代码检查的工程初始值，仍待实际运行节奏与来源行为验收，不代表线上新鲜度已恢复。整体公开 AI 的 30 小时快照门禁与源级阈值是不同检查。
+所有测试数据库均为独立 Neon 测试分支中新建的空数据库；最终使用 `mcai_p0_acceptance_final`。模型 key 为空，503 验证的是正确降级，不代表 AI 成功输出。
 
-Gold Set / Agnes relevance benchmark 未执行，相关性和资格门禁未实现，付费探索及续费验证未开始；本轮 PASS 不覆盖这些事项。
+测试曾受控设置14源 HEALTHY，以验证门禁。收尾已移除该测试时钟：最终人工 QA 快照时间 `2026-11-05T16:51:40.751996+00:00`，数据库读回确认；只保留实际观测到的总医院扫描时钟，其余13源 UNKNOWN，整体 `degraded=true`。这是人工发布的已验证官方事实测试快照，不是 Queue canonical 发布成功。
+
+仍待验证：新三源真实在线闭环、全源完整采集发布、持续自动 tick、生产调度与长时间恢复、真实模型成功路径、国内访问 P95。采购意向跟进只测了合法空态，没有正例状态流转。本轮不实施相关性/资格门禁、生命周期串联或商业交付；Gold Set 15 例仍为规则冒烟稿，缺证案例不计 PASS。
+
+源级24/48小时阈值仍是工程初值，整体AI门禁30小时；受控时钟或单次扫描均不证明长期来源新鲜度。
 
 ## 历史记录（截至 2026-09-04；以下不表示当前状态）
 

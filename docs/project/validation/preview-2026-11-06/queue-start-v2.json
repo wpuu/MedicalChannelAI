@@ -1,0 +1,18 @@
+{
+  "http": 202,
+  "data": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "trigger_source": "VERCEL_CRON",
+    "collector": {
+      "action": "QUEUED",
+      "execution_plane": "VERCEL_QUEUE_V2",
+      "mode": "INCREMENTAL",
+      "source_id": "tjmugh",
+      "scan_bucket_id": "tjmugh:60m:498304",
+      "observed_at": "2026-11-05T16:40:26.816135+00:00",
+      "due_source_count": null,
+      "message_id": "5N-1M1emyLUsKEjvNypQkDORe5okhiTU6de"
+    }
+  }
+}

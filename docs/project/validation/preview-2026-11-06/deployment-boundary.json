@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-11-05T16:54:30.040Z",
+  "production": {
+    "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+    "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+    "ready_state": "READY",
+    "target": "production",
+    "unchanged": true,
+    "sso_protection": {
+      "enabled": true,
+      "deploymentType": "all_except_custom_domains"
+    }
+  },
+  "preview": {
+    "deployment_id": "dpl_CoT8dKET2N1dwrWKd5NCQQ9e1MTR",
+    "commit": "079fa2e26bb29ea9807ce6763118d8959efc3e68",
+    "target": "preview",
+    "temporary_test_access_revoked": true
+  },
+  "production_actions_performed": false,
+  "merge_performed": false
+}
