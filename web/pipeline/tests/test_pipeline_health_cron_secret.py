@@ -111,6 +111,30 @@ class PipelineHealthCronSecretTests(unittest.TestCase):
     def test_status_redirect_is_not_followed_to_a_different_deployment(self):
         self.assertIsNone(health._NoStatusRedirect().redirect_request(None, None, 302, '', {}, 'https://another.vercel.app/api/status'))
 
+    def test_preview_self_request_attaches_runtime_oidc_only_to_its_exact_host(self):
+        with patch.dict(os.environ, {'VERCEL_OIDC_TOKEN': 'preview-test-oidc'}), \
+                patch.object(health, 'Request', wraps=health.Request) as request:
+            self.assertTrue(self.read_status(status_payload())['fresh'])
+        self.assertEqual(request.call_args.kwargs['headers']['x-vercel-trusted-oidc-idp-token'], 'preview-test-oidc')
+
+    def test_preview_invalid_or_production_host_never_receives_oidc(self):
+        for host in ('medicalchannelai.vercel.app', 'evil.example', 'good.vercel.app@evil.example', 'good.vercel.app/path'):
+            with self.subTest(host=host), patch.dict(os.environ, {
+                'VERCEL_ENV': 'preview', 'VERCEL_URL': host, 'VERCEL_OIDC_TOKEN': 'preview-test-oidc',
+            }), patch.object(health, 'build_opener') as opener:
+                self.assertFalse(health.served_snapshot_health()['available'])
+                opener.assert_not_called()
+
+    def test_production_health_request_does_not_forward_runtime_oidc(self):
+        opener = MagicMock()
+        opener.open.side_effect = OSError('offline test')
+        with patch.dict(os.environ, {
+            'VERCEL_ENV': 'production', 'VERCEL_URL': 'prod-exact.vercel.app', 'VERCEL_OIDC_TOKEN': 'test-oidc',
+        }), patch.object(health, 'build_opener', return_value=opener):
+            health.served_snapshot_health()
+        headers = dict((key.lower(), value) for key, value in opener.open.call_args.args[0].header_items())
+        self.assertNotIn('x-vercel-trusted-oidc-idp-token', headers)
+
 
 if __name__ == '__main__':
     unittest.main()

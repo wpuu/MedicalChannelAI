@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 from collections import Counter
@@ -1523,21 +1524,46 @@ def _run_regional_market(
     }
 
 
+def _durable_publish_url() -> str:
+    if str(os.environ.get("VERCEL_ENV") or "").strip().lower() != "preview":
+        return DURABLE_PUBLISH_URL
+    host = str(os.environ.get("VERCEL_URL") or "").strip()
+    if not host:
+        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PREVIEW_HOST_MISSING")
+    # VERCEL_URL is a deployment hostname, not a configurable upstream URL.
+    # Accept only one DNS label beneath vercel.app; reject ports, userinfo,
+    # schemes and paths before attaching the publisher credential.
+    suffix = ".vercel.app"
+    label = host[:-len(suffix)] if host.endswith(suffix) else ""
+    if not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label):
+        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PREVIEW_HOST_INVALID")
+    if host == "medicalchannelai.vercel.app":
+        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PREVIEW_PRODUCTION_HOST_REJECTED")
+    return f"https://{host}/api/public-snapshot"
+
+
 def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, Any]:
+    publish_url = _durable_publish_url()
     token = str(os.environ.get("VERIFIED_SNAPSHOT_PUBLISH_TOKEN") or "").strip()
     if len(token) < 24:
         raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_TOKEN_MISSING")
 
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json; charset=utf-8",
+        "Accept": "application/json",
+        "User-Agent": "MedicalChannelAI-VercelCollector/0.1",
+    }
+    if str(os.environ.get("VERCEL_ENV") or "").strip().lower() == "preview":
+        # URL validation above pins this credential to the exact deployment.
+        oidc_token = str(os.environ.get("VERCEL_OIDC_TOKEN") or "").strip()
+        if oidc_token:
+            headers["x-vercel-trusted-oidc-idp-token"] = oidc_token
     payload = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     request = Request(
-        DURABLE_PUBLISH_URL,
+        publish_url,
         data=payload,
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json; charset=utf-8",
-            "Accept": "application/json",
-            "User-Agent": "MedicalChannelAI-VercelCollector/0.1",
-        },
+        headers=headers,
         method="PUT",
     )
     try:

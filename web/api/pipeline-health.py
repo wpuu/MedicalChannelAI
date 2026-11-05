@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import sys
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
@@ -74,13 +75,22 @@ def served_snapshot_health() -> dict[str, Any]:
     ).strip()
     if not host:
         return unavailable
+    preview = str(os.environ.get('VERCEL_ENV') or '').strip().lower() == 'preview'
+    if preview and (not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]*\.vercel\.app', host)
+                    or host.lower() == 'medicalchannelai.vercel.app'):
+        return unavailable
     origin = host if host.startswith(('https://', 'http://')) else f'https://{host}'
+    headers = {
+        'Accept': 'application/json',
+        'User-Agent': 'MedicalChannelAI-PipelineHealth/0.1',
+    }
+    if preview:
+        oidc_token = str(os.environ.get('VERCEL_OIDC_TOKEN') or '').strip()
+        if oidc_token:
+            headers['x-vercel-trusted-oidc-idp-token'] = oidc_token
     request = Request(
         f"{origin.rstrip('/')}/api/status",
-        headers={
-            'Accept': 'application/json',
-            'User-Agent': 'MedicalChannelAI-PipelineHealth/0.1',
-        },
+        headers=headers,
         method='GET',
     )
     try:

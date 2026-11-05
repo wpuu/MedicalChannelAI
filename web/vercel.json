@@ -4,7 +4,8 @@
     "deploymentEnabled": {
       "main": true,
       "chatgpt/m1-evidence-pipeline-v1": true,
-      "chatgpt/opportunity-ranking-v2-final": false
+      "chatgpt/opportunity-ranking-v2-final": false,
+      "codex/p0-reliability-contracts": false
     }
   },
   "functions": {
