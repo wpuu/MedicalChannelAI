@@ -1,27 +1,11 @@
 import { demoDatasetMode } from '@/config/demoDataset'
-import {
-  ENABLED_MARKETS,
-  marketCodeFromOpportunityId,
-  marketCodesForSelection,
-  type MarketCode,
-} from '@/config/marketPreference'
+import { marketCodesForSelection } from '@/config/marketPreference'
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
 import type { FollowupInput, OutreachDraft, TodayActionCard, TodayActionsResponse } from '@/types'
+import { marketCodeForOpportunity } from '@/utils/opportunityMarket'
 import { apiBaseUrl } from './apiConfig'
 import { GroundedApiTodayActionsService } from './GroundedApiTodayActionsService'
 import type { TodayActionsLoadOptions, TodayActionsService } from './TodayActionsService'
-
-const ENABLED_MARKET_CODES = new Set<string>(ENABLED_MARKETS.map((item) => item.code))
-
-function marketCodeForCard(card: TodayActionCard): MarketCode {
-  const explicit = String(
-    (card.facts as typeof card.facts & { market_code?: string | null }).market_code ?? '',
-  ).trim().toUpperCase()
-  if (ENABLED_MARKET_CODES.has(explicit)) return explicit as MarketCode
-  // Compatibility only for the pre-v0.5.0 Tianjin snapshot and early regional
-  // snapshots. New verified records carry explicit market metadata.
-  return marketCodeFromOpportunityId(card.opportunity_id)
-}
 
 class DeferredTodayActionsService implements TodayActionsService {
   private delegatePromise: Promise<TodayActionsService> | null = null
@@ -57,7 +41,10 @@ class MarketScopedTodayActionsService implements TodayActionsService {
     const result = await this.delegate.getTodayActions(options)
     const allowed = new Set(marketCodesForSelection())
     const pool = (result.opportunity_pool ?? result.cards)
-      .filter((card) => allowed.has(marketCodeForCard(card)))
+      .filter((card) => {
+        const marketCode = marketCodeForOpportunity(card)
+        return marketCode !== null && allowed.has(marketCode)
+      })
       .map((card, index) => ({ ...card, rank: index + 1 }))
     const cards = pool.slice(0, 5).map((card, index) => ({ ...card, rank: index + 1 }))
     return {

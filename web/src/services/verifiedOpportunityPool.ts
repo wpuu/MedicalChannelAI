@@ -1,6 +1,8 @@
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
+import { marketDefinition } from '@/config/marketPreference'
 import type { TodayActionCard } from '@/types'
 import type { PublicTodayActionCard, TodayActionsPublicResponse } from '@/types/public'
+import { marketCodeForOpportunity } from '@/utils/opportunityMarket'
 import {
   backfillLocalFollowupSnapshots,
   hydrateLocalFollowups,
@@ -86,6 +88,8 @@ function componentPercent(card: PublicTodayActionCard, code: string): number {
 }
 
 function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
+  const marketCode = marketCodeForOpportunity(card)
+  const market = marketCode ? marketDefinition(marketCode) : null
   return {
     rank: card.rank,
     opportunity_id: card.opportunity_id,
@@ -96,9 +100,9 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       buyer_name: card.facts.buyer_name,
       department: card.facts.department,
       region: card.facts.region,
-      market_code: card.facts.market_code ?? null,
-      market_name: card.facts.market_name ?? null,
-      market_admin_code: card.facts.market_admin_code ?? null,
+      market_code: marketCode,
+      market_name: market?.name ?? null,
+      market_admin_code: market?.adminCode ?? null,
       lifecycle_stage: card.facts.lifecycle_state,
       notice_type: card.facts.notice_type,
       publish_date: card.facts.published_at,
