@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from http.server import BaseHTTPRequestHandler
 from typing import Any
 
@@ -51,6 +52,106 @@ _CHAIN_FIELDS = (
     "detail",
     "updated_at",
 )
+
+# Only these fixed parser codes may pass through. Never sanitize arbitrary
+# exception text into a public code: it may contain credentials or source data.
+_SAFE_DETAIL_REASON_CODES = frozenset("""
+    TJMUGH_PROJECT_ITEMS_EMPTY TJMUGH_PROJECT_ITEMS_NOT_FOUND
+    TJMUGH_PROJECT_ITEM_SEQUENCE_INVALID TJMUGH_PROJECT_SECTION_NOT_FOUND
+    TJMUGH_PUBLISHED_DATE_NOT_FOUND TJMUGH_REGISTRATION_DEADLINE_NOT_FOUND
+    TJMUGH_SOURCE_HOST_REJECTED TJMUGH_TITLE_NOT_FOUND
+    TJNOTHOP_BUDGET_INVALID TJNOTHOP_BUDGET_NOT_WHOLE_CNY
+    TJNOTHOP_INDEX_DETAIL_HOST_MISMATCH TJNOTHOP_INDEX_HOST_REJECTED
+    TJNOTHOP_INDEX_PUBLISHED_DATE_INVALID TJNOTHOP_INDEX_PUBLISHED_DATE_REQUIRED
+    TJNOTHOP_PRODUCT_NAME_EMPTY TJNOTHOP_PRODUCT_NAME_NOT_FOUND
+    TJNOTHOP_REGISTRATION_DATE_INVALID TJNOTHOP_REGISTRATION_DATE_NOT_FOUND
+    TJNOTHOP_REGISTRATION_SECTION_NOT_FOUND TJNOTHOP_SOURCE_HOST_REJECTED
+    TJNOTHOP_TITLE_MISMATCH TJNOTHOP_TITLE_NOT_FOUND
+    TEDA_BUDGET_INVALID TEDA_INDEX_PUBLISHED_DATE_INVALID
+    TEDA_INDEX_URL_REJECTED TEDA_MEDICAL_EARLY_SIGNAL_NOT_VERIFIED
+    TEDA_OFFICIAL_PUBLISHED_DATE_NOT_AVAILABLE TEDA_PRODUCT_ITEMS_NOT_FOUND
+    TEDA_PRODUCT_NAME_EMPTY TEDA_PRODUCT_SECTION_NOT_FOUND
+    TEDA_PUBLISHED_DATE_INVALID TEDA_PUBLISHED_DATE_MISMATCH
+    TEDA_REGISTRATION_DEADLINE_INVALID TEDA_REGISTRATION_DEADLINE_NOT_FOUND
+    TEDA_SOURCE_URL_REJECTED TEDA_TITLE_MISMATCH
+    TJFCH_BID_DEADLINE_INVALID TJFCH_BID_DEADLINE_NOT_EXACT
+    TJFCH_BUDGET_INVALID TJFCH_BUDGET_NOT_WHOLE_CNY
+    TJFCH_DETAIL_PUBLISHED_DATE_NOT_CONFIRMED TJFCH_INDEX_DETAIL_HOST_MISMATCH
+    TJFCH_INDEX_HOST_REJECTED TJFCH_INDEX_PUBLISHED_DATE_INVALID
+    TJFCH_NOTICE_TYPE_UNSUPPORTED TJFCH_SOURCE_HOST_REJECTED TJFCH_TITLE_MISMATCH
+    TJFCH_TEST_INDEX_DETAIL_HOST_MISMATCH TJFCH_TEST_INDEX_HOST_REJECTED
+    TJFCH_TEST_NOTICE_TYPE_UNSUPPORTED TJFCH_TEST_PUBLISHED_DATE_INVALID
+    TJFCH_TEST_PUBLISHED_DATE_NOT_FOUND TJFCH_TEST_REGISTRATION_WINDOW_UNSUPPORTED
+    TJFCH_TEST_SOURCE_HOST_REJECTED TJFCH_TEST_TITLE_MISMATCH
+    TJZYEFY_HOSPITAL_IDENTITY_NOT_FOUND TJZYEFY_INDEX_DETAIL_HOST_MISMATCH
+    TJZYEFY_INDEX_HOST_REJECTED TJZYEFY_INDEX_PUBLISHED_DATE_INVALID
+    TJZYEFY_NON_MEDICAL_RESEARCH TJZYEFY_NOT_MARKET_RESEARCH
+    TJZYEFY_PROCUREMENT_INTENT_NOT_SUPPORTED TJZYEFY_PRODUCT_ITEMS_NOT_FOUND
+    TJZYEFY_PUBLISHED_DATE_INVALID TJZYEFY_PUBLISHED_DATE_MISMATCH
+    TJZYEFY_PUBLISHED_DATE_NOT_FOUND TJZYEFY_REGISTRATION_DATE_INVALID
+    TJZYEFY_REGISTRATION_DATE_NOT_FOUND TJZYEFY_REGISTRATION_TIME_INVALID
+    TJZYEFY_REGISTRATION_WINDOW_NOT_FOUND TJZYEFY_SOURCE_HOST_REJECTED
+    TJZYEFY_TITLE_MISMATCH
+    TJZYEFY_INTENT_HOSPITAL_IDENTITY_NOT_FOUND TJZYEFY_INTENT_INDEX_DETAIL_HOST_MISMATCH
+    TJZYEFY_INTENT_INDEX_HOST_REJECTED TJZYEFY_INTENT_INDEX_PUBLISHED_DATE_INVALID
+    TJZYEFY_INTENT_NON_MEDICAL TJZYEFY_INTENT_NOTICE_TYPE_NOT_FOUND
+    TJZYEFY_INTENT_PRODUCT_ITEMS_NOT_FOUND TJZYEFY_INTENT_PUBLISHED_DATE_INVALID
+    TJZYEFY_INTENT_PUBLISHED_DATE_MISMATCH TJZYEFY_INTENT_PUBLISHED_DATE_NOT_FOUND
+    TJZYEFY_INTENT_SOURCE_HOST_REJECTED TJZYEFY_INTENT_SUPPLIER_CONSULTATION_NOT_FOUND
+    TJZYEFY_INTENT_TITLE_MISMATCH
+    TJZXFC_DEADLINE_INVALID TJZXFC_HOSPITAL_IDENTITY_NOT_FOUND
+    TJZXFC_INDEX_DETAIL_HOST_MISMATCH TJZXFC_INDEX_HOST_REJECTED
+    TJZXFC_INDEX_PUBLISHED_DATE_INVALID TJZXFC_NON_MEDICAL_EARLY_SIGNAL
+    TJZXFC_NOT_MARKET_RESEARCH TJZXFC_PUBLISHED_DATE_INVALID
+    TJZXFC_PUBLISHED_DATE_MISMATCH TJZXFC_PUBLISHED_DATE_NOT_FOUND
+    TJZXFC_REGISTRATION_DEADLINE_NOT_FOUND TJZXFC_RESEARCH_CONTENT_INVALID
+    TJZXFC_RESEARCH_EVENT_TIME_INVALID TJZXFC_RESEARCH_EVENT_TIME_NOT_FOUND
+    TJZXFC_SOURCE_HOST_REJECTED TJZXFC_TITLE_MISMATCH
+""".split())
+_FAILURE_CLASS_REASONS = {
+    "HTTPError": "HTTP_ERROR",
+    "URLError": "NETWORK_ERROR",
+    "TimeoutError": "NETWORK_TIMEOUT",
+    "ConnectionError": "NETWORK_ERROR",
+    "ConnectionResetError": "NETWORK_ERROR",
+    "UnicodeDecodeError": "RESPONSE_ENCODING_ERROR",
+    "ValidationError": "DETAIL_VALIDATION_FAILED",
+    "ValueError": "DETAIL_VALIDATION_FAILED",
+    **{name: "DETAIL_PARSE_FAILED" for name in (
+        "TjmughParseError", "TjnothopParseError", "TedaParseError", "TjfchParseError",
+        "TjfchTestParseError", "TjzyefyParseError", "TjzyefyIntentParseError", "TjzxfcParseError",
+    )},
+}
+
+
+def _safe_failure_reason(value: Any) -> str:
+    text = value if isinstance(value, str) else ""
+    exception_name, separator, message = text.partition(":")
+    code = message.partition(":")[0] if separator else exception_name
+    if code in _SAFE_DETAIL_REASON_CODES:
+        return code
+    if exception_name == "RuntimeError":
+        prefixes = {source.upper() for source in INCREMENTAL_SOURCE_IDS}
+        if any(code == f"{prefix}_NETWORK_ERROR" for prefix in prefixes):
+            return "NETWORK_ERROR"
+        if any(re.fullmatch(rf"{prefix}_HTTP_[1-5][0-9]{{2}}", code) for prefix in prefixes):
+            return "HTTP_ERROR"
+    return _FAILURE_CLASS_REASONS.get(exception_name, "DETAIL_VERIFICATION_FAILED")
+
+
+def _failed_ledger_diagnostics(entries: dict[str, Any], source_id: str) -> dict[str, Any]:
+    counts: dict[str, int] = {}
+    candidates: list[dict[str, str]] = []
+    for key, row in sorted(entries.items()):
+        if row.get("verification_status") != "FAILED":
+            continue
+        reason = _safe_failure_reason(row.get("last_error"))
+        counts[reason] = counts.get(reason, 0) + 1
+        prefix, separator, reference = key.partition(":")
+        if (len(candidates) < 5 and separator and prefix == source_id
+                and re.fullmatch(r"[0-9a-f]{64}", reference)):
+            candidates.append({"candidate_ref": reference, "reason": reason})
+    return {"failed_reason_counts": dict(sorted(counts.items())), "failed_candidates": candidates}
 
 
 def _incremental_ledger_key(source_id: str) -> str:
@@ -111,6 +212,7 @@ def _incremental_status(cache: RuntimeCache) -> dict[str, Any]:
                 "failed_count": failed,
                 "unverified_count": unverified,
                 "updated_at": ledger.get("updated_at"),
+                **_failed_ledger_diagnostics(ledger["entries"], source_id),
             },
             "staging": {
                 "record_count": _safe_list_count(cache.get(_incremental_pending_key(source_id))),

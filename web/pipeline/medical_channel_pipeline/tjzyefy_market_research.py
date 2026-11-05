@@ -146,6 +146,34 @@ def _extract_product_items(text: str, title: str) -> list[dict[str, Any]]:
     ]
 
 
+def _extract_pharmacy_service_items(text: str, title: str) -> list[dict[str, Any]]:
+    """Read a grounded pharmacy inspection service, not an arbitrary project title."""
+    match = re.search(
+        r'项目名称\s*[：:]\s*(.{1,250}?)\s+\d+[.、]\s*服务内容\s*[：:]\s*'
+        r'(.{1,2000}?)(?=\s+三[、.]\s*供应商资质要求)',
+        text,
+    )
+    if not match:
+        return []
+    project_name = _normalize(match.group(1))
+    if project_name != _normalize(title):
+        raise TjzyefyParseError('TJZYEFY_SERVICE_PROJECT_TITLE_MISMATCH')
+    name = re.sub(r'(?:项目)?调研公告$', '', project_name.removeprefix(HOSPITAL_NAME))
+    specification = re.sub(r'\s+', ' ', match.group(2)).strip()
+    # Hospital identity plus a generic "检测" is not medical evidence. This
+    # fallback is limited to pharmacy services whose own content names drug
+    # packaging/materials or a pharmaceutical preparation workshop for testing.
+    if not ('制剂室' in name or '制剂车间' in name):
+        return []
+    if any(marker in name for marker in ('办公室', '办公楼', '配电箱', '安防', '消防')):
+        return []
+    material_testing = re.search(r'(?:药品包装|药用).{0,240}?(?:检验|检测)', specification)
+    cleanroom_testing = '净化区' in name and re.search(r'制剂车间综合性能(?:检验|检测)', specification)
+    if not (material_testing or cleanroom_testing):
+        return []
+    return [{'raw_name': name, 'category': None, 'quantity': None, 'specification': specification}]
+
+
 def _structured_research_template(text: str) -> bool:
     return (
         '项目背景与目标' in text
@@ -244,7 +272,8 @@ def parse_tjzyefy_market_research(
     if published_at != index_published_at:
         raise TjzyefyParseError('TJZYEFY_PUBLISHED_DATE_MISMATCH')
 
-    product_items = _extract_product_items(text, expected_title)
+    pharmacy_service_items = _extract_pharmacy_service_items(text, expected_title)
+    product_items = pharmacy_service_items or _extract_product_items(text, expected_title)
     categories = _product_categories(expected_title)
     scope_probe_parts = [expected_title, *categories]
     for item in product_items:
@@ -291,11 +320,14 @@ def parse_tjzyefy_market_research(
         if '院内调研' in text
         else '官方标题为调研公告，正文同时包含项目背景与目标、核心需求清单和方案报送截止；确定性生命周期映射'
     )
-    product_locator = (
-        '正文“我院拟对…进行院内调研”明确产品/设备/维保对象'
-        if '院内调研' in text
-        else '正文“核心需求清单”逐项明确调研对象及用途说明'
-    )
+    if pharmacy_service_items:
+        product_locator = '正文“项目名称”与列表标题一致，“服务内容”明确制剂室检验服务对象及具体检验要求'
+    else:
+        product_locator = (
+            '正文“我院拟对…进行院内调研”明确产品/设备/维保对象'
+            if '院内调研' in text
+            else '正文“核心需求清单”逐项明确调研对象及用途说明'
+        )
     evidence: list[dict[str, str]] = [
         {'field_path': 'facts.project_name', 'source_url': source_url, 'locator': '官方公告详情页标题与公告通知列表标题一致'},
         {'field_path': 'facts.buyer_name', 'source_url': source_url, 'locator': '天津中医药大学第二附属医院官方页面主体'},
