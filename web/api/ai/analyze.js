@@ -4,6 +4,7 @@ import { authenticatedUser } from '../_auth.js'
 import { privateDatabaseConfigured } from '../_privateDb.js'
 import { minimalPrivateContextForOpportunity } from '../_privateProfileContext.js'
 import { loadVerifiedSnapshot } from '../_verifiedSnapshot.js'
+import { researchEventWindowClosed } from '../_runtimeOpportunityTime.js'
 
 export { config }
 
@@ -172,6 +173,7 @@ function addDaysDateKey(value, days) {
 }
 
 export function outreachWindow(facts, now = Date.now()) {
+  if (researchEventWindowClosed(facts, now)) return { open: false, late: false }
   const bid = parsedTime(facts?.bid_deadline)
   const registration = parsedTime(facts?.registration_deadline)
   const registrationDate = typeof facts?.registration_deadline_date === 'string'

@@ -13,6 +13,9 @@ export interface StoredPublicOpportunity {
     department: string | null
     lifecycle_state: string | null
     published_at: string | null
+    research_event_at?: string | null
+    research_event_text?: string | null
+    product_use?: string | null
     bid_deadline: string | null
     expected_procurement_at: string | null
     budget_cny: number | null
@@ -103,6 +106,9 @@ function parsePublicSnapshot(value: unknown): StoredPublicOpportunity | undefine
       department: asNullableString(facts.department),
       lifecycle_state: asNullableString(facts.lifecycle_state),
       published_at: asNullableString(facts.published_at),
+      research_event_at: asNullableString(facts.research_event_at),
+      research_event_text: asNullableString(facts.research_event_text),
+      product_use: asNullableString(facts.product_use),
       bid_deadline: asNullableString(facts.bid_deadline),
       expected_procurement_at: asNullableString(facts.expected_procurement_at),
       budget_cny: budget,
@@ -155,6 +161,9 @@ function toStoredPublicOpportunity(card: TodayActionCard): StoredPublicOpportuni
       department: card.facts.department,
       lifecycle_state: card.facts.lifecycle_stage,
       published_at: card.facts.publish_date,
+      research_event_at: card.facts.research_event_at ?? null,
+      research_event_text: card.facts.research_event_text ?? null,
+      product_use: card.facts.product_use ?? null,
       bid_deadline: card.facts.bid_deadline,
       expected_procurement_at: card.facts.expected_purchase_date,
       budget_cny: card.facts.budget,
@@ -236,6 +245,9 @@ export function getStoredHistoricalOpportunityCard(opportunityId: string): Today
       notice_type: null,
       publish_date: snapshot.facts.published_at,
       registration_deadline: null,
+      research_event_at: snapshot.facts.research_event_at ?? null,
+      research_event_text: snapshot.facts.research_event_text ?? null,
+      product_use: snapshot.facts.product_use ?? null,
       bid_deadline: snapshot.facts.bid_deadline,
       expected_purchase_date: snapshot.facts.expected_procurement_at,
       budget: snapshot.facts.budget_cny,

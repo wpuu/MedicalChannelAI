@@ -41,6 +41,17 @@ class TjzxfcDiscoveryTests(unittest.TestCase):
         )
         self.assertEqual([row.published_at for row in selected], ['2026-08-20', '2026-08-19', '2026-08-18'])
 
+    def test_generic_official_research_title_and_list_bullet_continue_to_detail(self) -> None:
+        html = '''
+        <a href="/system/2026/10/28/030364590.shtml">・ 天津市中心妇产科医院调研公告</a>
+        <a href="/system/2026/11/02/030366728.shtml">・ 天津市中心妇产科医院南开院区样本库改造项目调研公告</a>
+        '''
+        rows = parse_tjzxfc_index_html(html)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[1].title, '天津市中心妇产科医院调研公告')
+        self.assertEqual(rows[1].detail_url, 'https://www.tjzxfc.cn/system/2026/10/28/030364590.shtml')
+        self.assertTrue(all(not hasattr(row, 'facts') for row in rows))
+
     def test_stable_id_uses_official_detail_path_identity(self) -> None:
         self.assertEqual(
             stable_opportunity_id('https://www.tjzxfc.cn/system/2026/03/31/030269964.shtml'),

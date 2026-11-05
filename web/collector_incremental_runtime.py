@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
 from vercel.functions import RuntimeCache
 
@@ -10,6 +10,7 @@ from collector_incremental import (
     SOURCE_POLICIES,
     VerificationDecision,
     empty_ledger,
+    ledger_key,
     normalize_ledger,
     plan_detail_verification,
     record_verification_failure,
@@ -68,6 +69,17 @@ def _save_ledger(cache: RuntimeCache, source_id: str, ledger: dict[str, Any]) ->
         ttl=LEDGER_TTL_SECONDS,
         tag="medicalchannelai-collector-incremental-ledger",
     )
+
+
+def _mark_budget_deferred(ledger: dict[str, Any], decisions: Iterable[VerificationDecision]) -> None:
+    # Even a previously VERIFIED periodic recheck must remain eligible for
+    # carryover when it disappears from a later bounded index response.
+    for decision in decisions:
+        entry = ledger["entries"][ledger_key(decision.candidate)]
+        if entry.get("verification_status") == "VERIFIED":
+            entry["verification_status"] = "UNVERIFIED"
+        if not entry.get("last_error"):
+            entry["last_error"] = "DETAIL_BUDGET_DEFERRED"
 
 
 def _load_pending_records(cache: RuntimeCache, source_id: str) -> list[dict[str, Any]]:
@@ -559,7 +571,12 @@ def run_incremental_source(
         max_details=policy["max_details_per_scan"],
     )
     ledger = plan.next_ledger
+    _mark_budget_deferred(ledger, plan.deferred)
+    scan_barrier = _load_pending_barrier(cache, source)
+    scan_barrier.update(item.candidate.detail_url for item in (*plan.selected, *plan.deferred))
+    _save_pending_barrier(cache, source, scan_barrier)
     _save_ledger(cache, source, ledger)
+    durable_staging = _load_pending_records(cache, source)
 
     discovered_by_url = {
         str(getattr(item, "detail_url", "") or (item.get("detail_url") if isinstance(item, dict) else "")): item
@@ -579,6 +596,15 @@ def run_incremental_source(
             runtime.time.sleep(delay_seconds)
         try:
             record = _VERIFICATION[source](candidate, observed_at, observed)
+            # Persist verified facts before a VERIFIED ledger can make the next
+            # scan skip them. A hard timeout must not strand facts in memory.
+            if record is not None:
+                durable_staging = runtime.merge_canonical_records(durable_staging, [record])
+                _save_pending_records(cache, source, durable_staging)
+            # A successful explicit non-fact also resolves only its own URL.
+            # Do this before the ledger update so interruption remains retryable.
+            scan_barrier.discard(decision.candidate.detail_url)
+            _save_pending_barrier(cache, source, scan_barrier)
             ledger = record_verification_success(
                 ledger,
                 decision.candidate,
@@ -612,6 +638,7 @@ def run_incremental_source(
     pending_barrier = _load_pending_barrier(cache, source)
     pending_barrier.difference_update(successful_urls)
     pending_barrier.update(item["url"] for item in failures)
+    pending_barrier.update(item.candidate.detail_url for item in plan.deferred)
     staged_records = (
         runtime.merge_canonical_records(pending_records, verified_records)
         if pending_records or verified_records
@@ -661,7 +688,7 @@ def run_incremental_source(
             **base_result,
             "snapshot_refreshed": False,
             "snapshot_as_of": None,
-            "deferred_reason": "PENDING_VERIFICATION_BARRIER",
+            "deferred_reason": "DETAIL_BUDGET_DEFERRED" if plan.deferred else "PENDING_VERIFICATION_BARRIER",
         }
         _mark_bucket_completed(
             cache,

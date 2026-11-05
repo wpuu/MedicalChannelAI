@@ -33,7 +33,8 @@ class IncrementalPendingBarrierTests(unittest.TestCase):
         barrier = runtime.index("if pending_barrier:")
         canonical = runtime.index("if staged_records:", barrier)
         block = runtime[barrier:canonical]
-        self.assertIn('"deferred_reason": "PENDING_VERIFICATION_BARRIER"', block)
+        self.assertIn('"PENDING_VERIFICATION_BARRIER"', block)
+        self.assertIn('"DETAIL_BUDGET_DEFERRED"', block)
         self.assertIn('"snapshot_refreshed": False', block)
         self.assertIn("_mark_bucket_completed(", block)
         self.assertNotIn("cache_key", block)

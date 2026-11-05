@@ -39,11 +39,15 @@ class AiBatchCacheV2Tests(unittest.TestCase):
         self.assertIn("opportunity_ids: opportunityIds", client)
         self.assertIn("postAiDecisionBatch(eligible.map((card) => card.opportunity_id), cacheOnly)", client)
         self.assertIn("cache_only: cacheOnly", client)
-        # Transient per-item failures get exactly one automatic follow-up pass.
-        self.assertIn("postAiDecisionBatch(retryIds, false)", client)
+        # Transient per-item failures get one follow-up pass, after rechecking
+        # whether the research event closed while the retry delay elapsed.
+        self.assertIn("const retryableIds = retryIds.filter", client)
+        self.assertIn("return card && !researchEventWindowClosed(card.facts)", client)
+        self.assertEqual(client.count("postAiDecisionBatch(retryableIds, false)"), 1)
         self.assertIn("if (cacheOnly) return first", client)
         self.assertIn("export async function hydrateSharedAiDecisions", client)
-        self.assertIn("requestAiDecisionBatch(cards, { cacheOnly: true })", client)
+        self.assertIn("const currentCards = closeResearchEventCards(cards)", client)
+        self.assertIn("requestAiDecisionBatch(currentCards, { cacheOnly: true })", client)
 
         self.assertIn("analyzeVisibleOpportunities", today)
         self.assertIn("AI分析未分析项", today)

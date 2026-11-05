@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from datetime import date
+from datetime import date, datetime
 from html.parser import HTMLParser
 from typing import Any
 from urllib.parse import urlparse
@@ -22,6 +22,8 @@ class _DetailParser(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.parts: list[str] = []
         self.rows: list[list[str]] = []
+        self.titles: list[str] = []
+        self._title: list[str] | None = None
         self._ignored_depth = 0
         self._row: list[str] | None = None
         self._cell: list[str] | None = None
@@ -31,6 +33,8 @@ class _DetailParser(HTMLParser):
             self._ignored_depth += 1
         if self._ignored_depth:
             return
+        if tag in {'title', 'h1'}:
+            self._title = []
         if tag == 'tr':
             self._row = []
         elif tag in {'td', 'th'} and self._row is not None:
@@ -43,6 +47,9 @@ class _DetailParser(HTMLParser):
             return
         if self._ignored_depth:
             return
+        if tag in {'title', 'h1'} and self._title is not None:
+            self.titles.append(''.join(self._title).strip())
+            self._title = None
         if tag in {'td', 'th'} and self._cell is not None and self._row is not None:
             cell = re.sub(r'\s+', ' ', ''.join(self._cell)).strip()
             self._row.append(cell)
@@ -57,14 +64,16 @@ class _DetailParser(HTMLParser):
             return
         text = data.strip()
         self.parts.append(text)
+        if self._title is not None:
+            self._title.append(text)
         if self._cell is not None:
             self._cell.append(text)
 
 
-def _parse_html(html: str) -> tuple[str, list[list[str]]]:
+def _parse_html(html: str) -> tuple[str, list[list[str]], list[str]]:
     parser = _DetailParser()
     parser.feed(html)
-    return ' '.join(parser.parts), parser.rows
+    return ' '.join(parser.parts), parser.rows, parser.titles
 
 
 def _normalize(value: str) -> str:
@@ -91,7 +100,7 @@ def _extract_published_date(text: str) -> str:
 def _extract_deadline(text: str) -> tuple[str | None, str | None]:
     compact = re.sub(r'(?<=\d)\s+(?=\d)', '', text)
     exact_patterns = (
-        r'(?:截至|截止|调研时间|提交时间|报名时限|填报时间)[^。；;]{0,80}?(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?[^0-9]{0,20}(\d{1,2})\s*[：:]\s*(\d{2})',
+        r'(?:截至|截止|提交时间|报名时限|填报时间)[^。；;]{0,80}?(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?[^0-9]{0,20}(\d{1,2})\s*[：:]\s*(\d{2})',
         r'(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?[^0-9]{0,20}(\d{1,2})\s*[：:]\s*(\d{2})\s*(?:止|截止)',
     )
     for pattern in exact_patterns:
@@ -107,7 +116,7 @@ def _extract_deadline(text: str) -> tuple[str | None, str | None]:
             raise TjzxfcParseError('TJZXFC_DEADLINE_INVALID')
         return f'{parsed.isoformat()}T{hour:02d}:{minute:02d}:00+08:00', None
 
-    for section in re.findall(r'(?:截至|截止|调研时间|提交时间|报名时限|填报时间)[^。；;]{0,100}', compact):
+    for section in re.findall(r'(?:截至|截止|提交时间|报名时限|填报时间)[^。；;]{0,100}', compact):
         dates = re.findall(r'(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?', section)
         if not dates:
             continue
@@ -149,6 +158,64 @@ def _products_from_tables(rows: list[list[str]]) -> list[dict[str, Any]]:
         if len(result) >= 50:
             break
     return result
+
+
+def _research_content_and_use(text: str) -> tuple[str | None, str | None]:
+    # Generic notice titles can hide the actual medical object. Only consume
+    # explicitly labelled article sections, never navigation, hospital identity
+    # or generic supplier-qualification boilerplate as the medical-scope proof.
+    match = re.search(
+        r'二\s*[、．.]\s*调研内容\s*[：:]\s*(.+?)\s*'
+        r'三\s*[、．.]\s*用途\s*[：:]\s*(.+?)\s*'
+        r'四\s*[、．.]\s*资格要求\s*[：:]',
+        text,
+    )
+    if not match:
+        return None, None
+    content, usage = (re.sub(r'\s+', ' ', value).strip() for value in match.groups())
+    if not content or len(content) > 1500 or not usage or len(usage) > 500:
+        raise TjzxfcParseError('TJZXFC_RESEARCH_CONTENT_INVALID')
+    return content, usage
+
+
+def _research_event(text: str) -> tuple[str | None, str | None]:
+    section = re.search(
+        r'五\s*[、．.]\s*调研方式及日期\s*[：:]\s*(.+?)\s*'
+        r'六\s*[、．.]\s*调研地点\s*[：:]',
+        text,
+    )
+    if not section:
+        return None, None
+    event_text = re.sub(r'\s+', ' ', section.group(1)).strip()
+    # An in-person demonstration time is an event, not a registration deadline.
+    if '现场讲解产品' not in event_text:
+        return None, None
+    match = re.search(
+        r'时间\s*[：:]\s*(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日\s*'
+        r'(\d{1,2})\s*[：:]\s*(\d{2})',
+        event_text,
+    )
+    if not match:
+        raise TjzxfcParseError('TJZXFC_RESEARCH_EVENT_TIME_NOT_FOUND')
+    try:
+        parsed = datetime(*(int(value) for value in match.groups()))
+    except ValueError as exc:
+        raise TjzxfcParseError('TJZXFC_RESEARCH_EVENT_TIME_INVALID') from exc
+    return parsed.isoformat(timespec='seconds') + '+08:00', event_text
+
+
+def _usage_departments(usage: str | None) -> str | None:
+    if not usage:
+        return None
+    # Keep only an explicit enumeration of using departments. No device class
+    # or department is inferred from the chemical names or hospital identity.
+    match = re.fullmatch(r'(.+?)(?:等)?使用[。.]?', usage)
+    if not match:
+        return None
+    departments = match.group(1)
+    if not all(re.fullmatch(r'(?:[^、，,]{1,30}(?:科|诊断)|[^、，,]{0,30}实验室)', part) for part in re.split(r'[、，,]', departments)):
+        return None
+    return departments
 
 
 def _scope_probe(title: str, product_items: list[dict[str, Any]]) -> str:
@@ -193,10 +260,16 @@ def parse_tjzxfc_market_research(
     except ValueError as exc:
         raise TjzxfcParseError('TJZXFC_INDEX_PUBLISHED_DATE_INVALID') from exc
 
-    text, rows = _parse_html(html)
+    text, rows, titles = _parse_html(html)
     if HOSPITAL_NAME not in text:
         raise TjzxfcParseError('TJZXFC_HOSPITAL_IDENTITY_NOT_FOUND')
-    if _normalize(expected_title) not in _normalize(text):
+    official_suffix = '-天津市中心妇产科医院-北方网企业建站'
+    declared_titles = [title.removesuffix(official_suffix) for title in titles]
+    title_matches = (
+        any(_normalize(expected_title) == _normalize(title) for title in declared_titles)
+        if declared_titles else _normalize(expected_title) in _normalize(text)
+    )
+    if not title_matches:
         raise TjzxfcParseError('TJZXFC_TITLE_MISMATCH')
     published_at = _extract_published_date(text)
     if published_at != index_published_at:
@@ -208,13 +281,40 @@ def parse_tjzxfc_market_research(
     title_product = _product_from_title(expected_title, text)
     if title_product and all(item['raw_name'] != title_product['raw_name'] for item in product_items):
         product_items.insert(0, title_product)
-    if not is_medical_channel_relevant_text(_scope_probe(expected_title, product_items)):
+    research_content, product_use = _research_content_and_use(text)
+    if research_content and all(item['raw_name'] != research_content for item in product_items):
+        product_items.append({'raw_name': research_content, 'category': None, 'quantity': None, 'specification': None})
+    # Facilities remain out of scope even when the works take place in a
+    # medical department. Only the project object/title is inspected here;
+    # supplier qualifications and generic hospital boilerplate are not proof.
+    object_text = '\n'.join([expected_title, *(item['raw_name'] for item in product_items)])
+    if re.search(r'样本库.{0,12}(?:改造|修缮|施工|建设)|管网|水泵|空调|通风(?:机|设备|系统)|电动门|报告厅|彩钢板|地胶', object_text):
+        raise TjzxfcParseError('TJZXFC_NON_MEDICAL_EARLY_SIGNAL')
+    scope_probe = _scope_probe(expected_title, product_items)
+    # The newly supported generic notice is specifically a chemical-supply
+    # object with an explicit clinical/laboratory use. A medical use cannot
+    # turn an arbitrary generic object into a medical procurement.
+    chemical_supply = bool(research_content and re.fullmatch(r'危化品[（(].+[）)]', research_content))
+    if research_content and not is_medical_channel_relevant_text(research_content) and not chemical_supply:
+        raise TjzxfcParseError('TJZXFC_NON_MEDICAL_EARLY_SIGNAL')
+    if chemical_supply and product_use:
+        scope_probe += '\n' + product_use
+    if not is_medical_channel_relevant_text(scope_probe):
         raise TjzxfcParseError('TJZXFC_NON_MEDICAL_EARLY_SIGNAL')
 
-    registration_deadline, registration_deadline_date = _extract_deadline(text)
+    research_event_at, research_event_text = _research_event(text)
+    try:
+        registration_deadline, registration_deadline_date = _extract_deadline(text)
+    except TjzxfcParseError as exc:
+        if str(exc) != 'TJZXFC_REGISTRATION_DEADLINE_NOT_FOUND' or not research_event_at:
+            raise
+        registration_deadline, registration_deadline_date = None, None
     public_contact = _extract_contact(text)
     notice_type = '采购前市场调研' if '采购前' in text or '采购前' in expected_title else '市场调研公告'
     department = '设备科' if ('来源：设备科' in _normalize(text) or '设备科' in expected_title) else None
+    usage_departments = _usage_departments(product_use)
+    if department is None and usage_departments:
+        department = usage_departments
 
     facts: dict[str, Any] = {
         'project_number': None,
@@ -237,6 +337,11 @@ def parse_tjzxfc_market_research(
         'product_items': product_items,
         'public_contact': public_contact,
     }
+    if product_use:
+        facts['product_use'] = product_use
+    if research_event_at:
+        facts['research_event_at'] = research_event_at
+        facts['research_event_text'] = research_event_text
     evidence = [
         {'field_path': 'facts.project_name', 'source_url': source_url, 'locator': '详情页标题与官方招标公告列表标题一致'},
         {'field_path': 'facts.buyer_name', 'source_url': source_url, 'locator': '天津市中心妇产科医院官方页面主体'},
@@ -247,13 +352,22 @@ def parse_tjzxfc_market_research(
         {'field_path': 'facts.published_at', 'source_url': source_url, 'locator': '详情页“时间”字段，并与官方详情URL日期一致'},
     ]
     if department:
-        evidence.append({'field_path': 'facts.department', 'source_url': source_url, 'locator': '详情页来源或标题明确为设备科'})
+        locator = '正文“三、用途”明确列出的使用科室' if department == usage_departments else '详情页来源或标题明确为设备科'
+        evidence.append({'field_path': 'facts.department', 'source_url': source_url, 'locator': locator})
     if registration_deadline:
         evidence.append({'field_path': 'facts.registration_deadline', 'source_url': source_url, 'locator': '正文截止/提交/填报时间，包含官方具体时分'})
-    else:
+    elif registration_deadline_date:
         evidence.append({'field_path': 'facts.registration_deadline_date', 'source_url': source_url, 'locator': '正文截止/提交/填报日期；原文未公布具体时分'})
     if product_items:
-        evidence.append({'field_path': 'facts.product_items', 'source_url': source_url, 'locator': '正文调研设备表格或详情页采购项目标题/科室用途'})
+        locator = '正文“二、调研内容”原文；类别、数量及技术参数未发布时保持空值' if research_content else '正文调研设备表格或详情页采购项目标题/科室用途'
+        evidence.append({'field_path': 'facts.product_items', 'source_url': source_url, 'locator': locator})
+    if product_use:
+        evidence.append({'field_path': 'facts.product_use', 'source_url': source_url, 'locator': '正文“三、用途”原文'})
+    if research_event_at:
+        evidence.extend([
+            {'field_path': 'facts.research_event_at', 'source_url': source_url, 'locator': '正文“五、调研方式及日期”：现场讲解产品的时间，不是报名截止'},
+            {'field_path': 'facts.research_event_text', 'source_url': source_url, 'locator': '正文“五、调研方式及日期”原文'},
+        ])
     if public_contact:
         evidence.append({'field_path': 'facts.public_contact', 'source_url': source_url, 'locator': '正文联系电话/设备科电话'})
 

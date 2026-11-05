@@ -5,6 +5,7 @@ import type {
   TodayActionsResponse,
 } from '@/types'
 import { outreachBudgetFactText } from '@/utils/outreachBudgetFact'
+import { archiveResearchEventCard, researchEventWindowClosed } from '@/utils/researchEventWindow'
 import type { TodayActionsService } from './TodayActionsService'
 
 const MAX_TODAY_CARDS = 5
@@ -105,6 +106,7 @@ export function refreshTrialTemporalPriority(
   card: TodayActionCard,
   now = Date.now(),
 ): TodayActionCard {
+  if (researchEventWindowClosed(card.facts, now)) return archiveResearchEventCard(card)
   const oldUrgency = percentToPoints(
     card.priority.components.DEADLINE_URGENCY,
     DEADLINE_URGENCY_MAX_POINTS,
@@ -136,6 +138,7 @@ export function refreshTrialTemporalPriority(
 
 function rerank(cards: TodayActionCard[], now: number): TodayActionCard[] {
   return cards
+    .filter((card) => !researchEventWindowClosed(card.facts, now))
     .map((card) => refreshTrialTemporalPriority(card, now))
     .sort((left, right) => {
       const scoreDifference = right.priority.score - left.priority.score
@@ -187,6 +190,7 @@ export class RuntimeTrialTodayActionsService implements TodayActionsService {
   async requestOutreachDraft(id: string): Promise<OutreachDraft> {
     const draft = await this.delegate.requestOutreachDraft(id)
     const card = await this.delegate.getOpportunity(id)
+    if (card && researchEventWindowClosed(card.facts)) throw new Error('OPPORTUNITY_WINDOW_CLOSED')
     return normalizeTrialOutreachBudget(draft, card)
   }
 }

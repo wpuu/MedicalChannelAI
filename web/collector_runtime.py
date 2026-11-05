@@ -902,6 +902,20 @@ def _run_early_signal_source(cache: RuntimeCache, state: dict[str, Any], source_
     existing, cache_key = incremental._existing_records(cache, source_id)
     as_of = _cycle_as_of(state)
     discovered = incremental._DISCOVERY[source_id](as_of)
+    if len(discovered) > EARLY_SIGNAL_MAX_DETAILS:
+        # Deep scans cannot declare this source complete after verifying only a
+        # prefix. Intraday's ledger/staging drains that backlog in bounded scans.
+        plan = incremental.plan_detail_verification(
+            source_id, discovered, incremental._load_ledger(cache, source_id),
+            now=as_of, max_details=EARLY_SIGNAL_MAX_DETAILS,
+        )
+        unresolved = (*plan.selected, *plan.deferred)
+        incremental._mark_budget_deferred(plan.next_ledger, unresolved)
+        incremental._save_ledger(cache, source_id, plan.next_ledger)
+        barrier = incremental._load_pending_barrier(cache, source_id)
+        barrier.update(item.candidate.detail_url for item in unresolved)
+        incremental._save_pending_barrier(cache, source_id, barrier)
+        raise CollectorStageBlocked("EARLY_SIGNAL_DETAIL_BUDGET_DEFERRED")
     selected = discovered[:EARLY_SIGNAL_MAX_DETAILS]
     verified: list[dict[str, Any]] = []
     unsupported = 0

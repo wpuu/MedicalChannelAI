@@ -24,6 +24,9 @@ export interface PublicFacts {
   registration_deadline: string | null
   registration_deadline_date: string | null
   registration_deadline_precision: 'MINUTE' | 'DAY' | null
+  research_event_at?: string | null
+  research_event_text?: string | null
+  product_use?: string | null
   bid_deadline: string | null
   expected_procurement_at: string | null
   expected_procurement_precision: string | null

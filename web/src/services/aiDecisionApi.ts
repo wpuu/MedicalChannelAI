@@ -1,5 +1,6 @@
 import { verifiedSnapshotUrl } from '@/config/snapshotConfig'
 import type { CustomerContext, Decision, TodayActionCard } from '@/types'
+import { archiveResearchEventCard, researchEventWindowClosed } from '@/utils/researchEventWindow'
 import { isApiMode } from './apiConfig'
 import { beginAiRequest, endAiRequest } from './aiRequestGate'
 import { getVerifiedSnapshotAsOf } from './verifiedSnapshotClient'
@@ -126,6 +127,9 @@ function decisionFingerprint(card: TodayActionCard): string {
       recommendation_mode: card.recommendation_mode,
       registration_deadline: card.facts.registration_deadline,
       bid_deadline: card.facts.bid_deadline,
+      research_event_at: card.facts.research_event_at,
+      research_event_text: card.facts.research_event_text,
+      product_use: card.facts.product_use,
     },
   })
 }
@@ -203,6 +207,7 @@ function batchEligibleCards(cards: TodayActionCard[]): TodayActionCard[] {
   const seen = new Set<string>()
   return cards.filter((card) => {
     if (
+      researchEventWindowClosed(card.facts) ||
       card.model_decision_status === 'NOT_ELIGIBLE' ||
       card.model_decision_status === 'BLOCKED_GROUNDING' ||
       card.decision
@@ -213,6 +218,27 @@ function batchEligibleCards(cards: TodayActionCard[]): TodayActionCard[] {
     seen.add(card.opportunity_id)
     return true
   }).slice(0, 10)
+}
+
+function filterClosedResearchEventBatch(result: AiDecisionBatchResult, cards: TodayActionCard[]): AiDecisionBatchResult {
+  const decisions = { ...result.decisions }
+  const errors = { ...result.errors }
+  const closedIds = new Set(cards.filter((card) => researchEventWindowClosed(card.facts)).map((card) => card.opportunity_id))
+  for (const id of closedIds) {
+    delete decisions[id]
+    errors[id] = 'OPPORTUNITY_WINDOW_CLOSED'
+  }
+  return {
+    ...result,
+    decisions,
+    errors,
+    misses: result.misses.filter((id) => !closedIds.has(id)),
+    ready_count: Object.keys(decisions).length,
+  }
+}
+
+function closeResearchEventCards(cards: TodayActionCard[]): TodayActionCard[] {
+  return cards.map((card) => researchEventWindowClosed(card.facts) ? archiveResearchEventCard(card) : card)
 }
 
 async function postAiDecisionBatch(opportunityIds: string[], cacheOnly: boolean): Promise<AiDecisionBatchResult> {
@@ -286,7 +312,10 @@ export async function requestAiDecisionBatch(
   }
 
   try {
-    const first = await postAiDecisionBatch(eligible.map((card) => card.opportunity_id), cacheOnly)
+    const first = filterClosedResearchEventBatch(
+      await postAiDecisionBatch(eligible.map((card) => card.opportunity_id), cacheOnly),
+      eligible,
+    )
     if (cacheOnly) return first
     const retryIds = Object.entries(first.errors)
       .filter(([, code]) => AUTO_RETRY_CODES.has(code))
@@ -296,24 +325,29 @@ export async function requestAiDecisionBatch(
     // One automatic pass for items that failed transiently; anything the slow
     // first pass managed to store is now served from the shared cache.
     await wait(AUTO_RETRY_DELAY_MS)
+    const retryableIds = retryIds.filter((id) => {
+      const card = eligible.find((item) => item.opportunity_id === id)
+      return card && !researchEventWindowClosed(card.facts)
+    })
+    if (retryableIds.length === 0) return filterClosedResearchEventBatch(first, eligible)
     let second: AiDecisionBatchResult
     try {
-      second = await postAiDecisionBatch(retryIds, false)
+      second = await postAiDecisionBatch(retryableIds, false)
     } catch {
-      return first
+      return filterClosedResearchEventBatch(first, eligible)
     }
     const errors = { ...first.errors }
     for (const opportunityId of retryIds) delete errors[opportunityId]
     Object.assign(errors, second.errors)
     const decisions = { ...first.decisions, ...second.decisions }
-    return {
+    return filterClosedResearchEventBatch({
       decisions,
       misses: [...new Set([...first.misses, ...second.misses])],
       errors,
       requested_count: first.requested_count,
       ready_count: Object.keys(decisions).length,
       cache_hit_count: first.cache_hit_count + second.cache_hit_count,
-    }
+    }, eligible)
   } finally {
     if (gateAcquired) endAiRequest()
   }
@@ -323,9 +357,11 @@ export async function hydrateSharedAiDecisions(
   cards: TodayActionCard[],
 ): Promise<TodayActionCard[]> {
   try {
-    const result = await requestAiDecisionBatch(cards, { cacheOnly: true })
-    if (Object.keys(result.decisions).length === 0) return cards
-    return cards.map((card) => {
+    const currentCards = closeResearchEventCards(cards)
+    const result = await requestAiDecisionBatch(currentCards, { cacheOnly: true })
+    if (Object.keys(result.decisions).length === 0) return closeResearchEventCards(currentCards)
+    return currentCards.map((card) => {
+      if (researchEventWindowClosed(card.facts)) return archiveResearchEventCard(card)
       const decision = result.decisions[card.opportunity_id]
       return decision
         ? { ...card, model_decision_status: 'READY', model_block_reason: null, decision }
@@ -334,7 +370,7 @@ export async function hydrateSharedAiDecisions(
   } catch {
     // Shared hydration is a best-effort optimization. The normal single-item
     // analysis path remains available when cache lookup is unavailable.
-    return cards
+    return closeResearchEventCards(cards)
   }
 }
 
@@ -343,10 +379,11 @@ export async function hydrateCachedAiDecisions(cards: TodayActionCard[]): Promis
   // Pilot personalization is server-side. A browser cache cannot know when the
   // authenticated user's private profile changed, so do not reuse personalized
   // decisions from localStorage in API mode.
-  if (isApiMode) return sharedHydrated
+  if (isApiMode) return closeResearchEventCards(sharedHydrated)
   const snapshotAsOf = await getSnapshotAsOf()
-  if (!snapshotAsOf) return sharedHydrated
+  if (!snapshotAsOf) return closeResearchEventCards(sharedHydrated)
   return sharedHydrated.map((card) => {
+    if (researchEventWindowClosed(card.facts)) return archiveResearchEventCard(card)
     if (card.decision) return card
     if (card.model_decision_status === 'NOT_ELIGIBLE' || card.model_decision_status === 'BLOCKED_GROUNDING') return card
     const decision = findCachedDecision(card.opportunity_id, snapshotAsOf, decisionFingerprint(card))
@@ -356,12 +393,17 @@ export async function hydrateCachedAiDecisions(cards: TodayActionCard[]): Promis
 }
 
 export async function requestAiDecision(card: TodayActionCard): Promise<Decision> {
+  const assertEventOpen = () => {
+    if (researchEventWindowClosed(card.facts)) throw new AiDecisionError('OPPORTUNITY_WINDOW_CLOSED', 409)
+  }
+  assertEventOpen()
   if (card.model_decision_status === 'NOT_ELIGIBLE' || card.model_decision_status === 'BLOCKED_GROUNDING') {
     throw new AiDecisionError('OPPORTUNITY_WINDOW_CLOSED', 409)
   }
 
   const useLocalContext = !isApiMode
   const snapshotAsOf = useLocalContext ? await getSnapshotAsOf() : null
+  assertEventOpen()
   const customerContext = useLocalContext ? customerContextPayload(card) : null
   const fingerprintValue = useLocalContext ? decisionFingerprint(card) : fingerprint(null)
   if (snapshotAsOf) {
@@ -371,6 +413,7 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
 
   if (!beginAiRequest()) throw new AiDecisionError('AI_CLIENT_BUSY', 429)
   const requestOnce = async (): Promise<Decision> => {
+    assertEventOpen()
     const response = await fetch('/api/ai/analyze', {
       method: 'POST',
       credentials: 'include',
@@ -382,6 +425,7 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
     })
 
     const payload: unknown = await response.json().catch(() => null)
+    assertEventOpen()
     const record = asRecord(payload)
     if (!response.ok) {
       const code = typeof record?.error === 'string' ? record.error : `AI_HTTP_${response.status}`
@@ -403,6 +447,7 @@ export async function requestAiDecision(card: TodayActionCard): Promise<Decision
       await wait(AUTO_RETRY_DELAY_MS)
       decision = await requestOnce()
     }
+    assertEventOpen()
     if (snapshotAsOf) cacheDecision(card.opportunity_id, snapshotAsOf, fingerprintValue, decision)
     return decision
   } catch (cause) {

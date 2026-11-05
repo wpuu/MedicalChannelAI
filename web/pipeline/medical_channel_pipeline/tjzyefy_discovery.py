@@ -9,6 +9,7 @@ from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 
 from .channel_scope import is_medical_channel_relevant_text
+from .official_index import decode_official_html, require_official_index_evidence
 
 INDEX_URL = 'https://www.tjzyefy.com/xwgg/ggtz/'
 ALLOWED_HOSTS = {'tjzyefy.com', 'www.tjzyefy.com'}
@@ -102,6 +103,13 @@ def parse_tjzyefy_index_html(html: str, *, index_url: str = INDEX_URL) -> list[T
     _assert_official_url(index_url, code='TJZYEFY_INDEX_HOST_REJECTED')
     parser = _IndexParser()
     parser.feed(html)
+    require_official_index_evidence(
+        html,
+        official_links=((detail_url, title) for href, title in parser.links
+                        if (detail_url := _normalize_detail_url(index_url, href))),
+        hospital_name='天津中医药大学第二附属医院', column_names=('公告通知',),
+        error_type=TjzyefyDiscoveryError, error_code='TJZYEFY_INDEX_RESPONSE_INVALID',
+    )
     candidates: list[TjzyefyCandidate] = []
     seen: set[str] = set()
     for href, title in parser.links:
@@ -152,11 +160,11 @@ def fetch_tjzyefy_page(url: str, *, timeout_seconds: int = 30) -> str:
     try:
         with urlopen(request, timeout=timeout_seconds) as response:
             body = response.read()
-            charset = response.headers.get_content_charset() or 'utf-8'
+            charset = response.headers.get_content_charset()
         try:
-            return body.decode(charset)
-        except (LookupError, UnicodeDecodeError):
-            return body.decode('utf-8', errors='replace')
+            return decode_official_html(body, http_charset=charset)
+        except ValueError as exc:
+            raise TjzyefyDiscoveryError('TJZYEFY_INDEX_ENCODING_INVALID') from exc
     except HTTPError as exc:
         raise RuntimeError(f'TJZYEFY_HTTP_{exc.code}') from exc
     except URLError as exc:

@@ -7,6 +7,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
 
 from .tjzyefy_discovery import ALLOWED_HOSTS, INDEX_URL, fetch_tjzyefy_page
+from .official_index import require_official_index_evidence
 
 
 class TjzyefyIntentDiscoveryError(ValueError):
@@ -98,6 +99,13 @@ def parse_tjzyefy_intent_index_html(
     _assert_official_url(index_url, code='TJZYEFY_INTENT_INDEX_HOST_REJECTED')
     parser = _IndexParser()
     parser.feed(html)
+    require_official_index_evidence(
+        html,
+        official_links=((detail_url, title) for href, title in parser.links
+                        if (detail_url := _normalize_detail_url(index_url, href))),
+        hospital_name='天津中医药大学第二附属医院', column_names=('公告通知',),
+        error_type=TjzyefyIntentDiscoveryError, error_code='TJZYEFY_INTENT_INDEX_RESPONSE_INVALID',
+    )
     candidates: list[TjzyefyIntentCandidate] = []
     seen: set[str] = set()
     for href, title in parser.links:

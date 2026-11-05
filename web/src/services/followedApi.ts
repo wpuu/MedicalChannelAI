@@ -36,6 +36,9 @@ export interface FollowedOpportunity {
     published_at: string | null
     registration_deadline: string | null
     registration_deadline_date: string | null
+    research_event_at?: string | null
+    research_event_text?: string | null
+    product_use?: string | null
     bid_deadline: string | null
     expected_procurement_at: string | null
     budget_cny: number | null
@@ -82,10 +85,10 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null
 }
 
-function exactKeys(record: Record<string, unknown>, allowed: string[]): boolean {
-  const expected = new Set(allowed)
+function exactKeys(record: Record<string, unknown>, allowed: string[], optional: string[] = []): boolean {
+  const expected = new Set([...allowed, ...optional])
   const keys = Object.keys(record)
-  return keys.length === expected.size && keys.every((key) => expected.has(key))
+  return allowed.every((key) => Object.prototype.hasOwnProperty.call(record, key)) && keys.every((key) => expected.has(key))
 }
 
 function nullableString(value: unknown): value is string | null {
@@ -204,7 +207,7 @@ function validateItem(value: unknown): FollowedOpportunity {
       'public_contact',
       'verification_status',
       'coverage_status',
-    ]) ||
+    ], ['research_event_at', 'research_event_text', 'product_use']) ||
     !nullableString(facts.project_number) ||
     !nullableString(facts.project_name) ||
     !nullableString(facts.buyer_name) ||
@@ -216,6 +219,9 @@ function validateItem(value: unknown): FollowedOpportunity {
     !nullableString(facts.published_at) ||
     !nullableString(facts.registration_deadline) ||
     !nullableString(facts.registration_deadline_date) ||
+    !(facts.research_event_at === undefined || nullableString(facts.research_event_at)) ||
+    !(facts.research_event_text === undefined || nullableString(facts.research_event_text)) ||
+    !(facts.product_use === undefined || nullableString(facts.product_use)) ||
     !nullableString(facts.bid_deadline) ||
     !nullableString(facts.expected_procurement_at) ||
     !nullableNumber(facts.budget_cny) ||
@@ -246,6 +252,9 @@ function validateItem(value: unknown): FollowedOpportunity {
       published_at: facts.published_at,
       registration_deadline: facts.registration_deadline,
       registration_deadline_date: facts.registration_deadline_date,
+      research_event_at: typeof facts.research_event_at === 'string' ? facts.research_event_at : null,
+      research_event_text: typeof facts.research_event_text === 'string' ? facts.research_event_text : null,
+      product_use: typeof facts.product_use === 'string' ? facts.product_use : null,
       bid_deadline: facts.bid_deadline,
       expected_procurement_at: facts.expected_procurement_at,
       budget_cny: facts.budget_cny,
@@ -341,6 +350,9 @@ async function getLocalFollowedOpportunities(): Promise<FollowedOpportunity[]> {
             published_at: snapshot.facts.published_at,
             registration_deadline: null,
             registration_deadline_date: null,
+            research_event_at: snapshot.facts.research_event_at ?? null,
+            research_event_text: snapshot.facts.research_event_text ?? null,
+            product_use: snapshot.facts.product_use ?? null,
             bid_deadline: snapshot.facts.bid_deadline,
             expected_procurement_at: snapshot.facts.expected_procurement_at,
             budget_cny: snapshot.facts.budget_cny,
@@ -539,6 +551,9 @@ export async function getHistoricalFollowedOpportunityCard(
       publish_date: item.facts.published_at,
       registration_deadline: item.facts.registration_deadline,
       registration_deadline_date: item.facts.registration_deadline_date,
+      research_event_at: item.facts.research_event_at ?? null,
+      research_event_text: item.facts.research_event_text ?? null,
+      product_use: item.facts.product_use ?? null,
       registration_deadline_precision: item.facts.registration_deadline
         ? 'MINUTE'
         : item.facts.registration_deadline_date

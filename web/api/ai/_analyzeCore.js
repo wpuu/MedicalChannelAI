@@ -14,6 +14,7 @@ import {
   parseDecisionContent,
 } from './_decisionContract.js'
 import { evaluateSourceHealth, sourceIdsForOpportunity } from '../_sourceHealth.js'
+import { researchEventWindowClosed } from '../_runtimeOpportunityTime.js'
 
 export const config = { maxDuration: 60 }
 
@@ -188,6 +189,9 @@ export function sanitizeSnapshotFacts(raw) {
     registration_deadline_date: cleanString(facts.registration_deadline_date, 10),
     registration_deadline_precision: cleanString(facts.registration_deadline_precision, 20),
     bid_deadline: cleanString(facts.bid_deadline, 80),
+    research_event_at: cleanString(facts.research_event_at, 80),
+    research_event_text: cleanString(facts.research_event_text, 1200),
+    product_use: cleanString(facts.product_use, 500),
     expected_purchase_date: cleanString(facts.expected_procurement_at, 80),
     budget: normalizeSnapshotBudget(facts.budget),
     procurement_method: cleanString(facts.procurement_method, 100),
@@ -331,6 +335,7 @@ function addDaysDateString(value, days) {
 }
 
 export function runtimeWindowStatus(facts, nowMs = Date.now()) {
+  if (researchEventWindowClosed(facts, nowMs)) return 'CLOSED'
   const registrationDeadline = parsedTime(facts.registration_deadline)
   const registrationDate = /^\d{4}-\d{2}-\d{2}$/.test(facts.registration_deadline_date || '')
     ? facts.registration_deadline_date
@@ -453,6 +458,11 @@ function retryDelay() {
 }
 
 async function callProvider({ apiKey, baseUrl, facts, evidenceUrls, customerContext, windowStatus, analysisAsOf, signal }) {
+  if (researchEventWindowClosed(facts)) {
+    const error = new Error('OPPORTUNITY_WINDOW_CLOSED')
+    error.code = 'OPPORTUNITY_WINDOW_CLOSED'
+    throw error
+  }
   const response = await fetch(`${normalizeBaseUrl(baseUrl)}/chat/completions`, {
     method: 'POST',
     signal,
@@ -494,7 +504,7 @@ function providerTimeoutError() {
 
 function isFatalProviderError(error) {
   const status = Number(error?.status)
-  return status === 401 || status === 403 || status === 429 || error?.code === 'AI_NOT_CONFIGURED'
+  return status === 401 || status === 403 || status === 429 || ['AI_NOT_CONFIGURED', 'OPPORTUNITY_WINDOW_CLOSED'].includes(error?.code)
 }
 
 /**
@@ -684,6 +694,9 @@ async function analyzeSharedPublicBatchItem({
       briefType: 'PUBLIC_ACTION_DECISION',
       promptVersion: PUBLIC_AI_PROMPT_VERSION,
     })
+    if (researchEventWindowClosed(grounded.facts)) {
+      return { opportunity_id: opportunityId, status: 'NOT_ELIGIBLE', error: 'OPPORTUNITY_WINDOW_CLOSED', runtime_window_status: 'CLOSED' }
+    }
     if (!cached.result) {
       return {
         opportunity_id: opportunityId,
@@ -726,6 +739,9 @@ async function analyzeSharedPublicBatchItem({
       request,
       sharedPublic: { factHash, windowState: windowCacheState },
     })
+    if (researchEventWindowClosed(grounded.facts)) {
+      return { opportunity_id: opportunityId, status: 'NOT_ELIGIBLE', error: 'OPPORTUNITY_WINDOW_CLOSED', runtime_window_status: 'CLOSED' }
+    }
     return {
       opportunity_id: opportunityId,
       status: 'READY',
@@ -740,6 +756,9 @@ async function analyzeSharedPublicBatchItem({
       },
     }
   } catch (error) {
+    if (error?.code === 'OPPORTUNITY_WINDOW_CLOSED') {
+      return { opportunity_id: opportunityId, status: 'NOT_ELIGIBLE', error: error.code, runtime_window_status: 'CLOSED' }
+    }
     return {
       opportunity_id: opportunityId,
       status: 'ERROR',
@@ -1016,6 +1035,9 @@ export default async function handler(request, response) {
         ? null
         : { factHash, windowState: windowCacheState },
     })
+    if (researchEventWindowClosed(grounded.facts)) {
+      return sendJson(response, 409, { error: 'OPPORTUNITY_WINDOW_CLOSED', analysis_as_of: new Date().toISOString() })
+    }
     const decision = applyPrivateDecisionOverlay(result.decision, privateOverlayContext)
     return sendJson(response, 200, {
       schema_version: '0.1',
@@ -1042,6 +1064,7 @@ export default async function handler(request, response) {
     })
   } catch (error) {
     const status = Number(error?.status)
+    if (error?.code === 'OPPORTUNITY_WINDOW_CLOSED') return sendJson(response, 409, { error: error.code })
     if (error?.code === 'AI_NOT_CONFIGURED') return sendJson(response, 503, { error: 'AI_NOT_CONFIGURED' })
     if (error?.code === 'AI_RESPONSE_INVALID') return sendJson(response, 502, { error: 'AI_RESPONSE_INVALID' })
     if (status === 429) return sendJson(response, 429, { error: 'AI_RATE_LIMITED' })

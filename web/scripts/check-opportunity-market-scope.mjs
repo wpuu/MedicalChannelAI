@@ -4,6 +4,7 @@ import vm from 'node:vm'
 import ts from 'typescript'
 import { marketDefinition, marketCodesForSelection } from '../src/config/marketPreference.ts'
 import { marketCodeForOpportunity } from '../src/utils/opportunityMarket.ts'
+import { researchEventWindowClosed } from '../src/utils/researchEventWindow.ts'
 
 for (const [id, facts, expected] of [
   ['tjmugh_runtime', { region: '天津市' }, 'TJ'],
@@ -55,6 +56,7 @@ const compiled = ts.transpileModule(ts.createPrinter().printFile(withoutImports)
 const context = {
   exports: {},
   marketCodeForOpportunity,
+  researchEventWindowClosed,
   marketDefinition,
   verifiedSnapshotUrl: '/fixture/public-snapshot',
   loadVerifiedSnapshotPayload: async () => payload,

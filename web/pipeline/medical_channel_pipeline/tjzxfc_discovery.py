@@ -8,9 +8,11 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 
+from .official_index import decode_official_html, require_official_index_evidence
+
 INDEX_URL = 'https://www.tjzxfc.cn/ywgk/zbgg/index.shtml'
 ALLOWED_HOSTS = {'tjzxfc.cn', 'www.tjzxfc.cn'}
-EARLY_SIGNAL_MARKERS = ('市场调研', '采购前调研', '调研邀请公告')
+EARLY_SIGNAL_MARKERS = ('市场调研', '采购前调研', '调研邀请公告', '调研公告')
 
 
 class TjzxfcDiscoveryError(ValueError):
@@ -38,7 +40,7 @@ class _IndexParser(HTMLParser):
 
     def handle_endtag(self, tag: str) -> None:
         if tag == 'a' and self._href:
-            title = re.sub(r'\s+', ' ', ''.join(self._text)).strip(' ·')
+            title = re.sub(r'\s+', ' ', ''.join(self._text)).strip(' ·・')
             if title:
                 self.links.append((self._href, title))
             self._href = None
@@ -80,6 +82,8 @@ def _normalize_detail_url(index_url: str, href: str) -> str | None:
 
 
 def _is_early_signal_title(title: str) -> bool:
+    # Generic official “调研公告” can cover medical laboratory reagents. Keep
+    # sparse titles eligible; the detail parser must prove medical relevance.
     compact = re.sub(r'\s+', '', title)
     return '调研' in compact and any(marker in compact for marker in EARLY_SIGNAL_MARKERS)
 
@@ -96,6 +100,13 @@ def parse_tjzxfc_index_html(html: str, *, index_url: str = INDEX_URL) -> list[Tj
     _assert_official_url(index_url, code='TJZXFC_INDEX_HOST_REJECTED')
     parser = _IndexParser()
     parser.feed(html)
+    require_official_index_evidence(
+        html,
+        official_links=((detail_url, title) for href, title in parser.links
+                        if (detail_url := _normalize_detail_url(index_url, href))),
+        hospital_name='天津市中心妇产科医院', column_names=('招标公告',),
+        error_type=TjzxfcDiscoveryError, error_code='TJZXFC_INDEX_RESPONSE_INVALID',
+    )
     candidates: list[TjzxfcCandidate] = []
     seen: set[str] = set()
     for href, title in parser.links:
@@ -146,11 +157,11 @@ def fetch_tjzxfc_page(url: str, *, timeout_seconds: int = 30) -> str:
     try:
         with urlopen(request, timeout=timeout_seconds) as response:
             body = response.read()
-            charset = response.headers.get_content_charset() or 'utf-8'
+            charset = response.headers.get_content_charset()
         try:
-            return body.decode(charset)
-        except (LookupError, UnicodeDecodeError):
-            return body.decode('utf-8', errors='replace')
+            return decode_official_html(body, http_charset=charset)
+        except ValueError as exc:
+            raise TjzxfcDiscoveryError('TJZXFC_INDEX_ENCODING_INVALID') from exc
     except HTTPError as exc:
         raise RuntimeError(f'TJZXFC_HTTP_{exc.code}') from exc
     except URLError as exc:

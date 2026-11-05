@@ -66,6 +66,9 @@ def _actionability(
     as_of: datetime,
     quality_flags: list[str] | None = None,
 ) -> tuple[str, int, str]:
+    research_event = _as_datetime(facts.get("research_event_at"))
+    if research_event is not None and research_event <= as_of:
+        return "ARCHIVE", 0, "NOT_ELIGIBLE"
     # Procurement-intent notices are earlier than supplier-facing market
     # research or tender registration. They are useful for advance supplier
     # preparation, but the absence of a registration deadline must never make
@@ -356,6 +359,9 @@ def _public_card(
             "MINUTE" if facts.get("registration_deadline") else "DAY" if facts.get("registration_deadline_date") else None
         ),
         "bid_deadline": facts.get("bid_deadline"),
+        "research_event_at": facts.get("research_event_at"),
+        "research_event_text": facts.get("research_event_text"),
+        "product_use": facts.get("product_use"),
         "expected_procurement_at": facts.get("expected_procurement_at"),
         "expected_procurement_precision": facts.get("expected_procurement_precision"),
         "budget": ({"amount_cny": facts["budget_cny"], "currency": "CNY"} if facts.get("budget_cny") is not None else None),
@@ -425,6 +431,7 @@ def _public_card(
                     "profile_paths": [],
                     "opportunity_paths": [
                         "facts.lifecycle_state",
+                        "facts.research_event_at",
                         "facts.registration_deadline",
                         "facts.registration_deadline_date",
                         "facts.bid_deadline",

@@ -46,7 +46,23 @@ function relativeRegistrationDeadlineMs(facts) {
   return publishedEnd === null ? null : publishedEnd + 7 * DAY_MS
 }
 
+export function researchEventWindowClosed(facts, now = Date.now()) {
+  const value = facts?.research_event_at
+  if (value == null && facts?.research_event_text == null) return false
+  // Explicitly zoned event timestamps are required. Fail closed for malformed
+  // event metadata instead of silently reopening an expired demonstration.
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return true
+  const timestamp = parsedTime(value)
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number)
+  const date = new Date(Date.UTC(year, month - 1, day))
+  if (timestamp === null || Number(value.slice(11, 13)) > 23 || date.getUTCFullYear() !== year || date.getUTCMonth() + 1 !== month || date.getUTCDate() !== day) return true
+  return timestamp <= now
+}
+
 function runtimeActionability(facts, now) {
+  if (researchEventWindowClosed(facts, now)) {
+    return { mode: 'ARCHIVE', interventionPoints: 0 }
+  }
   const bidDeadline = parsedTime(facts?.bid_deadline)
   const registrationDeadline = parsedTime(facts?.registration_deadline)
   const registrationDeadlineDate = validDateOnly(facts?.registration_deadline_date)

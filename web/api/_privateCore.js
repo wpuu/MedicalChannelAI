@@ -332,7 +332,7 @@ function snapshotContact(value) {
   return Object.values(contact).some(Boolean) ? contact : null
 }
 
-function publicSnapshotForFollowup(card) {
+export function publicSnapshotForFollowup(card) {
   const facts = card.facts || {}
   return {
     facts: {
@@ -348,6 +348,9 @@ function publicSnapshotForFollowup(card) {
       registration_deadline: snapshotText(facts.registration_deadline, 80),
       registration_deadline_date: snapshotText(facts.registration_deadline_date, 40),
       bid_deadline: snapshotText(facts.bid_deadline, 80),
+      research_event_at: snapshotText(facts.research_event_at, 80),
+      research_event_text: snapshotText(facts.research_event_text, 1200),
+      product_use: snapshotText(facts.product_use, 500),
       expected_procurement_at: snapshotText(facts.expected_procurement_at, 80),
       budget_cny: normalizeBudget(facts.budget),
       procurement_method: snapshotText(facts.procurement_method, 300),
@@ -626,7 +629,7 @@ function sanitizeStoredContact(value) {
   return Object.values(contact).some(Boolean) ? contact : null
 }
 
-function sanitizeStoredSnapshot(value) {
+export function sanitizeStoredSnapshot(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   const rawFacts = value.facts
   if (!rawFacts || typeof rawFacts !== 'object' || Array.isArray(rawFacts)) return null
@@ -643,6 +646,9 @@ function sanitizeStoredSnapshot(value) {
     registration_deadline: nullableText(rawFacts.registration_deadline),
     registration_deadline_date: nullableText(rawFacts.registration_deadline_date),
     bid_deadline: nullableText(rawFacts.bid_deadline),
+    research_event_at: nullableText(rawFacts.research_event_at),
+    research_event_text: nullableText(rawFacts.research_event_text),
+    product_use: nullableText(rawFacts.product_use),
     expected_procurement_at: nullableText(rawFacts.expected_procurement_at),
     budget_cny: nullableNumber(rawFacts.budget_cny),
     procurement_method: nullableText(rawFacts.procurement_method),

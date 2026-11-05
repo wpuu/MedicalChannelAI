@@ -6,6 +6,7 @@ import type {
   TodayActionsResponse,
 } from '@/types'
 import type { PublicTodayActionCard, TodayActionsPublicResponse } from '@/types/public'
+import { archiveResearchEventCard, researchEventWindowClosed } from '@/utils/researchEventWindow'
 import {
   backfillLocalFollowupSnapshots,
   hydrateLocalFollowups,
@@ -158,6 +159,9 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       registration_deadline: card.facts.registration_deadline,
       registration_deadline_date: card.facts.registration_deadline_date,
       registration_deadline_precision: card.facts.registration_deadline_precision,
+      research_event_at: card.facts.research_event_at ?? null,
+      research_event_text: card.facts.research_event_text ?? null,
+      product_use: card.facts.product_use ?? null,
       bid_deadline: card.facts.bid_deadline,
       expected_purchase_date: card.facts.expected_procurement_at,
       budget: normalizeBudget(card.facts.budget),
@@ -270,6 +274,7 @@ function buildGroundedDraft(card: TodayActionCard): string {
   const registration = chineseDateTime(card.facts.registration_deadline)
   const registrationDate = chineseDate(card.facts.registration_deadline_date)
   const bid = chineseDateTime(card.facts.bid_deadline)
+  const researchEvent = card.facts.research_event_text?.trim()
   const marketResearch = isMarketResearchCard(card)
   const facts = [
     card.facts.budget ? `项目预算约${Math.round(card.facts.budget / 10000)}万元` : null,
@@ -279,6 +284,7 @@ function buildGroundedDraft(card: TodayActionCard): string {
         ? `${marketResearch ? '资料提交/报名' : '招标文件获取'}截止日期为${registrationDate}（官方未公布具体时间）`
         : null,
     bid ? `投标/响应截止${bid}` : null,
+    researchEvent ? `现场调研安排原文：${researchEvent}（不是报名截止时间）` : null,
   ].filter((item): item is string => Boolean(item))
 
   const closing =
@@ -360,6 +366,9 @@ function applyRuntimeActionability(
   now: number,
   includeInactive: boolean,
 ): TodayActionCard | null {
+  if (researchEventWindowClosed(card.facts, now)) {
+    return includeInactive ? archiveResearchEventCard(card) : null
+  }
   const bidDeadline = parsedTime(card.facts.bid_deadline)
   const registrationDeadline = parsedTime(card.facts.registration_deadline)
   const registrationDeadlineDate = validDateOnly(card.facts.registration_deadline_date)
@@ -534,7 +543,7 @@ export class StaticSnapshotTodayActionsService implements TodayActionsService {
 
   async requestOutreachDraft(id: string): Promise<OutreachDraft> {
     const card = await this.getOpportunity(id)
-    if (!card || !card.evidence_source_urls.length || card.model_decision_status === 'NOT_ELIGIBLE') {
+    if (!card || !card.evidence_source_urls.length || card.model_decision_status === 'NOT_ELIGIBLE' || researchEventWindowClosed(card.facts)) {
       throw new Error('OUTREACH_GROUNDING_INSUFFICIENT')
     }
     return {

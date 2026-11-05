@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+import re
 from urllib.parse import urlparse
 from typing import Any
 
@@ -18,6 +19,9 @@ CRITICAL_FACT_PATHS = {
     "facts.registration_deadline_date",
     "facts.bid_deadline",
     "facts.expected_procurement_at",
+    "facts.research_event_at",
+    "facts.research_event_text",
+    "facts.product_use",
     "facts.budget_cny",
     "facts.procurement_method",
     "facts.product_categories",
@@ -169,6 +173,22 @@ def validate_record(record: dict[str, Any]) -> dict[str, Any]:
         _parse_date_only(registration_deadline_date, "facts.registration_deadline_date")
     if facts.get("registration_deadline") is not None and registration_deadline_date is not None:
         raise ValidationError("REGISTRATION_DEADLINE_PRECISION_CONFLICT")
+
+    research_event_at = facts.get("research_event_at")
+    research_event_text = facts.get("research_event_text")
+    if research_event_at is not None or research_event_text is not None:
+        # A demonstration is a separately evidenced event, never an inferred
+        # registration cutoff. Its timezone is required for exact closure.
+        if not isinstance(research_event_at, str) or not re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})",
+            research_event_at,
+        ):
+            raise ValidationError("INVALID_RESEARCH_EVENT_TIMEZONE")
+        _parse_dateish(research_event_at, "facts.research_event_at")
+        if not isinstance(research_event_text, str) or not research_event_text.strip():
+            raise ValidationError("RESEARCH_EVENT_TEXT_REQUIRED")
+    if facts.get("product_use") is not None and not isinstance(facts["product_use"], str):
+        raise ValidationError("INVALID_PRODUCT_USE")
 
     budget = facts.get("budget_cny")
     if budget is not None and (isinstance(budget, bool) or not isinstance(budget, int) or budget < 0):

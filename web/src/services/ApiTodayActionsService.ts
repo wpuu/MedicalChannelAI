@@ -1,3 +1,4 @@
+import { archiveResearchEventCard, researchEventWindowClosed } from '@/utils/researchEventWindow'
 import type {
   CapabilityType,
   FollowupInput,
@@ -295,6 +296,9 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       registration_deadline: card.facts.registration_deadline,
       registration_deadline_date: card.facts.registration_deadline_date,
       registration_deadline_precision: card.facts.registration_deadline_precision,
+      research_event_at: card.facts.research_event_at ?? null,
+      research_event_text: card.facts.research_event_text ?? null,
+      product_use: card.facts.product_use ?? null,
       bid_deadline: card.facts.bid_deadline,
       expected_purchase_date: card.facts.expected_procurement_at,
       budget: normalizeBudget(card.facts.budget),
@@ -402,10 +406,25 @@ function applyFollowupState(card: TodayActionCard, state: ServerFollowupState): 
 }
 
 function shouldAppearToday(card: TodayActionCard): boolean {
+  if (researchEventWindowClosed(card.facts)) return false
   if (DONE_FOR_TODAY.has(card.followup_status)) return false
   if (!card.remind_at) return true
   const remindAt = new Date(card.remind_at).getTime()
   return Number.isNaN(remindAt) || remindAt <= Date.now()
+}
+
+function filterClosedResearchEvents(current: TodayActionsResponse): TodayActionsResponse {
+  const pool = current.opportunity_pool?.filter((card) => !researchEventWindowClosed(card.facts))
+  const removed = (current.opportunity_pool?.length ?? 0) - (pool?.length ?? 0)
+  const cards = current.cards.filter((card) => !researchEventWindowClosed(card.facts))
+  return {
+    ...current,
+    cards,
+    card_count: cards.length,
+    matched_count: Math.max(0, current.matched_count - removed),
+    opportunity_pool_count: Math.max(0, (current.opportunity_pool_count ?? current.matched_count) - removed),
+    opportunity_pool: pool,
+  }
 }
 
 function applyMutationToToday(
@@ -475,14 +494,15 @@ export class ApiTodayActionsService implements TodayActionsService {
     const pending = this.pendingTodayAfterMutation
     this.pendingTodayAfterMutation = null
     if (pending && pending.expiresAt >= Date.now()) {
-      this.latestToday = pending.value
-      return pending.value
+      const current = filterClosedResearchEvents(pending.value)
+      this.latestToday = current
+      return current
     }
 
     const data = await this.requestJson<TodayActionsPublicResponse>('/today')
     const mappedPool = (data.opportunity_pool ?? data.cards).map(mapPublicCard)
     const cards = data.cards.map(mapPublicCard)
-    const result: TodayActionsResponse = {
+    const result = filterClosedResearchEvents({
       schema_version: data.schema_version,
       mode: data.mode,
       input_candidate_count: data.input_candidate_count,
@@ -500,7 +520,7 @@ export class ApiTodayActionsService implements TodayActionsService {
       cards,
       opportunity_pool: mappedPool,
       model_requests: [],
-    }
+    })
     this.latestToday = result
     return result
   }
@@ -510,8 +530,11 @@ export class ApiTodayActionsService implements TodayActionsService {
     if (pending?.opportunityId === id) {
       this.pendingOpportunityAfterMutation = null
       if (pending.expiresAt >= Date.now()) {
-        this.latestOpportunity = pending.value
-        return pending.value
+        const current = researchEventWindowClosed(pending.value.facts)
+          ? archiveResearchEventCard(pending.value)
+          : pending.value
+        this.latestOpportunity = current
+        return current
       }
     }
 
@@ -521,7 +544,8 @@ export class ApiTodayActionsService implements TodayActionsService {
         this.requestJson<PublicTodayActionCard>(`/opportunity/${encodedId}`),
         this.getFollowupState(id),
       ])
-      const result = applyFollowupState(mapPublicCard(card), state)
+      const mapped = applyFollowupState(mapPublicCard(card), state)
+      const result = researchEventWindowClosed(mapped.facts) ? archiveResearchEventCard(mapped) : mapped
       this.latestOpportunity = result
       return result
     } catch (error) {

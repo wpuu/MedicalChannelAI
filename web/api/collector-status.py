@@ -171,6 +171,10 @@ class handler(BaseHTTPRequestHandler):
                         "stage_order": list(STAGE_ORDER),
                         "completed_stage_count": completed,
                         "total_stage_count": len(STAGE_ORDER),
+                        # Operational attempts are distinct from the committed
+                        # snapshot health served by /api/status. Failed scans
+                        # remain observable even when no publish occurs.
+                        "source_scan_health": runtime.snapshot_source_health(cache),
                         "incremental": _incremental_status(cache),
                     },
                 },

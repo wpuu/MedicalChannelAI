@@ -17,7 +17,9 @@ class TodayMutationReuseTests(unittest.TestCase):
         self.assertIn("private pendingTodayAfterMutation:", self.service)
         self.assertIn("const pending = this.pendingTodayAfterMutation", self.service)
         self.assertIn("this.pendingTodayAfterMutation = null", self.service)
-        self.assertIn("return pending.value", self.service)
+        self.assertIn("const current = filterClosedResearchEvents(pending.value)", self.service)
+        self.assertIn("this.latestToday = current", self.service)
+        self.assertIn("return current", self.service)
         self.assertIn("const state = await this.requestJson<ServerFollowupState>", self.service)
         self.assertIn("applyMutationToToday(this.latestToday, state)", self.service)
 
@@ -27,6 +29,8 @@ class TodayMutationReuseTests(unittest.TestCase):
         self.assertIn("const pending = this.pendingOpportunityAfterMutation", self.service)
         self.assertIn("pending?.opportunityId === id", self.service)
         self.assertIn("this.pendingOpportunityAfterMutation = null", self.service)
+        self.assertIn("researchEventWindowClosed(pending.value.facts)", self.service)
+        self.assertIn("archiveResearchEventCard(pending.value)", self.service)
         self.assertIn("applyFollowupState(this.latestOpportunity, state)", self.service)
         self.assertIn("opportunityId: id", self.service)
 

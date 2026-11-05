@@ -139,6 +139,63 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
         self.assertEqual(result["verification_failure_count"], 0)
         self.assertEqual(result["verified_record_count"], 0)
 
+    def test_three_invalid_index_responses_preserve_canonical_pending_and_success_clock(self):
+        for source in ("tjzyefy", "tjzyefy_intent", "tjzxfc"):
+            with self.subTest(source=source):
+                _, record = self.parse_fixture(source)
+                _, key = self.incremental._existing_records(self.cache, source)
+                self.cache.set(key, [record])
+                prior = self.now - timedelta(hours=2)
+                self.runtime.record_source_scan(self.cache, source, successful=True, attempted_at=prior)
+                unresolved = record["source"]["url"]
+                self.incremental._save_pending_barrier(self.cache, source, {unresolved})
+                fetch = "fetch_tjzxfc_page_with_retry" if source == "tjzxfc" else "fetch_tjzyefy_page_with_retry"
+                with patch.object(self.runtime, fetch, return_value='<title>访问验证</title><body>请开启JavaScript</body>'), patch.object(
+                    self.incremental, "_publish_snapshot_if_ready") as publish:
+                    status, result = self.incremental.run_incremental_source(source, now=self.now, cache=self.cache)
+                self.assertEqual(status, 503)
+                self.assertIn("INDEX_RESPONSE_INVALID", result["error"])
+                self.assertEqual(self.cache.get(key), [record])
+                self.assertEqual(self.incremental._load_pending_barrier(self.cache, source), {unresolved})
+                self.assertIsNone(self.cache.get(self.incremental._bucket_cache_key(source)))
+                health = self.runtime.snapshot_source_health(self.cache)["sources"][source]
+                self.assertEqual(health["last_successful_scan_at"], prior.isoformat())
+                self.assertEqual(health["failure_reason"], "INDEX_SCAN_FAILED")
+                publish.assert_not_called()
+
+    def test_legitimate_zero_relevance_scans_can_complete_for_all_three_sources(self):
+        html = '<a href="/system/2026/08/04/030195986.shtml">办公桌采购公告</a>'
+        for source in ("tjzyefy", "tjzyefy_intent", "tjzxfc"):
+            with self.subTest(source=source):
+                fetch = "fetch_tjzxfc_page_with_retry" if source == "tjzxfc" else "fetch_tjzyefy_page_with_retry"
+                with patch.object(self.runtime, fetch, return_value=html), patch.object(
+                    self.incremental, "_publish_snapshot_if_ready", return_value=(False, None)):
+                    status, result = self.incremental.run_incremental_source(source, now=self.now, cache=self.cache)
+                self.assertEqual(status, 200)
+                self.assertEqual(result["discovered_candidate_count"], 0)
+                self.assertEqual(result["verification_failure_count"], 0)
+                self.assertEqual(self.runtime.snapshot_source_health(self.cache)["sources"][source]["last_successful_scan_at"], self.now.isoformat())
+
+    def test_deep_three_source_index_failures_cannot_become_completed_fresh_scans(self):
+        for source in ("tjzyefy", "tjzyefy_intent", "tjzxfc"):
+            with self.subTest(source=source):
+                _, record = self.parse_fixture(source)
+                _, key = self.incremental._existing_records(self.cache, source)
+                self.cache.set(key, [record])
+                prior = self.now - timedelta(hours=2)
+                self.runtime.record_source_scan(self.cache, source, successful=True, attempted_at=prior)
+                state = {**self.state, "stages": {source: {"status": "RUNNING", "attempt_count": 1}}}
+                self.cache.set(self.runtime.META_KEY, state)
+                fetch = "fetch_tjzxfc_page_with_retry" if source == "tjzxfc" else "fetch_tjzyefy_page_with_retry"
+                with patch.object(self.runtime, "_prepare_stage", return_value=(state, None)), patch.object(
+                    self.runtime, fetch, return_value='<div id="app"></div><script src="/app.js"></script>'), patch.object(
+                    self.runtime, "_now_utc", return_value=self.now):
+                    status, result = self.runtime.run_stage(source, now=self.now)
+                self.assertEqual(status, 503)
+                self.assertEqual(self.cache.get(self.runtime.META_KEY)["stages"][source]["status"], "FAILED")
+                self.assertEqual(self.cache.get(key), [record])
+                self.assertEqual(self.runtime.snapshot_source_health(self.cache)["sources"][source]["last_successful_scan_at"], prior.isoformat())
+
     def test_tjzxfc_nonmedical_is_explicit_nonfact_and_official_guards_remain(self):
         title = "天津市中心妇产科医院报告厅提升改造项目市场调研邀请公告"
         url = "https://www.tjzxfc.cn/system/2026/08/17/030331860.shtml"
