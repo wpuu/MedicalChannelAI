@@ -98,7 +98,15 @@ def _extract_items(text: str) -> list[dict[str, Any]]:
     if not start or not end or end.start() <= start.end():
         raise TjmughParseError("TJMUGH_PROJECT_SECTION_NOT_FOUND")
     section = text[start.end() : end.start()].strip()
-    markers = list(re.finditer(r"[（(](\d{1,2})[）)]", section))
+    if section.startswith("1、"):
+        # The November official notice uses 1、/2、 instead of parentheses.
+        # Require a complete, ordered list at text-node/whitespace boundaries;
+        # embedded model numbers and later supplier-material lists are not items.
+        markers = list(re.finditer(r"(?<!\S)(\d{1,2})、", section))
+        if [int(marker.group(1)) for marker in markers] != list(range(1, len(markers) + 1)):
+            raise TjmughParseError("TJMUGH_PROJECT_ITEM_SEQUENCE_INVALID")
+    else:
+        markers = list(re.finditer(r"[（(](\d{1,2})[）)]", section))
     if not markers:
         raise TjmughParseError("TJMUGH_PROJECT_ITEMS_NOT_FOUND")
     items: list[dict[str, Any]] = []
