@@ -41,7 +41,7 @@
 
 ## 4. 本轮 P0 可执行验收
 
-以下清单已在本地/隔离测试完成；验证代码为 `0cc517dac7f23e9dc78769ddb1f2ced6c5f7e294`，结果为 **LOCAL_CODE_VALIDATED_NOT_DEPLOYED**，详见[当前状态与验证记录](current-state.md)。勾选仅表示代码验收，不表示线上恢复或 Gold benchmark 通过：
+以下清单已在本地/隔离测试完成；验证代码为 `afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27`，结果为 **LOCAL_CODE_VALIDATED_NOT_DEPLOYED**，详见[当前状态与验证记录](current-state.md)。勾选仅表示代码验收，不表示线上恢复或 Gold benchmark 通过：
 
 - [x] 三源同时进入 policy、runtime、scheduler、独立 canonical/bootstrap、publish completeness/merge；现有显式 allowlist 边界保持。
 - [x] 复用现有官方适配器；天津二附院 9/28 康复设备正例进入 VERIFIED，9/30 数据安全 hard negative 不进入医疗事实；intent 不发明报名截止，妇产科正反例保持。
@@ -54,7 +54,7 @@
 - [x] 空完整池不回退旧卡片，已有提醒仍可 ACK；既有账户隔离及销售阶段规则不退化。
 - [x] 基线测试时钟固定，聚焦回归、完整 Python/JS 合约检查、TypeScript 和构建完成；分别报告既有失败、新增失败和跳过项目。
 
-本地测试通过仅证明代码合同；实际来源网络、调度持续运行、国内访问和生产业务闭环仍需另行获准后的运行验收。本轮不进行该部署验收。
+本地测试通过仅证明代码合同；来源持续采集、调度持续运行、国内访问和生产业务闭环仍需另行获准后的运行验收。总医院官方页面仅做两次只读故障诊断，并以冻结原文验证格式兼容修复，不替代持续运行验收。本轮不进行该部署验收。
 
 ## 5. 后续产品与商业验收
 

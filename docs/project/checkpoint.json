@@ -7,15 +7,15 @@
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
-  "runtime_implementation_head": "0cc517dac7f23e9dc78769ddb1f2ced6c5f7e294",
-  "latest_code_validated_head": "0cc517dac7f23e9dc78769ddb1f2ced6c5f7e294",
-  "current_runtime_candidate_head": "0cc517dac7f23e9dc78769ddb1f2ced6c5f7e294",
+  "runtime_implementation_head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
+  "latest_code_validated_head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
+  "current_runtime_candidate_head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
   "milestone": "LOCAL_CODE_VALIDATED_NOT_DEPLOYED",
   "latest_changes_validation_status": "LOCAL_CODE_VALIDATED_NOT_DEPLOYED",
   "current_runtime_candidate_validation": {
-    "head": "0cc517dac7f23e9dc78769ddb1f2ced6c5f7e294",
+    "head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
     "result": "PASS",
     "validation_scope": "LOCAL_CODE_ONLY_NOT_DEPLOYED",
     "node": "24.19.0",
@@ -26,9 +26,10 @@
       "publication",
       "public_AI_freshness",
       "source_health",
-      "fixed_origin_proxy"
+      "fixed_origin_proxy",
+      "frozen_current_TJMUGH_official_notice_parser"
     ],
-    "python_contract_tests": 805,
+    "python_contract_tests": 810,
     "python_contract_result": "PASS_ALL",
     "javascript_contract_checks": "PASS_ALL",
     "prebuild": "PASS",
@@ -39,7 +40,7 @@
     "serverless_entrypoints": "11/12",
     "main_js_gzip_kib": 115.4,
     "final_review": "PASS_NO_REMAINING_BLOCKERS",
-    "interpretation": "Complete local build, 805 Python tests, JS contracts/prebuild, TypeScript, Vite and focused regression checks passed for this code commit. No live source, Preview, Production or commercial acceptance is claimed."
+    "interpretation": "Complete local build, 810 Python tests, JS contracts/prebuild, TypeScript, Vite and focused regression checks passed for this code commit. The current TJMUGH official page failure was diagnosed with two read-only GETs and fixed against a frozen official fixture. No sustained source, Queue, database runtime, Preview, Production or commercial acceptance is claimed."
   },
   "implementation_scope": [
     "Three-source runtime parity: tjzyefy, tjzyefy_intent, tjzxfc; reuse existing official adapters.",
@@ -50,7 +51,8 @@
     "Server-enforced 30-hour freshness gate for public AI.",
     "EdgeOne fixed trusted origin and credential forwarding boundary.",
     "Authoritative empty-pool behavior and existing-reminder ACK.",
-    "Deterministic baseline test clocks."
+    "Deterministic baseline test clocks.",
+    "TJMUGH official numbered-list compatibility, preserving raw products and published deadline."
   ],
   "out_of_scope": [
     "Product relevance and qualification gates.",
@@ -327,8 +329,8 @@
       "remote_verification_this_round": "NOT_PERFORMED"
     }
   },
-  "final_code_head": "0cc517dac7f23e9dc78769ddb1f2ced6c5f7e294",
-  "code_validation_head": "0cc517dac7f23e9dc78769ddb1f2ced6c5f7e294",
+  "final_code_head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
+  "code_validation_head": "afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27",
   "documentation_followup": "A subsequent status/contract documentation commit does not change the executable code validated at code_validation_head; no final repository HEAD is asserted here.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
@@ -337,5 +339,15 @@
     "policy_status": "INITIAL_ENGINEERING_THRESHOLDS_CODE_VALIDATED",
     "runtime_acceptance": "NOT_PERFORMED",
     "interpretation": "The source-level thresholds require runtime validation against observed scheduling and source behavior. Passing local checks does not establish online freshness recovery."
+  },
+  "official_source_diagnostic": {
+    "source_id": "tjmugh",
+    "request_count": 2,
+    "read_only": true,
+    "source_url": "https://www.tjmugh.com.cn/system/2026/11/05/030368176.shtml",
+    "root_cause": "TJMUGH_PROJECT_ITEMS_NOT_FOUND for official 1、/2、 numbered list",
+    "frozen_fixture": "web/pipeline/tests/fixtures/tjmugh_market_research_20261105.html",
+    "parser_regression_result": "PASS",
+    "continuous_runtime_acceptance": "NOT_PERFORMED"
   }
 }

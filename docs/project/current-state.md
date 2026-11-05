@@ -7,13 +7,15 @@ Updated: 2026-11-06（Asia/Shanghai）
 - 工作树：`/workspace/MedicalChannelAI-p0`；原工作树保持不动。
 - 分支：`codex/p0-reliability-contracts`。
 - 起始 HEAD：`3216fd940dabfa7714383b6436908f9b72ff8a9c`（`3216fd9`）。
-- 最终可执行代码 / 验证 HEAD：`0cc517dac7f23e9dc78769ddb1f2ced6c5f7e294`（`0cc517d`）；前置合同提交为 `e62c2a9`。后续状态文档提交不改变该版本已验证的可执行代码。
+- 最终可执行代码 / 验证 HEAD：`afc19c5b87d0753a5e5ff6cf919f7b5a1fd84d27`（`afc19c5`）；前置合同提交为 `e62c2a9`。后续状态文档提交不改变该版本已验证的可执行代码。
 - 权威规则：[行动雷达验收合同](action-radar-acceptance-contract.md)。Gold Set 15 例已改为规则冒烟稿，缺证用例不计 PASS。
 - 当前阶段：**LOCAL_CODE_VALIDATED_NOT_DEPLOYED**。本轮 P0 本地实现、聚焦回归、完整构建及独立终审完成；无剩余本地阻塞。
-- 当前验证环境：Node `24.19.0`、Python `3.12.14`。本轮实际输出为 805 个 Python 测试全部 PASS，不沿用下方历史 CI 数字。
+- 当前验证环境：Node `24.19.0`、Python `3.12.14`。本轮实际输出为 810 个 Python 测试全部 PASS，不沿用下方历史 CI 数字。
 - `production_ready=false`。未进行 Preview/Production 部署、合并、域名或凭据变更；本轮没有实时生产验收结论。
 
 本轮实现边界：三源（`tjzyefy`、`tjzyefy_intent`、`tjzxfc`）runtime parity；单源失败隔离、日内 tick 独立兜底及过期 RUNNING 恢复；pending/barrier 保守清理；已提交快照与源级 freshness health；发布前校验及权威唯一提交；公开 AI 的 30 小时服务器新鲜度门禁；EdgeOne 固定 origin；空完整池与提醒 ACK；基线测试时钟稳定。
+
+追加修复了总医院当前公告的真实解析故障：官方索引与 11 月 5 日详情各一次只读 GET 均为 HTTP 200，失败原因是项目以 `1、2、3、` 编号，旧解析器只识别括号编号。已冻结官方原文，新增 5 个回归；完整原文与 fixture 解析事实一致，保留 3 条原文产品和官方报名截止 `2026-11-09 17:00 +08:00`。本轮未手工写入生产商机，也未验证持续调度恢复。
 
 本轮不实施相关性/资格门禁、项目生命周期串联、历史跟进与画像重构或商业交付。规则合同不等于这些能力已经实现，代码测试也不等于来源持续在线或客户续费价值已经成立。
 
@@ -22,7 +24,7 @@ Updated: 2026-11-06（Asia/Shanghai）
 | 项目 | 本轮状态 |
 |---|---|
 | 聚焦 P0 回归 | PASS；36 个 runtime/queue 行为测试及 publication、AI、source health、proxy 等聚焦检查通过 |
-| 完整 Python pipeline tests | PASS；805 个全部通过 |
+| 完整 Python pipeline tests | PASS；810 个全部通过 |
 | JS 合约检查 / prebuild | PASS；全部检查通过，serverless entrypoints 11/12 |
 | TypeScript / Vite build | PASS；`npm run build` exit 0，main JS gzip 115.40 KiB |
 | 最终变更复核 | PASS；独立终审无剩余阻塞 |
