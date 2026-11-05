@@ -9,6 +9,11 @@ interface OpportunityMarketInput {
 }
 
 const MARKET_CODES = new Set<string>(ENABLED_MARKETS.map((market) => market.code))
+const UNSUPPORTED_PROVINCE_NAMES = [
+  '山西', '内蒙古', '上海', '江苏', '浙江', '安徽', '福建', '江西', '山东', '河南',
+  '湖北', '湖南', '广东', '广西', '海南', '重庆', '四川', '贵州', '云南', '西藏',
+  '陕西', '甘肃', '青海', '宁夏', '新疆', '台湾', '香港', '澳门',
+]
 
 /** Resolve display scope for runtime/legacy snapshots without inventing a market. */
 export function marketCodeForOpportunity(card: OpportunityMarketInput): MarketCode | null {
@@ -20,7 +25,15 @@ export function marketCodeForOpportunity(card: OpportunityMarketInput): MarketCo
     const market = ENABLED_MARKETS.find(({ code, name }) =>
       region === name || region.startsWith(`${name}${code === 'BJ' || code === 'TJ' ? '市' : '省'}`),
     )
-    return market?.code ?? null
+    if (market) return market.code
+    // Canonical CCGP regions may contain only a city/county/district. Retain
+    // their validated adapter scope, but never override an explicit province
+    // outside the supported markets (including autonomous regions/municipalities).
+    if (
+      UNSUPPORTED_PROVINCE_NAMES.some((name) => region.startsWith(name)) ||
+      /省|自治区|特别行政区/.test(region) ||
+      !/(?:市|县|区|旗|镇|乡|街道)$/.test(region)
+    ) return null
   }
 
   // These prefixes are emitted by registered source adapters. Unknown opaque

@@ -14,9 +14,23 @@ for (const [id, facts, expected] of [
   ['runtime_liaoning', { region: '辽宁省' }, 'LN'],
   ['runtime_heilongjiang', { region: '黑龙江省' }, 'HL'],
   ['ccgp_jl_legacy', {}, 'JL'],
+  ['ccgp_hl_be17744f48e2bdc1', { region: '哈尔滨市' }, 'HL'],
+  ['ccgp_hl_county', { region: '塔河县' }, 'HL'],
+  ['ccgp_he_county', { region: '赵县' }, 'HE'],
+  ['ccgp_jl_district', { region: '市辖区' }, 'JL'],
+  ['ccgp_hl_explicit_province', { region: '河北省' }, 'HE'],
   ['tjmugh_legacy', {}, 'TJ'],
   ['unknown_opaque_id', {}, null],
+  ['unknown_city_id', { region: '哈尔滨市' }, null],
+  ['ccgp_hl_unknown_region', { region: '全国' }, null],
   ['tjmugh_unsupported_region', { region: '山东省' }, null],
+  ['ccgp_hl_unsupported_province', { region: '山东省济南市' }, null],
+  ['ccgp_hl_unsupported_bare_province', { region: '山东' }, null],
+  ['ccgp_hl_unsupported_autonomous_region', { region: '广西壮族自治区南宁市' }, null],
+  ['ccgp_hl_unsupported_shanghai', { region: '上海市浦东新区' }, null],
+  ['ccgp_hl_unsupported_chongqing', { region: '重庆市' }, null],
+  ['ccgp_hl_unsupported_hongkong', { region: '香港特别行政区' }, null],
+  ['ccgp_hl_unsupported_macau', { region: '澳门特别行政区' }, null],
   ['tjmugh_explicit', { market_code: ' bj ', region: '天津市' }, 'BJ'],
   ['tjmugh_unsupported_code', { market_code: 'SD', region: '天津市' }, null],
 ]) {
@@ -94,5 +108,58 @@ vm.createContext(todayContext)
 vm.runInContext(todayCompiled, todayContext)
 const today = await new todayContext.TodayScope({ getTodayActions: async () => payload }).getTodayActions()
 assert.deepEqual(Array.from(today.cards, (card) => card.opportunity_id), ['tjmugh_runtime'])
+
+// Optional read-only acceptance against a complete, already published snapshot.
+// Use its publication clock so retained acceptance evidence is reproducible.
+const snapshotPath = process.argv[2]
+if (snapshotPath) {
+  const authority = JSON.parse(readFileSync(snapshotPath, 'utf8'))
+  const live = authority.response ?? authority
+  const livePool = live.opportunity_pool ?? live.cards
+  const publishedMs = Date.parse(live.snapshot_as_of)
+  assert(Array.isArray(livePool) && livePool.length > 0 && Number.isFinite(publishedMs))
+  assert.equal(livePool.length, live.opportunity_pool_count)
+  const originalPayload = JSON.stringify(live)
+  class PublicationDate extends Date {
+    constructor(...args) { super(...(args.length ? args : [publishedMs])) }
+    static now() { return publishedMs }
+  }
+  const liveContext = {
+    ...context,
+    exports: {},
+    Date: PublicationDate,
+    researchEventWindowClosed: (facts, at = publishedMs) => researchEventWindowClosed(facts, at),
+    loadVerifiedSnapshotPayload: async () => live,
+  }
+  vm.createContext(liveContext)
+  vm.runInContext(compiled, liveContext)
+  const mapped = await liveContext.exports.getVerifiedOpportunityPool()
+  assert.equal(mapped.cards.length, livePool.length, 'The complete actionable authority pool must survive mapping')
+  const expectedMarket = (card) => {
+    const source = card.opportunity_id.match(/^ccgp_(bj|tj|he|ln|jl|hl)_/i)
+    if (source) return source[1].toUpperCase()
+    assert(/^(?:tjmugh|tjnothop|tjfch|teda|tjzxfc|tjzyefy)_/i.test(card.opportunity_id), 'Acceptance fixture must have a registered source')
+    return 'TJ'
+  }
+  const counts = {}
+  for (const selection of ['ALL', 'TJ', 'BJ', 'HL', 'HE', 'JL', 'LN']) {
+    const allowed = new Set(marketCodesForSelection(selection))
+    const expected = livePool.filter((card) => allowed.has(expectedMarket(card))).map((card) => card.opportunity_id)
+    const poolVisible = Array.from(mapped.cards).filter((card) => allowed.has(card.facts.market_code))
+    assert.deepEqual(poolVisible.map((card) => card.opportunity_id).sort(), [...expected].sort(), `Pool ${selection}`)
+    for (const card of poolVisible) assert.equal(card.facts.market_code, expectedMarket(card), card.opportunity_id)
+    const scopedContext = { marketCodeForOpportunity, marketCodesForSelection: () => [...allowed] }
+    vm.createContext(scopedContext)
+    vm.runInContext(todayCompiled, scopedContext)
+    const scoped = await new scopedContext.TodayScope({ getTodayActions: async () => live }).getTodayActions()
+    assert.deepEqual(Array.from(scoped.opportunity_pool, (card) => card.opportunity_id), expected, `Today pool ${selection}`)
+    assert.deepEqual(Array.from(scoped.cards, (card) => card.opportunity_id), expected.slice(0, 5), `Today top ${selection}`)
+    counts[selection] = poolVisible.length
+  }
+  const top = live.cards[0]
+  assert.equal(mapped.cards.find((card) => card.opportunity_id === top.opportunity_id)?.facts.market_code, expectedMarket(top))
+  assert.equal(JSON.stringify(live), originalPayload, 'Market display must not mutate the published authority')
+  console.log(`Published authority market scope: PASS ${JSON.stringify({ ...counts, top_id: top.opportunity_id, top_market: expectedMarket(top) })}`)
+}
 
 console.log('Opportunity market scope: PASS')
