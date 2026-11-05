@@ -21,6 +21,7 @@
         {
           "type": "queue/v2beta",
           "topic": "medicalchannelai-refresh-v2",
+          "maxDeliveries": 3,
           "retryAfterSeconds": 150,
           "initialDelaySeconds": 0
         }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import json
 import unittest
 from pathlib import Path
@@ -28,6 +29,23 @@ class VercelQueueTriggerTests(unittest.TestCase):
 
     def test_no_duplicate_v2_queue_function_is_configured(self) -> None:
         self.assertNotIn("api/collector-queue-v2.py", self.functions)
+
+    def test_manual_push_delivery_limit_is_explicit_and_matches_subscriber(self) -> None:
+        # The manual accept_and_handle route does not compile @subscribe
+        # delivery metadata into a trigger. Omitting this field means unlimited
+        # failed deliveries, even when the decorator declares max_attempts.
+        trigger = self.functions[EXPECTED_PATH]["experimentalTriggers"][0]
+        self.assertEqual(trigger.get("maxDeliveries"), 3)
+        consumer = ast.parse((WEB_ROOT / EXPECTED_PATH).read_text(encoding="utf-8"))
+        decorators = [
+            node for node in ast.walk(consumer)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+            and node.func.id == "subscribe"
+        ]
+        self.assertEqual(len(decorators), 1)
+        options = {item.arg: ast.literal_eval(item.value)
+                   for item in decorators[0].keywords if item.arg == "max_attempts"}
+        self.assertEqual(trigger["maxDeliveries"], options.get("max_attempts"))
 
 
 if __name__ == "__main__":
