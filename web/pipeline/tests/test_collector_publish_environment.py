@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import io
 import json
 import os
 import sys
@@ -74,6 +75,15 @@ class CollectorPublishEnvironmentTests(unittest.TestCase):
         self.assertEqual(headers["x-vercel-trusted-oidc-idp-token"], "test-only-runtime-oidc")
         self.assertEqual(headers["authorization"], f"Bearer {self.environment['VERIFIED_SNAPSHOT_PUBLISH_TOKEN']}")
 
+    def test_sdk_context_oidc_is_forwarded_even_without_environment_token(self) -> None:
+        sdk = types.ModuleType("vercel.oidc")
+        sdk.get_vercel_oidc_token_sync = lambda: "sdk-context-only-test-token"
+        with patch.dict(sys.modules, {"vercel.oidc": sdk}):
+            request = self.publish_request(self.environment)
+        headers = {key.lower(): value for key, value in request.header_items()}
+        self.assertEqual(headers["x-vercel-trusted-oidc-idp-token"], "sdk-context-only-test-token")
+        self.assertEqual(request.full_url, f"https://{PREVIEW_HOST}/api/public-snapshot")
+
     def test_missing_runtime_oidc_does_not_fabricate_protection_authentication(self) -> None:
         request = self.publish_request(self.environment)
         headers = {key.lower(): value for key, value in request.header_items()}
@@ -84,6 +94,18 @@ class CollectorPublishEnvironmentTests(unittest.TestCase):
         ):
             with self.assertRaisesRegex(self.runtime.CollectorStageBlocked, "DURABLE_SNAPSHOT_PUBLISH_HTTP_401"):
                 self.runtime._persist_verified_snapshot_durably(self.snapshot)
+
+    def test_preview_protection_error_never_exposes_response_body_credentials(self) -> None:
+        with patch.dict(os.environ, self.environment, clear=True), patch.object(
+            self.runtime, "urlopen", side_effect=HTTPError(
+                f"https://{PREVIEW_HOST}/api/public-snapshot", 403, "protected", {},
+                io.BytesIO(b"credential-sensitive-test-value"),
+            ),
+        ):
+            with self.assertRaises(self.runtime.CollectorStageBlocked) as caught:
+                self.runtime._persist_verified_snapshot_durably(self.snapshot)
+        self.assertIn("HTTP_403", str(caught.exception))
+        self.assertNotIn("credential-sensitive-test-value", str(caught.exception))
 
     def test_preview_missing_deployment_host_fails_before_any_request(self) -> None:
         environment = {**self.environment, "VERCEL_URL": "", "VERCEL_PROJECT_PRODUCTION_URL": "medicalchannelai.vercel.app"}

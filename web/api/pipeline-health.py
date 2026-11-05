@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import re
@@ -8,6 +9,7 @@ import sys
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +17,9 @@ PIPELINE_ROOT = PROJECT_ROOT / 'pipeline'
 MAX_VERIFIED_SNAPSHOT_AGE_SECONDS = 30 * 60 * 60
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(PIPELINE_ROOT))
+from collector_oidc import preview_oidc_token
+
+logger = logging.getLogger(__name__)
 
 try:
     from medical_channel_pipeline import build_public_snapshot
@@ -68,24 +73,29 @@ def served_snapshot_health() -> dict[str, Any]:
         'source': None, 'age_seconds': None, 'freshness': 'UNAVAILABLE',
         'source_health': {'status': 'UNKNOWN'},
     }
+
+    def fail(reason: str) -> dict[str, Any]:
+        logger.warning('pipeline_self_status reason=%s', reason)
+        return unavailable
+
     host = str(
         os.environ.get('VERCEL_URL')
         or (os.environ.get('VERCEL_PROJECT_PRODUCTION_URL')
             if str(os.environ.get('VERCEL_ENV') or '').strip().lower() == 'production' else '')
     ).strip()
     if not host:
-        return unavailable
+        return fail('DEPLOYMENT_HOST_MISSING')
     preview = str(os.environ.get('VERCEL_ENV') or '').strip().lower() == 'preview'
     if preview and (not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]*\.vercel\.app', host)
                     or host.lower() == 'medicalchannelai.vercel.app'):
-        return unavailable
+        return fail('PREVIEW_HOST_INVALID')
     origin = host if host.startswith(('https://', 'http://')) else f'https://{host}'
     headers = {
         'Accept': 'application/json',
         'User-Agent': 'MedicalChannelAI-PipelineHealth/0.1',
     }
     if preview:
-        oidc_token = str(os.environ.get('VERCEL_OIDC_TOKEN') or '').strip()
+        oidc_token = preview_oidc_token()
         if oidc_token:
             headers['x-vercel-trusted-oidc-idp-token'] = oidc_token
     request = Request(
@@ -96,13 +106,19 @@ def served_snapshot_health() -> dict[str, Any]:
     try:
         with build_opener(_NoStatusRedirect()).open(request, timeout=5) as response:
             if int(getattr(response, 'status', 0) or 0) != 200:
-                return unavailable
+                return fail(f'HTTP_{int(getattr(response, "status", 0) or 0)}')
             payload = json.loads(response.read(256 * 1024).decode('utf-8'))
+    except HTTPError as exc:
+        return fail(f'HTTP_{exc.code}')
+    except (URLError, OSError, TimeoutError):
+        return fail('NETWORK_ERROR')
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return fail('INVALID_JSON')
     except Exception:
-        return unavailable
+        return fail('REQUEST_FAILED')
     snapshot = payload.get('snapshot') if isinstance(payload, dict) and payload.get('service') == 'MedicalChannelAI' else None
     if not isinstance(snapshot, dict):
-        return unavailable
+        return fail('INVALID_STATUS_PAYLOAD')
     source_health = snapshot.get('source_health')
     source_health = source_health if isinstance(source_health, dict) else {'status': 'UNKNOWN'}
     age_minutes = snapshot.get('age_minutes')

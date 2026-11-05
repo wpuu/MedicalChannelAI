@@ -15,6 +15,7 @@ from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
 from vercel.functions import RuntimeCache
+from collector_oidc import preview_oidc_token
 
 WEB_ROOT = Path(__file__).resolve().parent
 PIPELINE_ROOT = WEB_ROOT / "pipeline"
@@ -1556,7 +1557,7 @@ def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, An
     }
     if str(os.environ.get("VERCEL_ENV") or "").strip().lower() == "preview":
         # URL validation above pins this credential to the exact deployment.
-        oidc_token = str(os.environ.get("VERCEL_OIDC_TOKEN") or "").strip()
+        oidc_token = preview_oidc_token()
         if oidc_token:
             headers["x-vercel-trusted-oidc-idp-token"] = oidc_token
     payload = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
@@ -1571,10 +1572,12 @@ def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, An
             status = int(getattr(response, "status", 0) or 0)
             body = response.read()
     except HTTPError as exc:
-        try:
-            detail = exc.read().decode("utf-8", errors="replace")[:180]
-        except Exception:
-            detail = ""
+        detail = ""
+        if str(os.environ.get("VERCEL_ENV") or "").strip().lower() != "preview":
+            try:
+                detail = exc.read().decode("utf-8", errors="replace")[:180]
+            except Exception:
+                pass
         raise CollectorStageBlocked(
             f"DURABLE_SNAPSHOT_PUBLISH_HTTP_{exc.code}:{detail}"
         ) from exc

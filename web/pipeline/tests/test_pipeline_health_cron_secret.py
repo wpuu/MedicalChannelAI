@@ -3,8 +3,11 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import sys
+import types
 import unittest
 from pathlib import Path
+from urllib.error import HTTPError
 from unittest.mock import MagicMock, patch
 
 
@@ -116,6 +119,26 @@ class PipelineHealthCronSecretTests(unittest.TestCase):
                 patch.object(health, 'Request', wraps=health.Request) as request:
             self.assertTrue(self.read_status(status_payload())['fresh'])
         self.assertEqual(request.call_args.kwargs['headers']['x-vercel-trusted-oidc-idp-token'], 'preview-test-oidc')
+
+    def test_preview_health_uses_sdk_context_when_environment_token_is_absent(self):
+        sdk = types.ModuleType('vercel.oidc')
+        sdk.get_vercel_oidc_token_sync = lambda: 'sdk-context-health-test-token'
+        with patch.dict(os.environ, {'VERCEL_OIDC_TOKEN': ''}), patch.dict(sys.modules, {'vercel.oidc': sdk}), \
+                patch.object(health, 'Request', wraps=health.Request) as request:
+            self.assertTrue(self.read_status(status_payload())['fresh'])
+        self.assertEqual(request.call_args.kwargs['headers']['x-vercel-trusted-oidc-idp-token'], 'sdk-context-health-test-token')
+
+    def test_protected_self_request_failure_logs_safe_status_without_credentials(self):
+        opener = MagicMock()
+        opener.open.side_effect = HTTPError('https://current-deployment.vercel.app/api/status', 403, 'credential-sensitive-test-value', {}, None)
+        with patch.dict(os.environ, {
+            'VERCEL_ENV': 'preview', 'VERCEL_URL': 'current-deployment.vercel.app',
+            'VERCEL_OIDC_TOKEN': 'credential-sensitive-test-value',
+        }), patch.object(health, 'build_opener', return_value=opener), \
+                self.assertLogs(health.logger, level='WARNING') as logged:
+            self.assertFalse(health.served_snapshot_health()['available'])
+        self.assertIn('HTTP_403', ' '.join(logged.output))
+        self.assertNotIn('credential-sensitive-test-value', ' '.join(logged.output))
 
     def test_preview_invalid_or_production_host_never_receives_oidc(self):
         for host in ('medicalchannelai.vercel.app', 'evil.example', 'good.vercel.app@evil.example', 'good.vercel.app/path'):
