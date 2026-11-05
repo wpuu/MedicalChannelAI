@@ -62,10 +62,12 @@ class TjzxfcSyncTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'timezone'):
             sync_tjzxfc.parse_as_of('2026-09-04T12:00:00')
 
-    def test_source_is_not_silently_added_to_intraday_scheduler(self) -> None:
+    def test_source_has_explicit_intraday_policy_and_adapter(self) -> None:
         runtime = (PIPELINE_ROOT.parent / 'collector_incremental.py').read_text(encoding='utf-8')
-        self.assertNotIn("'tjzxfc'", runtime)
-        self.assertNotIn('"tjzxfc"', runtime)
+        self.assertIn('"tjzxfc"', runtime)
+        adapter = (PIPELINE_ROOT.parent / 'collector_incremental_runtime.py').read_text(encoding='utf-8')
+        self.assertIn('"tjzxfc": _discover_tjzxfc', adapter)
+        self.assertIn('"tjzxfc": _verify_tjzxfc', adapter)
 
 
 if __name__ == '__main__':

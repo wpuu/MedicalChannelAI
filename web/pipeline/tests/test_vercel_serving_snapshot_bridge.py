@@ -32,7 +32,9 @@ class VercelServingSnapshotBridgeTests(unittest.TestCase):
         body = self.python[self.python.index("def _run_publish"):]
         self.assertIn("cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})", body)
         self.assertNotIn("_cache_set(\n        cache,\n        PUBLISHED_RUNTIME_SNAPSHOT_KEY", body)
-        self.assertIn("SERVING_SNAPSHOT_READBACK_MISMATCH", body)
+        self.assertIn('cache_status = "RETRY_REQUIRED"', body)
+        self.assertIn('"durable_snapshot_persisted": True', body)
+        self.assertNotIn('raise CollectorStageBlocked("SERVING_SNAPSHOT_READBACK_MISMATCH")', body)
 
     def test_collector_publish_persists_snapshot_before_serving_ack(self) -> None:
         self.assertIn('DURABLE_PUBLISH_URL = "https://medicalchannelai.vercel.app/api/public-snapshot"', self.python)

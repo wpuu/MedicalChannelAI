@@ -13,44 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check public demo URLs
-        shell: bash
-        run: |
-          set -euo pipefail
+      - name: Checkout
+        uses: actions/checkout@v4
 
-          check_url() {
-            url="$1"
-            code="$(curl -L --connect-timeout 10 --max-time 30 -sS -o /dev/null -w '%{http_code}' "$url")"
-            final="$(curl -L --connect-timeout 10 --max-time 30 -sS -o /dev/null -w '%{url_effective}' "$url")"
-            echo "$url -> HTTP $code -> $final"
-            test "$code" -ge 200
-            test "$code" -lt 400
-          }
-
-          check_url "https://medicalchannelai.vercel.app/"
-          check_url "https://medicalchannelai.vercel.app/today"
-          check_url "https://medicalai.qd.je/"
-
-      - name: Check application status
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --connect-timeout 10 --max-time 30 -fsS             "https://medicalchannelai.vercel.app/api/status"             -o /tmp/status.json
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-
-          payload = json.loads(Path('/tmp/status.json').read_text(encoding='utf-8'))
-          print(json.dumps({
-              'service': payload.get('service'),
-              'commit': payload.get('commit'),
-              'ready': payload.get('ready'),
-              'degraded': payload.get('degraded'),
-              'snapshot': payload.get('snapshot'),
-          }, ensure_ascii=False))
-          if payload.get('ready') is not True:
-              raise SystemExit('api/status ready != true')
-          PY
+      - name: Check both application entrypoints and their served snapshot health
+        run: python3 web/scripts/public-demo-smoke.py
 
       - name: Warn while qd.je still uses retired VPS address
         shell: bash

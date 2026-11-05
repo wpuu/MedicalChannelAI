@@ -47,6 +47,18 @@ function verifyPreviewSmokeSyntax() {
   console.log('Pilot Preview smoke syntax: PASS')
 }
 
+function verifyIsolatedJavaScriptContract(name) {
+  // Provider/cache behavior tests intentionally exercise warm-process state.
+  // Give each suite its own process so a successful mock decision in one suite
+  // cannot satisfy a later suite's expected provider error from memory.
+  const result = spawnSync(process.execPath, [resolve(scriptDir, name)], {
+    stdio: 'inherit',
+    env: { ...process.env, DATABASE_URL: '', POSTGRES_URL: '' },
+  })
+  if (result.error) throw result.error
+  if (result.status !== 0) throw new Error(`JAVASCRIPT_CONTRACT_FAILED:${name}:exit_${result.status}`)
+}
+
 async function verifyAiBoundaryWithoutDatabaseSideEffects() {
   // check-ai-boundary.mjs validates provider retry/rate-limit behavior using a
   // global fetch stub. A configured Neon/Postgres environment enables the
@@ -110,6 +122,7 @@ if (!pythonRan) {
 }
 
 await import('./check-serverless-entrypoints.mjs')
+await import('./check-edgeone-origin.mjs')
 await import('./check-verified-snapshot.mjs')
 await import('./check-medical-channel-scope.mjs')
 await import('./check-private-profile-matching.mjs')
@@ -132,6 +145,10 @@ await import('./check-account-session-isolation.mjs')
 await import('./check-account-local-scope.mjs')
 await import('./check-local-profile-migration-safety.mjs')
 await import('./check-runtime-status.mjs')
+await import('./check-runtime-status-client.mjs')
+await import('./check-source-health.mjs')
+verifyIsolatedJavaScriptContract('check-p0-publication.mjs')
+verifyIsolatedJavaScriptContract('check-p0-ai-freshness.mjs')
 await verifyAiBoundaryWithoutDatabaseSideEffects()
 await import('./check-source-quality-boundary.mjs')
 console.log('Prebuild verification: PASS')

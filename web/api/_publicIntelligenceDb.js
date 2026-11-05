@@ -327,8 +327,11 @@ export function publicAiFactHash(facts, evidenceUrls) {
   })
 }
 
-export async function persistPublicVerifiedSnapshot(snapshot) {
-  if (!publicIntelligenceDatabaseConfigured()) {
+export async function persistPublicVerifiedSnapshot(snapshot, {
+  sql: suppliedSql,
+  ensureSchema = ensurePublicIntelligenceSchema,
+} = {}) {
+  if (!suppliedSql && !publicIntelligenceDatabaseConfigured()) {
     return { configured: false, persisted: false, snapshot_hash: null }
   }
   const snapshotAsOf = cleanText(snapshot?.snapshot_as_of, 100)
@@ -340,10 +343,21 @@ export async function persistPublicVerifiedSnapshot(snapshot) {
     : Array.isArray(snapshot?.cards) ? snapshot.cards : []
   const snapshotHash = sha256Json(snapshot)
 
-  await ensurePublicIntelligenceSchema()
-  const sql = publicIntelligenceDb()
+  await ensureSchema()
+  const sql = suppliedSql || publicIntelligenceDb()
   const result = await sql.begin(async (tx) => {
-    await tx`SELECT pg_advisory_xact_lock(hashtext('public-verified-snapshot'), hashtext(${snapshotAsOf}))`
+    // Serialize every revision, not just writers of the same timestamp. A later
+    // request must not commit an older snapshot after another writer advanced it.
+    await tx`SELECT pg_advisory_xact_lock(hashtext('public-verified-snapshot-publication'))`
+    const latest = await tx`
+      SELECT snapshot_hash, snapshot_as_of
+      FROM public_verified_snapshots
+      ORDER BY snapshot_as_of DESC, materialized_at DESC
+      LIMIT 1
+    `
+    if (latest[0] && Date.parse(snapshotAsOf) < new Date(latest[0].snapshot_as_of).getTime()) {
+      throw new Error('PUBLIC_SNAPSHOT_ROLLBACK_REJECTED')
+    }
     const existing = await tx`
       SELECT snapshot_hash
       FROM public_verified_snapshots
@@ -362,6 +376,15 @@ export async function persistPublicVerifiedSnapshot(snapshot) {
       ON CONFLICT (snapshot_hash) DO NOTHING
       RETURNING snapshot_hash
     `
+    const readBack = await tx`
+      SELECT snapshot_hash, payload
+      FROM public_verified_snapshots
+      WHERE snapshot_as_of = ${snapshotAsOf}
+      LIMIT 1
+    `
+    if (readBack[0]?.snapshot_hash !== snapshotHash || sha256Json(readBack[0]?.payload) !== snapshotHash) {
+      throw new Error('PUBLIC_SNAPSHOT_READBACK_FAILED')
+    }
     return { inserted: inserted.length > 0 }
   })
   return {

@@ -108,6 +108,9 @@ export function runtimeSnapshotWarning(
   if (status.snapshot.freshness === 'UNAVAILABLE' || !status.snapshot.available) {
     return '当前无法确认公开商机快照状态。联系或报价前请先核对官方依据。'
   }
+  if (status.degraded) {
+    return '部分信息源刷新异常或尚未确认，当前商机覆盖可能不完整。联系或报价前请先核对该项目的官方依据。'
+  }
   return null
 }
 
@@ -126,6 +129,8 @@ export function runtimeAutomationUnavailableReason(
   if (status.snapshot.freshness === 'STALE') {
     return '公开商机快照已超过正常刷新窗口，已暂停自动分析与沟通草稿；请先核对官方依据。'
   }
+  // A different source's failure must not disable healthy opportunities. The
+  // server checks the requested opportunity's source before cache/model use.
   return null
 }
 

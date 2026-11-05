@@ -72,10 +72,12 @@ class TjzyefyIntentSyncTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'timezone'):
             sync_intent.parse_as_of('2026-09-04T12:00:00')
 
-    def test_intent_source_is_not_silently_added_to_intraday_scheduler(self) -> None:
+    def test_intent_source_has_explicit_intraday_policy_and_adapter(self) -> None:
         source = INCREMENTAL_PATH.read_text(encoding='utf-8')
-        self.assertNotIn("'tjzyefy_intent'", source)
-        self.assertNotIn('"tjzyefy_intent"', source)
+        self.assertIn('"tjzyefy_intent"', source)
+        adapter = (INCREMENTAL_PATH.parent / 'collector_incremental_runtime.py').read_text(encoding='utf-8')
+        self.assertIn('"tjzyefy_intent": _discover_tjzyefy_intent', adapter)
+        self.assertIn('"tjzyefy_intent": _verify_tjzyefy_intent', adapter)
 
 
 if __name__ == '__main__':

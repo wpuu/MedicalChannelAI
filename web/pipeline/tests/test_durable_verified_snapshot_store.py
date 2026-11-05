@@ -22,13 +22,20 @@ class DurableVerifiedSnapshotStoreTests(unittest.TestCase):
         self.assertIn("payload JSONB NOT NULL", self.db)
         self.assertIn("public_verified_snapshots_as_of_idx", self.db)
 
-    def test_authenticated_publish_validates_then_persists_before_runtime_cache(self) -> None:
+    def test_authenticated_publish_preflight_before_atomic_commit_and_retryable_cache(self) -> None:
         self.assertIn("persistPublicVerifiedSnapshot", self.endpoint)
-        validated = self.endpoint.index("validateVerifiedSnapshot(await requestBodyValue(request))")
-        durable = self.endpoint.index("await persistPublicVerifiedSnapshot(snapshot)")
-        cache = self.endpoint.index("await publishVerifiedSnapshotToRuntimeCache(snapshot)")
+        validated = self.endpoint.index("validateSnapshotPublication(await requestBodyValue(request))")
+        durable = self.endpoint.index("await persistSnapshot(snapshot)")
+        cache = self.endpoint.index("await publishRuntimeSnapshot(snapshot)")
         self.assertLess(validated, durable)
         self.assertLess(durable, cache)
+        self.assertIn("durable_committed: true", self.endpoint)
+        self.assertIn("cacheStatus = 'RETRY_REQUIRED'", self.endpoint)
+
+    def test_publication_serializes_all_revisions_and_verifies_durable_readback(self) -> None:
+        self.assertIn("public-verified-snapshot-publication", self.db)
+        self.assertIn("PUBLIC_SNAPSHOT_ROLLBACK_REJECTED", self.db)
+        self.assertIn("PUBLIC_SNAPSHOT_READBACK_FAILED", self.db)
 
     def test_same_timestamp_conflicting_payload_fails_closed(self) -> None:
         self.assertIn("PUBLIC_SNAPSHOT_REVISION_CONFLICT", self.db)

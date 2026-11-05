@@ -111,17 +111,17 @@ class IncrementalTickChainTests(unittest.TestCase):
 
     def test_queue_chain_is_accepted_before_terminal_deep_lease_is_released(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
-        terminal = source.index('await _start_intraday_chain_after_deep()')
+        terminal = source.index('await ensure_intraday_chain()')
         release = source.index('_release_active_cycle_if_owned(cycle_id)', terminal)
         retry_limit = source.index('COLLECTOR_STAGE_RETRY_LIMIT', release)
         self.assertLess(terminal, release)
         self.assertLess(release, retry_limit)
         failure_branch = source[retry_limit:]
-        self.assertNotIn('_start_intraday_chain_after_deep()', failure_branch)
+        self.assertNotIn('ensure_intraday_chain()', failure_branch)
 
     def test_chain_start_send_failure_is_retriable_instead_of_silently_stopping_day(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
-        start = source.index('async def _start_intraday_chain_after_deep')
+        start = source.index('async def ensure_intraday_chain')
         end = source.index('async def process_collector_payload', start)
         block = source[start:end]
         self.assertIn('state="SCHEDULE_RETRY_PENDING"', block)
@@ -132,7 +132,7 @@ class IncrementalTickChainTests(unittest.TestCase):
     def test_tick_schedules_next_before_selecting_or_running_source(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
         start = source.index('async def _process_incremental_tick_payload')
-        end = source.index('async def _start_intraday_chain_after_deep', start)
+        end = source.index('async def ensure_intraday_chain', start)
         block = source[start:end]
         next_enqueue = block.index('await _enqueue_incremental_tick(next_tick, now=now)')
         selection = block.index('choose_due_incremental_source(cache, now=now)')
@@ -143,7 +143,7 @@ class IncrementalTickChainTests(unittest.TestCase):
     def test_intraday_attempt_is_marked_only_after_source_queue_accepts(self) -> None:
         source = (WEB_ROOT / "collector_queue.py").read_text(encoding="utf-8")
         start = source.index('async def _process_incremental_tick_payload')
-        end = source.index('async def _start_intraday_chain_after_deep', start)
+        end = source.index('async def ensure_intraday_chain', start)
         block = source[start:end]
         source_enqueue = block.index('await _enqueue_incremental_source(decision.source_id, observed_at=now)')
         attempt_mark = block.index('mark_incremental_source_attempt(cache, decision.source_id, now=now)')

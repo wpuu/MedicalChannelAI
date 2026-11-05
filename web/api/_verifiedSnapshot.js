@@ -241,7 +241,9 @@ export function selectDurableVerifiedSnapshot(value, bundled = bundledVerifiedSn
   if (candidateMs > nowMs + RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS) return null
   return candidate
 }
-export async function publishVerifiedSnapshotToRuntimeCache(value, options = {}) {
+// All checks that can reject a publisher payload must run before the durable
+// transaction. This helper never reads or writes either storage layer.
+export function validateSnapshotPublication(value, options = {}) {
   const snapshot = validateVerifiedSnapshot(value)
   const serialized = JSON.stringify(snapshot)
   if (Buffer.byteLength(serialized, 'utf8') > MAX_RUNTIME_SNAPSHOT_BYTES) {
@@ -255,6 +257,13 @@ export async function publishVerifiedSnapshotToRuntimeCache(value, options = {})
   if (candidateMs > nowMs + RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS) {
     throw new Error('RUNTIME_SNAPSHOT_FUTURE_REJECTED')
   }
+  return snapshot
+}
+
+export async function publishVerifiedSnapshotToRuntimeCache(value, options = {}) {
+  const snapshot = validateSnapshotPublication(value, options)
+  const serialized = JSON.stringify(snapshot)
+  const candidateMs = parsedSnapshotTime(snapshot)
 
   const cache = options.cache || getCache()
   const currentValue = await cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
@@ -273,8 +282,8 @@ export async function publishVerifiedSnapshotToRuntimeCache(value, options = {})
     }
   }
 
-  // This is the authoritative latest verified snapshot, not an expendable cache entry.
-  // Freshness is enforced from snapshot_as_of by /api/status and AI automation guards.
+  // The database is the publication commit point. This is its retryable fallback
+  // copy; a cache outage must never undo or misreport a durable commit.
   // Do not attach TTL/tags here: cross-deployment TTL metadata can diverge and evict the
   // stable published key even while daily publisher round-trips are succeeding.
   await cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot)
@@ -336,9 +345,10 @@ async function loadRuntimeCachedSnapshot() {
     origin: 'BUNDLED',
   }
 }
-async function loadDurableSnapshotMemoized(nowMs = Date.now()) {
-  if (durableMemo && nowMs - durableMemo.checkedAt < DURABLE_RECHECK_MS) return durableMemo.snapshot
-  if (durableInFlight) return durableInFlight
+async function loadDurableSnapshotMemoized(nowMs = Date.now(), forceRefresh = false) {
+  if (forceRefresh && durableInFlight) await durableInFlight
+  if (!forceRefresh && durableMemo && nowMs - durableMemo.checkedAt < DURABLE_RECHECK_MS) return durableMemo.snapshot
+  if (!forceRefresh && durableInFlight) return durableInFlight
   durableInFlight = (async () => {
     const latest = await durableSource(durableMemo?.hash ?? null)
     if (!latest?.snapshot_hash) {
@@ -369,7 +379,7 @@ function bundledScopedSnapshot() {
   return structuredClone(bundledScopedMemo)
 }
 
-export async function loadVerifiedSnapshot() {
+export async function loadVerifiedSnapshot({ forceRefresh = false } = {}) {
   const remoteUrl = configuredRemoteUrl()
   if (remoteUrl) {
     lastSourceMode = 'REMOTE'
@@ -377,7 +387,7 @@ export async function loadVerifiedSnapshot() {
     return scopedVerifiedSnapshot(await loadRemoteSnapshot(remoteUrl))
   }
 
-  const durableSnapshot = await loadDurableSnapshotMemoized()
+  const durableSnapshot = await loadDurableSnapshotMemoized(Date.now(), forceRefresh)
   if (durableSnapshot) {
     lastSourceMode = 'DATABASE'
     lastRuntimeOrigin = null
@@ -405,6 +415,12 @@ export function verifiedSnapshotSourceMode() {
 }
 export function verifiedSnapshotRuntimeOrigin() {
   return lastRuntimeOrigin
+}
+export function invalidateVerifiedSnapshotMemo() {
+  durableMemo = null
+}
+export function snapshotRemoteReaderConfigured() {
+  return Boolean((process.env.VERIFIED_SNAPSHOT_URL || process.env.VITE_VERIFIED_SNAPSHOT_URL || '').trim())
 }
 export function setDurableSnapshotSourceForTests(source) {
   durableSource = typeof source === 'function' ? source : latestPublicVerifiedSnapshotIfChanged

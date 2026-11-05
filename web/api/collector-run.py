@@ -18,6 +18,7 @@ from collector_incremental_scheduler import (
     choose_due_incremental_source,
     mark_incremental_source_attempt,
 )
+from collector_queue import ensure_intraday_chain, recover_expired_deep_cycle
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
     ACTIVE_CYCLE_TTL_SECONDS,
@@ -32,7 +33,7 @@ from collector_namespace import (
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 MESSAGE_RETENTION = timedelta(days=2)
 DEEP_START_DELAY_WHEN_INCREMENTAL_SECONDS = 300
-MIGRATION_STALE_RUNNING_AFTER = timedelta(minutes=15)
+ORPHANED_RUNNING_AFTER = timedelta(minutes=15)
 # This is an explicit allowlist of implemented source adapters. Merely adding a
 # policy must never activate a new collector without an adapter and tests.
 INCREMENTAL_SOURCE_IDS = SCHEDULED_INCREMENTAL_SOURCES
@@ -100,24 +101,22 @@ def _recovery_cycle_id(cache: RuntimeCache, local_date: str) -> str | None:
     return f"prod:{local_date}:recovery-v3"
 
 
-def _migration_recovery_running_stages_are_stale(
+def _orphaned_running_stages(
     state: object,
     *,
-    local_date: str,
     now: datetime,
-) -> bool:
+) -> tuple[str, ...] | None:
+    """Return expired running stages, or None when execution may still be live.
+
+    started_at/cycle_as_of are frozen collection clocks, not execution leases.
+    Use only wall-clock metadata; the legacy META updated_at was also written
+    from the actual execution clock and provides a conservative migration path.
+    """
     if not isinstance(state, dict):
-        return False
-    if str(state.get("local_date") or "") != local_date:
-        return False
+        return ()
     stages = state.get("stages")
     if not isinstance(stages, dict):
-        return False
-    publish = stages.get("publish")
-    if not isinstance(publish, dict) or publish.get("status") != "FAILED":
-        return False
-    if not str(publish.get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE"):
-        return False
+        return ()
 
     running = [
         (name, stage_state)
@@ -125,21 +124,20 @@ def _migration_recovery_running_stages_are_stale(
         if isinstance(stage_state, dict) and stage_state.get("status") == "RUNNING"
     ]
     if not running:
-        return False
+        return ()
 
     for name, stage_state in running:
-        if not str(name).startswith("regional_"):
-            return False
-        started_raw = str(stage_state.get("started_at") or "")
-        try:
-            started = datetime.fromisoformat(started_raw.replace("Z", "+00:00"))
-        except ValueError:
-            return False
-        if started.tzinfo is None:
-            return False
-        if now - started.astimezone(timezone.utc) < MIGRATION_STALE_RUNNING_AFTER:
-            return False
-    return True
+        wall_times: list[datetime] = []
+        for raw in (stage_state.get("wall_started_at"), stage_state.get("heartbeat_at"), state.get("updated_at")):
+            try:
+                parsed = datetime.fromisoformat(str(raw or "").replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            if parsed.tzinfo is not None:
+                wall_times.append(parsed.astimezone(timezone.utc))
+        if not wall_times or now - max(wall_times) < ORPHANED_RUNNING_AFTER:
+            return None
+    return tuple(str(name) for name, _ in running)
 
 
 def _activate_cycle(
@@ -149,14 +147,30 @@ def _activate_cycle(
     now: datetime,
     local_date: str,
     source: str,
-) -> None:
-    current_state = cache.get(META_KEY)
-    if cycle_has_running_stage(current_state) and not _migration_recovery_running_stages_are_stale(
-        current_state,
-        local_date=local_date,
-        now=now,
-    ):
+) -> str:
+    # The owner marker outlives one function. Reclaim only an expired execution
+    # lease; a recent wall heartbeat or stage write protects a running cycle.
+    recovered_owner = recover_expired_deep_cycle(cache, now=now)
+    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) is not None:
         raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
+
+    current_state = cache.get(META_KEY)
+    orphaned = _orphaned_running_stages(current_state, now=now)
+    if orphaned is None:
+        raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
+    if orphaned:
+        from collector_runtime import mark_stage_degraded
+
+        for stage in orphaned:
+            mark_stage_degraded(
+                stage, now=now, error="COLLECTOR_ORPHANED_RUNNING_STAGE", cache=cache,
+            )
+    if recovered_owner or orphaned or (
+        isinstance(current_state, dict) and current_state.get("abandoned_cycle_id") == cycle_id
+    ):
+        # A fresh identity fences delayed messages from an expired same-day
+        # owner, including one already reclaimed by an independent tick.
+        cycle_id = f"{cycle_id}:orphan-recovery:{now.isoformat()}"
 
     active = {
         "schema_version": "0.1",
@@ -164,6 +178,8 @@ def _activate_cycle(
         "cycle_as_of": now.isoformat(),
         "local_date": local_date,
         "trigger_source": source,
+        "activated_at": now.isoformat(),
+        "wall_heartbeat_at": now.isoformat(),
     }
     cache.set(
         ACTIVE_CYCLE_KEY,
@@ -173,15 +189,19 @@ def _activate_cycle(
     read_back = cache.get(ACTIVE_CYCLE_KEY)
     if active_cycle_id(read_back) != cycle_id:
         raise RuntimeError("COLLECTOR_ACTIVE_CYCLE_READBACK_FAILED")
+    return cycle_id
 
 
 async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
     now = datetime.now(timezone.utc)
     local_date = now.astimezone(SHANGHAI).date().isoformat()
 
+    # Establish the day's independent fallback before a long deep cycle starts.
+    # A failed source or publish must not prevent all intraday collection.
+    await ensure_intraday_chain(now=now)
     cache = RuntimeCache()
     cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"
-    _activate_cycle(
+    cycle_id = _activate_cycle(
         cache,
         cycle_id=cycle_id,
         now=now,
@@ -198,18 +218,23 @@ async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
         if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) is not None
         else 0
     )
-    message_id = await send(
-        QUEUE_TOPIC_NAME,
-        {
-            "schema_version": "0.1",
-            "stage": "ccgp",
-            "cycle_as_of": now.isoformat(),
-            "cycle_id": cycle_id,
-        },
-        retention=MESSAGE_RETENTION,
-        delay=delay_seconds,
-        idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:ccgp",
-    )
+    try:
+        message_id = await send(
+            QUEUE_TOPIC_NAME,
+            {
+                "schema_version": "0.1",
+                "stage": "ccgp",
+                "cycle_as_of": now.isoformat(),
+                "cycle_id": cycle_id,
+            },
+            retention=MESSAGE_RETENTION,
+            delay=delay_seconds,
+            idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:ccgp",
+        )
+    except Exception:
+        if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) == cycle_id:
+            cache.delete(ACTIVE_CYCLE_KEY)
+        raise
     return str(message_id), local_date, cycle_id, delay_seconds
 
 
@@ -220,6 +245,7 @@ async def _enqueue_incremental(source: str, trigger_source: str) -> tuple[str, s
 
     now = datetime.now(timezone.utc)
     cache = RuntimeCache()
+    recover_expired_deep_cycle(cache, now=now)
     # The deep-cycle lease is written before its first queue message is delivered,
     # closing the old gap where an incremental scan could slip in before META_KEY
     # had a RUNNING stage. Also keep one incremental source active at a time.

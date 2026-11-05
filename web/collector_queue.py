@@ -28,6 +28,7 @@ from collector_incremental_ticks import (
 )
 from collector_namespace import (
     ACTIVE_CYCLE_KEY,
+    ACTIVE_CYCLE_TTL_SECONDS,
     INCREMENTAL_ACTIVE_KEY,
     INCREMENTAL_ACTIVE_TTL_SECONDS,
     INCREMENTAL_CHAIN_KEY,
@@ -37,6 +38,7 @@ from collector_namespace import (
     active_cycle_id,
     active_incremental_id,
     apply_runtime_namespace,
+    deep_cycle_owner_is_live,
     deep_message_lease_disposition,
 )
 
@@ -88,6 +90,49 @@ def _release_active_cycle_if_owned(cycle_id: str) -> None:
     cache = RuntimeCache()
     if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) == cycle_id:
         cache.delete(ACTIVE_CYCLE_KEY)
+
+
+def recover_expired_deep_cycle(cache: RuntimeCache, *, now: datetime) -> bool:
+    """Abandon an owner only after its real execution lease has expired."""
+    active = cache.get(ACTIVE_CYCLE_KEY)
+    cycle_id = active_cycle_id(active)
+    state = runtime.load_status(cache)
+    if cycle_id is None or deep_cycle_owner_is_live(active, state, now=now):
+        return False
+    # Recheck after reading metadata so a renewed or replaced owner is protected.
+    current = cache.get(ACTIVE_CYCLE_KEY)
+    if active_cycle_id(current) != cycle_id or deep_cycle_owner_is_live(current, runtime.load_status(cache), now=now):
+        return False
+    for stage, row in (state.get("stages") or {}).items():
+        if isinstance(row, dict) and row.get("status") == "RUNNING":
+            if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) != cycle_id:
+                return False
+            if stage == "publish":
+                runtime._mark_failed(cache, state, stage, RuntimeError("COLLECTOR_EXECUTION_LEASE_EXPIRED"))
+            else:
+                runtime.mark_stage_degraded(stage, now=now, error="COLLECTOR_EXECUTION_LEASE_EXPIRED", cache=cache)
+    state = runtime.load_status(cache)
+    state["abandoned_cycle_id"] = cycle_id
+    state["abandoned_at"] = now.isoformat()
+    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) != cycle_id:
+        return False
+    runtime._write_status(cache, state)
+    if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) == cycle_id:
+        cache.delete(ACTIVE_CYCLE_KEY)
+    return True
+
+
+def _heartbeat_deep_cycle(cycle_id: str, *, now: datetime) -> bool:
+    cache = RuntimeCache()
+    active = cache.get(ACTIVE_CYCLE_KEY)
+    if active_cycle_id(active) != cycle_id:
+        return False
+    active["wall_heartbeat_at"] = now.isoformat()
+    cache.set(ACTIVE_CYCLE_KEY, active, {
+        "ttl": ACTIVE_CYCLE_TTL_SECONDS,
+        "tags": ["medicalchannelai-collector-active-cycle"],
+    })
+    return active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) == cycle_id
 
 
 def _write_chain_state(
@@ -187,6 +232,7 @@ def _acquire_incremental_lease(
     bucket_id: str,
     observed_at: datetime,
 ) -> str:
+    recover_expired_deep_cycle(cache, now=datetime.now(timezone.utc))
     if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) is not None:
         raise RuntimeError("INCREMENTAL_BLOCKED_BY_DEEP_CYCLE")
     if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) is not None:
@@ -294,6 +340,7 @@ async def _process_incremental_tick_payload(payload: dict[str, Any]) -> None:
     if next_tick is not None:
         await _enqueue_incremental_tick(next_tick, now=now)
 
+    recover_expired_deep_cycle(cache, now=now)
     if active_cycle_id(cache.get(ACTIVE_CYCLE_KEY)) is not None:
         _write_chain_state(
             cache,
@@ -327,9 +374,14 @@ async def _process_incremental_tick_payload(payload: dict[str, Any]) -> None:
     )
 
 
-async def _start_intraday_chain_after_deep() -> None:
+async def ensure_intraday_chain(*, now: datetime | None = None) -> None:
+    """Seed today's bounded tick chain independently of a deep publish result.
+
+    Queue idempotency uses the deterministic tick ID, so both the daily trigger
+    and deep completion can safely ensure the same next aligned tick exists.
+    """
     cache = RuntimeCache()
-    now = datetime.now(timezone.utc)
+    now = now or datetime.now(timezone.utc)
     first_tick = first_tick_after_deep(now)
     if first_tick is None:
         _write_chain_state(
@@ -375,10 +427,37 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if stage not in STAGE_ORDER or not cycle_id or cycle_as_of is None:
         return
 
+    recover_expired_deep_cycle(RuntimeCache(), now=datetime.now(timezone.utc))
     if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
         return
+    if not _heartbeat_deep_cycle(cycle_id, now=datetime.now(timezone.utc)):
+        return
+
+    if stage.startswith("event"):
+        cache = RuntimeCache()
+        state = runtime.load_status(cache)
+        prerequisites = [name for name in STAGE_ORDER[:STAGE_ORDER.index(stage)] if name == "ccgp" or name.startswith("event")]
+        if any((state.get("stages", {}).get(name) or {}).get("status") == "DEGRADED" for name in prerequisites):
+            # The CCGP bundle cannot commit without every event batch. Skip
+            # dependent network work while retaining the last complete bundle.
+            try:
+                _, previous = runtime._prepare_stage(cache, stage, cycle_as_of)
+            except runtime.CollectorPrecondition:
+                pass  # Preserve normal rejection/retry handling below.
+            else:
+                if previous is None:
+                    runtime.mark_stage_degraded(
+                        stage, now=datetime.now(timezone.utc),
+                        error="COLLECTOR_DEPENDENCY_DEGRADED", cache=cache,
+                    )
+                    next_stage = _next_stage(stage)
+                    if next_stage is not None:
+                        await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+                    return
 
     status, result = runtime.run_stage(stage, now=cycle_as_of)
+    if not _heartbeat_deep_cycle(cycle_id, now=datetime.now(timezone.utc)):
+        return
     action = str(result.get("action") or "")
     if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
         next_stage = _next_stage(stage)
@@ -387,17 +466,28 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
                 return
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         else:
-            # The completed deep cycle is authoritative for every source. Any
-            # incremental partial staging from before this publish is obsolete and
-            # must not later overwrite the freshly reconciled canonical state.
-            incremental_runtime.clear_incremental_pending(RuntimeCache())
-            await _start_intraday_chain_after_deep()
+            # A bounded deep scan need not cover every unresolved URL. Only
+            # canonical evidence at or after this cycle can supersede staging.
+            incremental_runtime.reconcile_incremental_pending_from_canonical(
+                RuntimeCache(), verified_after=cycle_as_of,
+            )
+            await ensure_intraday_chain()
             _release_active_cycle_if_owned(cycle_id)
         return
 
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
     if status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error:
-        _release_active_cycle_if_owned(cycle_id)
+        if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
+            return
+        if stage == "publish":
+            # Failure to commit remains a failed publish; the independently
+            # seeded intraday chain can continue after this owner is released.
+            _release_active_cycle_if_owned(cycle_id)
+            return
+        runtime.mark_stage_degraded(stage, now=datetime.now(timezone.utc), error=error)
+        next_stage = _next_stage(stage)
+        if next_stage is not None:
+            await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         return
 
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")

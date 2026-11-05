@@ -47,13 +47,15 @@ class IncrementalPendingBarrierTests(unittest.TestCase):
         self.assertLess(canonical, clear)
         self.assertLess(clear, publish)
 
-    def test_authoritative_deep_clear_removes_records_and_barriers(self) -> None:
+    def test_deep_reconciliation_retains_urls_without_recent_canonical_evidence(self) -> None:
         runtime = (WEB_ROOT / "collector_incremental_runtime.py").read_text(encoding="utf-8")
-        start = runtime.index("def clear_incremental_pending")
+        start = runtime.index("def reconcile_incremental_pending_from_canonical")
         end = runtime.index("def _last_completed_bucket", start)
         block = runtime[start:end]
-        self.assertIn("cache.delete(_pending_cache_key(source_id))", block)
-        self.assertIn("cache.delete(_pending_barrier_cache_key(source_id))", block)
+        self.assertIn("observed_at >= threshold", block)
+        self.assertIn("barrier.difference_update(verified_urls)", block)
+        self.assertIn("_save_pending_barrier(cache, source_id, barrier)", block)
+        self.assertNotIn("cache.delete(", block)
 
 
 if __name__ == "__main__":

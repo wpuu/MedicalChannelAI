@@ -26,6 +26,9 @@ SUPPORTED_INCREMENTAL_SOURCES = (
     "teda",
     "tjfch",
     "tjfch_test",
+    "tjzyefy",
+    "tjzyefy_intent",
+    "tjzxfc",
 )
 
 LEDGER_TTL_SECONDS = 45 * 24 * 60 * 60
@@ -118,11 +121,45 @@ def _save_pending_barrier(cache: RuntimeCache, source_id: str, urls: set[str]) -
     )
 
 
-def clear_incremental_pending(cache: RuntimeCache) -> None:
-    """Discard staging superseded by a fully completed authoritative deep cycle."""
+def reconcile_incremental_pending_from_canonical(
+    cache: RuntimeCache, *, verified_after: datetime,
+) -> dict[str, int]:
+    """Resolve only URLs whose canonical verification supersedes pending state."""
+    resolved = 0
+    retained = 0
     for source_id in SUPPORTED_INCREMENTAL_SOURCES:
-        cache.delete(_pending_cache_key(source_id))
-        cache.delete(_pending_barrier_cache_key(source_id))
+        barrier = _load_pending_barrier(cache, source_id)
+        staged = _load_pending_records(cache, source_id)
+        if not barrier and not staged:
+            continue
+        records, _ = _existing_records(cache, source_id)
+        ledger = _load_ledger(cache, source_id)
+        # v0.1 has only a source-level mutation time. Use it as a conservative
+        # lower bound: an old verification cannot undo a newer failed attempt.
+        raw_ledger_at = ledger.get("updated_at")
+        threshold = _parsed_verification_time(raw_ledger_at)
+        threshold = max(verified_after, threshold) if threshold else verified_after
+        verified_urls = set()
+        for record in records:
+            source = record.get("source") or {}
+            observed_at = _parsed_verification_time(source.get("observed_at"))
+            if observed_at is not None and observed_at >= threshold:
+                verified_urls.add(str(source.get("url") or ""))
+        resolved += len(barrier & verified_urls)
+        barrier.difference_update(verified_urls)
+        remaining = [row for row in staged if str((row.get("source") or {}).get("url") or "") not in verified_urls]
+        _save_pending_records(cache, source_id, remaining)
+        _save_pending_barrier(cache, source_id, barrier)
+        retained += len(barrier)
+    return {"resolved_barrier_count": resolved, "retained_barrier_count": retained}
+
+
+def _parsed_verification_time(value: Any) -> datetime | None:
+    try:
+        parsed = datetime.fromisoformat(str(value or "").replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed.astimezone(timezone.utc) if parsed.tzinfo is not None else None
 
 
 def _last_completed_bucket(cache: RuntimeCache, source_id: str) -> str | None:
@@ -182,6 +219,15 @@ def _existing_records(cache: RuntimeCache, source_id: str) -> tuple[list[dict[st
     if source_id == "tjnothop":
         rows, _ = runtime._cached_list(cache, runtime.TJNOTHOP_RECORDS_KEY, runtime._bootstrap_tjnothop_records)
         return rows, runtime.TJNOTHOP_RECORDS_KEY
+    if source_id == "tjzyefy":
+        rows, _ = runtime._cached_list(cache, runtime.TJZYEFY_RECORDS_KEY, runtime._bootstrap_tjzyefy_records)
+        return rows, runtime.TJZYEFY_RECORDS_KEY
+    if source_id == "tjzyefy_intent":
+        rows, _ = runtime._cached_list(cache, runtime.TJZYEFY_INTENT_RECORDS_KEY, runtime._bootstrap_tjzyefy_intent_records)
+        return rows, runtime.TJZYEFY_INTENT_RECORDS_KEY
+    if source_id == "tjzxfc":
+        rows, _ = runtime._cached_list(cache, runtime.TJZXFC_RECORDS_KEY, runtime._bootstrap_tjzxfc_records)
+        return rows, runtime.TJZXFC_RECORDS_KEY
     if source_id == "teda":
         rows, _ = runtime._cached_list(cache, runtime.TEDA_RECORDS_KEY, runtime._bootstrap_teda_records)
         return rows, runtime.TEDA_RECORDS_KEY
@@ -238,6 +284,78 @@ def _verify_tjnothop(candidate: Any, observed_at: str, now: datetime) -> dict[st
         observed_at=observed_at,
         opportunity_id=runtime.tjnothop_opportunity_id(candidate.detail_url),
     )
+
+
+def _discover_tjzyefy(now: datetime) -> list[Any]:
+    local_date = now.astimezone(runtime.SHANGHAI).date()
+    html = runtime.fetch_tjzyefy_page_with_retry(runtime.TJZYEFY_INDEX_URL, delay_seconds=3.0)
+    return runtime.select_tjzyefy_candidates(
+        runtime.parse_tjzyefy_index_html(html),
+        start_date=local_date - timedelta(days=runtime.EARLY_SIGNAL_LOOKBACK_DAYS - 1),
+        end_date=local_date, max_candidates=runtime.EARLY_SIGNAL_MAX_CANDIDATES,
+    )
+
+
+def _verify_tjzyefy(candidate: Any, observed_at: str, now: datetime) -> dict[str, Any] | None:
+    html = runtime.fetch_tjzyefy_page_with_retry(candidate.detail_url, delay_seconds=3.0)
+    try:
+        return runtime.parse_tjzyefy_market_research(
+            html, source_url=candidate.detail_url, index_url=runtime.TJZYEFY_INDEX_URL,
+            index_published_at=candidate.published_at, expected_title=candidate.title,
+            observed_at=observed_at, opportunity_id=runtime.tjzyefy_opportunity_id(candidate.detail_url),
+        )
+    except runtime.TjzyefyParseError as exc:
+        if str(exc) in runtime.TJZYEFY_UNSUPPORTED_DETAIL_CODES:
+            return None
+        raise
+
+
+def _discover_tjzyefy_intent(now: datetime) -> list[Any]:
+    local_date = now.astimezone(runtime.SHANGHAI).date()
+    html = runtime.fetch_tjzyefy_page_with_retry(runtime.TJZYEFY_INDEX_URL, delay_seconds=3.0)
+    return runtime.select_intent_candidates_since(
+        runtime.parse_tjzyefy_intent_index_html(html),
+        start_date=local_date - timedelta(days=runtime.EARLY_SIGNAL_LOOKBACK_DAYS - 1),
+        end_date=local_date, max_candidates=runtime.EARLY_SIGNAL_MAX_CANDIDATES,
+    )
+
+
+def _verify_tjzyefy_intent(candidate: Any, observed_at: str, now: datetime) -> dict[str, Any] | None:
+    html = runtime.fetch_tjzyefy_page_with_retry(candidate.detail_url, delay_seconds=3.0)
+    try:
+        return runtime.parse_tjzyefy_procurement_intent(
+            html, source_url=candidate.detail_url, index_url=runtime.TJZYEFY_INDEX_URL,
+            index_published_at=candidate.published_at, expected_title=candidate.title,
+            observed_at=observed_at, opportunity_id=runtime.stable_intent_opportunity_id(candidate.detail_url),
+        )
+    except runtime.TjzyefyIntentParseError as exc:
+        if str(exc) in runtime.TJZYEFY_INTENT_UNSUPPORTED_DETAIL_CODES:
+            return None
+        raise
+
+
+def _discover_tjzxfc(now: datetime) -> list[Any]:
+    local_date = now.astimezone(runtime.SHANGHAI).date()
+    html = runtime.fetch_tjzxfc_page_with_retry(runtime.TJZXFC_INDEX_URL, delay_seconds=3.0)
+    return runtime.select_tjzxfc_candidates(
+        runtime.parse_tjzxfc_index_html(html),
+        start_date=local_date - timedelta(days=runtime.EARLY_SIGNAL_LOOKBACK_DAYS - 1),
+        end_date=local_date, max_candidates=runtime.EARLY_SIGNAL_MAX_CANDIDATES,
+    )
+
+
+def _verify_tjzxfc(candidate: Any, observed_at: str, now: datetime) -> dict[str, Any] | None:
+    html = runtime.fetch_tjzxfc_page_with_retry(candidate.detail_url, delay_seconds=3.0)
+    try:
+        return runtime.parse_tjzxfc_market_research(
+            html, source_url=candidate.detail_url, index_url=runtime.TJZXFC_INDEX_URL,
+            index_published_at=candidate.published_at, expected_title=candidate.title,
+            observed_at=observed_at, opportunity_id=runtime.tjzxfc_opportunity_id(candidate.detail_url),
+        )
+    except runtime.TjzxfcParseError as exc:
+        if str(exc) in runtime.TJZXFC_UNSUPPORTED_DETAIL_CODES:
+            return None
+        raise
 
 
 def _discover_teda(now: datetime) -> list[Any]:
@@ -341,6 +459,9 @@ _DISCOVERY: dict[str, Callable[[datetime], list[Any]]] = {
     "teda": _discover_teda,
     "tjfch": _discover_tjfch,
     "tjfch_test": _discover_tjfch_test,
+    "tjzyefy": _discover_tjzyefy,
+    "tjzyefy_intent": _discover_tjzyefy_intent,
+    "tjzxfc": _discover_tjzxfc,
 }
 _VERIFICATION: dict[str, Callable[[Any, str, datetime], dict[str, Any] | None]] = {
     "tjmugh": _verify_tjmugh,
@@ -348,6 +469,9 @@ _VERIFICATION: dict[str, Callable[[Any, str, datetime], dict[str, Any] | None]] 
     "teda": _verify_teda,
     "tjfch": _verify_tjfch,
     "tjfch_test": _verify_tjfch_test,
+    "tjzyefy": _verify_tjzyefy,
+    "tjzyefy_intent": _verify_tjzyefy_intent,
+    "tjzxfc": _verify_tjzxfc,
 }
 
 
@@ -403,6 +527,8 @@ def run_incremental_source(
     try:
         discovered = _DISCOVERY[source](observed)
     except Exception as exc:
+        runtime.record_source_scan(cache, source, successful=False, attempted_at=observed,
+                                   failure_reason="INDEX_SCAN_FAILED")
         return 503, {
             "action": "FAILED",
             "source_id": source,
@@ -443,6 +569,7 @@ def run_incremental_source(
     nonfact_verified_count = 0
     failures: list[dict[str, str]] = []
     successful_urls: set[str] = set()
+    verified_nonfact_urls: set[str] = set()
     observed_at = observed.isoformat()
     delay_seconds = _source_delay_seconds(source)
 
@@ -460,6 +587,7 @@ def run_incremental_source(
             successful_urls.add(decision.candidate.detail_url)
             if record is None:
                 nonfact_verified_count += 1
+                verified_nonfact_urls.add(decision.candidate.detail_url)
             else:
                 verified_records.append(record)
         except Exception as exc:
@@ -506,6 +634,8 @@ def run_incremental_source(
     }
 
     if failures:
+        runtime.record_source_scan(cache, source, successful=False, attempted_at=observed,
+                                   failure_reason="DETAIL_VERIFICATION_PENDING")
         _save_pending_records(cache, source, staged_records)
         _save_pending_barrier(cache, source, pending_barrier)
         return 503, {
@@ -518,11 +648,13 @@ def run_incremental_source(
         }
 
     if pending_barrier:
+        runtime.record_source_scan(cache, source, successful=False, attempted_at=observed,
+                                   failure_reason="DETAIL_VERIFICATION_PENDING")
         # A detail that failed in an earlier attempt disappeared from this scan's
         # discovery set. Do not infer that the failure was resolved. Keep all
         # successful sibling records isolated, finish this bucket without a public
         # refresh, and let the normal source interval recheck the unresolved URL.
-        # A successful authoritative deep cycle also clears this staging.
+        # A later deep verification may resolve only the URLs it actually covers.
         _save_pending_records(cache, source, staged_records)
         _save_pending_barrier(cache, source, pending_barrier)
         result = {
@@ -547,11 +679,14 @@ def run_incremental_source(
             cache_key,
             merged,
             tag="medicalchannelai-collector-canonical",
+            verified_nonfact_urls=verified_nonfact_urls,
+            canonical_source_id=source,
         )
     else:
         merged = existing_records
     _save_pending_records(cache, source, [])
     _save_pending_barrier(cache, source, set())
+    runtime.record_source_scan(cache, source, successful=True, attempted_at=observed)
 
     completed_result = {
         **base_result,

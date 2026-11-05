@@ -70,10 +70,12 @@ class TjzyefySyncTests(unittest.TestCase):
         self.assertGreaterEqual(sync_tjzyefy.MIN_DETAIL_DELAY_SECONDS, 3.0)
         self.assertIn('TJZYEFY_PROCUREMENT_INTENT_NOT_SUPPORTED', sync_tjzyefy.UNSUPPORTED_DETAIL_CODES)
 
-    def test_source_is_not_silently_added_to_intraday_scheduler(self) -> None:
+    def test_source_has_explicit_intraday_policy_and_adapter(self) -> None:
         source = INCREMENTAL_PATH.read_text(encoding='utf-8')
-        self.assertNotIn("'tjzyefy'", source)
-        self.assertNotIn('"tjzyefy"', source)
+        self.assertIn('"tjzyefy"', source)
+        adapter = (INCREMENTAL_PATH.parent / 'collector_incremental_runtime.py').read_text(encoding='utf-8')
+        self.assertIn('"tjzyefy": _discover_tjzyefy', adapter)
+        self.assertIn('"tjzyefy": _verify_tjzyefy', adapter)
 
     def test_parse_as_of_requires_timezone(self) -> None:
         with self.assertRaisesRegex(ValueError, 'timezone'):

@@ -1,11 +1,11 @@
-import { readFileSync } from 'node:fs'
 import handler from '../api/ai/analyze.js'
 import { runtimeWindowStatus } from '../api/ai/_analyzeCore.js'
-import { clearVerifiedSnapshotCacheForTests } from '../api/_verifiedSnapshot.js'
+import { clearVerifiedSnapshotCacheForTests, setDurableSnapshotSourceForTests } from '../api/_verifiedSnapshot.js'
+import { installSnapshotTestClock, makeVerifiedSnapshot } from './fixtures/verifiedSnapshot.mjs'
 
-const snapshot = JSON.parse(
-  readFileSync(new URL('../public/data/today-actions.public.json', import.meta.url), 'utf8'),
-)
+const restoreClock = installSnapshotTestClock()
+const snapshot = makeVerifiedSnapshot()
+setDurableSnapshotSourceForTests(async () => ({ snapshot_hash: 'ai-boundary-fixture', payload: snapshot }))
 const knownOpportunityId = snapshot.cards?.[0]?.opportunity_id
 if (!knownOpportunityId) throw new Error('AI_BOUNDARY_TEST_NO_VERIFIED_CARD')
 
@@ -310,6 +310,8 @@ try {
 
   console.log('AI boundary checks: PASS')
 } finally {
+  restoreClock()
+  setDurableSnapshotSourceForTests(null)
   clearVerifiedSnapshotCacheForTests()
   globalThis.fetch = savedFetch
   if (savedKeys === undefined) delete process.env.AGNES_API_KEYS

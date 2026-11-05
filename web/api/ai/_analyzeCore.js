@@ -13,6 +13,7 @@ import {
   buildDecisionMessages,
   parseDecisionContent,
 } from './_decisionContract.js'
+import { evaluateSourceHealth, sourceIdsForOpportunity } from '../_sourceHealth.js'
 
 export const config = { maxDuration: 60 }
 
@@ -42,9 +43,32 @@ const PROVIDER_RETRY_DELAY_MS = 250
 const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
 const SOURCE_CATEGORY_TITLE_CONFLICT = 'SOURCE_CATEGORY_TITLE_CONFLICT'
 const RELATIVE_WINDOW_FLAG = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
+const MAX_VERIFIED_SNAPSHOT_AGE_MS = 30 * 60 * 60 * 1000
+const MAX_VERIFIED_SNAPSHOT_FUTURE_SKEW_MS = 10 * 60 * 1000
 
 const resultCache = new Map()
 const inFlight = new Map()
+
+export function verifiedSnapshotAutomationError(snapshot, nowMs = Date.now()) {
+  const timestamp = typeof snapshot?.snapshot_as_of === 'string'
+    ? Date.parse(snapshot.snapshot_as_of)
+    : Number.NaN
+  const age = nowMs - timestamp
+  if (!Number.isFinite(age) || age > MAX_VERIFIED_SNAPSHOT_AGE_MS || age < -MAX_VERIFIED_SNAPSHOT_FUTURE_SKEW_MS) {
+    return 'VERIFIED_SNAPSHOT_NOT_FRESH'
+  }
+  return null
+}
+
+function sourceHealthAutomationError(snapshot, opportunityId, nowMs) {
+  const pool = Array.isArray(snapshot?.opportunity_pool) ? snapshot.opportunity_pool : snapshot?.cards || []
+  const card = pool.find((item) => item?.opportunity_id === opportunityId)
+  const sourceIds = sourceIdsForOpportunity(card)
+  const health = evaluateSourceHealth(snapshot, nowMs)
+  return sourceIds.length > 0 && sourceIds.every((id) => health.sources[id]?.status === 'HEALTHY')
+    ? null
+    : 'SOURCE_HEALTH_UNAVAILABLE'
+}
 
 function sendJson(response, status, payload) {
   response.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -626,13 +650,18 @@ async function analyzeSharedPublicBatchItem({
   request,
   cacheOnly,
 }) {
+  const nowMs = Date.now()
+  const snapshotError = verifiedSnapshotAutomationError(snapshot, nowMs)
+  if (snapshotError) return { opportunity_id: opportunityId, status: 'ERROR', error: snapshotError }
   const grounded = findVerifiedOpportunity(snapshot, opportunityId)
   if (!grounded) {
     return { opportunity_id: opportunityId, status: 'ERROR', error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' }
   }
 
-  const analysisAsOf = new Date().toISOString()
-  const nowMs = Date.parse(analysisAsOf)
+  const sourceError = sourceHealthAutomationError(snapshot, opportunityId, nowMs)
+  if (sourceError) return { opportunity_id: opportunityId, status: 'ERROR', error: sourceError }
+
+  const analysisAsOf = new Date(nowMs).toISOString()
   const windowStatus = runtimeWindowStatus(grounded.facts, nowMs)
   if (windowStatus === 'CLOSED') {
     return {
@@ -750,6 +779,12 @@ export function prewarmCandidateIds(snapshot, maxCandidates) {
  * `remaining_miss_count` reaches 0.
  */
 export async function prewarmSharedPublicDecisions({ snapshot, request, limit, maxCandidates }) {
+  const snapshotError = verifiedSnapshotAutomationError(snapshot)
+  if (snapshotError) {
+    const error = new Error(snapshotError)
+    error.code = snapshotError
+    throw error
+  }
   if (!publicIntelligenceDatabaseConfigured()) {
     const error = new Error('PREWARM_REQUIRES_DURABLE_CACHE')
     error.code = 'PREWARM_REQUIRES_DURABLE_CACHE'
@@ -898,6 +933,8 @@ export default async function handler(request, response) {
     } catch {
       return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
     }
+    const snapshotError = verifiedSnapshotAutomationError(batchSnapshot)
+    if (snapshotError) return sendJson(response, 409, { error: snapshotError })
 
     const cacheOnly = body.cache_only === true
     const items = await Promise.all(
@@ -934,14 +971,18 @@ export default async function handler(request, response) {
   } catch {
     return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
   }
+  const nowMs = Date.now()
+  const snapshotError = verifiedSnapshotAutomationError(snapshot, nowMs)
+  if (snapshotError) return sendJson(response, 409, { error: snapshotError })
   const grounded = findVerifiedOpportunity(snapshot, opportunityId)
   if (!grounded) return sendJson(response, 404, { error: 'VERIFIED_OPPORTUNITY_NOT_FOUND' })
+  const sourceError = sourceHealthAutomationError(snapshot, opportunityId, nowMs)
+  if (sourceError) return sendJson(response, 409, { error: sourceError })
 
   const clientCustomerContext = sanitizeCustomerContext(body.customer_context)
   const privateOverlayContext = sanitizeCustomerContext(request.__medicalChannelPrivateDecisionOverlay)
   const modelCustomerContext = privateOverlayContext ? null : clientCustomerContext
-  const analysisAsOf = new Date().toISOString()
-  const nowMs = Date.parse(analysisAsOf)
+  const analysisAsOf = new Date(nowMs).toISOString()
   const windowStatus = runtimeWindowStatus(grounded.facts, nowMs)
   if (windowStatus === 'CLOSED') {
     return sendJson(response, 409, { error: 'OPPORTUNITY_WINDOW_CLOSED', analysis_as_of: analysisAsOf })

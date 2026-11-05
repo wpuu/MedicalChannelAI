@@ -1,4 +1,5 @@
 import { loadVerifiedSnapshot, verifiedSnapshotRuntimeOrigin, verifiedSnapshotSourceMode } from './_verifiedSnapshot.js'
+import { evaluateSourceHealth } from './_sourceHealth.js'
 
 const APP_VERSION = '0.5.0'
 const SNAPSHOT_STALE_AFTER_MINUTES = 30 * 60
@@ -46,17 +47,19 @@ export default async function handler(request, response) {
     const runtimeOrigin = verifiedSnapshotRuntimeOrigin()
     const pool = Array.isArray(snapshot.opportunity_pool) ? snapshot.opportunity_pool : snapshot.cards
     const freshness = snapshotFreshness(snapshot.snapshot_as_of)
+    const sourceHealth = evaluateSourceHealth(snapshot)
     const fallbackDegraded = sourceMode === 'BUNDLED_FALLBACK'
     return sendJson(response, freshness.freshness === 'INVALID' ? 503 : 200, {
       ...base,
       ready: freshness.freshness !== 'INVALID',
-      degraded: freshness.degraded || fallbackDegraded,
+      degraded: freshness.degraded || fallbackDegraded || sourceHealth.status !== 'HEALTHY',
       snapshot: {
         available: true, source_mode: sourceMode,
         runtime_origin: sourceMode === 'RUNTIME_CACHE' ? runtimeOrigin : null,
         snapshot_as_of: snapshot.snapshot_as_of ?? null,
         freshness: freshness.freshness, age_minutes: freshness.age_minutes,
         stale_after_minutes: SNAPSHOT_STALE_AFTER_MINUTES,
+        source_health: sourceHealth,
         today_card_count: Array.isArray(snapshot.cards) ? snapshot.cards.length : 0,
         opportunity_pool_count: Array.isArray(pool) ? pool.length : 0,
       },
@@ -69,6 +72,7 @@ export default async function handler(request, response) {
       snapshot: {
         available: false, source_mode: failureMode, runtime_origin: null, snapshot_as_of: null,
         freshness: 'UNAVAILABLE', age_minutes: null, stale_after_minutes: SNAPSHOT_STALE_AFTER_MINUTES,
+        source_health: evaluateSourceHealth(null),
         today_card_count: 0, opportunity_pool_count: 0,
       },
     })

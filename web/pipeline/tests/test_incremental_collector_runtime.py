@@ -45,7 +45,7 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.assertIsNotNone(scheduled)
         self.assertNotIn('"ccgp"', block.group(1))
         self.assertNotIn('"ccgp"', scheduled.group(1))
-        for source in ('tjmugh', 'tjnothop', 'teda', 'tjfch', 'tjfch_test'):
+        for source in ('tjmugh', 'tjnothop', 'teda', 'tjfch', 'tjfch_test', 'tjzyefy', 'tjzyefy_intent', 'tjzxfc'):
             self.assertIn(f'"{source}"', block.group(1))
             self.assertIn(f'"{source}"', scheduled.group(1))
 
@@ -123,16 +123,12 @@ class IncrementalCollectorRuntimeTests(unittest.TestCase):
         self.assertIn('return decision.candidate', block)
         self.assertIn('raise RuntimeError("INCREMENTAL_SELECTED_CANDIDATE_MISSING")', block)
 
-    def test_authoritative_deep_publish_discards_all_older_incremental_staging(self) -> None:
-        self.assertIn('def clear_incremental_pending(cache: RuntimeCache)', self.runtime)
-        start = self.queue.index('else:\n            # The completed deep cycle is authoritative')
-        end = self.queue.index('        return', start)
-        terminal = self.queue[start:end]
-        clear = terminal.index('incremental_runtime.clear_incremental_pending(RuntimeCache())')
-        schedule = terminal.index('await _start_intraday_chain_after_deep()')
-        release = terminal.index('_release_active_cycle_if_owned(cycle_id)')
-        self.assertLess(clear, schedule)
-        self.assertLess(schedule, release)
+    def test_deep_publish_reconciles_only_proven_canonical_verifications(self) -> None:
+        self.assertNotIn('def clear_incremental_pending(', self.runtime)
+        self.assertIn('def reconcile_incremental_pending_from_canonical(', self.runtime)
+        self.assertIn('incremental_runtime.reconcile_incremental_pending_from_canonical(', self.queue)
+        self.assertIn('verified_after=cycle_as_of', self.queue)
+        self.assertIn('barrier.difference_update(verified_urls)', self.runtime)
 
     def test_incremental_status_is_aggregate_only(self) -> None:
         for field in (

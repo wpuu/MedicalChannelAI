@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 NAMESPACE_VERSION = "v2"
@@ -16,11 +17,16 @@ TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v2"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v2"
 TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v2"
 TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v2"
+TJZYEFY_RECORDS_KEY = "medicalchannelai:collector-tjzyefy-records:v2"
+TJZYEFY_INTENT_RECORDS_KEY = "medicalchannelai:collector-tjzyefy-intent-records:v2"
+TJZXFC_RECORDS_KEY = "medicalchannelai:collector-tjzxfc-records:v2"
+SOURCE_HEALTH_KEY = "medicalchannelai:collector-source-health:v2"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v2"
 LEGACY_LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 ACTIVE_CYCLE_TTL_SECONDS = 2 * 24 * 60 * 60
 INCREMENTAL_ACTIVE_TTL_SECONDS = 15 * 60
 INCREMENTAL_CHAIN_TTL_SECONDS = 2 * 24 * 60 * 60
+DEEP_EXECUTION_LEASE_TIMEOUT = timedelta(minutes=15)
 
 _RUNTIME_KEY_ASSIGNMENTS = {
     "META_KEY": META_KEY,
@@ -31,6 +37,10 @@ _RUNTIME_KEY_ASSIGNMENTS = {
     "TJNOTHOP_RECORDS_KEY": TJNOTHOP_RECORDS_KEY,
     "TEDA_RECORDS_KEY": TEDA_RECORDS_KEY,
     "TJFCH_RECORDS_KEY": TJFCH_RECORDS_KEY,
+    "TJZYEFY_RECORDS_KEY": TJZYEFY_RECORDS_KEY,
+    "TJZYEFY_INTENT_RECORDS_KEY": TJZYEFY_INTENT_RECORDS_KEY,
+    "TJZXFC_RECORDS_KEY": TJZXFC_RECORDS_KEY,
+    "SOURCE_HEALTH_KEY": SOURCE_HEALTH_KEY,
     "LATEST_RUNTIME_SNAPSHOT_KEY": LATEST_RUNTIME_SNAPSHOT_KEY,
 }
 
@@ -67,6 +77,41 @@ def cycle_has_running_stage(value: Any) -> bool:
     )
 
 
+def deep_cycle_owner_is_live(
+    active_value: Any, runtime_state: Any, *, now: datetime,
+) -> bool:
+    """Distinguish a cached owner marker from a current execution lease.
+
+    Fifteen minutes exceeds the bounded 300-second worker and its queue retry
+    delay. A long deep cycle remains live through actual stage writes and queue
+    heartbeats; its frozen collection clock never establishes liveness.
+    Unknown legacy wall metadata remains protected until it can be reconciled.
+    """
+    if active_cycle_id(active_value) is None:
+        return False
+    raw_clocks = [active_value.get("activated_at"), active_value.get("wall_heartbeat_at")]
+    if (
+        isinstance(runtime_state, dict)
+        and active_value.get("local_date")
+        and runtime_state.get("local_date") == active_value.get("local_date")
+    ):
+        raw_clocks.append(runtime_state.get("updated_at"))
+        stages = runtime_state.get("stages")
+        if isinstance(stages, dict):
+            raw_clocks.extend(
+                row.get("wall_started_at") for row in stages.values() if isinstance(row, dict)
+            )
+    clocks = []
+    for raw in raw_clocks:
+        try:
+            parsed = datetime.fromisoformat(str(raw or "").replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if parsed.tzinfo is not None:
+            clocks.append(parsed.astimezone(timezone.utc))
+    return not clocks or now.astimezone(timezone.utc) - max(clocks) < DEEP_EXECUTION_LEASE_TIMEOUT
+
+
 def deep_message_lease_disposition(
     active_value: Any,
     runtime_state: Any,
@@ -93,6 +138,8 @@ def deep_message_lease_disposition(
         return "EXPIRED_STALE"
 
     if isinstance(runtime_state, dict):
+        if runtime_state.get("abandoned_cycle_id") == cycle_id:
+            return "SUPERSEDED"
         state_date = str(runtime_state.get("local_date") or "").strip()
         if state_date and local_date and state_date > local_date:
             return "SUPERSEDED"

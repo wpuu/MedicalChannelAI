@@ -1,11 +1,13 @@
 import { timingSafeEqual } from 'node:crypto'
 import {
   loadVerifiedSnapshot,
+  invalidateVerifiedSnapshotMemo,
   publishVerifiedSnapshotToRuntimeCache,
-  validateVerifiedSnapshot,
+  snapshotRemoteReaderConfigured,
+  validateSnapshotPublication,
   verifiedSnapshotSourceMode,
 } from './_verifiedSnapshot.js'
-import { persistPublicVerifiedSnapshot } from './_publicIntelligenceDb.js'
+import { persistPublicVerifiedSnapshot, publicIntelligenceDatabaseConfigured } from './_publicIntelligenceDb.js'
 
 // Visitors read through the Vercel CDN (the CDN strips s-maxage/SWR before the
 // browser, which then revalidates with the ETag). Publisher readback must see
@@ -84,7 +86,9 @@ function publishFailureStatus(error) {
     code === 'RUNTIME_SNAPSHOT_REVISION_CONFLICT' ||
     code === 'RUNTIME_SNAPSHOT_OLDER_THAN_BUNDLE' ||
     code === 'RUNTIME_SNAPSHOT_FUTURE_REJECTED' ||
-    code === 'PUBLIC_SNAPSHOT_REVISION_CONFLICT'
+    code === 'PUBLIC_SNAPSHOT_REVISION_CONFLICT' ||
+    code === 'PUBLIC_SNAPSHOT_ROLLBACK_REJECTED' ||
+    code === 'PUBLIC_SNAPSHOT_REMOTE_READER_CONFIGURED'
   ) return 409
   if (
     code.startsWith('VERIFIED_SNAPSHOT_') ||
@@ -94,51 +98,84 @@ function publishFailureStatus(error) {
   return 503
 }
 
-async function publishSnapshot(request, response) {
-  const expectedToken = configuredPublishToken()
-  if (expectedToken.length < 24) {
-    return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_PUBLISH_NOT_CONFIGURED' })
-  }
-  if (!authorizedPublisher(request, expectedToken)) {
-    response.setHeader('WWW-Authenticate', 'Bearer')
-    return sendJson(response, 401, { error: 'UNAUTHORIZED' })
+// Dependencies are injected only by local contract tests. The production
+// handler always uses the real durable store and the real verified reader.
+export function createPublicSnapshotHandler({
+  persistSnapshot = persistPublicVerifiedSnapshot,
+  publishRuntimeSnapshot = publishVerifiedSnapshotToRuntimeCache,
+  loadSnapshot = loadVerifiedSnapshot,
+  databaseConfigured = publicIntelligenceDatabaseConfigured,
+  remoteReaderConfigured = snapshotRemoteReaderConfigured,
+  invalidateMemo = invalidateVerifiedSnapshotMemo,
+} = {}) {
+  async function publishSnapshot(request, response) {
+    const expectedToken = configuredPublishToken()
+    if (expectedToken.length < 24) {
+      return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_PUBLISH_NOT_CONFIGURED' })
+    }
+    if (!authorizedPublisher(request, expectedToken)) {
+      response.setHeader('WWW-Authenticate', 'Bearer')
+      return sendJson(response, 401, { error: 'UNAUTHORIZED' })
+    }
+
+    try {
+      const snapshot = validateSnapshotPublication(await requestBodyValue(request))
+      if (!databaseConfigured()) throw new Error('PUBLIC_SNAPSHOT_DATABASE_NOT_CONFIGURED')
+      // An explicitly configured external reader wins over the database. Reject
+      // before committing instead of claiming that this endpoint can read a write
+      // which its configured GET path would never expose.
+      if (remoteReaderConfigured()) throw new Error('PUBLIC_SNAPSHOT_REMOTE_READER_CONFIGURED')
+      const committed = await persistSnapshot(snapshot)
+      if (!committed?.persisted) throw new Error('PUBLIC_SNAPSHOT_COMMIT_NOT_CONFIRMED')
+      invalidateMemo()
+
+      let cacheStatus = 'UPDATED'
+      try {
+        await publishRuntimeSnapshot(snapshot)
+      } catch (error) {
+        // The transaction already committed and verified its own readback. Report
+        // that truthfully: a retry can repair the cache without a second commit.
+        cacheStatus = 'RETRY_REQUIRED'
+        console.warn('durable snapshot committed; fallback cache update unavailable', {
+          error: String(error?.message || 'RUNTIME_SNAPSHOT_UNAVAILABLE'),
+        })
+      }
+      const pool = Array.isArray(snapshot.opportunity_pool) ? snapshot.opportunity_pool : snapshot.cards
+      return sendJson(response, 200, {
+        ok: true,
+        durable_committed: true,
+        cache_status: cacheStatus,
+        snapshot_as_of: snapshot.snapshot_as_of,
+        today_card_count: Array.isArray(snapshot.cards) ? snapshot.cards.length : 0,
+        opportunity_pool_count: Array.isArray(pool) ? pool.length : 0,
+      })
+    } catch (error) {
+      return sendJson(response, publishFailureStatus(error), {
+        error: String(error?.message || 'VERIFIED_SNAPSHOT_PUBLISH_FAILED'),
+      })
+    }
   }
 
-  try {
-    const snapshot = validateVerifiedSnapshot(await requestBodyValue(request))
-    await persistPublicVerifiedSnapshot(snapshot)
-    const published = await publishVerifiedSnapshotToRuntimeCache(snapshot)
-    const pool = Array.isArray(published.opportunity_pool) ? published.opportunity_pool : published.cards
-    return sendJson(response, 200, {
-      ok: true,
-      snapshot_as_of: published.snapshot_as_of,
-      today_card_count: Array.isArray(published.cards) ? published.cards.length : 0,
-      opportunity_pool_count: Array.isArray(pool) ? pool.length : 0,
-    })
-  } catch (error) {
-    return sendJson(response, publishFailureStatus(error), {
-      error: String(error?.message || 'VERIFIED_SNAPSHOT_PUBLISH_FAILED'),
-    })
+  return async function handler(request, response) {
+    if (request.method === 'PUT' || request.method === 'POST') {
+      return publishSnapshot(request, response)
+    }
+    if (request.method !== 'GET') {
+      response.setHeader('Allow', 'GET, PUT, POST')
+      return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
+    }
+
+    try {
+      const readback = wantsFreshSnapshot(request)
+      const snapshot = await loadSnapshot({ forceRefresh: readback })
+      response.setHeader('X-MedicalChannelAI-Snapshot-Source', verifiedSnapshotSourceMode())
+      // Publisher readback (?fresh=) must never be served from the CDN, or a
+      // successful PUT could appear stale during round-trip validation.
+      return sendJson(response, 200, snapshot, { cacheable: !readback })
+    } catch {
+      return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
+    }
   }
 }
 
-export default async function handler(request, response) {
-  if (request.method === 'PUT' || request.method === 'POST') {
-    return publishSnapshot(request, response)
-  }
-  if (request.method !== 'GET') {
-    response.setHeader('Allow', 'GET, PUT, POST')
-    return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
-  }
-
-  try {
-    const snapshot = await loadVerifiedSnapshot()
-    response.setHeader('X-MedicalChannelAI-Snapshot-Source', verifiedSnapshotSourceMode())
-    // Publisher readback (?fresh=) must never be served from the CDN, or a
-    // successful PUT could appear stale during round-trip validation.
-    const readback = wantsFreshSnapshot(request)
-    return sendJson(response, 200, snapshot, { cacheable: !readback })
-  } catch {
-    return sendJson(response, 503, { error: 'VERIFIED_SNAPSHOT_UNAVAILABLE' })
-  }
-}
+export default createPublicSnapshotHandler()

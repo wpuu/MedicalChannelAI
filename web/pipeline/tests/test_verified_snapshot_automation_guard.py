@@ -7,6 +7,7 @@ from pathlib import Path
 WEB_ROOT = Path(__file__).resolve().parents[2]
 REPO_ROOT = WEB_ROOT.parent
 ANALYZE = WEB_ROOT / 'api' / 'ai' / 'analyze.js'
+ANALYZE_CORE = WEB_ROOT / 'api' / 'ai' / '_analyzeCore.js'
 AI_CLIENT = WEB_ROOT / 'src' / 'services' / 'aiDecisionApi.ts'
 OUTREACH = WEB_ROOT / 'src' / 'components' / 'followup' / 'OutreachDrawer.tsx'
 VERIFIED_SNAPSHOT = WEB_ROOT / 'api' / '_verifiedSnapshot.js'
@@ -17,12 +18,20 @@ REGIONAL_WORKFLOW = REPO_ROOT / '.github' / 'workflows' / 'regional-medical-refr
 
 
 class VerifiedSnapshotAutomationGuardTests(unittest.TestCase):
-    def test_private_ai_wrapper_rejects_stale_invalid_and_future_snapshot_before_opportunity_use(self) -> None:
+    def test_shared_core_and_private_wrapper_gate_freshness_before_cache_or_provider_use(self) -> None:
         source = ANALYZE.read_text(encoding='utf-8')
+        core = ANALYZE_CORE.read_text(encoding='utf-8')
 
-        self.assertIn('MAX_VERIFIED_SNAPSHOT_AGE_MS = 30 * 60 * 60 * 1000', source)
-        self.assertIn('MAX_VERIFIED_SNAPSHOT_FUTURE_SKEW_MS = 10 * 60 * 1000', source)
-        self.assertIn("return 'VERIFIED_SNAPSHOT_NOT_FRESH'", source)
+        # Public single/batch/cache-only and private requests share one policy.
+        # The functional JS regression also verifies rejected calls do no model
+        # work, including when a decision is already present in the cache.
+        self.assertIn('MAX_VERIFIED_SNAPSHOT_AGE_MS = 30 * 60 * 60 * 1000', core)
+        self.assertIn('MAX_VERIFIED_SNAPSHOT_FUTURE_SKEW_MS = 10 * 60 * 1000', core)
+        self.assertIn('export function verifiedSnapshotAutomationError', core)
+        self.assertIn("return 'VERIFIED_SNAPSHOT_NOT_FRESH'", core)
+        self.assertRegex(source, r"import coreHandler, \{[^}]*verifiedSnapshotAutomationError[^}]*\} from './_analyzeCore.js'")
+        self.assertNotIn('const MAX_VERIFIED_SNAPSHOT_AGE_MS', source)
+        self.assertNotIn('function verifiedSnapshotAutomationError', source)
         self.assertIn('const snapshotError = verifiedSnapshotAutomationError(snapshot)', source)
         self.assertIn('if (snapshotError) return sendJson(response, 409, { error: snapshotError })', source)
 
@@ -35,6 +44,30 @@ class VerifiedSnapshotAutomationGuardTests(unittest.TestCase):
         self.assertLess(
             source.index('if (snapshotError) return sendJson(response, 409, { error: snapshotError })'),
             source.index("if (routeName(request) === 'outreach')"),
+        )
+
+        handler = core[core.index('export default async function handler'):]
+        single = handler[handler.index('const opportunityId = cleanString(body.opportunity_id, 200)'):]
+        self.assertLess(
+            single.index('verifiedSnapshotAutomationError(snapshot, nowMs)'),
+            single.index('const grounded = findVerifiedOpportunity'),
+        )
+        self.assertLess(
+            single.index('if (snapshotError) return sendJson'),
+            single.index('await getOrCreateDecision'),
+        )
+        self.assertLess(
+            handler.index('verifiedSnapshotAutomationError(batchSnapshot)'),
+            handler.index('const items = await Promise.all'),
+        )
+        batch_item = core[core.index('async function analyzeSharedPublicBatchItem'):]
+        self.assertLess(
+            batch_item.index('if (snapshotError) return'),
+            batch_item.index('await getSharedPublicAiBrief'),
+        )
+        self.assertLess(
+            batch_item.index('if (snapshotError) return'),
+            batch_item.index('await getOrCreateDecision'),
         )
 
     def test_ai_and_outreach_clients_explain_server_freshness_rejection(self) -> None:

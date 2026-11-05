@@ -1,5 +1,5 @@
 import { timingSafeEqual } from 'node:crypto'
-import coreHandler, { config, prewarmSharedPublicDecisions } from './_analyzeCore.js'
+import coreHandler, { config, prewarmSharedPublicDecisions, verifiedSnapshotAutomationError } from './_analyzeCore.js'
 import { authenticatedUser } from '../_auth.js'
 import { privateDatabaseConfigured } from '../_privateDb.js'
 import { minimalPrivateContextForOpportunity } from '../_privateProfileContext.js'
@@ -11,8 +11,6 @@ const PUBLIC_FIRST_PARTY_ORIGINS = new Set([
   'https://medicalai.qd.je',
   'https://www.medicalai.qd.je',
 ])
-const MAX_VERIFIED_SNAPSHOT_AGE_MS = 30 * 60 * 60 * 1000
-const MAX_VERIFIED_SNAPSHOT_FUTURE_SKEW_MS = 10 * 60 * 1000
 const RELATIVE_WINDOW_FLAG = 'RELATIVE_REGISTRATION_WINDOW_7_DAYS'
 
 function firstHeaderValue(value) {
@@ -64,19 +62,6 @@ function pilotSameOriginAllowed(request) {
     .filter(Boolean)
     .map((value) => value.toLowerCase())
   return hosts.includes(originUrl.host.toLowerCase())
-}
-
-function verifiedSnapshotAutomationError(snapshot, now = Date.now()) {
-  const raw = typeof snapshot?.snapshot_as_of === 'string'
-    ? snapshot.snapshot_as_of.trim()
-    : ''
-  const parsed = raw ? Date.parse(raw) : Number.NaN
-  if (!raw || Number.isNaN(parsed)) return 'VERIFIED_SNAPSHOT_NOT_FRESH'
-  const age = now - parsed
-  if (age > MAX_VERIFIED_SNAPSHOT_AGE_MS || age < -MAX_VERIFIED_SNAPSHOT_FUTURE_SKEW_MS) {
-    return 'VERIFIED_SNAPSHOT_NOT_FRESH'
-  }
-  return null
 }
 
 function rawVerifiedCard(snapshot, opportunityId) {

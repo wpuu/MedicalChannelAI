@@ -69,6 +69,37 @@ from medical_channel_pipeline.tjnothop_discovery import (  # noqa: E402
     stable_opportunity_id as tjnothop_opportunity_id,
 )
 from medical_channel_pipeline.tjnothop_market_research import parse_tjnothop_market_research  # noqa: E402
+from medical_channel_pipeline.tjzyefy_discovery import (  # noqa: E402
+    INDEX_URL as TJZYEFY_INDEX_URL,
+    parse_tjzyefy_index_html,
+    select_candidates_since as select_tjzyefy_candidates,
+    stable_opportunity_id as tjzyefy_opportunity_id,
+)
+from medical_channel_pipeline.tjzyefy_market_research import TjzyefyParseError, parse_tjzyefy_market_research  # noqa: E402
+from medical_channel_pipeline.tjzyefy_intent_discovery import (  # noqa: E402
+    parse_tjzyefy_intent_index_html,
+    select_intent_candidates_since,
+    stable_intent_opportunity_id,
+)
+from medical_channel_pipeline.tjzyefy_procurement_intent import TjzyefyIntentParseError, parse_tjzyefy_procurement_intent  # noqa: E402
+from medical_channel_pipeline.tjzxfc_discovery import (  # noqa: E402
+    INDEX_URL as TJZXFC_INDEX_URL,
+    parse_tjzxfc_index_html,
+    select_candidates_since as select_tjzxfc_candidates,
+    stable_opportunity_id as tjzxfc_opportunity_id,
+)
+from medical_channel_pipeline.tjzxfc_market_research import TjzxfcParseError, parse_tjzxfc_market_research  # noqa: E402
+from sync_tjzyefy_market_research import (  # noqa: E402
+    fetch_page_with_retry as fetch_tjzyefy_page_with_retry,
+    UNSUPPORTED_DETAIL_CODES as TJZYEFY_UNSUPPORTED_DETAIL_CODES,
+)
+from sync_tjzyefy_procurement_intent import (  # noqa: E402
+    UNSUPPORTED_DETAIL_CODES as TJZYEFY_INTENT_UNSUPPORTED_DETAIL_CODES,
+)
+from sync_tjzxfc_market_research import (  # noqa: E402
+    fetch_page_with_retry as fetch_tjzxfc_page_with_retry,
+    UNSUPPORTED_DETAIL_CODES as TJZXFC_UNSUPPORTED_DETAIL_CODES,
+)
 from sync_ccgp_query import VERIFIED_NOTICE_ADAPTERS, discover_candidates, scan_events, stable_id  # noqa: E402
 from sync_teda_market_research import (  # noqa: E402
     UNSUPPORTED_DETAIL_CODES as TEDA_UNSUPPORTED_DETAIL_CODES,
@@ -105,15 +136,24 @@ TJFCH_MAX_CANDIDATES = 20
 TJFCH_TEST_LOOKBACK_DAYS = 14
 TJFCH_TEST_MAX_CANDIDATES = 30
 TJFCH_REQUEST_DELAY_SECONDS = 3.0
+EARLY_SIGNAL_LOOKBACK_DAYS = 30
+EARLY_SIGNAL_MAX_CANDIDATES = 20
+EARLY_SIGNAL_MAX_DETAILS = 12
 
 META_KEY = "medicalchannelai:collector-runtime-state:v1"
 CCGP_RECORDS_KEY = "medicalchannelai:collector-ccgp-records:v1"
 CCGP_EVENTS_KEY = "medicalchannelai:collector-ccgp-events:v1"
 CCGP_WATCH_KEY = "medicalchannelai:collector-ccgp-watch-projects:v1"
+CCGP_COMMITTED_STATE_KEY = "medicalchannelai:collector-ccgp-committed:v2"
+CCGP_CYCLE_STAGING_KEY = "medicalchannelai:collector-ccgp-cycle-staging:v2"
 TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v1"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v1"
 TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v1"
 TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v1"
+TJZYEFY_RECORDS_KEY = "medicalchannelai:collector-tjzyefy-records:v2"
+TJZYEFY_INTENT_RECORDS_KEY = "medicalchannelai:collector-tjzyefy-intent-records:v2"
+TJZXFC_RECORDS_KEY = "medicalchannelai:collector-tjzxfc-records:v2"
+SOURCE_HEALTH_KEY = "medicalchannelai:collector-source-health:v2"
 REGIONAL_RECORDS_KEY_PREFIX = "medicalchannelai:collector-regional-records:v3"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 PUBLISHED_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:published:v2"
@@ -145,6 +185,9 @@ STAGE_ORDER = (
     "event6",
     "tjmugh",
     "tjnothop",
+    "tjzyefy",
+    "tjzyefy_intent",
+    "tjzxfc",
     "teda",
     "tjfch",
     "regional_bj",
@@ -174,6 +217,55 @@ EXPECTED_SCHEDULES = {
     "publish": "5 3 * * *",
 }
 
+# Initial operational bounds, pending runtime SLA acceptance. Seed import never
+# advances these clocks; only a complete successful official scan may do so.
+SOURCE_STALE_AFTER_SECONDS = {
+    "ccgp": 48 * 60 * 60,
+    **{source: 24 * 60 * 60 for source in (
+        "tjmugh", "tjnothop", "teda", "tjfch", "tjfch_test",
+        "tjzyefy", "tjzyefy_intent", "tjzxfc",
+    )},
+    **{stage: 48 * 60 * 60 for stage in REGIONAL_STAGE_MARKET_CODES},
+}
+
+
+def record_source_scan(
+    cache: RuntimeCache, source_id: str, *, successful: bool,
+    attempted_at: datetime, failure_reason: str | None = None,
+) -> None:
+    if source_id not in SOURCE_STALE_AFTER_SECONDS:
+        return
+    value = cache.get(SOURCE_HEALTH_KEY)
+    sources = dict(value.get("sources", {})) if isinstance(value, dict) else {}
+    previous = sources.get(source_id)
+    row = dict(previous) if isinstance(previous, dict) else {}
+    timestamp = attempted_at.astimezone(timezone.utc).isoformat()
+    row.update(last_attempt_at=timestamp, stale_after_seconds=SOURCE_STALE_AFTER_SECONDS[source_id])
+    if successful:
+        row["last_successful_scan_at"] = timestamp
+        row["failure_reason"] = None
+    else:
+        row.setdefault("last_successful_scan_at", None)
+        row["failure_reason"] = failure_reason or "SOURCE_SCAN_FAILED"
+    sources[source_id] = row
+    _cache_set(cache, SOURCE_HEALTH_KEY, {"schema_version": SCHEMA_VERSION, "sources": sources},
+               tag="medicalchannelai-collector-source-health", ttl=45 * 24 * 60 * 60)
+
+
+def snapshot_source_health(cache: RuntimeCache) -> dict[str, Any]:
+    value = cache.get(SOURCE_HEALTH_KEY)
+    known = value.get("sources", {}) if isinstance(value, dict) else {}
+    sources = {}
+    for source_id, stale_after in SOURCE_STALE_AFTER_SECONDS.items():
+        row = known.get(source_id) if isinstance(known, dict) else None
+        sources[source_id] = {
+            "last_attempt_at": row.get("last_attempt_at") if isinstance(row, dict) else None,
+            "last_successful_scan_at": row.get("last_successful_scan_at") if isinstance(row, dict) else None,
+            "failure_reason": row.get("failure_reason") if isinstance(row, dict) else None,
+            "stale_after_seconds": stale_after,
+        }
+    return {"schema_version": SCHEMA_VERSION, "required_source_ids": list(sources), "sources": sources}
+
 
 class CollectorError(RuntimeError):
     code = "COLLECTOR_ERROR"
@@ -191,8 +283,78 @@ def _now_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def _cache_set(cache: RuntimeCache, key: str, value: Any, *, tag: str, ttl: int = STATE_TTL_SECONDS) -> None:
+def _cache_set(cache: RuntimeCache, key: str, value: Any, *, tag: str, ttl: int = STATE_TTL_SECONDS,
+               verified_nonfact_urls: set[str] | None = None, canonical_source_id: str | None = None) -> None:
+    reconciled = {}
+    if tag == "medicalchannelai-collector-canonical" or tag.startswith("medicalchannelai-collector-regional-"):
+        reconciled = _assert_pending_canonical_commit(cache, key, value, verified_nonfact_urls=verified_nonfact_urls,
+                                                      canonical_source_id=canonical_source_id)
     cache.set(key, value, {"ttl": ttl, "tags": [tag]})
+    # Commit precedes cleanup. Only URLs proven by this source transaction may
+    # release their barrier; a validated unsupported detail is also such proof.
+    for source_id, verified_urls in reconciled.items():
+        cache.delete(f"medicalchannelai:collector-incremental-pending-barrier:{source_id}:v2")
+        pending_key = f"medicalchannelai:collector-incremental-pending:{source_id}:v2"
+        staged = cache.get(pending_key)
+        if isinstance(staged, list):
+            remaining = [row for row in staged if str((row.get("source") or {}).get("url") or "") not in verified_urls]
+            if remaining:
+                cache.set(pending_key, remaining, {"ttl": 3 * 24 * 60 * 60,
+                          "tags": ["medicalchannelai-collector-incremental-pending"]})
+            else:
+                cache.delete(pending_key)
+
+
+def _assert_pending_canonical_commit(cache: RuntimeCache, key: str, records: Any, *,
+                                     verified_nonfact_urls: set[str] | None = None,
+                                     canonical_source_id: str | None = None) -> dict[str, set[str]]:
+    # Initial seed imports restore an old known canonical version only. Every
+    # subsequent source commit must prove it supersedes its unresolved URLs.
+    if cache.get(key) is None:
+        return {}
+    keys = {
+        CCGP_RECORDS_KEY: ("ccgp",), TJMUGH_RECORDS_KEY: ("tjmugh",),
+        TJNOTHOP_RECORDS_KEY: ("tjnothop",), TEDA_RECORDS_KEY: ("teda",),
+        TJFCH_RECORDS_KEY: ("tjfch", "tjfch_test"),
+        TJZYEFY_RECORDS_KEY: ("tjzyefy",), TJZYEFY_INTENT_RECORDS_KEY: ("tjzyefy_intent",),
+        TJZXFC_RECORDS_KEY: ("tjzxfc",),
+    }
+    sources = keys.get(key, ())
+    if canonical_source_id is not None:
+        if canonical_source_id not in sources:
+            raise CollectorStageBlocked("SOURCE_CANONICAL_PARTITION_MISMATCH")
+        # Incremental updates preserve a shared-cache sibling's old records.
+        # Only a combined deep scan must reconcile both feeds' pending URLs.
+        sources = (canonical_source_id,)
+    reconciled = {}
+    for source_id in sources:
+        pending = cache.get(f"medicalchannelai:collector-incremental-pending-barrier:{source_id}:v2")
+        if pending is None:
+            continue
+        if not isinstance(pending, list) or not all(isinstance(url, str) for url in pending):
+            raise CollectorStageBlocked("SOURCE_PENDING_BARRIER_CORRUPT")
+        ledger = cache.get(f"medicalchannelai:collector-incremental-ledger:{source_id}:v2")
+        threshold_raw = ledger.get("updated_at") if isinstance(ledger, dict) else None
+        try:
+            threshold = datetime.fromisoformat(str(threshold_raw or "").replace("Z", "+00:00"))
+        except ValueError:
+            threshold = None
+        # Explicit unsupported outcomes are successful verifications too. They
+        # never manufacture canonical facts, and may discharge only their URL.
+        verified = set(verified_nonfact_urls or ())
+        for record in records if isinstance(records, list) else []:
+            source = record.get("source") or {}
+            try:
+                observed = datetime.fromisoformat(str(source.get("observed_at") or "").replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            if (threshold is not None and threshold.tzinfo is not None and observed.tzinfo is not None
+                    and observed >= threshold):
+                verified.add(source.get("url"))
+        if set(pending) - verified:
+            raise CollectorStageBlocked("SOURCE_PENDING_VERIFICATION_BARRIER")
+        reconciled[source_id] = verified
+    return reconciled
 
 
 def _load_array(path: Path) -> list[dict[str, Any]]:
@@ -222,6 +384,18 @@ def _bootstrap_tjmugh_records() -> list[dict[str, Any]]:
 
 def _bootstrap_tjnothop_records() -> list[dict[str, Any]]:
     return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_tjnothop_records.json"))
+
+
+def _bootstrap_tjzyefy_records() -> list[dict[str, Any]]:
+    return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_tjzyefy_records.json"))
+
+
+def _bootstrap_tjzyefy_intent_records() -> list[dict[str, Any]]:
+    return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_tjzyefy_intent_records.json"))
+
+
+def _bootstrap_tjzxfc_records() -> list[dict[str, Any]]:
+    return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_tjzxfc_records.json"))
 
 
 def _bootstrap_teda_records() -> list[dict[str, Any]]:
@@ -327,7 +501,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     ):
         publish_state = stages.get("publish")
         market_code = REGIONAL_STAGE_MARKET_CODES[stage]
-        started_raw = str(previous.get("started_at") or "")
+        started_raw = str(previous.get("wall_started_at") or state.get("updated_at") or "")
         try:
             started = datetime.fromisoformat(started_raw.replace("Z", "+00:00"))
         except ValueError:
@@ -339,13 +513,13 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
             and int(previous.get("attempt_count", 0)) == MAX_STAGE_ATTEMPTS_PER_DAY
             and started is not None
             and started.tzinfo is not None
-            and now - started.astimezone(timezone.utc) >= timedelta(minutes=15)
+            and _now_utc() - started.astimezone(timezone.utc) >= timedelta(minutes=15)
         )
 
     if index > 0:
         required = STAGE_ORDER[index - 1]
         required_state = stages.get(required)
-        if not isinstance(required_state, dict) or required_state.get("status") != "COMPLETED":
+        if not isinstance(required_state, dict) or required_state.get("status") not in {"COMPLETED", "DEGRADED"}:
             raise CollectorPrecondition(f"COLLECTOR_PREVIOUS_STAGE_INCOMPLETE:{required}")
 
     attempts = int(previous.get("attempt_count", 0)) if isinstance(previous, dict) else 0
@@ -386,6 +560,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
         "status": "RUNNING",
         "attempt_count": attempts + 1,
         "started_at": now.isoformat(),
+        "wall_started_at": _now_utc().isoformat(),
         "completed_at": None,
         "error_code": None,
         "error_message": None,
@@ -393,6 +568,31 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     }
     _write_status(cache, state)
     return state, None
+
+
+def mark_stage_degraded(
+    stage: str, *, now: datetime, error: str, cache: RuntimeCache | None = None,
+) -> None:
+    """Finish an exhausted source without pretending its scan or publish succeeded."""
+    if stage == "publish":
+        raise CollectorPrecondition("COLLECTOR_PUBLISH_CANNOT_DEGRADE")
+    _stage_index(stage)
+    cache = cache or RuntimeCache()
+    state = load_status(cache)
+    row = (state.get("stages") or {}).get(stage)
+    if not isinstance(row, dict):
+        raise CollectorPrecondition("COLLECTOR_DEGRADED_STAGE_MISSING")
+    row.update(status="DEGRADED", completed_at=now.isoformat(), degraded_reason=str(error)[:300])
+    row["error_code"] = row.get("error_code") or "SOURCE_SCAN_FAILED"
+    row["error_message"] = row.get("error_message") or str(error)[:300]
+    _write_status(cache, state)
+    source = "ccgp" if stage.startswith("event") else stage.removesuffix("_fallback")
+    health = snapshot_source_health(cache)["sources"].get(source, {})
+    record_source_scan(cache, source, successful=False, attempted_at=now,
+                       failure_reason=health.get("failure_reason") or "SOURCE_SCAN_FAILED")
+    if stage == "tjfch":
+        record_source_scan(cache, "tjfch_test", successful=False, attempted_at=now,
+                           failure_reason="SOURCE_SCAN_FAILED")
 
 
 def _latest_stage_state_for_update(
@@ -448,6 +648,11 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     observed_at = as_of.astimezone(timezone.utc).isoformat()
     existing_records, bootstrapped_records = _cached_list(cache, CCGP_RECORDS_KEY, _bootstrap_ccgp_records)
     existing_events, bootstrapped_events = _cached_list(cache, CCGP_EVENTS_KEY, _bootstrap_ccgp_events)
+    committed = cache.get(CCGP_COMMITTED_STATE_KEY)
+    if committed is not None:
+        if not isinstance(committed, dict) or not isinstance(committed.get("records"), list) or not isinstance(committed.get("events"), list):
+            raise CollectorPrecondition("COLLECTOR_CCGP_COMMITTED_STATE_CORRUPT")
+        existing_records, existing_events = committed["records"], committed["events"]
 
     failures: list[dict[str, Any]] = []
     discovered_by_url: dict[str, tuple[str, object]] = {}
@@ -526,6 +731,8 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         suffix = f";DETAIL_FAILURES:{diagnostic}" if diagnostic else ""
         raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}{suffix}")
 
+    if failures:
+        raise CollectorStageBlocked("CCGP_CANDIDATE_VERIFICATION_INCOMPLETE")
     merged_records = merge_canonical_records(existing_records, new_records)
     watch_projects = active_ccgp_project_numbers(merged_records, as_of)
     if len(watch_projects) > plan["max_event_watch_projects"]:
@@ -533,8 +740,11 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             f"ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>{plan['max_event_watch_projects']}"
         )
 
-    _cache_set(cache, CCGP_RECORDS_KEY, merged_records, tag="medicalchannelai-collector-canonical")
-    _cache_set(cache, CCGP_EVENTS_KEY, existing_events, tag="medicalchannelai-collector-events")
+    # Notices and all event-watch batches form one source transaction. No
+    # current-cycle fact becomes canonical until every batch has passed.
+    _cache_set(cache, CCGP_CYCLE_STAGING_KEY, {
+        "cycle_as_of": state["cycle_as_of"], "records": merged_records, "events": existing_events,
+    }, tag="medicalchannelai-collector-ccgp-staging")
     _cache_set(cache, CCGP_WATCH_KEY, watch_projects, tag="medicalchannelai-collector-watch")
 
     return {
@@ -562,7 +772,11 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> 
     projects = [str(item) for item in watch_projects][
         batch_index * EVENT_BATCH_SIZE : (batch_index + 1) * EVENT_BATCH_SIZE
     ]
-    existing_events, _ = _cached_list(cache, CCGP_EVENTS_KEY, _bootstrap_ccgp_events)
+    staged = cache.get(CCGP_CYCLE_STAGING_KEY)
+    if (not isinstance(staged, dict) or staged.get("cycle_as_of") != state.get("cycle_as_of")
+            or not isinstance(staged.get("records"), list) or not isinstance(staged.get("events"), list)):
+        raise CollectorPrecondition("COLLECTOR_CCGP_CYCLE_STAGING_MISSING")
+    existing_events = staged["events"]
     ccgp_result = state.get("stages", {}).get("ccgp", {}).get("result") or {}
     start_text = str(ccgp_result.get("start_date") or "")
     end_text = str(ccgp_result.get("end_date") or "")
@@ -595,8 +809,18 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> 
         if len(project_search_failures) >= 2:
             raise CollectorStageBlocked(f"EVENT_WATCH_ALL_SEARCHES_FAILED:{project_number}")
 
+    if failures:
+        raise CollectorStageBlocked("EVENT_WATCH_VERIFICATION_INCOMPLETE")
     merged_events = merge_notice_events(existing_events, new_events)
-    _cache_set(cache, CCGP_EVENTS_KEY, merged_events, tag="medicalchannelai-collector-events")
+    staged["events"] = merged_events
+    if stage == "event6":
+        if not all(((state.get("stages") or {}).get(required) or {}).get("status") == "COMPLETED"
+                   for required in ("ccgp", "event1", "event2", "event3", "event4", "event5")):
+            raise CollectorStageBlocked("CCGP_SOURCE_TRANSACTION_INCOMPLETE")
+        _assert_pending_canonical_commit(cache, CCGP_RECORDS_KEY, staged["records"])
+        _cache_set(cache, CCGP_COMMITTED_STATE_KEY, staged, tag="medicalchannelai-collector-ccgp-committed")
+    else:
+        _cache_set(cache, CCGP_CYCLE_STAGING_KEY, staged, tag="medicalchannelai-collector-ccgp-staging")
     return {
         "batch_index": batch_index + 1,
         "project_count": len(projects),
@@ -652,6 +876,8 @@ def _run_tjmugh(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             )
     if selected and not new_records:
         raise CollectorStageBlocked("TJMUGH_ALL_SELECTED_DETAILS_FAILED_VERIFICATION")
+    if failures:
+        raise CollectorStageBlocked("TJMUGH_CANDIDATE_VERIFICATION_INCOMPLETE")
 
     merged = merge_canonical_records(existing_records, new_records)
     _cache_set(cache, TJMUGH_RECORDS_KEY, merged, tag="medicalchannelai-collector-canonical")
@@ -662,6 +888,48 @@ def _run_tjmugh(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "merged_record_count": len(merged),
         "failure_count": len(failures),
         "bootstrapped_records": bootstrapped,
+        "publish_gate_reason": "PASS",
+    }
+
+
+def _run_early_signal_source(cache: RuntimeCache, state: dict[str, Any], source_id: str) -> dict[str, Any]:
+    # Local import reuses the exact incremental adapters without introducing an
+    # import-time cycle. Deep and intraday runs share parser/identity contracts.
+    import collector_incremental_runtime as incremental
+
+    existing, cache_key = incremental._existing_records(cache, source_id)
+    as_of = _cycle_as_of(state)
+    discovered = incremental._DISCOVERY[source_id](as_of)
+    selected = discovered[:EARLY_SIGNAL_MAX_DETAILS]
+    verified: list[dict[str, Any]] = []
+    unsupported = 0
+    verified_nonfact_urls: set[str] = set()
+    failures = 0
+    for candidate in selected:
+        time.sleep(3.0)
+        try:
+            record = incremental._VERIFICATION[source_id](candidate, as_of.isoformat(), as_of)
+            if record is None:
+                unsupported += 1
+                verified_nonfact_urls.add(str(candidate.detail_url))
+            else:
+                verified.append(record)
+        except Exception:
+            failures += 1
+    if failures:
+        # A failed sibling must not permit a partly reconciled source commit.
+        raise CollectorStageBlocked("EARLY_SIGNAL_DETAIL_VERIFICATION_PENDING")
+    merged = merge_canonical_records(existing, verified)
+    _cache_set(cache, cache_key, merged, tag="medicalchannelai-collector-canonical",
+               verified_nonfact_urls=verified_nonfact_urls)
+    return {
+        "discovered_supported_count": len(discovered),
+        "selected_candidate_count": len(selected),
+        "deferred_detail_count": max(0, len(discovered) - len(selected)),
+        "new_verified_record_count": len(verified),
+        "unsupported_count": unsupported,
+        "failure_count": 0,
+        "merged_record_count": len(merged),
         "publish_gate_reason": "PASS",
     }
 
@@ -716,6 +984,8 @@ def _run_tjnothop(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             )
     if selected and not new_records:
         raise CollectorStageBlocked("TJNOTHOP_ALL_SELECTED_DETAILS_FAILED_VERIFICATION")
+    if failures:
+        raise CollectorStageBlocked("TJNOTHOP_CANDIDATE_VERIFICATION_INCOMPLETE")
 
     merged = merge_canonical_records(existing_records, new_records)
     _cache_set(cache, TJNOTHOP_RECORDS_KEY, merged, tag="medicalchannelai-collector-canonical")
@@ -981,7 +1251,8 @@ def _run_tjfch(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         )
 
     merged = merge_canonical_records(existing_records, new_records)
-    _cache_set(cache, TJFCH_RECORDS_KEY, merged, tag="medicalchannelai-collector-canonical")
+    _cache_set(cache, TJFCH_RECORDS_KEY, merged, tag="medicalchannelai-collector-canonical",
+               verified_nonfact_urls={str(row["url"]) for row in unsupported})
     return {
         "discovered_supported_count": len(discovered),
         "selected_candidate_count": len(selected),
@@ -1153,6 +1424,8 @@ def _run_regional_market(
         raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}")
 
     if stage == "regional_bj" and not scoped_found_candidates:
+        if failures:
+            raise CollectorStageBlocked(f"REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:{market_code}")
         _cache_set(
             cache,
             regional_records_key,
@@ -1221,6 +1494,8 @@ def _run_regional_market(
         raise CollectorStageBlocked(
             f"REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION:{market_code}"
         )
+    if failures:
+        raise CollectorStageBlocked(f"REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:{market_code}")
 
     merged = merge_canonical_records(existing_records, new_records)
     _cache_set(
@@ -1292,7 +1567,8 @@ def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, An
         raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_AS_OF_MISMATCH")
     expected_pool = snapshot.get("opportunity_pool")
     expected_count = len(expected_pool) if isinstance(expected_pool, list) else len(snapshot.get("cards") or [])
-    if int(result.get("opportunity_pool_count") or -1) != expected_count:
+    acknowledged_count = result.get("opportunity_pool_count")
+    if type(acknowledged_count) is not int or acknowledged_count != expected_count:
         raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_POOL_MISMATCH")
     return result
 
@@ -1300,10 +1576,18 @@ def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, An
 def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     ccgp_records = cache.get(CCGP_RECORDS_KEY)
     events = cache.get(CCGP_EVENTS_KEY)
+    committed = cache.get(CCGP_COMMITTED_STATE_KEY)
+    if committed is not None:
+        if not isinstance(committed, dict) or not isinstance(committed.get("records"), list) or not isinstance(committed.get("events"), list):
+            raise CollectorPrecondition("COLLECTOR_CCGP_COMMITTED_STATE_CORRUPT")
+        ccgp_records, events = committed["records"], committed["events"]
     tjmugh_records = cache.get(TJMUGH_RECORDS_KEY)
     tjnothop_records = cache.get(TJNOTHOP_RECORDS_KEY)
     teda_records = cache.get(TEDA_RECORDS_KEY)
     tjfch_records = cache.get(TJFCH_RECORDS_KEY)
+    tjzyefy_records = cache.get(TJZYEFY_RECORDS_KEY)
+    tjzyefy_intent_records = cache.get(TJZYEFY_INTENT_RECORDS_KEY)
+    tjzxfc_records = cache.get(TJZXFC_RECORDS_KEY)
     regional_records_by_market = {
         market_code: cache.get(_regional_records_key(market_code))
         for market_code in REGIONAL_STAGE_MARKET_CODES.values()
@@ -1315,6 +1599,9 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "tjnothop": tjnothop_records,
         "teda": teda_records,
         "tjfch": tjfch_records,
+        "tjzyefy": tjzyefy_records,
+        "tjzyefy_intent": tjzyefy_intent_records,
+        "tjzxfc": tjzxfc_records,
         **{
             f"regional_{market_code.lower()}": value
             for market_code, value in regional_records_by_market.items()
@@ -1341,10 +1628,28 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         + list(tjnothop_records)
         + list(teda_records)
         + list(tjfch_records)
+        + list(tjzyefy_records)
+        + list(tjzyefy_intent_records)
+        + list(tjzxfc_records)
         + regional_records
     )
     as_of = _cycle_as_of(state)
+    # Canonical identity conflicts still use the same deterministic reconciler.
+    records = merge_canonical_records([], records)
     snapshot = build_public_snapshot(records, as_of, list(events))
+    snapshot["source_health"] = snapshot_source_health(cache)
+    source_by_opportunity = {
+        str(record.get("opportunity_id")): (
+            "tjfch_test" if source_id == "tjfch" and
+            str((record.get("source") or {}).get("source_id") or "").startswith("tjfch-test:")
+            else source_id
+        )
+        for source_id, rows in canonical_by_name.items()
+        if source_id != "events"
+        for record in rows
+    }
+    for card in [*(snapshot.get("cards") or []), *(snapshot.get("opportunity_pool") or [])]:
+        card["source_id"] = source_by_opportunity.get(str(card.get("opportunity_id")))
     digest = _digest(snapshot)
     _cache_set(
         cache,
@@ -1362,10 +1667,16 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     # because the short-lived collector state ages out.
     durable_result = _persist_verified_snapshot_durably(snapshot)
 
-    cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})
-    serving_read_back = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
-    if not isinstance(serving_read_back, dict) or _digest(serving_read_back) != digest:
-        raise CollectorStageBlocked("SERVING_SNAPSHOT_READBACK_MISMATCH")
+    cache_status = "READY"
+    try:
+        cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})
+        serving_read_back = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+        if not isinstance(serving_read_back, dict) or _digest(serving_read_back) != digest:
+            cache_status = "RETRY_REQUIRED"
+    except Exception:
+        # The durable endpoint has already committed and read back this version.
+        # A fallback-copy failure cannot turn that committed publish into FAILED.
+        cache_status = "RETRY_REQUIRED"
 
     pool = read_back.get("opportunity_pool")
     return {
@@ -1377,6 +1688,7 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "sha256": digest,
         "durable_snapshot_persisted": True,
         "durable_snapshot_as_of": durable_result.get("snapshot_as_of"),
+        "cache_status": cache_status,
     }
 
 
@@ -1406,6 +1718,8 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             result = _run_tjmugh(cache, state)
         elif stage == "tjnothop":
             result = _run_tjnothop(cache, state)
+        elif stage in {"tjzyefy", "tjzyefy_intent", "tjzxfc"}:
+            result = _run_early_signal_source(cache, state, stage)
         elif stage == "teda":
             result = _run_teda(cache, state)
         elif stage == "tjfch":
@@ -1418,6 +1732,12 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             raise CollectorPrecondition(f"COLLECTOR_STAGE_INVALID:{stage}")
     except Exception as exc:
         _mark_failed(cache, state, stage, exc)
+        source = "ccgp" if stage.startswith("event") else stage.removesuffix("_fallback")
+        record_source_scan(cache, source, successful=False,
+                           attempted_at=_now_utc(), failure_reason="SOURCE_SCAN_FAILED")
+        if stage == "tjfch":
+            record_source_scan(cache, "tjfch_test", successful=False,
+                               attempted_at=_now_utc(), failure_reason="SOURCE_SCAN_FAILED")
         return 503, {
             "action": "FAILED",
             "stage": stage,
@@ -1427,6 +1747,24 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
         }
 
     _mark_completed(cache, state, stage, result)
+    complete_scan = int(result.get("failure_count", 0)) == 0 and not result.get("fallback_required")
+    source = "ccgp" if stage.startswith("event") else stage.removesuffix("_fallback")
+    if stage == "ccgp":
+        record_source_scan(cache, source, successful=False, attempted_at=_now_utc(),
+                           failure_reason="EVENT_VERIFICATION_PENDING")
+    elif stage.startswith("event"):
+        latest_stages = load_status(cache).get("stages") or {}
+        if all((latest_stages.get(required) or {}).get("status") == "COMPLETED"
+               for required in ("ccgp", "event1", "event2", "event3", "event4", "event5", "event6")):
+            record_source_scan(cache, source, successful=True, attempted_at=_now_utc())
+    elif not result.get("fallback_skipped"):
+        record_source_scan(cache, source, successful=complete_scan,
+                           attempted_at=_now_utc(),
+                           failure_reason=None if complete_scan else "DETAIL_VERIFICATION_PENDING")
+    if stage == "tjfch":
+        record_source_scan(cache, "tjfch_test", successful=complete_scan,
+                           attempted_at=_now_utc(),
+                           failure_reason=None if complete_scan else "DETAIL_VERIFICATION_PENDING")
     return 200, {
         "action": "COMPLETED",
         "stage": stage,

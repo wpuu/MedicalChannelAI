@@ -40,10 +40,11 @@ class TjzyefyIntentDailyDeepTests(unittest.TestCase):
             2,
         )
 
-    def test_intent_is_daily_deep_only_not_intraday(self) -> None:
+    def test_intent_has_explicit_intraday_policy_in_addition_to_daily_deep(self) -> None:
         source = INCREMENTAL.read_text(encoding='utf-8')
-        self.assertNotIn("'tjzyefy_intent'", source)
-        self.assertNotIn('"tjzyefy_intent"', source)
+        self.assertIn('"tjzyefy_intent"', source)
+        scheduler = (INCREMENTAL.parent / 'collector_incremental_scheduler.py').read_text(encoding='utf-8')
+        self.assertIn('"tjzyefy_intent"', scheduler)
 
     def test_daily_deep_still_uses_validated_self_hosted_runner(self) -> None:
         self.assertIn('- self-hosted', self.workflow)
