@@ -1,6 +1,40 @@
 # MedicalChannelAI current state
 
-Updated: 2026-09-04
+Updated: 2026-11-06（Asia/Shanghai）
+
+## 当前本地 P0 工作状态
+
+- 工作树：`/workspace/MedicalChannelAI-p0`；原工作树保持不动。
+- 分支：`codex/p0-reliability-contracts`。
+- 起始 HEAD：`3216fd940dabfa7714383b6436908f9b72ff8a9c`（`3216fd9`）。
+- 最终可执行代码 / 验证 HEAD：`0cc517dac7f23e9dc78769ddb1f2ced6c5f7e294`（`0cc517d`）；前置合同提交为 `e62c2a9`。后续状态文档提交不改变该版本已验证的可执行代码。
+- 权威规则：[行动雷达验收合同](action-radar-acceptance-contract.md)。Gold Set 15 例已改为规则冒烟稿，缺证用例不计 PASS。
+- 当前阶段：**LOCAL_CODE_VALIDATED_NOT_DEPLOYED**。本轮 P0 本地实现、聚焦回归、完整构建及独立终审完成；无剩余本地阻塞。
+- 当前验证环境：Node `24.19.0`、Python `3.12.14`。本轮实际输出为 805 个 Python 测试全部 PASS，不沿用下方历史 CI 数字。
+- `production_ready=false`。未进行 Preview/Production 部署、合并、域名或凭据变更；本轮没有实时生产验收结论。
+
+本轮实现边界：三源（`tjzyefy`、`tjzyefy_intent`、`tjzxfc`）runtime parity；单源失败隔离、日内 tick 独立兜底及过期 RUNNING 恢复；pending/barrier 保守清理；已提交快照与源级 freshness health；发布前校验及权威唯一提交；公开 AI 的 30 小时服务器新鲜度门禁；EdgeOne 固定 origin；空完整池与提醒 ACK；基线测试时钟稳定。
+
+本轮不实施相关性/资格门禁、项目生命周期串联、历史跟进与画像重构或商业交付。规则合同不等于这些能力已经实现，代码测试也不等于来源持续在线或客户续费价值已经成立。
+
+本轮本地验证记录（对应上述代码 HEAD）：
+
+| 项目 | 本轮状态 |
+|---|---|
+| 聚焦 P0 回归 | PASS；36 个 runtime/queue 行为测试及 publication、AI、source health、proxy 等聚焦检查通过 |
+| 完整 Python pipeline tests | PASS；805 个全部通过 |
+| JS 合约检查 / prebuild | PASS；全部检查通过，serverless entrypoints 11/12 |
+| TypeScript / Vite build | PASS；`npm run build` exit 0，main JS gzip 115.40 KiB |
+| 最终变更复核 | PASS；独立终审无剩余阻塞 |
+| Preview / Production 运行验收 | NOT_PERFORMED；本轮禁止部署 |
+
+源级过期阈值当前配置为医院源 24 小时、CCGP/区域源 48 小时；这些是已通过代码检查的工程初始值，仍待实际运行节奏与来源行为验收，不代表线上新鲜度已恢复。整体公开 AI 的 30 小时快照门禁与源级阈值是不同检查。
+
+Gold Set / Agnes relevance benchmark 未执行，相关性和资格门禁未实现，付费探索及续费验证未开始；本轮 PASS 不覆盖这些事项。
+
+## 历史记录（截至 2026-09-04；以下不表示当前状态）
+
+以下原文保留历史架构、CI 和源接入背景。历史分支、PR、runner、快照日期、部署状态及 PASS 只适用于其对应记录，未在本轮重新查询远端，不得解释为当前本地工作树或线上状态。旧 `checkpoint.json` 报告 #1457/558 测试，下方原文报告 #1472/581 测试；二者作为历史快照分别保留，不拿其中任何数字替代本轮验证。
 
 ## Product and safety boundary
 

@@ -41,18 +41,18 @@
 
 ## 4. 本轮 P0 可执行验收
 
-以下须以可重复本地/隔离测试证明，全部完成前不报告 P0 PASS：
+以下清单已在本地/隔离测试完成；验证代码为 `0cc517dac7f23e9dc78769ddb1f2ced6c5f7e294`，结果为 **LOCAL_CODE_VALIDATED_NOT_DEPLOYED**，详见[当前状态与验证记录](current-state.md)。勾选仅表示代码验收，不表示线上恢复或 Gold benchmark 通过：
 
-- [ ] 三源同时进入 policy、runtime、scheduler、独立 canonical/bootstrap、publish completeness/merge；现有显式 allowlist 边界保持。
-- [ ] 复用现有官方适配器；天津二附院 9/28 康复设备正例进入 VERIFIED，9/30 数据安全 hard negative 不进入医疗事实；intent 不发明报名截止，妇产科正反例保持。
-- [ ] 单源错误不终止可独立执行的其他来源；失败源无部分发布，旧 verified 数据保留并显示降级；日内 tick 独立兜底、过期 RUNNING 恢复有回归。
-- [ ] 未覆盖 URL 的 pending/barrier 在其他 URL 成功、深度刷新或重试清理时仍保留；明确解除路径有正例。
-- [ ] source health 与已提交快照一致；权威提交失败、读回失败或仅暂存成功时不能报告刷新成功；无新公告扫描和陈旧单源有独立用例。
-- [ ] 非法、超限、未来/回退版本发布在权威写入前拒绝；一次合法请求只提交一次；失败不污染后续 authoritative read。
-- [ ] 公开 AI 对 fresh、超过 30 小时、未来异常、无快照分别验证；不能由绕过前端的直接请求跳过门禁。
-- [ ] EdgeOne 对双斜线、外域路径、重定向等输入仍固定可信上游；凭据不流向其他主机。
-- [ ] 空完整池不回退旧卡片，已有提醒仍可 ACK；既有账户隔离及销售阶段规则不退化。
-- [ ] 基线测试时钟固定，聚焦回归、完整 Python/JS 合约检查、TypeScript 和构建完成；分别报告既有失败、新增失败和跳过项目。
+- [x] 三源同时进入 policy、runtime、scheduler、独立 canonical/bootstrap、publish completeness/merge；现有显式 allowlist 边界保持。
+- [x] 复用现有官方适配器；天津二附院 9/28 康复设备正例进入 VERIFIED，9/30 数据安全 hard negative 不进入医疗事实；intent 不发明报名截止，妇产科正反例保持。
+- [x] 单源错误不终止可独立执行的其他来源；失败源无部分发布，旧 verified 数据保留并显示降级；日内 tick 独立兜底、过期 RUNNING 恢复有回归。
+- [x] 未覆盖 URL 的 pending/barrier 在其他 URL 成功、深度刷新或重试清理时仍保留；明确解除路径有正例。
+- [x] source health 与已提交快照一致；权威提交失败、读回失败或仅暂存成功时不能报告刷新成功；无新公告扫描和陈旧单源有独立用例。
+- [x] 非法、超限、未来/回退版本发布在权威写入前拒绝；一次合法请求只提交一次；失败不污染后续 authoritative read。
+- [x] 公开 AI 对 fresh、超过 30 小时、未来异常、无快照分别验证；不能由绕过前端的直接请求跳过门禁。
+- [x] EdgeOne 对双斜线、外域路径、重定向等输入仍固定可信上游；凭据不流向其他主机。
+- [x] 空完整池不回退旧卡片，已有提醒仍可 ACK；既有账户隔离及销售阶段规则不退化。
+- [x] 基线测试时钟固定，聚焦回归、完整 Python/JS 合约检查、TypeScript 和构建完成；分别报告既有失败、新增失败和跳过项目。
 
 本地测试通过仅证明代码合同；实际来源网络、调度持续运行、国内访问和生产业务闭环仍需另行获准后的运行验收。本轮不进行该部署验收。
 
