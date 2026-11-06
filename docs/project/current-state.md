@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前F3区域CLI完整性门禁（离线复现并修复）
+## 当前F1区域CLI单次调用止损（离线完成，完整F1未完成）
+
+- 起点1352739；实现01ccaa9、最终测试b97bc09。真实CLI离线复现scoped/fallback/详情明确拒绝后仍继续请求；现复用collector_diagnostics固定分类，按显式host停止该次调用的后续请求。搜索与详情/裸域分开，普通超时/503不误停，下一次调用不继承停止状态。[报告](regional-cli-f1-stop-2026-11-07.md)、[证据](validation/regional-cli-f1-stop-2026-11-07/manifest.json)。
+- CLI专属warmup反馈覆盖www主页限流/拒绝，阻止同host后续详情；runtime默认不注入，入口及分类器源码未改。report明确blocked_hosts、scoped/详情跳过数和fallback阻断，不把未执行范围说成完整。F3失败非零退出/records字节保留及路径别名保护保持通过。
+- 新增13项行为测试，CLI共28项；最终1059项Python、冻结10/10、原CLI3/3通过。408份起点数据/fixture/历史证据SHA256不变；原F3冻结验证器通过。最终增加默认双公告类型覆盖后重跑全套，不用中间1058结果冒充最终版本。
+- 仅现有分支离线代码/测试/文档/新增artifact，无外网/真实SDK/云端/运行数据访问、部署/推送、环境/路由/锁/计划/变量/权限变更。apply_allowed/migration_usable=false，SDK保持CLOSED NO-GO。只有单次CLI显式目标host止损，不是跨进程共享冷却、全路径F1、重定向逐跳拦截或F2墙钟预算。
+- [下一轮](next-task.md)仅文档确定区域CLI的F2预算合同和唯一最小实现边界，明确数字、失败收尾、timeout局限和验收标准，不先改代码或计划。当前界面无法生成该按钮；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
+## 上轮F3区域CLI完整性门禁（已修复并复核关闭）
 
 - 最新重复F3请求已核对：实际起点5f47041（不是旧2911c92），代码/测试/工作流与7b29933验收版本一致，既有验证器通过、395份输入哈希不变，按“已修则给证据关闭”处理；本轮未重跑1046/10/3、未改应用、未推进F1/F2。[本轮复核证据](validation/regional-cli-f3-recheck-2026-11-07.json)。
 - 起点2911c92，代码7b29933；真实argparse/main＋冻结官方详情复现4种失败仍exit0/改写records，现统一失败exit2且不写records，完整成功/合法空/fallback成功仍exit0。report与输入/records的同路径、符号链接、硬链接冲突在客户端建立前拒绝。[报告](regional-cli-f3-fix-2026-11-07.md)、[证据](validation/regional-cli-f3-2026-11-07/manifest.json)。

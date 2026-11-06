@@ -1,0 +1,30 @@
+[
+  {
+    "scenario": "f1_scoped",
+    "search_calls": 4,
+    "detail_calls": 2,
+    "exit_code": 2,
+    "records_unchanged": true
+  },
+  {
+    "scenario": "f1_fallback",
+    "search_calls": 7,
+    "detail_calls": 2,
+    "exit_code": 2,
+    "records_unchanged": true
+  },
+  {
+    "scenario": "f1_detail",
+    "search_calls": 4,
+    "detail_calls": 2,
+    "exit_code": 2,
+    "records_unchanged": true
+  },
+  {
+    "scenario": "f1_detail_page",
+    "search_calls": 4,
+    "detail_calls": 2,
+    "exit_code": 2,
+    "records_unchanged": true
+  }
+]

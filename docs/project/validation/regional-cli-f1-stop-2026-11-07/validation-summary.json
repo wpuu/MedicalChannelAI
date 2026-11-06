@@ -1,0 +1,30 @@
+{
+  "starting_head": "1352739",
+  "code_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+  "scope": "REGIONAL_CLI_SINGLE_INVOCATION_EXPLICIT_HOST_ACCESS_STOP_ONLY",
+  "new_behavior_tests": 13,
+  "regional_cli_behavior_tests": 28,
+  "python_tests_passed": 1059,
+  "frozen_templates_passed": 10,
+  "original_cli_passed": 3,
+  "source_sha256": {
+    "web/pipeline/scripts/sync_regional_ccgp.py": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567",
+    "web/pipeline/tests/test_regional_cli_completeness.py": "6050c7f4f02b93417f07e0ce7f5dda9131c159214ecf9bd7c36914c00d88739f",
+    "web/collector_diagnostics.py": "71f668b320c66ff0658771608c396d29abdfbbdeadf062acf0afa4eb6c7f9379"
+  },
+  "diagnostics_classifier_modified": false,
+  "runtime_entry_modified": false,
+  "offline_execution": "Actual argparse/main and frozen official parsers; request I/O stubbed; actual session/warmup exercised with _read stub and no opener construction.",
+  "regression_command": "python docs/project/validation/regional-cli-f3-2026-11-07/run-regression.py",
+  "external_network_calls": 0,
+  "real_sdk_execution": false,
+  "cloud_runtime_access": false,
+  "deployment_or_push": false,
+  "F1_whole_project_complete": false,
+  "cross_process_coordination": false,
+  "F2_implemented": false,
+  "sdk_workflow": "CLOSED_NO_GO",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "implementation_head": "01ccaa9c1c9c1f7850d8ad2c9b870b43a966867c"
+}

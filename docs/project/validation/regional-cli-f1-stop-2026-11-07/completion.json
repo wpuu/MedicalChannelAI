@@ -1,0 +1,10 @@
+{
+  "started_at": "2026-11-06T17:36:55Z",
+  "foreground_deadline": "2026-11-06T17:56:55Z",
+  "completed_at": "2026-11-06T17:44:58.651795+00:00",
+  "within_foreground_deadline": true,
+  "scope": "OFFLINE_REGIONAL_CLI_SINGLE_INVOCATION_F1_SUBITEM_ONLY",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "deployment_or_push": false
+}

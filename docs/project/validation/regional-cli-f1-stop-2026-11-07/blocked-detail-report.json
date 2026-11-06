@@ -1,0 +1,114 @@
+{
+  "schema_version": "0.1",
+  "acceptance_scope": "CONFIGURED_BOUNDED_REGIONAL_SCAN",
+  "acceptance_ready": false,
+  "acceptance_blockers": [
+    "verified_detail",
+    "ACCESS_BLOCKED_SCAN_INCOMPLETE"
+  ],
+  "records_written": false,
+  "access_blocked_hosts": {
+    "www.ccgp.gov.cn": "HTTP_403"
+  },
+  "scoped_queries_skipped_due_to_access": 0,
+  "details_skipped_due_to_access": 1,
+  "national_fallback_access_blocked": false,
+  "observed_at": "2026-11-06T11:05:33+00:00",
+  "start_date": "2026-11-04",
+  "end_date": "2026-11-06",
+  "markets": [
+    {
+      "market_code": "HE",
+      "market_name": "河北",
+      "admin_code": "130000",
+      "ccgp_zone_id": "13",
+      "scoped_query_success_count": 2,
+      "scoped_region_mismatch_count": 0,
+      "national_fallback_used": false,
+      "scoped_queries_skipped_due_to_access": 0,
+      "details_skipped_due_to_access": 0,
+      "skipped_candidate_count": 0,
+      "skipped_candidates": [],
+      "unique_candidate_count": 1,
+      "selected_candidate_count": 1,
+      "selected_unseen_candidate_count": 1,
+      "selected_existing_candidate_count": 0,
+      "selected_candidates": [
+        {
+          "title": "医院医疗设备采购",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm",
+          "published_at": "2026-09-08",
+          "priority": 3,
+          "was_existing_verified_url": false
+        }
+      ],
+      "new_verified_record_count": 0,
+      "failure_count": 1,
+      "failures": [
+        {
+          "stage": "verified_detail",
+          "market_code": "HE",
+          "region": "河北",
+          "notice_type": "公开招标",
+          "candidate_region": "河北",
+          "title": "医院医疗设备采购",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm",
+          "error": "HTTPError",
+          "message": "HTTP Error 403: offline"
+        }
+      ]
+    },
+    {
+      "market_code": "HL",
+      "market_name": "黑龙江",
+      "admin_code": "230000",
+      "ccgp_zone_id": "23",
+      "scoped_query_success_count": 2,
+      "scoped_region_mismatch_count": 0,
+      "national_fallback_used": false,
+      "scoped_queries_skipped_due_to_access": 0,
+      "details_skipped_due_to_access": 1,
+      "skipped_candidate_count": 0,
+      "skipped_candidates": [],
+      "unique_candidate_count": 1,
+      "selected_candidate_count": 1,
+      "selected_unseen_candidate_count": 1,
+      "selected_existing_candidate_count": 0,
+      "selected_candidates": [
+        {
+          "title": "医院医疗设备采购",
+          "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260930_27424622.htm",
+          "published_at": "2026-09-08",
+          "priority": 3,
+          "was_existing_verified_url": false
+        }
+      ],
+      "new_verified_record_count": 0,
+      "failure_count": 0,
+      "failures": []
+    }
+  ],
+  "national_fallback_query_success_count": 0,
+  "national_fallback_failure_count": 0,
+  "national_fallback_failures": [],
+  "existing_record_count": 1,
+  "new_verified_record_count": 0,
+  "merged_record_count": 1,
+  "policy": {
+    "business_market_is_explicit_not_geolocated": true,
+    "market_admin_codes_are_validated_against_configured_ccgp_zone": true,
+    "scoped_query_parameter_is_not_geography_evidence": true,
+    "every_candidate_requires_official_search_result_region_match": true,
+    "scoped_empty_does_not_mean_no_market_activity": true,
+    "national_fallback_uses_official_search_result_region_only": true,
+    "national_fallback_max_pages_per_query": 3,
+    "official_detail_required_before_publication": true,
+    "candidate_prefilter_only_rejects_explicit_exclusions": true,
+    "candidate_detail_budget_uses_recall_preserving_priority": true,
+    "candidate_detail_budget_prioritizes_unseen_urls_before_rechecks": true,
+    "cross_market_project_number_dedupe_is_forbidden": true,
+    "regional_event_monitoring_deferred_until_composite_market_event_key_is_enabled": true,
+    "rate_limit_bypass": false,
+    "minimum_request_delay_seconds": 4.0
+  }
+}

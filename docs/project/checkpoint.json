@@ -2,18 +2,18 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_F3_ALREADY_FIXED_EVIDENCE_RECHECK_ONLY",
+  "state_scope": "OFFLINE_REGIONAL_CLI_F1_SINGLE_INVOCATION_HOST_STOP_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
   "runtime_implementation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "latest_code_validated_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
+  "latest_code_validated_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "F3_REPRODUCED_AND_FIXED_OFFLINE_F1_F2_PENDING",
-  "latest_changes_validation_status": "F3_ALREADY_FIXED_CLOSED;PINNED_CODE_AND395_INPUTS_VERIFIED;1046_AND10/3_PRIOR_PASS_NOT_RERUN",
+  "milestone": "F1_REGIONAL_CLI_SUBITEM_DONE_F3_PRESERVED_F2_AND_SHARED_COORDINATION_PENDING",
+  "latest_changes_validation_status": "1059_PYTHON_AND_FROZEN10_ORIGINAL_CLI3_PASS;408_PROTECTED_INPUTS_UNCHANGED",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -144,7 +144,7 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "F3_CLI_7B29933_OFFLINE:1046Python/10/3pass;runtime deployment82cc/app795 not accessed or changed;not new cloud acceptance.",
+    "current_head_runtime_acceptance": "F1_CLI_01CCAA9_TESTS_B97BC09:1059Python/10/3pass offline;runtime deployment82cc/app795 not accessed or changed;not cloud acceptance.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
     "source_freshness_runtime_acceptance": "CARRIED_PRIOR_C_REAL_SCAN_CLOCKS_UNCHANGED:8/14 healthy; no new source scan or recovery in d.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
@@ -163,11 +163,12 @@
     "publication_latency": "CURRENT662_RETURNED_FAILURE_TAIL_VERIFIED:0.029–0.034seconds; trigger-to-publish2207.330seconds, tjmugh completion-to-publish1678.375seconds. Single-cycle observations, notP95; first retry/forced-kill recovery/global publication coupling remain.",
     "ccgp_product_items_quality": "FOUR_FIXES_DEPLOYED82CC_APP795;10frozen fixtures pass locally. Current UI preserves existing10official Dakoutun products. No new raw-detail cloud collection or historical application; broader templates/attachments/recall remain unverified.",
     "historical_product_backfill": "MEMORY_SIMULATION8F8:2overlay/2restore,whole892state restored,890unselected unchanged,replays0changes,stale/crossscope/tampered/partial/mixed/newfacts/events rejected. Only in-memory checks/deepcopies; actual runtime export,CAS/transactions,migration,application and rollback unimplemented.",
-    "regional_cli_completeness": "F3_7B29933_OFFLINE_PASS:incomplete batch exit2 preserves records;bounded scan only,no per-market independent commits/full historical recall;not deployed."
+    "regional_cli_completeness": "F3_7B29933_OFFLINE_PASS:incomplete batch exit2 preserves records;bounded scan only,no per-market independent commits/full historical recall;not deployed.",
+    "regional_cli_access_stop": "01CCAA9_OFFLINE_PASS:CLI explicit host denial stop only;no project-wide/shared cooldown/Retry-After/F2 or redirect-hop interception;not deployed."
   },
-  "final_code_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
-  "code_validation_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
-  "documentation_followup": "F3 conservative whole-batch failure gate complete offline;F1 same-invocation throttle stop proposed separately;F2 and cross-process coordination unchanged.",
+  "final_code_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+  "code_validation_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+  "documentation_followup": "Regional CLI F1 subitem done offline. Next documentation-only regional CLI F2 budget contract;cross-process coordination and full F1 remain incomplete.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2317,7 +2318,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
+  "latest_reviewed_repository_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2415,7 +2416,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "2911c92",
+  "current_phase_starting_head": "1352739",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2465,8 +2466,8 @@
     "production_modified": false,
     "historical": true
   },
-  "latest_offline_tool_head": "605ebad99041a3057189a1315adae6cc2a773055",
-  "code_validation_scope": "OFFLINE_REGIONAL_CLI_ARGPARSE_MAIN_AND_FROZEN_PARSERS;NOT_DEPLOYED;SDK_CLOSED",
+  "latest_offline_tool_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+  "code_validation_scope": "OFFLINE_CLI_SINGLE_INVOCATION_HOST_DENIAL_STOP;NOT_DEPLOYED;RUNTIME_ENTRY_UNCHANGED",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
     "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
@@ -2830,11 +2831,12 @@
     "runtime_cache_read": false,
     "database_read": false,
     "deployment_or_write": false,
-    "source": "Latest explicit F3 local offline code/test authorization 2026-11-07",
-    "current_round": "F3_ONLY_ALREADY_FIXED_RECHECK_NO_F1_F2",
+    "source": "Latest explicit F1 regional CLI local offline authorization 2026-11-07",
+    "current_round": "F1_REGIONAL_CLI_SINGLE_INVOCATION_ONLY",
     "network_this_round": false,
     "cloud_metadata_this_round": false,
-    "F1_F2_implementation_this_round": false
+    "F1_regional_cli_code_this_round": true,
+    "F2_code_this_round": false
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -3090,5 +3092,39 @@
     "apply_allowed": false,
     "migration_usable": false,
     "completed_at": "2026-11-06T17:35:30.303909+00:00"
+  },
+  "regional_cli_f1_stop_acceptance": {
+    "starting_head": "1352739",
+    "implementation_head": "01ccaa9c1c9c1f7850d8ad2c9b870b43a966867c",
+    "validated_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+    "status": "CLI_SINGLE_INVOCATION_SUBITEM_REPRODUCED_AND_FIXED_OFFLINE",
+    "report": "docs/project/regional-cli-f1-stop-2026-11-07.md",
+    "manifest": "docs/project/validation/regional-cli-f1-stop-2026-11-07/manifest.json",
+    "new_behavior_tests": 13,
+    "cli_behavior_tests": 28,
+    "python_tests_passed": 1059,
+    "frozen_templates_passed": 10,
+    "original_cli_passed": 3,
+    "protected_input_file_count": 408,
+    "F3_preserved": true,
+    "runtime_entry_changed": false,
+    "diagnostics_classifier_changed": false,
+    "F1_project_wide_complete": false,
+    "cross_process_coordination": false,
+    "F2_implemented": false,
+    "deployed": false,
+    "pushed": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completion": {
+      "started_at": "2026-11-06T17:36:55Z",
+      "foreground_deadline": "2026-11-06T17:56:55Z",
+      "completed_at": "2026-11-06T17:44:58.651795+00:00",
+      "within_foreground_deadline": true,
+      "scope": "OFFLINE_REGIONAL_CLI_SINGLE_INVOCATION_F1_SUBITEM_ONLY",
+      "apply_allowed": false,
+      "migration_usable": false,
+      "deployment_or_push": false
+    }
   }
 }
