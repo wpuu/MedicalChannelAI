@@ -1,0 +1,117 @@
+{
+  "mode": "SOURCE_AST_AND_TEXT_ONLY_NOT_BEHAVIORAL_REPRODUCTION",
+  "python_function_observations": [
+    {
+      "function": "_persist_verified_snapshot_durably",
+      "named_dict_gets": [
+        [
+          "snapshot",
+          "opportunity_pool"
+        ],
+        [
+          "result",
+          "opportunity_pool_count"
+        ],
+        [
+          "result",
+          "ok"
+        ],
+        [
+          "result",
+          "snapshot_as_of"
+        ],
+        [
+          "snapshot",
+          "snapshot_as_of"
+        ],
+        [
+          "snapshot",
+          "cards"
+        ]
+      ],
+      "budget_parameter_present": false
+    },
+    {
+      "function": "_run_publish",
+      "named_dict_gets": [
+        [
+          "read_back",
+          "opportunity_pool"
+        ],
+        [
+          "read_back",
+          "snapshot_as_of"
+        ],
+        [
+          "durable_result",
+          "snapshot_as_of"
+        ],
+        [
+          "record",
+          "opportunity_id"
+        ],
+        [
+          "snapshot",
+          "cards"
+        ],
+        [
+          "snapshot",
+          "opportunity_pool"
+        ],
+        [
+          "card",
+          "opportunity_id"
+        ],
+        [
+          "read_back",
+          "cards"
+        ],
+        [
+          "committed",
+          "records"
+        ],
+        [
+          "committed",
+          "events"
+        ],
+        [
+          "read_back",
+          "cards"
+        ],
+        [
+          "record",
+          "source"
+        ]
+      ],
+      "budget_parameter_present": false
+    }
+  ],
+  "incremental_helper_publisher_keyword_args": [],
+  "gaps": [
+    {
+      "priority": "P1",
+      "id": "ACK_DURABLE_FLAG_NOT_CONSUMED",
+      "evidence": "_persist validates ok/version/count only;existing local test success ACK lacks durable_committed",
+      "runtime_incident_verified": false
+    },
+    {
+      "priority": "P1",
+      "id": "NODE_CACHE_RECEIPT_NOT_CARRIED",
+      "evidence": "_run_publish own cache_status starts READY;durable_result cache_status not read",
+      "actual_cache_outage_verified": false
+    },
+    {
+      "priority": "P1",
+      "id": "PUBLISH_DEADLINE_AND_TAIL_RECEIPT_GAP",
+      "evidence": "deep clears publish budget;incremental helper does not forward it;Node cache await precedes ACK",
+      "actual_overrun_verified": false
+    }
+  ],
+  "historical_tests": {
+    "code_head": "b584bcf",
+    "python": 1121,
+    "frozen": 10,
+    "cli": 3,
+    "rerun_this_round": false
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "current_authorized_go": [
+    "documentation and static references/arithmetic/integrity only"
+  ],
+  "unique_recommendation": "seven-file Python caller-side cooperative admission and existing ACK receipt fidelity;explicit next authorization required",
+  "proposed_implementation_files": [
+    "web/collector_runtime.py",
+    "web/collector_queue.py",
+    "web/collector_incremental_runtime.py",
+    "web/pipeline/tests/test_collector_publish_environment.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py",
+    "web/pipeline/tests/test_collector_deferred_budget.py"
+  ],
+  "closed_no_go": [
+    "cross-process hard deadline or cancellation",
+    "no in-flight late authority/cache mutation",
+    "crash-proof durable receipt and automatic UNKNOWN reconciliation",
+    "atomic owner or cross-key commit/rollback"
+  ],
+  "node_sql_or_public_protocol_change_proposed": false,
+  "real_deployment_sdk_permission_or_durability_verified": false,
+  "sdk_workflow": "CLOSED_NO_GO",
+  "apply_allowed": false,
+  "migration_usable": false
+}

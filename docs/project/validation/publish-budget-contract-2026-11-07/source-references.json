@@ -1,0 +1,282 @@
+{
+  "starting_head": "82c1006",
+  "mode": "STATIC_SOURCE_ONLY",
+  "references": [
+    {
+      "path": "web/collector_queue.py",
+      "line": 430,
+      "text": "    clock = monotonic or time.monotonic",
+      "source_sha256": "aad1d7fe7da24e84e5217bf23017c0b231842fc9b25b38c95ab6fe6bf7e7abc6"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 494,
+      "text": "    if stage in runtime.REGIONAL_STAGE_MARKET_CODES or stage in runtime.REGIONAL_FALLBACK_STAGE_MARKET_CODES:",
+      "source_sha256": "aad1d7fe7da24e84e5217bf23017c0b231842fc9b25b38c95ab6fe6bf7e7abc6"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1786,
+      "text": "def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1822,
+      "text": "        elif stage == \"publish\":",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 887,
+      "text": "    runtime.record_source_scan(cache, source, successful=True, attempted_at=observed)",
+      "source_sha256": "dd374ceb417a5821fec9e6346ce6c6e82efd18a0dfc7b94a956af5aeb4d65729"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 895,
+      "text": "    try:",
+      "source_sha256": "dd374ceb417a5821fec9e6346ce6c6e82efd18a0dfc7b94a956af5aeb4d65729"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 515,
+      "text": "def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime) -> tuple[bool, dict[str, Any] | None]:",
+      "source_sha256": "dd374ceb417a5821fec9e6346ce6c6e82efd18a0dfc7b94a956af5aeb4d65729"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1667,
+      "text": "def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1701,
+      "text": "    missing_canonical = [",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 318,
+      "text": "def _assert_pending_canonical_commit(cache: RuntimeCache, key: str, records: Any, *,",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1727,
+      "text": "    as_of = _cycle_as_of(state)",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1745,
+      "text": "    _cache_set(",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1608,
+      "text": "def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, Any]:",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 166,
+      "text": "DURABLE_PUBLISH_TIMEOUT_SECONDS = 30",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1633,
+      "text": "        with urlopen(request, timeout=DURABLE_PUBLISH_TIMEOUT_SECONDS) as response:",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1590,
+      "text": "def _durable_publish_url() -> str:",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/api/public-snapshot.js",
+      "line": 111,
+      "text": "  async function publishSnapshot(request, response) {",
+      "source_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5"
+    },
+    {
+      "path": "web/api/public-snapshot.js",
+      "line": 122,
+      "text": "      const snapshot = validateSnapshotPublication(await requestBodyValue(request))",
+      "source_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5"
+    },
+    {
+      "path": "web/api/public-snapshot.js",
+      "line": 66,
+      "text": "async function requestBodyValue(request) {",
+      "source_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5"
+    },
+    {
+      "path": "web/api/_verifiedSnapshot.js",
+      "line": 247,
+      "text": "export function validateSnapshotPublication(value, options = {}) {",
+      "source_sha256": "4e992f736e2debbeea72eaa2eca5c112b399b4d4d41d297a5be8a78736959d38"
+    },
+    {
+      "path": "web/api/_publicIntelligenceDb.js",
+      "line": 331,
+      "text": "export async function persistPublicVerifiedSnapshot(snapshot, {",
+      "source_sha256": "17421a520867e411e2cb6b8deb831069a6b11e6be6c366cbe40a2cd81e729636"
+    },
+    {
+      "path": "web/api/_publicIntelligenceDb.js",
+      "line": 347,
+      "text": "  const result = await sql.begin(async (tx) => {",
+      "source_sha256": "17421a520867e411e2cb6b8deb831069a6b11e6be6c366cbe40a2cd81e729636"
+    },
+    {
+      "path": "web/api/public-snapshot.js",
+      "line": 128,
+      "text": "      const committed = await persistSnapshot(snapshot)",
+      "source_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5"
+    },
+    {
+      "path": "web/api/public-snapshot.js",
+      "line": 134,
+      "text": "        await publishRuntimeSnapshot(snapshot)",
+      "source_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5"
+    },
+    {
+      "path": "web/api/public-snapshot.js",
+      "line": 144,
+      "text": "      return sendJson(response, 200, {",
+      "source_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1759,
+      "text": "    durable_result = _persist_verified_snapshot_durably(snapshot)",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1773,
+      "text": "    return {",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 626,
+      "text": "def _mark_completed(cache: RuntimeCache, state: dict[str, Any], stage: str, result: dict[str, Any]) -> None:",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1864,
+      "text": "    try:",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 499,
+      "text": "    if not _heartbeat_deep_cycle(cycle_id, now=datetime.now(timezone.utc)):",
+      "source_sha256": "aad1d7fe7da24e84e5217bf23017c0b231842fc9b25b38c95ab6fe6bf7e7abc6"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 532,
+      "text": "        if stage == \"publish\":",
+      "source_sha256": "aad1d7fe7da24e84e5217bf23017c0b231842fc9b25b38c95ab6fe6bf7e7abc6"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 901,
+      "text": "        snapshot_refreshed, publish_result = _publish_snapshot_if_ready(cache, observed)",
+      "source_sha256": "dd374ceb417a5821fec9e6346ce6c6e82efd18a0dfc7b94a956af5aeb4d65729"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 924,
+      "text": "    _mark_bucket_completed(",
+      "source_sha256": "dd374ceb417a5821fec9e6346ce6c6e82efd18a0dfc7b94a956af5aeb4d65729"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 317,
+      "text": "    finally:",
+      "source_sha256": "aad1d7fe7da24e84e5217bf23017c0b231842fc9b25b38c95ab6fe6bf7e7abc6"
+    },
+    {
+      "path": "web/api/_verifiedSnapshot.js",
+      "line": 384,
+      "text": "export async function loadVerifiedSnapshot({ forceRefresh = false } = {}) {",
+      "source_sha256": "4e992f736e2debbeea72eaa2eca5c112b399b4d4d41d297a5be8a78736959d38"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1655,
+      "text": "    if result.get(\"ok\") is not True:",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_publish_environment.py",
+      "line": 48,
+      "text": "                return json.dumps({\"ok\": True, \"snapshot_as_of\": snapshot[\"snapshot_as_of\"], \"opportunity_pool_count\": 0}).encode()",
+      "source_sha256": "6dd4b45bf698af0dfa3fb3aea059669be4e0997506583c6a8961c22d7a904d9d"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1761,
+      "text": "    cache_status = \"READY\"",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42"
+    },
+    {
+      "path": "web/scripts/check-p0-publication.mjs",
+      "line": 164,
+      "text": "  for (const field of ['fail', 'failReadback']) {",
+      "source_sha256": "3b0338227d513bba8f444d3efeadb213ae1caba186c77ef0b15312cb11b1bb64"
+    },
+    {
+      "path": "web/scripts/check-p0-publication.mjs",
+      "line": 173,
+      "text": "  {",
+      "source_sha256": "3b0338227d513bba8f444d3efeadb213ae1caba186c77ef0b15312cb11b1bb64"
+    },
+    {
+      "path": "web/scripts/check-p0-publication.mjs",
+      "line": 143,
+      "text": "  {",
+      "source_sha256": "3b0338227d513bba8f444d3efeadb213ae1caba186c77ef0b15312cb11b1bb64"
+    },
+    {
+      "path": "web/vercel.json",
+      "line": 18,
+      "text": "    \"api/collector-queue.py\": {",
+      "source_sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e"
+    },
+    {
+      "path": "web/api/_snapshotRevision.js",
+      "line": 3,
+      "text": "export function snapshotRevisionMicros(value) {",
+      "source_sha256": "a99ce39d41d3d178aa398117d47b79f2d53c28d70488ccd9eeeb32bf5f3b276a"
+    },
+    {
+      "path": "web/api/_publicIntelligenceDb.js",
+      "line": 370,
+      "text": "        ${snapshotHash}, ${snapshotAsOf}::text::timestamptz, ${tx.json(snapshot)}, ${cards.length}",
+      "source_sha256": "17421a520867e411e2cb6b8deb831069a6b11e6be6c366cbe40a2cd81e729636"
+    },
+    {
+      "path": "web/api/_publicIntelligenceDb.js",
+      "line": 360,
+      "text": "    if (latestRevision !== null && revisionMicros < latestRevision) {",
+      "source_sha256": "17421a520867e411e2cb6b8deb831069a6b11e6be6c366cbe40a2cd81e729636"
+    },
+    {
+      "path": "web/api/_privateDb.js",
+      "line": 26,
+      "text": "    sqlClient = postgres(url, {",
+      "source_sha256": "031739a0ac40b06029d111399685a15ddac4550cd9e84bf98a5ffa05a6970ad9"
+    }
+  ]
+}

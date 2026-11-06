@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "mode": "STANDARD_LIBRARY_SOURCE_CHECKS_ONLY",
+  "verified_at_utc": "2026-11-06T19:25:19.454287+00:00",
+  "source_reference_count": 46,
+  "protected_file_count": 492,
+  "source_gap_count": 3,
+  "proposed_implementation_file_count": 7,
+  "source_transaction_ack_order_checked": true,
+  "budget_arithmetic_checked": true,
+  "only_docs_and_new_artifacts": true,
+  "application_sdk_or_tests_executed": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

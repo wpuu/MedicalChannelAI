@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前tjzyefy增量协作式预算与pending恢复（离线实现）
+## 当前publish预算与提交回执合同（仅文档）
+
+- 起点82c1006，代码b584bcf保持不变；完成[publish调用者侧唯一七文件方案](publish-budget-receipt-contract-2026-11-07.md)。deep拟用总270/发布工作210/收尾60，PUT为工作窗口内cap30子预算；tjzyefy复用原parent270/180/30/60与同一原点，不重置。仅Python调用者准入/回执，不改Node/SQL/版本/Queue协议。
+- 静态确认三项缺口：Python未消费现有durable_committed字段、Node缓存RETRY_REQUIRED信息未保留、publish内部预算和确认后尾部回执尚未覆盖。均非本轮线上故障复现。NOT_ATTEMPTED/UNKNOWN/CONFIRMED、两份副本状态、已确认后workflow状态未知须分开；LATEST读回不等于权威提交。
+- 46处最新源码引用、492份既有data/fixture/artifact哈希及应用/测试/config不变已核对；仅标准库静态验证，不执行应用/SDK/测试，不重跑1121/10/3。[证据](validation/publish-budget-contract-2026-11-07/manifest.json)。
+- 跨Python/Node/DB统一硬取消/严格时限、在途写零变化、崩溃后持久回执/自动对账及原子owner/跨key提交均CLOSED NO-GO，本轮结束这些强保证审查，不重开SDK或追加模拟。真实部署/权限/持久化未核实。apply_allowed/migration_usable=false，无外网/云端/运行数据查询或部署/推送/配置变化。
+- [下一轮](next-task.md)须明确七文件本地离线代码授权；现有Node提交/副本容错、微秒/幂等及旧pending保护不能重复修复或放宽。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh（超高），实际设置未核实。
+
+## 上轮tjzyefy增量协作式预算与pending恢复（已完成离线实现）
 
 - 起点d2d23cb，代码b584bcf，只修改授权六文件。Queue tjzyefy增量复用CliBudget逻辑270/工作180/URL尾部30/最终化60，入口原点包含预检/lease，其他源/区域/deep/CLI保持原路径。[实现报告](tjzyefy-incremental-implementation-2026-11-07.md)、[证据](validation/tjzyefy-incremental-implementation-2026-11-07/manifest.json)。原语snapshot的90秒reserve是30+60，不是承诺缓存I/O上界。
 - 迟到fact/None不构造新核验，保存每步前后检查；剩余selected保留carryover、时间中断503不开bucket。恢复合并最新屏障，未正常确认就不声称已恢复。原数量deferred的200/no-refresh不等同源成功；canonical/publish已确认与bucket/lease未知分开，不声称零写/回滚或按时。

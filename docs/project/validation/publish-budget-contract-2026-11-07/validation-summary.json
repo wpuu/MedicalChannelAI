@@ -1,0 +1,33 @@
+{
+  "starting_head": "82c1006",
+  "scope": "OFFLINE_PUBLISH_BUDGET_RECEIPT_CONTRACT_DOCUMENTATION_ONLY",
+  "status": "STATIC_PASS_NO_APPLICATION_EXECUTION",
+  "source_references": 46,
+  "protected_files": 492,
+  "static_gaps": 3,
+  "proposed_implementation_files": 7,
+  "proposed_deep_total_work_receipt": [
+    270,
+    210,
+    60
+  ],
+  "http_cap": 30,
+  "source_parent_unchanged": [
+    270,
+    180,
+    30,
+    60
+  ],
+  "application_sdk_or_tests_executed": false,
+  "historical_python_frozen_cli": [
+    1121,
+    10,
+    3
+  ],
+  "historical_test_rerun": false,
+  "strong_cross_process_guarantee_branch": "CLOSED_NO_GO",
+  "sdk_workflow": "CLOSED_NO_GO",
+  "real_runtime_or_persistence_verified": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

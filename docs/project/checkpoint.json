@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_QUEUE_TJZYEFY_INCREMENTAL_COOPERATIVE_BUDGET_IMPLEMENTATION_ONLY",
+  "state_scope": "OFFLINE_PUBLISH_BUDGET_RECEIPT_CONTRACT_DOCUMENTATION_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "TJZYEFY_270_180_30_60_OFFLINE_PASS_REAL_RUNTIME_AND_FULL_PUBLISH_BUDGET_NO_GO",
-  "latest_changes_validation_status": "1121_PYTHON_AND10/3_PASS;23_NEW_TESTS;480_PROTECTED_FILES;ONLY6AUTHORIZED_CODE_TEST_FILES",
+  "milestone": "PUBLISH_CALLER_SIDE_SEVEN_FILE_PLAN_ONLY_CROSS_PROCESS_STRONG_GUARANTEES_CLOSED_NO_GO",
+  "latest_changes_validation_status": "46_STATIC_SOURCE_REFERENCES_AND492_PROTECTED_INPUTS;APP_TEST_CONFIG_UNCHANGED;1121/10/3_HISTORICAL_NOT_RERUN",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -168,11 +168,12 @@
     "regional_cli_time_budget": "58E7E6B_OFFLINE:900/840/60cooperative CLI budget,precommit preserve and explicit postcommit/unknown receipts pass;hard exit/atomic clock commit/full default completion/runtime budget NOT established.",
     "regional_ci_cli_gate": "6D4EB1B_LOCAL_ONLY:2lines add CLI path/module;8module94tests pass offline;remote runner/workflow not triggered or verified.",
     "runtime_stage_time_budget": "BBA3716_OFFLINE_REGIONAL_ONLY:Queue270/210/60 and original retry/pending invariants pass;incremental/event/publish excluded;hard cancel/atomic commit/real persistence/dense fallback completion NOT established.",
-    "tjzyefy_incremental_time_budget": "B584BCF_OFFLINE_PASS:270/180/30/60 cooperative Queue tjzyefy only;40 synthetic cases,6Queue assertions;no hard cancel/atomicity/real persistence/full internal publish budget or complete-by-deadline guarantee."
+    "tjzyefy_incremental_time_budget": "B584BCF_OFFLINE_PASS:270/180/30/60 cooperative Queue tjzyefy only;40 synthetic cases,6Queue assertions;no hard cancel/atomicity/real persistence/full internal publish budget or complete-by-deadline guarantee.",
+    "publish_budget_and_receipt": "PROPOSED_ONLY:deep270/work-through-ACK210/receipt60 withHTTPcap30;incremental parent original270/180/30/60 retained. ACK durable flag/cache receipts/deadline tail gaps statically reviewed,not implemented or runtime-reproduced. Strong cross-process guarantees CLOSED NO-GO."
   },
   "final_code_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
   "code_validation_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
-  "documentation_followup": "tjzyefy incremental cooperative budget implemented offline; next documentation-only publish time/commit receipt contract;no SDK reopening.",
+  "documentation_followup": "Unique seven-file Python publisher caller cooperative budget and existing ACK fidelity plan;implementation requires explicit next authorization. Cross-process hard cancellation/durable receipt guarantee branch CLOSED NO-GO;no SDK reopening.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2322,7 +2323,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+  "latest_reviewed_repository_head": "82c1006",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2420,7 +2421,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "d2d23cb",
+  "current_phase_starting_head": "82c1006",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2835,12 +2836,12 @@
     "runtime_cache_read": false,
     "database_read": false,
     "deployment_or_write": false,
-    "source": "Latest explicit six-file offline tjzyefy incremental budget authorization 2026-11-07",
-    "current_round": "ONLY6EXISTING_CODE_TEST_FILES_PLUS_DOCS_ARTIFACTS",
+    "source": "Latest explicit publish contract documentation-only instruction 2026-11-07",
+    "current_round": "ONLY_LOCAL_DOCS_AND_NEW_STATIC_ARTIFACTS",
     "network_this_round": false,
     "cloud_metadata_this_round": false,
     "F1_regional_cli_code_this_round": false,
-    "F2_code_this_round": true,
+    "F2_code_this_round": false,
     "workflow_change_this_round": false,
     "workflow_executed_this_round": false
   },
@@ -3374,5 +3375,44 @@
     "migration_usable": false,
     "completed_at_utc": "2026-11-06T19:12:34.921186+00:00",
     "completion": "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/completion.json"
+  },
+  "publish_budget_receipt_contract": {
+    "starting_head": "82c1006",
+    "unchanged_code_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+    "status": "DOCUMENTATION_ONLY_CALLER_SIDE_PLAN_NOT_IMPLEMENTED",
+    "report": "docs/project/publish-budget-receipt-contract-2026-11-07.md",
+    "manifest": "docs/project/validation/publish-budget-contract-2026-11-07/manifest.json",
+    "source_references": 46,
+    "protected_files": 492,
+    "static_gaps": 3,
+    "proposed_code_test_files": 7,
+    "proposed_deep_total_work_receipt": [
+      270,
+      210,
+      60
+    ],
+    "authority_http_cap": 30,
+    "incremental_parent_unchanged": [
+      270,
+      180,
+      30,
+      60
+    ],
+    "application_sdk_or_tests_executed": false,
+    "historical_python_frozen_cli": [
+      1121,
+      10,
+      3
+    ],
+    "historical_tests_rerun": false,
+    "node_sql_or_public_protocol_change_proposed": false,
+    "strong_cross_process_guarantee_branch": "CLOSED_NO_GO",
+    "sdk_workflow": "CLOSED_NO_GO",
+    "real_runtime_or_persistence_verified": false,
+    "next_code_authorized_this_round": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completed_at_utc": "2026-11-06T19:24:06.697566+00:00",
+    "completion": "docs/project/validation/publish-budget-contract-2026-11-07/completion.json"
   }
 }

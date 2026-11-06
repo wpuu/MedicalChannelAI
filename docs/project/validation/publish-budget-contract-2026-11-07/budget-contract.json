@@ -1,0 +1,30 @@
+{
+  "status": "PROPOSED_CALLER_SIDE_ONLY_NOT_IMPLEMENTED",
+  "deep_publish_total_seconds": 270,
+  "deep_publish_work_through_ack_seconds": 210,
+  "post_confirmation_reserve_seconds": 60,
+  "authority_http_cap_seconds": 30,
+  "request_slack_seconds": 1,
+  "full_http_cap_latest_build_elapsed_seconds": 179,
+  "timeout_formula": "min(30,publish_work_deadline-clock-1);reject remaining<=1",
+  "incremental_parent_origin_reset": false,
+  "incremental_source_work_url_tail_finalize_unchanged": [
+    180,
+    30,
+    60
+  ],
+  "incremental_parent_total_seconds_unchanged": 270,
+  "incremental_publish_work_deadline": "min(parent.started+210,parent.started+parent.total_seconds-60)",
+  "existing_outer_publish_remaining31_admission_preserved": true,
+  "local_http_retries": 0,
+  "clock_source": "same trusted Queue-entry monotonic;no payload deadline;no Node wire propagation",
+  "node_or_sql_protocol_change": false,
+  "queue_lease_health_pending_protocol_change": false,
+  "hard_cancel_guaranteed": false,
+  "physical_no_late_write_guaranteed": false,
+  "crash_durable_receipt_guaranteed": false,
+  "server_actual_timeout_verified": false,
+  "sdk_workflow": "CLOSED_NO_GO",
+  "apply_allowed": false,
+  "migration_usable": false
+}

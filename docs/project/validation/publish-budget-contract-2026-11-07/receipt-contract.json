@@ -1,0 +1,27 @@
+{
+  "mode": "NORMATIVE_DOCUMENTATION_NOT_EXECUTION_OR_SIMULATION",
+  "authority_states": [
+    "NOT_ATTEMPTED",
+    "UNKNOWN",
+    "CONFIRMED"
+  ],
+  "confirmation_requires_existing_wire_fields": [
+    "HTTP200",
+    "ok===true",
+    "durable_committed===true",
+    "exact snapshot_as_of",
+    "integer matching opportunity_pool_count"
+  ],
+  "candidate_local_digest_is_not_server_snapshot_hash": true,
+  "cache_states_separate_node_and_python": true,
+  "any_unconfirmed_copy_means_retry_required": true,
+  "late_valid_ack_preserves_confirmed": true,
+  "confirmed_then_workflow_write_failure_is_not_public_rollback": true,
+  "receipt_scope": "current invocation observation only;best-effort existing state persistence;no new durable receipt storage",
+  "pre_put_late_local_candidate_may_have_been_written": true,
+  "post_put_error_cannot_prove_server_no_commit": true,
+  "same_revision_changed_payload_still_rejected": true,
+  "version_rewrite_to_bypass_conflict_allowed": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

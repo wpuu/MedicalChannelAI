@@ -1,0 +1,23 @@
+{
+  "schema_version": "1",
+  "starting_head": "82c1006",
+  "mode": "STATIC_EVIDENCE_ONLY_NO_APPLICATION_EXECUTION",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "sha256": {
+    "docs/project/checkpoint.json": "67822a31fb6c6d5eb416b3fa5b20cf78adfe800336572f9ef76a952a060c9393",
+    "docs/project/current-state.md": "1a5ef4c57048e1900a3bbd9eef02ec409b70fd2eb98643eea183d6e863579ecd",
+    "docs/project/next-task.md": "edaa9ec80c7550b037471831801c49aa654bf7bcea889095653c520a46240fe5",
+    "docs/project/publish-budget-receipt-contract-2026-11-07.md": "9328b1c4e1e45567351b618f9f58770b6ad9683f1058fb05c24c6cfcefd0df9b",
+    "docs/project/validation/publish-budget-contract-2026-11-07/budget-contract.json": "365423777a9c8342d14640b1af0c59ad221bb3f785d1deeab5fa799ae3b74f34",
+    "docs/project/validation/publish-budget-contract-2026-11-07/completion.json": "8ef0e8186bdfe05c915939dc5a2aba72403783ed3db9dcd04c8890ef0bd2cfca",
+    "docs/project/validation/publish-budget-contract-2026-11-07/go-no-go.json": "6ff411c5c4d272fd1972ccb20b9afa17b3e45a5436f01ba9466b80c9e22e22f9",
+    "docs/project/validation/publish-budget-contract-2026-11-07/input-integrity.json": "0da918f43540cc1e47ec9b0dd0c98099c166ce8fc4123cd08094b0a3839db2d4",
+    "docs/project/validation/publish-budget-contract-2026-11-07/receipt-contract.json": "f47752ff3bc3df30632b7bfc5dd4efff192be903d8bf55f950242293d9eec446",
+    "docs/project/validation/publish-budget-contract-2026-11-07/source-references.json": "b6f1a6099207a19f08a3149ac5e975839c6cee4f8f726fc42c709d1df962eb52",
+    "docs/project/validation/publish-budget-contract-2026-11-07/static-observations.json": "7bbd09159f7a58ad3e909bed427f0a7912bd24480ef83bc9ea97df12c64b967c",
+    "docs/project/validation/publish-budget-contract-2026-11-07/validation-summary.json": "fed6670755fbc8e517e02b415cc7af0634834f6b1341dbba53fb917ce8d9f82d",
+    "docs/project/validation/publish-budget-contract-2026-11-07/verify.py": "ceed00784bf59c2c8571a78ad9a712407aaaa84c9aff7a7f56864a78c229c7ab",
+    "docs/project/validation/publish-budget-contract-2026-11-07/static-verification.json": "61d30e166c2154bb6cc0bbb0338e7c5ac5365024fc97c4dacb5539d31511fba1"
+  }
+}
