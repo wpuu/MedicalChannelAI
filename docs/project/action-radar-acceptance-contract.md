@@ -41,7 +41,7 @@
 
 ## 4. 本轮 P0 可执行验收
 
-以下清单已在本地/隔离测试完成；最新可执行代码为 `2cc47ce5cae29f8eed57b411e647ccc356372719`，889个Python测试、JS合约、TypeScript及构建通过。该版本已完成真实隔离Queue→Neon→API→浏览器链路，25阶段8完成/17降级，7/14来源健康，当前池8条。详见[当前状态](current-state.md)、[本轮隔离周期报告](preview-epoch-cycle-2026-11-06.md)及[冻结证据](validation/preview-epoch-2026-11-06/manifest.json)；[此前来源/精度报告](source-recovery-precision-2026-11-06.md)与[此前完整发布](live-source-publication-acceptance-2026-11-06.md)分别保留版本绑定。勾选仅表示相应工程合同已验证，不表示全部来源持续恢复、Production准入、迁移覆盖对齐或Gold benchmark通过：
+新候选 `662bd23cc572e16a13d093bd427fa322cc5166ac` 已完成905个Python、JS合约、TypeScript和构建，事件安全诊断及重试预算终局逻辑已修；新Preview真实周期正在运行，尚未完成本轮完整发布/浏览器验收，见[本轮报告](event-diagnostics-retry-2026-11-06.md)。以下清单及上一轮完整链路证据绑定 `2cc47ce5cae29f8eed57b411e647ccc356372719`，889个Python及构建通过。该版本已完成真实隔离Queue→Neon→API→浏览器链路，25阶段8完成/17降级，7/14来源健康，当前池8条。详见[当前状态](current-state.md)、[本轮隔离周期报告](preview-epoch-cycle-2026-11-06.md)及[冻结证据](validation/preview-epoch-2026-11-06/manifest.json)；[此前来源/精度报告](source-recovery-precision-2026-11-06.md)与[此前完整发布](live-source-publication-acceptance-2026-11-06.md)分别保留版本绑定。勾选仅表示相应工程合同已验证，不表示全部来源持续恢复、Production准入、迁移覆盖对齐或Gold benchmark通过：
 
 - [x] 三源同时进入 policy、runtime、scheduler、独立 canonical/bootstrap、publish completeness/merge；现有显式 allowlist 边界保持。
 - [x] 复用现有官方适配器；天津二附院 9/28 康复设备正例进入 VERIFIED，9/30 数据安全 hard negative 不进入医疗事实；intent 不发明报名截止，妇产科正反例保持。

@@ -7,25 +7,24 @@
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
-  "runtime_implementation_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
-  "latest_code_validated_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
-  "current_runtime_candidate_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+  "runtime_implementation_head": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+  "latest_code_validated_head": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+  "current_runtime_candidate_head": "662bd23cc572e16a13d093bd427fa322cc5166ac",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "ISOLATED_PREVIEW_EPOCH_FULL_PUBLICATION_VERIFIED_WITH_DEGRADED_SOURCES",
-  "latest_changes_validation_status": "889_PYTHON_AND_FULL_BUILD_PASS; REAL_QUEUE_DB_API_BROWSER_HASH_AND_MICROSECONDS_PASS; 7_OF_14_SOURCES_HEALTHY",
+  "milestone": "EVENT_DIAGNOSTICS_RETRY_FINALIZATION_REAL_PREVIEW_RUNNING",
+  "latest_changes_validation_status": "LOCAL905_FULL_BUILD_PASS; NATIVE_NONEMPTY_EVENT_FIRST_TIMEOUT_DIAGNOSTICS_VERIFIED; FULL_CYCLE_AND_TERMINAL_TIMING_PENDING",
   "current_runtime_candidate_validation": {
-    "head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
-    "python_contract_tests": 889,
+    "head": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+    "python_contract_tests": 905,
     "python_contract_result": "PASS",
     "javascript_contract_checks": "PASS",
     "typescript_typecheck": "PASS",
     "vite_production_build": "PASS",
-    "new_full_cloud_queue_cycle": "PASS_WITH_17_DEGRADED_STAGES",
-    "cloud_publication": "PASS_EXACT_DB_JSON_HASH_AND_MICROSECONDS",
-    "current_browser": "6_OF_6_PASS",
-    "production_ready": false,
-    "post_test_enhancement_python_regression": "889_PASS"
+    "new_full_cloud_queue_cycle": "IN_PROGRESS",
+    "cloud_publication": "PENDING_CURRENT662",
+    "current_browser": "PENDING_CURRENT662",
+    "production_ready": false
   },
   "implementation_scope": [
     "Three-source runtime parity: tjzyefy, tjzyefy_intent, tjzxfc; reuse existing official adapters.",
@@ -61,32 +60,40 @@
     "preview_actions_performed": true,
     "production_actions_performed": false,
     "merge_performed": false,
-    "current_head_runtime_acceptance": "FULL_NEW_EPOCH_QUEUE_DB_API_BROWSER_VERIFIED_WITH_DEGRADED_SOURCES",
+    "current_head_runtime_acceptance": "REAL_CYCLE_RUNNING; NONEMPTY_EVENT_FIRST_TIMEOUT_SAFE_DIAGNOSTICS_VERIFIED",
     "remote_deployment_state": "READY_PREVIEW_PRODUCTION_UNCHANGED",
     "preview": {
-      "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
-      "url": "https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app",
-      "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
       "target": "preview",
-      "ready_state": "READY",
-      "database": "mcai_p0_epoch_20261106a",
-      "role": "mcai_p0_epoch_20261106a",
+      "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+      "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+      "git_branch": "codex/p0-reliability-contracts",
+      "preview_epoch": "mcai-p0-20261106-c",
+      "database": "mcai_p0_epoch_20261106c",
+      "role": "mcai_p0_epoch_20261106c",
+      "neon_project": "orange-band-79103824",
       "neon_branch": "br-cold-tooth-a5clhljh",
-      "preview_epoch": "mcai-p0-20261106-a",
-      "report": "docs/project/preview-epoch-cycle-2026-11-06.md"
+      "commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+      "deployment_id": "dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd",
+      "url": "https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app",
+      "ready_state": "READY",
+      "report": "docs/project/event-diagnostics-retry-2026-11-06.md"
     },
     "data_producer_preview": {
-      "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
-      "url": "https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app",
-      "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
       "target": "preview",
-      "ready_state": "READY",
-      "database": "mcai_p0_epoch_20261106a",
-      "role": "mcai_p0_epoch_20261106a",
+      "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+      "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+      "git_branch": "codex/p0-reliability-contracts",
+      "preview_epoch": "mcai-p0-20261106-c",
+      "database": "mcai_p0_epoch_20261106c",
+      "role": "mcai_p0_epoch_20261106c",
+      "neon_project": "orange-band-79103824",
       "neon_branch": "br-cold-tooth-a5clhljh",
-      "preview_epoch": "mcai-p0-20261106-a",
-      "report": "docs/project/preview-epoch-cycle-2026-11-06.md",
-      "runtime_acceptance": "REAL_NEW_EPOCH_COMPLETE_PUBLICATION_8_COMPLETED_17_DEGRADED"
+      "commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+      "deployment_id": "dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd",
+      "url": "https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app",
+      "ready_state": "READY",
+      "report": "docs/project/event-diagnostics-retry-2026-11-06.md",
+      "runtime_acceptance": "REAL_CYCLE_RUNNING"
     },
     "production_baseline_and_recheck": {
       "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
@@ -99,8 +106,8 @@
       "production_actions_performed": false,
       "rechecked_at": "2026-11-06T05:13:13.366Z"
     },
-    "interpretation": "Current UI and real data producer both bind to2cc47ce. Old deployments and database retained and continue separately; Production and SSO read-only verified unchanged. No merge or promotion.",
-    "temporary_acceptance_access": "Both task-owned temporary new Preview and old read-only probe share links revoked; project protection unchanged"
+    "interpretation": "Current662Preview and c database isolated; old code/results historical. Production unchanged; no merge or promotion.",
+    "temporary_acceptance_access": "Unused b link revoked; task-owned current c link temporary and pending cleanup"
   },
   "gold_set_status": {
     "document": "docs/strategy/ACTION_RADAR_GOLDSET_2026-10-07.md",
@@ -116,14 +123,14 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "PASS_WITH_DEGRADED_SOURCES: real new Queue, isolated SQL full JSON and microseconds, authority GET and six ordinary browser checks.",
+    "current_head_runtime_acceptance": "IN_PROGRESS_CURRENT662: first nonempty event failure safely diagnosed; terminal timing and full publication/browser pending.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
     "source_freshness_runtime_acceptance": "PARTIAL:7/14 current cohort source clocks healthy. CCGP event verification, TEDA403 and all five regional discovery rate limits unresolved; previous12/14 result belongs toa3f94bd.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
     "regional_ln_failure_diagnostics": "CURRENT_CLOUD_VERIFIED: bounded phase/reason counts and hashed references persist; LN and all five current regions report RATE_LIMITED. Earlier aggregate detail failure remains unexplained.",
     "regional_fallback_dependency_retries": "VERIFIED_IN_CURRENT_CLOUD_CYCLE: all5 terminally degraded primaries directly degraded fallback without network. Budget-exhausted primary still waits about302seconds for next delivery; optimization pending.",
     "coverage_and_detail_budget": "NOT_FULL_RECALL_OR_MIGRATION: new isolated cohort bootstraps repository canonical, not old live state. CCGP26 discovered/12 verified remain staged because events failed. Five regional discovery attempts throttled; old live pool46 vs new8 is not accepted migration parity.",
-    "nonempty_ccgp_events": "FAILED_UNRESOLVED:8watch projects, event1failed twice with aggregate reason only; event2..6dependency-degraded.12new facts correctly withheld; successful nonempty transaction and safe diagnostics pending.",
+    "nonempty_ccgp_events": "CURRENT662_NATIVE_FIRST_FAILURE:8watch projects, event_search NETWORK_TIMEOUT1 safely persisted. First retry pending; previous epoch undiagnosed failure remains unexplained.",
     "automatic_intraday_execution": "CURRENT_NEW_TICKS_OBSERVED_DEFERRED_BY_DEEP_CYCLE through13:15+08; no current post-deep SourceJob or sustained scheduling claim. Historical old11:30 actual publication remains separate.",
     "publication_timestamp_precision": "PASS_CURRENT_NATIVE_PUBLICATION: new2cc Queue output, isolated SQL timestamp and full JSON agree to984178microseconds. Old separate active writer still truncates; historical rows not bulk migrated.",
     "scan_completion_clock": "UNRESOLVED: last_completed_scan.completed_at uses the scan entry observation clock rather than actual completion wall time; use separately recorded client/publish wall-clock observations for duration.",
@@ -132,11 +139,11 @@
     "historical_runtime_and_ci_state": "Historical observations remain historical. Current Production commit/deployment and SSO protection were read-only rechecked and unchanged.",
     "http_request_reliability": "UNRESOLVED_HISTORICAL_OBSERVATION: one earlier oversized-request attempt returned unexplained 502, then expected 400 on one retry; authority stayed unchanged. The cause remains unknown and is not explained away by later successful publication.",
     "old_deployment_queue_isolation": "PASS_CURRENT_FULL_CYCLE: scoped caches/tags/messages/idempotency/DB/credentials; old46-pool writes do not block new logical version. Old consumers NOT stopped; external-origin request competition remains.",
-    "publication_latency": "UNRESOLVED: trigger-to-publish3995.251seconds; tjmugh completion-to-publish3190.119seconds; five region terminal tails total1509.745seconds. Single-cycle observations, notP95."
+    "publication_latency": "CURRENT662_CODE_FIXED_AND_BEHAVIOR_TESTED: last returned failure finalizes without an extra delivery; native exhausted-attempt timing pending. Historical2cc trigger-to-publish3995.251seconds."
   },
-  "final_code_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
-  "code_validation_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
-  "documentation_followup": "Evidence/docs and enhanced complete-producer-envelope test follow executable2cc47ce; no application code changed after deployment. Full889Python rerun after test enhancement passed.",
+  "final_code_head": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+  "code_validation_head": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+  "documentation_followup": "Code662 is locked during native acceptance; current status docs do not change executable. Historical2cc evidence remains separately versioned.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -240,32 +247,17 @@
     "historical": true
   },
   "preview_authoritative_data_state": {
-    "database": "mcai_p0_epoch_20261106a",
-    "preview_epoch": "mcai-p0-20261106-a",
-    "committed_snapshot_count_before_cycle": 0,
-    "current_publication": "VERIFIED",
+    "database": "mcai_p0_epoch_20261106c",
+    "preview_epoch": "mcai-p0-20261106-c",
+    "initial_committed_snapshots": 0,
+    "current_publication": "PENDING",
     "manual_qa_publication": false,
-    "interpretation": "Fresh isolated acceptance cohort; no previous live snapshot was copied. Old database and its source state are retained separately.",
-    "snapshot_as_of": "2026-11-06T12:11:39.984178+08:00",
-    "sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
-    "canonical_record_count": 923,
-    "opportunity_pool_count": 8,
-    "today_card_count": 5,
-    "notice_event_count": 0,
-    "sql_payload_timestamp_exact": true,
-    "source_health_healthy": 7,
-    "source_health_required": 14,
-    "evidence_manifest": "docs/project/validation/preview-epoch-2026-11-06/manifest.json"
+    "old_live_data_copied": false
   },
   "latest_ui_browser_acceptance": {
-    "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
-    "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
-    "result": "6_OF_6_PASS",
-    "ordinary_get_sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
-    "ordinary_pool_count": 8,
-    "blocked_cache_only_ai_requests": 4,
-    "ai_requests_sent": false,
-    "report": "docs/project/validation/preview-epoch-2026-11-06/browser-smoke-report.json"
+    "commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+    "deployment_id": "dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd",
+    "result": "PENDING_CURRENT662"
   },
   "historical_records": {
     "interpretation": "Historical observations only; these records do not describe the current branch, CI, deployment or P0 acceptance.",
@@ -1248,6 +1240,130 @@
         "old_automatic_tick_actual_publication": true,
         "production_modified": false
       }
+    },
+    "previous_epoch_2cc_c858379": {
+      "runtime_implementation_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+      "current_runtime_candidate_validation": {
+        "head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+        "python_contract_tests": 889,
+        "python_contract_result": "PASS",
+        "javascript_contract_checks": "PASS",
+        "typescript_typecheck": "PASS",
+        "vite_production_build": "PASS",
+        "new_full_cloud_queue_cycle": "PASS_WITH_17_DEGRADED_STAGES",
+        "cloud_publication": "PASS_EXACT_DB_JSON_HASH_AND_MICROSECONDS",
+        "current_browser": "6_OF_6_PASS",
+        "production_ready": false,
+        "post_test_enhancement_python_regression": "889_PASS"
+      },
+      "deployment_boundary": {
+        "preview_actions_performed": true,
+        "production_actions_performed": false,
+        "merge_performed": false,
+        "current_head_runtime_acceptance": "FULL_NEW_EPOCH_QUEUE_DB_API_BROWSER_VERIFIED_WITH_DEGRADED_SOURCES",
+        "remote_deployment_state": "READY_PREVIEW_PRODUCTION_UNCHANGED",
+        "preview": {
+          "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
+          "url": "https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app",
+          "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+          "target": "preview",
+          "ready_state": "READY",
+          "database": "mcai_p0_epoch_20261106a",
+          "role": "mcai_p0_epoch_20261106a",
+          "neon_branch": "br-cold-tooth-a5clhljh",
+          "preview_epoch": "mcai-p0-20261106-a",
+          "report": "docs/project/preview-epoch-cycle-2026-11-06.md"
+        },
+        "data_producer_preview": {
+          "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
+          "url": "https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app",
+          "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+          "target": "preview",
+          "ready_state": "READY",
+          "database": "mcai_p0_epoch_20261106a",
+          "role": "mcai_p0_epoch_20261106a",
+          "neon_branch": "br-cold-tooth-a5clhljh",
+          "preview_epoch": "mcai-p0-20261106-a",
+          "report": "docs/project/preview-epoch-cycle-2026-11-06.md",
+          "runtime_acceptance": "REAL_NEW_EPOCH_COMPLETE_PUBLICATION_8_COMPLETED_17_DEGRADED"
+        },
+        "production_baseline_and_recheck": {
+          "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+          "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+          "target": "production",
+          "ready_state": "READY",
+          "unchanged": true,
+          "recheck_scope": "LATEST_READ_ONLY_DEPLOYMENT_AND_SSO_PROTECTION_RECHECK_REPORTED_BY_ROOT",
+          "sso_protection_unchanged": true,
+          "production_actions_performed": false,
+          "rechecked_at": "2026-11-06T05:13:13.366Z"
+        },
+        "interpretation": "Current UI and real data producer both bind to2cc47ce. Old deployments and database retained and continue separately; Production and SSO read-only verified unchanged. No merge or promotion.",
+        "temporary_acceptance_access": "Both task-owned temporary new Preview and old read-only probe share links revoked; project protection unchanged"
+      },
+      "preview_authoritative_data_state": {
+        "database": "mcai_p0_epoch_20261106a",
+        "preview_epoch": "mcai-p0-20261106-a",
+        "committed_snapshot_count_before_cycle": 0,
+        "current_publication": "VERIFIED",
+        "manual_qa_publication": false,
+        "interpretation": "Fresh isolated acceptance cohort; no previous live snapshot was copied. Old database and its source state are retained separately.",
+        "snapshot_as_of": "2026-11-06T12:11:39.984178+08:00",
+        "sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+        "canonical_record_count": 923,
+        "opportunity_pool_count": 8,
+        "today_card_count": 5,
+        "notice_event_count": 0,
+        "sql_payload_timestamp_exact": true,
+        "source_health_healthy": 7,
+        "source_health_required": 14,
+        "evidence_manifest": "docs/project/validation/preview-epoch-2026-11-06/manifest.json"
+      },
+      "latest_ui_browser_acceptance": {
+        "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+        "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
+        "result": "6_OF_6_PASS",
+        "ordinary_get_sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+        "ordinary_pool_count": 8,
+        "blocked_cache_only_ai_requests": 4,
+        "ai_requests_sent": false,
+        "report": "docs/project/validation/preview-epoch-2026-11-06/browser-smoke-report.json"
+      },
+      "preview_epoch_acceptance": {
+        "report": "docs/project/preview-epoch-cycle-2026-11-06.md",
+        "cycle_id": "preview:mcai-p0-20261106-a:2026-11-06",
+        "trigger_response_at": "2026-11-06T04:11:40.552757Z",
+        "database": "mcai_p0_epoch_20261106a",
+        "role": "mcai_p0_epoch_20261106a",
+        "role_is_admin": false,
+        "old_snapshot_read_privilege": false,
+        "old_schema_create_privilege": false,
+        "initial_snapshot_count": 0,
+        "initial_collector_stages_empty": true,
+        "old_cron_http": 403,
+        "old_publisher_http": 401,
+        "full_cycle_result": "VERIFIED_WITH_DEGRADED_SOURCES",
+        "old_consumers_stopped": false,
+        "production_modified": false,
+        "evidence_manifest": "docs/project/validation/preview-epoch-2026-11-06/manifest.json",
+        "completed_at": "2026-11-06T05:18:15.803830+00:00",
+        "stage_counts": {
+          "COMPLETED": 8,
+          "DEGRADED": 17
+        },
+        "source_health": {
+          "healthy": 7,
+          "required": 14
+        },
+        "publication_sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+        "sql_exact_microseconds": true,
+        "browser_checks_passed": 6,
+        "old_new_database_comparison": "docs/project/validation/preview-epoch-2026-11-06/final-database-comparison.json",
+        "post_deep_source_job_verified": false,
+        "coverage_migration_verified": false,
+        "temporary_share_links_revoked": true,
+        "source_access_recovered": false
+      }
     }
   },
   "source_recovery_precision_acceptance": {
@@ -1299,6 +1415,37 @@
     "post_deep_source_job_verified": false,
     "coverage_migration_verified": false,
     "temporary_share_links_revoked": true,
-    "source_access_recovered": false
+    "source_access_recovered": false,
+    "historical": true
+  },
+  "event_diagnostics_retry_acceptance": {
+    "report": "docs/project/event-diagnostics-retry-2026-11-06.md",
+    "scope": {
+      "target": "preview",
+      "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+      "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+      "git_branch": "codex/p0-reliability-contracts",
+      "preview_epoch": "mcai-p0-20261106-c",
+      "database": "mcai_p0_epoch_20261106c",
+      "role": "mcai_p0_epoch_20261106c",
+      "neon_project": "orange-band-79103824",
+      "neon_branch": "br-cold-tooth-a5clhljh",
+      "commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+      "deployment_id": "dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd",
+      "url": "https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app"
+    },
+    "cycle_id": "preview:mcai-p0-20261106-c:2026-11-06",
+    "trigger_response_at": "2026-11-06T05:45:26.515484+00:00",
+    "local_python_tests": 905,
+    "build": "PASS",
+    "native_nonempty_watch": 8,
+    "native_first_event_diagnostics": {
+      "phase": "event_search",
+      "reason": "NETWORK_TIMEOUT",
+      "count": 1
+    },
+    "full_cycle": "IN_PROGRESS",
+    "terminal_timing": "PENDING",
+    "production_modified": false
   }
 }

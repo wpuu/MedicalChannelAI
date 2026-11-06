@@ -2,7 +2,16 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前新版 Preview 隔离周期（完整发布验收完成，来源降级）
+## 当前事件诊断与重试收尾修复（真实Queue运行中）
+
+- 新代码 `662bd23cc572e16a13d093bd427fa322cc5166ac`；905个Python、JS合约、TypeScript、Vite通过，5项源码位置断言改为真实恢复行为测试。
+- [新Preview](https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app) `dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd` READY，代码精确读回；c周期和独立c库/受限角色，旧环境保留。
+- 北京时间13:45:26触发一次真实Queue，CCGP10发现成功/12核验/8个非空watch；event1首次失败已安全持久化 `event_search / NETWORK_TIMEOUT`，正在等待正常重试。最后一次失败的立即推进、完整发布与浏览器验收尚未结束。
+- [本轮报告](event-diagnostics-retry-2026-11-06.md)记录当前边界。旧2cc完整周期仅属上轮，不充当新662完整验收；统一入口冷却、每源独立发布/覆盖回补未实施。
+- 准备期间一次私有文件补丁错误回显了未使用b部署的测试凭据；b临时访问已撤销、b库仍0表，本轮改用新c库/角色和全新凭据。b角色无法读c快照或在c建表，原始错误/凭据不进入证据。
+- Production未变，未合并或提升；`production_ready=false`。
+
+## 上轮 Preview 隔离周期（c858379，历史完整发布验收）
 
 - 可执行代码 `2cc47ce5cae29f8eed57b411e647ccc356372719`，[Preview](https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app) `dpl_8oRuWziEBXmq1wKfVxZTSUosErYG` READY；标识 `mcai-p0-20261106-a`，独立数据库/受限角色 `mcai_p0_epoch_20261106a`。
 - 真实新版Queue于北京时间12:11触发一次，13:18发布并释放owner；25阶段8完成、17降级，对应7/14源健康。TEDA403、五地区限流、非空事件核验失败尚未恢复。
