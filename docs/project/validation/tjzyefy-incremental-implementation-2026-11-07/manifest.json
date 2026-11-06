@@ -1,0 +1,24 @@
+{
+  "schema_version": "1",
+  "code_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+  "scope": "OFFLINE_LOCAL_STUBS_ONLY",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "sha256": {
+    "docs/project/checkpoint.json": "b0d9cc23f0ae28360d773d4263bcd0fe320ffeceefec376f225aec14f5f6a60d",
+    "docs/project/current-state.md": "bff00c205f8c309da0d8265ce772239519dbf6bbf3978f393654ba562a604725",
+    "docs/project/next-task.md": "2d0dff7f15ef76746c977168f328a05e600c1135ec7bbd2ec972b08de999b0e3",
+    "docs/project/tjzyefy-incremental-implementation-2026-11-07.md": "ccb1618d5f9fe26763e64af6ea457558bc7b0e63bdbde8fc21865376ca24d086",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/completion.json": "78bc225a66b97c6845733e8b65ed440dfac9b88733b0d9dfe694d15b41c1698d",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/frozen-template-audit.json": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/input-integrity.json": "e2c7bdec2f4a8a006591cd2d166fc3884d492400a2c5e03c62df37dcaea983bc",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/original-cli-gate.json": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/queue-cases.json": "e860d062f7531e82d170731d457c26a5247a6c6b55923224c1e62e0ac3b9971e",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/regression.log": "75f9fec6faeebdb50b3ad5729451cb5ebe61b839d816c1763f1817cd30a0d4c3",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/reproduce-cases.py": "f7fdff5c42f5897a8e94fbdf9a4d71eb96eebba923609aac37ee00a97b80aa67",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/source-cases.json": "b304c6f5a93cb2f405d06831ebb6c70b70a6dfefb13d916354ea281bf4a25bbe",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/source-references.json": "3a7e09cfebee9a665d643091851855ac1cb6e602c06f15d994dd884fc802a2cf",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/validation-summary.json": "43cedca994483f609ec956d4ed2189f71c5bef175b5ae378a5cdd9fab0b7768d",
+    "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/verify.py": "0e531479cf29ec2633d1de5913bca95c233fb690305b80569ba221a7a0c77ae8"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "started_at_utc": "2026-11-06T18:59:27Z",
+  "completed_at_utc": "2026-11-06T19:12:34.921186+00:00",
+  "foreground_deadline_utc": "2026-11-06T19:19:27Z",
+  "within_foreground_budget": true,
+  "code_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+  "external_network_access": false,
+  "real_sdk_execution": false,
+  "cloud_runtime_access": false,
+  "credential_environment_value_or_runtime_log_query": false,
+  "deployment_push_or_workflow_trigger": false,
+  "runtime_data_write": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

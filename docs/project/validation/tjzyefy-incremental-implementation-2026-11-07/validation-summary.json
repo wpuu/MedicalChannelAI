@@ -1,0 +1,81 @@
+{
+  "starting_head": "d2d23cb",
+  "code_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+  "scope": "OFFLINE_QUEUE_TJZYEFY_INCREMENTAL_COOPERATIVE_BUDGET_AND_PENDING_RECOVERY_ONLY",
+  "python_tests_passed": 1121,
+  "new_behavior_tests": 23,
+  "new_test_methods": [
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_canonical_unknown_distinguishes_before_and_after",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_complete_empty_nonfact_and_count_deferred",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_finalization_and_precanonical_reject_preserve_staging",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_finally_expiry_does_not_mask_original_io_error",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_frozen_detail_parser_rejects_late_fact_and_nonfact",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_hard_stop_preserves_sibling_staging",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_ordinary_error_does_not_disable_other_details",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_periodic_recheck_remains_carryover_and_old_empty_barrier_survives",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_postcanonical_and_publish_admission_keep_known_commit",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_publish_and_bucket_lateness_or_unknown",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_recovery_write_failure_never_claims_restoration",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_rejects_before_or_after_discovery",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_save_io_errors_stop_and_report_unknown",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_save_steps_late_recover_without_partial_canonical",
+    "web/pipeline/tests/test_collector_deferred_budget.py:test_incremental_budget_sleep_and_fact_nonfact_lateness_keep_pending",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_other_incremental_sources_keep_original_dispatch_without_budget",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_tjzyefy_budget_keeps_entry_origin_through_lease_and_ignores_payload_deadline",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_tjzyefy_guards_and_owner_denial_never_enter_runner",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_tjzyefy_lease_acquire_io_error_is_unknown_and_never_runs_source",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_tjzyefy_lease_release_failure_preserves_known_scan_result",
+    "web/pipeline/tests/test_tjzyefy_sync.py:test_budget_preserves_two_attempt_limit_and_thirty_second_cap",
+    "web/pipeline/tests/test_tjzyefy_sync.py:test_budget_rejects_admission_late_returns_and_insufficient_retry_sleep",
+    "web/pipeline/tests/test_tjzyefy_sync.py:test_budget_timeout_and_retry_sleep_use_remaining_without_compressing_interval"
+  ],
+  "frozen_template_passed": 10,
+  "original_cli_passed": 3,
+  "source_cases": 40,
+  "queue_cases": 6,
+  "protected_files": 480,
+  "only_modified_code_files": [
+    "web/collector_incremental_runtime.py",
+    "web/collector_queue.py",
+    "web/pipeline/scripts/sync_tjzyefy_market_research.py",
+    "web/pipeline/tests/test_collector_deferred_budget.py",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py",
+    "web/pipeline/tests/test_tjzyefy_sync.py"
+  ],
+  "source_sha256": {
+    "web/collector_incremental_runtime.py": "dd374ceb417a5821fec9e6346ce6c6e82efd18a0dfc7b94a956af5aeb4d65729",
+    "web/collector_queue.py": "aad1d7fe7da24e84e5217bf23017c0b231842fc9b25b38c95ab6fe6bf7e7abc6",
+    "web/pipeline/scripts/sync_tjzyefy_market_research.py": "9d9c2fd0ba09b753c013c5a7c5dc1d7d8958b593a80af9d2c5295b3664f3d82d",
+    "web/pipeline/tests/test_collector_deferred_budget.py": "3c2be209071f38f7114989f6708ca764608711196983b78336963e29c745d4ca",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py": "e1698bf6252a9bc5bc12be48d26a68161ef83c232eb5736234ba5fa062e2bad8",
+    "web/pipeline/tests/test_tjzyefy_sync.py": "4dbea0493e3e3b60104cb75dbeb15fb4e3a27aa14450075567a677b5d1643907"
+  },
+  "total_work_url_tail_finalize": [
+    270,
+    180,
+    30,
+    60
+  ],
+  "cli_default_unchanged": [
+    900,
+    840,
+    60
+  ],
+  "regional_unchanged": [
+    270,
+    210,
+    60
+  ],
+  "hard_cancel_guaranteed": false,
+  "physical_no_inflight_late_mutation_guaranteed": false,
+  "atomic_commit_guaranteed": false,
+  "real_persistence_verified": false,
+  "full_internal_publish_budget_added": false,
+  "queue_lease_health_pending_protocol_changed": false,
+  "external_network_calls": 0,
+  "real_sdk_execution": false,
+  "cloud_runtime_access": false,
+  "deployment_push_or_workflow_trigger": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

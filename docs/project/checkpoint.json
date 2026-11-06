@@ -2,18 +2,18 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_TJZYEFY_INCREMENTAL_BUDGET_CONTRACT_DOCUMENTATION_ONLY",
+  "state_scope": "OFFLINE_QUEUE_TJZYEFY_INCREMENTAL_COOPERATIVE_BUDGET_IMPLEMENTATION_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
   "runtime_implementation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "latest_code_validated_head": "bba3716d1b71e3fa6731d9bfd4b2d6d9d81a60c1",
+  "latest_code_validated_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "TJZYEFY_270_180_30_60_PROPOSED_ONLY_SIX_FILE_OFFLINE_IMPLEMENTATION_NOT_AUTHORIZED_THIS_ROUND",
-  "latest_changes_validation_status": "44_STATIC_SOURCE_REFERENCES_AND470_PROTECTED_INPUTS_ONLY;APP_TEST_CONFIG_UNCHANGED;1098/10/3_HISTORICAL_NOT_RERUN",
+  "milestone": "TJZYEFY_270_180_30_60_OFFLINE_PASS_REAL_RUNTIME_AND_FULL_PUBLISH_BUDGET_NO_GO",
+  "latest_changes_validation_status": "1121_PYTHON_AND10/3_PASS;23_NEW_TESTS;480_PROTECTED_FILES;ONLY6AUTHORIZED_CODE_TEST_FILES",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -144,7 +144,7 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "BBA3716_OFFLINE:1098Python/10/3 pass with MemoryCache/transport stubs;deployment82cc/app795 not accessed or changed;not cloud acceptance.",
+    "current_head_runtime_acceptance": "B584BCF_OFFLINE:1121Python/10/3 pass with local MemoryCache/transports;no real runtime/deployment/SDK/persistence verification.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
     "source_freshness_runtime_acceptance": "CARRIED_PRIOR_C_REAL_SCAN_CLOCKS_UNCHANGED:8/14 healthy; no new source scan or recovery in d.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
@@ -168,11 +168,11 @@
     "regional_cli_time_budget": "58E7E6B_OFFLINE:900/840/60cooperative CLI budget,precommit preserve and explicit postcommit/unknown receipts pass;hard exit/atomic clock commit/full default completion/runtime budget NOT established.",
     "regional_ci_cli_gate": "6D4EB1B_LOCAL_ONLY:2lines add CLI path/module;8module94tests pass offline;remote runner/workflow not triggered or verified.",
     "runtime_stage_time_budget": "BBA3716_OFFLINE_REGIONAL_ONLY:Queue270/210/60 and original retry/pending invariants pass;incremental/event/publish excluded;hard cancel/atomic commit/real persistence/dense fallback completion NOT established.",
-    "tjzyefy_incremental_time_budget": "PROPOSED_ONLY:270 total/180 work/30 URL-save tail/60 finalization. Stepwise admission and pending recovery not implemented or behaviorally tested;in-flight writes/real persistence/atomicity/hard limits not established."
+    "tjzyefy_incremental_time_budget": "B584BCF_OFFLINE_PASS:270/180/30/60 cooperative Queue tjzyefy only;40 synthetic cases,6Queue assertions;no hard cancel/atomicity/real persistence/full internal publish budget or complete-by-deadline guarantee."
   },
-  "final_code_head": "bba3716d1b71e3fa6731d9bfd4b2d6d9d81a60c1",
-  "code_validation_head": "bba3716d1b71e3fa6731d9bfd4b2d6d9d81a60c1",
-  "documentation_followup": "tjzyefy incremental cooperative budget/pending recovery contract complete; next explicit six-file local offline implementation only. Hard/atomic/real-runtime guarantees remain NO-GO.",
+  "final_code_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+  "code_validation_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+  "documentation_followup": "tjzyefy incremental cooperative budget implemented offline; next documentation-only publish time/commit receipt contract;no SDK reopening.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2322,7 +2322,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "d6a9cee",
+  "latest_reviewed_repository_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2420,7 +2420,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "d6a9cee",
+  "current_phase_starting_head": "d2d23cb",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2470,8 +2470,8 @@
     "production_modified": false,
     "historical": true
   },
-  "latest_offline_tool_head": "bba3716d1b71e3fa6731d9bfd4b2d6d9d81a60c1",
-  "code_validation_scope": "LOCAL_MEMORY_QUEUE_REGIONAL_BUDGET_ONLY;NOT_REAL_RUNTIME_OR_HARD_CANCELLATION",
+  "latest_offline_tool_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+  "code_validation_scope": "LOCAL_STUB_QUEUE_REGIONAL_AND_TJZYEFY_INCREMENTAL_COOPERATIVE_BUDGET_ONLY;NOT_REAL_PERSISTENCE_OR_HARD_CANCEL",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
     "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
@@ -2835,12 +2835,12 @@
     "runtime_cache_read": false,
     "database_read": false,
     "deployment_or_write": false,
-    "source": "Latest explicit tjzyefy incremental contract documentation-only instruction 2026-11-07",
-    "current_round": "ONLY_LOCAL_DOCS_AND_NEW_STATIC_ACCEPTANCE_ARTIFACTS",
+    "source": "Latest explicit six-file offline tjzyefy incremental budget authorization 2026-11-07",
+    "current_round": "ONLY6EXISTING_CODE_TEST_FILES_PLUS_DOCS_ARTIFACTS",
     "network_this_round": false,
     "cloud_metadata_this_round": false,
     "F1_regional_cli_code_this_round": false,
-    "F2_code_this_round": false,
+    "F2_code_this_round": true,
     "workflow_change_this_round": false,
     "workflow_executed_this_round": false
   },
@@ -3340,6 +3340,39 @@
     "apply_allowed": false,
     "migration_usable": false,
     "completed_at_utc": "2026-11-06T18:57:09.845227+00:00",
-    "completion": "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/completion.json"
+    "completion": "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/completion.json",
+    "implementation_followup": "docs/project/tjzyefy-incremental-implementation-2026-11-07.md"
+  },
+  "tjzyefy_incremental_implementation": {
+    "starting_head": "d2d23cb",
+    "code_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+    "status": "OFFLINE_COOPERATIVE_SUBITEM_IMPLEMENTED_AND_VERIFIED",
+    "report": "docs/project/tjzyefy-incremental-implementation-2026-11-07.md",
+    "manifest": "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/manifest.json",
+    "total_work_url_tail_finalize": [
+      270,
+      180,
+      30,
+      60
+    ],
+    "new_behavior_tests": 23,
+    "python_tests_passed": 1121,
+    "frozen_template_passed": 10,
+    "original_cli_passed": 3,
+    "source_cases": 40,
+    "queue_cases": 6,
+    "protected_files": 480,
+    "queue_lease_health_pending_protocol_changed": false,
+    "full_internal_publish_budget_added": false,
+    "hard_cancellation_guaranteed": false,
+    "physical_no_inflight_late_mutation_guaranteed": false,
+    "atomic_commit_guaranteed": false,
+    "real_persistence_verified": false,
+    "deployed": false,
+    "pushed": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completed_at_utc": "2026-11-06T19:12:34.921186+00:00",
+    "completion": "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/completion.json"
   }
 }

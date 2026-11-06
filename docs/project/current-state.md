@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前tjzyefy增量时间预算与pending恢复合同（仅文档）
+## 当前tjzyefy增量协作式预算与pending恢复（离线实现）
+
+- 起点d2d23cb，代码b584bcf，只修改授权六文件。Queue tjzyefy增量复用CliBudget逻辑270/工作180/URL尾部30/最终化60，入口原点包含预检/lease，其他源/区域/deep/CLI保持原路径。[实现报告](tjzyefy-incremental-implementation-2026-11-07.md)、[证据](validation/tjzyefy-incremental-implementation-2026-11-07/manifest.json)。原语snapshot的90秒reserve是30+60，不是承诺缓存I/O上界。
+- 迟到fact/None不构造新核验，保存每步前后检查；剩余selected保留carryover、时间中断503不开bucket。恢复合并最新屏障，未正常确认就不声称已恢复。原数量deferred的200/no-refresh不等同源成功；canonical/publish已确认与bucket/lease未知分开，不声称零写/回滚或按时。
+- 新增23项行为测试，最终1121项Python/10模板/3原CLI通过；40组内存状态哈希、6组Queue断言冻结，480份原数据/fixture/旧artifact字节不变。无新预算/模拟引擎，无Queue/lease/健康/pending协议或其他应用文件变化。
+- 无外网/真实SDK/云端/运行数据访问、部署/推送/触发、新环境/路由或配置变更。apply_allowed/migration_usable=false；SDK保持CLOSED NO-GO。硬取消、严格时限、在途写零变化、原子提交、真实持久化/来源恢复及publish内部预算仍未完成/不放行。
+- [下一轮](next-task.md)仅文档审查publish时间预算与已确认/未知回执合同，不改代码或重跑未变1121/10/3；无安全最小方案就NO-GO结束，不重开SDK工作流。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh（超高），实际设置未核实。
+
+## 上轮tjzyefy增量预算合同（历史方案，局部离线实现已完成）
 
 - 起点d6a9cee，完成[合同与唯一六文件最小方案](tjzyefy-incremental-budget-contract-2026-11-07.md)：仅Queue tjzyefy增量拟用逻辑270/工作180/尾部单URL保存30/最终化60，复用CliBudget与现有逐URL保存/失败恢复，不照搬区域210工作值。全部数值为政策建议，尚未实现/实测。
 - URL保存每步调用前后检查；迟到fact/None不构造新VERIFIED或解除屏障。已发出保存写迟到仍可能变化，明确结果未知，恢复正常确认前不宣称屏障已保留/恢复或自动回滚。时间中断503不开bucket；原数量deferred的200/no-refresh分支不等同整源成功。

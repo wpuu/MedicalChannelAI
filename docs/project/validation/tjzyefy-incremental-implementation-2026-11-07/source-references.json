@@ -1,0 +1,41 @@
+{
+  "code_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+  "references": [
+    {
+      "path": "web/collector_queue.py",
+      "line": 272,
+      "text": "def _process_incremental_payload(payload: dict[str, Any], *, budget=None) -> None:",
+      "sha256": "aad1d7fe7da24e84e5217bf23017c0b231842fc9b25b38c95ab6fe6bf7e7abc6"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_tjzyefy_market_research.py",
+      "line": 71,
+      "text": "def fetch_page_with_retry(url: str, *, delay_seconds: float, attempts: int = FETCH_ATTEMPTS, budget=None) -> str:",
+      "sha256": "9d9c2fd0ba09b753c013c5a7c5dc1d7d8958b593a80af9d2c5295b3664f3d82d"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 302,
+      "text": "def _discover_tjzyefy(now: datetime, *, budget=None) -> list[Any]:",
+      "sha256": "dd374ceb417a5821fec9e6346ce6c6e82efd18a0dfc7b94a956af5aeb4d65729"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 316,
+      "text": "def _verify_tjzyefy(candidate: Any, observed_at: str, now: datetime, *, budget=None) -> dict[str, Any] | None:",
+      "sha256": "dd374ceb417a5821fec9e6346ce6c6e82efd18a0dfc7b94a956af5aeb4d65729"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 523,
+      "text": "def run_incremental_source(",
+      "sha256": "dd374ceb417a5821fec9e6346ce6c6e82efd18a0dfc7b94a956af5aeb4d65729"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 584,
+      "text": "def _run_incremental_source(",
+      "sha256": "dd374ceb417a5821fec9e6346ce6c6e82efd18a0dfc7b94a956af5aeb4d65729"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "method": "test_tjzyefy_budget_keeps_entry_origin_through_lease_and_ignores_payload_deadline",
+    "assertions_passed": true
+  },
+  {
+    "method": "test_tjzyefy_guards_and_owner_denial_never_enter_runner",
+    "assertions_passed": true
+  },
+  {
+    "method": "test_other_incremental_sources_keep_original_dispatch_without_budget",
+    "assertions_passed": true
+  },
+  {
+    "method": "test_tjzyefy_lease_release_failure_preserves_known_scan_result",
+    "assertions_passed": true
+  },
+  {
+    "method": "test_tjzyefy_lease_acquire_io_error_is_unknown_and_never_runs_source",
+    "assertions_passed": true
+  },
+  {
+    "method": "test_incremental_dispatch_does_not_get_regional_budget",
+    "assertions_passed": true
+  }
+]
