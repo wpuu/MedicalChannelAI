@@ -1,4 +1,5 @@
 import { archiveResearchEventCard, researchEventWindowClosed } from '@/utils/researchEventWindow'
+import { marketCodeForOpportunity } from '@/utils/opportunityMarket'
 import type {
   CapabilityType,
   FollowupInput,
@@ -287,7 +288,7 @@ function mapPublicCard(card: PublicTodayActionCard): TodayActionCard {
       buyer_name: card.facts.buyer_name,
       department: card.facts.department,
       region: card.facts.region,
-      market_code: card.facts.market_code ?? null,
+      market_code: marketCodeForOpportunity(card),
       market_name: card.facts.market_name ?? null,
       market_admin_code: card.facts.market_admin_code ?? null,
       lifecycle_stage: card.facts.lifecycle_state,

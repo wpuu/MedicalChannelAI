@@ -10,7 +10,9 @@ class BusinessMarketPreferenceTests(unittest.TestCase):
 
     def test_static_today_preserves_explicit_market_metadata(self):
         source = self.read("src/services/StaticSnapshotTodayActionsService.ts")
-        self.assertIn("market_code: card.facts.market_code ?? null", source)
+        # Value preservation and registered-source fallback are exercised by
+        # the real mapper behavior in check-opportunity-market-scope.mjs.
+        self.assertIn("market_code:", source)
         self.assertIn("market_name: card.facts.market_name ?? null", source)
         self.assertIn("market_admin_code: card.facts.market_admin_code ?? null", source)
 

@@ -46,7 +46,7 @@ function loadService(name, bindings = {}, append = '') {
   }).outputText
   const context = {
     exports: {}, Date: ClockDate, structuredClone, crypto: webcrypto,
-    researchEventWindowClosed: eventClosed, archiveResearchEventCard,
+    researchEventWindowClosed: eventClosed, archiveResearchEventCard, marketCodeForOpportunity,
     ...bindings,
   }
   vm.createContext(context)

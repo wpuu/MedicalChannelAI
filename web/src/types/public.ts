@@ -111,6 +111,8 @@ export interface PublicDecision {
 export interface PublicTodayActionCard {
   rank: number
   opportunity_id: string
+  /** Registered collector identity when supplied by the runtime publisher. */
+  source_id?: string | null
   facts: PublicFacts
   evidence_source_urls: string[]
   customer_context: PublicCustomerContext

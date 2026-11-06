@@ -37,6 +37,17 @@ for (const [id, facts, expected] of [
   assert.equal(marketCodeForOpportunity({ opportunity_id: id, facts }), expected, id)
 }
 
+for (const [source, region, expected] of [
+  ['ccgp', '滨海新区', 'TJ'], ['ccgp', '静海县', 'TJ'], ['ccgp', '宝坻区', 'TJ'],
+  ['ccgp', '市辖区', 'TJ'], ['unknown', '市辖区', null], [undefined, '市辖区', null],
+  ['ccgp', '哈尔滨市', null], ['ccgp', '山东省济南市', null], ['ccgp', '', null],
+]) {
+  assert.equal(marketCodeForOpportunity({ opportunity_id: 'ccgp_832c6893808802e0', source_id: source,
+    facts: { region } }), expected, `${source}/${region}`)
+}
+assert.equal(marketCodeForOpportunity({ opportunity_id: 'unknown_hash', source_id: 'ccgp', facts: { region: '市辖区' } }), null)
+assert.equal(marketCodeForOpportunity({ opportunity_id: 'ccgp_832c6893808802e0', source_id: 'ccgp', facts: { market_code: 'SD', region: '市辖区' } }), null)
+
 // Exercise the real pool loader/mapper with the shape produced by the Queue
 // runtime builder: official region exists, but market metadata is absent.
 const bundled = JSON.parse(readFileSync(new URL('../public/data/today-actions.public.json', import.meta.url), 'utf8'))
@@ -56,6 +67,24 @@ const runtimeCard = (id, region) => ({
     bid_deadline: null,
   },
 })
+
+// Run the real Today mappers too: preserving scope only in the pool loader
+// would still drop opaque CCGP ids after the Today mapper discards source_id.
+for (const name of ['StaticSnapshotTodayActionsService', 'ApiTodayActionsService']) {
+  const text = readFileSync(new URL(`../src/services/${name}.ts`, import.meta.url), 'utf8')
+  const ast = ts.createSourceFile(`${name}.ts`, text, ts.ScriptTarget.Latest, true)
+  const stripped = ts.factory.updateSourceFile(ast, ast.statements.filter(statement => !ts.isImportDeclaration(statement)))
+  const js = ts.transpileModule(ts.createPrinter().printFile(stripped) + '\nglobalThis.mapForAcceptance = mapPublicCard', {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
+  }).outputText
+  const mapperContext = { exports: {}, marketCodeForOpportunity }
+  vm.createContext(mapperContext); vm.runInContext(js, mapperContext)
+  const card = { ...runtimeCard('ccgp_832c6893808802e0', '滨海新区'), source_id: 'ccgp' }
+  assert.equal(mapperContext.mapForAcceptance(card).facts.market_code, 'TJ', name)
+  assert.equal(mapperContext.mapForAcceptance({ ...card, source_id: undefined }).facts.market_code, null, name)
+  assert.equal(mapperContext.mapForAcceptance({ ...card, facts: { ...card.facts, market_code: 'BJ' } }).facts.market_code, 'BJ', name)
+  assert.equal(mapperContext.mapForAcceptance({ ...card, facts: { ...card.facts, market_code: 'SD' } }).facts.market_code, null, name)
+}
 const payload = {
   ...bundled,
   opportunity_pool: [runtimeCard('tjmugh_runtime', '天津市'), runtimeCard('ccgp_jl_runtime', '吉林省')],
@@ -138,6 +167,8 @@ if (snapshotPath) {
   const expectedMarket = (card) => {
     const source = card.opportunity_id.match(/^ccgp_(bj|tj|he|ln|jl|hl)_/i)
     if (source) return source[1].toUpperCase()
+    const original = livePool.find((item) => item.opportunity_id === card.opportunity_id)
+    if (original?.source_id === 'ccgp' && /^ccgp_[a-f0-9]{16}$/i.test(card.opportunity_id)) return 'TJ'
     assert(/^(?:tjmugh|tjnothop|tjfch|teda|tjzxfc|tjzyefy)_/i.test(card.opportunity_id), 'Acceptance fixture must have a registered source')
     return 'TJ'
   }
