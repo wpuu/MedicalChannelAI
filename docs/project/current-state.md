@@ -2,6 +2,14 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
+## 当前F3区域CLI完整性门禁（离线复现并修复）
+
+- 起点2911c92，代码7b29933；真实argparse/main＋冻结官方详情复现4种失败仍exit0/改写records，现统一失败exit2且不写records，完整成功/合法空/fallback成功仍exit0。report与输入/records的同路径、符号链接、硬链接冲突在客户端建立前拒绝。[报告](regional-cli-f3-fix-2026-11-07.md)、[证据](validation/regional-cli-f3-2026-11-07/manifest.json)。
+- 15项新增行为测试、全部1046项Python及冻结10/10、原CLI3/3通过；395份起点data/fixture/旧证据字节不变。F3测试阻断所有socket/真实opener，完整回归禁止外部网络/真实SDK导入，仅保留既有loopback重定向测试。
+- 仅配置内有界扫描整批门禁，不是全历史召回、每市场独立提交/覆盖水位、文件系统事务或真实CAS。report候选计数不代表已写入，records_written=false明确失败批次未发布新事实。SDK工作流仍CLOSED NO-GO，apply_allowed/migration_usable=false。
+- 无云端访问、部署/推送、计划/权限/变量/锁/环境变更或运行数据/原始历史数据/公开快照写入。F1限流后请求止损/共享冷却及F2墙钟预算仍未完成；不把旧403/健康状态当当前事实。下方旧审查及云端记录均保留其历史版本边界。
+- [下一轮完整任务](next-task.md)为F1区域CLI单次调用明确限流止损子项，需该子项本地代码授权，不重开SDK或扩大到跨进程/F2。当前界面无法生成该按钮；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
 ## 当前共享入口限流/重试预算离线审查（仅静态，3项待验证）
 
 - 起点d9882a0，完成[调用链与缺口审查](shared-entry-budget-review-2026-11-07.md)：F1路径间限流止损/入口冷却不一致，F2剩余墙钟预算未传至请求/sleep，F3区域CLI存在部分失败仍写records/退出0的静态路径。全部没有本轮新行为/线上复现，不当作已确认线上故障。

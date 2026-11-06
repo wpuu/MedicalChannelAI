@@ -1,0 +1,10 @@
+{
+  "first_recoverable_clock": "2026-11-06T17:26:30Z",
+  "foreground_deadline": "2026-11-06T17:44:00Z",
+  "completed_at": "2026-11-06T17:32:34.525243+00:00",
+  "within_foreground_deadline": true,
+  "apply_allowed": false,
+  "migration_usable": false,
+  "cloud_or_runtime_access": false,
+  "deployment_or_push": false
+}

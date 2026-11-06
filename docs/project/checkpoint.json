@@ -2,18 +2,18 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_SHARED_ENTRY_RETRY_AND_BUDGET_STATIC_REVIEW_ONLY",
+  "state_scope": "OFFLINE_REGIONAL_CLI_F3_COMPLETENESS_FIX_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
   "runtime_implementation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "latest_code_validated_head": "605ebad99041a3057189a1315adae6cc2a773055",
+  "latest_code_validated_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "THREE_STATIC_ENTRY_BUDGET_GAPS_F3_CLI_GATE_FIRST_PENDING_REPRODUCTION",
-  "latest_changes_validation_status": "STATIC_REFERENCES_AND_INPUT_INTEGRITY_PASS;387_INPUTS_UNCHANGED;NO_NEW_BEHAVIOR_REPRO;1031_AND10/3_HISTORICAL",
+  "milestone": "F3_REPRODUCED_AND_FIXED_OFFLINE_F1_F2_PENDING",
+  "latest_changes_validation_status": "1046_PYTHON_AND_FROZEN10_ORIGINAL_CLI3_PASS;395_PROTECTED_FILES_UNCHANGED",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -144,7 +144,7 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "Runtime deployment82cc/app795 unchanged/not accessed. Current8f8 offline-only;984Python and10/3gates pass. No new JS build or cloud verification.",
+    "current_head_runtime_acceptance": "F3_CLI_7B29933_OFFLINE:1046Python/10/3pass;runtime deployment82cc/app795 not accessed or changed;not new cloud acceptance.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
     "source_freshness_runtime_acceptance": "CARRIED_PRIOR_C_REAL_SCAN_CLOCKS_UNCHANGED:8/14 healthy; no new source scan or recovery in d.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
@@ -162,11 +162,12 @@
     "old_deployment_queue_isolation": "D_TARGETED_REPAIR_ISOLATED:old c role cannot read d snapshots or create d schema; old c consumers retained. d native cycle/canonical migration and shared-origin request budget remain unverified.",
     "publication_latency": "CURRENT662_RETURNED_FAILURE_TAIL_VERIFIED:0.029–0.034seconds; trigger-to-publish2207.330seconds, tjmugh completion-to-publish1678.375seconds. Single-cycle observations, notP95; first retry/forced-kill recovery/global publication coupling remain.",
     "ccgp_product_items_quality": "FOUR_FIXES_DEPLOYED82CC_APP795;10frozen fixtures pass locally. Current UI preserves existing10official Dakoutun products. No new raw-detail cloud collection or historical application; broader templates/attachments/recall remain unverified.",
-    "historical_product_backfill": "MEMORY_SIMULATION8F8:2overlay/2restore,whole892state restored,890unselected unchanged,replays0changes,stale/crossscope/tampered/partial/mixed/newfacts/events rejected. Only in-memory checks/deepcopies; actual runtime export,CAS/transactions,migration,application and rollback unimplemented."
+    "historical_product_backfill": "MEMORY_SIMULATION8F8:2overlay/2restore,whole892state restored,890unselected unchanged,replays0changes,stale/crossscope/tampered/partial/mixed/newfacts/events rejected. Only in-memory checks/deepcopies; actual runtime export,CAS/transactions,migration,application and rollback unimplemented.",
+    "regional_cli_completeness": "F3_7B29933_OFFLINE_PASS:incomplete batch exit2 preserves records;bounded scan only,no per-market independent commits/full historical recall;not deployed."
   },
-  "final_code_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "code_validation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "documentation_followup": "New thin offline simulator reuses9f6 generator and unchanged change IDs.892record memory roundtrip/idempotence/concurrency refusal verified; no actual runtime CAS, transaction, migration, application or rollback.",
+  "final_code_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
+  "code_validation_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
+  "documentation_followup": "F3 conservative whole-batch failure gate complete offline;F1 same-invocation throttle stop proposed separately;F2 and cross-process coordination unchanged.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2316,7 +2317,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "d9882a0",
+  "latest_reviewed_repository_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2414,7 +2415,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "d9882a0",
+  "current_phase_starting_head": "2911c92",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2465,7 +2466,7 @@
     "historical": true
   },
   "latest_offline_tool_head": "605ebad99041a3057189a1315adae6cc2a773055",
-  "code_validation_scope": "STATIC_REVIEW_DOCUMENTATION_ONLY; APPLICATION/WORKFLOWS/PLANS/LOCKS/TESTS_UNCHANGED",
+  "code_validation_scope": "OFFLINE_REGIONAL_CLI_ARGPARSE_MAIN_AND_FROZEN_PARSERS;NOT_DEPLOYED;SDK_CLOSED",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
     "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
@@ -2829,7 +2830,11 @@
     "runtime_cache_read": false,
     "database_read": false,
     "deployment_or_write": false,
-    "source": "Latest explicit public SDK static-audit user authorization 2026-11-06"
+    "source": "Latest explicit F3 local offline code/test authorization 2026-11-07",
+    "current_round": "F3_ONLY_OFFLINE_CODE_TEST_DOCS_ARTIFACTS",
+    "network_this_round": false,
+    "cloud_metadata_this_round": false,
+    "F1_F2_implementation_this_round": false
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -3041,6 +3046,36 @@
       "network_or_project_function_execution": false,
       "apply_allowed": false,
       "migration_usable": false
+    }
+  },
+  "regional_cli_f3_acceptance": {
+    "starting_head": "2911c92",
+    "code_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
+    "status": "REPRODUCED_AND_FIXED_OFFLINE",
+    "report": "docs/project/regional-cli-f3-fix-2026-11-07.md",
+    "manifest": "docs/project/validation/regional-cli-f3-2026-11-07/manifest.json",
+    "new_behavior_tests": 15,
+    "python_tests_passed": 1046,
+    "frozen_template_passed": 10,
+    "original_cli_passed": 3,
+    "protected_input_file_count": 395,
+    "failed_batch_exit_code": 2,
+    "failed_batch_records_bytes_unchanged": true,
+    "real_network_or_sdk": false,
+    "deployed": false,
+    "pushed": false,
+    "F1_F2_changed": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completion": {
+      "first_recoverable_clock": "2026-11-06T17:26:30Z",
+      "foreground_deadline": "2026-11-06T17:44:00Z",
+      "completed_at": "2026-11-06T17:32:34.525243+00:00",
+      "within_foreground_deadline": true,
+      "apply_allowed": false,
+      "migration_usable": false,
+      "cloud_or_runtime_access": false,
+      "deployment_or_push": false
     }
   }
 }

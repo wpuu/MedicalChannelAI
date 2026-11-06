@@ -1,0 +1,31 @@
+{
+  "starting_head": "2911c92",
+  "code_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
+  "python_tests_passed": 1046,
+  "new_behavior_tests": 15,
+  "frozen_templates_passed": 10,
+  "original_cli_passed": 3,
+  "cli_mode": "REAL_ARGPARSE_MAIN_AND_FROZEN_OFFICIAL_DETAIL_PARSERS_WITH_IO_BOUNDARY_STUBS",
+  "gate_scope": "CONFIGURED_BOUNDED_REGIONAL_SCAN_NOT_FULL_RECALL",
+  "network_guard": "F3 socket/create_connection/build_opener forbidden; full regression audit hook forbids non-loopback socket/DNS and real vercel SDK imports; existing local-loopback HTTP redirect unit test retained",
+  "external_network_calls": 0,
+  "real_sdk_execution": false,
+  "cloud_or_runtime_access": false,
+  "deployment_or_push": false,
+  "F3": "REPRODUCED_AND_FIXED_OFFLINE",
+  "F1": "UNCHANGED",
+  "F2": "UNCHANGED",
+  "sdk_workflow": "CLOSED_NO_GO",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "source_files": {
+    "web/pipeline/scripts/sync_regional_ccgp.py": "9a82b6e40ecbc146b000bc5f208a60e9f75991835a78485f9bded693ea226c35",
+    "web/pipeline/tests/test_regional_cli_completeness.py": "9cc6e16261c625c114959c39842e4e76bc118957c6d93828f0c4f55c6025c7a6"
+  },
+  "commands": [
+    "cd web/pipeline && python -m unittest discover -s tests -p test_regional_cli_completeness.py -v",
+    "cd web/pipeline && offline audit-hook unittest discovery (see run-regression.py)",
+    "python web/pipeline/scripts/audit_ccgp_product_backfill.py --manifest web/pipeline/tests/fixtures/ccgp_template_audit_20261106/manifest.json --baseline web/pipeline/data/tianjin_live_ccgp_records.json --baseline web/pipeline/data/regional_live_ccgp_records.json --output <temporary-file>",
+    "python docs/project/validation/ccgp-template-audit-2026-11-06/reproduce-bootstrap-gate.py > <temporary-file>"
+  ]
+}
