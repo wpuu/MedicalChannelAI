@@ -23,14 +23,15 @@ SELECTED = [next(c for c in CASES if c['label'] == label) for label in (
 class RegionalCliCompletenessTests(unittest.TestCase):
     def run_cli(self, mode, *, separate_output=False, alias=None, absent_output=False,
                 empty_input=False, records_alias_plan=False, injected_error=None,
-                distinct_detail_hosts=False):
+                distinct_detail_hosts=False, both_notice_types=False):
         """Actual argparse/main and official parsers; only I/O is replaced offline."""
         with tempfile.TemporaryDirectory() as temp, ExitStack() as stack:
             folder = Path(temp)
             plan = json.loads(target.DEFAULT_PLAN.read_text())
             plan['markets'] = [m for m in plan['markets'] if m['market_code'] in ('HE', 'HL')]
             plan['keywords'] = ['first', 'second']
-            plan['notice_types'] = ['公开招标']
+            if not both_notice_types:
+                plan['notice_types'] = ['公开招标']
             plan_path = folder / 'plan.json'
             plan_path.write_text(json.dumps(plan, ensure_ascii=False))
             # Keep a real existing record distinct from the two selected fixtures.
@@ -329,3 +330,11 @@ class RegionalCliCompletenessTests(unittest.TestCase):
         r = self.run_cli('all_success')
         self.assertEqual(r['code'], 0)
         self.assertEqual(r['report']['access_blocked_hosts'], {})
+
+    def test_denials_stop_default_two_notice_type_fanout(self):
+        for mode, expected in (('f1_scoped', 3), ('f1_fallback', 9)):
+            with self.subTest(mode=mode):
+                r = self.run_cli(mode, injected_error=RuntimeError('CCGP_RATE_LIMITED'), both_notice_types=True)
+                self.assertEqual(r['search_calls'], expected)
+                self.assertEqual(r['code'], 2)
+                self.assertEqual(r['output_bytes'], r['original'])
