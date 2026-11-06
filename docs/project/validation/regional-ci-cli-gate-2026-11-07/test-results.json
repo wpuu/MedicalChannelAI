@@ -1,0 +1,25 @@
+{
+  "tests_run": 94,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": true,
+  "module_count": 8,
+  "modules": [
+    "tests.test_regional_candidate_classification",
+    "tests.test_regional_cli_completeness",
+    "tests.test_channel_scope",
+    "tests.test_ccgp_detail",
+    "tests.test_ccgp_national_detail_formats",
+    "tests.test_ccgp_liaoning_detail_format",
+    "tests.test_snapshot_http_publish",
+    "tests.test_snapshot_roundtrip"
+  ],
+  "python_version": "3.12.14",
+  "network_guard": "socket.connect and socket.getaddrinfo forbidden; real vercel SDK imports forbidden",
+  "workflow_executed": false,
+  "full1079_rerun": false,
+  "frozen10_original3_rerun": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

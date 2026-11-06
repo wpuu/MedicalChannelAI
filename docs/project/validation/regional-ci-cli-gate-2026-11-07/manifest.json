@@ -1,0 +1,53 @@
+{
+  "schema_version": "0.1",
+  "scope": "LOCAL_WORKFLOW_PATH_AND_UNITTEST_LIST_ONLY",
+  "starting_head": "8b3eba8",
+  "workflow_head": "6d4eb1bd48d69329c0a0b3ac4587adcbc1d1e641",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "files": [
+    {
+      "path": "completion.json",
+      "bytes": 382,
+      "sha256": "531d52140ab95e9fc94db1e9e75d86c865097cef3258254f690b76b435165269"
+    },
+    {
+      "path": "input-integrity.json",
+      "bytes": 67580,
+      "sha256": "4e3f0e5fc3f106b551876d172374493e131351e684fa5f1660bdf9c390238f54"
+    },
+    {
+      "path": "run-selected-tests.py",
+      "bytes": 2874,
+      "sha256": "79be75a02fe79ccfb51de9d57db45519f679f041ccd7f74a440d9e941aff152f"
+    },
+    {
+      "path": "selected-tests.log",
+      "bytes": 16981,
+      "sha256": "3be36b79ab44647a4ce259b241a87283e62942c9e4275c281d5b4448aa375480"
+    },
+    {
+      "path": "test-results.json",
+      "bytes": 741,
+      "sha256": "7ae44e0f0e2d676e77322fb3d79714768057ac284dacdb2d46e60a97d05b3189"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 1111,
+      "sha256": "696546ff85d9e8402e3045110ba51982747dfc613fad06a274ea0e146df55676"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 3412,
+      "sha256": "24bb50d312fca66f536549c007d757c0d86af314c4cee2d90254af1de45ad24b"
+    },
+    {
+      "path": "workflow-structure.json",
+      "bytes": 865,
+      "sha256": "eb1c43e8489f6f6e72232b1d6d5b060ad4ebeb96716e455e12caab119c20f083"
+    }
+  ],
+  "document_sha256": {
+    "docs/project/regional-ci-cli-gate-2026-11-07.md": "6d6803649a3e308d6ec76b3603957dae2352579b0e7e790c1639641e97ef4695"
+  }
+}

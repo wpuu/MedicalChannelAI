@@ -2,7 +2,14 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前F2区域CLI协作式预算（离线实现，非硬时限）
+## 当前区域CI CLI离线门禁（仅本地配置与模块组合验证）
+
+- 起点8b3eba8，workflow提交6d4eb1b：只在既有paths新增CLI测试文件、在既有unittest清单新增tests.test_regional_cli_completeness，恰好两行。原7个模块/set-e、schedule/分支/concurrency/权限/timeout/采集/发布/预热/凭据引用全部保留。[报告](regional-ci-cli-gate-2026-11-07.md)、[证据](validation/regional-ci-cli-gate-2026-11-07/manifest.json)。
+- 现有PyYAML解析与字节对照通过，修改后的8模块组合本地94项通过、0失败/错误/跳过；socket连接/DNS与真实SDK导入阻断。应用及测试源码仍58e7e6b未变；本轮未重跑1079/10/3，也未执行/触发workflow，不能冒称远端runner或来源验收通过。
+- 441份起点data/fixture/旧证据SHA256不变，无外网/云端/运行数据访问、部署/推送、新环境/路由/计划/变量/权限变更，apply_allowed/migration_usable=false，SDK仍CLOSED NO-GO。
+- 未完成runtime F2、硬取消/严格墙钟保证、共享冷却/Retry-After与真实来源/Preview验收。[下一轮](next-task.md)仅文档制定runtime阶段预算合同，不先改代码或执行函数；推荐GPT-6.1 Sol xhigh（超高），实际设置未核实。当前界面无法生成该按钮。
+
+## 上轮F2区域CLI协作式预算（离线实现，非硬时限）
 
 - 起点2826b30，代码58e7e6b，按已冻结合同实现900秒逻辑总预算/840秒工作/60秒收尾。monotonic/sleep可注入，timeout按原30/90/30上限与剩余预算减1取小；warmup预算异常不吞，超期返回/解析不进入可提交新事实，后续业务请求/sleep全局停止。[报告](regional-cli-f2-implementation-2026-11-07.md)、[证据](validation/regional-cli-f2-implementation-2026-11-07/manifest.json)。
 - CLI内同文件系统临时候选准备＋提交前deadline/完整性检查，提交前失败exit2并保留原records。replace结果未知exit3/records_written=null；提交后迟到exit3/COMMITTED，report失败exit3/COMMITTED_REPORTING_INCOMPLETE并有stderr回执，不声称零写入/自动回滚。F1/F3与合法完整空保持；不是跨文件事务或原子时间CAS。

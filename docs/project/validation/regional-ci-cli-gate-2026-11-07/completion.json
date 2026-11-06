@@ -1,0 +1,11 @@
+{
+  "started_at": "2026-11-06T18:17:00Z",
+  "foreground_deadline": "2026-11-06T18:37:00Z",
+  "completed_at": "2026-11-06T18:20:40.255161+00:00",
+  "within_foreground_deadline": true,
+  "scope": "LOCAL_TWO_LINE_WORKFLOW_CONFIG_AND_SELECTED_TESTS_ONLY",
+  "workflow_executed_or_triggered": false,
+  "deployment_or_push": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

@@ -1,0 +1,26 @@
+{
+  "starting_head": "8b3eba8",
+  "workflow_head": "6d4eb1bd48d69329c0a0b3ac4587adcbc1d1e641",
+  "validated_application_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+  "scope": "LOCAL_WORKFLOW_PATH_AND_TEST_MODULE_LIST_ONLY",
+  "workflow_added_lines": 2,
+  "module_count": 8,
+  "selected_tests_passed": 94,
+  "selected_tests_failed": 0,
+  "selected_tests_skipped": 0,
+  "application_and_test_source_unchanged": true,
+  "full1079_rerun": false,
+  "frozen10_original3_rerun": false,
+  "protected_input_files": 441,
+  "network_or_sdk_execution": false,
+  "cloud_runtime_access": false,
+  "workflow_executed_or_triggered": false,
+  "deployment_or_push": false,
+  "source_sha256": {
+    ".github/workflows/regional-medical-refresh.yml": "1032590c2f670cd950a44f6ea6aeb236cb6ead98da0e76891e7f7e3545bdb52e",
+    "web/pipeline/scripts/sync_regional_ccgp.py": "c43c240a30f20e66cb09653f842944c9a4eab0765f282d17df7c1a70227c4fa3",
+    "web/pipeline/tests/test_regional_cli_completeness.py": "cc33dde1cc35445dbaf307d33ada17bd6b27f75debf281661a39e3f98b5dab29"
+  },
+  "apply_allowed": false,
+  "migration_usable": false
+}

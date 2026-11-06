@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_F2_CLI_COOPERATIVE_BUDGET_IMPLEMENTATION_ONLY",
+  "state_scope": "LOCAL_REGIONAL_WORKFLOW_PATH_AND_UNITTEST_LIST_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "CLI_F2_COOPERATIVE_900_840_60_OFFLINE_PASS_HARD_EXIT_NO_GO",
-  "latest_changes_validation_status": "1079_PYTHON_AND10/3_PASS;429_PROTECTED_INPUTS_UNCHANGED",
+  "milestone": "REGIONAL_CI_CLI_MODULE_ADDED_94_LOCAL_TESTS_PASS_NO_WORKFLOW_TRIGGER",
+  "latest_changes_validation_status": "YAML_AND_TWO_LINE_SCOPE_PASS;94_SELECTED_TESTS_PASS;441_INPUTS_UNCHANGED;1079_AND10/3_NOT_RERUN",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -165,11 +165,12 @@
     "historical_product_backfill": "MEMORY_SIMULATION8F8:2overlay/2restore,whole892state restored,890unselected unchanged,replays0changes,stale/crossscope/tampered/partial/mixed/newfacts/events rejected. Only in-memory checks/deepcopies; actual runtime export,CAS/transactions,migration,application and rollback unimplemented.",
     "regional_cli_completeness": "F3_7B29933_OFFLINE_PASS:incomplete batch exit2 preserves records;bounded scan only,no per-market independent commits/full historical recall;not deployed.",
     "regional_cli_access_stop": "01CCAA9_OFFLINE_PASS:CLI explicit host denial stop only;no project-wide/shared cooldown/Retry-After/F2 or redirect-hop interception;not deployed.",
-    "regional_cli_time_budget": "58E7E6B_OFFLINE:900/840/60cooperative CLI budget,precommit preserve and explicit postcommit/unknown receipts pass;hard exit/atomic clock commit/full default completion/runtime budget NOT established."
+    "regional_cli_time_budget": "58E7E6B_OFFLINE:900/840/60cooperative CLI budget,precommit preserve and explicit postcommit/unknown receipts pass;hard exit/atomic clock commit/full default completion/runtime budget NOT established.",
+    "regional_ci_cli_gate": "6D4EB1B_LOCAL_ONLY:2lines add CLI path/module;8module94tests pass offline;remote runner/workflow not triggered or verified."
   },
   "final_code_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
   "code_validation_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
-  "documentation_followup": "F2 CLI cooperative subitem implemented offline;hard cancellation/runtime F2/shared coordination not covered. Next explicit local authorization only to add CLI offline tests to existing regional CI list/paths.",
+  "documentation_followup": "Regional CLI tests added only to existing workflow path filter/module list. No remote execution. Next documentation-only runtime F2 stage budget contract;SDK remains closed.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2319,7 +2320,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+  "latest_reviewed_repository_head": "6d4eb1bd48d69329c0a0b3ac4587adcbc1d1e641",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2417,7 +2418,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "2826b30",
+  "current_phase_starting_head": "8b3eba8",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2832,13 +2833,14 @@
     "runtime_cache_read": false,
     "database_read": false,
     "deployment_or_write": false,
-    "source": "Latest explicit F2 CLI offline code authorization 2026-11-07",
-    "current_round": "ONLY_SYNC_REGIONAL_CCGP_AND_EXISTING_CLI_TEST_CODE_PLUS_DOCS_ARTIFACTS",
+    "source": "Latest explicit local regional workflow paths/test-module-list authorization 2026-11-07",
+    "current_round": "ONLY_EXISTING_WORKFLOW_TWO_LINES_PLUS_DOCS_ARTIFACTS",
     "network_this_round": false,
     "cloud_metadata_this_round": false,
     "F1_regional_cli_code_this_round": false,
-    "F2_code_this_round": true,
-    "workflow_change_this_round": false
+    "F2_code_this_round": false,
+    "workflow_change_this_round": true,
+    "workflow_executed_this_round": false
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -3199,6 +3201,40 @@
       "apply_allowed": false,
       "migration_usable": false,
       "deployment_or_push": false
+    }
+  },
+  "latest_ci_head": "6d4eb1bd48d69329c0a0b3ac4587adcbc1d1e641",
+  "regional_ci_cli_gate_acceptance": {
+    "starting_head": "8b3eba8",
+    "workflow_head": "6d4eb1bd48d69329c0a0b3ac4587adcbc1d1e641",
+    "application_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+    "report": "docs/project/regional-ci-cli-gate-2026-11-07.md",
+    "manifest": "docs/project/validation/regional-ci-cli-gate-2026-11-07/manifest.json",
+    "added_lines": 2,
+    "module_count": 8,
+    "selected_tests_passed": 94,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "protected_input_files": 441,
+    "application_or_test_source_changed": false,
+    "full1079_rerun": false,
+    "frozen10_original3_rerun": false,
+    "workflow_executed_or_triggered": false,
+    "remote_runner_verified": false,
+    "deployment_or_push": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completion": {
+      "started_at": "2026-11-06T18:17:00Z",
+      "foreground_deadline": "2026-11-06T18:37:00Z",
+      "completed_at": "2026-11-06T18:20:40.255161+00:00",
+      "within_foreground_deadline": true,
+      "scope": "LOCAL_TWO_LINE_WORKFLOW_CONFIG_AND_SELECTED_TESTS_ONLY",
+      "workflow_executed_or_triggered": false,
+      "deployment_or_push": false,
+      "apply_allowed": false,
+      "migration_usable": false
     }
   }
 }

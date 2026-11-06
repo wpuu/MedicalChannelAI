@@ -1,0 +1,23 @@
+{
+  "yaml_parser": "Existing PyYAML BaseLoader (preserves on key)",
+  "workflow_path": ".github/workflows/regional-medical-refresh.yml",
+  "before_sha256": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d",
+  "after_sha256": "1032590c2f670cd950a44f6ea6aeb236cb6ead98da0e76891e7f7e3545bdb52e",
+  "only_two_added_lines": true,
+  "other_yaml_structure_unchanged": true,
+  "set_e_preserved": true,
+  "modules": [
+    "tests.test_regional_candidate_classification",
+    "tests.test_regional_cli_completeness",
+    "tests.test_channel_scope",
+    "tests.test_ccgp_detail",
+    "tests.test_ccgp_national_detail_formats",
+    "tests.test_ccgp_liaoning_detail_format",
+    "tests.test_snapshot_http_publish",
+    "tests.test_snapshot_roundtrip"
+  ],
+  "module_count": 8,
+  "workflow_executed": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}
