@@ -1,0 +1,1227 @@
+[
+  {
+    "mode": "expired",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 0,
+    "detail_calls": 0,
+    "session_calls": 0,
+    "timeouts": [],
+    "sleeps": [],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_WORK_BUDGET_EXCEEDED",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 210,
+        "exhausted_phase": "REGIONAL_PREPARE",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": false,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 210,
+          "exhausted_phase": "REGIONAL_PREPARE",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": false,
+        "new_canonical_write_attempted": false
+      }
+    }
+  },
+  {
+    "mode": "margin",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 0,
+    "detail_calls": 0,
+    "session_calls": 0,
+    "timeouts": [],
+    "sleeps": [],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_WORK_BUDGET_EXCEEDED",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 209,
+        "exhausted_phase": "REGIONAL_PREPARE",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": false,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 209,
+          "exhausted_phase": "REGIONAL_PREPARE",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": false,
+        "new_canonical_write_attempted": false
+      }
+    }
+  },
+  {
+    "mode": "search_late",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 1,
+    "detail_calls": 0,
+    "session_calls": 1,
+    "timeouts": [],
+    "sleeps": [],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_WORK_BUDGET_EXCEEDED",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 210,
+        "exhausted_phase": "REGIONAL_SCOPED_PARSE",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": false,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 210,
+          "exhausted_phase": "REGIONAL_SCOPED_PARSE",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": false,
+        "new_canonical_write_attempted": false
+      }
+    }
+  },
+  {
+    "mode": "sleep_admission",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 1,
+    "detail_calls": 0,
+    "session_calls": 1,
+    "timeouts": [],
+    "sleeps": [],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_WORK_BUDGET_EXCEEDED",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 206,
+        "exhausted_phase": "REGIONAL_SCOPED_SLEEP",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": false,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 206,
+          "exhausted_phase": "REGIONAL_SCOPED_SLEEP",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": false,
+        "new_canonical_write_attempted": false
+      }
+    }
+  },
+  {
+    "mode": "sleep_overrun",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 1,
+    "detail_calls": 0,
+    "session_calls": 1,
+    "timeouts": [],
+    "sleeps": [
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_WORK_BUDGET_EXCEEDED",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 210,
+        "exhausted_phase": "REGIONAL_SCOPED_SLEEP",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": false,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 210,
+          "exhausted_phase": "REGIONAL_SCOPED_SLEEP",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": false,
+        "new_canonical_write_attempted": false
+      }
+    }
+  },
+  {
+    "mode": "detail_late",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_WORK_BUDGET_EXCEEDED",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 210,
+        "exhausted_phase": "REGIONAL_DETAIL",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": false,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 210,
+          "exhausted_phase": "REGIONAL_DETAIL",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": false,
+        "new_canonical_write_attempted": false
+      }
+    }
+  },
+  {
+    "mode": "parse_late",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_WORK_BUDGET_EXCEEDED",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 210,
+        "exhausted_phase": "REGIONAL_DETAIL_PARSE",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": false,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 210,
+          "exhausted_phase": "REGIONAL_DETAIL_PARSE",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": false,
+        "new_canonical_write_attempted": false
+      }
+    }
+  },
+  {
+    "mode": "precommit_late",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_WORK_BUDGET_EXCEEDED",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 270,
+        "exhausted_phase": "REGIONAL_PRE_COMMIT",
+        "work_complete": true,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": false,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 270,
+          "exhausted_phase": "REGIONAL_PRE_COMMIT",
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": false,
+        "new_canonical_write_attempted": false
+      }
+    }
+  },
+  {
+    "mode": "success",
+    "stage": "regional_he",
+    "status": 200,
+    "exception": null,
+    "stage_status": "COMPLETED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "f3c0b802fa5e577f1a48613ae01bc75f7ba1a5a6dbd633296f6d523aa37c4c25",
+    "canonical_unchanged": false,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": false,
+    "result": {
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 12.0,
+        "exhausted_phase": null,
+        "work_complete": true,
+        "hard_exit_guaranteed": false
+      },
+      "budget_observation_phase": "STAGE_RETURN",
+      "budget_finalization_overrun": false,
+      "action": "COMPLETED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 12.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "CANONICAL_RETURN",
+        "canonical_write_completed": true,
+        "budget_finalization_overrun": false,
+        "market_code": "HE",
+        "market_name": "河北",
+        "start_date": "2026-09-29",
+        "end_date": "2026-10-01",
+        "scoped_query_success_count": 2,
+        "scoped_region_mismatch_count": 0,
+        "national_fallback_used": false,
+        "fallback_required": false,
+        "national_fallback_query_success_count": 0,
+        "unique_candidate_count": 1,
+        "selected_candidate_count": 1,
+        "new_verified_record_count": 1,
+        "merged_record_count": 2,
+        "failure_count": 0,
+        "bootstrapped_records": false
+      }
+    }
+  },
+  {
+    "mode": "empty",
+    "stage": "regional_he",
+    "status": 200,
+    "exception": null,
+    "stage_status": "COMPLETED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 0,
+    "session_calls": 1,
+    "timeouts": [],
+    "sleeps": [
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 8.0,
+        "exhausted_phase": null,
+        "work_complete": true,
+        "hard_exit_guaranteed": false
+      },
+      "budget_observation_phase": "STAGE_RETURN",
+      "budget_finalization_overrun": false,
+      "action": "COMPLETED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 8.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "CANONICAL_RETURN",
+        "canonical_write_completed": true,
+        "budget_finalization_overrun": false,
+        "market_code": "HE",
+        "market_name": "河北",
+        "start_date": "2026-09-29",
+        "end_date": "2026-10-01",
+        "scoped_query_success_count": 2,
+        "scoped_region_mismatch_count": 0,
+        "national_fallback_used": false,
+        "fallback_required": true,
+        "national_fallback_query_success_count": 0,
+        "unique_candidate_count": 0,
+        "selected_candidate_count": 0,
+        "new_verified_record_count": 0,
+        "merged_record_count": 1,
+        "failure_count": 0,
+        "bootstrapped_records": false
+      }
+    }
+  },
+  {
+    "mode": "ordinary_error",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:HE",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 12.0,
+        "exhausted_phase": null,
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": false,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_TIMEOUT": 1
+        },
+        "phase_counts": {
+          "scoped_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "scoped_discovery",
+            "reason": "NETWORK_TIMEOUT",
+            "candidate_ref": "8802875ed9b24512f0e2098017aed41dc66ddfec51b83a77300a7ce5799f970f"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "mode": "commit_late",
+    "stage": "regional_he",
+    "status": 200,
+    "exception": null,
+    "stage_status": "COMPLETED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "f3c0b802fa5e577f1a48613ae01bc75f7ba1a5a6dbd633296f6d523aa37c4c25",
+    "canonical_unchanged": false,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": false,
+    "result": {
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 270,
+        "exhausted_phase": null,
+        "work_complete": true,
+        "hard_exit_guaranteed": false
+      },
+      "budget_observation_phase": "STAGE_RETURN",
+      "budget_finalization_overrun": true,
+      "action": "COMPLETED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 270,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "CANONICAL_RETURN",
+        "canonical_write_completed": true,
+        "budget_finalization_overrun": true,
+        "market_code": "HE",
+        "market_name": "河北",
+        "start_date": "2026-09-29",
+        "end_date": "2026-10-01",
+        "scoped_query_success_count": 2,
+        "scoped_region_mismatch_count": 0,
+        "national_fallback_used": false,
+        "fallback_required": false,
+        "national_fallback_query_success_count": 0,
+        "unique_candidate_count": 1,
+        "selected_candidate_count": 1,
+        "new_verified_record_count": 1,
+        "merged_record_count": 2,
+        "failure_count": 0,
+        "bootstrapped_records": false
+      }
+    }
+  },
+  {
+    "mode": "health_late",
+    "stage": "regional_he",
+    "status": 200,
+    "exception": null,
+    "stage_status": "COMPLETED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "f3c0b802fa5e577f1a48613ae01bc75f7ba1a5a6dbd633296f6d523aa37c4c25",
+    "canonical_unchanged": false,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": false,
+    "result": {
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 270,
+        "exhausted_phase": null,
+        "work_complete": true,
+        "hard_exit_guaranteed": false
+      },
+      "budget_observation_phase": "STAGE_RETURN",
+      "budget_finalization_overrun": true,
+      "action": "COMPLETED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 12.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "CANONICAL_RETURN",
+        "canonical_write_completed": true,
+        "budget_finalization_overrun": false,
+        "market_code": "HE",
+        "market_name": "河北",
+        "start_date": "2026-09-29",
+        "end_date": "2026-10-01",
+        "scoped_query_success_count": 2,
+        "scoped_region_mismatch_count": 0,
+        "national_fallback_used": false,
+        "fallback_required": false,
+        "national_fallback_query_success_count": 0,
+        "unique_candidate_count": 1,
+        "selected_candidate_count": 1,
+        "new_verified_record_count": 1,
+        "merged_record_count": 2,
+        "failure_count": 0,
+        "bootstrapped_records": false
+      }
+    }
+  },
+  {
+    "mode": "write_error_before",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_CANONICAL_WRITE_RESULT_UNKNOWN",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 12.0,
+        "exhausted_phase": null,
+        "work_complete": true,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": true,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 12.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": true,
+        "canonical_write_completed": null
+      }
+    }
+  },
+  {
+    "mode": "write_then_error",
+    "stage": "regional_he",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "f3c0b802fa5e577f1a48613ae01bc75f7ba1a5a6dbd633296f6d523aa37c4c25",
+    "canonical_unchanged": false,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_CANONICAL_WRITE_RESULT_UNKNOWN",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 12.0,
+        "exhausted_phase": null,
+        "work_complete": true,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": true,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 12.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": true,
+        "canonical_write_completed": null
+      }
+    }
+  },
+  {
+    "mode": "health_error",
+    "stage": "regional_he",
+    "status": null,
+    "exception": "REGIONAL_FINALIZATION_RESULT_UNKNOWN",
+    "stage_status": "COMPLETED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "f3c0b802fa5e577f1a48613ae01bc75f7ba1a5a6dbd633296f6d523aa37c4c25",
+    "canonical_unchanged": false,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 12.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": true,
+        "stage_or_health_mutation_possible": true
+      }
+    }
+  },
+  {
+    "mode": "failure_state_error",
+    "stage": "regional_he",
+    "status": null,
+    "exception": "REGIONAL_FAILURE_STATE_RESULT_UNKNOWN",
+    "stage_status": "RUNNING",
+    "attempt_count": 1,
+    "search_calls": 1,
+    "detail_calls": 0,
+    "session_calls": 1,
+    "timeouts": [],
+    "sleeps": [],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 210,
+          "exhausted_phase": "REGIONAL_SCOPED_PARSE",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": false,
+        "stage_or_health_mutation_possible": true
+      }
+    }
+  },
+  {
+    "mode": "timeout_near",
+    "stage": "regional_he",
+    "status": 200,
+    "exception": null,
+    "stage_status": "COMPLETED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      1
+    ],
+    "sleeps": [
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "f3c0b802fa5e577f1a48613ae01bc75f7ba1a5a6dbd633296f6d523aa37c4c25",
+    "canonical_unchanged": false,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": false,
+    "result": {
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 208,
+        "exhausted_phase": null,
+        "work_complete": true,
+        "hard_exit_guaranteed": false
+      },
+      "budget_observation_phase": "STAGE_RETURN",
+      "budget_finalization_overrun": false,
+      "action": "COMPLETED",
+      "stage": "regional_he",
+      "local_date": "2026-10-01",
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 208,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "CANONICAL_RETURN",
+        "canonical_write_completed": true,
+        "budget_finalization_overrun": false,
+        "market_code": "HE",
+        "market_name": "河北",
+        "start_date": "2026-09-29",
+        "end_date": "2026-10-01",
+        "scoped_query_success_count": 2,
+        "scoped_region_mismatch_count": 0,
+        "national_fallback_used": false,
+        "fallback_required": false,
+        "national_fallback_query_success_count": 0,
+        "unique_candidate_count": 1,
+        "selected_candidate_count": 1,
+        "new_verified_record_count": 1,
+        "merged_record_count": 2,
+        "failure_count": 0,
+        "bootstrapped_records": false
+      }
+    }
+  },
+  {
+    "mode": "success",
+    "stage": "regional_he_fallback",
+    "status": 200,
+    "exception": null,
+    "stage_status": "COMPLETED",
+    "attempt_count": 1,
+    "search_calls": 4,
+    "detail_calls": 1,
+    "session_calls": 1,
+    "timeouts": [
+      30
+    ],
+    "sleeps": [
+      4,
+      4,
+      4,
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "f3c0b802fa5e577f1a48613ae01bc75f7ba1a5a6dbd633296f6d523aa37c4c25",
+    "canonical_unchanged": false,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": false,
+    "result": {
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 20.0,
+        "exhausted_phase": null,
+        "work_complete": true,
+        "hard_exit_guaranteed": false
+      },
+      "budget_observation_phase": "STAGE_RETURN",
+      "budget_finalization_overrun": false,
+      "action": "COMPLETED",
+      "stage": "regional_he_fallback",
+      "local_date": "2026-10-01",
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "CANONICAL_RETURN",
+        "canonical_write_completed": true,
+        "budget_finalization_overrun": false,
+        "market_code": "HE",
+        "market_name": "河北",
+        "start_date": "2026-09-29",
+        "end_date": "2026-10-01",
+        "scoped_query_success_count": 0,
+        "scoped_region_mismatch_count": 0,
+        "national_fallback_used": true,
+        "fallback_required": false,
+        "national_fallback_query_success_count": 4,
+        "unique_candidate_count": 1,
+        "selected_candidate_count": 1,
+        "new_verified_record_count": 1,
+        "merged_record_count": 2,
+        "failure_count": 0,
+        "bootstrapped_records": false
+      }
+    }
+  },
+  {
+    "mode": "empty",
+    "stage": "regional_he_fallback",
+    "status": 200,
+    "exception": null,
+    "stage_status": "COMPLETED",
+    "attempt_count": 1,
+    "search_calls": 2,
+    "detail_calls": 0,
+    "session_calls": 1,
+    "timeouts": [],
+    "sleeps": [
+      4,
+      4
+    ],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": false,
+    "result": {
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 8.0,
+        "exhausted_phase": null,
+        "work_complete": true,
+        "hard_exit_guaranteed": false
+      },
+      "budget_observation_phase": "STAGE_RETURN",
+      "budget_finalization_overrun": false,
+      "action": "COMPLETED",
+      "stage": "regional_he_fallback",
+      "local_date": "2026-10-01",
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 8.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "CANONICAL_RETURN",
+        "canonical_write_completed": true,
+        "budget_finalization_overrun": false,
+        "market_code": "HE",
+        "market_name": "河北",
+        "start_date": "2026-09-29",
+        "end_date": "2026-10-01",
+        "scoped_query_success_count": 0,
+        "scoped_region_mismatch_count": 0,
+        "national_fallback_used": true,
+        "fallback_required": false,
+        "national_fallback_query_success_count": 2,
+        "unique_candidate_count": 0,
+        "selected_candidate_count": 0,
+        "new_verified_record_count": 0,
+        "merged_record_count": 1,
+        "failure_count": 0,
+        "bootstrapped_records": false
+      }
+    }
+  },
+  {
+    "mode": "search_late",
+    "stage": "regional_he_fallback",
+    "status": 503,
+    "exception": null,
+    "stage_status": "FAILED",
+    "attempt_count": 1,
+    "search_calls": 1,
+    "detail_calls": 0,
+    "session_calls": 1,
+    "timeouts": [],
+    "sleeps": [],
+    "canonical_before_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_after_sha256": "d1350b39f50d46f64ea2246d18f2d9336d60aad998440fa270c815feea65fcd4",
+    "canonical_unchanged": true,
+    "pending_preserved": true,
+    "ledger_unchanged": true,
+    "last_success_unchanged": true,
+    "result": {
+      "action": "FAILED",
+      "stage": "regional_he_fallback",
+      "local_date": "2026-10-01",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error": "REGIONAL_WORK_BUDGET_EXCEEDED",
+      "retryable": true,
+      "attempt_count": 1,
+      "retry_exhausted": false,
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 210,
+        "exhausted_phase": "REGIONAL_FALLBACK_PARSE",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "canonical_mutation_possible": false,
+      "diagnostics": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 210,
+          "finalize_reserve_seconds": 60,
+          "elapsed_seconds": 210,
+          "exhausted_phase": "REGIONAL_FALLBACK_PARSE",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "canonical_mutation_possible": false,
+        "new_canonical_write_attempted": false
+      }
+    }
+  }
+]

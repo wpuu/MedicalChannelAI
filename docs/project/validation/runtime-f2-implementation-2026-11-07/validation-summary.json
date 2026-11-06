@@ -1,0 +1,50 @@
+{
+  "starting_head": "83b434c",
+  "code_head": "bba3716d1b71e3fa6731d9bfd4b2d6d9d81a60c1",
+  "scope": "OFFLINE_QUEUE_REGISTERED_REGIONAL_STAGES_COOPERATIVE_BUDGET_ONLY",
+  "python_tests_passed": 1098,
+  "new_behavior_tests": 19,
+  "frozen_template_passed": 10,
+  "original_cli_passed": 3,
+  "regional_cases": 21,
+  "queue_cases": 6,
+  "source_sha256": {
+    "web/pipeline/scripts/sync_regional_ccgp.py": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "web/collector_queue.py": "4f94284ef3e8639c4a7b87444dc28cbebb6168b9a7cc58469b162afa310bb113",
+    "web/collector_runtime.py": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42",
+    "web/pipeline/tests/test_regional_cli_completeness.py": "e36685b7bcfbc156fbfa50ace6338247d8499614db4708732f90b104576944e7",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py": "5203125ad48598529613566e9077d59b428939652797c5d0bfde7b740948b318",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py": "5d70c443e2f9912654dd8498857f3703171f939aaf2c9a39990cc194daf95ce2"
+  },
+  "only_modified_code_files": [
+    "web/pipeline/scripts/sync_regional_ccgp.py",
+    "web/collector_queue.py",
+    "web/collector_runtime.py",
+    "web/pipeline/tests/test_regional_cli_completeness.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py"
+  ],
+  "runtime_total_work_reserve": [
+    270,
+    210,
+    60
+  ],
+  "cli_default_total_work_reserve": [
+    900,
+    840,
+    60
+  ],
+  "hard_cancel_guaranteed": false,
+  "atomic_owner_or_time_commit_guaranteed": false,
+  "real_persistence_verified": false,
+  "default_dense_fallback_on_time_verified": false,
+  "incremental_event_publish_budget_added": false,
+  "queue_lease_or_health_contract_changed": false,
+  "real_sdk_execution": false,
+  "cloud_runtime_access": false,
+  "deployment_push_or_workflow_trigger": false,
+  "apply_allowed": false,
+  "migration_usable": false,
+  "external_network_calls": 0,
+  "existing_loopback_only_security_test": "LOCAL_STUB_ONLY"
+}

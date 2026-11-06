@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前runtime F2阶段预算合同（仅文档，未实现）
+## 当前Queue区域runtime F2协作式预算（离线实现）
+
+- 起点83b434c，代码bba3716，只修改授权6文件。复用CliBudget参数化，CLI默认900/840/60保持；Queue注册区域主/备用阶段采用270/210/60，monotonic原点包括预检，不从payload读deadline，不重置。不接入增量/事件/publish。[报告](runtime-f2-implementation-2026-11-07.md)、[证据](validation/runtime-f2-implementation-2026-11-07/manifest.json)。
+- 写前耗尽走CollectorStageBlocked retryable=True与原FAILED/503路径，旧canonical、成功时钟和其他源pending/ledger保留。首个失败重试、普通第二次失败立即降级推进及终局重复消息不抓取保持。已提交后迟到只加overrun观察，不当写前失败；写入/状态/健康异常明确结果未知，不声称零写入/回滚或新健康终态。
+- 新增19项行为测试，最终1098项Python及10/3通过；21组区域状态/哈希与6组Queue断言已冻结，460份起点data/fixture/旧证据字节不变。没有改Queue配置、lease、健康/pending协议、API、共享HTTP helper、workflow、锁或计划。
+- 无外网/真实SDK/云端/运行数据访问、部署/推送/触发、新环境/路由/变量/权限变化，apply_allowed/migration_usable=false，SDK仍CLOSED NO-GO。仅协作式区域子项，硬取消/严格时限/原子提交/真实持久化、密集fallback按时完整及其余runtime阶段预算仍未完成/不放行。
+- [下一轮](next-task.md)仅文档制定增量tjzyefy时间预算与pending恢复合同，不改代码或重跑未变测试。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh（超高），实际设置未核实。
+
+## 上轮runtime F2阶段预算合同（历史方案，区域协作式子项已实现）
 
 - 起点62c039e，完成[唯一最小方案](runtime-f2-stage-budget-contract-2026-11-07.md)：先只给Queue已注册区域主/备用阶段接协作式270秒逻辑总预算/210秒工作/60秒收尾，保留现有重试、owner、pending和健康合同。复用既有CliBudget参数化，CLI默认900/840/60不变；不同时接入增量/事件/publish。[证据](validation/runtime-f2-contract-2026-11-07/manifest.json)。
 - 已追踪Queue入口/身份检查/heartbeat→run_stage准入→区域请求/解析→canonical→状态/健康→重试/推进；普通业务attempt上限2不同于provider投递3，消息lease300不同于owner活性900和owner缓存TTL2天。最后失败立即降级/推进、区域限流止损与partial fail-closed已有实现，未重复报修。

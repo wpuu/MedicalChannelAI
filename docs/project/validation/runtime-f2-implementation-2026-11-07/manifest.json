@@ -1,0 +1,21 @@
+{
+  "schema_version": "1",
+  "code_head": "bba3716d1b71e3fa6731d9bfd4b2d6d9d81a60c1",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "sha256": {
+    "docs/project/checkpoint.json": "f2cf78a132675c23e2840936194116e4a69788e434bf6f2fad678971ae04137d",
+    "docs/project/current-state.md": "1b0c6f63f10212fa8f78f21f7677706e753aa29b71126fc33de4d79526cf3077",
+    "docs/project/next-task.md": "687d0ec1b168d4446082db1f7df7d9fe9bb12a4b98767b15de854b7fd14c054a",
+    "docs/project/runtime-f2-implementation-2026-11-07.md": "c574ab188c3e04eff7a3295ecd2f09f239550be00ce4bb5cde04f297b0dfc332",
+    "docs/project/validation/runtime-f2-implementation-2026-11-07/completion.json": "35098fcddbe99b0a6e73918b4576bf69f30a3a10d13b50ff2bea5acadc2a6d7b",
+    "docs/project/validation/runtime-f2-implementation-2026-11-07/frozen-template-audit.json": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2",
+    "docs/project/validation/runtime-f2-implementation-2026-11-07/input-integrity.json": "2e5dee457840f0dcbb3dce80bf87420c42b26f7b93cdc0a3fb928ef4100b9d16",
+    "docs/project/validation/runtime-f2-implementation-2026-11-07/original-cli-gate.json": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2",
+    "docs/project/validation/runtime-f2-implementation-2026-11-07/queue-cases.json": "f418c3081212eff51db3fd01f5603c78f3763b5b16806a1525681e81953926be",
+    "docs/project/validation/runtime-f2-implementation-2026-11-07/regional-cases.json": "4283e3d09d08f21947fb796fed6c073d73dd6e694f865ecf032e4e0d53e5f9e1",
+    "docs/project/validation/runtime-f2-implementation-2026-11-07/regression.log": "40f6e7f59c4d88050c293b520079dd5d71349bc3bff056379c8cd58ea937a7cf",
+    "docs/project/validation/runtime-f2-implementation-2026-11-07/validation-summary.json": "c32c3f3304e9ae6c57b6923534f1fd43246f82c0181da61fc359323f8dee2d90",
+    "docs/project/validation/runtime-f2-implementation-2026-11-07/verify.py": "193301d75c133c053c8ffb8482e7b51fb346d65e2b55db41dd4ef9a71830b739"
+  }
+}

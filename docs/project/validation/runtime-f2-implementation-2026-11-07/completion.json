@@ -1,0 +1,13 @@
+{
+  "started_at_utc": "2026-11-06T18:34:26Z",
+  "completed_at_utc": "2026-11-06T18:47:43.779833+00:00",
+  "foreground_deadline_utc": "2026-11-06T18:54:26Z",
+  "within_foreground_budget": true,
+  "code_head": "bba3716d1b71e3fa6731d9bfd4b2d6d9d81a60c1",
+  "scope": "OFFLINE_QUEUE_REGIONAL_COOPERATIVE_BUDGET",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "deployed": false,
+  "pushed": false,
+  "actual_cloud_or_persistence_verified": false
+}

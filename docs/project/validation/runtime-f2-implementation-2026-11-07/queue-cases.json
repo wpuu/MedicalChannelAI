@@ -1,0 +1,51 @@
+[
+  {
+    "method": "test_regional_budget_uses_queue_entry_origin_after_preflight",
+    "assertions_passed": true,
+    "regional_he_status": "COMPLETED",
+    "regional_he_attempt_count": null,
+    "queued_stages": []
+  },
+  {
+    "method": "test_regional_budget_failure_retries_then_degrades_without_third_scan",
+    "assertions_passed": true,
+    "regional_he_status": "DEGRADED",
+    "regional_he_attempt_count": 2,
+    "queued_stages": [
+      "regional_he_fallback",
+      "regional_he_fallback",
+      "regional_ln"
+    ]
+  },
+  {
+    "method": "test_nonregional_stages_keep_original_run_stage_arguments",
+    "assertions_passed": true,
+    "regional_he_status": "COMPLETED",
+    "regional_he_attempt_count": null,
+    "queued_stages": [
+      "tjnothop",
+      "event2"
+    ]
+  },
+  {
+    "method": "test_foreign_payload_budget_path_has_no_cache_or_stage_effect",
+    "assertions_passed": true,
+    "regional_he_status": null,
+    "regional_he_attempt_count": null,
+    "queued_stages": []
+  },
+  {
+    "method": "test_regional_owner_rejection_never_runs_budgeted_work",
+    "assertions_passed": true,
+    "regional_he_status": null,
+    "regional_he_attempt_count": null,
+    "queued_stages": []
+  },
+  {
+    "method": "test_incremental_dispatch_does_not_get_regional_budget",
+    "assertions_passed": true,
+    "regional_he_status": null,
+    "regional_he_attempt_count": null,
+    "queued_stages": []
+  }
+]
