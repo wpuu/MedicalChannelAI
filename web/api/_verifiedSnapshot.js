@@ -1,3 +1,4 @@
+import { snapshotRevisionMicros } from './_snapshotRevision.js'
 import { getCache } from '@vercel/functions'
 import { latestPublicVerifiedSnapshotIfChanged } from './_publicIntelligenceDb.js'
 import bundledSnapshot from '../public/data/today-actions.public.json' with { type: 'json' }
@@ -180,7 +181,7 @@ export function validateVerifiedSnapshot(value) {
   if (!snapshot) throw new Error('VERIFIED_SNAPSHOT_INVALID')
   assertPublicSnapshotBoundary(snapshot)
   if (snapshot.schema_version !== '0.1' || snapshot.mode !== 'TODAY_ACTIONS') throw new Error('VERIFIED_SNAPSHOT_SCHEMA_INVALID')
-  if (typeof snapshot.snapshot_as_of !== 'string' || Number.isNaN(Date.parse(snapshot.snapshot_as_of))) throw new Error('VERIFIED_SNAPSHOT_AS_OF_INVALID')
+  try { snapshotRevisionMicros(snapshot.snapshot_as_of) } catch { throw new Error('VERIFIED_SNAPSHOT_AS_OF_INVALID') }
   if (!Array.isArray(snapshot.cards) || snapshot.cards.length > MAX_TODAY_CARDS) throw new Error('VERIFIED_SNAPSHOT_CARDS_INVALID')
   if (snapshot.card_count !== snapshot.cards.length) throw new Error('VERIFIED_SNAPSHOT_CARD_COUNT_MISMATCH')
   snapshot.cards.forEach((card, index) => assertPublicCard(card, `$.cards[${index}]`))
@@ -219,7 +220,7 @@ export function selectPublishedRuntimeSnapshot(value, bundled = bundledVerifiedS
   const candidateMs = parsedSnapshotTime(candidate)
   const baselineMs = parsedSnapshotTime(baseline)
   if (!Number.isFinite(candidateMs) || !Number.isFinite(baselineMs)) return null
-  if (candidateMs <= baselineMs) return null
+  if (snapshotRevisionMicros(candidate.snapshot_as_of) <= snapshotRevisionMicros(baseline.snapshot_as_of)) return null
   if (candidateMs > nowMs + RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS) return null
   return candidate
 }
@@ -237,7 +238,7 @@ export function selectDurableVerifiedSnapshot(value, bundled = bundledVerifiedSn
   if (!Number.isFinite(candidateMs) || !Number.isFinite(baselineMs)) return null
   // Durable Postgres is authoritative even when it stores the exact bundled
   // revision. Runtime Cache stays stricter and must be strictly newer.
-  if (candidateMs < baselineMs) return null
+  if (snapshotRevisionMicros(candidate.snapshot_as_of) < snapshotRevisionMicros(baseline.snapshot_as_of)) return null
   if (candidateMs > nowMs + RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS) return null
   return candidate
 }
@@ -253,7 +254,7 @@ export function validateSnapshotPublication(value, options = {}) {
   const candidateMs = parsedSnapshotTime(snapshot)
   const bundled = bundledVerifiedSnapshot()
   const bundledMs = parsedSnapshotTime(bundled)
-  if (candidateMs < bundledMs) throw new Error('RUNTIME_SNAPSHOT_OLDER_THAN_BUNDLE')
+  if (snapshotRevisionMicros(snapshot.snapshot_as_of) < snapshotRevisionMicros(bundled.snapshot_as_of)) throw new Error('RUNTIME_SNAPSHOT_OLDER_THAN_BUNDLE')
   if (candidateMs > nowMs + RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS) {
     throw new Error('RUNTIME_SNAPSHOT_FUTURE_REJECTED')
   }
@@ -270,9 +271,10 @@ export async function publishVerifiedSnapshotToRuntimeCache(value, options = {})
   if (currentValue) {
     try {
       const current = validateVerifiedSnapshot(currentValue)
-      const currentMs = parsedSnapshotTime(current)
-      if (candidateMs < currentMs) throw new Error('RUNTIME_SNAPSHOT_ROLLBACK_REJECTED')
-      if (candidateMs === currentMs) {
+      const currentRevision = snapshotRevisionMicros(current.snapshot_as_of)
+      const candidateRevision = snapshotRevisionMicros(snapshot.snapshot_as_of)
+      if (candidateRevision < currentRevision) throw new Error('RUNTIME_SNAPSHOT_ROLLBACK_REJECTED')
+      if (candidateRevision === currentRevision) {
         if (JSON.stringify(current) !== serialized) throw new Error('RUNTIME_SNAPSHOT_REVISION_CONFLICT')
         return current
       }

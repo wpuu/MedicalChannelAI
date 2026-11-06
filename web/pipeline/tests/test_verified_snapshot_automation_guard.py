@@ -88,7 +88,7 @@ class VerifiedSnapshotAutomationGuardTests(unittest.TestCase):
         )
         self.assertIn('selectPublishedRuntimeSnapshot', source)
         self.assertIn('publishVerifiedSnapshotToRuntimeCache', source)
-        self.assertIn('if (candidateMs <= baselineMs) return null', source)
+        self.assertIn('if (snapshotRevisionMicros(candidate.snapshot_as_of) <= snapshotRevisionMicros(baseline.snapshot_as_of)) return null', source)
         self.assertIn("throw new Error('RUNTIME_SNAPSHOT_ROLLBACK_REJECTED')", source)
         self.assertIn("throw new Error('RUNTIME_SNAPSHOT_REVISION_CONFLICT')", source)
         self.assertIn('RUNTIME_SNAPSHOT_FUTURE_TOLERANCE_MS = 15 * 60 * 1000', source)

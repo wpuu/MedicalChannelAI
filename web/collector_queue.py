@@ -433,13 +433,23 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if not _heartbeat_deep_cycle(cycle_id, now=datetime.now(timezone.utc)):
         return
 
-    if stage.startswith("event"):
+    if stage.startswith("event") or stage in runtime.REGIONAL_FALLBACK_STAGE_MARKET_CODES:
         cache = RuntimeCache()
         state = runtime.load_status(cache)
-        prerequisites = [name for name in STAGE_ORDER[:STAGE_ORDER.index(stage)] if name == "ccgp" or name.startswith("event")]
+        prerequisites = (
+            [stage.removesuffix("_fallback")]
+            if stage in runtime.REGIONAL_FALLBACK_STAGE_MARKET_CODES
+            else [name for name in STAGE_ORDER[:STAGE_ORDER.index(stage)]
+                  if name == "ccgp" or name.startswith("event")]
+        )
         if any((state.get("stages", {}).get(name) or {}).get("status") == "DEGRADED" for name in prerequisites):
-            # The CCGP bundle cannot commit without every event batch. Skip
-            # dependent network work while retaining the last complete bundle.
+            # A terminally degraded prerequisite cannot produce a result in
+            # this cycle. Skip dependent work and retain committed canonical data.
+            if (state.get("stages", {}).get(stage) or {}).get("status") == "DEGRADED":
+                next_stage = _next_stage(stage)
+                if next_stage is not None:
+                    await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+                return
             try:
                 _, previous = runtime._prepare_stage(cache, stage, cycle_as_of)
             except runtime.CollectorPrecondition:
@@ -476,6 +486,15 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
         return
 
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
+    if status == 503 and result.get("retryable") is False and stage != "publish":
+        if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
+            return
+        runtime.mark_stage_degraded(stage, now=datetime.now(timezone.utc), error="COLLECTOR_NON_RETRYABLE_SOURCE_FAILURE")
+        next_stage = _next_stage(stage)
+        if next_stage is not None:
+            await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+        return
+
     if status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error:
         if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
             return

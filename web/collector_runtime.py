@@ -16,6 +16,7 @@ from zoneinfo import ZoneInfo
 
 from vercel.functions import RuntimeCache
 from collector_oidc import preview_oidc_token
+from collector_diagnostics import failure_row, failure_summary
 
 WEB_ROOT = Path(__file__).resolve().parent
 PIPELINE_ROOT = WEB_ROOT / "pipeline"
@@ -279,6 +280,11 @@ class CollectorPrecondition(CollectorError):
 
 class CollectorStageBlocked(CollectorError):
     code = "COLLECTOR_STAGE_BLOCKED"
+
+    def __init__(self, message: str, *, diagnostics=None, retryable: bool = True):
+        super().__init__(message)
+        self.diagnostics = diagnostics
+        self.retryable = retryable
 
 
 def _now_utc() -> datetime:
@@ -632,6 +638,9 @@ def _mark_failed(cache: RuntimeCache, state: dict[str, Any], stage: str, exc: Ex
     current["completed_at"] = _now_utc().isoformat()
     current["error_code"] = getattr(exc, "code", type(exc).__name__)
     current["error_message"] = str(exc)[:300]
+    if isinstance(exc, CollectorStageBlocked):
+        current["diagnostics"] = exc.diagnostics
+        current["retryable"] = exc.retryable
     _write_status(cache, latest)
 
 
@@ -1029,9 +1038,21 @@ def _run_teda(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             delay_seconds=TEDA_REQUEST_DELAY_SECONDS,
         )
     except Exception as exc:
-        message = str(exc)[:180]
+        cause = exc
+        status = None
+        for _ in range(6):
+            if isinstance(cause, HTTPError):
+                status = cause.code
+                break
+            if cause.__cause__ is None:
+                break
+            cause = cause.__cause__
+        reason = f"TEDA_HTTP_{status}" if status in {401, 403, 404, 429, 500, 502, 503, 504} else "TEDA_INDEX_FETCH_FAILED"
         raise CollectorStageBlocked(
-            f"TEDA_INDEX_DISCOVERY_FAILED:{type(exc).__name__}:{message}"
+            f"TEDA_INDEX_DISCOVERY_FAILED:{reason}",
+            diagnostics={"failure_count": 1, "reason_counts": {reason: 1},
+                         "phase_counts": {"index_discovery": 1}, "samples": []},
+            retryable=status not in {401, 403, 404},
         ) from exc
 
     new_records: list[dict[str, Any]] = []
@@ -1377,14 +1398,9 @@ def _run_regional_market(
                             (item_notice_type, candidate),
                         )
                 except Exception as exc:
-                    failures.append({
-                        "stage": "scoped_discovery",
-                        "market_code": market_code,
-                        "keyword": keyword,
-                        "notice_type": notice_type,
-                        "error": type(exc).__name__,
-                        "message": str(exc)[:300],
-                    })
+                    failures.append(failure_row("scoped_discovery", exc, f"{market_code}:{keyword}:{notice_type}:1"))
+                    if failures[-1]["reason"] in {"RATE_LIMITED", "HTTP_401", "HTTP_403", "HTTP_429"}:
+                        raise CollectorStageBlocked(f"REGIONAL_DISCOVERY_ACCESS_BLOCKED:{market_code}", diagnostics=failure_summary(failures)) from exc
                 time.sleep(plan["delay_seconds"])
 
     fallback_query_success_count = 0
@@ -1406,15 +1422,9 @@ def _run_regional_market(
                         )
                         fallback_query_success_count += 1
                     except Exception as exc:
-                        failures.append({
-                            "stage": "national_fallback_discovery",
-                            "market_code": market_code,
-                            "keyword": keyword,
-                            "notice_type": notice_type,
-                            "page_index": page_index,
-                            "error": type(exc).__name__,
-                            "message": str(exc)[:300],
-                        })
+                        failures.append(failure_row("national_fallback_discovery", exc, f"{market_code}:{keyword}:{notice_type}:{page_index}"))
+                        if failures[-1]["reason"] in {"RATE_LIMITED", "HTTP_401", "HTTP_403", "HTTP_429"}:
+                            raise CollectorStageBlocked(f"REGIONAL_DISCOVERY_ACCESS_BLOCKED:{market_code}", diagnostics=failure_summary(failures)) from exc
                         break
                     if not items:
                         break
@@ -1435,13 +1445,13 @@ def _run_regional_market(
                 time.sleep(plan["delay_seconds"])
 
     if not fallback_only and scoped_query_success_count <= 0:
-        raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}")
+        raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}", diagnostics=failure_summary(failures))
     if fallback_only and fallback_query_success_count <= 0:
-        raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}")
+        raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}", diagnostics=failure_summary(failures))
 
     if stage == "regional_bj" and not scoped_found_candidates:
         if failures:
-            raise CollectorStageBlocked(f"REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:{market_code}")
+            raise CollectorStageBlocked(f"REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:{market_code}", diagnostics=failure_summary(failures))
         _cache_set(
             cache,
             regional_records_key,
@@ -1476,11 +1486,7 @@ def _run_regional_market(
 
     for notice_type, candidate in selected:
         if candidate_market_code(getattr(candidate, "region", None), plan["markets"]) != market_code:
-            failures.append({
-                "stage": "pre_detail_market_guard",
-                "market_code": market_code,
-                "url": getattr(candidate, "detail_url", None),
-            })
+            failures.append(failure_row("pre_detail_market_guard", None, str(candidate.detail_url)))
             continue
         try:
             time.sleep(plan["delay_seconds"])
@@ -1496,22 +1502,14 @@ def _run_regional_market(
             )
             new_records.append(annotate_regional_market(record, market))
         except Exception as exc:
-            failures.append({
-                "stage": "verified_detail",
-                "market_code": market_code,
-                "notice_type": notice_type,
-                "title": getattr(candidate, "title", None),
-                "url": getattr(candidate, "detail_url", None),
-                "error": type(exc).__name__,
-                "message": str(exc)[:300],
-            })
+            failures.append(failure_row("verified_detail", exc, str(candidate.detail_url)))
 
     if selected and not new_records:
         raise CollectorStageBlocked(
-            f"REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION:{market_code}"
+            f"REGIONAL_ALL_SELECTED_DETAILS_FAILED_VERIFICATION:{market_code}", diagnostics=failure_summary(failures)
         )
     if failures:
-        raise CollectorStageBlocked(f"REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:{market_code}")
+        raise CollectorStageBlocked(f"REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:{market_code}", diagnostics=failure_summary(failures))
 
     merged = merge_canonical_records(existing_records, new_records)
     _cache_set(
@@ -1787,6 +1785,7 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             "local_date": state.get("local_date"),
             "error_code": getattr(exc, "code", type(exc).__name__),
             "error": str(exc)[:300],
+            "retryable": getattr(exc, "retryable", True),
         }
 
     _mark_completed(cache, state, stage, result)

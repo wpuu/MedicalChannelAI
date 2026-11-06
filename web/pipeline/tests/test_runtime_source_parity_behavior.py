@@ -321,9 +321,55 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
             self.runtime, "regional_candidate_skip_reason", return_value=None), patch.object(self.runtime, "fetch_ccgp_detail_html", return_value="HTML"), patch.dict(
             self.runtime.VERIFIED_NOTICE_ADAPTERS, {"公开招标": unittest.mock.Mock(side_effect=[record, ValueError("DETAIL_CHANGED")])}
         ), patch.object(self.runtime, "annotate_regional_market", side_effect=lambda row, market: row):
-            with self.assertRaisesRegex(self.runtime.CollectorStageBlocked, "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE"):
+            with self.assertRaisesRegex(self.runtime.CollectorStageBlocked, "REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE") as caught:
                 self.runtime._run_regional_market(self.cache, self.state, "regional_bj")
+        self.assertEqual(caught.exception.diagnostics["phase_counts"], {"verified_detail": 1})
+        self.assertEqual(caught.exception.diagnostics["failure_count"], 1)
         self.assertEqual(self.cache.get(key), [])
+
+    def test_safe_regional_failure_diagnostics_are_bounded_and_persisted(self):
+        from collector_diagnostics import failure_row, failure_summary
+        rows = [failure_row("verified_detail", ValueError("secret-credential"), f"https://private.example/{i}?key=secret") for i in range(9)]
+        diagnostic = failure_summary(rows)
+        self.assertEqual(diagnostic["failure_count"], 9)
+        self.assertEqual(len(diagnostic["samples"]), 5)
+        self.assertEqual(diagnostic["reason_counts"], {"DETAIL_VALIDATION_FAILED": 9})
+        self.assertNotIn("secret", json.dumps(diagnostic))
+        self.assertNotIn("private.example", json.dumps(diagnostic))
+        self.assertEqual(failure_row("scoped_discovery", RuntimeError("CCGP_RATE_LIMITED:secret"), "q")["reason"], "RATE_LIMITED")
+        self.assertEqual(failure_row("verified_detail", RuntimeError("CCGP_DETAIL_HTTP_403:secret"), "q")["reason"], "CCGP_DETAIL_HTTP_403")
+        stage = "regional_ln"
+        self.cache.set(self.runtime.META_KEY, {**self.state, "stages": {
+            "regional_he_fallback": {"status": "COMPLETED"},
+        }})
+        error = self.runtime.CollectorStageBlocked("REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:LN", diagnostics=diagnostic)
+        with patch.object(self.runtime, "_run_regional_market", side_effect=error):
+            status, result = self.runtime.run_stage(stage, now=self.now)
+        self.assertEqual(status, 503)
+        stored = self.cache.get(self.runtime.META_KEY)["stages"][stage]
+        self.assertEqual(stored["diagnostics"], diagnostic)
+        self.assertNotIn("secret", json.dumps(stored))
+
+    def test_regional_throttle_stops_further_queries_and_keeps_canonical(self):
+        old = [{"opportunity_id": "retained"}]
+        self.cache.set(self.runtime._regional_records_key("LN"), old)
+        with patch.object(self.runtime, "RegionalCcgpSearchSession"), patch.object(
+            self.runtime, "fetch_regional_candidates_page", side_effect=RuntimeError("CCGP_RATE_LIMITED")) as fetch:
+            with self.assertRaises(self.runtime.CollectorStageBlocked) as caught:
+                self.runtime._run_regional_market(self.cache, self.state, "regional_ln")
+        self.assertEqual(fetch.call_count, 1)
+        self.assertEqual(caught.exception.diagnostics["reason_counts"], {"RATE_LIMITED": 1})
+        self.assertEqual(self.cache.get(self.runtime._regional_records_key("LN")), old)
+
+    def test_teda_access_denial_is_distinct_from_transient_server_failure(self):
+        from urllib.error import HTTPError
+        for code in (403, 503):
+            with patch.object(self.runtime, "discover_teda_candidates", side_effect=HTTPError("https://www.tedahospital.com.cn/", code, "secret", None, None)):
+                with self.assertRaises(self.runtime.CollectorStageBlocked) as caught:
+                    self.runtime._run_teda(self.cache, self.state)
+            self.assertEqual(caught.exception.retryable, code == 503)
+            self.assertEqual(caught.exception.diagnostics["reason_counts"], {f"TEDA_HTTP_{code}": 1})
+            self.assertNotIn("secret", str(caught.exception))
 
     def test_deep_reconciliation_clears_only_recent_matching_url(self):
         candidate, record = self.parse_fixture("tjzyefy")

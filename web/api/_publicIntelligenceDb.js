@@ -1,3 +1,4 @@
+import { snapshotRevisionMicros } from './_snapshotRevision.js'
 import { createHash } from 'node:crypto'
 import { privateDatabaseConfigured, privateDb } from './_privateDb.js'
 
@@ -335,9 +336,7 @@ export async function persistPublicVerifiedSnapshot(snapshot, {
     return { configured: false, persisted: false, snapshot_hash: null }
   }
   const snapshotAsOf = cleanText(snapshot?.snapshot_as_of, 100)
-  if (!snapshotAsOf || Number.isNaN(Date.parse(snapshotAsOf))) {
-    throw new Error('PUBLIC_SNAPSHOT_AS_OF_INVALID')
-  }
+  const revisionMicros = snapshotRevisionMicros(snapshotAsOf)
   const cards = Array.isArray(snapshot?.opportunity_pool)
     ? snapshot.opportunity_pool
     : Array.isArray(snapshot?.cards) ? snapshot.cards : []
@@ -350,42 +349,42 @@ export async function persistPublicVerifiedSnapshot(snapshot, {
     // request must not commit an older snapshot after another writer advanced it.
     await tx`SELECT pg_advisory_xact_lock(hashtext('public-verified-snapshot-publication'))`
     const latest = await tx`
-      SELECT snapshot_hash, snapshot_as_of
+      SELECT snapshot_hash, snapshot_as_of, payload->>'snapshot_as_of' AS revision_as_of
       FROM public_verified_snapshots
       ORDER BY snapshot_as_of DESC, materialized_at DESC
       LIMIT 1
     `
-    if (latest[0] && Date.parse(snapshotAsOf) < new Date(latest[0].snapshot_as_of).getTime()) {
+    const latestRevision = latest[0]
+      ? snapshotRevisionMicros(latest[0].revision_as_of || new Date(latest[0].snapshot_as_of).toISOString())
+      : null
+    if (latestRevision !== null && revisionMicros < latestRevision) {
       throw new Error('PUBLIC_SNAPSHOT_ROLLBACK_REJECTED')
     }
-    const existing = await tx`
-      SELECT snapshot_hash
-      FROM public_verified_snapshots
-      WHERE snapshot_as_of = ${snapshotAsOf}
-      LIMIT 1
-    `
-    if (existing[0] && existing[0].snapshot_hash !== snapshotHash) {
+    if (latestRevision === revisionMicros && latest[0].snapshot_hash !== snapshotHash) {
       throw new Error('PUBLIC_SNAPSHOT_REVISION_CONFLICT')
     }
     const inserted = await tx`
       INSERT INTO public_verified_snapshots (
         snapshot_hash, snapshot_as_of, payload, opportunity_count
       ) VALUES (
-        ${snapshotHash}, ${snapshotAsOf}, ${tx.json(snapshot)}, ${cards.length}
+        ${snapshotHash}, ${snapshotAsOf}::text::timestamptz, ${tx.json(snapshot)}, ${cards.length}
       )
-      ON CONFLICT (snapshot_hash) DO NOTHING
+      ON CONFLICT (snapshot_hash) DO UPDATE
+        SET snapshot_as_of = EXCLUDED.snapshot_as_of
+        WHERE public_verified_snapshots.snapshot_as_of IS DISTINCT FROM EXCLUDED.snapshot_as_of
       RETURNING snapshot_hash
     `
     const readBack = await tx`
-      SELECT snapshot_hash, payload
+      SELECT snapshot_hash, payload,
+        snapshot_as_of = ${snapshotAsOf}::text::timestamptz AS timestamp_matches
       FROM public_verified_snapshots
-      WHERE snapshot_as_of = ${snapshotAsOf}
+      WHERE snapshot_hash = ${snapshotHash}
       LIMIT 1
     `
-    if (readBack[0]?.snapshot_hash !== snapshotHash || sha256Json(readBack[0]?.payload) !== snapshotHash) {
+    if (readBack[0]?.timestamp_matches !== true || readBack[0]?.snapshot_hash !== snapshotHash || sha256Json(readBack[0]?.payload) !== snapshotHash) {
       throw new Error('PUBLIC_SNAPSHOT_READBACK_FAILED')
     }
-    return { inserted: inserted.length > 0 }
+    return { inserted: inserted.length > 0 && latest[0]?.snapshot_hash !== snapshotHash }
   })
   return {
     configured: true,
@@ -490,7 +489,7 @@ export async function materializeVerifiedSnapshot(snapshot) {
         INSERT INTO public_snapshot_materializations (
           region_code, snapshot_hash, snapshot_as_of, opportunity_count
         ) VALUES (
-          ${regionCode}, ${snapshotHash}, ${snapshotAsOf}, ${rows.length}
+          ${regionCode}, ${snapshotHash}, ${snapshotAsOf}::text::timestamptz, ${rows.length}
         )
         ON CONFLICT (region_code, snapshot_hash) DO NOTHING
       `

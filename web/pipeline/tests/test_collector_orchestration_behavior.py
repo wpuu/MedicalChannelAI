@@ -124,6 +124,41 @@ class CollectorOrchestrationBehaviorTests(unittest.TestCase):
             asyncio.run(self.worker.process_collector_payload(following))
         self.assertEqual(self.cache.get(self.worker.META_KEY)["stages"]["tjnothop"]["status"], "COMPLETED")
 
+    def test_degraded_regional_primary_skips_fallback_without_fetch_or_retry(self):
+        self.cache.set(self.worker.META_KEY, {
+            "local_date": "2026-11-05", "cycle_as_of": self.now.isoformat(),
+            "stages": {"regional_ln": {"status": "DEGRADED", "attempt_count": 2}},
+        })
+        payload = self.cycle_payload("regional_ln_fallback")
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+            self.runtime, "_run_regional_market", side_effect=AssertionError("must not fetch dependency")), patch.object(
+            self.runtime, "run_stage", side_effect=AssertionError("must not schedule futile attempt")):
+            asyncio.run(self.worker.process_collector_payload(payload))
+        row = self.cache.get(self.worker.META_KEY)["stages"]["regional_ln_fallback"]
+        self.assertEqual(row["status"], "DEGRADED")
+        self.assertEqual(row["degraded_reason"], "COLLECTOR_DEPENDENCY_DEGRADED")
+        self.assertEqual(row["attempt_count"], 1)
+        self.assertEqual(self.sent[-1]["payload"]["stage"], "regional_jl")
+
+    def test_nonterminal_regional_primary_does_not_get_terminally_skipped(self):
+        for primary_status in ("FAILED", "RUNNING"):
+            self.cache.set(self.worker.META_KEY, {"stages": {"regional_ln": {"status": primary_status}}})
+            payload = self.cycle_payload("regional_ln_fallback")
+            with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+                self.runtime, "run_stage", return_value=(503, {"error": "UPSTREAM_NOT_READY"})) as run:
+                with self.assertRaisesRegex(RuntimeError, "UPSTREAM_NOT_READY"):
+                    asyncio.run(self.worker.process_collector_payload(payload))
+            run.assert_called_once()
+
+    def test_explicit_access_denial_degrades_once_and_advances(self):
+        self.cache.set(self.worker.META_KEY, {"stages": {"teda": {"status": "FAILED", "attempt_count": 1}}})
+        payload = self.cycle_payload("teda")
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+            self.runtime, "run_stage", return_value=(503, {"retryable": False, "error": "TEDA_HTTP_403"})):
+            asyncio.run(self.worker.process_collector_payload(payload))
+        self.assertEqual(self.cache.get(self.worker.META_KEY)["stages"]["teda"]["status"], "DEGRADED")
+        self.assertEqual(self.sent[-1]["payload"]["stage"], "tjfch")
+
     def test_completed_deep_keeps_uncovered_pending_barrier(self) -> None:
         incremental = self.worker.incremental_runtime
         unresolved = "https://www.tjmugh.com.cn/unresolved-detail"

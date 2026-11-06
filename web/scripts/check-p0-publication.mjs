@@ -10,11 +10,16 @@ import { installSnapshotTestClock, makeVerifiedSnapshot, SNAPSHOT_TEST_NOW_MS } 
 
 // An in-memory adapter for the actual tagged-SQL transaction. It implements
 // isolation, rollback and the publication advisory lock; no connection is made.
+function micros(v) {
+  const fraction = (String(v).match(/\.(\d+)(?:Z|[+-])/)?.[1] || '').padEnd(6, '0')
+  return BigInt(Date.parse(v)) * 1000n + BigInt(fraction.slice(3))
+}
 function memoryDatabase() {
   let rows = []
   let queue = Promise.resolve()
   const state = { insertCount: 0, transactionCount: 0, fail: false, failReadback: false }
-  state.latest = () => rows.toSorted((a, b) => Date.parse(b.snapshot_as_of) - Date.parse(a.snapshot_as_of))[0] || null
+  state.latest = () => rows.toSorted((a, b) => Number(micros(b.payload?.snapshot_as_of || b.snapshot_as_of) - micros(a.payload?.snapshot_as_of || a.snapshot_as_of)))[0] || null
+  state.truncateLatestTimestamp = () => { const row = state.latest(); row.snapshot_as_of = new Date(row.snapshot_as_of).toISOString() }
   state.sql = {
     async begin(callback) {
       const previous = queue
@@ -33,19 +38,24 @@ function memoryDatabase() {
             return []
           }
           if (text.startsWith('SELECT snapshot_hash, snapshot_as_of')) {
-            return staged.toSorted((a, b) => Date.parse(b.snapshot_as_of) - Date.parse(a.snapshot_as_of)).slice(0, 1)
+            return staged.toSorted((a, b) => Number(micros(b.payload?.snapshot_as_of || b.snapshot_as_of) - micros(a.payload?.snapshot_as_of || a.snapshot_as_of))).slice(0, 1).map(row => ({ ...row, revision_as_of: row.payload.snapshot_as_of }))
           }
           if (text.startsWith('SELECT snapshot_hash, payload')) {
             if (state.failReadback) return []
-            return staged.filter((row) => Date.parse(row.snapshot_as_of) === Date.parse(values[0]))
+            return staged.filter((row) => row.snapshot_hash === values[1]).map(row => ({ ...row, timestamp_matches: micros(row.snapshot_as_of) === micros(values[0]) }))
           }
           if (text.startsWith('SELECT snapshot_hash')) {
             return staged.filter((row) => Date.parse(row.snapshot_as_of) === Date.parse(values[0]))
           }
           if (text.startsWith('INSERT INTO public_verified_snapshots')) {
             const [snapshot_hash, snapshot_as_of, payload] = values
-            if (staged.some((row) => row.snapshot_hash === snapshot_hash)) return []
-            assert(!staged.some((row) => Date.parse(row.snapshot_as_of) === Date.parse(snapshot_as_of)))
+            const existing = staged.find((row) => row.snapshot_hash === snapshot_hash)
+            if (existing) {
+              if (micros(existing.snapshot_as_of) === micros(snapshot_as_of)) return []
+              existing.snapshot_as_of = snapshot_as_of
+              return [{ snapshot_hash }]
+            }
+            assert(!staged.some((row) => micros(row.snapshot_as_of) === micros(snapshot_as_of)))
             staged.push({ snapshot_hash, snapshot_as_of, payload: structuredClone(payload) })
             inserted++
             return [{ snapshot_hash }]
@@ -128,6 +138,27 @@ try {
     assert.equal(database.transactionCount, 0, `${name}: started transaction`)
     assert.equal(database.latest(), null, `${name}: polluted authoritative read`)
     assert.equal(cache.writes, 0, `${name}: wrote fallback cache`)
+  }
+
+  {
+    const { database, persist, cache } = fixture()
+    const base = makeVerifiedSnapshot()
+    const precise = (fraction, offset = 'Z') => ({ ...structuredClone(base), snapshot_as_of: base.snapshot_as_of.replace(/\.\d+Z$/, `.${fraction}${offset}`) })
+    const first = precise('123456')
+    await persist(first)
+    database.truncateLatestTimestamp()
+    assert.equal((await persist(first)).inserted, false, 'legacy replay repairs column without a new revision')
+    assert.equal(database.latest().snapshot_as_of, first.snapshot_as_of)
+    const newer = precise('123789')
+    await persist(newer)
+    await assert.rejects(persist(precise('123500')), /PUBLIC_SNAPSHOT_ROLLBACK_REJECTED/)
+    await assert.rejects(persist({ ...newer, coverage_warning: 'same instant changed' }), /PUBLIC_SNAPSHOT_REVISION_CONFLICT/)
+    await assert.rejects(persist(precise('1237891')), /PUBLIC_SNAPSHOT_AS_OF_INVALID/)
+    assert.equal(database.insertCount, 2)
+    await publishVerifiedSnapshotToRuntimeCache(first, { cache })
+    await publishVerifiedSnapshotToRuntimeCache(newer, { cache })
+    await assert.rejects(publishVerifiedSnapshotToRuntimeCache(precise('123500'), { cache }), /RUNTIME_SNAPSHOT_ROLLBACK_REJECTED/)
+    await assert.rejects(publishVerifiedSnapshotToRuntimeCache({ ...newer, coverage_warning: 'conflict' }, { cache }), /RUNTIME_SNAPSHOT_REVISION_CONFLICT/)
   }
 
   for (const field of ['fail', 'failReadback']) {
