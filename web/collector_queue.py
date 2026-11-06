@@ -269,7 +269,7 @@ def _release_incremental_lease(cache: RuntimeCache, scan_id: str) -> None:
         cache.delete(INCREMENTAL_ACTIVE_KEY)
 
 
-def _process_incremental_payload(payload: dict[str, Any]) -> None:
+def _process_incremental_payload(payload: dict[str, Any], *, budget=None) -> None:
     source_id = str(payload.get("source_id") or "").strip().lower()
     observed_at = _parse_cycle_as_of(payload)
     expected_bucket = str(payload.get("scan_bucket_id") or "").strip()
@@ -289,12 +289,19 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
         return
 
     cache = RuntimeCache()
-    scan_id = _acquire_incremental_lease(
-        cache,
-        source_id=source_id,
-        bucket_id=expected_bucket,
-        observed_at=observed_at,
-    )
+    try:
+        scan_id = _acquire_incremental_lease(
+            cache,
+            source_id=source_id,
+            bucket_id=expected_bucket,
+            observed_at=observed_at,
+        )
+    except Exception as exc:
+        if budget and str(exc) not in {"INCREMENTAL_BLOCKED_BY_DEEP_CYCLE", "INCREMENTAL_SCAN_ALREADY_RUNNING"}:
+            raise runtime.CollectorStageBlocked("INCREMENTAL_LEASE_ACQUIRE_RESULT_UNKNOWN", diagnostics={
+                "budget": budget.snapshot(), "lease_mutation_possible": True,
+            }) from exc
+        raise
     try:
         bootstrap_incremental_ledger_from_canonical(
             source_id,
@@ -305,9 +312,18 @@ def _process_incremental_payload(payload: dict[str, Any]) -> None:
             source_id,
             now=delivered_at,
             cache=cache,
+            **({"budget": budget} if budget else {}),
         )
     finally:
-        _release_incremental_lease(cache, scan_id)
+        try:
+            _release_incremental_lease(cache, scan_id)
+        except Exception as exc:
+            if budget:
+                raise runtime.CollectorStageBlocked("INCREMENTAL_LEASE_RELEASE_RESULT_UNKNOWN", diagnostics={
+                    "budget": budget.snapshot(), "lease_mutation_possible": True,
+                    "scan_result": result if "result" in locals() else None,
+                }) from exc
+            raise
 
     action = str(result.get("action") or "")
     if status == 200 and action in {"COMPLETED", "ALREADY_SCANNED_BUCKET"}:
@@ -423,7 +439,12 @@ async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, 
         return
 
     if _is_incremental_payload(payload):
-        _process_incremental_payload(payload)
+        if str(payload.get("source_id") or "").strip().lower() == "tjzyefy":
+            budget = runtime.CliBudget(clock, sleep or time.sleep, total_seconds=270,
+                                       work_seconds=180, started_at=entered_at)
+            _process_incremental_payload(payload, budget=budget)
+        else:
+            _process_incremental_payload(payload)
         return
 
     stage = str(payload.get("stage") or "").strip().lower()

@@ -72,6 +72,91 @@ class CollectorOrchestrationBehaviorTests(unittest.TestCase):
         self.cache.set(self.worker.ACTIVE_CYCLE_KEY, {"cycle_id": "current"})
         return {"schema_version": "0.1", "stage": stage, "cycle_as_of": self.now.isoformat(), "cycle_id": "current"}
 
+    def incremental_payload(self, source="tjzyefy"):
+        return {"schema_version": "0.1", "mode": "incremental", "source_id": source,
+                "observed_at": self.now.isoformat(),
+                "scan_bucket_id": self.worker.incremental_runtime.scan_bucket_id(source, now=self.now)}
+
+    def test_tjzyefy_budget_keeps_entry_origin_through_lease_and_ignores_payload_deadline(self):
+        payload = self.incremental_payload()
+        payload["deadline"] = 99999999
+        tick, seen = [0.0], []
+        fixed_now = self.now
+        class Clock(datetime):
+            @classmethod
+            def now(cls, tz=None): return fixed_now
+        def acquire(*args, **kwargs):
+            tick[0] = 175
+            return "synthetic-scan"
+        def run(source, **kwargs):
+            b = kwargs["budget"]
+            seen.append((b.started, b.request_timeout(30, "READ"), b.snapshot()))
+            return 503, {"error": "OFFLINE_TIME_STOP"}
+        with patch.object(self.worker, "datetime", Clock), patch.object(self.worker, "_acquire_incremental_lease", side_effect=acquire), patch.object(
+            self.worker, "_release_incremental_lease") as release, patch.object(
+            self.worker.incremental_runtime, "run_incremental_source", side_effect=run):
+            with self.assertRaisesRegex(RuntimeError, "INCREMENTAL_QUEUE_SCAN_FAILED"):
+                asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0], sleep=lambda d: None))
+        self.assertEqual(seen[0][:2], (0, 4))
+        self.assertEqual(seen[0][2]["total_seconds"], 270)
+        self.assertEqual(seen[0][2]["work_seconds"], 180)
+        release.assert_called_once_with(self.cache, "synthetic-scan")
+        self.assertFalse(self.sent)
+
+    def test_tjzyefy_guards_and_owner_denial_never_enter_runner(self):
+        fixed_now = self.now
+        class Clock(datetime):
+            @classmethod
+            def now(cls, tz=None): return fixed_now
+        for mode in ("foreign", "bucket", "day", "owner"):
+            with self.subTest(mode=mode):
+                payload = self.incremental_payload()
+                if mode == "bucket": payload["scan_bucket_id"] = "wrong"
+                if mode == "day": payload["observed_at"] = (self.now - timedelta(days=1)).isoformat()
+                with patch.object(self.worker, "datetime", Clock), patch.object(self.worker, "accepts_payload", return_value=mode != "foreign"), patch.object(
+                    self.worker, "_acquire_incremental_lease", side_effect=RuntimeError("INCREMENTAL_SCAN_ALREADY_RUNNING")) as acquire, patch.object(
+                    self.worker.incremental_runtime, "run_incremental_source") as run:
+                    if mode == "owner":
+                        with self.assertRaisesRegex(RuntimeError, "INCREMENTAL_SCAN_ALREADY_RUNNING"):
+                            asyncio.run(self.worker.process_collector_payload(payload))
+                    else:
+                        asyncio.run(self.worker.process_collector_payload(payload))
+                        acquire.assert_not_called()
+                run.assert_not_called()
+
+    def test_other_incremental_sources_keep_original_dispatch_without_budget(self):
+        payload = self.incremental_payload("tjzyefy_intent")
+        with patch.object(self.worker, "_process_incremental_payload") as process:
+            asyncio.run(self.worker.process_collector_payload(payload))
+        process.assert_called_once_with(payload)
+
+    def test_tjzyefy_lease_release_failure_preserves_known_scan_result(self):
+        payload = self.incremental_payload()
+        fixed_now = self.now
+        class Clock(datetime):
+            @classmethod
+            def now(cls, tz=None): return fixed_now
+        with patch.object(self.worker, "datetime", Clock), patch.object(self.worker, "_acquire_incremental_lease", return_value="scan"), patch.object(
+            self.worker, "_release_incremental_lease", side_effect=OSError("SYNTHETIC_RELEASE")), patch.object(
+            self.worker.incremental_runtime, "run_incremental_source", return_value=(200, {"action": "COMPLETED", "snapshot_refreshed": True})):
+            with self.assertRaises(self.runtime.CollectorStageBlocked) as caught:
+                asyncio.run(self.worker.process_collector_payload(payload))
+        self.assertTrue(caught.exception.diagnostics["lease_mutation_possible"])
+        self.assertTrue(caught.exception.diagnostics["scan_result"]["snapshot_refreshed"])
+
+    def test_tjzyefy_lease_acquire_io_error_is_unknown_and_never_runs_source(self):
+        payload = self.incremental_payload()
+        fixed_now = self.now
+        class Clock(datetime):
+            @classmethod
+            def now(cls, tz=None): return fixed_now
+        with patch.object(self.worker, "datetime", Clock), patch.object(self.worker, "_acquire_incremental_lease", side_effect=OSError("SYNTHETIC_ACQUIRE")), patch.object(
+            self.worker.incremental_runtime, "run_incremental_source") as run:
+            with self.assertRaises(self.runtime.CollectorStageBlocked) as caught:
+                asyncio.run(self.worker.process_collector_payload(payload))
+        self.assertTrue(caught.exception.diagnostics["lease_mutation_possible"])
+        run.assert_not_called()
+
     def test_cron_seeds_intraday_before_deep_can_fail(self) -> None:
         class Clock(datetime):
             @classmethod
@@ -237,7 +322,8 @@ class CollectorOrchestrationBehaviorTests(unittest.TestCase):
         with patch.object(self.worker,'_is_incremental_payload',return_value=True), patch.object(
             self.worker,'_process_incremental_payload') as process, patch.object(self.runtime,'run_stage') as run:
             asyncio.run(self.worker.process_collector_payload(payload))
-        process.assert_called_once_with(payload)
+        self.assertEqual(process.call_args.args, (payload,))
+        self.assertEqual(process.call_args.kwargs["budget"].work_seconds, 180)
         run.assert_not_called()
 
     def test_last_actual_failure_degrades_and_advances_without_another_delivery(self):

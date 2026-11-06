@@ -68,16 +68,29 @@ def is_retryable_fetch_error(exc: Exception) -> bool:
     return bool(match and int(match.group(1)) in RETRYABLE_HTTP_CODES)
 
 
-def fetch_page_with_retry(url: str, *, delay_seconds: float, attempts: int = FETCH_ATTEMPTS) -> str:
+def fetch_page_with_retry(url: str, *, delay_seconds: float, attempts: int = FETCH_ATTEMPTS, budget=None) -> str:
     if attempts < 1:
         raise ValueError('attempts must be >= 1')
+    if budget:
+        attempts = min(attempts, FETCH_ATTEMPTS)
     for attempt in range(1, attempts + 1):
+        timeout = budget.request_timeout(30, "TJZYEFY_HTTP") if budget else None
         try:
-            return fetch_tjzyefy_page(url)
+            html = (fetch_tjzyefy_page(url, timeout_seconds=timeout)
+                    if budget else fetch_tjzyefy_page(url))
         except RuntimeError as exc:
+            if budget:
+                budget.check("TJZYEFY_HTTP_RETURN")
             if attempt >= attempts or not is_retryable_fetch_error(exc):
                 raise
-            time.sleep(delay_seconds)
+            if budget:
+                budget.sleep_checked(delay_seconds, "TJZYEFY_RETRY_SLEEP")
+            else:
+                time.sleep(delay_seconds)
+        else:
+            if budget:
+                budget.check("TJZYEFY_HTTP_RETURN")
+            return html
     raise AssertionError('unreachable')
 
 

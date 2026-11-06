@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Iterable
 
@@ -298,28 +299,38 @@ def _verify_tjnothop(candidate: Any, observed_at: str, now: datetime) -> dict[st
     )
 
 
-def _discover_tjzyefy(now: datetime) -> list[Any]:
+def _discover_tjzyefy(now: datetime, *, budget=None) -> list[Any]:
     local_date = now.astimezone(runtime.SHANGHAI).date()
-    html = runtime.fetch_tjzyefy_page_with_retry(runtime.TJZYEFY_INDEX_URL, delay_seconds=3.0)
-    return runtime.select_tjzyefy_candidates(
+    html = (runtime.fetch_tjzyefy_page_with_retry(runtime.TJZYEFY_INDEX_URL, delay_seconds=3.0, budget=budget)
+            if budget else runtime.fetch_tjzyefy_page_with_retry(runtime.TJZYEFY_INDEX_URL, delay_seconds=3.0))
+    result = runtime.select_tjzyefy_candidates(
         runtime.parse_tjzyefy_index_html(html),
         start_date=local_date - timedelta(days=runtime.EARLY_SIGNAL_LOOKBACK_DAYS - 1),
         end_date=local_date, max_candidates=runtime.EARLY_SIGNAL_MAX_CANDIDATES,
     )
+    if budget:
+        budget.check("TJZYEFY_DISCOVERY_PARSE")
+    return result
 
 
-def _verify_tjzyefy(candidate: Any, observed_at: str, now: datetime) -> dict[str, Any] | None:
-    html = runtime.fetch_tjzyefy_page_with_retry(candidate.detail_url, delay_seconds=3.0)
+def _verify_tjzyefy(candidate: Any, observed_at: str, now: datetime, *, budget=None) -> dict[str, Any] | None:
+    html = (runtime.fetch_tjzyefy_page_with_retry(candidate.detail_url, delay_seconds=3.0, budget=budget)
+            if budget else runtime.fetch_tjzyefy_page_with_retry(candidate.detail_url, delay_seconds=3.0))
     try:
-        return runtime.parse_tjzyefy_market_research(
+        result = runtime.parse_tjzyefy_market_research(
             html, source_url=candidate.detail_url, index_url=runtime.TJZYEFY_INDEX_URL,
             index_published_at=candidate.published_at, expected_title=candidate.title,
             observed_at=observed_at, opportunity_id=runtime.tjzyefy_opportunity_id(candidate.detail_url),
         )
     except runtime.TjzyefyParseError as exc:
+        if budget:
+            budget.check("TJZYEFY_DETAIL_PARSE")
         if str(exc) in runtime.TJZYEFY_UNSUPPORTED_DETAIL_CODES:
             return None
         raise
+    if budget:
+        budget.check("TJZYEFY_DETAIL_PARSE")
+    return result
 
 
 def _discover_tjzyefy_intent(now: datetime) -> list[Any]:
@@ -510,14 +521,92 @@ def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime) -> tuple[bool
 
 
 def run_incremental_source(
+    source_id: str, *, now: datetime | None = None, cache: RuntimeCache | None = None,
+    budget=None,
+) -> tuple[int, dict[str, Any]]:
+    # Only the explicitly authorized source receives this optional Queue budget.
+    if str(source_id or "").strip().lower() != "tjzyefy":
+        budget = None
+    if budget is None:
+        return _run_incremental_source(source_id, now=now, cache=cache)
+    cache = cache or RuntimeCache()
+    context = {"phase": "PRECHECK", "ledger": None, "barrier": None, "remaining": (),
+               "canonical_mutation_possible": False, "canonical_write_completed": False, "source_finalized": False,
+               "pending_or_ledger_mutation_possible": False, "health_mutation_possible": False,
+               "bucket_mutation_possible": False, "publication_outcome": "NOT_ATTEMPTED"}
+    try:
+        status, result = _run_incremental_source(source_id, now=now, cache=cache,
+                                                 budget=budget, context=context)
+    except Exception as exc:
+        failed_phase = context["phase"]
+        time_stop = isinstance(exc, runtime.CliBudgetExceeded)
+        recovery_confirmed = False
+        recovery_error = None
+        try:
+            if not context["source_finalized"] and not context["canonical_mutation_possible"] and context["ledger"] is not None:
+                ledger = context["ledger"]
+                remaining = context["remaining"]
+                _mark_budget_deferred(ledger, remaining)
+                budget.check("RECOVERY_READ", finalize=True)
+                barrier = set(context["barrier"] or ()) | _load_pending_barrier(cache, "tjzyefy")
+                barrier.update(row.candidate.detail_url for row in remaining)
+                budget.check("RECOVERY_BARRIER", finalize=True)
+                _save_pending_barrier(cache, "tjzyefy", barrier)
+                budget.check("RECOVERY_LEDGER", finalize=True)
+                _save_ledger(cache, "tjzyefy", ledger)
+                budget.check("RECOVERY_RETURN", finalize=True)
+                recovery_confirmed = True
+            if not context["source_finalized"] and not context["canonical_mutation_possible"]:
+                budget.check("FAILURE_HEALTH", finalize=True)
+                context["health_mutation_possible"] = True
+                runtime.record_source_scan(cache, "tjzyefy", successful=False, attempted_at=_now_utc(now),
+                                           failure_reason="DETAIL_VERIFICATION_PENDING")
+        except Exception as save_error:
+            recovery_error = type(save_error).__name__
+        status, result = 503, {
+            "action": "FAILED", "source_id": "tjzyefy",
+            "error": "INCREMENTAL_TIME_BUDGET_EXCEEDED" if time_stop else "INCREMENTAL_STATE_RESULT_UNKNOWN",
+            "error_type": type(exc).__name__, "error_phase": failed_phase,
+            "snapshot_refreshed": context.get("snapshot_refreshed", False),
+            "snapshot_as_of": context.get("snapshot_as_of"),
+            "recovery_confirmed": recovery_confirmed, "recovery_scope": "PENDING_BARRIER_AND_LEDGER_ONLY",
+            "recovery_error_type": recovery_error,
+            "failure_ledger_error_type": context.get("failure_ledger_error_type"),
+        }
+    receipt = {key: context[key] for key in ("canonical_mutation_possible", "canonical_write_completed",
+                "pending_or_ledger_mutation_possible", "health_mutation_possible",
+                "bucket_mutation_possible", "publication_outcome")}
+    return status, {**result, **receipt, "budget": budget.snapshot(),
+                    "budget_observation_phase": "SOURCE_RETURN",
+                    "budget_finalization_overrun": budget.clock() >= budget.started + budget.total_seconds}
+
+
+def _run_incremental_source(
     source_id: str,
     *,
     now: datetime | None = None,
     cache: RuntimeCache | None = None,
+    budget=None,
+    context=None,
 ) -> tuple[int, dict[str, Any]]:
     source = str(source_id or "").strip().lower()
     if source not in SUPPORTED_INCREMENTAL_SOURCES:
         return 400, {"action": "REJECTED", "error": "INCREMENTAL_SOURCE_UNSUPPORTED", "source_id": source}
+
+    def work(phase):
+        if budget:
+            context["phase"] = phase
+            budget.check(phase)
+
+    def total(phase):
+        if budget:
+            context["phase"] = phase
+            budget.check(phase, finalize=True)
+
+    def url_check(phase):
+        total(phase)
+        if budget and budget.clock() >= save_deadline:
+            budget.fail(phase)
 
     observed = _now_utc(now)
     cache = cache or RuntimeCache()
@@ -537,8 +626,18 @@ def run_incremental_source(
         }
 
     try:
-        discovered = _DISCOVERY[source](observed)
+        work("DISCOVERY")
+        if budget:
+            discovered = _DISCOVERY[source](observed, budget=budget)
+        else:
+            discovered = _DISCOVERY[source](observed)
+        work("DISCOVERY_PARSE")
+    except runtime.CliBudgetExceeded:
+        raise
     except Exception as exc:
+        work("DISCOVERY_ERROR")
+        if budget:
+            context.update(phase="FAILURE_HEALTH", health_mutation_possible=True)
         runtime.record_source_scan(cache, source, successful=False, attempted_at=observed,
                                    failure_reason="INDEX_SCAN_FAILED")
         return 503, {
@@ -571,11 +670,19 @@ def run_incremental_source(
         max_details=policy["max_details_per_scan"],
     )
     ledger = plan.next_ledger
+    if budget:
+        context.update(ledger=ledger, remaining=plan.selected)
     _mark_budget_deferred(ledger, plan.deferred)
     scan_barrier = _load_pending_barrier(cache, source)
     scan_barrier.update(item.candidate.detail_url for item in (*plan.selected, *plan.deferred))
+    if budget:
+        context["barrier"] = scan_barrier
+        context["pending_or_ledger_mutation_possible"] = True
+    work("PREPARE_BARRIER")
     _save_pending_barrier(cache, source, scan_barrier)
+    work("PREPARE_LEDGER")
     _save_ledger(cache, source, ledger)
+    work("PREPARE_RETURN")
     durable_staging = _load_pending_records(cache, source)
 
     discovered_by_url = {
@@ -592,46 +699,85 @@ def run_incremental_source(
 
     for index, decision in enumerate(plan.selected):
         candidate = _candidate_from_decision(decision, discovered_by_url)
-        if index > 0 or delay_seconds > 0:
+        if not budget and (index > 0 or delay_seconds > 0):
             runtime.time.sleep(delay_seconds)
+        verified = False
+        save_deadline = None
         try:
-            record = _VERIFICATION[source](candidate, observed_at, observed)
+            work("DETAIL_SLEEP")
+            if budget:
+                budget.sleep_checked(delay_seconds, "DETAIL_SLEEP")
+                record = _VERIFICATION[source](candidate, observed_at, observed, budget=budget)
+            else:
+                record = _VERIFICATION[source](candidate, observed_at, observed)
+            work("DETAIL_PARSE")
+            if budget:
+                save_deadline = min(budget.clock() + 30, budget.started + 210)
             # Persist verified facts before a VERIFIED ledger can make the next
             # scan skip them. A hard timeout must not strand facts in memory.
             if record is not None:
                 durable_staging = runtime.merge_canonical_records(durable_staging, [record])
+                url_check("URL_STAGING")
                 _save_pending_records(cache, source, durable_staging)
+                url_check("URL_STAGING_RETURN")
             # A successful explicit non-fact also resolves only its own URL.
             # Do this before the ledger update so interruption remains retryable.
+            url_check("URL_BARRIER")
             scan_barrier.discard(decision.candidate.detail_url)
             _save_pending_barrier(cache, source, scan_barrier)
+            url_check("URL_BARRIER_RETURN")
             ledger = record_verification_success(
                 ledger,
                 decision.candidate,
                 verified_at=observed,
             )
-            successful_urls.add(decision.candidate.detail_url)
-            if record is None:
-                nonfact_verified_count += 1
-                verified_nonfact_urls.add(decision.candidate.detail_url)
-            else:
-                verified_records.append(record)
+            verified = True
+        except runtime.CliBudgetExceeded:
+            if budget:
+                _mark_budget_deferred(ledger, plan.selected[index:])
+            raise
         except Exception as exc:
+            failed_phase = context["phase"] if budget else ""
+            if not failed_phase.startswith("URL_"):
+                work("DETAIL_ERROR")
             ledger = record_verification_failure(
                 ledger,
                 decision.candidate,
                 f"{type(exc).__name__}:{str(exc)[:220]}",
                 failed_at=observed,
             )
-            failures.append(
-                {
-                    "url": decision.candidate.detail_url,
-                    "error": type(exc).__name__,
-                    "message": str(exc)[:180],
-                }
-            )
+            failures.append({"url": decision.candidate.detail_url,
+                             "error": type(exc).__name__, "message": str(exc)[:180]})
+            if budget and failed_phase.startswith("URL_"):
+                raise
         finally:
-            _save_ledger(cache, source, ledger)
+            active_error = sys.exc_info()[1]
+            if budget:
+                context["ledger"] = ledger
+            if budget and active_error is not None:
+                # A failed cleanup must not replace the original cache/parse/hard-stop error.
+                try:
+                    budget.check("FAILURE_LEDGER", finalize=True)
+                    _save_ledger(cache, source, ledger)
+                except Exception as ledger_error:
+                    context["failure_ledger_error_type"] = type(ledger_error).__name__
+            else:
+                if budget and verified:
+                    url_check("URL_LEDGER")
+                elif budget:
+                    total("FAILURE_LEDGER")
+                _save_ledger(cache, source, ledger)
+                if budget and verified:
+                    url_check("URL_LEDGER_RETURN")
+        if verified:
+            successful_urls.add(decision.candidate.detail_url)
+            if budget:
+                context["remaining"] = plan.selected[index + 1:]
+            if record is None:
+                nonfact_verified_count += 1
+                verified_nonfact_urls.add(decision.candidate.detail_url)
+            else:
+                verified_records.append(record)
 
     existing_records, cache_key = _existing_records(cache, source)
     pending_records = _load_pending_records(cache, source)
@@ -660,7 +806,16 @@ def run_incremental_source(
         "pending_barrier_count": len(pending_barrier),
     }
 
+    if budget:
+        context["phase"] = "FINALIZE_ADMISSION"
+        if budget.clock() >= budget.started + 210:
+            budget.fail("FINALIZE_ADMISSION")
+        budget.work_complete = not failures and not pending_barrier
+
     if failures:
+        total("FAILURE_FINALIZE")
+        if budget:
+            context.update(phase="FAILURE_HEALTH", health_mutation_possible=True)
         runtime.record_source_scan(cache, source, successful=False, attempted_at=observed,
                                    failure_reason="DETAIL_VERIFICATION_PENDING")
         _save_pending_records(cache, source, staged_records)
@@ -675,6 +830,9 @@ def run_incremental_source(
         }
 
     if pending_barrier:
+        total("PENDING_FINALIZE")
+        if budget:
+            context.update(phase="FAILURE_HEALTH", health_mutation_possible=True)
         runtime.record_source_scan(cache, source, successful=False, attempted_at=observed,
                                    failure_reason="DETAIL_VERIFICATION_PENDING")
         # A detail that failed in an earlier attempt disappeared from this scan's
@@ -690,6 +848,9 @@ def run_incremental_source(
             "snapshot_as_of": None,
             "deferred_reason": "DETAIL_BUDGET_DEFERRED" if plan.deferred else "PENDING_VERIFICATION_BARRIER",
         }
+        total("PENDING_BUCKET")
+        if budget:
+            context["bucket_mutation_possible"] = True
         _mark_bucket_completed(
             cache,
             source_id=source,
@@ -701,6 +862,9 @@ def run_incremental_source(
 
     if staged_records:
         merged = runtime.merge_canonical_records(existing_records, staged_records)
+        total("PRE_CANONICAL")
+        if budget:
+            context.update(canonical_mutation_possible=True, canonical_write_completed=None)
         runtime._cache_set(
             cache,
             cache_key,
@@ -711,8 +875,15 @@ def run_incremental_source(
         )
     else:
         merged = existing_records
+    if budget:
+        context["canonical_write_completed"] = True if staged_records else False
+        context["phase"] = "POST_CANONICAL"
+        context["source_finalized"] = True
     _save_pending_records(cache, source, [])
     _save_pending_barrier(cache, source, set())
+    if budget:
+        context["phase"] = "HEALTH"
+        context["health_mutation_possible"] = True
     runtime.record_source_scan(cache, source, successful=True, attempted_at=observed)
 
     completed_result = {
@@ -722,7 +893,18 @@ def run_incremental_source(
         "pending_barrier_count": 0,
     }
     try:
+        total("PUBLISH_ADMISSION")
+        if budget:
+            if budget.started + budget.total_seconds - budget.clock() < 31:
+                budget.fail("PUBLISH_ADMISSION")
+            context.update(phase="PUBLISH", publication_outcome="UNKNOWN")
         snapshot_refreshed, publish_result = _publish_snapshot_if_ready(cache, observed)
+        if budget:
+            context["publication_outcome"] = "CONFIRMED" if snapshot_refreshed else "NO_REFRESH"
+            context.update(snapshot_refreshed=snapshot_refreshed,
+                           snapshot_as_of=publish_result.get("snapshot_as_of") if publish_result else None)
+    except runtime.CliBudgetExceeded:
+        raise
     except Exception as exc:
         return 503, {
             "action": "FAILED",
@@ -737,6 +919,8 @@ def run_incremental_source(
         "snapshot_refreshed": snapshot_refreshed,
         "snapshot_as_of": publish_result.get("snapshot_as_of") if publish_result else None,
     }
+    if budget:
+        context.update(phase="BUCKET", bucket_mutation_possible=True)
     _mark_bucket_completed(
         cache,
         source_id=source,

@@ -18,6 +18,46 @@ spec.loader.exec_module(sync_tjzyefy)
 
 
 class TjzyefySyncTests(unittest.TestCase):
+    def test_budget_timeout_and_retry_sleep_use_remaining_without_compressing_interval(self):
+        from scripts.sync_regional_ccgp import CliBudget
+        tick, waits = [170.0], []
+        def sleep(delay):
+            waits.append(delay)
+            tick[0] += delay
+        budget = CliBudget(lambda: tick[0], sleep, total_seconds=270, work_seconds=180, started_at=0)
+        with patch.object(sync_tjzyefy, "fetch_tjzyefy_page", side_effect=[RuntimeError("TJZYEFY_NETWORK_ERROR"), "ok"]) as fetch:
+            self.assertEqual(sync_tjzyefy.fetch_page_with_retry("https://www.tjzyefy.com/", delay_seconds=3, budget=budget), "ok")
+        self.assertEqual([c.kwargs["timeout_seconds"] for c in fetch.call_args_list], [9, 6])
+        self.assertEqual(waits, [3])
+
+    def test_budget_rejects_admission_late_returns_and_insufficient_retry_sleep(self):
+        from scripts.sync_regional_ccgp import CliBudget, CliBudgetExceeded
+        for mode in ("admission", "return", "retry", "wake"):
+            with self.subTest(mode=mode):
+                tick = [179.0 if mode == "admission" else 0.0]
+                def sleep(delay):
+                    tick[0] = 180
+                budget = CliBudget(lambda: tick[0], sleep, total_seconds=270, work_seconds=180, started_at=0)
+                def fetch(*args, **kwargs):
+                    tick[0] = 180 if mode == "return" else 177 if mode == "retry" else 10
+                    if mode in {"retry", "wake"}:
+                        raise RuntimeError("TJZYEFY_NETWORK_ERROR")
+                    return "late"
+                with patch.object(sync_tjzyefy, "fetch_tjzyefy_page", side_effect=fetch) as request:
+                    with self.assertRaises(CliBudgetExceeded):
+                        sync_tjzyefy.fetch_page_with_retry("https://www.tjzyefy.com/", delay_seconds=3, budget=budget)
+                self.assertEqual(request.call_count, 0 if mode == "admission" else 1)
+
+    def test_budget_preserves_two_attempt_limit_and_thirty_second_cap(self):
+        from scripts.sync_regional_ccgp import CliBudget
+        tick = [0.0]
+        budget = CliBudget(lambda: tick[0], lambda d: tick.__setitem__(0, tick[0] + d), total_seconds=270, work_seconds=180)
+        with patch.object(sync_tjzyefy, "fetch_tjzyefy_page", side_effect=RuntimeError("TJZYEFY_HTTP_503")) as fetch:
+            with self.assertRaisesRegex(RuntimeError, "TJZYEFY_HTTP_503"):
+                sync_tjzyefy.fetch_page_with_retry("https://www.tjzyefy.com/", delay_seconds=3, attempts=5, budget=budget)
+        self.assertEqual(fetch.call_count, 2)
+        self.assertEqual([c.kwargs["timeout_seconds"] for c in fetch.call_args_list], [30, 30])
+
     def test_publish_gate_blocks_index_failure(self) -> None:
         allowed, reason = sync_tjzyefy.publish_gate(
             index_discovery_succeeded=False,
