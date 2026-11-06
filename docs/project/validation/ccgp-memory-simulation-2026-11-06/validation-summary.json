@@ -1,0 +1,47 @@
+{
+  "code_commit": "8f8b5cc50e77087197f05b70b7fb2fee3857b57d",
+  "starting_head": "8e46a865d0feec1040da9738e4a6be311960b96d",
+  "python_tests": 984,
+  "python_result": "PASS",
+  "new_memory_behavior_tests": 18,
+  "fixture_gate": {
+    "pass": 10,
+    "fail": 0
+  },
+  "original_cli_gate": {
+    "pass": 3,
+    "fail": 0
+  },
+  "record_count": 892,
+  "selected_count": 2,
+  "unselected_records_preserved": 890,
+  "overlay_changed_count": 2,
+  "rollback_changed_count": 2,
+  "overlay_replay_changed_count": 0,
+  "rollback_replay_changed_count": 0,
+  "whole_state_restored": true,
+  "apply_allowed": false,
+  "runtime_cas_implemented": false,
+  "runtime_canonical_exported": false,
+  "migration_complete": false,
+  "deployment_performed": false,
+  "cloud_access_performed": false,
+  "source_files": [
+    {
+      "path": "web/pipeline/scripts/simulate_ccgp_product_corrections.py",
+      "sha256": "d827864cf8ff66ba99b3eb9de0724579d7a75d366601a19fda0b67a5ef9e29a9"
+    },
+    {
+      "path": "web/pipeline/tests/test_ccgp_memory_corrections.py",
+      "sha256": "cb0521d2193e64aa98d15e2f250e42645c9f3a1091d5a61b2193903fee7faff7"
+    },
+    {
+      "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+      "sha256": "7d91bfcb1a83475e628b7f3ce7960c85f266caa4e29a1b17cb6894667e442e8e"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/validation.py",
+      "sha256": "8de6cf9a1556d2f32bfa4ae4ba2ab37e790ca9f0fc9564ff1c7f29e7fa02623e"
+    }
+  ]
+}

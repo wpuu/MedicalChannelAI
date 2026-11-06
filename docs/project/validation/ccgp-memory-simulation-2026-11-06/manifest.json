@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.1",
+  "code_commit": "8f8b5cc50e77087197f05b70b7fb2fee3857b57d",
+  "kind": "OFFLINE_WHOLE_BATCH_MEMORY_OVERLAY_AND_ROLLBACK_ONLY",
+  "files": [
+    {
+      "path": "audit-result.json",
+      "bytes": 9432,
+      "sha256": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2"
+    },
+    {
+      "path": "bootstrap-gate-proof.json",
+      "bytes": 1750,
+      "sha256": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2"
+    },
+    {
+      "path": "completion.json",
+      "bytes": 346,
+      "sha256": "0d5f642b5758cf0c259ae3cfc359a1e2d722d178f08dc2a2dac7cce6455d866b"
+    },
+    {
+      "path": "invariants-proof.json",
+      "bytes": 3057,
+      "sha256": "cea717b5e93c5f3acae3680df0b3fa2ff9f2d819979b023bb21eb0cb2a4f10af"
+    },
+    {
+      "path": "python-tests.log",
+      "bytes": 182941,
+      "sha256": "501067a8f9ce2d78d40f71b0bef4685d5ca4212fb36de257fbe1f654d2b9616f"
+    },
+    {
+      "path": "roundtrip-replay.json",
+      "bytes": 4907,
+      "sha256": "6e89375e6e13885a0967dbe6c5096c97f622d5b34fe1a77fba4cb9ce86f66d19"
+    },
+    {
+      "path": "roundtrip.json",
+      "bytes": 4907,
+      "sha256": "6e89375e6e13885a0967dbe6c5096c97f622d5b34fe1a77fba4cb9ce86f66d19"
+    },
+    {
+      "path": "state-recipe.json",
+      "bytes": 669,
+      "sha256": "41f914761aa201c731a1266be2f7f8b27db6ff5308530bb87f8fe8963889821e"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 1468,
+      "sha256": "2c4dd1a04b481beefc769a8deea6eb0b2ce1bec3d376a08796da7a249e48bc66"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 3646,
+      "sha256": "b8bd5dad7ee8a3c8183d6a988cc65a4ea9acbc6c4f67b85c176411c4066e0c69"
+    }
+  ]
+}

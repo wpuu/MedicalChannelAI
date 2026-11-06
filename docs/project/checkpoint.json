@@ -2,18 +2,18 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-06",
   "timezone": "Asia/Shanghai",
-  "state_scope": "CURRENT_LOCKED_OFFLINE_PRODUCT_DRY_RUN_NO_CLOUD_ACTIONS",
+  "state_scope": "CURRENT_OFFLINE_WHOLE_BATCH_MEMORY_SIMULATION_NO_RUNTIME_ACTIONS",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
   "runtime_implementation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "latest_code_validated_head": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
+  "latest_code_validated_head": "8f8b5cc50e77087197f05b70b7fb2fee3857b57d",
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "TWO_EVIDENCE_COMPLETE_PRODUCT_CORRECTION_DRY_RUNS_REPLAYED_APPLY_BLOCKED",
-  "latest_changes_validation_status": "966_LOCAL_PYTHON_PASS; FROZEN10_OF10_AND_ORIGINAL_CLI3_OF3; TWO_CLI_OUTPUTS_IDENTICAL; TWO_PROPOSALS_APPLY_FALSE",
+  "milestone": "TWO_CORRECTIONS_MEMORY_OVERLAY_AND_ROLLBACK_WITH_GUARDED_BATCH_PREFLIGHT_VERIFIED",
+  "latest_changes_validation_status": "984_PYTHON_PASS; FROZEN10_OF10; CLI3_OF3; 2_OVERLAY_2_RESTORE_0_REPLAY_CHANGES; NO_RUNTIME_CAS_OR_WRITE",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -121,14 +121,13 @@
     "interpretation": "New source82cc/app795 deployment reuses existing d environment, role, database, epoch and credentials.16stored facts unchanged;15active UI cards after one real registration closed. No new environment, env/schedule/protection changes, queue trigger, snapshot publish or historical backfill.",
     "temporary_acceptance_access": "New task-owned900second share revoked; private access file removed; exact secret artifact scan passed; project protection unchanged.",
     "latest_audit_actions": {
-      "mode": "LOCAL_OFFLINE_DRY_RUN_ONLY",
+      "mode": "OFFLINE_MEMORY_SIMULATION_ONLY",
       "preview_deployed": false,
       "new_environment_created": false,
       "cloud_accessed": false,
       "env_or_schedule_changed": false,
       "database_or_runtime_writes": false,
-      "production_mutations": false,
-      "actual_settings_changed": false
+      "production_mutations": false
     }
   },
   "gold_set_status": {
@@ -145,7 +144,7 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "Prior deployed82cc/app795 read-only evidence retained. Current9f6 offline-only;966Python and10/3gates pass,no new build/deployment/cloud verification.",
+    "current_head_runtime_acceptance": "Runtime deployment82cc/app795 unchanged/not accessed. Current8f8 offline-only;984Python and10/3gates pass. No new JS build or cloud verification.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
     "source_freshness_runtime_acceptance": "CARRIED_PRIOR_C_REAL_SCAN_CLOCKS_UNCHANGED:8/14 healthy; no new source scan or recovery in d.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
@@ -163,11 +162,11 @@
     "old_deployment_queue_isolation": "D_TARGETED_REPAIR_ISOLATED:old c role cannot read d snapshots or create d schema; old c consumers retained. d native cycle/canonical migration and shared-origin request budget remain unverified.",
     "publication_latency": "CURRENT662_RETURNED_FAILURE_TAIL_VERIFIED:0.029–0.034seconds; trigger-to-publish2207.330seconds, tjmugh completion-to-publish1678.375seconds. Single-cycle observations, notP95; first retry/forced-kill recovery/global publication coupling remain.",
     "ccgp_product_items_quality": "FOUR_FIXES_DEPLOYED82CC_APP795;10frozen fixtures pass locally. Current UI preserves existing10official Dakoutun products. No new raw-detail cloud collection or historical application; broader templates/attachments/recall remain unverified.",
-    "historical_product_backfill": "LOCAL9F6_EVIDENCE_COMPLETE_DRY_RUN:2explicit proposals and locked request/scope/versions/field evidence;repeat byte-identical;apply=false. No runtime export/CAS/migration/application/rollback. Next is in-memory batch validation/rollback simulation."
+    "historical_product_backfill": "MEMORY_SIMULATION8F8:2overlay/2restore,whole892state restored,890unselected unchanged,replays0changes,stale/crossscope/tampered/partial/mixed/newfacts/events rejected. Only in-memory checks/deepcopies; actual runtime export,CAS/transactions,migration,application and rollback unimplemented."
   },
   "final_code_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "code_validation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "documentation_followup": "Only existing offline audit tool extended. Runtime parser795 and deployed82cc unchanged/not accessed; current966 is Python only, not a new frontend build or cloud acceptance.",
+  "documentation_followup": "New thin offline simulator reuses9f6 generator and unchanged change IDs.892record memory roundtrip/idempotence/concurrency refusal verified; no actual runtime CAS, transaction, migration, application or rollback.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2001,6 +2000,72 @@
         "report": "docs/project/validation/ccgp-preview-readback-2026-11-06/browser-report.json",
         "pool_reconciliation": "docs/project/validation/ccgp-preview-readback-2026-11-06/pool-reconciliation.json"
       }
+    },
+    "previous_dry_run_8e46a86": {
+      "state_scope": "CURRENT_LOCKED_OFFLINE_PRODUCT_DRY_RUN_NO_CLOUD_ACTIONS",
+      "milestone": "TWO_EVIDENCE_COMPLETE_PRODUCT_CORRECTION_DRY_RUNS_REPLAYED_APPLY_BLOCKED",
+      "latest_changes_validation_status": "966_LOCAL_PYTHON_PASS; FROZEN10_OF10_AND_ORIGINAL_CLI3_OF3; TWO_CLI_OUTPUTS_IDENTICAL; TWO_PROPOSALS_APPLY_FALSE",
+      "current_phase_starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
+      "product_dry_run_acceptance": {
+        "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
+        "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
+        "python_tests": 966,
+        "python_result": "PASS",
+        "new_dry_run_behavior_tests": 21,
+        "fixture_gate": {
+          "pass": 10,
+          "fail": 0
+        },
+        "original_cli_gate": {
+          "pass": 3,
+          "fail": 0
+        },
+        "selected_candidates": 2,
+        "apply_allowed": false,
+        "runtime_canonical_exported": false,
+        "migration_complete": false,
+        "deployment_performed": false,
+        "cloud_access_performed": false,
+        "project_model_requests": 0,
+        "source_files": [
+          {
+            "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+            "sha256": "7d91bfcb1a83475e628b7f3ce7960c85f266caa4e29a1b17cb6894667e442e8e"
+          },
+          {
+            "path": "web/pipeline/tests/test_ccgp_product_dry_run.py",
+            "sha256": "0416a2839c819666ba85cc2806f565bc9844bf1f2f23dabda822923b4e01d6e9"
+          },
+          {
+            "path": "web/pipeline/tests/fixtures/ccgp_product_dry_run_request_20261106.json",
+            "sha256": "9c4533103fc04b795a9a8f9f70006e836ac5fe49c7dac5648c58d8907f7c6aea"
+          },
+          {
+            "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+            "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187"
+          },
+          {
+            "path": "web/pipeline/scripts/bootstrap_ccgp_backfill.py",
+            "sha256": "6aaed10e94a610dbdf44c29523e2098dba78fa4a69dcddc7d642c9b3510ae096"
+          }
+        ],
+        "report": "docs/project/ccgp-product-dry-run-2026-11-06.md",
+        "evidence_manifest": "docs/project/validation/ccgp-product-dry-run-2026-11-06/manifest.json",
+        "reviewed_request": "web/pipeline/tests/fixtures/ccgp_product_dry_run_request_20261106.json",
+        "change_set_id": "5bb62880aa451309cd8f86eb029354ca7bc9709ba0d628ca108f25cc24c59420",
+        "reviewed_request_sha256": "9c4533103fc04b795a9a8f9f70006e836ac5fe49c7dac5648c58d8907f7c6aea",
+        "target_scope_reference_only": {
+          "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+          "target": "preview",
+          "preview_epoch": "mcai-p0-20261106-d",
+          "database": "mcai_p0_epoch_20261106d"
+        },
+        "repeat_cli_output_byte_equal": true,
+        "core_network_blocked_result_equal": true,
+        "inputs_byte_unchanged": true,
+        "canonical_apply_or_rollback_executed": false,
+        "real_runtime_cas_implemented": false
+      }
     }
   },
   "source_recovery_precision_acceptance": {
@@ -2203,7 +2268,7 @@
       "required_followup": "Lock filters before load and enforce one absolute deadline across all waits; deadline means stop live checks."
     },
     "latest_audit_deadline": "2026-11-06T09:10:53Z",
-    "latest_phase_deadline": "2026-11-06T12:16:02Z",
+    "latest_phase_deadline": "2026-11-06T12:46:01Z",
     "next_step_buttons": {
       "prefer_true_short_label_full_prompt_submission": true,
       "actual_current_interface_support": false,
@@ -2349,7 +2414,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
+  "current_phase_starting_head": "8e46a865d0feec1040da9738e4a6be311960b96d",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2399,8 +2464,8 @@
     "production_modified": false,
     "historical": true
   },
-  "latest_offline_tool_head": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
-  "code_validation_scope": "OFFLINE_AUDIT_TOOL_AND_TESTS_ONLY; APP/PREVIEW_UNCHANGED",
+  "latest_offline_tool_head": "8f8b5cc50e77087197f05b70b7fb2fee3857b57d",
+  "code_validation_scope": "OFFLINE_SIMULATOR_ONLY; GENERATOR/PARSER/DEPLOYMENT_UNCHANGED",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
     "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
@@ -2459,6 +2524,64 @@
     "core_network_blocked_result_equal": true,
     "inputs_byte_unchanged": true,
     "canonical_apply_or_rollback_executed": false,
-    "real_runtime_cas_implemented": false
+    "real_runtime_cas_implemented": false,
+    "historical": true
+  },
+  "memory_simulation_acceptance": {
+    "code_commit": "8f8b5cc50e77087197f05b70b7fb2fee3857b57d",
+    "starting_head": "8e46a865d0feec1040da9738e4a6be311960b96d",
+    "python_tests": 984,
+    "python_result": "PASS",
+    "new_memory_behavior_tests": 18,
+    "fixture_gate": {
+      "pass": 10,
+      "fail": 0
+    },
+    "original_cli_gate": {
+      "pass": 3,
+      "fail": 0
+    },
+    "record_count": 892,
+    "selected_count": 2,
+    "unselected_records_preserved": 890,
+    "overlay_changed_count": 2,
+    "rollback_changed_count": 2,
+    "overlay_replay_changed_count": 0,
+    "rollback_replay_changed_count": 0,
+    "whole_state_restored": true,
+    "apply_allowed": false,
+    "runtime_cas_implemented": false,
+    "runtime_canonical_exported": false,
+    "migration_complete": false,
+    "deployment_performed": false,
+    "cloud_access_performed": false,
+    "source_files": [
+      {
+        "path": "web/pipeline/scripts/simulate_ccgp_product_corrections.py",
+        "sha256": "d827864cf8ff66ba99b3eb9de0724579d7a75d366601a19fda0b67a5ef9e29a9"
+      },
+      {
+        "path": "web/pipeline/tests/test_ccgp_memory_corrections.py",
+        "sha256": "cb0521d2193e64aa98d15e2f250e42645c9f3a1091d5a61b2193903fee7faff7"
+      },
+      {
+        "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+        "sha256": "7d91bfcb1a83475e628b7f3ce7960c85f266caa4e29a1b17cb6894667e442e8e"
+      },
+      {
+        "path": "web/pipeline/medical_channel_pipeline/validation.py",
+        "sha256": "8de6cf9a1556d2f32bfa4ae4ba2ab37e790ca9f0fc9564ff1c7f29e7fa02623e"
+      }
+    ],
+    "report": "docs/project/ccgp-memory-simulation-2026-11-06.md",
+    "evidence_manifest": "docs/project/validation/ccgp-memory-simulation-2026-11-06/manifest.json",
+    "before_state_sha256": "7d8bb50314f7641b8cd73021b8c5c52bc2879cfd00ef90868b7ee0018a517522",
+    "after_state_sha256": "5bcaf1fbd9d5940d2af0cd2e860015c752e615c50defb86496ba3d0d90fda8ef",
+    "restored_state_sha256": "7d8bb50314f7641b8cd73021b8c5c52bc2879cfd00ef90868b7ee0018a517522",
+    "original_change_set_id": "5bb62880aa451309cd8f86eb029354ca7bc9709ba0d628ca108f25cc24c59420",
+    "caller_inputs_unchanged": true,
+    "core_roundtrip_under_network_blocker": true,
+    "two_cli_report_bytes_equal": true,
+    "actual_runtime_or_database_actions": false
   }
 }

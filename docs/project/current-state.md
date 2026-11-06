@@ -2,7 +2,15 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前产品纠错 dry-run（离线清单完成，禁止应用）
+## 当前整批校验与内存回滚模拟（离线通过，禁止真实应用）
+
+- 薄层代码8f8b5cc50e77087197f05b70b7fb2fee3857b57d，复用既有生成器/请求锁/白名单/canonical校验；9f6生成器与change_id未改。先核完整清单、scope、原状态版本及所有候选，再建立内存副本；混合before/after、任一无效或并发变化整批拒绝。
+- 新增18项行为测试，全部984项Python、冻结10/10及原CLI3/3通过。两条候选内存overlay后回滚，892条完整状态及哈希精确恢复，890条未选择记录不变；重复overlay/回滚均0修改。两次CLI报告字节一致，网络阻断下往返通过。
+- 回执锁定批次、scope和完整before/after状态；新事实/事件/pending会阻断回滚并保留新数据。始终apply_allowed=false；Python对象检查不是真实CAS/事务/锁，不是canonical导出、迁移、实际应用或真实回滚。
+- 没有云端访问/部署、新环境、计划/权限修改、采集/项目模型或原始数据/数据库/缓存写入；本轮不复核旧线上状态，production_ready=false。[报告](ccgp-memory-simulation-2026-11-06.md)、[证据](validation/ccgp-memory-simulation-2026-11-06/manifest.json)。
+- 下一轮按[next-task.md](next-task.md)实现现有d命名空间的只读导出内核，仍仅离线桩，不新增HTTP路由或读取真实缓存。当前无真实底部提示词按钮接口，给完整可复制任务；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
+## 上轮产品纠错 dry-run（历史离线清单，禁止应用）
 
 - 工具代码9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3，复用原audit入口增加锁定请求＋显式1–5条选择，补齐产品字段证据、before/after及原记录/原文/解析器/生成器哈希。候选为河北扫描仪4套、吉林血液透析机5台/套，均apply_allowed=false。
 - 新增21项行为测试，全部966项Python、冻结模板10/10及原CLI3/3通过。两次CLI输出字节及变更ID一致，阻断网络后核心输出一致；请求、基线和全部原始fixture字节不变。身份/版本/范围冲突、别名项目、超量和覆盖输入均拒绝。

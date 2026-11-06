@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1",
+  "input_kind": "FROZEN_MEMORY_STATE",
+  "target_scope": {
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "target": "preview",
+    "preview_epoch": "mcai-p0-20261106-d",
+    "database": "mcai_p0_epoch_20261106d"
+  },
+  "events": [],
+  "pending": [],
+  "record_sources": [
+    "web/pipeline/data/tianjin_live_ccgp_records.json",
+    "web/pipeline/data/regional_live_ccgp_records.json"
+  ],
+  "expected_state_sha256": "7d8bb50314f7641b8cd73021b8c5c52bc2879cfd00ef90868b7ee0018a517522",
+  "record_count": 892,
+  "note": "Synthetic empty event/pending envelope around real frozen repository records; not an exported runtime state"
+}

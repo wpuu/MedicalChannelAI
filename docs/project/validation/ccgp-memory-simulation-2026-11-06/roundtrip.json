@@ -1,0 +1,122 @@
+{
+  "mode": "OFFLINE_MEMORY_ROUNDTRIP",
+  "overlay": {
+    "schema_version": "0.1",
+    "mode": "OFFLINE_MEMORY_SIMULATION",
+    "status": "SIMULATED_APPLIED",
+    "change_set_id": "5bb62880aa451309cd8f86eb029354ca7bc9709ba0d628ca108f25cc24c59420",
+    "target_scope": {
+      "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+      "target": "preview",
+      "preview_epoch": "mcai-p0-20261106-d",
+      "database": "mcai_p0_epoch_20261106d"
+    },
+    "before_state_sha256": "7d8bb50314f7641b8cd73021b8c5c52bc2879cfd00ef90868b7ee0018a517522",
+    "after_state_sha256": "5bcaf1fbd9d5940d2af0cd2e860015c752e615c50defb86496ba3d0d90fda8ef",
+    "changed_record_count": 2,
+    "receipt": {
+      "schema_version": "0.1",
+      "kind": "MEMORY_OVERLAY_RECEIPT",
+      "change_set_id": "5bb62880aa451309cd8f86eb029354ca7bc9709ba0d628ca108f25cc24c59420",
+      "target_scope": {
+        "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+        "target": "preview",
+        "preview_epoch": "mcai-p0-20261106-d",
+        "database": "mcai_p0_epoch_20261106d"
+      },
+      "before_state_sha256": "7d8bb50314f7641b8cd73021b8c5c52bc2879cfd00ef90868b7ee0018a517522",
+      "after_state_sha256": "5bcaf1fbd9d5940d2af0cd2e860015c752e615c50defb86496ba3d0d90fda8ef",
+      "selected_ids": [
+        "ccgp_he_2a9ca892bf9d0b6a",
+        "ccgp_jl_806743d8af167ea4"
+      ],
+      "apply_allowed": false,
+      "receipt_id": "7ba55786248b1eececc75d1aafe9d3e619967f569e786ebf96d9022696f5b65b"
+    },
+    "apply_allowed": false,
+    "runtime_cas_implemented": false,
+    "runtime_canonical_exported": false,
+    "migration_complete": false,
+    "database_transaction_executed": false,
+    "writes_runtime_state": false,
+    "network_requests": 0,
+    "interpretation": "Memory exercise only; no runtime commit or rollback."
+  },
+  "overlay_replay": {
+    "schema_version": "0.1",
+    "mode": "OFFLINE_MEMORY_SIMULATION",
+    "status": "ALREADY_SIMULATED",
+    "change_set_id": "5bb62880aa451309cd8f86eb029354ca7bc9709ba0d628ca108f25cc24c59420",
+    "target_scope": {
+      "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+      "target": "preview",
+      "preview_epoch": "mcai-p0-20261106-d",
+      "database": "mcai_p0_epoch_20261106d"
+    },
+    "before_state_sha256": "5bcaf1fbd9d5940d2af0cd2e860015c752e615c50defb86496ba3d0d90fda8ef",
+    "after_state_sha256": "5bcaf1fbd9d5940d2af0cd2e860015c752e615c50defb86496ba3d0d90fda8ef",
+    "changed_record_count": 0,
+    "receipt": null,
+    "apply_allowed": false,
+    "runtime_cas_implemented": false,
+    "runtime_canonical_exported": false,
+    "migration_complete": false,
+    "database_transaction_executed": false,
+    "writes_runtime_state": false,
+    "network_requests": 0,
+    "interpretation": "Memory exercise only; no runtime commit or rollback."
+  },
+  "rollback": {
+    "schema_version": "0.1",
+    "mode": "OFFLINE_MEMORY_SIMULATION",
+    "status": "SIMULATED_RESTORED",
+    "change_set_id": "5bb62880aa451309cd8f86eb029354ca7bc9709ba0d628ca108f25cc24c59420",
+    "target_scope": {
+      "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+      "target": "preview",
+      "preview_epoch": "mcai-p0-20261106-d",
+      "database": "mcai_p0_epoch_20261106d"
+    },
+    "before_state_sha256": "5bcaf1fbd9d5940d2af0cd2e860015c752e615c50defb86496ba3d0d90fda8ef",
+    "after_state_sha256": "7d8bb50314f7641b8cd73021b8c5c52bc2879cfd00ef90868b7ee0018a517522",
+    "changed_record_count": 2,
+    "receipt": null,
+    "apply_allowed": false,
+    "runtime_cas_implemented": false,
+    "runtime_canonical_exported": false,
+    "migration_complete": false,
+    "database_transaction_executed": false,
+    "writes_runtime_state": false,
+    "network_requests": 0,
+    "interpretation": "Memory exercise only; no runtime commit or rollback."
+  },
+  "rollback_replay": {
+    "schema_version": "0.1",
+    "mode": "OFFLINE_MEMORY_SIMULATION",
+    "status": "ALREADY_RESTORED",
+    "change_set_id": "5bb62880aa451309cd8f86eb029354ca7bc9709ba0d628ca108f25cc24c59420",
+    "target_scope": {
+      "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+      "target": "preview",
+      "preview_epoch": "mcai-p0-20261106-d",
+      "database": "mcai_p0_epoch_20261106d"
+    },
+    "before_state_sha256": "7d8bb50314f7641b8cd73021b8c5c52bc2879cfd00ef90868b7ee0018a517522",
+    "after_state_sha256": "7d8bb50314f7641b8cd73021b8c5c52bc2879cfd00ef90868b7ee0018a517522",
+    "changed_record_count": 0,
+    "receipt": null,
+    "apply_allowed": false,
+    "runtime_cas_implemented": false,
+    "runtime_canonical_exported": false,
+    "migration_complete": false,
+    "database_transaction_executed": false,
+    "writes_runtime_state": false,
+    "network_requests": 0,
+    "interpretation": "Memory exercise only; no runtime commit or rollback."
+  },
+  "whole_state_restored": true,
+  "record_count": 892,
+  "apply_allowed": false,
+  "runtime_cas_implemented": false,
+  "network_requests": 0
+}
