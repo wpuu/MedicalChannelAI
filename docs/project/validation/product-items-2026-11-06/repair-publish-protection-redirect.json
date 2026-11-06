@@ -1,0 +1,13 @@
+{
+  "at": "2026-11-06T07:01:28.981206+00:00",
+  "http": 307,
+  "response": {
+    "redirect": "/api/public-snapshot",
+    "status": "307"
+  },
+  "headers": {
+    "age": null,
+    "x-vercel-cache": null,
+    "x-medicalchannelai-snapshot-source": null
+  }
+}

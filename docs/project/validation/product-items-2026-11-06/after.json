@@ -1,0 +1,163 @@
+{
+  "schema_version": "0.1",
+  "opportunity_id": "ccgp_5184fb1beae01ab6",
+  "source": {
+    "source_id": "ccgp:ZLZH26ZB074",
+    "source_type": "CCGP_NOTICE",
+    "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+    "observed_at": "2026-11-06T06:48:05.064637+00:00"
+  },
+  "facts": {
+    "project_number": "ZLZH26ZB074",
+    "project_name": "宝坻区大口屯医院医疗设备采购项目",
+    "buyer_name": "天津市宝坻区大口屯医院",
+    "hospital_name": null,
+    "department": null,
+    "region": "宝坻区",
+    "lifecycle_state": "BIDDING",
+    "notice_type": "公开招标公告",
+    "published_at": "2026-11-05",
+    "registration_deadline": "2026-11-12T17:30:00+08:00",
+    "bid_deadline": "2026-11-26T09:30:00+08:00",
+    "expected_procurement_at": null,
+    "expected_procurement_precision": null,
+    "budget_cny": 2175000,
+    "procurement_method": "公开招标",
+    "product_categories": [],
+    "product_items": [
+      {
+        "raw_name": "彩色多普勒超声系统",
+        "category": null,
+        "quantity": "1台",
+        "specification": null
+      },
+      {
+        "raw_name": "便携式彩色多普勒超声诊断仪",
+        "category": null,
+        "quantity": "1台",
+        "specification": null
+      },
+      {
+        "raw_name": "数字化摄像X射线机",
+        "category": null,
+        "quantity": "1台",
+        "specification": null
+      },
+      {
+        "raw_name": "X射线计算机体层摄影设备",
+        "category": null,
+        "quantity": "1台",
+        "specification": null
+      },
+      {
+        "raw_name": "生物安全柜",
+        "category": null,
+        "quantity": "1台",
+        "specification": null
+      },
+      {
+        "raw_name": "医用离心机",
+        "category": null,
+        "quantity": "1台",
+        "specification": null
+      },
+      {
+        "raw_name": "空气消毒器",
+        "category": null,
+        "quantity": "2台",
+        "specification": null
+      },
+      {
+        "raw_name": "颈腰椎治疗多功能牵引床",
+        "category": null,
+        "quantity": "1台",
+        "specification": null
+      },
+      {
+        "raw_name": "红外偏振光治疗仪",
+        "category": null,
+        "quantity": "1台",
+        "specification": null
+      },
+      {
+        "raw_name": "红外光悬空疗仪",
+        "category": null,
+        "quantity": "1台",
+        "specification": null
+      }
+    ],
+    "public_contact": {
+      "name": "胡博",
+      "title": "项目联系人",
+      "phone": "022-29996696",
+      "email": null
+    }
+  },
+  "evidence": [
+    {
+      "field_path": "facts.project_number",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "一、项目基本情况/项目编号"
+    },
+    {
+      "field_path": "facts.project_name",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "一、项目基本情况/项目名称"
+    },
+    {
+      "field_path": "facts.buyer_name",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "采购人信息/名称"
+    },
+    {
+      "field_path": "facts.lifecycle_state",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "公告类型=公开招标公告/确定性生命周期映射"
+    },
+    {
+      "field_path": "facts.notice_type",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "公告类型/公开招标公告"
+    },
+    {
+      "field_path": "facts.published_at",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "公告发布日期"
+    },
+    {
+      "field_path": "facts.registration_deadline",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "获取招标文件/时间"
+    },
+    {
+      "field_path": "facts.bid_deadline",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "提交投标文件截止时间、开标时间和地点"
+    },
+    {
+      "field_path": "facts.procurement_method",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "公告类型=公开招标公告/确定性采购方式映射"
+    },
+    {
+      "field_path": "facts.region",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "公告概要/行政区域"
+    },
+    {
+      "field_path": "facts.budget_cny",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "一、项目基本情况/预算金额"
+    },
+    {
+      "field_path": "facts.public_contact",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "项目联系方式"
+    },
+    {
+      "field_path": "facts.product_items",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "采购需求/正文结构化产品明细"
+    }
+  ]
+}

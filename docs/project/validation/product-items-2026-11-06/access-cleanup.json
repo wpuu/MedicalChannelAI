@@ -1,0 +1,9 @@
+{
+  "at": "2026-11-06T07:07:29.797Z",
+  "deployment_id": "dpl_Fk33cZFtMo6vwd5cFbSh57J8fZH8",
+  "task_owned_share_revoked": true,
+  "error_code": null,
+  "protection_policy_changed": false,
+  "private_credential_file_removed": true,
+  "evidence_private_value_scan": "PASS"
+}

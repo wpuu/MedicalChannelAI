@@ -1,0 +1,21 @@
+{
+  "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+  "fetched_at": "2026-11-06T06:48:05.064637+00:00",
+  "http": 200,
+  "raw_bytes": 26323,
+  "sha256": "29b549a6b4299dd60c5a29576ab0641eb7be727560c91a74cb79ebcbe273ca6a",
+  "encoding": "utf-8",
+  "headers": {
+    "Content-Type": "text/html",
+    "ETag": null,
+    "Last-Modified": null
+  },
+  "opportunity_id": "ccgp_5184fb1beae01ab6",
+  "purpose": "Frozen official primary-source parser regression; not a fabricated network response",
+  "before_product_names": [
+    "本包非专门面向中小企业采购",
+    "投标单位须提供《中小企业声明函》或监狱企业证明文件或《残疾人福利性单位声明函》",
+    "（1）投标单位须提供有效期内的营业执照副本或事业单位法人证书或民办非企业单位登记证书或社会团体法人登记证书或基金会法人登记证书或自然人身份证明复印件加盖公章",
+    "本包对小微企业产品给予20.0%的价格扣除"
+  ]
+}

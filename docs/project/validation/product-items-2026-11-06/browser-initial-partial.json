@@ -1,0 +1,25 @@
+{
+  "scope": {
+    "target": "preview",
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "git_branch": "codex/p0-reliability-contracts",
+    "preview_epoch": "mcai-p0-20261106-d",
+    "database": "mcai_p0_epoch_20261106d",
+    "role": "mcai_p0_epoch_20261106d",
+    "neon_project": "orange-band-79103824",
+    "neon_branch": "br-cold-tooth-a5clhljh",
+    "foreground_deadline": "2026-11-06T07:04:57Z",
+    "commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+    "deployment_id": "dpl_Fk33cZFtMo6vwd5cFbSh57J8fZH8",
+    "url": "https://medicalchannelai-mbstj6o1a-rerisse7-1717s-projects.vercel.app"
+  },
+  "checks": [
+    "exact deployed commit and isolated DATABASE",
+    "ordinary GET contains exact ten official products and quantities"
+  ],
+  "pageErrors": [],
+  "blockedAi": 1,
+  "unexpectedRequests": [],
+  "sha256": "85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead"
+}

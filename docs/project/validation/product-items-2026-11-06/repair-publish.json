@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-06T07:02:02.259490+00:00",
+  "http": 200,
+  "response": {
+    "ok": true,
+    "durable_committed": true,
+    "cache_status": "UPDATED",
+    "snapshot_as_of": "2026-11-06T07:00:46.604901+00:00",
+    "today_card_count": 5,
+    "opportunity_pool_count": 16
+  },
+  "headers": {
+    "age": null,
+    "x-vercel-cache": "MISS",
+    "x-medicalchannelai-snapshot-source": null
+  }
+}

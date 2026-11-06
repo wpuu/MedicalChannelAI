@@ -1,0 +1,137 @@
+{
+  "schema_version": "0.1",
+  "executable_commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+  "kind": "OFFICIAL_SINGLE_RECORD_REPAIR_AND_VERIFIED_SNAPSHOT_CARRYFORWARD",
+  "production_modified": false,
+  "files": [
+    {
+      "path": "access-cleanup.json",
+      "bytes": 274,
+      "sha256": "45267ba65eaa1f11683b1a6ad784dc54bdf07a806f9db922c807bdbd8f44f875"
+    },
+    {
+      "path": "after.json",
+      "bytes": 5289,
+      "sha256": "d1e56b5e0f510f1f9d2b7b25c5b976df5cfc770c9101274b1ab09d6bbcadcb41"
+    },
+    {
+      "path": "authority-readback.json",
+      "bytes": 257,
+      "sha256": "92edabe7e679d88c000f65656a7f7bf7b5dd14bcfea31309ce52f58303ecb685"
+    },
+    {
+      "path": "base-snapshot-row.json",
+      "bytes": 124608,
+      "sha256": "eb717c263c19bc39dc46e9438185133cf109bc58739035f488705a2040ec3fbf"
+    },
+    {
+      "path": "before.json",
+      "bytes": 4740,
+      "sha256": "4c9ba0532e20eeed72e292023ceeba924a373be82594d37364589c1d77068d5f"
+    },
+    {
+      "path": "browser-initial-partial.json",
+      "bytes": 950,
+      "sha256": "501138f74c151fd7f7ea199274d48488607827db306849d296b07aafa067fe5b"
+    },
+    {
+      "path": "browser-report.json",
+      "bytes": 1450,
+      "sha256": "0a64873c72a5c77cb49b3d705da633389c2acf2a32eff3f2e69422e612cead49"
+    },
+    {
+      "path": "browser-second-partial.json",
+      "bytes": 1219,
+      "sha256": "65521dee535d6f2ce41489fb4f1db7015f8bf9a33add1f642467fa684f7cb542"
+    },
+    {
+      "path": "build.log",
+      "bytes": 176644,
+      "sha256": "9023020a2e685870ee83afa2d065a4ccdc15fb0eafd6c9af92fe9f327b10a76b"
+    },
+    {
+      "path": "consistency-proof.json",
+      "bytes": 286,
+      "sha256": "d1b128dfef0bfbd18f64e9cdce38979ae2e24054a01f0dd4bae1d2fa4f8206a8"
+    },
+    {
+      "path": "corrected-detail.png",
+      "bytes": 446448,
+      "sha256": "d4dd331d2078f703ab037c1b40386feb8fe0e24bbe620d61a86675bc07833176"
+    },
+    {
+      "path": "database-isolation.json",
+      "bytes": 377,
+      "sha256": "eeedb228f8e37404d2e0dac9869b6383c84e0ab3d61452695b68c074de435002"
+    },
+    {
+      "path": "database-readback.json",
+      "bytes": 239,
+      "sha256": "3027cc8393aeccc8fbeeb953a977a773e0feccf8cc75fbbbf048b1876c236e75"
+    },
+    {
+      "path": "local-validation.json",
+      "bytes": 442,
+      "sha256": "9bfccb7737d534ba2964f0536aa7b9ab22f5c260d4db91c5a61c48558e297666"
+    },
+    {
+      "path": "official-manifest.json",
+      "bytes": 1023,
+      "sha256": "2bc6ac52cd1e9d1e32a0839f876b32c394c628a308421fce02ddbb0141f6d592"
+    },
+    {
+      "path": "production-boundary.json",
+      "bytes": 1115,
+      "sha256": "28a0a4b8eeef7fe32784f7ff614717fa37d9ae9003f0d08991d4e9654b5a0227"
+    },
+    {
+      "path": "python-tests.log",
+      "bytes": 171086,
+      "sha256": "bd606363623f231d496149b817b8d70c740079ec6e19a9535d277b95f680c85c"
+    },
+    {
+      "path": "repair-payload.json",
+      "bytes": 118827,
+      "sha256": "a9cba3fe869475d3019f876c52c684d7a11b65d87e7c646acabcfa4316cd65bf"
+    },
+    {
+      "path": "repair-publish-protection-redirect.json",
+      "bytes": 255,
+      "sha256": "6cf06e8e274551c2df8d3cadf7eb29f95a89d342c268845222c01eda90920a95"
+    },
+    {
+      "path": "repair-publish.json",
+      "bytes": 393,
+      "sha256": "3a23ab81abeb54d45298ae98731c18aff7b7df79f6d4f2e617886063c34a2ca8"
+    },
+    {
+      "path": "repair-transformation-proof.json",
+      "bytes": 761,
+      "sha256": "4aebd8691f570e07a3ccff18fcae74dd250862038f273bdd49f8653a1ce9aa99"
+    },
+    {
+      "path": "scope.json",
+      "bytes": 620,
+      "sha256": "7fe886a1e857b211f133d667f1c6375ddfd7b386af8ace133a3fc465667f1aaf"
+    },
+    {
+      "path": "status-readback.json",
+      "bytes": 5383,
+      "sha256": "3003fb78c7e2a0bfdc86c7e02f5e4e3a93d96aa75767fbfd0b759626dc021573"
+    },
+    {
+      "path": "timing-and-harness-notes.json",
+      "bytes": 536,
+      "sha256": "d1ec895657d7aeebe15a84fbad8dcbedfe19a5ccc99812ff2a1d011c4e39db2a"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 2703,
+      "sha256": "8dcb74e8e60c044643e65d3f282afdc6b511da123dd1283ec4e07aa8464398e4"
+    }
+  ],
+  "official_fixture": {
+    "path": "web/pipeline/tests/fixtures/ccgp_tianjin_dakoutun_20261105.html",
+    "sha256": "29b549a6b4299dd60c5a29576ab0641eb7be727560c91a74cb79ebcbe273ca6a"
+  }
+}

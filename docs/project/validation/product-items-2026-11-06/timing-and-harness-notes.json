@@ -1,0 +1,11 @@
+{
+  "foreground_deadline": "2026-11-06T07:04:57Z",
+  "final_browser_completed": "2026-11-06T07:07:17.523Z",
+  "deadline_exceeded_seconds": 140.523,
+  "queue_triggered": false,
+  "put_protection_redirect_before_application": 307,
+  "application_publish_count": 1,
+  "first_two_browser_runs": "PARTIAL_NOT_PASS: immediate post-select render assertion; then default TJ retained",
+  "final_browser": "PASS_6_OF_6",
+  "followup": "Set region before load and share one absolute deadline across all waits; never extend a queue observation."
+}

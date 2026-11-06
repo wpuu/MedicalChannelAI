@@ -1,0 +1,127 @@
+{
+  "schema_version": "0.1",
+  "opportunity_id": "ccgp_5184fb1beae01ab6",
+  "source": {
+    "source_id": "ccgp:ZLZH26ZB074",
+    "source_type": "CCGP_NOTICE",
+    "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+    "observed_at": "2026-11-06T06:48:05.064637+00:00"
+  },
+  "facts": {
+    "project_number": "ZLZH26ZB074",
+    "project_name": "宝坻区大口屯医院医疗设备采购项目",
+    "buyer_name": "天津市宝坻区大口屯医院",
+    "hospital_name": null,
+    "department": null,
+    "region": "宝坻区",
+    "lifecycle_state": "BIDDING",
+    "notice_type": "公开招标公告",
+    "published_at": "2026-11-05",
+    "registration_deadline": "2026-11-12T17:30:00+08:00",
+    "bid_deadline": "2026-11-26T09:30:00+08:00",
+    "expected_procurement_at": null,
+    "expected_procurement_precision": null,
+    "budget_cny": 2175000,
+    "procurement_method": "公开招标",
+    "product_categories": [],
+    "product_items": [
+      {
+        "raw_name": "本包非专门面向中小企业采购",
+        "category": null,
+        "quantity": null,
+        "specification": null
+      },
+      {
+        "raw_name": "投标单位须提供《中小企业声明函》或监狱企业证明文件或《残疾人福利性单位声明函》",
+        "category": null,
+        "quantity": null,
+        "specification": null
+      },
+      {
+        "raw_name": "（1）投标单位须提供有效期内的营业执照副本或事业单位法人证书或民办非企业单位登记证书或社会团体法人登记证书或基金会法人登记证书或自然人身份证明复印件加盖公章",
+        "category": null,
+        "quantity": null,
+        "specification": null
+      },
+      {
+        "raw_name": "本包对小微企业产品给予20.0%的价格扣除",
+        "category": null,
+        "quantity": null,
+        "specification": null
+      }
+    ],
+    "public_contact": {
+      "name": "胡博",
+      "title": "项目联系人",
+      "phone": "022-29996696",
+      "email": null
+    }
+  },
+  "evidence": [
+    {
+      "field_path": "facts.project_number",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "一、项目基本情况/项目编号"
+    },
+    {
+      "field_path": "facts.project_name",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "一、项目基本情况/项目名称"
+    },
+    {
+      "field_path": "facts.buyer_name",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "采购人信息/名称"
+    },
+    {
+      "field_path": "facts.lifecycle_state",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "公告类型=公开招标公告/确定性生命周期映射"
+    },
+    {
+      "field_path": "facts.notice_type",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "公告类型/公开招标公告"
+    },
+    {
+      "field_path": "facts.published_at",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "公告发布日期"
+    },
+    {
+      "field_path": "facts.registration_deadline",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "获取招标文件/时间"
+    },
+    {
+      "field_path": "facts.bid_deadline",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "提交投标文件截止时间、开标时间和地点"
+    },
+    {
+      "field_path": "facts.procurement_method",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "公告类型=公开招标公告/确定性采购方式映射"
+    },
+    {
+      "field_path": "facts.region",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "公告概要/行政区域"
+    },
+    {
+      "field_path": "facts.budget_cny",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "一、项目基本情况/预算金额"
+    },
+    {
+      "field_path": "facts.product_items",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "一、项目基本情况/采购需求/分包设备清单"
+    },
+    {
+      "field_path": "facts.public_contact",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202611/t20261105_27630464.htm",
+      "locator": "项目联系方式"
+    }
+  ]
+}

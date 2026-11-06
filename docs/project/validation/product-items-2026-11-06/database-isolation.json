@@ -1,0 +1,15 @@
+{
+  "observed_at": "2026-11-06T07:01:28.321Z",
+  "rows": [
+    {
+      "current_database": "mcai_p0_epoch_20261106d",
+      "current_user": "mcai_p0_epoch_20261106d",
+      "is_superuser": false,
+      "is_neon_admin": false,
+      "snapshots_before_repair": "0",
+      "old_role_can_read": false,
+      "old_role_can_create": false
+    }
+  ],
+  "production_modified": false
+}

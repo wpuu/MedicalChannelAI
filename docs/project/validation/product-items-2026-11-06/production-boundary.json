@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-11-06T07:06:19.396Z",
+  "deployment": [
+    {
+      "id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+      "url": "medicalchannelai-njs695u30-rerisse7-1717s-projects.vercel.app",
+      "sha": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+      "state": "READY"
+    },
+    {
+      "id": "dpl_E6BHwM1Xrjpc6UnqoURZDSEJ99zH",
+      "url": "medicalchannelai-fkj25cwbu-rerisse7-1717s-projects.vercel.app",
+      "sha": "c8b6088e8edf1d3f19152d4ede334ddec7b91393",
+      "state": "READY"
+    },
+    {
+      "id": "dpl_39BbRtrwW9rYi2ydHViUEXjRczpa",
+      "url": "medicalchannelai-eag6d7qy7-rerisse7-1717s-projects.vercel.app",
+      "sha": "35604be57241791a6ba25c67306b36cf660fbb3a",
+      "state": "READY"
+    },
+    {
+      "id": "dpl_7nPgfpAZn3CfqrfuJGjdbJdxBmgJ",
+      "url": "medicalchannelai-7n1lt17cd-rerisse7-1717s-projects.vercel.app",
+      "sha": "95bf5401a87410d33e4f8b7b8333a602f31e5edf",
+      "state": "READY"
+    }
+  ],
+  "project": {
+    "id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "ssoProtection": {
+      "enabled": true,
+      "deploymentType": "all_except_custom_domains"
+    }
+  }
+}

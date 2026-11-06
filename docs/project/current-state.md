@@ -2,7 +2,16 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前事件诊断与重试收尾修复（完整验收完成，来源降级）
+## 当前采购产品项边界修复（Preview 定向验收完成）
+
+- 最新应用代码 `eabd76f4d35a62983c24e652d1ada45a7daf8e17`；[新隔离Preview](https://medicalchannelai-mbstj6o1a-rerisse7-1717s-projects.vercel.app) `dpl_Fk33cZFtMo6vwd5cFbSh57J8fZH8` READY，独立d库/受限角色，旧c消费者不能覆盖本次修正。
+- 先冻结官方原始HTML，再修复CCGP全文包件正则跨入资格章节的问题。大口屯项目4条资格/优惠误项→10项真实设备；空气消毒器2台，其余各1台，身份/预算/窗口不变。11项新增边界回归，全部916个Python、JS合约、TypeScript、Vite通过。
+- 没有触发Queue：在d更正一条真实记录并承接c最后已核验16条快照；其余15条facts和全部来源扫描时钟不变，按现有pipeline重算公开分/排序，目标仍51分。不是qa_fixture，也不是原生全量周期或canonical运行缓存/水位迁移。
+- 修正时间 `2026-11-06T07:00:46.604901+00:00`；修复payload、Neon完整JSON、authority和普通浏览器SHA均为 `85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead`，SQL微秒精确；池16/Today5，页面6/6，包括ALL16/16、10产品可见且无资格误项、390px无横向溢出。来源健康8/14承接旧真实时钟，不代表本轮恢复。
+- [本轮报告](product-items-correction-2026-11-06.md)、[冻结清单](validation/product-items-2026-11-06/manifest.json)。首次保护层307和两次UI脚本偏差独立保留，不计产品故障或验收通过；最终UI07:07:17Z完成，比20分钟边界超约2分20秒，后续须统一绝对截止时间，不再延长前台观察。
+- 任务临时访问撤销、凭据文件清理；Production/SSO于07:06Z只读确认未变，原工作树/main干净；未合并、提升或改域名/DNS/EdgeOne。`production_ready=false`。其他CCGP模板/历史canonical回补、入口共享预算、每源独立提交与覆盖水位仍待推进。
+
+## 上轮事件诊断与重试收尾修复（历史完整验收，来源降级）
 
 - 采集代码 `662bd23cc572e16a13d093bd427fa322cc5166ac`；UI `77433ffffb3db1fd2c939dbbfbb08a8ee1fad955`，[Preview](https://medicalchannelai-34wdnmggn-rerisse7-1717s-projects.vercel.app) `dpl_EkAghRurnmMcJniNEQv4W29GQu4o` READY；c周期和独立c库/受限角色。905个Python、JS合约、TypeScript、Vite通过，5项源码位置断言替换为真实恢复行为测试。
 - 唯一一次真实Queue完成25阶段：14完成、11降级，来源健康8/14，运行锁释放；从触发响应至发布2207.330秒。

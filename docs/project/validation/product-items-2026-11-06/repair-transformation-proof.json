@@ -1,0 +1,18 @@
+{
+  "repair_as_of": "2026-11-06T07:00:46.604901+00:00",
+  "base_snapshot_hash": "73b187a89e2818a584567f840d10bc897f73b4c75b1b0ccfb4e63e997d10dfb9",
+  "base_sql_clock": "2026-11-06 06:45:01.21769+00",
+  "official_html_sha256": "29b549a6b4299dd60c5a29576ab0641eb7be727560c91a74cb79ebcbe273ca6a",
+  "corrected_opportunity_id": "ccgp_5184fb1beae01ab6",
+  "before_product_count": 4,
+  "after_product_count": 10,
+  "other_15_facts_identical": true,
+  "all_16_ids_preserved": true,
+  "source_health_clocks_unchanged": true,
+  "priorities_recomputed_by_existing_pipeline": true,
+  "before_score": 51,
+  "after_score": 51,
+  "manual_qa_fixture": false,
+  "new_collection_cycle": false,
+  "kind": "SINGLE_OFFICIAL_DETAIL_CORRECTION_WITH_VERIFIED_SNAPSHOT_CARRYFORWARD"
+}

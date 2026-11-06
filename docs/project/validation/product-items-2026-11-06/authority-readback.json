@@ -1,0 +1,10 @@
+{
+  "http": 200,
+  "headers": {
+    "age": "0",
+    "x-vercel-cache": "MISS",
+    "x-medicalchannelai-snapshot-source": "DATABASE"
+  },
+  "full_payload_sha256": "85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead",
+  "opportunity_count": 16
+}
