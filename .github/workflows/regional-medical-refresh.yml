@@ -26,6 +26,7 @@ on:
       - 'web/pipeline/medical_channel_pipeline/validation.py'
       - 'web/pipeline/medical_channel_pipeline/public_snapshot.py'
       - 'web/pipeline/tests/test_regional_candidate_classification.py'
+      - 'web/pipeline/tests/test_regional_cli_completeness.py'
       - 'web/pipeline/tests/test_channel_scope.py'
       - 'web/pipeline/tests/test_snapshot_http_publish.py'
       - 'web/pipeline/tests/test_snapshot_roundtrip.py'
@@ -59,6 +60,7 @@ jobs:
           cd web/pipeline
           python3 -m unittest \
             tests.test_regional_candidate_classification \
+            tests.test_regional_cli_completeness \
             tests.test_channel_scope \
             tests.test_ccgp_detail \
             tests.test_ccgp_national_detail_formats \
