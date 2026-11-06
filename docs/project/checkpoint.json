@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_REGIONAL_CLI_F1_SINGLE_INVOCATION_HOST_STOP_ONLY",
+  "state_scope": "OFFLINE_F2_REGIONAL_CLI_BUDGET_CONTRACT_DOCUMENTATION_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "F1_REGIONAL_CLI_SUBITEM_DONE_F3_PRESERVED_F2_AND_SHARED_COORDINATION_PENDING",
-  "latest_changes_validation_status": "1059_PYTHON_AND_FROZEN10_ORIGINAL_CLI3_PASS;408_PROTECTED_INPUTS_UNCHANGED",
+  "milestone": "F2_CLI_900_840_60_COOPERATIVE_PLAN_ONLY_HARD_EXIT_NO_GO",
+  "latest_changes_validation_status": "STATIC49_REFERENCES_AND420_INPUTS_PASS;1059_AND10/3_PRIOR_NOT_RERUN",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -164,11 +164,12 @@
     "ccgp_product_items_quality": "FOUR_FIXES_DEPLOYED82CC_APP795;10frozen fixtures pass locally. Current UI preserves existing10official Dakoutun products. No new raw-detail cloud collection or historical application; broader templates/attachments/recall remain unverified.",
     "historical_product_backfill": "MEMORY_SIMULATION8F8:2overlay/2restore,whole892state restored,890unselected unchanged,replays0changes,stale/crossscope/tampered/partial/mixed/newfacts/events rejected. Only in-memory checks/deepcopies; actual runtime export,CAS/transactions,migration,application and rollback unimplemented.",
     "regional_cli_completeness": "F3_7B29933_OFFLINE_PASS:incomplete batch exit2 preserves records;bounded scan only,no per-market independent commits/full historical recall;not deployed.",
-    "regional_cli_access_stop": "01CCAA9_OFFLINE_PASS:CLI explicit host denial stop only;no project-wide/shared cooldown/Retry-After/F2 or redirect-hop interception;not deployed."
+    "regional_cli_access_stop": "01CCAA9_OFFLINE_PASS:CLI explicit host denial stop only;no project-wide/shared cooldown/Retry-After/F2 or redirect-hop interception;not deployed.",
+    "regional_cli_time_budget": "PROPOSED_ONLY:900/840/60cooperative CLI plan;no code change or timing measurements;hard cancel/atomic time commit/full default completion/workflow guarantee not established;runtime unchanged."
   },
   "final_code_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
   "code_validation_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
-  "documentation_followup": "Regional CLI F1 subitem done offline. Next documentation-only regional CLI F2 budget contract;cross-process coordination and full F1 remain incomplete.",
+  "documentation_followup": "Unique proposed CLI-only cooperative budget900/work840/finalize60;not implemented. Hard cancellation/full default completion/workflow guarantee NO-GO. Next local code authorization only for two existing files.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2318,7 +2319,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+  "latest_reviewed_repository_head": "98f5503",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2416,7 +2417,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "1352739",
+  "current_phase_starting_head": "98f5503",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2831,11 +2832,11 @@
     "runtime_cache_read": false,
     "database_read": false,
     "deployment_or_write": false,
-    "source": "Latest explicit F1 regional CLI local offline authorization 2026-11-07",
-    "current_round": "F1_REGIONAL_CLI_SINGLE_INVOCATION_ONLY",
+    "source": "Latest explicit F2 regional CLI budget-contract documentation-only instruction 2026-11-07",
+    "current_round": "F2_CONTRACT_DOCS_ARTIFACTS_ONLY",
     "network_this_round": false,
     "cloud_metadata_this_round": false,
-    "F1_regional_cli_code_this_round": true,
+    "F1_regional_cli_code_this_round": false,
     "F2_code_this_round": false
   },
   "cloud_metadata_acceptance": {
@@ -3124,6 +3125,40 @@
       "scope": "OFFLINE_REGIONAL_CLI_SINGLE_INVOCATION_F1_SUBITEM_ONLY",
       "apply_allowed": false,
       "migration_usable": false,
+      "deployment_or_push": false
+    }
+  },
+  "regional_cli_f2_budget_contract": {
+    "starting_head": "98f5503",
+    "status": "PROPOSED_NOT_IMPLEMENTED",
+    "report": "docs/project/regional-cli-f2-budget-contract-2026-11-07.md",
+    "manifest": "docs/project/validation/regional-cli-f2-contract-2026-11-07/manifest.json",
+    "total_seconds": 900,
+    "work_seconds": 840,
+    "finalize_reserve_seconds": 60,
+    "source_references": 49,
+    "protected_input_files": 420,
+    "application_or_tests_changed": false,
+    "tests_rerun": false,
+    "prior_validated_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+    "prior_python_passed": 1059,
+    "prior_template_passed": 10,
+    "prior_original_cli_passed": 3,
+    "hard_exit_guaranteed": false,
+    "default_full_completion_guaranteed": false,
+    "workflow_remaining_verified": false,
+    "runtime_F2_implemented": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completion": {
+      "started_at": "2026-11-06T17:46:59Z",
+      "foreground_deadline": "2026-11-06T18:06:59Z",
+      "completed_at": "2026-11-06T17:54:19.903939+00:00",
+      "within_foreground_deadline": true,
+      "scope": "OFFLINE_DOCUMENTATION_STATIC_CONTRACT_ONLY",
+      "apply_allowed": false,
+      "migration_usable": false,
+      "tests_or_application_executed": false,
       "deployment_or_push": false
     }
   }

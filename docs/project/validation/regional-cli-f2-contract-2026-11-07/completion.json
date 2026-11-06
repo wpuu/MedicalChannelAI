@@ -1,0 +1,11 @@
+{
+  "started_at": "2026-11-06T17:46:59Z",
+  "foreground_deadline": "2026-11-06T18:06:59Z",
+  "completed_at": "2026-11-06T17:54:19.903939+00:00",
+  "within_foreground_deadline": true,
+  "scope": "OFFLINE_DOCUMENTATION_STATIC_CONTRACT_ONLY",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "tests_or_application_executed": false,
+  "deployment_or_push": false
+}

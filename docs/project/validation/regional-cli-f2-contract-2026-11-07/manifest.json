@@ -1,0 +1,52 @@
+{
+  "schema_version": "0.1",
+  "scope": "OFFLINE_STATIC_F2_CLI_BUDGET_CONTRACT_ONLY",
+  "starting_head": "98f5503",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "files": [
+    {
+      "path": "budget-contract.json",
+      "bytes": 1550,
+      "sha256": "100d66359ac6a4e8aca8843cd796e45ba21e5066ddbfb978e4af2f9b49bc08a3"
+    },
+    {
+      "path": "completion.json",
+      "bytes": 369,
+      "sha256": "8f5fb3710880aeb7bd8fdc8452e49bb69bc2e725afaabda7c42d524922f5d970"
+    },
+    {
+      "path": "go-no-go.json",
+      "bytes": 1062,
+      "sha256": "1591a05a4fb35f87d5ac0da330dc47e9c4159fc3948bebcc913ecd21765010a3"
+    },
+    {
+      "path": "input-integrity.json",
+      "bytes": 64271,
+      "sha256": "5e1d8827619fb36762bb8430c2a712d9c79df501a3e58feece834a7415917781"
+    },
+    {
+      "path": "source-references.json",
+      "bytes": 12114,
+      "sha256": "e0d660b666cbede0fa16bbcc8f64bbe941e9f2bac9c40a5c5196575fcc32b261"
+    },
+    {
+      "path": "static-load.json",
+      "bytes": 1527,
+      "sha256": "bf8424e84a2ef1413c9603a53a34c77cb3b7b3e5dce3cf7f21e9a6d44ac857ee"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 625,
+      "sha256": "447a06df6a7a02221a5ac8e42134ed17d3d7ebeb6bde733b45491ac0ad7b6e6b"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 4131,
+      "sha256": "7de3ca0c87cfde4b6867abd05e05bb7d309640de8c58666ec11c5dcd84d1ca85"
+    }
+  ],
+  "document_sha256": {
+    "docs/project/regional-cli-f2-budget-contract-2026-11-07.md": "d8f90e1734aa17b7e7277f0d5076c16c68c5340cc23a318db824e07237bb875f"
+  }
+}

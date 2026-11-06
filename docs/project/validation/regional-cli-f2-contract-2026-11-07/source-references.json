@@ -1,0 +1,299 @@
+{
+  "repository_head": "98f550373b1bc53429a4dded7120dc561c4e4b09",
+  "references": [
+    {
+      "path": ".github/workflows/regional-medical-refresh.yml",
+      "line": 47,
+      "text": "    timeout-minutes: 25",
+      "sha256": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d"
+    },
+    {
+      "path": ".github/workflows/regional-medical-refresh.yml",
+      "line": 69,
+      "text": "      - name: Materialize nationwide administrative divisions",
+      "sha256": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d"
+    },
+    {
+      "path": ".github/workflows/regional-medical-refresh.yml",
+      "line": 89,
+      "text": "      - name: Diagnose current CCGP search shape",
+      "sha256": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d"
+    },
+    {
+      "path": ".github/workflows/regional-medical-refresh.yml",
+      "line": 96,
+      "text": "      - name: Sync verified regional CCGP opportunities",
+      "sha256": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d"
+    },
+    {
+      "path": ".github/workflows/regional-medical-refresh.yml",
+      "line": 179,
+      "text": "      - name: Pre-generate AI decisions for top opportunities",
+      "sha256": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d"
+    },
+    {
+      "path": ".github/workflows/regional-medical-refresh.yml",
+      "line": 184,
+      "text": "        timeout-minutes: 8",
+      "sha256": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d"
+    },
+    {
+      "path": "web/pipeline/data/multi_region_query_plan.json",
+      "line": 3,
+      "text": "  \"markets\": [",
+      "sha256": "7e13410dd1e311ff49a8e7c8c851fb6f639ddbe0b3df9481562a4a18848f0333"
+    },
+    {
+      "path": "web/pipeline/data/multi_region_query_plan.json",
+      "line": 10,
+      "text": "  \"keywords\": [\"医院\", \"医疗\", \"检验\", \"疾病预防控制\", \"卫生健康\"],",
+      "sha256": "7e13410dd1e311ff49a8e7c8c851fb6f639ddbe0b3df9481562a4a18848f0333"
+    },
+    {
+      "path": "web/pipeline/data/multi_region_query_plan.json",
+      "line": 11,
+      "text": "  \"notice_types\": [\"公开招标\", \"竞争性磋商\"],",
+      "sha256": "7e13410dd1e311ff49a8e7c8c851fb6f639ddbe0b3df9481562a4a18848f0333"
+    },
+    {
+      "path": "web/pipeline/data/multi_region_query_plan.json",
+      "line": 13,
+      "text": "  \"max_candidates_per_market\": 10,",
+      "sha256": "7e13410dd1e311ff49a8e7c8c851fb6f639ddbe0b3df9481562a4a18848f0333"
+    },
+    {
+      "path": "web/pipeline/data/multi_region_query_plan.json",
+      "line": 15,
+      "text": "  \"delay_seconds\": 4.0,",
+      "sha256": "7e13410dd1e311ff49a8e7c8c851fb6f639ddbe0b3df9481562a4a18848f0333"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 47,
+      "text": "NATIONAL_FALLBACK_MAX_PAGES = 3",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 65,
+      "text": "    def _read(self, url: str, *, timeout: int) -> str:",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 79,
+      "text": "    def warmup(self) -> None:",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 83,
+      "text": "            html = self._read('https://www.ccgp.gov.cn/', timeout=30)",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 93,
+      "text": "        time.sleep(1.0)",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 96,
+      "text": "    def fetch(self, url: str) -> str:",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 100,
+      "text": "        html = self._read(url, timeout=90)",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 193,
+      "text": "def fetch_candidates_page(",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 240,
+      "text": "def main() -> int:",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 251,
+      "text": "    if any(paths_alias(args.report_output, path) for path in (",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 262,
+      "text": "    existing_records = load_json_arrays(args.existing_records_input, label='existing regional records')",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 269,
+      "text": "    session = CcgpSearchSession(on_access_blocked=blocked_hosts.setdefault)",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 302,
+      "text": "    for market in markets:",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 347,
+      "text": "                time.sleep(plan['delay_seconds'])",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 359,
+      "text": "    if empty_codes:",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 362,
+      "text": "                for page_index in range(1, NATIONAL_FALLBACK_MAX_PAGES + 1):",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 406,
+      "text": "                    time.sleep(plan['delay_seconds'])",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 407,
+      "text": "                time.sleep(plan['delay_seconds'])",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 432,
+      "text": "        for notice_type, candidate in selected:",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 447,
+      "text": "                time.sleep(plan['delay_seconds'])",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 508,
+      "text": "    acceptance_blockers = sorted({",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 560,
+      "text": "    if acceptance_ready:",
+      "sha256": "02197f5a8b95cba8bc7961189d8314b52370fff489fcdb786b06ce4691c5f567"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+      "line": 1433,
+      "text": "def fetch_ccgp_detail_html(source_url: str, *, timeout_seconds: int = 30) -> str:",
+      "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+      "line": 1444,
+      "text": "        with urlopen(request, timeout=timeout_seconds) as response:",
+      "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+      "line": 1448,
+      "text": "    except HTTPError as exc:",
+      "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_ccgp_query.py",
+      "line": 51,
+      "text": "def write_json(path: Path, payload: object) -> None:",
+      "sha256": "c345b72a4aa1453d11018bd3eed9a1e06be375baf6125e3407603dbb09932dc4"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_ccgp_query.py",
+      "line": 56,
+      "text": "def load_json_arrays(paths: list[Path], *, label: str) -> list[dict]:",
+      "sha256": "c345b72a4aa1453d11018bd3eed9a1e06be375baf6125e3407603dbb09932dc4"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 113,
+      "text": "from sync_regional_ccgp import (  # noqa: E402",
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1371,
+      "text": "    session = RegionalCcgpSearchSession()",
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/vercel.json",
+      "line": 15,
+      "text": "    \"api/collector-run.py\": {",
+      "sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e"
+    },
+    {
+      "path": "web/vercel.json",
+      "line": 18,
+      "text": "    \"api/collector-queue.py\": {",
+      "sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e"
+    },
+    {
+      "path": "web/pipeline/tests/test_regional_cli_completeness.py",
+      "line": 128,
+      "text": "            stack.enter_context(patch.object(target.time, 'sleep', return_value=None))",
+      "sha256": "6050c7f4f02b93417f07e0ce7f5dda9131c159214ecf9bd7c36914c00d88739f"
+    },
+    {
+      "path": "web/pipeline/tests/test_regional_cli_completeness.py",
+      "line": 152,
+      "text": "    def test_complete_success_writes_verified_records(self):",
+      "sha256": "6050c7f4f02b93417f07e0ce7f5dda9131c159214ecf9bd7c36914c00d88739f"
+    },
+    {
+      "path": "web/pipeline/tests/test_regional_cli_completeness.py",
+      "line": 169,
+      "text": "    def assert_blocked(self, mode, **kwargs):",
+      "sha256": "6050c7f4f02b93417f07e0ce7f5dda9131c159214ecf9bd7c36914c00d88739f"
+    },
+    {
+      "path": "web/pipeline/tests/test_regional_cli_completeness.py",
+      "line": 238,
+      "text": "",
+      "sha256": "6050c7f4f02b93417f07e0ce7f5dda9131c159214ecf9bd7c36914c00d88739f"
+    },
+    {
+      "path": "web/pipeline/tests/test_regional_cli_completeness.py",
+      "line": 275,
+      "text": "    def test_transient_errors_do_not_trip_host_stop(self):",
+      "sha256": "6050c7f4f02b93417f07e0ce7f5dda9131c159214ecf9bd7c36914c00d88739f"
+    },
+    {
+      "path": "web/pipeline/tests/test_regional_cli_completeness.py",
+      "line": 334,
+      "text": "    def test_denials_stop_default_two_notice_type_fanout(self):",
+      "sha256": "6050c7f4f02b93417f07e0ce7f5dda9131c159214ecf9bd7c36914c00d88739f"
+    },
+    {
+      "path": "docs/project/action-radar-acceptance-contract.md",
+      "line": 32,
+      "text": "- **单源 fail closed**：某源核验失败、未完成或存在未解决 pending 时，不发布该源的部分新事实，不抹去最后已验证状态。可独立完成的其他源继续执行；降级覆盖必须明确，不能把局部刷新解释成全部来源健康。",
+      "sha256": "8f66d57f754905f9bc5055cc2671979f624252b6596e04c671744bdb2ea8c4fe"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "decisions": [
+    {
+      "id": "offline_cli_implementation",
+      "decision": "GO_AFTER_EXPLICIT_LOCAL_CODE_AUTHORIZATION",
+      "implemented_now": false
+    },
+    {
+      "id": "current_F2_complete",
+      "decision": "NO_GO",
+      "reason": "Documentation only;current code has no common deadline"
+    },
+    {
+      "id": "default_full_plan_within900",
+      "decision": "NO_GO_AS_GUARANTEE",
+      "reason": "No measured latency/completeness;boundedly reject incomplete scans"
+    },
+    {
+      "id": "whole_workflow_within1500",
+      "decision": "NO_GO_AS_GUARANTEE",
+      "reason": "Parent remaining budget and other step time unknown"
+    },
+    {
+      "id": "hard_exit_or_cancel_or_atomic_time_commit",
+      "decision": "NO_GO",
+      "reason": "Synchronous HTTP/FS cannot be preempted by cooperative checks"
+    },
+    {
+      "id": "runtime_F2_or_cross_process_cooldown",
+      "decision": "OUT_OF_SCOPE_NO_GO",
+      "reason": "No runtime injection or protocol change"
+    }
+  ],
+  "apply_allowed": false,
+  "migration_usable": false
+}

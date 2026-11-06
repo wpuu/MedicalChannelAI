@@ -1,0 +1,20 @@
+{
+  "scope": "DOCUMENTATION_AND_STATIC_CONTRACT_ONLY",
+  "starting_head": "98f5503",
+  "validated_code_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+  "source_reference_count": 49,
+  "protected_file_count": 420,
+  "web_and_workflows_unchanged": true,
+  "prior_python_passed": 1059,
+  "prior_template_passed": 10,
+  "prior_original_cli_passed": 3,
+  "tests_rerun": false,
+  "application_or_sdk_imported_or_executed": false,
+  "simulators_added": 0,
+  "network_calls": 0,
+  "cloud_or_runtime_access": false,
+  "deployment_or_push": false,
+  "F2_implemented": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

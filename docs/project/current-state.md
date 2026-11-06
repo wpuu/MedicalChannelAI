@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前F1区域CLI单次调用止损（离线完成，完整F1未完成）
+## 当前F2区域CLI预算合同（仅文档，未实现）
+
+- 起点98f5503，49处最新源码引用已冻结。[唯一方案](regional-cli-f2-budget-contract-2026-11-07.md)：CLI专用协作式monotonic总900秒、工作840秒、收尾60秒；保留warmup30/search90/detail30上限，timeout按剩余预算缩小，原4秒间隔不足则拒绝而不缩短后发请求。只建议下一轮修改CLI脚本及既有CLI测试两个文件，不改共享helper/runtime/workflow/计划。
+- 静态默认负载：无fallback满详情101请求/401秒固定等待；满fallback131请求/561秒固定等待；完整空61请求/241秒等待。名义timeout参数相加为6431/9291/5671秒，不是实测或墙钟上界。900秒内默认完整成功及25分钟job完成均无证据；不能把workflow1500、后置预热480、runtime300或本轮前台1200当成CLI已获预算。
+- 待实现合同明确warmup预算异常不能被吞、所有请求/sleep/解析前后复查，预算未完成沿F3整批exit2/保留records。CLI内临时文件准备＋提交前检查防止超期序列化先截断原文件，但时钟检查/replace非原子，多文件不具事务；提交后迟到/报告失败必须明示已提交或未知，不冒称零写入/自动回滚。硬900秒退出/同步I/O强制取消NO-GO，runtime和共享冷却仍未覆盖。
+- 本轮只做静态算术、引用/完整性检查，420份起点data/fixture/旧证据字节不变，web/.github未变；1059/10/3仍为b97bc09已有通过结果，未重跑，也未执行CLI/应用/SDK或新模拟器。[证据](validation/regional-cli-f2-contract-2026-11-07/manifest.json)。无联网/云端/运行数据访问、部署/推送、环境/计划/权限变更；apply_allowed/migration_usable=false，SDK仍CLOSED NO-GO。
+- [下一轮完整任务](next-task.md)需明确本地代码授权后才实现这一个协作式子项，不把文档完成称为F2完成。当前界面无法生成该按钮；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
+## 上轮F1区域CLI单次调用止损（离线完成，完整F1未完成）
 
 - 起点1352739；实现01ccaa9、最终测试b97bc09。真实CLI离线复现scoped/fallback/详情明确拒绝后仍继续请求；现复用collector_diagnostics固定分类，按显式host停止该次调用的后续请求。搜索与详情/裸域分开，普通超时/503不误停，下一次调用不继承停止状态。[报告](regional-cli-f1-stop-2026-11-07.md)、[证据](validation/regional-cli-f1-stop-2026-11-07/manifest.json)。
 - CLI专属warmup反馈覆盖www主页限流/拒绝，阻止同host后续详情；runtime默认不注入，入口及分类器源码未改。report明确blocked_hosts、scoped/详情跳过数和fallback阻断，不把未执行范围说成完整。F3失败非零退出/records字节保留及路径别名保护保持通过。

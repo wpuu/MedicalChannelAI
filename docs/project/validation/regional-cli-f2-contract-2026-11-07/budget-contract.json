@@ -1,0 +1,38 @@
+{
+  "status": "PROPOSED_NOT_IMPLEMENTED",
+  "unique_recommendation": "CLI_ONLY_COOPERATIVE_DEADLINE_WITH_F1_F3_FAIL_CLOSED",
+  "total_seconds": 900,
+  "work_seconds": 840,
+  "finalize_reserve_seconds": 60,
+  "request_return_margin_seconds": 1,
+  "request_caps_seconds": {
+    "warmup": 30,
+    "search": 90,
+    "detail": 30
+  },
+  "timeout_formula": "min(existing_cap, work_deadline-monotonic()-1);reject if remaining<=1",
+  "sleep_rule": "reject if remaining<=delay+1;otherwise sleep original delay and recheck",
+  "deadline_equality_is_expired": true,
+  "clock": "injected_monotonic_not_as_of",
+  "retry_increase": 0,
+  "modify_only_after_authorization": [
+    "web/pipeline/scripts/sync_regional_ccgp.py",
+    "web/pipeline/tests/test_regional_cli_completeness.py"
+  ],
+  "existing_shared_detail_helper_changed": false,
+  "runtime_budget_default": null,
+  "success_requires_complete_scope": true,
+  "precommit_expiry_records_unchanged": true,
+  "post_commit_overrun_claims_zero_write": false,
+  "file_prepare": "local CLI same-filesystem staging, then final gate and os.replace;not cross-file transaction or atomic deadline compare",
+  "hard_exit_guaranteed": false,
+  "full_default_plan_completion_guaranteed": false,
+  "workflow_job_seconds": 1500,
+  "post_prewarm_step_cap_seconds": 480,
+  "nominal_workflow_headroom_after_cli_seconds": 600,
+  "nominal_other_headroom_after_prewarm_seconds": 120,
+  "workflow_remaining_time_verified": false,
+  "runtime_stage_budget_implemented": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}
