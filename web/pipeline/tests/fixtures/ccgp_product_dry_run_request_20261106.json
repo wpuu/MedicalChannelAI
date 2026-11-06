@@ -1,0 +1,49 @@
+{
+  "schema_version": "0.1",
+  "input_kind": "FROZEN_REPOSITORY_CANONICAL",
+  "reviewed_source_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
+  "target_scope": {
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "target": "preview",
+    "preview_epoch": "mcai-p0-20261106-d",
+    "database": "mcai_p0_epoch_20261106d"
+  },
+  "fixture_manifest_sha256": "1e1e6697f3bb8df471280befad5c6bbd47565038474e1247f29280d70b20a500",
+  "parser_sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187",
+  "baseline_files": [
+    {
+      "path": "regional_live_ccgp_records.json",
+      "sha256": "72e0e865a639e96f4479bea7639b806402df910a68b305b049fb5e8f361ee0fc"
+    },
+    {
+      "path": "tianjin_live_ccgp_records.json",
+      "sha256": "48d337d1ff814dabd4fe2f5e0571bb9ce7299fbe1608649eea68aabc8e4ee55a"
+    }
+  ],
+  "selected_records": [
+    {
+      "opportunity_id": "ccgp_he_2a9ca892bf9d0b6a",
+      "identity": {
+        "opportunity_id": "ccgp_he_2a9ca892bf9d0b6a",
+        "market_code": "HE",
+        "project_number": "HBZJ-2026N1007",
+        "source_id": "ccgp:HBZJ-2026N1007",
+        "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm"
+      },
+      "before_record_sha256": "a988e39a7f86ed4c4334f6c1c623fc9bb5aeed4ea98bbd69328995e09784ead4",
+      "official_html_sha256": "923c2e5308d0f5d2ce6e7d4886d2cd021bad2bc3fe21aedba096c3b6808caff9"
+    },
+    {
+      "opportunity_id": "ccgp_jl_806743d8af167ea4",
+      "identity": {
+        "opportunity_id": "ccgp_jl_806743d8af167ea4",
+        "market_code": "JL",
+        "project_number": "JD-025-20260915-CG04-C",
+        "source_id": "ccgp:JD-025-20260915-CG04-C",
+        "source_url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260928_27408035.htm"
+      },
+      "before_record_sha256": "ab3090cfaec1bc1d55d015d61549e1a5f75bec7d820f3eff12dec4039888ae4b",
+      "official_html_sha256": "9b3f94170e632e2d2481f48fc24aedf41acfe5d1c2cbf950599b7f39d22f15e3"
+    }
+  ]
+}
