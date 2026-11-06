@@ -1,0 +1,20 @@
+{
+  "unused_preview_application_credentials_echoed_by_failed_private_file_patch": true,
+  "unused_preview_share_revoked": true,
+  "unused_preview_collector_never_triggered": true,
+  "discarded_database_b_public_tables": 0,
+  "fresh_database_c_and_new_application_credentials": true,
+  "discarded_role_can_read_or_create_current_database": false,
+  "underlying_product_bug": false,
+  "raw_error_and_credentials_archived": false,
+  "temporary_private_credential_files_removed_after_evidence_scan": true,
+  "browser_runtime": "Isolated Chromium / Playwright; ego-browser unavailable on Linux",
+  "manual_source_or_snapshot_fixtures_used_in_cloud": false,
+  "old_consumers_stopped": false,
+  "coverage_migration_accepted": false,
+  "one_old_observer_read_assertion_failed_after_ui_share_creation": true,
+  "old_observer_http_status_not_recorded": true,
+  "source_failure_inferred_from_observer_failure": false,
+  "continued_via_current_ui_readonly_observer": true,
+  "interpretation": "The unused protected b deployment and empty database are retained for audit, with no collector messages. Current acceptance uses c and its own credentials; Vercel env rotation does not retroactively change immutable deployments."
+}

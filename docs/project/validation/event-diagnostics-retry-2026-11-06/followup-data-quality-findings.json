@@ -1,0 +1,16 @@
+{
+  "severity": "P1",
+  "fixed_this_turn": false,
+  "record_id": "ccgp_5184fb1beae01ab6",
+  "source_id": "ccgp",
+  "field": "facts.product_items",
+  "observed_raw_names": [
+    "本包非专门面向中小企业采购",
+    "投标单位须提供《中小企业声明函》或监狱企业证明文件或《残疾人福利性单位声明函》",
+    "（1）投标单位须提供有效期内的营业执照副本或事业单位法人证书或民办非企业单位登记证书或社会团体法人登记证书或基金会法人登记证书或自然人身份证明复印件加盖公章",
+    "本包对小微企业产品给予20.0%的价格扣除"
+  ],
+  "issue": "Qualification and price-preference clauses were parsed into product_items; these strings do not identify procurement products",
+  "next_validation": "Freeze official detail HTML and add positive/negative procurement-item parser fixtures before changing extraction",
+  "evidence_snapshot_sha256": "e3e868c0b5b40cf656f178ee048ca4614f6e5904dfd385d2d77051b8446d2c73"
+}

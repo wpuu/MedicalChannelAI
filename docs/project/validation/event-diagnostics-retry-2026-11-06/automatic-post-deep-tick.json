@@ -1,0 +1,66 @@
+{
+  "producer_scope": {
+    "target": "preview",
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "git_branch": "codex/p0-reliability-contracts",
+    "preview_epoch": "mcai-p0-20261106-c",
+    "database": "mcai_p0_epoch_20261106c",
+    "role": "mcai_p0_epoch_20261106c",
+    "neon_project": "orange-band-79103824",
+    "neon_branch": "br-cold-tooth-a5clhljh",
+    "commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+    "deployment_id": "dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd",
+    "url": "https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app"
+  },
+  "observer_ui_scope": {
+    "target": "preview",
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "git_branch": "codex/p0-reliability-contracts",
+    "preview_epoch": "mcai-p0-20261106-c",
+    "database": "mcai_p0_epoch_20261106c",
+    "role": "mcai_p0_epoch_20261106c",
+    "neon_project": "orange-band-79103824",
+    "neon_branch": "br-cold-tooth-a5clhljh",
+    "commit": "77433ffffb3db1fd2c939dbbfbb08a8ee1fad955",
+    "data_producer_commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+    "data_producer_deployment_id": "dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd",
+    "deployment_id": "dpl_EkAghRurnmMcJniNEQv4W29GQu4o",
+    "url": "https://medicalchannelai-34wdnmggn-rerisse7-1717s-projects.vercel.app"
+  },
+  "chain": {
+    "state": "SOURCE_QUEUED",
+    "business_date": "2026-11-06",
+    "tick_id": "incremental-tick:20261106T1430+0800:13",
+    "next_tick_id": "incremental-tick:20261106T1445+0800:14",
+    "selected_source": "tjmugh",
+    "detail": null,
+    "updated_at": "2026-11-06T06:30:01.727102+00:00"
+  },
+  "active_cycle_id": null,
+  "active_incremental_scan": null,
+  "completed_sources": {
+    "tjmugh": {
+      "bucket_id": "tjmugh:60m:498318",
+      "completed_at": "2026-11-06T06:30:01.833031+00:00",
+      "result": {
+        "discovered_candidate_count": 1,
+        "selected_detail_count": 0,
+        "deferred_detail_count": 0,
+        "skipped_unchanged_count": 1,
+        "verified_record_count": 0,
+        "verified_nonfact_count": 0,
+        "verification_failure_count": 0,
+        "canonical_record_count": 4,
+        "pending_record_count": 0,
+        "pending_barrier_count": 0,
+        "snapshot_refreshed": true,
+        "snapshot_as_of": "2026-11-06T06:30:01.833031+00:00",
+        "deferred_reason": null
+      }
+    }
+  },
+  "manual_incremental_trigger": false,
+  "sustained_scheduling_claimed": false
+}

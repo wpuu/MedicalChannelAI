@@ -1,0 +1,62 @@
+{
+  "observed_at": "2026-11-06T06:14:53.571Z",
+  "git_branch": "codex/p0-reliability-contracts",
+  "variables": [
+    {
+      "key": "MCAI_PREVIEW_EPOCH",
+      "id": "kjCtdYGWo2dJelLk",
+      "target": [
+        "preview"
+      ],
+      "git_branch": "codex/p0-reliability-contracts",
+      "type": "plain"
+    },
+    {
+      "key": "MCAI_PREVIEW_DATABASE",
+      "id": "tKO1dfq8QrzTHUvb",
+      "target": [
+        "preview"
+      ],
+      "git_branch": "codex/p0-reliability-contracts",
+      "type": "plain"
+    },
+    {
+      "key": "DATABASE_URL",
+      "id": "bmDnip9wyIv7ctVw",
+      "target": [
+        "preview"
+      ],
+      "git_branch": "codex/p0-reliability-contracts",
+      "type": "encrypted"
+    },
+    {
+      "key": "POSTGRES_URL",
+      "id": "OdB8EYMjqBfk4Tt4",
+      "target": [
+        "preview"
+      ],
+      "git_branch": "codex/p0-reliability-contracts",
+      "type": "encrypted"
+    },
+    {
+      "key": "VERIFIED_SNAPSHOT_PUBLISH_TOKEN",
+      "id": "s7lpLBrmt2M4WWEd",
+      "target": [
+        "preview"
+      ],
+      "git_branch": "codex/p0-reliability-contracts",
+      "type": "encrypted"
+    },
+    {
+      "key": "CRON_SECRET",
+      "id": "oHj40s9x3uKVhgRc",
+      "target": [
+        "preview"
+      ],
+      "git_branch": "codex/p0-reliability-contracts",
+      "type": "encrypted"
+    }
+  ],
+  "production_variables_changed": false,
+  "immutable_old_deployments_not_retroactively_updated": true
+}

@@ -1,0 +1,18 @@
+{
+  "target": "preview",
+  "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+  "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+  "git_branch": "codex/p0-reliability-contracts",
+  "preview_epoch": "mcai-p0-20261106-b",
+  "database": "mcai_p0_epoch_20261106b",
+  "role": "mcai_p0_epoch_20261106b",
+  "neon_project": "orange-band-79103824",
+  "neon_branch": "br-cold-tooth-a5clhljh",
+  "commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+  "deployment_id": "dpl_HidD6Zpx15ppcijY9a22yb1yTufc",
+  "url": "https://medicalchannelai-ft2n0srmk-rerisse7-1717s-projects.vercel.app",
+  "unused": true,
+  "collector_triggered": false,
+  "reason": "Private credential file patch failed and error echoed Preview application credentials; do not reuse deployment or its database",
+  "share_revoked_at": "2026-11-06T05:42:31.720Z"
+}

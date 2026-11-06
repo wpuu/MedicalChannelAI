@@ -1,0 +1,114 @@
+{
+  "pass": true,
+  "scope": {
+    "target": "preview",
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "git_branch": "codex/p0-reliability-contracts",
+    "preview_epoch": "mcai-p0-20261106-c",
+    "database": "mcai_p0_epoch_20261106c",
+    "role": "mcai_p0_epoch_20261106c",
+    "neon_project": "orange-band-79103824",
+    "neon_branch": "br-cold-tooth-a5clhljh",
+    "commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+    "deployment_id": "dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd",
+    "url": "https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app"
+  },
+  "profiles": [
+    {
+      "stage": "regional_bj",
+      "actual_attempt_count": 2,
+      "last_failed_at": "2026-11-06T06:01:13.879729+00:00",
+      "terminal_completed_at": "2026-11-06T06:01:13.910526+00:00",
+      "failure_to_terminal_seconds": 0.030797,
+      "next_stage": "regional_bj_fallback",
+      "next_stage_started_at": "2026-11-06T06:01:16.351511+00:00",
+      "failure_to_next_stage_seconds": 2.471782,
+      "previous_epoch_tail_seconds": 301.777
+    },
+    {
+      "stage": "regional_he",
+      "actual_attempt_count": 2,
+      "last_failed_at": "2026-11-06T06:06:27.092194+00:00",
+      "terminal_completed_at": "2026-11-06T06:06:27.124957+00:00",
+      "failure_to_terminal_seconds": 0.032763,
+      "next_stage": "regional_he_fallback",
+      "next_stage_started_at": "2026-11-06T06:06:29.370916+00:00",
+      "failure_to_next_stage_seconds": 2.278722,
+      "previous_epoch_tail_seconds": 302.056
+    },
+    {
+      "stage": "regional_ln",
+      "actual_attempt_count": 2,
+      "last_failed_at": "2026-11-06T06:11:40.181865+00:00",
+      "terminal_completed_at": "2026-11-06T06:11:40.211103+00:00",
+      "failure_to_terminal_seconds": 0.029238,
+      "next_stage": "regional_ln_fallback",
+      "next_stage_started_at": "2026-11-06T06:11:42.554632+00:00",
+      "failure_to_next_stage_seconds": 2.372767,
+      "previous_epoch_tail_seconds": 301.876
+    },
+    {
+      "stage": "regional_jl",
+      "actual_attempt_count": 2,
+      "last_failed_at": "2026-11-06T06:16:53.095227+00:00",
+      "terminal_completed_at": "2026-11-06T06:16:53.128792+00:00",
+      "failure_to_terminal_seconds": 0.033565,
+      "next_stage": "regional_jl_fallback",
+      "next_stage_started_at": "2026-11-06T06:16:55.470223+00:00",
+      "failure_to_next_stage_seconds": 2.374996,
+      "previous_epoch_tail_seconds": 301.963
+    },
+    {
+      "stage": "regional_hl",
+      "actual_attempt_count": 2,
+      "last_failed_at": "2026-11-06T06:22:06.245078+00:00",
+      "terminal_completed_at": "2026-11-06T06:22:06.276984+00:00",
+      "failure_to_terminal_seconds": 0.031906,
+      "next_stage": "regional_hl_fallback",
+      "next_stage_started_at": "2026-11-06T06:22:08.597198+00:00",
+      "failure_to_next_stage_seconds": 2.35212,
+      "previous_epoch_tail_seconds": 302.073
+    }
+  ],
+  "native_nonempty_watch_count": 8,
+  "event1_status": "COMPLETED",
+  "event1_diagnostics": null,
+  "native_event_failure_diagnostics_verified": true,
+  "event_failure_observations": [
+    {
+      "stage": "event1",
+      "status": "FAILED",
+      "attempt_count": 1,
+      "wall_started_at": "2026-11-06T05:47:20.285198+00:00",
+      "failed_at": "2026-11-06T05:48:38.030686+00:00",
+      "completed_at": "2026-11-06T05:48:38.030686+00:00",
+      "error_code": "COLLECTOR_STAGE_BLOCKED",
+      "error_message": "EVENT_WATCH_VERIFICATION_INCOMPLETE",
+      "degraded_reason": null,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_TIMEOUT": 1
+        },
+        "phase_counts": {
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_search",
+            "reason": "NETWORK_TIMEOUT",
+            "candidate_ref": "108bec432a3bbb7c388d4b23fd990b86c278115799d04c2d6611586d6e696c73"
+          }
+        ]
+      },
+      "result": null
+    }
+  ],
+  "nonempty_watch_transaction_succeeded": true,
+  "new_notice_events_verified": 0,
+  "published_notice_event_count": 0,
+  "first_retry_preserved": true,
+  "extra_post_budget_visibility_wait_removed": true,
+  "interpretation": "Native wall-clock observations for returned failures; no hard-kill timing or P95 claim. Controlled replay/owner/send-failure cases have separate behavior tests."
+}

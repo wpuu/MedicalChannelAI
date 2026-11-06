@@ -1,0 +1,38 @@
+{
+  "at": "2026-11-06T05:45:26.515484+00:00",
+  "scope": {
+    "target": "preview",
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "git_branch": "codex/p0-reliability-contracts",
+    "preview_epoch": "mcai-p0-20261106-c",
+    "database": "mcai_p0_epoch_20261106c",
+    "role": "mcai_p0_epoch_20261106c",
+    "neon_project": "orange-band-79103824",
+    "neon_branch": "br-cold-tooth-a5clhljh",
+    "commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+    "deployment_id": "dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd",
+    "url": "https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app"
+  },
+  "http": 202,
+  "response": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "trigger_source": "VERCEL_CRON",
+    "collector": {
+      "action": "QUEUED",
+      "execution_plane": "VERCEL_QUEUE_V2",
+      "mode": "DEEP_DAILY",
+      "local_date": "2026-11-06",
+      "cycle_id": "preview:mcai-p0-20261106-c:2026-11-06",
+      "stage": "ccgp",
+      "start_delay_seconds": 0,
+      "message_id": "2f-1M1embufvu0YhRiZmYgltTEjD6jNEUxm"
+    }
+  },
+  "headers": {
+    "age": null,
+    "x-vercel-cache": "BYPASS",
+    "x-medicalchannelai-snapshot-source": null
+  }
+}

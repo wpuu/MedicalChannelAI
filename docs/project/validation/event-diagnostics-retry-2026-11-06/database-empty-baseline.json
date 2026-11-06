@@ -1,0 +1,13 @@
+{
+  "observed_at": "2026-11-06T05:45:23.938Z",
+  "rows": [
+    {
+      "current_database": "mcai_p0_epoch_20261106c",
+      "current_user": "mcai_p0_epoch_20261106c",
+      "initial_committed_snapshots": "0",
+      "discarded_role_can_read_c_snapshots": false,
+      "discarded_role_can_create_c_schema": false
+    }
+  ],
+  "read_only": true
+}

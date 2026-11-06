@@ -1,0 +1,47 @@
+[
+  {
+    "observed_at": "2026-11-06T06:04:20.590588+00:00",
+    "preview_epoch": "mcai-p0-20261106-c",
+    "active_cycle_id": "preview:mcai-p0-20261106-c:2026-11-06",
+    "active_incremental_scan": null,
+    "chain": {
+      "state": "DEFERRED_BY_DEEP_CYCLE",
+      "business_date": "2026-11-06",
+      "tick_id": "incremental-tick:20261106T1400+0800:11",
+      "next_tick_id": "incremental-tick:20261106T1415+0800:12",
+      "selected_source": null,
+      "detail": null,
+      "updated_at": "2026-11-06T06:00:00.722548+00:00"
+    }
+  },
+  {
+    "observed_at": "2026-11-06T06:15:12.648212+00:00",
+    "preview_epoch": "mcai-p0-20261106-c",
+    "active_cycle_id": "preview:mcai-p0-20261106-c:2026-11-06",
+    "active_incremental_scan": null,
+    "chain": {
+      "state": "DEFERRED_BY_DEEP_CYCLE",
+      "business_date": "2026-11-06",
+      "tick_id": "incremental-tick:20261106T1415+0800:12",
+      "next_tick_id": "incremental-tick:20261106T1430+0800:13",
+      "selected_source": null,
+      "detail": null,
+      "updated_at": "2026-11-06T06:14:59.939810+00:00"
+    }
+  },
+  {
+    "observed_at": "2026-11-06T06:22:53.434210+00:00",
+    "preview_epoch": "mcai-p0-20261106-c",
+    "active_cycle_id": null,
+    "active_incremental_scan": null,
+    "chain": {
+      "state": "SCHEDULED",
+      "business_date": "2026-11-06",
+      "tick_id": null,
+      "next_tick_id": "incremental-tick:20261106T1430+0800:13",
+      "selected_source": null,
+      "detail": null,
+      "updated_at": "2026-11-06T06:22:13.956018+00:00"
+    }
+  }
+]

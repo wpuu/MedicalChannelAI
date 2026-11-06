@@ -2,14 +2,16 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前事件诊断与重试收尾修复（真实Queue运行中）
+## 当前事件诊断与重试收尾修复（完整验收完成，来源降级）
 
-- 新代码 `662bd23cc572e16a13d093bd427fa322cc5166ac`；905个Python、JS合约、TypeScript、Vite通过，5项源码位置断言改为真实恢复行为测试。
-- [新Preview](https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app) `dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd` READY，代码精确读回；c周期和独立c库/受限角色，旧环境保留。
-- 北京时间13:45:26触发一次真实Queue，CCGP10发现成功/12核验/8个非空watch；event1首次失败已安全持久化 `event_search / NETWORK_TIMEOUT`，正在等待正常重试。最后一次失败的立即推进、完整发布与浏览器验收尚未结束。
-- [本轮报告](event-diagnostics-retry-2026-11-06.md)记录当前边界。旧2cc完整周期仅属上轮，不充当新662完整验收；统一入口冷却、每源独立发布/覆盖回补未实施。
-- 准备期间一次私有文件补丁错误回显了未使用b部署的测试凭据；b临时访问已撤销、b库仍0表，本轮改用新c库/角色和全新凭据。b角色无法读c快照或在c建表，原始错误/凭据不进入证据。
-- Production未变，未合并或提升；`production_ready=false`。
+- 采集代码 `662bd23cc572e16a13d093bd427fa322cc5166ac`；UI `77433ffffb3db1fd2c939dbbfbb08a8ee1fad955`，[Preview](https://medicalchannelai-34wdnmggn-rerisse7-1717s-projects.vercel.app) `dpl_EkAghRurnmMcJniNEQv4W29GQu4o` READY；c周期和独立c库/受限角色。905个Python、JS合约、TypeScript、Vite通过，5项源码位置断言替换为真实恢复行为测试。
+- 唯一一次真实Queue完成25阶段：14完成、11降级，来源健康8/14，运行锁释放；从触发响应至发布2207.330秒。
+- 8项目非空watch已实际执行，事件首次失败安全记录 `event_search / NETWORK_TIMEOUT`；完整事务通过，首次超时经第二次重试恢复。本次实际新增更正/终止事件0条；不把非空watch写成云端非空事件产物成功。
+- 预算耗尽的地区实际失败后0.029–0.034秒即终局，上轮各地区约302秒；首次正常重试保留，fallback依赖降级直接跳过。重复投递、推进发送失败恢复、owner变更及发布失败不冒充成功有行为回归。
+- canonical935、池16、Today5、事件0；深度Queue/SQL/authority SHA `e3e868c0b5b40cf656f178ee048ca4614f6e5904dfd385d2d77051b8446d2c73`；14:30自然tick后，当前SQL/authority/UI浏览器SHA `baf3d2ffe89223e6001e763e88845d310b5ed5cf22ddab5a3bfa75bc45eecb13`，SQL保留完整微秒；浏览器6/6通过。
+- 当前依据：[完整报告](event-diagnostics-retry-2026-11-06.md)、[冻结清单](validation/event-diagnostics-retry-2026-11-06/manifest.json)。按入口统一限流退避、每源独立提交/覆盖回补、旧实时数据迁移及持续tick尚未验收；旧环境继续保留运行。
+- 准备脚本曾回显未使用b部署的测试凭据；b临时访问已撤销、库仍0表，改用全新c库/角色和凭据，b角色不能读写c快照。原始错误/凭据不进入证据；当前UI临时访问已撤销，原采集链接只读复核401失效，临时凭据文件已清理。
+- Production和SSO只读复核未变，原工作树干净；未合并、提升或改域名/DNS/EdgeOne，`production_ready=false`。
 
 ## 上轮 Preview 隔离周期（c858379，历史完整发布验收）
 

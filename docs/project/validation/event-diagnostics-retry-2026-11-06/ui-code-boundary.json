@@ -1,0 +1,18 @@
+{
+  "producer_commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+  "ui_commit": "77433ffffb3db1fd2c939dbbfbb08a8ee1fad955",
+  "changed_web_files": [
+    "web/pipeline/tests/test_business_market_preferences.py",
+    "web/scripts/check-opportunity-market-scope.mjs",
+    "web/scripts/check-research-event-window.mjs",
+    "web/src/services/ApiTodayActionsService.ts",
+    "web/src/services/StaticSnapshotTodayActionsService.ts",
+    "web/src/types/public.ts",
+    "web/src/utils/opportunityMarket.ts"
+  ],
+  "collector_and_api_sources_unchanged": true,
+  "new_deep_cycle_triggered": false,
+  "original_deep_and_current_serving_pool_ids_identical": true,
+  "original_and_current_pool_facts_identical": true,
+  "authority_fact_rewrite": false
+}

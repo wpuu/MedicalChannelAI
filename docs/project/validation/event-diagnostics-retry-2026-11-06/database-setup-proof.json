@@ -1,0 +1,14 @@
+{
+  "database": "mcai_p0_epoch_20261106c",
+  "role": "mcai_p0_epoch_20261106c",
+  "is_superuser": false,
+  "is_neon_admin": false,
+  "can_create_public": true,
+  "initial_public_tables": 0,
+  "scope": "Existing isolated Neon test branch; no Production database operations",
+  "production_modified": false,
+  "old_epoch_a_snapshot_read_privilege": false,
+  "old_epoch_a_schema_create_privilege": false,
+  "discarded_role_b_can_create_c_schema": false,
+  "discarded_role_b_can_read_c_snapshots": false
+}

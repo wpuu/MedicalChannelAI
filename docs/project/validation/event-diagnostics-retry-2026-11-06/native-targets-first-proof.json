@@ -1,0 +1,111 @@
+{
+  "observed_at": "2026-11-06T06:01:57.899422+00:00",
+  "scope": {
+    "target": "preview",
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "git_branch": "codex/p0-reliability-contracts",
+    "preview_epoch": "mcai-p0-20261106-c",
+    "database": "mcai_p0_epoch_20261106c",
+    "role": "mcai_p0_epoch_20261106c",
+    "neon_project": "orange-band-79103824",
+    "neon_branch": "br-cold-tooth-a5clhljh",
+    "commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+    "deployment_id": "dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd",
+    "url": "https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app"
+  },
+  "native_event_first_failure": {
+    "status": "FAILED",
+    "attempt_count": 1,
+    "wall_started_at": "2026-11-06T05:47:20.285198+00:00",
+    "failed_at": "2026-11-06T05:48:38.030686+00:00",
+    "completed_at": "2026-11-06T05:48:38.030686+00:00",
+    "error_code": "COLLECTOR_STAGE_BLOCKED",
+    "error_message": "EVENT_WATCH_VERIFICATION_INCOMPLETE",
+    "degraded_reason": null,
+    "diagnostics": {
+      "failure_count": 1,
+      "reason_counts": {
+        "NETWORK_TIMEOUT": 1
+      },
+      "phase_counts": {
+        "event_search": 1
+      },
+      "samples": [
+        {
+          "phase": "event_search",
+          "reason": "NETWORK_TIMEOUT",
+          "candidate_ref": "108bec432a3bbb7c388d4b23fd990b86c278115799d04c2d6611586d6e696c73"
+        }
+      ]
+    },
+    "result": null
+  },
+  "event1_terminal": {
+    "status": "COMPLETED",
+    "attempt_count": 2,
+    "started_at": "2026-11-06T05:45:25.873802+00:00",
+    "wall_started_at": "2026-11-06T05:52:25.484870+00:00",
+    "completed_at": "2026-11-06T05:53:20.087619+00:00",
+    "error_code": null,
+    "error_message": null,
+    "result": {
+      "batch_index": 1,
+      "project_count": 5,
+      "projects": [
+        "0615-2641032451105",
+        "BH-YJY20261093",
+        "PYGP-2026-A-0882",
+        "TJYL-ZFCG-20260021",
+        "XCSD-2026-A-1017"
+      ],
+      "new_notice_event_count": 0,
+      "merged_event_count": 0,
+      "failure_count": 0
+    }
+  },
+  "bj_terminal": {
+    "status": "DEGRADED",
+    "attempt_count": 2,
+    "started_at": "2026-11-06T05:45:25.873802+00:00",
+    "wall_started_at": "2026-11-06T06:01:10.507242+00:00",
+    "completed_at": "2026-11-06T06:01:13.910526+00:00",
+    "error_code": "COLLECTOR_STAGE_BLOCKED",
+    "error_message": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:BJ",
+    "result": null,
+    "failed_at": "2026-11-06T06:01:13.879729+00:00",
+    "diagnostics": {
+      "failure_count": 1,
+      "reason_counts": {
+        "RATE_LIMITED": 1
+      },
+      "phase_counts": {
+        "scoped_discovery": 1
+      },
+      "samples": [
+        {
+          "phase": "scoped_discovery",
+          "reason": "RATE_LIMITED",
+          "candidate_ref": "96fea6a3ea776baa76d577175978254ab0b393779f4e297e114e251735895c7e"
+        }
+      ]
+    },
+    "retryable": true,
+    "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_bj"
+  },
+  "bj_fallback": {
+    "status": "DEGRADED",
+    "attempt_count": 1,
+    "started_at": "2026-11-06T05:45:25.873802+00:00",
+    "wall_started_at": "2026-11-06T06:01:16.351511+00:00",
+    "completed_at": "2026-11-06T06:01:16.355202+00:00",
+    "error_code": "SOURCE_SCAN_FAILED",
+    "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+    "result": null,
+    "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+  },
+  "failure_to_terminal_seconds": 0.030797,
+  "failure_to_next_stage_seconds": 2.471782,
+  "previous_bj_tail_seconds": 301.777,
+  "full_cycle_complete": false
+}

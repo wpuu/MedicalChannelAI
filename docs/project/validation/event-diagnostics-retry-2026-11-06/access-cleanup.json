@@ -1,0 +1,14 @@
+{
+  "observed_at": "2026-11-06T06:41:57.811Z",
+  "current_preview_share_revoked": true,
+  "producer_preview_share_access_inactive": true,
+  "producer_preview_share_probe_http": 401,
+  "producer_preview_share_application_response": false,
+  "producer_share_revoke_tool_returned_error": true,
+  "producer_error_cause_not_inferred": true,
+  "unused_b_share_revoked": true,
+  "regenerated": false,
+  "project_sso_protection_changed": false,
+  "preview_runtime_credentials_retained": true,
+  "only_task_owned_temporary_access_cleaned": true
+}

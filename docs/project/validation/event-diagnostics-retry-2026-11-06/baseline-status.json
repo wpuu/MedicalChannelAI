@@ -1,0 +1,152 @@
+{
+  "http": 200,
+  "response": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "version": "0.5.0",
+    "commit": "662bd23",
+    "preview_epoch": "mcai-p0-20261106-c",
+    "production_ready": false,
+    "ai": {
+      "configured": false
+    },
+    "ready": true,
+    "degraded": true,
+    "snapshot": {
+      "available": true,
+      "source_mode": "RUNTIME_CACHE",
+      "runtime_origin": "BUNDLED",
+      "snapshot_as_of": "2026-10-02T14:19:15.713282+08:00",
+      "freshness": "STALE",
+      "age_minutes": 50365,
+      "stale_after_minutes": 1800,
+      "source_health": {
+        "schema_version": "0.1",
+        "status": "UNKNOWN",
+        "required_source_count": 14,
+        "healthy_source_count": 0,
+        "sources": {
+          "ccgp": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjmugh": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjnothop": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "teda": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjfch_test": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzyefy_intent": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "tjzxfc": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_bj": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_he": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_ln": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_jl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          },
+          "regional_hl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": null,
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "UNKNOWN",
+            "age_seconds": null
+          }
+        }
+      },
+      "today_card_count": 5,
+      "opportunity_pool_count": 441
+    }
+  },
+  "headers": {
+    "age": "0",
+    "x-vercel-cache": "MISS",
+    "x-medicalchannelai-snapshot-source": null
+  }
+}

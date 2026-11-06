@@ -1,0 +1,28 @@
+{
+  "observed_at": "2026-11-06T06:37:36.924Z",
+  "original_database": "mcai_p0_acceptance_final",
+  "original_latest": [
+    {
+      "snapshot_hash": "9ccffc3b1670508de8d2d68442a7132769f2691013a26b212e0d9317d31cd96a",
+      "payload_as_of": "2026-11-06T06:00:01.929763+00:00",
+      "opportunity_count": 46,
+      "precise": false
+    }
+  ],
+  "previous_epoch_database": "mcai_p0_epoch_20261106a",
+  "previous_epoch_latest": [
+    {
+      "snapshot_hash": "eec165e5c237afc1976dbfb6ebb812d5db1659dcb7020e7b347f808ea142040f",
+      "payload_as_of": "2026-11-06T06:15:00.131991+00:00",
+      "opportunity_count": 8,
+      "precise": true
+    }
+  ],
+  "current_database": "mcai_p0_epoch_20261106c",
+  "current_deep_sha256": "e3e868c0b5b40cf656f178ee048ca4614f6e5904dfd385d2d77051b8446d2c73",
+  "current_serving_sha256": "baf3d2ffe89223e6001e763e88845d310b5ed5cf22ddab5a3bfa75bc45eecb13",
+  "current_pool_count": 16,
+  "old_database_modified_by_check": false,
+  "live_state_migration_accepted": false,
+  "read_only": true
+}

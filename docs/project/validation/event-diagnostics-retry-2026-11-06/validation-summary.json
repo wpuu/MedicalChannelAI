@@ -1,0 +1,21 @@
+{
+  "executable_commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+  "python_tests": 905,
+  "python_result": "PASS",
+  "javascript_contracts": "PASS",
+  "typescript": "PASS",
+  "vite_build": "PASS",
+  "runtime_build_main_js_gzip_kb": 116.0,
+  "ui_main_js_gzip_kb": 116.17,
+  "build_log_sha256": "f0e32a5d62189876bfe60270607e187272ff077165aaa4af64efa75461a9cd1b",
+  "ui_commit": "77433ffffb3db1fd2c939dbbfbb08a8ee1fad955",
+  "ui_build": "PASS",
+  "ui_build_log_sha256": "23267067db1c80dad64e74b61141bbf1d8df7c9832097aab45d40612440c3062",
+  "new_behavior_tests": 16,
+  "source_layout_tests_replaced_by_behavior_tests": 5,
+  "browser_checks": 6,
+  "browser_result": "PASS",
+  "actual_model_called": false,
+  "native_retry_tail_verified": true,
+  "nonempty_event_failure_diagnostics_verified": true
+}

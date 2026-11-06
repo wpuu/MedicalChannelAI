@@ -1,0 +1,18 @@
+[
+  {
+    "snapshot_hash": "baf3d2ffe89223e6001e763e88845d310b5ed5cf22ddab5a3bfa75bc45eecb13",
+    "sql_as_of": "2026-11-06 06:30:01.833031+00",
+    "payload_as_of": "2026-11-06T06:30:01.833031+00:00",
+    "precise": true,
+    "opportunity_count": 16,
+    "materialized_at": "2026-11-06T06:30:06.633Z"
+  },
+  {
+    "snapshot_hash": "e3e868c0b5b40cf656f178ee048ca4614f6e5904dfd385d2d77051b8446d2c73",
+    "sql_as_of": "2026-11-06 05:45:25.873802+00",
+    "payload_as_of": "2026-11-06T13:45:25.873802+08:00",
+    "precise": true,
+    "opportunity_count": 16,
+    "materialized_at": "2026-11-06T06:22:13.424Z"
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "product_bug": true,
+  "ui_executable_commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+  "api_pool_count": 16,
+  "browser_displayed_count": 8,
+  "browser_denominator": 16,
+  "omitted_ids": [
+    "ccgp_832c6893808802e0",
+    "ccgp_445f6c2b30416823",
+    "ccgp_5184fb1beae01ab6",
+    "ccgp_8ff830ea56334e28",
+    "ccgp_f077850cceb846c9",
+    "ccgp_06c1029c367f187f",
+    "ccgp_0347d76e738e1fd0",
+    "ccgp_5c88de64a97d4854"
+  ],
+  "cause": "Registered Tianjin ccgp source uses legacy opaque hashes and city/county-only regions; helper lacked its explicit source boundary and Today mappers dropped that context",
+  "authority_payload_mutated": false,
+  "test_assertion_weakened": false,
+  "ai_cache_only_requests_blocked": 3
+}

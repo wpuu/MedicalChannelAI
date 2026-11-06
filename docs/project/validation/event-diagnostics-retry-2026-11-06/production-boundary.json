@@ -1,0 +1,21 @@
+{
+  "observed_at": "2026-11-06T06:14:53.571Z",
+  "production_latest": {
+    "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+    "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+    "target": "production",
+    "ready_state": "READY",
+    "url": "medicalchannelai-njs695u30-rerisse7-1717s-projects.vercel.app"
+  },
+  "sso_protection": {
+    "enabled": true,
+    "deploymentType": "all_except_custom_domains"
+  },
+  "production_actions_performed": false,
+  "merge_performed": false,
+  "promotion_performed": false,
+  "domain_dns_edgeone_modified": false,
+  "original_worktree_clean": true,
+  "unchanged": true,
+  "deployment_rechecked_after_ui_at": "2026-11-06T06:37:37.338417+00:00"
+}

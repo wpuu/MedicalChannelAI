@@ -1,0 +1,12 @@
+{
+  "observed_at": "2026-11-06T05:47:59.795Z",
+  "rows": [
+    {
+      "current_database": "mcai_p0_epoch_20261106b",
+      "public_tables": "0"
+    }
+  ],
+  "used_for_acceptance": false,
+  "role_b_can_read_c_snapshots": false,
+  "role_b_can_create_c_schema": false
+}

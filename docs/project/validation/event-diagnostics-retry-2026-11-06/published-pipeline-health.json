@@ -1,0 +1,149 @@
+{
+  "http": 200,
+  "response": {
+    "schema_version": "0.1",
+    "service": "MedicalChannelAI",
+    "ready": true,
+    "degraded": true,
+    "pipeline_runtime": {
+      "available": true,
+      "module_import": true,
+      "data_bundle": true,
+      "runtime_cache": true,
+      "cron_secret_configured": true,
+      "cron_secret_required": false,
+      "verified_snapshot_available": true,
+      "verified_snapshot_fresh": false,
+      "verified_snapshot_freshness_required": false,
+      "verified_snapshot_source": "DATABASE",
+      "verified_snapshot_age_seconds": 180,
+      "verified_snapshot_freshness": "FRESH",
+      "source_health": {
+        "schema_version": "0.1",
+        "status": "FAILING",
+        "required_source_count": 14,
+        "healthy_source_count": 8,
+        "sources": {
+          "ccgp": {
+            "last_successful_scan_at": "2026-11-06T05:54:07.221985+00:00",
+            "last_attempt_at": "2026-11-06T05:54:07.221985+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2358
+          },
+          "tjmugh": {
+            "last_successful_scan_at": "2026-11-06T06:30:01.833031+00:00",
+            "last_attempt_at": "2026-11-06T06:30:01.833031+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 203
+          },
+          "tjnothop": {
+            "last_successful_scan_at": "2026-11-06T05:54:19.174224+00:00",
+            "last_attempt_at": "2026-11-06T05:54:19.174224+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2346
+          },
+          "teda": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-06T05:55:42.112194+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "tjfch": {
+            "last_successful_scan_at": "2026-11-06T05:56:02.991406+00:00",
+            "last_attempt_at": "2026-11-06T05:56:02.991406+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2242
+          },
+          "tjfch_test": {
+            "last_successful_scan_at": "2026-11-06T05:56:02.998618+00:00",
+            "last_attempt_at": "2026-11-06T05:56:02.998618+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2242
+          },
+          "tjzyefy": {
+            "last_successful_scan_at": "2026-11-06T05:55:01.094035+00:00",
+            "last_attempt_at": "2026-11-06T05:55:01.094035+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2304
+          },
+          "tjzyefy_intent": {
+            "last_successful_scan_at": "2026-11-06T05:55:14.027816+00:00",
+            "last_attempt_at": "2026-11-06T05:55:14.027816+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2291
+          },
+          "tjzxfc": {
+            "last_successful_scan_at": "2026-11-06T05:55:38.140611+00:00",
+            "last_attempt_at": "2026-11-06T05:55:38.140611+00:00",
+            "stale_after_seconds": 86400,
+            "failure_reason": null,
+            "status": "HEALTHY",
+            "age_seconds": 2267
+          },
+          "regional_bj": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-06T06:01:16.355202+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "regional_he": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-06T06:06:29.375748+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "regional_ln": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-06T06:11:42.558795+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "regional_jl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-06T06:16:55.474308+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          },
+          "regional_hl": {
+            "last_successful_scan_at": null,
+            "last_attempt_at": "2026-11-06T06:22:08.601007+00:00",
+            "stale_after_seconds": 172800,
+            "failure_reason": "SOURCE_SCAN_FAILED",
+            "status": "FAILING",
+            "age_seconds": null
+          }
+        }
+      },
+      "verified_snapshot_max_age_seconds": 108000
+    }
+  },
+  "headers": {
+    "age": "0",
+    "x-vercel-cache": "MISS",
+    "x-medicalchannelai-snapshot-source": null
+  }
+}

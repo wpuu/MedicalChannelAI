@@ -2,11 +2,11 @@
 
 更新：2026-11-06（Asia/Shanghai）。用户选择仅 Preview 推进本项，Production 保持不变。
 
-## 当前状态
+## 结论与版本
 
-代码 `662bd23cc572e16a13d093bd427fa322cc5166ac` 已推送；905个Python测试、全部JS合约、TypeScript、Vite构建通过。新Preview已READY，13:45:26触发一次真实Queue，最终发布验收尚未完成；不以本地测试或部署成功代替运行验收。
+**安全事件诊断、原生Queue最后失败立即终局、完整发布及浏览器验收通过；来源覆盖仍有降级，不能提升Production。** 代码固定 `662bd23cc572e16a13d093bd427fa322cc5166ac`，905项Python、全部JS合约、TypeScript及Vite通过。后续UI `77433ffffb3db1fd2c939dbbfbb08a8ee1fad955` 修复实测8条地区漏显；采集/API代码与662完全一致，没有重跑深度周期。收尾文档提交不改变应用代码。
 
-本轮依据仓库最新[验收合同](action-radar-acceptance-contract.md)及[上轮真实周期证据](preview-epoch-cycle-2026-11-06.md)。远端main保持 `3216fd9`，工作分支为 `codex/p0-reliability-contracts`，隔离工作树 `/workspace/MedicalChannelAI-p0`。
+依据仓库最新[验收合同](action-radar-acceptance-contract.md)与[上轮证据](preview-epoch-cycle-2026-11-06.md)。工作分支 `codex/p0-reliability-contracts`，隔离工作树 `/workspace/MedicalChannelAI-p0`；main仍为 `3216fd9`。本轮未合并或提升Production，未更改域名/DNS/EdgeOne。
 
 ## 已修复内容
 
@@ -16,14 +16,68 @@
 - 发布失败保持FAILED，预算耗尽后释放owner，不降级冒充发布成功。已有妇产策略、缺canonical及区域迁移恢复例外均保留，并增加真实准入正反例。
 - 5个依赖变量名/函数位置的旧源码断言替换为行为测试；另补事件失败脱敏、非空watch正例最终批次原子提交、最后失败推进、首次重试、重复投递、发送失败恢复及owner变更负例。完整905项通过，不放宽单源核验门禁。
 
-## Preview运行边界
+## Preview范围与真实周期
 
-- 精确部署 `dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd`：<https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app>。
-- 新周期 `mcai-p0-20261106-c`；同一隔离Neon分支上的新库/受限角色 `mcai_p0_epoch_20261106c`，非管理员，新库起始0表，旧a库快照读取和schema CREATE权限均为false。
-- 仅更新当前Git分支的Preview环境和凭据；旧a/旧部署保留，未复制旧实时快照。代码/缓存/消息/数据库按周期绑定，不能把旧运行结果记为新代码验收。
+- 原生采集部署 `dpl_Btxfbnru5fxtGg3ZgBqQvAC3gwZd`：<https://medicalchannelai-b4oozoro7-rerisse7-1717s-projects.vercel.app>；当前UI部署 `dpl_EkAghRurnmMcJniNEQv4W29GQu4o`：<https://medicalchannelai-34wdnmggn-rerisse7-1717s-projects.vercel.app>。均为READY/Preview，精确提交分别读回；实际数据生产者仍为662。
+- 周期 `mcai-p0-20261106-c`；独立库/受限角色 `mcai_p0_epoch_20261106c`，Neon隔离分支 `br-cold-tooth-a5clhljh`。非管理员，不能读取旧a快照或在a库建表。
+- 新库先0表，应用建表后0快照；新采集状态为空。未复制旧实时快照，未构造源健康或手工发布。本轮只手动触发一次真正Queue。
 
-完整真实运行、诊断原因、终局等待时长、数据库/API/浏览器证据待补齐。统一入口退避、每源独立发布/覆盖回补属于后续范围；本项没有声称外部来源已恢复。
+| 验收项 | 实测结果 |
+|---|---|
+| 原生周期 | 北京时间13:45:26接受，14:22:13发布完成；2207.330秒，约36分47秒 |
+| 全部阶段 | 25阶段：14完成、11降级；publish一次完成，active_cycle_id=null |
+| 来源健康 | 8/14，整体FAILING；未称全部来源恢复 |
+| 数据 | canonical935、当前池16、Today5、事件0；durable=true、cache READY |
+| 完整JSON | 深度Queue、Neon与初次authority同SHA `e3e868c0b5b40cf656f178ee048ca4614f6e5904dfd385d2d77051b8446d2c73`；自然14:30 tick后，当前Neon/authority/UI浏览器同SHA `baf3d2ffe89223e6001e763e88845d310b5ed5cf22ddab5a3bfa75bc45eecb13` |
+| SQL时钟 | 深度JSON `2026-11-06T13:45:25.873802+08:00` 及当前JSON `2026-11-06T06:30:01.833031+00:00` 的SQL列均保留完整微秒，非旧快照重放修复 |
+| 浏览器 | 6/6通过：普通完整池、代码/周期/数据库、ALL数量、降级提示、390px无横溢、无页面错误；自动cache_only AI由护栏阻断4次，未调用模型 |
 
-验收准备期间一次私有凭据文件补丁格式错误，工具错误回显了当次Preview应用凭据。未触发采集的b部署临时分享链接已撤销，b库不再复用；本轮验收改用全新c库/受限角色及新凭据，旧b角色不具备c库表读取/建表权限。原始错误和凭据不进入仓库证据。此项是验收脚本失误，不是项目故障。
+逐文件哈希见[冻结证据](validation/event-diagnostics-retry-2026-11-06/manifest.json)，关键结果为[完整发布证明](validation/event-diagnostics-retry-2026-11-06/publication-proof.json)、[重试及诊断证明](validation/event-diagnostics-retry-2026-11-06/retry-diagnostics-proof.json)及[浏览器记录](validation/event-diagnostics-retry-2026-11-06/browser-smoke-report.json)。离线复核命令：`node docs/project/validation/event-diagnostics-retry-2026-11-06/verify.mjs`，会重算文件完整性、快照SHA、SQL微秒与重试时间差，无需云端凭据。
 
-北京时间13:48:38，真实8项目非空watch的event1首次失败已保存安全诊断：`event_search / NETWORK_TIMEOUT` 1次，candidate_ref仅SHA256。首次失败保持正常重试，尚待最后一次尝试验证立即终局推进。不能据此推断上一轮无明细失败的原因。
+## 非空watch与安全诊断
+
+政府采购网10次发现成功，26候选中选12条核验，暂存68条，8个真实项目进入watch。event1首次失败安全记录 `event_search / NETWORK_TIMEOUT` 1次，引用仅SHA256；该明细来自当前662运行，不能倒推上轮2cc未保存明细的失败原因。
+
+首次失败保留正常平台重试，event1第二次成功，随后其余批次完成；最终CCGP同源事务完整提交，健康时钟才更新。 本轮watch项目非空，实际新增核验更正/终止事件0条、发布事件0条。不能把“8项目watch核验”写成“云端实际新增事件结果非空”；本地非空事件正例另验证最终批次前不提交、最终批次原子提交。
+
+首次失败诊断即使在重试成功后也保存在监测历史，最终成功状态无diagnostics不抹去此前失败。安全原因只来自固定白名单、已知错误类及合法HTTP状态；有界样本最多5个，不存查询、URL、项目号、标题、堆栈或任意异常后缀。
+
+## 收尾发现并修复的地区漏显
+
+662的普通浏览器实际显示8/16，遗漏8条已核验CCGP记录：滨海新区、静海县、宝坻区及市辖区的legacy opaque ID缺少省级字段，原地区映射未保留其来源范围。此为产品问题，不是放宽测试断言。77433ff仅在已注册天津CCGP来源、合法16位旧ID和天津本地区域同时满足时补齐scope，Static/API Today映射也保留派生结果；未知来源、不支持地区及哈尔滨等外部城市负例仍排除。
+
+原始16条冻结JSON在本地ALL16/TJ15/JL1逐ID回归通过，最终普通UI恢复16/16并显示CCGP首卡，390px Today也通过。UI变更没有修改采集/API代码或手工改权威数据，没有重新触发采集。两次快照的16个ID及facts逐条相同；版本变化来自原662生产者的14:30自然tick。前后截图和失败记录保存在冻结证据。
+
+## 深度结束后的首次自然tick
+
+14:30真实tick选择tjmugh，扫描完成：发现1、跳过未变化1、详情0、失败0、pending/barrier均0，snapshot_refreshed=true；SQL实际入库14:30:06，当前公开池仍16。14:00/14:15 tick在深度期间推迟，14:30完成是一次实际增量成功，不代表整日持续调度已通过。未手动触发增量任务。
+
+## 耗尽预算后的原生耗时
+
+| 阶段 | 实际尝试 | 最后失败至终态（秒） | 最后失败至下一阶段启动（秒） | 上轮终态尾部（秒） |
+|---|---:|---:|---:|---:|
+| regional_bj | 2 | 0.030797 | 2.471782 | 301.777 |
+| regional_he | 2 | 0.032763 | 2.278722 | 302.056 |
+| regional_ln | 2 | 0.029238 | 2.372767 | 301.876 |
+| regional_jl | 2 | 0.033565 | 2.374996 | 301.963 |
+| regional_hl | 2 | 0.031906 | 2.352120 | 302.073 |
+
+新 `failed_at` 保留最后一次真实失败的wall clock，终态和下游启动均来自原生运行；不再等待额外一次约302秒的投递。首次必要退避仍保留。TEDA403的首次不可重试降级属于此前已有行为，不把它算作本轮预算耗尽优化。
+
+上轮完整周期3995.251秒，本轮2207.330秒；来源耗时和本次事件重试恢复不同，该总时长对比不是受控性能实验或P95。直接同阶段的失败至终局时间才是本次尾部优化证据。tjmugh已完成后仍等1678.375秒才公开，说明每源独立发布仍有优化空间。这里只验收正常返回的失败；进程被强制终止时仍需后续投递及租约恢复，不宣称消除了所有故障等待。
+
+## 数据范围、脚本事件与收尾
+
+本轮从仓库bootstrap及真实扫描建立新验收集，canonical总量不是净新增，池数量不是客户合格商机数；旧数据库保留且独立继续运行。本轮没有验收旧最新运行状态迁移、全部分页/详情覆盖或中断回补。
+
+验收准备时，私有凭据文件补丁格式错误导致工具错误回显了当次测试应用凭据。未使用b部署 `dpl_HidD6Zpx15ppcijY9a22yb1yTufc` 的本任务临时访问已撤销，未触发采集，b库实测仍0表。本轮改用全新c库/受限角色和新应用凭据；b角色实测不能读c快照或在c建表。旧b部署仍受项目SSO保护，其不可变环境不因后续env轮换而改变；不能声称旧令牌已被追溯修改。原始错误和凭据不进入冻结证据，这是验收脚本失误。
+
+当前验收通过后，本任务UI分享访问已撤销，原采集观察链接撤销工具返回错误、只读复核401且无应用响应，确认失效；临时私有凭据文件已删除，Preview运行所需配置保留。使用隔离Chromium/Playwright、Asia/Shanghai时区和普通GET验收；ego-browser在当前Linux不可用，未访问账户或调用真实AI。
+
+## 推进方式调整
+
+本轮前台持续等待整条串行队列并重复播报，超过了两项修复已满足后的必要等待，用户指出后已纠正。仓库验收合同新增：前台定向验收默认20分钟、同状态两次后转有总时限的后台观察、达标及时交付、超时标缺证并退出；不重触发真实任务。本轮实际发布14:22:13，最后直接观察14:22:53确认，观察器旧读数不能当任务仍未完成。后续UI漏显修复只运行定向回归和UI验收。
+
+## 后续仍需推进
+
+优先设计按实际入口共享请求预算、对明确限流统一冷却；单项目网络超时仍按请求/项目有界重试，不能直接推断整个入口不可用。再评估每源独立提交、显式覆盖/水位和回补；同源事实与更正/终止事件继续保持一致事务。旧消费者仍可能竞争同一官方入口，缓存/数据库隔离不能消除这种竞争。另有P1数据质量问题：`ccgp_5184fb1beae01ab6` 的product_items中混入中小企业声明、营业执照和价格扣除等资格条款；这不是具体产品项。本轮已保存真实字段证据，尚未扩展修改解析器，需下一轮冻结官方HTML并补正反例。持续日内tick、真实非空事件结果、全部来源恢复、国内P95、真实模型及客户相关性/资格均需各自验收。Production仍为 `3216fd9` / `dpl_4LPKoTdusrvbExXuzbMKtnyiT86C` READY，SSO不变，`production_ready=false`。
