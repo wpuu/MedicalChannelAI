@@ -1,0 +1,55 @@
+{
+  "code_commit": "97819215530454da55e0d5052b7bfbcd7f9ff694",
+  "python_tests": 1007,
+  "new_behavior_tests": 23,
+  "fixture_gate": "10/10 PASS",
+  "original_cli_gate": "3/3 PASS",
+  "normal_envelope_sha256": "a3b86c23c2e74601cbbd7e70fff407a73a3aa0162423da1d9c12a4eaa344218b",
+  "empty_envelope_sha256": "08b0e23e2a234738df81cac084953af903828fe2e12d7d9abb575a6be7892376",
+  "source_files": [
+    {
+      "path": "web/collector_readonly_export.py",
+      "sha256": "961555c3d15bd0e96a204c829574df32d3a53f1efb7303970f5f97985ac47f6d"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_readonly_export.py",
+      "sha256": "e42146b20abeaeaa7754511924b34f510b61967c950c53e58a523adb01d3487a"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/collector_namespace.py",
+      "sha256": "fc82c0af388124e4bbf5252b38a23a5f48d45a4caf26ead338be213d53be393b"
+    },
+    {
+      "path": "web/collector_epoch.py",
+      "sha256": "d25adb1e0a5b22d2a3d41a0db6e4b240af59ab9bf014011629bf64f01751b0c7"
+    },
+    {
+      "path": "web/collector_incremental.py",
+      "sha256": "4c43b861baa943b7d9f89a61986a2e5abf359b57c5d17a09aff2a1d9ec712c03"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df"
+    },
+    {
+      "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+      "sha256": "7d91bfcb1a83475e628b7f3ce7960c85f266caa4e29a1b17cb6894667e442e8e"
+    },
+    {
+      "path": "web/pipeline/scripts/simulate_ccgp_product_corrections.py",
+      "sha256": "d827864cf8ff66ba99b3eb9de0724579d7a75d366601a19fda0b67a5ef9e29a9"
+    }
+  ],
+  "actual_test_command": "python -m unittest discover -s tests (cwd web/pipeline)",
+  "initial_nonstandard_command": "repo-root discovery had one package-path import error; corrected standard cwd passes",
+  "cloud_access_performed": false,
+  "deployment_performed": false,
+  "migration_complete": false,
+  "apply_allowed": false,
+  "runtime_cas_implemented": false,
+  "git_push_performed": false
+}

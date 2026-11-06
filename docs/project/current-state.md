@@ -2,7 +2,16 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前整批校验与内存回滚模拟（离线通过，禁止真实应用）
+## 当前d周期canonical只读观察内核（仅离线，真实导出未执行）
+
+- 内核代码97819215530454da55e0d5052b7bfbcd7f9ff694，仅注入get-only本地桩，无HTTP/CLI或真实客户端；复用实际namespace/epoch/来源策略，以现有键函数校验。58键/116次get覆盖canonical、CCGP事件/committed/staging、健康时钟、owner/meta及增量pending/barrier/ledger/bucket。
+- 缺标识、跨项目/Production/旧c/数据库或写能力接口在读取前拒绝；两遍任意哈希变化、读取失败、大小/数量/结构超限整份拒绝。None保留未初始化/不可用，显式空保留空，不读快照或仓库来回填。
+- 新增23项行为测试，全部1007项Python、冻结10/10、原CLI3/3通过。重复本地观察完全一致，285份原始数据/fixture/旧证据字节不变，上一轮内存模拟验证器仍通过。测试桩使用两条冻结记录与明确合成的缓存/owner/时钟外壳，不代表运行数据。
+- 双遍相等不排除ABA/跨键竞争，生产者没有统一原子revision/fence；未知字段路径与辅助语义明确未覆盖。read_plan_complete仅表示限定读取完成，coverage.complete、migration_usable、apply_allowed和atomic_snapshot_guaranteed始终false。真实导出、迁移、CAS、真实回滚未实施。
+- 无云端访问/推送/部署、新环境、计划/变量/凭据/权限修改、采集/项目模型或数据库/缓存/历史数据/快照写入；原Preview历史绑定未重新验证，production_ready=false。[报告](ccgp-readonly-export-2026-11-06.md)、[证据](validation/ccgp-readonly-export-2026-11-06/manifest.json)。
+- 下一轮按[next-task.md](next-task.md)离线审查最小真实只读接入方案、身份/一致性阻断项与单次验收预算，仍不连接云端，不另建重复引擎。当前界面无法生成该按钮，给完整可复制任务；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
+## 上轮整批校验与内存回滚模拟（历史离线通过，禁止真实应用）
 
 - 薄层代码8f8b5cc50e77087197f05b70b7fb2fee3857b57d，复用既有生成器/请求锁/白名单/canonical校验；9f6生成器与change_id未改。先核完整清单、scope、原状态版本及所有候选，再建立内存副本；混合before/after、任一无效或并发变化整批拒绝。
 - 新增18项行为测试，全部984项Python、冻结10/10及原CLI3/3通过。两条候选内存overlay后回滚，892条完整状态及哈希精确恢复，890条未选择记录不变；重复overlay/回滚均0修改。两次CLI报告字节一致，网络阻断下往返通过。

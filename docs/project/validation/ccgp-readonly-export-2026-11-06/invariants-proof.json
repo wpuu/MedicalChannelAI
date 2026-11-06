@@ -1,0 +1,15 @@
+{
+  "protected_inputs": {
+    "file_count": 285,
+    "inventory_sha256": "2d7fa2d7a5cebffb2c4e53e1085653f3af4d494875650aa754ad57a6de01827c"
+  },
+  "starting_head": "246c139b3f42b738300ecaebac6bec42e6709119",
+  "no_client_construction": true,
+  "no_runtime_write_calls": true,
+  "no_snapshot_keys": true,
+  "only_d_prefixed_keys": true,
+  "source_values_unchanged": true,
+  "repeat_envelopes_equal": true,
+  "scope_is_assertion_not_authentication": true,
+  "real_canonical_export_performed": false
+}

@@ -1,0 +1,42 @@
+{
+  "input_kind": "LOCAL_SYNTHETIC_CACHE_WRAPPER_WITH_FROZEN_REPOSITORY_RECORDS",
+  "not_runtime_export": true,
+  "scope": {
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "target": "preview",
+    "preview_epoch": "mcai-p0-20261106-d",
+    "database": "mcai_p0_epoch_20261106d"
+  },
+  "record_source": "web/pipeline/data/regional_live_ccgp_records.json",
+  "record_ids": [
+    "ccgp_he_2a9ca892bf9d0b6a",
+    "ccgp_jl_806743d8af167ea4"
+  ],
+  "present_empty_kinds": [
+    "canonical",
+    "events",
+    "pending",
+    "pending-barrier",
+    "watch"
+  ],
+  "synthetic_auxiliary_values": {
+    "medicalchannelai:collector-active-cycle:v2": {
+      "cycle_id": "synthetic-local-owner",
+      "activated_at": "2026-11-06T09:00:00Z"
+    },
+    "medicalchannelai:collector-runtime-state:v2": {
+      "schema_version": "0.1",
+      "updated_at": "2026-11-06T09:00:00Z"
+    },
+    "medicalchannelai:collector-source-health:v2": {
+      "schema_version": "0.1",
+      "sources": {
+        "regional_he": {
+          "last_attempt_at": "2026-11-06T10:00:00Z",
+          "last_successful_scan_at": "2026-11-06T09:00:00Z"
+        }
+      }
+    }
+  },
+  "limitation": "All cache existence, absent values, owner and clocks above are SYNTHETIC. No inference about cloud state."
+}

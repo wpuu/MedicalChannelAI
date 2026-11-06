@@ -1,0 +1,10 @@
+{
+  "started_at": "2026-11-06T13:01:01Z",
+  "foreground_deadline": "2026-11-06T13:21:01Z",
+  "offline_acceptance_completed_at": "2026-11-06T13:16:24.772561+00:00",
+  "within_foreground_deadline": true,
+  "scope": "LOCAL_CORE_AND_EVIDENCE_ONLY",
+  "cloud_access_performed": false,
+  "real_export_performed": false,
+  "git_push_performed": false
+}
