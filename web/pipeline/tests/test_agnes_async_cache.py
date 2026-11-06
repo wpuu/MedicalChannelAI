@@ -17,7 +17,8 @@ class AgnesAsyncCacheTests(unittest.TestCase):
         cls.continuation_client = (WEB_ROOT / 'src' / 'services' / 'discoveryContinuationApi.ts').read_text(encoding='utf-8')
 
     def test_root_uses_wait_until_runtime_cache_and_longer_background_budget(self) -> None:
-        self.assertIn("import { getCache, waitUntil } from '@vercel/functions'", self.root)
+        self.assertIn("import { waitUntil } from '@vercel/functions'", self.root)
+        self.assertIn("import { getCache } from '../_previewEpoch.js'", self.root)
         self.assertIn('export const config = { maxDuration: 45 }', self.root)
         self.assertIn('BACKGROUND_PROVIDER_TIMEOUT_MS = 25_000', self.root)
         self.assertIn("AI_CACHE_PREFIX = 'medicalchannelai:agnes-discovery:v1'", self.root)

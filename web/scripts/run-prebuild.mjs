@@ -1,3 +1,4 @@
+import { previewEpoch, assertPreviewDatabase } from '../api/_previewEpoch.js'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
@@ -80,8 +81,15 @@ async function verifyAiBoundaryWithoutDatabaseSideEffects() {
   }
 }
 
+previewEpoch()
+assertPreviewDatabase(process.env.DATABASE_URL || process.env.POSTGRES_URL || '')
 verifyPilotDeploymentEnvironment()
 verifyPreviewSmokeSyntax()
+await import('./check-preview-epoch.mjs')
+// Generic legacy contracts use their own fake cache identities. Epoch behavior
+// is exercised explicitly above and in Python's dedicated Preview suite.
+// This child process cannot change the parent deployment/build environment.
+delete process.env.MCAI_PREVIEW_EPOCH
 
 const candidates = []
 if (process.env.PYTHON) candidates.push([process.env.PYTHON, []])

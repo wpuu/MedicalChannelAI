@@ -1,3 +1,4 @@
+import { assertPreviewDatabase } from './_previewEpoch.js'
 import postgres from 'postgres'
 
 let sqlClient = null
@@ -8,7 +9,9 @@ const PRIVATE_SCHEMA_VERSION = '2026-09-04-ui-preference-v1'
 const PRIVATE_SCHEMA_LOCK_KEY = 'medicalchannelai-private-schema-migration'
 
 function databaseUrl() {
-  return String(process.env.DATABASE_URL || process.env.POSTGRES_URL || '').trim()
+  const value = String(process.env.DATABASE_URL || process.env.POSTGRES_URL || '').trim()
+  assertPreviewDatabase(value)
+  return value
 }
 
 export function privateDatabaseConfigured() {

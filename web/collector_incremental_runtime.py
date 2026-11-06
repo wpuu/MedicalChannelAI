@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Iterable
 
-from vercel.functions import RuntimeCache
+from collector_epoch import RuntimeCache
 
 import collector_runtime as runtime
 from collector_incremental import (

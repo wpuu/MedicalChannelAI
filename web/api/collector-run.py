@@ -9,8 +9,8 @@ from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlsplit
 from zoneinfo import ZoneInfo
 
-from vercel.functions import RuntimeCache
-from vercel.queue import send
+from collector_epoch import RuntimeCache, preview_epoch
+from collector_epoch import send
 
 from collector_incremental import scan_bucket_id
 from collector_incremental_scheduler import (
@@ -200,7 +200,9 @@ async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
     # A failed source or publish must not prevent all intraday collection.
     await ensure_intraday_chain(now=now)
     cache = RuntimeCache()
-    cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"
+    cycle_id = _recovery_cycle_id(cache, local_date) or (
+        f"preview:{preview_epoch()}:{local_date}" if preview_epoch() else f"prod:{local_date}"
+    )
     cycle_id = _activate_cycle(
         cache,
         cycle_id=cycle_id,

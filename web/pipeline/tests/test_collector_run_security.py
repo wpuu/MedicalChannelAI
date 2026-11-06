@@ -51,7 +51,8 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertNotIn('x-vercel-cron-schedule', source)
         self.assertLess(source.index("if not cron_secret:"), source.index('return True, "VERCEL_CRON"'))
         self.assertLess(source.index("hmac.compare_digest"), source.index('return True, "VERCEL_CRON"'))
-        self.assertIn('cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"', source)
+        self.assertIn('cycle_id = _recovery_cycle_id(cache, local_date) or (', source)
+        self.assertIn('if preview_epoch() else f"prod:{local_date}"', source)
 
 
 if __name__ == "__main__":

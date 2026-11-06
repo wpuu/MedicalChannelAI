@@ -1,5 +1,5 @@
 import { snapshotRevisionMicros } from './_snapshotRevision.js'
-import { getCache } from '@vercel/functions'
+import { getCache } from './_previewEpoch.js'
 import { latestPublicVerifiedSnapshotIfChanged } from './_publicIntelligenceDb.js'
 import bundledSnapshot from '../public/data/today-actions.public.json' with { type: 'json' }
 import { filterSnapshotToMedicalChannel } from './_medicalChannelScope.js'

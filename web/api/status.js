@@ -1,3 +1,4 @@
+import { previewEpoch } from './_previewEpoch.js'
 import { loadVerifiedSnapshot, verifiedSnapshotRuntimeOrigin, verifiedSnapshotSourceMode } from './_verifiedSnapshot.js'
 import { evaluateSourceHealth } from './_sourceHealth.js'
 
@@ -39,7 +40,7 @@ export default async function handler(request, response) {
   }
   const base = {
     schema_version: '0.1', service: 'MedicalChannelAI', version: APP_VERSION,
-    commit: buildCommit(), production_ready: false, ai: { configured: aiConfigured() },
+    commit: buildCommit(), preview_epoch: previewEpoch(), production_ready: false, ai: { configured: aiConfigured() },
   }
   try {
     const snapshot = await loadVerifiedSnapshot()

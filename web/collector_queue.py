@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from vercel.functions import RuntimeCache
-from vercel.queue import send
+from collector_epoch import RuntimeCache, accepts_payload
+from collector_epoch import send
 
 import collector_incremental_runtime as incremental_runtime
 import collector_runtime as runtime
@@ -412,6 +412,8 @@ async def ensure_intraday_chain(*, now: datetime | None = None) -> None:
 async def process_collector_payload(payload: dict[str, Any]) -> None:
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
         return
+    if not accepts_payload(payload):
+        return  # Reject foreign epochs before cache, leases, I/O or enqueue.
 
     if _is_incremental_tick_payload(payload):
         await _process_incremental_tick_payload(payload)

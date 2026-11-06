@@ -14,7 +14,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
-from vercel.functions import RuntimeCache
+from collector_epoch import RuntimeCache
 from collector_oidc import preview_oidc_token
 from collector_diagnostics import failure_row, failure_summary
 

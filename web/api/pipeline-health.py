@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 try:
     from medical_channel_pipeline import build_public_snapshot
     from medical_channel_pipeline.validation import validate_record
-    from vercel.functions import RuntimeCache
+    from collector_epoch import RuntimeCache
 
     _IMPORT_OK = callable(build_public_snapshot) and callable(validate_record)
     _DATA_OK = (PIPELINE_ROOT / 'data' / 'tianjin_query_plan.json').is_file()

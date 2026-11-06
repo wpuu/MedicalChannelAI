@@ -5,7 +5,7 @@ import re
 from http.server import BaseHTTPRequestHandler
 from typing import Any
 
-from vercel.functions import RuntimeCache
+from collector_epoch import RuntimeCache, preview_epoch
 
 import collector_runtime as runtime
 from collector_incremental import SOURCE_POLICIES, normalize_ledger
@@ -268,6 +268,7 @@ class handler(BaseHTTPRequestHandler):
                     "service": "MedicalChannelAI",
                     "collector": {
                         **state,
+                        "preview_epoch": preview_epoch(),
                         "active_cycle_id": active,
                         "execution_namespace": "v2",
                         "stage_order": list(STAGE_ORDER),
