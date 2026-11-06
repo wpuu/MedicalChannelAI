@@ -1,0 +1,1186 @@
+{
+  "normal_envelope_sha256": "a3b86c23c2e74601cbbd7e70fff407a73a3aa0162423da1d9c12a4eaa344218b",
+  "empty_envelope_sha256": "08b0e23e2a234738df81cac084953af903828fe2e12d7d9abb575a6be7892376",
+  "normal_summary": {
+    "schema_version": "0.1",
+    "input_kind": "OFFLINE_READONLY_CACHE_OBSERVATION",
+    "scope": {
+      "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+      "target": "preview",
+      "preview_epoch": "mcai-p0-20261106-d",
+      "database": "mcai_p0_epoch_20261106d"
+    },
+    "scope_provenance_verified": false,
+    "status": "OBSERVED_STABLE",
+    "read_plan_complete": true,
+    "key_count": 58,
+    "read_count": 116,
+    "observed_bytes": 13170,
+    "observed_state_sha256": "394041bcda51c4ff4f524717ff2f0eedfc16d9cc35de0b122fa2f40a4538d529",
+    "effective_ccgp_key": "medicalchannelai:collector-ccgp-records:v2",
+    "missing_canonical_or_event_keys": [],
+    "coverage": {
+      "complete": false,
+      "uncovered": [
+        "GLOBAL_ATOMIC_REVISION_OR_FENCE",
+        "READER_PROVENANCE",
+        "UNKNOWN_CANONICAL_EXTENSION_FIELDS_AND_NESTED_VALUE_SEMANTICS",
+        "OPAQUE_METADATA_FIELDS_AND_OWNER_VERSION_SEMANTICS",
+        "EVENT_TO_RECORD_AND_PENDING_BARRIER_RELATIONSHIPS",
+        "NON_CCGP_EVENT_STORES_NOT_DEFINED_BY_CURRENT_PRODUCER",
+        "REGIONAL_INCREMENTAL_STATE_NOT_DEFINED_BY_CURRENT_PRODUCER"
+      ],
+      "consistency": "TWO_EQUAL_OBSERVATION_PASSES; ABA_AND_CROSS_KEY_RACES_NOT_EXCLUDED"
+    },
+    "apply_allowed": false,
+    "migration_usable": false,
+    "atomic_snapshot_guaranteed": false,
+    "runtime_cas_implemented": false,
+    "shards": {
+      "medicalchannelai:collector-ccgp-records:v2": {
+        "kind": "canonical",
+        "sources": [
+          "ccgp"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-records:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-tjmugh-records:v2": {
+        "kind": "canonical",
+        "sources": [
+          "tjmugh"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjmugh-records:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-tjnothop-records:v2": {
+        "kind": "canonical",
+        "sources": [
+          "tjnothop"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjnothop-records:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-teda-records:v2": {
+        "kind": "canonical",
+        "sources": [
+          "teda"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-teda-records:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-tjfch-records:v2": {
+        "kind": "canonical",
+        "sources": [
+          "tjfch",
+          "tjfch_test"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjfch-records:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-tjzyefy-records:v2": {
+        "kind": "canonical",
+        "sources": [
+          "tjzyefy"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjzyefy-records:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-tjzyefy-intent-records:v2": {
+        "kind": "canonical",
+        "sources": [
+          "tjzyefy_intent"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjzyefy-intent-records:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-tjzxfc-records:v2": {
+        "kind": "canonical",
+        "sources": [
+          "tjzxfc"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjzxfc-records:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-regional-records:v3:BJ": {
+        "kind": "canonical",
+        "sources": [
+          "regional_bj"
+        ],
+        "market": "BJ",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:BJ",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-regional-records:v3:HE": {
+        "kind": "canonical",
+        "sources": [
+          "regional_he"
+        ],
+        "market": "HE",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:HE",
+        "state": "PRESENT",
+        "sha256": "37606121b986dfeb65b94b739684b07d967be117d3cae1602a37cea8b5b66ec9",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": [
+          "/0/facts/expected_procurement_precision",
+          "/0/facts/product_categories/**",
+          "/0/facts/product_items/**",
+          "/0/facts/public_contact/**",
+          "/0/source/source_id"
+        ]
+      },
+      "medicalchannelai:collector-regional-records:v3:LN": {
+        "kind": "canonical",
+        "sources": [
+          "regional_ln"
+        ],
+        "market": "LN",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:LN",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-regional-records:v3:JL": {
+        "kind": "canonical",
+        "sources": [
+          "regional_jl"
+        ],
+        "market": "JL",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:JL",
+        "state": "PRESENT",
+        "sha256": "86a9a580c61c21d2365d658fe4d623dc03f4c826a91b6a1562bfa52a3b670cb2",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": [
+          "/0/facts/expected_procurement_precision",
+          "/0/facts/product_categories/**",
+          "/0/facts/product_items/**",
+          "/0/facts/public_contact/**",
+          "/0/source/source_id"
+        ]
+      },
+      "medicalchannelai:collector-regional-records:v3:HL": {
+        "kind": "canonical",
+        "sources": [
+          "regional_hl"
+        ],
+        "market": "HL",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:HL",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-ccgp-events:v2": {
+        "kind": "events",
+        "sources": [
+          "ccgp"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-events:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-runtime-state:v2": {
+        "kind": "owner_version",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-runtime-state:v2",
+        "state": "PRESENT",
+        "sha256": "5b6ee210a60ae361013e88c8663c5f44db34b401dbffcab1c0baad1a8570db90",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-active-cycle:v2": {
+        "kind": "owner_version",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-active-cycle:v2",
+        "state": "PRESENT",
+        "sha256": "9e023c81fcc24106d2419f488601a992955adb7be2a6a135dc2c621c26caebe7",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-incremental-active:v2": {
+        "kind": "owner_version",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-active:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-chain:v2": {
+        "kind": "owner_version",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-chain:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-source-health:v2": {
+        "kind": "health_clocks",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-source-health:v2",
+        "state": "PRESENT",
+        "sha256": "62f051fe9de10df98a243b8a7e928482cdf64dee8e55e9027b8a7da9aed78423",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-ccgp-watch-projects:v2": {
+        "kind": "watch",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-watch-projects:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-ccgp-committed:v2": {
+        "kind": "committed",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-committed:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-ccgp-cycle-staging:v2": {
+        "kind": "staging",
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-cycle-staging:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-ledger:ccgp:v2": {
+        "kind": "ledger",
+        "sources": [
+          "ccgp"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:ccgp:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-bucket:ccgp:v2": {
+        "kind": "bucket",
+        "sources": [
+          "ccgp"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:ccgp:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending:ccgp:v2": {
+        "kind": "pending",
+        "sources": [
+          "ccgp"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:ccgp:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending-barrier:ccgp:v2": {
+        "kind": "pending-barrier",
+        "sources": [
+          "ccgp"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:ccgp:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-incremental-ledger:tjmugh:v2": {
+        "kind": "ledger",
+        "sources": [
+          "tjmugh"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjmugh:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-bucket:tjmugh:v2": {
+        "kind": "bucket",
+        "sources": [
+          "tjmugh"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjmugh:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending:tjmugh:v2": {
+        "kind": "pending",
+        "sources": [
+          "tjmugh"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjmugh:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending-barrier:tjmugh:v2": {
+        "kind": "pending-barrier",
+        "sources": [
+          "tjmugh"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjmugh:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-incremental-ledger:tjnothop:v2": {
+        "kind": "ledger",
+        "sources": [
+          "tjnothop"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjnothop:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-bucket:tjnothop:v2": {
+        "kind": "bucket",
+        "sources": [
+          "tjnothop"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjnothop:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending:tjnothop:v2": {
+        "kind": "pending",
+        "sources": [
+          "tjnothop"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjnothop:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending-barrier:tjnothop:v2": {
+        "kind": "pending-barrier",
+        "sources": [
+          "tjnothop"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjnothop:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-incremental-ledger:teda:v2": {
+        "kind": "ledger",
+        "sources": [
+          "teda"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:teda:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-bucket:teda:v2": {
+        "kind": "bucket",
+        "sources": [
+          "teda"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:teda:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending:teda:v2": {
+        "kind": "pending",
+        "sources": [
+          "teda"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:teda:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending-barrier:teda:v2": {
+        "kind": "pending-barrier",
+        "sources": [
+          "teda"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:teda:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-incremental-ledger:tjfch:v2": {
+        "kind": "ledger",
+        "sources": [
+          "tjfch"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjfch:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-bucket:tjfch:v2": {
+        "kind": "bucket",
+        "sources": [
+          "tjfch"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjfch:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending:tjfch:v2": {
+        "kind": "pending",
+        "sources": [
+          "tjfch"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjfch:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending-barrier:tjfch:v2": {
+        "kind": "pending-barrier",
+        "sources": [
+          "tjfch"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjfch:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-incremental-ledger:tjfch_test:v2": {
+        "kind": "ledger",
+        "sources": [
+          "tjfch_test"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjfch_test:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-bucket:tjfch_test:v2": {
+        "kind": "bucket",
+        "sources": [
+          "tjfch_test"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjfch_test:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending:tjfch_test:v2": {
+        "kind": "pending",
+        "sources": [
+          "tjfch_test"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjfch_test:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending-barrier:tjfch_test:v2": {
+        "kind": "pending-barrier",
+        "sources": [
+          "tjfch_test"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjfch_test:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-incremental-ledger:tjzyefy:v2": {
+        "kind": "ledger",
+        "sources": [
+          "tjzyefy"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjzyefy:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-bucket:tjzyefy:v2": {
+        "kind": "bucket",
+        "sources": [
+          "tjzyefy"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjzyefy:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending:tjzyefy:v2": {
+        "kind": "pending",
+        "sources": [
+          "tjzyefy"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjzyefy:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending-barrier:tjzyefy:v2": {
+        "kind": "pending-barrier",
+        "sources": [
+          "tjzyefy"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjzyefy:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-incremental-ledger:tjzyefy_intent:v2": {
+        "kind": "ledger",
+        "sources": [
+          "tjzyefy_intent"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjzyefy_intent:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-bucket:tjzyefy_intent:v2": {
+        "kind": "bucket",
+        "sources": [
+          "tjzyefy_intent"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjzyefy_intent:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending:tjzyefy_intent:v2": {
+        "kind": "pending",
+        "sources": [
+          "tjzyefy_intent"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjzyefy_intent:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending-barrier:tjzyefy_intent:v2": {
+        "kind": "pending-barrier",
+        "sources": [
+          "tjzyefy_intent"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjzyefy_intent:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      },
+      "medicalchannelai:collector-incremental-ledger:tjzxfc:v2": {
+        "kind": "ledger",
+        "sources": [
+          "tjzxfc"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjzxfc:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-bucket:tjzxfc:v2": {
+        "kind": "bucket",
+        "sources": [
+          "tjzxfc"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjzxfc:v2",
+        "state": "UNINITIALIZED_OR_UNAVAILABLE",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending:tjzxfc:v2": {
+        "kind": "pending",
+        "sources": [
+          "tjzxfc"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjzxfc:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "CANONICAL_SCHEMA_ONLY",
+        "uncovered_paths": []
+      },
+      "medicalchannelai:collector-incremental-pending-barrier:tjzxfc:v2": {
+        "kind": "pending-barrier",
+        "sources": [
+          "tjzxfc"
+        ],
+        "physical_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjzxfc:v2",
+        "state": "PRESENT_EMPTY",
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "semantic_coverage": "OPAQUE_NOT_SEMANTICALLY_COVERED",
+        "uncovered_paths": [
+          "/**"
+        ]
+      }
+    }
+  },
+  "read_trace": [
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjmugh-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjnothop-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-teda-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjfch-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjzyefy-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjzyefy-intent-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjzxfc-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:BJ",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:HE",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:LN",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:JL",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:HL",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-events:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-runtime-state:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-active-cycle:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-active:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-chain:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-source-health:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-watch-projects:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-committed:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-cycle-staging:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:ccgp:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:ccgp:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:ccgp:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:ccgp:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjmugh:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjmugh:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjmugh:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjmugh:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjnothop:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjnothop:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjnothop:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjnothop:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:teda:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:teda:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:teda:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:teda:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjfch:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjfch:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjfch:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjfch:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjfch_test:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjfch_test:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjfch_test:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjfch_test:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjzyefy:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjzyefy:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjzyefy:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjzyefy:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjzyefy_intent:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjzyefy_intent:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjzyefy_intent:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjzyefy_intent:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjzxfc:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjzxfc:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjzxfc:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjzxfc:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjmugh-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjnothop-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-teda-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjfch-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjzyefy-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjzyefy-intent-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-tjzxfc-records:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:BJ",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:HE",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:LN",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:JL",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-regional-records:v3:HL",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-events:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-runtime-state:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-active-cycle:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-active:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-chain:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-source-health:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-watch-projects:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-committed:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-cycle-staging:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:ccgp:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:ccgp:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:ccgp:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:ccgp:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjmugh:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjmugh:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjmugh:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjmugh:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjnothop:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjnothop:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjnothop:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjnothop:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:teda:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:teda:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:teda:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:teda:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjfch:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjfch:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjfch:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjfch:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjfch_test:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjfch_test:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjfch_test:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjfch_test:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjzyefy:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjzyefy:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjzyefy:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjzyefy:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjzyefy_intent:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjzyefy_intent:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjzyefy_intent:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjzyefy_intent:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-ledger:tjzxfc:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-bucket:tjzxfc:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending:tjzxfc:v2",
+      "timeout_seconds": 2.0
+    },
+    {
+      "key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-incremental-pending-barrier:tjzxfc:v2",
+      "timeout_seconds": 2.0
+    }
+  ],
+  "rejections": {
+    "invalid_key": {
+      "code": "GUARD_KEY_REJECTED",
+      "transport_calls": 0
+    },
+    "expired_before_read": {
+      "code": "GUARD_READ_DEADLINE_EXCEEDED",
+      "transport_calls": 0
+    }
+  },
+  "repeat_envelope_equal": true,
+  "input_values_unchanged": true,
+  "kernel_envelopes_equal_prior_frozen_outputs": true,
+  "hard_cancellation_implemented": false,
+  "real_backend_authenticated": false,
+  "cloud_access_performed": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

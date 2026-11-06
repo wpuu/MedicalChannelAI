@@ -1,0 +1,9 @@
+{
+  "starting_head": "78bb17b",
+  "protected_file_count": 305,
+  "protected_inventory_sha256": "afa3a83556879f17508898cf83285950f965f3ddab89fd687cadaaac35507cca",
+  "old_kernel_and_input_kind_unchanged": true,
+  "no_original_data_or_old_evidence_writes": true,
+  "no_client_or_network_or_sleep_in_replay": true,
+  "all_times_in_guard_replay_are_synthetic": true
+}

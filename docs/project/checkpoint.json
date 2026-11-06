@@ -2,18 +2,18 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-06",
   "timezone": "Asia/Shanghai",
-  "state_scope": "CURRENT_OFFLINE_READONLY_INTEGRATION_REVIEW_NO_RUNTIME_ACTIONS",
+  "state_scope": "CURRENT_SYNTHETIC_LOCAL_GET_ONLY_GUARD_NO_RUNTIME_ACCESS",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
   "runtime_implementation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "latest_code_validated_head": "97819215530454da55e0d5052b7bfbcd7f9ff694",
+  "latest_code_validated_head": "605ebad99041a3057189a1315adae6cc2a773055",
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "MINIMAL_READONLY_INTEGRATION_PLAN_COMPLETE_REAL_ACCESS_AND_MIGRATION_NO_GO",
-  "latest_changes_validation_status": "REVIEW_ONLY; FROZEN_VERIFIER_REPLAY_PASS; 58_KEY_PLAN_MATCH; PREFIX_HAZARD_REPRODUCED_LOCALLY; 1007_AND10/3_HISTORICAL_NOT_RERUN",
+  "milestone": "OFFLINE_GET_ONLY_GUARD_COMPLETE_REAL_METADATA_REQUIRES_NEW_AUTHORIZATION",
+  "latest_changes_validation_status": "1031_PYTHON_PASS; FROZEN10_OF10; CLI3_OF3; 116_GET_LIMIT_AND_FAKE_CLOCK_DEADLINES; NO_REAL_RUNTIME_INTEGRATION",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -2316,7 +2316,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "43a900775039d5eb04c3102330cb8fd1a362f25e",
+  "latest_reviewed_repository_head": "605ebad99041a3057189a1315adae6cc2a773055",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2414,7 +2414,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "43a900775039d5eb04c3102330cb8fd1a362f25e",
+  "current_phase_starting_head": "78bb17b01e8608528fbe6b4e33a8acdb2f3a6e6a",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2464,8 +2464,8 @@
     "production_modified": false,
     "historical": true
   },
-  "latest_offline_tool_head": "97819215530454da55e0d5052b7bfbcd7f9ff694",
-  "code_validation_scope": "OFFLINE_REVIEW_ONLY; EXISTING_KERNEL_AND_ALL_SOURCE_TESTS_UNCHANGED",
+  "latest_offline_tool_head": "605ebad99041a3057189a1315adae6cc2a773055",
+  "code_validation_scope": "SYNTHETIC_GUARD_ONLY; FROZEN_KERNEL/GENERATOR/SIMULATOR/RUNTIME_UNCHANGED",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
     "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
@@ -2739,6 +2739,87 @@
       "cloud_access_performed": false,
       "git_push_performed": false,
       "apply_allowed": false
+    },
+    "historical": true
+  },
+  "readonly_guard_acceptance": {
+    "code_commit": "605ebad99041a3057189a1315adae6cc2a773055",
+    "starting_head": "78bb17b01e8608528fbe6b4e33a8acdb2f3a6e6a",
+    "python_tests": 1031,
+    "new_guard_behavior_tests": 24,
+    "fixture_gate": "10/10 PASS",
+    "original_cli_gate": "3/3 PASS",
+    "previous_frozen_verifier": "PASS (1007 log is historical; 1031 tests actually rerun this round)",
+    "source_files": [
+      {
+        "path": "web/collector_readonly_guard.py",
+        "sha256": "4174cd6706ce6dcb750e2593840c1497dc91bf1df7272f5fedda9290665476bc"
+      },
+      {
+        "path": "web/pipeline/tests/test_collector_readonly_guard.py",
+        "sha256": "1605bd59ed4f4248b33fffddb48603588be0459e4c75e2d2027df02bc4245371"
+      },
+      {
+        "path": "web/collector_readonly_export.py",
+        "sha256": "961555c3d15bd0e96a204c829574df32d3a53f1efb7303970f5f97985ac47f6d"
+      },
+      {
+        "path": "web/pipeline/tests/test_collector_readonly_export.py",
+        "sha256": "e42146b20abeaeaa7754511924b34f510b61967c950c53e58a523adb01d3487a"
+      },
+      {
+        "path": "web/collector_epoch.py",
+        "sha256": "d25adb1e0a5b22d2a3d41a0db6e4b240af59ab9bf014011629bf64f01751b0c7"
+      },
+      {
+        "path": "web/collector_namespace.py",
+        "sha256": "fc82c0af388124e4bbf5252b38a23a5f48d45a4caf26ead338be213d53be393b"
+      },
+      {
+        "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+        "sha256": "7d91bfcb1a83475e628b7f3ce7960c85f266caa4e29a1b17cb6894667e442e8e"
+      },
+      {
+        "path": "web/pipeline/scripts/simulate_ccgp_product_corrections.py",
+        "sha256": "d827864cf8ff66ba99b3eb9de0724579d7a75d366601a19fda0b67a5ef9e29a9"
+      }
+    ],
+    "normal_envelope_sha256": "a3b86c23c2e74601cbbd7e70fff407a73a3aa0162423da1d9c12a4eaa344218b",
+    "empty_envelope_sha256": "08b0e23e2a234738df81cac084953af903828fe2e12d7d9abb575a6be7892376",
+    "kernel_schema_and_envelopes_unchanged": true,
+    "application_read_deadline_seconds": 110,
+    "application_total_deadline_seconds": 120,
+    "per_call_timeout_ceiling_seconds": 2,
+    "max_get_calls": 116,
+    "retry_count": 0,
+    "mode": "SYNTHETIC_LOCAL_STUB_ONLY",
+    "scope_provenance_verified": false,
+    "hard_cancellation_implemented": false,
+    "real_runtime_integration": "NO_GO",
+    "cloud_access_performed": false,
+    "deployment_performed": false,
+    "git_push_performed": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "report": "docs/project/ccgp-readonly-guard-2026-11-06.md",
+    "evidence_manifest": "docs/project/validation/ccgp-readonly-guard-2026-11-06/manifest.json",
+    "protected_input_file_count": 305,
+    "foreground_started_at": "2026-11-06T13:50:24Z",
+    "foreground_deadline": "2026-11-06T14:10:24Z",
+    "production_modified": false,
+    "offline_stage_complete": true,
+    "next_cloud_metadata_action_authorized": false,
+    "next_cloud_metadata_authorization_required": true,
+    "completion": {
+      "started_at": "2026-11-06T13:50:24Z",
+      "foreground_deadline": "2026-11-06T14:10:24Z",
+      "offline_acceptance_completed_at": "2026-11-06T14:01:08.906207+00:00",
+      "within_foreground_deadline": true,
+      "cloud_access_performed": false,
+      "git_push_performed": false,
+      "runtime_data_writes": 0,
+      "apply_allowed": false,
+      "migration_usable": false
     }
   }
 }
