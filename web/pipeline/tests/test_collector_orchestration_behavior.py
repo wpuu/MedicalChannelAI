@@ -124,6 +124,105 @@ class CollectorOrchestrationBehaviorTests(unittest.TestCase):
             asyncio.run(self.worker.process_collector_payload(following))
         self.assertEqual(self.cache.get(self.worker.META_KEY)["stages"]["tjnothop"]["status"], "COMPLETED")
 
+    def seed_retry(self, stage, attempts):
+        self.cache.set(self.worker.META_KEY, {
+            "local_date": self.now.date().isoformat(), "cycle_as_of": self.now.isoformat(),
+            "stages": {**{name: {"status": "COMPLETED"} for name in self.worker.STAGE_ORDER[:self.worker.STAGE_ORDER.index(stage)]},
+                       stage: {"status": "FAILED", "attempt_count": attempts}},
+        })
+        self.cache.set(self.runtime.TJMUGH_RECORDS_KEY, [{"opportunity_id": "last_verified"}])
+        return self.cycle_payload(stage)
+
+    def test_first_transient_failure_keeps_real_retry_and_canonical(self):
+        payload = self.seed_retry("tjmugh", 0)
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+            self.runtime, "_run_tjmugh", side_effect=TimeoutError("temporary")):
+            with self.assertRaisesRegex(RuntimeError, "COLLECTOR_QUEUE_STAGE_FAILED"):
+                asyncio.run(self.worker.process_collector_payload(payload))
+        row = self.cache.get(self.worker.META_KEY)["stages"]["tjmugh"]
+        self.assertEqual((row["status"], row["attempt_count"]), ("FAILED", 1))
+        self.assertEqual(self.sent, [])
+        self.assertEqual(self.cache.get(self.runtime.TJMUGH_RECORDS_KEY), [{"opportunity_id": "last_verified"}])
+
+    def test_last_actual_failure_degrades_and_advances_without_another_delivery(self):
+        payload = self.seed_retry("tjmugh", 1)
+        diagnostics = {"failure_count": 1, "reason_counts": {"NETWORK_TIMEOUT": 1}, "samples": []}
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+            self.runtime, "_run_tjmugh", side_effect=self.runtime.CollectorStageBlocked("SOURCE_FAILED", diagnostics=diagnostics)), patch.object(
+            self.runtime, "_now_utc", return_value=self.now):
+            asyncio.run(self.worker.process_collector_payload(payload))
+        row = self.cache.get(self.worker.META_KEY)["stages"]["tjmugh"]
+        self.assertEqual((row["status"], row["attempt_count"]), ("DEGRADED", 2))
+        self.assertEqual(row["failed_at"], self.now.isoformat())
+        self.assertEqual(row["diagnostics"], diagnostics)
+        self.assertEqual(row["error_message"], "SOURCE_FAILED")
+        self.assertEqual(self.sent[-1]["payload"]["stage"], "tjnothop")
+        self.assertEqual(self.sent[-1]["delay"], self.worker.NEXT_STAGE_DELAY_SECONDS)
+        self.assertIsNotNone(self.cache.get(self.worker.ACTIVE_CYCLE_KEY))
+
+    def test_enqueue_failure_replay_resumes_terminal_stage_without_refetch(self):
+        payload = self.seed_retry("tjmugh", 1)
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+            self.runtime, "_run_tjmugh", side_effect=TimeoutError("temporary")) as scan, patch.object(
+            self.worker, "send", new_callable=AsyncMock, side_effect=[RuntimeError("send failed"), "next-id"]) as send:
+            with self.assertRaisesRegex(RuntimeError, "send failed"):
+                asyncio.run(self.worker.process_collector_payload(payload))
+            before = self.cache.get(self.worker.META_KEY)["stages"]["tjmugh"]
+            asyncio.run(self.worker.process_collector_payload(payload))
+            scan.assert_called_once()
+            self.assertEqual(self.cache.get(self.worker.META_KEY)["stages"]["tjmugh"], before)
+            self.assertEqual(send.await_args_list[0], send.await_args_list[1])
+
+    def test_nonretryable_terminal_redelivery_does_not_spend_a_second_attempt(self):
+        payload = self.seed_retry("teda", 0)
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+            self.runtime, "_run_teda", side_effect=self.runtime.CollectorStageBlocked("TEDA_HTTP_403", retryable=False)) as scan:
+            asyncio.run(self.worker.process_collector_payload(payload))
+            first = self.cache.get(self.worker.META_KEY)["stages"]["teda"]
+            asyncio.run(self.worker.process_collector_payload(payload))
+            scan.assert_called_once()
+        self.assertEqual(first["attempt_count"], 1)
+        self.assertEqual(self.cache.get(self.worker.META_KEY)["stages"]["teda"], first)
+
+    def test_last_publish_failure_releases_owner_and_remains_failed_immediately(self):
+        payload = self.seed_retry("publish", 1)
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+            self.runtime, "_run_publish", side_effect=RuntimeError("DATABASE_UNAVAILABLE")):
+            asyncio.run(self.worker.process_collector_payload(payload))
+        row = self.cache.get(self.worker.META_KEY)["stages"]["publish"]
+        self.assertEqual((row["status"], row["attempt_count"]), ("FAILED", 2))
+        self.assertIsNone(self.cache.get(self.worker.ACTIVE_CYCLE_KEY))
+        self.assertEqual(self.sent, [])
+        self.assertIsNone(self.cache.get(self.runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY))
+
+    def test_explicit_legacy_recovery_exceptions_still_allow_their_extra_attempt(self):
+        for stage, function, error in [
+            ("tjfch", "_run_tjfch", "TJFCH_NOTICE_TYPE_UNSUPPORTED"),
+            ("publish", "_run_publish", "COLLECTOR_CANONICAL_STATE_INCOMPLETE:regional_bj"),
+        ]:
+            with self.subTest(stage=stage):
+                self.seed_retry(stage, 1)
+                with patch.object(self.runtime, function, side_effect=RuntimeError(error)):
+                    status, result = self.runtime.run_stage(stage, now=self.now)
+                self.assertEqual(status, 503)
+                self.assertFalse(result["retry_exhausted"])
+                with patch.object(self.runtime, function, return_value={"failure_count": 0}):
+                    status, result = self.runtime.run_stage(stage, now=self.now)
+                self.assertEqual(status, 200)
+                self.assertEqual(self.cache.get(self.worker.META_KEY)["stages"][stage]["attempt_count"], 3)
+
+    def test_superseded_owner_after_failure_cannot_degrade_or_enqueue(self):
+        payload = self.seed_retry("tjmugh", 1)
+        def lose_owner(*args):
+            self.cache.set(self.worker.ACTIVE_CYCLE_KEY, {"cycle_id": "new-owner"})
+            raise TimeoutError("temporary")
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+            self.runtime, "_run_tjmugh", side_effect=lose_owner):
+            asyncio.run(self.worker.process_collector_payload(payload))
+        self.assertEqual(self.cache.get(self.worker.META_KEY)["stages"]["tjmugh"]["status"], "FAILED")
+        self.assertEqual(self.cache.get(self.worker.ACTIVE_CYCLE_KEY)["cycle_id"], "new-owner")
+        self.assertEqual(self.sent, [])
+
     def test_degraded_regional_primary_skips_fallback_without_fetch_or_retry(self):
         self.cache.set(self.worker.META_KEY, {
             "local_date": "2026-11-05", "cycle_as_of": self.now.isoformat(),

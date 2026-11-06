@@ -484,6 +484,161 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
         self.runtime._run_event_batch(self.cache, self.state, "event6")
         self.assertEqual(self.cache.get(self.runtime.CCGP_COMMITTED_STATE_KEY), staged)
 
+    def seed_nonempty_event_batch(self):
+        self.state["stages"] = {"ccgp": {"status": "COMPLETED", "result": {
+            "start_date": "2026:09:29", "end_date": "2026:10:01"}}}
+        self.cache.set(self.runtime.META_KEY, self.state)
+        self.cache.set(self.runtime.CCGP_WATCH_KEY, ["private-project-number"])
+        self.cache.set(self.runtime.CCGP_CYCLE_STAGING_KEY, {
+            "cycle_as_of": self.now.isoformat(), "records": [], "events": []})
+        committed = {"cycle_as_of": "previous", "records": [], "events": []}
+        self.cache.set(self.runtime.CCGP_COMMITTED_STATE_KEY, committed)
+        return committed
+
+    def prepare_retry_case(self, stage, previous, *, publish=None, fallback=False):
+        stages={name:{"status":"COMPLETED"} for name in self.runtime.STAGE_ORDER[:self.runtime.STAGE_ORDER.index(stage)]}
+        stages[stage]=previous
+        if publish is not None:stages["publish"]=publish
+        if fallback:stages[f"{stage}_fallback"]={"status":"DEGRADED"}
+        self.cache.set(self.runtime.META_KEY,{**self.state,"stages":stages})
+        with patch.object(self.runtime,"_now_utc",return_value=self.now):
+            return self.runtime._prepare_stage(self.cache,stage,self.now)
+
+    def test_stale_running_regional_migration_replay_requires_the_known_failure(self):
+        for age,error,allowed in [(16,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:regional_bj",True),
+                                  (1,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:regional_bj",False),
+                                  (16,"OTHER_FAILURE",False)]:
+            with self.subTest(age=age,error=error):
+                previous={"status":"RUNNING","attempt_count":2,"wall_started_at":(self.now-timedelta(minutes=age)).isoformat()}
+                if allowed:
+                    state,prior=self.prepare_retry_case("regional_bj",previous,publish={"status":"FAILED","error_message":error},fallback=True)
+                    self.assertIsNone(prior)
+                    self.assertEqual(state["stages"]["regional_bj"]["attempt_count"],3)
+                else:
+                    with self.assertRaisesRegex(self.runtime.CollectorPrecondition,"COLLECTOR_STAGE_RETRY_LIMIT"):
+                        self.prepare_retry_case("regional_bj",previous,publish={"status":"FAILED","error_message":error},fallback=True)
+
+    def test_regional_timeout_split_recovery_has_real_negative_cases(self):
+        for stage,status,attempts,error,fallback,allowed in [
+            ("regional_bj","RUNNING",2,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:BJ",False,True),
+            ("regional_bj","RUNNING",3,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:BJ",False,True),
+            ("regional_bj","FAILED",2,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:BJ",False,False),
+            ("regional_bj","RUNNING",4,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:BJ",False,False),
+            ("regional_bj","RUNNING",2,"OTHER",False,False),
+            ("regional_bj","RUNNING",2,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:BJ",True,False),
+            ("tjmugh","RUNNING",2,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:BJ",False,False),
+        ]:
+            with self.subTest(stage=stage,status=status,attempts=attempts,error=error,fallback=fallback):
+                previous={"status":status,"attempt_count":attempts,"wall_started_at":self.now.isoformat()}
+                if allowed:
+                    state,prior=self.prepare_retry_case(stage,previous,publish={"status":"FAILED","error_message":error},fallback=fallback)
+                    self.assertIsNone(prior)
+                    self.assertEqual(state["stages"][stage]["attempt_count"],attempts+1)
+                else:
+                    with self.assertRaisesRegex(self.runtime.CollectorPrecondition,"COLLECTOR_STAGE_RETRY_LIMIT"):
+                        self.prepare_retry_case(stage,previous,publish={"status":"FAILED","error_message":error},fallback=fallback)
+
+    def test_completed_regional_replay_occurs_only_when_its_shard_is_missing(self):
+        key=self.runtime._regional_records_key("BJ")
+        previous={"status":"COMPLETED","attempt_count":2}
+        self.cache.delete(key)
+        state,prior=self.prepare_retry_case("regional_bj",previous)
+        self.assertIsNone(prior)
+        self.assertEqual(state["stages"]["regional_bj"]["attempt_count"],3)
+        self.cache.set(key,[])
+        state,prior=self.prepare_retry_case("regional_bj",previous)
+        self.assertEqual(prior,previous)
+        self.assertEqual(state["stages"]["regional_bj"]["attempt_count"],2)
+
+    def test_publish_migration_retry_is_bounded_and_missing_canonical_is_named(self):
+        for attempts,error,allowed in [(2,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:BJ",True),
+                                       (3,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:BJ",False),(2,"DATABASE_UNAVAILABLE",False)]:
+            with self.subTest(attempts=attempts,error=error):
+                previous={"status":"FAILED","attempt_count":attempts,"error_message":error}
+                if allowed:
+                    state,prior=self.prepare_retry_case("publish",previous)
+                    self.assertIsNone(prior)
+                    self.assertEqual(state["stages"]["publish"]["attempt_count"],3)
+                else:
+                    with self.assertRaisesRegex(self.runtime.CollectorPrecondition,"COLLECTOR_STAGE_RETRY_LIMIT"):
+                        self.prepare_retry_case("publish",previous)
+        with self.assertRaisesRegex(self.runtime.CollectorPrecondition,"COLLECTOR_CANONICAL_STATE_INCOMPLETE:.*ccgp"):
+            self.runtime._run_publish(self.cache,self.state)
+
+    def test_tjfch_policy_recovery_retry_is_narrowly_scoped_in_behavior(self):
+        for stage,attempts,error,allowed in [("tjfch",2,"TJFCH_NOTICE_TYPE_UNSUPPORTED",True),
+            ("tjfch",3,"TJFCH_NOTICE_TYPE_UNSUPPORTED",False),("tjfch",2,"OTHER_FAILURE",False),
+            ("teda",2,"TJFCH_NOTICE_TYPE_UNSUPPORTED",False)]:
+            with self.subTest(stage=stage,attempts=attempts,error=error):
+                previous={"status":"FAILED","attempt_count":attempts,"error_message":error}
+                if allowed:
+                    state,prior=self.prepare_retry_case(stage,previous)
+                    self.assertIsNone(prior)
+                    self.assertEqual(state["stages"][stage]["attempt_count"],3)
+                else:
+                    with self.assertRaisesRegex(self.runtime.CollectorPrecondition,"COLLECTOR_STAGE_RETRY_LIMIT"):
+                        self.prepare_retry_case(stage,previous)
+
+    def test_nonempty_event_failure_persists_only_safe_diagnostics_and_keeps_committed_bundle(self):
+        committed = self.seed_nonempty_event_batch()
+        def failed(project, **options):
+            options["failures"].append({"stage": "event_detail", "project_number": project,
+                "url": "https://official.example/private?token=secret", "error": "CcgpEventParseError",
+                "message": "CCGP_EVENT_PROJECT_NUMBER_NOT_FOUND:secret"})
+            return []
+        with patch.object(self.runtime, "scan_events", side_effect=failed):
+            status, result = self.runtime.run_stage("event1", now=self.now)
+        self.assertEqual(status, 503)
+        self.assertFalse(result["retry_exhausted"])
+        row=self.cache.get(self.runtime.META_KEY)["stages"]["event1"]
+        self.assertEqual(row["diagnostics"]["reason_counts"], {"CCGP_EVENT_PROJECT_NUMBER_NOT_FOUND": 1})
+        self.assertEqual(row["diagnostics"]["phase_counts"], {"event_detail":1})
+        for private in ["private-project-number", "official.example", "secret", "token="]:
+            self.assertNotIn(private,json.dumps(row))
+        self.assertEqual(self.cache.get(self.runtime.CCGP_COMMITTED_STATE_KEY),committed)
+        self.assertIsNone(self.runtime.snapshot_source_health(self.cache)["sources"]["ccgp"]["last_successful_scan_at"])
+
+    def test_both_searches_failed_have_diagnostics_without_raw_project_in_error(self):
+        self.seed_nonempty_event_batch()
+        def failed(project, **options):
+            for notice in ["更正公告","终止公告"]:
+                options["failures"].append({"stage":"event_search","project_number":project,
+                    "notice_type":notice,"error":"RuntimeError","message":"CCGP_RATE_LIMITED:secret"})
+            return []
+        with patch.object(self.runtime,"scan_events",side_effect=failed):
+            status,result=self.runtime.run_stage("event1",now=self.now)
+        self.assertEqual(status,503)
+        self.assertEqual(result["error"],"EVENT_WATCH_ALL_SEARCHES_FAILED")
+        row=self.cache.get(self.runtime.META_KEY)["stages"]["event1"]
+        self.assertEqual(row["diagnostics"]["reason_counts"],{"RATE_LIMITED":2})
+        self.assertNotIn("private-project-number",json.dumps(row))
+
+    def test_unexpected_event_scan_exception_is_safe_and_observable(self):
+        committed=self.seed_nonempty_event_batch()
+        with patch.object(self.runtime,"scan_events",side_effect=RuntimeError("token=secret private-project-number")):
+            status,result=self.runtime.run_stage("event1",now=self.now)
+        self.assertEqual(status,503)
+        self.assertEqual(result["error"],"EVENT_WATCH_SCAN_FAILED")
+        row=self.cache.get(self.runtime.META_KEY)["stages"]["event1"]
+        self.assertEqual(row["diagnostics"]["phase_counts"],{"event_scan":1})
+        self.assertNotIn("secret",json.dumps(row))
+        self.assertEqual(self.cache.get(self.runtime.CCGP_COMMITTED_STATE_KEY),committed)
+
+    def test_successful_nonempty_event_watch_still_commits_only_after_final_batch(self):
+        committed=self.seed_nonempty_event_batch()
+        event={"schema_version":"0.1","event_id":"termination-example","event_type":"TERMINATION",
+            "project_number":"private-project-number","project_name":"verified-example","published_at":"2026-10-01",
+            "source_url":"https://www.ccgp.gov.cn/example","observed_at":self.now.isoformat(),"summary":"project terminated",
+            "changed_fact_paths":[],"fact_overrides":{},"unresolved_fact_paths":[],"requires_reconciliation":False,"terminal":True}
+        with patch.object(self.runtime,"scan_events",return_value=[event]) as scan:
+            for index in range(1,7):
+                status,result=self.runtime.run_stage(f"event{index}",now=self.now)
+                self.assertEqual(status,200)
+                if index<6:self.assertEqual(self.cache.get(self.runtime.CCGP_COMMITTED_STATE_KEY),committed)
+        self.assertEqual(scan.call_count,1)
+        self.assertEqual(self.cache.get(self.runtime.CCGP_COMMITTED_STATE_KEY)["events"],[event])
+        self.assertIsNotNone(self.runtime.snapshot_source_health(self.cache)["sources"]["ccgp"]["last_successful_scan_at"])
+
 
 if __name__ == "__main__":
     unittest.main()

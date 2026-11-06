@@ -20,14 +20,18 @@ SAFE_CCGP_CODES = frozenset({
     "CCGP_REGISTRATION_SECTION_NOT_FOUND",
     "CCGP_RESPONSE_DEADLINE_NOT_FOUND",
     "CCGP_TIME_INVALID",
+    "CCGP_EVENT_SOURCE_HOST_REJECTED",
+    "CCGP_EVENT_PROJECT_NUMBER_NOT_FOUND",
+    "CCGP_EVENT_PUBLISHED_DATE_NOT_FOUND",
+    "CCGP_EVENT_TYPE_NOT_SUPPORTED",
 })
-PHASES = {"scoped_discovery", "national_fallback_discovery", "verified_detail", "pre_detail_market_guard", "index_discovery"}
+PHASES = {"scoped_discovery", "national_fallback_discovery", "verified_detail", "pre_detail_market_guard", "index_discovery",
+          "event_search", "event_detail", "event_scan"}
 
-def failure_row(phase: str, exc: Exception | None, reference: str) -> dict[str, str]:
-    phase = phase if phase in PHASES else "verified_detail"
-    message = str(exc).partition(":")[0] if exc is not None else ""
-    if isinstance(exc, HTTPError) and 100 <= exc.code <= 599:
-        reason = f"HTTP_{exc.code}"
+def _failure_reason(error_type: str, raw_message: str, http_code: int | None = None) -> str:
+    message = raw_message.partition(":")[0]
+    if isinstance(http_code, int) and 100 <= http_code <= 599:
+        reason = f"HTTP_{http_code}"
     elif message in SAFE_CCGP_CODES:
         reason = message
     elif message == "CCGP_RATE_LIMITED":
@@ -39,11 +43,30 @@ def failure_row(phase: str, exc: Exception | None, reference: str) -> dict[str, 
     else:
         reason = {"TimeoutError": "NETWORK_TIMEOUT", "HTTPError": "HTTP_ERROR", "URLError": "NETWORK_ERROR",
                   "UnicodeDecodeError": "RESPONSE_ENCODING_ERROR", "CcgpDetailParseError": "DETAIL_PARSE_FAILED",
-                  "ValueError": "DETAIL_VALIDATION_FAILED"}.get(type(exc).__name__, "SOURCE_VERIFICATION_FAILED")
+                  "CcgpEventParseError": "EVENT_PARSE_FAILED",
+                  "ValueError": "DETAIL_VALIDATION_FAILED"}.get(error_type, "SOURCE_VERIFICATION_FAILED")
+    return reason
+
+def failure_row(phase: str, exc: Exception | None, reference: str) -> dict[str, str]:
+    phase = phase if phase in PHASES else "verified_detail"
+    reason = _failure_reason(type(exc).__name__, str(exc) if exc is not None else "",
+                             exc.code if isinstance(exc, HTTPError) else None)
+    return {"phase": phase, "reason": reason, "candidate_ref": hashlib.sha256(reference.encode()).hexdigest()}
+
+def reported_event_failure_row(report: dict[str, Any]) -> dict[str, str]:
+    """Reduce scan_events' internal report to fixed codes and a hashed reference."""
+    phase = report.get("stage")
+    phase = phase if isinstance(phase, str) and phase in {"event_search", "event_detail"} else "event_scan"
+    error_type = report.get("error") if isinstance(report.get("error"), str) else ""
+    message = report.get("message") if isinstance(report.get("message"), str) else ""
+    http = re.match(r"HTTP Error ([1-5][0-9]{2}):", message) if error_type == "HTTPError" else None
+    reason = _failure_reason(error_type, message, int(http[1]) if http else None)
+    reference = (str(report.get("url") or "") if phase == "event_detail" else
+                 f"{report.get('project_number') or ''}:{report.get('notice_type') or ''}")
     return {"phase": phase, "reason": reason, "candidate_ref": hashlib.sha256(reference.encode()).hexdigest()}
 
 def failure_summary(rows: list[dict[str, str]]) -> dict[str, Any]:
     return {"failure_count": len(rows),
             "reason_counts": dict(sorted(Counter(row["reason"] for row in rows).items())),
             "phase_counts": dict(sorted(Counter(row["phase"] for row in rows).items())),
-            "samples": sorted(rows, key=lambda row: (row["phase"], row["candidate_ref"]))[:5]}
+            "samples": sorted(rows, key=lambda row: (row["phase"], row["candidate_ref"], row["reason"]))[:5]}

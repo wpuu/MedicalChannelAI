@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 
 from collector_epoch import RuntimeCache
 from collector_oidc import preview_oidc_token
-from collector_diagnostics import failure_row, failure_summary
+from collector_diagnostics import failure_row, failure_summary, reported_event_failure_row
 
 WEB_ROOT = Path(__file__).resolve().parent
 PIPELINE_ROOT = WEB_ROOT / "pipeline"
@@ -478,6 +478,32 @@ def _stage_index(stage: str) -> int:
         raise CollectorPrecondition(f"COLLECTOR_STAGE_INVALID:{stage}") from exc
 
 
+def _stage_retry_limit_reached(stage: str, previous: dict[str, Any] | None,
+                             stages: dict[str, Any], *, canonical_replay: bool = False) -> bool:
+    """One budget decision for admission and immediate failure finalization."""
+    previous = previous if isinstance(previous, dict) else {}
+    attempts = int(previous.get("attempt_count", 0))
+    error = str(previous.get("error_message") or "")
+    policy_recovery = (
+        stage == "tjfch" and attempts == MAX_STAGE_ATTEMPTS_PER_DAY
+        and previous.get("status") == "FAILED" and "TJFCH_NOTICE_TYPE_UNSUPPORTED" in error
+    )
+    publish_migration = (
+        stage == "publish" and attempts == MAX_STAGE_ATTEMPTS_PER_DAY
+        and previous.get("status") == "FAILED" and error.startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
+    )
+    regional_timeout_replay = (
+        stage in REGIONAL_STAGE_MARKET_CODES and previous.get("status") == "RUNNING"
+        and attempts in {MAX_STAGE_ATTEMPTS_PER_DAY, MAX_STAGE_ATTEMPTS_PER_DAY + 1}
+        and isinstance(stages.get("publish"), dict)
+        and str(stages["publish"].get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
+        and f"{stage}_fallback" not in stages
+    )
+    return attempts >= MAX_STAGE_ATTEMPTS_PER_DAY and not (
+        canonical_replay or policy_recovery or publish_migration or regional_timeout_replay
+    )
+
+
 def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict[str, Any], dict[str, Any] | None]:
     index = _stage_index(stage)
     local_date = now.astimezone(SHANGHAI).date().isoformat()
@@ -491,6 +517,8 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
 
     stages = state.setdefault("stages", {})
     previous = stages.get(stage)
+    if stage != "publish" and isinstance(previous, dict) and previous.get("status") == "DEGRADED":
+        return state, previous  # Re-delivery may retry enqueue, never the terminal source.
     regional_cache_replay = False
     regional_stale_migration_replay = False
     if isinstance(previous, dict) and previous.get("status") == "COMPLETED":
@@ -531,37 +559,8 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
             raise CollectorPrecondition(f"COLLECTOR_PREVIOUS_STAGE_INCOMPLETE:{required}")
 
     attempts = int(previous.get("attempt_count", 0)) if isinstance(previous, dict) else 0
-    tjfch_policy_recovery_retry = (
-        stage == "tjfch"
-        and attempts == MAX_STAGE_ATTEMPTS_PER_DAY
-        and isinstance(previous, dict)
-        and previous.get("status") == "FAILED"
-        and "TJFCH_NOTICE_TYPE_UNSUPPORTED" in str(previous.get("error_message") or "")
-    )
-    publish_cache_migration_retry = (
-        stage == "publish"
-        and attempts == MAX_STAGE_ATTEMPTS_PER_DAY
-        and isinstance(previous, dict)
-        and previous.get("status") == "FAILED"
-        and str(previous.get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
-    )
-    regional_timeout_split_replay = (
-        stage in REGIONAL_STAGE_MARKET_CODES
-        and isinstance(previous, dict)
-        and previous.get("status") == "RUNNING"
-        and attempts in {MAX_STAGE_ATTEMPTS_PER_DAY, MAX_STAGE_ATTEMPTS_PER_DAY + 1}
-        and isinstance(stages.get("publish"), dict)
-        and str(stages["publish"].get("error_message") or "").startswith("COLLECTOR_CANONICAL_STATE_INCOMPLETE")
-        and f"{stage}_fallback" not in stages
-    )
-    if (
-        attempts >= MAX_STAGE_ATTEMPTS_PER_DAY
-        and not tjfch_policy_recovery_retry
-        and not regional_cache_replay
-        and not regional_stale_migration_replay
-        and not publish_cache_migration_retry
-        and not regional_timeout_split_replay
-    ):
+    if _stage_retry_limit_reached(stage, previous, stages,
+                                 canonical_replay=regional_cache_replay or regional_stale_migration_replay):
         raise CollectorPrecondition(f"COLLECTOR_STAGE_RETRY_LIMIT:{stage}")
 
     stages[stage] = {
@@ -636,6 +635,7 @@ def _mark_failed(cache: RuntimeCache, state: dict[str, Any], stage: str, exc: Ex
     latest, current = _latest_stage_state_for_update(cache, state, stage)
     current["status"] = "FAILED"
     current["completed_at"] = _now_utc().isoformat()
+    current["failed_at"] = current["completed_at"]
     current["error_code"] = getattr(exc, "code", type(exc).__name__)
     current["error_message"] = str(exc)[:300]
     if isinstance(exc, CollectorStageBlocked):
@@ -801,8 +801,8 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> 
 
     for project_number in projects:
         before = len(failures)
-        new_events.extend(
-            scan_events(
+        try:
+            new_events.extend(scan_events(
                 project_number,
                 region=plan["region"],
                 start_date=start_text,
@@ -810,18 +810,23 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> 
                 delay_seconds=plan["delay_seconds"],
                 observed_at=observed_at,
                 failures=failures,
-            )
-        )
+            ))
+        except Exception as exc:
+            diagnostics = [reported_event_failure_row(row) for row in failures]
+            diagnostics.append(failure_row("event_scan", exc, project_number))
+            raise CollectorStageBlocked("EVENT_WATCH_SCAN_FAILED", diagnostics=failure_summary(diagnostics)) from exc
         project_search_failures = [
             item
             for item in failures[before:]
             if item.get("stage") == "event_search" and item.get("project_number") == project_number
         ]
         if len(project_search_failures) >= 2:
-            raise CollectorStageBlocked(f"EVENT_WATCH_ALL_SEARCHES_FAILED:{project_number}")
+            raise CollectorStageBlocked("EVENT_WATCH_ALL_SEARCHES_FAILED",
+                diagnostics=failure_summary([reported_event_failure_row(row) for row in failures]))
 
     if failures:
-        raise CollectorStageBlocked("EVENT_WATCH_VERIFICATION_INCOMPLETE")
+        raise CollectorStageBlocked("EVENT_WATCH_VERIFICATION_INCOMPLETE",
+            diagnostics=failure_summary([reported_event_failure_row(row) for row in failures]))
     merged_events = merge_notice_events(existing_events, new_events)
     staged["events"] = merged_events
     if stage == "event6":
@@ -1743,7 +1748,7 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
 
     if previous is not None:
         return 200, {
-            "action": "ALREADY_COMPLETED_TODAY",
+            "action": "ALREADY_DEGRADED_TODAY" if previous.get("status") == "DEGRADED" else "ALREADY_COMPLETED_TODAY",
             "stage": stage,
             "local_date": state.get("local_date"),
             "completed_at": previous.get("completed_at"),
@@ -1779,6 +1784,8 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
         if stage == "tjfch":
             record_source_scan(cache, "tjfch_test", successful=False,
                                attempted_at=_now_utc(), failure_reason="SOURCE_SCAN_FAILED")
+        failed_stages = load_status(cache).get("stages") or {}
+        failed = failed_stages.get(stage) or {}
         return 503, {
             "action": "FAILED",
             "stage": stage,
@@ -1786,6 +1793,8 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             "error_code": getattr(exc, "code", type(exc).__name__),
             "error": str(exc)[:300],
             "retryable": getattr(exc, "retryable", True),
+            "attempt_count": failed.get("attempt_count"),
+            "retry_exhausted": _stage_retry_limit_reached(stage, failed, failed_stages),
         }
 
     _mark_completed(cache, state, stage, result)

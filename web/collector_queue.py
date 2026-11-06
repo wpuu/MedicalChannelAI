@@ -471,7 +471,7 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     if not _heartbeat_deep_cycle(cycle_id, now=datetime.now(timezone.utc)):
         return
     action = str(result.get("action") or "")
-    if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
+    if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY", "ALREADY_DEGRADED_TODAY"}:
         next_stage = _next_stage(stage)
         if next_stage is not None:
             if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
@@ -497,7 +497,8 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         return
 
-    if status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error:
+    if ((status == 503 and result.get("retry_exhausted") is True)
+            or (status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error)):
         if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
             return
         if stage == "publish":
@@ -505,7 +506,7 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
             # seeded intraday chain can continue after this owner is released.
             _release_active_cycle_if_owned(cycle_id)
             return
-        runtime.mark_stage_degraded(stage, now=datetime.now(timezone.utc), error=error)
+        runtime.mark_stage_degraded(stage, now=datetime.now(timezone.utc), error=f"COLLECTOR_STAGE_RETRY_LIMIT:{stage}")
         next_stage = _next_stage(stage)
         if next_stage is not None:
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
