@@ -2,7 +2,16 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前采购产品项边界修复（Preview 定向验收完成）
+## 当前 CCGP 模板扩查与历史回补方案（审查完成，回补阻断）
+
+- 基于最新分支fdfeb11及应用eabd76f审查；新增离线工具/样本提交443b5cd，应用解析器和在线Preview未改。8份官方原始HTML全部200并冻结，另2份明确标记为衍生负例，不冒充官方原文。
+- 模板门禁10例6通过/4失败：真实吉林血液透析机5台/套漏项、北京乳腺机1套丢单位；两种衍生资格表能覆盖正确采购需求。附件未知保持空、数量未知保持null及后勤服务排除正常。样本不是统计benchmark。
+- 现有bootstrap实际CLI离线复现：全成功正对照通过，但部分详情或发现查询失败仍acceptance_ready=true/退出0，两个负例均失败。该CLI只产候选，不据此声称Production发生不完整发布。
+- 新工具仅离线生成带版本/官方字节哈希的提案，任何情形都不自动应用。仓库历史892条仅作审查基线，不等于当前运行canonical；458空列表、17含null数量、59含纯数字数量均需审查，不能直接当bug数。生成河北4套扫描仪1条差异提案，因门禁未过而阻断。
+- 6项工具安全测试及全部922项Python回归通过；模板/回补业务门禁仍未通过，不以测试数代替放行。没有新构建/部署、Queue、数据库/运行缓存写入、历史批量回补或模型请求。Production/SSO于北京时间16:59只读确认未变，production_ready=false。
+- [本轮方案与问题清单](ccgp-template-audit-backfill-plan-2026-11-06.md)、[冻结证据](validation/ccgp-template-audit-2026-11-06/manifest.json)。下一步先修4类问题，再验10例及回补负例；之后才评估明确epoch、原子提交、并发保护和回滚的5条Preview试回补。
+
+## 上轮采购产品项边界修复（历史 Preview 定向验收，当前仍服务eabd76f）
 
 - 最新应用代码 `eabd76f4d35a62983c24e652d1ada45a7daf8e17`；[新隔离Preview](https://medicalchannelai-mbstj6o1a-rerisse7-1717s-projects.vercel.app) `dpl_Fk33cZFtMo6vwd5cFbSh57J8fZH8` READY，独立d库/受限角色，旧c消费者不能覆盖本次修正。
 - 先冻结官方原始HTML，再修复CCGP全文包件正则跨入资格章节的问题。大口屯项目4条资格/优惠误项→10项真实设备；空气消毒器2台，其余各1台，身份/预算/窗口不变。11项新增边界回归，全部916个Python、JS合约、TypeScript、Vite通过。

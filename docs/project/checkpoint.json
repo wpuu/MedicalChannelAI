@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-06",
   "timezone": "Asia/Shanghai",
-  "state_scope": "CURRENT_OFFICIAL_PRODUCT_BOUNDARY_FIX_AND_PREVIEW_TARGETED_REPAIR",
+  "state_scope": "CURRENT_OFFLINE_CCGP_TEMPLATE_AUDIT_AND_HISTORICAL_BACKFILL_PLAN",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "OFFICIAL_PRODUCT_BOUNDARY_FIX_AND_SINGLE_RECORD_PREVIEW_REPAIR_VERIFIED",
-  "latest_changes_validation_status": "916_PYTHON_AND_FULL_BUILD_PASS; TARGETED_REPAIR_SQL_API_BROWSER_HASH_PASS; 6_BROWSER_CHECKS_PASS; NO_QUEUE_TRIGGER",
+  "milestone": "CCGP_TEMPLATE_AND_BOOTSTRAP_GATES_BLOCK_BACKFILL_PENDING_FOUR_FIXES",
+  "latest_changes_validation_status": "922_LOCAL_PYTHON_PASS; TEMPLATE_GATE_6_PASS_4_FAIL; BOOTSTRAP_GATE_1_PASS_2_FAIL; APPLY_BLOCKED; NO_NEW_DEPLOYMENT",
   "current_runtime_candidate_validation": {
     "head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
     "python_contract_tests": 916,
@@ -110,11 +110,19 @@
       "ready_state": "READY",
       "unchanged": true,
       "sso_protection_unchanged": true,
-      "rechecked_at": "2026-11-06T07:06:19.396Z",
+      "rechecked_at": "2026-11-06T08:59:57.118Z",
       "production_actions_performed": false
     },
     "interpretation": "Fresh d holds a corrected carryforward of c verified public snapshot only; c canonical/cache state and active consumers remain separate. No Production, merge, promotion or domain change.",
-    "temporary_acceptance_access": "Task-owned d share revoked; exact-secret evidence scan passed and private credentials file removed."
+    "temporary_acceptance_access": "Task-owned d share revoked; exact-secret evidence scan passed and private credentials file removed.",
+    "latest_audit_actions": {
+      "mode": "READ_ONLY_CLOUD_BOUNDARY_AND_LOCAL_OFFLINE_AUDIT",
+      "preview_deployed": false,
+      "database_or_runtime_writes": false,
+      "production_mutations": false,
+      "new_temporary_share_access": false,
+      "boundary_rechecked_at": "2026-11-06T08:59:57.118Z"
+    }
   },
   "gold_set_status": {
     "document": "docs/strategy/ACTION_RADAR_GOLDSET_2026-10-07.md",
@@ -147,11 +155,12 @@
     "http_request_reliability": "UNRESOLVED_HISTORICAL_OBSERVATION: one earlier oversized-request attempt returned unexplained 502, then expected 400 on one retry; authority stayed unchanged. The cause remains unknown and is not explained away by later successful publication.",
     "old_deployment_queue_isolation": "D_TARGETED_REPAIR_ISOLATED:old c role cannot read d snapshots or create d schema; old c consumers retained. d native cycle/canonical migration and shared-origin request budget remain unverified.",
     "publication_latency": "CURRENT662_RETURNED_FAILURE_TAIL_VERIFIED:0.029–0.034seconds; trigger-to-publish2207.330seconds, tjmugh completion-to-publish1678.375seconds. Single-cycle observations, notP95; first retry/forced-kill recovery/global publication coupling remain.",
-    "ccgp_product_items_quality": "FIXED_FROZEN_OFFICIAL_CASE:4qualification clauses replaced by10exact devices;11new regression tests. Broader templates/attachments/quantity variants and historical canonical backfill remain unverified."
+    "ccgp_product_items_quality": "PRIOR_DAKOUTUN_CASE_FIXED_ONLY. New8official+2derived audit:6pass/4fail. Confirmed product-name header omission and header-unit loss on actual official pages; two derived qualification tables override real demand. No batch backfill until fixed.",
+    "historical_product_backfill": "BLOCKED:actual bootstrap CLI partial-detail or partial-discovery failure still returns acceptance_ready=true/exit0. Reproduction1controlpass/2negativefail; no online backfill applied. Public16card d carryforward is not c canonical migration."
   },
   "final_code_head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
   "code_validation_head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
-  "documentation_followup": "Code eabd76f only. This phase repairs one official record and carries forward the last verified16-card c snapshot into fresh d; it does not claim a new native collection cycle. Prior662/774 full-cycle and UI evidence remain historical.",
+  "documentation_followup": "Latest phase adds frozen official/derived corpus, offline audit tool and backfill plan only. Application code and serving Preview remain eabd76f; previous916/full-build/6-browser evidence is historical and not rerun online. New922 local tests do not make the10case template gate pass.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -1622,6 +1631,75 @@
         "unknown_and_unsupported_scope_negatives": "PASS",
         "no_new_deep_trigger": true
       }
+    },
+    "previous_product_repair_fdfeb11": {
+      "state_scope": "CURRENT_OFFICIAL_PRODUCT_BOUNDARY_FIX_AND_PREVIEW_TARGETED_REPAIR",
+      "milestone": "OFFICIAL_PRODUCT_BOUNDARY_FIX_AND_SINGLE_RECORD_PREVIEW_REPAIR_VERIFIED",
+      "latest_changes_validation_status": "916_PYTHON_AND_FULL_BUILD_PASS; TARGETED_REPAIR_SQL_API_BROWSER_HASH_PASS; 6_BROWSER_CHECKS_PASS; NO_QUEUE_TRIGGER",
+      "product_items_correction_acceptance": {
+        "repair_as_of": "2026-11-06T07:00:46.604901+00:00",
+        "base_snapshot_hash": "73b187a89e2818a584567f840d10bc897f73b4c75b1b0ccfb4e63e997d10dfb9",
+        "base_sql_clock": "2026-11-06 06:45:01.21769+00",
+        "official_html_sha256": "29b549a6b4299dd60c5a29576ab0641eb7be727560c91a74cb79ebcbe273ca6a",
+        "corrected_opportunity_id": "ccgp_5184fb1beae01ab6",
+        "before_product_count": 4,
+        "after_product_count": 10,
+        "other_15_facts_identical": true,
+        "all_16_ids_preserved": true,
+        "source_health_clocks_unchanged": true,
+        "priorities_recomputed_by_existing_pipeline": true,
+        "before_score": 51,
+        "after_score": 51,
+        "manual_qa_fixture": false,
+        "new_collection_cycle": false,
+        "kind": "SINGLE_OFFICIAL_DETAIL_CORRECTION_WITH_VERIFIED_SNAPSHOT_CARRYFORWARD",
+        "sha256": "85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead",
+        "producer_sql_authority_browser_equal": true,
+        "sql_microseconds_exact": true,
+        "source_health_unchanged": true,
+        "opportunity_count": 16,
+        "product_count": 10,
+        "report": "docs/project/product-items-correction-2026-11-06.md",
+        "evidence_manifest": "docs/project/validation/product-items-2026-11-06/manifest.json",
+        "python_tests": 916,
+        "browser_checks_passed": 6,
+        "new_full_queue_cycle_verified": false,
+        "old_canonical_backfilled": false,
+        "other_ccgp_templates_fully_audited": false,
+        "temporary_share_revoked": true,
+        "private_credentials_file_removed": true,
+        "foreground_deadline_exceeded_seconds": 140.523,
+        "production_modified": false
+      },
+      "preview_authoritative_data_state": {
+        "database": "mcai_p0_epoch_20261106d",
+        "preview_epoch": "mcai-p0-20261106-d",
+        "initial_committed_snapshots": 0,
+        "current_publication": "TARGETED_CORRECTION_VERIFIED",
+        "manual_qa_publication": false,
+        "old_live_data_copied": true,
+        "copy_scope": "VERIFIED_PUBLIC_SNAPSHOT_ONLY; NO_CANONICAL_RUNTIME_CACHE_OR_WATERMARK_MIGRATION",
+        "snapshot_as_of": "2026-11-06T07:00:46.604901+00:00",
+        "sha256": "85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead",
+        "opportunity_pool_count": 16,
+        "today_card_count": 5,
+        "notice_event_count": 0,
+        "sql_payload_timestamp_exact": true,
+        "source_health_healthy": 8,
+        "source_health_required": 14,
+        "source_health_origin": "UNCHANGED_REAL_PRIOR_C_SCAN_CLOCKS; NO_NEW_SOURCE_SUCCESS_CLAIM",
+        "evidence_manifest": "docs/project/validation/product-items-2026-11-06/manifest.json"
+      },
+      "latest_ui_browser_acceptance": {
+        "commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+        "deployment_id": "dpl_Fk33cZFtMo6vwd5cFbSh57J8fZH8",
+        "result": "6_OF_6_PASS",
+        "ordinary_get_sha256": "85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead",
+        "ordinary_pool_count": 16,
+        "blocked_cache_only_ai_requests": 2,
+        "ai_requests_sent": false,
+        "report": "docs/project/validation/product-items-2026-11-06/browser-report.json"
+      }
     }
   },
   "source_recovery_precision_acceptance": {
@@ -1822,7 +1900,8 @@
       "seconds": 140.523,
       "cause": "Two bounded UI harness corrections after successful API publish; no Queue triggered.",
       "required_followup": "Lock filters before load and enforce one absolute deadline across all waits; deadline means stop live checks."
-    }
+    },
+    "latest_audit_deadline": "2026-11-06T09:10:53Z"
   },
   "product_items_correction_acceptance": {
     "repair_as_of": "2026-11-06T07:00:46.604901+00:00",
@@ -1858,5 +1937,42 @@
     "private_credentials_file_removed": true,
     "foreground_deadline_exceeded_seconds": 140.523,
     "production_modified": false
+  },
+  "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
+  "latest_reviewed_repository_head": "fdfeb11dd7c974fe482941db2c575bd8e3343d79",
+  "ccgp_template_audit_acceptance": {
+    "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
+    "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
+    "fixture_manifest": "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/manifest.json",
+    "audit_tool_commit": "443b5cdcf673ccc17a82278091a8dbe4343becab",
+    "application_code_unchanged": true,
+    "application_commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+    "official_originals": 8,
+    "synthetic_derived_negatives": 2,
+    "template_gate_passed": 6,
+    "template_gate_failed": 4,
+    "bootstrap_actual_cli_controls_passed": 1,
+    "bootstrap_actual_cli_negative_failures": 2,
+    "local_python_tests": 922,
+    "local_python_result": "PASS",
+    "new_build_or_deployment": false,
+    "native_queue_triggered": false,
+    "historical_backfill_applied": false,
+    "backfill_apply_allowed": false,
+    "blocked_patch_proposal_count": 1,
+    "local_inventory_record_count": 892,
+    "current_runtime_canonical_inventory_read": false,
+    "production_modified": false,
+    "scope": {
+      "name": "ccgp-template-audit",
+      "started_at": "2026-11-06T08:50:53Z",
+      "foreground_deadline": "2026-11-06T09:10:53Z",
+      "network_deadline": "2026-11-06T09:00:00Z",
+      "target": "LOCAL_OFFLINE_AUDIT_ONLY",
+      "preview_runtime_code": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+      "starting_head": "fdfeb11dd7c974fe482941db2c575bd8e3343d79",
+      "production_actions_performed": false,
+      "native_queue_triggered": false
+    }
   }
 }

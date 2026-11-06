@@ -1,0 +1,67 @@
+{
+  "schema_version": "0.1",
+  "kind": "OFFICIAL_TEMPLATE_AUDIT_AND_BLOCKED_BACKFILL_PLAN",
+  "application_runtime_unchanged": true,
+  "production_ready": false,
+  "corpus": {
+    "path": "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/manifest.json",
+    "sha256": "1e1e6697f3bb8df471280befad5c6bbd47565038474e1247f29280d70b20a500"
+  },
+  "files": [
+    {
+      "path": "audit-result.json",
+      "bytes": 8260,
+      "sha256": "66c3719c1442677ecaecf1c92b4b044b888517fa1570972c18e92125266c04f3"
+    },
+    {
+      "path": "bootstrap-gate-proof.json",
+      "bytes": 1749,
+      "sha256": "5b241830dd36ed85dc0ecd0a3f82d9881593f83245787573615bfd3d4d1e27ba"
+    },
+    {
+      "path": "completion.json",
+      "bytes": 233,
+      "sha256": "5a6ea598f8c90250dd14381e82a6e3b7336ed37504283bf96c3b7c64325a1a32"
+    },
+    {
+      "path": "fetch-manifest.json",
+      "bytes": 4422,
+      "sha256": "3fa48ab30f2c09c03ca08e3694e100096ba12ae2253ba99a9519f9339806d191"
+    },
+    {
+      "path": "local-inventory.json",
+      "bytes": 836,
+      "sha256": "f43df15e6e5434f987261f6efccde7b86c9a3bdb1be7f4fe6f70124bceac9e17"
+    },
+    {
+      "path": "production-boundary.json",
+      "bytes": 354,
+      "sha256": "43691cea65d3e62825bda15ddee1c5dbe6496d39cbfcdc76cfbd04452248a2e7"
+    },
+    {
+      "path": "python-tests.log",
+      "bytes": 172102,
+      "sha256": "0d313d89a8b7c1b5b301ec83faafa90564b80018d6420e9fa4a53ff5545a5c98"
+    },
+    {
+      "path": "reproduce-bootstrap-gate.py",
+      "bytes": 4464,
+      "sha256": "c15bebd8201879ed62f7e1822bb150651c9408cba12c1e90c26ee93702116205"
+    },
+    {
+      "path": "scope.json",
+      "bytes": 420,
+      "sha256": "6a7c203c72fb0d60899f8a2f6f90808f968f442624d158c84110bd3e62d41c69"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 1100,
+      "sha256": "86f2c20df401e36c5e11b3bf017f2cb5b1ec0e781cd40758a17b62e305dd662f"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 2512,
+      "sha256": "f427019ce9375fc6f2c7714bd90b8fd66a37a6d6c2d068762c6d3889a069ddbd"
+    }
+  ]
+}

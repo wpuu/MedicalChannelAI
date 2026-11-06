@@ -1,0 +1,37 @@
+{
+  "source_review_head": "fdfeb11dd7c974fe482941db2c575bd8e3343d79",
+  "audit_tool_commit": "443b5cdcf673ccc17a82278091a8dbe4343becab",
+  "application_commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+  "python_tests": 922,
+  "python_result": "PASS",
+  "new_audit_safety_tests": 6,
+  "template_gate": {
+    "cases": 10,
+    "pass": 6,
+    "fail": 4,
+    "exit_code": 2
+  },
+  "bootstrap_gate": {
+    "cases": 3,
+    "pass": 1,
+    "fail": 2,
+    "exit_code": 2
+  },
+  "app_runtime_code_changed": false,
+  "new_build_or_deployment": false,
+  "historical_backfill_applied": false,
+  "source_files": [
+    {
+      "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+      "sha256": "e8405aff22201537100fc4fc17897b92b9edfcdcdefc0804134a3549bd5b5de4"
+    },
+    {
+      "path": "web/pipeline/scripts/bootstrap_ccgp_backfill.py",
+      "sha256": "b3ed1bead2c8489a433bdc2b148f4902cf8892f0b52263d7135868fda88f18e8"
+    },
+    {
+      "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+      "sha256": "30226dec7932abde14487233d843126eba1a1fe70a20c155081dbfe66b1e0246"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "ccgp-template-audit",
+  "started_at": "2026-11-06T08:50:53Z",
+  "foreground_deadline": "2026-11-06T09:10:53Z",
+  "network_deadline": "2026-11-06T09:00:00Z",
+  "target": "LOCAL_OFFLINE_AUDIT_ONLY",
+  "preview_runtime_code": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+  "starting_head": "fdfeb11dd7c974fe482941db2c575bd8e3343d79",
+  "production_actions_performed": false,
+  "native_queue_triggered": false
+}

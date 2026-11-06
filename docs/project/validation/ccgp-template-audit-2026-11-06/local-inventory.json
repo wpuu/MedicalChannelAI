@@ -1,0 +1,28 @@
+{
+  "scope": "REPOSITORY_BUNDLED_HISTORICAL_RECORDS_ONLY_NOT_CURRENT_RUNTIME",
+  "total_records": 892,
+  "baseline_files": [
+    {
+      "path": "web/pipeline/data/tianjin_live_ccgp_records.json",
+      "sha256": "48d337d1ff814dabd4fe2f5e0571bb9ce7299fbe1608649eea68aabc8e4ee55a"
+    },
+    {
+      "path": "web/pipeline/data/regional_live_ccgp_records.json",
+      "sha256": "72e0e865a639e96f4479bea7639b806402df910a68b305b049fb5e8f361ee0fc"
+    }
+  ],
+  "empty_product_items": 458,
+  "records_with_null_quantity": 17,
+  "records_with_bare_numeric_quantity": 59,
+  "records_with_qualification_word_candidates": 0,
+  "counts_by_market": {
+    "BJ": 196,
+    "HE": 205,
+    "HL": 186,
+    "JL": 143,
+    "LN": 106,
+    "TJ": 56
+  },
+  "flags_are_review_candidates_not_confirmed_bugs": true,
+  "current_preview_or_database_read": false
+}

@@ -1,0 +1,8 @@
+{
+  "completed_at": "2026-11-06T09:06:06.570588+00:00",
+  "foreground_deadline": "2026-11-06T09:10:53+00:00",
+  "within_foreground_deadline": true,
+  "queue_triggered": false,
+  "backfill_applied": false,
+  "new_deployment": false
+}
