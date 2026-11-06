@@ -205,6 +205,13 @@ def fetch_candidates_page(
     ]
 
 
+def paths_alias(left: Path, right: Path) -> bool:
+    # resolve catches relative/symlink aliases, samefile also catches hard links.
+    return left.resolve() == right.resolve() or (
+        left.exists() and right.exists() and left.samefile(right)
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description='Verified CCGP refresh for Beijing, Hebei, Liaoning, Jilin and Heilongjiang.'
@@ -215,6 +222,13 @@ def main() -> int:
     parser.add_argument('--records-output', required=True, type=Path)
     parser.add_argument('--report-output', required=True, type=Path)
     args = parser.parse_args()
+
+    if any(paths_alias(args.report_output, path) for path in (
+        args.plan, args.records_output, *args.existing_records_input
+    )):
+        parser.error('REPORT_OUTPUT_MUST_NOT_OVERWRITE_INPUT_OR_RECORDS')
+    if paths_alias(args.records_output, args.plan):
+        parser.error('RECORDS_OUTPUT_MUST_NOT_OVERWRITE_PLAN')
 
     plan = load_plan(args.plan)
     as_of = parse_as_of(args.as_of)
@@ -347,9 +361,6 @@ def main() -> int:
                     time.sleep(plan['delay_seconds'])
                 time.sleep(plan['delay_seconds'])
 
-    if sum(scoped_success.values()) + fallback_query_success <= 0:
-        raise RuntimeError('ALL_MULTI_REGION_DISCOVERY_QUERIES_FAILED')
-
     new_records: list[dict] = []
     market_reports: list[dict] = []
 
@@ -438,8 +449,22 @@ def main() -> int:
         )
 
     merged_records = merge_canonical_records(existing_records, new_records)
+    acceptance_blockers = sorted({
+        failure['stage']
+        for failures in market_failures.values()
+        for failure in failures
+    } | {failure['stage'] for failure in fallback_failures})
+    if sum(scoped_success.values()) + fallback_query_success <= 0:
+        acceptance_blockers.append('ALL_MULTI_REGION_DISCOVERY_QUERIES_FAILED')
+    acceptance_ready = not acceptance_blockers
     report = {
         'schema_version': '0.1',
+        # Completeness of this configured bounded scan, not full historical recall
+        # or independent per-market commits/watermarks.
+        'acceptance_scope': 'CONFIGURED_BOUNDED_REGIONAL_SCAN',
+        'acceptance_ready': acceptance_ready,
+        'acceptance_blockers': acceptance_blockers,
+        'records_written': acceptance_ready,
         'observed_at': observed_at,
         'start_date': start_date,
         'end_date': end_date,
@@ -468,14 +493,18 @@ def main() -> int:
             'minimum_request_delay_seconds': plan['delay_seconds'],
         },
     }
-    write_json(args.records_output, merged_records)
+    # Do not truncate/create the records file at all for a failed batch. The
+    # separate diagnostic report is safe to write only after path preflight.
+    if acceptance_ready:
+        write_json(args.records_output, merged_records)
     write_json(args.report_output, report)
     print(
         f'markets={len(markets)} scoped_queries_ok={sum(scoped_success.values())} '
         f'fallback_queries_ok={fallback_query_success} new_verified={len(new_records)} '
-        f'merged_records={len(merged_records)}'
+        f'merged_records={len(merged_records)} acceptance_ready={acceptance_ready} '
+        f'records_written={acceptance_ready}'
     )
-    return 0
+    return 0 if acceptance_ready else 2
 
 
 if __name__ == '__main__':
