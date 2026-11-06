@@ -1,0 +1,56 @@
+{
+  "code_commit": "795ef5efa30b61dd47352c4fb888b02488f16855",
+  "python_tests": 945,
+  "python_result": "PASS",
+  "new_parser_tests": 13,
+  "new_actual_cli_tests": 10,
+  "javascript_contracts": "PASS",
+  "typescript": "PASS",
+  "vite": "PASS",
+  "main_js_gzip_kb": 116.17,
+  "template_cases_before": {
+    "pass": 6,
+    "fail": 4
+  },
+  "template_cases_after": {
+    "pass": 10,
+    "fail": 0
+  },
+  "original_cli_cases_before": {
+    "pass": 1,
+    "fail": 2
+  },
+  "original_cli_cases_after": {
+    "pass": 3,
+    "fail": 0
+  },
+  "python_log_source": "Verbatim unittest section of final npm run build, not a separate additional run",
+  "preview_deployed": false,
+  "queue_triggered": false,
+  "backfill_applied": false,
+  "network_official_requests": 0,
+  "new_browser_acceptance": false,
+  "old_cloud_evidence_reused_as_current": false,
+  "source_files": [
+    {
+      "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+      "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187"
+    },
+    {
+      "path": "web/pipeline/scripts/bootstrap_ccgp_backfill.py",
+      "sha256": "6aaed10e94a610dbdf44c29523e2098dba78fa4a69dcddc7d642c9b3510ae096"
+    },
+    {
+      "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+      "sha256": "30226dec7932abde14487233d843126eba1a1fe70a20c155081dbfe66b1e0246"
+    },
+    {
+      "path": "web/pipeline/tests/test_ccgp_table_scope_and_units.py",
+      "sha256": "7c178283951b9df7e41d1c52721d5790b9e66759a1f114b18888e129a91fe915"
+    },
+    {
+      "path": "web/pipeline/tests/test_bootstrap_ccgp_completeness.py",
+      "sha256": "b7ca9a051f819dd407fff759cf6b2fbbe36132292ae7d32dc74cd80bf736d649"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": "0.1",
+  "code_commit": "795ef5efa30b61dd47352c4fb888b02488f16855",
+  "kind": "LOCAL_PARSER_AND_BACKFILL_COMPLETENESS_FIX; NOT_DEPLOYED",
+  "corpus": {
+    "path": "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/manifest.json",
+    "sha256": "1e1e6697f3bb8df471280befad5c6bbd47565038474e1247f29280d70b20a500"
+  },
+  "files": [
+    {
+      "path": "audit-result.json",
+      "bytes": 9432,
+      "sha256": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2"
+    },
+    {
+      "path": "before-audit-result.json",
+      "bytes": 8260,
+      "sha256": "66c3719c1442677ecaecf1c92b4b044b888517fa1570972c18e92125266c04f3"
+    },
+    {
+      "path": "before-bootstrap-gate-proof.json",
+      "bytes": 1749,
+      "sha256": "5b241830dd36ed85dc0ecd0a3f82d9881593f83245787573615bfd3d4d1e27ba"
+    },
+    {
+      "path": "bootstrap-gate-proof.json",
+      "bytes": 1750,
+      "sha256": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2"
+    },
+    {
+      "path": "build.log",
+      "bytes": 181802,
+      "sha256": "75b17f9e262f5c63ff170c30697492b413b0a693ae672d2df41e25968f66ef24"
+    },
+    {
+      "path": "completion.json",
+      "bytes": 320,
+      "sha256": "49e8c39a9fbeef3bf8f9f138b939f4bd885e62687be346dc036c4b98730fc37e"
+    },
+    {
+      "path": "production-boundary.json",
+      "bytes": 387,
+      "sha256": "2b561a4e68fff71d0952566553105f62649db5b13dd554addafd0112a02efc7e"
+    },
+    {
+      "path": "python-tests.log",
+      "bytes": 176244,
+      "sha256": "508a7a8349885ec78b168a637cd7dddca3c47e30fae1adccd1fa967618196a3e"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 1695,
+      "sha256": "2c909f9d714eeb2683ca2612215720df453ef0f1bd6f91e5143ba115671942e6"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 2678,
+      "sha256": "f567c761517314b7aec45e0718e59de32588efba1897ab79b7c97d76ea8fadd3"
+    }
+  ]
+}

@@ -1,0 +1,334 @@
+{
+  "schema_version": "0.1",
+  "mode": "OFFLINE_AUDIT_AND_PATCH_PROPOSAL_ONLY",
+  "fixture_baseline_application_commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+  "evaluated_parser_sha256": "e8405aff22201537100fc4fc17897b92b9edfcdcdefc0804134a3549bd5b5de4",
+  "baseline_files": [
+    {
+      "path": "tianjin_live_ccgp_records.json",
+      "sha256": "48d337d1ff814dabd4fe2f5e0571bb9ce7299fbe1608649eea68aabc8e4ee55a"
+    },
+    {
+      "path": "regional_live_ccgp_records.json",
+      "sha256": "72e0e865a639e96f4479bea7639b806402df910a68b305b049fb5e8f361ee0fc"
+    }
+  ],
+  "baseline_record_count": 892,
+  "official_cases": 8,
+  "derived_cases": 2,
+  "case_count": 10,
+  "passed": 6,
+  "failed": 4,
+  "fixture_gate_pass": false,
+  "results": [
+    {
+      "label": "ccgp_hl_b36866ded1fc3097",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "HL_STANDARD_TABLE",
+      "expected_pairs": [
+        [
+          "全自动尿液分析系统",
+          "1(台)"
+        ],
+        [
+          "全自动血细胞分析仪",
+          "1(台)"
+        ],
+        [
+          "数字式多道心电图机",
+          "2(台)"
+        ],
+        [
+          "离心机",
+          "2(台)"
+        ],
+        [
+          "半自动除颤仪",
+          "1(台)"
+        ]
+      ],
+      "actual_pairs": [
+        [
+          "全自动尿液分析系统",
+          "1(台)"
+        ],
+        [
+          "全自动血细胞分析仪",
+          "1(台)"
+        ],
+        [
+          "数字式多道心电图机",
+          "2(台)"
+        ],
+        [
+          "离心机",
+          "2(台)"
+        ],
+        [
+          "半自动除颤仪",
+          "1(台)"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "actual_medical_relevant": true,
+      "pass": true
+    },
+    {
+      "label": "ccgp_hl_e8f00e33bac08696",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "NON_MEDICAL_SERVICE_NEGATIVE",
+      "expected_pairs": [
+        [
+          "后勤保障服务（卫生清洁）",
+          "1(年)"
+        ],
+        [
+          "后勤保障服务（保安）",
+          "1(年)"
+        ]
+      ],
+      "actual_pairs": [
+        [
+          "后勤保障服务（卫生清洁）",
+          "1(年)"
+        ],
+        [
+          "后勤保障服务（保安）",
+          "1(年)"
+        ]
+      ],
+      "expected_medical_relevant": false,
+      "actual_medical_relevant": false,
+      "pass": true
+    },
+    {
+      "label": "ccgp_ln_e098f4b20ac83f0c",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "LN_PRODUCT_NAME_TABLE",
+      "expected_pairs": [
+        [
+          "结核分枝杆菌耐药基因检测多通道分析仪",
+          "1台"
+        ],
+        [
+          "高压蒸汽灭菌器",
+          "1台"
+        ],
+        [
+          "生物安全柜",
+          "1个"
+        ],
+        [
+          "离心机",
+          "2台"
+        ]
+      ],
+      "actual_pairs": [
+        [
+          "结核分枝杆菌耐药基因检测多通道分析仪",
+          "1台"
+        ],
+        [
+          "高压蒸汽灭菌器",
+          "1台"
+        ],
+        [
+          "生物安全柜",
+          "1个"
+        ],
+        [
+          "离心机",
+          "2台"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "actual_medical_relevant": true,
+      "pass": true
+    },
+    {
+      "label": "ccgp_jl_40d5ac0960328c51",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "JL_ZCY_NULL_QUANTITY",
+      "expected_pairs": [
+        [
+          "五分类血球分析仪、糖化分析仪、超敏C反应分析仪一体化自动检测流水线",
+          null
+        ],
+        [
+          "全自动尿液分析仪(干化学+尿沉渣)",
+          null
+        ],
+        [
+          "质谱分析仪",
+          null
+        ],
+        [
+          "微生物药敏分析仪",
+          null
+        ]
+      ],
+      "actual_pairs": [
+        [
+          "五分类血球分析仪、糖化分析仪、超敏C反应分析仪一体化自动检测流水线",
+          null
+        ],
+        [
+          "全自动尿液分析仪(干化学+尿沉渣)",
+          null
+        ],
+        [
+          "质谱分析仪",
+          null
+        ],
+        [
+          "微生物药敏分析仪",
+          null
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "actual_medical_relevant": true,
+      "pass": true
+    },
+    {
+      "label": "ccgp_he_2a9ca892bf9d0b6a",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "HE_EXPLICIT_DEMAND",
+      "expected_pairs": [
+        [
+          "病理数字化切片扫描仪",
+          "4套"
+        ]
+      ],
+      "actual_pairs": [
+        [
+          "病理数字化切片扫描仪",
+          "4套"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "actual_medical_relevant": true,
+      "pass": true
+    },
+    {
+      "label": "ccgp_jl_806743d8af167ea4",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "JL_SPLIT_PRODUCT_HEADER",
+      "expected_pairs": [
+        [
+          "血液透析机",
+          "5台/套"
+        ]
+      ],
+      "actual_pairs": [],
+      "expected_medical_relevant": true,
+      "actual_medical_relevant": true,
+      "pass": false
+    },
+    {
+      "label": "ccgp_bj_xiehe_mammography",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "BJ_HEADER_UNIT",
+      "expected_pairs": [
+        [
+          "乳腺机",
+          "1套"
+        ]
+      ],
+      "actual_pairs": [
+        [
+          "乳腺机",
+          "1"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "actual_medical_relevant": true,
+      "pass": false
+    },
+    {
+      "label": "ccgp_tj_attachment_only",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "ATTACHMENT_ONLY_NEGATIVE",
+      "expected_pairs": [],
+      "actual_pairs": [],
+      "expected_medical_relevant": true,
+      "actual_medical_relevant": true,
+      "pass": true
+    },
+    {
+      "label": "qualification_general_table",
+      "kind": "SYNTHETIC_DERIVED_NEGATIVE",
+      "family": "QUALIFICATION_TABLE_BOUNDARY",
+      "expected_pairs": [
+        [
+          "病理数字化切片扫描仪",
+          "4套"
+        ]
+      ],
+      "actual_pairs": [
+        [
+          "医疗器械经营许可证",
+          "1份"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "actual_medical_relevant": true,
+      "pass": false
+    },
+    {
+      "label": "qualification_standard_table",
+      "kind": "SYNTHETIC_DERIVED_NEGATIVE",
+      "family": "QUALIFICATION_TABLE_BOUNDARY",
+      "expected_pairs": [
+        [
+          "病理数字化切片扫描仪",
+          "4套"
+        ]
+      ],
+      "actual_pairs": [
+        [
+          "医疗器械经营许可证",
+          "1(份)"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "actual_medical_relevant": true,
+      "pass": false
+    }
+  ],
+  "patch_proposals": [
+    {
+      "opportunity_id": "ccgp_he_2a9ca892bf9d0b6a",
+      "source_url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm",
+      "baseline_record_sha256": "a988e39a7f86ed4c4334f6c1c623fc9bb5aeed4ea98bbd69328995e09784ead4",
+      "official_html_sha256": "923c2e5308d0f5d2ce6e7d4886d2cd021bad2bc3fe21aedba096c3b6808caff9",
+      "candidate_record_sha256": "ac90579ffca45b756e4f17eeabb9aa4af7fba39902bf3e8832cfd5675532f336",
+      "allowed_fact_fields": [
+        "product_items",
+        "product_categories"
+      ],
+      "before": {
+        "product_items": [],
+        "product_categories": []
+      },
+      "after": {
+        "product_items": [
+          {
+            "raw_name": "病理数字化切片扫描仪",
+            "category": null,
+            "quantity": "4套",
+            "specification": null
+          }
+        ],
+        "product_categories": []
+      },
+      "evidence_updates_required_before_apply": true,
+      "source_identity_and_scan_clocks_preserved": true,
+      "apply_allowed": false
+    }
+  ],
+  "apply_allowed": false,
+  "publishes_snapshot": false,
+  "writes_runtime_state": false,
+  "network_requests": 0,
+  "interpretation": "All proposals require separate gate, identity, event and concurrency review; a passing fixture gate alone never authorizes a backfill."
+}

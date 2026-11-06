@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-11-06T11:14:19.042Z",
+  "read_only": true,
+  "production_actions_performed": false,
+  "new_preview_deployed": false,
+  "production": {
+    "id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+    "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+    "state": "READY"
+  },
+  "ssoProtection": {
+    "enabled": true,
+    "deploymentType": "all_except_custom_domains"
+  }
+}

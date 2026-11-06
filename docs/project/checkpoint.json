@@ -2,31 +2,33 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-06",
   "timezone": "Asia/Shanghai",
-  "state_scope": "CURRENT_OFFLINE_CCGP_TEMPLATE_AUDIT_AND_HISTORICAL_BACKFILL_PLAN",
+  "state_scope": "CURRENT_LOCAL_CCGP_PARSER_AND_BACKFILL_GATE_FIX_NOT_DEPLOYED",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
-  "runtime_implementation_head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
-  "latest_code_validated_head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
-  "current_runtime_candidate_head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+  "runtime_implementation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
+  "latest_code_validated_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
+  "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "CCGP_TEMPLATE_AND_BOOTSTRAP_GATES_BLOCK_BACKFILL_PENDING_FOUR_FIXES",
-  "latest_changes_validation_status": "922_LOCAL_PYTHON_PASS; TEMPLATE_GATE_6_PASS_4_FAIL; BOOTSTRAP_GATE_1_PASS_2_FAIL; APPLY_BLOCKED; NO_NEW_DEPLOYMENT",
+  "milestone": "FOUR_CCGP_ISSUES_FIXED_FROZEN_GATES_PASS_PENDING_PREVIEW_DEPLOYMENT",
+  "latest_changes_validation_status": "945_PYTHON_AND_COMPLETE_BUILD_PASS; TEMPLATE_GATE_10_OF_10; ORIGINAL_CLI_GATE_3_OF_3; NO_DEPLOYMENT_OR_BACKFILL",
   "current_runtime_candidate_validation": {
-    "head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
-    "python_contract_tests": 916,
+    "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
+    "python_contract_tests": 945,
     "python_contract_result": "PASS",
+    "new_parser_tests": 13,
+    "new_actual_cli_tests": 10,
     "javascript_contract_checks": "PASS",
     "typescript_typecheck": "PASS",
     "vite_production_build": "PASS",
+    "frozen_template_gate": "10_OF_10_PASS",
+    "original_cli_reproduction": "3_OF_3_PASS",
     "new_full_cloud_queue_cycle": "NOT_TRIGGERED",
-    "cloud_publication": "TARGETED_REAL_OFFICIAL_CORRECTION_WITH_VERIFIED_SNAPSHOT_CARRYFORWARD; EXACT_SQL_JSON_HASH_AND_MICROSECONDS",
-    "current_browser": "6_OF_6_PASS",
-    "production_ready": false,
-    "data_producer_head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
-    "backend_sources_unchanged_since_native_acceptance": false
+    "cloud_publication": "NOT_RUN_FOR_CURRENT_CANDIDATE",
+    "current_browser": "NOT_RUN_FOR_CURRENT_CANDIDATE",
+    "production_ready": false
   },
   "implementation_scope": [
     "Three-source runtime parity: tjzyefy, tjzyefy_intent, tjzxfc; reuse existing official adapters.",
@@ -61,11 +63,11 @@
     "Production deployment, merge, domain/DNS, production credentials or production-data changes."
   ],
   "deployment_boundary": {
-    "preview_actions_performed": true,
+    "preview_actions_performed": false,
     "production_actions_performed": false,
     "merge_performed": false,
-    "current_head_runtime_acceptance": "TARGETED_OFFICIAL_PRODUCT_REPAIR_DB_API_BROWSER_VERIFIED; NEW_QUEUE_CYCLE_NOT_TRIGGERED",
-    "remote_deployment_state": "READY_PREVIEW_PRODUCTION_UNCHANGED",
+    "current_head_runtime_acceptance": "LOCAL_FIX_AND_FROZEN_GATES_VERIFIED; CURRENT_CANDIDATE_NOT_DEPLOYED",
+    "remote_deployment_state": "PRIOR_PREVIEW_RETAINED; NEW_CANDIDATE_NOT_DEPLOYED",
     "preview": {
       "target": "preview",
       "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
@@ -110,18 +112,18 @@
       "ready_state": "READY",
       "unchanged": true,
       "sso_protection_unchanged": true,
-      "rechecked_at": "2026-11-06T08:59:57.118Z",
+      "rechecked_at": "2026-11-06T11:14:19.042Z",
       "production_actions_performed": false
     },
-    "interpretation": "Fresh d holds a corrected carryforward of c verified public snapshot only; c canonical/cache state and active consumers remain separate. No Production, merge, promotion or domain change.",
+    "interpretation": "Serving Preview and data producer records retain prior eabd bindings; current795ef5e has local verification only. No Queue, native cycle, snapshot write, canonical migration or historical apply in this phase.",
     "temporary_acceptance_access": "Task-owned d share revoked; exact-secret evidence scan passed and private credentials file removed.",
     "latest_audit_actions": {
-      "mode": "READ_ONLY_CLOUD_BOUNDARY_AND_LOCAL_OFFLINE_AUDIT",
+      "mode": "LOCAL_CODE_FIX_AND_READ_ONLY_PRODUCTION_BOUNDARY",
       "preview_deployed": false,
       "database_or_runtime_writes": false,
       "production_mutations": false,
       "new_temporary_share_access": false,
-      "boundary_rechecked_at": "2026-11-06T08:59:57.118Z"
+      "boundary_rechecked_at": "2026-11-06T11:14:19.042Z"
     }
   },
   "gold_set_status": {
@@ -138,7 +140,7 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "PASS_TARGETED_EABD76F_OFFICIAL_PRODUCT_CORRECTION_SQL_API_BROWSER; NEW_NATIVE_QUEUE_CYCLE_NOT_TRIGGERED",
+    "current_head_runtime_acceptance": "LOCAL_ONLY_795EF5E:945/fullbuild,10frozen and3CLI gates passed; current code not deployed and no new browser/native-cycle evidence.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
     "source_freshness_runtime_acceptance": "CARRIED_PRIOR_C_REAL_SCAN_CLOCKS_UNCHANGED:8/14 healthy; no new source scan or recovery in d.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
@@ -155,12 +157,12 @@
     "http_request_reliability": "UNRESOLVED_HISTORICAL_OBSERVATION: one earlier oversized-request attempt returned unexplained 502, then expected 400 on one retry; authority stayed unchanged. The cause remains unknown and is not explained away by later successful publication.",
     "old_deployment_queue_isolation": "D_TARGETED_REPAIR_ISOLATED:old c role cannot read d snapshots or create d schema; old c consumers retained. d native cycle/canonical migration and shared-origin request budget remain unverified.",
     "publication_latency": "CURRENT662_RETURNED_FAILURE_TAIL_VERIFIED:0.029–0.034seconds; trigger-to-publish2207.330seconds, tjmugh completion-to-publish1678.375seconds. Single-cycle observations, notP95; first retry/forced-kill recovery/global publication coupling remain.",
-    "ccgp_product_items_quality": "PRIOR_DAKOUTUN_CASE_FIXED_ONLY. New8official+2derived audit:6pass/4fail. Confirmed product-name header omission and header-unit loss on actual official pages; two derived qualification tables override real demand. No batch backfill until fixed.",
-    "historical_product_backfill": "BLOCKED:actual bootstrap CLI partial-detail or partial-discovery failure still returns acceptance_ready=true/exit0. Reproduction1controlpass/2negativefail; no online backfill applied. Public16card d carryforward is not c canonical migration."
+    "ccgp_product_items_quality": "FOUR_ISSUES_FIXED_LOCALLY_795EF5E:bounded HTML tables, product-name header, header units/conflict refusal.10frozen cases pass. Prior eabd remains deployed; broader templates/attachments/statistical recall and historical application unverified.",
+    "historical_product_backfill": "BOOTSTRAP_COMPLETENESS_FIXED_LOCALLY:partial detail/discovery/single event failure blocked, complete empty success accepted, cap negatives tested.2offline patch proposals remain apply_allowed=false. Runtime state export, CAS/atomicity, migration, rollback and batch application unimplemented."
   },
-  "final_code_head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
-  "code_validation_head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
-  "documentation_followup": "Latest phase adds frozen official/derived corpus, offline audit tool and backfill plan only. Application code and serving Preview remain eabd76f; previous916/full-build/6-browser evidence is historical and not rerun online. New922 local tests do not make the10case template gate pass.",
+  "final_code_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
+  "code_validation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
+  "documentation_followup": "Current local code795ef5e fixes four issues; no deployment or data application. Previous eabd Preview/data/browser evidence remains historical and must not stand in for current cloud verification. Frozen official/derived bytes and independent expectations unchanged.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -280,7 +282,8 @@
     "source_health_healthy": 8,
     "source_health_required": 14,
     "source_health_origin": "UNCHANGED_REAL_PRIOR_C_SCAN_CLOCKS; NO_NEW_SOURCE_SUCCESS_CLAIM",
-    "evidence_manifest": "docs/project/validation/product-items-2026-11-06/manifest.json"
+    "evidence_manifest": "docs/project/validation/product-items-2026-11-06/manifest.json",
+    "latest_readback_phase": "HISTORICAL_EABD76F_SINGLE_RECORD_CORRECTION; NOT_RECHECKED_OR_WRITTEN_THIS_PHASE"
   },
   "latest_ui_browser_acceptance": {
     "commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
@@ -290,7 +293,9 @@
     "ordinary_pool_count": 16,
     "blocked_cache_only_ai_requests": 2,
     "ai_requests_sent": false,
-    "report": "docs/project/validation/product-items-2026-11-06/browser-report.json"
+    "report": "docs/project/validation/product-items-2026-11-06/browser-report.json",
+    "historical": true,
+    "not_reused_for_current_candidate": true
   },
   "historical_records": {
     "interpretation": "Historical observations only; these records do not describe the current branch, CI, deployment or P0 acceptance.",
@@ -1700,6 +1705,124 @@
         "ai_requests_sent": false,
         "report": "docs/project/validation/product-items-2026-11-06/browser-report.json"
       }
+    },
+    "previous_ccgp_audit_e623032": {
+      "state_scope": "CURRENT_OFFLINE_CCGP_TEMPLATE_AUDIT_AND_HISTORICAL_BACKFILL_PLAN",
+      "milestone": "CCGP_TEMPLATE_AND_BOOTSTRAP_GATES_BLOCK_BACKFILL_PENDING_FOUR_FIXES",
+      "latest_changes_validation_status": "922_LOCAL_PYTHON_PASS; TEMPLATE_GATE_6_PASS_4_FAIL; BOOTSTRAP_GATE_1_PASS_2_FAIL; APPLY_BLOCKED; NO_NEW_DEPLOYMENT",
+      "ccgp_template_audit_acceptance": {
+        "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
+        "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
+        "fixture_manifest": "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/manifest.json",
+        "audit_tool_commit": "443b5cdcf673ccc17a82278091a8dbe4343becab",
+        "application_code_unchanged": true,
+        "application_commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+        "official_originals": 8,
+        "synthetic_derived_negatives": 2,
+        "template_gate_passed": 6,
+        "template_gate_failed": 4,
+        "bootstrap_actual_cli_controls_passed": 1,
+        "bootstrap_actual_cli_negative_failures": 2,
+        "local_python_tests": 922,
+        "local_python_result": "PASS",
+        "new_build_or_deployment": false,
+        "native_queue_triggered": false,
+        "historical_backfill_applied": false,
+        "backfill_apply_allowed": false,
+        "blocked_patch_proposal_count": 1,
+        "local_inventory_record_count": 892,
+        "current_runtime_canonical_inventory_read": false,
+        "production_modified": false,
+        "scope": {
+          "name": "ccgp-template-audit",
+          "started_at": "2026-11-06T08:50:53Z",
+          "foreground_deadline": "2026-11-06T09:10:53Z",
+          "network_deadline": "2026-11-06T09:00:00Z",
+          "target": "LOCAL_OFFLINE_AUDIT_ONLY",
+          "preview_runtime_code": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+          "starting_head": "fdfeb11dd7c974fe482941db2c575bd8e3343d79",
+          "production_actions_performed": false,
+          "native_queue_triggered": false
+        }
+      },
+      "current_runtime_candidate_validation": {
+        "head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+        "python_contract_tests": 916,
+        "python_contract_result": "PASS",
+        "javascript_contract_checks": "PASS",
+        "typescript_typecheck": "PASS",
+        "vite_production_build": "PASS",
+        "new_full_cloud_queue_cycle": "NOT_TRIGGERED",
+        "cloud_publication": "TARGETED_REAL_OFFICIAL_CORRECTION_WITH_VERIFIED_SNAPSHOT_CARRYFORWARD; EXACT_SQL_JSON_HASH_AND_MICROSECONDS",
+        "current_browser": "6_OF_6_PASS",
+        "production_ready": false,
+        "data_producer_head": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+        "backend_sources_unchanged_since_native_acceptance": false
+      },
+      "deployment_boundary": {
+        "preview_actions_performed": true,
+        "production_actions_performed": false,
+        "merge_performed": false,
+        "current_head_runtime_acceptance": "TARGETED_OFFICIAL_PRODUCT_REPAIR_DB_API_BROWSER_VERIFIED; NEW_QUEUE_CYCLE_NOT_TRIGGERED",
+        "remote_deployment_state": "READY_PREVIEW_PRODUCTION_UNCHANGED",
+        "preview": {
+          "target": "preview",
+          "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+          "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+          "git_branch": "codex/p0-reliability-contracts",
+          "preview_epoch": "mcai-p0-20261106-d",
+          "database": "mcai_p0_epoch_20261106d",
+          "role": "mcai_p0_epoch_20261106d",
+          "neon_project": "orange-band-79103824",
+          "neon_branch": "br-cold-tooth-a5clhljh",
+          "foreground_deadline": "2026-11-06T07:04:57Z",
+          "commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+          "deployment_id": "dpl_Fk33cZFtMo6vwd5cFbSh57J8fZH8",
+          "url": "https://medicalchannelai-mbstj6o1a-rerisse7-1717s-projects.vercel.app",
+          "ready_state": "READY",
+          "report": "docs/project/product-items-correction-2026-11-06.md"
+        },
+        "data_producer_preview": {
+          "target": "preview",
+          "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+          "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+          "git_branch": "codex/p0-reliability-contracts",
+          "preview_epoch": "mcai-p0-20261106-d",
+          "database": "mcai_p0_epoch_20261106d",
+          "role": "mcai_p0_epoch_20261106d",
+          "neon_project": "orange-band-79103824",
+          "neon_branch": "br-cold-tooth-a5clhljh",
+          "foreground_deadline": "2026-11-06T07:04:57Z",
+          "commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+          "deployment_id": "dpl_Fk33cZFtMo6vwd5cFbSh57J8fZH8",
+          "url": "https://medicalchannelai-mbstj6o1a-rerisse7-1717s-projects.vercel.app",
+          "ready_state": "READY",
+          "report": "docs/project/product-items-correction-2026-11-06.md",
+          "kind": "SINGLE_OFFICIAL_DETAIL_CORRECTION_WITH_VERIFIED_SNAPSHOT_CARRYFORWARD",
+          "base_producer_commit": "662bd23cc572e16a13d093bd427fa322cc5166ac",
+          "native_full_cycle": false
+        },
+        "production_baseline_and_recheck": {
+          "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+          "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+          "target": "production",
+          "ready_state": "READY",
+          "unchanged": true,
+          "sso_protection_unchanged": true,
+          "rechecked_at": "2026-11-06T08:59:57.118Z",
+          "production_actions_performed": false
+        },
+        "interpretation": "Fresh d holds a corrected carryforward of c verified public snapshot only; c canonical/cache state and active consumers remain separate. No Production, merge, promotion or domain change.",
+        "temporary_acceptance_access": "Task-owned d share revoked; exact-secret evidence scan passed and private credentials file removed.",
+        "latest_audit_actions": {
+          "mode": "READ_ONLY_CLOUD_BOUNDARY_AND_LOCAL_OFFLINE_AUDIT",
+          "preview_deployed": false,
+          "database_or_runtime_writes": false,
+          "production_mutations": false,
+          "new_temporary_share_access": false,
+          "boundary_rechecked_at": "2026-11-06T08:59:57.118Z"
+        }
+      }
     }
   },
   "source_recovery_precision_acceptance": {
@@ -1901,7 +2024,15 @@
       "cause": "Two bounded UI harness corrections after successful API publish; no Queue triggered.",
       "required_followup": "Lock filters before load and enforce one absolute deadline across all waits; deadline means stop live checks."
     },
-    "latest_audit_deadline": "2026-11-06T09:10:53Z"
+    "latest_audit_deadline": "2026-11-06T09:10:53Z",
+    "latest_phase_deadline": "2026-11-06T11:25:33Z",
+    "next_step_buttons": {
+      "required": true,
+      "full_executable_prompt_in_each_option": true,
+      "submitted_selection_is_next_task": true,
+      "preselection_is_not_submission": true,
+      "suggested_model_and_effort_in_each_option": true
+    }
   },
   "product_items_correction_acceptance": {
     "repair_as_of": "2026-11-06T07:00:46.604901+00:00",
@@ -1939,7 +2070,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "fdfeb11dd7c974fe482941db2c575bd8e3343d79",
+  "latest_reviewed_repository_head": "e623032cd319c72d7ed6f6e457c6d0327ad92f04",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -1973,6 +2104,69 @@
       "starting_head": "fdfeb11dd7c974fe482941db2c575bd8e3343d79",
       "production_actions_performed": false,
       "native_queue_triggered": false
-    }
-  }
+    },
+    "historical": true
+  },
+  "ccgp_parser_gate_fix_acceptance": {
+    "code_commit": "795ef5efa30b61dd47352c4fb888b02488f16855",
+    "python_tests": 945,
+    "python_result": "PASS",
+    "new_parser_tests": 13,
+    "new_actual_cli_tests": 10,
+    "javascript_contracts": "PASS",
+    "typescript": "PASS",
+    "vite": "PASS",
+    "main_js_gzip_kb": 116.17,
+    "template_cases_before": {
+      "pass": 6,
+      "fail": 4
+    },
+    "template_cases_after": {
+      "pass": 10,
+      "fail": 0
+    },
+    "original_cli_cases_before": {
+      "pass": 1,
+      "fail": 2
+    },
+    "original_cli_cases_after": {
+      "pass": 3,
+      "fail": 0
+    },
+    "python_log_source": "Verbatim unittest section of final npm run build, not a separate additional run",
+    "preview_deployed": false,
+    "queue_triggered": false,
+    "backfill_applied": false,
+    "network_official_requests": 0,
+    "new_browser_acceptance": false,
+    "old_cloud_evidence_reused_as_current": false,
+    "source_files": [
+      {
+        "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+        "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187"
+      },
+      {
+        "path": "web/pipeline/scripts/bootstrap_ccgp_backfill.py",
+        "sha256": "6aaed10e94a610dbdf44c29523e2098dba78fa4a69dcddc7d642c9b3510ae096"
+      },
+      {
+        "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+        "sha256": "30226dec7932abde14487233d843126eba1a1fe70a20c155081dbfe66b1e0246"
+      },
+      {
+        "path": "web/pipeline/tests/test_ccgp_table_scope_and_units.py",
+        "sha256": "7c178283951b9df7e41d1c52721d5790b9e66759a1f114b18888e129a91fe915"
+      },
+      {
+        "path": "web/pipeline/tests/test_bootstrap_ccgp_completeness.py",
+        "sha256": "b7ca9a051f819dd407fff759cf6b2fbbe36132292ae7d32dc74cd80bf736d649"
+      }
+    ],
+    "report": "docs/project/ccgp-parser-gates-fix-2026-11-06.md",
+    "evidence_manifest": "docs/project/validation/ccgp-parser-gates-fix-2026-11-06/manifest.json",
+    "historical_patch_proposals": 2,
+    "apply_allowed": false,
+    "production_modified": false
+  },
+  "current_phase_starting_head": "e623032cd319c72d7ed6f6e457c6d0327ad92f04"
 }
