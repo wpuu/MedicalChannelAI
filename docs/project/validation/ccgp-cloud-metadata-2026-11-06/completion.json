@@ -1,0 +1,12 @@
+{
+  "started_at": "2026-11-06T14:05:50Z",
+  "foreground_deadline": "2026-11-06T14:25:50Z",
+  "metadata_queries_finished_at": "2026-11-06T14:10:45Z",
+  "documentation_and_evidence_completed_at": "2026-11-06T14:17:12.466114+00:00",
+  "within_foreground_deadline": true,
+  "cloud_scope": "SPECIFIC_EXISTING_D_PREVIEW_NON_SENSITIVE_METADATA_ONLY",
+  "additional_cloud_queries_after_file_tree_failure": 0,
+  "git_push_performed": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

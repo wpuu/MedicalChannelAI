@@ -1,0 +1,82 @@
+{
+  "tool": "mcp__codex_apps__vercel_list_deployments",
+  "args": {
+    "projectId": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "teamId": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "branch": "codex/p0-reliability-contracts",
+    "sha": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+    "target": "preview",
+    "limit": 1,
+    "since": 1793964323836,
+    "until": 1793964323838
+  },
+  "started_at": "2026-11-06 14:09:25 UTC",
+  "finished_at": "2026-11-06 14:09:26 UTC",
+  "is_error": false,
+  "extraction_status": "EXTRACTED_ALLOWLISTED_DEPLOYMENT_SUMMARY",
+  "response_shapes": [
+    {
+      "path": "",
+      "type": "object",
+      "fields": [
+        "result"
+      ]
+    },
+    {
+      "path": "/result",
+      "type": "object",
+      "fields": [
+        "deployments"
+      ]
+    },
+    {
+      "path": "/result/deployments",
+      "type": "object",
+      "fields": [
+        "pagination",
+        "deployments"
+      ]
+    },
+    {
+      "path": "/result/deployments/deployments",
+      "type": "array",
+      "length": 1
+    },
+    {
+      "path": "/result/deployments/deployments[]",
+      "type": "object",
+      "fields": [
+        "id",
+        "name",
+        "url",
+        "created",
+        "state",
+        "target",
+        "creator",
+        "meta",
+        "inspectorUrl",
+        "isRollbackCandidate"
+      ]
+    }
+  ],
+  "record_count": 1,
+  "deployments": [
+    {
+      "uid": "dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1",
+      "name": "medicalchannelai",
+      "url": "medicalchannelai-b5vc26me3-rerisse7-1717s-projects.vercel.app",
+      "state": "READY",
+      "target": null,
+      "created": 1793964323837,
+      "meta": {
+        "githubCommitSha": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+        "githubCommitRef": "codex/p0-reliability-contracts",
+        "githubOrg": "wpuu",
+        "githubRepo": "MedicalChannelAI"
+      }
+    }
+  ],
+  "exact_deployment_match": true,
+  "expected_sha_match": true,
+  "cloud_query_batch_closed": true
+}

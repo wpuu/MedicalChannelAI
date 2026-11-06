@@ -1,0 +1,8 @@
+{
+  "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
+  "protected_file_count": 314,
+  "protected_inventory_sha256": "56c3a68da4789cbfda82a0daa87731e16ef654f32e911821c584e5b39e282b77",
+  "source_and_tests_unchanged": true,
+  "raw_data_fixtures_and_existing_evidence_unchanged": true,
+  "full_suite_rerun": false
+}

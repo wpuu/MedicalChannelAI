@@ -1,0 +1,26 @@
+{
+  "tool": "mcp__codex_apps__vercel_list_deployment_files",
+  "args": {
+    "id": "dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1",
+    "teamId": "team_jEy8Ex9vRDBdXj1cQPKF8sRd"
+  },
+  "started_at": "2026-11-06 14:10:44 UTC",
+  "finished_at": "2026-11-06 14:10:45 UTC",
+  "is_error": true,
+  "node_count": 1,
+  "path_count": 0,
+  "selected_file_metadata": [],
+  "error_codes": [
+    {
+      "code": "not_found"
+    }
+  ],
+  "top_level_fields": [
+    "error",
+    "cliFallback",
+    "error_code"
+  ],
+  "raw_file_contents_requested": false,
+  "unmatched_paths_saved": false,
+  "source_tree_complete_verified": false
+}

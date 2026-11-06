@@ -1,0 +1,60 @@
+{
+  "used": [
+    {
+      "name": "mcp__codex_apps__vercel_list_deployments",
+      "purpose": "Filtered deployment record summary",
+      "filters": [
+        "projectId",
+        "teamId",
+        "sha",
+        "branch",
+        "target=preview",
+        "since",
+        "until",
+        "limit=1"
+      ],
+      "non_sensitive_output_allowlist": [
+        "id",
+        "name",
+        "url",
+        "state",
+        "target",
+        "created",
+        "meta.githubCommitSha",
+        "meta.githubCommitRef",
+        "meta.githubOrg",
+        "meta.githubRepo"
+      ]
+    },
+    {
+      "name": "mcp__codex_apps__vercel_list_deployment_files",
+      "purpose": "Only source path metadata for the exact matched deployment; no contents"
+    }
+  ],
+  "not_called": [
+    {
+      "name": "vercel_get_project",
+      "reason": "No response-field projection; broader project/environment/target details outside requested narrow scope"
+    },
+    {
+      "name": "vercel_get_deployment",
+      "reason": "Owner-specific extra response details not constrained by a documented safe response allowlist"
+    },
+    {
+      "name": "vercel_get_deployment_file_contents",
+      "reason": "Source contents were not needed/authorized as cloud metadata"
+    },
+    {
+      "name": "env/logs/credential/share/fetch/mutation/runtime/database tools",
+      "reason": "Outside this authorization"
+    }
+  ],
+  "skill_used": "skill://plugin_connector_690a90ec05c881918afb6a55dc9bbaa1/deployments-cicd/SKILL.md",
+  "credentials_read": false,
+  "environment_values_read": false,
+  "raw_build_logs_read": false,
+  "project_business_api_calls": 0,
+  "runtime_cache_reads": 0,
+  "database_reads": 0,
+  "cloud_writes": 0
+}

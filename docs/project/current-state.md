@@ -2,7 +2,16 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前最小get-only接入守卫（离线阶段完成，真实接入仍NO-GO）
+## 当前d关联Preview非敏感云端元数据核实（部分事实已核实，真实接入NO-GO）
+
+- 起点1238596，指定team/project/分支/SHA/Preview/创建时间过滤命中dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1；北京时间22:09:25–26返回READY、声明来源82cc43f、分支codex/p0-reliability-contracts、wpuu/MedicalChannelAI，provider target原值null。只确认该指定记录，不声称项目最新部署或d运行绑定已核实。
+- 本次受控批次4次云端只读：3次相同过滤摘要（前2次本地多层响应提取失败，不当空结果），1次同部署源目录查询返回not_found。目录没有证据后停止，不转用日志、凭据、CLI fallback或业务接口。保存的均为白名单非敏感字段。
+- 指定team/project查询上下文一致，但记录未独立返回所有权ID，不能替代Runtime Cache认证。实际epoch/数据库绑定、已安装SDK版本、执行通道和超时/取消能力仍未核实；真实接入/迁移NO-GO，scope_provenance_verified、apply_allowed、migration_usable=false。
+- 云端声明来源82cc43f的本地Git树没有605ebad守卫/9781921内核，Python依赖vercel未锁版本；实际部署bundle未读取，不能拿本地1031通过当已部署能力。[报告](ccgp-cloud-metadata-2026-11-06.md)、[证据](validation/ccgp-cloud-metadata-2026-11-06/manifest.json)。
+- 仅文档/artifact变化，应用与测试未改；314份起点原始数据/fixture/旧证据字节不变。1031/10/3为历史代码门禁，本轮未重跑。缓存/数据库读写0，业务接口/函数/Queue/模型调用0；没有环境值/凭据/原始构建日志读取、部署/推送或任何配置变更。
+- 下一步按[next-task.md](next-task.md)，获得明确公开来源访问授权后静态审计官方Python SDK精确候选版本/源码，不安装、不运行，不再增加模拟层，也不将公开候选冒称部署实际版本。已有d非敏感元数据授权保留，不重复申请。当前界面无法生成该按钮；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
+## 上轮最小get-only接入守卫（历史离线阶段完成，真实接入仍NO-GO）
 
 - 守卫代码605ebad99041a3057189a1315adae6cc2a773055，复用9781921内核，保留原封套及输入种类。仅接受SYNTHETIC_LOCAL_STUB及准确d范围声明；58物理键原样转发，固定双遍顺序、最多116次get、零重试。非法/双前缀/旧c/Production/跨范围在转发前拒绝，首次失败永久关闭。
 - 注入monotonic计算读阶段110秒、总120秒、单次最多2秒及剩余读预算；调用返回和交付前复查时间，整份拒绝超期结果。24项假时钟测试覆盖各阶段、余量、次数、声明变化及失败后续读；不是实际强制取消或性能SLA，不能抢占卡死同步transport。

@@ -1,0 +1,16 @@
+{
+  "kind": "LOCAL_GIT_OBJECT_CROSSCHECK_NOT_REMOTE_BUNDLE_INSPECTION",
+  "provider_declared_source_sha": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+  "selected_paths_in_git_tree": [
+    "web/pyproject.toml"
+  ],
+  "kernel_path_present_in_declared_source": false,
+  "guard_path_present_in_declared_source": false,
+  "pyproject_dependency_declaration": [
+    "vercel"
+  ],
+  "declared_python": ">=3.12",
+  "installed_sdk_version_verified": false,
+  "pyproject_bytes_sha256": "f09da6a199aec5b4d78b9a4b190c3f0859e244cca63c1051058d84703104471d",
+  "actual_deployment_bundle_bytes_verified": false
+}

@@ -1,0 +1,50 @@
+{
+  "kind": "SCOPED_CLOUD_METADATA_OBSERVATION_NOT_CANONICAL_EXPORT_OR_AUTH_PROOF",
+  "files": [
+    {
+      "path": "completion.json",
+      "bytes": 488,
+      "sha256": "be9fa257fc2baf5b51389db29c966f1926d24dd1e13ca1d51532806488abd37a"
+    },
+    {
+      "path": "deployment-source-tree.json",
+      "bytes": 604,
+      "sha256": "7b0209923cfbe28fe0312d55ad807f2e88a4be102ae823c3a7b01c4d8e29ad32"
+    },
+    {
+      "path": "deployment-summary.json",
+      "bytes": 1954,
+      "sha256": "3fc667f83d531d5c486743928a851aaf7c41ec76add9574b028d4d271c4b7394"
+    },
+    {
+      "path": "input-integrity.json",
+      "bytes": 325,
+      "sha256": "7e74e3f2c906eee142482b598acc5c8db02149957527c9a49f91d10245b7fb75"
+    },
+    {
+      "path": "local-source-crosscheck.json",
+      "bytes": 596,
+      "sha256": "b16d7a76a838480bbb0a6732df5b40d25e6259872757f5cf902a1363bcf65113"
+    },
+    {
+      "path": "query-attempts.json",
+      "bytes": 2225,
+      "sha256": "7e6767e8513ea407f1f84f02114ff50a8c607e71afc29a2fea63d99583717fda"
+    },
+    {
+      "path": "tool-selection.json",
+      "bytes": 1703,
+      "sha256": "fa1461a3d31f7690eadde841e85905c1c82d97716f666d358c208df1efb481ac"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 1583,
+      "sha256": "9fdfc1ea5a16d2dd044dbcb49da3e9c09d5e39cda6ed8e68d51d1b543c0273f5"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 3723,
+      "sha256": "0e5ee2be98931d8cb5828719aec970cdca06af40862fff8527f7a1fa9614a19f"
+    }
+  ]
+}

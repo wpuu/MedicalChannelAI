@@ -1,0 +1,76 @@
+{
+  "scope": "ONE_BOUNDED_METADATA_VERIFICATION_BATCH",
+  "deployment_summary_queries": 3,
+  "source_tree_queries": 1,
+  "retries_reason": "First two local extractions did not unwrap result.deployments.deployments; no empty-result conclusion was made.",
+  "attempts": [
+    {
+      "tool": "mcp__codex_apps__vercel_list_deployments",
+      "args": {
+        "projectId": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+        "teamId": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+        "branch": "codex/p0-reliability-contracts",
+        "sha": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+        "target": "preview",
+        "limit": 1,
+        "since": 1793964323836,
+        "until": 1793964323838
+      },
+      "started_at": "2026-11-06 14:07:47 UTC",
+      "finished_at": "2026-11-06 14:07:48 UTC",
+      "is_error": false,
+      "parse_ok": true,
+      "response_field_names": [
+        "0",
+        "count",
+        "created",
+        "creator",
+        "deployments",
+        "githubCommitMessage",
+        "githubCommitRef",
+        "githubCommitSha",
+        "githubOrg",
+        "githubRepo",
+        "id",
+        "inspectorUrl",
+        "isRollbackCandidate",
+        "meta",
+        "name",
+        "next",
+        "pagination",
+        "prev",
+        "result",
+        "state",
+        "target",
+        "uid",
+        "url",
+        "username"
+      ],
+      "extraction_status": "WRAPPER_NOT_UNWRAPPED; RECORD_COUNT_NOT_A_VALID_EMPTY_RESULT"
+    },
+    {
+      "tool": "mcp__codex_apps__vercel_list_deployments",
+      "args": {
+        "projectId": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+        "teamId": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+        "branch": "codex/p0-reliability-contracts",
+        "sha": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+        "target": "preview",
+        "limit": 1,
+        "since": 1793964323836,
+        "until": 1793964323838
+      },
+      "started_at": "2026-11-06 14:08:38 UTC",
+      "finished_at": "2026-11-06 14:08:39 UTC",
+      "is_error": false,
+      "wrapper_path": [
+        "result"
+      ],
+      "extraction_status": "UNRECOGNIZED_SHAPE",
+      "field_names": [
+        "deployments"
+      ]
+    }
+  ],
+  "fallback_or_additional_cloud_queries_after_source_tree_error": false
+}
