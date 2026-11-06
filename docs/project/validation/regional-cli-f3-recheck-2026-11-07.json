@@ -1,0 +1,41 @@
+{
+  "schema_version": "0.1",
+  "scope": "F3_ONLY_ALREADY_FIXED_RECHECK_NO_APPLICATION_CHANGE",
+  "user_supplied_historical_head": "2911c92",
+  "actual_starting_head": "5f47041db350c64ade98dcd269e14398b6b35cec",
+  "code_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
+  "branch": "codex/p0-reliability-contracts",
+  "initial_worktree_clean": true,
+  "other_active_agents": 0,
+  "related_jobs_observed": 0,
+  "existing_verifier": "docs/project/validation/regional-cli-f3-2026-11-07/verify.py",
+  "existing_verifier_result": "PASS",
+  "application_and_workflow_diff_from_validated_code": "EMPTY",
+  "source_files_sha256": {
+    "web/pipeline/scripts/sync_regional_ccgp.py": "9a82b6e40ecbc146b000bc5f208a60e9f75991835a78485f9bded693ea226c35",
+    "web/pipeline/tests/test_regional_cli_completeness.py": "9cc6e16261c625c114959c39842e4e76bc118957c6d93828f0c4f55c6025c7a6"
+  },
+  "protected_input_files_checked": 395,
+  "protected_inputs_unchanged": true,
+  "prior_validation": {
+    "python_tests_passed": 1046,
+    "frozen_template_passed": 10,
+    "original_cli_passed": 3,
+    "new_F3_behavior_tests": 15
+  },
+  "test_suite_rerun": false,
+  "cli_rerun": false,
+  "reason_not_rerun": "Code/tests/workflows match validated commit;protected inputs unchanged;existing evidence integrity verified. working-protocol item3 forbids redundant reruns without changed conditions.",
+  "F3_resolution": "ALREADY_FIXED_EVIDENCE_VERIFIED_CLOSED",
+  "F1_F2_implemented": false,
+  "sdk_workflow": "CLOSED_NO_GO",
+  "network_calls": 0,
+  "real_sdk_execution": false,
+  "cloud_runtime_or_business_access": false,
+  "deployment_or_push": false,
+  "apply_allowed": false,
+  "migration_usable": false,
+  "started_at": "2026-11-06T17:34:43Z",
+  "foreground_deadline": "2026-11-06T17:54:43Z",
+  "completed_at": "2026-11-06T17:35:30.303909+00:00"
+}

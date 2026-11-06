@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_REGIONAL_CLI_F3_COMPLETENESS_FIX_ONLY",
+  "state_scope": "OFFLINE_F3_ALREADY_FIXED_EVIDENCE_RECHECK_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -13,7 +13,7 @@
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
   "milestone": "F3_REPRODUCED_AND_FIXED_OFFLINE_F1_F2_PENDING",
-  "latest_changes_validation_status": "1046_PYTHON_AND_FROZEN10_ORIGINAL_CLI3_PASS;395_PROTECTED_FILES_UNCHANGED",
+  "latest_changes_validation_status": "F3_ALREADY_FIXED_CLOSED;PINNED_CODE_AND395_INPUTS_VERIFIED;1046_AND10/3_PRIOR_PASS_NOT_RERUN",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -2831,7 +2831,7 @@
     "database_read": false,
     "deployment_or_write": false,
     "source": "Latest explicit F3 local offline code/test authorization 2026-11-07",
-    "current_round": "F3_ONLY_OFFLINE_CODE_TEST_DOCS_ARTIFACTS",
+    "current_round": "F3_ONLY_ALREADY_FIXED_RECHECK_NO_F1_F2",
     "network_this_round": false,
     "cloud_metadata_this_round": false,
     "F1_F2_implementation_this_round": false
@@ -3077,5 +3077,18 @@
       "cloud_or_runtime_access": false,
       "deployment_or_push": false
     }
+  },
+  "regional_cli_f3_recheck": {
+    "starting_head": "5f47041db350c64ade98dcd269e14398b6b35cec",
+    "code_head": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
+    "status": "ALREADY_FIXED_EVIDENCE_VERIFIED_CLOSED",
+    "evidence": "docs/project/validation/regional-cli-f3-recheck-2026-11-07.json",
+    "application_changed": false,
+    "test_suite_rerun": false,
+    "protected_inputs_verified": 395,
+    "F1_F2_implemented": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completed_at": "2026-11-06T17:35:30.303909+00:00"
   }
 }
