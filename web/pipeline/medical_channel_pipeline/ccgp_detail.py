@@ -454,8 +454,17 @@ def _extract_general_product_table_items(html: str) -> list[dict[str, Any]]:
 
 
 def _procurement_text_scope(text: str) -> str:
-    anchor = text.find('采购需求')
-    return text[anchor:] if anchor >= 0 else ''
+    anchor = re.search(r'采购需求\s*[：:]', text)
+    if not anchor:
+        return ''
+    scope = text[anchor.end():]
+    end = re.search(
+        r'合同履[行约]期限|本项目(?:不接受|接受)|'
+        r'(?:申请人|投标人|供应商)(?:的)?资格要求|'
+        r'[二三四五六七八九十]+[、.．]\s*(?:获取(?:招标|采购)文件|响应文件提交|提交投标文件)',
+        scope,
+    )
+    return scope[:end.start()] if end else scope
 
 
 def _text_product_item(raw_name: str, quantity: str) -> dict[str, Any]:
@@ -499,21 +508,7 @@ _ZCY_GENERIC_PRODUCT_NAMES = {
 
 
 def _bounded_zcy_procurement_scope(text: str) -> str:
-    anchor_match = re.search(r'采购需求\s*[：:]\s*', text)
-    if not anchor_match:
-        return ''
-    scope = text[anchor_match.end():]
-    end_positions = [
-        position
-        for marker in (
-            '合同履行期限', '合同履约期限', '本项目不接受', '本项目接受',
-            '二、申请人的资格要求', '二、申请人',
-        )
-        if (position := scope.find(marker)) >= 0
-    ]
-    if end_positions:
-        scope = scope[: min(end_positions)]
-    scope = _normalize_space(scope)
+    scope = _normalize_space(_procurement_text_scope(text))
     return scope if scope and len(scope) <= 4000 else ''
 
 
@@ -736,18 +731,7 @@ def _extract_item_name_quantity_unit_lines(text: str) -> list[dict[str, Any]]:
 
 def _extract_bounded_procurement_demand_items(text: str) -> list[dict[str, Any]]:
     """Extract only explicit name+quantity facts from the bounded official 采购需求 paragraph."""
-    anchor_match = re.search(r"采购需求\s*[：:]\s*", text)
-    if not anchor_match:
-        return []
-    scope = text[anchor_match.end():]
-    end_positions = [
-        position
-        for marker in ("合同履行期限", "合同履约期限", "本项目不接受", "本项目接受", "二、申请人的资格要求", "二、申请人")
-        if (position := scope.find(marker)) >= 0
-    ]
-    if end_positions:
-        scope = scope[: min(end_positions)]
-    scope = _normalize_space(scope)
+    scope = _normalize_space(_procurement_text_scope(text))
     if not scope or len(scope) > 4000:
         return []
 
@@ -817,10 +801,27 @@ def _extract_bounded_procurement_demand_items(text: str) -> list[dict[str, Any]]
     return items[:100]
 
 
+def _extract_explicit_purchase_list_items(text: str) -> list[dict[str, Any]]:
+    """Read explicit 需购置 lists, without carrying hospital/table prose into names."""
+    scope = _procurement_text_scope(text)
+    units = '|'.join(sorted((re.escape(unit) for unit in _PRODUCT_UNIT_WORDS
+                             if unit not in {'年', '月', '人', '人次', '家', '所', '间'}), key=len, reverse=True))
+    item_pattern = re.compile(rf'(?P<name>.{{2,160}}?)\s*(?P<quantity>\d+(?:\.\d+)?\s*(?:{units}))')
+    items = []
+    for match in re.finditer(r'(?:需购置|拟购置)\s*([^。]{2,1800})', scope):
+        description = re.split(r'具体内容|详见', match[1], maxsplit=1)[0]
+        for fragment in re.split(r'[、，,；;]', description):
+            item = item_pattern.fullmatch(_normalize_space(fragment).strip())
+            if item:
+                items.append(_text_product_item(item['name'], item['quantity']))
+    return _dedupe_text_product_items(items)
+
+
 def _extract_grounded_text_product_items(text: str) -> list[dict[str, Any]]:
     extractors = (
         _extract_zcy_primary_subject_items,
         _extract_zcy_brief_description_items,
+        _extract_explicit_purchase_list_items,
         _extract_bounded_procurement_demand_items,
         _extract_item_name_quantity_unit_lines,
         _extract_product_name_quantity_lines,
@@ -1135,7 +1136,7 @@ def _extract_package_products(text: str) -> list[dict[str, Any]]:
     seen: set[str] = set()
     for match in re.finditer(
         r"第(?:[一二三四五六七八九十]+|\d+)包\s*[：:]\s*(.+?)(?:的采购|；|;|。)",
-        text,
+        _procurement_text_scope(text),
         re.S,
     ):
         name = _normalize_space(match.group(1)).strip("，,：:；;。")
