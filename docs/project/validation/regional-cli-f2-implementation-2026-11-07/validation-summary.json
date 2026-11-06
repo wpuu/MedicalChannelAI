@@ -1,0 +1,40 @@
+{
+  "starting_head": "2826b30",
+  "code_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+  "scope": "OFFLINE_CLI_COOPERATIVE_BUDGET_AND_LOCAL_STAGED_OUTPUT_ONLY",
+  "python_tests_passed": 1079,
+  "new_behavior_tests": 20,
+  "cli_behavior_tests": 48,
+  "frozen_templates_passed": 10,
+  "original_cli_passed": 3,
+  "source_sha256": {
+    "web/pipeline/scripts/sync_regional_ccgp.py": "c43c240a30f20e66cb09653f842944c9a4eab0765f282d17df7c1a70227c4fa3",
+    "web/pipeline/tests/test_regional_cli_completeness.py": "cc33dde1cc35445dbaf307d33ada17bd6b27f75debf281661a39e3f98b5dab29",
+    "web/collector_runtime.py": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8",
+    "web/collector_diagnostics.py": "71f668b320c66ff0658771608c396d29abdfbbdeadf062acf0afa4eb6c7f9379",
+    "web/pipeline/medical_channel_pipeline/ccgp_detail.py": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187",
+    ".github/workflows/regional-medical-refresh.yml": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d"
+  },
+  "only_modified_code_files": [
+    "web/pipeline/scripts/sync_regional_ccgp.py",
+    "web/pipeline/tests/test_regional_cli_completeness.py"
+  ],
+  "total_seconds": 900,
+  "work_seconds": 840,
+  "finalize_reserve_seconds": 60,
+  "hard_exit_guaranteed": false,
+  "atomic_time_commit_guaranteed": false,
+  "cross_file_transaction": false,
+  "full_default_plan_on_time_verified": false,
+  "runtime_budget_implemented": false,
+  "shared_cooldown_implemented": false,
+  "sdk_workflow": "CLOSED_NO_GO",
+  "initial_regression_issue": "Existing literal-call source check expected one-argument detail call; retained actual call with a timeout-bound partial transport;no test outside allowed file modified.",
+  "regression_command": "python docs/project/validation/regional-cli-f3-2026-11-07/run-regression.py",
+  "external_network_calls": 0,
+  "real_sdk_execution": false,
+  "cloud_runtime_access": false,
+  "deployment_or_push": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

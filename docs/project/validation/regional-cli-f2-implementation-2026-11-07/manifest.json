@@ -1,0 +1,68 @@
+{
+  "schema_version": "0.1",
+  "scope": "OFFLINE_CLI_COOPERATIVE_BUDGET_NOT_HARD_TIMEOUT",
+  "starting_head": "2826b30",
+  "code_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "files": [
+    {
+      "path": "cli-cases.json",
+      "bytes": 18456,
+      "sha256": "d687147d2003b8330bc8ac03f8249faa2779c1efc9558fa7b27130306e5d69a6"
+    },
+    {
+      "path": "completion.json",
+      "bytes": 365,
+      "sha256": "0ec57042fdda928823bd3e4971e55c430067941f72612ff7a54c55ce5c5c7b3c"
+    },
+    {
+      "path": "detail_late-receipt.json",
+      "bytes": 4189,
+      "sha256": "c68dac894419bba8a10d53a6a8d89740c104a26e3a46c701c32795e5b6a300e5"
+    },
+    {
+      "path": "frozen-template-audit.json",
+      "bytes": 9432,
+      "sha256": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2"
+    },
+    {
+      "path": "input-integrity.json",
+      "bytes": 65646,
+      "sha256": "106c49264beba84eee1147f899bee7b8beaa497f588021b2a37e67f5d8b9d849"
+    },
+    {
+      "path": "original-cli-gate.json",
+      "bytes": 1750,
+      "sha256": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2"
+    },
+    {
+      "path": "regression.log",
+      "bytes": 2585,
+      "sha256": "23fc43b5150b2c73e8f84107930813a8a5b4372fe25a2f0e017b17f399e57ad8"
+    },
+    {
+      "path": "replace_late-receipt.json",
+      "bytes": 4182,
+      "sha256": "5bd1f9bdba937358f5363eb4d0dfad765b864ebadc3501b69a44e3499133c6b2"
+    },
+    {
+      "path": "report_error-receipt.json",
+      "bytes": 427,
+      "sha256": "37172315571d2d552fac414d461fb3905f4113b2b18d62c3da83f2e3e2c3239d"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 2022,
+      "sha256": "ba3cc06e876f9cfc932deed55db8170f724e77b7fc75cc1a52d7ca5d3e011a35"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 4218,
+      "sha256": "a958b07f5b994e0e1115e5453580175804cddd5cbcfc5b1053b4d48d616e9243"
+    }
+  ],
+  "document_sha256": {
+    "docs/project/regional-cli-f2-implementation-2026-11-07.md": "41ea0b3215d3c945801675b9616d341960ae0e5eb3a8e87759cf11eaafb5d302"
+  }
+}

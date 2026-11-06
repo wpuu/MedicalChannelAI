@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前F2区域CLI预算合同（仅文档，未实现）
+## 当前F2区域CLI协作式预算（离线实现，非硬时限）
+
+- 起点2826b30，代码58e7e6b，按已冻结合同实现900秒逻辑总预算/840秒工作/60秒收尾。monotonic/sleep可注入，timeout按原30/90/30上限与剩余预算减1取小；warmup预算异常不吞，超期返回/解析不进入可提交新事实，后续业务请求/sleep全局停止。[报告](regional-cli-f2-implementation-2026-11-07.md)、[证据](validation/regional-cli-f2-implementation-2026-11-07/manifest.json)。
+- CLI内同文件系统临时候选准备＋提交前deadline/完整性检查，提交前失败exit2并保留原records。replace结果未知exit3/records_written=null；提交后迟到exit3/COMMITTED，report失败exit3/COMMITTED_REPORTING_INCOMPLETE并有stderr回执，不声称零写入/自动回滚。F1/F3与合法完整空保持；不是跨文件事务或原子时间CAS。
+- 新增20项行为测试，CLI共48项，最终1079项Python、模板10/10、原CLI3/3通过；429份起点data/fixture/旧证据字节不变。首轮既有源码形态检查不兼容已用真实绑定timeout调用修正后重跑全套，未改获授权范围外的测试。
+- 仅改sync_regional_ccgp.py与test_regional_cli_completeness.py及文档/新增artifact；runtime/shared helper/分类器/workflow/锁/计划未改。无外网/真实SDK/云端/运行数据访问、部署/推送、新环境/路由/变量/权限变更，apply_allowed/migration_usable=false，SDK保持CLOSED NO-GO。
+- 未完成：900秒硬退出、同步HTTP/磁盘取消、默认五地区/25分钟job按时完成保证、runtime F2和共享冷却/Retry-After。假时钟不证明真实时延或来源恢复。下一轮建议明确授权后仅补[区域CI](next-task.md)的CLI离线测试模块与路径清单，不改定时/权限/业务步骤；本轮未改workflow。当前界面无法生成该按钮；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
+## 上轮F2区域CLI预算合同（历史方案，现已离线实现协作式子项）
 
 - 起点98f5503，49处最新源码引用已冻结。[唯一方案](regional-cli-f2-budget-contract-2026-11-07.md)：CLI专用协作式monotonic总900秒、工作840秒、收尾60秒；保留warmup30/search90/detail30上限，timeout按剩余预算缩小，原4秒间隔不足则拒绝而不缩短后发请求。只建议下一轮修改CLI脚本及既有CLI测试两个文件，不改共享helper/runtime/workflow/计划。
 - 静态默认负载：无fallback满详情101请求/401秒固定等待；满fallback131请求/561秒固定等待；完整空61请求/241秒等待。名义timeout参数相加为6431/9291/5671秒，不是实测或墙钟上界。900秒内默认完整成功及25分钟job完成均无证据；不能把workflow1500、后置预热480、runtime300或本轮前台1200当成CLI已获预算。

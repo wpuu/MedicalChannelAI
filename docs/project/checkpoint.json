@@ -2,18 +2,18 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_F2_REGIONAL_CLI_BUDGET_CONTRACT_DOCUMENTATION_ONLY",
+  "state_scope": "OFFLINE_F2_CLI_COOPERATIVE_BUDGET_IMPLEMENTATION_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
   "runtime_implementation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "latest_code_validated_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+  "latest_code_validated_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "F2_CLI_900_840_60_COOPERATIVE_PLAN_ONLY_HARD_EXIT_NO_GO",
-  "latest_changes_validation_status": "STATIC49_REFERENCES_AND420_INPUTS_PASS;1059_AND10/3_PRIOR_NOT_RERUN",
+  "milestone": "CLI_F2_COOPERATIVE_900_840_60_OFFLINE_PASS_HARD_EXIT_NO_GO",
+  "latest_changes_validation_status": "1079_PYTHON_AND10/3_PASS;429_PROTECTED_INPUTS_UNCHANGED",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -144,7 +144,7 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "F1_CLI_01CCAA9_TESTS_B97BC09:1059Python/10/3pass offline;runtime deployment82cc/app795 not accessed or changed;not cloud acceptance.",
+    "current_head_runtime_acceptance": "58E7E6B_CLI_ONLY:1079Python/10/3pass offline;runtime deployment82cc/app795 not accessed or changed;not cloud acceptance.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
     "source_freshness_runtime_acceptance": "CARRIED_PRIOR_C_REAL_SCAN_CLOCKS_UNCHANGED:8/14 healthy; no new source scan or recovery in d.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
@@ -165,11 +165,11 @@
     "historical_product_backfill": "MEMORY_SIMULATION8F8:2overlay/2restore,whole892state restored,890unselected unchanged,replays0changes,stale/crossscope/tampered/partial/mixed/newfacts/events rejected. Only in-memory checks/deepcopies; actual runtime export,CAS/transactions,migration,application and rollback unimplemented.",
     "regional_cli_completeness": "F3_7B29933_OFFLINE_PASS:incomplete batch exit2 preserves records;bounded scan only,no per-market independent commits/full historical recall;not deployed.",
     "regional_cli_access_stop": "01CCAA9_OFFLINE_PASS:CLI explicit host denial stop only;no project-wide/shared cooldown/Retry-After/F2 or redirect-hop interception;not deployed.",
-    "regional_cli_time_budget": "PROPOSED_ONLY:900/840/60cooperative CLI plan;no code change or timing measurements;hard cancel/atomic time commit/full default completion/workflow guarantee not established;runtime unchanged."
+    "regional_cli_time_budget": "58E7E6B_OFFLINE:900/840/60cooperative CLI budget,precommit preserve and explicit postcommit/unknown receipts pass;hard exit/atomic clock commit/full default completion/runtime budget NOT established."
   },
-  "final_code_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
-  "code_validation_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
-  "documentation_followup": "Unique proposed CLI-only cooperative budget900/work840/finalize60;not implemented. Hard cancellation/full default completion/workflow guarantee NO-GO. Next local code authorization only for two existing files.",
+  "final_code_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+  "code_validation_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+  "documentation_followup": "F2 CLI cooperative subitem implemented offline;hard cancellation/runtime F2/shared coordination not covered. Next explicit local authorization only to add CLI offline tests to existing regional CI list/paths.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2319,7 +2319,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "98f5503",
+  "latest_reviewed_repository_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2417,7 +2417,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "98f5503",
+  "current_phase_starting_head": "2826b30",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2467,8 +2467,8 @@
     "production_modified": false,
     "historical": true
   },
-  "latest_offline_tool_head": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
-  "code_validation_scope": "OFFLINE_CLI_SINGLE_INVOCATION_HOST_DENIAL_STOP;NOT_DEPLOYED;RUNTIME_ENTRY_UNCHANGED",
+  "latest_offline_tool_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+  "code_validation_scope": "CLI_ONLY_COOPERATIVE_TIME_AND_SINGLE_TARGET_STAGE_REPLACE;NOT_RUNTIME_OR_HARD_EXIT",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
     "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
@@ -2832,12 +2832,13 @@
     "runtime_cache_read": false,
     "database_read": false,
     "deployment_or_write": false,
-    "source": "Latest explicit F2 regional CLI budget-contract documentation-only instruction 2026-11-07",
-    "current_round": "F2_CONTRACT_DOCS_ARTIFACTS_ONLY",
+    "source": "Latest explicit F2 CLI offline code authorization 2026-11-07",
+    "current_round": "ONLY_SYNC_REGIONAL_CCGP_AND_EXISTING_CLI_TEST_CODE_PLUS_DOCS_ARTIFACTS",
     "network_this_round": false,
     "cloud_metadata_this_round": false,
     "F1_regional_cli_code_this_round": false,
-    "F2_code_this_round": false
+    "F2_code_this_round": true,
+    "workflow_change_this_round": false
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -3159,6 +3160,44 @@
       "apply_allowed": false,
       "migration_usable": false,
       "tests_or_application_executed": false,
+      "deployment_or_push": false
+    },
+    "implementation_followup": "docs/project/regional-cli-f2-implementation-2026-11-07.md"
+  },
+  "regional_cli_f2_budget_acceptance": {
+    "starting_head": "2826b30",
+    "code_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+    "status": "CLI_COOPERATIVE_SUBITEM_IMPLEMENTED_AND_VERIFIED_OFFLINE",
+    "report": "docs/project/regional-cli-f2-implementation-2026-11-07.md",
+    "manifest": "docs/project/validation/regional-cli-f2-implementation-2026-11-07/manifest.json",
+    "total_seconds": 900,
+    "work_seconds": 840,
+    "finalize_reserve_seconds": 60,
+    "new_behavior_tests": 20,
+    "cli_tests": 48,
+    "python_tests_passed": 1079,
+    "frozen_templates_passed": 10,
+    "original_cli_passed": 3,
+    "protected_input_files": 429,
+    "precommit_failure_exit": 2,
+    "postcommit_or_unknown_exit": 3,
+    "hard_exit_guaranteed": false,
+    "atomic_time_commit_guaranteed": false,
+    "runtime_budget_implemented": false,
+    "workflow_changed": false,
+    "deployed": false,
+    "pushed": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completion": {
+      "started_at": "2026-11-06T17:57:41Z",
+      "foreground_deadline": "2026-11-06T18:17:41Z",
+      "completed_at": "2026-11-06T18:10:46.872636+00:00",
+      "within_foreground_deadline": true,
+      "scope": "OFFLINE_TWO_FILE_CLI_BUDGET_IMPLEMENTATION_ONLY",
+      "hard_exit_guaranteed": false,
+      "apply_allowed": false,
+      "migration_usable": false,
       "deployment_or_push": false
     }
   }

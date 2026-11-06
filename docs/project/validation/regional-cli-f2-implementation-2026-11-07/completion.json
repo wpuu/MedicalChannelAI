@@ -1,0 +1,11 @@
+{
+  "started_at": "2026-11-06T17:57:41Z",
+  "foreground_deadline": "2026-11-06T18:17:41Z",
+  "completed_at": "2026-11-06T18:10:46.872636+00:00",
+  "within_foreground_deadline": true,
+  "scope": "OFFLINE_TWO_FILE_CLI_BUDGET_IMPLEMENTATION_ONLY",
+  "hard_exit_guaranteed": false,
+  "apply_allowed": false,
+  "migration_usable": false,
+  "deployment_or_push": false
+}

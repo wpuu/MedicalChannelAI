@@ -1,19 +1,17 @@
-# 下一轮：仅离线实现F2区域CLI协作式预算（需本地代码授权）
+# 下一轮：区域CI补齐CLI离线测试门禁（需该workflow局部修改授权）
 
-本轮只完成合同，不是F2实现。以下提示词包含下一轮明确的代码授权；当前不实施。推荐GPT-6.1 Sol高（high），实际运行设置未核实。硬退出/任意I/O取消与完整默认计划按时完成均不放行。
+本轮未改workflow。以下提示词包含下一轮仅paths/测试模块清单的明确授权，不扩展定时/权限/执行/推送。推荐GPT-6.1 Sol高（high），实际设置未核实。
 
 ```text
-继续MedicalChannelAI。我明确授权仅在现有隔离分支，本地离线实现F2区域CLI协作式预算子项，不要求也不得宣称硬时限/强制取消保证。
+继续MedicalChannelAI。我明确授权仅在现有隔离分支，本地补齐区域CI的CLI离线测试门禁；仅允许修改现有workflow的paths和unittest模块清单，不触发workflow。
 
-先核对/workspace/MedicalChannelAI-p0最新HEAD、未提交改动与在途工作。读取用户最新指令及docs/project/working-protocol.md、current-state.md、checkpoint.json、next-task.md、regional-cli-f2-budget-contract-2026-11-07.md、regional-cli-f1-stop-2026-11-07.md、regional-cli-f3-fix-2026-11-07.md、action-radar-acceptance-contract.md。F1实现01ccaa9、测试b97bc09及1059/10/3是已有结果，不重复施工；F2合同起点98f5503，以最新HEAD/文件为准。SDK保持CLOSED NO-GO。
+先核对/workspace/MedicalChannelAI-p0最新HEAD、未提交改动和在途工作。读取用户最新指令及docs/project/working-protocol.md、current-state.md、checkpoint.json、next-task.md、regional-cli-f2-implementation-2026-11-07.md、regional-cli-f2-budget-contract-2026-11-07.md、regional-cli-f1-stop-2026-11-07.md、regional-cli-f3-fix-2026-11-07.md。F2代码58e7e6b、1079/10/3已通过，以最新HEAD/文件为准，不重复修复F1/F2/F3；SDK保持CLOSED NO-GO。
 
-完整执行最新F2合同的唯一方案，只修改sync_regional_ccgp.py和既有test_regional_cli_completeness.py，另更新文档/新增artifact。逻辑总900秒、工作840秒、收尾60秒；注入monotonic/sleep，保持HTTP原上限30/90/30，按剩余预算减1秒取timeout。睡眠预算不足则拒绝，不缩短原间隔；warmup预算异常不得被吞；请求、解码/解析返回超期不得成为可提交新事实，未完成整批沿F3拒绝。
+核对.github/workflows/regional-medical-refresh.yml，确认现有paths未包含web/pipeline/tests/test_regional_cli_completeness.py，离线unittest列表未包含tests.test_regional_cli_completeness；若已补齐给证据关闭。若仍缺失，只新增这个路径与这个测试模块，复用现有job，不新增workflow或执行环境，不改schedule、分支条件、concurrency、permissions、timeout、发布/采集/预热步骤或任何凭据引用。
 
-CLI内用同文件系统临时候选准备输出，提交前检查时间与完整性，避免超期序列化先截断原records；保留report别名保护。区分提交前拒绝与提交后迟到/报告失败/结果未知，后者不能声称原文件未变或已回滚。不是跨文件事务或原子时钟CAS，不用future冒称取消。runtime不传预算保持默认行为；不实现跨进程冷却/Retry-After或扩至runtime F2。
+验收：差异严格限上述两项及文档/新增artifact；现有测试模块和set-e均保留。使用已有工具离线核对YAML/命令结构，在外部网络/真实SDK阻断下，仅运行修改后的离线unittest模块组合，输出只在临时目录；没有应用/fixture变化时不再重复1079/10/3全套。验证实际结果并保存非敏感证据，不声称GitHub runner执行通过或真实来源验收完成。
 
-验收使用现有unittest/冻结HTML和临时目录，阻断网络/真实客户端，注入假时钟覆盖零请求拒绝、warmup耗尽、sleep准入、timeout参数、请求/解析后超期、部分/空状态、收尾过期和文件准备/提交/报告失败边界。原F1/F3、完整成功和合法空保持；旧数据/样本/证据字节不变。实现后运行必要回归与10/3，按实际结果记录新增数量，不把假时钟通过称为真实取消或正常五地区按时完成。
+不联网、不安装执行真实SDK、不读凭据/环境值/运行日志，不查云端或调用业务接口/缓存/数据库/函数/Queue/模型。不新建环境/路由，不改应用、测试源码、依赖锁、定时计划、变量或权限，不部署、不推送、不触发workflow，不写运行数据、原始历史数据或公开快照。apply_allowed、migration_usable始终false，前台20分钟；无法在该范围安全完成就给证据停止，不扩大范围。
 
-仅现有隔离分支离线代码、必要测试、文档和新增artifact。不联网、不安装执行真实SDK、不读凭据/环境值/运行日志，不查云端或调用业务接口/缓存/数据库/函数/Queue/模型。不新建环境/路由，不改依赖锁、workflow、计划、变量或权限，不部署、不推送，不写运行数据、原始历史数据或公开快照。apply_allowed、migration_usable始终false，前台20分钟。若无法在该最小范围满足合同，给出证据明确NO-GO，不偷改合同或再造模拟层。
-
-结束时更新状态、证据和下一轮完整任务，报告实际完成、验证及未完成项。按钮接口不可用时如实说明并给完整可复制提示词；推荐GPT-6.1 Sol高（high），实际设置未核实。
+结束时更新状态、证据和下一轮完整任务，报告实际完成、验证及未完成项。按钮接口不可用时如实说明并给完整提示词；推荐GPT-6.1 Sol高（high），实际设置未核实。
 ```

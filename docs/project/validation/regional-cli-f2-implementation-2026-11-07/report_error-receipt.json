@@ -1,0 +1,18 @@
+{
+  "commit_state": "COMMITTED_REPORTING_INCOMPLETE",
+  "records_written": true,
+  "acceptance_ready": false,
+  "post_commit_overrun": false,
+  "acceptance_blockers": [
+    "OUTPUT_REPORT_FAILED"
+  ],
+  "budget": {
+    "total_seconds": 900,
+    "work_seconds": 840,
+    "finalize_reserve_seconds": 60,
+    "elapsed_seconds": 24.0,
+    "exhausted_phase": null,
+    "work_complete": true,
+    "hard_exit_guaranteed": false
+  }
+}
