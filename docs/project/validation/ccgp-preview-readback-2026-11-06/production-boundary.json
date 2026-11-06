@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-11-06T11:31:21.429Z",
+  "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+  "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+  "state": "READY",
+  "project": {
+    "id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "ssoProtection": {
+      "enabled": true,
+      "deploymentType": "all_except_custom_domains"
+    }
+  },
+  "read_only": true,
+  "production_actions_performed": false
+}

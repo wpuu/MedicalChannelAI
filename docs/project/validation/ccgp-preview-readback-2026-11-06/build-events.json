@@ -1,0 +1,1110 @@
+{
+  "events": [
+    {
+      "created": 1793964324591,
+      "date": 1793964324591,
+      "type": "stdout",
+      "text": "Running build in Washington, D.C., USA (East) – iad1",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964324592,
+      "date": 1793964324592,
+      "type": "stdout",
+      "text": "Build machine configuration: 2 cores, 8 GB",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964324635,
+      "date": 1793964324635,
+      "type": "stdout",
+      "text": "Cloning github.com/wpuu/MedicalChannelAI (Branch: codex/p0-reliability-contracts, Commit: 82cc43f)",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964324636,
+      "date": 1793964324636,
+      "type": "stdout",
+      "text": "Skipping build cache, deployment was triggered without cache.",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964325521,
+      "date": 1793964325521,
+      "type": "stdout",
+      "text": "Cloning completed: 885.000ms",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964326071,
+      "date": 1793964326071,
+      "type": "stdout",
+      "text": "Running \"vercel build\"",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964326084,
+      "date": 1793964326084,
+      "type": "stderr",
+      "text": "Vercel CLI 65.11.0",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964327299,
+      "date": 1793964327299,
+      "type": "stdout",
+      "text": "Installing dependencies...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964327910,
+      "date": 1793964327910,
+      "type": "stderr",
+      "text": "npm warn Unknown env config \"cache-dir\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.",
+      "level": "warning",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331615,
+      "date": 1793964331615,
+      "type": "stdout",
+      "text": "",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331615,
+      "date": 1793964331615,
+      "type": "stdout",
+      "text": "added 127 packages in 4s",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331616,
+      "date": 1793964331616,
+      "type": "stdout",
+      "text": "",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331616,
+      "date": 1793964331616,
+      "type": "stdout",
+      "text": "23 packages are looking for funding",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331616,
+      "date": 1793964331616,
+      "type": "stdout",
+      "text": "  run `npm fund` for details",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331617,
+      "date": 1793964331617,
+      "type": "stderr",
+      "text": "npm warn install-scripts 1 package has install scripts not yet covered by allowScripts:",
+      "level": "warning",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331617,
+      "date": 1793964331617,
+      "type": "stderr",
+      "text": "npm warn install-scripts   esbuild@0.27.7 (postinstall: node install.js)",
+      "level": "warning",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331617,
+      "date": 1793964331617,
+      "type": "stderr",
+      "text": "npm warn install-scripts",
+      "level": "warning",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331618,
+      "date": 1793964331618,
+      "type": "stderr",
+      "text": "npm warn install-scripts Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow.",
+      "level": "warning",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331676,
+      "date": 1793964331676,
+      "type": "stdout",
+      "text": "Running \"npm run build\"",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331798,
+      "date": 1793964331798,
+      "type": "stderr",
+      "text": "npm warn Unknown env config \"cache-dir\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.",
+      "level": "warning",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331820,
+      "date": 1793964331820,
+      "type": "stdout",
+      "text": "",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331821,
+      "date": 1793964331821,
+      "type": "stdout",
+      "text": "> react-vite-tailwind@0.0.0 build",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331821,
+      "date": 1793964331821,
+      "type": "stdout",
+      "text": "> node scripts/run-prebuild.mjs && tsc --noEmit && vite build",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331821,
+      "date": 1793964331821,
+      "type": "stdout",
+      "text": "",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331932,
+      "date": 1793964331932,
+      "type": "stdout",
+      "text": "Pilot Preview smoke syntax: PASS",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964331938,
+      "date": 1793964331938,
+      "type": "stdout",
+      "text": "Preview epoch cache and Production compatibility: PASS",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964332767,
+      "date": 1793964332767,
+      "type": "stdout",
+      "text": "Bundled snapshot refreshed with current ranking logic from 75 Tianjin + 836 regional verified canonical records; published opportunities=441; markets=BJ:103,HE:98,HL:129,JL:53,LN:47,TJ:11",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333515,
+      "date": 1793964333515,
+      "type": "stderr",
+      "text": "test_agnes3_thinking_is_disabled_on_root_and_continuation (test_agnes_async_cache.AgnesAsyncCacheTests.test_agnes3_thinking_is_disabled_on_root_and_continuation) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333516,
+      "date": 1793964333516,
+      "type": "stderr",
+      "text": "test_continuation_contract_is_single_enum_and_versioned_with_root (test_agnes_async_cache.AgnesAsyncCacheTests.test_continuation_contract_is_single_enum_and_versioned_with_root) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333516,
+      "date": 1793964333516,
+      "type": "stderr",
+      "text": "test_continuation_ledger_accepts_v2_segments (test_agnes_async_cache.AgnesAsyncCacheTests.test_continuation_ledger_accepts_v2_segments) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333516,
+      "date": 1793964333516,
+      "type": "stderr",
+      "text": "test_force_ai_replaces_instead_of_merging_ready_cache (test_agnes_async_cache.AgnesAsyncCacheTests.test_force_ai_replaces_instead_of_merging_ready_cache) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333516,
+      "date": 1793964333516,
+      "type": "stderr",
+      "text": "test_multi_scan_does_not_spawn_client_poll_storm (test_agnes_async_cache.AgnesAsyncCacheTests.test_multi_scan_does_not_spawn_client_poll_storm) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333516,
+      "date": 1793964333516,
+      "type": "stderr",
+      "text": "test_pending_does_not_claim_zero_yield_or_merge_findings (test_agnes_async_cache.AgnesAsyncCacheTests.test_pending_does_not_claim_zero_yield_or_merge_findings) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333516,
+      "date": 1793964333516,
+      "type": "stderr",
+      "text": "test_pending_is_explicit_and_never_reused_as_completed_scan (test_agnes_async_cache.AgnesAsyncCacheTests.test_pending_is_explicit_and_never_reused_as_completed_scan) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333516,
+      "date": 1793964333516,
+      "type": "stderr",
+      "text": "test_root_cache_key_is_hashed_and_bound_to_analysis_and_content (test_agnes_async_cache.AgnesAsyncCacheTests.test_root_cache_key_is_hashed_and_bound_to_analysis_and_content) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333518,
+      "date": 1793964333518,
+      "type": "stderr",
+      "text": "test_root_uses_wait_until_runtime_cache_and_longer_background_budget (test_agnes_async_cache.AgnesAsyncCacheTests.test_root_uses_wait_until_runtime_cache_and_longer_background_budget) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333518,
+      "date": 1793964333518,
+      "type": "stderr",
+      "text": "test_client_accepts_source_unavailable_cache_status (test_agnes_cache_source_fallback.AgnesCacheSourceFallbackTests.test_client_accepts_source_unavailable_cache_status) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333518,
+      "date": 1793964333518,
+      "type": "stderr",
+      "text": "test_existing_fingerprint_ready_cache_seeds_latest_resilience_pointer (test_agnes_cache_source_fallback.AgnesCacheSourceFallbackTests.test_existing_fingerprint_ready_cache_seeds_latest_resilience_pointer) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333519,
+      "date": 1793964333519,
+      "type": "stderr",
+      "text": "test_latest_cache_is_revalidated_against_anchor_snapshot (test_agnes_cache_source_fallback.AgnesCacheSourceFallbackTests.test_latest_cache_is_revalidated_against_anchor_snapshot) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333519,
+      "date": 1793964333519,
+      "type": "stderr",
+      "text": "test_latest_ready_cache_is_separate_and_source_bound (test_agnes_cache_source_fallback.AgnesCacheSourceFallbackTests.test_latest_ready_cache_is_separate_and_source_bound) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333519,
+      "date": 1793964333519,
+      "type": "stderr",
+      "text": "test_ready_refresh_persists_anchor_snapshot_and_latest_pointer (test_agnes_cache_source_fallback.AgnesCacheSourceFallbackTests.test_ready_refresh_persists_anchor_snapshot_and_latest_pointer) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333519,
+      "date": 1793964333519,
+      "type": "stderr",
+      "text": "test_source_failure_can_return_latest_ready_cache_but_force_ai_cannot (test_agnes_cache_source_fallback.AgnesCacheSourceFallbackTests.test_source_failure_can_return_latest_ready_cache_but_force_ai_cannot) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333519,
+      "date": 1793964333519,
+      "type": "stderr",
+      "text": "test_anchor_extraction_keeps_only_grounded_official_hosts (test_agnes_discovery.AgnesDiscoveryTests.test_anchor_extraction_keeps_only_grounded_official_hosts) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333519,
+      "date": 1793964333519,
+      "type": "stderr",
+      "text": "test_benchmark_score_rewards_known_recall_and_grounding (test_agnes_discovery.AgnesDiscoveryTests.test_benchmark_score_rewards_known_recall_and_grounding) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333519,
+      "date": 1793964333519,
+      "type": "stderr",
+      "text": "test_parser_rejects_model_invented_url_and_invalid_rows (test_agnes_discovery.AgnesDiscoveryTests.test_parser_rejects_model_invented_url_and_invalid_rows) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333520,
+      "date": 1793964333520,
+      "type": "stderr",
+      "text": "test_prompt_explicitly_excludes_formal_and_result_notices (test_agnes_discovery.AgnesDiscoveryTests.test_prompt_explicitly_excludes_formal_and_result_notices) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333520,
+      "date": 1793964333520,
+      "type": "stderr",
+      "text": "test_benchmark_root_and_continuation_use_the_same_expected_model (test_agnes_model_consistency.AgnesModelConsistencyTests.test_benchmark_root_and_continuation_use_the_same_expected_model) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333520,
+      "date": 1793964333520,
+      "type": "stderr",
+      "text": "test_async_architecture_keeps_model_but_moves_latency_off_request_path (test_agnes_output_contract.AgnesOutputContractTests.test_async_architecture_keeps_model_but_moves_latency_off_request_path) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333520,
+      "date": 1793964333520,
+      "type": "stderr",
+      "text": "test_parser_contract_remains_single_string_and_grounded (test_agnes_output_contract.AgnesOutputContractTests.test_parser_contract_remains_single_string_and_grounded) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964333520,
+      "date": 1793964333520,
+      "type": "stderr",
+      "text": "test_prompt_declares_signal_type_as_one_string_enum (test_agnes_output_contract.AgnesOutputContractTests.test_prompt_declares_signal_type_as_one_string_enum) ... ok",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36msave-d_O3XF14.js                               \u001b[39m\u001b[1m\u001b[2m  0.33 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.23 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36msearch-Com2F8Lz.js                             \u001b[39m\u001b[1m\u001b[2m  0.38 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.28 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mtrash-2-DeVOFFl6.js                            \u001b[39m\u001b[1m\u001b[2m  0.43 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.26 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mverifiedSnapshotClient-BieQ3osb.js             \u001b[39m\u001b[1m\u001b[2m  0.62 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.43 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mresearchEventWindow-ByrGX9HK.js                \u001b[39m\u001b[1m\u001b[2m  1.01 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.68 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mprofileApi-X6C4jqcQ.js                         \u001b[39m\u001b[1m\u001b[2m  3.06 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   1.06 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mRuntimeTrialTodayActionsService-B90j8xMb.js    \u001b[39m\u001b[1m\u001b[2m  3.32 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   1.54 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mdiscoveryContinuationLedger-c4n6Tx5K.js        \u001b[39m\u001b[1m\u001b[2m  4.62 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   1.71 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mLoginPage-DGxEUUwB.js                          \u001b[39m\u001b[1m\u001b[2m  6.85 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   2.81 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mlocalCustomerProfile-D18BtuF4.js               \u001b[39m\u001b[1m\u001b[2m  7.99 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   3.11 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36maiDecisionApi-BHFE4Tnf.js                      \u001b[39m\u001b[1m\u001b[2m  9.15 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   3.86 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mTargetHospitalsPage-CC26MOPJ.js                \u001b[39m\u001b[1m\u001b[2m  9.43 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   3.62 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mResourcesPage-BBDisqzA.js                      \u001b[39m\u001b[1m\u001b[2m 10.08 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   3.21 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mfollowedApi-DHwj5GsP.js                        \u001b[39m\u001b[1m\u001b[2m 11.51 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   3.62 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mStaticSnapshotTodayActionsService-jYW03KMw.js  \u001b[39m\u001b[1m\u001b[2m 11.95 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   5.08 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mOutreachDrawer-DA0s1tao.js                     \u001b[39m\u001b[1m\u001b[2m 12.16 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   4.72 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mMockTodayActionsService-0TNPkLGm.js            \u001b[39m\u001b[1m\u001b[2m 13.13 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   5.00 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mOpportunityPoolPage-Da20be7B.js                \u001b[39m\u001b[1m\u001b[2m 20.13 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   7.53 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359138,
+      "date": 1793964359138,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mProcurementIntentFollowupPage-oEegmoGM.js      \u001b[39m\u001b[1m\u001b[2m 20.26 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   7.85 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359139,
+      "date": 1793964359139,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mFollowedPage-DIT7uZja.js                       \u001b[39m\u001b[1m\u001b[2m 21.32 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   7.51 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359139,
+      "date": 1793964359139,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mPilotResourcesPage-DMXrVaHH.js                 \u001b[39m\u001b[1m\u001b[2m 23.18 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   6.76 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359139,
+      "date": 1793964359139,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mOpportunityDetailPage-BvNchauZ.js              \u001b[39m\u001b[1m\u001b[2m 50.07 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  15.82 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359139,
+      "date": 1793964359139,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mDiscoveryRadarRoute-Cs1Z3DRD.js                \u001b[39m\u001b[1m\u001b[2m 58.38 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  17.67 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359139,
+      "date": 1793964359139,
+      "type": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[2massets/\u001b[22m\u001b[36mindex-ChTKKEfJ.js                              \u001b[39m\u001b[1m\u001b[2m359.86 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 116.22 kB\u001b[22m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359139,
+      "date": 1793964359139,
+      "type": "stdout",
+      "text": "\u001b[32m✓ built in 4.12s\u001b[39m",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359290,
+      "date": 1793964359290,
+      "type": "stdout",
+      "text": "Using Python 3.12 from web/pyproject.toml",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359290,
+      "date": 1793964359290,
+      "type": "stdout",
+      "text": "Writing .python-version file with version 3.12",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359331,
+      "date": 1793964359331,
+      "type": "stdout",
+      "text": "Using uv 0.13.5 (x86_64-unknown-linux-gnu)",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359332,
+      "date": 1793964359332,
+      "type": "stdout",
+      "text": "Creating virtual environment at \"/vercel/path0/web/.vercel/python/.venv\"...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964359675,
+      "date": 1793964359675,
+      "type": "stdout",
+      "text": "Installing required dependencies from pyproject.toml...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964361001,
+      "date": 1793964361001,
+      "type": "stdout",
+      "text": "Compiling Python bytecode...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964362492,
+      "date": 1793964362492,
+      "type": "stdout",
+      "text": "Using Python 3.12 from web/.python-version",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964362515,
+      "date": 1793964362515,
+      "type": "stdout",
+      "text": "Using uv 0.13.5 (x86_64-unknown-linux-gnu)",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964362557,
+      "date": 1793964362557,
+      "type": "stdout",
+      "text": "Installing required dependencies from uv.lock...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964362893,
+      "date": 1793964362893,
+      "type": "stdout",
+      "text": "Compiling Python bytecode...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964364566,
+      "date": 1793964364566,
+      "type": "stdout",
+      "text": "Using Python 3.12 from web/.python-version",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964364577,
+      "date": 1793964364577,
+      "type": "stdout",
+      "text": "Using uv 0.13.5 (x86_64-unknown-linux-gnu)",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964364602,
+      "date": 1793964364602,
+      "type": "stdout",
+      "text": "Installing required dependencies from uv.lock...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964364915,
+      "date": 1793964364915,
+      "type": "stdout",
+      "text": "Compiling Python bytecode...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964366525,
+      "date": 1793964366525,
+      "type": "stdout",
+      "text": "Using Python 3.12 from web/.python-version",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964366538,
+      "date": 1793964366538,
+      "type": "stdout",
+      "text": "Using uv 0.13.5 (x86_64-unknown-linux-gnu)",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964366566,
+      "date": 1793964366566,
+      "type": "stdout",
+      "text": "Installing required dependencies from uv.lock...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964366888,
+      "date": 1793964366888,
+      "type": "stdout",
+      "text": "Compiling Python bytecode...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964370621,
+      "date": 1793964370621,
+      "type": "stderr",
+      "text": "Build Completed in /vercel/output [43s]",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964370671,
+      "date": 1793964370671,
+      "type": "stdout",
+      "text": "Deploying outputs...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964381215,
+      "date": 1793964381215,
+      "type": "stdout",
+      "text": "Deployment completed",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964381220,
+      "date": 1793964381220,
+      "type": "stdout",
+      "text": "Creating build cache...",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964400428,
+      "date": 1793964400428,
+      "type": "stdout",
+      "text": "Created build cache: 19s",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964400428,
+      "date": 1793964400428,
+      "type": "stdout",
+      "text": "Uploading build cache [52.19 MB]",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    },
+    {
+      "created": 1793964401182,
+      "date": 1793964401182,
+      "type": "stdout",
+      "text": "Build cache uploaded: 754.000ms",
+      "info": {
+        "type": "build",
+        "name": "bld_6zksmxai0",
+        "entrypoint": "."
+      }
+    }
+  ]
+}

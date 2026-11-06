@@ -1,0 +1,41 @@
+{
+  "scope": {
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "name": "medicalchannelai",
+    "branch": "codex/p0-reliability-contracts",
+    "source_sha": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+    "application_code_sha": "795ef5efa30b61dd47352c4fb888b02488f16855",
+    "epoch": "mcai-p0-20261106-d",
+    "database": "mcai_p0_epoch_20261106d",
+    "existing_deployment": "dpl_Fk33cZFtMo6vwd5cFbSh57J8fZH8",
+    "deadline": "2026-11-06T11:43:14Z",
+    "target": "preview",
+    "deployment_id": "dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1",
+    "url": "https://medicalchannelai-b5vc26me3-rerisse7-1717s-projects.vercel.app",
+    "preview_epoch": "mcai-p0-20261106-d",
+    "commit": "82cc43f06c774969eab0fe44f0afc012f37cadac"
+  },
+  "started_at": "2026-11-06T11:29:09.728Z",
+  "checks": [
+    "exact deployed commit and isolated DATABASE",
+    "ordinary GET contains exact ten official products and quantities",
+    "pool rendered; current count and selected market captured for review",
+    "detail renders all ten product names and no qualification clauses",
+    "390px detail no horizontal overflow",
+    "no page errors or unexpected writes"
+  ],
+  "pageErrors": [],
+  "blockedAi": 2,
+  "unexpectedRequests": [],
+  "test_mode": "existing isolated Chromium; read-only current deployment acceptance; not native collector parser execution",
+  "baseline_full_payload_equal": true,
+  "sha256": "85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead",
+  "visibleCount": [
+    "15",
+    "15"
+  ],
+  "marketSelection": "ALL",
+  "pass": true,
+  "completed_at": "2026-11-06T11:29:15.869Z"
+}

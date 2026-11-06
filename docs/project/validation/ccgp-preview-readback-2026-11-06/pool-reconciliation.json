@@ -1,0 +1,22 @@
+{
+  "as_of": "2026-11-06T11:29:09.728Z",
+  "method": "Independent acceptance-contract reconciliation using frozen public deadline fields; not a call to the production collector",
+  "frontend_rule_locator": "web/src/services/verifiedOpportunityPool.ts:applyRuntimeActionability",
+  "database_pool": 16,
+  "expected_active_pool": 15,
+  "browser_displayed": 15,
+  "browser_total": 15,
+  "all_15_expected_project_names_present": true,
+  "closed_record_absent": true,
+  "closed_records": [
+    {
+      "id": "tjzyefy_20261104_030202660",
+      "project_name": "院内调研公告（2026年32号）-溶栓专用称重床等医疗设备采购项目",
+      "registration_deadline": "2026-11-06T16:00:00+08:00",
+      "bid_deadline": null,
+      "reason": "Registration ended at16:00 Beijing; no later bid window"
+    }
+  ],
+  "data_mutated": false,
+  "first_harness_16_of_16_expectation": "Incorrect after the real registration deadline; no application bug identified"
+}

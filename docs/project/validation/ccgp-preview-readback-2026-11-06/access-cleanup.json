@@ -1,0 +1,9 @@
+{
+  "at": "2026-11-06T11:32:12.094Z",
+  "deployment_id": "dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1",
+  "task_owned_share_revoked": true,
+  "protection_policy_changed": false,
+  "ttl_seconds": 900,
+  "private_access_file_removed": true,
+  "exact_secret_artifact_scan": "PASS"
+}

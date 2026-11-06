@@ -1,0 +1,21 @@
+{
+  "first_create_request": "Rejected400 before deployment creation: API does not accept literal target=preview",
+  "successful_preview_creations": 1,
+  "target_used": "Default Preview, provider target=null; branch/epoch/database verified",
+  "first_browser_run": "PARTIAL_NOT_PASS: stale16/16 assumption timed out",
+  "final_browser_run": "Six directed checks captured; third count reviewed using independent deadline oracle",
+  "pool_reconciliation": "15/15 visible because one registration expired16:00 Beijing with no later bid window; no research_event_at",
+  "actual_app_model_requests": 0,
+  "blocked_cache_only_requests_final_run": 2,
+  "blocked_cache_only_requests_first_run": 1,
+  "total_blocked_cache_only_requests": 3,
+  "browser_driver": "Existing Chromium/Playwright; ego-browser absent; no installation or new environment",
+  "true_suggested_action_button_interface": "NOT_AVAILABLE_IN_CURRENT_TOOLS",
+  "question_popup_used_as_next_button": false,
+  "runtime_model": "未核实",
+  "runtime_thinking_level": "未核实",
+  "next_task_recommendation": {
+    "model": "GPT-6.1 Sol",
+    "thinking_level": "high"
+  }
+}

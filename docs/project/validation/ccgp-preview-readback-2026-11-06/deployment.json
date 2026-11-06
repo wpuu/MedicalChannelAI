@@ -1,0 +1,20 @@
+{
+  "id": "dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1",
+  "url": "https://medicalchannelai-b5vc26me3-rerisse7-1717s-projects.vercel.app",
+  "target": "preview",
+  "provider_target": null,
+  "state": "READY",
+  "source_sha": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+  "application_code_sha": "795ef5efa30b61dd47352c4fb888b02488f16855",
+  "branch": "codex/p0-reliability-contracts",
+  "created_at": "2026-11-06T11:25:23.837Z",
+  "building_at": "2026-11-06T11:25:24.823Z",
+  "ready_at": "2026-11-06T11:26:21.129Z",
+  "build_seconds": 56.306,
+  "epoch": "mcai-p0-20261106-d",
+  "database": "mcai_p0_epoch_20261106d",
+  "existing_environment_reused": true,
+  "new_environment_created": false,
+  "env_changed": false,
+  "schedule_changed": false
+}

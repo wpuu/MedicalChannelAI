@@ -1,0 +1,128 @@
+{
+  "schema_version": "0.1",
+  "kind": "EXISTING_D_PREVIEW_DEPLOYMENT_AND_READ_ONLY_ACCEPTANCE",
+  "source_sha": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+  "application_code_sha": "795ef5efa30b61dd47352c4fb888b02488f16855",
+  "files": [
+    {
+      "path": "access-cleanup.json",
+      "bytes": 269,
+      "sha256": "0f2fc79c9b0a30a80b75e4681acb1b8157801e7edbffbf6aa436ab31ef30490b"
+    },
+    {
+      "path": "api-check.py",
+      "bytes": 3107,
+      "sha256": "9e312832859827169db7fd5ecefec8a6727785cc98eb8ef9e1b2edf18081c079"
+    },
+    {
+      "path": "baseline-sql.json",
+      "bytes": 133576,
+      "sha256": "d789c98a1770c9a74bb01456cfb30302ab95bcbf500fb1fedf30bac540bb2117"
+    },
+    {
+      "path": "browser-check.mjs",
+      "bytes": 5275,
+      "sha256": "725b288eb4fa8f32c01aebc2d131fdf95fb84b7844c9d16e0f8635805792f225"
+    },
+    {
+      "path": "browser-first-partial.json",
+      "bytes": 1388,
+      "sha256": "3264e5b8bdc8ac657253cafc37d7744d7dc6776c3496a3ff96c4c9aa655ade5e"
+    },
+    {
+      "path": "browser-report.json",
+      "bytes": 1648,
+      "sha256": "0da7f11a349656f82369b7e44364bd458a12d0fb55e02c61d62875e50681cbd0"
+    },
+    {
+      "path": "build-events.json",
+      "bytes": 34139,
+      "sha256": "5f195de81a2b953433ac3b2fbed298cb6b13a21ccf770cc25979a53e64065d08"
+    },
+    {
+      "path": "collector.json",
+      "bytes": 10756,
+      "sha256": "d27bbdf87f6b4f32ae77320bcd96ebbf3f764ad30ff20e6012e5f82d6162d954"
+    },
+    {
+      "path": "completion.json",
+      "bytes": 356,
+      "sha256": "98008eef1036f591500e0b85ddb44d4a12650baec26668d2eccedd413dc4243b"
+    },
+    {
+      "path": "consistency-proof.json",
+      "bytes": 643,
+      "sha256": "0bf99cbaa90fac3dfa3e0bcf147a4bf691303d71d19f87a6558ac78d0d8ca5f5"
+    },
+    {
+      "path": "corrected-detail.png",
+      "bytes": 446448,
+      "sha256": "d4dd331d2078f703ab037c1b40386feb8fe0e24bbe620d61a86675bc07833176"
+    },
+    {
+      "path": "deployment.json",
+      "bytes": 735,
+      "sha256": "ebda2590d5a3364b8002ea446deb0bc092a007d8eff45625449fc3cf9db5872d"
+    },
+    {
+      "path": "detail-mobile.png",
+      "bytes": 400832,
+      "sha256": "e3dc6c3f54c3ed2bccf363274e5f85e7855e6c114f8b8425a257254824c184df"
+    },
+    {
+      "path": "final-sql.json",
+      "bytes": 349,
+      "sha256": "4916292b3b62bd5bb590e099082879af597765ae28865c61997b4e0faa92c9f4"
+    },
+    {
+      "path": "fresh.json",
+      "bytes": 126259,
+      "sha256": "6bf9d1f631d537febc3f75c91fc9943847ad9739a29b5fbea68e3b24e5ef924d"
+    },
+    {
+      "path": "ordinary.json",
+      "bytes": 126257,
+      "sha256": "bde85e4edb3601aa81a748f37a6328a5e5e6dee8418801341b9478be34ab3a4a"
+    },
+    {
+      "path": "pool-body.txt",
+      "bytes": 7354,
+      "sha256": "bdef6617af030d12da931852d25885a767561fb7015bf06000ed4e78b8984d07"
+    },
+    {
+      "path": "pool-diagnostic.png",
+      "bytes": 697695,
+      "sha256": "7606aa0622783b3a42176da4cd5adaab64cfb709066322e3d638ad2385f179c1"
+    },
+    {
+      "path": "pool-reconciliation.json",
+      "bytes": 964,
+      "sha256": "646896c7b3204b704aef91675ade03642de5b6fd40dfc87198491c0c2adf2ceb"
+    },
+    {
+      "path": "production-boundary.json",
+      "bytes": 410,
+      "sha256": "bdeb6bf3cb32fa32a813913ee9361e30a07a1bc3f8be8cc15cec98d14cab4b0e"
+    },
+    {
+      "path": "scope.json",
+      "bytes": 737,
+      "sha256": "78497cfcc353a13bca980e2c374952b17b49c0091a0122ccb7ac8a083f92a7b7"
+    },
+    {
+      "path": "status.json",
+      "bytes": 5481,
+      "sha256": "d938f0969020fd17617a026ceef7c71d1ee240663c86f6e368e5fede118f0c05"
+    },
+    {
+      "path": "tool-and-harness-notes.json",
+      "bytes": 1132,
+      "sha256": "b3d26c0d6ee39bb6d00fef64313d48c51d4cc2f2867c565f12a88c30676fe61e"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 3649,
+      "sha256": "eab6e27eb5e31d02b7367ea3bb6395a8820e0850987cb196c1101330fdfd18bf"
+    }
+  ]
+}

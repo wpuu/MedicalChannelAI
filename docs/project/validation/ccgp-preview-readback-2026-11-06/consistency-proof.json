@@ -1,0 +1,15 @@
+{
+  "sha256": "85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead",
+  "baseline_sql_fresh_ordinary_browser_equal": true,
+  "database_content_and_microsecond_clock_unchanged": true,
+  "all_16_public_facts_and_source_health_unchanged": true,
+  "active_ui_pool": 15,
+  "completed_stages": 0,
+  "active_cycle": null,
+  "active_incremental": null,
+  "incremental_chain": null,
+  "queue_triggered": false,
+  "published_snapshot": false,
+  "native_collector_or_new_parser_execution_verified": false,
+  "scope": "Deployment and read-only serving acceptance; prior parser945 tests and frozen10/3 gates remain code-bound local evidence"
+}

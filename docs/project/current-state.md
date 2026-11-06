@@ -2,7 +2,15 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前 CCGP 四类问题修复（本地验收通过，尚未部署）
+## 当前 CCGP 修复 Preview 部署（定向只读验收通过）
+
+- 最新部署来源 `82cc43f06c774969eab0fe44f0afc012f37cadac`，应用代码 `795ef5efa30b61dd47352c4fb888b02488f16855`；[Preview](https://medicalchannelai-b5vc26me3-rerisse7-1717s-projects.vercel.app) `dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1` READY，构建56.306秒。复用现有d周期/数据库/受限角色，未新建环境、改变量或定时计划。
+- API/status准确返回82cc/d/DATABASE；部署前后Neon、fresh/普通GET及浏览器完整数据SHA仍 `85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead`，SQL微秒时钟不变，16条公开facts及来源时钟均未写入。collector无active cycle/增量链、完成阶段0，未触发Queue或回补。
+- 页面6项定向检查完成，ALL15/15与真实截止一致：tjzyefy_20261104_030202660今天16:00报名结束且无后续投标窗口，退出当前行动池；数据库仍16条。初次固定16/16脚本超时不是产品漏显，未改事实/应用凑数。目标10项产品可见，390px无横溢，无页面异常；合计3次自动cache_only被阻断，模型实际请求0。
+- [本轮报告](ccgp-preview-readback-2026-11-06.md)、[冻结证据](validation/ccgp-preview-readback-2026-11-06/manifest.json)。上轮945/完整构建和冻结10/3仍按代码绑定保留；本轮不是新解析器原生采集、完整Queue、canonical迁移或来源恢复验收。Production/SSO于北京时间19:31只读确认未变，临时访问撤销、私有文件清理，production_ready=false。
+- 下一轮读取[完整任务](next-task.md)并复用已有审查工具补齐最多5条dry-run变更清单。按[用户最新工作约定](working-protocol.md)，当前界面没有真正的底部提示词提交按钮接口，不再用问答弹窗冒充；给完整可复制提示词。普通工程推荐GPT-6.1 Sol高（high），实际运行模型/等级未核实。
+
+## 上轮 CCGP 四类问题修复（历史本地验收，现已部署）
 
 - 最新候选代码 `795ef5efa30b61dd47352c4fb888b02488f16855`：HTML表格限定采购需求章节并保留多合同包；识别分段产品名称表头；保留数量表头单位，冲突/未知明确单位拒绝；回补要求全部查询/详情及事件覆盖完成，单次事件查询失败即阻断。
 - 冻结官方8份＋衍生负例2份原样重放10/10；原CLI正反例从1/3到3/3。新增13项解析＋10项CLI行为测试，全部945项Python、JS合约、TypeScript、Vite通过，主JS gzip116.17kB。完整空集可通过，部分失败/cap不能通过；2条历史差异提案仍apply_allowed=false。

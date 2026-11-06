@@ -1,0 +1,17 @@
+{
+  "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+  "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+  "name": "medicalchannelai",
+  "branch": "codex/p0-reliability-contracts",
+  "source_sha": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+  "application_code_sha": "795ef5efa30b61dd47352c4fb888b02488f16855",
+  "epoch": "mcai-p0-20261106-d",
+  "database": "mcai_p0_epoch_20261106d",
+  "existing_deployment": "dpl_Fk33cZFtMo6vwd5cFbSh57J8fZH8",
+  "deadline": "2026-11-06T11:43:14Z",
+  "target": "preview",
+  "deployment_id": "dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1",
+  "url": "https://medicalchannelai-b5vc26me3-rerisse7-1717s-projects.vercel.app",
+  "preview_epoch": "mcai-p0-20261106-d",
+  "commit": "82cc43f06c774969eab0fe44f0afc012f37cadac"
+}
