@@ -1,0 +1,22 @@
+{
+  "schema_version": "1",
+  "starting_head": "d6a9cee",
+  "mode": "STATIC_EVIDENCE_ONLY",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "sha256": {
+    "docs/project/checkpoint.json": "72745c202e560790805691ebbf3bdc45ca26e222e5749c95b3746499a484de9a",
+    "docs/project/current-state.md": "2edb72d4094a14291b55771fc1fb6117bdd06c5238f3d0f0bb0106b263fd66dd",
+    "docs/project/next-task.md": "248219dc445c57b2bb3bf04c4e1ab958fddbf7fb1e5398ac03792fa05ddfd590",
+    "docs/project/tjzyefy-incremental-budget-contract-2026-11-07.md": "09590ad3afdbbf8ab07255e1d71e9210a415bb08df2b31883e885b7acd68e22b",
+    "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/budget-contract.json": "862cea6c9d6c5319207ecab61fa5c4702e559cd055e2cb18912ec0dfacf978a7",
+    "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/capacity-arithmetic.json": "fe3136f75fea83314805b685f13476d246893a849e8a958605b42ac816791a1d",
+    "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/completion.json": "a3cf185fc333b55d2e13c9ada8a05f202de9694fe391030b7c51bd3382ca0c49",
+    "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/go-no-go.json": "e7abb842d51a2b67a73e529aaaeafe2d4c724eb32d7ae6059f37d6d144b3ae34",
+    "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/input-integrity.json": "1bb65317436fce4b66cf5483ed768138ea72479122a1631115aa036d84ca8775",
+    "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/source-references.json": "bb80b7ea27eaf13cc1f54bfac6b545a8039980f953de9519f109b8e1656fcea0",
+    "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/validation-summary.json": "bc1785752f6ecac56eb02caa1a62fa0383b7fb1784844d4f12fa16bae61cf15f",
+    "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/verify.py": "8b2dd59d56af22896e0ae9429c19dfb05c4768e86bef85045231fccd2319e2f8",
+    "docs/project/validation/tjzyefy-incremental-contract-2026-11-07/static-verification.json": "62d721572fc35bc62fa36459ce3a2cf9c4726b012035ba84e62286d22dcc9d37"
+  }
+}

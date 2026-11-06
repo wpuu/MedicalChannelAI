@@ -1,0 +1,314 @@
+{
+  "starting_head": "d6a9cee",
+  "mode": "STATIC_SOURCE_REFERENCE_ONLY",
+  "references": [
+    {
+      "path": "web/collector_queue.py",
+      "line": 413,
+      "text": "async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, sleep=None) -> None:",
+      "source_sha256": "4f94284ef3e8639c4a7b87444dc28cbebb6168b9a7cc58469b162afa310bb113",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/vercel.json",
+      "line": 18,
+      "text": "    \"api/collector-queue.py\": {",
+      "source_sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/api/collector-queue.py",
+      "line": 38,
+      "text": "            asyncio.run(accept_and_handle(body, headers, lease_duration=300))",
+      "source_sha256": "403996c167adf8367c10aeec32e5ff803db6aab0b9f33f5471b6f570d2852101",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 598,
+      "text": "            record = _VERIFICATION[source](candidate, observed_at, observed)",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/tjzyefy_discovery.py",
+      "line": 150,
+      "text": "def fetch_tjzyefy_page(url: str, *, timeout_seconds: int = 30) -> str:",
+      "source_sha256": "d000c324caf8702e9b301be222a53a4a3d64f8ad5596010ed3af0a4922f66bd4",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_tjzyefy_market_research.py",
+      "line": 31,
+      "text": "FETCH_ATTEMPTS = 2",
+      "source_sha256": "0e6ddf2f2944b222d709427350f51fff7f353ee07cc249121ab6f8fc941ef89a",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_tjzyefy_market_research.py",
+      "line": 71,
+      "text": "def fetch_page_with_retry(url: str, *, delay_seconds: float, attempts: int = FETCH_ATTEMPTS) -> str:",
+      "source_sha256": "0e6ddf2f2944b222d709427350f51fff7f353ee07cc249121ab6f8fc941ef89a",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 68,
+      "text": "class CliBudget:",
+      "source_sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 339,
+      "text": "    cache = RuntimeCache()",
+      "source_sha256": "4f94284ef3e8639c4a7b87444dc28cbebb6168b9a7cc58469b162afa310bb113",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_scheduler.py",
+      "line": 146,
+      "text": "        # Attempt state only represents a source job that was successfully put on",
+      "source_sha256": "d7ddd589b138a4b8c23e8dc7dc9c2e315064ecb9c2e115c8ab2f0a6c3a2b426f",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_scheduler.py",
+      "line": 80,
+      "text": "def _quiet_completed_scan(result: dict[str, Any] | None) -> bool:",
+      "source_sha256": "d7ddd589b138a4b8c23e8dc7dc9c2e315064ecb9c2e115c8ab2f0a6c3a2b426f",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 416,
+      "text": "    if not isinstance(payload, dict) or payload.get(\"schema_version\") != \"0.1\":",
+      "source_sha256": "4f94284ef3e8639c4a7b87444dc28cbebb6168b9a7cc58469b162afa310bb113",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 272,
+      "text": "def _process_incremental_payload(payload: dict[str, Any]) -> None:",
+      "source_sha256": "4f94284ef3e8639c4a7b87444dc28cbebb6168b9a7cc58469b162afa310bb113",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 229,
+      "text": "def _acquire_incremental_lease(",
+      "source_sha256": "4f94284ef3e8639c4a7b87444dc28cbebb6168b9a7cc58469b162afa310bb113",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 267,
+      "text": "def _release_incremental_lease(cache: RuntimeCache, scan_id: str) -> None:",
+      "source_sha256": "4f94284ef3e8639c4a7b87444dc28cbebb6168b9a7cc58469b162afa310bb113",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_namespace.py",
+      "line": 27,
+      "text": "INCREMENTAL_ACTIVE_TTL_SECONDS = 15 * 60",
+      "source_sha256": "fc82c0af388124e4bbf5252b38a23a5f48d45a4caf26ead338be213d53be393b",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 299,
+      "text": "        bootstrap_incremental_ledger_from_canonical(",
+      "source_sha256": "4f94284ef3e8639c4a7b87444dc28cbebb6168b9a7cc58469b162afa310bb113",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_bootstrap.py",
+      "line": 108,
+      "text": "    if discovered is None:",
+      "source_sha256": "6de75c865d75f18c95b2fab0b76969d30e15d3abf8f4300ef3b71a4b4fc44f33",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 539,
+      "text": "    try:",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 301,
+      "text": "def _discover_tjzyefy(now: datetime) -> list[Any]:",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 311,
+      "text": "def _verify_tjzyefy(candidate: Any, observed_at: str, now: datetime) -> dict[str, Any] | None:",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental.py",
+      "line": 25,
+      "text": "    \"tjzyefy\": {\"scan_interval_minutes\": 60, \"reverify_after_hours\": 24, \"max_details_per_scan\": 12},",
+      "source_sha256": "4c43b861baa943b7d9f89a61986a2e5abf359b57c5d17a09aff2a1d9ec712c03",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental.py",
+      "line": 309,
+      "text": "    # Discovery adapters intentionally cap each index scan. A newly observed URL",
+      "source_sha256": "4c43b861baa943b7d9f89a61986a2e5abf359b57c5d17a09aff2a1d9ec712c03",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental.py",
+      "line": 334,
+      "text": "    # Preserve freshness while guaranteeing bounded backlog progress. With the",
+      "source_sha256": "4c43b861baa943b7d9f89a61986a2e5abf359b57c5d17a09aff2a1d9ec712c03",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 573,
+      "text": "    ledger = plan.next_ledger",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 663,
+      "text": "    if failures:",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 677,
+      "text": "    if pending_barrier:",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 702,
+      "text": "    if staged_records:",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 296,
+      "text": "def _cache_set(cache: RuntimeCache, key: str, value: Any, *, tag: str, ttl: int = STATE_TTL_SECONDS,",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 724,
+      "text": "    try:",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 504,
+      "text": "def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime) -> tuple[bool, dict[str, Any] | None]:",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 740,
+      "text": "    _mark_bucket_completed(",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_deferred_budget.py",
+      "line": 89,
+      "text": "    def test_exactly_twelve_incremental_details_commit_normally_for_all_three_sources(self):",
+      "source_sha256": "d264c1dd89b373caf3bd09db3c6cf385d734d0ef58174590eeecc46cf69a2024",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_deferred_budget.py",
+      "line": 106,
+      "text": "    def test_thirteenth_detail_defers_entire_source_then_carryover_commits_once(self):",
+      "source_sha256": "d264c1dd89b373caf3bd09db3c6cf385d734d0ef58174590eeecc46cf69a2024",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_deferred_budget.py",
+      "line": 139,
+      "text": "    def test_budget_deferred_periodic_recheck_remains_carryover_eligible(self):",
+      "source_sha256": "d264c1dd89b373caf3bd09db3c6cf385d734d0ef58174590eeecc46cf69a2024",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_deferred_budget.py",
+      "line": 198,
+      "text": "    def test_hard_stop_preserves_fact_or_nonfact_proof_before_ledger_can_skip_it(self):",
+      "source_sha256": "d264c1dd89b373caf3bd09db3c6cf385d734d0ef58174590eeecc46cf69a2024",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_deferred_budget.py",
+      "line": 235,
+      "text": "    def test_deferred_barrier_survives_a_later_empty_scan_beyond_carryover_age(self):",
+      "source_sha256": "d264c1dd89b373caf3bd09db3c6cf385d734d0ef58174590eeecc46cf69a2024",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 74,
+      "text": "def _mark_budget_deferred(ledger: dict[str, Any], decisions: Iterable[VerificationDecision]) -> None:",
+      "source_sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/tjzyefy_discovery.py",
+      "line": 162,
+      "text": "            body = response.read()",
+      "source_sha256": "d000c324caf8702e9b301be222a53a4a3d64f8ad5596010ed3af0a4922f66bd4",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/tjzyefy_discovery.py",
+      "line": 165,
+      "text": "            return decode_official_html(body, http_charset=charset)",
+      "source_sha256": "d000c324caf8702e9b301be222a53a4a3d64f8ad5596010ed3af0a4922f66bd4",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1745,
+      "text": "    _cache_set(",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1759,
+      "text": "    durable_result = _persist_verified_snapshot_durably(snapshot)",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1763,
+      "text": "        cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42",
+      "git_source_head": "d6a9cee"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 237,
+      "text": "def record_source_scan(",
+      "source_sha256": "8930571c0b9ccb8aee7d4103ee56d371280625fa63f152973580fdf921c0bd42",
+      "git_source_head": "d6a9cee"
+    }
+  ]
+}

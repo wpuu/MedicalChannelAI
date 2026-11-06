@@ -1,0 +1,40 @@
+{
+  "existing": [
+    "one actual discovery reused by bootstrap",
+    "12-count detail plan; 48h carryover",
+    "staging before URL barrier before VERIFIED ledger",
+    "pending failure protects canonical and successful scan clock",
+    "bucket complete without refresh is not full source success",
+    "source scheduler and tick independent of deep success"
+  ],
+  "design_gaps_not_behaviorally_reproduced_this_round": [
+    "no tjzyefy incremental monotonic budget",
+    "HTTP/retry/parse not budget-aware",
+    "no time-stop branch preserving remaining selected carryover",
+    "save and finalization lateness/unknown need bounded diagnostics"
+  ],
+  "go": [
+    "documentation and static evidence within current authorization"
+  ],
+  "proposed_go_after_explicit_authorization": [
+    "six-file local cooperative admission and pending recovery implementation; behavior tests required"
+  ],
+  "no_go": [
+    "unconditional physical prohibition on in-flight late VERIFIED/barrier mutation",
+    "hard270/300-second exit or forced synchronous cancellation",
+    "atomic owner or cross-key save/rollback",
+    "real cache durable acknowledgment and deployed code identity",
+    "12-detail complete by deadline or sustained source recovery",
+    "full internal publish time guarantee"
+  ],
+  "runtime_facts_verified_this_round": false,
+  "historical_tests": {
+    "code_head": "bba3716",
+    "python": 1098,
+    "frozen": 10,
+    "cli": 3,
+    "rerun_this_round": false
+  },
+  "apply_allowed": false,
+  "migration_usable": false
+}

@@ -1,0 +1,27 @@
+{
+  "starting_head": "d6a9cee",
+  "scope": "OFFLINE_TJZYEFY_INCREMENTAL_BUDGET_CONTRACT_DOCUMENTATION_ONLY",
+  "static_source_references": 44,
+  "protected_files": 470,
+  "code_changed": false,
+  "tests_changed": false,
+  "application_or_tests_executed": false,
+  "historical_python_frozen_cli": [
+    1098,
+    10,
+    3
+  ],
+  "historical_test_rerun": false,
+  "proposed_budget": [
+    270,
+    180,
+    30,
+    60
+  ],
+  "implementation_status": "NOT_IMPLEMENTED",
+  "sdk_workflow": "CLOSED_NO_GO",
+  "real_persistence_verified": false,
+  "apply_allowed": false,
+  "migration_usable": false,
+  "static_validation_status": "PASS"
+}

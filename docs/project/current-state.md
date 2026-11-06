@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前Queue区域runtime F2协作式预算（离线实现）
+## 当前tjzyefy增量时间预算与pending恢复合同（仅文档）
+
+- 起点d6a9cee，完成[合同与唯一六文件最小方案](tjzyefy-incremental-budget-contract-2026-11-07.md)：仅Queue tjzyefy增量拟用逻辑270/工作180/尾部单URL保存30/最终化60，复用CliBudget与现有逐URL保存/失败恢复，不照搬区域210工作值。全部数值为政策建议，尚未实现/实测。
+- URL保存每步调用前后检查；迟到fact/None不构造新VERIFIED或解除屏障。已发出保存写迟到仍可能变化，明确结果未知，恢复正常确认前不宣称屏障已保留/恢复或自动回滚。时间中断503不开bucket；原数量deferred的200/no-refresh分支不等同整源成功。
+- 已追踪schema/epoch/日期/bucket、lease、一次discovery复用bootstrap、12条/48小时carryover、staging/barrier/ledger、canonical/健康/publish/bucket边界。硬取消、物理阻止在途写、原子提交、12条必定按时、完整publish内部预算及真实部署/持久化均NO-GO；SDK保持CLOSED NO-GO。
+- 本轮只静态审查，44个精确源码行号及470份既有data/fixture/证据字节核对；应用/测试/config不变，不导入执行应用/SDK或测试，不重跑bba3716的1098/10/3。无网络/云端/运行数据访问或部署/推送/配置修改，apply_allowed/migration_usable=false。[证据](validation/tjzyefy-incremental-contract-2026-11-07/manifest.json)。
+- [下一轮](next-task.md)须明确六文件本地离线实现授权；当前界面无法生成该按钮。推荐GPT-6.1 Sol xhigh（超高），实际设置未核实。
+
+## 上轮Queue区域runtime F2协作式预算（已完成离线实现）
 
 - 起点83b434c，代码bba3716，只修改授权6文件。复用CliBudget参数化，CLI默认900/840/60保持；Queue注册区域主/备用阶段采用270/210/60，monotonic原点包括预检，不从payload读deadline，不重置。不接入增量/事件/publish。[报告](runtime-f2-implementation-2026-11-07.md)、[证据](validation/runtime-f2-implementation-2026-11-07/manifest.json)。
 - 写前耗尽走CollectorStageBlocked retryable=True与原FAILED/503路径，旧canonical、成功时钟和其他源pending/ledger保留。首个失败重试、普通第二次失败立即降级推进及终局重复消息不抓取保持。已提交后迟到只加overrun观察，不当写前失败；写入/状态/健康异常明确结果未知，不声称零写入/回滚或新健康终态。

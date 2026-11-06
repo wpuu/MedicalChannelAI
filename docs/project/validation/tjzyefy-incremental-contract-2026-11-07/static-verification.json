@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "mode": "STANDARD_LIBRARY_STATIC_CHECKS_ONLY",
+  "verified_at_utc": "2026-11-06T18:57:43.462355+00:00",
+  "source_reference_count": 44,
+  "protected_file_count": 470,
+  "docs_only_git_diff": true,
+  "actual_source_order_and_policy_checked": true,
+  "budget_and_capacity_arithmetic_checked": true,
+  "application_import_or_execution": false,
+  "tests_executed": false,
+  "historical_1098_10_3_rerun": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

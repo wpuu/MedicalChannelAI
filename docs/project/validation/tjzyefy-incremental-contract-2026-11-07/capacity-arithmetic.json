@@ -1,0 +1,20 @@
+{
+  "mode": "STATIC_NOMINAL_ARITHMETIC_NOT_WALL_CLOCK_BOUND",
+  "index_calls": 1,
+  "selected_detail_cap": 12,
+  "discovery_candidate_cap": 20,
+  "logical_fetches": 13,
+  "maximum_http_attempts": 26,
+  "no_retry_http_timeout_sum": 390,
+  "no_retry_detail_sleep": 36,
+  "no_retry_nominal_seconds": 426,
+  "all_retry_http_timeout_sum": 780,
+  "all_retry_sleep_seconds": 39,
+  "all_retry_detail_sleep_seconds": 36,
+  "all_retry_nominal_seconds": 855,
+  "work_after_detail_sleeps_seconds": 144,
+  "work_after_all_retry_sleeps_seconds": 105,
+  "full_completion_established": false,
+  "cache_latency_measured": false,
+  "minimum_per_url_fact_write_operations": 3
+}
