@@ -1,0 +1,54 @@
+{
+  "starting_head": "43a900775039d5eb04c3102330cb8fd1a362f25e",
+  "kernel_commit": "97819215530454da55e0d5052b7bfbcd7f9ff694",
+  "new_unit_tests": 0,
+  "full_suite_rerun": false,
+  "historical_code_bound_gates": {
+    "python": 1007,
+    "templates": "10/10",
+    "original_cli": "3/3"
+  },
+  "frozen_verifier_recheck": {
+    "command": "python docs/project/validation/ccgp-readonly-export-2026-11-06/verify.py",
+    "exit_code": 0,
+    "stdout": "PASS:1007Python,10/3gates,58keys/116get-only reads,d-only,no fallback,inputs unchanged; OFFLINE CORE ONLY",
+    "scope": "Existing logs/manifests and deterministic replay, not a new 1007-test run"
+  },
+  "local_sdk_distributions": {
+    "vercel": "NOT_INSTALLED_LOCALLY",
+    "vercel-functions": "NOT_INSTALLED_LOCALLY"
+  },
+  "go_no_go": {
+    "offline_limited_observation": "GO",
+    "real_readonly_integration": "NO_GO",
+    "migration_or_correction": "NO_GO"
+  },
+  "proposed_not_implemented_budget": {
+    "total_seconds": 120,
+    "per_get_seconds": 2,
+    "last_get_start_before_seconds": 110,
+    "max_get_calls": 116,
+    "retry_count": 0,
+    "hard_cancellation_verified": false,
+    "read_phase_deadline_seconds": 110,
+    "get_timeout_bound": "min(2 seconds, remaining read-phase budget)"
+  },
+  "backend_identity_verified": false,
+  "execution_channel_verified": false,
+  "scope_provenance_verified": false,
+  "cloud_access_performed": false,
+  "native_client_constructed": false,
+  "deployment_performed": false,
+  "git_push_performed": false,
+  "project_model_requests": 0,
+  "runtime_data_writes": 0,
+  "apply_allowed": false,
+  "migration_usable": false,
+  "application_and_kernel_code_modified": false,
+  "existing_tests_modified": false,
+  "added_local_validation_artifact_script": "docs/project/validation/ccgp-readonly-integration-review-2026-11-06/reproduce-prefix.py",
+  "report_sha256": "0ec9296d352ea840d7f000e39909aed7ca9670f1fde686d557c5c0fa1c571a66",
+  "next_task_sha256": "83add20e70e9ea7a638fa272d6dbcf4ca53ac84c74d4ef4ac939fd698e0e2f06",
+  "source_citations_checked": 31,
+  "review_completed_at": "2026-11-06T13:32:12.111490+00:00"
+}

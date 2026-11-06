@@ -2,7 +2,16 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前d周期canonical只读观察内核（仅离线，真实导出未执行）
+## 当前最小真实只读接入审查（离线完成，真实接入NO-GO）
+
+- 基于起点43a9007和内核9781921核查实际键、epoch包装、owner/时钟、committed优先级及pending/barrier分步写入，形成引用代码行号的[接入方案及go/no-go表](ccgp-readonly-integration-review-2026-11-06.md)。58键/116次get与冻结轨迹一致，297份原始数据/样本/既有证据字节不变。
+- 发现并本地复现接入风险：隐藏_EpochCache的get-only facade会二次加前缀，并可能稳定返回未初始化；现有core接收物理键，必须原样转发未包装原生get。该反例不是当前内核线上缺陷，未改应用/内核代码或测试文件，也未另建审查引擎。
+- 离线限定观察GO；真实只读接入NO-GO：可信后端绑定、既有执行通道、已核实SDK与取消/大小控制、真实执行回执尚缺。本地vercel SDK未安装，历史82cc部署不含内核；没有读取凭据或访问服务来补缺口。
+- 拟定单次预算120秒、最多116 get、每次最多2秒、110秒后不新开get、零重试；只是方案，未实现/实测。双遍相等、owner lease、单个CCGP committed均非全局原子revision；迁移/纠错独立NO-GO，apply_allowed/migration_usable始终false。
+- 本轮复核冻结验证器通过；原1007项Python及10/3为代码绑定历史日志，未重跑全套。没有云端访问/推送/部署、环境/计划/变量/凭据/权限变化、采集/项目模型或任何运行数据写入。[本轮证据](validation/ccgp-readonly-integration-review-2026-11-06/manifest.json)。
+- 下一轮按[next-task.md](next-task.md)只补物理键/次数/deadline的最小本地接入守卫，复用内核，不再扩建dry-run或模拟器。真实接入仍待明确新增授权及可信身份/SDK/通道证据。当前界面无法生成该按钮；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
+## 上轮d周期canonical只读观察内核（历史离线通过，真实导出未执行）
 
 - 内核代码97819215530454da55e0d5052b7bfbcd7f9ff694，仅注入get-only本地桩，无HTTP/CLI或真实客户端；复用实际namespace/epoch/来源策略，以现有键函数校验。58键/116次get覆盖canonical、CCGP事件/committed/staging、健康时钟、owner/meta及增量pending/barrier/ledger/bucket。
 - 缺标识、跨项目/Production/旧c/数据库或写能力接口在读取前拒绝；两遍任意哈希变化、读取失败、大小/数量/结构超限整份拒绝。None保留未初始化/不可用，显式空保留空，不读快照或仓库来回填。

@@ -1,0 +1,1094 @@
+{
+  "reviewed_head": "43a900775039d5eb04c3102330cb8fd1a362f25e",
+  "files": [
+    {
+      "path": "web/collector_readonly_export.py",
+      "sha256": "961555c3d15bd0e96a204c829574df32d3a53f1efb7303970f5f97985ac47f6d",
+      "symbols": [
+        {
+          "name": "_plan",
+          "line": 47,
+          "end_line": 77
+        },
+        {
+          "name": "_encode",
+          "line": 80,
+          "end_line": 107
+        },
+        {
+          "name": "_sha",
+          "line": 110,
+          "end_line": 111
+        },
+        {
+          "name": "_validate_values",
+          "line": 114,
+          "end_line": 151
+        },
+        {
+          "name": "_uncovered_paths",
+          "line": 154,
+          "end_line": 183
+        },
+        {
+          "name": "observe_d_canonical",
+          "line": 186,
+          "end_line": 269
+        },
+        {
+          "name": "get",
+          "line": 31,
+          "end_line": 31
+        },
+        {
+          "name": "visit",
+          "line": 83,
+          "end_line": 97
+        }
+      ]
+    },
+    {
+      "path": "web/collector_epoch.py",
+      "sha256": "d25adb1e0a5b22d2a3d41a0db6e4b240af59ab9bf014011629bf64f01751b0c7",
+      "symbols": [
+        {
+          "name": "preview_epoch",
+          "line": 9,
+          "end_line": 17
+        },
+        {
+          "name": "epoch_key",
+          "line": 20,
+          "end_line": 21
+        },
+        {
+          "name": "RuntimeCache",
+          "line": 44,
+          "end_line": 48
+        },
+        {
+          "name": "accepts_payload",
+          "line": 51,
+          "end_line": 55
+        },
+        {
+          "name": "send",
+          "line": 58,
+          "end_line": 70
+        },
+        {
+          "name": "__init__",
+          "line": 25,
+          "end_line": 27
+        },
+        {
+          "name": "get",
+          "line": 29,
+          "end_line": 30
+        },
+        {
+          "name": "set",
+          "line": 32,
+          "end_line": 38
+        },
+        {
+          "name": "delete",
+          "line": 40,
+          "end_line": 41
+        }
+      ]
+    },
+    {
+      "path": "web/collector_namespace.py",
+      "sha256": "fc82c0af388124e4bbf5252b38a23a5f48d45a4caf26ead338be213d53be393b",
+      "symbols": [
+        {
+          "name": "apply_runtime_namespace",
+          "line": 48,
+          "end_line": 51
+        },
+        {
+          "name": "active_cycle_id",
+          "line": 54,
+          "end_line": 58
+        },
+        {
+          "name": "active_incremental_id",
+          "line": 61,
+          "end_line": 65
+        },
+        {
+          "name": "cycle_has_running_stage",
+          "line": 68,
+          "end_line": 77
+        },
+        {
+          "name": "deep_cycle_owner_is_live",
+          "line": 80,
+          "end_line": 112
+        },
+        {
+          "name": "deep_message_lease_disposition",
+          "line": 115,
+          "end_line": 153
+        }
+      ]
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8",
+      "symbols": [
+        {
+          "name": "record_source_scan",
+          "line": 235,
+          "end_line": 255
+        },
+        {
+          "name": "snapshot_source_health",
+          "line": 258,
+          "end_line": 270
+        },
+        {
+          "name": "_now_utc",
+          "line": 290,
+          "end_line": 291
+        },
+        {
+          "name": "_cache_set",
+          "line": 294,
+          "end_line": 313
+        },
+        {
+          "name": "_assert_pending_canonical_commit",
+          "line": 316,
+          "end_line": 365
+        },
+        {
+          "name": "_load_array",
+          "line": 368,
+          "end_line": 372
+        },
+        {
+          "name": "_bootstrap_ccgp_records",
+          "line": 375,
+          "end_line": 379
+        },
+        {
+          "name": "_bootstrap_ccgp_events",
+          "line": 382,
+          "end_line": 383
+        },
+        {
+          "name": "_bootstrap_tjmugh_records",
+          "line": 386,
+          "end_line": 390
+        },
+        {
+          "name": "_bootstrap_tjnothop_records",
+          "line": 393,
+          "end_line": 394
+        },
+        {
+          "name": "_bootstrap_tjzyefy_records",
+          "line": 397,
+          "end_line": 398
+        },
+        {
+          "name": "_bootstrap_tjzyefy_intent_records",
+          "line": 401,
+          "end_line": 402
+        },
+        {
+          "name": "_bootstrap_tjzxfc_records",
+          "line": 405,
+          "end_line": 406
+        },
+        {
+          "name": "_bootstrap_teda_records",
+          "line": 409,
+          "end_line": 410
+        },
+        {
+          "name": "_bootstrap_tjfch_records",
+          "line": 413,
+          "end_line": 414
+        },
+        {
+          "name": "_regional_records_key",
+          "line": 417,
+          "end_line": 421
+        },
+        {
+          "name": "_bootstrap_regional_records",
+          "line": 424,
+          "end_line": 433
+        },
+        {
+          "name": "_cached_list",
+          "line": 436,
+          "end_line": 442
+        },
+        {
+          "name": "_new_cycle",
+          "line": 445,
+          "end_line": 452
+        },
+        {
+          "name": "load_status",
+          "line": 455,
+          "end_line": 466
+        },
+        {
+          "name": "_write_status",
+          "line": 469,
+          "end_line": 471
+        },
+        {
+          "name": "_stage_index",
+          "line": 474,
+          "end_line": 478
+        },
+        {
+          "name": "_stage_retry_limit_reached",
+          "line": 481,
+          "end_line": 504
+        },
+        {
+          "name": "_prepare_stage",
+          "line": 507,
+          "end_line": 577
+        },
+        {
+          "name": "mark_stage_degraded",
+          "line": 580,
+          "end_line": 602
+        },
+        {
+          "name": "_latest_stage_state_for_update",
+          "line": 605,
+          "end_line": 621
+        },
+        {
+          "name": "_mark_completed",
+          "line": 624,
+          "end_line": 631
+        },
+        {
+          "name": "_mark_failed",
+          "line": 634,
+          "end_line": 644
+        },
+        {
+          "name": "_cycle_as_of",
+          "line": 647,
+          "end_line": 652
+        },
+        {
+          "name": "_run_ccgp",
+          "line": 655,
+          "end_line": 775
+        },
+        {
+          "name": "_run_event_batch",
+          "line": 778,
+          "end_line": 847
+        },
+        {
+          "name": "_run_tjmugh",
+          "line": 850,
+          "end_line": 908
+        },
+        {
+          "name": "_run_early_signal_source",
+          "line": 911,
+          "end_line": 964
+        },
+        {
+          "name": "_run_tjnothop",
+          "line": 967,
+          "end_line": 1030
+        },
+        {
+          "name": "_run_teda",
+          "line": 1033,
+          "end_line": 1144
+        },
+        {
+          "name": "_run_tjfch",
+          "line": 1148,
+          "end_line": 1310
+        },
+        {
+          "name": "_digest",
+          "line": 1313,
+          "end_line": 1315
+        },
+        {
+          "name": "_run_regional_market",
+          "line": 1318,
+          "end_line": 1542
+        },
+        {
+          "name": "_durable_publish_url",
+          "line": 1545,
+          "end_line": 1560
+        },
+        {
+          "name": "_persist_verified_snapshot_durably",
+          "line": 1563,
+          "end_line": 1619
+        },
+        {
+          "name": "_run_publish",
+          "line": 1622,
+          "end_line": 1738
+        },
+        {
+          "name": "run_stage",
+          "line": 1741,
+          "end_line": 1824
+        },
+        {
+          "name": "__init__",
+          "line": 284,
+          "end_line": 287
+        }
+      ]
+    },
+    {
+      "path": "web/collector_incremental.py",
+      "sha256": "4c43b861baa943b7d9f89a61986a2e5abf359b57c5d17a09aff2a1d9ec712c03",
+      "symbols": [
+        {
+          "name": "_utc",
+          "line": 59,
+          "end_line": 63
+        },
+        {
+          "name": "_text",
+          "line": 66,
+          "end_line": 70
+        },
+        {
+          "name": "_candidate_value",
+          "line": 73,
+          "end_line": 76
+        },
+        {
+          "name": "_canonical_json",
+          "line": 79,
+          "end_line": 80
+        },
+        {
+          "name": "candidate_observation",
+          "line": 83,
+          "end_line": 109
+        },
+        {
+          "name": "ledger_key",
+          "line": 112,
+          "end_line": 116
+        },
+        {
+          "name": "empty_ledger",
+          "line": 119,
+          "end_line": 124
+        },
+        {
+          "name": "normalize_ledger",
+          "line": 127,
+          "end_line": 164
+        },
+        {
+          "name": "_parsed_at",
+          "line": 167,
+          "end_line": 177
+        },
+        {
+          "name": "_prune_entries",
+          "line": 180,
+          "end_line": 188
+        },
+        {
+          "name": "_verification_reason",
+          "line": 191,
+          "end_line": 209
+        },
+        {
+          "name": "_observed_entry",
+          "line": 212,
+          "end_line": 236
+        },
+        {
+          "name": "_carryover_observation",
+          "line": 239,
+          "end_line": 246
+        },
+        {
+          "name": "_sort_decisions",
+          "line": 249,
+          "end_line": 257
+        },
+        {
+          "name": "plan_detail_verification",
+          "line": 260,
+          "end_line": 368
+        },
+        {
+          "name": "record_verification_success",
+          "line": 371,
+          "end_line": 400
+        },
+        {
+          "name": "record_verification_failure",
+          "line": 403,
+          "end_line": 433
+        },
+        {
+          "name": "scan_bucket_id",
+          "line": 436,
+          "end_line": 451
+        }
+      ]
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df",
+      "symbols": [
+        {
+          "name": "_ledger_cache_key",
+          "line": 40,
+          "end_line": 41
+        },
+        {
+          "name": "_bucket_cache_key",
+          "line": 44,
+          "end_line": 45
+        },
+        {
+          "name": "_pending_cache_key",
+          "line": 48,
+          "end_line": 49
+        },
+        {
+          "name": "_pending_barrier_cache_key",
+          "line": 52,
+          "end_line": 53
+        },
+        {
+          "name": "_cache_set",
+          "line": 56,
+          "end_line": 57
+        },
+        {
+          "name": "_load_ledger",
+          "line": 60,
+          "end_line": 61
+        },
+        {
+          "name": "_save_ledger",
+          "line": 64,
+          "end_line": 71
+        },
+        {
+          "name": "_mark_budget_deferred",
+          "line": 74,
+          "end_line": 82
+        },
+        {
+          "name": "_load_pending_records",
+          "line": 85,
+          "end_line": 91
+        },
+        {
+          "name": "_save_pending_records",
+          "line": 94,
+          "end_line": 109
+        },
+        {
+          "name": "_load_pending_barrier",
+          "line": 112,
+          "end_line": 118
+        },
+        {
+          "name": "_save_pending_barrier",
+          "line": 121,
+          "end_line": 133
+        },
+        {
+          "name": "reconcile_incremental_pending_from_canonical",
+          "line": 136,
+          "end_line": 166
+        },
+        {
+          "name": "_parsed_verification_time",
+          "line": 169,
+          "end_line": 174
+        },
+        {
+          "name": "_last_completed_bucket",
+          "line": 177,
+          "end_line": 182
+        },
+        {
+          "name": "_mark_bucket_completed",
+          "line": 185,
+          "end_line": 205
+        },
+        {
+          "name": "_deep_cycle_running",
+          "line": 208,
+          "end_line": 209
+        },
+        {
+          "name": "_now_utc",
+          "line": 212,
+          "end_line": 216
+        },
+        {
+          "name": "_source_delay_seconds",
+          "line": 219,
+          "end_line": 224
+        },
+        {
+          "name": "_existing_records",
+          "line": 227,
+          "end_line": 249
+        },
+        {
+          "name": "_discover_tjmugh",
+          "line": 252,
+          "end_line": 261
+        },
+        {
+          "name": "_verify_tjmugh",
+          "line": 264,
+          "end_line": 271
+        },
+        {
+          "name": "_discover_tjnothop",
+          "line": 274,
+          "end_line": 283
+        },
+        {
+          "name": "_verify_tjnothop",
+          "line": 286,
+          "end_line": 298
+        },
+        {
+          "name": "_discover_tjzyefy",
+          "line": 301,
+          "end_line": 308
+        },
+        {
+          "name": "_verify_tjzyefy",
+          "line": 311,
+          "end_line": 322
+        },
+        {
+          "name": "_discover_tjzyefy_intent",
+          "line": 325,
+          "end_line": 332
+        },
+        {
+          "name": "_verify_tjzyefy_intent",
+          "line": 335,
+          "end_line": 346
+        },
+        {
+          "name": "_discover_tjzxfc",
+          "line": 349,
+          "end_line": 356
+        },
+        {
+          "name": "_verify_tjzxfc",
+          "line": 359,
+          "end_line": 370
+        },
+        {
+          "name": "_discover_teda",
+          "line": 373,
+          "end_line": 379
+        },
+        {
+          "name": "_verify_teda",
+          "line": 382,
+          "end_line": 404
+        },
+        {
+          "name": "_discover_tjfch",
+          "line": 407,
+          "end_line": 416
+        },
+        {
+          "name": "_verify_tjfch",
+          "line": 419,
+          "end_line": 434
+        },
+        {
+          "name": "_discover_tjfch_test",
+          "line": 437,
+          "end_line": 444
+        },
+        {
+          "name": "_verify_tjfch_test",
+          "line": 447,
+          "end_line": 465
+        },
+        {
+          "name": "_candidate_from_decision",
+          "line": 490,
+          "end_line": 501
+        },
+        {
+          "name": "_publish_snapshot_if_ready",
+          "line": 504,
+          "end_line": 509
+        },
+        {
+          "name": "run_incremental_source",
+          "line": 512,
+          "end_line": 747
+        }
+      ]
+    },
+    {
+      "path": "web/collector_queue.py",
+      "sha256": "4b58bc70411e2f8acf06fc321a7edefe8dcef7c3f04b8d032b57b388acb22cd0",
+      "symbols": [
+        {
+          "name": "_parse_cycle_as_of",
+          "line": 52,
+          "end_line": 60
+        },
+        {
+          "name": "_next_stage",
+          "line": 63,
+          "end_line": 68
+        },
+        {
+          "name": "_active_cycle_matches",
+          "line": 71,
+          "end_line": 86
+        },
+        {
+          "name": "_release_active_cycle_if_owned",
+          "line": 89,
+          "end_line": 92
+        },
+        {
+          "name": "recover_expired_deep_cycle",
+          "line": 95,
+          "end_line": 122
+        },
+        {
+          "name": "_heartbeat_deep_cycle",
+          "line": 125,
+          "end_line": 135
+        },
+        {
+          "name": "_write_chain_state",
+          "line": 138,
+          "end_line": 164
+        },
+        {
+          "name": "_enqueue_stage",
+          "line": 167,
+          "end_line": 180
+        },
+        {
+          "name": "_enqueue_incremental_tick",
+          "line": 183,
+          "end_line": 199
+        },
+        {
+          "name": "_enqueue_incremental_source",
+          "line": 202,
+          "end_line": 217
+        },
+        {
+          "name": "_is_incremental_payload",
+          "line": 220,
+          "end_line": 221
+        },
+        {
+          "name": "_is_incremental_tick_payload",
+          "line": 224,
+          "end_line": 225
+        },
+        {
+          "name": "_acquire_incremental_lease",
+          "line": 228,
+          "end_line": 263
+        },
+        {
+          "name": "_release_incremental_lease",
+          "line": 266,
+          "end_line": 268
+        },
+        {
+          "name": "_process_incremental_payload",
+          "line": 271,
+          "end_line": 318
+        },
+        {
+          "name": "_process_incremental_tick_payload",
+          "line": 321,
+          "end_line": 374
+        },
+        {
+          "name": "ensure_intraday_chain",
+          "line": 377,
+          "end_line": 409
+        },
+        {
+          "name": "process_collector_payload",
+          "line": 412,
+          "end_line": 515
+        }
+      ]
+    },
+    {
+      "path": "web/collector_oidc.py",
+      "sha256": "c9617d11cd2f79a561f31d12c36a32b564cdb9fba123f0a3a7e73dbcdd90c4a4",
+      "symbols": [
+        {
+          "name": "preview_oidc_token",
+          "line": 9,
+          "end_line": 34
+        }
+      ]
+    },
+    {
+      "path": "web/api/collector-status.py",
+      "sha256": "ed4d9a42cbcda668c45cb3e90aa44158bd0a3e8b26155b08c45fc5d7c0720a9e",
+      "symbols": [
+        {
+          "name": "_safe_failure_reason",
+          "line": 127,
+          "end_line": 139
+        },
+        {
+          "name": "_failed_ledger_diagnostics",
+          "line": 142,
+          "end_line": 154
+        },
+        {
+          "name": "_incremental_ledger_key",
+          "line": 157,
+          "end_line": 158
+        },
+        {
+          "name": "_incremental_bucket_key",
+          "line": 161,
+          "end_line": 162
+        },
+        {
+          "name": "_incremental_pending_key",
+          "line": 165,
+          "end_line": 166
+        },
+        {
+          "name": "_incremental_pending_barrier_key",
+          "line": 169,
+          "end_line": 170
+        },
+        {
+          "name": "_safe_list_count",
+          "line": 173,
+          "end_line": 174
+        },
+        {
+          "name": "_safe_bucket_result",
+          "line": 177,
+          "end_line": 183
+        },
+        {
+          "name": "_safe_chain_state",
+          "line": 186,
+          "end_line": 189
+        },
+        {
+          "name": "_incremental_status",
+          "line": 192,
+          "end_line": 239
+        },
+        {
+          "name": "_send_json",
+          "line": 243,
+          "end_line": 251
+        },
+        {
+          "name": "do_GET",
+          "line": 253,
+          "end_line": 286
+        },
+        {
+          "name": "do_POST",
+          "line": 288,
+          "end_line": 291
+        }
+      ]
+    },
+    {
+      "path": "web/api/_previewEpoch.js",
+      "sha256": "e4f7299f99aaca94b50e7bda289d8ca09378a1a0f5ad3394cb3483b7d19f421d"
+    },
+    {
+      "path": "web/vercel.json",
+      "sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e"
+    },
+    {
+      "path": "web/pyproject.toml",
+      "sha256": "f09da6a199aec5b4d78b9a4b190c3f0859e244cca63c1051058d84703104471d"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_readonly_export.py",
+      "sha256": "e42146b20abeaeaa7754511924b34f510b61967c950c53e58a523adb01d3487a",
+      "symbols": [
+        {
+          "name": "__init__",
+          "line": 21,
+          "end_line": 24
+        },
+        {
+          "name": "get",
+          "line": 26,
+          "end_line": 30
+        },
+        {
+          "name": "observe",
+          "line": 34,
+          "end_line": 36
+        },
+        {
+          "name": "normal",
+          "line": 38,
+          "end_line": 52
+        },
+        {
+          "name": "test_normal_preserves_values_clocks_hashes_and_input",
+          "line": 54,
+          "end_line": 66
+        },
+        {
+          "name": "test_empty_cache_retains_missing_and_no_fallback",
+          "line": 68,
+          "end_line": 72
+        },
+        {
+          "name": "test_present_empty_differs_from_uninitialized",
+          "line": 74,
+          "end_line": 77
+        },
+        {
+          "name": "test_missing_identity_rejected_before_read",
+          "line": 79,
+          "end_line": 84
+        },
+        {
+          "name": "test_cross_epoch_production_project_database_rejected_before_read",
+          "line": 86,
+          "end_line": 93
+        },
+        {
+          "name": "test_read_trace_only_fixed_d_namespace_no_snapshot",
+          "line": 95,
+          "end_line": 99
+        },
+        {
+          "name": "test_write_capability_reader_rejected_with_zero_calls",
+          "line": 101,
+          "end_line": 106
+        },
+        {
+          "name": "test_owner_version_canonical_health_pending_changes_reject_entire_export",
+          "line": 108,
+          "end_line": 116
+        },
+        {
+          "name": "test_mutable_reader_references_do_not_hide_concurrency",
+          "line": 118,
+          "end_line": 125
+        },
+        {
+          "name": "test_partial_failure_in_either_pass_returns_no_result",
+          "line": 127,
+          "end_line": 132
+        },
+        {
+          "name": "test_value_and_total_byte_limits_fail_closed",
+          "line": 134,
+          "end_line": 138
+        },
+        {
+          "name": "test_record_limit_not_silent_truncation",
+          "line": 140,
+          "end_line": 142
+        },
+        {
+          "name": "test_limits_cannot_expand_hard_ceiling_and_reject_before_reads",
+          "line": 144,
+          "end_line": 149
+        },
+        {
+          "name": "test_non_json_nan_and_depth_rejected",
+          "line": 151,
+          "end_line": 154
+        },
+        {
+          "name": "test_invalid_canonical_or_events_or_metadata_rejected",
+          "line": 156,
+          "end_line": 160
+        },
+        {
+          "name": "test_unknown_metadata_preserved_opaque_never_coverage_success",
+          "line": 162,
+          "end_line": 165
+        },
+        {
+          "name": "test_actual_pending_barrier_string_list_and_watch_shapes",
+          "line": 167,
+          "end_line": 174
+        },
+        {
+          "name": "test_unknown_canonical_extensions_are_explicitly_uncovered",
+          "line": 176,
+          "end_line": 184
+        },
+        {
+          "name": "test_structural_node_limit_rejected",
+          "line": 186,
+          "end_line": 189
+        },
+        {
+          "name": "test_wrong_market_and_cross_shard_duplicates_rejected",
+          "line": 191,
+          "end_line": 199
+        },
+        {
+          "name": "test_committed_state_precedence_matches_publish_without_erasing_raw_shard",
+          "line": 201,
+          "end_line": 206
+        },
+        {
+          "name": "test_existing_key_functions_and_namespace_parity",
+          "line": 208,
+          "end_line": 219
+        },
+        {
+          "name": "test_import_and_execution_do_not_construct_cache_or_access_network",
+          "line": 221,
+          "end_line": 227
+        },
+        {
+          "name": "change",
+          "line": 120,
+          "end_line": 122
+        },
+        {
+          "name": "change",
+          "line": 112,
+          "end_line": 114
+        },
+        {
+          "name": "fail",
+          "line": 129,
+          "end_line": 130
+        }
+      ]
+    },
+    {
+      "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+      "sha256": "7d91bfcb1a83475e628b7f3ce7960c85f266caa4e29a1b17cb6894667e442e8e",
+      "symbols": [
+        {
+          "name": "digest",
+          "line": 28,
+          "end_line": 29
+        },
+        {
+          "name": "object_hash",
+          "line": 32,
+          "end_line": 33
+        },
+        {
+          "name": "_audit_inputs",
+          "line": 36,
+          "end_line": 110
+        },
+        {
+          "name": "audit",
+          "line": 113,
+          "end_line": 114
+        },
+        {
+          "name": "_product_evidence",
+          "line": 117,
+          "end_line": 118
+        },
+        {
+          "name": "_unrelated_record",
+          "line": 121,
+          "end_line": 126
+        },
+        {
+          "name": "build_dry_run",
+          "line": 129,
+          "end_line": 231
+        },
+        {
+          "name": "main",
+          "line": 234,
+          "end_line": 278
+        }
+      ]
+    },
+    {
+      "path": "web/pipeline/scripts/simulate_ccgp_product_corrections.py",
+      "sha256": "d827864cf8ff66ba99b3eb9de0724579d7a75d366601a19fda0b67a5ef9e29a9",
+      "symbols": [
+        {
+          "name": "_trusted",
+          "line": 19,
+          "end_line": 45
+        },
+        {
+          "name": "_state",
+          "line": 48,
+          "end_line": 56
+        },
+        {
+          "name": "_positions",
+          "line": 59,
+          "end_line": 72
+        },
+        {
+          "name": "_unchanged",
+          "line": 75,
+          "end_line": 77
+        },
+        {
+          "name": "_report",
+          "line": 80,
+          "end_line": 89
+        },
+        {
+          "name": "simulate_overlay",
+          "line": 92,
+          "end_line": 112
+        },
+        {
+          "name": "simulate_rollback",
+          "line": 115,
+          "end_line": 157
+        },
+        {
+          "name": "main",
+          "line": 160,
+          "end_line": 213
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "starting_head": "43a900775039d5eb04c3102330cb8fd1a362f25e",
+  "protected_file_count": 297,
+  "protected_inventory_sha256": "b25be1883cb4a79b02d07400b11647fe19d3ac31a173fbb14125cfcbe23a2f3d",
+  "protected_bytes_unchanged_from_starting_commit": true,
+  "existing_source_and_tests_unchanged": true
+}

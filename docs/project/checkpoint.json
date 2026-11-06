@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-06",
   "timezone": "Asia/Shanghai",
-  "state_scope": "CURRENT_OFFLINE_D_CANONICAL_OBSERVATION_CORE_NO_RUNTIME_ACTIONS",
+  "state_scope": "CURRENT_OFFLINE_READONLY_INTEGRATION_REVIEW_NO_RUNTIME_ACTIONS",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "D_SCOPE_READONLY_OBSERVATION_CORE_VERIFIED_OFFLINE_NOT_A_REAL_EXPORT",
-  "latest_changes_validation_status": "1007_PYTHON_PASS; FROZEN10_OF10; CLI3_OF3; 58_KEYS_116_GET_ONLY_READS; NO_RUNTIME_EXPORT_OR_CAS",
+  "milestone": "MINIMAL_READONLY_INTEGRATION_PLAN_COMPLETE_REAL_ACCESS_AND_MIGRATION_NO_GO",
+  "latest_changes_validation_status": "REVIEW_ONLY; FROZEN_VERIFIER_REPLAY_PASS; 58_KEY_PLAN_MATCH; PREFIX_HAZARD_REPRODUCED_LOCALLY; 1007_AND10/3_HISTORICAL_NOT_RERUN",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -2316,7 +2316,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "246c139b3f42b738300ecaebac6bec42e6709119",
+  "latest_reviewed_repository_head": "43a900775039d5eb04c3102330cb8fd1a362f25e",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2414,7 +2414,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "246c139b3f42b738300ecaebac6bec42e6709119",
+  "current_phase_starting_head": "43a900775039d5eb04c3102330cb8fd1a362f25e",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2465,7 +2465,7 @@
     "historical": true
   },
   "latest_offline_tool_head": "97819215530454da55e0d5052b7bfbcd7f9ff694",
-  "code_validation_scope": "OFFLINE_GET_ONLY_EXPORT_CORE; GENERATOR/SIMULATOR/RUNTIME/DEPLOYMENT_UNCHANGED",
+  "code_validation_scope": "OFFLINE_REVIEW_ONLY; EXISTING_KERNEL_AND_ALL_SOURCE_TESTS_UNCHANGED",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
     "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
@@ -2663,6 +2663,82 @@
     "offline_acceptance_completed_at": "2026-11-06T13:16:24.772561+00:00",
     "within_foreground_deadline": true,
     "scope": "LOCAL_CORE_AND_EVIDENCE_ONLY",
-    "real_export_performed": false
+    "real_export_performed": false,
+    "validation_is_historical_code_bound": true
+  },
+  "readonly_integration_review_acceptance": {
+    "starting_head": "43a900775039d5eb04c3102330cb8fd1a362f25e",
+    "kernel_commit": "97819215530454da55e0d5052b7bfbcd7f9ff694",
+    "new_unit_tests": 0,
+    "full_suite_rerun": false,
+    "historical_code_bound_gates": {
+      "python": 1007,
+      "templates": "10/10",
+      "original_cli": "3/3"
+    },
+    "frozen_verifier_recheck": {
+      "command": "python docs/project/validation/ccgp-readonly-export-2026-11-06/verify.py",
+      "exit_code": 0,
+      "stdout": "PASS:1007Python,10/3gates,58keys/116get-only reads,d-only,no fallback,inputs unchanged; OFFLINE CORE ONLY",
+      "scope": "Existing logs/manifests and deterministic replay, not a new 1007-test run"
+    },
+    "local_sdk_distributions": {
+      "vercel": "NOT_INSTALLED_LOCALLY",
+      "vercel-functions": "NOT_INSTALLED_LOCALLY"
+    },
+    "go_no_go": {
+      "offline_limited_observation": "GO",
+      "real_readonly_integration": "NO_GO",
+      "migration_or_correction": "NO_GO"
+    },
+    "proposed_not_implemented_budget": {
+      "total_seconds": 120,
+      "per_get_seconds": 2,
+      "last_get_start_before_seconds": 110,
+      "max_get_calls": 116,
+      "retry_count": 0,
+      "hard_cancellation_verified": false,
+      "read_phase_deadline_seconds": 110,
+      "get_timeout_bound": "min(2 seconds, remaining read-phase budget)"
+    },
+    "backend_identity_verified": false,
+    "execution_channel_verified": false,
+    "scope_provenance_verified": false,
+    "cloud_access_performed": false,
+    "native_client_constructed": false,
+    "deployment_performed": false,
+    "git_push_performed": false,
+    "project_model_requests": 0,
+    "runtime_data_writes": 0,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "report": "docs/project/ccgp-readonly-integration-review-2026-11-06.md",
+    "evidence_manifest": "docs/project/validation/ccgp-readonly-integration-review-2026-11-06/manifest.json",
+    "key_plan": "docs/project/validation/ccgp-readonly-integration-review-2026-11-06/key-plan.json",
+    "protected_input_file_count": 297,
+    "actual_kernel_defect_reproduced": false,
+    "foreground_started_at": "2026-11-06T13:20:34Z",
+    "foreground_deadline": "2026-11-06T13:40:34Z",
+    "production_modified": false,
+    "application_and_kernel_code_modified": false,
+    "existing_tests_modified": false,
+    "added_local_validation_artifact_script": "docs/project/validation/ccgp-readonly-integration-review-2026-11-06/reproduce-prefix.py",
+    "report_sha256": "0ec9296d352ea840d7f000e39909aed7ca9670f1fde686d557c5c0fa1c571a66",
+    "next_task_sha256": "83add20e70e9ea7a638fa272d6dbcf4ca53ac84c74d4ef4ac939fd698e0e2f06",
+    "source_citations_checked": 31,
+    "review_completed_at": "2026-11-06T13:32:12.111490+00:00",
+    "completion": {
+      "started_at": "2026-11-06T13:20:34Z",
+      "foreground_deadline": "2026-11-06T13:40:34Z",
+      "offline_review_completed_at": "2026-11-06T13:32:12.111490+00:00",
+      "within_foreground_deadline": true,
+      "application_and_kernel_code_modified": false,
+      "existing_tests_modified": false,
+      "source_citations_checked": 31,
+      "source_test_hashes_checked": 15,
+      "cloud_access_performed": false,
+      "git_push_performed": false,
+      "apply_allowed": false
+    }
   }
 }

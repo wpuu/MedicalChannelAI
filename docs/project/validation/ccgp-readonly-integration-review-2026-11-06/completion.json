@@ -1,0 +1,13 @@
+{
+  "started_at": "2026-11-06T13:20:34Z",
+  "foreground_deadline": "2026-11-06T13:40:34Z",
+  "offline_review_completed_at": "2026-11-06T13:32:12.111490+00:00",
+  "within_foreground_deadline": true,
+  "application_and_kernel_code_modified": false,
+  "existing_tests_modified": false,
+  "source_citations_checked": 31,
+  "source_test_hashes_checked": 15,
+  "cloud_access_performed": false,
+  "git_push_performed": false,
+  "apply_allowed": false
+}

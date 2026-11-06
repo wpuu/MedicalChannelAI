@@ -1,0 +1,18 @@
+{
+  "kind": "SYNTHETIC_LOCAL_INTEGRATION_COUNTEREXAMPLE",
+  "native_client_constructed": false,
+  "cloud_access_performed": false,
+  "correct": {
+    "first_forwarded_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-records:v2",
+    "calls": 116,
+    "ccgp_state": "PRESENT_EMPTY"
+  },
+  "incorrect_hidden_epoch": {
+    "first_forwarded_key": "medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:preview:mcai-p0-20261106-d:medicalchannelai:collector-ccgp-records:v2",
+    "calls": 116,
+    "ccgp_state": "UNINITIALIZED_OR_UNAVAILABLE"
+  },
+  "conclusion": "Equal observation passes do not authenticate a facade or detect a stable wrong key transform.",
+  "actual_kernel_defect_reproduced": false,
+  "apply_allowed": false
+}
