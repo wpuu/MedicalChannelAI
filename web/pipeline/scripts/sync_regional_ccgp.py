@@ -4,10 +4,14 @@ from __future__ import annotations
 import argparse
 import http.cookiejar
 import json
+import math
+import os
 import sys
+import tempfile
 import time
 import urllib.request
 from datetime import datetime, timedelta, timezone
+from functools import partial
 from pathlib import Path
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
@@ -55,26 +59,89 @@ _BROWSER_HEADERS = {
 }
 
 
+class CliBudgetExceeded(RuntimeError):
+    def __init__(self, phase: str) -> None:
+        super().__init__('BUDGET_EXCEEDED')
+        self.phase = phase
+
+
+class CliBudget:
+    """Cooperative admission checks; cannot preempt synchronous HTTP or file I/O."""
+    def __init__(self, monotonic, sleep) -> None:
+        self.clock, self.sleeper = monotonic, sleep
+        self.started = monotonic()
+        self.exhausted_phase = None
+        self.work_complete = False
+
+    def fail(self, phase: str) -> None:
+        self.exhausted_phase = self.exhausted_phase or phase
+        raise CliBudgetExceeded(self.exhausted_phase)
+
+    def check(self, phase: str, *, finalize: bool = False) -> None:
+        if (self.exhausted_phase and not finalize) or self.clock() >= self.started + (900 if finalize else 840):
+            self.fail(phase)
+
+    def request_timeout(self, cap: float, phase: str) -> float:
+        self.check(phase)
+        remaining = self.started + 840 - self.clock()
+        if remaining <= 1:
+            self.fail(phase)
+        timeout = min(cap, remaining - 1)
+        if not math.isfinite(timeout) or timeout <= 0:
+            self.fail(phase)
+        return timeout
+
+    def sleep_checked(self, delay: float, phase: str) -> None:
+        self.check(phase)
+        if not math.isfinite(delay) or delay < 0 or self.started + 840 - self.clock() <= delay + 1:
+            self.fail(phase)
+        self.sleeper(delay)
+        self.check(phase)
+
+    def snapshot(self) -> dict:
+        return {'total_seconds': 900, 'work_seconds': 840, 'finalize_reserve_seconds': 60,
+                'elapsed_seconds': max(0, self.clock() - self.started),
+                'exhausted_phase': self.exhausted_phase, 'work_complete': self.work_complete,
+                'hard_exit_guaranteed': False}
+
+
 class CcgpSearchSession:
-    def __init__(self, *, on_access_blocked=None) -> None:
+    def __init__(self, *, on_access_blocked=None, budget=None) -> None:
         jar = http.cookiejar.CookieJar()
         self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
         self.warmed = False
         self.on_access_blocked = on_access_blocked
+        self.budget = budget
 
     def _read(self, url: str, *, timeout: int) -> str:
+        budget = self.budget
+        phase = 'WARMUP' if url == 'https://www.ccgp.gov.cn/' else 'SEARCH_READ'
+        if budget:
+            timeout = budget.request_timeout(timeout, phase)
         request = urllib.request.Request(url, headers=_BROWSER_HEADERS)
         with self.opener.open(request, timeout=timeout) as response:
+            if budget:
+                budget.check(phase)
             raw = response.read()
+            if budget:
+                budget.check(phase)
             charset = response.headers.get_content_charset()
+        if budget:
+            budget.check(phase)
         if charset:
-            return raw.decode(charset, errors='replace')
-        for candidate in ('utf-8', 'gb18030'):
-            try:
-                return raw.decode(candidate)
-            except UnicodeDecodeError:
-                continue
-        return raw.decode('utf-8', errors='replace')
+            html = raw.decode(charset, errors='replace')
+        else:
+            for candidate in ('utf-8', 'gb18030'):
+                try:
+                    html = raw.decode(candidate)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            else:
+                html = raw.decode('utf-8', errors='replace')
+        if budget:
+            budget.check(phase)
+        return html
 
     def warmup(self) -> None:
         if self.warmed:
@@ -83,6 +150,8 @@ class CcgpSearchSession:
             html = self._read('https://www.ccgp.gov.cn/', timeout=30)
             if self.on_access_blocked and any(marker in html for marker in RATE_LIMIT_MARKERS):
                 self.on_access_blocked('www.ccgp.gov.cn', 'RATE_LIMITED')
+        except CliBudgetExceeded:
+            raise
         except Exception as exc:
             # Search can still work if the homepage warm-up is temporarily unavailable.
             # CLI-only feedback prevents later detail requests to a denied host.
@@ -90,13 +159,19 @@ class CcgpSearchSession:
                 reason = access_block_reason('index_discovery', exc, 'ccgp_homepage')
                 if reason:
                     self.on_access_blocked('www.ccgp.gov.cn', reason)
-        time.sleep(1.0)
+        if self.budget:
+            self.budget.check('WARMUP')
+            self.budget.sleep_checked(1.0, 'WARMUP_SLEEP')
+        else:
+            time.sleep(1.0)
         self.warmed = True
 
     def fetch(self, url: str) -> str:
         if not url.startswith(CCGP_SEARCH_URL):
             raise ValueError('CCGP_SEARCH_URL_REQUIRED')
         self.warmup()
+        if self.budget:
+            self.budget.check('SEARCH_READ')
         html = self._read(url, timeout=90)
         if any(marker in html for marker in RATE_LIMIT_MARKERS):
             raise RuntimeError('CCGP_RATE_LIMITED')
@@ -237,7 +312,75 @@ def access_block_reason(phase: str, exc: Exception, reference: str) -> str | Non
     return None
 
 
-def main() -> int:
+def finish_cli_outputs(records_target: Path, report_path: Path, records: list, report: dict, budget: CliBudget) -> int:
+    """Prepare before replacing one target; never claims a cross-file transaction."""
+    stage = None
+    report.update(commit_state='NOT_COMMITTED', records_written=False, post_commit_overrun=False)
+    if report['acceptance_ready']:
+        try:
+            budget.check('FINALIZE', finalize=True)
+            records_target.parent.mkdir(parents=True, exist_ok=True)
+            fd, name = tempfile.mkstemp(prefix='.regional-ccgp-', suffix='.json', dir=records_target.parent)
+            stage = Path(name)
+            os.close(fd)
+            write_json(stage, records)
+            budget.check('PRE_COMMIT', finalize=True)
+            report.update(commit_state='COMMIT_UNKNOWN', records_written=None)
+            os.replace(stage, records_target)
+            report.update(commit_state='COMMITTED', records_written=True)
+            budget.check('POST_COMMIT', finalize=True)
+        except CliBudgetExceeded:
+            report['acceptance_ready'] = False
+            report['acceptance_blockers'].append('BUDGET_EXCEEDED')
+            report['post_commit_overrun'] = report['commit_state'] == 'COMMITTED'
+        except Exception:
+            report['acceptance_ready'] = False
+            report['acceptance_blockers'].append(
+                'COMMIT_RESULT_UNKNOWN' if report['commit_state'] == 'COMMIT_UNKNOWN' else 'OUTPUT_PREPARATION_FAILED')
+        finally:
+            if stage is not None:
+                try:
+                    stage.unlink(missing_ok=True)
+                except OSError:
+                    report['acceptance_ready'] = False
+                    report['acceptance_blockers'].append('TEMPORARY_CLEANUP_FAILED')
+
+    def emit_status() -> None:
+        print(json.dumps({'commit_state': report['commit_state'], 'records_written': report['records_written'],
+                          'acceptance_ready': report['acceptance_ready'],
+                          'post_commit_overrun': report['post_commit_overrun'],
+                          'acceptance_blockers': report['acceptance_blockers'], 'budget': budget.snapshot()}), file=sys.stderr)
+
+    try:
+        report['budget'] = budget.snapshot()
+        write_json(report_path, report)
+        try:
+            budget.check('REPORT', finalize=True)
+        except CliBudgetExceeded:
+            report['acceptance_ready'] = False
+            report['post_commit_overrun'] = report['commit_state'] == 'COMMITTED'
+            if 'BUDGET_EXCEEDED' not in report['acceptance_blockers']:
+                report['acceptance_blockers'].append('BUDGET_EXCEEDED')
+            report['budget'] = budget.snapshot()
+            # One correction of a now-known late report, never an unbounded retry.
+            write_json(report_path, report)
+    except Exception:
+        report['acceptance_ready'] = False
+        try:
+            budget.check('REPORT', finalize=True)
+        except CliBudgetExceeded:
+            report['post_commit_overrun'] = report['records_written'] is True
+        if report['records_written'] is True:
+            report['commit_state'] = 'COMMITTED_REPORTING_INCOMPLETE'
+        report['acceptance_blockers'].append('OUTPUT_REPORT_FAILED')
+    if not report['acceptance_ready']:
+        emit_status()
+        return 2 if report['commit_state'] == 'NOT_COMMITTED' else 3
+    return 0
+
+
+def main(*, monotonic=None, sleep=None, detail_transport=fetch_ccgp_detail_html) -> int:
+    budget = CliBudget(monotonic or time.monotonic, sleep or time.sleep)
     parser = argparse.ArgumentParser(
         description='Verified CCGP refresh for Beijing, Hebei, Liaoning, Jilin and Heilongjiang.'
     )
@@ -254,6 +397,7 @@ def main() -> int:
         parser.error('REPORT_OUTPUT_MUST_NOT_OVERWRITE_INPUT_OR_RECORDS')
     if paths_alias(args.records_output, args.plan):
         parser.error('RECORDS_OUTPUT_MUST_NOT_OVERWRITE_PLAN')
+    records_target = args.records_output.resolve()
 
     plan = load_plan(args.plan)
     as_of = parse_as_of(args.as_of)
@@ -266,7 +410,28 @@ def main() -> int:
         if isinstance(record, dict) and str((record.get('source') or {}).get('url') or '')
     }
     blocked_hosts: dict[str, str] = {}
-    session = CcgpSearchSession(on_access_blocked=blocked_hosts.setdefault)
+
+    def work_admitted(phase: str) -> bool:
+        try:
+            budget.check(phase)
+            return True
+        except CliBudgetExceeded:
+            return False
+
+    def sleep_work(delay: float, phase: str) -> None:
+        if not budget.exhausted_phase:
+            try:
+                budget.sleep_checked(delay, phase)
+            except CliBudgetExceeded:
+                pass
+
+    input_admitted = work_admitted('INPUT_PREPARATION')
+    if input_admitted:
+        try:
+            budget.request_timeout(90, 'INPUT_PREPARATION')
+        except CliBudgetExceeded:
+            input_admitted = False
+    session = CcgpSearchSession(on_access_blocked=blocked_hosts.setdefault, budget=budget) if input_admitted else None
     search_host = urlsplit(CCGP_SEARCH_URL).hostname
 
     markets = plan['markets']
@@ -279,6 +444,8 @@ def main() -> int:
     scoped_success: dict[str, int] = {code: 0 for code in market_by_code}
     scoped_access_skips: dict[str, int] = {code: 0 for code in market_by_code}
     detail_access_skips: dict[str, int] = {code: 0 for code in market_by_code}
+    scoped_budget_skips: dict[str, int] = {code: 0 for code in market_by_code}
+    detail_budget_skips: dict[str, int] = {code: 0 for code in market_by_code}
 
     def record_candidate_skip(code: str, notice_type: str, candidate: object, reason: str) -> None:
         detail_url = str(getattr(candidate, 'detail_url', '') or '')
@@ -304,10 +471,14 @@ def main() -> int:
         name = str(market['name'])
         for keyword in plan['keywords']:
             for notice_type in plan['notice_types']:
+                if not work_admitted('SCOPED_DISCOVERY'):
+                    scoped_budget_skips[code] += 1
+                    continue
                 if search_host in blocked_hosts:
                     scoped_access_skips[code] += 1
                     continue
                 try:
+                    budget.request_timeout(90, 'SCOPED_DISCOVERY')
                     items = fetch_candidates_page(
                         session,
                         keyword=keyword,
@@ -317,7 +488,7 @@ def main() -> int:
                         region=name,
                         page_index=1,
                     )
-                    scoped_success[code] += 1
+                    budget.check('SCOPED_PARSE')
                     for item_notice_type, candidate in items:
                         actual_code = candidate_market_code(getattr(candidate, 'region', None), markets)
                         if actual_code != code:
@@ -331,6 +502,10 @@ def main() -> int:
                             candidate.detail_url,
                             (item_notice_type, candidate),
                         )
+                    budget.check('SCOPED_PARSE')
+                    scoped_success[code] += 1
+                except CliBudgetExceeded:
+                    scoped_budget_skips[code] += 1
                 except Exception as exc:
                     reason = access_block_reason('scoped_discovery', exc, f'{code}:{keyword}:{notice_type}')
                     if reason:
@@ -344,13 +519,15 @@ def main() -> int:
                         'error': type(exc).__name__,
                         'message': str(exc)[:300],
                     })
-                time.sleep(plan['delay_seconds'])
+                if search_host not in blocked_hosts:
+                    sleep_work(plan['delay_seconds'], 'SCOPED_SLEEP')
 
     empty_codes = {code for code, items in market_candidates.items() if not items}
     fallback_query_success = 0
     fallback_failures: list[dict] = []
     fallback_attempted = False
     fallback_access_blocked = False
+    fallback_budget_blocked = False
 
     # If province-scoped search produces no region-verified candidate for a market,
     # fall back to a bounded national search and distribute rows solely by the
@@ -360,10 +537,14 @@ def main() -> int:
         for keyword in plan['keywords']:
             for notice_type in plan['notice_types']:
                 for page_index in range(1, NATIONAL_FALLBACK_MAX_PAGES + 1):
+                    if not work_admitted('FALLBACK_DISCOVERY'):
+                        fallback_budget_blocked = True
+                        break
                     if search_host in blocked_hosts:
                         fallback_access_blocked = True
                         break
                     try:
+                        budget.request_timeout(90, 'FALLBACK_DISCOVERY')
                         fallback_attempted = True
                         items = fetch_candidates_page(
                             session,
@@ -374,7 +555,11 @@ def main() -> int:
                             region=None,
                             page_index=page_index,
                         )
+                        budget.check('FALLBACK_PARSE')
                         fallback_query_success += 1
+                    except CliBudgetExceeded:
+                        fallback_budget_blocked = True
+                        break
                     except Exception as exc:
                         reason = access_block_reason('national_fallback_discovery', exc, f'{keyword}:{notice_type}:{page_index}')
                         if reason:
@@ -403,8 +588,9 @@ def main() -> int:
                             candidate.detail_url,
                             (item_notice_type, candidate),
                         )
-                    time.sleep(plan['delay_seconds'])
-                time.sleep(plan['delay_seconds'])
+                    sleep_work(plan['delay_seconds'], 'FALLBACK_SLEEP')
+                if search_host not in blocked_hosts:
+                    sleep_work(plan['delay_seconds'], 'FALLBACK_SLEEP')
 
     new_records: list[dict] = []
     market_reports: list[dict] = []
@@ -430,6 +616,9 @@ def main() -> int:
         market_new_count = 0
 
         for notice_type, candidate in selected:
+            if not work_admitted('DETAIL'):
+                detail_budget_skips[code] += 1
+                continue
             detail_host = urlsplit(candidate.detail_url).hostname
             if detail_host in blocked_hosts:
                 detail_access_skips[code] += 1
@@ -444,8 +633,10 @@ def main() -> int:
                 })
                 continue
             try:
-                time.sleep(plan['delay_seconds'])
+                budget.sleep_checked(plan['delay_seconds'], 'DETAIL_SLEEP')
+                fetch_ccgp_detail_html = partial(detail_transport, timeout_seconds=budget.request_timeout(30, 'DETAIL_READ'))
                 html = fetch_ccgp_detail_html(candidate.detail_url)
+                budget.check('DETAIL_READ')
                 if any(marker in html for marker in RATE_LIMIT_MARKERS):
                     raise RuntimeError('CCGP_RATE_LIMITED')
                 record = VERIFIED_NOTICE_ADAPTERS[notice_type](
@@ -454,8 +645,11 @@ def main() -> int:
                     observed_at=observed_at,
                     opportunity_id=stable_id(f'ccgp_{code.lower()}', candidate.detail_url),
                 )
+                budget.check('DETAIL_PARSE')
                 new_records.append(annotate_market(record, market))
                 market_new_count += 1
+            except CliBudgetExceeded:
+                detail_budget_skips[code] += 1
             except Exception as exc:
                 reason = access_block_reason('verified_detail', exc, candidate.detail_url)
                 if reason:
@@ -482,6 +676,8 @@ def main() -> int:
             'national_fallback_used': code in empty_codes and fallback_attempted,
             'scoped_queries_skipped_due_to_access': scoped_access_skips[code],
             'details_skipped_due_to_access': detail_access_skips[code],
+            'scoped_queries_skipped_due_to_budget': scoped_budget_skips[code],
+            'details_skipped_due_to_budget': detail_budget_skips[code],
             'skipped_candidate_count': len(market_skips[code]),
             'skipped_candidates': sorted(market_skips[code].values(), key=lambda item: (item['reason'], item['url'])),
             'unique_candidate_count': len(discovered),
@@ -504,7 +700,20 @@ def main() -> int:
             f'failures={len(market_failures[code])}'
         )
 
-    merged_records = merge_canonical_records(existing_records, new_records)
+    budget.work_complete = work_admitted('WORK_COMPLETE') and not (
+        any(market_failures.values()) or fallback_failures or
+        sum(scoped_access_skips.values()) or sum(detail_access_skips.values()) or fallback_access_blocked)
+    finalize_failure = None
+    merged_records = existing_records
+    if not budget.exhausted_phase:
+        try:
+            budget.check('FINALIZE', finalize=True)
+            merged_records = merge_canonical_records(existing_records, new_records)
+            budget.check('FINALIZE', finalize=True)
+        except CliBudgetExceeded:
+            pass
+        except Exception:
+            finalize_failure = 'FINALIZE_MERGE_FAILED'
     acceptance_blockers = sorted({
         failure['stage']
         for failures in market_failures.values()
@@ -514,6 +723,10 @@ def main() -> int:
         acceptance_blockers.append('ALL_MULTI_REGION_DISCOVERY_QUERIES_FAILED')
     if sum(scoped_access_skips.values()) or sum(detail_access_skips.values()) or fallback_access_blocked:
         acceptance_blockers.append('ACCESS_BLOCKED_SCAN_INCOMPLETE')
+    if budget.exhausted_phase:
+        acceptance_blockers.append('BUDGET_EXCEEDED')
+    if finalize_failure:
+        acceptance_blockers.append(finalize_failure)
     acceptance_ready = not acceptance_blockers
     report = {
         'schema_version': '0.1',
@@ -527,6 +740,9 @@ def main() -> int:
         'scoped_queries_skipped_due_to_access': sum(scoped_access_skips.values()),
         'details_skipped_due_to_access': sum(detail_access_skips.values()),
         'national_fallback_access_blocked': fallback_access_blocked,
+        'scoped_queries_skipped_due_to_budget': sum(scoped_budget_skips.values()),
+        'details_skipped_due_to_budget': sum(detail_budget_skips.values()),
+        'national_fallback_budget_blocked': fallback_budget_blocked,
         'observed_at': observed_at,
         'start_date': start_date,
         'end_date': end_date,
@@ -555,18 +771,14 @@ def main() -> int:
             'minimum_request_delay_seconds': plan['delay_seconds'],
         },
     }
-    # Do not truncate/create the records file at all for a failed batch. The
-    # separate diagnostic report is safe to write only after path preflight.
-    if acceptance_ready:
-        write_json(args.records_output, merged_records)
-    write_json(args.report_output, report)
+    exit_code = finish_cli_outputs(records_target, args.report_output, merged_records, report, budget)
     print(
         f'markets={len(markets)} scoped_queries_ok={sum(scoped_success.values())} '
         f'fallback_queries_ok={fallback_query_success} new_verified={len(new_records)} '
-        f'merged_records={len(merged_records)} acceptance_ready={acceptance_ready} '
-        f'records_written={acceptance_ready}'
+        f'merged_records={len(merged_records)} acceptance_ready={report["acceptance_ready"]} '
+        f'records_written={report["records_written"]} commit_state={report["commit_state"]}'
     )
-    return 0 if acceptance_ready else 2
+    return exit_code
 
 
 if __name__ == '__main__':

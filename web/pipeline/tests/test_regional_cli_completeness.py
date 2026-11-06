@@ -1,4 +1,4 @@
-from contextlib import ExitStack, redirect_stderr, redirect_stdout
+from contextlib import ExitStack, nullcontext, redirect_stderr, redirect_stdout
 from io import StringIO
 import json
 from pathlib import Path
@@ -8,7 +8,7 @@ import tempfile
 from types import SimpleNamespace
 from urllib.error import HTTPError, URLError
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -20,10 +20,30 @@ SELECTED = [next(c for c in CASES if c['label'] == label) for label in (
     'ccgp_he_2a9ca892bf9d0b6a', 'ccgp_hl_b36866ded1fc3097')]
 
 
+class FakeClock:
+    def __init__(self):
+        self.value = 0.0
+        self.sleeps = []
+
+    def __call__(self):
+        return self.value
+
+    def sleep(self, delay):
+        self.sleeps.append(delay)
+        self.value += delay
+
+
 class RegionalCliCompletenessTests(unittest.TestCase):
+    def setUp(self):
+        for owner, name in ((socket, 'create_connection'), (socket, 'socket'), (target.urllib.request, 'build_opener')):
+            blocker = patch.object(owner, name, side_effect=AssertionError('NETWORK_OR_REAL_CLIENT_FORBIDDEN'))
+            blocker.start()
+            self.addCleanup(blocker.stop)
+
     def run_cli(self, mode, *, separate_output=False, alias=None, absent_output=False,
                 empty_input=False, records_alias_plan=False, injected_error=None,
-                distinct_detail_hosts=False, both_notice_types=False):
+                distinct_detail_hosts=False, both_notice_types=False, clock=None,
+                expire_at=None, io_fault=None, records_symlink=False):
         """Actual argparse/main and official parsers; only I/O is replaced offline."""
         with tempfile.TemporaryDirectory() as temp, ExitStack() as stack:
             folder = Path(temp)
@@ -45,6 +65,9 @@ class RegionalCliCompletenessTests(unittest.TestCase):
                 output_path.write_bytes(original)
             if records_alias_plan:
                 output_path = plan_path
+            if records_symlink:
+                output_path = folder / 'records-link.json'
+                output_path.symlink_to(input_path)
             report_path = folder / 'report.json'
             protected = {plan_path: plan_path.read_bytes(), input_path: original}
             if alias:
@@ -71,6 +94,7 @@ class RegionalCliCompletenessTests(unittest.TestCase):
                 session = object.__new__(session_class)
                 session.warmed = False
                 session.on_access_blocked = kwargs['on_access_blocked']
+                session.budget = kwargs.get('budget')
 
                 def read(url, **unused):
                     if mode == 'f1_search_page':
@@ -82,7 +106,7 @@ class RegionalCliCompletenessTests(unittest.TestCase):
                 session._read = read
                 return session
 
-            def discover(session, **kwargs):
+            def discover_impl(session, **kwargs):
                 if mode == 'f1_search_page':
                     session.fetch(target.CCGP_SEARCH_URL + '?offline=1')
                 if mode in ('f1_warmup', 'f1_warmup_page'):
@@ -108,7 +132,17 @@ class RegionalCliCompletenessTests(unittest.TestCase):
                     return [candidates['黑龙江']] if kwargs['page_index'] == 1 else []
                 return [candidates[region]]
 
-            def fetch(url):
+            def discover(session, **kwargs):
+                result = discover_impl(session, **kwargs)
+                if expire_at == 'search_return' or (expire_at == 'fallback_return' and kwargs['region'] is None):
+                    clock.value = 840
+                elif expire_at == 'sleep_admission':
+                    clock.value = 836
+                elif expire_at == 'detail_timeout' and kwargs['region'] == '黑龙江' and kwargs['keyword'] == 'second':
+                    clock.value = 825
+                return result
+
+            def fetch(url, **kwargs):
                 if mode in ('f1_detail', 'f1_detail_page') and url == SELECTED[0]['url']:
                     if mode == 'f1_detail_page':
                         return '<html>您的访问过于频繁</html>'
@@ -116,7 +150,56 @@ class RegionalCliCompletenessTests(unittest.TestCase):
                 if mode == 'all_detail_failed' or (mode in ('one_detail_failed', 'detail_rate_limited') and url == SELECTED[1]['url']):
                     raise RuntimeError('CCGP_RATE_LIMITED' if mode == 'detail_rate_limited' else 'OFFLINE_DETAIL_FAILED')
                 case = next(c for c in SELECTED if c['url'] == url.replace('https://ccgp.gov.cn/', 'https://www.ccgp.gov.cn/'))
-                return (CORPUS / case['file']).read_bytes().decode(case['encoding'])
+                html = (CORPUS / case['file']).read_bytes().decode(case['encoding'])
+                if expire_at == 'detail_return':
+                    clock.value = 840
+                return html
+
+            real_write, real_replace = target.write_json, target.os.replace
+            real_load, real_merge = target.load_json_arrays, target.merge_canonical_records
+
+            def write(path, payload):
+                is_stage = path.name.startswith('.regional-ccgp-')
+                if io_fault == 'stage_error' and is_stage:
+                    raise OSError('OFFLINE_STAGE_FAILURE')
+                if io_fault == 'report_error' and path == report_path:
+                    raise OSError('OFFLINE_REPORT_FAILURE')
+                real_write(path, payload)
+                if (io_fault == 'serialize_expire' and is_stage) or (io_fault == 'report_late' and path == report_path):
+                    clock.value = 900
+
+            def replace(src, dst):
+                if io_fault == 'replace_error_before':
+                    raise OSError('OFFLINE_REPLACE_FAILURE')
+                real_replace(src, dst)
+                if io_fault == 'replace_then_error':
+                    raise OSError('OFFLINE_REPLACE_RESULT_UNKNOWN')
+                if io_fault == 'replace_late':
+                    clock.value = 900
+
+            def load(*args, **kwargs):
+                result = real_load(*args, **kwargs)
+                if expire_at in ('input', 'input_near'):
+                    clock.value = 839 if expire_at == 'input_near' else 840
+                return result
+
+            def merge(*args):
+                if io_fault == 'merge_error':
+                    raise ValueError('OFFLINE_MERGE_FAILURE')
+                result = real_merge(*args)
+                if io_fault == 'merge_expire':
+                    clock.value = 900
+                return result
+
+            if expire_at == 'detail_parse':
+                real_adapter = target.VERIFIED_NOTICE_ADAPTERS['公开招标']
+
+                def adapter(*args, **kwargs):
+                    result = real_adapter(*args, **kwargs)
+                    clock.value = 840
+                    return result
+
+                stack.enter_context(patch.dict(target.VERIFIED_NOTICE_ADAPTERS, {'公开招标': adapter}))
 
             # Neither a search opener, a socket nor a real detail client may run.
             client = stack.enter_context(patch.object(target, 'CcgpSearchSession', side_effect=session_stub))
@@ -126,12 +209,20 @@ class RegionalCliCompletenessTests(unittest.TestCase):
             search = stack.enter_context(patch.object(target, 'fetch_candidates_page', side_effect=discover))
             detail = stack.enter_context(patch.object(target, 'fetch_ccgp_detail_html', side_effect=fetch))
             stack.enter_context(patch.object(target.time, 'sleep', return_value=None))
+            writer = stack.enter_context(patch.object(target, 'write_json', side_effect=write))
+            stack.enter_context(patch.object(target.os, 'replace', side_effect=replace))
+            stack.enter_context(patch.object(target, 'load_json_arrays', side_effect=load))
+            stack.enter_context(patch.object(target, 'merge_canonical_records', side_effect=merge))
             stack.enter_context(patch.object(sys, 'argv', ['sync_regional_ccgp', '--plan', str(plan_path),
                 '--as-of', '2026-11-06T11:05:33+00:00', '--existing-records-input', str(input_path),
                 '--records-output', str(output_path), '--report-output', str(report_path)]))
             try:
-                with redirect_stdout(StringIO()), redirect_stderr(StringIO()):
-                    code = target.main()
+                stderr = StringIO()
+                with redirect_stdout(StringIO()), redirect_stderr(stderr):
+                    kwargs = {'detail_transport': target.fetch_ccgp_detail_html}
+                    if clock:
+                        kwargs.update(monotonic=clock, sleep=clock.sleep)
+                    code = target.main(**kwargs)
             except SystemExit as exc:
                 code = exc.code
             except (ValueError, RuntimeError) as exc:
@@ -143,6 +234,10 @@ class RegionalCliCompletenessTests(unittest.TestCase):
                 'inputs_unchanged': all(p.read_bytes() == b for p, b in protected.items()),
                 'report': json.loads(report_path.read_text()) if report_path.exists() and not alias else None,
                 'client_calls': client.call_count, 'search_calls': search.call_count, 'detail_calls': detail.call_count,
+                'detail_timeouts': [c.kwargs.get('timeout_seconds') for c in detail.call_args_list],
+                'stderr': stderr.getvalue(), 'temporary_files': list(folder.glob('.regional-ccgp-*')),
+                'output_is_symlink': output_path.is_symlink(),
+                'report_write_calls': sum(c.args[0] == report_path for c in writer.call_args_list),
             }
             network.assert_not_called()
             sock.assert_not_called()
@@ -338,3 +433,221 @@ class RegionalCliCompletenessTests(unittest.TestCase):
                 self.assertEqual(r['search_calls'], expected)
                 self.assertEqual(r['code'], 2)
                 self.assertEqual(r['output_bytes'], r['original'])
+
+    def assert_budget_rejected(self, result):
+        self.assertEqual(result['code'], 2)
+        self.assertEqual(result['output_bytes'], result['original'])
+        self.assertTrue(result['inputs_unchanged'])
+        self.assertFalse(result['report']['acceptance_ready'])
+        self.assertFalse(result['report']['records_written'])
+        self.assertIn('BUDGET_EXCEEDED', result['report']['acceptance_blockers'])
+        self.assertEqual(result['report']['commit_state'], 'NOT_COMMITTED')
+        self.assertEqual(result['temporary_files'], [])
+
+    def test_input_exhaustion_and_one_second_margin_reject_before_client(self):
+        for phase in ('input', 'input_near'):
+            with self.subTest(phase=phase):
+                r = self.run_cli('all_success', clock=FakeClock(), expire_at=phase)
+                self.assert_budget_rejected(r)
+                self.assertEqual((r['client_calls'], r['search_calls'], r['detail_calls']), (0, 0, 0))
+
+    def test_work_and_total_exact_deadlines_are_expired(self):
+        clock = FakeClock()
+        budget = target.CliBudget(clock, clock.sleep)
+        clock.value = 840
+        with self.assertRaises(target.CliBudgetExceeded):
+            budget.check('WORK')
+        budget.check('FINALIZE', finalize=True)
+        clock.value = 900
+        with self.assertRaises(target.CliBudgetExceeded):
+            budget.check('FINALIZE', finalize=True)
+
+    def test_request_timeout_caps_and_remaining_budget(self):
+        clock = FakeClock()
+        budget = target.CliBudget(clock, clock.sleep)
+        self.assertEqual([budget.request_timeout(c, 'READ') for c in (30, 90, 30)], [30, 90, 30])
+        clock.value = 831
+        self.assertEqual(budget.request_timeout(90, 'READ'), 8)
+        clock.value = 839
+        with self.assertRaises(target.CliBudgetExceeded):
+            budget.request_timeout(90, 'READ')
+
+    def offline_session(self, clock=None):
+        session = object.__new__(target.CcgpSearchSession)
+        session.budget = target.CliBudget(clock, clock.sleep) if clock else None
+        session.warmed, session.on_access_blocked = False, None
+        response = SimpleNamespace(read=Mock(return_value=b'<html></html>'),
+                                   headers=SimpleNamespace(get_content_charset=lambda: 'utf-8'))
+        session.opener = SimpleNamespace(open=Mock(return_value=nullcontext(response)))
+        return session, response
+
+    def test_real_session_recalculates_search_timeout_after_warmup(self):
+        clock = FakeClock()
+        session, response = self.offline_session(clock)
+        calls = []
+
+        def read():
+            calls.append(1)
+            if len(calls) == 1:
+                clock.value = 830
+            return b'<html></html>'
+
+        response.read.side_effect = read
+        session.fetch(target.CCGP_SEARCH_URL)
+        self.assertEqual([c.kwargs['timeout'] for c in session.opener.open.call_args_list], [30, 8])
+        self.assertEqual(clock.sleeps, [1])
+
+    def test_warmup_expiry_is_not_swallowed_and_search_never_starts(self):
+        clock = FakeClock()
+        session, response = self.offline_session(clock)
+
+        def late():
+            clock.value = 840
+            return b'<html></html>'
+
+        response.read.side_effect = late
+        with self.assertRaises(target.CliBudgetExceeded):
+            session.fetch(target.CCGP_SEARCH_URL)
+        self.assertEqual(session.opener.open.call_count, 1)
+        self.assertEqual(clock.sleeps, [])
+
+    def test_open_return_expiry_prevents_response_read(self):
+        clock = FakeClock()
+        session, response = self.offline_session(clock)
+
+        def late_open(*args, **kwargs):
+            clock.value = 840
+            return nullcontext(response)
+
+        session.opener.open.side_effect = late_open
+        with self.assertRaises(target.CliBudgetExceeded):
+            session._read(target.CCGP_SEARCH_URL, timeout=90)
+        response.read.assert_not_called()
+
+    def test_decode_expiry_is_rejected(self):
+        clock = FakeClock()
+        session, response = self.offline_session(clock)
+
+        class LateBytes(bytes):
+            def decode(self, *args, **kwargs):
+                clock.value = 840
+                return '<html></html>'
+
+        response.read.return_value = LateBytes(b'html')
+        with self.assertRaises(target.CliBudgetExceeded):
+            session._read(target.CCGP_SEARCH_URL, timeout=90)
+
+    def test_unbudgeted_runtime_session_retains_original_timeouts(self):
+        session, _ = self.offline_session()
+        with patch.object(target.time, 'sleep') as sleeper:
+            session.fetch(target.CCGP_SEARCH_URL)
+        sleeper.assert_called_once_with(1)
+        self.assertEqual([c.kwargs['timeout'] for c in session.opener.open.call_args_list], [30, 90])
+
+    def test_insufficient_sleep_does_not_shorten_delay_or_send_next_request(self):
+        clock = FakeClock()
+        r = self.run_cli('all_success', clock=clock, expire_at='sleep_admission')
+        self.assert_budget_rejected(r)
+        self.assertEqual(clock.sleeps, [])
+        self.assertEqual(r['search_calls'], 1)
+        self.assertEqual(r['detail_calls'], 0)
+
+    def test_sleep_overrun_globally_stops_work(self):
+        clock = FakeClock()
+
+        def oversleep(delay):
+            clock.sleeps.append(delay)
+            clock.value = 840
+
+        clock.sleep = oversleep
+        r = self.run_cli('all_success', clock=clock)
+        self.assert_budget_rejected(r)
+        self.assertEqual((r['search_calls'], r['detail_calls']), (1, 0))
+        self.assertEqual(clock.sleeps, [4])
+
+    def test_search_and_fallback_late_returns_do_not_allow_details(self):
+        for mode, phase in (('all_success', 'search_return'), ('fallback_success', 'fallback_return'), ('empty_success', 'search_return')):
+            with self.subTest(phase=phase, mode=mode):
+                r = self.run_cli(mode, clock=FakeClock(), expire_at=phase)
+                self.assert_budget_rejected(r)
+                self.assertEqual(r['detail_calls'], 0)
+                self.assertEqual(r['report']['new_verified_record_count'], 0)
+
+    def test_detail_return_or_parse_expiry_cannot_add_new_facts(self):
+        for phase in ('detail_return', 'detail_parse'):
+            with self.subTest(phase=phase):
+                r = self.run_cli('all_success', clock=FakeClock(), expire_at=phase)
+                self.assert_budget_rejected(r)
+                self.assertEqual(r['detail_calls'], 1)
+                self.assertEqual(r['report']['new_verified_record_count'], 0)
+
+    def test_complete_fake_clock_scan_and_empty_scan_still_succeed(self):
+        for mode in ('all_success', 'empty_success'):
+            with self.subTest(mode=mode):
+                r = self.run_cli(mode, clock=FakeClock(), separate_output=True)
+                self.assertEqual(r['code'], 0)
+                self.assertEqual(r['report']['commit_state'], 'COMMITTED')
+                self.assertTrue(r['inputs_unchanged'])
+                self.assertFalse(r['report']['post_commit_overrun'])
+                self.assertTrue(all(t is not None and 0 < t <= 30 for t in r['detail_timeouts']))
+                self.assertEqual(r['temporary_files'], [])
+
+    def test_detail_timeout_uses_actual_remaining_budget(self):
+        r = self.run_cli('all_success', clock=FakeClock(), expire_at='detail_timeout')
+        self.assertEqual(r['code'], 0)
+        self.assertEqual(r['detail_timeouts'], [6, 2])
+
+    def test_finalize_and_serialization_expiry_keep_original_records(self):
+        for fault in ('merge_expire', 'serialize_expire'):
+            with self.subTest(fault=fault):
+                r = self.run_cli('all_success', clock=FakeClock(), io_fault=fault)
+                self.assert_budget_rejected(r)
+
+    def test_prepare_and_merge_failure_keep_original_and_clean_stage(self):
+        for fault in ('stage_error', 'merge_error'):
+            with self.subTest(fault=fault):
+                r = self.run_cli('all_success', clock=FakeClock(), io_fault=fault)
+                self.assertEqual(r['code'], 2)
+                self.assertEqual(r['output_bytes'], r['original'])
+                self.assertEqual(r['temporary_files'], [])
+                self.assertFalse(r['report']['records_written'])
+
+    def test_replace_exception_is_unknown_without_claiming_zero_write(self):
+        for fault, changed in (('replace_error_before', False), ('replace_then_error', True)):
+            with self.subTest(fault=fault):
+                r = self.run_cli('all_success', clock=FakeClock(), io_fault=fault)
+                self.assertEqual(r['code'], 3)
+                self.assertEqual(r['report']['commit_state'], 'COMMIT_UNKNOWN')
+                self.assertIsNone(r['report']['records_written'])
+                self.assertEqual(r['output_bytes'] != r['original'], changed)
+                self.assertEqual(r['temporary_files'], [])
+
+    def test_post_commit_lateness_reports_commit_and_never_rolls_back(self):
+        for fault in ('replace_late', 'report_late'):
+            with self.subTest(fault=fault):
+                r = self.run_cli('all_success', clock=FakeClock(), io_fault=fault)
+                self.assertEqual(r['code'], 3)
+                self.assertEqual(r['report']['commit_state'], 'COMMITTED')
+                self.assertTrue(r['report']['records_written'])
+                self.assertTrue(r['report']['post_commit_overrun'])
+                self.assertNotEqual(r['output_bytes'], r['original'])
+                self.assertLessEqual(r['report_write_calls'], 2)
+
+    def test_report_failure_after_commit_has_structured_stderr_receipt(self):
+        r = self.run_cli('all_success', clock=FakeClock(), io_fault='report_error')
+        self.assertEqual(r['code'], 3)
+        receipt = json.loads(r['stderr'])
+        self.assertEqual(receipt['commit_state'], 'COMMITTED_REPORTING_INCOMPLETE')
+        self.assertTrue(receipt['records_written'])
+        self.assertNotEqual(r['output_bytes'], r['original'])
+
+    def test_records_symlink_targets_remain_links_and_failures_preserve_target(self):
+        for phase in (None, 'detail_return'):
+            with self.subTest(phase=phase):
+                r = self.run_cli('all_success', clock=FakeClock(), expire_at=phase, records_symlink=True)
+                self.assertTrue(r['output_is_symlink'])
+                if phase:
+                    self.assert_budget_rejected(r)
+                else:
+                    self.assertEqual(r['code'], 0)
+                    self.assertEqual(len(json.loads(r['output_bytes'])), 3)
