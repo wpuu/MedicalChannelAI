@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-06",
   "timezone": "Asia/Shanghai",
-  "state_scope": "CURRENT_EXISTING_D_DEPLOYMENT_NON_SENSITIVE_METADATA_ONLY",
+  "state_scope": "OFFICIAL_PUBLIC_PYTHON_SDK_STATIC_AUDIT_NO_SDK_EXECUTION",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "EXACT_DEPLOYMENT_METADATA_MATCHES82CC_SOURCE_SDK_IDENTITY_CHANNEL_UNVERIFIED",
-  "latest_changes_validation_status": "SCOPED_METADATA_MATCH; FILE_TREE_NOT_FOUND; 314_INPUTS_UNCHANGED; 1031_AND10/3_HISTORICAL_NOT_RERUN",
+  "milestone": "SDK_CANDIDATE_HASHES_FROZEN_DEFAULT_GET_INTEGRATION_NO_GO",
+  "latest_changes_validation_status": "STATIC_SOURCE_PROVENANCE_5_OF5; WHEEL_SHA_VERIFIED; 324_INPUTS_UNCHANGED; 1031_AND10/3_HISTORICAL_NOT_RERUN",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -2316,7 +2316,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
+  "latest_reviewed_repository_head": "315136a",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2414,7 +2414,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
+  "current_phase_starting_head": "315136a",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2465,7 +2465,7 @@
     "historical": true
   },
   "latest_offline_tool_head": "605ebad99041a3057189a1315adae6cc2a773055",
-  "code_validation_scope": "METADATA_AND_DOCUMENTATION_ONLY; GUARD/KERNEL/SOURCE/TESTS_UNCHANGED",
+  "code_validation_scope": "STATIC_PUBLIC_SOURCE_AND_DOCUMENTATION_ONLY; APPLICATION/LOCKS/GUARD/KERNEL/TESTS_UNCHANGED",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
     "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
@@ -2825,11 +2825,11 @@
   },
   "current_authorization_scope": {
     "existing_d_preview_non_sensitive_metadata_read": true,
-    "public_sdk_sources_read": false,
+    "public_sdk_sources_read": true,
     "runtime_cache_read": false,
     "database_read": false,
     "deployment_or_write": false,
-    "source": "Latest explicit user instruction on 2026-11-06"
+    "source": "Latest explicit public SDK static-audit user authorization 2026-11-06"
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -2888,6 +2888,91 @@
       "cloud_scope": "SPECIFIC_EXISTING_D_PREVIEW_NON_SENSITIVE_METADATA_ONLY",
       "additional_cloud_queries_after_file_tree_failure": 0,
       "git_push_performed": false,
+      "apply_allowed": false,
+      "migration_usable": false
+    },
+    "historical": true
+  },
+  "python_sdk_static_audit": {
+    "candidate_only": true,
+    "deployed_version_verified": false,
+    "packages": [
+      {
+        "filename": "vercel-0.12.2-py3-none-any.whl",
+        "sha256": "0850bf130e208c8cc63898971d70caeaa165357f615db6d7588336b78e54b366",
+        "url": "https://files.pythonhosted.org/packages/ba/3b/166609f78230def49cc67bdad4a4a95eb7e0f4b668052e5616a1187bf651/vercel-0.12.2-py3-none-any.whl"
+      },
+      {
+        "filename": "vercel_cache-0.7.7-py3-none-any.whl",
+        "sha256": "054f2ba61559c9e7865106def43681370849803c0310baf6b0da4ca3a9e3c266",
+        "url": "https://files.pythonhosted.org/packages/a2/db/a57574b7bf8c33d3e94d68aecad98b0df1d5d68034b3296074b7d015ccb8/vercel_cache-0.7.7-py3-none-any.whl"
+      },
+      {
+        "filename": "vercel_internal_core-0.2.2-py3-none-any.whl",
+        "sha256": "581b02309ec8d6367134c3ecabba5d8169a902677458e228f544dc88dfa05a6b",
+        "url": "https://files.pythonhosted.org/packages/b0/21/cb413aa5bd2fdec9a9e9976d5c31ec0c5e54060a18d9608eb089b4da67fa/vercel_internal_core-0.2.2-py3-none-any.whl"
+      },
+      {
+        "filename": "vercel_oidc-0.11.0-py3-none-any.whl",
+        "sha256": "5a106197178807b5f30c71ccbc75e97a6a6e8428de31f37658f95456d8febe06",
+        "url": "https://files.pythonhosted.org/packages/16/e8/48ba32be958c6243badbb3c2227bb2fae405791220c691828625b8aec183/vercel_oidc-0.11.0-py3-none-any.whl"
+      },
+      {
+        "filename": "vercel_internal_telemetry-0.8.2-py3-none-any.whl",
+        "sha256": "21ba7ea4908d2add1cdeed7d560432b0435e16d194872e13c8da030fe3718151",
+        "url": "https://files.pythonhosted.org/packages/fb/b3/259ed829f967b7fca64f1648b412d4375415ea4e799a96ef2fce31faa92a/vercel_internal_telemetry-0.8.2-py3-none-any.whl"
+      },
+      {
+        "filename": "httpx2-2.16.0-py3-none-any.whl",
+        "sha256": "fd2c5d7909e8d86fe92d53020c310ca0e4e431b838c207c5754b9bbf0308d49a",
+        "url": "https://files.pythonhosted.org/packages/7b/3d/2e4bc4fd1ef9770871669adb348d612a6e4786b303a23f9935b81c48dd60/httpx2-2.16.0-py3-none-any.whl"
+      }
+    ],
+    "repository_commit": "5b25d1d5f3c42a838e0af34164b84e027a1fdcab",
+    "public_retrieval_window_start": "2026-11-06T14:24:56Z",
+    "public_retrieval_window_end": "2026-11-06T14:28:43.568335+00:00",
+    "sdk_installed_or_imported_or_executed": false,
+    "project_metadata_queried": false,
+    "credentials_or_environment_values_read": false,
+    "runtime_cache_database_function_model_calls": 0,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "coverage_exclusions": [
+      "httpcore2 implementation",
+      "vercel-headers implementation",
+      "platform-injected context backend",
+      "full transitive dependency closure",
+      "deployed package versions",
+      "actual team plan and runtime scope"
+    ],
+    "findings": {
+      "get_timeout_parameter": false,
+      "default_transport_timeout_seconds": 30,
+      "default_error_to_none": true,
+      "possible_in_memory_fallback": true,
+      "strict_guarantees_all_context_paths": false,
+      "sdk_default_key_hash": "djb2 xor 32bit hex",
+      "cache_get_explicit_retry_loop": false,
+      "httpx2_default_transport_retries": 0,
+      "complete_network_retry_proof": false,
+      "response_size_limit_in_cache_get": false,
+      "telemetry_post_possible": true,
+      "in_memory_get_expired_delete_possible": true,
+      "real_integration": "NO_GO"
+    },
+    "report": "docs/project/ccgp-python-sdk-audit-2026-11-06.md",
+    "manifest": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/manifest.json",
+    "foreground_started_at": "2026-11-06T14:24:56Z",
+    "foreground_deadline": "2026-11-06T14:44:56Z",
+    "protected_input_file_count": 324,
+    "full_suite_rerun": false,
+    "completion": {
+      "started_at": "2026-11-06T14:24:56Z",
+      "foreground_deadline": "2026-11-06T14:44:56Z",
+      "completed_at": "2026-11-06T14:31:41.879371+00:00",
+      "within_foreground_deadline": true,
+      "sdk_installed_imported_executed": false,
+      "project_queries_or_runtime_calls": 0,
       "apply_allowed": false,
       "migration_usable": false
     }

@@ -1,0 +1,137 @@
+[
+  {
+    "file": "official-reference.md",
+    "url": "https://vercel.com/docs/functions/functions-api-reference/vercel-sdk-python.md",
+    "sha256": "ee159c9d7fc7dd8461a91d9343dc519fb6b60118c3b503d5892b1cf3ca4f2def"
+  },
+  {
+    "file": "official-announcement.md",
+    "url": "https://vercel.com/changelog/vercel-python-sdk-in-beta.md",
+    "sha256": "6b4dec8e94d19b8130cebc8e20395b88bd59aa2762fde86172109b42d64038ed"
+  },
+  {
+    "file": "official-repository.json",
+    "url": "https://api.github.com/repos/vercel/vercel-py",
+    "sha256": "9b66a8889f18a626ae6611ce4ea1cec9b69eaf9bbf36cefd1568e309c6a2cfa9"
+  },
+  {
+    "file": "pypi.json",
+    "url": "https://pypi.org/pypi/vercel/json",
+    "sha256": "0438c027d27acca8b8d148e57dd3ed8120ba5f67eca2088f4022bed8c84431d9"
+  },
+  {
+    "file": "official-readme.md",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/main/README.md",
+    "sha256": "b1f009ec35a6c29f4dd852cadf300eabbfde58a7f79f458f375629e278403063"
+  },
+  {
+    "file": "vercel-0.12.2-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/ba/3b/166609f78230def49cc67bdad4a4a95eb7e0f4b668052e5616a1187bf651/vercel-0.12.2-py3-none-any.whl",
+    "sha256": "0850bf130e208c8cc63898971d70caeaa165357f615db6d7588336b78e54b366"
+  },
+  {
+    "file": "vercel-cache-pypi.json",
+    "url": "https://pypi.org/pypi/vercel-cache/json",
+    "sha256": "d58aee8242980871b8cd60dcb8dff570f3fe02215a0093a2325ca7bb75fc3457"
+  },
+  {
+    "file": "vercel_cache-0.7.7-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/a2/db/a57574b7bf8c33d3e94d68aecad98b0df1d5d68034b3296074b7d015ccb8/vercel_cache-0.7.7-py3-none-any.whl",
+    "sha256": "054f2ba61559c9e7865106def43681370849803c0310baf6b0da4ca3a9e3c266"
+  },
+  {
+    "file": "vercel-internal-core-pypi.json",
+    "url": "https://pypi.org/pypi/vercel-internal-core/json",
+    "sha256": "0667663039aa446461735cb10c857e3687cca18f5920bc92394aa997363b3d16"
+  },
+  {
+    "file": "vercel_internal_core-0.2.2-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/b0/21/cb413aa5bd2fdec9a9e9976d5c31ec0c5e54060a18d9608eb089b4da67fa/vercel_internal_core-0.2.2-py3-none-any.whl",
+    "sha256": "581b02309ec8d6367134c3ecabba5d8169a902677458e228f544dc88dfa05a6b"
+  },
+  {
+    "file": "vercel-oidc-pypi.json",
+    "url": "https://pypi.org/pypi/vercel-oidc/json",
+    "sha256": "19b7faaa0361ddc883a1e21819fc24022123dd4e2accd0d8d76c9efada7ca730"
+  },
+  {
+    "file": "vercel_oidc-0.11.0-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/16/e8/48ba32be958c6243badbb3c2227bb2fae405791220c691828625b8aec183/vercel_oidc-0.11.0-py3-none-any.whl",
+    "sha256": "5a106197178807b5f30c71ccbc75e97a6a6e8428de31f37658f95456d8febe06"
+  },
+  {
+    "file": "official-tree.json",
+    "url": "https://api.github.com/repos/vercel/vercel-py/git/trees/main?recursive=1",
+    "sha256": "3073e2ceeaffed038d05409e95cac2060f344daebb8ebac614d779fffd354bd4"
+  },
+  {
+    "file": "official-vercel-pyproject.toml",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel/pyproject.toml",
+    "sha256": "a42cf47c91928a842804603710f667579cd740822cdf1475304604f60135e8a1"
+  },
+  {
+    "file": "official-vercel-cache-pyproject.toml",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-cache/pyproject.toml",
+    "sha256": "d7ba694caef5c8708a556cddb5e91f58213f9e2334e7e19fc2c04462e94056e9"
+  },
+  {
+    "file": "official-vercel-internal-core-pyproject.toml",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-internal-core/pyproject.toml",
+    "sha256": "52717fab2b1ed88df9bb01c5f4992eae1ed0b8cf9cd91c95c0675a7c49798e9f"
+  },
+  {
+    "file": "official-vercel-oidc-pyproject.toml",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-oidc/pyproject.toml",
+    "sha256": "6909c665f19f8defa2a96a7215487a0de340523dd9cbb1a86c5fdcda06e7bfb9"
+  },
+  {
+    "file": "official-vercel-internal-telemetry-pyproject.toml",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-internal-telemetry/pyproject.toml",
+    "sha256": "6803e2d122ed79eab9dff644b93a8d5a33f0417356a898ab12409dddbebb3aaf"
+  },
+  {
+    "file": "vercel-internal-telemetry-pypi.json",
+    "url": "https://pypi.org/pypi/vercel-internal-telemetry/json",
+    "sha256": "d3d09301ec22ace894706db63462806e1e6f00406a9eab17ac8554b1e45bd157"
+  },
+  {
+    "file": "vercel_internal_telemetry-0.8.2-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/fb/b3/259ed829f967b7fca64f1648b412d4375415ea4e799a96ef2fce31faa92a/vercel_internal_telemetry-0.8.2-py3-none-any.whl",
+    "sha256": "21ba7ea4908d2add1cdeed7d560432b0435e16d194872e13c8da030fe3718151"
+  },
+  {
+    "file": "httpx2-pypi.json",
+    "url": "https://pypi.org/pypi/httpx2/json",
+    "sha256": "d1f047ea81b1a9f49203c85ee7ec335c9d9b148f129464e3408065cc70397f11"
+  },
+  {
+    "file": "httpx2-2.16.0-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/7b/3d/2e4bc4fd1ef9770871669adb348d612a6e4786b303a23f9935b81c48dd60/httpx2-2.16.0-py3-none-any.whl",
+    "sha256": "fd2c5d7909e8d86fe92d53020c310ca0e4e431b838c207c5754b9bbf0308d49a"
+  },
+  {
+    "file": "official-source/vercel/functions/__init__.py",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel/functions/__init__.py",
+    "sha256": "fcc110c22a604bb7cedb85de8bd530e0e36cc6c7bdff508d29759e9c987f3ca0"
+  },
+  {
+    "file": "official-source/vercel/cache/runtime_cache.py",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-cache/vercel/cache/runtime_cache.py",
+    "sha256": "5bca671d25a40e2a64330ac7646f688ba974066c5270dd937c9bea3bd079c7a7"
+  },
+  {
+    "file": "official-source/vercel/cache/cache_build.py",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-cache/vercel/cache/cache_build.py",
+    "sha256": "acfde6c54262f3c6eb1025b91ea3d007f9f08dca60540c2cf55b6b9a094d7f52"
+  },
+  {
+    "file": "official-source/vercel/cache/utils.py",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-cache/vercel/cache/utils.py",
+    "sha256": "52e6db8dcc0c2ed585f53b07d0e7c814ce65bad0b01c57f7172a00a47cc55ee4"
+  },
+  {
+    "file": "official-source/vercel/internal/telemetry/client.py",
+    "url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-internal-telemetry/vercel/internal/telemetry/client.py",
+    "sha256": "bb485494f2c05e2218dedcc7b3784b9c79e8c4ea25bc79e6b14386b590f0394a"
+  }
+]

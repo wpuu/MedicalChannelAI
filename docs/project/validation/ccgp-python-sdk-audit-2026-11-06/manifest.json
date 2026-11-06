@@ -1,0 +1,280 @@
+{
+  "kind": "OFFICIAL_PUBLIC_SDK_STATIC_AUDIT_NOT_RUNTIME_VERSION_OR_EXECUTION_PROOF",
+  "files": [
+    {
+      "path": "audit-summary.json",
+      "bytes": 3254,
+      "sha256": "10ec5d57893f0acce4cf0dbedaa520d2191167dc50a8d95ab1d2b7f14cb11fb5"
+    },
+    {
+      "path": "completion.json",
+      "bytes": 324,
+      "sha256": "b53788fbbb2ca92fa59ca9ac8c9c786323bfa1a440f7a68c5789461b35d7b81a"
+    },
+    {
+      "path": "download-ledger.json",
+      "bytes": 6879,
+      "sha256": "56fe95034c32df64c8219c458ce7901554a1556d50a1374ad50f87f9bd3c7223"
+    },
+    {
+      "path": "httpx2-2.16.0-py3-none-any.whl",
+      "bytes": 97880,
+      "sha256": "fd2c5d7909e8d86fe92d53020c310ca0e4e431b838c207c5754b9bbf0308d49a"
+    },
+    {
+      "path": "httpx2-pypi.json",
+      "bytes": 45777,
+      "sha256": "d1f047ea81b1a9f49203c85ee7ec335c9d9b148f129464e3408065cc70397f11"
+    },
+    {
+      "path": "input-integrity.json",
+      "bytes": 205,
+      "sha256": "222e9eda4b9f20c8479297e1675715951f9ff16fd7bce9f09c233f70a8fd1a22"
+    },
+    {
+      "path": "official-announcement.md",
+      "bytes": 2224,
+      "sha256": "6b4dec8e94d19b8130cebc8e20395b88bd59aa2762fde86172109b42d64038ed"
+    },
+    {
+      "path": "official-readme.md",
+      "bytes": 2199,
+      "sha256": "b1f009ec35a6c29f4dd852cadf300eabbfde58a7f79f458f375629e278403063"
+    },
+    {
+      "path": "official-reference.md",
+      "bytes": 10705,
+      "sha256": "ee159c9d7fc7dd8461a91d9343dc519fb6b60118c3b503d5892b1cf3ca4f2def"
+    },
+    {
+      "path": "official-repository.json",
+      "bytes": 6137,
+      "sha256": "9b66a8889f18a626ae6611ce4ea1cec9b69eaf9bbf36cefd1568e309c6a2cfa9"
+    },
+    {
+      "path": "official-source/vercel/cache/cache_build.py",
+      "bytes": 11292,
+      "sha256": "acfde6c54262f3c6eb1025b91ea3d007f9f08dca60540c2cf55b6b9a094d7f52"
+    },
+    {
+      "path": "official-source/vercel/cache/runtime_cache.py",
+      "bytes": 8977,
+      "sha256": "5bca671d25a40e2a64330ac7646f688ba974066c5270dd937c9bea3bd079c7a7"
+    },
+    {
+      "path": "official-source/vercel/cache/utils.py",
+      "bytes": 679,
+      "sha256": "52e6db8dcc0c2ed585f53b07d0e7c814ce65bad0b01c57f7172a00a47cc55ee4"
+    },
+    {
+      "path": "official-source/vercel/functions/__init__.py",
+      "bytes": 468,
+      "sha256": "fcc110c22a604bb7cedb85de8bd530e0e36cc6c7bdff508d29759e9c987f3ca0"
+    },
+    {
+      "path": "official-source/vercel/internal/telemetry/client.py",
+      "bytes": 5809,
+      "sha256": "bb485494f2c05e2218dedcc7b3784b9c79e8c4ea25bc79e6b14386b590f0394a"
+    },
+    {
+      "path": "official-tree.json",
+      "bytes": 237215,
+      "sha256": "3073e2ceeaffed038d05409e95cac2060f344daebb8ebac614d779fffd354bd4"
+    },
+    {
+      "path": "official-vercel-cache-pyproject.toml",
+      "bytes": 1493,
+      "sha256": "d7ba694caef5c8708a556cddb5e91f58213f9e2334e7e19fc2c04462e94056e9"
+    },
+    {
+      "path": "official-vercel-internal-core-pyproject.toml",
+      "bytes": 1506,
+      "sha256": "52717fab2b1ed88df9bb01c5f4992eae1ed0b8cf9cd91c95c0675a7c49798e9f"
+    },
+    {
+      "path": "official-vercel-internal-telemetry-pyproject.toml",
+      "bytes": 1399,
+      "sha256": "6803e2d122ed79eab9dff644b93a8d5a33f0417356a898ab12409dddbebb3aaf"
+    },
+    {
+      "path": "official-vercel-oidc-pyproject.toml",
+      "bytes": 2000,
+      "sha256": "6909c665f19f8defa2a96a7215487a0de340523dd9cbb1a86c5fdcda06e7bfb9"
+    },
+    {
+      "path": "official-vercel-pyproject.toml",
+      "bytes": 2826,
+      "sha256": "a42cf47c91928a842804603710f667579cd740822cdf1475304604f60135e8a1"
+    },
+    {
+      "path": "provenance.json",
+      "bytes": 2218,
+      "sha256": "a3f755d4d33bfa672e52f2f3f2dbcc5b0d413ee9365b333449370f72d97a1d72"
+    },
+    {
+      "path": "pypi.json",
+      "bytes": 76421,
+      "sha256": "0438c027d27acca8b8d148e57dd3ed8120ba5f67eca2088f4022bed8c84431d9"
+    },
+    {
+      "path": "vercel-0.12.2-py3-none-any.whl",
+      "bytes": 33173,
+      "sha256": "0850bf130e208c8cc63898971d70caeaa165357f615db6d7588336b78e54b366"
+    },
+    {
+      "path": "vercel-cache-pypi.json",
+      "bytes": 12172,
+      "sha256": "d58aee8242980871b8cd60dcb8dff570f3fe02215a0093a2325ca7bb75fc3457"
+    },
+    {
+      "path": "vercel-internal-core-pypi.json",
+      "bytes": 14789,
+      "sha256": "0667663039aa446461735cb10c857e3687cca18f5920bc92394aa997363b3d16"
+    },
+    {
+      "path": "vercel-internal-telemetry-pypi.json",
+      "bytes": 13985,
+      "sha256": "d3d09301ec22ace894706db63462806e1e6f00406a9eab17ac8554b1e45bd157"
+    },
+    {
+      "path": "vercel-oidc-pypi.json",
+      "bytes": 17396,
+      "sha256": "19b7faaa0361ddc883a1e21819fc24022123dd4e2accd0d8d76c9efada7ca730"
+    },
+    {
+      "path": "vercel_cache-0.7.7-py3-none-any.whl",
+      "bytes": 10349,
+      "sha256": "054f2ba61559c9e7865106def43681370849803c0310baf6b0da4ca3a9e3c266"
+    },
+    {
+      "path": "vercel_internal_core-0.2.2-py3-none-any.whl",
+      "bytes": 24767,
+      "sha256": "581b02309ec8d6367134c3ecabba5d8169a902677458e228f544dc88dfa05a6b"
+    },
+    {
+      "path": "vercel_internal_telemetry-0.8.2-py3-none-any.whl",
+      "bytes": 8254,
+      "sha256": "21ba7ea4908d2add1cdeed7d560432b0435e16d194872e13c8da030fe3718151"
+    },
+    {
+      "path": "vercel_oidc-0.11.0-py3-none-any.whl",
+      "bytes": 17045,
+      "sha256": "5a106197178807b5f30c71ccbc75e97a6a6e8428de31f37658f95456d8febe06"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 2854,
+      "sha256": "f293906ec5350c26a64f07c3ea0ffa11603410f267c3e910119eeeb0b4d97c35"
+    },
+    {
+      "path": "wheel-source/httpx2/_client.py",
+      "bytes": 75349,
+      "sha256": "a4380f9842a38896430618673ccef66486a5cdbd6653987d581b869c72df9b53"
+    },
+    {
+      "path": "wheel-source/httpx2/_config.py",
+      "bytes": 7438,
+      "sha256": "0c02410f19895f81a6942aad344d4bd5d804af9b019a8f2dbcb727e3c476a130"
+    },
+    {
+      "path": "wheel-source/httpx2/_models.py",
+      "bytes": 45856,
+      "sha256": "20d9385574ee765de3188df87c924a9275267c5fddc3336ea9eac288fa3d4fa9"
+    },
+    {
+      "path": "wheel-source/httpx2/_transports/default.py",
+      "bytes": 13913,
+      "sha256": "8fc43a2882d471aff751366a7f28e91c5e31831a4b29aa3bb4e66931a2148e97"
+    },
+    {
+      "path": "wheel-source/httpx2-2.16.0.dist-info/METADATA",
+      "bytes": 10019,
+      "sha256": "192f20046200ff50911a7278c21dfbee1e1a4c6fa7943227afe9231d28defc3f"
+    },
+    {
+      "path": "wheel-source/vercel/cache/__init__.py",
+      "bytes": 385,
+      "sha256": "a5031e54039dc21f7c7cbcd215feba590188ac864eb8c5a860eb66a9a902e2b4"
+    },
+    {
+      "path": "wheel-source/vercel/cache/cache_build.py",
+      "bytes": 11292,
+      "sha256": "acfde6c54262f3c6eb1025b91ea3d007f9f08dca60540c2cf55b6b9a094d7f52"
+    },
+    {
+      "path": "wheel-source/vercel/cache/cache_in_memory.py",
+      "bytes": 3053,
+      "sha256": "4ae145f1ab4d04b6b7e12abf85fc7e52c8060f5fb75c60d9ec960450d1fc9390"
+    },
+    {
+      "path": "wheel-source/vercel/cache/context.py",
+      "bytes": 2007,
+      "sha256": "8c9d8f4aa1e322e4a4dccdbc2c77a63a46afcdc912f7a8971dc987425607b79f"
+    },
+    {
+      "path": "wheel-source/vercel/cache/runtime_cache.py",
+      "bytes": 8977,
+      "sha256": "5bca671d25a40e2a64330ac7646f688ba974066c5270dd937c9bea3bd079c7a7"
+    },
+    {
+      "path": "wheel-source/vercel/cache/types.py",
+      "bytes": 1562,
+      "sha256": "64abd3e2e817a6c5890faaf21f9dc7c53c4620b9755a3a716126b5fcbd684992"
+    },
+    {
+      "path": "wheel-source/vercel/cache/utils.py",
+      "bytes": 679,
+      "sha256": "52e6db8dcc0c2ed585f53b07d0e7c814ce65bad0b01c57f7172a00a47cc55ee4"
+    },
+    {
+      "path": "wheel-source/vercel/functions/__init__.py",
+      "bytes": 468,
+      "sha256": "fcc110c22a604bb7cedb85de8bd530e0e36cc6c7bdff508d29759e9c987f3ca0"
+    },
+    {
+      "path": "wheel-source/vercel/internal/telemetry/client.py",
+      "bytes": 5809,
+      "sha256": "bb485494f2c05e2218dedcc7b3784b9c79e8c4ea25bc79e6b14386b590f0394a"
+    },
+    {
+      "path": "wheel-source/vercel/internal/telemetry/credentials.py",
+      "bytes": 2540,
+      "sha256": "a0ebf5c8f7ddc5ae0c9300b9b67b1c34dd1c758dff548f74eca9ad72c79cd149"
+    },
+    {
+      "path": "wheel-source/vercel/internal/telemetry/tracker.py",
+      "bytes": 9326,
+      "sha256": "01107f95b2a25d97834e5e1c766d5eadba58cae7afa65ea05050646555e7e527"
+    },
+    {
+      "path": "wheel-source/vercel/oidc/verify.py",
+      "bytes": 27181,
+      "sha256": "1c80555a07ad979f595a755b3ddb021d1b9df68c67454ea8e6859295b64b4835"
+    },
+    {
+      "path": "wheel-source/vercel-0.12.2.dist-info/METADATA",
+      "bytes": 2090,
+      "sha256": "5150535c9291749987ca21cfcc43b11ec8cfb1fc7747e004cef7534c940e56fb"
+    },
+    {
+      "path": "wheel-source/vercel_cache-0.7.7.dist-info/METADATA",
+      "bytes": 624,
+      "sha256": "0cfb127290be73f8b8cc289823ef3e945170ab7c73b7241c53898f9295a7a938"
+    },
+    {
+      "path": "wheel-source/vercel_internal_core-0.2.2.dist-info/METADATA",
+      "bytes": 1377,
+      "sha256": "524e915354d1b3032f4438df23441b5abd0cfac52c04ea6b85a7c493c758de72"
+    },
+    {
+      "path": "wheel-source/vercel_internal_telemetry-0.8.2.dist-info/METADATA",
+      "bytes": 424,
+      "sha256": "652c261644bb9d72f69e70b922a8d1cab3e9380452ba114378935ec28ce9e660"
+    },
+    {
+      "path": "wheel-source/vercel_oidc-0.11.0.dist-info/METADATA",
+      "bytes": 2730,
+      "sha256": "3db69165807cc7be31378599444d4f0e6a51d9801545d92501fdc9cc4345eb6e"
+    }
+  ]
+}

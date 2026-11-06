@@ -2,7 +2,16 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前d关联Preview非敏感云端元数据核实（部分事实已核实，真实接入NO-GO）
+## 当前官方公开Python SDK静态审计（精确候选已冻结，直接接入NO-GO）
+
+- 以官方文档、vercel/vercel-py仓库和PyPI冻结vercel0.12.2、vercel-cache0.7.7、telemetry0.8.2、httpx2 2.16.0等审计切片；5份关键wheel源码与官方仓库commit5b25d1d5f3c42a838e0af34164b84e027a1fdcab字节一致，完整URL/哈希见[审计报告](ccgp-python-sdk-audit-2026-11-06.md)和[证据](validation/ccgp-python-sdk-audit-2026-11-06/manifest.json)。公开候选不等于部署实际版本，完整依赖闭包未审。
+- 已证实原生get无timeout参数、默认底层30秒、默认错误转None和内存fallback；strict不能保证全部context/remembered路径严格。缺少响应流上限、可能遥测POST，内存get可能删除过期项；不能用现有合成守卫宣称真实路径已满足2秒/零额外写。
+- SDK默认32bit key hash/可选namespace须与写入器一致；58原文键白名单在SDK输入层，非最终后端hash。官方文档Hobby团队共享、Pro/Enterprise按项目，实际team计划未知；此前一概按项目隔离的概括不充分。官方2MB存储限制不同于本地4MB观察阈值。
+- 真实后端身份、安装版本、d运行绑定、执行通道和硬取消仍未核实，直接接入及迁移NO-GO；apply_allowed/migration_usable=false。源码中的变量名不代表读取实际凭据或环境值。
+- 本轮仅公开GET与文档/artifact，没有安装/导入/执行SDK、项目元数据/业务/缓存/数据库/模型访问、部署/推送或配置变化；应用、依赖锁、守卫、内核和测试未改，324份旧数据/fixture/证据字节不变。1031/10/3保持历史代码门禁，本轮未重跑。
+- 下一轮按[next-task.md](next-task.md)只准备精确SDK证据驱动的一次性最小接入变更决策包，不再造模拟层；不支持就NO-GO结束此分支。已获公开静态读取授权保留，不重复申请。当前界面无法生成该按钮；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
+## 上轮d关联Preview非敏感云端元数据核实（历史部分事实已核实，真实接入NO-GO）
 
 - 起点1238596，指定team/project/分支/SHA/Preview/创建时间过滤命中dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1；北京时间22:09:25–26返回READY、声明来源82cc43f、分支codex/p0-reliability-contracts、wpuu/MedicalChannelAI，provider target原值null。只确认该指定记录，不声称项目最新部署或d运行绑定已核实。
 - 本次受控批次4次云端只读：3次相同过滤摘要（前2次本地多层响应提取失败，不当空结果），1次同部署源目录查询返回not_found。目录没有证据后停止，不转用日志、凭据、CLI fallback或业务接口。保存的均为白名单非敏感字段。

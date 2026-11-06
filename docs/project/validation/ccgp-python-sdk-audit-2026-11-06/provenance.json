@@ -1,0 +1,38 @@
+{
+  "official_documentation_links_package": "https://vercel.com/docs/functions/functions-api-reference/vercel-sdk-python",
+  "official_repository": "https://github.com/vercel/vercel-py",
+  "repository_commit": "5b25d1d5f3c42a838e0af34164b84e027a1fdcab",
+  "source_matches": [
+    {
+      "path": "vercel/functions/__init__.py",
+      "official_url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel/functions/__init__.py",
+      "official_sha256": "fcc110c22a604bb7cedb85de8bd530e0e36cc6c7bdff508d29759e9c987f3ca0",
+      "wheel_bytes_equal_official_commit": true
+    },
+    {
+      "path": "vercel/cache/runtime_cache.py",
+      "official_url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-cache/vercel/cache/runtime_cache.py",
+      "official_sha256": "5bca671d25a40e2a64330ac7646f688ba974066c5270dd937c9bea3bd079c7a7",
+      "wheel_bytes_equal_official_commit": true
+    },
+    {
+      "path": "vercel/cache/cache_build.py",
+      "official_url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-cache/vercel/cache/cache_build.py",
+      "official_sha256": "acfde6c54262f3c6eb1025b91ea3d007f9f08dca60540c2cf55b6b9a094d7f52",
+      "wheel_bytes_equal_official_commit": true
+    },
+    {
+      "path": "vercel/cache/utils.py",
+      "official_url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-cache/vercel/cache/utils.py",
+      "official_sha256": "52e6db8dcc0c2ed585f53b07d0e7c814ce65bad0b01c57f7172a00a47cc55ee4",
+      "wheel_bytes_equal_official_commit": true
+    },
+    {
+      "path": "vercel/internal/telemetry/client.py",
+      "official_url": "https://raw.githubusercontent.com/vercel/vercel-py/5b25d1d5f3c42a838e0af34164b84e027a1fdcab/src/vercel-internal-telemetry/vercel/internal/telemetry/client.py",
+      "official_sha256": "bb485494f2c05e2218dedcc7b3784b9c79e8c4ea25bc79e6b14386b590f0394a",
+      "wheel_bytes_equal_official_commit": true
+    }
+  ],
+  "one_failed_top_level_source_url": "404 due to incorrect assumed monorepo prefix; corrected using saved official tree"
+}

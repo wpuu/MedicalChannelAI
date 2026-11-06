@@ -1,0 +1,10 @@
+{
+  "started_at": "2026-11-06T14:24:56Z",
+  "foreground_deadline": "2026-11-06T14:44:56Z",
+  "completed_at": "2026-11-06T14:31:41.879371+00:00",
+  "within_foreground_deadline": true,
+  "sdk_installed_imported_executed": false,
+  "project_queries_or_runtime_calls": 0,
+  "apply_allowed": false,
+  "migration_usable": false
+}
