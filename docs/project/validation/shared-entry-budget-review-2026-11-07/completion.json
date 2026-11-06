@@ -1,0 +1,10 @@
+{
+  "started_at": "2026-11-06T16:43:55Z",
+  "foreground_deadline": "2026-11-06T17:03:55Z",
+  "completed_at": "2026-11-06T16:50:22.528036+00:00",
+  "within_foreground_deadline": true,
+  "scope": "OFFLINE_SOURCE_AND_EXISTING_TEST_REVIEW_DOCUMENTATION_ONLY",
+  "network_or_project_function_execution": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

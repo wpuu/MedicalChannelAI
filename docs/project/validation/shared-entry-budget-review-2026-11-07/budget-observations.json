@@ -1,0 +1,24 @@
+{
+  "kind": "STATIC_PARAMETERS_NOT_LATENCY_MEASUREMENTS",
+  "plans": {
+    "multi_region_query_plan.json": {
+      "keywords": 5,
+      "notice_types": 2,
+      "delay_seconds": 4.0,
+      "max_candidates": 10
+    },
+    "tianjin_query_plan.json": {
+      "keywords": 5,
+      "notice_types": 2,
+      "delay_seconds": 4.0,
+      "max_candidates": 12
+    }
+  },
+  "regional_search_timeout_seconds": 90,
+  "regional_warmup_timeout_seconds": 30,
+  "warmup_sleep_seconds": 1,
+  "worker_max_duration_seconds": 300,
+  "example": "Warmup plus three 90-second searches and intervening fixed sleeps can exceed worker duration; not a runtime observation",
+  "retry_after_header_consumption_verified": false,
+  "cross_host_rate_limit_sharing_assumed": false
+}

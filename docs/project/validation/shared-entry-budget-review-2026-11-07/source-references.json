@@ -1,0 +1,235 @@
+{
+  "references": [
+    {
+      "path": "web/collector_runtime.py",
+      "line": 673,
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_ccgp_query.py",
+      "line": 160,
+      "sha256": "c345b72a4aa1453d11018bd3eed9a1e06be375baf6125e3407603dbb09932dc4"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/ccgp_discovery.py",
+      "line": 244,
+      "sha256": "7008393b39fb1384d5f49571aa070965b80a569fa607aad6308516bd77673101"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 705,
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1492,
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_ccgp_query.py",
+      "line": 85,
+      "sha256": "c345b72a4aa1453d11018bd3eed9a1e06be375baf6125e3407603dbb09932dc4"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+      "line": 1433,
+      "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1371,
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 182,
+      "sha256": "a92f23eb529ff8dcdf56dc470e11b885310fbe95a605cc973d39f4c11072eeb8"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 85,
+      "sha256": "a92f23eb529ff8dcdf56dc470e11b885310fbe95a605cc973d39f4c11072eeb8"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 229,
+      "sha256": "a92f23eb529ff8dcdf56dc470e11b885310fbe95a605cc973d39f4c11072eeb8"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 539,
+      "sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 593,
+      "sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_teda_market_research.py",
+      "line": 71,
+      "sha256": "4cdbe3d4ec7f1c3d38af797ec6bcc38fd1f719cee2108cb4732366b723a98027"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_tjzyefy_market_research.py",
+      "line": 71,
+      "sha256": "0e6ddf2f2944b222d709427350f51fff7f353ee07cc249121ab6f8fc941ef89a"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 491,
+      "sha256": "4b58bc70411e2f8acf06fc321a7edefe8dcef7c3f04b8d032b57b388acb22cd0"
+    },
+    {
+      "path": "web/vercel.json",
+      "line": 18,
+      "sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e"
+    },
+    {
+      "path": ".github/workflows/regional-medical-refresh.yml",
+      "line": 36,
+      "sha256": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1405,
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+      "line": 353,
+      "sha256": "c67c156e66d6cf54c1ec3640d2f35bfefe20b14616973bd62dfb5d74a4f175ce"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1512,
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+      "line": 311,
+      "sha256": "c67c156e66d6cf54c1ec3640d2f35bfefe20b14616973bd62dfb5d74a4f175ce"
+    },
+    {
+      "path": "web/collector_queue.py",
+      "line": 500,
+      "sha256": "4b58bc70411e2f8acf06fc321a7edefe8dcef7c3f04b8d032b57b388acb22cd0"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_orchestration_behavior.py",
+      "line": 147,
+      "sha256": "4c42946af34c5b34146f0feffd67ff73538e95dfacb087d09c39f777ba77d348"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_orchestration_behavior.py",
+      "line": 136,
+      "sha256": "4c42946af34c5b34146f0feffd67ff73538e95dfacb087d09c39f777ba77d348"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_orchestration_behavior.py",
+      "line": 176,
+      "sha256": "4c42946af34c5b34146f0feffd67ff73538e95dfacb087d09c39f777ba77d348"
+    },
+    {
+      "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+      "line": 365,
+      "sha256": "c67c156e66d6cf54c1ec3640d2f35bfefe20b14616973bd62dfb5d74a4f175ce"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_orchestration_behavior.py",
+      "line": 226,
+      "sha256": "4c42946af34c5b34146f0feffd67ff73538e95dfacb087d09c39f777ba77d348"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_deferred_budget.py",
+      "line": 106,
+      "sha256": "d264c1dd89b373caf3bd09db3c6cf385d734d0ef58174590eeecc46cf69a2024"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_deferred_budget.py",
+      "line": 198,
+      "sha256": "d264c1dd89b373caf3bd09db3c6cf385d734d0ef58174590eeecc46cf69a2024"
+    },
+    {
+      "path": "web/pipeline/tests/test_collector_deferred_budget.py",
+      "line": 251,
+      "sha256": "d264c1dd89b373caf3bd09db3c6cf385d734d0ef58174590eeecc46cf69a2024"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_ccgp_query.py",
+      "line": 183,
+      "sha256": "c345b72a4aa1453d11018bd3eed9a1e06be375baf6125e3407603dbb09932dc4"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 718,
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1509,
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 288,
+      "sha256": "a92f23eb529ff8dcdf56dc470e11b885310fbe95a605cc973d39f4c11072eeb8"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 323,
+      "sha256": "a92f23eb529ff8dcdf56dc470e11b885310fbe95a605cc973d39f4c11072eeb8"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 74,
+      "sha256": "a92f23eb529ff8dcdf56dc470e11b885310fbe95a605cc973d39f4c11072eeb8"
+    },
+    {
+      "path": "web/collector_runtime.py",
+      "line": 1377,
+      "sha256": "d081a4937c8cc7fbcf6407ce7c5433c58ba4e48015890b976d89344a31ad19f8"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+      "line": 1433,
+      "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187"
+    },
+    {
+      "path": "web/collector_incremental_runtime.py",
+      "line": 593,
+      "sha256": "3da14ecf4aaf8c64e34fbba1dd3afa204f11ed6b8676beec39592daabf9534df"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 350,
+      "sha256": "a92f23eb529ff8dcdf56dc470e11b885310fbe95a605cc973d39f4c11072eeb8"
+    },
+    {
+      "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+      "line": 440,
+      "sha256": "a92f23eb529ff8dcdf56dc470e11b885310fbe95a605cc973d39f4c11072eeb8"
+    },
+    {
+      "path": ".github/workflows/regional-medical-refresh.yml",
+      "line": 96,
+      "sha256": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d"
+    },
+    {
+      "path": ".github/workflows/regional-medical-refresh.yml",
+      "line": 106,
+      "sha256": "ebc422eee60d9105d7b87e973f838a6df561b4817ec187eac5d745a27129419d"
+    },
+    {
+      "path": "web/pipeline/scripts/publish_web_snapshot.py",
+      "line": 154,
+      "sha256": "d5723712f6c7dc65a62e8c0b6bed30d1e535484d2b4fef24dce0a1218e7deb9e"
+    },
+    {
+      "path": "docs/project/action-radar-acceptance-contract.md",
+      "line": 32,
+      "sha256": "8f66d57f754905f9bc5055cc2671979f624252b6596e04c671744bdb2ea8c4fe"
+    }
+  ],
+  "kind": "STATIC_REFERENCES_NOT_EXECUTED_TESTS"
+}

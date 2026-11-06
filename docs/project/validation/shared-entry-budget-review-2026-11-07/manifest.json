@@ -1,0 +1,40 @@
+{
+  "kind": "OFFLINE_SHARED_ENTRY_STATIC_REVIEW_NOT_RUNTIME_OR_BEHAVIOR_VERIFICATION",
+  "files": [
+    {
+      "path": "budget-observations.json",
+      "bytes": 750,
+      "sha256": "720f88ff19d9ed48e298f7135dfea45c0be6b1f148bad188214210433c8f9a86"
+    },
+    {
+      "path": "completion.json",
+      "bytes": 362,
+      "sha256": "144a4c92634b1b73b8f855851a7d4ea9b4ce79835abd45a54b5a23b29cf2a969"
+    },
+    {
+      "path": "findings.json",
+      "bytes": 1509,
+      "sha256": "ba08d20a85d7c37d5718b28e058c1219898ed86b5b3af75a42481526b040d3cc"
+    },
+    {
+      "path": "input-integrity.json",
+      "bytes": 248,
+      "sha256": "6d3cbb3925b859c74507031b367b9316c10257bfcf368a60e2e5988123aa2f88"
+    },
+    {
+      "path": "source-references.json",
+      "bytes": 8081,
+      "sha256": "9b9a496187c6b6b48cdccc3da67db2688f7b8275e93e78db8fef6ea14fa05302"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 493,
+      "sha256": "2fe416cd033d31c267dacbc13123f187ee078426a4032a798ac3475a12df87b3"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 1974,
+      "sha256": "08e653b133a923748c3f1435dbea8438755cbc7c2bd142866de1e5070d2ee3b2"
+    }
+  ]
+}

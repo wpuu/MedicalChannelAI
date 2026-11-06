@@ -1,0 +1,16 @@
+{
+  "source_reference_count": 46,
+  "protected_input_file_count": 387,
+  "findings_count": 3,
+  "findings_with_new_behavior_reproduction": 0,
+  "findings_with_live_verification": 0,
+  "test_suite_executed": false,
+  "sdk_or_application_function_executed": false,
+  "network_calls": 0,
+  "runtime_cache_or_database_reads_writes": 0,
+  "cloud_metadata_business_queue_model_calls": 0,
+  "deployment_or_push": false,
+  "new_mock_layers": 0,
+  "apply_allowed": false,
+  "migration_usable": false
+}

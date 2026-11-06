@@ -1,0 +1,40 @@
+{
+  "kind": "STATIC_REVIEW_NO_NEW_BEHAVIOR_OR_CLOUD_REPRODUCTION",
+  "findings": [
+    {
+      "id": "F1",
+      "priority": "P1",
+      "classification": "STATIC_DESIGN_GAP",
+      "subject": "Inconsistent entry access-block stop loss and no visible cross-executor host cooldown in audited paths",
+      "new_behavior_reproduction": false,
+      "online_fault_verified": false
+    },
+    {
+      "id": "F2",
+      "priority": "P1",
+      "classification": "STATIC_DESIGN_GAP",
+      "subject": "Remaining stage wall-clock budget not threaded into warmup/request/retry/sleep",
+      "new_behavior_reproduction": false,
+      "online_fault_verified": false
+    },
+    {
+      "id": "F3",
+      "priority": "P1_FIRST_TO_REPRODUCE",
+      "classification": "STATIC_REACHABLE_COMPLETENESS_GATE_GAP_PENDING_CLI_REPRODUCTION",
+      "subject": "Regional CLI can write outputs and exit0 after some discovery/detail failures",
+      "new_behavior_reproduction": false,
+      "online_fault_verified": false
+    }
+  ],
+  "known_existing_protections": [
+    "regional runtime discovery access-block stop loss",
+    "runtime partial failure canonical gate",
+    "immediate terminal retry exhaustion",
+    "degraded primary dependency skip",
+    "bounded detail count and pending preservation",
+    "same GitHub branch concurrency group"
+  ],
+  "proposed_next_scope": "Offline reproduce F3 first, then minimal CLI fail-closed fix if confirmed; no runtime SDK work",
+  "apply_allowed": false,
+  "migration_usable": false
+}

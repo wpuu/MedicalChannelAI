@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "SDK_INTEGRATION_DECISION_NO_GO_BRANCH_CLOSED_DOCUMENTATION_ONLY",
+  "state_scope": "OFFLINE_SHARED_ENTRY_RETRY_AND_BUDGET_STATIC_REVIEW_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "CURRENT_REAL_SDK_INTEGRATION_BRANCH_CLOSED_NO_GO_RETURN_TO_MAINLINE",
-  "latest_changes_validation_status": "FROZEN_SDK_INTEGRITY_PASS;19_REFERENCES;380_INPUTS_UNCHANGED;1031_AND10/3_HISTORICAL_NOT_RERUN",
+  "milestone": "THREE_STATIC_ENTRY_BUDGET_GAPS_F3_CLI_GATE_FIRST_PENDING_REPRODUCTION",
+  "latest_changes_validation_status": "STATIC_REFERENCES_AND_INPUT_INTEGRITY_PASS;387_INPUTS_UNCHANGED;NO_NEW_BEHAVIOR_REPRO;1031_AND10/3_HISTORICAL",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -2316,7 +2316,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "75c02dccb8b82c62ce74b03fe1e67501ad04f7f2",
+  "latest_reviewed_repository_head": "d9882a0",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2414,7 +2414,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "75c02dccb8b82c62ce74b03fe1e67501ad04f7f2",
+  "current_phase_starting_head": "d9882a0",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2465,7 +2465,7 @@
     "historical": true
   },
   "latest_offline_tool_head": "605ebad99041a3057189a1315adae6cc2a773055",
-  "code_validation_scope": "DOCUMENTATION_DECISION_ONLY; NO_SOURCE_LOCK_OR_TEST_CHANGES",
+  "code_validation_scope": "STATIC_REVIEW_DOCUMENTATION_ONLY; APPLICATION/WORKFLOWS/PLANS/LOCKS/TESTS_UNCHANGED",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
     "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
@@ -3006,6 +3006,39 @@
       "completed_at": "2026-11-06T16:33:51.389031+00:00",
       "within_foreground_deadline": true,
       "network_or_sdk_execution": false,
+      "apply_allowed": false,
+      "migration_usable": false
+    }
+  },
+  "shared_entry_budget_review": {
+    "source_reference_count": 46,
+    "protected_input_file_count": 387,
+    "findings_count": 3,
+    "findings_with_new_behavior_reproduction": 0,
+    "findings_with_live_verification": 0,
+    "test_suite_executed": false,
+    "sdk_or_application_function_executed": false,
+    "network_calls": 0,
+    "runtime_cache_or_database_reads_writes": 0,
+    "cloud_metadata_business_queue_model_calls": 0,
+    "deployment_or_push": false,
+    "new_mock_layers": 0,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "report": "docs/project/shared-entry-budget-review-2026-11-07.md",
+    "manifest": "docs/project/validation/shared-entry-budget-review-2026-11-07/manifest.json",
+    "sdk_workflow_reopened": false,
+    "preferred_next_task": "REPRODUCE_F3_REGIONAL_CLI_COMPLETENESS_GATE_THEN_FIX_IF_CONFIRMED",
+    "next_code_change_authorized_this_round": false,
+    "foreground_started_at": "2026-11-06T16:43:55Z",
+    "foreground_deadline": "2026-11-06T17:03:55Z",
+    "completion": {
+      "started_at": "2026-11-06T16:43:55Z",
+      "foreground_deadline": "2026-11-06T17:03:55Z",
+      "completed_at": "2026-11-06T16:50:22.528036+00:00",
+      "within_foreground_deadline": true,
+      "scope": "OFFLINE_SOURCE_AND_EXISTING_TEST_REVIEW_DOCUMENTATION_ONLY",
+      "network_or_project_function_execution": false,
       "apply_allowed": false,
       "migration_usable": false
     }
