@@ -199,16 +199,18 @@ def main() -> int:
             for item in failures[before:]
             if item.get("stage") == "event_search" and item.get("project_number") == project_number
         ]
-        if len(project_event_search_failures) >= 2:
+        if project_event_search_failures:
             event_search_blocked_projects.append(project_number)
 
     merged_events = merge_notice_events(existing_events, new_events)
     detail_failures = [item for item in failures if item.get("stage") == "verified_detail"]
     acceptance_ready = (
-        discovery_success_count > 0
+        planned_query_count > 0
+        and discovery_success_count == planned_query_count
         and not cap_exceeded
         and not watch_cap_exceeded
-        and (not selected or bool(new_records))
+        and len(new_records) == len(selected)
+        and not failures
         and not event_search_blocked_projects
     )
 
@@ -241,6 +243,7 @@ def main() -> int:
         "failure_count": len(failures),
         "failures": failures,
         "acceptance_ready": acceptance_ready,
+        "partial_candidate_output": bool(new_records) and not acceptance_ready,
         "policy": {
             "publishes_public_snapshot": False,
             "writes_runtime_cache": False,

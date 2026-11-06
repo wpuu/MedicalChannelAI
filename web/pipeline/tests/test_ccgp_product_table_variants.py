@@ -26,7 +26,8 @@ BASE = """
 
 
 def page(table: str) -> str:
-    return '<html><body><pre>' + BASE + '</pre>' + table + '</body></html>'
+    demand, rest = BASE.split('三、获取招标文件', 1)
+    return '<html><body><pre>' + demand + '</pre>' + table + '<pre>三、获取招标文件' + rest + '</pre></body></html>'
 
 
 class CcgpProductTableVariantTests(unittest.TestCase):
@@ -46,7 +47,7 @@ class CcgpProductTableVariantTests(unittest.TestCase):
         </table>
         """)
         self.assertEqual(record['facts']['product_items'], [{
-            'raw_name': '乳腺机', 'category': None, 'quantity': '1', 'specification': '用于乳腺疾病筛查及诊断'
+            'raw_name': '乳腺机', 'category': None, 'quantity': '1套', 'specification': '用于乳腺疾病筛查及诊断'
         }])
 
     def test_mark_name_with_separate_unit_is_combined(self) -> None:
@@ -84,7 +85,7 @@ class CcgpProductTableVariantTests(unittest.TestCase):
         item = record['facts']['product_items'][0]
         self.assertEqual(item['raw_name'], 'X射线计算机体层摄影设备（CT）')
         self.assertIsNone(item['category'])
-        self.assertEqual(item['quantity'], '1')
+        self.assertEqual(item['quantity'], '1台/套')
 
     def test_item_name_remains_category_when_distinct_procurement_mark_exists(self) -> None:
         record = self.parse("""

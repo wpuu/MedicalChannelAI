@@ -84,7 +84,7 @@ CONSULTATION_FIXTURE = """
 
 STANDARD_PRODUCT_TABLE_HTML_FIXTURE = (
     "<html><body><pre>"
-    + FIXTURE
+    + FIXTURE.split('二、申请人的资格要求', 1)[0]
     + "</pre>"
     + """
     <table>
@@ -93,7 +93,8 @@ STANDARD_PRODUCT_TABLE_HTML_FIXTURE = (
       <tr><td>1-2</td><td>医用内窥镜</td><td>电子消化道内窥镜系统</td><td>1(套)</td><td>4K成像</td><td>1500000</td></tr>
     </table>
     """
-    + "</body></html>"
+    + '<pre>二、申请人的资格要求' + FIXTURE.split('二、申请人的资格要求', 1)[1]
+    + "</pre></body></html>"
 )
 
 NON_PRODUCT_TABLE_HTML_FIXTURE = (

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timedelta
+from html import unescape
 from html.parser import HTMLParser
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -66,6 +67,69 @@ def html_to_text(html: str) -> str:
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n\s*\n+", "\n", text)
     return text.strip()
+
+
+class _HtmlTextLocator(HTMLParser):
+    """Map visible text back to raw HTML without discarding table markup/spans."""
+
+    def __init__(self, html: str) -> None:
+        super().__init__(convert_charrefs=False)
+        self.html = html
+        self.line_starts = [0, *(match.end() for match in re.finditer('\n', html))]
+        self.parts: list[str] = []
+        self.spans: list[tuple[int, int, int, int, bool]] = []
+        self.length = 0
+        self.ignored = 0
+
+    def _position(self) -> int:
+        line, column = self.getpos()
+        return self.line_starts[line - 1] + column
+
+    def _append(self, text: str, raw_length: int, literal: bool = True) -> None:
+        start = self._position()
+        self.parts.append(text)
+        self.spans.append((self.length, self.length + len(text), start, start + raw_length, literal))
+        self.length += len(text)
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in {'script', 'style'}:
+            self.ignored += 1
+        elif not self.ignored and tag in _VisibleTextParser.BLOCK_TAGS:
+            self._append('\n', 0, False)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in {'script', 'style'} and self.ignored:
+            self.ignored -= 1
+        elif not self.ignored and tag in _VisibleTextParser.BLOCK_TAGS:
+            self._append('\n', self.html.find('>', self._position()) + 1 - self._position(), False)
+
+    def handle_data(self, data: str) -> None:
+        if not self.ignored and data.strip():
+            self._append(data, len(data))
+
+    def handle_entityref(self, name: str) -> None:
+        if not self.ignored:
+            self._append(unescape(f'&{name};'), len(name) + 2, False)
+
+    def handle_charref(self, name: str) -> None:
+        if not self.ignored:
+            self._append(unescape(f'&#{name};'), len(name) + 3, False)
+
+    def raw_offset(self, position: int, *, after: bool = False) -> int:
+        for start, end, raw_start, raw_end, literal in self.spans:
+            if start <= position < end:
+                return raw_start + position - start + int(after) if literal else (raw_end if after else raw_start)
+        return len(self.html)
+
+
+def _procurement_html_scope(html: str) -> str:
+    locator = _HtmlTextLocator(html)
+    locator.feed(html)
+    text = ''.join(locator.parts)
+    return '\n'.join(
+        html[locator.raw_offset(start):locator.raw_offset(end - 1, after=True)]
+        for start, end in _procurement_text_ranges(text) if end > start
+    )
 
 
 class _StructuredProductTableParser(HTMLParser):
@@ -157,13 +221,14 @@ def _extract_standard_product_table_items(html: str) -> list[dict[str, Any]]:
             if "品目名称" not in headers or "采购标的" not in headers:
                 continue
             quantity_index = next(
-                (index for index, header in enumerate(headers) if header in {"数量(单位)", "数量"}),
+                (index for index, header in enumerate(headers) if re.fullmatch(r'数量(?:\([^()]+\))?', header)),
                 None,
             )
             if quantity_index is None:
                 continue
             category_index = headers.index("品目名称")
             name_index = headers.index("采购标的")
+            unit_index = next((index for index, header in enumerate(headers) if header == '单位'), None)
             specification_index = next(
                 (
                     index
@@ -181,6 +246,7 @@ def _extract_standard_product_table_items(html: str) -> list[dict[str, Any]]:
                     continue
                 category = _optional_table_value(row, category_index, max_length=200)
                 quantity = _optional_table_value(row, quantity_index, max_length=80)
+                quantity = _resolve_product_quantity(quantity, _optional_table_value(row, unit_index, max_length=30), headers[quantity_index])
                 specification = _optional_table_value(row, specification_index, max_length=2000)
                 key = (raw_name, category, quantity, specification)
                 if key in seen:
@@ -330,7 +396,7 @@ def _expand_spanning_table_rows(
 
 
 def _find_general_product_name_index(headers: list[str]) -> int | None:
-    exact_names = {'采购标的', '标的名称', '设备名称', '货物名称', '维保设备名称'}
+    exact_names = {'采购标的', '标的名称', '产品名称', '设备名称', '货物名称', '维保设备名称'}
     for index, header in enumerate(headers):
         if header in exact_names or header.endswith('设备名称') or header.endswith('货物名称'):
             return index
@@ -346,6 +412,27 @@ _PRODUCT_UNIT_WORDS = {
 _PRODUCT_TABLE_FOOTER_PREFIXES = (
     '备注', '注解', '注：', '注:', '合同履行期限', '项目用途', '项目现场', '保险期限', '服务期限',
 )
+
+
+def _resolve_product_quantity(quantity: str | None, unit: str | None, header: str) -> str | None:
+    if quantity is None:
+        return None
+    header_match = re.fullmatch(r'数量\(([^()]+)\)', _normalize_table_header(header))
+    header_unit = header_match[1] if header_match and header_match[1] != '单位' else None
+    separate_unit = _normalize_table_header(unit).strip('()') if unit else None
+    match = re.fullmatch(r'(\d+(?:\.\d+)?|[一二三四五六七八九十百]+)(?:\(([^()]+)\)|([^()\d\s]+))?', _normalize_table_header(quantity))
+    if not match:
+        return quantity
+    cell_unit = match[2] or match[3]
+    units = [value for value in (cell_unit, separate_unit, header_unit) if value]
+    for value in units:
+        if value not in _PRODUCT_UNIT_WORDS:
+            raise CcgpDetailParseError('CCGP_PRODUCT_QUANTITY_UNIT_UNSUPPORTED')
+    for left in units:
+        for right in units:
+            if left != right and not ({left, right} <= {'台/套', '台'} or {left, right} <= {'台/套', '套'}):
+                raise CcgpDetailParseError('CCGP_PRODUCT_QUANTITY_UNIT_CONFLICT')
+    return quantity if cell_unit or not units else f'{quantity}{units[0]}'
 
 
 def _is_explicit_product_quantity(value: str | None) -> bool:
@@ -416,7 +503,7 @@ def _extract_general_product_table_items(html: str) -> list[dict[str, Any]]:
                     continue
                 normalized_name = _normalize_table_header(raw_name)
                 if (
-                    normalized_name in {'采购标的', '标的名称', '设备名称', '货物名称', '维保设备名称', '品目名称'}
+                    normalized_name in {'采购标的', '标的名称', '产品名称', '设备名称', '货物名称', '维保设备名称', '品目名称'}
                     or re.fullmatch(r'\d+(?:[-.]\d+)*', normalized_name)
                     or normalized_name in {'是', '否', '服务', '货物'}
                     or _is_explicit_product_quantity(raw_name)
@@ -428,10 +515,7 @@ def _extract_general_product_table_items(html: str) -> list[dict[str, Any]]:
                 if not _is_explicit_product_quantity(quantity):
                     continue
                 unit = _optional_table_value(row, unit_index, max_length=30)
-                if unit_index is not None and unit is not None and _normalize_space(unit) not in _PRODUCT_UNIT_WORDS:
-                    continue
-                if quantity and unit and unit not in quantity:
-                    quantity = f'{quantity}{unit}'
+                quantity = _resolve_product_quantity(quantity, unit, headers[quantity_index])
                 specification = _optional_table_value(row, specification_index, max_length=2000)
                 key = (raw_name, category, quantity, specification)
                 if key in seen:
@@ -448,23 +532,33 @@ def _extract_general_product_table_items(html: str) -> list[dict[str, Any]]:
                 if len(items) >= 100:
                     return items
             if items:
-                return items
+                break
     return items
 
 
 
-def _procurement_text_scope(text: str) -> str:
+def _procurement_text_ranges(text: str) -> list[tuple[int, int]]:
     anchor = re.search(r'采购需求\s*[：:]', text)
     if not anchor:
-        return ''
+        return []
     scope = text[anchor.end():]
     end = re.search(
-        r'合同履[行约]期限|本项目(?:不接受|接受)|'
         r'(?:申请人|投标人|供应商)(?:的)?资格要求|'
         r'[二三四五六七八九十]+[、.．]\s*(?:获取(?:招标|采购)文件|响应文件提交|提交投标文件)',
         scope,
     )
-    return scope[:end.start()] if end else scope
+    limit = anchor.end() + end.start() if end else len(text)
+    packages = [anchor.end() + match.start() for match in re.finditer(r'(?:^|[\n\r])\s*合同包\s*\d+\s*[(（]', text[anchor.end():limit])]
+    starts = sorted(set([anchor.end(), *packages]))
+    ranges = []
+    for start, stop in zip(starts, [*starts[1:], limit]):
+        terms = re.search(r'合同履[行约]期限|本(?:项目|合同包)\s*[(（]?\s*(?:不接受|接受)', text[start:stop])
+        ranges.append((start, start + terms.start() if terms else stop))
+    return ranges
+
+
+def _procurement_text_scope(text: str) -> str:
+    return '\n'.join(text[start:end] for start, end in _procurement_text_ranges(text))
 
 
 def _text_product_item(raw_name: str, quantity: str) -> dict[str, Any]:
@@ -858,6 +952,7 @@ def _apply_grounded_text_products(record: dict[str, Any], text: str) -> dict[str
     return validate_record(record)
 
 def _apply_structured_html_products(record: dict[str, Any], html: str) -> dict[str, Any]:
+    html = _procurement_html_scope(html)
     items = _extract_standard_product_table_items(html)
     if not items:
         items = _extract_general_product_table_items(html)
