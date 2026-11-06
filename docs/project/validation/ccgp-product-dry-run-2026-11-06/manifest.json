@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.1",
+  "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
+  "kind": "FROZEN_REPOSITORY_OFFLINE_PRODUCT_CORRECTION_DRY_RUN_ONLY",
+  "files": [
+    {
+      "path": "audit-result.json",
+      "bytes": 9432,
+      "sha256": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2"
+    },
+    {
+      "path": "bootstrap-gate-proof.json",
+      "bytes": 1750,
+      "sha256": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2"
+    },
+    {
+      "path": "change-set-replay.json",
+      "bytes": 16164,
+      "sha256": "75e765c9542237536626847de505db59a0a9f2bbe25b37c0298ed8e4101e7d22"
+    },
+    {
+      "path": "change-set.json",
+      "bytes": 16164,
+      "sha256": "75e765c9542237536626847de505db59a0a9f2bbe25b37c0298ed8e4101e7d22"
+    },
+    {
+      "path": "completion.json",
+      "bytes": 346,
+      "sha256": "86fb8f8383ad03817d97cf3cd17a210aa2567f3e22192dcef230d5de5a22bfa4"
+    },
+    {
+      "path": "python-tests.log",
+      "bytes": 179774,
+      "sha256": "7f282ec984ba3e4729626f0e1b45a46772cb6c0a3f4c8c2411fef757c54db8b5"
+    },
+    {
+      "path": "replay-proof.json",
+      "bytes": 2767,
+      "sha256": "9bc7287b7d44c23bca5dd9d11dae30ea1ac1f1d791f5d20aa63723387f6c5aa3"
+    },
+    {
+      "path": "request-lock.json",
+      "bytes": 280,
+      "sha256": "87736058b80d9d707abb999e0d9c20801870805e2cc161e749a4e0421da9f8eb"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 1411,
+      "sha256": "e0a85c26722433b1f9cc49c82d29b41628256607626d92320b7c346a52f8f3df"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 3124,
+      "sha256": "4c7ed10389cc04c576f8443bcb69cfdd8538518b89e4cbca3f8488d5bd867509"
+    }
+  ]
+}

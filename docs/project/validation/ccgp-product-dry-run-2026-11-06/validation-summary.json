@@ -1,0 +1,44 @@
+{
+  "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
+  "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
+  "python_tests": 966,
+  "python_result": "PASS",
+  "new_dry_run_behavior_tests": 21,
+  "fixture_gate": {
+    "pass": 10,
+    "fail": 0
+  },
+  "original_cli_gate": {
+    "pass": 3,
+    "fail": 0
+  },
+  "selected_candidates": 2,
+  "apply_allowed": false,
+  "runtime_canonical_exported": false,
+  "migration_complete": false,
+  "deployment_performed": false,
+  "cloud_access_performed": false,
+  "project_model_requests": 0,
+  "source_files": [
+    {
+      "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+      "sha256": "7d91bfcb1a83475e628b7f3ce7960c85f266caa4e29a1b17cb6894667e442e8e"
+    },
+    {
+      "path": "web/pipeline/tests/test_ccgp_product_dry_run.py",
+      "sha256": "0416a2839c819666ba85cc2806f565bc9844bf1f2f23dabda822923b4e01d6e9"
+    },
+    {
+      "path": "web/pipeline/tests/fixtures/ccgp_product_dry_run_request_20261106.json",
+      "sha256": "9c4533103fc04b795a9a8f9f70006e836ac5fe49c7dac5648c58d8907f7c6aea"
+    },
+    {
+      "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+      "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187"
+    },
+    {
+      "path": "web/pipeline/scripts/bootstrap_ccgp_backfill.py",
+      "sha256": "6aaed10e94a610dbdf44c29523e2098dba78fa4a69dcddc7d642c9b3510ae096"
+    }
+  ]
+}

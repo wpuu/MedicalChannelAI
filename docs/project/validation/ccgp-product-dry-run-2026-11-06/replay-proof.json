@@ -1,0 +1,31 @@
+{
+  "cli_runs": 2,
+  "serialized_output_bytes_identical": true,
+  "change_set_id": "5bb62880aa451309cd8f86eb029354ca7bc9709ba0d628ca108f25cc24c59420",
+  "change_ids": [
+    "306fa751087537365a6d4689f4318b757b9480c304d845f609d8713cabf20398",
+    "c138fa6b506c4385319c72ee1cd755516c7c4d384f716b36d82a9aede91cdec4"
+  ],
+  "selected_count": 2,
+  "input_bytes_unchanged": true,
+  "input_files": {
+    "web/pipeline/tests/fixtures/ccgp_product_dry_run_request_20261106.json": "9c4533103fc04b795a9a8f9f70006e836ac5fe49c7dac5648c58d8907f7c6aea",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/manifest.json": "1e1e6697f3bb8df471280befad5c6bbd47565038474e1247f29280d70b20a500",
+    "web/pipeline/data/tianjin_live_ccgp_records.json": "48d337d1ff814dabd4fe2f5e0571bb9ce7299fbe1608649eea68aabc8e4ee55a",
+    "web/pipeline/data/regional_live_ccgp_records.json": "72e0e865a639e96f4479bea7639b806402df910a68b305b049fb5e8f361ee0fc",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/ccgp_tj_attachment_only.html": "529d79953ab618693c5c962ad7697d46812791d5697cc7dd4c774fddb766f714",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/qualification_standard_table.html": "57ab9c9696fec6da3576722d6d67591c4f44b4e81ca73db4c431c0a8f33ba37a",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/ccgp_hl_e8f00e33bac08696.html": "a1abdcadd2aef0d6ef5653330f0d172dc5c9248ff2850829b96f0e47122a569c",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/ccgp_jl_40d5ac0960328c51.html": "08313232bb0d3cb3648d3113461795ea4408eaa888912d5e744fba6aef932eec",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/ccgp_jl_806743d8af167ea4.html": "9b3f94170e632e2d2481f48fc24aedf41acfe5d1c2cbf950599b7f39d22f15e3",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/ccgp_ln_e098f4b20ac83f0c.html": "cc917d0c30b3621842d8fd36ab45c0ca802b83007ef732b7f0f4382f3991255d",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/ccgp_bj_xiehe_mammography.html": "39551ebacca866ad47309b9ba33ecf82668ecc8198e9195719a8563819403f2a",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/ccgp_hl_b36866ded1fc3097.html": "26827b728f2cfd15d2d7293babfc9ea3afdbd13b54db67285a371cab5d908992",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/ccgp_he_2a9ca892bf9d0b6a.html": "923c2e5308d0f5d2ce6e7d4886d2cd021bad2bc3fe21aedba096c3b6808caff9",
+    "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/qualification_general_table.html": "934add9795f930e9b62bf9e5797ac2e02dc85931f107d083983db640d0d23917"
+  },
+  "direct_core_under_network_blocker_equals_cli": true,
+  "actual_runtime_or_database_access": false,
+  "apply_allowed": false,
+  "existing_official_originals_and_fixture_expectations_unchanged": true
+}

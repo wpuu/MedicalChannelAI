@@ -1,0 +1,9 @@
+{
+  "request_sha256": "9c4533103fc04b795a9a8f9f70006e836ac5fe49c7dac5648c58d8907f7c6aea",
+  "target_scope": {
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "target": "preview",
+    "preview_epoch": "mcai-p0-20261106-d",
+    "database": "mcai_p0_epoch_20261106d"
+  }
+}

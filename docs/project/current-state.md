@@ -2,7 +2,14 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前 CCGP 修复 Preview 部署（定向只读验收通过）
+## 当前产品纠错 dry-run（离线清单完成，禁止应用）
+
+- 工具代码9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3，复用原audit入口增加锁定请求＋显式1–5条选择，补齐产品字段证据、before/after及原记录/原文/解析器/生成器哈希。候选为河北扫描仪4套、吉林血液透析机5台/套，均apply_allowed=false。
+- 新增21项行为测试，全部966项Python、冻结模板10/10及原CLI3/3通过。两次CLI输出字节及变更ID一致，阻断网络后核心输出一致；请求、基线和全部原始fixture字节不变。身份/版本/范围冲突、别名项目、超量和覆盖输入均拒绝。
+- 使用仓库892条冻结输入，不是云端canonical导出或迁移。没有新环境、云端访问/部署、计划/权限变化、采集、项目模型请求或数据库/缓存/历史原始数据写入。原Preview/Production仅保留历史绑定，本轮未重新查询；production_ready=false。
+- [本轮报告](ccgp-product-dry-run-2026-11-06.md)、[证据](validation/ccgp-product-dry-run-2026-11-06/manifest.json)。下一轮按[next-task.md](next-task.md)复用清单增加整批前置校验、内存overlay与回滚模拟；真实导出/CAS/迁移/应用/回滚仍未实施。当前无真实底部提示词按钮接口，提供完整可复制任务；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
+## 上轮 CCGP 修复 Preview 部署（历史定向只读验收）
 
 - 最新部署来源 `82cc43f06c774969eab0fe44f0afc012f37cadac`，应用代码 `795ef5efa30b61dd47352c4fb888b02488f16855`；[Preview](https://medicalchannelai-b5vc26me3-rerisse7-1717s-projects.vercel.app) `dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1` READY，构建56.306秒。复用现有d周期/数据库/受限角色，未新建环境、改变量或定时计划。
 - API/status准确返回82cc/d/DATABASE；部署前后Neon、fresh/普通GET及浏览器完整数据SHA仍 `85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead`，SQL微秒时钟不变，16条公开facts及来源时钟均未写入。collector无active cycle/增量链、完成阶段0，未触发Queue或回补。

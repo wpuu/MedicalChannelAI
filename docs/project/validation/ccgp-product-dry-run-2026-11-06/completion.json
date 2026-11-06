@@ -1,0 +1,10 @@
+{
+  "started_at": "2026-11-06T11:56:02+00:00",
+  "completed_at": "2026-11-06T12:11:38.726998+00:00",
+  "foreground_deadline": "2026-11-06T12:16:02+00:00",
+  "within_foreground_deadline": true,
+  "cloud_access_performed": false,
+  "deployment_performed": false,
+  "background_observer_started": false,
+  "runtime_or_original_data_writes": false
+}

@@ -2,18 +2,18 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-06",
   "timezone": "Asia/Shanghai",
-  "state_scope": "CURRENT_EXISTING_PREVIEW_DEPLOYMENT_AND_READ_ONLY_SERVING_ACCEPTANCE",
+  "state_scope": "CURRENT_LOCKED_OFFLINE_PRODUCT_DRY_RUN_NO_CLOUD_ACTIONS",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
   "runtime_implementation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "latest_code_validated_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
+  "latest_code_validated_head": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "CCGP_FIX_DEPLOYED_EXISTING_D_PREVIEW_READ_ONLY_ACCEPTANCE_PASS",
-  "latest_changes_validation_status": "PREVIEW82CC43F_READY; APP795EF5E_PRIOR945_BUILD_PASS; API_SQL_BROWSER_HASH_UNCHANGED; ALL15_OF15_ACTIVE; NO_QUEUE_OR_BACKFILL",
+  "milestone": "TWO_EVIDENCE_COMPLETE_PRODUCT_CORRECTION_DRY_RUNS_REPLAYED_APPLY_BLOCKED",
+  "latest_changes_validation_status": "966_LOCAL_PYTHON_PASS; FROZEN10_OF10_AND_ORIGINAL_CLI3_OF3; TWO_CLI_OUTPUTS_IDENTICAL; TWO_PROPOSALS_APPLY_FALSE",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -121,13 +121,14 @@
     "interpretation": "New source82cc/app795 deployment reuses existing d environment, role, database, epoch and credentials.16stored facts unchanged;15active UI cards after one real registration closed. No new environment, env/schedule/protection changes, queue trigger, snapshot publish or historical backfill.",
     "temporary_acceptance_access": "New task-owned900second share revoked; private access file removed; exact secret artifact scan passed; project protection unchanged.",
     "latest_audit_actions": {
-      "mode": "EXISTING_PREVIEW_DEPLOYMENT_AND_READ_ONLY_SERVING_ACCEPTANCE",
-      "preview_deployed": true,
+      "mode": "LOCAL_OFFLINE_DRY_RUN_ONLY",
+      "preview_deployed": false,
       "new_environment_created": false,
+      "cloud_accessed": false,
       "env_or_schedule_changed": false,
       "database_or_runtime_writes": false,
       "production_mutations": false,
-      "boundary_rechecked_at": "2026-11-06T11:31:21.429Z"
+      "actual_settings_changed": false
     }
   },
   "gold_set_status": {
@@ -144,7 +145,7 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "DEPLOYED82CC_APP795_READ_ONLY_VERIFIED:API/SQL/browser same unchanged snapshot; native parser collection/Queue unverified.945/fullbuild and10/3gates remain prior code-bound local evidence.",
+    "current_head_runtime_acceptance": "Prior deployed82cc/app795 read-only evidence retained. Current9f6 offline-only;966Python and10/3gates pass,no new build/deployment/cloud verification.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
     "source_freshness_runtime_acceptance": "CARRIED_PRIOR_C_REAL_SCAN_CLOCKS_UNCHANGED:8/14 healthy; no new source scan or recovery in d.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
@@ -162,11 +163,11 @@
     "old_deployment_queue_isolation": "D_TARGETED_REPAIR_ISOLATED:old c role cannot read d snapshots or create d schema; old c consumers retained. d native cycle/canonical migration and shared-origin request budget remain unverified.",
     "publication_latency": "CURRENT662_RETURNED_FAILURE_TAIL_VERIFIED:0.029–0.034seconds; trigger-to-publish2207.330seconds, tjmugh completion-to-publish1678.375seconds. Single-cycle observations, notP95; first retry/forced-kill recovery/global publication coupling remain.",
     "ccgp_product_items_quality": "FOUR_FIXES_DEPLOYED82CC_APP795;10frozen fixtures pass locally. Current UI preserves existing10official Dakoutun products. No new raw-detail cloud collection or historical application; broader templates/attachments/recall remain unverified.",
-    "historical_product_backfill": "BOOTSTRAP_COMPLETENESS_FIXED_LOCALLY:partial detail/discovery/single event failure blocked, complete empty success accepted, cap negatives tested.2offline patch proposals remain apply_allowed=false. Runtime state export, CAS/atomicity, migration, rollback and batch application unimplemented."
+    "historical_product_backfill": "LOCAL9F6_EVIDENCE_COMPLETE_DRY_RUN:2explicit proposals and locked request/scope/versions/field evidence;repeat byte-identical;apply=false. No runtime export/CAS/migration/application/rollback. Next is in-memory batch validation/rollback simulation."
   },
   "final_code_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "code_validation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "documentation_followup": "Serving Preview now source82cc43f/app795ef5e on existing d DB/epoch. This phase deploys and performs read-only acceptance only; prior945/10fixture/3CLI evidence remains code-bound, not a fresh native collection cycle. Latest user workflow replaces popup next-step choices with truthful unsupported-button fallback.",
+  "documentation_followup": "Only existing offline audit tool extended. Runtime parser795 and deployed82cc unchanged/not accessed; current966 is Python only, not a new frontend build or cloud acceptance.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -305,7 +306,9 @@
     "final_browser_run_blocked_requests": 2,
     "ai_requests_sent": false,
     "report": "docs/project/validation/ccgp-preview-readback-2026-11-06/browser-report.json",
-    "pool_reconciliation": "docs/project/validation/ccgp-preview-readback-2026-11-06/pool-reconciliation.json"
+    "pool_reconciliation": "docs/project/validation/ccgp-preview-readback-2026-11-06/pool-reconciliation.json",
+    "historical": true,
+    "not_reused_for_this_phase": true
   },
   "historical_records": {
     "interpretation": "Historical observations only; these records do not describe the current branch, CI, deployment or P0 acceptance.",
@@ -1978,6 +1981,26 @@
         "apply_allowed": false,
         "production_modified": false
       }
+    },
+    "previous_preview_readback_c25ff26": {
+      "state_scope": "CURRENT_EXISTING_PREVIEW_DEPLOYMENT_AND_READ_ONLY_SERVING_ACCEPTANCE",
+      "milestone": "CCGP_FIX_DEPLOYED_EXISTING_D_PREVIEW_READ_ONLY_ACCEPTANCE_PASS",
+      "latest_changes_validation_status": "PREVIEW82CC43F_READY; APP795EF5E_PRIOR945_BUILD_PASS; API_SQL_BROWSER_HASH_UNCHANGED; ALL15_OF15_ACTIVE; NO_QUEUE_OR_BACKFILL",
+      "current_phase_starting_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+      "latest_ui_browser_acceptance": {
+        "commit": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+        "application_code_commit": "795ef5efa30b61dd47352c4fb888b02488f16855",
+        "deployment_id": "dpl_8Jhc4imHEd6ndBUoth5xBVTrAyL1",
+        "result": "6_DIRECTED_CHECKS_PASS_WITH_INDEPENDENT_ACTIVE_POOL_RECONCILIATION",
+        "ordinary_get_sha256": "85a1768f1705a3f4bd403ec0b70f80292ac24948806546d4c9be1d690576fead",
+        "raw_database_pool_count": 16,
+        "active_ui_pool_count": 15,
+        "blocked_cache_only_ai_requests": 3,
+        "final_browser_run_blocked_requests": 2,
+        "ai_requests_sent": false,
+        "report": "docs/project/validation/ccgp-preview-readback-2026-11-06/browser-report.json",
+        "pool_reconciliation": "docs/project/validation/ccgp-preview-readback-2026-11-06/pool-reconciliation.json"
+      }
     }
   },
   "source_recovery_precision_acceptance": {
@@ -2180,7 +2203,7 @@
       "required_followup": "Lock filters before load and enforce one absolute deadline across all waits; deadline means stop live checks."
     },
     "latest_audit_deadline": "2026-11-06T09:10:53Z",
-    "latest_phase_deadline": "2026-11-06T11:43:14Z",
+    "latest_phase_deadline": "2026-11-06T12:16:02Z",
     "next_step_buttons": {
       "prefer_true_short_label_full_prompt_submission": true,
       "actual_current_interface_support": false,
@@ -2326,7 +2349,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
+  "current_phase_starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2373,6 +2396,69 @@
     "schedule_changed": false,
     "historical_backfill_applied": false,
     "model_success_verified": false,
-    "production_modified": false
+    "production_modified": false,
+    "historical": true
+  },
+  "latest_offline_tool_head": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
+  "code_validation_scope": "OFFLINE_AUDIT_TOOL_AND_TESTS_ONLY; APP/PREVIEW_UNCHANGED",
+  "product_dry_run_acceptance": {
+    "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
+    "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
+    "python_tests": 966,
+    "python_result": "PASS",
+    "new_dry_run_behavior_tests": 21,
+    "fixture_gate": {
+      "pass": 10,
+      "fail": 0
+    },
+    "original_cli_gate": {
+      "pass": 3,
+      "fail": 0
+    },
+    "selected_candidates": 2,
+    "apply_allowed": false,
+    "runtime_canonical_exported": false,
+    "migration_complete": false,
+    "deployment_performed": false,
+    "cloud_access_performed": false,
+    "project_model_requests": 0,
+    "source_files": [
+      {
+        "path": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+        "sha256": "7d91bfcb1a83475e628b7f3ce7960c85f266caa4e29a1b17cb6894667e442e8e"
+      },
+      {
+        "path": "web/pipeline/tests/test_ccgp_product_dry_run.py",
+        "sha256": "0416a2839c819666ba85cc2806f565bc9844bf1f2f23dabda822923b4e01d6e9"
+      },
+      {
+        "path": "web/pipeline/tests/fixtures/ccgp_product_dry_run_request_20261106.json",
+        "sha256": "9c4533103fc04b795a9a8f9f70006e836ac5fe49c7dac5648c58d8907f7c6aea"
+      },
+      {
+        "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+        "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187"
+      },
+      {
+        "path": "web/pipeline/scripts/bootstrap_ccgp_backfill.py",
+        "sha256": "6aaed10e94a610dbdf44c29523e2098dba78fa4a69dcddc7d642c9b3510ae096"
+      }
+    ],
+    "report": "docs/project/ccgp-product-dry-run-2026-11-06.md",
+    "evidence_manifest": "docs/project/validation/ccgp-product-dry-run-2026-11-06/manifest.json",
+    "reviewed_request": "web/pipeline/tests/fixtures/ccgp_product_dry_run_request_20261106.json",
+    "change_set_id": "5bb62880aa451309cd8f86eb029354ca7bc9709ba0d628ca108f25cc24c59420",
+    "reviewed_request_sha256": "9c4533103fc04b795a9a8f9f70006e836ac5fe49c7dac5648c58d8907f7c6aea",
+    "target_scope_reference_only": {
+      "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+      "target": "preview",
+      "preview_epoch": "mcai-p0-20261106-d",
+      "database": "mcai_p0_epoch_20261106d"
+    },
+    "repeat_cli_output_byte_equal": true,
+    "core_network_blocked_result_equal": true,
+    "inputs_byte_unchanged": true,
+    "canonical_apply_or_rollback_executed": false,
+    "real_runtime_cas_implemented": false
   }
 }
