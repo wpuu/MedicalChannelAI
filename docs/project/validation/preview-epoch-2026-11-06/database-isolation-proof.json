@@ -1,0 +1,21 @@
+{
+  "isolated_database": "mcai_p0_epoch_20261106a",
+  "role": "mcai_p0_epoch_20261106a",
+  "branch": "br-cold-tooth-a5clhljh",
+  "initial_public_tables": 0,
+  "initial_committed_snapshots": 0,
+  "role_is_superuser": false,
+  "role_is_neon_admin": false,
+  "role_can_create_in_new_public_schema": true,
+  "role_can_read_old_snapshots": false,
+  "role_can_create_in_old_public_schema": false,
+  "old_database": "mcai_p0_acceptance_final",
+  "configuration_actions": [
+    "Create isolated database",
+    "Create scoped read_write role",
+    "GRANT CREATE ON SCHEMA public TO scoped role; new DB only",
+    "Rotate branch-specific Preview publisher and cron credentials",
+    "Set branch-specific MCAI_PREVIEW_EPOCH and MCAI_PREVIEW_DATABASE"
+  ],
+  "production_modified": false
+}

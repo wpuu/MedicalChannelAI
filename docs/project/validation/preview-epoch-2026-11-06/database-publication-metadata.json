@@ -1,0 +1,10 @@
+[
+  {
+    "snapshot_hash": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+    "sql_as_of": "2026-11-06 04:11:39.984178+00",
+    "payload_as_of": "2026-11-06T12:11:39.984178+08:00",
+    "precise": true,
+    "opportunity_count": 8,
+    "materialized_at": "2026-11-06T05:18:15.456Z"
+  }
+]

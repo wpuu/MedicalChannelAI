@@ -1,0 +1,42 @@
+{
+  "observed_at": "2026-11-06T04:51:20.839307+00:00",
+  "old_deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+  "old_url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+  "old_commit": "a3f94bd",
+  "old_preview_epoch": null,
+  "old_serving_snapshot": "2026-11-06T04:45:01.131602+00:00",
+  "old_stage_count": 25,
+  "old_publish_status": "COMPLETED",
+  "old_incremental_chain": {
+    "state": "SOURCE_QUEUED",
+    "business_date": "2026-11-06",
+    "tick_id": "incremental-tick:20261106T1245+0800:06",
+    "next_tick_id": "incremental-tick:20261106T1300+0800:07",
+    "selected_source": "tjzxfc",
+    "detail": null,
+    "updated_at": "2026-11-06T04:45:01.026535+00:00"
+  },
+  "read_only": true,
+  "old_source_completed_scan_clocks": {
+    "tjmugh": "2026-11-06T04:29:59.676322+00:00",
+    "tjnothop": "2026-11-06T03:30:02.258351+00:00",
+    "tjfch": null,
+    "tjfch_test": "2026-11-06T03:59:59.791279+00:00",
+    "teda": null,
+    "tjzyefy": "2026-11-05T17:35:19.841047+00:00",
+    "tjzyefy_intent": "2026-11-05T17:24:01.642074+00:00",
+    "tjzxfc": "2026-11-06T04:45:01.131602+00:00"
+  },
+  "new_epoch": "mcai-p0-20261106-a",
+  "new_stage_count": 19,
+  "new_publish_status": null,
+  "new_incremental_chain": {
+    "state": "DEFERRED_BY_DEEP_CYCLE",
+    "business_date": "2026-11-06",
+    "tick_id": "incremental-tick:20261106T1245+0800:06",
+    "next_tick_id": "incremental-tick:20261106T1300+0800:07",
+    "selected_source": null,
+    "detail": null,
+    "updated_at": "2026-11-06T04:45:00.457605+00:00"
+  }
+}

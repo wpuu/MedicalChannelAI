@@ -1,0 +1,26 @@
+{
+  "observed_at": "2026-11-06T04:52:22.159Z",
+  "old_database": "mcai_p0_acceptance_final",
+  "old_latest": [
+    {
+      "snapshot_hash": "3f416d31bc2ded742d043e21a1443bdd192fbc620eb9e38e9fc32f84238907ea",
+      "payload_as_of": "2026-11-06T04:45:01.131602+00:00",
+      "opportunity_count": 46,
+      "precise": false
+    }
+  ],
+  "new_database": "mcai_p0_epoch_20261106a",
+  "new_state": [
+    {
+      "current_database": "mcai_p0_epoch_20261106a",
+      "current_user": "mcai_p0_epoch_20261106a",
+      "committed_snapshots": "0"
+    }
+  ],
+  "new_cycle_logical_as_of": "2026-11-06T12:11:39.984178+08:00",
+  "old_probe_access_cleanup": {
+    "revoked": true,
+    "at": "2026-11-06T04:51:44.167Z"
+  },
+  "read_only": true
+}

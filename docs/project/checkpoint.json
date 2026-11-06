@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "ISOLATED_PREVIEW_EPOCH_REAL_FULL_CYCLE_IN_PROGRESS",
-  "latest_changes_validation_status": "LOCAL_889_BUILD_PASS; REAL_NEW_EPOCH_CYCLE_RUNNING; PUBLICATION_AND_BROWSER_PENDING",
+  "milestone": "ISOLATED_PREVIEW_EPOCH_FULL_PUBLICATION_VERIFIED_WITH_DEGRADED_SOURCES",
+  "latest_changes_validation_status": "889_PYTHON_AND_FULL_BUILD_PASS; REAL_QUEUE_DB_API_BROWSER_HASH_AND_MICROSECONDS_PASS; 7_OF_14_SOURCES_HEALTHY",
   "current_runtime_candidate_validation": {
     "head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
     "python_contract_tests": 889,
@@ -21,10 +21,11 @@
     "javascript_contract_checks": "PASS",
     "typescript_typecheck": "PASS",
     "vite_production_build": "PASS",
-    "new_full_cloud_queue_cycle": "IN_PROGRESS",
-    "cloud_publication": "PENDING",
-    "current_browser": "PENDING",
-    "production_ready": false
+    "new_full_cloud_queue_cycle": "PASS_WITH_17_DEGRADED_STAGES",
+    "cloud_publication": "PASS_EXACT_DB_JSON_HASH_AND_MICROSECONDS",
+    "current_browser": "6_OF_6_PASS",
+    "production_ready": false,
+    "post_test_enhancement_python_regression": "889_PASS"
   },
   "implementation_scope": [
     "Three-source runtime parity: tjzyefy, tjzyefy_intent, tjzxfc; reuse existing official adapters.",
@@ -47,7 +48,8 @@
     "Registered-source market fallback preserves actual city/county records without assigning unknown or unsupported regions to Tianjin.",
     "Bounded regional failure diagnostics and stop further discovery queries on explicit source throttling/access denial.",
     "Skip fallback only for terminally degraded prerequisites; preserve healthy canonical and nonterminal retries.",
-    "Full microsecond SQL and runtime revision ordering, explicit text timestamp parameters and identical legacy replay repair."
+    "Full microsecond SQL and runtime revision ordering, explicit text timestamp parameters and identical legacy replay repair.",
+    "Opt-in Preview epoch cache/tag namespace, queue/idempotency labels, side-effect-free foreign-message rejection, isolated database guard and rotated Preview-only credentials."
   ],
   "out_of_scope": [
     "Product relevance and qualification gates.",
@@ -59,7 +61,7 @@
     "preview_actions_performed": true,
     "production_actions_performed": false,
     "merge_performed": false,
-    "current_head_runtime_acceptance": "FULL_CYCLE_IN_PROGRESS; NEW_DB_EMPTY_BASELINE_AND_OLD_CREDENTIAL_REJECTIONS_PASS; PUBLICATION_PENDING",
+    "current_head_runtime_acceptance": "FULL_NEW_EPOCH_QUEUE_DB_API_BROWSER_VERIFIED_WITH_DEGRADED_SOURCES",
     "remote_deployment_state": "READY_PREVIEW_PRODUCTION_UNCHANGED",
     "preview": {
       "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
@@ -74,15 +76,17 @@
       "report": "docs/project/preview-epoch-cycle-2026-11-06.md"
     },
     "data_producer_preview": {
-      "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
-      "url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
-      "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+      "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
+      "url": "https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app",
+      "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
       "target": "preview",
       "ready_state": "READY",
-      "database": "mcai_p0_acceptance_final",
+      "database": "mcai_p0_epoch_20261106a",
+      "role": "mcai_p0_epoch_20261106a",
       "neon_branch": "br-cold-tooth-a5clhljh",
-      "runtime_acceptance": "REAL_THREE_SOURCE_SCANS_RECOVERY_AND_DEGRADED_COMPLETE_PUBLICATION_VERIFIED",
-      "report": "docs/project/live-source-publication-acceptance-2026-11-06.md"
+      "preview_epoch": "mcai-p0-20261106-a",
+      "report": "docs/project/preview-epoch-cycle-2026-11-06.md",
+      "runtime_acceptance": "REAL_NEW_EPOCH_COMPLETE_PUBLICATION_8_COMPLETED_17_DEGRADED"
     },
     "production_baseline_and_recheck": {
       "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
@@ -93,10 +97,10 @@
       "recheck_scope": "LATEST_READ_ONLY_DEPLOYMENT_AND_SSO_PROTECTION_RECHECK_REPORTED_BY_ROOT",
       "sso_protection_unchanged": true,
       "production_actions_performed": false,
-      "rechecked_at": "2026-11-06T03:46:56.710Z"
+      "rechecked_at": "2026-11-06T05:13:13.366Z"
     },
-    "interpretation": "Only isolated Preview resources and branch-scoped Preview credentials changed. Latest UI deployment and the a3f94bd Queue/data producer are distinct versioned observations. Production deployment and SSO protection were read-only rechecked and unchanged; no merge, promotion or Production modification.",
-    "temporary_acceptance_access": "Current task share link revoked; project protection unchanged"
+    "interpretation": "Current UI and real data producer both bind to2cc47ce. Old deployments and database retained and continue separately; Production and SSO read-only verified unchanged. No merge or promotion.",
+    "temporary_acceptance_access": "Both task-owned temporary new Preview and old read-only probe share links revoked; project protection unchanged"
   },
   "gold_set_status": {
     "document": "docs/strategy/ACTION_RADAR_GOLDSET_2026-10-07.md",
@@ -112,33 +116,34 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "IN_PROGRESS: actual new epoch cycle, not a replay; publication and browser checks pending.",
+    "current_head_runtime_acceptance": "PASS_WITH_DEGRADED_SOURCES: real new Queue, isolated SQL full JSON and microseconds, authority GET and six ordinary browser checks.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
-    "source_freshness_runtime_acceptance": "PARTIAL: all three added sources completed actual scans and a3f94bd completed one degraded deep publication, with 12/14 successful source clocks. TEDA and regional_ln remain failed; no all-source-recovery or sustained scheduling claim.",
+    "source_freshness_runtime_acceptance": "PARTIAL:7/14 current cohort source clocks healthy. CCGP event verification, TEDA403 and all five regional discovery rate limits unresolved; previous12/14 result belongs toa3f94bd.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
-    "regional_ln_failure_diagnostics": "IMPLEMENTED: bounded safe phase/reason counts and hashed references persist. Actual local source now rate-limited; historical aggregate failure remains unexplained.",
-    "regional_fallback_dependency_retries": "FIXED_IN_CODE_AND_BEHAVIOR_TESTS: terminally degraded primary skips fallback; nonterminal primary retains retry. New cloud Queue cycle not verified.",
-    "coverage_and_detail_budget": "NOT_FULL_RECALL: bounded entry-page/window scans are not complete archive or outage backfill. New hospital sources retain the 30-day, 20-candidate/12-detail bounds; ccgp scanned 2026-11-04 through 2026-11-06. Beijing discovered 29 candidates but verified only 10, leaving 19 outside this detail budget. A complete canonical publication does not prove all discovered candidates were verified.",
-    "nonempty_ccgp_events": "OBSERVED_FAILURE: new epoch discovered8 active event-watch projects; first event batch failed twice with aggregate reason only. Dependent batches degraded; nonempty success and underlying diagnostics remain unresolved.",
-    "automatic_intraday_execution": "ONE_REAL_OLD_DEPLOYMENT_TICK_OBSERVED: 2026-11-06 11:30+08 tjnothop published46. Later ticks and sustained scheduling not verified; old deployment-bound messages are not upgraded.",
-    "publication_timestamp_precision": "FIXED_FOR_NEW_CODE: full microsecond SQL/runtime comparisons, exact readback and identical legacy replay repair; actual Preview/SQL evidence passes. Historic rows remain truncated and old Queue deployments may still write old precision.",
+    "regional_ln_failure_diagnostics": "CURRENT_CLOUD_VERIFIED: bounded phase/reason counts and hashed references persist; LN and all five current regions report RATE_LIMITED. Earlier aggregate detail failure remains unexplained.",
+    "regional_fallback_dependency_retries": "VERIFIED_IN_CURRENT_CLOUD_CYCLE: all5 terminally degraded primaries directly degraded fallback without network. Budget-exhausted primary still waits about302seconds for next delivery; optimization pending.",
+    "coverage_and_detail_budget": "NOT_FULL_RECALL_OR_MIGRATION: new isolated cohort bootstraps repository canonical, not old live state. CCGP26 discovered/12 verified remain staged because events failed. Five regional discovery attempts throttled; old live pool46 vs new8 is not accepted migration parity.",
+    "nonempty_ccgp_events": "FAILED_UNRESOLVED:8watch projects, event1failed twice with aggregate reason only; event2..6dependency-degraded.12new facts correctly withheld; successful nonempty transaction and safe diagnostics pending.",
+    "automatic_intraday_execution": "CURRENT_NEW_TICKS_OBSERVED_DEFERRED_BY_DEEP_CYCLE through13:15+08; no current post-deep SourceJob or sustained scheduling claim. Historical old11:30 actual publication remains separate.",
+    "publication_timestamp_precision": "PASS_CURRENT_NATIVE_PUBLICATION: new2cc Queue output, isolated SQL timestamp and full JSON agree to984178microseconds. Old separate active writer still truncates; historical rows not bulk migrated.",
     "scan_completion_clock": "UNRESOLVED: last_completed_scan.completed_at uses the scan entry observation clock rather than actual completion wall time; use separately recorded client/publish wall-clock observations for duration.",
-    "ui_revalidation_and_static_clock": "Previous 4575 UI restored 11 city/county omissions at its 47-card publication. Current be87 smoke displays all46 after one natural expiry. No automatic TSX event-boundary timer was added.",
+    "ui_revalidation_and_static_clock": "Current2cc ordinary browser6checks, ALL8/8 with real source warning and390px layout passed. Historical4575 restored11 omissions in prior47-card cohort. No automatic TSX event-boundary timer added.",
     "ai_and_product_runtime_acceptance": "NOT_VERIFIED: model keys remain unconfigured; a 503 AI_NOT_CONFIGURED response proves safe degradation only. Real model success, China-side P95, Gold benchmark and commercial validation remain unverified.",
     "historical_runtime_and_ci_state": "Historical observations remain historical. Current Production commit/deployment and SSO protection were read-only rechecked and unchanged.",
     "http_request_reliability": "UNRESOLVED_HISTORICAL_OBSERVATION: one earlier oversized-request attempt returned unexplained 502, then expected 400 on one retry; authority stayed unchanged. The cause remains unknown and is not explained away by later successful publication.",
-    "old_deployment_queue_isolation": "IMPLEMENTED_AND_START_VERIFIED: Preview cache/tag prefixes, payload/idempotency labels, isolated database and new credentials. Old consumers continue only with old configuration; final publication comparison remains pending."
+    "old_deployment_queue_isolation": "PASS_CURRENT_FULL_CYCLE: scoped caches/tags/messages/idempotency/DB/credentials; old46-pool writes do not block new logical version. Old consumers NOT stopped; external-origin request competition remains.",
+    "publication_latency": "UNRESOLVED: trigger-to-publish3995.251seconds; tjmugh completion-to-publish3190.119seconds; five region terminal tails total1509.745seconds. Single-cycle observations, notP95."
   },
   "final_code_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
   "code_validation_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
-  "documentation_followup": "This is an in-progress status record. Source code binds to 2cc47ce; later docs-only commits do not represent completed full-cycle acceptance until runtime evidence is added.",
+  "documentation_followup": "Evidence/docs and enhanced complete-producer-envelope test follow executable2cc47ce; no application code changed after deployment. Full889Python rerun after test enhancement passed.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
     "public_ai_snapshot_max_age_hours": 30,
     "policy_status": "INITIAL_ENGINEERING_THRESHOLDS_WITH_PARTIAL_REAL_RUNTIME_EVIDENCE",
-    "runtime_acceptance": "REAL_THREE_SOURCE_SCANS_AND_ONE_DEGRADED_DEEP_PUBLICATION_12_OF_14_SOURCES",
-    "interpretation": "Three added sources and one complete canonical publication have real Preview evidence. Twelve source clocks are healthy; TEDA/LN failures, budget-limited coverage, automatic ticks and sustained SLA remain open."
+    "runtime_acceptance": "CURRENT_NEW_COHORT_7_OF_14_SOURCES_WITH_COMPLETE_DEGRADED_PUBLICATION",
+    "interpretation": "Per-source thresholds remain engineering defaults. Current epoch has7healthy sources; all-source restoration, coverage recovery and sustained SLA unverified. Prior12/14 observation is historical."
   },
   "real_source_publication_acceptance": {
     "report": "docs/project/live-source-publication-acceptance-2026-11-06.md",
@@ -231,20 +236,36 @@
     "tick_chain_state": "SCHEDULED",
     "next_tick_at": "2026-11-06T11:30:00+08:00",
     "automatic_tick_execution_verified": false,
-    "interpretation": "These counts describe one real a3f94bd Preview cycle and retained canonical data, not net-new facts, all-source recovery, recall completeness or customer eligibility. The monitor captured DB verification as pending before the later independent publication proof completed it."
+    "interpretation": "These counts describe one real a3f94bd Preview cycle and retained canonical data, not net-new facts, all-source recovery, recall completeness or customer eligibility. The monitor captured DB verification as pending before the later independent publication proof completed it.",
+    "historical": true
   },
   "preview_authoritative_data_state": {
     "database": "mcai_p0_epoch_20261106a",
     "preview_epoch": "mcai-p0-20261106-a",
     "committed_snapshot_count_before_cycle": 0,
-    "current_publication": "PENDING",
+    "current_publication": "VERIFIED",
     "manual_qa_publication": false,
-    "interpretation": "Fresh isolated acceptance cohort; no previous live snapshot was copied. Old database and its source state are retained separately."
+    "interpretation": "Fresh isolated acceptance cohort; no previous live snapshot was copied. Old database and its source state are retained separately.",
+    "snapshot_as_of": "2026-11-06T12:11:39.984178+08:00",
+    "sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+    "canonical_record_count": 923,
+    "opportunity_pool_count": 8,
+    "today_card_count": 5,
+    "notice_event_count": 0,
+    "sql_payload_timestamp_exact": true,
+    "source_health_healthy": 7,
+    "source_health_required": 14,
+    "evidence_manifest": "docs/project/validation/preview-epoch-2026-11-06/manifest.json"
   },
   "latest_ui_browser_acceptance": {
     "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
     "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
-    "result": "PENDING_CURRENT_CYCLE; PRIOR_BROWSER_RESULTS_ARE_HISTORICAL"
+    "result": "6_OF_6_PASS",
+    "ordinary_get_sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+    "ordinary_pool_count": 8,
+    "blocked_cache_only_ai_requests": 4,
+    "ai_requests_sent": false,
+    "report": "docs/project/validation/preview-epoch-2026-11-06/browser-smoke-report.json"
   },
   "historical_records": {
     "interpretation": "Historical observations only; these records do not describe the current branch, CI, deployment or P0 acceptance.",
@@ -1240,7 +1261,10 @@
     "cloud_older_by_one_microsecond_status": 409,
     "cloud_same_instant_conflict_status": 409,
     "old_automatic_tick_actual_publication": true,
-    "production_modified": false
+    "production_modified": false,
+    "historical": true,
+    "executable_commit": "be87e5f34e088b7d39c381d5855030694b27d568",
+    "interpretation": "Previous precision-replay phase only; its new_full_queue_cycle_verified=false does not describe the current epoch, which has separate full native-cycle evidence."
   },
   "preview_epoch_acceptance": {
     "report": "docs/project/preview-epoch-cycle-2026-11-06.md",
@@ -1255,8 +1279,26 @@
     "initial_collector_stages_empty": true,
     "old_cron_http": 403,
     "old_publisher_http": 401,
-    "full_cycle_result": "IN_PROGRESS",
+    "full_cycle_result": "VERIFIED_WITH_DEGRADED_SOURCES",
     "old_consumers_stopped": false,
-    "production_modified": false
+    "production_modified": false,
+    "evidence_manifest": "docs/project/validation/preview-epoch-2026-11-06/manifest.json",
+    "completed_at": "2026-11-06T05:18:15.803830+00:00",
+    "stage_counts": {
+      "COMPLETED": 8,
+      "DEGRADED": 17
+    },
+    "source_health": {
+      "healthy": 7,
+      "required": 14
+    },
+    "publication_sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+    "sql_exact_microseconds": true,
+    "browser_checks_passed": 6,
+    "old_new_database_comparison": "docs/project/validation/preview-epoch-2026-11-06/final-database-comparison.json",
+    "post_deep_source_job_verified": false,
+    "coverage_migration_verified": false,
+    "temporary_share_links_revoked": true,
+    "source_access_recovered": false
   }
 }

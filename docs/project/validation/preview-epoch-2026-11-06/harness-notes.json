@@ -1,0 +1,14 @@
+{
+  "old_publisher_expected_http_corrected": {
+    "incorrect": 403,
+    "contract": 401,
+    "product_bug": false
+  },
+  "unauthenticated_protection_redirect_not_app_auth_evidence": 307,
+  "browser_runtime": "Isolated Chromium / Playwright; ego-browser unavailable on this Linux host",
+  "manual_snapshot_publication": false,
+  "manual_source_health_fixtures": false,
+  "old_consumers_deleted_or_stopped": false,
+  "old_live_snapshot_migrated": false,
+  "interpretation": "Fresh isolated cohort. Coverage differs from old retained database; this is not an accepted migration or all-source recovery."
+}

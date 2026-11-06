@@ -1,0 +1,30 @@
+{
+  "scope": {
+    "target": "preview",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
+    "url": "https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app",
+    "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+    "git_branch": "codex/p0-reliability-contracts",
+    "preview_epoch": "mcai-p0-20261106-a",
+    "database": "mcai_p0_epoch_20261106a",
+    "role": "mcai_p0_epoch_20261106a",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "checks": [
+    "ordinary browser GET valid complete pool",
+    "exact Preview commit, epoch and isolated DATABASE",
+    "ALL pool count matches ordinary snapshot",
+    "real source degradation remains visible",
+    "390px Today no overflow",
+    "no page errors or unexpected requests"
+  ],
+  "intentionallyBlockedAi": 4,
+  "otherBlocked": [],
+  "pageErrors": [],
+  "snapshot_as_of": "2026-11-06T12:11:39.984178+08:00",
+  "pool": 8,
+  "payload_sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+  "pass": true
+}

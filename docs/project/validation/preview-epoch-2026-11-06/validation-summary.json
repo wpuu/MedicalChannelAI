@@ -1,0 +1,21 @@
+{
+  "executable_commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+  "python_tests": 889,
+  "javascript_contracts": "PASS",
+  "typescript": "PASS",
+  "vite_build": "PASS",
+  "main_js_gzip_kb": 116.0,
+  "post_test_enhancement_full_python_regression": "889_PASS",
+  "final_python_log_sha256": "ee55bc9d8fe2b03538a3fda1fc4d9fc7a7d4160dea9c65c8a2add6980b0ea3d0",
+  "full_build_log_sha256": "eaa14f87280730dbad1dff76d87437350b2fe484c6eb6e0c6f5b040c401d9800",
+  "enhanced_foreign_message_test": {
+    "tests": 5,
+    "result": "PASS",
+    "producer_complete_envelope": true,
+    "test_only_followup_not_deployed": true,
+    "log_sha256": "23b14261e5ff35adf9fd4beb9f156efde5d411e7e43263b4b807ed13bf395890"
+  },
+  "browser_checks": 6,
+  "browser_pass": true,
+  "ai_requests_sent": false
+}

@@ -1,0 +1,7 @@
+{
+  "status_http": 200,
+  "collector_http": 200,
+  "commit": "2cc47ce",
+  "preview_epoch": "mcai-p0-20261106-a",
+  "source_failed_stage_not_inferred_from_access_401": true
+}

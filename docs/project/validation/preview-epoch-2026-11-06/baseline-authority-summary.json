@@ -1,0 +1,7 @@
+{
+  "http": 200,
+  "snapshot_as_of": "2026-10-02T14:19:15.713282+08:00",
+  "opportunity_pool_count": 441,
+  "source": "BUNDLED_STALE_BASELINE_NOT_OLD_LIVE_SNAPSHOT",
+  "isolated_database_initially_empty": true
+}

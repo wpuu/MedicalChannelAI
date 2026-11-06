@@ -1,0 +1,10 @@
+{
+  "observed_at": "2026-11-06T05:19:40.811Z",
+  "current_preview_share_revoked": true,
+  "regenerated": false,
+  "old_readonly_probe_share_revoked": true,
+  "old_probe_revoked_at": "2026-11-06T04:51:44.167Z",
+  "project_sso_protection_changed": false,
+  "branch_preview_runtime_credentials_retained_for_authorized_queue": true,
+  "only_task_owned_temporary_share_links_revoked": true
+}

@@ -1,0 +1,25 @@
+{
+  "observed_at": "2026-11-06T05:19:19.414Z",
+  "old_database": "mcai_p0_acceptance_final",
+  "old_latest": [
+    {
+      "current_database": "mcai_p0_acceptance_final",
+      "snapshot_hash": "03308408c89fc9e3750106f40a0145a4cc50e7145cf9f906f50ffefd8de41105",
+      "payload_as_of": "2026-11-06T05:15:01.177759+00:00",
+      "opportunity_count": 46,
+      "precise": false
+    }
+  ],
+  "new_database": "mcai_p0_epoch_20261106a",
+  "new_deep": {
+    "snapshot_hash": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+    "payload_as_of": "2026-11-06T12:11:39.984178+08:00",
+    "opportunity_count": 8,
+    "precise": true
+  },
+  "old_clock_later_than_new_cycle": true,
+  "old_writes_did_not_block_new_isolated_publish": true,
+  "old_database_modified_by_this_check": false,
+  "read_only": true,
+  "not_migration_acceptance": true
+}

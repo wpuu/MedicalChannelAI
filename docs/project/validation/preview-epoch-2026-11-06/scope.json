@@ -1,0 +1,13 @@
+{
+  "target": "preview",
+  "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+  "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+  "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
+  "url": "https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app",
+  "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+  "git_branch": "codex/p0-reliability-contracts",
+  "preview_epoch": "mcai-p0-20261106-a",
+  "database": "mcai_p0_epoch_20261106a",
+  "role": "mcai_p0_epoch_20261106a",
+  "neon_branch": "br-cold-tooth-a5clhljh"
+}

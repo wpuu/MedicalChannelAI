@@ -1,0 +1,11 @@
+{
+  "http": 401,
+  "response": {
+    "error": "UNAUTHORIZED"
+  },
+  "headers": {
+    "age": null,
+    "x-vercel-cache": "MISS",
+    "x-medicalchannelai-snapshot-source": null
+  }
+}

@@ -2,18 +2,19 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前新版 Preview 隔离周期（运行中）
+## 当前新版 Preview 隔离周期（完整发布验收完成，来源降级）
 
-- 代码 `2cc47ce5cae29f8eed57b411e647ccc356372719`，[Preview](https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app) `dpl_8oRuWziEBXmq1wKfVxZTSUosErYG` READY；周期标识 `mcai-p0-20261106-a`。
-- 新独立数据库/受限角色 `mcai_p0_epoch_20261106a`，原测试分支 `br-cold-tooth-a5clhljh`；旧部署及旧库保留作对照。新周期缓存、消息/幂等键和发布/触发凭据与旧周期分开，数据库连接前校验指定库名。
-- 889个Python测试、全部JS合约、TypeScript、Vite通过。启动前新库0快照、采集状态为空；旧cron凭据403、旧发布凭据401；新角色不能读旧快照或在旧库建表。
-- 北京时间12:11启动真实Queue，非202即验收通过。[本轮运行报告](preview-epoch-cycle-2026-11-06.md)仍为进行中；最终权威发布、SQL精确时间和浏览器结果待补齐。
-- 已观察到非空事件watch8个项目，其第一批核验失败后六个事件阶段降级；其他医院来源继续。TEDA403一次即降级；北京受限后fallback直接依赖降级，河北当前也限流。不能记为全部来源恢复。
-- `production_ready=false`，不合并、不提升Production，不修改域名/DNS/EdgeOne。旧周期46条/6项浏览器及旧微秒重放结果仅属于上一阶段，不作为本轮完整运行证据。
+- 可执行代码 `2cc47ce5cae29f8eed57b411e647ccc356372719`，[Preview](https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app) `dpl_8oRuWziEBXmq1wKfVxZTSUosErYG` READY；标识 `mcai-p0-20261106-a`，独立数据库/受限角色 `mcai_p0_epoch_20261106a`。
+- 真实新版Queue于北京时间12:11触发一次，13:18发布并释放owner；25阶段8完成、17降级，对应7/14源健康。TEDA403、五地区限流、非空事件核验失败尚未恢复。
+- canonical923、池8、Today5、事件0；durable/cache通过。Queue、Neon完整JSON、权威及普通浏览器SHA均为 `95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361`，SQL与payload精确到微秒；当前浏览器6/6通过。
+- 889个Python、全部JS合约、TypeScript、Vite通过；补强真实完整消息负例后全部889个Python再次通过。本轮收尾仅改测试/文档/证据，不改变已部署应用代码。
+- 新旧缓存键/标签、消息/幂等键、数据库和Preview凭据分离。旧库13:15仍46条且旧精度；新库12:11逻辑版本独立成功。旧消费者保留运行；8条是新验收集，未迁移旧最新数据，不宣称覆盖对齐。
+- 当前依据：[完整报告](preview-epoch-cycle-2026-11-06.md)、[冻结证据](validation/preview-epoch-2026-11-06/manifest.json)。下一步优先补非空事件安全诊断、消除重试耗尽后的额外约302秒等待，再做入口共享冷却和每源独立发布/覆盖回补方案。
+- 本任务临时分享链接均撤销；Production和SSO只读复核未变，原工作树干净；`production_ready=false`，不合并、不提升Production，不改域名/DNS/EdgeOne。
 
 ## 上轮来源故障处理与精度修复（e48990c，历史记录）
 
-- 最新可执行代码：`be87e5f34e088b7d39c381d5855030694b27d568`；[Preview](https://medicalchannelai-ix8zm70ut-rerisse7-1717s-projects.vercel.app) `dpl_F9c2jc8uJuiPELzoHY8rxGZc7aRH` READY，精确版本已读回。工作树/分支不变，原工作树干净。
+- 该轮可执行代码：`be87e5f34e088b7d39c381d5855030694b27d568`；[Preview](https://medicalchannelai-ix8zm70ut-rerisse7-1717s-projects.vercel.app) `dpl_F9c2jc8uJuiPELzoHY8rxGZc7aRH` READY，精确版本已读回。工作树/分支不变，原工作树干净。
 - [本轮修复与验收报告](source-recovery-precision-2026-11-06.md)及[冻结证据](validation/source-recovery-2026-11-06/manifest.json)是本轮依据；下方47条/878测试/34浏览器项属于上一阶段，保留历史绑定。
 - 完整构建884个Python测试、全部JS合约、TypeScript、Vite通过；本轮浏览器6项通过，4次自动AI缓存读取被测试护栏阻断，未发AI请求。
 - 已修区域安全诊断、限流后查询止损、依赖终局降级后的fallback无效重试、明确拒绝访问的一次降级、数据库/缓存微秒版本比较和旧行相同payload重放修复。

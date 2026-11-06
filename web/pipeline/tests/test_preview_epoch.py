@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 import types
 import unittest
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -98,7 +99,14 @@ class PreviewEpochTests(unittest.TestCase):
     def test_foreign_messages_never_touch_runtime_or_mutation_lease(self):
         sys.modules.pop('collector_queue', None)
         worker=importlib.import_module('collector_queue')
-        payloads=[{'schema_version':'0.1','mode':'incremental_tick'},
+        # Capture the actual producer's complete tick envelope before changing
+        # only the epoch, so rejection cannot be explained by malformed fields.
+        before_window = datetime(2026, 11, 6, 3, 0, tzinfo=timezone.utc)
+        scheduled = worker.first_tick_after_deep(before_window)
+        asyncio.run(worker._enqueue_incremental_tick(scheduled, now=before_window))
+        valid = copy.deepcopy(self.native_send.call_args.args[1])
+        legacy = {key:value for key,value in valid.items() if key != 'preview_epoch'}
+        payloads=[legacy, {**valid, 'preview_epoch':'cycle-b'},
                   {'schema_version':'0.1','mode':'incremental','preview_epoch':'cycle-b'},
                   {'schema_version':'0.1','stage':'publish','preview_epoch':'cycle-old'}]
         with patch.object(worker,'RuntimeCache',side_effect=AssertionError('cache touched')), patch.object(
@@ -106,5 +114,5 @@ class PreviewEpochTests(unittest.TestCase):
             worker,'_process_incremental_tick_payload',new_callable=AsyncMock) as tick:
             for payload in payloads:asyncio.run(worker.process_collector_payload(payload))
             tick.assert_not_awaited()
-            asyncio.run(worker.process_collector_payload({'schema_version':'0.1','mode':'incremental_tick','preview_epoch':'cycle-a'}))
+            asyncio.run(worker.process_collector_payload(valid))
             tick.assert_awaited_once()

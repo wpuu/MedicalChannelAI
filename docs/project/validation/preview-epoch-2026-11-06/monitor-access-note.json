@@ -1,0 +1,44 @@
+{
+  "reader_error_count": 8,
+  "reader_errors": [
+    {
+      "at": "2026-11-06T04:51:21.576394+00:00",
+      "monitor_error_type": "RuntimeError"
+    },
+    {
+      "at": "2026-11-06T04:51:41.818115+00:00",
+      "monitor_error_type": "RuntimeError"
+    },
+    {
+      "at": "2026-11-06T04:52:02.036056+00:00",
+      "monitor_error_type": "RuntimeError"
+    },
+    {
+      "at": "2026-11-06T04:52:22.281399+00:00",
+      "monitor_error_type": "RuntimeError"
+    },
+    {
+      "at": "2026-11-06T04:52:42.500519+00:00",
+      "monitor_error_type": "RuntimeError"
+    },
+    {
+      "at": "2026-11-06T04:53:02.722392+00:00",
+      "monitor_error_type": "RuntimeError"
+    },
+    {
+      "at": "2026-11-06T04:53:22.921314+00:00",
+      "monitor_error_type": "RuntimeError"
+    },
+    {
+      "at": "2026-11-06T04:53:43.104220+00:00",
+      "monitor_error_type": "RuntimeError"
+    }
+  ],
+  "protection_http": 401,
+  "source_failure_inferred": false,
+  "exact_provider_mechanism_known": false,
+  "reader_refreshed": true,
+  "queue_retriggered_or_restarted": false,
+  "ln_second_attempt_during_access_gap": "2026-11-06T04:52:33.387533+00:00",
+  "interpretation": "Temporary observer protection-layer access failure; Queue continued independently. Final reader empty errors does not erase earlier access gap."
+}

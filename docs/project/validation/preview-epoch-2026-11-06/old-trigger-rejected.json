@@ -1,0 +1,11 @@
+{
+  "http": 403,
+  "response": {
+    "error": "COLLECTOR_TRIGGER_FORBIDDEN"
+  },
+  "headers": {
+    "age": null,
+    "x-vercel-cache": "BYPASS",
+    "x-medicalchannelai-snapshot-source": null
+  }
+}

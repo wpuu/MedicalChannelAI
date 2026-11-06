@@ -1,0 +1,284 @@
+{
+  "pass": true,
+  "scope": {
+    "target": "preview",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
+    "url": "https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app",
+    "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+    "git_branch": "codex/p0-reliability-contracts",
+    "preview_epoch": "mcai-p0-20261106-a",
+    "database": "mcai_p0_epoch_20261106a",
+    "role": "mcai_p0_epoch_20261106a",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "stage_counts": {
+    "COMPLETED": 8,
+    "DEGRADED": 17
+  },
+  "stages": {
+    "ccgp": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error": null
+    },
+    "event1": {
+      "status": "DEGRADED",
+      "attempt_count": 2,
+      "error": "EVENT_WATCH_VERIFICATION_INCOMPLETE",
+      "diagnostics": null,
+      "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:event1"
+    },
+    "event2": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "COLLECTOR_DEPENDENCY_DEGRADED",
+      "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+    },
+    "event3": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "COLLECTOR_DEPENDENCY_DEGRADED",
+      "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+    },
+    "event4": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "COLLECTOR_DEPENDENCY_DEGRADED",
+      "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+    },
+    "event5": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "COLLECTOR_DEPENDENCY_DEGRADED",
+      "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+    },
+    "event6": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "COLLECTOR_DEPENDENCY_DEGRADED",
+      "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+    },
+    "tjmugh": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error": null
+    },
+    "tjnothop": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error": null
+    },
+    "tjzyefy": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error": null
+    },
+    "tjzyefy_intent": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error": null
+    },
+    "tjzxfc": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error": null
+    },
+    "teda": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "TEDA_INDEX_DISCOVERY_FAILED:TEDA_HTTP_403",
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "TEDA_HTTP_403": 1
+        },
+        "phase_counts": {
+          "index_discovery": 1
+        },
+        "samples": []
+      },
+      "degraded_reason": "COLLECTOR_NON_RETRYABLE_SOURCE_FAILURE"
+    },
+    "tjfch": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error": null
+    },
+    "regional_bj": {
+      "status": "DEGRADED",
+      "attempt_count": 2,
+      "error": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:BJ",
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "RATE_LIMITED": 1
+        },
+        "phase_counts": {
+          "scoped_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "scoped_discovery",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "96fea6a3ea776baa76d577175978254ab0b393779f4e297e114e251735895c7e"
+          }
+        ]
+      },
+      "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_bj"
+    },
+    "regional_bj_fallback": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "COLLECTOR_DEPENDENCY_DEGRADED",
+      "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+    },
+    "regional_he": {
+      "status": "DEGRADED",
+      "attempt_count": 2,
+      "error": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:HE",
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "RATE_LIMITED": 1
+        },
+        "phase_counts": {
+          "scoped_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "scoped_discovery",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "c0ceed634311137c679f66b5509773ce691185545c351ac941f37d592c5679e5"
+          }
+        ]
+      },
+      "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_he"
+    },
+    "regional_he_fallback": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "COLLECTOR_DEPENDENCY_DEGRADED",
+      "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+    },
+    "regional_ln": {
+      "status": "DEGRADED",
+      "attempt_count": 2,
+      "error": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:LN",
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "RATE_LIMITED": 1
+        },
+        "phase_counts": {
+          "scoped_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "scoped_discovery",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "182caec28e6fafda181c474c6bd7cfbcf85b72c4f2f210c9e54ec016f9c10b14"
+          }
+        ]
+      },
+      "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_ln"
+    },
+    "regional_ln_fallback": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "COLLECTOR_DEPENDENCY_DEGRADED",
+      "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+    },
+    "regional_jl": {
+      "status": "DEGRADED",
+      "attempt_count": 2,
+      "error": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:JL",
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "RATE_LIMITED": 1
+        },
+        "phase_counts": {
+          "scoped_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "scoped_discovery",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "a4f6065e2538dd3f73952c2740af6245b9d7643ba137b864e9e9812f572ad52c"
+          }
+        ]
+      },
+      "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_jl"
+    },
+    "regional_jl_fallback": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "COLLECTOR_DEPENDENCY_DEGRADED",
+      "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+    },
+    "regional_hl": {
+      "status": "DEGRADED",
+      "attempt_count": 2,
+      "error": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:HL",
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "RATE_LIMITED": 1
+        },
+        "phase_counts": {
+          "scoped_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "scoped_discovery",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "fc8582dd66aa469c2e135891896eea10f1bfa909eacda0b97269097169882385"
+          }
+        ]
+      },
+      "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_hl"
+    },
+    "regional_hl_fallback": {
+      "status": "DEGRADED",
+      "attempt_count": 1,
+      "error": "COLLECTOR_DEPENDENCY_DEGRADED",
+      "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+    },
+    "publish": {
+      "status": "COMPLETED",
+      "attempt_count": 1,
+      "error": null
+    }
+  },
+  "deep_publish": {
+    "snapshot_as_of": "2026-11-06T12:11:39.984178+08:00",
+    "today_card_count": 5,
+    "opportunity_pool_count": 8,
+    "canonical_record_count": 923,
+    "notice_event_count": 0,
+    "sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+    "durable_snapshot_persisted": true,
+    "durable_snapshot_as_of": "2026-11-06T12:11:39.984178+08:00",
+    "cache_status": "READY"
+  },
+  "deep_database_sha_matches": true,
+  "serving_snapshot_as_of": "2026-11-06T12:11:39.984178+08:00",
+  "serving_sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+  "serving_same_as_deep": true,
+  "sql_timestamp_exactly_matches_payload": true,
+  "source": "DATABASE",
+  "manual_qa_fixture": false,
+  "notice_event_count": 0,
+  "tick_chain": {
+    "state": "SCHEDULED",
+    "business_date": "2026-11-06",
+    "tick_id": null,
+    "next_tick_id": "incremental-tick:20261106T1330+0800:09",
+    "selected_source": null,
+    "detail": null,
+    "updated_at": "2026-11-06T05:18:15.953739+00:00"
+  },
+  "automatic_new_tick_executed_claimed": false
+}

@@ -1,0 +1,826 @@
+{
+  "observed_at": "2026-11-06T05:18:18.750790+00:00",
+  "scope": {
+    "target": "preview",
+    "project_id": "prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM",
+    "team_id": "team_jEy8Ex9vRDBdXj1cQPKF8sRd",
+    "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
+    "url": "https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app",
+    "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+    "git_branch": "codex/p0-reliability-contracts",
+    "preview_epoch": "mcai-p0-20261106-a",
+    "database": "mcai_p0_epoch_20261106a",
+    "role": "mcai_p0_epoch_20261106a",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "collector": {
+    "schema_version": "0.1",
+    "local_date": "2026-11-06",
+    "cycle_as_of": "2026-11-06T12:11:39.984178+08:00",
+    "stages": {
+      "ccgp": {
+        "status": "COMPLETED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:11:40.817637+00:00",
+        "completed_at": "2026-11-06T04:13:32.650203+00:00",
+        "error_code": null,
+        "error_message": null,
+        "result": {
+          "start_date": "2026-11-04",
+          "end_date": "2026-11-06",
+          "planned_discovery_query_count": 10,
+          "discovery_success_count": 10,
+          "unique_discovered_candidate_count": 26,
+          "selected_candidate_count": 12,
+          "new_verified_record_count": 12,
+          "merged_record_count": 68,
+          "event_watch_project_count": 8,
+          "failure_count": 0,
+          "publish_gate_reason": "PASS",
+          "bootstrapped_records": true,
+          "bootstrapped_events": true
+        }
+      },
+      "event1": {
+        "status": "DEGRADED",
+        "attempt_count": 2,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:18:40.254680+00:00",
+        "completed_at": "2026-11-06T04:24:45.526371+00:00",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error_message": "EVENT_WATCH_VERIFICATION_INCOMPLETE",
+        "result": null,
+        "diagnostics": null,
+        "retryable": true,
+        "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:event1"
+      },
+      "event2": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:24:47.836268+00:00",
+        "completed_at": "2026-11-06T04:24:47.839611+00:00",
+        "error_code": "SOURCE_SCAN_FAILED",
+        "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+        "result": null,
+        "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+      },
+      "event3": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:24:50.233472+00:00",
+        "completed_at": "2026-11-06T04:24:50.236617+00:00",
+        "error_code": "SOURCE_SCAN_FAILED",
+        "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+        "result": null,
+        "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+      },
+      "event4": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:24:52.652593+00:00",
+        "completed_at": "2026-11-06T04:24:52.655764+00:00",
+        "error_code": "SOURCE_SCAN_FAILED",
+        "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+        "result": null,
+        "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+      },
+      "event5": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:24:54.993143+00:00",
+        "completed_at": "2026-11-06T04:24:54.996333+00:00",
+        "error_code": "SOURCE_SCAN_FAILED",
+        "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+        "result": null,
+        "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+      },
+      "event6": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:24:57.317472+00:00",
+        "completed_at": "2026-11-06T04:24:57.320377+00:00",
+        "error_code": "SOURCE_SCAN_FAILED",
+        "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+        "result": null,
+        "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+      },
+      "tjmugh": {
+        "status": "COMPLETED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:24:59.769815+00:00",
+        "completed_at": "2026-11-06T04:25:05.684529+00:00",
+        "error_code": null,
+        "error_message": null,
+        "result": {
+          "discovered_supported_count": 2,
+          "selected_candidate_count": 1,
+          "new_verified_record_count": 1,
+          "merged_record_count": 4,
+          "failure_count": 0,
+          "bootstrapped_records": true,
+          "publish_gate_reason": "PASS"
+        }
+      },
+      "tjnothop": {
+        "status": "COMPLETED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:25:08.111688+00:00",
+        "completed_at": "2026-11-06T04:25:10.206607+00:00",
+        "error_code": null,
+        "error_message": null,
+        "result": {
+          "discovered_supported_count": 0,
+          "selected_candidate_count": 0,
+          "new_verified_record_count": 0,
+          "merged_record_count": 0,
+          "failure_count": 0,
+          "bootstrapped_records": true,
+          "publish_gate_reason": "PASS"
+        }
+      },
+      "tjzyefy": {
+        "status": "COMPLETED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:25:12.574698+00:00",
+        "completed_at": "2026-11-06T04:25:50.165389+00:00",
+        "error_code": null,
+        "error_message": null,
+        "result": {
+          "discovered_supported_count": 8,
+          "selected_candidate_count": 8,
+          "deferred_detail_count": 0,
+          "new_verified_record_count": 8,
+          "unsupported_count": 0,
+          "failure_count": 0,
+          "merged_record_count": 12,
+          "publish_gate_reason": "PASS"
+        }
+      },
+      "tjzyefy_intent": {
+        "status": "COMPLETED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:25:52.490906+00:00",
+        "completed_at": "2026-11-06T04:26:02.676931+00:00",
+        "error_code": null,
+        "error_message": null,
+        "result": {
+          "discovered_supported_count": 2,
+          "selected_candidate_count": 2,
+          "deferred_detail_count": 0,
+          "new_verified_record_count": 1,
+          "unsupported_count": 1,
+          "failure_count": 0,
+          "merged_record_count": 5,
+          "publish_gate_reason": "PASS"
+        }
+      },
+      "tjzxfc": {
+        "status": "COMPLETED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:26:05.097734+00:00",
+        "completed_at": "2026-11-06T04:26:28.636808+00:00",
+        "error_code": null,
+        "error_message": null,
+        "result": {
+          "discovered_supported_count": 5,
+          "selected_candidate_count": 5,
+          "deferred_detail_count": 0,
+          "new_verified_record_count": 1,
+          "unsupported_count": 4,
+          "failure_count": 0,
+          "merged_record_count": 1,
+          "publish_gate_reason": "PASS"
+        }
+      },
+      "teda": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:26:30.987314+00:00",
+        "completed_at": "2026-11-06T04:26:33.493611+00:00",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error_message": "TEDA_INDEX_DISCOVERY_FAILED:TEDA_HTTP_403",
+        "result": null,
+        "diagnostics": {
+          "failure_count": 1,
+          "reason_counts": {
+            "TEDA_HTTP_403": 1
+          },
+          "phase_counts": {
+            "index_discovery": 1
+          },
+          "samples": []
+        },
+        "retryable": false,
+        "degraded_reason": "COLLECTOR_NON_RETRYABLE_SOURCE_FAILURE"
+      },
+      "tjfch": {
+        "status": "COMPLETED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:26:35.814111+00:00",
+        "completed_at": "2026-11-06T04:26:56.779094+00:00",
+        "error_code": null,
+        "error_message": null,
+        "result": {
+          "discovered_supported_count": 6,
+          "selected_candidate_count": 2,
+          "new_verified_record_count": 1,
+          "early_discovered": 2,
+          "early_new_verified_record_count": 0,
+          "early_out_of_window_count": 2,
+          "unsupported_candidate_count": 1,
+          "merged_record_count": 3,
+          "failure_count": 0,
+          "bootstrapped_records": true,
+          "publish_gate_reason": "PASS"
+        }
+      },
+      "regional_bj": {
+        "status": "DEGRADED",
+        "attempt_count": 2,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:32:04.347027+00:00",
+        "completed_at": "2026-11-06T04:37:09.468034+00:00",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error_message": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:BJ",
+        "result": null,
+        "diagnostics": {
+          "failure_count": 1,
+          "reason_counts": {
+            "RATE_LIMITED": 1
+          },
+          "phase_counts": {
+            "scoped_discovery": 1
+          },
+          "samples": [
+            {
+              "phase": "scoped_discovery",
+              "reason": "RATE_LIMITED",
+              "candidate_ref": "96fea6a3ea776baa76d577175978254ab0b393779f4e297e114e251735895c7e"
+            }
+          ]
+        },
+        "retryable": true,
+        "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_bj"
+      },
+      "regional_bj_fallback": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:37:11.809482+00:00",
+        "completed_at": "2026-11-06T04:37:11.813078+00:00",
+        "error_code": "SOURCE_SCAN_FAILED",
+        "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+        "result": null,
+        "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+      },
+      "regional_he": {
+        "status": "DEGRADED",
+        "attempt_count": 2,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:42:19.342730+00:00",
+        "completed_at": "2026-11-06T04:47:24.430695+00:00",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error_message": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:HE",
+        "result": null,
+        "diagnostics": {
+          "failure_count": 1,
+          "reason_counts": {
+            "RATE_LIMITED": 1
+          },
+          "phase_counts": {
+            "scoped_discovery": 1
+          },
+          "samples": [
+            {
+              "phase": "scoped_discovery",
+              "reason": "RATE_LIMITED",
+              "candidate_ref": "c0ceed634311137c679f66b5509773ce691185545c351ac941f37d592c5679e5"
+            }
+          ]
+        },
+        "retryable": true,
+        "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_he"
+      },
+      "regional_he_fallback": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:47:26.713964+00:00",
+        "completed_at": "2026-11-06T04:47:26.717177+00:00",
+        "error_code": "SOURCE_SCAN_FAILED",
+        "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+        "result": null,
+        "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+      },
+      "regional_ln": {
+        "status": "DEGRADED",
+        "attempt_count": 2,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:52:33.387533+00:00",
+        "completed_at": "2026-11-06T04:57:38.604097+00:00",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error_message": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:LN",
+        "result": null,
+        "diagnostics": {
+          "failure_count": 1,
+          "reason_counts": {
+            "RATE_LIMITED": 1
+          },
+          "phase_counts": {
+            "scoped_discovery": 1
+          },
+          "samples": [
+            {
+              "phase": "scoped_discovery",
+              "reason": "RATE_LIMITED",
+              "candidate_ref": "182caec28e6fafda181c474c6bd7cfbcf85b72c4f2f210c9e54ec016f9c10b14"
+            }
+          ]
+        },
+        "retryable": true,
+        "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_ln"
+      },
+      "regional_ln_fallback": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T04:57:40.869606+00:00",
+        "completed_at": "2026-11-06T04:57:40.872666+00:00",
+        "error_code": "SOURCE_SCAN_FAILED",
+        "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+        "result": null,
+        "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+      },
+      "regional_jl": {
+        "status": "DEGRADED",
+        "attempt_count": 2,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T05:02:48.539084+00:00",
+        "completed_at": "2026-11-06T05:07:53.628561+00:00",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error_message": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:JL",
+        "result": null,
+        "diagnostics": {
+          "failure_count": 1,
+          "reason_counts": {
+            "RATE_LIMITED": 1
+          },
+          "phase_counts": {
+            "scoped_discovery": 1
+          },
+          "samples": [
+            {
+              "phase": "scoped_discovery",
+              "reason": "RATE_LIMITED",
+              "candidate_ref": "a4f6065e2538dd3f73952c2740af6245b9d7643ba137b864e9e9812f572ad52c"
+            }
+          ]
+        },
+        "retryable": true,
+        "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_jl"
+      },
+      "regional_jl_fallback": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T05:07:55.953950+00:00",
+        "completed_at": "2026-11-06T05:07:55.957418+00:00",
+        "error_code": "SOURCE_SCAN_FAILED",
+        "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+        "result": null,
+        "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+      },
+      "regional_hl": {
+        "status": "DEGRADED",
+        "attempt_count": 2,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T05:13:03.543518+00:00",
+        "completed_at": "2026-11-06T05:18:08.770872+00:00",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error_message": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:HL",
+        "result": null,
+        "diagnostics": {
+          "failure_count": 1,
+          "reason_counts": {
+            "RATE_LIMITED": 1
+          },
+          "phase_counts": {
+            "scoped_discovery": 1
+          },
+          "samples": [
+            {
+              "phase": "scoped_discovery",
+              "reason": "RATE_LIMITED",
+              "candidate_ref": "fc8582dd66aa469c2e135891896eea10f1bfa909eacda0b97269097169882385"
+            }
+          ]
+        },
+        "retryable": true,
+        "degraded_reason": "COLLECTOR_STAGE_RETRY_LIMIT:regional_hl"
+      },
+      "regional_hl_fallback": {
+        "status": "DEGRADED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T05:18:11.074857+00:00",
+        "completed_at": "2026-11-06T05:18:11.078634+00:00",
+        "error_code": "SOURCE_SCAN_FAILED",
+        "error_message": "COLLECTOR_DEPENDENCY_DEGRADED",
+        "result": null,
+        "degraded_reason": "COLLECTOR_DEPENDENCY_DEGRADED"
+      },
+      "publish": {
+        "status": "COMPLETED",
+        "attempt_count": 1,
+        "started_at": "2026-11-06T04:11:39.984178+00:00",
+        "wall_started_at": "2026-11-06T05:18:13.391853+00:00",
+        "completed_at": "2026-11-06T05:18:15.803830+00:00",
+        "error_code": null,
+        "error_message": null,
+        "result": {
+          "snapshot_as_of": "2026-11-06T12:11:39.984178+08:00",
+          "today_card_count": 5,
+          "opportunity_pool_count": 8,
+          "canonical_record_count": 923,
+          "notice_event_count": 0,
+          "sha256": "95c7d41525212f3758e50579550fadc8b2034b78a16443d89390b09b35de9361",
+          "durable_snapshot_persisted": true,
+          "durable_snapshot_as_of": "2026-11-06T12:11:39.984178+08:00",
+          "cache_status": "READY"
+        }
+      }
+    },
+    "updated_at": "2026-11-06T05:18:15.803850+00:00",
+    "preview_epoch": "mcai-p0-20261106-a",
+    "active_cycle_id": null,
+    "execution_namespace": "v2",
+    "stage_order": [
+      "ccgp",
+      "event1",
+      "event2",
+      "event3",
+      "event4",
+      "event5",
+      "event6",
+      "tjmugh",
+      "tjnothop",
+      "tjzyefy",
+      "tjzyefy_intent",
+      "tjzxfc",
+      "teda",
+      "tjfch",
+      "regional_bj",
+      "regional_bj_fallback",
+      "regional_he",
+      "regional_he_fallback",
+      "regional_ln",
+      "regional_ln_fallback",
+      "regional_jl",
+      "regional_jl_fallback",
+      "regional_hl",
+      "regional_hl_fallback",
+      "publish"
+    ],
+    "completed_stage_count": 8,
+    "total_stage_count": 25,
+    "source_scan_health": {
+      "schema_version": "0.1",
+      "required_source_ids": [
+        "ccgp",
+        "tjmugh",
+        "tjnothop",
+        "teda",
+        "tjfch",
+        "tjfch_test",
+        "tjzyefy",
+        "tjzyefy_intent",
+        "tjzxfc",
+        "regional_bj",
+        "regional_he",
+        "regional_ln",
+        "regional_jl",
+        "regional_hl"
+      ],
+      "sources": {
+        "ccgp": {
+          "last_attempt_at": "2026-11-06T04:24:57.320377+00:00",
+          "last_successful_scan_at": null,
+          "failure_reason": "SOURCE_SCAN_FAILED",
+          "stale_after_seconds": 172800
+        },
+        "tjmugh": {
+          "last_attempt_at": "2026-11-06T04:25:05.690487+00:00",
+          "last_successful_scan_at": "2026-11-06T04:25:05.690487+00:00",
+          "failure_reason": null,
+          "stale_after_seconds": 86400
+        },
+        "tjnothop": {
+          "last_attempt_at": "2026-11-06T04:25:10.209450+00:00",
+          "last_successful_scan_at": "2026-11-06T04:25:10.209450+00:00",
+          "failure_reason": null,
+          "stale_after_seconds": 86400
+        },
+        "teda": {
+          "last_attempt_at": "2026-11-06T04:26:33.493611+00:00",
+          "last_successful_scan_at": null,
+          "failure_reason": "SOURCE_SCAN_FAILED",
+          "stale_after_seconds": 86400
+        },
+        "tjfch": {
+          "last_attempt_at": "2026-11-06T04:26:56.782313+00:00",
+          "last_successful_scan_at": "2026-11-06T04:26:56.782313+00:00",
+          "failure_reason": null,
+          "stale_after_seconds": 86400
+        },
+        "tjfch_test": {
+          "last_attempt_at": "2026-11-06T04:26:56.788964+00:00",
+          "last_successful_scan_at": "2026-11-06T04:26:56.788964+00:00",
+          "failure_reason": null,
+          "stale_after_seconds": 86400
+        },
+        "tjzyefy": {
+          "last_attempt_at": "2026-11-06T04:25:50.168797+00:00",
+          "last_successful_scan_at": "2026-11-06T04:25:50.168797+00:00",
+          "failure_reason": null,
+          "stale_after_seconds": 86400
+        },
+        "tjzyefy_intent": {
+          "last_attempt_at": "2026-11-06T04:26:02.680358+00:00",
+          "last_successful_scan_at": "2026-11-06T04:26:02.680358+00:00",
+          "failure_reason": null,
+          "stale_after_seconds": 86400
+        },
+        "tjzxfc": {
+          "last_attempt_at": "2026-11-06T04:26:28.639957+00:00",
+          "last_successful_scan_at": "2026-11-06T04:26:28.639957+00:00",
+          "failure_reason": null,
+          "stale_after_seconds": 86400
+        },
+        "regional_bj": {
+          "last_attempt_at": "2026-11-06T04:37:11.813078+00:00",
+          "last_successful_scan_at": null,
+          "failure_reason": "SOURCE_SCAN_FAILED",
+          "stale_after_seconds": 172800
+        },
+        "regional_he": {
+          "last_attempt_at": "2026-11-06T04:47:26.717177+00:00",
+          "last_successful_scan_at": null,
+          "failure_reason": "SOURCE_SCAN_FAILED",
+          "stale_after_seconds": 172800
+        },
+        "regional_ln": {
+          "last_attempt_at": "2026-11-06T04:57:40.872666+00:00",
+          "last_successful_scan_at": null,
+          "failure_reason": "SOURCE_SCAN_FAILED",
+          "stale_after_seconds": 172800
+        },
+        "regional_jl": {
+          "last_attempt_at": "2026-11-06T05:07:55.957418+00:00",
+          "last_successful_scan_at": null,
+          "failure_reason": "SOURCE_SCAN_FAILED",
+          "stale_after_seconds": 172800
+        },
+        "regional_hl": {
+          "last_attempt_at": "2026-11-06T05:18:11.078634+00:00",
+          "last_successful_scan_at": null,
+          "failure_reason": "SOURCE_SCAN_FAILED",
+          "stale_after_seconds": 172800
+        }
+      }
+    },
+    "incremental": {
+      "active_scan_id": null,
+      "tick_policy": {
+        "timezone": "Asia/Shanghai",
+        "business_window_start": "11:30",
+        "business_window_end": "19:00",
+        "tick_interval_minutes": 15
+      },
+      "chain": {
+        "state": "SCHEDULED",
+        "business_date": "2026-11-06",
+        "tick_id": null,
+        "next_tick_id": "incremental-tick:20261106T1330+0800:09",
+        "selected_source": null,
+        "detail": null,
+        "updated_at": "2026-11-06T05:18:15.953739+00:00"
+      },
+      "sources": {
+        "tjmugh": {
+          "policy": {
+            "scan_interval_minutes": 60,
+            "reverify_after_hours": 24,
+            "max_details_per_scan": 12
+          },
+          "ledger": {
+            "candidate_count": 0,
+            "verified_count": 0,
+            "failed_count": 0,
+            "unverified_count": 0,
+            "updated_at": null,
+            "failed_reason_counts": {},
+            "failed_candidates": []
+          },
+          "staging": {
+            "record_count": 0,
+            "barrier_count": 0
+          },
+          "last_completed_scan": {
+            "bucket_id": null,
+            "completed_at": null,
+            "result": null
+          }
+        },
+        "tjnothop": {
+          "policy": {
+            "scan_interval_minutes": 60,
+            "reverify_after_hours": 24,
+            "max_details_per_scan": 12
+          },
+          "ledger": {
+            "candidate_count": 0,
+            "verified_count": 0,
+            "failed_count": 0,
+            "unverified_count": 0,
+            "updated_at": null,
+            "failed_reason_counts": {},
+            "failed_candidates": []
+          },
+          "staging": {
+            "record_count": 0,
+            "barrier_count": 0
+          },
+          "last_completed_scan": {
+            "bucket_id": null,
+            "completed_at": null,
+            "result": null
+          }
+        },
+        "tjfch": {
+          "policy": {
+            "scan_interval_minutes": 60,
+            "reverify_after_hours": 24,
+            "max_details_per_scan": 12
+          },
+          "ledger": {
+            "candidate_count": 0,
+            "verified_count": 0,
+            "failed_count": 0,
+            "unverified_count": 0,
+            "updated_at": null,
+            "failed_reason_counts": {},
+            "failed_candidates": []
+          },
+          "staging": {
+            "record_count": 0,
+            "barrier_count": 0
+          },
+          "last_completed_scan": {
+            "bucket_id": null,
+            "completed_at": null,
+            "result": null
+          }
+        },
+        "tjfch_test": {
+          "policy": {
+            "scan_interval_minutes": 60,
+            "reverify_after_hours": 12,
+            "max_details_per_scan": 12
+          },
+          "ledger": {
+            "candidate_count": 0,
+            "verified_count": 0,
+            "failed_count": 0,
+            "unverified_count": 0,
+            "updated_at": null,
+            "failed_reason_counts": {},
+            "failed_candidates": []
+          },
+          "staging": {
+            "record_count": 0,
+            "barrier_count": 0
+          },
+          "last_completed_scan": {
+            "bucket_id": null,
+            "completed_at": null,
+            "result": null
+          }
+        },
+        "teda": {
+          "policy": {
+            "scan_interval_minutes": 120,
+            "reverify_after_hours": 24,
+            "max_details_per_scan": 12
+          },
+          "ledger": {
+            "candidate_count": 0,
+            "verified_count": 0,
+            "failed_count": 0,
+            "unverified_count": 0,
+            "updated_at": null,
+            "failed_reason_counts": {},
+            "failed_candidates": []
+          },
+          "staging": {
+            "record_count": 0,
+            "barrier_count": 0
+          },
+          "last_completed_scan": {
+            "bucket_id": null,
+            "completed_at": null,
+            "result": null
+          }
+        },
+        "tjzyefy": {
+          "policy": {
+            "scan_interval_minutes": 60,
+            "reverify_after_hours": 24,
+            "max_details_per_scan": 12
+          },
+          "ledger": {
+            "candidate_count": 0,
+            "verified_count": 0,
+            "failed_count": 0,
+            "unverified_count": 0,
+            "updated_at": null,
+            "failed_reason_counts": {},
+            "failed_candidates": []
+          },
+          "staging": {
+            "record_count": 0,
+            "barrier_count": 0
+          },
+          "last_completed_scan": {
+            "bucket_id": null,
+            "completed_at": null,
+            "result": null
+          }
+        },
+        "tjzyefy_intent": {
+          "policy": {
+            "scan_interval_minutes": 120,
+            "reverify_after_hours": 24,
+            "max_details_per_scan": 12
+          },
+          "ledger": {
+            "candidate_count": 0,
+            "verified_count": 0,
+            "failed_count": 0,
+            "unverified_count": 0,
+            "updated_at": null,
+            "failed_reason_counts": {},
+            "failed_candidates": []
+          },
+          "staging": {
+            "record_count": 0,
+            "barrier_count": 0
+          },
+          "last_completed_scan": {
+            "bucket_id": null,
+            "completed_at": null,
+            "result": null
+          }
+        },
+        "tjzxfc": {
+          "policy": {
+            "scan_interval_minutes": 60,
+            "reverify_after_hours": 24,
+            "max_details_per_scan": 12
+          },
+          "ledger": {
+            "candidate_count": 0,
+            "verified_count": 0,
+            "failed_count": 0,
+            "unverified_count": 0,
+            "updated_at": null,
+            "failed_reason_counts": {},
+            "failed_candidates": []
+          },
+          "staging": {
+            "record_count": 0,
+            "barrier_count": 0
+          },
+          "last_completed_scan": {
+            "bucket_id": null,
+            "completed_at": null,
+            "result": null
+          }
+        }
+      }
+    }
+  },
+  "runtime_monitor_errors": []
+}

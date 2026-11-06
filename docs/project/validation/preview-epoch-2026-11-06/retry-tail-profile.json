@@ -1,0 +1,35 @@
+{
+  "observations": [
+    {
+      "stage": "regional_bj",
+      "second_failure_at": "2026-11-06T04:32:07.691460+00:00",
+      "degraded_at": "2026-11-06T04:37:09.468034+00:00",
+      "seconds_to_degrade": 301.777
+    },
+    {
+      "stage": "regional_he",
+      "second_failure_at": "2026-11-06T04:42:22.374464+00:00",
+      "degraded_at": "2026-11-06T04:47:24.430695+00:00",
+      "seconds_to_degrade": 302.056
+    },
+    {
+      "stage": "regional_ln",
+      "second_failure_at": "2026-11-06T04:52:36.728112+00:00",
+      "degraded_at": "2026-11-06T04:57:38.604097+00:00",
+      "seconds_to_degrade": 301.876
+    },
+    {
+      "stage": "regional_jl",
+      "second_failure_at": "2026-11-06T05:02:51.665515+00:00",
+      "degraded_at": "2026-11-06T05:07:53.628561+00:00",
+      "seconds_to_degrade": 301.963
+    },
+    {
+      "stage": "regional_hl",
+      "second_failure_at": "2026-11-06T05:13:06.697640+00:00",
+      "degraded_at": "2026-11-06T05:18:08.770872+00:00",
+      "seconds_to_degrade": 302.073
+    }
+  ],
+  "interpretation": "Single-cycle wall timestamps. Early event1 failure completion was not captured in the earlier monitor schema and is excluded; no inferred or P95 timings."
+}
