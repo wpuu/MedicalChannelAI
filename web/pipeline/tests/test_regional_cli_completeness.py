@@ -462,6 +462,32 @@ class RegionalCliCompletenessTests(unittest.TestCase):
         with self.assertRaises(target.CliBudgetExceeded):
             budget.check('FINALIZE', finalize=True)
 
+    def test_parameterized_runtime_budget_retains_preflight_origin(self):
+        clock = FakeClock()
+        clock.value = 100
+        budget = target.CliBudget(clock, clock.sleep, total_seconds=270, work_seconds=210, started_at=0)
+        self.assertEqual(budget.started, 0)
+        self.assertEqual(budget.request_timeout(90, 'READ'), 90)
+        clock.value = 205
+        self.assertEqual(budget.request_timeout(90, 'READ'), 4)
+        self.assertEqual(budget.snapshot()['finalize_reserve_seconds'], 60)
+        clock.value = 210
+        with self.assertRaises(target.CliBudgetExceeded):
+            budget.check('READ')
+        budget.check('FINALIZE', finalize=True)
+
+    def test_budget_configuration_rejects_invalid_or_future_origins(self):
+        clock = FakeClock()
+        for options in ({'work_seconds': 900}, {'total_seconds': -1}, {'work_seconds': 0},
+                        {'started_at': 1}, {'started_at': float('nan')}, {'total_seconds': float('inf')}):
+            with self.subTest(options=options), self.assertRaises(ValueError):
+                target.CliBudget(clock, clock.sleep, **options)
+
+    def test_cli_default_budget_numbers_stay_900_840_60(self):
+        clock = FakeClock()
+        snapshot = target.CliBudget(clock, clock.sleep).snapshot()
+        self.assertEqual([snapshot[k] for k in ('total_seconds', 'work_seconds', 'finalize_reserve_seconds')], [900, 840, 60])
+
     def test_request_timeout_caps_and_remaining_budget(self):
         clock = FakeClock()
         budget = target.CliBudget(clock, clock.sleep)

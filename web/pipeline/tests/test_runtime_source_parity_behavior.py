@@ -4,9 +4,11 @@ import copy
 import importlib
 import io
 import json
+import socket
 import sys
 import types
 import unittest
+import urllib.request
 from collections import Counter
 from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone
@@ -49,6 +51,10 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
         sleep = patch.object(self.runtime.time, "sleep")
         sleep.start()
         self.addCleanup(sleep.stop)
+        for owner, name in ((socket, 'socket'), (socket, 'create_connection'), (urllib.request, 'build_opener')):
+            blocker = patch.object(owner, name, side_effect=AssertionError('NETWORK_OR_REAL_CLIENT_FORBIDDEN'))
+            blocker.start()
+            self.addCleanup(blocker.stop)
 
     def fixture(self, source):
         # Minimal synthetic HTML bodies, never captured live responses. Titles,
@@ -307,6 +313,176 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
                 with self.assertRaisesRegex(self.runtime.CollectorStageBlocked, "CANDIDATE_VERIFICATION_INCOMPLETE"):
                     getattr(self.runtime, f"_run_{source}")(self.cache, self.state)
                 self.assertEqual(self.cache.get(key), [])
+
+    def regional_budget_case(self, mode='success', *, stage='regional_he'):
+        r = self.runtime
+        corpus = WEB_ROOT / 'pipeline/tests/fixtures/ccgp_template_audit_20261106'
+        case = next(c for c in json.loads((corpus / 'manifest.json').read_text())['cases'] if c['label'] == 'ccgp_he_2a9ca892bf9d0b6a')
+        html = (corpus / case['file']).read_bytes().decode(case['encoding'])
+        plan = r.load_regional_plan(r.DATA_ROOT / 'multi_region_query_plan.json')
+        plan.update(keywords=['first', 'second'], notice_types=['公开招标'], delay_seconds=4)
+        candidate = types.SimpleNamespace(title='医院医疗设备', region='河北', notice_type='公开招标',
+            published_at='2026-09-08', buyer_name='医院', detail_url=case['url'])
+        old = next(row for row in json.loads((r.DATA_ROOT / 'regional_live_ccgp_records.json').read_text())
+                   if row['source']['url'] != case['url'] and row['facts'].get('market_code') == 'HE')
+        key = r._regional_records_key('HE')
+        self.cache.set(key, [old])
+        prior = (self.now - timedelta(days=1)).isoformat()
+        self.cache.set(r.SOURCE_HEALTH_KEY, {'schema_version':'0.1','sources':{'regional_he':{'last_successful_scan_at':prior}}})
+        pending_key = 'medicalchannelai:collector-incremental-pending-barrier:tjzyefy:v2'
+        self.cache.set(pending_key, ['unresolved'])
+        ledger_key = 'medicalchannelai:collector-incremental-ledger:tjzyefy:v2'
+        self.cache.set(ledger_key, {'entries':{'retained':{'verification_status':'UNVERIFIED'}}})
+        before_ledger = self.cache.get(ledger_key)
+        stages = {name:{'status':'COMPLETED'} for name in r.STAGE_ORDER[:r.STAGE_ORDER.index(stage)]}
+        if stage.endswith('_fallback'):
+            stages['regional_he']['result'] = {'fallback_required':True}
+        self.cache.set(r.META_KEY, {**self.state, 'stages':stages})
+        tick = [0.0]
+        sleeps = []
+        def sleep(delay):
+            sleeps.append(delay)
+            tick[0] = 210 if mode == 'sleep_overrun' else tick[0] + delay
+        budget = r.CliBudget(lambda:tick[0], sleep, total_seconds=270, work_seconds=210, started_at=0)
+        if mode in ('expired', 'margin'):
+            tick[0] = 210 if mode == 'expired' else 209
+        def discover(session, **kwargs):
+            if mode == 'ordinary_error' and kwargs['keyword'] == 'second':
+                raise TimeoutError('OFFLINE_TRANSIENT')
+            if mode in ('search_late','failure_state_error'): tick[0] = 210
+            if mode == 'sleep_admission': tick[0] = 206
+            if mode == 'timeout_near' and kwargs['keyword'] == 'second': tick[0] = 200
+            if mode == 'empty' or kwargs['page_index'] > 1:
+                return []
+            return [('公开招标', candidate)]
+        def fetch(url, **kwargs):
+            if mode == 'detail_late': tick[0] = 210
+            return html
+        adapter = r.VERIFIED_NOTICE_ADAPTERS['公开招标']
+        def parse(*args, **kwargs):
+            result = adapter(*args, **kwargs)
+            if mode == 'parse_late': tick[0] = 210
+            return result
+        original_set = self.cache.set
+        def cache_set(cache_key, value, options=None):
+            if cache_key == r.META_KEY and mode == 'failure_state_error' and value['stages'][stage]['status'] == 'FAILED':
+                raise OSError('OFFLINE_FAILURE_STATE_ERROR')
+            if cache_key == key and mode == 'write_error_before':
+                raise OSError('OFFLINE_WRITE_ERROR')
+            if cache_key == r.SOURCE_HEALTH_KEY and mode == 'health_error':
+                raise OSError('OFFLINE_HEALTH_ERROR')
+            original_set(cache_key, value, options)
+            if cache_key == key and mode == 'write_then_error':
+                raise OSError('OFFLINE_WRITE_RESULT_UNKNOWN')
+            if (cache_key == key and mode == 'commit_late') or (cache_key == r.SOURCE_HEALTH_KEY and mode == 'health_late'):
+                tick[0] = 270
+        original_check = budget.check
+        def check(phase, **kwargs):
+            if mode == 'precommit_late' and phase == 'REGIONAL_PRE_COMMIT': tick[0] = 270
+            return original_check(phase, **kwargs)
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(r,'load_regional_plan',return_value=plan))
+            session = stack.enter_context(patch.object(r,'RegionalCcgpSearchSession'))
+            search = stack.enter_context(patch.object(r,'fetch_regional_candidates_page',side_effect=discover))
+            detail = stack.enter_context(patch.object(r,'fetch_ccgp_detail_html',side_effect=fetch))
+            parser = stack.enter_context(patch.dict(r.VERIFIED_NOTICE_ADAPTERS,{'公开招标':parse}))
+            stack.enter_context(patch.object(self.cache,'set',side_effect=cache_set))
+            stack.enter_context(patch.object(budget,'check',side_effect=check))
+            stack.enter_context(patch.object(r,'_now_utc',return_value=self.now))
+            error = None
+            try:
+                status, result = r.run_stage(stage, now=self.now, budget=budget)
+            except r.CollectorStageBlocked as exc:
+                status, result, error = None, {'diagnostics':exc.diagnostics}, str(exc)
+            return {'status':status,'result':result,'error':error,'canonical':self.cache.get(key),'old':[old],
+                    'stage':self.cache.get(r.META_KEY)['stages'][stage],
+                    'health':self.cache.get(r.SOURCE_HEALTH_KEY)['sources']['regional_he'], 'prior':prior,
+                    'pending':self.cache.get(pending_key),'ledger_unchanged':self.cache.get(ledger_key)==before_ledger,
+                    'search_calls':search.call_count,'detail_calls':detail.call_count,'session_calls':session.call_count,
+                    'timeouts':[c.kwargs.get('timeout_seconds') for c in detail.call_args_list], 'sleeps':sleeps}
+
+    def test_runtime_budget_expired_or_margin_rejects_before_session(self):
+        for mode in ('expired','margin'):
+            with self.subTest(mode=mode):
+                result = self.regional_budget_case(mode)
+                self.assertEqual(result['status'],503)
+                self.assertEqual((result['session_calls'],result['search_calls'],result['detail_calls']),(0,0,0))
+                self.assertEqual(result['canonical'],result['old'])
+                self.assertTrue(result['result']['retryable'])
+
+    def test_runtime_budget_stops_late_work_and_preserves_pending_health(self):
+        for mode in ('search_late','sleep_admission','sleep_overrun','detail_late','parse_late','precommit_late'):
+            with self.subTest(mode=mode):
+                result = self.regional_budget_case(mode)
+                self.assertEqual(result['status'],503)
+                self.assertEqual(result['result']['error'],'REGIONAL_WORK_BUDGET_EXCEEDED')
+                self.assertEqual(result['canonical'],result['old'])
+                self.assertEqual(result['pending'],['unresolved'])
+                self.assertTrue(result['ledger_unchanged'])
+                self.assertEqual(result['health']['last_successful_scan_at'],result['prior'])
+                self.assertEqual(result['stage']['status'],'FAILED')
+                self.assertFalse(result['result']['canonical_mutation_possible'])
+
+    def test_runtime_primary_fallback_and_complete_empty_keep_semantics(self):
+        for stage in ('regional_he','regional_he_fallback'):
+            for mode in ('success','empty'):
+                with self.subTest(stage=stage,mode=mode):
+                    result=self.regional_budget_case(mode,stage=stage)
+                    self.assertEqual(result['status'],200)
+                    self.assertEqual(result['stage']['status'],'COMPLETED')
+                    self.assertEqual(result['result']['result']['fallback_required'],stage=='regional_he' and mode=='empty')
+                    self.assertTrue(all(0<t<=30 for t in result['timeouts']))
+                    self.assertTrue(result['ledger_unchanged'])
+
+    def test_runtime_fallback_budget_expiry_keeps_previous_canonical(self):
+        result=self.regional_budget_case('search_late',stage='regional_he_fallback')
+        self.assertEqual(result['status'],503)
+        self.assertEqual((result['search_calls'],result['detail_calls']),(1,0))
+        self.assertEqual(result['canonical'],result['old'])
+
+    def test_runtime_ordinary_timeout_does_not_stop_other_queries(self):
+        result=self.regional_budget_case('ordinary_error')
+        self.assertEqual(result['search_calls'],2)
+        self.assertEqual(result['status'],503)
+        self.assertIsNone(result['result']['budget']['exhausted_phase'])
+        self.assertEqual(result['canonical'],result['old'])
+
+    def test_runtime_committed_lateness_is_not_relabelled_as_precommit_failure(self):
+        for mode in ('commit_late','health_late'):
+            with self.subTest(mode=mode):
+                result=self.regional_budget_case(mode)
+                self.assertEqual(result['status'],200)
+                self.assertTrue(result['result']['budget_finalization_overrun'])
+                self.assertEqual(result['stage']['status'],'COMPLETED')
+                self.assertNotEqual(result['canonical'],result['old'])
+
+    def test_runtime_write_failure_does_not_claim_zero_canonical_mutation(self):
+        for mode,changed in (('write_error_before',False),('write_then_error',True)):
+            with self.subTest(mode=mode):
+                result=self.regional_budget_case(mode)
+                self.assertEqual(result['status'],503)
+                self.assertTrue(result['result']['canonical_mutation_possible'])
+                self.assertEqual(result['canonical']!=result['old'],changed)
+
+    def test_runtime_health_failure_after_canonical_has_unknown_receipt(self):
+        result=self.regional_budget_case('health_error')
+        self.assertEqual(result['error'],'REGIONAL_FINALIZATION_RESULT_UNKNOWN')
+        self.assertTrue(result['result']['diagnostics']['canonical_mutation_possible'])
+        self.assertEqual(result['stage']['status'],'COMPLETED')
+        self.assertEqual(result['health']['last_successful_scan_at'],result['prior'])
+
+    def test_runtime_failure_state_write_error_has_uncertain_state_receipt(self):
+        result=self.regional_budget_case('failure_state_error')
+        self.assertEqual(result['error'],'REGIONAL_FAILURE_STATE_RESULT_UNKNOWN')
+        self.assertTrue(result['result']['diagnostics']['stage_or_health_mutation_possible'])
+        self.assertFalse(result['result']['diagnostics']['canonical_mutation_possible'])
+        self.assertEqual(result['canonical'],result['old'])
+        self.assertEqual(result['stage']['status'],'RUNNING')
+
+    def test_runtime_detail_timeout_is_clamped_to_remaining_margin(self):
+        result=self.regional_budget_case('timeout_near')
+        self.assertEqual(result['status'],200)
+        self.assertEqual(result['timeouts'],[1])
 
     def test_regional_partial_discovery_or_detail_failure_never_changes_canonical(self):
         candidate, record = self.parse_fixture("tjzyefy")

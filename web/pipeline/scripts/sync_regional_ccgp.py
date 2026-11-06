@@ -67,9 +67,16 @@ class CliBudgetExceeded(RuntimeError):
 
 class CliBudget:
     """Cooperative admission checks; cannot preempt synchronous HTTP or file I/O."""
-    def __init__(self, monotonic, sleep) -> None:
+    def __init__(self, monotonic, sleep, *, total_seconds=900, work_seconds=840, started_at=None) -> None:
+        now = monotonic()
+        origin = now if started_at is None else started_at
+        if not all(math.isfinite(v) for v in (now, origin, total_seconds, work_seconds)) or not (
+            0 < work_seconds < total_seconds and origin <= now
+        ):
+            raise ValueError('COOPERATIVE_BUDGET_INVALID')
         self.clock, self.sleeper = monotonic, sleep
-        self.started = monotonic()
+        self.started = origin
+        self.total_seconds, self.work_seconds = total_seconds, work_seconds
         self.exhausted_phase = None
         self.work_complete = False
 
@@ -78,12 +85,12 @@ class CliBudget:
         raise CliBudgetExceeded(self.exhausted_phase)
 
     def check(self, phase: str, *, finalize: bool = False) -> None:
-        if (self.exhausted_phase and not finalize) or self.clock() >= self.started + (900 if finalize else 840):
+        if (self.exhausted_phase and not finalize) or self.clock() >= self.started + (self.total_seconds if finalize else self.work_seconds):
             self.fail(phase)
 
     def request_timeout(self, cap: float, phase: str) -> float:
         self.check(phase)
-        remaining = self.started + 840 - self.clock()
+        remaining = self.started + self.work_seconds - self.clock()
         if remaining <= 1:
             self.fail(phase)
         timeout = min(cap, remaining - 1)
@@ -93,13 +100,14 @@ class CliBudget:
 
     def sleep_checked(self, delay: float, phase: str) -> None:
         self.check(phase)
-        if not math.isfinite(delay) or delay < 0 or self.started + 840 - self.clock() <= delay + 1:
+        if not math.isfinite(delay) or delay < 0 or self.started + self.work_seconds - self.clock() <= delay + 1:
             self.fail(phase)
         self.sleeper(delay)
         self.check(phase)
 
     def snapshot(self) -> dict:
-        return {'total_seconds': 900, 'work_seconds': 840, 'finalize_reserve_seconds': 60,
+        return {'total_seconds': self.total_seconds, 'work_seconds': self.work_seconds,
+                'finalize_reserve_seconds': self.total_seconds - self.work_seconds,
                 'elapsed_seconds': max(0, self.clock() - self.started),
                 'exhausted_phase': self.exhausted_phase, 'work_complete': self.work_complete,
                 'hard_exit_guaranteed': False}

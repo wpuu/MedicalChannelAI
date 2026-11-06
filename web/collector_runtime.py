@@ -111,6 +111,8 @@ from sync_teda_market_research import (  # noqa: E402
 )
 from sync_tianjin_plan import load_plan, plan_date_window, publish_gate as ccgp_publish_gate  # noqa: E402
 from sync_regional_ccgp import (  # noqa: E402
+    CliBudget,
+    CliBudgetExceeded,
     CcgpSearchSession as RegionalCcgpSearchSession,
     NATIONAL_FALLBACK_MAX_PAGES as REGIONAL_FALLBACK_MAX_PAGES,
     annotate_market as annotate_regional_market,
@@ -1319,6 +1321,7 @@ def _run_regional_market(
     cache: RuntimeCache,
     state: dict[str, Any],
     stage: str,
+    *, budget: CliBudget | None = None,
 ) -> dict[str, Any]:
     fallback_only = stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES
     market_code = (
@@ -1353,6 +1356,8 @@ def _run_regional_market(
                 "merged_record_count": len(_bootstrap_regional_records(market_code)),
             }
 
+    if budget:
+        budget.check("REGIONAL_PREPARE")
     as_of = _cycle_as_of(state)
     start_date, end_date = regional_date_window(as_of, plan["lookback_days"])
     observed_at = as_of.astimezone(timezone.utc).isoformat()
@@ -1368,7 +1373,39 @@ def _run_regional_market(
         if isinstance(record, dict) and str((record.get("source") or {}).get("url") or "")
     }
 
-    session = RegionalCcgpSearchSession()
+    if budget:
+        budget.request_timeout(90, "REGIONAL_PREPARE")
+    session = RegionalCcgpSearchSession(budget=budget) if budget else RegionalCcgpSearchSession()
+
+    def pause(delay: float, phase: str) -> None:
+        if budget:
+            budget.sleep_checked(delay, phase)
+        else:
+            time.sleep(delay)
+
+    def check(phase: str) -> None:
+        if budget:
+            budget.check(phase)
+
+    def commit(records: list[dict[str, Any]], tag: str) -> dict[str, Any]:
+        check("REGIONAL_WORK_COMPLETE")
+        if budget:
+            budget.work_complete = True
+            budget.check("REGIONAL_PRE_COMMIT", finalize=True)
+        try:
+            _cache_set(cache, regional_records_key, records, tag=tag)
+        except Exception as exc:
+            if budget:
+                raise CollectorStageBlocked("REGIONAL_CANONICAL_WRITE_RESULT_UNKNOWN", diagnostics={
+                    "budget": budget.snapshot(), "canonical_mutation_possible": True,
+                    "canonical_write_completed": None,
+                }) from exc
+            raise
+        if budget:
+            return {"budget": budget.snapshot(), "budget_observation_phase": "CANONICAL_RETURN",
+                    "canonical_write_completed": True,
+                    "budget_finalization_overrun": budget.clock() >= budget.started + budget.total_seconds}
+        return {}
     discovered_by_url: dict[str, tuple[str, object]] = {}
     failures: list[dict[str, Any]] = []
     scoped_query_success_count = 0
@@ -1378,6 +1415,8 @@ def _run_regional_market(
         for keyword in plan["keywords"]:
             for notice_type in plan["notice_types"]:
                 try:
+                    if budget:
+                        budget.request_timeout(90, "REGIONAL_SCOPED")
                     items = fetch_regional_candidates_page(
                         session,
                         keyword=keyword,
@@ -1387,6 +1426,7 @@ def _run_regional_market(
                         region=str(market["name"]),
                         page_index=1,
                     )
+                    check("REGIONAL_SCOPED_PARSE")
                     scoped_query_success_count += 1
                     for item_notice_type, candidate in items:
                         actual_code = candidate_market_code(
@@ -1402,11 +1442,14 @@ def _run_regional_market(
                             str(candidate.detail_url),
                             (item_notice_type, candidate),
                         )
+                    check("REGIONAL_SCOPED_PARSE")
+                except CliBudgetExceeded:
+                    raise
                 except Exception as exc:
                     failures.append(failure_row("scoped_discovery", exc, f"{market_code}:{keyword}:{notice_type}:1"))
                     if failures[-1]["reason"] in {"RATE_LIMITED", "HTTP_401", "HTTP_403", "HTTP_429"}:
                         raise CollectorStageBlocked(f"REGIONAL_DISCOVERY_ACCESS_BLOCKED:{market_code}", diagnostics=failure_summary(failures)) from exc
-                time.sleep(plan["delay_seconds"])
+                pause(plan["delay_seconds"], "REGIONAL_SCOPED_SLEEP")
 
     fallback_query_success_count = 0
     scoped_found_candidates = bool(discovered_by_url)
@@ -1416,6 +1459,8 @@ def _run_regional_market(
             for notice_type in plan["notice_types"]:
                 for page_index in range(1, REGIONAL_FALLBACK_MAX_PAGES + 1):
                     try:
+                        if budget:
+                            budget.request_timeout(90, "REGIONAL_FALLBACK")
                         items = fetch_regional_candidates_page(
                             session,
                             keyword=keyword,
@@ -1425,7 +1470,10 @@ def _run_regional_market(
                             region=None,
                             page_index=page_index,
                         )
+                        check("REGIONAL_FALLBACK_PARSE")
                         fallback_query_success_count += 1
+                    except CliBudgetExceeded:
+                        raise
                     except Exception as exc:
                         failures.append(failure_row("national_fallback_discovery", exc, f"{market_code}:{keyword}:{notice_type}:{page_index}"))
                         if failures[-1]["reason"] in {"RATE_LIMITED", "HTTP_401", "HTTP_403", "HTTP_429"}:
@@ -1446,8 +1494,8 @@ def _run_regional_market(
                             str(candidate.detail_url),
                             (item_notice_type, candidate),
                         )
-                    time.sleep(plan["delay_seconds"])
-                time.sleep(plan["delay_seconds"])
+                    pause(plan["delay_seconds"], "REGIONAL_FALLBACK_SLEEP")
+                pause(plan["delay_seconds"], "REGIONAL_FALLBACK_SLEEP")
 
     if not fallback_only and scoped_query_success_count <= 0:
         raise CollectorStageBlocked(f"REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:{market_code}", diagnostics=failure_summary(failures))
@@ -1457,13 +1505,9 @@ def _run_regional_market(
     if stage == "regional_bj" and not scoped_found_candidates:
         if failures:
             raise CollectorStageBlocked(f"REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:{market_code}", diagnostics=failure_summary(failures))
-        _cache_set(
-            cache,
-            regional_records_key,
-            existing_records,
-            tag="medicalchannelai-collector-regional-bj",
-        )
+        budget_result = commit(existing_records, "medicalchannelai-collector-regional-bj")
         return {
+            **budget_result,
             "market_code": market_code,
             "market_name": market["name"],
             "start_date": start_date,
@@ -1494,8 +1538,10 @@ def _run_regional_market(
             failures.append(failure_row("pre_detail_market_guard", None, str(candidate.detail_url)))
             continue
         try:
-            time.sleep(plan["delay_seconds"])
-            html = fetch_ccgp_detail_html(candidate.detail_url)
+            pause(plan["delay_seconds"], "REGIONAL_DETAIL_SLEEP")
+            html = (fetch_ccgp_detail_html(candidate.detail_url, timeout_seconds=budget.request_timeout(30, "REGIONAL_DETAIL"))
+                    if budget else fetch_ccgp_detail_html(candidate.detail_url))
+            check("REGIONAL_DETAIL")
             record = VERIFIED_NOTICE_ADAPTERS[notice_type](
                 html,
                 source_url=candidate.detail_url,
@@ -1505,7 +1551,10 @@ def _run_regional_market(
                     candidate.detail_url,
                 ),
             )
+            check("REGIONAL_DETAIL_PARSE")
             new_records.append(annotate_regional_market(record, market))
+        except CliBudgetExceeded:
+            raise
         except Exception as exc:
             failures.append(failure_row("verified_detail", exc, str(candidate.detail_url)))
 
@@ -1517,13 +1566,9 @@ def _run_regional_market(
         raise CollectorStageBlocked(f"REGIONAL_CANDIDATE_VERIFICATION_INCOMPLETE:{market_code}", diagnostics=failure_summary(failures))
 
     merged = merge_canonical_records(existing_records, new_records)
-    _cache_set(
-        cache,
-        regional_records_key,
-        merged,
-        tag=f"medicalchannelai-collector-regional-{market_code.lower()}",
-    )
+    budget_result = commit(merged, f"medicalchannelai-collector-regional-{market_code.lower()}")
     return {
+        **budget_result,
         "market_code": market_code,
         "market_name": market["name"],
         "start_date": start_date,
@@ -1738,7 +1783,9 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str, Any]]:
+def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:
+    if stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+        budget = None
     now = now or _now_utc()
     cache = RuntimeCache()
     try:
@@ -1771,21 +1818,35 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
         elif stage == "tjfch":
             result = _run_tjfch(cache, state)
         elif stage in REGIONAL_STAGE_MARKET_CODES or stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
-            result = _run_regional_market(cache, state, stage)
+            result = _run_regional_market(cache, state, stage, budget=budget) if budget else _run_regional_market(cache, state, stage)
         elif stage == "publish":
             result = _run_publish(cache, state)
         else:
             raise CollectorPrecondition(f"COLLECTOR_STAGE_INVALID:{stage}")
     except Exception as exc:
-        _mark_failed(cache, state, stage, exc)
-        source = "ccgp" if stage.startswith("event") else stage.removesuffix("_fallback")
-        record_source_scan(cache, source, successful=False,
-                           attempted_at=_now_utc(), failure_reason="SOURCE_SCAN_FAILED")
-        if stage == "tjfch":
-            record_source_scan(cache, "tjfch_test", successful=False,
+        if budget and isinstance(exc, CliBudgetExceeded):
+            exc = CollectorStageBlocked("REGIONAL_WORK_BUDGET_EXCEEDED", diagnostics={
+                "budget": budget.snapshot(), "canonical_mutation_possible": False,
+                "new_canonical_write_attempted": False,
+            })
+        try:
+            _mark_failed(cache, state, stage, exc)
+            source = "ccgp" if stage.startswith("event") else stage.removesuffix("_fallback")
+            record_source_scan(cache, source, successful=False,
                                attempted_at=_now_utc(), failure_reason="SOURCE_SCAN_FAILED")
-        failed_stages = load_status(cache).get("stages") or {}
-        failed = failed_stages.get(stage) or {}
+            if stage == "tjfch":
+                record_source_scan(cache, "tjfch_test", successful=False,
+                                   attempted_at=_now_utc(), failure_reason="SOURCE_SCAN_FAILED")
+            failed_stages = load_status(cache).get("stages") or {}
+            failed = failed_stages.get(stage) or {}
+        except Exception as persistence_error:
+            if budget:
+                raise CollectorStageBlocked("REGIONAL_FAILURE_STATE_RESULT_UNKNOWN", diagnostics={
+                    "budget": budget.snapshot(),
+                    "canonical_mutation_possible": bool(getattr(exc, "diagnostics", {}).get("canonical_mutation_possible")),
+                    "stage_or_health_mutation_possible": True,
+                }) from persistence_error
+            raise
         return 503, {
             "action": "FAILED",
             "stage": stage,
@@ -1795,28 +1856,43 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             "retryable": getattr(exc, "retryable", True),
             "attempt_count": failed.get("attempt_count"),
             "retry_exhausted": _stage_retry_limit_reached(stage, failed, failed_stages),
+            **({"budget": budget.snapshot(),
+                "canonical_mutation_possible": bool(getattr(exc, "diagnostics", {}).get("canonical_mutation_possible")),
+                "diagnostics": getattr(exc, "diagnostics", {})} if budget else {}),
         }
 
-    _mark_completed(cache, state, stage, result)
-    complete_scan = int(result.get("failure_count", 0)) == 0 and not result.get("fallback_required")
-    source = "ccgp" if stage.startswith("event") else stage.removesuffix("_fallback")
-    if stage == "ccgp":
-        record_source_scan(cache, source, successful=False, attempted_at=_now_utc(),
-                           failure_reason="EVENT_VERIFICATION_PENDING")
-    elif stage.startswith("event"):
-        latest_stages = load_status(cache).get("stages") or {}
-        if all((latest_stages.get(required) or {}).get("status") == "COMPLETED"
-               for required in ("ccgp", "event1", "event2", "event3", "event4", "event5", "event6")):
-            record_source_scan(cache, source, successful=True, attempted_at=_now_utc())
-    elif not result.get("fallback_skipped"):
-        record_source_scan(cache, source, successful=complete_scan,
-                           attempted_at=_now_utc(),
-                           failure_reason=None if complete_scan else "DETAIL_VERIFICATION_PENDING")
-    if stage == "tjfch":
-        record_source_scan(cache, "tjfch_test", successful=complete_scan,
-                           attempted_at=_now_utc(),
-                           failure_reason=None if complete_scan else "DETAIL_VERIFICATION_PENDING")
+    try:
+        _mark_completed(cache, state, stage, result)
+        complete_scan = int(result.get("failure_count", 0)) == 0 and not result.get("fallback_required")
+        source = "ccgp" if stage.startswith("event") else stage.removesuffix("_fallback")
+        if stage == "ccgp":
+            record_source_scan(cache, source, successful=False, attempted_at=_now_utc(),
+                               failure_reason="EVENT_VERIFICATION_PENDING")
+        elif stage.startswith("event"):
+            latest_stages = load_status(cache).get("stages") or {}
+            if all((latest_stages.get(required) or {}).get("status") == "COMPLETED"
+                   for required in ("ccgp", "event1", "event2", "event3", "event4", "event5", "event6")):
+                record_source_scan(cache, source, successful=True, attempted_at=_now_utc())
+        elif not result.get("fallback_skipped"):
+            record_source_scan(cache, source, successful=complete_scan,
+                               attempted_at=_now_utc(),
+                               failure_reason=None if complete_scan else "DETAIL_VERIFICATION_PENDING")
+        if stage == "tjfch":
+            record_source_scan(cache, "tjfch_test", successful=complete_scan,
+                               attempted_at=_now_utc(),
+                               failure_reason=None if complete_scan else "DETAIL_VERIFICATION_PENDING")
+    except Exception as exc:
+        if budget:
+            raise CollectorStageBlocked("REGIONAL_FINALIZATION_RESULT_UNKNOWN", diagnostics={
+                "budget": budget.snapshot(), "canonical_mutation_possible": bool(result.get("canonical_write_completed")),
+                "stage_or_health_mutation_possible": True,
+            }) from exc
+        raise
+    final_budget = ({"budget": budget.snapshot(), "budget_observation_phase": "STAGE_RETURN",
+                     "budget_finalization_overrun": budget.clock() >= budget.started + budget.total_seconds}
+                    if budget else {})
     return 200, {
+        **final_budget,
         "action": "COMPLETED",
         "stage": stage,
         "local_date": state.get("local_date"),

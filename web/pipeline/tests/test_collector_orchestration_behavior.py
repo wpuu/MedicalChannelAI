@@ -4,9 +4,11 @@ import asyncio
 import copy
 import importlib
 import importlib.util
+import socket
 import sys
 import types
 import unittest
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
@@ -59,6 +61,12 @@ class CollectorOrchestrationBehaviorTests(unittest.TestCase):
         self.trigger = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.trigger)
         self.now = datetime(2026, 11, 5, 0, 20, tzinfo=timezone.utc)
+        # asyncio needs its local socketpair; block connections/DNS, not creation.
+        for owner, name in ((socket.socket, 'connect'), (socket, 'create_connection'),
+                            (socket, 'getaddrinfo'), (urllib.request, 'build_opener')):
+            blocker = patch.object(owner, name, side_effect=AssertionError('NETWORK_OR_REAL_CLIENT_FORBIDDEN'))
+            blocker.start()
+            self.addCleanup(blocker.stop)
 
     def cycle_payload(self, stage: str) -> dict:
         self.cache.set(self.worker.ACTIVE_CYCLE_KEY, {"cycle_id": "current"})
@@ -143,6 +151,94 @@ class CollectorOrchestrationBehaviorTests(unittest.TestCase):
         self.assertEqual((row["status"], row["attempt_count"]), ("FAILED", 1))
         self.assertEqual(self.sent, [])
         self.assertEqual(self.cache.get(self.runtime.TJMUGH_RECORDS_KEY), [{"opportunity_id": "last_verified"}])
+
+    def test_regional_budget_uses_queue_entry_origin_after_preflight(self):
+        for stage in ('regional_he', 'regional_he_fallback'):
+            with self.subTest(stage=stage):
+                payload = self.seed_retry(stage, 0)
+                tick = [0.0]
+                seen = []
+                def active(*args, **kwargs):
+                    tick[0] = 205
+                    return True
+                def run(stage, **kwargs):
+                    budget = kwargs['budget']
+                    seen.append((budget.started, budget.request_timeout(90, 'READ'), budget.snapshot()))
+                    return 503, {'retryable':True,'retry_exhausted':False,'error':'OFFLINE_TRANSIENT'}
+                with patch.object(self.worker,'_active_cycle_matches',side_effect=active), patch.object(
+                    self.worker,'_heartbeat_deep_cycle',return_value=True), patch.object(self.runtime,'run_stage',side_effect=run):
+                    with self.assertRaisesRegex(RuntimeError,'COLLECTOR_QUEUE_STAGE_FAILED'):
+                        asyncio.run(self.worker.process_collector_payload(payload,monotonic=lambda:tick[0],sleep=lambda d:None))
+                self.assertEqual(seen[0][:2],(0,4))
+                self.assertEqual([seen[0][2][k] for k in ('total_seconds','work_seconds','finalize_reserve_seconds')],[270,210,60])
+
+    def test_regional_budget_failure_retries_then_degrades_without_third_scan(self):
+        stage = 'regional_he'
+        payload = self.seed_retry(stage, 0)
+        key = self.runtime._regional_records_key('HE')
+        self.cache.set(key, [])
+        tick = [0.0]
+        def active(*args, **kwargs):
+            tick[0] = 210
+            return True
+        def work(cache, state, stage, *, budget):
+            budget.check('REGIONAL_SCOPED')
+        with patch.object(self.worker,'_active_cycle_matches',side_effect=active), patch.object(
+            self.worker,'_heartbeat_deep_cycle',return_value=True), patch.object(self.runtime,'_run_regional_market',side_effect=work) as scan:
+            with self.assertRaisesRegex(RuntimeError,'COLLECTOR_QUEUE_STAGE_FAILED'):
+                asyncio.run(self.worker.process_collector_payload(payload,monotonic=lambda:tick[0],sleep=lambda d:None))
+            first = self.cache.get(self.worker.META_KEY)['stages'][stage]
+            self.assertEqual((first['status'],first['attempt_count']),('FAILED',1))
+            self.assertEqual(self.sent,[])
+            tick[0] = 0
+            asyncio.run(self.worker.process_collector_payload(payload,monotonic=lambda:tick[0],sleep=lambda d:None))
+            final = self.cache.get(self.worker.META_KEY)['stages'][stage]
+            self.assertEqual((final['status'],final['attempt_count']),('DEGRADED',2))
+            self.assertEqual(self.sent[-1]['payload']['stage'],'regional_he_fallback')
+            tick[0] = 0
+            asyncio.run(self.worker.process_collector_payload(payload,monotonic=lambda:tick[0],sleep=lambda d:None))
+            self.assertEqual(scan.call_count,2)
+            self.assertEqual(self.cache.get(self.worker.META_KEY)['stages'][stage],final)
+            tick[0] = 0
+            asyncio.run(self.worker.process_collector_payload(self.sent[-1]['payload'],monotonic=lambda:tick[0],sleep=lambda d:None))
+            self.assertEqual(scan.call_count,2)
+            self.assertEqual(self.sent[-1]['payload']['stage'],'regional_ln')
+        self.assertEqual(self.cache.get(key),[])
+
+    def test_nonregional_stages_keep_original_run_stage_arguments(self):
+        for stage in ('tjmugh','event1','publish'):
+            with self.subTest(stage=stage):
+                payload=self.seed_retry(stage,0)
+                with patch.object(self.worker,'_active_cycle_matches',return_value=True), patch.object(
+                    self.worker,'_heartbeat_deep_cycle',return_value=True), patch.object(self.runtime,'run_stage',
+                    return_value=(200,{'action':'ALREADY_COMPLETED_TODAY'})) as run, patch.object(
+                    self.worker,'ensure_intraday_chain',new=AsyncMock()), patch.object(
+                    self.worker.incremental_runtime,'reconcile_incremental_pending_from_canonical',return_value={}):
+                    asyncio.run(self.worker.process_collector_payload(payload))
+                self.assertEqual(set(run.call_args.kwargs),{'now'})
+
+    def test_foreign_payload_budget_path_has_no_cache_or_stage_effect(self):
+        payload=self.cycle_payload('regional_he')
+        with patch.object(self.worker,'accepts_payload',return_value=False), patch.object(
+            self.worker,'RuntimeCache',side_effect=AssertionError('CACHE_FORBIDDEN')), patch.object(self.runtime,'run_stage') as run:
+            asyncio.run(self.worker.process_collector_payload(payload))
+        run.assert_not_called()
+
+    def test_regional_owner_rejection_never_runs_budgeted_work(self):
+        payload=self.cycle_payload('regional_he')
+        with patch.object(self.worker,'_active_cycle_matches',return_value=False), patch.object(
+            self.worker,'_heartbeat_deep_cycle') as heartbeat, patch.object(self.runtime,'run_stage') as run:
+            asyncio.run(self.worker.process_collector_payload(payload))
+        run.assert_not_called()
+        heartbeat.assert_not_called()
+
+    def test_incremental_dispatch_does_not_get_regional_budget(self):
+        payload={'schema_version':'0.1','mode':'incremental_source','source_id':'tjzyefy'}
+        with patch.object(self.worker,'_is_incremental_payload',return_value=True), patch.object(
+            self.worker,'_process_incremental_payload') as process, patch.object(self.runtime,'run_stage') as run:
+            asyncio.run(self.worker.process_collector_payload(payload))
+        process.assert_called_once_with(payload)
+        run.assert_not_called()
 
     def test_last_actual_failure_degrades_and_advances_without_another_delivery(self):
         payload = self.seed_retry("tjmugh", 1)

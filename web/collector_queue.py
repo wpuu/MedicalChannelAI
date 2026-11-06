@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -409,7 +410,9 @@ async def ensure_intraday_chain(*, now: datetime | None = None) -> None:
     )
 
 
-async def process_collector_payload(payload: dict[str, Any]) -> None:
+async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, sleep=None) -> None:
+    clock = monotonic or time.monotonic
+    entered_at = clock()
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
         return
     if not accepts_payload(payload):
@@ -467,7 +470,11 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
                         await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
                     return
 
-    status, result = runtime.run_stage(stage, now=cycle_as_of)
+    if stage in runtime.REGIONAL_STAGE_MARKET_CODES or stage in runtime.REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+        budget = runtime.CliBudget(clock, sleep or time.sleep, total_seconds=270, work_seconds=210, started_at=entered_at)
+        status, result = runtime.run_stage(stage, now=cycle_as_of, budget=budget)
+    else:
+        status, result = runtime.run_stage(stage, now=cycle_as_of)
     if not _heartbeat_deep_cycle(cycle_id, now=datetime.now(timezone.utc)):
         return
     action = str(result.get("action") or "")
