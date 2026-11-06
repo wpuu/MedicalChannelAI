@@ -9,12 +9,16 @@ import time
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PIPELINE_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
 sys.path.insert(0, str(PIPELINE_ROOT))
+sys.path.insert(0, str(PIPELINE_ROOT.parent))
+
+from collector_diagnostics import failure_row  # noqa: E402
 
 from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
 from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
@@ -52,10 +56,11 @@ _BROWSER_HEADERS = {
 
 
 class CcgpSearchSession:
-    def __init__(self) -> None:
+    def __init__(self, *, on_access_blocked=None) -> None:
         jar = http.cookiejar.CookieJar()
         self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
         self.warmed = False
+        self.on_access_blocked = on_access_blocked
 
     def _read(self, url: str, *, timeout: int) -> str:
         request = urllib.request.Request(url, headers=_BROWSER_HEADERS)
@@ -75,10 +80,16 @@ class CcgpSearchSession:
         if self.warmed:
             return
         try:
-            self._read('https://www.ccgp.gov.cn/', timeout=30)
-        except Exception:
+            html = self._read('https://www.ccgp.gov.cn/', timeout=30)
+            if self.on_access_blocked and any(marker in html for marker in RATE_LIMIT_MARKERS):
+                self.on_access_blocked('www.ccgp.gov.cn', 'RATE_LIMITED')
+        except Exception as exc:
             # Search can still work if the homepage warm-up is temporarily unavailable.
-            pass
+            # CLI-only feedback prevents later detail requests to a denied host.
+            if self.on_access_blocked:
+                reason = access_block_reason('index_discovery', exc, 'ccgp_homepage')
+                if reason:
+                    self.on_access_blocked('www.ccgp.gov.cn', reason)
         time.sleep(1.0)
         self.warmed = True
 
@@ -212,6 +223,20 @@ def paths_alias(left: Path, right: Path) -> bool:
     )
 
 
+def access_block_reason(phase: str, exc: Exception, reference: str) -> str | None:
+    # Reuse the runtime's fixed-code classifier, including detail fetch wrappers.
+    cause = exc
+    for _ in range(6):
+        reason = failure_row(phase, cause, reference)['reason']
+        if reason in {'RATE_LIMITED', 'HTTP_401', 'HTTP_403', 'HTTP_429',
+                      'CCGP_DETAIL_HTTP_401', 'CCGP_DETAIL_HTTP_403', 'CCGP_DETAIL_HTTP_429'}:
+            return reason
+        if cause.__cause__ is None:
+            break
+        cause = cause.__cause__
+    return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description='Verified CCGP refresh for Beijing, Hebei, Liaoning, Jilin and Heilongjiang.'
@@ -240,7 +265,9 @@ def main() -> int:
         for record in existing_records
         if isinstance(record, dict) and str((record.get('source') or {}).get('url') or '')
     }
-    session = CcgpSearchSession()
+    blocked_hosts: dict[str, str] = {}
+    session = CcgpSearchSession(on_access_blocked=blocked_hosts.setdefault)
+    search_host = urlsplit(CCGP_SEARCH_URL).hostname
 
     markets = plan['markets']
     market_by_code = {str(item['market_code']).upper(): item for item in markets}
@@ -250,6 +277,8 @@ def main() -> int:
     market_failures: dict[str, list[dict]] = {code: [] for code in market_by_code}
     market_skips: dict[str, dict[str, dict]] = {code: {} for code in market_by_code}
     scoped_success: dict[str, int] = {code: 0 for code in market_by_code}
+    scoped_access_skips: dict[str, int] = {code: 0 for code in market_by_code}
+    detail_access_skips: dict[str, int] = {code: 0 for code in market_by_code}
 
     def record_candidate_skip(code: str, notice_type: str, candidate: object, reason: str) -> None:
         detail_url = str(getattr(candidate, 'detail_url', '') or '')
@@ -275,6 +304,9 @@ def main() -> int:
         name = str(market['name'])
         for keyword in plan['keywords']:
             for notice_type in plan['notice_types']:
+                if search_host in blocked_hosts:
+                    scoped_access_skips[code] += 1
+                    continue
                 try:
                     items = fetch_candidates_page(
                         session,
@@ -300,6 +332,9 @@ def main() -> int:
                             (item_notice_type, candidate),
                         )
                 except Exception as exc:
+                    reason = access_block_reason('scoped_discovery', exc, f'{code}:{keyword}:{notice_type}')
+                    if reason:
+                        blocked_hosts.setdefault(search_host, reason)
                     market_failures[code].append({
                         'stage': 'scoped_discovery',
                         'market_code': code,
@@ -314,6 +349,8 @@ def main() -> int:
     empty_codes = {code for code, items in market_candidates.items() if not items}
     fallback_query_success = 0
     fallback_failures: list[dict] = []
+    fallback_attempted = False
+    fallback_access_blocked = False
 
     # If province-scoped search produces no region-verified candidate for a market,
     # fall back to a bounded national search and distribute rows solely by the
@@ -323,7 +360,11 @@ def main() -> int:
         for keyword in plan['keywords']:
             for notice_type in plan['notice_types']:
                 for page_index in range(1, NATIONAL_FALLBACK_MAX_PAGES + 1):
+                    if search_host in blocked_hosts:
+                        fallback_access_blocked = True
+                        break
                     try:
+                        fallback_attempted = True
                         items = fetch_candidates_page(
                             session,
                             keyword=keyword,
@@ -335,6 +376,10 @@ def main() -> int:
                         )
                         fallback_query_success += 1
                     except Exception as exc:
+                        reason = access_block_reason('national_fallback_discovery', exc, f'{keyword}:{notice_type}:{page_index}')
+                        if reason:
+                            blocked_hosts.setdefault(search_host, reason)
+                            fallback_access_blocked = True
                         fallback_failures.append({
                             'stage': 'national_fallback_discovery',
                             'keyword': keyword,
@@ -385,6 +430,10 @@ def main() -> int:
         market_new_count = 0
 
         for notice_type, candidate in selected:
+            detail_host = urlsplit(candidate.detail_url).hostname
+            if detail_host in blocked_hosts:
+                detail_access_skips[code] += 1
+                continue
             # Final geography guard immediately before detail verification.
             if candidate_market_code(getattr(candidate, 'region', None), markets) != code:
                 market_failures[code].append({
@@ -397,6 +446,8 @@ def main() -> int:
             try:
                 time.sleep(plan['delay_seconds'])
                 html = fetch_ccgp_detail_html(candidate.detail_url)
+                if any(marker in html for marker in RATE_LIMIT_MARKERS):
+                    raise RuntimeError('CCGP_RATE_LIMITED')
                 record = VERIFIED_NOTICE_ADAPTERS[notice_type](
                     html,
                     source_url=candidate.detail_url,
@@ -406,6 +457,9 @@ def main() -> int:
                 new_records.append(annotate_market(record, market))
                 market_new_count += 1
             except Exception as exc:
+                reason = access_block_reason('verified_detail', exc, candidate.detail_url)
+                if reason:
+                    blocked_hosts.setdefault(detail_host, reason)
                 market_failures[code].append({
                     'stage': 'verified_detail',
                     'market_code': code,
@@ -425,7 +479,9 @@ def main() -> int:
             'ccgp_zone_id': market['ccgp_zone_id'],
             'scoped_query_success_count': scoped_success[code],
             'scoped_region_mismatch_count': scoped_region_mismatches[code],
-            'national_fallback_used': code in empty_codes,
+            'national_fallback_used': code in empty_codes and fallback_attempted,
+            'scoped_queries_skipped_due_to_access': scoped_access_skips[code],
+            'details_skipped_due_to_access': detail_access_skips[code],
             'skipped_candidate_count': len(market_skips[code]),
             'skipped_candidates': sorted(market_skips[code].values(), key=lambda item: (item['reason'], item['url'])),
             'unique_candidate_count': len(discovered),
@@ -456,6 +512,8 @@ def main() -> int:
     } | {failure['stage'] for failure in fallback_failures})
     if sum(scoped_success.values()) + fallback_query_success <= 0:
         acceptance_blockers.append('ALL_MULTI_REGION_DISCOVERY_QUERIES_FAILED')
+    if sum(scoped_access_skips.values()) or sum(detail_access_skips.values()) or fallback_access_blocked:
+        acceptance_blockers.append('ACCESS_BLOCKED_SCAN_INCOMPLETE')
     acceptance_ready = not acceptance_blockers
     report = {
         'schema_version': '0.1',
@@ -465,6 +523,10 @@ def main() -> int:
         'acceptance_ready': acceptance_ready,
         'acceptance_blockers': acceptance_blockers,
         'records_written': acceptance_ready,
+        'access_blocked_hosts': blocked_hosts,
+        'scoped_queries_skipped_due_to_access': sum(scoped_access_skips.values()),
+        'details_skipped_due_to_access': sum(detail_access_skips.values()),
+        'national_fallback_access_blocked': fallback_access_blocked,
         'observed_at': observed_at,
         'start_date': start_date,
         'end_date': end_date,

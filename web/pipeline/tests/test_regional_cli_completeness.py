@@ -6,6 +6,7 @@ import socket
 import sys
 import tempfile
 from types import SimpleNamespace
+from urllib.error import HTTPError, URLError
 import unittest
 from unittest.mock import patch
 
@@ -21,13 +22,15 @@ SELECTED = [next(c for c in CASES if c['label'] == label) for label in (
 
 class RegionalCliCompletenessTests(unittest.TestCase):
     def run_cli(self, mode, *, separate_output=False, alias=None, absent_output=False,
-                empty_input=False, records_alias_plan=False):
+                empty_input=False, records_alias_plan=False, injected_error=None,
+                distinct_detail_hosts=False):
         """Actual argparse/main and official parsers; only I/O is replaced offline."""
         with tempfile.TemporaryDirectory() as temp, ExitStack() as stack:
             folder = Path(temp)
             plan = json.loads(target.DEFAULT_PLAN.read_text())
             plan['markets'] = [m for m in plan['markets'] if m['market_code'] in ('HE', 'HL')]
             plan['keywords'] = ['first', 'second']
+            plan['notice_types'] = ['公开招标']
             plan_path = folder / 'plan.json'
             plan_path.write_text(json.dumps(plan, ensure_ascii=False))
             # Keep a real existing record distinct from the two selected fixtures.
@@ -56,9 +59,40 @@ class RegionalCliCompletenessTests(unittest.TestCase):
                     buyer_name='医院', notice_type='公开招标', published_at='2026-09-08', region=name))
                 for name, c in zip(('河北', '黑龙江'), SELECTED)
             }
+            if distinct_detail_hosts:
+                candidates['黑龙江'][1].detail_url = SELECTED[1]['url'].replace('www.ccgp.gov.cn', 'ccgp.gov.cn')
+            session_class = target.CcgpSearchSession
+
+            def session_stub(**kwargs):
+                if mode not in ('f1_warmup', 'f1_warmup_page', 'f1_search_page'):
+                    return object()
+                # Exercise real warmup code without constructing an opener/client.
+                session = object.__new__(session_class)
+                session.warmed = False
+                session.on_access_blocked = kwargs['on_access_blocked']
+
+                def read(url, **unused):
+                    if mode == 'f1_search_page':
+                        return '<html>频繁访问</html>' if url.startswith(target.CCGP_SEARCH_URL) else '<html></html>'
+                    if mode == 'f1_warmup_page':
+                        return '<html>您的访问过于频繁</html>'
+                    raise injected_error
+
+                session._read = read
+                return session
 
             def discover(session, **kwargs):
+                if mode == 'f1_search_page':
+                    session.fetch(target.CCGP_SEARCH_URL + '?offline=1')
+                if mode in ('f1_warmup', 'f1_warmup_page'):
+                    session.warmup()
                 region, keyword = kwargs['region'], kwargs['keyword']
+                if mode == 'f1_scoped' and region == '河北' and keyword == 'second':
+                    raise injected_error
+                if mode == 'f1_fallback' and region == '黑龙江':
+                    return []
+                if mode == 'f1_fallback' and region is None and keyword == 'first':
+                    raise injected_error
                 if mode == 'all_discovery_failed':
                     raise RuntimeError('OFFLINE_SEARCH_FAILED')
                 if mode in ('one_discovery_failed', 'rate_limited') and region == '黑龙江' and keyword == 'second':
@@ -74,13 +108,17 @@ class RegionalCliCompletenessTests(unittest.TestCase):
                 return [candidates[region]]
 
             def fetch(url):
+                if mode in ('f1_detail', 'f1_detail_page') and url == SELECTED[0]['url']:
+                    if mode == 'f1_detail_page':
+                        return '<html>您的访问过于频繁</html>'
+                    raise injected_error
                 if mode == 'all_detail_failed' or (mode in ('one_detail_failed', 'detail_rate_limited') and url == SELECTED[1]['url']):
                     raise RuntimeError('CCGP_RATE_LIMITED' if mode == 'detail_rate_limited' else 'OFFLINE_DETAIL_FAILED')
-                case = next(c for c in SELECTED if c['url'] == url)
+                case = next(c for c in SELECTED if c['url'] == url.replace('https://ccgp.gov.cn/', 'https://www.ccgp.gov.cn/'))
                 return (CORPUS / case['file']).read_bytes().decode(case['encoding'])
 
             # Neither a search opener, a socket nor a real detail client may run.
-            client = stack.enter_context(patch.object(target, 'CcgpSearchSession', return_value=object()))
+            client = stack.enter_context(patch.object(target, 'CcgpSearchSession', side_effect=session_stub))
             network = stack.enter_context(patch.object(socket, 'create_connection', side_effect=AssertionError('NETWORK_FORBIDDEN')))
             sock = stack.enter_context(patch.object(socket, 'socket', side_effect=AssertionError('NETWORK_FORBIDDEN')))
             opener = stack.enter_context(patch.object(target.urllib.request, 'build_opener', side_effect=AssertionError('REAL_CLIENT_FORBIDDEN')))
@@ -196,3 +234,98 @@ class RegionalCliCompletenessTests(unittest.TestCase):
         self.assertEqual(r['code'], 2)
         self.assertTrue(r['inputs_unchanged'])
         self.assertEqual((r['client_calls'], r['search_calls'], r['detail_calls']), (0, 0, 0))
+
+    def test_scoped_explicit_denials_stop_search_but_not_detail_host(self):
+        for error in (RuntimeError('CCGP_RATE_LIMITED'), *(HTTPError(target.CCGP_SEARCH_URL, c, 'offline', {}, None) for c in (401, 403, 429))):
+            with self.subTest(error=str(error)):
+                r = self.run_cli('f1_scoped', injected_error=error)
+                self.assertEqual(r['search_calls'], 2)
+                self.assertEqual(r['detail_calls'], 1)
+                self.assertEqual(r['code'], 2)
+                self.assertEqual(r['output_bytes'], r['original'])
+                self.assertFalse(r['report']['acceptance_ready'])
+                self.assertEqual(r['report']['scoped_queries_skipped_due_to_access'], 2)
+                self.assertIn('search.ccgp.gov.cn', r['report']['access_blocked_hosts'])
+                self.assertTrue(r['inputs_unchanged'])
+
+    def test_fallback_denial_stops_later_keywords(self):
+        r = self.run_cli('f1_fallback', injected_error=HTTPError(target.CCGP_SEARCH_URL, 429, 'offline', {}, None))
+        self.assertEqual(r['search_calls'], 5)
+        self.assertEqual(r['code'], 2)
+        self.assertEqual(r['output_bytes'], r['original'])
+
+    def test_detail_denials_stop_later_same_host_details(self):
+        for error in (RuntimeError('CCGP_RATE_LIMITED'), *(HTTPError(SELECTED[0]['url'], c, 'offline', {}, None) for c in (401, 403, 429))):
+            with self.subTest(error=str(error)):
+                r = self.run_cli('f1_detail', injected_error=error)
+                self.assertEqual(r['detail_calls'], 1)
+                self.assertEqual(r['search_calls'], 4)
+                self.assertEqual(r['code'], 2)
+                self.assertEqual(r['output_bytes'], r['original'])
+                self.assertFalse(r['report']['acceptance_ready'])
+                self.assertEqual(r['report']['details_skipped_due_to_access'], 1)
+
+    def test_official_detail_rate_limit_page_stops_later_details(self):
+        r = self.run_cli('f1_detail_page')
+        self.assertEqual(r['detail_calls'], 1)
+        self.assertEqual(r['code'], 2)
+        self.assertEqual(r['output_bytes'], r['original'])
+
+    def test_transient_errors_do_not_trip_host_stop(self):
+        for mode, error in (('f1_scoped', TimeoutError('offline')),
+                            ('f1_scoped', URLError('offline')),
+                            ('f1_detail', RuntimeError('CCGP_DETAIL_NETWORK_ERROR')),
+                            ('f1_detail', HTTPError(SELECTED[0]['url'], 503, 'offline', {}, None))):
+            with self.subTest(mode=mode, error=str(error)):
+                r = self.run_cli(mode, injected_error=error)
+                self.assertEqual(r['search_calls'], 4)
+                self.assertEqual(r['detail_calls'], 2)
+                self.assertEqual(r['code'], 2)
+                self.assertEqual(r['output_bytes'], r['original'])
+
+    def test_wrapped_detail_http_denial_is_recognized(self):
+        for message in ('CCGP_DETAIL_HTTP_403', 'offline wrapper'):
+            with self.subTest(message=message):
+                error = RuntimeError(message)
+                error.__cause__ = HTTPError(SELECTED[0]['url'], 403, 'offline', {}, None)
+                r = self.run_cli('f1_detail', injected_error=error)
+                self.assertEqual(r['detail_calls'], 1)
+                self.assertEqual(r['code'], 2)
+
+    def test_actual_search_session_limit_page_stops_cli(self):
+        r = self.run_cli('f1_search_page')
+        self.assertEqual((r['search_calls'], r['detail_calls']), (1, 0))
+        self.assertEqual(r['code'], 2)
+        self.assertEqual(r['output_bytes'], r['original'])
+
+    def test_detail_host_stop_does_not_block_other_official_host(self):
+        r = self.run_cli('f1_detail', injected_error=HTTPError(SELECTED[0]['url'], 403, 'offline', {}, None),
+                         distinct_detail_hosts=True)
+        self.assertEqual(r['detail_calls'], 2)
+        self.assertEqual(r['code'], 2)
+        self.assertEqual(r['report']['details_skipped_due_to_access'], 0)
+        self.assertEqual(set(r['report']['access_blocked_hosts']), {'www.ccgp.gov.cn'})
+
+    def test_homepage_denial_stops_details_but_not_search(self):
+        r = self.run_cli('f1_warmup', injected_error=HTTPError('https://www.ccgp.gov.cn/', 403, 'offline', {}, None))
+        self.assertEqual((r['search_calls'], r['detail_calls']), (4, 0))
+        self.assertEqual(r['code'], 2)
+        self.assertEqual(r['report']['details_skipped_due_to_access'], 2)
+        self.assertEqual(r['output_bytes'], r['original'])
+
+    def test_homepage_limit_page_stops_details(self):
+        r = self.run_cli('f1_warmup_page')
+        self.assertEqual((r['search_calls'], r['detail_calls']), (4, 0))
+        self.assertEqual(r['code'], 2)
+
+    def test_transient_homepage_failure_remains_best_effort(self):
+        r = self.run_cli('f1_warmup', injected_error=TimeoutError('offline'))
+        self.assertEqual((r['search_calls'], r['detail_calls']), (4, 2))
+        self.assertEqual(r['code'], 0)
+        self.assertEqual(r['report']['access_blocked_hosts'], {})
+
+    def test_host_stop_is_not_carried_into_next_cli_call(self):
+        self.run_cli('f1_detail', injected_error=RuntimeError('CCGP_RATE_LIMITED'))
+        r = self.run_cli('all_success')
+        self.assertEqual(r['code'], 0)
+        self.assertEqual(r['report']['access_blocked_hosts'], {})
