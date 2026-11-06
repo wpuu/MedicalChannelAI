@@ -1,0 +1,299 @@
+{
+  "schema_version": "0.1",
+  "frozen_against_application_commit": "eabd76f4d35a62983c24e652d1ada45a7daf8e17",
+  "selection": "8 purposively selected older official public-tender pages, not random, blind or production-recall benchmark",
+  "official_original_count": 8,
+  "synthetic_derived_negative_count": 2,
+  "network_requests": 8,
+  "attachments_fetched": 0,
+  "native_queue_triggered": false,
+  "cases": [
+    {
+      "label": "ccgp_hl_b36866ded1fc3097",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260930_27424622.htm",
+      "baseline_id": "ccgp_hl_b36866ded1fc3097",
+      "name": "新建监狱全自动尿液分析系统等5种医疗仪器项目采购",
+      "fetched_at": "2026-11-06T08:52:30.139650+00:00",
+      "http": 200,
+      "content_type": "text/html",
+      "encoding": "utf-8",
+      "raw_bytes": 26018,
+      "sha256": "26827b728f2cfd15d2d7293babfc9ea3afdbd13b54db67285a371cab5d908992",
+      "file": "ccgp_hl_b36866ded1fc3097.html",
+      "result": "FROZEN",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "HL_STANDARD_TABLE",
+      "expected_pairs": [
+        [
+          "全自动尿液分析系统",
+          "1(台)"
+        ],
+        [
+          "全自动血细胞分析仪",
+          "1(台)"
+        ],
+        [
+          "数字式多道心电图机",
+          "2(台)"
+        ],
+        [
+          "离心机",
+          "2(台)"
+        ],
+        [
+          "半自动除颤仪",
+          "1(台)"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "evidence_locator": "一、项目基本情况/采购需求/合同包1/采购标的、数量（单位）",
+      "expectation_basis": "Manual review of frozen official demand rows, not a copy of parser output"
+    },
+    {
+      "label": "ccgp_hl_e8f00e33bac08696",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260930_27429620.htm",
+      "baseline_id": "ccgp_hl_e8f00e33bac08696",
+      "name": "后勤保障服务采购项目",
+      "fetched_at": "2026-11-06T08:52:32.337481+00:00",
+      "http": 200,
+      "content_type": "text/html",
+      "encoding": "utf-8",
+      "raw_bytes": 26993,
+      "sha256": "a1abdcadd2aef0d6ef5653330f0d172dc5c9248ff2850829b96f0e47122a569c",
+      "file": "ccgp_hl_e8f00e33bac08696.html",
+      "result": "FROZEN",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "NON_MEDICAL_SERVICE_NEGATIVE",
+      "expected_pairs": [
+        [
+          "后勤保障服务（卫生清洁）",
+          "1(年)"
+        ],
+        [
+          "后勤保障服务（保安）",
+          "1(年)"
+        ]
+      ],
+      "expected_medical_relevant": false,
+      "evidence_locator": "一、项目基本情况/采购需求/合同包1及2；真实服务可解析，但不得变成医疗设备机会",
+      "expectation_basis": "Manual review of frozen official demand rows, not a copy of parser output"
+    },
+    {
+      "label": "ccgp_ln_e098f4b20ac83f0c",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27291252.htm",
+      "baseline_id": "ccgp_ln_e098f4b20ac83f0c",
+      "name": "于洪区人民医院结核分枝杆菌耐药基因检测设备及其他配套设备采购项目 包组编号：001",
+      "fetched_at": "2026-11-06T08:52:34.613861+00:00",
+      "http": 200,
+      "content_type": "text/html",
+      "encoding": "utf-8",
+      "raw_bytes": 47463,
+      "sha256": "cc917d0c30b3621842d8fd36ab45c0ca802b83007ef732b7f0f4382f3991255d",
+      "file": "ccgp_ln_e098f4b20ac83f0c.html",
+      "result": "FROZEN",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "LN_PRODUCT_NAME_TABLE",
+      "expected_pairs": [
+        [
+          "结核分枝杆菌耐药基因检测多通道分析仪",
+          "1台"
+        ],
+        [
+          "高压蒸汽灭菌器",
+          "1台"
+        ],
+        [
+          "生物安全柜",
+          "1个"
+        ],
+        [
+          "离心机",
+          "2台"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "evidence_locator": "采购需求/货物采购技术参数/序号1至4；子参数不能变成产品",
+      "expectation_basis": "Manual review of frozen official demand rows, not a copy of parser output"
+    },
+    {
+      "label": "ccgp_jl_40d5ac0960328c51",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27287982.htm",
+      "baseline_id": "ccgp_jl_40d5ac0960328c51",
+      "name": "德惠市人民医院检验设备采购项目",
+      "fetched_at": "2026-11-06T08:52:38.220033+00:00",
+      "http": 200,
+      "content_type": "text/html",
+      "encoding": "utf-8",
+      "raw_bytes": 36474,
+      "sha256": "08313232bb0d3cb3648d3113461795ea4408eaa888912d5e744fba6aef932eec",
+      "file": "ccgp_jl_40d5ac0960328c51.html",
+      "result": "FROZEN",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "JL_ZCY_NULL_QUANTITY",
+      "expected_pairs": [
+        [
+          "五分类血球分析仪、糖化分析仪、超敏C反应分析仪一体化自动检测流水线",
+          null
+        ],
+        [
+          "全自动尿液分析仪(干化学+尿沉渣)",
+          null
+        ],
+        [
+          "质谱分析仪",
+          null
+        ],
+        [
+          "微生物药敏分析仪",
+          null
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "evidence_locator": "采购需求/标项一至四/简要规格描述；数量空白须保留null，首项组合不擅自拆解",
+      "expectation_basis": "Manual review of frozen official demand rows, not a copy of parser output"
+    },
+    {
+      "label": "ccgp_he_2a9ca892bf9d0b6a",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm",
+      "baseline_id": "ccgp_he_2a9ca892bf9d0b6a",
+      "name": "河北工程大学附属医院病理数字化切片扫描仪采购项目",
+      "fetched_at": "2026-11-06T08:52:39.488875+00:00",
+      "http": 200,
+      "content_type": "text/html",
+      "encoding": "utf-8",
+      "raw_bytes": 15064,
+      "sha256": "923c2e5308d0f5d2ce6e7d4886d2cd021bad2bc3fe21aedba096c3b6808caff9",
+      "file": "ccgp_he_2a9ca892bf9d0b6a.html",
+      "result": "FROZEN",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "HE_EXPLICIT_DEMAND",
+      "expected_pairs": [
+        [
+          "病理数字化切片扫描仪",
+          "4套"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "evidence_locator": "采购需求/拟采购病理数字化切片扫描仪4套",
+      "expectation_basis": "Manual review of frozen official demand rows, not a copy of parser output"
+    },
+    {
+      "label": "ccgp_jl_806743d8af167ea4",
+      "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260928_27408035.htm",
+      "baseline_id": "ccgp_jl_806743d8af167ea4",
+      "name": "吉林大学第一医院血液透析机设备采购项目",
+      "fetched_at": "2026-11-06T08:52:41.166373+00:00",
+      "http": 200,
+      "content_type": "text/html",
+      "encoding": "utf-8",
+      "raw_bytes": 27906,
+      "sha256": "9b3f94170e632e2d2481f48fc24aedf41acfe5d1c2cbf950599b7f39d22f15e3",
+      "file": "ccgp_jl_806743d8af167ea4.html",
+      "result": "FROZEN",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "JL_SPLIT_PRODUCT_HEADER",
+      "expected_pairs": [
+        [
+          "血液透析机",
+          "5台/套"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "evidence_locator": "采购需求/包01/产品名称（分段文本）/数量（台/套）=5；不擅自选台或套",
+      "expectation_basis": "Manual review of frozen official demand rows, not a copy of parser output"
+    },
+    {
+      "label": "ccgp_bj_xiehe_mammography",
+      "url": "https://www.ccgp.gov.cn/cggg/zygg/gkzb/202609/t20260908_27289494.htm",
+      "baseline_id": null,
+      "name": "协和乳腺机：表头单位",
+      "fetched_at": "2026-11-06T08:52:43.672725+00:00",
+      "http": 200,
+      "content_type": "text/html",
+      "encoding": "utf-8",
+      "raw_bytes": 20252,
+      "sha256": "39551ebacca866ad47309b9ba33ecf82668ecc8198e9195719a8563819403f2a",
+      "file": "ccgp_bj_xiehe_mammography.html",
+      "result": "FROZEN",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "BJ_HEADER_UNIT",
+      "expected_pairs": [
+        [
+          "乳腺机",
+          "1套"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "evidence_locator": "采购需求/设备名称=乳腺机、数量（套）=1；单位仅在表头",
+      "expectation_basis": "Manual review of frozen official demand rows, not a copy of parser output"
+    },
+    {
+      "label": "ccgp_tj_attachment_only",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260914_27324646.htm",
+      "baseline_id": "ccgp_d93612752b64414f",
+      "name": "宝坻影像中心：附件边界",
+      "fetched_at": "2026-11-06T08:52:45.113805+00:00",
+      "http": 200,
+      "content_type": "text/html",
+      "encoding": "utf-8",
+      "raw_bytes": 23001,
+      "sha256": "529d79953ab618693c5c962ad7697d46812791d5697cc7dd4c774fddb766f714",
+      "file": "ccgp_tj_attachment_only.html",
+      "result": "FROZEN",
+      "kind": "OFFICIAL_ORIGINAL",
+      "family": "ATTACHMENT_ONLY_NEGATIVE",
+      "expected_pairs": [],
+      "expected_medical_relevant": true,
+      "evidence_locator": "采购需求/第1包、第2包仅写项目名称及详见附件；采购目录不等于设备明细",
+      "expectation_basis": "Manual review of frozen official demand rows, not a copy of parser output"
+    },
+    {
+      "label": "qualification_general_table",
+      "file": "qualification_general_table.html",
+      "kind": "SYNTHETIC_DERIVED_NEGATIVE",
+      "family": "QUALIFICATION_TABLE_BOUNDARY",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm",
+      "fetched_at": "2026-11-06T08:52:39.488875+00:00",
+      "encoding": "utf-8",
+      "sha256": "934add9795f930e9b62bf9e5797ac2e02dc85931f107d083983db640d0d23917",
+      "raw_bytes": 15267,
+      "baseline_id": null,
+      "base_official_file": "ccgp_he_2a9ca892bf9d0b6a.html",
+      "base_official_sha256": "923c2e5308d0f5d2ce6e7d4886d2cd021bad2bc3fe21aedba096c3b6808caff9",
+      "transformation": "Insert this explicitly synthetic qualification table before closing body; official original remains unchanged",
+      "inserted_html": "<section><h2>二、申请人的资格要求：</h2><table><tr><th>设备名称</th><th>数量</th><th>单位</th></tr><tr><td>医疗器械经营许可证</td><td>1</td><td>份</td></tr></table></section>",
+      "expected_pairs": [
+        [
+          "病理数字化切片扫描仪",
+          "4套"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "evidence_locator": "Original procurement demand remains unchanged; appended qualification rows must never replace it"
+    },
+    {
+      "label": "qualification_standard_table",
+      "file": "qualification_standard_table.html",
+      "kind": "SYNTHETIC_DERIVED_NEGATIVE",
+      "family": "QUALIFICATION_TABLE_BOUNDARY",
+      "url": "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm",
+      "fetched_at": "2026-11-06T08:52:39.488875+00:00",
+      "encoding": "utf-8",
+      "sha256": "57ab9c9696fec6da3576722d6d67591c4f44b4e81ca73db4c431c0a8f33ba37a",
+      "raw_bytes": 15299,
+      "baseline_id": null,
+      "base_official_file": "ccgp_he_2a9ca892bf9d0b6a.html",
+      "base_official_sha256": "923c2e5308d0f5d2ce6e7d4886d2cd021bad2bc3fe21aedba096c3b6808caff9",
+      "transformation": "Insert this explicitly synthetic qualification table before closing body; official original remains unchanged",
+      "inserted_html": "<section><h2>二、申请人的资格要求：</h2><table><tr><th>品目名称</th><th>采购标的</th><th>数量（单位）</th></tr><tr><td>资格材料</td><td>医疗器械经营许可证</td><td>1(份)</td></tr></table></section>",
+      "expected_pairs": [
+        [
+          "病理数字化切片扫描仪",
+          "4套"
+        ]
+      ],
+      "expected_medical_relevant": true,
+      "evidence_locator": "Original procurement demand remains unchanged; appended qualification rows must never replace it"
+    }
+  ]
+}
