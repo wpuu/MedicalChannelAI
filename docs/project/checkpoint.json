@@ -1,8 +1,8 @@
 {
   "schema_version": "0.2",
-  "updated_at": "2026-11-06",
+  "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFICIAL_PUBLIC_PYTHON_SDK_STATIC_AUDIT_NO_SDK_EXECUTION",
+  "state_scope": "SDK_INTEGRATION_DECISION_NO_GO_BRANCH_CLOSED_DOCUMENTATION_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "SDK_CANDIDATE_HASHES_FROZEN_DEFAULT_GET_INTEGRATION_NO_GO",
-  "latest_changes_validation_status": "STATIC_SOURCE_PROVENANCE_5_OF5; WHEEL_SHA_VERIFIED; 324_INPUTS_UNCHANGED; 1031_AND10/3_HISTORICAL_NOT_RERUN",
+  "milestone": "CURRENT_REAL_SDK_INTEGRATION_BRANCH_CLOSED_NO_GO_RETURN_TO_MAINLINE",
+  "latest_changes_validation_status": "FROZEN_SDK_INTEGRITY_PASS;19_REFERENCES;380_INPUTS_UNCHANGED;1031_AND10/3_HISTORICAL_NOT_RERUN",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -2316,7 +2316,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "315136a",
+  "latest_reviewed_repository_head": "75c02dccb8b82c62ce74b03fe1e67501ad04f7f2",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2414,7 +2414,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "315136a",
+  "current_phase_starting_head": "75c02dccb8b82c62ce74b03fe1e67501ad04f7f2",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2465,7 +2465,7 @@
     "historical": true
   },
   "latest_offline_tool_head": "605ebad99041a3057189a1315adae6cc2a773055",
-  "code_validation_scope": "STATIC_PUBLIC_SOURCE_AND_DOCUMENTATION_ONLY; APPLICATION/LOCKS/GUARD/KERNEL/TESTS_UNCHANGED",
+  "code_validation_scope": "DOCUMENTATION_DECISION_ONLY; NO_SOURCE_LOCK_OR_TEST_CHANGES",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
     "starting_head": "c25ff2690b0475dd5e25b10619e12199e73198cc",
@@ -2973,6 +2973,39 @@
       "within_foreground_deadline": true,
       "sdk_installed_imported_executed": false,
       "project_queries_or_runtime_calls": 0,
+      "apply_allowed": false,
+      "migration_usable": false
+    },
+    "historical": true
+  },
+  "sdk_integration_decision": {
+    "decision": "NO_GO_PAUSE_AND_CLOSE_CURRENT_SDK_INTEGRATION_BRANCH",
+    "report": "docs/project/ccgp-runtime-integration-decision-2026-11-07.md",
+    "manifest": "docs/project/validation/ccgp-runtime-integration-decision-2026-11-07/manifest.json",
+    "source_references_checked": 19,
+    "protected_input_file_count": 380,
+    "application_changes_approved": [],
+    "dependency_changes_approved": [],
+    "routes_approved": [],
+    "permissions_requested_now": [],
+    "execution_carrier_selected": null,
+    "sdk_candidate_versions_are_deployed_versions": false,
+    "network_calls_this_round": 0,
+    "sdk_execution": false,
+    "runtime_reads_writes": 0,
+    "deployment_or_push": false,
+    "full_suite_rerun": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "automatic_reopen": false,
+    "foreground_started_at": "2026-11-06T16:29:44Z",
+    "foreground_deadline": "2026-11-06T16:49:44Z",
+    "completion": {
+      "started_at": "2026-11-06T16:29:44Z",
+      "foreground_deadline": "2026-11-06T16:49:44Z",
+      "completed_at": "2026-11-06T16:33:51.389031+00:00",
+      "within_foreground_deadline": true,
+      "network_or_sdk_execution": false,
       "apply_allowed": false,
       "migration_usable": false
     }

@@ -1,0 +1,100 @@
+{
+  "kind": "FROZEN_SOURCE_REFERENCES_NO_NETWORK",
+  "references": [
+    {
+      "path": "web/collector_readonly_guard.py",
+      "line": 104,
+      "sha256": "4174cd6706ce6dcb750e2593840c1497dc91bf1df7272f5fedda9290665476bc"
+    },
+    {
+      "path": "web/collector_readonly_guard.py",
+      "line": 126,
+      "sha256": "4174cd6706ce6dcb750e2593840c1497dc91bf1df7272f5fedda9290665476bc"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/cache/runtime_cache.py",
+      "line": 22,
+      "sha256": "5bca671d25a40e2a64330ac7646f688ba974066c5270dd937c9bea3bd079c7a7"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/cache/cache_build.py",
+      "line": 39,
+      "sha256": "acfde6c54262f3c6eb1025b91ea3d007f9f08dca60540c2cf55b6b9a094d7f52"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/cache/cache_build.py",
+      "line": 41,
+      "sha256": "acfde6c54262f3c6eb1025b91ea3d007f9f08dca60540c2cf55b6b9a094d7f52"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/cache/runtime_cache.py",
+      "line": 230,
+      "sha256": "5bca671d25a40e2a64330ac7646f688ba974066c5270dd937c9bea3bd079c7a7"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/cache/runtime_cache.py",
+      "line": 138,
+      "sha256": "5bca671d25a40e2a64330ac7646f688ba974066c5270dd937c9bea3bd079c7a7"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/internal/telemetry/client.py",
+      "line": 13,
+      "sha256": "bb485494f2c05e2218dedcc7b3784b9c79e8c4ea25bc79e6b14386b590f0394a"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/internal/telemetry/client.py",
+      "line": 145,
+      "sha256": "bb485494f2c05e2218dedcc7b3784b9c79e8c4ea25bc79e6b14386b590f0394a"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/cache/cache_build.py",
+      "line": 57,
+      "sha256": "acfde6c54262f3c6eb1025b91ea3d007f9f08dca60540c2cf55b6b9a094d7f52"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/httpx2/_client.py",
+      "line": 985,
+      "sha256": "a4380f9842a38896430618673ccef66486a5cdbd6653987d581b869c72df9b53"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/httpx2/_transports/default.py",
+      "line": 132,
+      "sha256": "8fc43a2882d471aff751366a7f28e91c5e31831a4b29aa3bb4e66931a2148e97"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/cache/runtime_cache.py",
+      "line": 146,
+      "sha256": "5bca671d25a40e2a64330ac7646f688ba974066c5270dd937c9bea3bd079c7a7"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/cache/utils.py",
+      "line": 6,
+      "sha256": "52e6db8dcc0c2ed585f53b07d0e7c814ce65bad0b01c57f7172a00a47cc55ee4"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/official-reference.md",
+      "line": 196,
+      "sha256": "ee159c9d7fc7dd8461a91d9343dc519fb6b60118c3b503d5892b1cf3ca4f2def"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/official-reference.md",
+      "line": 205,
+      "sha256": "ee159c9d7fc7dd8461a91d9343dc519fb6b60118c3b503d5892b1cf3ca4f2def"
+    },
+    {
+      "path": "docs/project/validation/ccgp-python-sdk-audit-2026-11-06/wheel-source/vercel/cache/runtime_cache.py",
+      "line": 58,
+      "sha256": "5bca671d25a40e2a64330ac7646f688ba974066c5270dd937c9bea3bd079c7a7"
+    },
+    {
+      "path": "web/vercel.json",
+      "line": 15,
+      "sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e"
+    },
+    {
+      "path": "web/vercel.json",
+      "line": 18,
+      "sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e"
+    }
+  ]
+}

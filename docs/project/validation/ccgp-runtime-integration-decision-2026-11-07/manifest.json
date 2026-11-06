@@ -1,0 +1,35 @@
+{
+  "kind": "FINAL_NO_GO_DECISION_AND_CLOSED_SDK_WORKFLOW_DOCUMENTATION_ONLY",
+  "files": [
+    {
+      "path": "completion.json",
+      "bytes": 276,
+      "sha256": "22a9e256735b8c0db9ca8978d643cd206f8c529b58ba37bf84b72c219eabb2e1"
+    },
+    {
+      "path": "decision.json",
+      "bytes": 1466,
+      "sha256": "e3a03d61e69711b3cfc33e394529ce6c790ea7ba9efe5428fcc83cf2fba3b747"
+    },
+    {
+      "path": "evidence-index.json",
+      "bytes": 4112,
+      "sha256": "c7ad744f8b187fdb78719aa730d01c2f048ed62765e0c0ee226c5e53f09a3adb"
+    },
+    {
+      "path": "input-integrity.json",
+      "bytes": 243,
+      "sha256": "1bf93cb0886f452c6b661e13416e8c16b5a25d808db5b52625bc0ed6eea25833"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 647,
+      "sha256": "a9c9508e95f3ae3d6386d178f6335ccf6961b2da3b6771aa7eb156074161d371"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 1956,
+      "sha256": "9d7283a2c1e30868791dc3451f63c2a10068bd6d0f9ceb1496fac7f6284d4f46"
+    }
+  ]
+}

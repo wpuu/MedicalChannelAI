@@ -1,17 +1,15 @@
-# 下一轮：基于精确SDK证据的一次性最小接入变更决策包（仅文档）
+# 下一轮：返回主线，离线审查共享官方入口限流与重试预算（仅文档）
 
 推荐GPT-6.1 Sol高（high）；实际运行模型/思考等级未核实。
 
-继续MedicalChannelAI。先核对 /workspace/MedicalChannelAI-p0 最新HEAD、未提交改动和在途工作，读取用户最新指令及docs/project/working-protocol.md、current-state.md、checkpoint.json、next-task.md、ccgp-python-sdk-audit-2026-11-06.md、ccgp-readonly-integration-review-2026-11-06.md、ccgp-readonly-guard-2026-11-06.md。本轮成果见当前HEAD；守卫605ebad、内核9781921未改。公开候选vercel0.12.2/cache0.7.7并非既有部署实际版本。
+继续MedicalChannelAI。先核对 /workspace/MedicalChannelAI-p0 最新HEAD、未提交改动和在途工作，读取用户最新指令、docs/project/working-protocol.md、current-state.md、checkpoint.json、next-task.md及ccgp-runtime-integration-decision-2026-11-07.md。最新成果见当前HEAD；原守卫605ebad、内核9781921未改。SDK真实接入分支已以NO-GO关闭，不重新审计同版SDK、不追加模拟、不查云端或请求宽权限。
 
-复用本轮已获官方公开来源静态读取权限，不重复索要同一授权；只在必要时补官方公开源码证据，不再查项目元数据、不安装/导入/运行SDK。当前SDK已证明：同步get无timeout参数、BuildCache固定30秒；默认吞错为None/可能内存fallback；strict不能保证context路径严格；GET会track且可能atexit遥测POST；没有get响应流上限；默认key hash需与写入器一致。不要再重复写泛化接入方案或新增假transport层。
+返回current-state中已登记尚未完成的“入口共享预算/冷却”主线。读取docs/project/event-diagnostics-retry-2026-11-06.md、source-recovery-precision-2026-11-06.md与web/collector_runtime.py、web/collector_incremental_runtime.py、web/pipeline/medical_channel_pipeline/ccgp_discovery.py、ccgp_detail.py、web/pipeline/scripts/sync_regional_ccgp.py及相关既有测试（含test_collector_deferred_budget.py）。先核对已完成的终局重试/降级修复，避免重复报告。
 
-本轮只输出一个可评审的最小变更决策包，不写应用代码或新路由、不修改依赖锁、不部署。比较公开支持的SDK路径能否满足当前2秒/110秒/120秒、零重试、失败整批拒绝、无fallback/额外POST、响应上限和可信后端绑定。不能靠修改私有_client、猜造timeout参数或包一层超时future宣称解决。若公开支持路径不满足，明确NO-GO及供应商能力缺口，不伪造可实现结论。
+仅静态追踪共享官方host的请求调用链、timeout/重试/Retry-After/冷却、阶段与总预算传递；判断并发来源/地区是否会各自重试同一入口、是否将限流误当采集完整、预算耗尽是否仍多等。最多给3项有最新源码行号和既有测试/冻结证据依据的问题及优先级，不凑数。没有复现证据的只称静态设计缺口或待验证，不能当已确认线上bug；不把历史7/14、8/14健康或旧403/限流当当前状态。
 
-在证据支持范围内给出唯一推荐路径（也允许结论为暂停真实接入），逐项列出需修改的准确文件/依赖版本、是否需要新的受保护维护执行入口、身份和最小只读能力、关闭遥测的可支持方式、可终止载体与响应流限额、单次验收步骤和最小新增授权。当前实际SDK版本、team计划、Runtime Cache身份/通道仍未核实，不能默认成立。已有只读元数据/公开来源权限不等于变更、部署或缓存读取授权。
+验收：输出请求调用链和已有机制/缺口对照、已修不重复项、最多3项最小修复建议（准确文件/触发条件/预期行为/后续验收）。不写修复代码、不新增mock/测试引擎、不修改原始数据或冻结证据。若已有代码已覆盖则给证据并关闭，不制造新任务。
 
-验收：每项方案引用冻结源码/文档行号；明确区分已有实现、拟议变更、供应商不支持与运行事实未核实；不弱化预算或把4MB观察阈值当2MB服务可写容量。输出可批准或拒绝的具体变更清单及go/no-go表，列清后续一次性验收，而非再拆成多轮重复模拟。无可满足路径就以阻断结论结束此分支。
+权限：仅现有隔离分支本地源码/既有证据只读与文档/验收artifact更新。不联网、不安装/导入/执行SDK、不查项目元数据、凭据、环境值或日志，不调用业务接口、RuntimeCache、数据库、函数/Queue/模型，不新增环境/路由、不改应用或锁文件、计划/权限/保护，不部署、不推送、不写运行数据。apply_allowed=false、migration_usable=false。前台20分钟。
 
-权限：仅本地文档/验收artifact与已授权官方公开静态资料读取。不改应用、锁文件、内核或守卫，不新增路由/环境/角色，不安装执行SDK，不读取凭据/环境值/原始日志，不调用项目元数据/业务接口/RuntimeCache/数据库/函数/Queue/模型，不改计划/变量/权限/保护，不部署、不推送、不写运行数据或原始历史数据。apply_allowed=false、migration_usable=false。前台20分钟。
-
-结束时更新状态、证据和下一轮完整任务，报告实际完成、验证与未完成项。当前界面无法生成真实底部提示词提交按钮时如实说明并给完整可复制提示词，标注推荐等级和实际设置未核实。
+结束时更新状态、证据与下一轮完整任务，报告实际完成、验证和未完成项。当前界面无法生成真实底部提示词提交按钮时如实说明并给完整可复制提示词，推荐等级及实际设置未核实。

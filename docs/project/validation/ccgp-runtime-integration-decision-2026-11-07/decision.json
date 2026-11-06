@@ -1,0 +1,35 @@
+{
+  "decision": "NO_GO_PAUSE_AND_CLOSE_CURRENT_SDK_INTEGRATION_BRANCH",
+  "recommended_action": "Archive documentation only; no runtime change approval",
+  "scope": "Pinned candidate vercel0.12.2/cache0.7.7 and current evidence; not a statement about all future SDK versions",
+  "application_files_to_change_now": [],
+  "approved_dependency_versions_for_deployment": [],
+  "new_routes": [],
+  "new_configuration_changes": [],
+  "new_permissions_requested_now": [],
+  "execution_carrier_selected": null,
+  "candidate_versions_are_deployed_versions": false,
+  "branches_to_retry_or_simulate": [],
+  "closed_options": [
+    "default RuntimeCache",
+    "strict plus telemetry off plus future timeout",
+    "AsyncRuntimeCache switch alone",
+    "private client/context monkeypatch",
+    "undocumented direct cache endpoint",
+    "reuse business/Queue entry"
+  ],
+  "reopen_requires_all": [
+    "Documented supported per-call remaining budget",
+    "Strict error and no fallback on every selected backend path",
+    "Pre-decode response limit",
+    "No retry or telemetry POST plus bounded network calls",
+    "Authenticated exact d backend and writer key transform",
+    "Verified hard execution deadline and cleanup",
+    "Exact reviewed dependency closure and implementation",
+    "Explicit separately scoped implementation/deploy/read authorization"
+  ],
+  "apply_allowed": false,
+  "migration_usable": false,
+  "real_export_executed": false,
+  "new_mock_layers": 0
+}

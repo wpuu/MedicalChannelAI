@@ -1,0 +1,20 @@
+{
+  "sdk_frozen_verifier_rechecked": true,
+  "recorded_stdout": "PASS:6wheel hashes,5official source matches,get signature,324unchanged inputs; STATIC ONLY,NO SDK execution",
+  "report_source_references_checked": 19,
+  "protected_input_file_count": 380,
+  "full_suite_rerun": false,
+  "historical_code_bound_gates": {
+    "python": 1031,
+    "templates": "10/10",
+    "cli": "3/3"
+  },
+  "network_calls_this_round": 0,
+  "sdk_install_import_execution": false,
+  "project_metadata_calls": 0,
+  "runtime_data_reads_writes": 0,
+  "model_function_queue_calls": 0,
+  "deployment_or_push": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

@@ -1,8 +1,16 @@
 # MedicalChannelAI current state
 
-Updated: 2026-11-06（Asia/Shanghai）
+Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前官方公开Python SDK静态审计（精确候选已冻结，直接接入NO-GO）
+## 当前真实SDK接入一次性决策（NO-GO，分支关闭）
+
+- 2026-11-07按精确冻结源码完成[一次性决策包](ccgp-runtime-integration-decision-2026-11-07.md)：唯一推荐暂停当前真实接入。默认SDK、strict/遥测关闭/future、异步切换、私有客户端修改、内部端点直连及业务/Queue复用均不能在现有证据下同时满足原合同，不批准任何应用/依赖/路由/配置/权限变更。
+- 公开候选vercel0.12.2/cache0.7.7不是可上线版本承诺，更不是部署实际版本。2秒/读110秒/总120秒、无fallback/额外POST、响应限额及可信d后端不放宽；供应商版本能力缺口与运行事实未核实分别标明。新增入口/更大maxDuration不能单独解决这些阻断。
+- 文档列明准确文件处理（运行文件全部不改）、执行载体/身份/权限的未决门槛、供应商公开遥测开关的配置授权要求、未来一次性验收及重启条件。当前不请求新权限、不安排重复模拟/探测；只有实质新证据与对应授权才能重新打开分支。apply_allowed/migration_usable=false。
+- 本轮复核SDK冻结验证器通过（6个wheel、5份官方源码、签名/324旧输入）；19处引用核对，起点380份data/fixture/旧证据字节不变，源码/测试/锁文件未改。1031/10/3仍为历史门禁，未重跑。[新证据](validation/ccgp-runtime-integration-decision-2026-11-07/manifest.json)。没有联网、SDK执行、云端/业务/运行数据访问、部署/推送或任何配置变更。
+- 此SDK接入分支已关闭，项目整体继续。[下一轮](next-task.md)返回已登记共享官方入口限流/重试预算的离线审查，仅文档、最多3项有证据的建议，不依赖canonical导出，不把旧健康状态当当前。当前界面无法生成该按钮；推荐GPT-6.1 Sol高（high），实际设置未核实。
+
+## 上轮官方公开Python SDK静态审计（历史候选已冻结，直接接入NO-GO）
 
 - 以官方文档、vercel/vercel-py仓库和PyPI冻结vercel0.12.2、vercel-cache0.7.7、telemetry0.8.2、httpx2 2.16.0等审计切片；5份关键wheel源码与官方仓库commit5b25d1d5f3c42a838e0af34164b84e027a1fdcab字节一致，完整URL/哈希见[审计报告](ccgp-python-sdk-audit-2026-11-06.md)和[证据](validation/ccgp-python-sdk-audit-2026-11-06/manifest.json)。公开候选不等于部署实际版本，完整依赖闭包未审。
 - 已证实原生get无timeout参数、默认底层30秒、默认错误转None和内存fallback；strict不能保证全部context/remembered路径严格。缺少响应流上限、可能遥测POST，内存get可能删除过期项；不能用现有合成守卫宣称真实路径已满足2秒/零额外写。
