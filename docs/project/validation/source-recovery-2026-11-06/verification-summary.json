@@ -1,0 +1,17 @@
+{
+  "commit": "be87e5f34e088b7d39c381d5855030694b27d568",
+  "python_tests": 884,
+  "python_result": "PASS",
+  "javascript_contracts": "PASS",
+  "typescript": "PASS",
+  "vite_build": "PASS",
+  "build_command": "npm run build",
+  "main_js_gzip_kb": 116.0,
+  "cloud_same_payload_replay": "PASS",
+  "same_millisecond_positive_revisions": "LOCAL_BEHAVIORAL_TEST_PASS; no new live revision constructed",
+  "cloud_one_microsecond_rollback_and_same_instant_conflict": "HTTP_409_REJECTED",
+  "historical_rows_bulk_migrated": false,
+  "real_postgres_local_test": "TCP_CONNECTION_REFUSED; no local temporary-table assertions executed; actual postgres.js precision instead verified through deployed Preview API and Neon SQL",
+  "new_full_cloud_queue_cycle": "NOT_TRIGGERED",
+  "production_modified": false
+}

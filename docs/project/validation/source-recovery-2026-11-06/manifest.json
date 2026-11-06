@@ -1,0 +1,70 @@
+{
+  "schema_version": "0.1",
+  "recorded_at": "2026-11-06T03:48:57.627237+00:00",
+  "scope": "Preview source diagnostics, retry correction and full microsecond publication verification",
+  "production_modified": false,
+  "all_sources_recovered": false,
+  "new_full_queue_cycle_verified": false,
+  "artifacts": [
+    {
+      "path": "browser-smoke-report.json",
+      "sha256": "597cf52dfb22db6babd543e40fc6b0055c27db21c5887b183f79384d6e23d6e6"
+    },
+    {
+      "path": "cloud-baseline-status.json",
+      "sha256": "6989c3053cb7349f1ad2836d50fde5dec88852c06106f01b99f2922e6c898068"
+    },
+    {
+      "path": "cloud-precision-verification.json",
+      "sha256": "7a7cfb8028e9d12b51a73e27483ef8a37d59cfc5d0e635b5a367eb1348e70486"
+    },
+    {
+      "path": "cloud-replay-response.json",
+      "sha256": "878d9545b5c6ab69592348b2f9f3d343d103ca5d98e96e7ce4769f472ca55ae2"
+    },
+    {
+      "path": "cloud-sql-precision.json",
+      "sha256": "8b9d70c1407fd42265cd221043d7b234df1e2ac3aa45d0775406e5211b36ecb1"
+    },
+    {
+      "path": "deployment-boundary.json",
+      "sha256": "8c769a26823e5c8743ae678389ffa3acef98a18b58627f608c34a00fc382cc86"
+    },
+    {
+      "path": "ln-final-live-diagnostic.json",
+      "sha256": "6f83ad52e86c32fc491baa9b91f94c103bb29dcdcba8c611c68ddd3b78dbb647"
+    },
+    {
+      "path": "ln-local-live-diagnostic.json",
+      "sha256": "0df027f42476162723715644c2680c16cd7037ec5e405d51b87b0265b53f92d4"
+    },
+    {
+      "path": "old-deployment-tick-observation.json",
+      "sha256": "20328c762d3d054dc4cb87ccf6605f00b71b366afa0ebdbd495415971dac0a2a"
+    },
+    {
+      "path": "published-payload.json",
+      "sha256": "0474fb36578834d453df5a7a76e904d27360bbfbba7ae6c94bf4b33debc23e13"
+    },
+    {
+      "path": "scope.json",
+      "sha256": "351a0f073bc57458c6657ed5ce2f8382686a65326c1ca720197213a5769b5424"
+    },
+    {
+      "path": "teda-bare-normal-request.json",
+      "sha256": "4a5a4356b11f8d7e6ad3dd900aedf963810b8b98add52da12066d097d7003979"
+    },
+    {
+      "path": "teda-live-worker-proof.json",
+      "sha256": "a3fd37710466307a154b88e76abbc1989f98d811ac698a9020d5d24ec5acbd99"
+    },
+    {
+      "path": "teda-normal-requests.json",
+      "sha256": "e483a6c4bfd2b374727b9d2bfdda9cbb414ab383532309db518b59a50f6f3061"
+    },
+    {
+      "path": "verification-summary.json",
+      "sha256": "5eeadea7293932e5e33a44e087e6d5f7f493bb23fb65c5dc0402f0bcd4fbcb23"
+    }
+  ]
+}

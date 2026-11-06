@@ -1,0 +1,41 @@
+{
+  "success": false,
+  "error": "REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:LN",
+  "diagnostics": {
+    "failure_count": 10,
+    "reason_counts": {
+      "HTTP_ERROR": 1,
+      "RATE_LIMITED": 9
+    },
+    "phase_counts": {
+      "scoped_discovery": 10
+    },
+    "samples": [
+      {
+        "phase": "scoped_discovery",
+        "reason": "RATE_LIMITED",
+        "candidate_ref": "0a754b98d807dadc25f6cc441b37ee058f2adbd341ed4ea0b5cf3810fa571e2d"
+      },
+      {
+        "phase": "scoped_discovery",
+        "reason": "RATE_LIMITED",
+        "candidate_ref": "182caec28e6fafda181c474c6bd7cfbcf85b72c4f2f210c9e54ec016f9c10b14"
+      },
+      {
+        "phase": "scoped_discovery",
+        "reason": "RATE_LIMITED",
+        "candidate_ref": "2cfbb1687aa0291f5da21d88d71764057a8b4c3ab8929ec1bf5f4de9e66eef72"
+      },
+      {
+        "phase": "scoped_discovery",
+        "reason": "RATE_LIMITED",
+        "candidate_ref": "388084381bca50ccb0e6096d33a373ebab8096251cbc244aa81a0493cc7b4d6c"
+      },
+      {
+        "phase": "scoped_discovery",
+        "reason": "RATE_LIMITED",
+        "candidate_ref": "5eaa1b32fc7e6a17b17d91a748b8b65fd2cd98f13b92d915c3a6253b9a0c24a7"
+      }
+    ]
+  }
+}

@@ -2,7 +2,18 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前 Preview 真实采集与发布状态
+## 当前来源故障处理与精度修复
+
+- 最新可执行代码：`be87e5f34e088b7d39c381d5855030694b27d568`；[Preview](https://medicalchannelai-ix8zm70ut-rerisse7-1717s-projects.vercel.app) `dpl_F9c2jc8uJuiPELzoHY8rxGZc7aRH` READY，精确版本已读回。工作树/分支不变，原工作树干净。
+- [本轮修复与验收报告](source-recovery-precision-2026-11-06.md)及[冻结证据](validation/source-recovery-2026-11-06/manifest.json)是本轮依据；下方47条/878测试/34浏览器项属于上一阶段，保留历史绑定。
+- 完整构建884个Python测试、全部JS合约、TypeScript、Vite通过；本轮浏览器6项通过，4次自动AI缓存读取被测试护栏阻断，未发AI请求。
+- 已修区域安全诊断、限流后查询止损、依赖终局降级后的fallback无效重试、明确拒绝访问的一次降级、数据库/缓存微秒版本比较和旧行相同payload重放修复。
+- 云端对真实46条快照做相同内容重放，SQL时间与JSON微秒精确相等；早1微秒回退和同刻冲突均409拒绝，权威/普通GET/浏览器/冻结payload同SHA `45709c27420c7e856b69fd8b168237b12f3a71664bf982c68f8e825db1ef0488`。没有构造新测试版本或改事实/健康时钟，未批量迁移历史行。
+- TEDA正常访问仍403；辽宁本轮真实本地请求限流，最终代码1次查询即止。程序侧修复不表示外部来源恢复，也不能解释昨天未保存明细的失败。
+- 北京时间11:30旧部署a3f94bd自动tick及发布已实际观察；47→46是吉林一条项目当日09:30投标截止后退出池。持续调度未验收，新版完整Queue周期未触发；旧部署消息仍按旧代码处理，需后续处理旧消费者和版本隔离。
+- `production_ready=false`。Production于2026-11-06T03:46:56.710Z只读复核仍`3216fd9`/`dpl_4LPKoTdusrvbExXuzbMKtnyiT86C` READY，SSO不变；本轮临时访问已撤销。未合并、提升Production或改域名/DNS/EdgeOne。
+
+## 上轮真实采集与发布验收（6a1ec6c，历史记录）
 
 - 工作树 `/workspace/MedicalChannelAI-p0`，分支 `codex/p0-reliability-contracts`；原工作树保持干净。
 - 最新可执行/UI代码 `4575fa4e7721a234d74dd87e35163631019ec2c9`，对应 [UI Preview](https://medicalchannelai-j4ktac1cu-rerisse7-1717s-projects.vercel.app)，`dpl_7QNPqMxE5oehX52mEoZgjYzua2Vm`；READY；当前部署浏览器34/34通过，保持部署保护。

@@ -1,0 +1,40 @@
+{
+  "scope": "Original Queue deployment a3f94bd, not new repair deployment",
+  "source": "tjnothop",
+  "last_completed_scan": {
+    "bucket_id": "tjnothop:60m:498315",
+    "completed_at": "2026-11-06T03:30:02.258351+00:00",
+    "result": {
+      "discovered_candidate_count": 0,
+      "selected_detail_count": 0,
+      "deferred_detail_count": 0,
+      "skipped_unchanged_count": 0,
+      "verified_record_count": 0,
+      "verified_nonfact_count": 0,
+      "verification_failure_count": 0,
+      "canonical_record_count": 0,
+      "pending_record_count": 0,
+      "pending_barrier_count": 0,
+      "snapshot_refreshed": true,
+      "snapshot_as_of": "2026-11-06T03:30:02.258351+00:00",
+      "deferred_reason": null
+    }
+  },
+  "chain": {
+    "state": "SOURCE_QUEUED",
+    "business_date": "2026-11-06",
+    "tick_id": "incremental-tick:20261106T1130+0800:01",
+    "next_tick_id": "incremental-tick:20261106T1145+0800:02",
+    "selected_source": "tjnothop",
+    "detail": null,
+    "updated_at": "2026-11-06T03:30:00.951004+00:00"
+  },
+  "pool_change": {
+    "before": 47,
+    "after": 46,
+    "removed_id": "ccgp_jl_74cddb340c0c92e0",
+    "official_bid_deadline": "2026-11-06T09:30:00+08:00",
+    "reason": "bid deadline passed before 11:30 automatic publication"
+  },
+  "sustained_scheduling_verified": false
+}

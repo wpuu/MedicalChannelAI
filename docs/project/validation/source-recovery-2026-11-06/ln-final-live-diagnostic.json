@@ -1,0 +1,23 @@
+{
+  "success": false,
+  "error": "REGIONAL_DISCOVERY_ACCESS_BLOCKED:LN",
+  "diagnostics": {
+    "failure_count": 1,
+    "reason_counts": {
+      "RATE_LIMITED": 1
+    },
+    "phase_counts": {
+      "scoped_discovery": 1
+    },
+    "samples": [
+      {
+        "phase": "scoped_discovery",
+        "reason": "RATE_LIMITED",
+        "candidate_ref": "182caec28e6fafda181c474c6bd7cfbcf85b72c4f2f210c9e54ec016f9c10b14"
+      }
+    ]
+  },
+  "scope": "Final be87e5f local runtime with real official requests and in-memory canonical cache",
+  "query_attempts": 1,
+  "wall_seconds": 7.172
+}

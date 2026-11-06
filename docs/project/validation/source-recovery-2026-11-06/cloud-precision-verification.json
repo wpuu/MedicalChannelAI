@@ -1,0 +1,46 @@
+{
+  "scope": {
+    "target": "preview",
+    "deployment_id": "dpl_F9c2jc8uJuiPELzoHY8rxGZc7aRH",
+    "url": "https://medicalchannelai-ix8zm70ut-rerisse7-1717s-projects.vercel.app",
+    "commit": "be87e5f34e088b7d39c381d5855030694b27d568",
+    "git_branch": "codex/p0-reliability-contracts",
+    "database": "mcai_p0_acceptance_final",
+    "neon_branch": "br-cold-tooth-a5clhljh"
+  },
+  "started_at": "2026-11-06T03:44:12.990636+00:00",
+  "initial_snapshot_as_of": "2026-11-06T03:30:02.258351+00:00",
+  "checks": [
+    "exact existing real Queue payload replay accepted",
+    "one microsecond older request rejected before write",
+    "same instant conflicting payload rejected",
+    "complete authority JSON unchanged after rejected requests",
+    "ordinary CDN GET preserves exact same complete payload"
+  ],
+  "older_microsecond_rejected": {
+    "http": 409,
+    "response": {
+      "error": "PUBLIC_SNAPSHOT_ROLLBACK_REJECTED"
+    },
+    "headers": {
+      "age": null,
+      "x-vercel-cache": "MISS",
+      "x-medicalchannelai-snapshot-source": null
+    }
+  },
+  "same_instant_conflict_rejected": {
+    "http": 409,
+    "response": {
+      "error": "PUBLIC_SNAPSHOT_REVISION_CONFLICT"
+    },
+    "headers": {
+      "age": null,
+      "x-vercel-cache": "MISS",
+      "x-medicalchannelai-snapshot-source": null
+    }
+  },
+  "manual_new_revision_created": false,
+  "fact_or_health_clock_changed": false,
+  "new_cloud_deep_cycle_triggered": false,
+  "pass": true
+}

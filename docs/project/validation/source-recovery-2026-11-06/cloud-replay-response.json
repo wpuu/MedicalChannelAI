@@ -1,0 +1,16 @@
+{
+  "http": 200,
+  "response": {
+    "ok": true,
+    "durable_committed": true,
+    "cache_status": "RETRY_REQUIRED",
+    "snapshot_as_of": "2026-11-06T03:30:02.258351+00:00",
+    "today_card_count": 5,
+    "opportunity_pool_count": 46
+  },
+  "headers": {
+    "age": null,
+    "x-vercel-cache": "MISS",
+    "x-medicalchannelai-snapshot-source": null
+  }
+}

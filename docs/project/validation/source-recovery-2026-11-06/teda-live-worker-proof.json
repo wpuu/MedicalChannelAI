@@ -1,0 +1,28 @@
+{
+  "scope": "Actual TEDA HTTPS discovery through runtime and worker; in-memory cache and fake Queue sender only",
+  "wall_seconds": 3.82,
+  "stage": {
+    "status": "DEGRADED",
+    "attempt_count": 1,
+    "started_at": "2026-11-06T03:43:08.294598+00:00",
+    "wall_started_at": "2026-11-06T03:43:08.295286+00:00",
+    "completed_at": "2026-11-06T03:43:12.113759+00:00",
+    "error_code": "COLLECTOR_STAGE_BLOCKED",
+    "error_message": "TEDA_INDEX_DISCOVERY_FAILED:TEDA_HTTP_403",
+    "result": null,
+    "diagnostics": {
+      "failure_count": 1,
+      "reason_counts": {
+        "TEDA_HTTP_403": 1
+      },
+      "phase_counts": {
+        "index_discovery": 1
+      },
+      "samples": []
+    },
+    "retryable": false,
+    "degraded_reason": "COLLECTOR_NON_RETRYABLE_SOURCE_FAILURE"
+  },
+  "next_stage": "tjfch",
+  "real_cloud_queue_delivery": false
+}
