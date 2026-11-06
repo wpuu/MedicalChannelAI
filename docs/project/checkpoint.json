@@ -7,24 +7,24 @@
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
-  "runtime_implementation_head": "be87e5f34e088b7d39c381d5855030694b27d568",
-  "latest_code_validated_head": "be87e5f34e088b7d39c381d5855030694b27d568",
-  "current_runtime_candidate_head": "be87e5f34e088b7d39c381d5855030694b27d568",
+  "runtime_implementation_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+  "latest_code_validated_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+  "current_runtime_candidate_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "PREVIEW_RETRY_AND_MICROSECOND_FIX_VERIFIED_EXTERNAL_SOURCE_ACCESS_UNRESOLVED",
-  "latest_changes_validation_status": "884_BUILD_PASS_CLOUD_PRECISION_AND_6_BROWSER_CHECKS_PASS_NEW_DEEP_NOT_TRIGGERED",
+  "milestone": "ISOLATED_PREVIEW_EPOCH_REAL_FULL_CYCLE_IN_PROGRESS",
+  "latest_changes_validation_status": "LOCAL_889_BUILD_PASS; REAL_NEW_EPOCH_CYCLE_RUNNING; PUBLICATION_AND_BROWSER_PENDING",
   "current_runtime_candidate_validation": {
-    "head": "be87e5f34e088b7d39c381d5855030694b27d568",
-    "python_contract_tests": 884,
+    "head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+    "python_contract_tests": 889,
     "python_contract_result": "PASS",
     "javascript_contract_checks": "PASS",
     "typescript_typecheck": "PASS",
     "vite_production_build": "PASS",
-    "main_js_gzip_kb": 116.0,
-    "validation_scope": "LOCAL_BEHAVIORAL_AND_REAL_SOURCE_DIAGNOSTICS; CLOUD_EXISTING_SNAPSHOT_REPLAY_AND_6_BROWSER_SMOKE_CHECKS",
-    "new_full_cloud_queue_cycle": "NOT_TRIGGERED",
-    "external_source_access_recovered": false
+    "new_full_cloud_queue_cycle": "IN_PROGRESS",
+    "cloud_publication": "PENDING",
+    "current_browser": "PENDING",
+    "production_ready": false
   },
   "implementation_scope": [
     "Three-source runtime parity: tjzyefy, tjzyefy_intent, tjzxfc; reuse existing official adapters.",
@@ -59,19 +59,19 @@
     "preview_actions_performed": true,
     "production_actions_performed": false,
     "merge_performed": false,
-    "current_head_runtime_acceptance": "CLOUD_PRECISION_REPLAY_AND_BROWSER_SMOKE_PASS; NEW_QUEUE_CYCLE_NOT_VERIFIED",
+    "current_head_runtime_acceptance": "FULL_CYCLE_IN_PROGRESS; NEW_DB_EMPTY_BASELINE_AND_OLD_CREDENTIAL_REJECTIONS_PASS; PUBLICATION_PENDING",
     "remote_deployment_state": "READY_PREVIEW_PRODUCTION_UNCHANGED",
     "preview": {
-      "deployment_id": "dpl_F9c2jc8uJuiPELzoHY8rxGZc7aRH",
-      "url": "https://medicalchannelai-ix8zm70ut-rerisse7-1717s-projects.vercel.app",
-      "commit": "be87e5f34e088b7d39c381d5855030694b27d568",
+      "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
+      "url": "https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app",
+      "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
       "target": "preview",
       "ready_state": "READY",
-      "database": "mcai_p0_acceptance_final",
+      "database": "mcai_p0_epoch_20261106a",
+      "role": "mcai_p0_epoch_20261106a",
       "neon_branch": "br-cold-tooth-a5clhljh",
-      "report": "docs/project/source-recovery-precision-2026-11-06.md",
-      "browser_checks": 6,
-      "new_full_queue_cycle_verified": false
+      "preview_epoch": "mcai-p0-20261106-a",
+      "report": "docs/project/preview-epoch-cycle-2026-11-06.md"
     },
     "data_producer_preview": {
       "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
@@ -112,14 +112,14 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "API precision and six browser checks passed on be87. New complete Queue cycle NOT_TRIGGERED; old a3 producer is separate.",
+    "current_head_runtime_acceptance": "IN_PROGRESS: actual new epoch cycle, not a replay; publication and browser checks pending.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
     "source_freshness_runtime_acceptance": "PARTIAL: all three added sources completed actual scans and a3f94bd completed one degraded deep publication, with 12/14 successful source clocks. TEDA and regional_ln remain failed; no all-source-recovery or sustained scheduling claim.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
     "regional_ln_failure_diagnostics": "IMPLEMENTED: bounded safe phase/reason counts and hashed references persist. Actual local source now rate-limited; historical aggregate failure remains unexplained.",
     "regional_fallback_dependency_retries": "FIXED_IN_CODE_AND_BEHAVIOR_TESTS: terminally degraded primary skips fallback; nonterminal primary retains retry. New cloud Queue cycle not verified.",
     "coverage_and_detail_budget": "NOT_FULL_RECALL: bounded entry-page/window scans are not complete archive or outage backfill. New hospital sources retain the 30-day, 20-candidate/12-detail bounds; ccgp scanned 2026-11-04 through 2026-11-06. Beijing discovered 29 candidates but verified only 10, leaving 19 outside this detail budget. A complete canonical publication does not prove all discovered candidates were verified.",
-    "nonempty_ccgp_events": "NOT_VERIFIED: six CCGP event stages completed with an empty watch list and notice_event_count=0; no nonempty event-watch chain was exercised.",
+    "nonempty_ccgp_events": "OBSERVED_FAILURE: new epoch discovered8 active event-watch projects; first event batch failed twice with aggregate reason only. Dependent batches degraded; nonempty success and underlying diagnostics remain unresolved.",
     "automatic_intraday_execution": "ONE_REAL_OLD_DEPLOYMENT_TICK_OBSERVED: 2026-11-06 11:30+08 tjnothop published46. Later ticks and sustained scheduling not verified; old deployment-bound messages are not upgraded.",
     "publication_timestamp_precision": "FIXED_FOR_NEW_CODE: full microsecond SQL/runtime comparisons, exact readback and identical legacy replay repair; actual Preview/SQL evidence passes. Historic rows remain truncated and old Queue deployments may still write old precision.",
     "scan_completion_clock": "UNRESOLVED: last_completed_scan.completed_at uses the scan entry observation clock rather than actual completion wall time; use separately recorded client/publish wall-clock observations for duration.",
@@ -127,11 +127,11 @@
     "ai_and_product_runtime_acceptance": "NOT_VERIFIED: model keys remain unconfigured; a 503 AI_NOT_CONFIGURED response proves safe degradation only. Real model success, China-side P95, Gold benchmark and commercial validation remain unverified.",
     "historical_runtime_and_ci_state": "Historical observations remain historical. Current Production commit/deployment and SSO protection were read-only rechecked and unchanged.",
     "http_request_reliability": "UNRESOLVED_HISTORICAL_OBSERVATION: one earlier oversized-request attempt returned unexplained 502, then expected 400 on one retry; authority stayed unchanged. The cause remains unknown and is not explained away by later successful publication.",
-    "old_deployment_queue_isolation": "OPEN: deployment-pinned queued work can continue old precision/source logic. Plan safe Preview consumer retirement/version isolation before a new full-cycle acceptance."
+    "old_deployment_queue_isolation": "IMPLEMENTED_AND_START_VERIFIED: Preview cache/tag prefixes, payload/idempotency labels, isolated database and new credentials. Old consumers continue only with old configuration; final publication comparison remains pending."
   },
-  "final_code_head": "be87e5f34e088b7d39c381d5855030694b27d568",
-  "code_validation_head": "be87e5f34e088b7d39c381d5855030694b27d568",
-  "documentation_followup": "Subsequent docs-only commits do not change executable be87e5f. Real 11:30 automatic data producer remains a3f94bd; precision replay and browser smoke bind to be87e5f.",
+  "final_code_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+  "code_validation_head": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+  "documentation_followup": "This is an in-progress status record. Source code binds to 2cc47ce; later docs-only commits do not represent completed full-cycle acceptance until runtime evidence is added.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -234,34 +234,17 @@
     "interpretation": "These counts describe one real a3f94bd Preview cycle and retained canonical data, not net-new facts, all-source recovery, recall completeness or customer eligibility. The monitor captured DB verification as pending before the later independent publication proof completed it."
   },
   "preview_authoritative_data_state": {
-    "snapshot_as_of": "2026-11-06T03:30:02.258351+00:00",
-    "source": "DATABASE",
+    "database": "mcai_p0_epoch_20261106a",
+    "preview_epoch": "mcai-p0-20261106-a",
+    "committed_snapshot_count_before_cycle": 0,
+    "current_publication": "PENDING",
     "manual_qa_publication": false,
-    "degraded": true,
-    "healthy_source_count": 12,
-    "required_source_count": 14,
-    "failed_sources": [
-      "regional_ln",
-      "teda"
-    ],
-    "producer_commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
-    "producer_deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
-    "latest_ui_deployment_readback": "PASS_FULL_HASH_AND_MICROSECOND_EQUALITY_AFTER_IDENTICAL_REPLAY",
-    "interpretation": "Original a3 Queue tick generated this actual snapshot; be87 replay changed only the truncated SQL timestamp column. Future old consumers remain unupgraded. Historic rows were not bulk migrated.",
-    "opportunity_pool_count": 46,
-    "sha256": "45709c27420c7e856b69fd8b168237b12f3a71664bf982c68f8e825db1ef0488"
+    "interpretation": "Fresh isolated acceptance cohort; no previous live snapshot was copied. Old database and its source state are retained separately."
   },
   "latest_ui_browser_acceptance": {
-    "commit": "be87e5f34e088b7d39c381d5855030694b27d568",
-    "deployment_id": "dpl_F9c2jc8uJuiPELzoHY8rxGZc7aRH",
-    "url": "https://medicalchannelai-ix8zm70ut-rerisse7-1717s-projects.vercel.app",
-    "result": "PASS_6_OF_6_SMOKE_CHECKS",
-    "ordinary_get_payload_hash": "45709c27420c7e856b69fd8b168237b12f3a71664bf982c68f8e825db1ef0488",
-    "pool_count": 46,
-    "intentionally_blocked_cache_only_ai_requests": 4,
-    "actual_ai_requests_sent": 0,
-    "unexpected_failed_requests": 0,
-    "report": "docs/project/validation/source-recovery-2026-11-06/browser-smoke-report.json"
+    "commit": "2cc47ce5cae29f8eed57b411e647ccc356372719",
+    "deployment_id": "dpl_8oRuWziEBXmq1wKfVxZTSUosErYG",
+    "result": "PENDING_CURRENT_CYCLE; PRIOR_BROWSER_RESULTS_ARE_HISTORICAL"
   },
   "historical_records": {
     "interpretation": "Historical observations only; these records do not describe the current branch, CI, deployment or P0 acceptance.",
@@ -965,6 +948,285 @@
         "local_follow_refresh": true,
         "completed_at": "2026-11-05T18:45:57.069Z"
       }
+    },
+    "previous_repair_preview_e48990c": {
+      "schema_version": "0.2",
+      "updated_at": "2026-11-06",
+      "timezone": "Asia/Shanghai",
+      "state_scope": "CURRENT_P0_CODE_AND_ISOLATED_LIVE_PREVIEW_PUBLICATION_ACCEPTANCE",
+      "active_work_branch": "codex/p0-reliability-contracts",
+      "worktree": "/workspace/MedicalChannelAI-p0",
+      "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+      "starting_head_short": "3216fd9",
+      "runtime_implementation_head": "be87e5f34e088b7d39c381d5855030694b27d568",
+      "latest_code_validated_head": "be87e5f34e088b7d39c381d5855030694b27d568",
+      "current_runtime_candidate_head": "be87e5f34e088b7d39c381d5855030694b27d568",
+      "production_ready": false,
+      "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
+      "milestone": "PREVIEW_RETRY_AND_MICROSECOND_FIX_VERIFIED_EXTERNAL_SOURCE_ACCESS_UNRESOLVED",
+      "latest_changes_validation_status": "884_BUILD_PASS_CLOUD_PRECISION_AND_6_BROWSER_CHECKS_PASS_NEW_DEEP_NOT_TRIGGERED",
+      "current_runtime_candidate_validation": {
+        "head": "be87e5f34e088b7d39c381d5855030694b27d568",
+        "python_contract_tests": 884,
+        "python_contract_result": "PASS",
+        "javascript_contract_checks": "PASS",
+        "typescript_typecheck": "PASS",
+        "vite_production_build": "PASS",
+        "main_js_gzip_kb": 116.0,
+        "validation_scope": "LOCAL_BEHAVIORAL_AND_REAL_SOURCE_DIAGNOSTICS; CLOUD_EXISTING_SNAPSHOT_REPLAY_AND_6_BROWSER_SMOKE_CHECKS",
+        "new_full_cloud_queue_cycle": "NOT_TRIGGERED",
+        "external_source_access_recovered": false
+      },
+      "implementation_scope": [
+        "Three-source runtime parity: tjzyefy, tjzyefy_intent, tjzxfc; reuse existing official adapters.",
+        "Source-isolated failures, independent intraday tick fallback, stale RUNNING recovery.",
+        "Conservative pending/barrier cleanup preserving unresolved URLs.",
+        "Committed-snapshot and per-source freshness health.",
+        "Validation before the single authoritative snapshot commit.",
+        "Server-enforced 30-hour freshness gate for public AI.",
+        "EdgeOne fixed trusted origin and credential forwarding boundary.",
+        "Authoritative empty-pool behavior and existing-reminder ACK.",
+        "Deterministic baseline test clocks.",
+        "TJMUGH official numbered-list compatibility, preserving raw products and published deadline.",
+        "Preview-only publishing target and protected internal OIDC requests.",
+        "Shared market inference prevents runtime opportunities disappearing from Opportunity Pool.",
+        "Official entry-page integrity and HTTP/meta charset decoding prevent malformed or challenged indexes being counted as quiet successful scans.",
+        "Bounded deferred-detail barriers, durable staging before VERIFIED ledger updates and interrupted-scan recovery.",
+        "Evidence-backed generic hospital research content, medical use and distinct research-event closure across projection, APIs and browser caches.",
+        "Grounded pharmacy inspection-service templates with safe bounded incremental failure diagnostics.",
+        "Explicit Queue trigger maxDeliveries=3 for bounded manual-subscriber retries.",
+        "Registered-source market fallback preserves actual city/county records without assigning unknown or unsupported regions to Tianjin.",
+        "Bounded regional failure diagnostics and stop further discovery queries on explicit source throttling/access denial.",
+        "Skip fallback only for terminally degraded prerequisites; preserve healthy canonical and nonterminal retries.",
+        "Full microsecond SQL and runtime revision ordering, explicit text timestamp parameters and identical legacy replay repair."
+      ],
+      "out_of_scope": [
+        "Product relevance and qualification gates.",
+        "Project lifecycle linking, historical followup or customer-profile redesign.",
+        "Real customer delivery, commercial readiness or renewal validation.",
+        "Production deployment, merge, domain/DNS, production credentials or production-data changes."
+      ],
+      "deployment_boundary": {
+        "preview_actions_performed": true,
+        "production_actions_performed": false,
+        "merge_performed": false,
+        "current_head_runtime_acceptance": "CLOUD_PRECISION_REPLAY_AND_BROWSER_SMOKE_PASS; NEW_QUEUE_CYCLE_NOT_VERIFIED",
+        "remote_deployment_state": "READY_PREVIEW_PRODUCTION_UNCHANGED",
+        "preview": {
+          "deployment_id": "dpl_F9c2jc8uJuiPELzoHY8rxGZc7aRH",
+          "url": "https://medicalchannelai-ix8zm70ut-rerisse7-1717s-projects.vercel.app",
+          "commit": "be87e5f34e088b7d39c381d5855030694b27d568",
+          "target": "preview",
+          "ready_state": "READY",
+          "database": "mcai_p0_acceptance_final",
+          "neon_branch": "br-cold-tooth-a5clhljh",
+          "report": "docs/project/source-recovery-precision-2026-11-06.md",
+          "browser_checks": 6,
+          "new_full_queue_cycle_verified": false
+        },
+        "data_producer_preview": {
+          "deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+          "url": "https://medicalchannelai-7z5mxpi5o-rerisse7-1717s-projects.vercel.app",
+          "commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+          "target": "preview",
+          "ready_state": "READY",
+          "database": "mcai_p0_acceptance_final",
+          "neon_branch": "br-cold-tooth-a5clhljh",
+          "runtime_acceptance": "REAL_THREE_SOURCE_SCANS_RECOVERY_AND_DEGRADED_COMPLETE_PUBLICATION_VERIFIED",
+          "report": "docs/project/live-source-publication-acceptance-2026-11-06.md"
+        },
+        "production_baseline_and_recheck": {
+          "deployment_id": "dpl_4LPKoTdusrvbExXuzbMKtnyiT86C",
+          "commit": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
+          "target": "production",
+          "ready_state": "READY",
+          "unchanged": true,
+          "recheck_scope": "LATEST_READ_ONLY_DEPLOYMENT_AND_SSO_PROTECTION_RECHECK_REPORTED_BY_ROOT",
+          "sso_protection_unchanged": true,
+          "production_actions_performed": false,
+          "rechecked_at": "2026-11-06T03:46:56.710Z"
+        },
+        "interpretation": "Only isolated Preview resources and branch-scoped Preview credentials changed. Latest UI deployment and the a3f94bd Queue/data producer are distinct versioned observations. Production deployment and SSO protection were read-only rechecked and unchanged; no merge, promotion or Production modification.",
+        "temporary_acceptance_access": "Current task share link revoked; project protection unchanged"
+      },
+      "gold_set_status": {
+        "document": "docs/strategy/ACTION_RADAR_GOLDSET_2026-10-07.md",
+        "purpose": "RULE_SMOKE_DRAFT_ONLY",
+        "statistical_benchmark_pass_claimed": false,
+        "missing_evidence_cases": [
+          "G03",
+          "G04",
+          "G15"
+        ],
+        "relevance_or_qualification_gate_implemented_by_this_document_change": false,
+        "agnes_relevance_benchmark": "NOT_EXECUTED",
+        "commercial_validation": "NOT_STARTED"
+      },
+      "known_incomplete_invariants": {
+        "current_head_runtime_acceptance": "API precision and six browser checks passed on be87. New complete Queue cycle NOT_TRIGGERED; old a3 producer is separate.",
+        "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
+        "source_freshness_runtime_acceptance": "PARTIAL: all three added sources completed actual scans and a3f94bd completed one degraded deep publication, with 12/14 successful source clocks. TEDA and regional_ln remain failed; no all-source-recovery or sustained scheduling claim.",
+        "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
+        "regional_ln_failure_diagnostics": "IMPLEMENTED: bounded safe phase/reason counts and hashed references persist. Actual local source now rate-limited; historical aggregate failure remains unexplained.",
+        "regional_fallback_dependency_retries": "FIXED_IN_CODE_AND_BEHAVIOR_TESTS: terminally degraded primary skips fallback; nonterminal primary retains retry. New cloud Queue cycle not verified.",
+        "coverage_and_detail_budget": "NOT_FULL_RECALL: bounded entry-page/window scans are not complete archive or outage backfill. New hospital sources retain the 30-day, 20-candidate/12-detail bounds; ccgp scanned 2026-11-04 through 2026-11-06. Beijing discovered 29 candidates but verified only 10, leaving 19 outside this detail budget. A complete canonical publication does not prove all discovered candidates were verified.",
+        "nonempty_ccgp_events": "NOT_VERIFIED: six CCGP event stages completed with an empty watch list and notice_event_count=0; no nonempty event-watch chain was exercised.",
+        "automatic_intraday_execution": "ONE_REAL_OLD_DEPLOYMENT_TICK_OBSERVED: 2026-11-06 11:30+08 tjnothop published46. Later ticks and sustained scheduling not verified; old deployment-bound messages are not upgraded.",
+        "publication_timestamp_precision": "FIXED_FOR_NEW_CODE: full microsecond SQL/runtime comparisons, exact readback and identical legacy replay repair; actual Preview/SQL evidence passes. Historic rows remain truncated and old Queue deployments may still write old precision.",
+        "scan_completion_clock": "UNRESOLVED: last_completed_scan.completed_at uses the scan entry observation clock rather than actual completion wall time; use separately recorded client/publish wall-clock observations for duration.",
+        "ui_revalidation_and_static_clock": "Previous 4575 UI restored 11 city/county omissions at its 47-card publication. Current be87 smoke displays all46 after one natural expiry. No automatic TSX event-boundary timer was added.",
+        "ai_and_product_runtime_acceptance": "NOT_VERIFIED: model keys remain unconfigured; a 503 AI_NOT_CONFIGURED response proves safe degradation only. Real model success, China-side P95, Gold benchmark and commercial validation remain unverified.",
+        "historical_runtime_and_ci_state": "Historical observations remain historical. Current Production commit/deployment and SSO protection were read-only rechecked and unchanged.",
+        "http_request_reliability": "UNRESOLVED_HISTORICAL_OBSERVATION: one earlier oversized-request attempt returned unexplained 502, then expected 400 on one retry; authority stayed unchanged. The cause remains unknown and is not explained away by later successful publication.",
+        "old_deployment_queue_isolation": "OPEN: deployment-pinned queued work can continue old precision/source logic. Plan safe Preview consumer retirement/version isolation before a new full-cycle acceptance."
+      },
+      "final_code_head": "be87e5f34e088b7d39c381d5855030694b27d568",
+      "code_validation_head": "be87e5f34e088b7d39c381d5855030694b27d568",
+      "documentation_followup": "Subsequent docs-only commits do not change executable be87e5f. Real 11:30 automatic data producer remains a3f94bd; precision replay and browser smoke bind to be87e5f.",
+      "source_freshness_policy": {
+        "hospital_source_stale_after_hours": 24,
+        "ccgp_and_regional_source_stale_after_hours": 48,
+        "public_ai_snapshot_max_age_hours": 30,
+        "policy_status": "INITIAL_ENGINEERING_THRESHOLDS_WITH_PARTIAL_REAL_RUNTIME_EVIDENCE",
+        "runtime_acceptance": "REAL_THREE_SOURCE_SCANS_AND_ONE_DEGRADED_DEEP_PUBLICATION_12_OF_14_SOURCES",
+        "interpretation": "Three added sources and one complete canonical publication have real Preview evidence. Twelve source clocks are healthy; TEDA/LN failures, budget-limited coverage, automatic ticks and sustained SLA remain open."
+      },
+      "real_source_publication_acceptance": {
+        "report": "docs/project/live-source-publication-acceptance-2026-11-06.md",
+        "evidence_manifest": "docs/project/validation/live-source-2026-11-06/manifest.json",
+        "publication_proof": "docs/project/validation/live-source-2026-11-06/complete-deep-a3f94bd/publication-proof.json",
+        "deep_monitor_summary": "docs/project/validation/live-source-2026-11-06/complete-deep-a3f94bd/deep-monitor-summary.json",
+        "producer_commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+        "producer_deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+        "result": "PASS_DEGRADED_COMPLETE_CANONICAL_PUBLICATION",
+        "triggered_at": "2026-11-05T17:43:03.522555+00:00",
+        "publish_completed_at": "2026-11-05T18:27:47.698032+00:00",
+        "wall_seconds_to_publish": 2684.175477,
+        "stage_count": 25,
+        "completed_stage_count": 22,
+        "degraded_stage_count": 3,
+        "degraded_stages": [
+          "teda",
+          "regional_ln",
+          "regional_ln_fallback"
+        ],
+        "logical_failed_source_count": 2,
+        "logical_failed_sources": [
+          "regional_ln",
+          "teda"
+        ],
+        "healthy_source_count": 12,
+        "required_source_count": 14,
+        "canonical_record_count": 964,
+        "opportunity_pool_count": 47,
+        "today_card_count": 5,
+        "notice_event_count": 0,
+        "manual_qa": false,
+        "three_source_results": {
+          "tjzyefy": {
+            "discovered_supported_count": 8,
+            "selected_candidate_count": 8,
+            "deferred_detail_count": 0,
+            "new_verified_record_count": 8,
+            "unsupported_count": 0,
+            "failure_count": 0,
+            "merged_record_count": 12,
+            "publish_gate_reason": "PASS"
+          },
+          "tjzyefy_intent": {
+            "discovered_supported_count": 3,
+            "selected_candidate_count": 3,
+            "deferred_detail_count": 0,
+            "new_verified_record_count": 2,
+            "unsupported_count": 1,
+            "failure_count": 0,
+            "merged_record_count": 6,
+            "publish_gate_reason": "PASS"
+          },
+          "tjzxfc": {
+            "discovered_supported_count": 5,
+            "selected_candidate_count": 5,
+            "deferred_detail_count": 0,
+            "new_verified_record_count": 1,
+            "unsupported_count": 4,
+            "failure_count": 0,
+            "merged_record_count": 1,
+            "publish_gate_reason": "PASS"
+          }
+        },
+        "three_source_staging": {
+          "tjzyefy": {
+            "record_count": 0,
+            "barrier_count": 0
+          },
+          "tjzyefy_intent": {
+            "record_count": 0,
+            "barrier_count": 0
+          },
+          "tjzxfc": {
+            "record_count": 0,
+            "barrier_count": 0
+          }
+        },
+        "producer_payload_sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+        "database_payload_sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+        "authority_payload_sha256": "2ef3e305844ace80b056222993f4a6fc1fdc9cc5e5a1655eeda0088d8f146ee1",
+        "producer_database_authority_hashes_match": true,
+        "timestamp_alignment": {
+          "sql_snapshot_as_of": "2026-11-05 17:43:03.095+00",
+          "payload_snapshot_as_of": "2026-11-06T01:43:03.095559+08:00",
+          "timestamp_matches_payload_exactly": false,
+          "payload_minus_column_microseconds": 559,
+          "matches_at_javascript_millisecond_precision": true
+        },
+        "tick_chain_state": "SCHEDULED",
+        "next_tick_at": "2026-11-06T11:30:00+08:00",
+        "automatic_tick_execution_verified": false,
+        "interpretation": "These counts describe one real a3f94bd Preview cycle and retained canonical data, not net-new facts, all-source recovery, recall completeness or customer eligibility. The monitor captured DB verification as pending before the later independent publication proof completed it."
+      },
+      "preview_authoritative_data_state": {
+        "snapshot_as_of": "2026-11-06T03:30:02.258351+00:00",
+        "source": "DATABASE",
+        "manual_qa_publication": false,
+        "degraded": true,
+        "healthy_source_count": 12,
+        "required_source_count": 14,
+        "failed_sources": [
+          "regional_ln",
+          "teda"
+        ],
+        "producer_commit": "a3f94bdd45ec1442c2031b46f640e8ca7a52be03",
+        "producer_deployment_id": "dpl_CCdUVJdpao3rse7QbczHVxvLsx8y",
+        "latest_ui_deployment_readback": "PASS_FULL_HASH_AND_MICROSECOND_EQUALITY_AFTER_IDENTICAL_REPLAY",
+        "interpretation": "Original a3 Queue tick generated this actual snapshot; be87 replay changed only the truncated SQL timestamp column. Future old consumers remain unupgraded. Historic rows were not bulk migrated.",
+        "opportunity_pool_count": 46,
+        "sha256": "45709c27420c7e856b69fd8b168237b12f3a71664bf982c68f8e825db1ef0488"
+      },
+      "latest_ui_browser_acceptance": {
+        "commit": "be87e5f34e088b7d39c381d5855030694b27d568",
+        "deployment_id": "dpl_F9c2jc8uJuiPELzoHY8rxGZc7aRH",
+        "url": "https://medicalchannelai-ix8zm70ut-rerisse7-1717s-projects.vercel.app",
+        "result": "PASS_6_OF_6_SMOKE_CHECKS",
+        "ordinary_get_payload_hash": "45709c27420c7e856b69fd8b168237b12f3a71664bf982c68f8e825db1ef0488",
+        "pool_count": 46,
+        "intentionally_blocked_cache_only_ai_requests": 4,
+        "actual_ai_requests_sent": 0,
+        "unexpected_failed_requests": 0,
+        "report": "docs/project/validation/source-recovery-2026-11-06/browser-smoke-report.json"
+      },
+      "source_recovery_precision_acceptance": {
+        "report": "docs/project/source-recovery-precision-2026-11-06.md",
+        "evidence_manifest": "docs/project/validation/source-recovery-2026-11-06/manifest.json",
+        "source_access_recovered": false,
+        "new_full_queue_cycle_verified": false,
+        "exact_sql_payload_microseconds": true,
+        "legacy_latest_row_repaired_by_same_payload_replay": true,
+        "new_test_revision_created": false,
+        "cloud_older_by_one_microsecond_status": 409,
+        "cloud_same_instant_conflict_status": 409,
+        "old_automatic_tick_actual_publication": true,
+        "production_modified": false
+      }
     }
   },
   "source_recovery_precision_acceptance": {
@@ -978,6 +1240,23 @@
     "cloud_older_by_one_microsecond_status": 409,
     "cloud_same_instant_conflict_status": 409,
     "old_automatic_tick_actual_publication": true,
+    "production_modified": false
+  },
+  "preview_epoch_acceptance": {
+    "report": "docs/project/preview-epoch-cycle-2026-11-06.md",
+    "cycle_id": "preview:mcai-p0-20261106-a:2026-11-06",
+    "trigger_response_at": "2026-11-06T04:11:40.552757Z",
+    "database": "mcai_p0_epoch_20261106a",
+    "role": "mcai_p0_epoch_20261106a",
+    "role_is_admin": false,
+    "old_snapshot_read_privilege": false,
+    "old_schema_create_privilege": false,
+    "initial_snapshot_count": 0,
+    "initial_collector_stages_empty": true,
+    "old_cron_http": 403,
+    "old_publisher_http": 401,
+    "full_cycle_result": "IN_PROGRESS",
+    "old_consumers_stopped": false,
     "production_modified": false
   }
 }

@@ -2,7 +2,16 @@
 
 Updated: 2026-11-06（Asia/Shanghai）
 
-## 当前来源故障处理与精度修复
+## 当前新版 Preview 隔离周期（运行中）
+
+- 代码 `2cc47ce5cae29f8eed57b411e647ccc356372719`，[Preview](https://medicalchannelai-p1uolbsrn-rerisse7-1717s-projects.vercel.app) `dpl_8oRuWziEBXmq1wKfVxZTSUosErYG` READY；周期标识 `mcai-p0-20261106-a`。
+- 新独立数据库/受限角色 `mcai_p0_epoch_20261106a`，原测试分支 `br-cold-tooth-a5clhljh`；旧部署及旧库保留作对照。新周期缓存、消息/幂等键和发布/触发凭据与旧周期分开，数据库连接前校验指定库名。
+- 889个Python测试、全部JS合约、TypeScript、Vite通过。启动前新库0快照、采集状态为空；旧cron凭据403、旧发布凭据401；新角色不能读旧快照或在旧库建表。
+- 北京时间12:11启动真实Queue，非202即验收通过。[本轮运行报告](preview-epoch-cycle-2026-11-06.md)仍为进行中；最终权威发布、SQL精确时间和浏览器结果待补齐。
+- 已观察到非空事件watch8个项目，其第一批核验失败后六个事件阶段降级；其他医院来源继续。TEDA403一次即降级；北京受限后fallback直接依赖降级，河北当前也限流。不能记为全部来源恢复。
+- `production_ready=false`，不合并、不提升Production，不修改域名/DNS/EdgeOne。旧周期46条/6项浏览器及旧微秒重放结果仅属于上一阶段，不作为本轮完整运行证据。
+
+## 上轮来源故障处理与精度修复（e48990c，历史记录）
 
 - 最新可执行代码：`be87e5f34e088b7d39c381d5855030694b27d568`；[Preview](https://medicalchannelai-ix8zm70ut-rerisse7-1717s-projects.vercel.app) `dpl_F9c2jc8uJuiPELzoHY8rxGZc7aRH` READY，精确版本已读回。工作树/分支不变，原工作树干净。
 - [本轮修复与验收报告](source-recovery-precision-2026-11-06.md)及[冻结证据](validation/source-recovery-2026-11-06/manifest.json)是本轮依据；下方47条/878测试/34浏览器项属于上一阶段，保留历史绑定。
