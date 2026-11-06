@@ -1,0 +1,22 @@
+{
+  "starting_head": "62c039e",
+  "scope": "OFFLINE_RUNTIME_F2_SOURCE_REVIEW_AND_CONTRACT_ONLY",
+  "source_reference_count": 145,
+  "protected_input_file_count": 450,
+  "application_test_workflow_changes": false,
+  "tests_executed": false,
+  "application_or_sdk_imported_or_executed": false,
+  "simulators_added": 0,
+  "runtime_budget_implemented": false,
+  "network_calls": 0,
+  "cloud_runtime_access": false,
+  "deployment_push_or_workflow_trigger": false,
+  "historical_ci_modules_passed": 94,
+  "historical_cli_full_suite_passed": 1079,
+  "historical_template_and_original_cli_passed": [
+    10,
+    3
+  ],
+  "apply_allowed": false,
+  "migration_usable": false
+}

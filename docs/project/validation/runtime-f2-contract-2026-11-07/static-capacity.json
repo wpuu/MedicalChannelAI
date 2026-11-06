@@ -1,0 +1,44 @@
+{
+  "scope": "ONE_REGIONAL_RUNTIME_STAGE_NOT_GLOBAL_CLI_FALLBACK",
+  "rows": [
+    {
+      "scenario": "regional_primary_full",
+      "search_requests": 10,
+      "detail_requests": 10,
+      "warmup_requests": 1,
+      "total_requests": 21,
+      "fixed_sleep_seconds": 81.0,
+      "nominal_timeout_plus_sleep_seconds": 1311.0,
+      "work_remaining_after_fixed_sleep": 129.0,
+      "measured": false,
+      "hard_wall_clock_bound": false
+    },
+    {
+      "scenario": "regional_fallback_full",
+      "search_requests": 30,
+      "detail_requests": 10,
+      "warmup_requests": 1,
+      "total_requests": 41,
+      "fixed_sleep_seconds": 201.0,
+      "nominal_timeout_plus_sleep_seconds": 3231.0,
+      "work_remaining_after_fixed_sleep": 9.0,
+      "measured": false,
+      "hard_wall_clock_bound": false
+    },
+    {
+      "scenario": "regional_fallback_empty",
+      "search_requests": 10,
+      "detail_requests": 0,
+      "warmup_requests": 1,
+      "total_requests": 11,
+      "fixed_sleep_seconds": 41.0,
+      "nominal_timeout_plus_sleep_seconds": 971.0,
+      "work_remaining_after_fixed_sleep": 169.0,
+      "measured": false,
+      "hard_wall_clock_bound": false
+    }
+  ],
+  "default_query_pairs": 10,
+  "max_details_per_market": 10,
+  "delay_seconds": 4.0
+}

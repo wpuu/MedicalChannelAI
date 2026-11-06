@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "LOCAL_REGIONAL_WORKFLOW_PATH_AND_UNITTEST_LIST_ONLY",
+  "state_scope": "OFFLINE_RUNTIME_F2_STAGE_CONTRACT_DOCUMENTATION_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "REGIONAL_CI_CLI_MODULE_ADDED_94_LOCAL_TESTS_PASS_NO_WORKFLOW_TRIGGER",
-  "latest_changes_validation_status": "YAML_AND_TWO_LINE_SCOPE_PASS;94_SELECTED_TESTS_PASS;441_INPUTS_UNCHANGED;1079_AND10/3_NOT_RERUN",
+  "milestone": "REGIONAL_RUNTIME_270_210_60_COOPERATIVE_PLAN_ONLY_FULL_RUNTIME_NO_GO",
+  "latest_changes_validation_status": "145_STATIC_REFERENCES_AND450_INPUTS_PASS;NO_APP_OR_TEST_EXECUTION;94_AND1079/10/3_HISTORICAL",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -166,11 +166,12 @@
     "regional_cli_completeness": "F3_7B29933_OFFLINE_PASS:incomplete batch exit2 preserves records;bounded scan only,no per-market independent commits/full historical recall;not deployed.",
     "regional_cli_access_stop": "01CCAA9_OFFLINE_PASS:CLI explicit host denial stop only;no project-wide/shared cooldown/Retry-After/F2 or redirect-hop interception;not deployed.",
     "regional_cli_time_budget": "58E7E6B_OFFLINE:900/840/60cooperative CLI budget,precommit preserve and explicit postcommit/unknown receipts pass;hard exit/atomic clock commit/full default completion/runtime budget NOT established.",
-    "regional_ci_cli_gate": "6D4EB1B_LOCAL_ONLY:2lines add CLI path/module;8module94tests pass offline;remote runner/workflow not triggered or verified."
+    "regional_ci_cli_gate": "6D4EB1B_LOCAL_ONLY:2lines add CLI path/module;8module94tests pass offline;remote runner/workflow not triggered or verified.",
+    "runtime_stage_time_budget": "PROPOSED_ONLY:Queue regional270/210/60cooperative plan;no runtime change/test. Incremental/event/publish excluded;hard cancel/atomic owner-time-commit and dense fallback completion unproven;preserve existing pending and retry contracts."
   },
   "final_code_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
   "code_validation_head": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
-  "documentation_followup": "Regional CLI tests added only to existing workflow path filter/module list. No remote execution. Next documentation-only runtime F2 stage budget contract;SDK remains closed.",
+  "documentation_followup": "Only proposed Queue regional runtime budget270/work210/finalize60;reuse CLI primitive with defaults preserved. No incremental/event/publish or real deployment guarantee. Next explicit six-file offline authorization only.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2320,7 +2321,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "6d4eb1bd48d69329c0a0b3ac4587adcbc1d1e641",
+  "latest_reviewed_repository_head": "62c039e",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2418,7 +2419,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "8b3eba8",
+  "current_phase_starting_head": "62c039e",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2833,13 +2834,13 @@
     "runtime_cache_read": false,
     "database_read": false,
     "deployment_or_write": false,
-    "source": "Latest explicit local regional workflow paths/test-module-list authorization 2026-11-07",
-    "current_round": "ONLY_EXISTING_WORKFLOW_TWO_LINES_PLUS_DOCS_ARTIFACTS",
+    "source": "Latest explicit runtime F2 documentation-only instruction 2026-11-07",
+    "current_round": "RUNTIME_F2_CONTRACT_DOCS_AND_NEW_ARTIFACTS_ONLY",
     "network_this_round": false,
     "cloud_metadata_this_round": false,
     "F1_regional_cli_code_this_round": false,
     "F2_code_this_round": false,
-    "workflow_change_this_round": true,
+    "workflow_change_this_round": false,
     "workflow_executed_this_round": false
   },
   "cloud_metadata_acceptance": {
@@ -3233,6 +3234,41 @@
       "scope": "LOCAL_TWO_LINE_WORKFLOW_CONFIG_AND_SELECTED_TESTS_ONLY",
       "workflow_executed_or_triggered": false,
       "deployment_or_push": false,
+      "apply_allowed": false,
+      "migration_usable": false
+    }
+  },
+  "runtime_f2_stage_budget_contract": {
+    "starting_head": "62c039e",
+    "status": "PROPOSED_NOT_IMPLEMENTED",
+    "report": "docs/project/runtime-f2-stage-budget-contract-2026-11-07.md",
+    "manifest": "docs/project/validation/runtime-f2-contract-2026-11-07/manifest.json",
+    "only_candidate_scope": "QUEUE_DEEP_REGISTERED_REGIONAL_PRIMARY_AND_FALLBACK",
+    "total_seconds": 270,
+    "work_seconds": 210,
+    "finalize_reserve_seconds": 60,
+    "source_references": 145,
+    "protected_input_files": 450,
+    "application_test_workflow_changed": false,
+    "tests_executed": false,
+    "sdk_or_application_executed": false,
+    "business_max_attempts_preserved": 2,
+    "provider_max_deliveries_preserved": 3,
+    "queue_lease_health_contract_changed": false,
+    "incremental_event_publish_in_scope": false,
+    "hard_cancel_guaranteed": false,
+    "full_default_fallback_on_time_guaranteed": false,
+    "real_runtime_deployment_go": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completion": {
+      "started_at": "2026-11-06T18:22:45Z",
+      "foreground_deadline": "2026-11-06T18:42:45Z",
+      "completed_at": "2026-11-06T18:32:14.379426+00:00",
+      "within_foreground_deadline": true,
+      "scope": "OFFLINE_RUNTIME_F2_CONTRACT_DOCUMENTATION_ONLY",
+      "application_sdk_or_tests_executed": false,
+      "deployment_push_or_workflow_trigger": false,
       "apply_allowed": false,
       "migration_usable": false
     }

@@ -1,0 +1,36 @@
+{
+  "decisions": [
+    {
+      "id": "local_regional_cooperative_implementation",
+      "decision": "GO_ONLY_AFTER_EXPLICIT_SIX_FILE_OFFLINE_CODE_AUTHORIZATION",
+      "implemented_now": false
+    },
+    {
+      "id": "full_runtime_rollout",
+      "decision": "NO_GO",
+      "reason": "Incremental/event/publish stateful paths excluded"
+    },
+    {
+      "id": "dense_fallback_complete_within270_or300",
+      "decision": "NO_GO_AS_GUARANTEE",
+      "reason": "201seconds fixed waits leaves9of210 for41requests and parsing;no measured evidence"
+    },
+    {
+      "id": "synchronous_http_cache_hard_cancellation",
+      "decision": "NO_GO",
+      "reason": "Cooperative checks cannot preempt blocking calls"
+    },
+    {
+      "id": "atomic_owner_time_commit_or_zero_write_after_set_entered",
+      "decision": "NO_GO",
+      "reason": "Cross-key cache/status/health writes have no proven fence/atomic revision"
+    },
+    {
+      "id": "real_runtime_deployment_acceptance",
+      "decision": "NO_GO",
+      "reason": "Not authorized,not verified;SDK workflow remains closed"
+    }
+  ],
+  "apply_allowed": false,
+  "migration_usable": false
+}

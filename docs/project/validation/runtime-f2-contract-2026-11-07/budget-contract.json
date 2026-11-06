@@ -1,0 +1,52 @@
+{
+  "status": "PROPOSED_NOT_IMPLEMENTED",
+  "unique_scope": "QUEUE_DEEP_REGISTERED_REGIONAL_PRIMARY_AND_FALLBACK_ONLY",
+  "representative_stages": [
+    "regional_he",
+    "regional_he_fallback"
+  ],
+  "total_seconds": 270,
+  "work_seconds": 210,
+  "finalize_reserve_seconds": 60,
+  "configured_queue_function_seconds": 300,
+  "nominal_outer_headroom_seconds": 30,
+  "request_margin_seconds": 1,
+  "request_caps_seconds": {
+    "warmup": 30,
+    "search": 90,
+    "detail": 30
+  },
+  "clock_origin": "LOCAL_PROCESS_COLLECTOR_PAYLOAD_ENTRY_MONOTONIC_BEFORE_PREFLIGHT_NOT_PAYLOAD_OR_AS_OF",
+  "retryable_precommit_budget_failure": true,
+  "business_max_attempts": 2,
+  "provider_max_deliveries": 3,
+  "provider_retry_after_seconds": 150,
+  "provider_message_lease_seconds": 300,
+  "deep_owner_liveness_seconds": 900,
+  "deep_owner_cache_retention_seconds": 172800,
+  "incremental_owner_ttl_seconds": 900,
+  "queue_config_or_lease_change": false,
+  "health_state_contract_change": false,
+  "existing_cli_defaults_must_remain": {
+    "total_seconds": 900,
+    "work_seconds": 840,
+    "finalize_reserve_seconds": 60
+  },
+  "reuse_existing_cli_budget_parameterization": true,
+  "new_budget_or_simulator_engine": false,
+  "incremental_event_publish_in_scope": false,
+  "post_commit_budget_error_may_claim_zero_write": false,
+  "cache_write_outcome_known_guaranteed": false,
+  "hard_cancel_guaranteed": false,
+  "default_full_fallback_on_time_guaranteed": false,
+  "candidate_files": [
+    "web/pipeline/scripts/sync_regional_ccgp.py",
+    "web/collector_queue.py",
+    "web/collector_runtime.py",
+    "web/pipeline/tests/test_regional_cli_completeness.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py"
+  ],
+  "apply_allowed": false,
+  "migration_usable": false
+}

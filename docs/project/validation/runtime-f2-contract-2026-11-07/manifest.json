@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.1",
+  "scope": "STATIC_RUNTIME_REGIONAL_STAGE_BUDGET_CONTRACT_ONLY",
+  "starting_head": "62c039e",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "files": [
+    {
+      "path": "budget-contract.json",
+      "bytes": 1843,
+      "sha256": "d8b1b185599272241fe9adbef43e2cafd825078448b4e934a2d3550cfb269721"
+    },
+    {
+      "path": "completion.json",
+      "bytes": 394,
+      "sha256": "8a9515dd96a82bccd9ca2d697a9de313f8be6c76cad0a1df50aa7a7fe7b02885"
+    },
+    {
+      "path": "go-no-go.json",
+      "bytes": 1144,
+      "sha256": "d88c8923ca7268d3b5b7c0ef628094615656023a9740942ee29f1aea38d979d5"
+    },
+    {
+      "path": "input-integrity.json",
+      "bytes": 68927,
+      "sha256": "6d4f093e5dbeaac06bcac50e0c5c52c1b4b37bc484862945a396af01b5ae8760"
+    },
+    {
+      "path": "source-references.json",
+      "bytes": 35136,
+      "sha256": "f5fc465437585064ec954dc1b476603c4b89f3966414c116d9aa8f9235c27b33"
+    },
+    {
+      "path": "state-invariants.json",
+      "bytes": 1089,
+      "sha256": "298977284fc365b14226bae3aea7a3d5aeaa3e2d8eafb70299aa76e28989b6f0"
+    },
+    {
+      "path": "static-capacity.json",
+      "bytes": 1273,
+      "sha256": "f5b8016756c8b66f622c92ce3f14488ccc8d0df7683cbeab7bd1f45c9ba2c6e4"
+    },
+    {
+      "path": "validation-summary.json",
+      "bytes": 667,
+      "sha256": "6f59e1c4514e7576d29c99813229c84c6e7a2b048ef7cef1811b50f390c1644a"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 4075,
+      "sha256": "916675d19ead79ff5b8c0723e4f3347adddd4535a370398953b38802e6b3b822"
+    }
+  ],
+  "document_sha256": {
+    "docs/project/runtime-f2-stage-budget-contract-2026-11-07.md": "05c7bbb1012da69538cfaa8f7163ee5b63affbec7fa635a3d6af14bec447c853"
+  }
+}

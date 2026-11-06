@@ -1,0 +1,11 @@
+{
+  "started_at": "2026-11-06T18:22:45Z",
+  "foreground_deadline": "2026-11-06T18:42:45Z",
+  "completed_at": "2026-11-06T18:32:14.379426+00:00",
+  "within_foreground_deadline": true,
+  "scope": "OFFLINE_RUNTIME_F2_CONTRACT_DOCUMENTATION_ONLY",
+  "application_sdk_or_tests_executed": false,
+  "deployment_push_or_workflow_trigger": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

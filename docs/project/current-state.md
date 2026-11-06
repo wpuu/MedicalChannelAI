@@ -2,7 +2,16 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前区域CI CLI离线门禁（仅本地配置与模块组合验证）
+## 当前runtime F2阶段预算合同（仅文档，未实现）
+
+- 起点62c039e，完成[唯一最小方案](runtime-f2-stage-budget-contract-2026-11-07.md)：先只给Queue已注册区域主/备用阶段接协作式270秒逻辑总预算/210秒工作/60秒收尾，保留现有重试、owner、pending和健康合同。复用既有CliBudget参数化，CLI默认900/840/60不变；不同时接入增量/事件/publish。[证据](validation/runtime-f2-contract-2026-11-07/manifest.json)。
+- 已追踪Queue入口/身份检查/heartbeat→run_stage准入→区域请求/解析→canonical→状态/健康→重试/推进；普通业务attempt上限2不同于provider投递3，消息lease300不同于owner活性900和owner缓存TTL2天。最后失败立即降级/推进、区域限流止损与partial fail-closed已有实现，未重复报修。
+- 增量既有先staging后VERIFIED ledger、逐URL屏障解除、finally ledger保存及pending分支保持；bootstrap无discovered时返回DISCOVERY_REQUIRED，不执行官方请求，不能误报双发现。区域预算不等于增量已获时间预算，旧pending/成功时钟和独立来源必须保留。
+- 静态区域primary满详情固定等待81秒/名义参数串行1311秒；密集fallback201/3231秒，只剩210−201=9秒工作余量给41请求与解析，不保证完整完成。默认密集fallback、全runtime部署、硬取消、原子owner/时间/提交均NO-GO；缓存/SDK真实写入完成与时延未核实，SDK仍CLOSED NO-GO。
+- 本轮冻结145处源码引用，450份起点data/fixture/历史证据SHA256不变，应用/测试/workflow/锁/计划未改；94及1079/10/3仅历史结果，未重跑，未导入执行应用/SDK或新增模拟层。无网络/云端/运行数据访问、部署/推送/触发或环境/权限变化；apply_allowed/migration_usable=false。
+- [下一轮](next-task.md)需明确离线代码授权后，只改列明6个既有文件实现区域协作式子项；若需要改Queue/租约/健康协议才能满足就明确NO-GO，不扩大。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh（超高），实际设置未核实。
+
+## 上轮区域CI CLI离线门禁（仅本地配置与模块组合验证）
 
 - 起点8b3eba8，workflow提交6d4eb1b：只在既有paths新增CLI测试文件、在既有unittest清单新增tests.test_regional_cli_completeness，恰好两行。原7个模块/set-e、schedule/分支/concurrency/权限/timeout/采集/发布/预热/凭据引用全部保留。[报告](regional-ci-cli-gate-2026-11-07.md)、[证据](validation/regional-ci-cli-gate-2026-11-07/manifest.json)。
 - 现有PyYAML解析与字节对照通过，修改后的8模块组合本地94项通过、0失败/错误/跳过；socket连接/DNS与真实SDK导入阻断。应用及测试源码仍58e7e6b未变；本轮未重跑1079/10/3，也未执行/触发workflow，不能冒称远端runner或来源验收通过。

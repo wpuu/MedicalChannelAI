@@ -1,0 +1,15 @@
+{
+  "existing_and_must_preserve": [
+    "Foreign epoch/message rejected before cache/lease/enqueue effects",
+    "Source incomplete work cannot publish partial new canonical or refresh last successful scan clock",
+    "Ordinary first attempt failure stays retryable; ordinary second failure degrades and advances;legacy explicit exceptions retained",
+    "Publish failure stays failed;no fabricated publish success",
+    "Incremental verified fact staged before VERIFIED ledger;nonfact resolves only its URL;finally ledger save retained",
+    "Unresolved/selected/deferred/failed URLs remain pending;empty later scan cannot erase old unresolved URLs",
+    "Bootstrap helper with no discovery returns DISCOVERY_REQUIRED and performs no official HTTP request",
+    "Regional budget does not mutate other-source pending/ledger;incremental source bucket-deferred semantics unchanged",
+    "No postcommit lateness/unknown outcome may be described as confirmed zero write or automatic rollback"
+  ],
+  "tests_referenced_only_not_executed": true,
+  "new_runtime_state_or_cache_protocol": false
+}
