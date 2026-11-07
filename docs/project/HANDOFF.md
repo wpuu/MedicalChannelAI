@@ -11,7 +11,14 @@
 
 先核对实际HEAD、分支、未提交修改和在途任务。不要覆盖他人改动或创建重复环境；若本地工作树不存在，先用已有GitHub能力读取指定分支，不擅自创建环境。参考工作树为/workspace/MedicalChannelAI-p0。
 
-## A02 最新：Today 与商机详情复用 A01 整机三态（仅离线源码）
+## A03 最新：资格三态证据合同已完成（仅文档，A04待授权）
+
+- 从 GitHub 目标分支最新HEAD `a85d6c9faa8dab1e6bd63dc7691facb13726f5b7` 核对并依次读取交接六件；本环境原工作树`/workspace/MedicalChannelAI-p0`及其它候选路径不存在，**其他环境在途/未提交状态UNKNOWN**。本轮只读源码和历史规则冒烟稿，未运行应用或触发线上。
+- [A03资格三态证据合同与A04四文件授权卡](qualification-tristate-evidence-contract-2026-11-08.md)确认：CCGP解析器把“资格要求”作采购需求的分段边界，但目前公开快照没有可逐项核验的资格字段；客户Profile只有关键词与能力类型，不含有效证照、厂家授权文书及核验时间。**产品相关性和`DIRECT_AUTHORIZED`自报均不代表合格资格**。
+- A03明确`SATISFIED / NOT_SATISFIED / UNKNOWN`需**同一项目+包件+官方版本条款**与**有明确授权、主体/产品/有效期都可核对的客户证明**逐项匹配；缺条款、附件、证书或有冲突一律UNKNOWN，明确无合规替代的反证才NOT_SATISFIED，全部硬资格核实后仅可称“资料预核匹配”，不作投标保证。
+- **唯一下一任务A04（尚未批准）**：详情页保守“资格待核”只读门禁＋纯函数和离线合成测试，只提议4文件；当前实际未改应用。A01/A02的Node/TypeScript缺口、B1–B6未验收、d Preview NO-GO、SDK/强保证CLOSED NO-GO、3客户未招募均保留。产品既定天津血球仪整机范围不再重复审核。
+
+## A02 历史：Today 与商机详情复用 A01 整机三态（仅离线源码）
 
 - 用户于**2026-11-07T17:04:13Z**另行批准 A02，仅增量修改 `web/src/components/today/ActionCard.tsx`、`web/src/pages/OpportunityDetailPage.tsx`，以及补充原`web/scripts/check-hematology-whole-device-scope.mjs`的`--a02-only`离线检查；未改 A01 分类函数、商机池或任何后端和业务行为。
 - 从当前GitHub分支HEAD `3a688f297d6ad2b2cb561b1888006c6f73beea4b` 接手；当前执行环境没有原`/workspace/MedicalChannelAI-p0`工作树、其它在途与未提交修改未知。未创建新项目环境、不安装依赖、不覆盖他人成果。

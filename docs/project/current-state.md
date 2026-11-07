@@ -2,7 +2,15 @@
 
 Updated: 2026-11-08（Asia/Shanghai）
 
-## 2026-11-08 A02跨页面三态一致性（最新；仅离线代码）
+## 2026-11-08 A03资格三态证据合同（最新；仅只读与文档）
+
+- GitHub分支接手基线`a85d6c9faa8dab1e6bd63dc7691facb13726f5b7`；已按交接读取六份文件并只读检查`ccgp_detail.py`、`validation.py`、`public_snapshot.py`、`PublicFacts`、`profile.js`/私有资料表、AI决策合同和Gold Set等。原`/workspace/MedicalChannelAI-p0`、`/workspace/MedicalChannelAI`、`/mnt/data/MedicalChannelAI`本容器不存在，其他在途修改**UNKNOWN**；未新建环境/工作树。
+- [A03完整合同](qualification-tristate-evidence-contract-2026-11-08.md)：当前CCGP只以“资格要求”为采购段落结束分界，没有将资格正文/附件及包件要求作为证据字段发布；客户存储只有产品能力关键词/自报类型、医院关系/偏好，缺证照与厂家授权证据及有效期。已存在AI安全提示和Gold Set`UNKNOWN`原则，但不能据此声称资格三态已实现。
+- A03拟定逐条官方版本／包件条款+客户有许可的私有证据+评估时点/有效期+反证核验：`SATISFIED`仅全部硬条件预核匹配且不等于官方最终资格；`NOT_SATISFIED`仅明确反证且无合规有效替代；其他均`UNKNOWN`。不把产品相关性、医院关系、客户`DIRECT_AUTHORIZED`或AI评分当资格证明。
+- **仅新增A03报告并更新四份交接文件**，没有应用/配置/环境/权限/运行数据修改，未运行Node/TS/Python测试、浏览器、SDK、采集、模型、部署或云端查询。A01历史34/34与A02静态35/35维持原证据边界；A02实际Node`--a02-only`、TypeScript typecheck仍未运行。
+- **唯一下一任务A04待单独批准**：仅在详情页加资格证据缺口的只读UNKNOWN展示，同时纯函数在合成完整输入证明三态规则；拟4文件及定向Node合同，绝不自动扩到官方附件采集/解析、Profile资料上传/数据库或Production。B1–B6全部`NOT_VERIFIED`、d Preview`NO_GO_PAUSED`、SDK/强保证`CLOSED_NO_GO`、`production_ready=false`、`apply_allowed=false`、`migration_usable=false`、3客户试用未招募。
+
+## 2026-11-08 A02跨页面三态一致性（历史：仅离线代码）
 
 - **用户许可**：2026-11-07T17:04:13Z明确批准A02的`ActionCard.tsx`、`OpportunityDetailPage.tsx`和必要时补充既有离线Node测试；远端分支起点`3a688f297d6ad2b2cb561b1888006c6f73beea4b`。本轮仅使用GitHub已连接文件能力及V8静态断言；原`/workspace/MedicalChannelAI-p0`在本容器不存在，无法对其它环境`git status`或在途任务作保证。无克隆/新工作树或依赖安装。
 - **代码增量**：Today卡片与商机详情均复用A01原`hematologyWholeDeviceScope.js`（原blob`8c43315`未变），相同三态文案、说明及`facts.products[index].name`来源展示。历史跟进详情补充“基于当时快照，不反映当前公告或行动窗口”。对原UI仅追加导入、纯函数计算和展示区块；无筛选、评分、AI、跟进、资格/公告事实变动。现有原源码行在GitHub对象中均按顺序保留。
