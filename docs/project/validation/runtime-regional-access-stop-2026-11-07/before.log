@@ -1,0 +1,132 @@
+FFFFFF
+======================================================================
+FAIL: test_regional_detail_explicit_denial_stops_same_host_after_first_request (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_regional_detail_explicit_denial_stops_same_host_after_first_request) (stage='regional_he', code=401)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 732, in test_regional_detail_explicit_denial_stops_same_host_after_first_request
+    self.assertEqual(c["detail_calls"], c["urls"][:1])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['htt[71 chars]ne=0', 'https://www.ccgp.gov.cn/cggg/dfgg/gkzb[37 chars]e=1'] != ['htt[71 chars]ne=0']
+
+First list contains 1 additional elements.
+First extra element 1:
+'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1'
+
+- ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0',
+?                                                                                  ^
+
++ ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0']
+?                                                                                  ^
+
+-  'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1']
+
+======================================================================
+FAIL: test_regional_detail_explicit_denial_stops_same_host_after_first_request (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_regional_detail_explicit_denial_stops_same_host_after_first_request) (stage='regional_he', code=403)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 732, in test_regional_detail_explicit_denial_stops_same_host_after_first_request
+    self.assertEqual(c["detail_calls"], c["urls"][:1])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['htt[71 chars]ne=0', 'https://www.ccgp.gov.cn/cggg/dfgg/gkzb[37 chars]e=1'] != ['htt[71 chars]ne=0']
+
+First list contains 1 additional elements.
+First extra element 1:
+'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1'
+
+- ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0',
+?                                                                                  ^
+
++ ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0']
+?                                                                                  ^
+
+-  'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1']
+
+======================================================================
+FAIL: test_regional_detail_explicit_denial_stops_same_host_after_first_request (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_regional_detail_explicit_denial_stops_same_host_after_first_request) (stage='regional_he', code=429)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 732, in test_regional_detail_explicit_denial_stops_same_host_after_first_request
+    self.assertEqual(c["detail_calls"], c["urls"][:1])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['htt[71 chars]ne=0', 'https://www.ccgp.gov.cn/cggg/dfgg/gkzb[37 chars]e=1'] != ['htt[71 chars]ne=0']
+
+First list contains 1 additional elements.
+First extra element 1:
+'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1'
+
+- ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0',
+?                                                                                  ^
+
++ ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0']
+?                                                                                  ^
+
+-  'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1']
+
+======================================================================
+FAIL: test_regional_detail_explicit_denial_stops_same_host_after_first_request (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_regional_detail_explicit_denial_stops_same_host_after_first_request) (stage='regional_he_fallback', code=401)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 732, in test_regional_detail_explicit_denial_stops_same_host_after_first_request
+    self.assertEqual(c["detail_calls"], c["urls"][:1])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['htt[71 chars]ne=0', 'https://www.ccgp.gov.cn/cggg/dfgg/gkzb[37 chars]e=1'] != ['htt[71 chars]ne=0']
+
+First list contains 1 additional elements.
+First extra element 1:
+'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1'
+
+- ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0',
+?                                                                                  ^
+
++ ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0']
+?                                                                                  ^
+
+-  'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1']
+
+======================================================================
+FAIL: test_regional_detail_explicit_denial_stops_same_host_after_first_request (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_regional_detail_explicit_denial_stops_same_host_after_first_request) (stage='regional_he_fallback', code=403)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 732, in test_regional_detail_explicit_denial_stops_same_host_after_first_request
+    self.assertEqual(c["detail_calls"], c["urls"][:1])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['htt[71 chars]ne=0', 'https://www.ccgp.gov.cn/cggg/dfgg/gkzb[37 chars]e=1'] != ['htt[71 chars]ne=0']
+
+First list contains 1 additional elements.
+First extra element 1:
+'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1'
+
+- ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0',
+?                                                                                  ^
+
++ ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0']
+?                                                                                  ^
+
+-  'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1']
+
+======================================================================
+FAIL: test_regional_detail_explicit_denial_stops_same_host_after_first_request (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_regional_detail_explicit_denial_stops_same_host_after_first_request) (stage='regional_he_fallback', code=429)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 732, in test_regional_detail_explicit_denial_stops_same_host_after_first_request
+    self.assertEqual(c["detail_calls"], c["urls"][:1])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['htt[71 chars]ne=0', 'https://www.ccgp.gov.cn/cggg/dfgg/gkzb[37 chars]e=1'] != ['htt[71 chars]ne=0']
+
+First list contains 1 additional elements.
+First extra element 1:
+'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1'
+
+- ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0',
+?                                                                                  ^
+
++ ['https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=0']
+?                                                                                  ^
+
+-  'https://www.ccgp.gov.cn/cggg/dfgg/gkzb/202609/t20260908_27290091.htm?offline=1']
+
+----------------------------------------------------------------------
+Ran 1 test in 0.452s
+
+FAILED (failures=6)
+{"tests_run": 1, "failures": 6, "errors": 0, "skipped": 0, "successful": false, "external_network_blocked": true, "real_sdk_import_blocked": true, "repository_test_output_blocked": true}

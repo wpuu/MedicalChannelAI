@@ -1,0 +1,53 @@
+{
+  "application_source_head": "7dac58bb44eb9654bb9927c900ce50b806e9ec8b",
+  "runtime_source_sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+  "test_method": "test_regional_detail_explicit_denial_stops_same_host_after_first_request",
+  "unittest_methods_run": 1,
+  "failing_subtests": 6,
+  "errors": 0,
+  "failure_observed": "first explicit denial was followed by second same-host detail request",
+  "scenarios": [
+    {
+      "stage": "regional_he",
+      "http_code": 401,
+      "actual_detail_requests": 2,
+      "expected_detail_requests": 1
+    },
+    {
+      "stage": "regional_he",
+      "http_code": 403,
+      "actual_detail_requests": 2,
+      "expected_detail_requests": 1
+    },
+    {
+      "stage": "regional_he",
+      "http_code": 429,
+      "actual_detail_requests": 2,
+      "expected_detail_requests": 1
+    },
+    {
+      "stage": "regional_he_fallback",
+      "http_code": 401,
+      "actual_detail_requests": 2,
+      "expected_detail_requests": 1
+    },
+    {
+      "stage": "regional_he_fallback",
+      "http_code": 403,
+      "actual_detail_requests": 2,
+      "expected_detail_requests": 1
+    },
+    {
+      "stage": "regional_he_fallback",
+      "http_code": 429,
+      "actual_detail_requests": 2,
+      "expected_detail_requests": 1
+    }
+  ],
+  "before_canonical_state_recorded": false,
+  "external_network_blocked": true,
+  "real_sdk_import_blocked": true,
+  "application_source_modified_during_reproduction": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

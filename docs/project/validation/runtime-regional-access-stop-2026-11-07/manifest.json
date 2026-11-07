@@ -1,0 +1,31 @@
+{
+  "starting_head": "7dac58bb44eb9654bb9927c900ce50b806e9ec8b",
+  "code_head": "4916d69de3568e8bd22fc8d659da34833596c852",
+  "scope": "TWO_EXISTING_FILES_PLUS_DOCS_NEW_LOCAL_ARTIFACTS",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "sha256": {
+    "docs/project/checkpoint.json": "62dc995f250a5337c53b4f764eada16167726bc38965eeddf9949368b4d45de2",
+    "docs/project/current-state.md": "a4283f6b447c487ef0f420fe801babd8aab38ba8d9055075ebabc42b0a3816ff",
+    "docs/project/next-task.md": "6f5a9a8f119842f17fba08fa4c4da19632f85106b28e1952585398dce82ae15a",
+    "docs/project/runtime-regional-access-stop-2026-11-07.md": "f249a4cf6d6161bcf80eb1d71e85971a4cb88ffac6dc5c604649fc068dede4d5",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/after-cases.json": "24daa78338cb9a8db56fc169a6d226a80bf7ea8fb6f89d5f1efb9d7394a33403",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/before.json": "4397ee70e25693157d773ea3af5cfffe87fb5b32da755a2540933ae873db4b4a",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/before.log": "c1f4c2dfb549a58297282563fa7c64cb1230a4d980df725f955b4e7f4d49750c",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/commands.json": "d612281459c0563d057f5204a2f1517d686c657f140cf4df6166d55a4a774a16",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/completion.json": "3fc6ea31b15a43cf1e3e67cd030898e343824c4f16b14e8f093090349f7c06ad",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/directed.log": "80b7c6440a8ad6789b9c1a5d5c549da63bf16a4317565d7d418025fe009cf37e",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/frozen-template-audit.json": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/input-integrity.json": "85faa619b793cb4985c8dc7aa7af65b9c8f699fce0a8ac9e4091f74720453a5e",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/offline-tests.py": "014f3ec7d1c6a185ca83b08d2e9b3167f8683547fd533210b7e9645e09959b69",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/original-cli-gate.json": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/regression.log": "85863573f89880f5b5e8a8fb3db021a70164aaeb0ed94c8416564d4f45aa2860",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/replay-cases.py": "d0118e6dab69652628b66fef386efb96a195b126031b89eb55a99697e003e444",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/source-references.json": "2cc13f2ab8ca64f7bdfe197a4956c219d5368ffd3f0378b6314c45258c2ba9a9",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/unchanged-boundaries.json": "c42d876fed6b044285c6b3102035b283c8253613c2e25a635931acd75591f43a",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/validation-summary.json": "93e8a1959db111aa4dc6c190fef2307f5550437535ee8e089da49f3fd8f5f83e",
+    "docs/project/validation/runtime-regional-access-stop-2026-11-07/verify.py": "ed245ec3df76f17addc91a8bf150bfb28553c74b842da4188829aad751da844b",
+    "web/collector_runtime.py": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py": "e6dc509578443d087776da890f3968a9214843054348dec40127e92b1d10bb06"
+  }
+}

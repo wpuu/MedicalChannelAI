@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前F1/F2/F3工程收口审查（仅离线文档）
+## 当前R1区域runtime详情明确拒绝止损（已完成离线修复）
+
+- 起点7dac58b，代码4916d69，恰好修改collector_runtime.py与既有test_runtime_source_parity_behavior.py。[实现报告](runtime-regional-access-stop-2026-11-07.md)、[证据](validation/runtime-regional-access-stop-2026-11-07/manifest.json)。先复现主/备用401/403/429六子例：首次拒绝后仍请求第二个同host详情；修复后后续0。
+- 复用CLI现有分类器/marker/session回调，拒绝集合仅一次stage调用；warmup www拒绝反馈给详情准入，搜索/裸域独立，普通超时/503/解析错误不误封。未执行详情仍不完整，FAILED/503与旧canonical/pending/成功时钟保护保持，原270/210/60及Queue/健康/lease协议未改。
+- 新增12项行为测试，目标模块62项、最终1157项Python与10/3本轮通过；20组本地回放。528份既有data/fixture/artifact、453份其他web/workflow文件字节不变，runtime其他函数静态保护。测试使用空实际环境配置、既有内存/HTTP桩/假时钟与临时目录，阻断外网和真实SDK导入，既有loopback测试只连接本机桩；未运行JS或项目模型。
+- R1仅本地单次区域调用子项关闭，不是全项目F1完成；共享冷却/Retry-After、其余14个deep阶段与7个增量源预算及真实Preview/来源/持久化/客户交付仍未完成。SDK、硬取消/原子提交/崩溃持久回执强保证仍CLOSED NO-GO，apply_allowed/migration_usable=false。
+- 无云端/实际环境值/凭据/运行日志访问，没有部署/推送/触发/新环境或计划权限变更。[唯一下一任务](next-task.md)：仅离线制定CCGP event1–event6共用事件阶段时间预算与事实/事件配对提交合同，不改代码或重跑未变1157/10/3。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh，实际设置未核实。
+
+## 上轮F1/F2/F3工程收口审查（历史静态结论，R1现已离线修复）
 
 - 起点05cbcab，代码a352b7a保持不变，初始工作树干净、无相关在途代理工作。[收口报告](runtime-reliability-closeout-2026-11-07.md)、[静态证据](validation/runtime-reliability-closeout-2026-11-07/manifest.json)。F3 CLI完整性已关闭；CLI F1/900预算、区域Queue270/210/60、tjzyefy增量270/180/30/60及publish调用者270/210/60与ACK保真均按既有离线证据收口，不宣称全项目覆盖。
 - 最多三项剩余缺口：R1/P1区域runtime详情明确拒绝后仍可能继续同host请求（静态路径，未新跑复现）；R2/P2其他14个deep阶段及7个增量源无本轮时间预算；R3/P1真实Preview版本/来源/持久化/公开交付证据未核实，阻断发布放行。共享冷却/Retry-After仍未实现，归R1更广边界，本次不另开引擎。

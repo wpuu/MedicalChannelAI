@@ -1,0 +1,708 @@
+{
+  "mode": "EXISTING_TEST_HELPER_MEMORY_CACHE_FROZEN_HTML_FAKE_CLOCK",
+  "cases": [
+    {
+      "case": "regional_he_HTTP_401",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 1,
+      "detail_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 0,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_401": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "24cc0ecb2b14fa577a65bfbc7a2ff121fab83f65f780f98a29800a24481aca2e"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "regional_he_HTTP_403",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 1,
+      "detail_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 0,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_403": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "24cc0ecb2b14fa577a65bfbc7a2ff121fab83f65f780f98a29800a24481aca2e"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "regional_he_HTTP_429",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 1,
+      "detail_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 0,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_429": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "24cc0ecb2b14fa577a65bfbc7a2ff121fab83f65f780f98a29800a24481aca2e"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "regional_he_fallback_HTTP_401",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 1,
+      "detail_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 0,
+      "search_calls": 4,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_401": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "24cc0ecb2b14fa577a65bfbc7a2ff121fab83f65f780f98a29800a24481aca2e"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "regional_he_fallback_HTTP_403",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 1,
+      "detail_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 0,
+      "search_calls": 4,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_403": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "24cc0ecb2b14fa577a65bfbc7a2ff121fab83f65f780f98a29800a24481aca2e"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "regional_he_fallback_HTTP_429",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 1,
+      "detail_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 0,
+      "search_calls": 4,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_429": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "24cc0ecb2b14fa577a65bfbc7a2ff121fab83f65f780f98a29800a24481aca2e"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "marker",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 1,
+      "detail_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 0,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "RATE_LIMITED": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "24cc0ecb2b14fa577a65bfbc7a2ff121fab83f65f780f98a29800a24481aca2e"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "warmup_marker",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 0,
+      "detail_hosts": [],
+      "parser_calls": 0,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "RATE_LIMITED": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "24cc0ecb2b14fa577a65bfbc7a2ff121fab83f65f780f98a29800a24481aca2e"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "warmup_403",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 0,
+      "detail_hosts": [],
+      "parser_calls": 0,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_403": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "24cc0ecb2b14fa577a65bfbc7a2ff121fab83f65f780f98a29800a24481aca2e"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "other_host",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 2,
+      "detail_hosts": [
+        "www.ccgp.gov.cn",
+        "ccgp.gov.cn"
+      ],
+      "parser_calls": 1,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_429": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "dbdb75ca5e15b0bd4ec7148f65f1b5441d09e82001bf9281606688c0614138db"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "warmup_other_host",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 1,
+      "detail_hosts": [
+        "ccgp.gov.cn"
+      ],
+      "parser_calls": 1,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "RATE_LIMITED": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "dbdb75ca5e15b0bd4ec7148f65f1b5441d09e82001bf9281606688c0614138db"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "ordinary_timeout",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 2,
+      "detail_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 1,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_TIMEOUT": 1
+        },
+        "phase_counts": {
+          "verified_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "NETWORK_TIMEOUT",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "ordinary_network",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 2,
+      "detail_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 1,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_ERROR": 1
+        },
+        "phase_counts": {
+          "verified_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "NETWORK_ERROR",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "ordinary_503",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 2,
+      "detail_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 1,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_503": 1
+        },
+        "phase_counts": {
+          "verified_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_503",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "ordinary_parse",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 2,
+      "detail_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 2,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "DETAIL_VALIDATION_FAILED": 1
+        },
+        "phase_counts": {
+          "verified_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "DETAIL_VALIDATION_FAILED",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "complete",
+      "status": 200,
+      "stage_status": "COMPLETED",
+      "detail_requests": 2,
+      "detail_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 2,
+      "search_calls": 2,
+      "canonical_unchanged": false,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": false,
+      "diagnostics": null,
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "complete_empty",
+      "status": 200,
+      "stage_status": "COMPLETED",
+      "detail_requests": 0,
+      "detail_hosts": [],
+      "parser_calls": 0,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": null,
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "fallback_complete",
+      "status": 200,
+      "stage_status": "COMPLETED",
+      "detail_requests": 2,
+      "detail_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 2,
+      "search_calls": 4,
+      "canonical_unchanged": false,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": false,
+      "diagnostics": null,
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "fallback_empty",
+      "status": 200,
+      "stage_status": "COMPLETED",
+      "detail_requests": 0,
+      "detail_hosts": [],
+      "parser_calls": 0,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": false,
+      "diagnostics": null,
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    },
+    {
+      "case": "unbudgeted_429",
+      "status": 503,
+      "stage_status": "FAILED",
+      "detail_requests": 1,
+      "detail_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "parser_calls": 0,
+      "search_calls": 2,
+      "canonical_unchanged": true,
+      "pending_ledger_other_source_unchanged": true,
+      "last_success_clock_unchanged": true,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_429": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "24cc0ecb2b14fa577a65bfbc7a2ff121fab83f65f780f98a29800a24481aca2e"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "a1e45f973893933ece6786af21e47fda6ddcab380bf0131588bb3779aed86371"
+          }
+        ]
+      },
+      "budget_total_work_reserve": [
+        270,
+        210,
+        60
+      ]
+    }
+  ],
+  "external_network_calls": 0,
+  "real_sdk_execution": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

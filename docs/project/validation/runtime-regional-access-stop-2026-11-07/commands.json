@@ -1,0 +1,29 @@
+{
+  "isolated_process_environment": [
+    "env",
+    "-i",
+    "PATH=/usr/local/bin:/usr/bin:/bin",
+    "python3",
+    "-B"
+  ],
+  "runner": "offline-tests.py",
+  "before_test": "tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_regional_detail_explicit_denial_stops_same_host_after_first_request",
+  "directed": "tests.test_runtime_source_parity_behavior",
+  "regression": "full",
+  "template_gate": {
+    "script": "web/pipeline/scripts/audit_ccgp_product_backfill.py",
+    "manifest": "web/pipeline/tests/fixtures/ccgp_template_audit_20261106/manifest.json",
+    "baseline": [
+      "web/pipeline/data/tianjin_live_ccgp_records.json",
+      "web/pipeline/data/regional_live_ccgp_records.json"
+    ],
+    "output": "temporary_directory_only"
+  },
+  "original_cli_gate_script": "docs/project/validation/ccgp-template-audit-2026-11-06/reproduce-bootstrap-gate.py",
+  "replay_script": "replay-cases.py",
+  "sdk_import_blocked": true,
+  "external_network_blocked": true,
+  "only_loopback_test_servers_allowed": true,
+  "repository_test_output_blocked": true,
+  "project_model_called": false
+}

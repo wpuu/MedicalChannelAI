@@ -1,0 +1,52 @@
+{
+  "starting_head": "7dac58bb44eb9654bb9927c900ce50b806e9ec8b",
+  "code_head": "4916d69de3568e8bd22fc8d659da34833596c852",
+  "authorized_code_test_files": [
+    "web/collector_runtime.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py"
+  ],
+  "source_sha256": {
+    "web/collector_runtime.py": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py": "e6dc509578443d087776da890f3968a9214843054348dec40127e92b1d10bb06"
+  },
+  "new_behavior_tests": 12,
+  "new_test_methods": [
+    "test_regional_access_guard_also_protects_existing_unbudgeted_caller",
+    "test_regional_access_guard_preserves_complete_and_legal_empty",
+    "test_regional_detail_denial_diagnostics_are_fixed_and_hashed",
+    "test_regional_detail_denial_does_not_merge_www_and_bare_host",
+    "test_regional_detail_denial_state_does_not_escape_invocation",
+    "test_regional_detail_explicit_denial_stops_same_host_after_first_request",
+    "test_regional_detail_ordinary_errors_do_not_disable_same_host",
+    "test_regional_detail_rate_limit_html_stops_before_adapter",
+    "test_regional_detail_wrapped_denials_reuse_existing_classifier",
+    "test_regional_warmup_denial_does_not_block_bare_detail_host",
+    "test_regional_warmup_explicit_denial_blocks_www_details_but_not_search",
+    "test_regional_warmup_transient_failure_does_not_block_details"
+  ],
+  "directed_module_tests": 62,
+  "python_tests_passed": 1157,
+  "python_failures": 0,
+  "python_errors": 0,
+  "python_skipped": 0,
+  "frozen_template_passed": 10,
+  "original_cli_passed": 3,
+  "protected_files": 528,
+  "unchanged_other_web_workflow_files": 453,
+  "status": "R1_REGIONAL_RUNTIME_SINGLE_INVOCATION_SUBITEM_REPRODUCED_FIXED_AND_VERIFIED_OFFLINE",
+  "cross_process_cooldown_implemented": false,
+  "retry_after_implemented": false,
+  "hard_cancellation_guaranteed": false,
+  "real_source_recovery_verified": false,
+  "real_deployment_verified": false,
+  "runtime_cache_database_or_public_snapshot_written": false,
+  "actual_environment_values_or_runtime_logs_read": false,
+  "node_or_js_gates_executed": false,
+  "new_simulation_engine": false,
+  "apply_allowed": false,
+  "migration_usable": false,
+  "replay_cases": 20,
+  "source_references": 6,
+  "foreground_started_at_utc": "2026-11-07T07:19:34Z",
+  "foreground_deadline_utc": "2026-11-07T07:39:34Z"
+}

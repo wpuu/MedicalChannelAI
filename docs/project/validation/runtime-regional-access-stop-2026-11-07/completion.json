@@ -1,0 +1,14 @@
+{
+  "started_at_utc": "2026-11-07T07:19:34Z",
+  "foreground_deadline_utc": "2026-11-07T07:39:34+00:00",
+  "completed_at_utc": "2026-11-07T07:31:02.096877+00:00",
+  "user_timezone": "Asia/Shanghai",
+  "started_at_local": "2026-11-07T15:19:34+08:00",
+  "foreground_deadline_local": "2026-11-07T15:39:34+08:00",
+  "within_foreground_deadline": true,
+  "scope": "OFFLINE_TWO_FILE_REGIONAL_R1_FIX_AND_LOCAL_ACCEPTANCE",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "cloud_or_runtime_access": false,
+  "deployment_or_push": false
+}

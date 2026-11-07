@@ -1,0 +1,44 @@
+[
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1323,
+    "text": "def _run_regional_market(",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1381,
+    "text": "    blocked_hosts: dict[str, str] = {}",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1544,
+    "text": "        detail_host = urlsplit(candidate.detail_url).hostname",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1555,
+    "text": "            if any(marker in html for marker in RATE_LIMIT_MARKERS):",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1572,
+    "text": "            reason = access_block_reason(\"verified_detail\", exc, str(candidate.detail_url))",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 725,
+    "text": "    def test_regional_detail_explicit_denial_stops_same_host_after_first_request(self):",
+    "sha256": "e6dc509578443d087776da890f3968a9214843054348dec40127e92b1d10bb06",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  }
+]
