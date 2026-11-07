@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-08",
   "timezone": "Asia/Shanghai",
-  "state_scope": "APPROVED_PRODUCT_SCOPE_DOCUMENTATION_ONLY",
+  "state_scope": "APPROVED_MVP_CODE_GAP_DOCS_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "PRODUCT_SCOPE_APPROVED_BUSINESS_ACCEPTANCE_NOT_VERIFIED",
-  "latest_changes_validation_status": "DOCS_ONLY:USER_APPROVED_THREE_PRODUCT_SCOPE_DECISIONS;B1_B6_NOT_VERIFIED;NO_NEW_APP_TEST_BUILD_DEPLOYMENT_COLLECTION_OR_MODEL",
+  "milestone": "MVP_GAP_REVIEW_DONE_A01_AWAITING_SEPARATE_AUTHORIZATION",
+  "latest_changes_validation_status": "DOCS_ONLY:READ_EXISTING_USER_VISIBLE_SOURCE_AND_REPORT_A01_AUTH_CARD;NO_APP_CHANGE_TEST_BUILD_CLOUD_ACCESS_COLLECTION_OR_MODEL",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -182,7 +182,7 @@
   },
   "final_code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
   "code_validation_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
-  "documentation_followup": "Product scope formally approved on 2026-11-07T16:21:30Z; next only read-only MVP user-visible gap mapping and minimal implementation authorization slice. No code/cloud action authorized.",
+  "documentation_followup": "MVP gap and A01 four-file authorization card recorded; user-approved product scope unchanged. B1-B6 NOT_VERIFIED; A01 needs separate offline code authorization; d Preview NO_GO.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2841,7 +2841,7 @@
   },
   "current_authorization_scope": {
     "source": "User approval message 2026-11-07T16:21:30Z explicitly approves 3 product scope decisions and docs-only archiving",
-    "current_round": "APPROVED_PRODUCT_SCOPE_DOCS_ONLY_AND_FAST_FORWARD_ARCHIVE",
+    "current_round": "READ_ONLY_USER_VISIBLE_MVP_GAP_DOCS_AND_GITHUB_ARCHIVE",
     "github_archive_push_authorized": true,
     "force_push_merge_main_or_create_pr_authorized": false,
     "new_application_code_authorized": false,
@@ -3847,5 +3847,58 @@
     "forced_update": false,
     "user_product_approval_asserted": true,
     "product_approval_base_observed": "6deb08bcaaba9eb7583131505ddee2274c43bda9"
+  },
+  "mvp_gap_review_2026_11_08": {
+    "starting_remote_head": "aa026fefde0436779674180d03df628fe9a8e46c",
+    "report": "docs/project/mvp-gap-and-a01-authorization-2026-11-08.md",
+    "activity": "STATIC_READ_ONLY_CODE_REVIEW_AND_DOCS",
+    "user_approved_product_scope_unchanged": true,
+    "documented_categories": [
+      "customer_profile",
+      "tianjin_market_scope",
+      "hematology_whole_device",
+      "qualification_three_state",
+      "deadline_window",
+      "page_reload",
+      "backend_source_health",
+      "private_followup_and_reminders",
+      "public_correction_and_history"
+    ],
+    "qualification_three_state_implemented_verified": false,
+    "approved_whole_device_scope_implemented_verified": false,
+    "prior_offline_code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
+    "prior_offline_test_counts_historical": [
+      1213,
+      10,
+      3
+    ],
+    "business_acceptance_B1_B6": {
+      "B1": "NOT_VERIFIED",
+      "B2": "NOT_VERIFIED",
+      "B3": "NOT_VERIFIED",
+      "B4": "NOT_VERIFIED",
+      "B5": "NOT_VERIFIED",
+      "B6": "NOT_VERIFIED"
+    },
+    "only_next_task": "A01_HEMATOLOGY_WHOLE_DEVICE_SCOPE_TRISTATE_UI_OFFLINE_AFTER_EXPLICIT_AUTHORIZATION",
+    "A01_status": "PROPOSED_NOT_AUTHORIZED_NOT_IMPLEMENTED",
+    "A01_proposed_exact_files": [
+      "web/src/utils/hematologyWholeDeviceScope.js",
+      "web/src/utils/hematologyWholeDeviceScope.d.ts",
+      "web/src/pages/OpportunityPoolPage.tsx",
+      "web/scripts/check-hematology-whole-device-scope.mjs"
+    ],
+    "A01_requires_new_explicit_code_authorization": true,
+    "proposal_has_no_backend_or_model_or_deployment_change": true,
+    "original_worktree_not_present_in_current_container": true,
+    "other_worktree_or_inflight_status": "UNKNOWN",
+    "current_round_application_changes": 0,
+    "current_round_tests_executed": 0,
+    "current_round_cloud_runtime_calls": 0,
+    "real_customer_trial_count_verified": 0,
+    "real_online_acceptance_paused": true,
+    "sdk_strong_guarantees": "CLOSED_NO_GO",
+    "apply_allowed": false,
+    "migration_usable": false
   }
 }

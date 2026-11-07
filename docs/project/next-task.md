@@ -1,36 +1,34 @@
-# 唯一下一任务：批准范围的MVP差距对照与首个最小开发授权切片（仅只读）
+# 下一任务（唯一）：等待单独授权A01后进行4文件离线最小切片
 
-产品范围**已由用户于2026-11-07T16:21:30Z批准**，无需再次确认或在下一轮重复询问：
-- 天津地区医院检验设备经销／代理商销售负责人和业务人员；
-- 天津官方公开采购机会中**仅血细胞分析仪整机**（试剂、质控、耗材、维保和其他检验设备排除）；
-- 真实官方商机更新→可信产品匹配与资格判断→私有跟进提醒；**页面重新加载只读已发布数据**、后台受控采集／核验／发布。
+**已完成，不再重做：** 2026-11-08 的 [MVP代码差距矩阵与A01授权卡](mvp-gap-and-a01-authorization-2026-11-08.md)。三项产品范围**已经批准**：天津医院检验设备代理/经销销售用户；天津血细胞分析仪**整机**（试剂、质控、耗材、维保及其他设备排除）；真实公告更新→可信匹配/资格→站内跟进提醒，页面只读已发布数据/后台受控采集。
 
-**未批准／未完成的界限**：3家真实客户试用只是后续待实施建议，未招募且未授权外联；业务验收B1–B6尚未真实通过。d Preview真实线上验收NO-GO暂停；SDK及强保证CLOSED NO-GO；`production_ready=false`、`apply_allowed=false`、`migration_usable=false`。范围批准**不等于代码、部署、采集、模型调用、生产数据或真实客户试用授权**。
+**A01仅提出，尚未获工程授权：** 只在商机池显示“整机相关／非本期整机／证据不足待核”的保守三态及解释，不把IVD或检验科关键词当整机证据；不修改服务器公共事实、采集、用户数据、评分、资格、模型及Today/详情。拟触及四文件：
+1. `web/src/utils/hematologyWholeDeviceScope.js`（新，纯函数）
+2. `web/src/utils/hematologyWholeDeviceScope.d.ts`（新）
+3. `web/src/pages/OpportunityPoolPage.tsx`（仅本页局部显示）
+4. `web/scripts/check-hematology-whole-device-scope.mjs`（新，离线Node断言）
 
-## 本次唯一增量（仅在下一轮执行，不在本轮实施）
+**用户下一次如明确说“批准A01按四文件离线施工”，才有权实施。** 没有额外授权则不改应用，不重复提交相同审查报告。
 
-**只读现有仓库的用户可见产品路径**，将批准的范围和[六项验收B1–B6](product-mvp-one-page-2026-11-07.md)映射到现有代码/文档的可证事实，形成一份**最小一个开发授权切片**，用于之后单独审批。要求：
+## A01的计划验收（未执行）
 
-1. 按**完整已有／部分已有／缺失／仅历史测试未上线／未知**标注用户资料、整机匹配、资格三态、机会时间、前台重新加载、私有提醒与账号隔离；只在确有依据时写“已有”。
-2. 选出一个**最小可独立验收**的首个增量（不得把所有源恢复、全量重采、权限迁移、SDK强保证绑在同一个任务），写用户价值、触及的具体文件范围、离线复现/验收条件和无法宣称的线上效果；若只读证据不足，标未知而非编造。
-3. 每项与B1–B6的取证门禁对应，列出需要**另外申请明确授权**的代码或真实运行动作；无新授权不开始施工或探测线上服务。形成一份简短的**可审查开发授权卡**与后续唯一任务，并更新必要交接文档。
+- 官方结构化整机名称为整机相关；试剂、质控、校准液、耗材、维保与非天津为非本期；只写IVD、项目标题或缺少官方设备明细为证据不足；整机+试剂同公告仍只认整机条目；不制造资格已满足或可投结论。
+- `cd web && node scripts/check-hematology-whole-device-scope.mjs`定向案例通过；现有依赖已就绪时`npm run typecheck`通过。不得改变已有工作流或自动抓取，不重跑无变化1213/10/3，需安装／扩范围时单独说明。
+- **实施后也不称B1–B6通过**：真实线上/d Preview仍NO-GO，SDK/强保证CLOSED NO-GO；`apply_allowed=false`、`migration_usable=false`。另行批准且具完整门禁前不得部署、触发采集/模型/数据库、改计划/域名/权限、联系客户。
+- 先按最新GitHub HEAD及六份交接文件核对当前工作树/在途；不得覆盖；仅在用户明确授权的实施范围内改动并创建有证据的变更；GitHub归档含`[skip ci]`，正常快进、回读远端HEAD，不强推、不合并main、不建PR/触发workflow。
 
-不重做既有工程收口、不重跑1213／10／3、不打开关闭的SDK分支、不写云端或本地业务运行数据。
+推荐 GPT-6.1 Sol High；实际设置未核实。
 
-## 完整可复制提示词
+## 完整可复制提示词（**仅在批准A01后发送**）
 
 ```text
-继续 MedicalChannelAI，完成已批准产品范围的MVP用户价值差距对照与首个最小开发授权切片；本轮只读和方案文档，不修改应用代码。
+我单独授权MedicalChannelAI 的A01四文件本地离线实施，仅做天津血细胞分析仪整机相关性三态标识；不授权云端运行。
 
-仓库 https://github.com/wpuu/MedicalChannelAI
-分支 codex/p0-reliability-contracts
-先核远端最新HEAD和原工作树在途改动；按次序读取 docs/project/HANDOFF.md、working-protocol.md、current-state.md、checkpoint.json、next-task.md、product-mvp-one-page-2026-11-07.md。不得依赖旧聊天或覆盖他人改动。
+先核实 wpuu/MedicalChannelAI 的 codex/p0-reliability-contracts 最新HEAD，按 docs/project/HANDOFF.md、working-protocol.md、current-state.md、checkpoint.json、next-task.md、product-mvp-one-page-2026-11-07.md 和 docs/project/mvp-gap-and-a01-authorization-2026-11-08.md 接手。若本地工作树存在，先核未提交改动和在途工作，不覆盖。产品三项范围已批准，无须重新提问；3家真实客户试用未招募。
 
-产品范围已批准，不重复提问：天津地区医院检验设备经销商／代理商的负责人和销售人员；天津官方商机，仅血细胞分析仪整机，排除试剂/质控/耗材/维保；以真实更新→可信匹配及资格判断→私有跟进提醒为首期价值。前台重新加载只读已发布数据，受控后台才采集核验发布。3家真实客户试用未招募、未获本轮外联授权。
+仅允许新增 web/src/utils/hematologyWholeDeviceScope.js、hematologyWholeDeviceScope.d.ts、web/scripts/check-hematology-whole-device-scope.mjs，以及局部修改 web/src/pages/OpportunityPoolPage.tsx。实现商机池三态：结构化官方设备明细明确血细胞分析仪整机=相关但资格未知；纯试剂/质控/耗材/维保或明确非天津=非本期；IVD泛词、仅标题无结构化设备明细或来源区域不明=待核。混合公告逐设备识别，不因试剂一起出现而排除真实整机。展示理由，不制造资格结论，不改变原公开快照、评分排序、AI、Today/详情或跟进写入。
 
-只读核对现有用户可见代码和文档，对批准的范围与B1–B6形成逐项的“已有/部分/缺失/历史测试/未知”证据矩阵。选出首个最小可独立验收的开发切片，写具体文件边界、离线通过条件、实际线上验收门禁、需要单独授权的动作，产出可审核的授权卡。不编造真实更新、线上数据新鲜度、可投资格或客户试用。
+先独立离线验证明确正负、混合和未知案例，运行本次新增定向Node断言；仅在既有依赖就绪时运行TypeScript typecheck。无新输入/代码变化不重跑历史全量测试。若边界不够或有已实现同功能，停止扩范围并报告。
 
-仅在有真实增量时修改方案与交接文档；按已获授权的GitHub归档约定提交[skip ci]、非强推快进同步当前分支并回查远端HEAD。不得修改应用、域名、权限、定时计划、配置、真实数据，不部署、不启动采集/模型/Workflow、不重跑未变测试、不重开SDK/强保证。真实线上验收仍NO-GO，apply_allowed=false、migration_usable=false。不建PR、不合并main。报告完成、证据、未完成与唯一下一任务。
-
-推荐GPT-6.1 Sol High；实际设置未核实。
+本次不允许部署、不启动采集/模型/工作流、不改任何数据库/运行缓存、域名、计划、权限或环境，不读实际凭据/运行数据；真实d Preview验收保持NO-GO，SDK及强保证CLOSED NO-GO，apply_allowed=false、migration_usable=false。仅在有效变更后更新必要交接，提交[skip ci]、非强推快进当前GitHub分支并核实远端HEAD；不建PR、不合并main。结束报告实际完成、定向测试证据、未完成与唯一下一任务。推荐GPT-6.1 Sol High，实际设置未核实。
 ```
