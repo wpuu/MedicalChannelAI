@@ -30,6 +30,7 @@ import {
 import { getVerifiedOpportunityPool } from '@/services/verifiedOpportunityPool'
 import type { TodayActionCard } from '@/types'
 import { formatBudget, formatDateTime, uid } from '@/utils/format'
+import { classifyHematologyWholeDeviceScope } from '@/utils/hematologyWholeDeviceScope'
 
 type WindowFilter = 'ALL' | 'OPEN' | 'PRE_MARKET_SIGNAL' | 'LATE_WINDOW'
 const AI_UNCONFIGURED_REASON = 'AI运行配置尚未完成；商机检索、官方依据和跟进功能仍可正常使用。'
@@ -127,6 +128,18 @@ function PoolCard({
   const contactEmailHref = mailtoHref(contactEmail)
   const marketName = card.facts.market_name?.trim() || null
   const noticeRegion = card.facts.region?.trim() || null
+  // A01 is only a conservative, display-only scope label; it never changes priority or actions.
+  const deviceScope = classifyHematologyWholeDeviceScope(card)
+  const deviceScopeLabel = deviceScope.status === 'IN_SCOPE'
+    ? '整机相关 · 资格待核'
+    : deviceScope.status === 'OUT_OF_SCOPE'
+      ? '非本期整机'
+      : '证据不足待核'
+  const deviceScopeTone = deviceScope.status === 'IN_SCOPE'
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+    : deviceScope.status === 'OUT_OF_SCOPE'
+      ? 'border-slate-200 bg-slate-100 text-slate-700'
+      : 'border-amber-200 bg-amber-50 text-amber-800'
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -168,6 +181,23 @@ function PoolCard({
               />
             </div>
           ) : null}
+          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5" aria-label="血细胞分析仪整机范围提示">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-medium text-slate-600">首期血细胞分析仪整机范围</span>
+              <span className={'rounded-md border px-2 py-0.5 text-[11px] font-medium ' + deviceScopeTone}>
+                {deviceScopeLabel}
+              </span>
+            </div>
+            <p className="mt-1 text-[12px] leading-5 text-slate-600">{deviceScope.reason}</p>
+            {deviceScope.evidence ? (
+              <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                快照结构化产品明细第{deviceScope.evidence.itemIndex + 1}项：{deviceScope.evidence.productName}
+              </p>
+            ) : null}
+            <p className="mt-1 text-[11px] leading-5 text-slate-500">
+              仅判断首期产品范围；不代表型号参数、采购资格或投标条件已核实。
+            </p>
+          </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"

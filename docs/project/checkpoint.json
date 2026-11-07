@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-08",
   "timezone": "Asia/Shanghai",
-  "state_scope": "APPROVED_MVP_CODE_GAP_DOCS_ONLY",
+  "state_scope": "A01_OFFLINE_IMPLEMENTED_NO_RUNTIME_CHANGE",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "MVP_GAP_REVIEW_DONE_A01_AWAITING_SEPARATE_AUTHORIZATION",
-  "latest_changes_validation_status": "DOCS_ONLY:READ_EXISTING_USER_VISIBLE_SOURCE_AND_REPORT_A01_AUTH_CARD;NO_APP_CHANGE_TEST_BUILD_CLOUD_ACCESS_COLLECTION_OR_MODEL",
+  "milestone": "A01_OFFLINE_TARGETED_PASS_TYPES_AND_REAL_ACCEPTANCE_NOT_VERIFIED",
+  "latest_changes_validation_status": "A01_ONLY_FOUR_APPROVED_FILES:34_OF_34_SYNTHETIC_NODE_CASES_PASS;NODE_SYNTAX_PASS;PROJECT_TYPES_NOT_RUN;NO_DEPLOYMENT_OR_COLLECTION",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -2840,14 +2840,17 @@
     "historical": true
   },
   "current_authorization_scope": {
-    "source": "User approval message 2026-11-07T16:21:30Z explicitly approves 3 product scope decisions and docs-only archiving",
-    "current_round": "READ_ONLY_USER_VISIBLE_MVP_GAP_DOCS_AND_GITHUB_ARCHIVE",
+    "source": "User explicitly approved A01 four files offline at 2026-11-07T16:45:42Z",
+    "current_round": "A01_FOUR_FILE_OFFLINE_IMPLEMENTATION_AND_GITHUB_ARCHIVE",
     "github_archive_push_authorized": true,
     "force_push_merge_main_or_create_pr_authorized": false,
     "new_application_code_authorized": false,
     "deployment_workflow_collection_or_model_authorized": false,
     "real_preview_acceptance_pause_preserved": true,
-    "real_customer_outreach_or_trial_authorized": false
+    "real_customer_outreach_or_trial_authorized": false,
+    "a01_four_file_offline_code_authorized_this_round": true,
+    "a01_four_file_offline_code_completed": true,
+    "any_future_app_code_changes_authorized": false
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -3881,24 +3884,75 @@
       "B6": "NOT_VERIFIED"
     },
     "only_next_task": "A01_HEMATOLOGY_WHOLE_DEVICE_SCOPE_TRISTATE_UI_OFFLINE_AFTER_EXPLICIT_AUTHORIZATION",
-    "A01_status": "PROPOSED_NOT_AUTHORIZED_NOT_IMPLEMENTED",
+    "A01_status": "OFFLINE_IMPLEMENTED_TARGETED_34_PASS_TYPECHECK_NOT_RUN",
     "A01_proposed_exact_files": [
       "web/src/utils/hematologyWholeDeviceScope.js",
       "web/src/utils/hematologyWholeDeviceScope.d.ts",
       "web/src/pages/OpportunityPoolPage.tsx",
       "web/scripts/check-hematology-whole-device-scope.mjs"
     ],
-    "A01_requires_new_explicit_code_authorization": true,
+    "A01_requires_new_explicit_code_authorization": false,
     "proposal_has_no_backend_or_model_or_deployment_change": true,
     "original_worktree_not_present_in_current_container": true,
     "other_worktree_or_inflight_status": "UNKNOWN",
-    "current_round_application_changes": 0,
-    "current_round_tests_executed": 0,
+    "current_round_application_changes": 4,
+    "current_round_tests_executed": 34,
     "current_round_cloud_runtime_calls": 0,
     "real_customer_trial_count_verified": 0,
     "real_online_acceptance_paused": true,
     "sdk_strong_guarantees": "CLOSED_NO_GO",
     "apply_allowed": false,
-    "migration_usable": false
+    "migration_usable": false,
+    "A01_authorization_received_at_utc": "2026-11-07T16:45:42Z"
+  },
+  "a01_offline_implementation_2026_11_08": {
+    "user_authorized_at_utc": "2026-11-07T16:45:42Z",
+    "base_remote_head": "e621bfb4e84d724a70757cd063e739511a7829c7",
+    "implementation_status": "OFFLINE_CODE_COMMITTED_PENDING_TYPES_AND_REAL_ACCEPTANCE",
+    "exact_application_files": [
+      "web/src/utils/hematologyWholeDeviceScope.js",
+      "web/src/utils/hematologyWholeDeviceScope.d.ts",
+      "web/src/pages/OpportunityPoolPage.tsx",
+      "web/scripts/check-hematology-whole-device-scope.mjs"
+    ],
+    "exact_application_file_count": 4,
+    "newly_created_files": 3,
+    "modified_existing_files": 1,
+    "local_node_version": "v22.16.0",
+    "targeted_test_command": "node web/scripts/check-hematology-whole-device-scope.mjs",
+    "targeted_test_count": 34,
+    "targeted_test_passed": 34,
+    "targeted_test_failed": 0,
+    "node_syntax_check": "PASS_JS_AND_TEST_MJS",
+    "checked_git_object_hashes": {
+      "web/src/utils/hematologyWholeDeviceScope.js": "8c43315a6398b1c75928fef00f40835854fbe34e",
+      "web/src/utils/hematologyWholeDeviceScope.d.ts": "2f6273be7fb24782d479079979abdf5e09436e93",
+      "web/scripts/check-hematology-whole-device-scope.mjs": "efc850a42de885736e71c7c064d222f2996c3a7b"
+    },
+    "npm_typecheck": "NOT_RUN_NO_EXISTING_PROJECT_WORKTREE_OR_INSTALLED_DEPENDENCIES",
+    "browser_or_tsx_runtime_verification": "NOT_RUN",
+    "current_site_or_preview_deployment_verified": false,
+    "runtime_business_evidence": "NOT_VERIFIED",
+    "business_acceptance_B1_B6": {
+      "B1": "NOT_VERIFIED",
+      "B2": "NOT_VERIFIED",
+      "B3": "NOT_VERIFIED",
+      "B4": "NOT_VERIFIED",
+      "B5": "NOT_VERIFIED",
+      "B6": "NOT_VERIFIED"
+    },
+    "app_source_changes_other_than_four_files": 0,
+    "backend_collector_database_model_runtime_actions": 0,
+    "current_round_cloud_business_or_deployment_calls": 0,
+    "historical_python_tests_not_rerun": true,
+    "original_worktree_present_in_current_container": false,
+    "other_worktree_inflight_or_uncommitted": "UNKNOWN",
+    "approved_product_scope_unchanged": true,
+    "real_customers_recruited_verified": false,
+    "d_preview_real_acceptance": "NO_GO_PAUSED",
+    "sdk_and_strong_guarantees": "CLOSED_NO_GO",
+    "apply_allowed": false,
+    "migration_usable": false,
+    "only_next_task": "A02_TODAY_AND_DETAIL_SAME_SCOPE_LABEL_REQUIRES_SEPARATE_AUTHORIZATION"
   }
 }
