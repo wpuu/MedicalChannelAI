@@ -1,0 +1,11 @@
+{
+  "started_at_utc": "2026-11-07T09:17:03+00:00",
+  "completed_at_utc": "2026-11-07T09:25:39.354193+00:00",
+  "deadline_utc": "2026-11-07T09:37:03+00:00",
+  "within_frontend_20_minutes": true,
+  "scope": "OFFLINE_DOCUMENTATION_AND_STATIC_ARTIFACTS_ONLY",
+  "tests_reexecuted": false,
+  "application_or_sdk_executed": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

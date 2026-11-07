@@ -1,0 +1,27 @@
+{
+  "reviewed_head": "1f40e91f9be42a202a78e704fe57a7297f5e1021",
+  "unchanged_code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "files": {
+    "docs/project/ccgp-mainline-reliability-closeout-2026-11-07.md": "87d94bc95ac4331bd27b29f89a8164480e8d3a1dbb988fbf3cdd2c4040993d0e",
+    "docs/project/checkpoint.json": "561403bff8a7c849b41681604c1dae7937ada402f5e80d235a956cc23b01f6d5",
+    "docs/project/current-state.md": "1d8cb78c37726f9c5f0656dff06899ea978d2a2c50800f8e81ceb821da52fb39",
+    "docs/project/next-task.md": "c1c2ecdad718a09a5bf0066790ee1da5c1ecc8b0da350582b713371c5c409ff4",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/audit-static.py": "3bc9c0e2a0eb6b3fd35f40cd9fb7675728bc7d2706369e7d4720a653d2d3f1b9",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/completion.json": "19c5e22e83f971fdba64e3d42a60ce08dc13900ef7ce2604e73817be42d6cc53",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/coverage.json": "6570f6d8b4bc0306142e73580db4a9355757d5d5b206dfe694190444ef4bebad",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/decision.json": "f2a2d5aa96f8a5585ddb9a60ee14f959b9aa3d26e1e99186ece16d716c45ac7d",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/findings.json": "bb284ab8daee7814bfeed271662672f8443022bcc7e0c1f7db7d7909abe3af37",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/historical-gates.json": "ea14e1bd7b56cf428cae3c06a70bb74434e722e7622542a05653e991324d37e0",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/input-integrity.json": "3bc73d10a0f23554738a20ad5ebc5ed164b02f75b1d1ec12de774d481f817da0",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/source-config-git-objects.json": "6e4fc07077d2ae3e3fd97c9094636c5e84f699b933db49cca1facb03fa0068c3",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/source-references.json": "91d8ca7162784bf06b5d0765ea43e0fd775f55dac566d97c7ff2cd3097108c9e",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/static-control-flow.json": "83a3d7464444edb864426abb7b99a9d563bd8f8b2e744f5d555e6b097ca31d60",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/validation-summary.json": "479c272282df9c06dbf9c46e6638e18c4d6bb9d40312d4a03061f608ed8f6d10",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/verify.py": "36f35faa2a36b2b7c6087a8d70b3e53a7a3c35093c90ee0f98825ce5c357a1fb",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/version-bindings.json": "90738590b31776dc8386b99623030b79aef80fbc6db0b5d4c6a97ccea000bc2f",
+    "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/workspace-audit.json": "21b318c1c225617ef18403f58b9e20dee73442188c63b7883007da5432d09bfd"
+  },
+  "static_only": true,
+  "apply_allowed": false,
+  "migration_usable": false
+}

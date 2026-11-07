@@ -1,0 +1,43 @@
+[
+  {
+    "id": "R1",
+    "priority": "P1",
+    "kind": "STATIC_CONTROL_FLOW_GAP_NOT_BEHAVIORALLY_REPRODUCED",
+    "scope": "Queue ccgp plus event1-event6 single-stage explicit-host denial handling and safe failure diagnostics",
+    "evidence": [
+      "web/pipeline/scripts/sync_ccgp_query.py:233",
+      "web/collector_runtime.py:787",
+      "web/pipeline/scripts/sync_ccgp_query.py:129",
+      "web/pipeline/scripts/sync_ccgp_query.py:160",
+      "web/collector_runtime.py:807"
+    ],
+    "impact": "further same-host requests after explicit denial; raw facts error text may enter workflow state",
+    "unique_next_priority": true,
+    "next_files": [
+      "web/collector_runtime.py",
+      "web/pipeline/scripts/sync_ccgp_query.py",
+      "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+      "web/pipeline/tests/test_ccgp_events.py"
+    ],
+    "code_authorized_this_round": false,
+    "behavior_reproduced_this_round": false
+  },
+  {
+    "id": "R2",
+    "priority": "P2",
+    "kind": "STATIC_COVERAGE_AND_DESIGN_GAP",
+    "scope": "Seven deep and seven other incremental sources remain unbudgeted; shared cooldown/Retry-After not implemented",
+    "impact": "no new cumulative cooperative time budget for these sources; does not establish real timeout",
+    "next_work": "only after R1 choose one evidence-backed source for a documentation contract, no numeric budget or code rollout assumed",
+    "unique_next_priority": false
+  },
+  {
+    "id": "R3",
+    "priority": "P1_RELEASE_BLOCKER",
+    "kind": "UNVERIFIED_RUNTIME_EVIDENCE_GATE_NOT_NEW_CODE_BUG",
+    "scope": "Current Preview/deployment/consumer identity, source completeness, persistence, public readback and customer delivery",
+    "impact": "NO_GO for real release based on local evidence alone",
+    "next_work": "after required offline closure, one concrete existing-d Preview acceptance authorization package; metadata/deployment/business trigger/readback authorization distinct; no SDK bypass",
+    "unique_next_priority": false
+  }
+]

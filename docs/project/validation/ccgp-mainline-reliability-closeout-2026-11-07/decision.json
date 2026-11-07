@@ -1,0 +1,20 @@
+{
+  "decision": "NEXT_R1_OFFLINE_REPRODUCE_AND_MINIMAL_FOUR_FILE_FIX_AFTER_EXPLICIT_AUTHORIZATION",
+  "application_or_tests_changed_this_round": false,
+  "next_code_authorized": false,
+  "recommended_model": "GPT-6.1 Sol",
+  "recommended_reasoning": "xhigh",
+  "actual_model_and_reasoning_verified": false,
+  "minimal_files": [
+    "web/collector_runtime.py",
+    "web/pipeline/scripts/sync_ccgp_query.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "web/pipeline/tests/test_ccgp_events.py"
+  ],
+  "mechanical_budget_rollout": false,
+  "new_simulation_engine": false,
+  "cloud_release": "NO_GO_UNVERIFIED",
+  "sdk_and_strong_guarantee_branches": "CLOSED_NO_GO",
+  "apply_allowed": false,
+  "migration_usable": false
+}

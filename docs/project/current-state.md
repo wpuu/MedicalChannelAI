@@ -2,7 +2,16 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前Queue ccgp发现/事实预算与双键准备（已完成离线实现）
+## 当前CCGP主链F1/F2/F3收口（仅离线静态审查完成）
+
+- 起点1f40e91，应用代码fea6fc7不变，工作树初始干净，仅根代理，无相关在途工作。[收口报告](ccgp-mainline-reliability-closeout-2026-11-07.md)、[静态证据](validation/ccgp-mainline-reliability-closeout-2026-11-07/manifest.json)。CLI F3、区域止损、发现/事件/区域/增量/publish预算与回执按已有版本证据收口，不重复施工。
+- 最新覆盖：25 deep中18个接预算，剩余7个医院/早期deep；8增量中仅tjzyefy接预算，其余7个未接。只读回匹配、单键配对写、权威ACK、bucket完成各有边界，不能代替真实部署/完整采集/持久化/客户交付。
+- 只列三项：R1/P1 CCGP发现/事实/事件明确拒绝后仍可能继续同host请求，事实异常正文进入失败状态的同一失败链也需安全汇总（仅静态，未行为复现）；R2/P2其余来源F2覆盖与共享冷却/Retry-After未完成；R3/P1真实运行证据缺失，发布放行NO-GO。区域旧R1已修，不再报修。
+- 唯一下一优先项R1：待用户明确四文件本地离线授权后，先复现再复用现有分类器/marker/安全诊断和stage局部host字典修复；不实现跨进程冷却、不改预算或Queue/lease/pending/健康/配对协议。完整提示词见[next-task](next-task.md)，当前轮不开始代码。
+- 本轮标准库静态核对110处源码行号/哈希、8组函数AST版本绑定、595份保护输入与455份web/workflow文件不变。1202/10/3为fea6fc7已有通过结果，本轮未运行应用/SDK/测试/采集/模型或新增模拟；未联网/读实际环境值/凭据/运行日志/查云端或运行数据，没有部署/推送/触发/新环境/计划权限变更。apply_allowed/migration_usable=false，SDK及强保证CLOSED NO-GO。
+- 旧checkpoint字段中的CURRENT/线上来源健康等仅原版本历史证据，本轮未重新核实。当前界面无法生成该按钮；提供完整可复制提示词，推荐GPT-6.1 Sol xhigh，实际设置未核实。
+
+## 上轮Queue ccgp发现/事实预算与双键准备（已完成离线实现）
 
 - 起点6270b50，代码fea6fc7，仅授权五文件变更。[实现报告](ccgp-discovery-stage-budget-implementation-2026-11-07.md)、[证据](validation/ccgp-discovery-stage-budget-implementation-2026-11-07/manifest.json)。仅ccgp总270/工作150/共同双键准备读回60/尾部60；snapshot reserve120=60+60。请求/sleep/解析/排序/merge/watch/digest超期拒绝，13候选详情前拒绝，watch保持六片容量。
 - 原seed初始化及committed优先保留，披露旧seed可能写入，损坏committed不回填。STAGING写/读回匹配后才WATCH写/读回；只有两键按时匹配才PREPARED_LOCAL_READBACK。逐键已尝试/未知/调用返回与读回状态保真，部分准备503不推进事件，不称零写/回滚或真实持久化；receipt不进数据。原配对/pending/健康/版本/Queue/lease与其他阶段预算不改。

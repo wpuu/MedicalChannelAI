@@ -1,0 +1,26 @@
+[
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "symbol": "discover_candidates",
+    "handler_line": 233,
+    "property": "generic timely exception records failure then permits next iteration",
+    "access_block_classifier_called": false,
+    "behavior_reproduced_this_round": false
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "symbol": "scan_events",
+    "handler_line": 129,
+    "property": "generic timely exception records failure then permits next iteration",
+    "access_block_classifier_called": false,
+    "behavior_reproduced_this_round": false
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "symbol": "_run_ccgp",
+    "handler_line": 787,
+    "property": "generic timely exception records failure then permits next iteration",
+    "access_block_classifier_called": false,
+    "behavior_reproduced_this_round": false
+  }
+]

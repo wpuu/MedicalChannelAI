@@ -1,0 +1,58 @@
+[
+  {
+    "path": "web/collector_runtime.py",
+    "symbol": "_run_ccgp",
+    "implementation_origin": "fea6fc7",
+    "current_ast_sha256": "2646662cd4f725a185e94eb651afb7d5eabe967856028e2d2a00ee05a84144c5",
+    "ast_unchanged_from_origin": true
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "symbol": "_run_event_batch",
+    "implementation_origin": "5d2fe85",
+    "current_ast_sha256": "090f0fa8cd174b9f54a4c9f766f080ca35366206789591a7ba358c284bdcc8b2",
+    "ast_unchanged_from_origin": true
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "symbol": "_run_regional_market",
+    "implementation_origin": "4916d69",
+    "current_ast_sha256": "5ea0c339315978ed3d6b8b08bc98bee006534726c360017592467fceb5ad5a08",
+    "ast_unchanged_from_origin": true
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "symbol": "_run_publish",
+    "implementation_origin": "a352b7a",
+    "current_ast_sha256": "0e96485045fdbc6cda83627eca3b2d5b52f5247f97f5b80ac26235b4cae8c491",
+    "ast_unchanged_from_origin": true
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "symbol": "_persist_verified_snapshot_durably",
+    "implementation_origin": "a352b7a",
+    "current_ast_sha256": "1343b8f69843dbc863c850d8a11887a7f64bd2d7a073a0c5d4ebca8f9e06e977",
+    "ast_unchanged_from_origin": true
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "symbol": "main",
+    "implementation_origin": "58e7e6b",
+    "current_ast_sha256": "bb92b964bc45f725e9f2420bfd7fb495df0b5c0df27c350b0f726303885bb869",
+    "ast_unchanged_from_origin": true
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "symbol": "CliBudget",
+    "implementation_origin": "bba3716",
+    "current_ast_sha256": "f6fcaedc9e53af930313c16d4e190676723c524b9c1f464985b3843051420701",
+    "ast_unchanged_from_origin": true
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "symbol": "_run_incremental_source",
+    "implementation_origin": "a352b7a",
+    "current_ast_sha256": "40119ebf80b5dc6ab0980a3ad7abbbb4d261a5f9611e3174951c1dbe2305d9f7",
+    "ast_unchanged_from_origin": true
+  }
+]

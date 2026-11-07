@@ -1,0 +1,16 @@
+{
+  "starting_head": "1f40e91f9be42a202a78e704fe57a7297f5e1021",
+  "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "worktree": "/workspace/MedicalChannelAI-p0",
+  "branch": "codex/p0-reliability-contracts",
+  "initial_worktree_clean": true,
+  "in_flight_agents": [
+    "/root"
+  ],
+  "other_worktree": "/workspace/MedicalChannelAI",
+  "other_worktree_head": "3216fd9",
+  "other_worktree_modified": false,
+  "suggested_action_prompt_button_tool_available": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

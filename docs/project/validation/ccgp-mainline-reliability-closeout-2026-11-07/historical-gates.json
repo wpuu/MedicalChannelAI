@@ -1,0 +1,56 @@
+[
+  {
+    "path": "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/validation-summary.json",
+    "sha256": "84385b7120ea311d10c43d84f752d3df0835b2c48ed8861426ea74c3cc6ed1be",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+    "historical_python_passed": 1202,
+    "templates": 10,
+    "original_cli": 3,
+    "reexecuted_this_round": false
+  },
+  {
+    "path": "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/validation-summary.json",
+    "sha256": "76e3c2ad6d3300b709d69f02b9474933346b9d0e15c2491fc3fa992605fd4cee",
+    "code_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21",
+    "historical_python_passed": 1181,
+    "templates": 10,
+    "original_cli": 3,
+    "reexecuted_this_round": false
+  },
+  {
+    "path": "docs/project/validation/runtime-regional-access-stop-2026-11-07/validation-summary.json",
+    "sha256": "93e8a1959db111aa4dc6c190fef2307f5550437535ee8e089da49f3fd8f5f83e",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852",
+    "historical_python_passed": 1157,
+    "templates": 10,
+    "original_cli": 3,
+    "reexecuted_this_round": false
+  },
+  {
+    "path": "docs/project/validation/publish-budget-implementation-2026-11-07/validation-summary.json",
+    "sha256": "9ccb54bd1c3bb805d93528ee3e75554027d0f91b0907a8c77c97a02cbb9dff2c",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
+    "historical_python_passed": 1145,
+    "templates": 10,
+    "original_cli": 3,
+    "reexecuted_this_round": false
+  },
+  {
+    "path": "docs/project/validation/tjzyefy-incremental-implementation-2026-11-07/validation-summary.json",
+    "sha256": "43cedca994483f609ec956d4ed2189f71c5bef175b5ae378a5cdd9fab0b7768d",
+    "code_head": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+    "historical_python_passed": 1121,
+    "templates": 10,
+    "original_cli": 3,
+    "reexecuted_this_round": false
+  },
+  {
+    "path": "docs/project/validation/runtime-f2-implementation-2026-11-07/validation-summary.json",
+    "sha256": "c32c3f3304e9ae6c57b6923534f1fd43246f82c0181da61fc359323f8dee2d90",
+    "code_head": "bba3716d1b71e3fa6731d9bfd4b2d6d9d81a60c1",
+    "historical_python_passed": 1098,
+    "templates": 10,
+    "original_cli": 3,
+    "reexecuted_this_round": false
+  }
+]

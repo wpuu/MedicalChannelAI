@@ -1,0 +1,992 @@
+[
+  {
+    "path": "web/collector_runtime.py",
+    "line": 186,
+    "text": "STAGE_ORDER = (",
+    "anchor": "STAGE_ORDER = (",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 321,
+    "text": "def _assert_pending_canonical_commit(cache: RuntimeCache, key: str, records: Any, *,",
+    "anchor": "def _assert_pending_canonical_commit",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 441,
+    "text": "def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[str, Any]], bool]:",
+    "anchor": "def _cached_list",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 512,
+    "text": "def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict[str, Any], dict[str, Any] | None]:",
+    "anchor": "def _prepare_stage",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 639,
+    "text": "def _mark_failed(cache: RuntimeCache, state: dict[str, Any], stage: str, exc: Exception) -> None:",
+    "anchor": "def _mark_failed",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 660,
+    "text": "def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget | None = None) -> dict[str, Any]:",
+    "anchor": "def _run_ccgp",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 687,
+    "text": "    def prepare(target, key, candidate, tag):",
+    "anchor": "def prepare(target",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 699,
+    "text": "        observed_digest = _digest(observed)",
+    "anchor": "observed_digest = _digest(observed)",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 717,
+    "text": "        committed = cache.get(CCGP_COMMITTED_STATE_KEY)",
+    "anchor": "committed = cache.get(CCGP_COMMITTED_STATE_KEY)",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 729,
+    "text": "        for keyword_index, keyword in enumerate(plan[\"keywords\"]):",
+    "anchor": "for keyword_index, keyword",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 769,
+    "text": "        for notice_type, candidate in selected:",
+    "anchor": "for notice_type, candidate in selected:",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 788,
+    "text": "                check('CCGP_DETAIL_ERROR_RETURN')",
+    "anchor": "check('CCGP_DETAIL_ERROR_RETURN')",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 808,
+    "text": "            diagnostic = \";\".join(",
+    "anchor": "diagnostic = \";\".join",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 815,
+    "text": "        if failures:",
+    "anchor": "if failures:",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 764,
+    "text": "        if budget and len(discovered) > plan['max_candidates']:",
+    "anchor": "if budget and len(discovered) > plan['max_candidates']:",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 822,
+    "text": "        watch_cap = min(plan['max_event_watch_projects'], 6 * EVENT_BATCH_SIZE) if budget else plan['max_event_watch_projects']",
+    "anchor": "watch_cap = min(",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 838,
+    "text": "            prepare_deadline = min(budget.clock() + 60, budget.started + 210)",
+    "anchor": "prepare_deadline = min(budget.clock() + 60",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 882,
+    "text": "def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str, *, budget: CliBudget | None = None) -> dict[str, Any]:",
+    "anchor": "def _run_event_batch",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 924,
+    "text": "        for project_number in projects:",
+    "anchor": "for project_number in projects:",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 952,
+    "text": "            if len(project_search_failures) >= 2:",
+    "anchor": "if len(project_search_failures) >= 2:",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 970,
+    "text": "                raise CollectorStageBlocked(\"CCGP_SOURCE_TRANSACTION_INCOMPLETE\")",
+    "anchor": "CCGP_SOURCE_TRANSACTION_INCOMPLETE",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 973,
+    "text": "                raw_records = cache.get(CCGP_RECORDS_KEY)",
+    "anchor": "raw_records = cache.get(CCGP_RECORDS_KEY)",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 984,
+    "text": "        receipt.update(write_attempted=True, mutation_possible=True, outcome='UNKNOWN', write_call_returned=None)",
+    "anchor": "receipt.update(write_attempted=True",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1479,
+    "text": "def _run_regional_market(",
+    "anchor": "def _run_regional_market",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1537,
+    "text": "    blocked_hosts: dict[str, str] = {}",
+    "anchor": "blocked_hosts: dict[str, str] = {}",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1700,
+    "text": "        detail_host = urlsplit(candidate.detail_url).hostname",
+    "anchor": "detail_host = urlsplit(candidate.detail_url).hostname",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1728,
+    "text": "            reason = access_block_reason(\"verified_detail\", exc, str(candidate.detail_url))",
+    "anchor": "reason = access_block_reason",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1786,
+    "text": "def _publish_work_deadline(budget) -> float:",
+    "anchor": "def _publish_work_deadline",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1814,
+    "text": "def _persist_verified_snapshot_durably(snapshot: dict[str, Any], *, budget=None, receipt=None) -> dict[str, Any]:",
+    "anchor": "def _persist_verified_snapshot_durably",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1879,
+    "text": "        if result.get(\"durable_committed\") is not True:",
+    "anchor": "if result.get(\"durable_committed\") is not True:",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1889,
+    "text": "        receipt.update(publication_outcome=\"CONFIRMED\", snapshot_as_of=result[\"snapshot_as_of\"],",
+    "anchor": "receipt.update(publication_outcome=\"CONFIRMED\"",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1901,
+    "text": "def _run_publish(cache: RuntimeCache, state: dict[str, Any], *, budget=None) -> dict[str, Any]:",
+    "anchor": "def _run_publish",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1946,
+    "text": "        missing_canonical = [",
+    "anchor": "missing_canonical = [",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2001,
+    "text": "            LATEST_RUNTIME_SNAPSHOT_KEY,",
+    "anchor": "LATEST_RUNTIME_SNAPSHOT_KEY,",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2049,
+    "text": "        if receipt[\"node_cache_status\"] != \"UPDATED\":",
+    "anchor": "if receipt[\"node_cache_status\"] != \"UPDATED\":",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2074,
+    "text": "def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:",
+    "anchor": "def run_stage",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2086,
+    "text": "    if previous is not None:",
+    "anchor": "if previous is not None:",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2077,
+    "text": "    if not ccgp_budget and not event_budget and stage != \"publish\" and stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:",
+    "anchor": "if not ccgp_budget and not event_budget",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2147,
+    "text": "                raise CollectorStageBlocked('CCGP_FAILURE_STATE_RESULT_UNKNOWN', diagnostics={",
+    "anchor": "CCGP_FAILURE_STATE_RESULT_UNKNOWN",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2209,
+    "text": "            raise CollectorStageBlocked('CCGP_FINALIZATION_RESULT_UNKNOWN', diagnostics={",
+    "anchor": "CCGP_FINALIZATION_RESULT_UNKNOWN",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2188,
+    "text": "                               failure_reason=\"EVENT_VERIFICATION_PENDING\")",
+    "anchor": "EVENT_VERIFICATION_PENDING",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2191,
+    "text": "            if all((latest_stages.get(required) or {}).get(\"status\") == \"COMPLETED\"",
+    "anchor": "if all((latest_stages.get(required)",
+    "file_sha256": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 272,
+    "text": "def _process_incremental_payload(payload: dict[str, Any], *, budget=None) -> None:",
+    "anchor": "def _process_incremental_payload",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 429,
+    "text": "async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, sleep=None) -> None:",
+    "anchor": "async def process_collector_payload",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 431,
+    "text": "    entered_at = clock()",
+    "anchor": "entered_at = clock()",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 434,
+    "text": "    if not accepts_payload(payload):",
+    "anchor": "if not accepts_payload(payload):",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 442,
+    "text": "        if str(payload.get(\"source_id\") or \"\").strip().lower() == \"tjzyefy\":",
+    "anchor": "if str(payload.get(\"source_id\")",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 496,
+    "text": "    if ccgp_stage:",
+    "anchor": "if ccgp_stage:",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 497,
+    "text": "        budget = runtime.CliBudget(clock, sleep or time.sleep, total_seconds=270, work_seconds=150, started_at=entered_at)",
+    "anchor": "work_seconds=150",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 444,
+    "text": "                                       work_seconds=180, started_at=entered_at)",
+    "anchor": "work_seconds=180",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 503,
+    "text": "        budget = runtime.CliBudget(clock, sleep or time.sleep, total_seconds=270, work_seconds=210, started_at=entered_at)",
+    "anchor": "work_seconds=210",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 487,
+    "text": "                        error=\"COLLECTOR_DEPENDENCY_DEGRADED\", cache=cache,",
+    "anchor": "COLLECTOR_DEPENDENCY_DEGRADED",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 459,
+    "text": "    if not _heartbeat_deep_cycle(cycle_id, now=datetime.now(timezone.utc)):",
+    "anchor": "if not _heartbeat_deep_cycle(cycle_id",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 521,
+    "text": "                    incremental_runtime.reconcile_incremental_pending_from_canonical(",
+    "anchor": "reconcile_incremental_pending_from_canonical",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 114,
+    "text": "                runtime.mark_stage_degraded(stage, now=now, error=\"COLLECTOR_EXECUTION_LEASE_EXPIRED\", cache=cache)",
+    "anchor": "runtime.mark_stage_degraded(stage",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 496,
+    "text": "    if ccgp_stage:",
+    "anchor": "if ccgp_stage:",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 574,
+    "text": "                'ccgp_prepare_receipt': (result.get('result') or result).get('ccgp_prepare_receipt'),",
+    "anchor": "'ccgp_prepare_receipt':",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 499,
+    "text": "    elif event_stage:",
+    "anchor": "if event_stage:",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 85,
+    "text": "def scan_events(",
+    "anchor": "def scan_events",
+    "file_sha256": "d486f8e03e40934c09ed5c861e71378fe0618397caac26985752f3014488d408",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 99,
+    "text": "        from sync_regional_ccgp import CliBudgetExceeded",
+    "anchor": "from sync_regional_ccgp import CliBudgetExceeded",
+    "file_sha256": "d486f8e03e40934c09ed5c861e71378fe0618397caac26985752f3014488d408",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 111,
+    "text": "    for notice_type, event_type in (('更正公告', 'CORRECTION'), ('终止公告', 'TERMINATION')):",
+    "anchor": "for notice_type, event_type",
+    "file_sha256": "d486f8e03e40934c09ed5c861e71378fe0618397caac26985752f3014488d408",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 129,
+    "text": "        except Exception as exc:  # explicit report; no bypass/retry storm",
+    "anchor": "except Exception as exc:  # explicit report",
+    "file_sha256": "d486f8e03e40934c09ed5c861e71378fe0618397caac26985752f3014488d408",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 175,
+    "text": "                if candidate.published_at:",
+    "anchor": "if candidate.published_at:",
+    "file_sha256": "d486f8e03e40934c09ed5c861e71378fe0618397caac26985752f3014488d408",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 192,
+    "text": "def discover_candidates(",
+    "anchor": "def discover_candidates",
+    "file_sha256": "d486f8e03e40934c09ed5c861e71378fe0618397caac26985752f3014488d408",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 213,
+    "text": "    for index, notice_type in enumerate(notice_types):",
+    "anchor": "for index, notice_type",
+    "file_sha256": "d486f8e03e40934c09ed5c861e71378fe0618397caac26985752f3014488d408",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 129,
+    "text": "        except Exception as exc:  # explicit report; no bypass/retry storm",
+    "anchor": "except Exception as exc:",
+    "file_sha256": "d486f8e03e40934c09ed5c861e71378fe0618397caac26985752f3014488d408",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 234,
+    "text": "            check('CCGP_SEARCH_ERROR_RETURN')",
+    "anchor": "check('CCGP_SEARCH_ERROR_RETURN')",
+    "file_sha256": "d486f8e03e40934c09ed5c861e71378fe0618397caac26985752f3014488d408",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 68,
+    "text": "class CliBudget:",
+    "anchor": "class CliBudget:",
+    "file_sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 309,
+    "text": "def access_block_reason(phase: str, exc: Exception, reference: str) -> str | None:",
+    "anchor": "def access_block_reason",
+    "file_sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 323,
+    "text": "def finish_cli_outputs(records_target: Path, report_path: Path, records: list, report: dict, budget: CliBudget) -> int:",
+    "anchor": "def finish_cli_outputs",
+    "file_sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 390,
+    "text": "def main(*, monotonic=None, sleep=None, detail_transport=fetch_ccgp_detail_html) -> int:",
+    "anchor": "def main(*, monotonic",
+    "file_sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 442,
+    "text": "    session = CcgpSearchSession(on_access_blocked=blocked_hosts.setdefault, budget=budget) if input_admitted else None",
+    "anchor": "on_access_blocked=blocked_hosts.setdefault",
+    "file_sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 631,
+    "text": "            if detail_host in blocked_hosts:",
+    "anchor": "if detail_host in blocked_hosts:",
+    "file_sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 738,
+    "text": "    acceptance_ready = not acceptance_blockers",
+    "anchor": "acceptance_ready = not acceptance_blockers",
+    "file_sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 25,
+    "text": "SUPPORTED_INCREMENTAL_SOURCES = (",
+    "anchor": "SUPPORTED_INCREMENTAL_SOURCES = (",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 515,
+    "text": "def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime, *, budget=None) -> tuple[bool, dict[str, Any] | None]:",
+    "anchor": "def _publish_snapshot_if_ready",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 524,
+    "text": "def run_incremental_source(",
+    "anchor": "def run_incremental_source",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 529,
+    "text": "    if str(source_id or \"\").strip().lower() != \"tjzyefy\":",
+    "anchor": "if str(source_id or",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 716,
+    "text": "                save_deadline = min(budget.clock() + 30, budget.started + 210)",
+    "anchor": "save_deadline = min(budget.clock() + 30",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 722,
+    "text": "                _save_pending_records(cache, source, durable_staging)",
+    "anchor": "_save_pending_records(cache, source, durable_staging)",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 727,
+    "text": "            scan_barrier.discard(decision.candidate.detail_url)",
+    "anchor": "scan_barrier.discard",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 833,
+    "text": "    if pending_barrier:",
+    "anchor": "if pending_barrier:",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 862,
+    "text": "        return 200, {\"action\": \"COMPLETED\", **result}",
+    "anchor": "return 200, {\"action\": \"COMPLETED\", **result}",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 899,
+    "text": "            if budget.started + budget.total_seconds - budget.clock() < 31:",
+    "anchor": "if budget.started + budget.total_seconds - budget.clock() < 31:",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/medical_channel_pipeline/ccgp_discovery.py",
+    "line": 224,
+    "text": "def parse_search_html(html: str, *, keyword: str) -> list[DiscoveryCandidate]:",
+    "anchor": "def parse_search_html",
+    "file_sha256": "7008393b39fb1384d5f49571aa070965b80a569fa607aad6308516bd77673101",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/medical_channel_pipeline/ccgp_discovery.py",
+    "line": 225,
+    "text": "    if any(marker in html for marker in RATE_LIMIT_MARKERS):",
+    "anchor": "if any(marker in html for marker in RATE_LIMIT_MARKERS):",
+    "file_sha256": "7008393b39fb1384d5f49571aa070965b80a569fa607aad6308516bd77673101",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/medical_channel_pipeline/ccgp_discovery.py",
+    "line": 244,
+    "text": "def fetch_search_page(search_url: str, *, timeout_seconds: int = 30) -> str:",
+    "anchor": "def fetch_search_page",
+    "file_sha256": "7008393b39fb1384d5f49571aa070965b80a569fa607aad6308516bd77673101",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+    "line": 1433,
+    "text": "def fetch_ccgp_detail_html(source_url: str, *, timeout_seconds: int = 30) -> str:",
+    "anchor": "def fetch_ccgp_detail_html",
+    "file_sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+    "line": 1449,
+    "text": "        raise RuntimeError(f\"CCGP_DETAIL_HTTP_{exc.code}\") from exc",
+    "anchor": "raise RuntimeError(f\"CCGP_DETAIL_HTTP_",
+    "file_sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_diagnostics.py",
+    "line": 50,
+    "text": "def failure_row(phase: str, exc: Exception | None, reference: str) -> dict[str, str]:",
+    "anchor": "def failure_row",
+    "file_sha256": "71f668b320c66ff0658771608c396d29abdfbbdeadf062acf0afa4eb6c7f9379",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_diagnostics.py",
+    "line": 56,
+    "text": "def reported_event_failure_row(report: dict[str, Any]) -> dict[str, str]:",
+    "anchor": "def reported_event_failure_row",
+    "file_sha256": "71f668b320c66ff0658771608c396d29abdfbbdeadf062acf0afa4eb6c7f9379",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/collector_diagnostics.py",
+    "line": 68,
+    "text": "def failure_summary(rows: list[dict[str, str]]) -> dict[str, Any]:",
+    "anchor": "def failure_summary",
+    "file_sha256": "71f668b320c66ff0658771608c396d29abdfbbdeadf062acf0afa4eb6c7f9379",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/api/public-snapshot.js",
+    "line": 128,
+    "text": "      const committed = await persistSnapshot(snapshot)",
+    "anchor": "const committed = await persistSnapshot(snapshot)",
+    "file_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/api/public-snapshot.js",
+    "line": 138,
+    "text": "        cacheStatus = 'RETRY_REQUIRED'",
+    "anchor": "cacheStatus = 'RETRY_REQUIRED'",
+    "file_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/api/public-snapshot.js",
+    "line": 146,
+    "text": "        durable_committed: true,",
+    "anchor": "durable_committed: true",
+    "file_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/api/_snapshotRevision.js",
+    "line": 3,
+    "text": "export function snapshotRevisionMicros(value) {",
+    "anchor": "export function snapshotRevisionMicros",
+    "file_sha256": "a99ce39d41d3d178aa398117d47b79f2d53c28d70488ccd9eeeb32bf5f3b276a",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": ".github/workflows/regional-medical-refresh.yml",
+    "line": 29,
+    "text": "      - 'web/pipeline/tests/test_regional_cli_completeness.py'",
+    "anchor": "- 'web/pipeline/tests/test_regional_cli_completeness.py'",
+    "file_sha256": "1032590c2f670cd950a44f6ea6aeb236cb6ead98da0e76891e7f7e3545bdb52e",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": ".github/workflows/regional-medical-refresh.yml",
+    "line": 59,
+    "text": "          set -euo pipefail",
+    "anchor": "set -euo pipefail",
+    "file_sha256": "1032590c2f670cd950a44f6ea6aeb236cb6ead98da0e76891e7f7e3545bdb52e",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": ".github/workflows/regional-medical-refresh.yml",
+    "line": 63,
+    "text": "            tests.test_regional_cli_completeness \\",
+    "anchor": "tests.test_regional_cli_completeness",
+    "file_sha256": "1032590c2f670cd950a44f6ea6aeb236cb6ead98da0e76891e7f7e3545bdb52e",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1278,
+    "text": "    def test_ccgp_budget_missing_or_mismatched_readback_never_advances(self):",
+    "anchor": "def test_ccgp_budget_missing_or_mismatched_readback_never_advances",
+    "file_sha256": "a91db06548ba258ac99defbd33afe7490afde5d838e0c4bb51ab7fdfb1a62c59",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1287,
+    "text": "    def test_ccgp_budget_each_key_write_before_after_or_late_preserves_truth(self):",
+    "anchor": "def test_ccgp_budget_each_key_write_before_after_or_late_preserves_truth",
+    "file_sha256": "a91db06548ba258ac99defbd33afe7490afde5d838e0c4bb51ab7fdfb1a62c59",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1261,
+    "text": "    def test_ccgp_budget_committed_priority_and_corrupt_bundle_do_not_use_raw_fallback(self):",
+    "anchor": "def test_ccgp_budget_committed_priority_and_corrupt_bundle_do_not_use_raw_fallback",
+    "file_sha256": "a91db06548ba258ac99defbd33afe7490afde5d838e0c4bb51ab7fdfb1a62c59",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1527,
+    "text": "    def test_ccgp_event_failure_cannot_be_masked_by_later_batch_success(self):",
+    "anchor": "def test_ccgp_event_failure_cannot_be_masked_by_later_batch_success",
+    "file_sha256": "a91db06548ba258ac99defbd33afe7490afde5d838e0c4bb51ab7fdfb1a62c59",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1661,
+    "text": "    def test_nonempty_event_failure_persists_only_safe_diagnostics_and_keeps_committed_bundle(self):",
+    "anchor": "def test_nonempty_event_failure_persists_only_safe_diagnostics_and_keeps_committed_bundle",
+    "file_sha256": "a91db06548ba258ac99defbd33afe7490afde5d838e0c4bb51ab7fdfb1a62c59",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_collector_orchestration_behavior.py",
+    "line": 487,
+    "text": "    def test_ccgp_budget_failure_retries_then_degrades_and_never_scans_third_time(self):",
+    "anchor": "def test_ccgp_budget_failure_retries_then_degrades_and_never_scans_third_time",
+    "file_sha256": "c0476e5596a804dbd2b2d4c9bd105e76c761f4107f8522f162389fb88f7bfcef",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_collector_orchestration_behavior.py",
+    "line": 398,
+    "text": "    def test_event_budget_first_retry_final_degrade_and_redelivery_keep_attempt_limit(self):",
+    "anchor": "def test_event_budget_first_retry_final_degrade_and_redelivery_keep_attempt_limit",
+    "file_sha256": "c0476e5596a804dbd2b2d4c9bd105e76c761f4107f8522f162389fb88f7bfcef",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_collector_orchestration_behavior.py",
+    "line": 901,
+    "text": "    def test_expired_ownerless_running_is_degraded_and_new_identity_fences_old_messages(self) -> None:",
+    "anchor": "def test_expired_ownerless_running_is_degraded_and_new_identity_fences_old_messages",
+    "file_sha256": "c0476e5596a804dbd2b2d4c9bd105e76c761f4107f8522f162389fb88f7bfcef",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_ccgp_events.py",
+    "line": 165,
+    "text": "    def test_event_budget_late_detail_parse_or_none_never_falls_back(self):",
+    "anchor": "def test_event_budget_late_detail_parse_or_none_never_falls_back",
+    "file_sha256": "ac41920b3aa1e23c5e07ec9f2b52fe08be721fd079171d004def7d861728db1f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_ccgp_events.py",
+    "line": 188,
+    "text": "    def test_event_budget_and_default_ordinary_fallback_remain_compatible(self):",
+    "anchor": "def test_event_budget_and_default_ordinary_fallback_remain_compatible",
+    "file_sha256": "ac41920b3aa1e23c5e07ec9f2b52fe08be721fd079171d004def7d861728db1f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  },
+  {
+    "path": "web/pipeline/tests/test_ccgp_events.py",
+    "line": 197,
+    "text": "    def test_event_budget_does_not_break_query_regional_import_orders(self):",
+    "anchor": "def test_event_budget_does_not_break_query_regional_import_orders",
+    "file_sha256": "ac41920b3aa1e23c5e07ec9f2b52fe08be721fd079171d004def7d861728db1f",
+    "reviewed_head": "1f40e91",
+    "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9"
+  }
+]

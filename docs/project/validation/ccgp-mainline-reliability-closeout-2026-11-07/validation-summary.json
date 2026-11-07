@@ -1,0 +1,31 @@
+{
+  "starting_head": "1f40e91f9be42a202a78e704fe57a7297f5e1021",
+  "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "source_references": 110,
+  "version_bindings": 8,
+  "protected_files": 595,
+  "protected_source_config_files": 455,
+  "deep_budgeted_total": [
+    18,
+    25
+  ],
+  "incremental_budgeted_total": [
+    1,
+    8
+  ],
+  "historical_gates": [
+    1202,
+    10,
+    3
+  ],
+  "tests_executed_this_round": false,
+  "app_or_sdk_imported": false,
+  "new_simulation_engine": false,
+  "external_network_or_cloud_access": false,
+  "actual_environment_values_or_runtime_logs_read": false,
+  "deployment_push_workflow_trigger": false,
+  "findings_count": 3,
+  "unique_next_priority": "R1_CCGP_SINGLE_STAGE_EXPLICIT_DENIAL_STOP_AND_SAFE_DIAGNOSTICS",
+  "apply_allowed": false,
+  "migration_usable": false
+}
