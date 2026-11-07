@@ -1,0 +1,19 @@
+{
+  "only_next_priority": "R1",
+  "decision": "OFFLINE_REPRODUCE_THEN_MINIMUM_TWO_FILE_FIX_IF_CONFIRMED",
+  "why": "latest reachable F1 path; existing helper reuse; small offline boundary before external acceptance; other coverage needs contracts and live acceptance needs new authority",
+  "current_round_code_authorized": false,
+  "next_task": "docs/project/next-task.md",
+  "next_files": [
+    "web/collector_runtime.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py"
+  ],
+  "max_remaining_gaps": 3,
+  "new_network_or_cloud_authorization_assumed": false,
+  "button_interface_available": false,
+  "recommended_model": "GPT-6.1 Sol",
+  "recommended_reasoning_effort": "xhigh",
+  "actual_model_reasoning_settings": "UNVERIFIED",
+  "apply_allowed": false,
+  "migration_usable": false
+}

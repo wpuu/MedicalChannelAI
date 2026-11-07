@@ -1,0 +1,31 @@
+{
+  "reviewed_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+  "branch": "codex/p0-reliability-contracts",
+  "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
+  "implementation_commits": {
+    "7b29933": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
+    "01ccaa9": "01ccaa9c1c9c1f7850d8ad2c9b870b43a966867c",
+    "b97bc09": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+    "58e7e6b": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+    "6d4eb1b": "6d4eb1bd48d69329c0a0b3ac4587adcbc1d1e641",
+    "bba3716": "bba3716d1b71e3fa6731d9bfd4b2d6d9d81a60c1",
+    "b584bcf": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+    "a352b7a": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  "all_ancestors_of_reviewed_head": true,
+  "historical_latest_validation": {
+    "path": "docs/project/validation/publish-budget-implementation-2026-11-07/validation-summary.json",
+    "sha256": "9ccb54bd1c3bb805d93528ee3e75554027d0f91b0907a8c77c97a02cbb9dff2c",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
+    "python_frozen_original_cli": [
+      1145,
+      10,
+      3
+    ],
+    "recorded_source_hashes_match": true,
+    "rerun_this_round": false
+  },
+  "initial_worktree_clean": true,
+  "inflight_related_work_observed": false,
+  "historical_deployment_fields_are_current_evidence": false
+}

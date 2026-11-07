@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_PUBLISH_CALLER_BUDGET_AND_ACK_FIDELITY_IMPLEMENTATION_ONLY",
+  "state_scope": "OFFLINE_F1_F2_F3_CLOSEOUT_DOCUMENTATION_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "PUBLISH_CALLER_270_210_60_AND_ACK_FIDELITY_OFFLINE_PASS_STRONG_GUARANTEES_CLOSED_NO_GO",
-  "latest_changes_validation_status": "1145_PYTHON_AND10/3_PASS;24_NEW_TESTS;503_PROTECTED_FILES;ONLY7AUTHORIZED_CODE_TEST_FILES",
+  "milestone": "SCOPED_RELIABILITY_CLOSEOUT_NEXT_R1_REGIONAL_RUNTIME_DETAIL_DENIAL_GUARD",
+  "latest_changes_validation_status": "STATIC_DOCS_ONLY;PRIOR_A352B7A_1145/10/3_NOT_RERUN;NO_APPLICATION_TEST_WORKFLOW_CHANGE",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -169,11 +169,14 @@
     "regional_ci_cli_gate": "6D4EB1B_LOCAL_ONLY:2lines add CLI path/module;8module94tests pass offline;remote runner/workflow not triggered or verified.",
     "runtime_stage_time_budget": "BBA3716_OFFLINE_REGIONAL_ONLY:Queue270/210/60 and original retry/pending invariants pass;incremental/event/publish excluded;hard cancel/atomic commit/real persistence/dense fallback completion NOT established.",
     "tjzyefy_incremental_time_budget": "B584BCF_OFFLINE_PASS:270/180/30/60 cooperative Queue tjzyefy only;40 synthetic cases,6Queue assertions;no hard cancel/atomicity/real persistence/full internal publish budget or complete-by-deadline guarantee.",
-    "publish_budget_and_receipt": "A352B7A_OFFLINE_CALLER_PASS:deep270/210/60 and parent origin/ACK fidelity;24 newtests;Node/SQL/protocol unchanged. Strong cross-process cancellation/atomicity/durable receipt CLOSED NO-GO;real deployment not verified."
+    "publish_budget_and_receipt": "A352B7A_OFFLINE_CALLER_PASS:deep270/210/60 and parent origin/ACK fidelity;24 newtests;Node/SQL/protocol unchanged. Strong cross-process cancellation/atomicity/durable receipt CLOSED NO-GO;real deployment not verified.",
+    "regional_runtime_detail_denial_guard": "R1_P1_STATIC_PATH: discovery access denial stops; detail generic exception only records failure and can continue same host. Canonical fail-closed preserved. No behavior reproduction or live verification this round.",
+    "uncovered_runtime_budget_scope": "R2_P2:14deep stages and7non-tjzyefy incremental sources not covered by new cooperative stage budget. Not measured timeout incidents; need a single-source safety contract before extension.",
+    "historical_runtime_evidence_currentness": "All earlier CURRENT/CLOUD_VERIFIED/healthy source state labels describe the versions and times of their original reports only. This docs-only round performed no live check. Use runtime_reliability_closeout and source reports for current verification boundary."
   },
   "final_code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
   "code_validation_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
-  "documentation_followup": "Publisher caller subitem complete offline;next documentation-only F1/F2/F3 closeout matrix,max3 remaining evidence-backed gaps and one priority. No mechanical scope growth or SDK reopening.",
+  "documentation_followup": "Closeout complete docs-only; unique next R1 regional runtime detail denial guard, first offline reproduction, two existing files only. No SDK/strong guarantee reopening.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2323,7 +2326,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
+  "latest_reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2421,7 +2424,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "9e61edb",
+  "current_phase_starting_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2831,19 +2834,21 @@
     "historical": true
   },
   "current_authorization_scope": {
-    "existing_d_preview_non_sensitive_metadata_read": true,
-    "public_sdk_sources_read": true,
+    "source": "Latest user offline F1/F2/F3 closeout documentation-only instruction 2026-11-07",
+    "current_round": "DOCS_AND_NEW_STATIC_ARTIFACTS_ONLY",
+    "existing_d_preview_non_sensitive_metadata_read": false,
+    "public_sdk_sources_read": false,
     "runtime_cache_read": false,
     "database_read": false,
     "deployment_or_write": false,
-    "source": "Latest explicit seven-file offline publisher caller budget authorization 2026-11-07",
-    "current_round": "ONLY7EXISTING_CODE_TEST_FILES_PLUS_DOCS_ARTIFACTS",
     "network_this_round": false,
     "cloud_metadata_this_round": false,
     "F1_regional_cli_code_this_round": false,
-    "F2_code_this_round": true,
+    "F2_code_this_round": false,
     "workflow_change_this_round": false,
-    "workflow_executed_this_round": false
+    "workflow_executed_this_round": false,
+    "application_or_tests_execution_this_round": false,
+    "next_two_file_code_change_authorized_this_round": false
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -3452,5 +3457,37 @@
     "migration_usable": false,
     "completed_at_utc": "2026-11-07T05:45:39.657532+00:00",
     "completion": "docs/project/validation/publish-budget-implementation-2026-11-07/completion.json"
+  },
+  "runtime_reliability_closeout": {
+    "starting_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "unchanged_code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
+    "status": "OFFLINE_STATIC_CLOSEOUT_COMPLETE",
+    "report": "docs/project/runtime-reliability-closeout-2026-11-07.md",
+    "manifest": "docs/project/validation/runtime-reliability-closeout-2026-11-07/manifest.json",
+    "source_references": 51,
+    "protected_input_files": 517,
+    "remaining_gaps": 3,
+    "unique_next_priority": "R1",
+    "next_minimal_files": [
+      "web/collector_runtime.py",
+      "web/pipeline/tests/test_runtime_source_parity_behavior.py"
+    ],
+    "application_tests_workflow_changed": false,
+    "application_sdk_tests_executed": false,
+    "historical_python_frozen_original_cli": [
+      1145,
+      10,
+      3
+    ],
+    "historical_tests_rerun": false,
+    "cloud_or_runtime_fact_verified": false,
+    "historical_runtime_state_fields_reverified": false,
+    "sdk_strong_guarantee_branches": "CLOSED_NO_GO",
+    "network_cloud_runtime_access": false,
+    "deployed_or_pushed": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completed_at_utc": "2026-11-07T05:59:15.532619+00:00",
+    "completion": "docs/project/validation/runtime-reliability-closeout-2026-11-07/completion.json"
   }
 }

@@ -2,7 +2,16 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前publish调用者预算与ACK保真（离线实现）
+## 当前F1/F2/F3工程收口审查（仅离线文档）
+
+- 起点05cbcab，代码a352b7a保持不变，初始工作树干净、无相关在途代理工作。[收口报告](runtime-reliability-closeout-2026-11-07.md)、[静态证据](validation/runtime-reliability-closeout-2026-11-07/manifest.json)。F3 CLI完整性已关闭；CLI F1/900预算、区域Queue270/210/60、tjzyefy增量270/180/30/60及publish调用者270/210/60与ACK保真均按既有离线证据收口，不宣称全项目覆盖。
+- 最多三项剩余缺口：R1/P1区域runtime详情明确拒绝后仍可能继续同host请求（静态路径，未新跑复现）；R2/P2其他14个deep阶段及7个增量源无本轮时间预算；R3/P1真实Preview版本/来源/持久化/公开交付证据未核实，阻断发布放行。共享冷却/Retry-After仍未实现，归R1更广边界，本次不另开引擎。
+- 唯一下一优先项R1：先离线复现，再仅runtime与既有parity测试两文件复用CLI分类器/marker/session回调，按实际host止损并保留原fail-closed/预算/pending/健康。当前轮未改代码；[完整下一轮任务](next-task.md)列明待明确选择的两文件授权与验收。
+- 本轮核对51处标准库AST/源码行号引用、版本哈希、历史JSON及517份既有数据/fixture/artifact字节；1145/10/3为a352b7a已有结果，未重跑应用/测试/SDK，无新增模拟。既有云端状态字段一律视为历史证据，本轮未核实当前状态，不将ACK/bucket/mock当成当前采集或客户交付。
+- 没有网络/实际环境值/日志/凭据、云端或运行数据访问，没有部署/推送/触发/计划权限变更。apply_allowed/migration_usable=false。SDK、跨进程硬取消/原子提交及崩溃持久回执强保证维持CLOSED NO-GO。
+- 当前界面无法生成该按钮；提供完整可复制提示词。推荐GPT-6.1 Sol xhigh（超高），实际设置未核实。
+
+## 上轮publish调用者预算与ACK保真（已完成离线实现）
 
 - 起点9e61edb，代码a352b7a，恰好修改授权七文件。deep publish同原点270/210/60，PUT cap30/余量−1/零本地重试；tjzyefy传原parent270/180/30/60，发布工作210，不重置。[报告](publish-budget-implementation-2026-11-07.md)、[证据](validation/publish-budget-implementation-2026-11-07/manifest.json)。
 - ACK严格消费durable_committed及原版本/数量；合法迟到ACK保持CONFIRMED。NOT_ATTEMPTED/UNKNOWN/CONFIRMED与Node/Python副本状态分开，任一副本未确认保守RETRY_REQUIRED；receipt不进入snapshot。stage/bucket/heartbeat/tick/lease失败保留已知发布和真实未知，不回滚/假称零写或可靠完成，原顺序/协议保留。

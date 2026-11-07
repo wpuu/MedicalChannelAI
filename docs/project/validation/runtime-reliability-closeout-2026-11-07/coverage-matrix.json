@@ -1,0 +1,95 @@
+[
+  {
+    "id": "CLI_F3",
+    "status": "IMPLEMENTED_LOCALLY_VERIFIED_CLOSED",
+    "commit": "7b2993308c41316c0b3620a80e8dd038a189f3fd",
+    "boundary": "incomplete batch nonzero; unchanged input records; legal complete empty; report alias protection"
+  },
+  {
+    "id": "CLI_F1",
+    "status": "IMPLEMENTED_LOCALLY_VERIFIED_SCOPED",
+    "commit": "01ccaa9c1c9c1f7850d8ad2c9b870b43a966867c",
+    "test_commit": "b97bc09b6ee854b533315019aedd2024bcf8cd89",
+    "boundary": "one invocation exact host denial stop; no cross-process cooldown or Retry-After"
+  },
+  {
+    "id": "CLI_F2",
+    "status": "IMPLEMENTED_LOCALLY_VERIFIED_COOPERATIVE_ONLY",
+    "commit": "58e7e6b4b1c14d27b7fa9eaeb48ad15d5f2293dd",
+    "total_work_reserve": [
+      900,
+      840,
+      60
+    ]
+  },
+  {
+    "id": "REGIONAL_CI",
+    "status": "WIRED_AND_HISTORIC_LOCAL_COMBINATION_VERIFIED",
+    "commit": "6d4eb1bd48d69329c0a0b3ac4587adcbc1d1e641",
+    "historical_modules_tests": [
+      8,
+      94
+    ],
+    "remote_runner_verified": false
+  },
+  {
+    "id": "REGIONAL_QUEUE_F2",
+    "status": "IMPLEMENTED_LOCALLY_VERIFIED_COOPERATIVE_ONLY",
+    "commit": "bba3716d1b71e3fa6731d9bfd4b2d6d9d81a60c1",
+    "total_work_reserve": [
+      270,
+      210,
+      60
+    ],
+    "F1_detail_guard_gap": "R1"
+  },
+  {
+    "id": "TJZYEFY_INCREMENTAL_F2",
+    "status": "IMPLEMENTED_LOCALLY_VERIFIED_COOPERATIVE_ONLY",
+    "commit": "b584bcf3b09e00a1d742e0c684b5a9f9c72cc03a",
+    "total_work_url_tail_finalize": [
+      270,
+      180,
+      30,
+      60
+    ],
+    "bucket_complete_equals_complete_source": false
+  },
+  {
+    "id": "PUBLISH_CALLER_F2_ACK",
+    "status": "IMPLEMENTED_LOCALLY_VERIFIED_COOPERATIVE_ONLY",
+    "commit": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
+    "deep_total_work_reserve": [
+      270,
+      210,
+      60
+    ],
+    "incremental_parent_resets": false,
+    "strict_ack": true,
+    "authority_node_python_tail_separate": true,
+    "real_durability_verified": false
+  },
+  {
+    "id": "OTHER_STAGE_SOURCE_F2",
+    "status": "NOT_COVERED",
+    "gap": "R2",
+    "deep_stage_count": 14,
+    "incremental_source_count": 7
+  },
+  {
+    "id": "SHARED_COOLDOWN_RETRY_AFTER",
+    "status": "CONTRACT_DESIGN_NOT_IMPLEMENTED",
+    "gap": "R1",
+    "next_patch_includes": false
+  },
+  {
+    "id": "REAL_PREVIEW_DELIVERY",
+    "status": "RUNTIME_FACTS_UNVERIFIED_RELEASE_NO_GO",
+    "gap": "R3"
+  },
+  {
+    "id": "SDK_HARD_CANCEL_ATOMIC_CRASH_RECEIPT",
+    "status": "CLOSED_NO_GO",
+    "reopen": false
+  }
+]

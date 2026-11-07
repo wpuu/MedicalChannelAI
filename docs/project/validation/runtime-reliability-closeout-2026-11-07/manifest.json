@@ -1,0 +1,79 @@
+{
+  "reviewed_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+  "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
+  "scope": "DOCS_NEW_STATIC_ARTIFACTS_ONLY",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "files": [
+    {
+      "path": "docs/project/validation/runtime-reliability-closeout-2026-11-07/completion.json",
+      "bytes": 309,
+      "sha256": "139397f61b0064e4d145a3752d83e8d5a891594c4aa7ada44bd21e7531318651"
+    },
+    {
+      "path": "docs/project/validation/runtime-reliability-closeout-2026-11-07/coverage-matrix.json",
+      "bytes": 2500,
+      "sha256": "82e8bfdc756c192b74c5093beca8e74334e45194932c4baaabcc09b6a404cd3f"
+    },
+    {
+      "path": "docs/project/validation/runtime-reliability-closeout-2026-11-07/input-integrity.json",
+      "bytes": 110002,
+      "sha256": "5fff28acb6365a66f7584efd5efbce6497e31813dd1c281d13121987f4d9c200"
+    },
+    {
+      "path": "docs/project/validation/runtime-reliability-closeout-2026-11-07/next-decision.json",
+      "bytes": 803,
+      "sha256": "a3cc6559ba289420370091663ceb3abe5f4343801c4123b844ce5d6f648e6e34"
+    },
+    {
+      "path": "docs/project/validation/runtime-reliability-closeout-2026-11-07/remaining-gaps.json",
+      "bytes": 2692,
+      "sha256": "87919aa6a125f4b1c3277734c7338fe6ef3e50ba5048baed2120201e91cdc2f0"
+    },
+    {
+      "path": "docs/project/validation/runtime-reliability-closeout-2026-11-07/source-references.json",
+      "bytes": 19234,
+      "sha256": "ae5af655156ccca684fb7ec5b1126bacab5c5c4d739550769b591097788a6103"
+    },
+    {
+      "path": "docs/project/validation/runtime-reliability-closeout-2026-11-07/static-source-observations.json",
+      "bytes": 2709,
+      "sha256": "2019fb9345c7e6c6487964b2f99a24a799c50f29e40ff9e0bfb50434952e838c"
+    },
+    {
+      "path": "docs/project/validation/runtime-reliability-closeout-2026-11-07/validation-summary.json",
+      "bytes": 787,
+      "sha256": "b1a8c46c2d118162fc1cdefab2af1d5a0de0cf1e94d7f9231de3b638eda0063f"
+    },
+    {
+      "path": "docs/project/validation/runtime-reliability-closeout-2026-11-07/verify.py",
+      "bytes": 6354,
+      "sha256": "d457b8259a7a7e6162cbe7aef91f363cc831c64aaaacd457d6ca1949fcbfbc9f"
+    },
+    {
+      "path": "docs/project/validation/runtime-reliability-closeout-2026-11-07/version-bindings.json",
+      "bytes": 1291,
+      "sha256": "caaf1ad00f034251b5216738ffb05ad0452d90be3513ced24c75bfd6eaf3d694"
+    },
+    {
+      "path": "docs/project/runtime-reliability-closeout-2026-11-07.md",
+      "bytes": 15821,
+      "sha256": "3d3d13a935f2da402d22af500711c3cf95dfdb9a0e3659a4b8719fdc239490f8"
+    },
+    {
+      "path": "docs/project/current-state.md",
+      "bytes": 69279,
+      "sha256": "8d3fd568db77c1f0eefcfe103b5c298aabd0a96f2e7c4acc54c2079051f5cc2a"
+    },
+    {
+      "path": "docs/project/checkpoint.json",
+      "bytes": 180728,
+      "sha256": "94302054bc2f2d928fec2d46b97e09c1621c6d16022fa62998b5227ced16ca74"
+    },
+    {
+      "path": "docs/project/next-task.md",
+      "bytes": 3949,
+      "sha256": "3e2732576da151680bef25259a4f017b876864beaa6fe93abfb1e3855a9d03d1"
+    }
+  ]
+}

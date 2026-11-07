@@ -1,0 +1,56 @@
+[
+  {
+    "id": "R1",
+    "priority": "P1",
+    "type": "STATIC_REACHABLE_PATH_NOT_NEW_BEHAVIOR_REPRODUCTION",
+    "name": "regional runtime detail same-invocation explicit denial guard",
+    "impact": "additional same-host requests after explicit rejection, while existing canonical fail-closed remains effective",
+    "minimum_next_files": [
+      "web/collector_runtime.py",
+      "web/pipeline/tests/test_runtime_source_parity_behavior.py"
+    ],
+    "reuse": [
+      "access_block_reason",
+      "RATE_LIMIT_MARKERS",
+      "existing_session_on_access_blocked"
+    ],
+    "acceptance": [
+      "first reproduce actual runtime stage offline",
+      "same denied host subsequent requests zero",
+      "primary and fallback, warmup, marker and HTTP401/403/429 cause chains",
+      "different actual host and ordinary timeout/503 independent",
+      "existing canonical/pending/health/budgets/owner/attempt behavior unchanged",
+      "necessary offline regression and10/3 after code change"
+    ],
+    "authorization": "next explicit two-file offline code task only; no current-round implementation"
+  },
+  {
+    "id": "R2",
+    "priority": "P2",
+    "type": "COVERAGE_DESIGN_GAP_NOT_MEASURED_OVERRUN",
+    "name": "uncovered hospital/event/deep and other incremental stage budgets",
+    "impact": "no end-to-end cooperative deadline for uncovered paths; real duration unknown",
+    "minimum_next_work": "after R1, choose one source/stage and write bounded safety contract before code; do not copy regional numbers",
+    "acceptance": [
+      "complete call and persistence chain",
+      "late return/parse rejection",
+      "unresolved pending, sibling staging, paired events/facts and healthy independent sources retained"
+    ],
+    "authorization": "separate single-source document task, then separate code authorization; no code file list yet justified"
+  },
+  {
+    "id": "R3",
+    "priority": "P1_RELEASE_BLOCKER",
+    "type": "RUNTIME_FACTS_UNVERIFIED_PERMISSION_BOUNDARY",
+    "name": "current real Preview version/source/publication evidence absent",
+    "impact": "no release or delivery claim justified",
+    "minimum_next_work": "after offline fixes, concrete bounded existing-d-Preview permission and acceptance package; no SDK reopen",
+    "acceptance": [
+      "bind deploy and producer/consumer SHA/epoch",
+      "separate canonical completeness/pending/health",
+      "authority version/count/content readback, copies and tail receipts separately",
+      "report real unknowns without inferring recovery or customer value"
+    ],
+    "authorization": "additional cloud read/build-deploy/business-trigger/readback authorization as applicable; none granted this round"
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "reviewed_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+  "unchanged_code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
+  "method": "STATIC_STDLIB_ONLY",
+  "source_references_checked": 51,
+  "protected_input_file_count": 517,
+  "coverage_rows": 11,
+  "remaining_gaps": 3,
+  "unique_next_priority": "R1",
+  "prior_python_frozen_original_cli": [
+    1145,
+    10,
+    3
+  ],
+  "tests_rerun": false,
+  "new_behavior_tests": 0,
+  "application_or_sdk_executed": false,
+  "application_tests_workflow_changed": false,
+  "network_calls": 0,
+  "cloud_runtime_database_queue_model_access": false,
+  "runtime_logs_or_actual_environment_values_read": false,
+  "deployment_push_or_workflow_trigger": false,
+  "new_simulators": 0,
+  "apply_allowed": false,
+  "migration_usable": false
+}

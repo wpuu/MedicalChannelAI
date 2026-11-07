@@ -1,0 +1,410 @@
+[
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 384,
+    "text": "    if not report['acceptance_ready']:",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 738,
+    "text": "    acceptance_ready = not acceptance_blockers",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 402,
+    "text": "    if any(paths_alias(args.report_output, path) for path in (",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 420,
+    "text": "    blocked_hosts: dict[str, str] = {}",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 442,
+    "text": "    session = CcgpSearchSession(on_access_blocked=blocked_hosts.setdefault, budget=budget) if input_admitted else None",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 630,
+    "text": "            detail_host = urlsplit(candidate.detail_url).hostname",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 648,
+    "text": "                if any(marker in html for marker in RATE_LIMIT_MARKERS):",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 662,
+    "text": "                reason = access_block_reason('verified_detail', exc, candidate.detail_url)",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 68,
+    "text": "class CliBudget:",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 323,
+    "text": "def finish_cli_outputs(records_target: Path, report_path: Path, records: list, report: dict, budget: CliBudget) -> int:",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 390,
+    "text": "def main(*, monotonic=None, sleep=None, detail_transport=fetch_ccgp_detail_html) -> int:",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": ".github/workflows/regional-medical-refresh.yml",
+    "line": 29,
+    "text": "      - 'web/pipeline/tests/test_regional_cli_completeness.py'",
+    "sha256": "1032590c2f670cd950a44f6ea6aeb236cb6ead98da0e76891e7f7e3545bdb52e",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": ".github/workflows/regional-medical-refresh.yml",
+    "line": 59,
+    "text": "          set -euo pipefail",
+    "sha256": "1032590c2f670cd950a44f6ea6aeb236cb6ead98da0e76891e7f7e3545bdb52e",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": ".github/workflows/regional-medical-refresh.yml",
+    "line": 63,
+    "text": "            tests.test_regional_cli_completeness \\",
+    "sha256": "1032590c2f670cd950a44f6ea6aeb236cb6ead98da0e76891e7f7e3545bdb52e",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 429,
+    "text": "async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, sleep=None) -> None:",
+    "sha256": "d6c4cb088cd071befe7991fab1db9383b9a99e6db0760628f09e7bf4ed0fe36c",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 494,
+    "text": "    if stage == \"publish\" or stage in runtime.REGIONAL_STAGE_MARKET_CODES or stage in runtime.REGIONAL_FALLBACK_STAGE_MARKET_CODES:",
+    "sha256": "d6c4cb088cd071befe7991fab1db9383b9a99e6db0760628f09e7bf4ed0fe36c",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1542,
+    "text": "            html = (fetch_ccgp_detail_html(candidate.detail_url, timeout_seconds=budget.request_timeout(30, \"REGIONAL_DETAIL\"))",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 441,
+    "text": "    if _is_incremental_payload(payload):",
+    "sha256": "d6c4cb088cd071befe7991fab1db9383b9a99e6db0760628f09e7bf4ed0fe36c",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 529,
+    "text": "    if str(source_id or \"\").strip().lower() != \"tjzyefy\":",
+    "sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 716,
+    "text": "                save_deadline = min(budget.clock() + 30, budget.started + 210)",
+    "sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 515,
+    "text": "def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime, *, budget=None) -> tuple[bool, dict[str, Any] | None]:",
+    "sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1614,
+    "text": "def _publish_work_deadline(budget) -> float:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1642,
+    "text": "def _persist_verified_snapshot_durably(snapshot: dict[str, Any], *, budget=None, receipt=None) -> dict[str, Any]:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1705,
+    "text": "        if result.get(\"ok\") is not True:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1718,
+    "text": "                       node_cache_status=result.get(\"cache_status\") if result.get(\"cache_status\") in (\"UPDATED\", \"RETRY_REQUIRED\") else \"UNKNOWN\")",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1729,
+    "text": "def _run_publish(cache: RuntimeCache, state: dict[str, Any], *, budget=None) -> dict[str, Any]:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1902,
+    "text": "def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1922,
+    "text": "        if stage == \"ccgp\":",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 446,
+    "text": "        else:",
+    "sha256": "d6c4cb088cd071befe7991fab1db9383b9a99e6db0760628f09e7bf4ed0fe36c",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+    "line": 1448,
+    "text": "    except HTTPError as exc:",
+    "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 720,
+    "text": "                durable_staging = runtime.merge_canonical_records(durable_staging, [record])",
+    "sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 728,
+    "text": "            _save_pending_barrier(cache, source, scan_barrier)",
+    "sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 318,
+    "text": "def _assert_pending_canonical_commit(cache: RuntimeCache, key: str, records: Any, *,",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/api/public-snapshot.js",
+    "line": 127,
+    "text": "      if (remoteReaderConfigured()) throw new Error('PUBLIC_SNAPSHOT_REMOTE_READER_CONFIGURED')",
+    "sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/api/public-snapshot.js",
+    "line": 138,
+    "text": "        cacheStatus = 'RETRY_REQUIRED'",
+    "sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/api/public-snapshot.js",
+    "line": 144,
+    "text": "      return sendJson(response, 200, {",
+    "sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/api/_snapshotRevision.js",
+    "line": 3,
+    "text": "export function snapshotRevisionMicros(value) {",
+    "sha256": "a99ce39d41d3d178aa398117d47b79f2d53c28d70488ccd9eeeb32bf5f3b276a",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1448,
+    "text": "                except Exception as exc:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1477,
+    "text": "                    except Exception as exc:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1536,
+    "text": "    for notice_type, candidate in selected:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1558,
+    "text": "        except Exception as exc:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 309,
+    "text": "def access_block_reason(phase: str, exc: Exception, reference: str) -> str | None:",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1378,
+    "text": "    session = RegionalCcgpSearchSession(budget=budget) if budget else RegionalCcgpSearchSession()",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1565,
+    "text": "    if failures:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 679,
+    "text": "    def test_regional_throttle_stops_further_queries_and_keeps_canonical(self):",
+    "sha256": "7a1efc0221185567478947865e02eec40484176fb74b11f3f18ff5ff1f6179ce",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 637,
+    "text": "    def test_regional_partial_discovery_or_detail_failure_never_changes_canonical(self):",
+    "sha256": "7a1efc0221185567478947865e02eec40484176fb74b11f3f18ff5ff1f6179ce",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 183,
+    "text": "STAGE_ORDER = (",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1903,
+    "text": "    if stage != \"publish\" and stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 25,
+    "text": "SUPPORTED_INCREMENTAL_SOURCES = (",
+    "sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 780,
+    "text": "def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> dict[str, Any]:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 85,
+    "text": "def scan_events(",
+    "sha256": "c345b72a4aa1453d11018bd3eed9a1e06be375baf6125e3407603dbb09932dc4",
+    "reviewed_repository_head": "05cbcabcff0f75a2225d6319430b46cbed806848",
+    "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4"
+  }
+]

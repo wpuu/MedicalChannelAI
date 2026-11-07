@@ -1,0 +1,9 @@
+{
+  "started_at_utc": "2026-11-07T05:47:21Z",
+  "foreground_deadline_utc": "2026-11-07T06:07:21Z",
+  "completed_at_utc": "2026-11-07T05:59:15.532619+00:00",
+  "within_foreground_deadline": true,
+  "scope": "OFFLINE_STATIC_CLOSEOUT_DOCS_ARTIFACTS_ONLY",
+  "apply_allowed": false,
+  "migration_usable": false
+}
