@@ -1,0 +1,25 @@
+{
+  "plan": "CONDITIONAL_GO_FOR_OFFLINE_COOPERATIVE_IMPLEMENTATION_ONLY",
+  "implementation": "NOT_IMPLEMENTED",
+  "real_runtime_complete_scan_or_durability": "NO_GO",
+  "strong_guarantees_and_sdk": "CLOSED_NO_GO",
+  "automatic_continuation": "BLOCKED_PENDING_EXPLICIT_SIX_FILE_AUTHORIZATION",
+  "authorization_basis": "Latest user explicitly limited R1 changes to runtime and parity tests; saved next task authorizes documentation-only; goal continuation grants no new approval",
+  "next_task": "docs/project/next-task.md",
+  "additional_code_files_need_authorization": [
+    "web/collector_queue.py",
+    "web/collector_runtime.py",
+    "web/pipeline/scripts/sync_ccgp_query.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py",
+    "web/pipeline/tests/test_ccgp_events.py"
+  ],
+  "new_simulation_layers": 0,
+  "historical_tests_rerun": false,
+  "recommended_model": "GPT-6.1 Sol",
+  "recommended_reasoning_effort": "xhigh",
+  "actual_settings": "UNVERIFIED",
+  "button_interface_available": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

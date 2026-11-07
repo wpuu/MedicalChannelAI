@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前R1区域runtime详情明确拒绝止损（已完成离线修复）
+## 当前CCGP事件阶段预算与配对提交合同（仅离线方案）
+
+- 起点e9ca0d9，应用代码4916d69未变。[唯一六文件方案](ccgp-event-stage-budget-contract-2026-11-07.md)、[静态证据](validation/ccgp-event-stage-budget-contract-2026-11-07/manifest.json)。拟仅Queue event1–event6复用CliBudget总270/工作180/单批数据保存30/尾部60；非逐URL预算，不照搬区域210或CLI900，不是已实现/已测保证。
+- 已追踪ccgp暂存事实/生成watch、5项目每片/两种事件查询、失败fallback、event1–5 staging、event6原pending/前序门禁及单键配对提交、七阶段成功时钟、publish读配对版本和Queue原重试/终局。零详情的名义串行340秒已超过300秒配置，默认全范围按时保证NO-GO；只允许完整片保存或有界失败，不裁剪后称成功。
+- 必须防止query顶层反向导入区域预算类形成循环；拟有budget时函数内延迟取得异常类型。预算catch不得吞超期或制造discovery-only证据；保存/状态/尾部未知须分开，不把缓存调用返回当真实持久化。默认watch30覆盖六片；loader允许100的范围需要event请求前容量拒绝，未声称线上漏扫。
+- 本轮核对30处源码引用、545份保护输入及455份源码/配置字节，未导入执行应用/SDK/测试，未重跑4916d69已有1157/10/3，无新模拟、外网/云端/实际环境值/日志访问、部署/推送/计划权限或运行数据变更。apply_allowed/migration_usable=false，SDK及强保证分支CLOSED NO-GO。
+- 离线方案有条件GO，当前实现/真实放行NO-GO。[下一轮](next-task.md)须明确授权3个应用文件+3个既有测试文件后才能实现；自动继续不扩展用户先前R1两文件范围，当前停在此权限边界。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh，实际设置未核实。
+
+## 上轮R1区域runtime详情明确拒绝止损（已完成离线修复）
 
 - 起点7dac58b，代码4916d69，恰好修改collector_runtime.py与既有test_runtime_source_parity_behavior.py。[实现报告](runtime-regional-access-stop-2026-11-07.md)、[证据](validation/runtime-regional-access-stop-2026-11-07/manifest.json)。先复现主/备用401/403/429六子例：首次拒绝后仍请求第二个同host详情；修复后后续0。
 - 复用CLI现有分类器/marker/session回调，拒绝集合仅一次stage调用；warmup www拒绝反馈给详情准入，搜索/裸域独立，普通超时/503/解析错误不误封。未执行详情仍不完整，FAILED/503与旧canonical/pending/成功时钟保护保持，原270/210/60及Queue/健康/lease协议未改。

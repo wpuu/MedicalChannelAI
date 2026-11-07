@@ -1,0 +1,22 @@
+{
+  "starting_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+  "unchanged_code_head": "4916d69de3568e8bd22fc8d659da34833596c852",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "sha256": {
+    "docs/project/ccgp-event-stage-budget-contract-2026-11-07.md": "61d081c0e6751e02cb3c7d03eb96e151d3ab182a7ddcbdbd9d49f80f83628f04",
+    "docs/project/checkpoint.json": "978453b14b8378b4a0f646606085ad9b3decd33fe503fad4aae1b340cc9127a7",
+    "docs/project/current-state.md": "e6a536c0ea1b709f2552f4f777094aef95111e7f4ed2cfa39b75c2d43d58e67a",
+    "docs/project/next-task.md": "be24526a72f07013c8361e238083e9fa70fe34f5573a2a0f43812be6bec6df1a",
+    "docs/project/validation/ccgp-event-stage-budget-contract-2026-11-07/capacity-model.json": "f80a4257a77054b9375db4d1b9211b07bd2d3c44dcb6f1b7ea4c4f65fbab7e60",
+    "docs/project/validation/ccgp-event-stage-budget-contract-2026-11-07/completion.json": "a6d4d5c53e10bd4b026cebc79094c153425078e03d74c22dd1cd86102e7aff9f",
+    "docs/project/validation/ccgp-event-stage-budget-contract-2026-11-07/decision.json": "165b4b0d5f136eeab4935df31fd8bfadd382f66c9761d81c1768b970cc814b03",
+    "docs/project/validation/ccgp-event-stage-budget-contract-2026-11-07/input-integrity.json": "70ab228df3f669c714ed500ad1f66abcb1e6bce4a0350939e225752ab8258b1a",
+    "docs/project/validation/ccgp-event-stage-budget-contract-2026-11-07/proposed-contract.json": "da7b64eb1332a0f069d58174d627f09d000d9112cd8afa3ba3664f0b5833cc17",
+    "docs/project/validation/ccgp-event-stage-budget-contract-2026-11-07/source-references.json": "1d5ab2fcc11bcbcd6d9725e843f3e3debc8abcdb5fee06ced50418c06ee6f2b7",
+    "docs/project/validation/ccgp-event-stage-budget-contract-2026-11-07/static-observations.json": "af7c0d0fadcc2d79d53520cbe725c8435a10089ba10ab10157cf19f3b0ee13bb",
+    "docs/project/validation/ccgp-event-stage-budget-contract-2026-11-07/unchanged-boundaries.json": "8abfc02b230aa245201927e84f3b1e0f9782aff0658945f38c795ba82878a2c4",
+    "docs/project/validation/ccgp-event-stage-budget-contract-2026-11-07/validation-summary.json": "8ce92ef78af41d98f82f329a3a8ad70c2cdc46bf79940eeef39cc82515fb13e6",
+    "docs/project/validation/ccgp-event-stage-budget-contract-2026-11-07/verify.py": "3b33eaff816c4f6a541ba7dd0547e3131409c8ed1564786a536496592d5a838e"
+  }
+}

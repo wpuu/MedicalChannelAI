@@ -1,0 +1,34 @@
+{
+  "status": "PROPOSED_NOT_IMPLEMENTED",
+  "only_scope": "QUEUE_REGISTERED_EVENT1_THROUGH_EVENT6",
+  "total_seconds": 270,
+  "work_seconds": 180,
+  "batch_data_save_seconds": 30,
+  "tail_reserve_seconds": 60,
+  "batch_save_deadline": "min(save_started+30,t0+210)",
+  "clock_origin": "QUEUE_PROCESS_ENTRY_INCLUDES_PREFLIGHT_AND_STAGE_ADMISSION",
+  "accepts_payload_deadline": false,
+  "request_timeout": "min(30,t0+180-now-1);reject_if_remaining<=1",
+  "local_http_retries": 0,
+  "new_project_checkpoint": false,
+  "pair_protocol_changed": false,
+  "pending_protocol_changed": false,
+  "queue_lease_health_version_protocol_changed": false,
+  "write_targets": [
+    "STAGING",
+    "COMMITTED_PAIR"
+  ],
+  "receipt_scope": "WORKFLOW_ONLY_NOT_PUBLIC_SNAPSHOT",
+  "return_status": "CALL_RETURNED_UNVERIFIED_NOT_REAL_DURABILITY_ACK",
+  "new_code_files_requested": [
+    "web/collector_queue.py",
+    "web/collector_runtime.py",
+    "web/pipeline/scripts/sync_ccgp_query.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py",
+    "web/pipeline/tests/test_ccgp_events.py"
+  ],
+  "new_code_authorized_this_round": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

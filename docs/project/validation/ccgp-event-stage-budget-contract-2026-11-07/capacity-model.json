@@ -1,0 +1,35 @@
+{
+  "method": "STATIC_SOURCE_AND_ARITHMETIC_ONLY_NO_APPLICATION_EXECUTION",
+  "event_stages": [
+    "event1",
+    "event2",
+    "event3",
+    "event4",
+    "event5",
+    "event6"
+  ],
+  "batch_size": 5,
+  "registered_watch_capacity": 30,
+  "default_plan_watch_cap": 30,
+  "default_delay_seconds": 4.0,
+  "event_query_kinds": [
+    [
+      "更正公告",
+      "CORRECTION"
+    ],
+    [
+      "终止公告",
+      "TERMINATION"
+    ]
+  ],
+  "search_timeout_cap": 30,
+  "detail_timeout_cap": 30,
+  "queries_per_full_batch": 10,
+  "fixed_sleep_per_full_batch_without_details": 40.0,
+  "nominal_parameter_sum_no_details": 340.0,
+  "nominal_extra_per_detail": 34.0,
+  "query_plan_loader_accepts_max_watch": 100,
+  "actual_latency_measured": false,
+  "max_duration_and_lease_are_repository_declarations_only": true,
+  "full_default_completion_guaranteed": false
+}

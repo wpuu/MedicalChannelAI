@@ -1,0 +1,242 @@
+[
+  {
+    "path": "web/collector_queue.py",
+    "line": 429,
+    "text": "async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, sleep=None) -> None:",
+    "sha256": "d6c4cb088cd071befe7991fab1db9383b9a99e6db0760628f09e7bf4ed0fe36c",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 462,
+    "text": "    if stage.startswith(\"event\") or stage in runtime.REGIONAL_FALLBACK_STAGE_MARKET_CODES:",
+    "sha256": "d6c4cb088cd071befe7991fab1db9383b9a99e6db0760628f09e7bf4ed0fe36c",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 494,
+    "text": "    if stage == \"publish\" or stage in runtime.REGIONAL_STAGE_MARKET_CODES or stage in runtime.REGIONAL_FALLBACK_STAGE_MARKET_CODES:",
+    "sha256": "d6c4cb088cd071befe7991fab1db9383b9a99e6db0760628f09e7bf4ed0fe36c",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1918,
+    "text": "def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 512,
+    "text": "def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict[str, Any], dict[str, Any] | None]:",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 660,
+    "text": "def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 761,
+    "text": "    _cache_set(cache, CCGP_CYCLE_STAGING_KEY, {",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 783,
+    "text": "def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> dict[str, Any]:",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 85,
+    "text": "def scan_events(",
+    "sha256": "c345b72a4aa1453d11018bd3eed9a1e06be375baf6125e3407603dbb09932dc4",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/medical_channel_pipeline/ccgp_discovery.py",
+    "line": 244,
+    "text": "def fetch_search_page(search_url: str, *, timeout_seconds: int = 30) -> str:",
+    "sha256": "7008393b39fb1384d5f49571aa070965b80a569fa607aad6308516bd77673101",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+    "line": 1433,
+    "text": "def fetch_ccgp_detail_html(source_url: str, *, timeout_seconds: int = 30) -> str:",
+    "sha256": "4ae27f7ad26410badd93c1db5b9e5e09c7bbf17a1470011b695450467f5db187",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 108,
+    "text": "        except Exception as exc:  # explicit report; no bypass/retry storm",
+    "sha256": "c345b72a4aa1453d11018bd3eed9a1e06be375baf6125e3407603dbb09932dc4",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 145,
+    "text": "                if candidate.published_at:",
+    "sha256": "c345b72a4aa1453d11018bd3eed9a1e06be375baf6125e3407603dbb09932dc4",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 832,
+    "text": "    if failures:",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 844,
+    "text": "        _cache_set(cache, CCGP_CYCLE_STAGING_KEY, staged, tag=\"medicalchannelai-collector-ccgp-staging\")",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 837,
+    "text": "    if stage == \"event6\":",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2011,
+    "text": "        elif stage.startswith(\"event\"):",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1755,
+    "text": "        committed = read(CCGP_COMMITTED_STATE_KEY)",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 499,
+    "text": "    try:",
+    "sha256": "d6c4cb088cd071befe7991fab1db9383b9a99e6db0760628f09e7bf4ed0fe36c",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 536,
+    "text": "    if ((status == 503 and result.get(\"retry_exhausted\") is True)",
+    "sha256": "d6c4cb088cd071befe7991fab1db9383b9a99e6db0760628f09e7bf4ed0fe36c",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1029,
+    "text": "    def test_event6_commits_one_bundle_only_after_prior_batches_completed(self):",
+    "sha256": "e6dc509578443d087776da890f3968a9214843054348dec40127e92b1d10bb06",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1185,
+    "text": "    def test_successful_nonempty_event_watch_still_commits_only_after_final_batch(self):",
+    "sha256": "e6dc509578443d087776da890f3968a9214843054348dec40127e92b1d10bb06",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1016,
+    "text": "    def test_ccgp_success_clock_requires_all_seven_stages(self):",
+    "sha256": "e6dc509578443d087776da890f3968a9214843054348dec40127e92b1d10bb06",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/tests/test_collector_orchestration_behavior.py",
+    "line": 545,
+    "text": "    def test_failed_ccgp_dependency_skips_event_network_and_reaches_healthy_source(self) -> None:",
+    "sha256": "4f9beae3afc5038528f15847dd7d40e8cbcc1cce8ad7c7b22b069f05515cf135",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/data/tianjin_query_plan.json",
+    "line": 18,
+    "text": "  \"delay_seconds\": 4.0,",
+    "sha256": "eccb1cffce32caf7b02ae75f3dfb1f720421aeb7412026f68628594b5768071f",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/vercel.json",
+    "line": 19,
+    "text": "      \"maxDuration\": 300,",
+    "sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/api/collector-queue.py",
+    "line": 38,
+    "text": "            asyncio.run(accept_and_handle(body, headers, lease_duration=300))",
+    "sha256": "403996c167adf8367c10aeec32e5ff803db6aab0b9f33f5471b6f570d2852101",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_regional_ccgp.py",
+    "line": 42,
+    "text": "from sync_ccgp_query import (  # noqa: E402",
+    "sha256": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/pipeline/medical_channel_pipeline/state.py",
+    "line": 79,
+    "text": "def merge_notice_events(",
+    "sha256": "fd00238665fe58264288745924de094f31ad19fa6b287034f585bb2069053c70",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 321,
+    "text": "def _assert_pending_canonical_commit(cache: RuntimeCache, key: str, records: Any, *,",
+    "sha256": "e12036fbb02166324240c45b3094e555bcde70ee3d86facc062a6f901924c8ca",
+    "reviewed_repository_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+    "code_head": "4916d69de3568e8bd22fc8d659da34833596c852"
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "started_at_utc": "2026-11-07T07:32:17Z",
+  "foreground_deadline_utc": "2026-11-07T07:52:17+00:00",
+  "completed_at_utc": "2026-11-07T07:43:00.916414+00:00",
+  "user_timezone": "Asia/Shanghai",
+  "started_at_local": "2026-11-07T15:32:17+08:00",
+  "foreground_deadline_local": "2026-11-07T15:52:17+08:00",
+  "within_foreground_deadline": true,
+  "scope": "OFFLINE_DOCUMENTATION_AND_STATIC_ARTIFACTS_ONLY",
+  "tests_or_application_executed": false,
+  "apply_allowed": false,
+  "migration_usable": false,
+  "goal_continuation_stop_reason": "NEEDS_EXPLICIT_AUTHORIZATION_TO_EXPAND_FROM_PRIOR_TWO_FILE_SCOPE_TO_SIX_EXISTING_FILES"
+}

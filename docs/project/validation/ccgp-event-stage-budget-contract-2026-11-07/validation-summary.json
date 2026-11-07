@@ -1,0 +1,32 @@
+{
+  "starting_head": "e9ca0d976692a8014bf40eded2ccb91ffbfb7daf",
+  "unchanged_code_head": "4916d69de3568e8bd22fc8d659da34833596c852",
+  "scope": "OFFLINE_EVENT_BUDGET_CONTRACT_DOCS_ONLY",
+  "source_references": 30,
+  "protected_files": 545,
+  "unchanged_web_workflow_files": 455,
+  "static_capacity_parameter_sum": 340,
+  "registered_capacity": 30,
+  "proposed_budget_total_work_save_tail": [
+    270,
+    180,
+    30,
+    60
+  ],
+  "proposed_existing_file_count": 6,
+  "historical_python_frozen_cli": [
+    1157,
+    10,
+    3
+  ],
+  "historical_validation_sha256": "93e8a1959db111aa4dc6c190fef2307f5550437535ee8e089da49f3fd8f5f83e",
+  "historical_source_hashes_match": true,
+  "historical_tests_rerun": false,
+  "application_or_sdk_executed": false,
+  "new_simulation_engine": false,
+  "network_calls": 0,
+  "cloud_or_runtime_access": false,
+  "deployment_or_push": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

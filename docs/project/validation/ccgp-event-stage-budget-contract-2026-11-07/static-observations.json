@@ -1,0 +1,30 @@
+{
+  "scan_events_current_parameters": [
+    "project_number",
+    "region",
+    "start_date",
+    "end_date",
+    "delay_seconds",
+    "observed_at",
+    "failures"
+  ],
+  "scan_events_http_retry_loops": false,
+  "scan_event_function_line": 85,
+  "event_runtime_line": 783,
+  "event_current_save_calls": [
+    {
+      "line": 842,
+      "call": "_cache_set(cache, CCGP_COMMITTED_STATE_KEY, staged, tag='medicalchannelai-collector-ccgp-committed')"
+    },
+    {
+      "line": 844,
+      "call": "_cache_set(cache, CCGP_CYCLE_STAGING_KEY, staged, tag='medicalchannelai-collector-ccgp-staging')"
+    }
+  ],
+  "regional_top_level_imports_query": true,
+  "query_top_level_imports_regional": false,
+  "proposed_exception_import_is_lazy_only": true,
+  "runtime_budget_whitelist_currently_excludes_events": true,
+  "new_batch_save_receipt_implemented": false,
+  "tests_or_application_executed": false
+}
