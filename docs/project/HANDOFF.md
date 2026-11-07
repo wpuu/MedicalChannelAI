@@ -11,7 +11,16 @@
 
 先核对实际HEAD、分支、未提交修改和在途任务。不要覆盖他人改动或创建重复环境；若本地工作树不存在，先用已有GitHub能力读取指定分支，不擅自创建环境。参考工作树为/workspace/MedicalChannelAI-p0。
 
-## 本轮最新：A01获授权离线实施（尚未部署／在线验收）
+## A02 最新：Today 与商机详情复用 A01 整机三态（仅离线源码）
+
+- 用户于**2026-11-07T17:04:13Z**另行批准 A02，仅增量修改 `web/src/components/today/ActionCard.tsx`、`web/src/pages/OpportunityDetailPage.tsx`，以及补充原`web/scripts/check-hematology-whole-device-scope.mjs`的`--a02-only`离线检查；未改 A01 分类函数、商机池或任何后端和业务行为。
+- 从当前GitHub分支HEAD `3a688f297d6ad2b2cb561b1888006c6f73beea4b` 接手；当前执行环境没有原`/workspace/MedicalChannelAI-p0`工作树、其它在途与未提交修改未知。未创建新项目环境、不安装依赖、不覆盖他人成果。
+- **三个页面共享**`classifyHematologyWholeDeviceScope(card)`和相同的“整机相关·资格待核／非本期整机／证据不足待核”文案、理由、结构化明细索引与资格免责声明。**历史跟进详情**明确只解释历史快照、不声称当前机会可执行。原排名、地区筛选、AI、跟进与私人资料入口保持原样。
+- 已对**GitHub实际新blob源码**执行35/35条A02 **V8静态契约断言**；三文件修改均为纯追加（原全部行顺序保留）。新的Node`--a02-only`目标测试入口已写入原脚本，但**没有在完整原工作树运行**；`npm run typecheck`与React页面运行验收亦未运行（无原工作树/已就绪依赖）。**不能把静态合约当成Node脚本、TypeScript或浏览器通过**。
+- **仅3个获准应用文件+4份交接文档**非强推快进保存本分支，提交`[skip ci]`；根据仓库源码，该分支Vercel自动部署关闭，已检查GitHub workflows无该分支普通push触发，提供商后台未复核。真实d Preview继续NO-GO，SDK及强保证CLOSED NO-GO，B1–B6全部NOT_VERIFIED，`production_ready=false`/`apply_allowed=false`/`migration_usable=false`，三家试用客户未招募。
+- **唯一下一任务：A03只读资格三态证据合同**，基于已批准的血球仪整机范围和现有客户资料结构，制定“满足／不满足／未知”的最小证据门禁与用户展示要求，先形成可审查授权卡；没有新的代码/线上执行许可则不实施。
+
+## A01 历史：仅商机池三态已离线实现（未部署）
 
 - 用户2026-11-07T16:45:42Z单独授权**仅四个A01应用文件**；在GitHub分支HEAD `e621bfb4e84d724a70757cd063e739511a7829c7` 基线上实施商机池血细胞分析仪整机三态范围标识，隔离了试剂、质控、耗材和维保。不重开已关闭的SDK/强保证项目。
 - 新纯函数与定向离线测试 **34/34 PASS**，Node.js语法检查通过；完整TypeScript类型检查因当前没有原工作树及现成依赖**未执行**。具体文件、测试边界和证据见[current-state](current-state.md)最上方A01段落以及[checkpoint](checkpoint.json)的`a01_offline_implementation_2026_11_08`。

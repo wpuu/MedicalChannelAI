@@ -3,6 +3,7 @@ import type { TodayActionCard } from '@/types'
 import type { OpportunityFeedback } from '@/services/opportunityFeedbackStore'
 import { formatBudget, pickDisplayDate } from '@/utils/format'
 import { FOLLOWUP_STATUS_LABEL } from '@/utils/labels'
+import { classifyHematologyWholeDeviceScope } from '@/utils/hematologyWholeDeviceScope'
 import { OfficialText } from '@/components/shared/EmptyValue'
 import { PreMarketSignalNotice } from '@/components/shared/PreMarketSignalNotice'
 import { PriorityBadge, PriorityScore } from '@/components/shared/PriorityBadge'
@@ -107,6 +108,18 @@ export function ActionCard({
   const contactPhoneHref = telHref(contactPhone)
   const contactEmailHref = mailtoHref(contactEmail)
   const hasPublicContact = contactIdentity.length > 0 || Boolean(contactPhone) || Boolean(contactEmail)
+  // A02: presentation-only; reuse the exact A01 classifier and status labels.
+  const deviceScope = classifyHematologyWholeDeviceScope(card)
+  const deviceScopeLabel = deviceScope.status === 'IN_SCOPE'
+    ? '整机相关 · 资格待核'
+    : deviceScope.status === 'OUT_OF_SCOPE'
+      ? '非本期整机'
+      : '证据不足待核'
+  const deviceScopeTone = deviceScope.status === 'IN_SCOPE'
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+    : deviceScope.status === 'OUT_OF_SCOPE'
+      ? 'border-slate-200 bg-slate-100 text-slate-700'
+      : 'border-amber-200 bg-amber-50 text-amber-800'
 
   const publicFactLabel = isApiMode
     ? '官方/已验证事实'
@@ -171,6 +184,23 @@ export function ActionCard({
                 qualityFlags={card.facts.quality_flags}
                 compact
               />
+            </div>
+            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5" aria-label="血细胞分析仪整机范围提示">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-medium text-slate-600">首期血细胞分析仪整机范围</span>
+                <span className={'rounded-md border px-2 py-0.5 text-[11px] font-medium ' + deviceScopeTone}>
+                  {deviceScopeLabel}
+                </span>
+              </div>
+              <p className="mt-1 text-[12px] leading-5 text-slate-600">{deviceScope.reason}</p>
+              {deviceScope.evidence ? (
+                <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                  快照结构化产品明细第{deviceScope.evidence.itemIndex + 1}项：{deviceScope.evidence.productName}
+                </p>
+              ) : null}
+              <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                仅判断首期产品范围；不代表型号参数、采购资格或投标条件已核实。
+              </p>
             </div>
             {isRelativeTestRecruitment ? (
               <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-900">

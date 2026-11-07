@@ -40,6 +40,7 @@ import {
   type RuntimeStatus,
 } from '@/services/runtimeStatusApi'
 import type { FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
+import { classifyHematologyWholeDeviceScope } from '@/utils/hematologyWholeDeviceScope'
 
 const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'
 
@@ -237,6 +238,18 @@ export function OpportunityDetailPage() {
   }
 
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
+  // A02: presentation-only; reuse the exact A01 classifier and status labels.
+  const deviceScope = classifyHematologyWholeDeviceScope(card)
+  const deviceScopeLabel = deviceScope.status === 'IN_SCOPE'
+    ? '整机相关 · 资格待核'
+    : deviceScope.status === 'OUT_OF_SCOPE'
+      ? '非本期整机'
+      : '证据不足待核'
+  const deviceScopeTone = deviceScope.status === 'IN_SCOPE'
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+    : deviceScope.status === 'OUT_OF_SCOPE'
+      ? 'border-slate-200 bg-slate-100 text-slate-700'
+      : 'border-amber-200 bg-amber-50 text-amber-800'
   const automationUnavailableReason = historical
     ? null
     : runtimeAutomationUnavailableReason(runtimeStatus, runtimeStatusChecked)
@@ -331,6 +344,28 @@ export function OpportunityDetailPage() {
             ? '以下公开字段和官方链接来自进入跟进流程时保存的快照，不代表当前项目状态。'
             : '先决定怎么做，再按需查看官方事实、证据和评分解释。'}
         </p>
+        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5" aria-label="血细胞分析仪整机范围提示">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-medium text-slate-600">首期血细胞分析仪整机范围</span>
+                <span className={'rounded-md border px-2 py-0.5 text-[11px] font-medium ' + deviceScopeTone}>
+                  {deviceScopeLabel}
+                </span>
+              </div>
+              <p className="mt-1 text-[12px] leading-5 text-slate-600">{deviceScope.reason}</p>
+              {deviceScope.evidence ? (
+                <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                  快照结构化产品明细第{deviceScope.evidence.itemIndex + 1}项：{deviceScope.evidence.productName}
+                </p>
+              ) : null}
+              <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                仅判断首期产品范围；不代表型号参数、采购资格或投标条件已核实。
+              </p>
+              {historical ? (
+                <p className="mt-1 text-[11px] leading-5 text-amber-800">
+                  历史跟进只按当时保存的快照标注产品范围，不反映当前官方公告或行动窗口。
+                </p>
+              ) : null}
+            </div>
       </section>
 
       {!historical ? (

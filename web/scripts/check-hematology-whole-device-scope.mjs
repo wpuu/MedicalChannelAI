@@ -1,4 +1,47 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+
+if (process.argv.includes('--a02-only')) {
+  const views = [
+    { name: '商机池', url: new URL('../src/pages/OpportunityPoolPage.tsx', import.meta.url) },
+    { name: 'Today卡片', url: new URL('../src/components/today/ActionCard.tsx', import.meta.url) },
+    { name: '商机详情', url: new URL('../src/pages/OpportunityDetailPage.tsx', import.meta.url) },
+  ]
+  const clauses = [
+    ['共享纯函数导入', "import { classifyHematologyWholeDeviceScope } from '@/utils/hematologyWholeDeviceScope'"],
+    ['基于卡片计算范围', 'const deviceScope = classifyHematologyWholeDeviceScope(card)'],
+    ['整机相关一致文案', "'整机相关 · 资格待核'"],
+    ['非本期一致文案', "'非本期整机'"],
+    ['依据不足一致文案', "'证据不足待核'"],
+    ['展示保守理由', '{deviceScope.reason}'],
+    ['结构化产品编号', 'deviceScope.evidence.itemIndex + 1'],
+    ['结构化产品原名', 'deviceScope.evidence.productName'],
+    ['风险免责声明', '仅判断首期产品范围；不代表型号参数、采购资格或投标条件已核实。'],
+    ['三态提示标识', '血细胞分析仪整机范围提示'],
+  ]
+  let verified = 0
+  for (const view of views) {
+    const source = readFileSync(view.url, 'utf8')
+    for (const [label, token] of clauses) {
+      assert.ok(source.includes(token), view.name + ': ' + label)
+      verified += 1
+    }
+  }
+  const today = readFileSync(views[1].url, 'utf8')
+  const detail = readFileSync(views[2].url, 'utf8')
+  assert.ok(today.includes('<ActionButtons'), 'Today原操作按钮保留')
+  verified += 1
+  assert.ok(today.includes('<DecisionBlock'), 'Today原AI决策保留')
+  verified += 1
+  assert.ok(detail.includes('<FollowupCard'), '详情原跟进流程保留')
+  verified += 1
+  assert.ok(detail.includes('<OpportunityExecutionCard'), '详情原经营资源入口保留')
+  verified += 1
+  assert.ok(detail.includes('历史跟进只按当时保存的快照标注产品范围，不反映当前官方公告或行动窗口。'), '历史快照非实时免责声明')
+  verified += 1
+  console.log('PASS A02 cross-page static contract: ' + verified + '/' + verified)
+  process.exit(0)
+}
 import { classifyHematologyWholeDeviceScope as classify } from '../src/utils/hematologyWholeDeviceScope.js'
 
 const URL = 'https://example.test/official/notice'

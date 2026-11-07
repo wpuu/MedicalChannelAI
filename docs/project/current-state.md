@@ -2,7 +2,16 @@
 
 Updated: 2026-11-08（Asia/Shanghai）
 
-## 2026-11-08 A01离线实施（本轮最新）
+## 2026-11-08 A02跨页面三态一致性（最新；仅离线代码）
+
+- **用户许可**：2026-11-07T17:04:13Z明确批准A02的`ActionCard.tsx`、`OpportunityDetailPage.tsx`和必要时补充既有离线Node测试；远端分支起点`3a688f297d6ad2b2cb561b1888006c6f73beea4b`。本轮仅使用GitHub已连接文件能力及V8静态断言；原`/workspace/MedicalChannelAI-p0`在本容器不存在，无法对其它环境`git status`或在途任务作保证。无克隆/新工作树或依赖安装。
+- **代码增量**：Today卡片与商机详情均复用A01原`hematologyWholeDeviceScope.js`（原blob`8c43315`未变），相同三态文案、说明及`facts.products[index].name`来源展示。历史跟进详情补充“基于当时快照，不反映当前公告或行动窗口”。对原UI仅追加导入、纯函数计算和展示区块；无筛选、评分、AI、跟进、资格/公告事实变动。现有原源码行在GitHub对象中均按顺序保留。
+- **真实检查范围**：GitHub新待提交blob中三页跨页面的**35/35 静态合同**经V8代码执行核验通过；与新增`node web/scripts/check-hematology-whole-device-scope.mjs --a02-only`的35项断言一致。此处**不是**直接在原工作树运行的Node测试：原工作树不可用，Node脚本完整执行和TypeScript全量类型检查均**NOT_RUN**；当前仅可确认Node v22.16.0的ESM导入次序语法小样检查通过，不能替代完整脚本与TSX编译。
+- **归档安全**：此提交仅3应用文件（2页+已存在测试）和4必要交接文档；`[skip ci]`，无强推、main合并、PR或主动触发Workflow。已核源码`web/vercel.json`该分支`deploymentEnabled=false`，GitHub workflow普通push只限定main；提供商后台是否自动部署本轮未查询，绝不报告云端版本已更新。没有实际来源/数据库/模型/Queue/生产运行读取与触发。
+- **未验收**：B1–B6全部`NOT_VERIFIED`，原真实d Preview继续`NO-GO_PAUSED`，SDK及强保证`CLOSED_NO_GO`，`production_ready=false`、`apply_allowed=false`、`migration_usable=false`，3客户试用未招募。A02只是三个用户页面的**显示一致性**，并非产品匹配准确率、资格判定和用户交付验收。
+- **唯一下一任务**：A03 **只读资格三态证据合同/授权卡**（不写应用），把公开招标条件、客户自报资料与不可推断的真实资格分层，避免下一轮直接盲目工程化；若已有工作树及依赖可用，再单独申请运行A01/A02 TypeScript门禁，不能通过新建环境或安装依赖绕开当前限制。
+
+## 2026-11-08 A01离线实施（历史：仅商机池三态）
 
 - **授权来源**：用户2026-11-07T16:45:42Z单独批准A01四文件离线施工；从远端GitHub HEAD `e621bfb4e84d724a70757cd063e739511a7829c7` 接手。当前执行容器内不存在原`/workspace/MedicalChannelAI-p0`工作树，其他环境在途改动**未知**；未创建新的Git工作树，不覆盖他人成果。
 - **仅四个已批准应用文件**：新增`web/src/utils/hematologyWholeDeviceScope.js`、`.d.ts`及`web/scripts/check-hematology-whole-device-scope.mjs`，仅在`web/src/pages/OpportunityPoolPage.tsx`局部加入A01三态和可见依据；**没有**修改采集、后台、快照、数据库、评分排序、Today、详情、AI、跟进写入、域名、配置或工作流。
