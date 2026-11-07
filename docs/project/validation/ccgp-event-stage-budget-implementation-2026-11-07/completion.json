@@ -1,0 +1,14 @@
+{
+  "started_at_utc": "2026-11-07T07:50:56Z",
+  "foreground_deadline_utc": "2026-11-07T08:10:56+00:00",
+  "completed_at_utc": "2026-11-07T08:08:42.315514+00:00",
+  "user_timezone": "Asia/Shanghai",
+  "started_at_local": "2026-11-07T15:50:56+08:00",
+  "foreground_deadline_local": "2026-11-07T16:10:56+08:00",
+  "within_foreground_deadline": true,
+  "scope": "OFFLINE_SIX_FILE_EVENT_BUDGET_IMPLEMENTATION_AND_LOCAL_TESTS_ONLY",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "cloud_or_runtime_access": false,
+  "deployment_or_push": false
+}

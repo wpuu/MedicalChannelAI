@@ -1,0 +1,30 @@
+[
+  {
+    "path": "web/collector_runtime.py",
+    "line": 783,
+    "text": "def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str, *, budget: CliBudget | None = None) -> dict[str, Any]:",
+    "sha256": "5d6bd6a07d8ff517b242086f3f9d2f4ef70dc5ac074855501351744f698e8c2b",
+    "code_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1975,
+    "text": "def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:",
+    "sha256": "5d6bd6a07d8ff517b242086f3f9d2f4ef70dc5ac074855501351744f698e8c2b",
+    "code_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 429,
+    "text": "async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, sleep=None) -> None:",
+    "sha256": "7d6e3c4e79d57685f1a19aaf5dcde756c3252452e4bef2889f249d27e670f38c",
+    "code_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 85,
+    "text": "def scan_events(",
+    "sha256": "f53e16b034d01d9675d936fd8c58866d55db59cb83bff7fa75a7af3dd3ab2921",
+    "code_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21"
+  }
+]

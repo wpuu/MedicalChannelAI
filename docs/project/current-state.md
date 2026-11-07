@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前CCGP事件阶段预算与配对提交合同（仅离线方案）
+## 当前Queue CCGP事件阶段预算及配对写入回执（已完成离线实现）
+
+- 起点1e2b496，代码5d2fe85，仅授权六文件变更。[实现报告](ccgp-event-stage-budget-implementation-2026-11-07.md)、[证据](validation/ccgp-event-stage-budget-implementation-2026-11-07/manifest.json)。Queue event1–6沿入口原点采用总270/工作180/单批保存30/尾部60；原语snapshot reserve90为30+60，不是改写尾部合同。CLI及其他来源默认行为保持。
+- scan_events可选预算、异常类型延迟导入；请求/异常/None/解析/sleep/merge超期不得成为新证据。完整片才保存，保留兄弟staging；31watch及event6原records缺失/损坏提前拒绝，原前序/pending/单键配对与七阶段健康门禁保持。NOT_ATTEMPTED/UNKNOWN/CALL_RETURNED_UNVERIFIED及写后迟到、状态/Queue尾部未知分别记录，receipt不进入配对数据/公开snapshot。
+- 新增24项行为测试，最终1181项Python/139定向/10模板/3原CLI通过；35源阶段/13helper/4Queue回放。556份起点输入与449份其他web/workflow文件未变，AST保护其他函数及原Queue尾部语句顺序。无真实SDK/项目模型/外网/云端/实际环境值/日志或运行数据访问、部署/推送/触发/计划权限变更，apply_allowed/migration_usable=false。
+- 仅协作式调用者子项。满配置按时、硬取消/严格时限/在途零写、原子提交及崩溃持久回执不保证，SDK/强保证分支CLOSED NO-GO；真实部署/来源恢复/持久化/公开交付未核实。仍有8个deep阶段与7个其他增量源未新增预算，共享host冷却/Retry-After未实现。
+- [唯一下一轮](next-task.md)仅文档制定ccgp发现/事实阶段预算与staging/watch保存合同，不复制现有数值，不改代码或重跑未变1181/10/3。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh，实际设置未核实。
+
+## 上轮CCGP事件阶段预算与配对提交合同（历史方案，现已离线实现）
 
 - 起点e9ca0d9，应用代码4916d69未变。[唯一六文件方案](ccgp-event-stage-budget-contract-2026-11-07.md)、[静态证据](validation/ccgp-event-stage-budget-contract-2026-11-07/manifest.json)。拟仅Queue event1–event6复用CliBudget总270/工作180/单批数据保存30/尾部60；非逐URL预算，不照搬区域210或CLI900，不是已实现/已测保证。
 - 已追踪ccgp暂存事实/生成watch、5项目每片/两种事件查询、失败fallback、event1–5 staging、event6原pending/前序门禁及单键配对提交、七阶段成功时钟、publish读配对版本和Queue原重试/终局。零详情的名义串行340秒已超过300秒配置，默认全范围按时保证NO-GO；只允许完整片保存或有界失败，不裁剪后称成功。

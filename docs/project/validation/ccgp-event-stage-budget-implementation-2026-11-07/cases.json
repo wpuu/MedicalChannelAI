@@ -1,0 +1,3492 @@
+{
+  "source_cases": [
+    {
+      "mode": "success",
+      "config": {
+        "stage": "event1"
+      },
+      "status": 200,
+      "error": null,
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "STAGE_RETURN",
+        "budget_finalization_overrun": false,
+        "action": "COMPLETED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "result": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": false,
+            "total_overrun": false
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          },
+          "batch_index": 1,
+          "project_count": 5,
+          "projects": [
+            "project-0",
+            "project-1",
+            "project-2",
+            "project-3",
+            "project-4"
+          ],
+          "new_notice_event_count": 5,
+          "merged_event_count": 6,
+          "failure_count": 0
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": false,
+        "total_overrun": false
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-cycle-staging:v2"
+      ],
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "COMPLETED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "write_before",
+      "config": {
+        "stage": "event1"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_DATA_WRITE_RESULT_UNKNOWN",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": true,
+          "write_call_returned": null,
+          "mutation_possible": true,
+          "outcome": "UNKNOWN"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": true,
+            "write_call_returned": null,
+            "mutation_possible": true,
+            "outcome": "UNKNOWN"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": true,
+        "write_call_returned": null,
+        "mutation_possible": true,
+        "outcome": "UNKNOWN"
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-cycle-staging:v2"
+      ],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "write_after",
+      "config": {
+        "stage": "event1"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_DATA_WRITE_RESULT_UNKNOWN",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": true,
+          "write_call_returned": null,
+          "mutation_possible": true,
+          "outcome": "UNKNOWN"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": true,
+            "write_call_returned": null,
+            "mutation_possible": true,
+            "outcome": "UNKNOWN"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": true,
+        "write_call_returned": null,
+        "mutation_possible": true,
+        "outcome": "UNKNOWN"
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-cycle-staging:v2"
+      ],
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "write_late",
+      "config": {
+        "stage": "event1"
+      },
+      "status": 200,
+      "error": null,
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 270,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "STAGE_RETURN",
+        "budget_finalization_overrun": true,
+        "action": "COMPLETED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "result": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": true,
+            "total_overrun": true
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 270,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          },
+          "batch_index": 1,
+          "project_count": 5,
+          "projects": [
+            "project-0",
+            "project-1",
+            "project-2",
+            "project-3",
+            "project-4"
+          ],
+          "new_notice_event_count": 5,
+          "merged_event_count": 6,
+          "failure_count": 0
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": true,
+        "total_overrun": true
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-cycle-staging:v2"
+      ],
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "COMPLETED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "local_save_late",
+      "config": {
+        "stage": "event1"
+      },
+      "status": 200,
+      "error": null,
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 31.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "STAGE_RETURN",
+        "budget_finalization_overrun": false,
+        "action": "COMPLETED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "result": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": true,
+            "total_overrun": false
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 31.0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          },
+          "batch_index": 1,
+          "project_count": 5,
+          "projects": [
+            "project-0",
+            "project-1",
+            "project-2",
+            "project-3",
+            "project-4"
+          ],
+          "new_notice_event_count": 5,
+          "merged_event_count": 6,
+          "failure_count": 0
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": true,
+        "total_overrun": false
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-cycle-staging:v2"
+      ],
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "COMPLETED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "stage_error",
+      "config": {
+        "stage": "event1"
+      },
+      "status": null,
+      "error": "EVENT_FINALIZATION_RESULT_UNKNOWN",
+      "result": {
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": false,
+            "total_overrun": false
+          },
+          "workflow_state_mutation_possible": true,
+          "persistence_error_type": "OSError"
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": false,
+        "total_overrun": false
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-cycle-staging:v2"
+      ],
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "RUNNING",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "health_error",
+      "config": {
+        "stage": "event1"
+      },
+      "status": 200,
+      "error": null,
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "STAGE_RETURN",
+        "budget_finalization_overrun": false,
+        "action": "COMPLETED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "result": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": false,
+            "total_overrun": false
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          },
+          "batch_index": 1,
+          "project_count": 5,
+          "projects": [
+            "project-0",
+            "project-1",
+            "project-2",
+            "project-3",
+            "project-4"
+          ],
+          "new_notice_event_count": 5,
+          "merged_event_count": 6,
+          "failure_count": 0
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": false,
+        "total_overrun": false
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-cycle-staging:v2"
+      ],
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "COMPLETED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "scan_late",
+      "config": {
+        "stage": "event1"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WORK_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_PROJECT_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 180,
+            "exhausted_phase": "EVENT_PROJECT_RETURN",
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "merge_late",
+      "config": {
+        "stage": "event1"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WORK_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_MERGE_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 180,
+            "exhausted_phase": "EVENT_MERGE_RETURN",
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "partial",
+      "config": {
+        "stage": "event1"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WATCH_VERIFICATION_INCOMPLETE",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "failure_count": 5,
+          "reason_counts": {
+            "NETWORK_TIMEOUT": 5
+          },
+          "phase_counts": {
+            "event_detail": 5
+          },
+          "samples": [
+            {
+              "phase": "event_detail",
+              "reason": "NETWORK_TIMEOUT",
+              "candidate_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "phase": "event_detail",
+              "reason": "NETWORK_TIMEOUT",
+              "candidate_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "phase": "event_detail",
+              "reason": "NETWORK_TIMEOUT",
+              "candidate_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "phase": "event_detail",
+              "reason": "NETWORK_TIMEOUT",
+              "candidate_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "phase": "event_detail",
+              "reason": "NETWORK_TIMEOUT",
+              "candidate_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "success",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 200,
+      "error": null,
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "STAGE_RETURN",
+        "budget_finalization_overrun": false,
+        "action": "COMPLETED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "result": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": false,
+            "total_overrun": false
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          },
+          "batch_index": 6,
+          "project_count": 5,
+          "projects": [
+            "project-25",
+            "project-26",
+            "project-27",
+            "project-28",
+            "project-29"
+          ],
+          "new_notice_event_count": 5,
+          "merged_event_count": 6,
+          "failure_count": 0
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": false,
+        "total_overrun": false
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-committed:v2"
+      ],
+      "committed_unchanged": false,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": false,
+      "stage_status": "COMPLETED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "write_before",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_DATA_WRITE_RESULT_UNKNOWN",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": true,
+          "write_call_returned": null,
+          "mutation_possible": true,
+          "outcome": "UNKNOWN"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": true,
+            "write_call_returned": null,
+            "mutation_possible": true,
+            "outcome": "UNKNOWN"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": true,
+        "write_call_returned": null,
+        "mutation_possible": true,
+        "outcome": "UNKNOWN"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-committed:v2"
+      ],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "write_after",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_DATA_WRITE_RESULT_UNKNOWN",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": true,
+          "write_call_returned": null,
+          "mutation_possible": true,
+          "outcome": "UNKNOWN"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": true,
+            "write_call_returned": null,
+            "mutation_possible": true,
+            "outcome": "UNKNOWN"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": true,
+        "write_call_returned": null,
+        "mutation_possible": true,
+        "outcome": "UNKNOWN"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-committed:v2"
+      ],
+      "committed_unchanged": false,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "write_late",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 200,
+      "error": null,
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 270,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "STAGE_RETURN",
+        "budget_finalization_overrun": true,
+        "action": "COMPLETED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "result": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": true,
+            "total_overrun": true
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 270,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          },
+          "batch_index": 6,
+          "project_count": 5,
+          "projects": [
+            "project-25",
+            "project-26",
+            "project-27",
+            "project-28",
+            "project-29"
+          ],
+          "new_notice_event_count": 5,
+          "merged_event_count": 6,
+          "failure_count": 0
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": true,
+        "total_overrun": true
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-committed:v2"
+      ],
+      "committed_unchanged": false,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": false,
+      "stage_status": "COMPLETED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "local_save_late",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 200,
+      "error": null,
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 31.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "STAGE_RETURN",
+        "budget_finalization_overrun": false,
+        "action": "COMPLETED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "result": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": true,
+            "total_overrun": false
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 31.0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          },
+          "batch_index": 6,
+          "project_count": 5,
+          "projects": [
+            "project-25",
+            "project-26",
+            "project-27",
+            "project-28",
+            "project-29"
+          ],
+          "new_notice_event_count": 5,
+          "merged_event_count": 6,
+          "failure_count": 0
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": true,
+        "total_overrun": false
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-committed:v2"
+      ],
+      "committed_unchanged": false,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": false,
+      "stage_status": "COMPLETED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "stage_error",
+      "config": {
+        "stage": "event6"
+      },
+      "status": null,
+      "error": "EVENT_FINALIZATION_RESULT_UNKNOWN",
+      "result": {
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": false,
+            "total_overrun": false
+          },
+          "workflow_state_mutation_possible": true,
+          "persistence_error_type": "OSError"
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": false,
+        "total_overrun": false
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-committed:v2"
+      ],
+      "committed_unchanged": false,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "RUNNING",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "health_error",
+      "config": {
+        "stage": "event6"
+      },
+      "status": null,
+      "error": "EVENT_FINALIZATION_RESULT_UNKNOWN",
+      "result": {
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": false,
+            "total_overrun": false
+          },
+          "workflow_state_mutation_possible": true,
+          "persistence_error_type": "OSError"
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": false,
+        "total_overrun": false
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-committed:v2"
+      ],
+      "committed_unchanged": false,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "COMPLETED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "scan_late",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WORK_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_PROJECT_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 180,
+            "exhausted_phase": "EVENT_PROJECT_RETURN",
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "merge_late",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WORK_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_MERGE_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 180,
+            "exhausted_phase": "EVENT_MERGE_RETURN",
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "partial",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WATCH_VERIFICATION_INCOMPLETE",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "failure_count": 5,
+          "reason_counts": {
+            "NETWORK_TIMEOUT": 5
+          },
+          "phase_counts": {
+            "event_detail": 5
+          },
+          "samples": [
+            {
+              "phase": "event_detail",
+              "reason": "NETWORK_TIMEOUT",
+              "candidate_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "phase": "event_detail",
+              "reason": "NETWORK_TIMEOUT",
+              "candidate_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "phase": "event_detail",
+              "reason": "NETWORK_TIMEOUT",
+              "candidate_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "phase": "event_detail",
+              "reason": "NETWORK_TIMEOUT",
+              "candidate_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "phase": "event_detail",
+              "reason": "NETWORK_TIMEOUT",
+              "candidate_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "admission_late",
+      "config": {},
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WORK_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_PREPARE",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 180,
+            "exhausted_phase": "EVENT_PREPARE",
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "watch_late",
+      "config": {},
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WORK_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_WATCH_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 180,
+            "exhausted_phase": "EVENT_WATCH_RETURN",
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "staging_late",
+      "config": {},
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WORK_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_STAGING_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 180,
+            "exhausted_phase": "EVENT_STAGING_RETURN",
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "slow",
+      "config": {},
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WORK_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 200.0,
+          "exhausted_phase": "EVENT_PROJECT_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 200.0,
+            "exhausted_phase": "EVENT_PROJECT_RETURN",
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          19.0
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "none_late",
+      "config": {},
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WORK_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_PROJECT_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 180,
+            "exhausted_phase": "EVENT_PROJECT_RETURN",
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "save_expired",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_DATA_SAVE_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 210,
+          "exhausted_phase": "EVENT_DATA_SAVE",
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 210,
+            "exhausted_phase": "EVENT_DATA_SAVE",
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "pending_late",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_DATA_SAVE_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 31.0,
+          "exhausted_phase": "EVENT_DATA_SAVE",
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 31.0,
+            "exhausted_phase": "EVENT_DATA_SAVE",
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "raw_late",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_DATA_SAVE_BUDGET_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 31.0,
+          "exhausted_phase": "EVENT_DATA_SAVE",
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 31.0,
+            "exhausted_phase": "EVENT_DATA_SAVE",
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "pending",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "SOURCE_PENDING_VERIFICATION_BARRIER",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "raw_missing",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_COMMIT_CANONICAL_BASE_MISSING_OR_CORRUPT",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "raw_corrupt",
+      "config": {
+        "stage": "event6"
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_COMMIT_CANONICAL_BASE_MISSING_OR_CORRUPT",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [
+        [
+          "project-25",
+          0,
+          30
+        ],
+        [
+          "project-26",
+          0,
+          30
+        ],
+        [
+          "project-27",
+          0,
+          30
+        ],
+        [
+          "project-28",
+          0,
+          30
+        ],
+        [
+          "project-29",
+          0,
+          30
+        ]
+      ],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "success",
+      "config": {
+        "count": 31
+      },
+      "status": 503,
+      "error": null,
+      "result": {
+        "action": "FAILED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "error_code": "COLLECTOR_STAGE_BLOCKED",
+        "error": "EVENT_WATCH_COVERAGE_EXCEEDED",
+        "retryable": true,
+        "attempt_count": 1,
+        "retry_exhausted": false,
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        },
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "diagnostics": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": false,
+            "write_call_returned": false,
+            "mutation_possible": false,
+            "outcome": "NOT_ATTEMPTED"
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": false,
+            "hard_exit_guaranteed": false
+          }
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": false,
+        "write_call_returned": false,
+        "mutation_possible": false,
+        "outcome": "NOT_ATTEMPTED"
+      },
+      "scans": [],
+      "writes": [],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "FAILED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "success",
+      "config": {
+        "count": 0
+      },
+      "status": 200,
+      "error": null,
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "STAGE_RETURN",
+        "budget_finalization_overrun": false,
+        "action": "COMPLETED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "result": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": false,
+            "total_overrun": false
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          },
+          "batch_index": 1,
+          "project_count": 0,
+          "projects": [],
+          "new_notice_event_count": 0,
+          "merged_event_count": 1,
+          "failure_count": 0
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": false,
+        "total_overrun": false
+      },
+      "scans": [],
+      "writes": [
+        "medicalchannelai:collector-ccgp-cycle-staging:v2"
+      ],
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "COMPLETED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "success",
+      "config": {
+        "stage": "event6",
+        "count": 0
+      },
+      "status": 200,
+      "error": null,
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "STAGE_RETURN",
+        "budget_finalization_overrun": false,
+        "action": "COMPLETED",
+        "stage": "event6",
+        "local_date": "2026-10-01",
+        "result": {
+          "event_write_receipt": {
+            "target": "COMMITTED_PAIR",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": false,
+            "total_overrun": false
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          },
+          "batch_index": 6,
+          "project_count": 0,
+          "projects": [],
+          "new_notice_event_count": 0,
+          "merged_event_count": 1,
+          "failure_count": 0
+        }
+      },
+      "receipt": {
+        "target": "COMMITTED_PAIR",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": false,
+        "total_overrun": false
+      },
+      "scans": [],
+      "writes": [
+        "medicalchannelai:collector-ccgp-committed:v2"
+      ],
+      "committed_unchanged": false,
+      "staging_unchanged": true,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": false,
+      "stage_status": "COMPLETED",
+      "repeated": null,
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    },
+    {
+      "mode": "replay",
+      "config": {},
+      "status": 200,
+      "error": null,
+      "result": {
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        },
+        "budget_observation_phase": "STAGE_RETURN",
+        "budget_finalization_overrun": false,
+        "action": "COMPLETED",
+        "stage": "event1",
+        "local_date": "2026-10-01",
+        "result": {
+          "event_write_receipt": {
+            "target": "STAGING",
+            "write_attempted": true,
+            "write_call_returned": true,
+            "mutation_possible": true,
+            "outcome": "CALL_RETURNED_UNVERIFIED",
+            "save_window_overrun": false,
+            "total_overrun": false
+          },
+          "budget": {
+            "total_seconds": 270,
+            "work_seconds": 180,
+            "finalize_reserve_seconds": 90,
+            "elapsed_seconds": 0,
+            "exhausted_phase": null,
+            "work_complete": true,
+            "hard_exit_guaranteed": false
+          },
+          "batch_index": 1,
+          "project_count": 5,
+          "projects": [
+            "project-0",
+            "project-1",
+            "project-2",
+            "project-3",
+            "project-4"
+          ],
+          "new_notice_event_count": 5,
+          "merged_event_count": 6,
+          "failure_count": 0
+        }
+      },
+      "receipt": {
+        "target": "STAGING",
+        "write_attempted": true,
+        "write_call_returned": true,
+        "mutation_possible": true,
+        "outcome": "CALL_RETURNED_UNVERIFIED",
+        "save_window_overrun": false,
+        "total_overrun": false
+      },
+      "scans": [
+        [
+          "project-0",
+          0,
+          30
+        ],
+        [
+          "project-1",
+          0,
+          30
+        ],
+        [
+          "project-2",
+          0,
+          30
+        ],
+        [
+          "project-3",
+          0,
+          30
+        ],
+        [
+          "project-4",
+          0,
+          30
+        ]
+      ],
+      "writes": [
+        "medicalchannelai:collector-ccgp-cycle-staging:v2"
+      ],
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "sibling_preserved": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true,
+      "stage_status": "COMPLETED",
+      "repeated": "ALREADY_COMPLETED_TODAY",
+      "data_has_receipt": false,
+      "verified_sibling_staging_retained": true
+    }
+  ],
+  "helper_cases": [
+    {
+      "mode": "success",
+      "error_phase": null,
+      "events": 1,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": [
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "mode": "search_late",
+      "error_phase": "EVENT_SEARCH_RETURN",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": []
+    },
+    {
+      "mode": "search_none_late",
+      "error_phase": "EVENT_SEARCH_RETURN",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": []
+    },
+    {
+      "mode": "search_error_late",
+      "error_phase": "EVENT_SEARCH_ERROR_RETURN",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": []
+    },
+    {
+      "mode": "search_parse_late",
+      "error_phase": "EVENT_SEARCH_PARSE_RETURN",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": []
+    },
+    {
+      "mode": "detail_late",
+      "error_phase": "EVENT_DETAIL_RETURN",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": [
+        4
+      ]
+    },
+    {
+      "mode": "detail_none_late",
+      "error_phase": "EVENT_DETAIL_RETURN",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": [
+        4
+      ]
+    },
+    {
+      "mode": "detail_error_late",
+      "error_phase": "EVENT_DETAIL_ERROR_RETURN",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": [
+        4
+      ]
+    },
+    {
+      "mode": "parse_late",
+      "error_phase": "EVENT_PARSE_RETURN",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": [
+        4
+      ]
+    },
+    {
+      "mode": "parse_none_late",
+      "error_phase": "EVENT_PARSE_RETURN",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": [
+        4
+      ]
+    },
+    {
+      "mode": "sleep_admission",
+      "error_phase": "EVENT_DETAIL_SLEEP",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": []
+    },
+    {
+      "mode": "sleep_late",
+      "error_phase": "EVENT_DETAIL_SLEEP",
+      "events": null,
+      "calls": [
+        [
+          "search",
+          30
+        ]
+      ],
+      "failure_count": 0,
+      "sleeps": [
+        4
+      ]
+    },
+    {
+      "mode": "ordinary_parse_error",
+      "error_phase": null,
+      "events": 1,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "failure_count": 1,
+      "sleeps": [
+        4,
+        4,
+        4
+      ]
+    }
+  ],
+  "queue_cases": [
+    {
+      "mode": "heartbeat",
+      "events": [
+        "heartbeat",
+        "heartbeat"
+      ],
+      "error_type": "OSError",
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "STAGING",
+          "outcome": "CALL_RETURNED_UNVERIFIED",
+          "mutation_possible": true
+        },
+        "workflow_state_mutation_possible": true,
+        "queue_error_type": "OSError"
+      }
+    },
+    {
+      "mode": "enqueue",
+      "events": [
+        "heartbeat",
+        "heartbeat",
+        "enqueue"
+      ],
+      "error_type": "OSError",
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "STAGING",
+          "outcome": "CALL_RETURNED_UNVERIFIED",
+          "mutation_possible": true
+        },
+        "workflow_state_mutation_possible": true,
+        "queue_error_type": "OSError"
+      }
+    },
+    {
+      "mode": "late",
+      "events": [
+        "heartbeat",
+        "heartbeat",
+        "enqueue"
+      ],
+      "error_type": null,
+      "diagnostics": {}
+    },
+    {
+      "mode": "replaced",
+      "events": [
+        "heartbeat",
+        "heartbeat"
+      ],
+      "error_type": null,
+      "diagnostics": {}
+    }
+  ],
+  "apply_allowed": false,
+  "migration_usable": false,
+  "network_or_real_sdk": false
+}

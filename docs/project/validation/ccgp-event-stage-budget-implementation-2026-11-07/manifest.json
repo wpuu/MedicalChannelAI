@@ -1,0 +1,31 @@
+{
+  "starting_head": "1e2b49638cec32153bded6da774549e6bc860979",
+  "code_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "sha256": {
+    "docs/project/ccgp-event-stage-budget-implementation-2026-11-07.md": "35eeaf40e881328cf2596060eead25f2d869f600efe84066138b9d7232029034",
+    "docs/project/checkpoint.json": "8d5e4dd0679ec2fb327b9fc7d6433a18441ff34e6d49746fe2f4809af4bc0664",
+    "docs/project/current-state.md": "ed3d26c9fba0c5d3f7fcf1c2d666fd6ecfd6a62e3a4dbe2ad3b9fc659fbb73f1",
+    "docs/project/next-task.md": "a5e96c1fa0f5bb9d1dbb017cd61ae0bc14c8cbd7253dcfca6e7405842e92c2ff",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/cases.json": "afa97bc1c8862bab3e4ed1a9866c648ae2b9e691c7504963f058f6b0b47bdc34",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/completion.json": "3d74a229a572f8166fc12379dd2d8d0745e8ceb5d0ad7554d3d7569a385a6f47",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/directed.log": "84f2865d488595c168f1231f97146d31fd07a2adaee67ec2083e7593d8053c28",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/frozen-template-audit.json": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/input-integrity.json": "b876edef335a19224af51d34fa0bcaa3b48e8a753c9a69b41592ac1b5dc9236e",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/offline-tests.py": "014f3ec7d1c6a185ca83b08d2e9b3167f8683547fd533210b7e9645e09959b69",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/original-cli-gate.json": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/regression.log": "6993683125ce553862a6ea13dd9b0ad55829492a22ec366b884f3a6bed9188c7",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/replay-cases.py": "1013f3c7f8b71bb2f672028f01bd67c9012ad5ed8f7db68f1a6725139da433e3",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/source-references.json": "338d6090281ff93ea06833537ef1fa2fda1da6848501cfea60537566f14a6cb2",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/unchanged-boundaries.json": "7a0584b9032db9938a6382c674169b8cdf79495b1f6e37fc5ce2dc8cf4d35709",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/validation-summary.json": "76e3c2ad6d3300b709d69f02b9474933346b9d0e15c2491fc3fa992605fd4cee",
+    "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/verify.py": "b4b90d000bb5cb885c2770cb1ae810ea54def2ffdda1be938f8f40e8e4d96985",
+    "web/collector_queue.py": "7d6e3c4e79d57685f1a19aaf5dcde756c3252452e4bef2889f249d27e670f38c",
+    "web/collector_runtime.py": "5d6bd6a07d8ff517b242086f3f9d2f4ef70dc5ac074855501351744f698e8c2b",
+    "web/pipeline/scripts/sync_ccgp_query.py": "f53e16b034d01d9675d936fd8c58866d55db59cb83bff7fa75a7af3dd3ab2921",
+    "web/pipeline/tests/test_ccgp_events.py": "ac41920b3aa1e23c5e07ec9f2b52fe08be721fd079171d004def7d861728db1f",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py": "a8ad1a9cf8fbb4f58205a69a52d9cd14ce5f021941e6abb8064fd8be7178545b",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py": "048cf04930b5e7ebf03492c1e0be9456456f601a6194cf6763b083f22c6bc8e3"
+  }
+}

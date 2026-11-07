@@ -1,31 +1,19 @@
-# 下一轮：Queue CCGP事件阶段协作式预算（须明确六文件代码授权）
+# 下一轮：CCGP发现/事实阶段预算与staging/watch保存合同（仅离线文档）
 
-当前合同完成，应用仍4916d69，1157/10/3为已有结果。自动持续推进不扩展上一轮R1两文件权限；本轮只文档，六文件实现未获授权。唯一下一项为下述离线实现，不再追加模拟/审计轮。推荐GPT-6.1 Sol xhigh，实际设置未核实。
+事件代码5d2fe85及1181/10/3已完成本地验收。下一轮只静态审查未覆盖前置阶段，不重复事件、区域、CLI、增量或publish施工。推荐GPT-6.1 Sol xhigh，实际设置未核实。
 
 ```text
-继续 MedicalChannelAI。我明确授权仅在现有隔离分支，离线实现Queue CCGP event1–event6共用阶段的协作式时间预算及配对数据写入回执，不要求硬取消、严格时限、在途零写、原子提交或崩溃后持久回执保证。
+继续 MedicalChannelAI，仅离线制定ccgp发现/事实阶段时间预算与staging/watch保存合同及唯一最小实现方案，只改文档和新增静态验收artifact。
 
-先核对 /workspace/MedicalChannelAI-p0 最新HEAD、未提交改动和在途工作。读取用户最新指令及 docs/project/working-protocol.md、current-state.md、checkpoint.json、next-task.md、ccgp-event-stage-budget-contract-2026-11-07.md、runtime-regional-access-stop-2026-11-07.md、publish-budget-implementation-2026-11-07.md、action-radar-acceptance-contract.md，完整执行最新事件合同。代码4916d69及1157/10/3是已有结果，不重复CLI/区域/增量/publish修复；SDK与硬取消/原子提交/崩溃持久回执强保证CLOSED NO-GO。
+先核对 /workspace/MedicalChannelAI-p0 最新HEAD、未提交改动及在途工作。读取用户最新指令及 docs/project/working-protocol.md、current-state.md、checkpoint.json、next-task.md、ccgp-event-stage-budget-implementation-2026-11-07.md、ccgp-event-stage-budget-contract-2026-11-07.md、runtime-regional-access-stop-2026-11-07.md、action-radar-acceptance-contract.md。代码5d2fe85及1181/10/3为已有结果，不重复已修问题或重跑未变测试；SDK及强保证分支保持CLOSED NO-GO。
 
-只修改以下六个既有文件，另更新文档及新增artifact：
-web/collector_queue.py
-web/collector_runtime.py
-web/pipeline/scripts/sync_ccgp_query.py
-web/pipeline/tests/test_runtime_source_parity_behavior.py
-web/pipeline/tests/test_collector_orchestration_behavior.py
-web/pipeline/tests/test_ccgp_events.py
+只读审查 web/collector_runtime.py 的_run_ccgp及事件/配对消费边界、collector_queue.py、pipeline/scripts/sync_ccgp_query.py、sync_tianjin_plan.py、实际搜索/详情/pending/state helper、tianjin_query_plan.json和相关既有测试源码。追踪Queue预检、五关键词/两类型发现、去重/选择12详情、sleep/错误、完整性及watch容量、cycle staging与watch两次保存、状态/健康/事件推进；区分准备完成与配对canonical及公开提交。
 
-仅Queue注册的event1–event6复用CliBudget：总270秒、工作180秒、一次批次数据保存最多30秒、尾部60秒。原点含Queue预检/_prepare_stage，不接受payload deadline，不在runner重置。保存局部截止min(save_started+30,t0+210)；请求保留原30秒cap，timeout按工作余量减1取小；原间隔不足则拒绝，不压短，不新增HTTP重试。
+形成一套有依据的工作/双键准备/尾部预算、复用现有CliBudget接口、超期结果拒绝和恢复规则。保存顺序须保留既有源事务：只准备staging/watch，不提前提交records/events对；任何部分发现或详情失败不冒充完整，旧committed、未解决pending、兄弟staging、成功时钟和独立来源保留。区分写前拒绝、首键已写、第二键未知、写后迟到及stage/健康/Queue尾部未知，不称跨键原子事务、零写、自动回滚或可靠持久化。不照搬事件180/区域210/CLI900或平台maxDuration，不实现共享冷却或Retry-After。
 
-scan_events只增加可选budget，无budget时保留CLI原行为。预算异常类型仅有budget时在函数内延迟从现有区域脚本取得，避免其顶层导入query造成循环；不改CliBudget或HTTP helper。请求/read/decode/解析/None/异常返回、event追加和merge须检查工作截止，generic catch不能吞预算或产生迟到discovery-only fallback。
+验收：引用最新源码行号/哈希，区分已有保护、设计缺口、运行事实未核实及GO/NO-GO；给唯一最小修改文件与后续行为验收，不直接改代码。不得改变Queue/lease/健康/pending/版本/配对提交协议，不用future冒称取消。必须改变禁止协议才能安全完成时明确NO-GO结束，不追加模拟层或多轮补证。
 
-全部项目/查询/详情完整、failures为空且merge按时完成后才保存完整片，不新增每项目checkpoint。保留前序兄弟staging，候选不原地修改读回对象。watch超过6*EVENT_BATCH_SIZE时在请求前拒绝，不能裁剪范围后称完整。event1–5仅写staging；event6先确认原CCGP_RECORDS_KEY为list（合法空允许），缺失/损坏保守拒绝，不能借原helper的初次seed豁免绕过pending；保持所有前序COMPLETED、原pending检查及单键records/events配对提交，不拆写、清屏障或修改_cache_set。
+仅现有隔离分支文档及新增静态artifact。不改应用、测试、workflow、依赖锁、计划、变量、权限或保护，不导入执行应用/SDK/采集/模型/测试，不新增模拟器。不联网，不读凭据/实际环境值/运行日志，不访问云端、业务接口、真实缓存、数据库、函数或Queue。不新建环境/路由，不部署、不推送、不触发workflow，不写运行数据、原始历史数据或公开快照。apply_allowed、migration_usable始终false，前台20分钟。
 
-区分写前拒绝、写已发出未知、调用返回但未核实持久化、写后迟到和stage/健康/Queue尾部未知；记录目标STAGING/COMMITTED_PAIR及mutation_possible。完整数据写正常返回后迟到沿原完成/收尾并附overrun，不改称零写/回滚；异常按原失败/重试处理。receipt只在workflow结果/异常诊断，不改公开snapshot或健康/版本/Queue/lease/pending/配对协议。不因预算跳过原owner、推进、独立调度或释放。
-
-验收只用既有MemoryCache/transport桩、事件样本、假时钟和临时目录，阻断外网与真实SDK。覆盖预检原点、零请求、timeout/sleep、正常/异常/None和解析后超期、导入顺序及无budget兼容；五项目快成功/慢拒绝、31项目拒绝、合法空watch/无新事件、event1–5不动committed及event6单键配对；前序失败/旧pending/原records缺失损坏、写前/写后迟到和抛错、状态/健康/Queue尾部未知、首次/最终失败、重复投递、foreign/owner及其他来源不受影响。运行必要离线Python回归和10/3，记录实际新增数量，不将mock通过当来源恢复或真实持久化。
-
-不实现ccgp发现阶段预算、共享冷却/Retry-After、其他来源预算或新模拟引擎。不联网、不安装执行真实SDK，不读凭据/实际环境值/运行日志，不访问云端、业务接口、真实缓存、数据库、函数、Queue或模型。不新建环境/路由，不改其余应用文件、依赖锁、workflow、计划、变量、权限或保护，不部署、不推送、不触发workflow，不写运行数据、原始历史数据或公开快照。apply_allowed、migration_usable始终false，前台20分钟。必须扩大文件或修改禁止协议则给证据NO-GO，不偷改合同或追加模拟轮。
-
-结束时更新状态、证据及下一轮完整任务，报告实际完成、验证及未完成项。按钮不可用时明确说明并提供完整提示词；推荐GPT-6.1 Sol xhigh，实际设置未核实。
+结束时更新状态、证据及下一轮完整任务，报告实际完成、静态验证及未完成项。按钮不可用时明确说明并提供完整提示词；推荐GPT-6.1 Sol xhigh，实际设置未核实。
 ```
