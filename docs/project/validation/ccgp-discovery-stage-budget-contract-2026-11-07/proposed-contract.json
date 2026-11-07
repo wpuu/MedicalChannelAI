@@ -1,0 +1,38 @@
+{
+  "status": "PROPOSED_NOT_IMPLEMENTED",
+  "only_scope": "QUEUE_STAGE_CCGP",
+  "total_work_dual_prepare_tail": [
+    270,
+    150,
+    60,
+    60
+  ],
+  "primitive_finalize_reserve_seconds": 120,
+  "prepare_deadline": "min(prepare_started+60,t0+210)",
+  "clock_origin": "QUEUE_PROCESS_ENTRY_INCLUDES_PREFLIGHT_AND_STAGE_ADMISSION",
+  "accepts_payload_deadline": false,
+  "request_timeout": "min(30,t0+150-now-1);reject_remaining<=1",
+  "local_http_retries": 0,
+  "prepare_order": [
+    "STAGING_WRITE",
+    "STAGING_READBACK_MATCH",
+    "WATCH_WRITE",
+    "WATCH_READBACK_MATCH"
+  ],
+  "success": "PREPARED_LOCAL_READBACK_NOT_SOURCE_COMMIT_OR_REAL_DURABILITY",
+  "incomplete_or_late_preparation": "FAILED_503_RETAIN_PER_KEY_WRITE_TRUTH_NO_EVENT_ENQUEUE",
+  "bootstrap_existing_side_effects_preserved_and_disclosed": true,
+  "candidate_overflow_policy": "REJECT_IN_NEW_QUEUE_BUDGET_PATH_NO_SILENT_TRUNCATION",
+  "source_transaction_committed": false,
+  "no_new_schema_or_pending_or_queue_protocol": true,
+  "new_existing_files_requested": [
+    "web/collector_queue.py",
+    "web/collector_runtime.py",
+    "web/pipeline/scripts/sync_ccgp_query.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py"
+  ],
+  "ccgp_code_authorized_this_round": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

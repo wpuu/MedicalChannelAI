@@ -1,0 +1,22 @@
+{
+  "starting_head": "fc7e4895854ebee24aec616021b8ffa4afce8ba5",
+  "unchanged_code_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "sha256": {
+    "docs/project/ccgp-discovery-stage-budget-contract-2026-11-07.md": "d3f2a336c39aebd11134cdc883d891abacd68c52b357d2c698822fb73b062a0a",
+    "docs/project/checkpoint.json": "208f9ee71b284e7f699111f76cdbe50549728e8365539b3d7cf098952cf93f87",
+    "docs/project/current-state.md": "a68330a00e1d50fdbbd9936d847b0d7efb52da96eb6030e9a63b24e931202ad5",
+    "docs/project/next-task.md": "acc23007bb967cc03cea8404b0bda07c326944f91d73e8faf79e22be08d3e5f7",
+    "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/capacity-model.json": "61df334dcb061c0f54d087dc4ec483587c443a3d69717325795160851210a0c0",
+    "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/completion.json": "b45f2eb7fa6566f417cf1ef485076c18c6823155524376b3e022d9a830b1d9be",
+    "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/decision.json": "7e43afe3e946c49f98cbf9f0b26fbd7afad6efc1d3cb1f8912dbc77552c7025d",
+    "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/input-integrity.json": "152a8710962e16d780b858847e6f229334da9dd71436ba7d4b7bb8889810b55d",
+    "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/proposed-contract.json": "ebb86f8c693b71458b91d91542009a217a3cf649f2faa4209845f15f362f0614",
+    "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/source-references.json": "53dd8128ba5adfca3e25f24409dfe5b09fe2ac4de18661c78d9a198991aeeeb6",
+    "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/static-observations.json": "10268b5fa8f7dbe39a0d5d45d9dde5e5599af1a24ddf6e191e06b058631f3dfb",
+    "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/unchanged-boundaries.json": "40fafacde65198cd9e11ab267265d2e95365de1b1420984827286be514f940d1",
+    "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/validation-summary.json": "630f50acde3f27b22b4d3a75ffbe46849632af517bb7a4da87e59ec45cf101f0",
+    "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/verify.py": "72e0cc48ac2350645888d887342c8ff111b55c47177933c478816bf62a19e9d9"
+  }
+}

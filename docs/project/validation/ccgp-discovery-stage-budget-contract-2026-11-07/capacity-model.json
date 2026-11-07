@@ -1,0 +1,19 @@
+{
+  "method": "STATIC_SOURCE_ARITHMETIC_NO_APPLICATION_EXECUTION",
+  "keywords": 5,
+  "notice_types": 2,
+  "search_requests": 10,
+  "detail_cap": 12,
+  "delay_seconds": 4.0,
+  "search_timeout_cap": 30,
+  "detail_timeout_cap": 30,
+  "inner_type_sleeps": 5,
+  "outer_keyword_sleeps": 4,
+  "discovery_fixed_wait": 36.0,
+  "full_detail_fixed_wait": 48.0,
+  "full_fixed_wait": 84.0,
+  "nominal_no_details": 336.0,
+  "nominal_full_parameter_sum": 744.0,
+  "is_real_latency_measurement": false,
+  "full_default_on_time_guaranteed": false
+}

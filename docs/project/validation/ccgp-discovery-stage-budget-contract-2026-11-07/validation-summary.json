@@ -1,0 +1,34 @@
+{
+  "starting_head": "fc7e4895854ebee24aec616021b8ffa4afce8ba5",
+  "unchanged_code_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21",
+  "scope": "OFFLINE_CCGP_DISCOVERY_BUDGET_CONTRACT_DOCS_ONLY",
+  "source_references": 20,
+  "protected_files": 570,
+  "unchanged_web_workflow_files": 455,
+  "static_nominal_zero_full": [
+    336,
+    744
+  ],
+  "proposed_total_work_prepare_tail": [
+    270,
+    150,
+    60,
+    60
+  ],
+  "proposed_existing_file_count": 5,
+  "historical_python_frozen_cli": [
+    1181,
+    10,
+    3
+  ],
+  "historical_validation_sha256": "76e3c2ad6d3300b709d69f02b9474933346b9d0e15c2491fc3fa992605fd4cee",
+  "historical_source_hashes_match": true,
+  "tests_rerun": false,
+  "application_or_sdk_executed": false,
+  "new_simulation_engine": false,
+  "network_calls": 0,
+  "cloud_or_runtime_access": false,
+  "deployed_or_pushed": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

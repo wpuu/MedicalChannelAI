@@ -1,0 +1,23 @@
+{
+  "offline_plan": "CONDITIONAL_GO_AFTER_EXPLICIT_SOURCE_SCOPE_AUTHORIZATION",
+  "implementation": "NOT_IMPLEMENTED",
+  "real_runtime_full_completion_or_durability": "NO_GO",
+  "sdk_strong_guarantees": "CLOSED_NO_GO",
+  "goal_continuation": "BLOCKED_PENDING_EXPLICIT_CCGP_STAGE_AUTHORIZATION",
+  "reason": "Latest user authorized event1-6 only and explicitly prohibited other stage budgets; automatic continuation grants no new approval. Five file paths overlap prior scope but source scope is new.",
+  "unique_next_task": "OFFLINE_FIVE_FILE_CCGP_STAGE_IMPLEMENTATION_IF_AUTHORIZED",
+  "new_files_requested": [
+    "web/collector_queue.py",
+    "web/collector_runtime.py",
+    "web/pipeline/scripts/sync_ccgp_query.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py"
+  ],
+  "new_simulation_engine": false,
+  "recommended_model": "GPT-6.1 Sol",
+  "recommended_reasoning_effort": "xhigh",
+  "actual_settings": "UNVERIFIED",
+  "button_interface_available": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

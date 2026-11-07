@@ -1,0 +1,14 @@
+{
+  "started_at_utc": "2026-11-07T08:09:45Z",
+  "foreground_deadline_utc": "2026-11-07T08:29:45+00:00",
+  "completed_at_utc": "2026-11-07T08:21:52.445321+00:00",
+  "user_timezone": "Asia/Shanghai",
+  "started_at_local": "2026-11-07T16:09:45+08:00",
+  "foreground_deadline_local": "2026-11-07T16:29:45+08:00",
+  "within_foreground_deadline": true,
+  "scope": "OFFLINE_CCGP_DISCOVERY_BUDGET_CONTRACT_DOCS_AND_STATIC_ARTIFACTS_ONLY",
+  "application_sdk_or_tests_executed": false,
+  "automatic_goal_stop_reason": "NEEDS_EXPLICIT_CCGP_STAGE_AUTHORIZATION_PREVIOUS_SCOPE_EVENT_ONLY",
+  "apply_allowed": false,
+  "migration_usable": false
+}

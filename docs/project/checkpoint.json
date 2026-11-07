@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_QUEUE_CCGP_EVENT_STAGE_BUDGET_IMPLEMENTATION_ONLY",
+  "state_scope": "OFFLINE_CCGP_DISCOVERY_STAGE_BUDGET_AND_DUAL_PREPARE_CONTRACT_DOCS_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "CCGP_EVENT_COOPERATIVE_BUDGET_AND_LOCAL_WRITE_RECEIPT_OFFLINE_PASS",
-  "latest_changes_validation_status": "1181_PYTHON_AND10/3_PASS;24_NEW_TESTS;139_DIRECTED;ONLY6AUTHORIZED_FILES;556_PROTECTED_INPUTS",
+  "milestone": "CCGP_DISCOVERY_BUDGET_PLAN_COMPLETE_PENDING_EXPLICIT_STAGE_AUTHORIZATION",
+  "latest_changes_validation_status": "STATIC_DOCS_ONLY;PRIOR5D2FE85_1181/10/3_NOT_RERUN;NO_SOURCE_TEST_WORKFLOW_CHANGE",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -173,11 +173,12 @@
     "regional_runtime_detail_denial_guard": "4916D69_OFFLINE_SUBITEM_CLOSED: primary/fallback HTTP401/403/429 reproduced; single-invocation exact-host detail denial/warmup feedback fixed. Existing canonical fail-closed,budgets,pending,health preserved. No shared cooldown/Retry-After or global F1 completion.",
     "uncovered_runtime_budget_scope": "8deep stages(ccgp+7hospital/early-signal) and7non-tjzyefy incremental sources remain without new cooperative budgets. Next docs-only ccgp stage contract; no measured current timeout incident claimed.",
     "historical_runtime_evidence_currentness": "All earlier CURRENT/CLOUD_VERIFIED/healthy source state labels describe the versions and times of their original reports only. This docs-only round performed no live check. Use runtime_reliability_closeout and source reports for current verification boundary.",
-    "ccgp_event_stage_time_budget": "5D2FE85_OFFLINE_COOPERATIVE_SUBITEM_PASS:Queue event1-6 total270/work180/batch-save30/tail60, local write receipt. No full default completion/hard cancel/atomicity/real persistence guarantee."
+    "ccgp_event_stage_time_budget": "5D2FE85_OFFLINE_COOPERATIVE_SUBITEM_PASS:Queue event1-6 total270/work180/batch-save30/tail60, local write receipt. No full default completion/hard cancel/atomicity/real persistence guarantee.",
+    "ccgp_discovery_stage_time_budget": "CONTRACT_ONLY:Queue ccgp proposed270/150/dual-prepare60/tail60; current runtime silently selects max12 and no dual-key caller readback; static gaps only, not new behavior/live reproduction. Nominal336/744 parameter sum; five-file source-stage authorization required before code."
   },
   "final_code_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21",
   "code_validation_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21",
-  "documentation_followup": "Event budget and local write receipt subitem complete offline; next docs-only ccgp discovery/facts and dual staging-watch save contract; no mechanical budget copying or SDK reopening.",
+  "documentation_followup": "CCGP discovery/facts and dual-key staging/watch contract complete; next five-file offline implementation only after explicit ccgp stage authorization. Existing event-only permission does not extend to this source stage.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2327,7 +2328,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21",
+  "latest_reviewed_repository_head": "fc7e4895854ebee24aec616021b8ffa4afce8ba5",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2425,7 +2426,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "1e2b49638cec32153bded6da774549e6bc860979",
+  "current_phase_starting_head": "fc7e4895854ebee24aec616021b8ffa4afce8ba5",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2835,9 +2836,10 @@
     "historical": true
   },
   "current_authorization_scope": {
-    "source": "Latest explicit user six-file offline Queue event budget authorization 2026-11-07",
-    "current_round": "ONLY6EXISTING_CODE_TEST_FILES_PLUS_DOCS_ARTIFACTS",
-    "event_six_file_code_this_round": true,
+    "source": "Continuous objective and saved docs-only next task; latest explicit event-only instruction prohibits other stage budgets",
+    "current_round": "DOCS_AND_NEW_STATIC_ARTIFACTS_ONLY",
+    "application_or_test_code_this_round": false,
+    "application_or_sdk_or_test_execution_this_round": false,
     "network_this_round": false,
     "cloud_metadata_this_round": false,
     "runtime_cache_read": false,
@@ -2845,9 +2847,8 @@
     "deployment_or_write": false,
     "workflow_change_this_round": false,
     "workflow_executed_this_round": false,
-    "real_sdk_executed": false,
-    "synthetic_local_tests_executed": true,
-    "next_ccgp_code_authorized": false
+    "next_ccgp_stage_code_authorized": false,
+    "automatic_continuation_grants_new_approval": false
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -3583,5 +3584,40 @@
     "migration_usable": false,
     "completed_at_utc": "2026-11-07T08:08:42.315514+00:00",
     "completion": "docs/project/validation/ccgp-event-stage-budget-implementation-2026-11-07/completion.json"
+  },
+  "ccgp_discovery_stage_budget_contract": {
+    "starting_head": "fc7e4895854ebee24aec616021b8ffa4afce8ba5",
+    "unchanged_code_head": "5d2fe858c5c478ebdcfbba53df1da9eadca1ed21",
+    "status": "DOCUMENTATION_ONLY_PROPOSED_NOT_IMPLEMENTED",
+    "report": "docs/project/ccgp-discovery-stage-budget-contract-2026-11-07.md",
+    "manifest": "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/manifest.json",
+    "proposed_total_work_dual_prepare_tail": [
+      270,
+      150,
+      60,
+      60
+    ],
+    "static_nominal_zero_full": [
+      336,
+      744
+    ],
+    "source_references": 20,
+    "protected_files": 570,
+    "unchanged_web_workflow_files": 455,
+    "historical_python_frozen_cli": [
+      1181,
+      10,
+      3
+    ],
+    "tests_rerun": false,
+    "application_sdk_or_tests_executed": false,
+    "next_existing_file_count": 5,
+    "next_ccgp_code_authorized": false,
+    "goal_continuation": "BLOCKED_PENDING_EXPLICIT_CCGP_STAGE_AUTHORIZATION",
+    "real_runtime_or_full_completion_guaranteed": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completed_at_utc": "2026-11-07T08:21:52.445321+00:00",
+    "completion": "docs/project/validation/ccgp-discovery-stage-budget-contract-2026-11-07/completion.json"
   }
 }

@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前Queue CCGP事件阶段预算及配对写入回执（已完成离线实现）
+## 当前CCGP发现/事实预算与双键准备合同（仅离线方案）
+
+- 起点fc7e489，应用仍5d2fe85。[唯一五文件方案](ccgp-discovery-stage-budget-contract-2026-11-07.md)、[静态证据](validation/ccgp-discovery-stage-budget-contract-2026-11-07/manifest.json)。拟仅Queue ccgp用总270/工作150/共同双键准备读回60/尾部60；原语reserve120=60+60，不是实测或硬时限。
+- 源码显示runtime当前直接截取12候选，且staging/watch两写无匹配读回门禁；均仅静态设计缺口，未行为复现或声称当前线上漏扫。拟发现超量/超六片watch即拒绝，按STAGING写读回匹配→WATCH写读回匹配，只有两键按时匹配才算准备完成。名义零详情336秒、12详情744秒，默认满配置按时完整NO-GO。
+- _cached_list既有seed可能先写raw canonical，预算拒绝不等于全系统零写；committed对仍保留。逐键写/读回、部分准备、写后迟到与状态/Queue尾部未知分开，准备阶段不提交配对/公开快照、不刷新源成功时钟，不改pending/健康/版本/Queue/lease协议。
+- 本轮核对20处源码引用、570份保护输入与455份源码/配置字节，只做标准库源码/AST/算术/哈希检查，不导入执行应用/SDK/测试，不重跑既有1181/10/3，无模拟/外网/实际环境值/日志/云端或运行数据访问、部署/推送/计划权限变更。apply_allowed/migration_usable=false，SDK及强保证CLOSED NO-GO。
+- 离线方案有条件GO，当前代码及真实放行NO-GO。[下一轮](next-task.md)须明确授权ccgp来源范围和五文件后才实施；上轮用户只授权事件且禁止其他阶段预算，自动继续停在此边界。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh，实际设置未核实。
+
+## 上轮Queue CCGP事件阶段预算及配对写入回执（已完成离线实现）
 
 - 起点1e2b496，代码5d2fe85，仅授权六文件变更。[实现报告](ccgp-event-stage-budget-implementation-2026-11-07.md)、[证据](validation/ccgp-event-stage-budget-implementation-2026-11-07/manifest.json)。Queue event1–6沿入口原点采用总270/工作180/单批保存30/尾部60；原语snapshot reserve90为30+60，不是改写尾部合同。CLI及其他来源默认行为保持。
 - scan_events可选预算、异常类型延迟导入；请求/异常/None/解析/sleep/merge超期不得成为新证据。完整片才保存，保留兄弟staging；31watch及event6原records缺失/损坏提前拒绝，原前序/pending/单键配对与七阶段健康门禁保持。NOT_ATTEMPTED/UNKNOWN/CALL_RETURNED_UNVERIFIED及写后迟到、状态/Queue尾部未知分别记录，receipt不进入配对数据/公开snapshot。

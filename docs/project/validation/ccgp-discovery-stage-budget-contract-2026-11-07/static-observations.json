@@ -1,0 +1,33 @@
+{
+  "runtime_function_line": 660,
+  "current_function_parameters": [
+    "cache",
+    "state"
+  ],
+  "selected_slice": [
+    "discovered[:plan['max_candidates']]"
+  ],
+  "direct_cache_gets": [
+    {
+      "line": 667,
+      "args": [
+        "CCGP_COMMITTED_STATE_KEY"
+      ]
+    }
+  ],
+  "preparation_cache_sets": [
+    {
+      "line": 761,
+      "key": "CCGP_CYCLE_STAGING_KEY"
+    },
+    {
+      "line": 764,
+      "key": "CCGP_WATCH_KEY"
+    }
+  ],
+  "bootstrap_helper_calls": 2,
+  "current_known_candidate_overflow_guard": false,
+  "current_caller_preparation_readback_gate": false,
+  "proposed_new_readback_gate_implemented": false,
+  "actual_source_reproduced_or_live_verified": false
+}
