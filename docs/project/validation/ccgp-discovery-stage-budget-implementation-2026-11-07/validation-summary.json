@@ -1,0 +1,78 @@
+{
+  "starting_head": "6270b50afc5c139313498def9d936cace9bdf29f",
+  "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "scope": "OFFLINE_QUEUE_CCGP_DISCOVERY_COOPERATIVE_BUDGET_AND_DUAL_KEY_PREPARATION_ONLY",
+  "authorized_files": [
+    "web/collector_queue.py",
+    "web/collector_runtime.py",
+    "web/pipeline/scripts/sync_ccgp_query.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py"
+  ],
+  "source_sha256": {
+    "web/collector_queue.py": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "web/collector_runtime.py": "41d0c6a8ea5bd1c2e35aad8f5f81c49190414287f13b7fc9b25ceb95e6d52d36",
+    "web/pipeline/scripts/sync_ccgp_query.py": "d486f8e03e40934c09ed5c861e71378fe0618397caac26985752f3014488d408",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py": "a91db06548ba258ac99defbd33afe7490afde5d838e0c4bb51ab7fdfb1a62c59",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py": "c0476e5596a804dbd2b2d4c9bd105e76c761f4107f8522f162389fb88f7bfcef"
+  },
+  "new_behavior_tests": 21,
+  "new_test_methods": [
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_candidate_and_watch_overflow_reject_without_truncation",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_cold_seed_lateness_or_error_discloses_possible_mutation",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_committed_priority_and_corrupt_bundle_do_not_use_raw_fallback",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_complete_empty_twelve_candidates_and_no_budget_keep_boundaries",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_each_key_write_before_after_or_late_preserves_truth",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_expired_preflight_or_stage_admission_has_zero_requests",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_late_tail_or_completed_redelivery_does_not_repeat_preparation",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_late_work_and_partial_discovery_never_prepare",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_missing_or_mismatched_readback_never_advances",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_read_or_digest_error_and_late_return_preserve_first_key",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_sleep_admission_and_wake_lateness_stop_fanout",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_budget_tail_errors_keep_prepared_receipt_and_failure_state_unknown",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_discovery_budget_late_return_none_error_parse_and_sort_are_rejected",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_discovery_budget_margin_and_timeout_parameters",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_discovery_budget_sleep_stops_second_type_and_default_keeps_ordinary_errors",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_ccgp_budget_failure_retries_then_degrades_and_never_scans_third_time",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_ccgp_budget_keeps_queue_preflight_origin_and_rejects_payload_deadline",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_ccgp_foreign_or_owner_rejection_has_no_stage_execution",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_ccgp_incomplete_preparation_keeps_receipt_and_does_not_enqueue_events",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_ccgp_late_tail_runs_original_order_and_replacement_still_fences",
+    "web/pipeline/tests/test_collector_orchestration_behavior.py:test_ccgp_tail_failure_keeps_prepared_receipt_and_original_exception"
+  ],
+  "python_tests_passed": 1202,
+  "directed_tests": 145,
+  "python_failures": 0,
+  "python_errors": 0,
+  "python_skipped": 0,
+  "frozen_template_passed": 10,
+  "original_cli_passed": 3,
+  "protected_files": 581,
+  "unchanged_other_web_workflow_files": 450,
+  "source_helper_queue_cases": [
+    44,
+    10,
+    4
+  ],
+  "total_work_dual_prepare_tail": [
+    270,
+    150,
+    60,
+    60
+  ],
+  "primitive_finalize_reserve_seconds": 120,
+  "data_write_order": [
+    "STAGING_WRITE",
+    "STAGING_READBACK_MATCH",
+    "WATCH_WRITE",
+    "WATCH_READBACK_MATCH"
+  ],
+  "preparation_is_source_or_public_commit": false,
+  "hard_cancel_strict_deadline_atomicity_or_durable_crash_receipt_guaranteed": false,
+  "real_source_or_deployment_verified": false,
+  "sdk_or_project_model_executed": false,
+  "node_or_js_gates_executed": false,
+  "deployed_or_pushed": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

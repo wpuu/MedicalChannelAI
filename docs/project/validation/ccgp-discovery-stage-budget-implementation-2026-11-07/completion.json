@@ -1,0 +1,10 @@
+{
+  "started_at_utc": "2026-11-07T08:38:17+00:00",
+  "completed_at_utc": "2026-11-07T08:57:21.625290+00:00",
+  "deadline_utc": "2026-11-07T08:58:17+00:00",
+  "within_frontend_20_minutes": true,
+  "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "real_deployment_verified": false
+}

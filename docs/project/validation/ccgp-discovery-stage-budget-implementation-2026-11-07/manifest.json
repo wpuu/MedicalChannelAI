@@ -1,0 +1,24 @@
+{
+  "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "files": {
+    "docs/project/ccgp-discovery-stage-budget-implementation-2026-11-07.md": "e48a23cbc3599cbf00fb8bfdc9fab1510d9a7792f2503effaf1631749327d960",
+    "docs/project/checkpoint.json": "cb13fe56d645f5a18c4ee5d7e54d031f4e9dd1177bd9445c6b014c249cc8324b",
+    "docs/project/current-state.md": "5dd968ca77b4d28346b3ff33c6b55c73a0d0e70339270445340fb46a75293207",
+    "docs/project/next-task.md": "4ea9a33e241258ebebce5fc4ea03353a77af65d501938fd576037b696c43c089",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/cases.json": "640bf76a1497352715dd6d2e1d3263c51280cf3d2e2d93f0b08739d0cea8231f",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/completion.json": "4f2e46e9f154b3c284332e768eed4b8ccdf64d1d7a2bab479df98676e8896eac",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/directed.log": "3f0eca5129431513666a8df918ec6a7eeef3c5c5c55c8852ff2043ee015656ce",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/frozen-template-audit.json": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/input-integrity.json": "8bd1f7a65c432d47280145c2d49b8f0e3c32804d2651dd2948d3b1fe3994f817",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/offline-tests.py": "014f3ec7d1c6a185ca83b08d2e9b3167f8683547fd533210b7e9645e09959b69",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/original-cli-gate.json": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/regression.log": "e09307e19fee629e7f9cfffcdad4a8883386133f76c0530b51908efec31ff138",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/replay-cases.py": "6facceb606b94c7cdc8dcb9a26859f89b0f10ccee8a8b9c34fe65c2acf135705",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/source-references.json": "d4a6c7761aa6d8d9f691a888df4084bcf3990f25150ee23c01112530caf83c59",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/unchanged-boundaries.json": "012d67a12b431642ba1126a81d799508c05f993104a94d8870a1976f92f9b395",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/validation-summary.json": "84385b7120ea311d10c43d84f752d3df0835b2c48ed8861426ea74c3cc6ed1be",
+    "docs/project/validation/ccgp-discovery-stage-budget-implementation-2026-11-07/verify.py": "2e1388099615d4c2903d4220223ca924c80fa6d0fec06acf91f836b533e3874f"
+  },
+  "apply_allowed": false,
+  "migration_usable": false
+}

@@ -1,0 +1,33 @@
+.......................................................................................................................................................................................................................................................................................................................preview_oidc_lookup reason=SDK_UNAVAILABLE
+preview_oidc_lookup reason=SDK_UNAVAILABLE
+...preview_oidc_lookup reason=SDK_UNAVAILABLE
+.preview_oidc_lookup reason=SDK_UNAVAILABLE
+.......................................................................................................................................................................................................................................................................................preview_oidc_lookup reason=SDK_UNAVAILABLE
+.preview_oidc_lookup reason=SDK_UNAVAILABLE
+preview_oidc_lookup reason=SDK_UNAVAILABLE
+preview_oidc_lookup reason=SDK_UNAVAILABLE
+preview_oidc_lookup reason=SDK_UNAVAILABLE
+...pipeline_self_status reason=PREVIEW_HOST_INVALID
+pipeline_self_status reason=PREVIEW_HOST_INVALID
+pipeline_self_status reason=PREVIEW_HOST_INVALID
+pipeline_self_status reason=PREVIEW_HOST_INVALID
+..pipeline_self_status reason=NETWORK_ERROR
+...preview_oidc_lookup reason=SDK_UNAVAILABLE
+.preview_oidc_lookup reason=SDK_UNAVAILABLE
+preview_oidc_lookup reason=SDK_UNAVAILABLE
+..pipeline_self_status reason=NETWORK_ERROR
+.......prewarm round 1: candidates=40 cached=5 generated=10 errors=0 remaining=15
+prewarm round 2: candidates=40 cached=0 generated=10 errors=0 remaining=5
+prewarm round 3: candidates=40 cached=0 generated=5 errors=0 remaining=0
+.AI prewarm skipped: PREWARM_TOKEN_REQUIRED
+AI prewarm skipped: PREWARM_TOKEN_REQUIRED
+...prewarm round 1: candidates=40 cached=0 generated=10 errors=0 remaining=50
+prewarm round 2: candidates=40 cached=0 generated=10 errors=0 remaining=50
+prewarm round 3: candidates=40 cached=0 generated=10 errors=0 remaining=50
+.prewarm round 1: candidates=40 cached=0 generated=0 errors=10 remaining=12
+........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 1202 tests in 29.833s
+
+OK
+{"tests_run": 1202, "failures": 0, "errors": 0, "skipped": 0, "successful": true, "external_network_blocked": true, "real_sdk_import_blocked": true, "repository_test_output_blocked": true}

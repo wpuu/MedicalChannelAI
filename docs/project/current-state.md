@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前CCGP发现/事实预算与双键准备合同（仅离线方案）
+## 当前Queue ccgp发现/事实预算与双键准备（已完成离线实现）
+
+- 起点6270b50，代码fea6fc7，仅授权五文件变更。[实现报告](ccgp-discovery-stage-budget-implementation-2026-11-07.md)、[证据](validation/ccgp-discovery-stage-budget-implementation-2026-11-07/manifest.json)。仅ccgp总270/工作150/共同双键准备读回60/尾部60；snapshot reserve120=60+60。请求/sleep/解析/排序/merge/watch/digest超期拒绝，13候选详情前拒绝，watch保持六片容量。
+- 原seed初始化及committed优先保留，披露旧seed可能写入，损坏committed不回填。STAGING写/读回匹配后才WATCH写/读回；只有两键按时匹配才PREPARED_LOCAL_READBACK。逐键已尝试/未知/调用返回与读回状态保真，部分准备503不推进事件，不称零写/回滚或真实持久化；receipt不进数据。原配对/pending/健康/版本/Queue/lease与其他阶段预算不改。
+- 新增21项行为测试，最终1202项Python、145定向及10/3通过，44源阶段/10helper/4Queue回放；581份既有输入、450份其他web/workflow文件字节不变。无外网/真实SDK/项目模型/实际环境值/日志/云端或运行数据访问，无部署/推送/触发/环境或计划权限变更，apply_allowed/migration_usable=false。
+- 仅离线协作式调用者完成；默认满范围按时、硬取消/跨键原子/在途零写/崩溃持久回执不保证，SDK及强保证CLOSED NO-GO。真实部署/来源恢复/持久化/完整召回/客户交付未核实，剩余7医院deep与7其他增量源预算及共享冷却/Retry-After未实现。
+- [唯一下一轮](next-task.md)仅文档做CCGP主链F1/F2/F3收口和最多三项剩余问题/唯一优先项决策，不机械扩预算、不重跑未变1202/10/3。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh，实际设置未核实。
+
+## 上轮CCGP发现/事实预算与双键准备合同（历史方案，现已离线实现）
 
 - 起点fc7e489，应用仍5d2fe85。[唯一五文件方案](ccgp-discovery-stage-budget-contract-2026-11-07.md)、[静态证据](validation/ccgp-discovery-stage-budget-contract-2026-11-07/manifest.json)。拟仅Queue ccgp用总270/工作150/共同双键准备读回60/尾部60；原语reserve120=60+60，不是实测或硬时限。
 - 源码显示runtime当前直接截取12候选，且staging/watch两写无匹配读回门禁；均仅静态设计缺口，未行为复现或声称当前线上漏扫。拟发现超量/超六片watch即拒绝，按STAGING写读回匹配→WATCH写读回匹配，只有两键按时匹配才算准备完成。名义零详情336秒、12详情744秒，默认满配置按时完整NO-GO。
