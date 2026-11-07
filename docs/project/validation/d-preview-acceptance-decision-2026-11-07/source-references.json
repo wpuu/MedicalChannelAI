@@ -1,0 +1,709 @@
+[
+  {
+    "path": "web/vercel.json",
+    "line": 4,
+    "text": "    \"deploymentEnabled\": {",
+    "file_sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/vercel.json",
+    "line": 8,
+    "text": "      \"codex/p0-reliability-contracts\": false",
+    "file_sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/vercel.json",
+    "line": 19,
+    "text": "      \"maxDuration\": 300,",
+    "file_sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/vercel.json",
+    "line": 24,
+    "text": "          \"maxDeliveries\": 3,",
+    "file_sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/vercel.json",
+    "line": 25,
+    "text": "          \"retryAfterSeconds\": 150,",
+    "file_sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/vercel.json",
+    "line": 37,
+    "text": "  \"crons\": [",
+    "file_sha256": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/package.json",
+    "line": 8,
+    "text": "    \"verify\": \"node scripts/run-prebuild.mjs && tsc --noEmit\",",
+    "file_sha256": "d2bbc96f376e12c9408f578f4f2f14665f3302717ee311191b10ae576b859b46",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/package.json",
+    "line": 10,
+    "text": "    \"build\": \"node scripts/run-prebuild.mjs && tsc --noEmit && vite build\",",
+    "file_sha256": "d2bbc96f376e12c9408f578f4f2f14665f3302717ee311191b10ae576b859b46",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/package.json",
+    "line": 14,
+    "text": "    \"@vercel/functions\": \"3.9.5\",",
+    "file_sha256": "d2bbc96f376e12c9408f578f4f2f14665f3302717ee311191b10ae576b859b46",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/pyproject.toml",
+    "line": 6,
+    "text": "  \"vercel\",",
+    "file_sha256": "f09da6a199aec5b4d78b9a4b190c3f0859e244cca63c1051058d84703104471d",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/scripts/run-prebuild.mjs",
+    "line": 9,
+    "text": "const refreshArgs = ['scripts/refresh_bundled_snapshot.py']",
+    "file_sha256": "47374598ee08b6ea42564d250ec92d7c8ebfb46542d6a17f12c54d254b9c5be4",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/scripts/run-prebuild.mjs",
+    "line": 84,
+    "text": "previewEpoch()",
+    "file_sha256": "47374598ee08b6ea42564d250ec92d7c8ebfb46542d6a17f12c54d254b9c5be4",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/scripts/run-prebuild.mjs",
+    "line": 85,
+    "text": "assertPreviewDatabase(process.env.DATABASE_URL || process.env.POSTGRES_URL || '')",
+    "file_sha256": "47374598ee08b6ea42564d250ec92d7c8ebfb46542d6a17f12c54d254b9c5be4",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/scripts/run-prebuild.mjs",
+    "line": 92,
+    "text": "delete process.env.MCAI_PREVIEW_EPOCH",
+    "file_sha256": "47374598ee08b6ea42564d250ec92d7c8ebfb46542d6a17f12c54d254b9c5be4",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/scripts/run-prebuild.mjs",
+    "line": 104,
+    "text": "  const refresh = spawnSync(command, [...prefixArgs, ...refreshArgs], {",
+    "file_sha256": "47374598ee08b6ea42564d250ec92d7c8ebfb46542d6a17f12c54d254b9c5be4",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/scripts/run-prebuild.mjs",
+    "line": 116,
+    "text": "  const result = spawnSync(command, [...prefixArgs, ...unittestArgs], {",
+    "file_sha256": "47374598ee08b6ea42564d250ec92d7c8ebfb46542d6a17f12c54d254b9c5be4",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/scripts/run-prebuild.mjs",
+    "line": 161,
+    "text": "verifyIsolatedJavaScriptContract('check-p0-publication.mjs')",
+    "file_sha256": "47374598ee08b6ea42564d250ec92d7c8ebfb46542d6a17f12c54d254b9c5be4",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/pipeline/scripts/refresh_bundled_snapshot.py",
+    "line": 100,
+    "text": "    output = WEB_ROOT / 'public' / 'data' / 'today-actions.public.json'",
+    "file_sha256": "abfd4eb14a3c67ebaa2cf37abae4eb05603d5058b874e5279a89a223842c90a4",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/pipeline/scripts/refresh_bundled_snapshot.py",
+    "line": 149,
+    "text": "    output.write_text(",
+    "file_sha256": "abfd4eb14a3c67ebaa2cf37abae4eb05603d5058b874e5279a89a223842c90a4",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-run.py",
+    "line": 46,
+    "text": "def _authorized(request: BaseHTTPRequestHandler) -> tuple[bool, str]:",
+    "file_sha256": "10bf964466ef405ad6046870a36402d19c1334125c6befeffcd6d59dbebcd29b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-run.py",
+    "line": 195,
+    "text": "async def _enqueue_start(source: str) -> tuple[str, str, str, int]:",
+    "file_sha256": "10bf964466ef405ad6046870a36402d19c1334125c6befeffcd6d59dbebcd29b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-run.py",
+    "line": 201,
+    "text": "    await ensure_intraday_chain(now=now)",
+    "file_sha256": "10bf964466ef405ad6046870a36402d19c1334125c6befeffcd6d59dbebcd29b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-run.py",
+    "line": 228,
+    "text": "                \"stage\": \"ccgp\",",
+    "file_sha256": "10bf964466ef405ad6046870a36402d19c1334125c6befeffcd6d59dbebcd29b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-run.py",
+    "line": 243,
+    "text": "async def _enqueue_incremental(source: str, trigger_source: str) -> tuple[str, str, str]:",
+    "file_sha256": "10bf964466ef405ad6046870a36402d19c1334125c6befeffcd6d59dbebcd29b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-run.py",
+    "line": 267,
+    "text": "            \"mode\": \"incremental\",",
+    "file_sha256": "10bf964466ef405ad6046870a36402d19c1334125c6befeffcd6d59dbebcd29b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-run.py",
+    "line": 295,
+    "text": "    def do_GET(self) -> None:",
+    "file_sha256": "10bf964466ef405ad6046870a36402d19c1334125c6befeffcd6d59dbebcd29b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-run.py",
+    "line": 306,
+    "text": "            requested_source = _first_query(query, \"source\")",
+    "file_sha256": "10bf964466ef405ad6046870a36402d19c1334125c6befeffcd6d59dbebcd29b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-run.py",
+    "line": 410,
+    "text": "    def do_POST(self) -> None:",
+    "file_sha256": "10bf964466ef405ad6046870a36402d19c1334125c6befeffcd6d59dbebcd29b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-queue.py",
+    "line": 11,
+    "text": "CONSUMER_GROUP = \"api/collector-queue.py\"",
+    "file_sha256": "403996c167adf8367c10aeec32e5ff803db6aab0b9f33f5471b6f570d2852101",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-queue.py",
+    "line": 14,
+    "text": "@subscribe(",
+    "file_sha256": "403996c167adf8367c10aeec32e5ff803db6aab0b9f33f5471b6f570d2852101",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-queue.py",
+    "line": 19,
+    "text": "    max_attempts=3,",
+    "file_sha256": "403996c167adf8367c10aeec32e5ff803db6aab0b9f33f5471b6f570d2852101",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-queue.py",
+    "line": 38,
+    "text": "            asyncio.run(accept_and_handle(body, headers, lease_duration=300))",
+    "file_sha256": "403996c167adf8367c10aeec32e5ff803db6aab0b9f33f5471b6f570d2852101",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_epoch.py",
+    "line": 9,
+    "text": "def preview_epoch() -> str | None:",
+    "file_sha256": "d25adb1e0a5b22d2a3d41a0db6e4b240af59ab9bf014011629bf64f01751b0c7",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_epoch.py",
+    "line": 13,
+    "text": "    if not value:",
+    "file_sha256": "d25adb1e0a5b22d2a3d41a0db6e4b240af59ab9bf014011629bf64f01751b0c7",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_epoch.py",
+    "line": 20,
+    "text": "def epoch_key(value: str, epoch: str) -> str:",
+    "file_sha256": "d25adb1e0a5b22d2a3d41a0db6e4b240af59ab9bf014011629bf64f01751b0c7",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_epoch.py",
+    "line": 44,
+    "text": "def RuntimeCache(*args, **kwargs):",
+    "file_sha256": "d25adb1e0a5b22d2a3d41a0db6e4b240af59ab9bf014011629bf64f01751b0c7",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_epoch.py",
+    "line": 51,
+    "text": "def accepts_payload(payload: dict[str, Any]) -> bool:",
+    "file_sha256": "d25adb1e0a5b22d2a3d41a0db6e4b240af59ab9bf014011629bf64f01751b0c7",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_epoch.py",
+    "line": 58,
+    "text": "async def send(topic, payload: dict[str, Any], **options):",
+    "file_sha256": "d25adb1e0a5b22d2a3d41a0db6e4b240af59ab9bf014011629bf64f01751b0c7",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_namespace.py",
+    "line": 7,
+    "text": "QUEUE_TOPIC_NAME = \"medicalchannelai-refresh-v2\"",
+    "file_sha256": "fc82c0af388124e4bbf5252b38a23a5f48d45a4caf26ead338be213d53be393b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_namespace.py",
+    "line": 48,
+    "text": "def apply_runtime_namespace(runtime_module: Any) -> None:",
+    "file_sha256": "fc82c0af388124e4bbf5252b38a23a5f48d45a4caf26ead338be213d53be393b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_namespace.py",
+    "line": 29,
+    "text": "DEEP_EXECUTION_LEASE_TIMEOUT = timedelta(minutes=15)",
+    "file_sha256": "fc82c0af388124e4bbf5252b38a23a5f48d45a4caf26ead338be213d53be393b",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 50,
+    "text": "NEXT_STAGE_DELAY_SECONDS = 2",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 168,
+    "text": "async def _enqueue_stage(*, stage: str, cycle_as_of: datetime, cycle_id: str) -> str:",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 338,
+    "text": "async def _process_incremental_tick_payload(payload: dict[str, Any]) -> None:",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 357,
+    "text": "    if next_tick is not None:",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 394,
+    "text": "async def ensure_intraday_chain(*, now: datetime | None = None) -> None:",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 429,
+    "text": "async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, sleep=None) -> None:",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 434,
+    "text": "    if not accepts_payload(payload):",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 496,
+    "text": "    if ccgp_stage:",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 329,
+    "text": "    if status == 200 and action in {\"COMPLETED\", \"ALREADY_SCANNED_BUCKET\"}:",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 524,
+    "text": "                    await ensure_intraday_chain()",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "line": 525,
+    "text": "                    _release_active_cycle_if_owned(cycle_id)",
+    "file_sha256": "519d4c78cc5cff0eb9363131b7a403f1a0a7840282cb10c27e7424148da0267f",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 186,
+    "text": "STAGE_ORDER = (",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 441,
+    "text": "def _cached_list(cache: RuntimeCache, key: str, bootstrap) -> tuple[list[dict[str, Any]], bool]:",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 321,
+    "text": "def _assert_pending_canonical_commit(cache: RuntimeCache, key: str, records: Any, *,",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 660,
+    "text": "def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget | None = None) -> dict[str, Any]:",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 890,
+    "text": "def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str, *, budget: CliBudget | None = None) -> dict[str, Any]:",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1773,
+    "text": "def _durable_publish_url() -> str:",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1825,
+    "text": "def _persist_verified_snapshot_durably(snapshot: dict[str, Any], *, budget=None, receipt=None) -> dict[str, Any]:",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1890,
+    "text": "        if result.get(\"durable_committed\") is not True:",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 1912,
+    "text": "def _run_publish(cache: RuntimeCache, state: dict[str, Any], *, budget=None) -> dict[str, Any]:",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2085,
+    "text": "def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 2199,
+    "text": "                               failure_reason=\"EVENT_VERIFICATION_PENDING\")",
+    "file_sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_incremental.py",
+    "line": 25,
+    "text": "    \"tjzyefy\": {\"scan_interval_minutes\": 60, \"reverify_after_hours\": 24, \"max_details_per_scan\": 12},",
+    "file_sha256": "4c43b861baa943b7d9f89a61986a2e5abf359b57c5d17a09aff2a1d9ec712c03",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_incremental_bootstrap.py",
+    "line": 108,
+    "text": "    if discovered is None:",
+    "file_sha256": "6de75c865d75f18c95b2fab0b76969d30e15d3abf8f4300ef3b71a4b4fc44f33",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 302,
+    "text": "def _discover_tjzyefy(now: datetime, *, budget=None) -> list[Any]:",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 316,
+    "text": "def _verify_tjzyefy(candidate: Any, observed_at: str, now: datetime, *, budget=None) -> dict[str, Any] | None:",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 833,
+    "text": "    if pending_barrier:",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 899,
+    "text": "            if budget.started + budget.total_seconds - budget.clock() < 31:",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "line": 186,
+    "text": "def _mark_bucket_completed(",
+    "file_sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_tjzyefy_market_research.py",
+    "line": 31,
+    "text": "FETCH_ATTEMPTS = 2",
+    "file_sha256": "9d9c2fd0ba09b753c013c5a7c5dc1d7d8958b593a80af9d2c5295b3664f3d82d",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_tjzyefy_market_research.py",
+    "line": 71,
+    "text": "def fetch_page_with_retry(url: str, *, delay_seconds: float, attempts: int = FETCH_ATTEMPTS, budget=None) -> str:",
+    "file_sha256": "9d9c2fd0ba09b753c013c5a7c5dc1d7d8958b593a80af9d2c5295b3664f3d82d",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_tjzyefy_market_research.py",
+    "line": 75,
+    "text": "        attempts = min(attempts, FETCH_ATTEMPTS)",
+    "file_sha256": "9d9c2fd0ba09b753c013c5a7c5dc1d7d8958b593a80af9d2c5295b3664f3d82d",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-status.py",
+    "line": 192,
+    "text": "def _incremental_status(cache: RuntimeCache) -> dict[str, Any]:",
+    "file_sha256": "ed4d9a42cbcda668c45cb3e90aa44158bd0a3e8b26155b08c45fc5d7c0720a9e",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-status.py",
+    "line": 253,
+    "text": "    def do_GET(self) -> None:",
+    "file_sha256": "ed4d9a42cbcda668c45cb3e90aa44158bd0a3e8b26155b08c45fc5d7c0720a9e",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/collector-status.py",
+    "line": 256,
+    "text": "            state = runtime.load_status(cache)",
+    "file_sha256": "ed4d9a42cbcda668c45cb3e90aa44158bd0a3e8b26155b08c45fc5d7c0720a9e",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/pipeline-health.py",
+    "line": 39,
+    "text": "def cache_roundtrip() -> bool:",
+    "file_sha256": "d46fbb48fdbc497eeefeaa89e78368da0249cd2d8e289a761c6994ec35e127e0",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/pipeline-health.py",
+    "line": 46,
+    "text": "        cache.set(key, value, {'ttl': 3600, 'tags': ['medicalchannelai-runtime-health']})",
+    "file_sha256": "d46fbb48fdbc497eeefeaa89e78368da0249cd2d8e289a761c6994ec35e127e0",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/pipeline-health.py",
+    "line": 158,
+    "text": "    def do_GET(self) -> None:",
+    "file_sha256": "d46fbb48fdbc497eeefeaa89e78368da0249cd2d8e289a761c6994ec35e127e0",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/pipeline-health.py",
+    "line": 159,
+    "text": "        cache_ok = cache_roundtrip()",
+    "file_sha256": "d46fbb48fdbc497eeefeaa89e78368da0249cd2d8e289a761c6994ec35e127e0",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/status.js",
+    "line": 19,
+    "text": "function buildCommit() {",
+    "file_sha256": "13aec0acae79b7f6a679134a9cbc33bb5552ee3e0b4967653622d32d9d8be1a3",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/status.js",
+    "line": 46,
+    "text": "    const snapshot = await loadVerifiedSnapshot()",
+    "file_sha256": "13aec0acae79b7f6a679134a9cbc33bb5552ee3e0b4967653622d32d9d8be1a3",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_verifiedSnapshot.js",
+    "line": 10,
+    "text": "const MAX_RUNTIME_SNAPSHOT_BYTES = 1900 * 1024",
+    "file_sha256": "4e992f736e2debbeea72eaa2eca5c112b399b4d4d41d297a5be8a78736959d38",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_verifiedSnapshot.js",
+    "line": 316,
+    "text": "async function persistBundledRuntimeSnapshot(cache, snapshot) {",
+    "file_sha256": "4e992f736e2debbeea72eaa2eca5c112b399b4d4d41d297a5be8a78736959d38",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_verifiedSnapshot.js",
+    "line": 325,
+    "text": "async function loadRuntimeCachedSnapshot() {",
+    "file_sha256": "4e992f736e2debbeea72eaa2eca5c112b399b4d4d41d297a5be8a78736959d38",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_verifiedSnapshot.js",
+    "line": 350,
+    "text": "async function loadDurableSnapshotMemoized(nowMs = Date.now(), forceRefresh = false) {",
+    "file_sha256": "4e992f736e2debbeea72eaa2eca5c112b399b4d4d41d297a5be8a78736959d38",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_verifiedSnapshot.js",
+    "line": 384,
+    "text": "export async function loadVerifiedSnapshot({ forceRefresh = false } = {}) {",
+    "file_sha256": "4e992f736e2debbeea72eaa2eca5c112b399b4d4d41d297a5be8a78736959d38",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_publicIntelligenceDb.js",
+    "line": 297,
+    "text": "export async function ensurePublicIntelligenceSchema() {",
+    "file_sha256": "17421a520867e411e2cb6b8deb831069a6b11e6be6c366cbe40a2cd81e729636",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_publicIntelligenceDb.js",
+    "line": 307,
+    "text": "        await tx.unsafe(statement)",
+    "file_sha256": "17421a520867e411e2cb6b8deb831069a6b11e6be6c366cbe40a2cd81e729636",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_publicIntelligenceDb.js",
+    "line": 331,
+    "text": "export async function persistPublicVerifiedSnapshot(snapshot, {",
+    "file_sha256": "17421a520867e411e2cb6b8deb831069a6b11e6be6c366cbe40a2cd81e729636",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_publicIntelligenceDb.js",
+    "line": 424,
+    "text": "export async function latestPublicVerifiedSnapshotIfChanged(knownHash = null) {",
+    "file_sha256": "17421a520867e411e2cb6b8deb831069a6b11e6be6c366cbe40a2cd81e729636",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_publicIntelligenceDb.js",
+    "line": 400,
+    "text": "    await ensurePublicIntelligenceSchema()",
+    "file_sha256": "17421a520867e411e2cb6b8deb831069a6b11e6be6c366cbe40a2cd81e729636",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_previewEpoch.js",
+    "line": 3,
+    "text": "export function previewEpoch() {",
+    "file_sha256": "e4f7299f99aaca94b50e7bda289d8ca09378a1a0f5ad3394cb3483b7d19f421d",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_previewEpoch.js",
+    "line": 31,
+    "text": "export function assertPreviewDatabase(url) {",
+    "file_sha256": "e4f7299f99aaca94b50e7bda289d8ca09378a1a0f5ad3394cb3483b7d19f421d",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_privateDb.js",
+    "line": 11,
+    "text": "function databaseUrl() {",
+    "file_sha256": "031739a0ac40b06029d111399685a15ddac4550cd9e84bf98a5ffa05a6970ad9",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_privateDb.js",
+    "line": 13,
+    "text": "  assertPreviewDatabase(value)",
+    "file_sha256": "031739a0ac40b06029d111399685a15ddac4550cd9e84bf98a5ffa05a6970ad9",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/public-snapshot.js",
+    "line": 128,
+    "text": "      const committed = await persistSnapshot(snapshot)",
+    "file_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/public-snapshot.js",
+    "line": 146,
+    "text": "        durable_committed: true,",
+    "file_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/public-snapshot.js",
+    "line": 170,
+    "text": "      const snapshot = await loadSnapshot({ forceRefresh: readback })",
+    "file_sha256": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/api/_snapshotRevision.js",
+    "line": 3,
+    "text": "export function snapshotRevisionMicros(value) {",
+    "file_sha256": "a99ce39d41d3d178aa398117d47b79f2d53c28d70488ccd9eeeb32bf5f3b276a",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  },
+  {
+    "path": "web/collector_incremental_ticks.py",
+    "line": 12,
+    "text": "MAX_TICKS_PER_DAY = 31",
+    "file_sha256": "f2fcb229d26bae03784c73d2f42cd6c94e239d11b8bdb21f5303588c80f55dd9",
+    "reviewed_head": "b7108041291acdf8dfdc96a166963299b89c41b5"
+  }
+]

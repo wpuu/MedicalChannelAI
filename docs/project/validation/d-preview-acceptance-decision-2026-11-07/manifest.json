@@ -1,0 +1,24 @@
+{
+  "reviewed_head": "b710804",
+  "application_code_sha": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
+  "files": {
+    "docs/project/checkpoint.json": "161036c9cebab4b6af4450f0fe570dfc19965330c3e469797dc5291348de556a",
+    "docs/project/current-state.md": "0b49c495a48dc01deb0b933325b572b6c72bbfeec666ca38f90a9415281a05f9",
+    "docs/project/d-preview-acceptance-decision-2026-11-07.md": "88823c01635f956d955b266dc881626d6d5106169c1df6c5c1e042c5b79d8f02",
+    "docs/project/next-task.md": "4ceaec17efae54a8d2db8f41dde1d56303f42f50037d0930544eb158652e9d17",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/completion.json": "f65d041b81324d02b38d56cc7dc2f1e229552b24e842e704ed2bd8be1c8c427b",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/decision.json": "ba376099b32affc7f3165b716c173c28f2613c0b9ffbb2e0b308b7f613df4a87",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/go-no-go.json": "d230e9b68565db67e2763b605e9858352a4aca2302fcbb55a1db33a6c2845d3b",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/input-integrity.json": "903f84fc4e8ce3c9f943836533d208bc6ff75cba524520c3446b6459a76cf5f2",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/release-source.json": "165810f70d6d144879a8d30bc527274fb05f025ec27213e8cd733bd9c451256e",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/scope-and-cost.json": "70cbd18e24dff34320c39068d013469b45c8e8ac3509cd25051f19c013cbd05a",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/side-effects.json": "88d41067c706e302ecf4a95681c28cc512654137b930697eb8d2b6e13c0324e0",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/source-config-git-objects.json": "4641ee5e769d82442ac919bc2662eb44ac590d8e6c7ddac201bba2d039d79ee5",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/source-references.json": "93083799260ba38e7a02d6849e50948fcd499578413f7dc4d7d656d49e0dc204",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/validation-summary.json": "af654da4c3093e9e4278a5f04e7ab5e2065a3ad3220e15aa5b5b1ce570395392",
+    "docs/project/validation/d-preview-acceptance-decision-2026-11-07/verify.py": "69ef2f3a3eafa6c957f33e795f2378fbd5fb8118cff7489bfcdf50c3c433b978"
+  },
+  "decision": "NO_GO_PAUSED",
+  "apply_allowed": false,
+  "migration_usable": false
+}

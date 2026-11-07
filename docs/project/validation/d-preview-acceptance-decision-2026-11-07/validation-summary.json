@@ -1,0 +1,21 @@
+{
+  "starting_head": "b7108041291acdf8dfdc96a166963299b89c41b5",
+  "unchanged_application_code_sha": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
+  "source_references": 101,
+  "protected_files": 629,
+  "unchanged_web_workflow_files": 455,
+  "historical_local_gates": [
+    1213,
+    10,
+    3
+  ],
+  "gates_reexecuted": false,
+  "application_sdk_model_tests_or_build_executed": false,
+  "new_simulation_engine": false,
+  "network_cloud_runtime_access": false,
+  "actual_environment_values_credentials_or_runtime_logs_read": false,
+  "deploy_push_workflow_trigger": false,
+  "apply_allowed": false,
+  "migration_usable": false,
+  "decision": "NO_GO_PAUSED_NO_AUTOMATIC_EVIDENCE_OR_EXECUTION_ROUNDS"
+}

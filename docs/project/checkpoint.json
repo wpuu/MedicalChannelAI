@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_QUEUE_CCGP_EVENT_SINGLE_STAGE_DENIAL_STOP_IMPLEMENTATION_ONLY",
+  "state_scope": "OFFLINE_EXISTING_D_PREVIEW_ACCEPTANCE_DECISION_DOCUMENTATION_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "CCGP_RUNTIME_R1_REPRODUCED_FIXED_AND_VERIFIED_OFFLINE",
-  "latest_changes_validation_status": "1213_PYTHON_AND10/3_PASS;11_NEW_TESTS;ONLY4AUTHORIZED_FILES;612_INPUTS_AND451_OTHER_FILES_UNCHANGED",
+  "milestone": "D_PREVIEW_REAL_ACCEPTANCE_NO_GO_PAUSED_COMPLETE_BLOCKER_PACKAGE",
+  "latest_changes_validation_status": "STATIC_ONLY:101_REFERENCES/629_PROTECTED_INPUTS/455_WEB_WORKFLOW;NO_TEST_BUILD_OR_CLOUD_EXECUTION;HISTORICAL3F88FF7_1213/10/3",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -177,7 +177,8 @@
     "ccgp_discovery_stage_time_budget": "FEA6FC7_OFFLINE_SCOPED_PASS:Queue ccgp270/150/dual-prepare60/tail60;known overflow failclosed,per-key receipt and local readback gate. No cross-key atomicity/hard deadline/real durability guarantee;shared access cooldown remains.",
     "historical_state_interpretation": "Older CURRENT/CURRENT_CLOUD/NATIVE strings elsewhere in this checkpoint describe only their originally bound historical versions; none reverified by this offline review.",
     "ccgp_single_stage_access_denial": "R1_LOCAL_CLOSED3F88FF7:9pre-fix failed subcases (facts2/events8 calls vs expected1); now stage-local explicit host denial stops further same-host requests, ordinary errors not sealed, raw facts diagnostics replaced by bounded fixed-code summary. No shared cooldown/Retry-After or real recovery claim.",
-    "remaining_runtime_budget_coverage": "STATIC18_OF25_DEEP_AND1_OF8_INCREMENTAL:seven deep and seven other incremental sources without new budget; shared cooldown/Retry-After not implemented. No mechanical rollout authorized."
+    "remaining_runtime_budget_coverage": "STATIC18_OF25_DEEP_AND1_OF8_INCREMENTAL:seven deep and seven other incremental sources without new budget; shared cooldown/Retry-After not implemented. No mechanical rollout authorized.",
+    "preview_real_acceptance_gate": "NO_GO_PAUSED:current target/permissions/SDK/bundle/source-consumer bindings unverified; deep trigger fans out25 stages plus ticks; event detail HTTP cap absent; trustworthy canonical evidence/read side effects unresolved. Full blocker package recorded; no automatic partial queries/deploy/trial or repeated simulation rounds."
   },
   "final_code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
   "code_validation_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
@@ -2331,7 +2332,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
+  "latest_reviewed_repository_head": "b7108041291acdf8dfdc96a166963299b89c41b5",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2429,7 +2430,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "7e65828f409270874a2a7fb8fea6cdd0772f5886",
+  "current_phase_starting_head": "b7108041291acdf8dfdc96a166963299b89c41b5",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2839,9 +2840,10 @@
     "historical": true
   },
   "current_authorization_scope": {
-    "source": "Latest explicit user four-file offline Queue CCGP/event single-stage denial-stop R1 authorization 2026-11-07",
-    "current_round": "ONLY4EXISTING_CODE_TEST_FILES_PLUS_DOCS_ARTIFACTS",
-    "four_file_r1_code_authorized_this_round": true,
+    "source": "Latest explicit user offline d Preview single acceptance decision package documentation-only request 2026-11-07",
+    "current_round": "DOCS_AND_NEW_STATIC_ARTIFACTS_ONLY",
+    "code_or_tests_changed_this_round": false,
+    "application_sdk_model_tests_or_build_executed": false,
     "network_this_round": false,
     "cloud_metadata_this_round": false,
     "runtime_cache_read": false,
@@ -2849,9 +2851,7 @@
     "deployment_or_write": false,
     "workflow_change_this_round": false,
     "workflow_executed_this_round": false,
-    "real_sdk_executed": false,
-    "synthetic_local_tests_executed": true,
-    "next_code_change_authorized": false
+    "next_cloud_or_code_action_authorized": false
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -3740,5 +3740,32 @@
     "apply_allowed": false,
     "migration_usable": false,
     "completed_at_utc": "2026-11-07T09:52:16.885082+00:00"
+  },
+  "d_preview_acceptance_decision": {
+    "starting_head": "b7108041291acdf8dfdc96a166963299b89c41b5",
+    "unchanged_application_code_sha": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
+    "status": "NO_GO_PAUSED_NO_AUTOMATIC_FOLLOWUP_ROUNDS",
+    "report": "docs/project/d-preview-acceptance-decision-2026-11-07.md",
+    "manifest": "docs/project/validation/d-preview-acceptance-decision-2026-11-07/manifest.json",
+    "proposed_source_sha": "b7108041291acdf8dfdc96a166963299b89c41b5",
+    "historical_deployment_not_current_observation": true,
+    "go_no_go_gates": 8,
+    "source_references": 101,
+    "protected_files": 629,
+    "unchanged_web_workflow_files": 455,
+    "local_historical_gates": [
+      1213,
+      10,
+      3
+    ],
+    "tests_build_or_sdk_executed": false,
+    "network_cloud_or_runtime_access": false,
+    "deployed_pushed_or_workflow_triggered": false,
+    "current_authorized_operational_counts_all_zero": true,
+    "sdk_and_strong_guarantee_branches": "CLOSED_NO_GO",
+    "reopen_requires_complete_new_evidence_and_separate_explicit_authorizations": true,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completed_at_utc": "2026-11-07T10:08:45.046202+00:00"
   }
 }

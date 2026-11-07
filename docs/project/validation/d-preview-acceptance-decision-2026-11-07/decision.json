@@ -1,0 +1,36 @@
+{
+  "decision": "NO_GO_PAUSE_THIS_REAL_PREVIEW_ACCEPTANCE_BRANCH",
+  "single_package_only": true,
+  "local_r1_status": "OFFLINE_REPRODUCED_FIXED_AND_VERIFIED_3F88FF7",
+  "no_auto_followup_rounds": true,
+  "no_partial_metadata_or_single_source_trial_as_release": true,
+  "sdk_and_strong_guarantee_branches": "CLOSED_NO_GO",
+  "reopen_requires_complete_new_external_evidence_and_explicit_separate_authorizations": true,
+  "proposed_source_sha": "b7108041291acdf8dfdc96a166963299b89c41b5",
+  "current_authorized_counts": {
+    "cloud_queries": 0,
+    "builds": 0,
+    "deployments": 0,
+    "business_reads": 0,
+    "business_triggers": 0,
+    "runtime_cleanups": 0
+  },
+  "future_review_policy_caps_not_authorization": {
+    "metadata_queries": 4,
+    "full_build": 1,
+    "valid_preview_deployment": 1,
+    "top_level_observation_http_get": 10,
+    "manual_trigger": 1,
+    "manual_queue_post": 0,
+    "pipeline_health_probe": 0,
+    "ai_or_prewarm": 0,
+    "manual_public_put": 0,
+    "runtime_cleanup_or_rollback": 0
+  },
+  "future_caps_enforceable_for_full_ccgp_chain": false,
+  "recommended_model": "GPT-6.1 Sol",
+  "recommended_reasoning": "xhigh",
+  "actual_model_reasoning_verified": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

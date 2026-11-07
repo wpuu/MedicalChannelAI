@@ -1,0 +1,50 @@
+[
+  {
+    "gate": "G0",
+    "subject": "Local R1/budget/completeness",
+    "status": "GO_OFFLINE_SUBITEM_ONLY",
+    "evidence": "3f88ff7 historical1213/10/3; no rerun"
+  },
+  {
+    "gate": "G1",
+    "subject": "Current trusted project/team/Preview/d/database/region/permission binding",
+    "status": "NO_GO_UNVERIFIED",
+    "needed": "Complete nonsecret trusted scope and least-privilege attestations; historical null target/filter match insufficient"
+  },
+  {
+    "gate": "G2",
+    "subject": "Deployment source/bundle/dependencies/build",
+    "status": "NO_GO_UNVERIFIED",
+    "needed": "Exact bundle/source/dependency identity and safe full build evidence for frozen candidate; unversioned vercel is not actual SDK version"
+  },
+  {
+    "gate": "G3",
+    "subject": "Producer/consumer/old writers/concurrency",
+    "status": "NO_GO_UNVERIFIED",
+    "needed": "Same-scope current message/owner/consumer identity and safe execution window; new deployment does not update old messages"
+  },
+  {
+    "gate": "G4",
+    "subject": "Controlled complete CCGP execution/request envelope",
+    "status": "NO_GO_STATIC_SCOPE_GAP",
+    "needed": "Existing trustworthy authorized envelope compatible with completeness; current deep auto-chains25 stages and ticks, event detail candidates uncapped; tjzyefy does not validate CCGP"
+  },
+  {
+    "gate": "G5",
+    "subject": "Canonical/pending/authority/receipt evidence channel",
+    "status": "NO_GO_UNVERIFIED",
+    "needed": "Authorized trustworthy existing channel; summary counts/public snapshot not canonical; do not reopen closed SDK export"
+  },
+  {
+    "gate": "G6",
+    "subject": "Read and build side effects",
+    "status": "NO_GO_UNVERIFIED_AND_UNAUTHORIZED",
+    "needed": "Exclude or explicitly authorize schema/cache seed/probe/build output effects with trusted evidence and minimal rights"
+  },
+  {
+    "gate": "G7",
+    "subject": "Separate authorizations/time/unknown-result handling",
+    "status": "NO_GO_NOT_AUTHORIZED",
+    "needed": "Exact metadata/build/deploy/trigger/readback/temporary-material cleanup grants; client20min is not cancellation"
+  }
+]

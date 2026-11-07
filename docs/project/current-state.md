@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前Queue CCGP单次stage拒绝止损R1（已离线复现、修复、验收）
+## 当前现有d Preview一次性验收决策（NO-GO，暂停本分支）
+
+- 起点b710804、应用3f88ff7均未改。[完整决策包](d-preview-acceptance-decision-2026-11-07.md)、[静态证据](validation/d-preview-acceptance-decision-2026-11-07/manifest.json)。1213/10/3为已有本地结果，本轮不重跑；SDK及强保证CLOSED NO-GO，不重开审计/模拟或机械铺预算。
+- 唯一结论暂停：当前目标/权限/实际epoch/db/SDK/bundle/消息消费者与旧writer绑定未核实；deep GET实际25阶段且可能ensure日内链，不能单独限定CCGP七阶段，事件详情无固定候选请求上限。tjzyefy虽可单源触发，不覆盖CCGP R1，不能替代验收。
+- 已给唯一门禁序列、8项go/no-go、数量/退出/副作用/恢复及分项授权清单。GET并非必然只读：pipeline-health写探针，status/public loader可能DDL或seed，prebuild写bundled snapshot。canonical完整证据渠道未核实，摘要/ACK不替代完整采集/持久化/交付。当前云端查询/构建/部署/触发/读回/运行清理批准数均0。
+- 本轮静态核对101处引用、23个历史来源差异路径、629份旧输入及455份web/workflow文件不变；未执行应用/SDK/模型/测试/构建，未联网/读实际环境值/凭据/运行日志/访问云端或运行数据，没有新环境/路由/部署/推送/触发/计划权限变更。apply_allowed/migration_usable=false。
+- [下一轮条件任务](next-task.md)仅在新增完整外部证据及逐项明确授权后做一次性复核；否则保持暂停，不再次生成同样报告、试探查询或模拟轮次。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh，实际设置未核实。
+
+## 上轮Queue CCGP单次stage拒绝止损R1（已离线复现、修复、验收）
 
 - 起点7e65828，代码3f88ff7，恰好授权四文件变更。[实现报告](ccgp-runtime-access-stop-2026-11-07.md)、[证据](validation/ccgp-runtime-access-stop-2026-11-07/manifest.json)。先复现9个子例：401/403/429后事实共2、事件共8次详情请求，期望1；修复后同host后续0。
 - Queue ccgp/event1–6仅stage局部共享host字典，复用现有分类器/marker/安全汇总；搜索拒绝直接失败，详情另一实际host独立。普通超时/网络/503/解析不封全host，及时普通fallback和无guard/CLI默认保持。事实诊断不再拼原异常正文；原预算/双键准备/配对/pending/健康/Queue/lease协议不改。

@@ -1,0 +1,43 @@
+[
+  {
+    "entry": "build/prebuild",
+    "effect": "refresh_bundled_snapshot writes public/data/today-actions.public.json before tests/JS/tsc/vite",
+    "current_allowed": false
+  },
+  {
+    "entry": "GET /api/collector-run",
+    "effect": "ensures intraday chain, activates owner, sends deep ccgp chain; GET is mutation",
+    "current_allowed": false
+  },
+  {
+    "entry": "GET /api/collector-run?mode=incremental&source=tjzyefy",
+    "effect": "queues one explicit source; may write canonical/pending/health/public snapshot/bucket/lease; no CCGP R1 coverage",
+    "current_allowed": false
+  },
+  {
+    "entry": "GET /api/pipeline-health",
+    "effect": "writes health probe cache and reads self status",
+    "excluded_even_from_minimal_observation_set": true,
+    "current_allowed": false
+  },
+  {
+    "entry": "GET /api/status and /api/public-snapshot",
+    "effect": "loader may initialize schema or seed Runtime Cache if corresponding conditions hold; actual mode/schema unknown",
+    "current_allowed": false
+  },
+  {
+    "entry": "GET /api/collector-status",
+    "effect": "cache read/source summary with SDK instantiation; not complete canonical export or strict get-only attestation",
+    "current_allowed": false
+  },
+  {
+    "entry": "PUT/POST /api/public-snapshot",
+    "effect": "validates, ensures schema, authoritative SQL transaction/readback, Node fallback cache; caller may also write Python copy",
+    "current_allowed": false
+  },
+  {
+    "entry": "cleanup",
+    "effect": "no runtime deletion/rollback/pending clear/lease clear/message cancel; only separately authorized task-created temporary access material can be revoked",
+    "current_allowed": false
+  }
+]
