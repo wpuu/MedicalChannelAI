@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_EXISTING_D_PREVIEW_ACCEPTANCE_DECISION_DOCUMENTATION_ONLY",
+  "state_scope": "PRODUCT_ONE_PAGE_PROPOSAL_DOCUMENTATION_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "D_PREVIEW_REAL_ACCEPTANCE_NO_GO_PAUSED_COMPLETE_BLOCKER_PACKAGE",
-  "latest_changes_validation_status": "STATIC_ONLY:101_REFERENCES/629_PROTECTED_INPUTS/455_WEB_WORKFLOW;NO_TEST_BUILD_OR_CLOUD_EXECUTION;HISTORICAL3F88FF7_1213/10/3",
+  "milestone": "PRODUCT_SCOPE_AND_USABLE_MVP_ACCEPTANCE_DRAFT_PENDING_USER_REVIEW",
+  "latest_changes_validation_status": "DOCS_ONLY:PRODUCT_ONE_PAGE_AND6_BUSINESS_ACCEPTANCE_ITEMS;NO_APP_OR_TEST_EXECUTION",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -2332,7 +2332,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "b7108041291acdf8dfdc96a166963299b89c41b5",
+  "latest_reviewed_repository_head": "965b0d8fad3bdd92b56a1cf69a1796403b84b4ff",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2430,7 +2430,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "b7108041291acdf8dfdc96a166963299b89c41b5",
+  "current_phase_starting_head": "965b0d8fad3bdd92b56a1cf69a1796403b84b4ff",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2840,18 +2840,14 @@
     "historical": true
   },
   "current_authorization_scope": {
-    "source": "Latest explicit user offline d Preview single acceptance decision package documentation-only request 2026-11-07",
-    "current_round": "DOCS_AND_NEW_STATIC_ARTIFACTS_ONLY",
-    "code_or_tests_changed_this_round": false,
-    "application_sdk_model_tests_or_build_executed": false,
+    "source": "Latest explicit user one-page product proposal and usable-MVP checklist documentation-only request",
+    "current_round": "PROJECT_DOCUMENTATION_ONLY",
+    "application_domain_schedule_or_permissions_changed": false,
+    "application_sdk_tests_build_or_model_executed": false,
     "network_this_round": false,
-    "cloud_metadata_this_round": false,
-    "runtime_cache_read": false,
-    "database_read": false,
-    "deployment_or_write": false,
-    "workflow_change_this_round": false,
-    "workflow_executed_this_round": false,
-    "next_cloud_or_code_action_authorized": false
+    "deployment_or_collection_triggered": false,
+    "real_acceptance_pause_preserved": true,
+    "next_code_or_cloud_action_authorized": false
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -3767,5 +3763,26 @@
     "apply_allowed": false,
     "migration_usable": false,
     "completed_at_utc": "2026-11-07T10:08:45.046202+00:00"
+  },
+  "product_mvp_one_page_review": {
+    "starting_head": "965b0d8fad3bdd92b56a1cf69a1796403b84b4ff",
+    "report": "docs/project/product-mvp-one-page-2026-11-07.md",
+    "status": "DRAFT_PENDING_PRODUCT_SCOPE_APPROVAL",
+    "proposed_region": "天津",
+    "proposed_product_segment": "检验科血细胞分析仪（血球仪）",
+    "proposed_pilot_customers": 3,
+    "product_segment_approved": false,
+    "real_customers_recruited_verified": false,
+    "business_acceptance_items": 6,
+    "business_acceptance_completed": false,
+    "historical_local_gate": [
+      1213,
+      10,
+      3
+    ],
+    "application_code_unchanged": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
+    "real_acceptance_pause_preserved": true,
+    "apply_allowed": false,
+    "migration_usable": false
   }
 }
