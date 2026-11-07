@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前publish预算与提交回执合同（仅文档）
+## 当前publish调用者预算与ACK保真（离线实现）
+
+- 起点9e61edb，代码a352b7a，恰好修改授权七文件。deep publish同原点270/210/60，PUT cap30/余量−1/零本地重试；tjzyefy传原parent270/180/30/60，发布工作210，不重置。[报告](publish-budget-implementation-2026-11-07.md)、[证据](validation/publish-budget-implementation-2026-11-07/manifest.json)。
+- ACK严格消费durable_committed及原版本/数量；合法迟到ACK保持CONFIRMED。NOT_ATTEMPTED/UNKNOWN/CONFIRMED与Node/Python副本状态分开，任一副本未确认保守RETRY_REQUIRED；receipt不进入snapshot。stage/bucket/heartbeat/tick/lease失败保留已知发布和真实未知，不回滚/假称零写或可靠完成，原顺序/协议保留。
+- 新增24项行为测试，最终1145项Python及10/3通过；21 publisher/17 PUT/6 Queue尾部回放，503份原data/fixture/artifact不变。Node/SQL/版本/CliBudget/JS/workflow/依赖配置未变，未运行JS或真实SDK。无外网/云端/实际环境值/运行日志访问、部署/推送/触发或运行数据写入，apply_allowed/migration_usable=false。
+- 仅本地调用者协作式子项。真实部署/源恢复/持久化/延迟未核实；硬取消/严格时限/在途写零变化/原子提交/崩溃后持久回执与SDK分支CLOSED NO-GO。其他医院/事件/增量未新增预算，不是全runtime完成。
+- [下一轮](next-task.md)仅文档做F1/F2/F3收口覆盖矩阵、最多三项有依据缺口与唯一优先项，不机械扩预算或重跑未变1145/10/3。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh（超高），实际设置未核实。
+
+## 上轮publish预算与回执合同（历史方案，调用者侧离线实现已完成）
 
 - 起点82c1006，代码b584bcf保持不变；完成[publish调用者侧唯一七文件方案](publish-budget-receipt-contract-2026-11-07.md)。deep拟用总270/发布工作210/收尾60，PUT为工作窗口内cap30子预算；tjzyefy复用原parent270/180/30/60与同一原点，不重置。仅Python调用者准入/回执，不改Node/SQL/版本/Queue协议。
 - 静态确认三项缺口：Python未消费现有durable_committed字段、Node缓存RETRY_REQUIRED信息未保留、publish内部预算和确认后尾部回执尚未覆盖。均非本轮线上故障复现。NOT_ATTEMPTED/UNKNOWN/CONFIRMED、两份副本状态、已确认后workflow状态未知须分开；LATEST读回不等于权威提交。

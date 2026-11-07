@@ -1,0 +1,482 @@
+[
+  {
+    "mode": "success",
+    "case": {},
+    "error": null,
+    "receipt": {
+      "publication_outcome": "CONFIRMED",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UPDATED",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "snapshot_as_of": "2026-11-05T00:00:00Z",
+      "ack_after_work_deadline": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "success",
+    "case": {
+      "elapsed": 210
+    },
+    "error": "CliBudgetExceeded",
+    "receipt": {
+      "publication_outcome": "NOT_ATTEMPTED",
+      "phase": "PUT_PREPARE",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 210.0,
+        "exhausted_phase": "PUT_PREPARE",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 0,
+    "timeouts": [],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "success",
+    "case": {
+      "elapsed": 209
+    },
+    "error": "CliBudgetExceeded",
+    "receipt": {
+      "publication_outcome": "NOT_ATTEMPTED",
+      "phase": "PUT_ADMISSION",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 209.0,
+        "exhausted_phase": "PUT_ADMISSION",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 0,
+    "timeouts": [],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "serialize_late",
+    "case": {},
+    "error": "CliBudgetExceeded",
+    "receipt": {
+      "publication_outcome": "NOT_ATTEMPTED",
+      "phase": "PUT_SERIALIZE_RETURN",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 210,
+        "exhausted_phase": "PUT_SERIALIZE_RETURN",
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 0,
+    "timeouts": [],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "late_work",
+    "case": {},
+    "error": null,
+    "receipt": {
+      "publication_outcome": "CONFIRMED",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UPDATED",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "snapshot_as_of": "2026-11-05T00:00:00Z",
+      "ack_after_work_deadline": true
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "late_total",
+    "case": {},
+    "error": null,
+    "receipt": {
+      "publication_outcome": "CONFIRMED",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UPDATED",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "snapshot_as_of": "2026-11-05T00:00:00Z",
+      "ack_after_work_deadline": true
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "transport_error",
+    "case": {},
+    "error": "CollectorStageBlocked",
+    "receipt": {
+      "publication_outcome": "UNKNOWN",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 0,
+        "exhausted_phase": null,
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "http_error",
+    "case": {},
+    "error": "CollectorStageBlocked",
+    "receipt": {
+      "publication_outcome": "UNKNOWN",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 0,
+        "exhausted_phase": null,
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "bad_json",
+    "case": {},
+    "error": "CollectorStageBlocked",
+    "receipt": {
+      "publication_outcome": "UNKNOWN",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 0,
+        "exhausted_phase": null,
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "missing_commit",
+    "case": {},
+    "error": "CollectorStageBlocked",
+    "receipt": {
+      "publication_outcome": "UNKNOWN",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 0,
+        "exhausted_phase": null,
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "success",
+    "case": {
+      "elapsed": 195,
+      "parent_work": 180
+    },
+    "error": null,
+    "receipt": {
+      "publication_outcome": "CONFIRMED",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UPDATED",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "snapshot_as_of": "2026-11-05T00:00:00Z",
+      "ack_after_work_deadline": false
+    },
+    "requests": 1,
+    "timeouts": [
+      14.0
+    ],
+    "parent_work": 180,
+    "parent_origin": 0
+  },
+  {
+    "mode": "success",
+    "case": {
+      "changes": {
+        "durable_committed": false
+      }
+    },
+    "error": "CollectorStageBlocked",
+    "receipt": {
+      "publication_outcome": "UNKNOWN",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 0,
+        "exhausted_phase": null,
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "success",
+    "case": {
+      "changes": {
+        "durable_committed": 1
+      }
+    },
+    "error": "CollectorStageBlocked",
+    "receipt": {
+      "publication_outcome": "UNKNOWN",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 0,
+        "exhausted_phase": null,
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "success",
+    "case": {
+      "changes": {
+        "ok": 1
+      }
+    },
+    "error": "CollectorStageBlocked",
+    "receipt": {
+      "publication_outcome": "UNKNOWN",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 0,
+        "exhausted_phase": null,
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "success",
+    "case": {
+      "changes": {
+        "snapshot_as_of": "wrong"
+      }
+    },
+    "error": "CollectorStageBlocked",
+    "receipt": {
+      "publication_outcome": "UNKNOWN",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 0,
+        "exhausted_phase": null,
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "success",
+    "case": {
+      "changes": {
+        "opportunity_pool_count": false
+      }
+    },
+    "error": "CollectorStageBlocked",
+    "receipt": {
+      "publication_outcome": "UNKNOWN",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "budget": {
+        "total_seconds": 270,
+        "work_seconds": 210,
+        "finalize_reserve_seconds": 60,
+        "elapsed_seconds": 0,
+        "exhausted_phase": null,
+        "work_complete": false,
+        "hard_exit_guaranteed": false
+      },
+      "budget_finalization_overrun": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  },
+  {
+    "mode": "success",
+    "case": {
+      "changes": {
+        "cache_status": {
+          "invalid": 1
+        }
+      }
+    },
+    "error": null,
+    "receipt": {
+      "publication_outcome": "CONFIRMED",
+      "phase": "PUT",
+      "latest_candidate_mutation_possible": false,
+      "python_cache_mutation_possible": false,
+      "node_cache_status": "UNKNOWN",
+      "python_cache_status": "NOT_ATTEMPTED",
+      "snapshot_as_of": "2026-11-05T00:00:00Z",
+      "ack_after_work_deadline": false
+    },
+    "requests": 1,
+    "timeouts": [
+      30
+    ],
+    "parent_work": 210,
+    "parent_origin": 0
+  }
+]

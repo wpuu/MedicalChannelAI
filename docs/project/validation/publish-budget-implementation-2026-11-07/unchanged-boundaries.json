@@ -1,0 +1,13 @@
+{
+  "web/api/public-snapshot.js": "1c51572e4f0d30db91b9f77e0d50b4758943e65e1da695daddd594841053e4a5",
+  "web/api/_publicIntelligenceDb.js": "17421a520867e411e2cb6b8deb831069a6b11e6be6c366cbe40a2cd81e729636",
+  "web/api/_verifiedSnapshot.js": "4e992f736e2debbeea72eaa2eca5c112b399b4d4d41d297a5be8a78736959d38",
+  "web/api/_snapshotRevision.js": "a99ce39d41d3d178aa398117d47b79f2d53c28d70488ccd9eeeb32bf5f3b276a",
+  "web/api/_privateDb.js": "031739a0ac40b06029d111399685a15ddac4550cd9e84bf98a5ffa05a6970ad9",
+  "web/pipeline/scripts/sync_regional_ccgp.py": "d14c66617417d8165333e1236619899abebb77957af01c4c9cf2d48fd2178710",
+  "web/scripts/check-p0-publication.mjs": "3b0338227d513bba8f444d3efeadb213ae1caba186c77ef0b15312cb11b1bb64",
+  "web/vercel.json": "59945841528a267bbdb0f38371ae1278ab95d963cd231fdcd81021449629e25e",
+  ".github/workflows/regional-medical-refresh.yml": "1032590c2f670cd950a44f6ea6aeb236cb6ead98da0e76891e7f7e3545bdb52e",
+  "web/package.json": "d2bbc96f376e12c9408f578f4f2f14665f3302717ee311191b10ae576b859b46",
+  "web/package-lock.json": "a217eafa87305d15d360f947ed6bf7c231c0e0f5e3b78bfd1d55cfffb29de98d"
+}

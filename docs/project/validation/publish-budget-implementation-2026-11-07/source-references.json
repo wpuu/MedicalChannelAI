@@ -1,0 +1,44 @@
+[
+  {
+    "path": "web/collector_runtime.py",
+    "function": "_new_publish_receipt",
+    "line": 1608,
+    "text": "def _new_publish_receipt() -> dict[str, Any]:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "function": "_persist_verified_snapshot_durably",
+    "line": 1642,
+    "text": "def _persist_verified_snapshot_durably(snapshot: dict[str, Any], *, budget=None, receipt=None) -> dict[str, Any]:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "function": "_run_publish",
+    "line": 1729,
+    "text": "def _run_publish(cache: RuntimeCache, state: dict[str, Any], *, budget=None) -> dict[str, Any]:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "function": "run_stage",
+    "line": 1902,
+    "text": "def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:",
+    "sha256": "af1ae14d70eb511b0291d048e30ef9c3c3c4112f5e33a041dcf522cfeef09736"
+  },
+  {
+    "path": "web/collector_queue.py",
+    "function": "process_collector_payload",
+    "line": 429,
+    "text": "async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, sleep=None) -> None:",
+    "sha256": "d6c4cb088cd071befe7991fab1db9383b9a99e6db0760628f09e7bf4ed0fe36c"
+  },
+  {
+    "path": "web/collector_incremental_runtime.py",
+    "function": "_publish_snapshot_if_ready",
+    "line": 515,
+    "text": "def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime, *, budget=None) -> tuple[bool, dict[str, Any] | None]:",
+    "sha256": "ed8011f07de1841faea155b81abc3b6b9fbbd6b27a089f9d345ebcb06668bd92"
+  }
+]

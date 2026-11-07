@@ -1,0 +1,87 @@
+[
+  {
+    "mode": "heartbeat",
+    "events": [
+      "heartbeat"
+    ],
+    "error_type": "CollectorStageBlocked",
+    "diagnostics": {
+      "publish_receipt": {
+        "publication_outcome": "CONFIRMED",
+        "snapshot_as_of": "2026-11-05T00:20:00+00:00"
+      },
+      "workflow_state_mutation_possible": true,
+      "finalization_error_type": "OSError"
+    }
+  },
+  {
+    "mode": "reconcile",
+    "events": [
+      "heartbeat",
+      "reconcile"
+    ],
+    "error_type": "CollectorStageBlocked",
+    "diagnostics": {
+      "publish_receipt": {
+        "publication_outcome": "CONFIRMED",
+        "snapshot_as_of": "2026-11-05T00:20:00+00:00"
+      },
+      "workflow_state_mutation_possible": true,
+      "finalization_error_type": "OSError"
+    }
+  },
+  {
+    "mode": "tick",
+    "events": [
+      "heartbeat",
+      "reconcile",
+      "tick"
+    ],
+    "error_type": "CollectorStageBlocked",
+    "diagnostics": {
+      "publish_receipt": {
+        "publication_outcome": "CONFIRMED",
+        "snapshot_as_of": "2026-11-05T00:20:00+00:00"
+      },
+      "workflow_state_mutation_possible": true,
+      "finalization_error_type": "OSError"
+    }
+  },
+  {
+    "mode": "release",
+    "events": [
+      "heartbeat",
+      "reconcile",
+      "tick",
+      "release"
+    ],
+    "error_type": "CollectorStageBlocked",
+    "diagnostics": {
+      "publish_receipt": {
+        "publication_outcome": "CONFIRMED",
+        "snapshot_as_of": "2026-11-05T00:20:00+00:00"
+      },
+      "workflow_state_mutation_possible": true,
+      "finalization_error_type": "OSError"
+    }
+  },
+  {
+    "mode": "overrun_success",
+    "events": [
+      "heartbeat",
+      "reconcile",
+      "tick",
+      "release"
+    ],
+    "error_type": null,
+    "diagnostics": {}
+  },
+  {
+    "mode": "replaced",
+    "events": [
+      "heartbeat"
+    ],
+    "error_type": null,
+    "diagnostics": {}
+  }
+]

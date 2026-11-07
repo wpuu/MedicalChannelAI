@@ -1,0 +1,26 @@
+{
+  "schema_version": "1",
+  "code_head": "a352b7a8dcb0dba3112c3dde9fd91db14b9603d4",
+  "scope": "OFFLINE_PUBLISH_CALLER_ACCEPTANCE_ONLY",
+  "apply_allowed": false,
+  "migration_usable": false,
+  "sha256": {
+    "docs/project/checkpoint.json": "61cebb172ae58799a6f75c6daaa7bc4acc40386cef599690a693ad18e01beaa6",
+    "docs/project/current-state.md": "2f072fd6f57a971da9b9d672dbe7504506c410158c60be4ba67617f053bbf62c",
+    "docs/project/next-task.md": "d20027b85e5ce3b90a1d1d6d3a1b22f02aeb4fbafdb7a17c1e10c207a6dc309d",
+    "docs/project/publish-budget-implementation-2026-11-07.md": "c3883ef3db1509ba1163bb69d7453131fb9c67e2b72c960969a95257809c4d96",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/completion.json": "765f6004cc99040db96fce78a2c942e83eb7a658046aec404c26cd1b6ee85a90",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/frozen-template-audit.json": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/input-integrity.json": "24bcd02bce4d7b3ef6b0c0635f55989a6f054e51ef70a5ecb4f1904e69d11168",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/original-cli-gate.json": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/publisher-cases.json": "d064f2a1ef7b08e99a29a28c2e2a5cf6ab0c1864cea5803c61fe29e05f3c2a45",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/put-cases.json": "36d3b0966c32dbe9e65567da5dc98c95a4e6b9299b65832af8a4a352883211c1",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/queue-tail-cases.json": "3b3d2b261b552d50d8c993de9418df6eeccd38c7b3bd9593ebe26bc2a5a6d3f5",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/regression.log": "b51c037b8124b1cb5fdf9df5b539d7bdd099e889c701554fe8217ef6e2c91226",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/reproduce-cases.py": "2806764c80546a9681c4260c85116596ec1e36467101186a04b562189b9b36aa",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/source-references.json": "a7e3445460f1d10afbded46d064879a867f89db4d75d24a1c2313da200ae8de0",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/unchanged-boundaries.json": "bc5ca8ff8eb78d1c8287d9896c5e313ad85b6e2ea7b8403f7f0c88b33eb5ec4c",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/validation-summary.json": "9ccb54bd1c3bb805d93528ee3e75554027d0f91b0907a8c77c97a02cbb9dff2c",
+    "docs/project/validation/publish-budget-implementation-2026-11-07/verify.py": "c8e7ae58892bcd7ed6f2380fe7afd08c09d2a7a93ac9f8ea246c2ab96f63260a"
+  }
+}
