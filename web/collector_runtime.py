@@ -658,6 +658,18 @@ def _cycle_as_of(state: dict[str, Any]) -> datetime:
 
 
 def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget | None = None) -> dict[str, Any]:
+    blocked_hosts = {} if budget else None
+    failures: list[dict[str, Any]] = []
+    def safe_failures():
+        rows = []
+        for item in failures:
+            if isinstance(item.get('diagnostic'), dict):
+                rows.append(item['diagnostic'])
+            else:
+                row = reported_event_failure_row({**item, 'stage': 'event_search'})
+                row['phase'] = 'index_discovery'
+                rows.append(row)
+        return failure_summary(rows)
     receipt = {'preparation_outcome': 'NOT_STARTED', 'source_transaction_committed': False,
                'bootstrap': {name: {'call_started': False, 'call_returned': False, 'mutation_possible': False}
                              for name in ('records', 'events')},
@@ -721,7 +733,6 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget |
                 raise CollectorPrecondition("COLLECTOR_CCGP_COMMITTED_STATE_CORRUPT")
             existing_records, existing_events = committed["records"], committed["events"]
 
-        failures: list[dict[str, Any]] = []
         discovered_by_url: dict[str, tuple[str, object]] = {}
         discovered_keywords: dict[str, set[str]] = {}
         planned_queries = len(plan["keywords"]) * len(plan["notice_types"])
@@ -736,7 +747,7 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget |
                 end_date=end_text,
                 delay_seconds=plan["delay_seconds"],
                 failures=failures,
-                **({"budget": budget} if budget else {}),
+                **({"budget": budget, "blocked_hosts": blocked_hosts} if budget else {}),
             )
             check('CCGP_DISCOVERY_RETURN')
             for notice_type, candidate in candidates:
@@ -767,6 +778,12 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget |
 
         new_records: list[dict[str, Any]] = []
         for notice_type, candidate in selected:
+            detail_host = urlsplit(candidate.detail_url).hostname
+            if blocked_hosts is not None and detail_host in blocked_hosts:
+                diagnostic = failure_row('verified_detail', None, candidate.detail_url)
+                diagnostic['reason'] = blocked_hosts[detail_host]
+                failures.append({'stage': 'verified_detail', 'diagnostic': diagnostic})
+                continue
             adapter = VERIFIED_NOTICE_ADAPTERS[notice_type]
             try:
                 pause(plan['delay_seconds'], 'CCGP_DETAIL_SLEEP')
@@ -774,6 +791,8 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget |
                                timeout_seconds=budget.request_timeout(30, 'CCGP_DETAIL'))
                                if budget else fetch_ccgp_detail_html(candidate.detail_url))
                 check('CCGP_DETAIL_RETURN')
+                if blocked_hosts is not None and any(marker in detail_html for marker in RATE_LIMIT_MARKERS):
+                    raise RuntimeError('CCGP_RATE_LIMITED')
                 record = adapter(
                         detail_html,
                         source_url=candidate.detail_url,
@@ -786,17 +805,12 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget |
                 raise
             except Exception as exc:
                 check('CCGP_DETAIL_ERROR_RETURN')
-                failures.append(
-                    {
-                        "stage": "verified_detail",
-                        "notice_type": notice_type,
-                        "keywords": sorted(discovered_keywords.get(candidate.detail_url, set())),
-                        "title": candidate.title,
-                        "url": candidate.detail_url,
-                        "error": type(exc).__name__,
-                        "message": str(exc)[:300],
-                    }
-                )
+                diagnostic = failure_row('verified_detail', exc, candidate.detail_url)
+                reason = access_block_reason('verified_detail', exc, candidate.detail_url) if blocked_hosts is not None else None
+                if reason:
+                    diagnostic['reason'] = reason
+                    blocked_hosts.setdefault(detail_host, reason)
+                failures.append({'stage': 'verified_detail', 'diagnostic': diagnostic})
 
         allowed, reason = ccgp_publish_gate(
             discovery_success_count=discovery_success_count,
@@ -804,16 +818,10 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget |
             new_verified_record_count=len(new_records),
         )
         if not allowed:
-            detail_failures = [item for item in failures if item.get("stage") == "verified_detail"]
-            diagnostic = ";".join(
-                f"{item.get('error')}:{item.get('message')}"
-                for item in detail_failures[:3]
-            )
-            suffix = f";DETAIL_FAILURES:{diagnostic}" if diagnostic else ""
-            raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}{suffix}")
+            raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}", diagnostics=safe_failures())
 
         if failures:
-            raise CollectorStageBlocked("CCGP_CANDIDATE_VERIFICATION_INCOMPLETE")
+            raise CollectorStageBlocked("CCGP_CANDIDATE_VERIFICATION_INCOMPLETE", diagnostics=safe_failures())
         check('CCGP_MERGE')
         merged_records = merge_canonical_records(existing_records, new_records)
         check('CCGP_MERGE_RETURN')
@@ -864,7 +872,7 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget |
     except Exception as exc:
         if not budget:
             raise
-        diagnostics = {**(getattr(exc, 'diagnostics', None) or {}),
+        diagnostics = {**safe_failures(), **(getattr(exc, 'diagnostics', None) or {}),
                        'ccgp_prepare_receipt': receipt, 'budget': budget.snapshot()}
         if receipt['preparation_outcome'] == 'NOT_STARTED' and not isinstance(exc, CliBudgetExceeded):
             try:
@@ -880,6 +888,9 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget |
 
 
 def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str, *, budget: CliBudget | None = None) -> dict[str, Any]:
+    blocked_hosts = {} if budget else None
+    def safe_failure(row):
+        return row['diagnostic'] if isinstance(row.get('diagnostic'), dict) else reported_event_failure_row(row)
     receipt = {'target': 'COMMITTED_PAIR' if stage == 'event6' else 'STAGING',
                'write_attempted': False, 'write_call_returned': False,
                'mutation_possible': False, 'outcome': 'NOT_ATTEMPTED'}
@@ -933,7 +944,7 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str, *, 
                     delay_seconds=plan["delay_seconds"],
                     observed_at=observed_at,
                     failures=failures,
-                    **({"budget": budget} if budget else {}),
+                    **({"budget": budget, "blocked_hosts": blocked_hosts} if budget else {}),
                 )
                 check('EVENT_PROJECT_RETURN')
                 new_events.extend(project_events)
@@ -941,7 +952,7 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str, *, 
                 raise
             except Exception as exc:
                 check('EVENT_PROJECT_ERROR_RETURN')
-                diagnostics = [reported_event_failure_row(row) for row in failures]
+                diagnostics = [safe_failure(row) for row in failures]
                 diagnostics.append(failure_row("event_scan", exc, project_number))
                 raise CollectorStageBlocked("EVENT_WATCH_SCAN_FAILED", diagnostics=failure_summary(diagnostics)) from exc
             project_search_failures = [
@@ -951,11 +962,11 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str, *, 
             ]
             if len(project_search_failures) >= 2:
                 raise CollectorStageBlocked("EVENT_WATCH_ALL_SEARCHES_FAILED",
-                    diagnostics=failure_summary([reported_event_failure_row(row) for row in failures]))
+                    diagnostics=failure_summary([safe_failure(row) for row in failures]))
 
         if failures:
             raise CollectorStageBlocked("EVENT_WATCH_VERIFICATION_INCOMPLETE",
-                diagnostics=failure_summary([reported_event_failure_row(row) for row in failures]))
+                diagnostics=failure_summary([safe_failure(row) for row in failures]))
         check('EVENT_MERGE')
         merged_events = merge_notice_events(existing_events, new_events)
         check('EVENT_MERGE_RETURN')

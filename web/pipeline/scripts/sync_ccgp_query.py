@@ -8,6 +8,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -19,6 +20,7 @@ from medical_channel_pipeline.ccgp_detail import (  # noqa: E402
 )
 from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
     REGION_ZONE_IDS,
+    RATE_LIMIT_MARKERS,
     build_search_url,
     fetch_search_page,
     is_primary_opportunity_candidate,
@@ -92,7 +94,11 @@ def scan_events(
     observed_at: str,
     failures: list[dict],
     budget=None,
+    blocked_hosts: dict[str, str] | None = None,
 ) -> list[dict]:
+    if blocked_hosts is not None:
+        from sync_regional_ccgp import access_block_reason
+        from collector_diagnostics import failure_row
     budget_errors = ()
     if budget:
         # The regional script imports this module: keep the reverse edge lazy.
@@ -118,6 +124,9 @@ def scan_events(
             end_date=end_date,
             region=region,
         )
+        search_host = urlsplit(search_url).hostname
+        if blocked_hosts is not None and search_host in blocked_hosts:
+            raise RuntimeError('CCGP_EVENT_SEARCH_ACCESS_BLOCKED')
         try:
             html = (fetch_search_page(search_url, timeout_seconds=budget.request_timeout(30, 'EVENT_SEARCH'))
                     if budget else fetch_search_page(search_url))
@@ -128,21 +137,34 @@ def scan_events(
             raise
         except Exception as exc:  # explicit report; no bypass/retry storm
             check('EVENT_SEARCH_ERROR_RETURN')
-            failures.append(
-                {
-                    'stage': 'event_search',
-                    'region': region,
-                    'project_number': project_number,
-                    'notice_type': notice_type,
-                    'error': type(exc).__name__,
-                    'message': str(exc)[:300],
-                }
-            )
+            report = {
+                'stage': 'event_search',
+                'region': region,
+                'project_number': project_number,
+                'notice_type': notice_type,
+                'error': type(exc).__name__,
+                'message': str(exc)[:300],
+            }
+            reason = access_block_reason('event_search', exc, search_url) if blocked_hosts is not None else None
+            if blocked_hosts is not None:
+                report['diagnostic'] = failure_row('event_search', exc, search_url)
+                if reason:
+                    report['diagnostic']['reason'] = reason
+            failures.append(report)
+            if reason:
+                blocked_hosts.setdefault(search_host, reason)
+                raise RuntimeError('CCGP_EVENT_SEARCH_ACCESS_BLOCKED') from exc
             continue
 
         for candidate in candidates:
             check('EVENT_CANDIDATE_ADMISSION')
             if project_number.lower() not in candidate.title.lower():
+                continue
+            detail_host = urlsplit(candidate.detail_url).hostname
+            if blocked_hosts is not None and detail_host in blocked_hosts:
+                diagnostic = failure_row('event_detail', None, candidate.detail_url)
+                diagnostic['reason'] = blocked_hosts[detail_host]
+                failures.append({'stage': 'event_detail', 'diagnostic': diagnostic})
                 continue
             event = None
             try:
@@ -151,6 +173,8 @@ def scan_events(
                                timeout_seconds=budget.request_timeout(30, 'EVENT_DETAIL'))
                                if budget else fetch_ccgp_detail_html(candidate.detail_url))
                 check('EVENT_DETAIL_RETURN')
+                if blocked_hosts is not None and any(marker in detail_html for marker in RATE_LIMIT_MARKERS):
+                    raise RuntimeError('CCGP_RATE_LIMITED')
                 event = parse_ccgp_event_html(
                     detail_html,
                     source_url=candidate.detail_url,
@@ -162,17 +186,22 @@ def scan_events(
                 raise
             except Exception as exc:
                 check('EVENT_DETAIL_ERROR_RETURN')
-                failures.append(
-                    {
-                        'stage': 'event_detail',
-                        'region': region,
-                        'project_number': project_number,
-                        'url': candidate.detail_url,
-                        'error': type(exc).__name__,
-                        'message': str(exc)[:300],
-                    }
-                )
-                if candidate.published_at:
+                report = {
+                    'stage': 'event_detail',
+                    'region': region,
+                    'project_number': project_number,
+                    'url': candidate.detail_url,
+                    'error': type(exc).__name__,
+                    'message': str(exc)[:300],
+                }
+                reason = access_block_reason('event_detail', exc, candidate.detail_url) if blocked_hosts is not None else None
+                if blocked_hosts is not None:
+                    report['diagnostic'] = failure_row('event_detail', exc, candidate.detail_url)
+                    if reason:
+                        report['diagnostic']['reason'] = reason
+                        blocked_hosts.setdefault(detail_host, reason)
+                failures.append(report)
+                if candidate.published_at and not reason:
                     # Conservative fallback: official discovery of a correction/termination
                     # is enough to suppress the stale card, but never enough to rewrite facts.
                     event = discovery_event(
@@ -199,7 +228,11 @@ def discover_candidates(
     delay_seconds: float,
     failures: list[dict],
     budget=None,
+    blocked_hosts: dict[str, str] | None = None,
 ) -> list[tuple[str, object]]:
+    if blocked_hosts is not None:
+        from sync_regional_ccgp import access_block_reason
+        from collector_diagnostics import failure_row
     budget_errors = ()
     if budget:
         from sync_regional_ccgp import CliBudgetExceeded
@@ -222,6 +255,9 @@ def discover_candidates(
             end_date=end_date,
             region=region,
         )
+        search_host = urlsplit(search_url).hostname
+        if blocked_hosts is not None and search_host in blocked_hosts:
+            raise RuntimeError('CCGP_DISCOVERY_ACCESS_BLOCKED')
         try:
             html = (fetch_search_page(search_url, timeout_seconds=budget.request_timeout(30, 'CCGP_SEARCH'))
                     if budget else fetch_search_page(search_url))
@@ -232,15 +268,22 @@ def discover_candidates(
             raise
         except Exception as exc:
             check('CCGP_SEARCH_ERROR_RETURN')
-            failures.append(
-                {
-                    'stage': 'discovery_search',
-                    'region': region,
-                    'notice_type': notice_type,
-                    'error': type(exc).__name__,
-                    'message': str(exc)[:300],
-                }
-            )
+            report = {
+                'stage': 'discovery_search',
+                'region': region,
+                'notice_type': notice_type,
+                'error': type(exc).__name__,
+                'message': str(exc)[:300],
+            }
+            reason = access_block_reason('index_discovery', exc, search_url) if blocked_hosts is not None else None
+            if blocked_hosts is not None:
+                report['diagnostic'] = failure_row('index_discovery', exc, search_url)
+                if reason:
+                    report['diagnostic']['reason'] = reason
+            failures.append(report)
+            if reason:
+                blocked_hosts.setdefault(search_host, reason)
+                raise RuntimeError('CCGP_DISCOVERY_ACCESS_BLOCKED') from exc
             candidates = []
         for candidate in candidates:
             check('CCGP_DISCOVERY_CANDIDATE')
@@ -401,15 +444,15 @@ def main() -> int:
         'failure_count': len(failures),
         'failures': failures,
         'policy': {
-            'region_is_explicitly_scoped_in_ccgp_query': True,
-            'previous_canonical_state_is_preserved': True,
-            'active_old_projects_continue_event_monitoring': True,
-            'event_watch_over_cap_fails_closed': True,
-            'discovery_only_never_becomes_verified_without_detail': True,
-            'primary_candidate_budget_excludes_result_and_event_notices': True,
-            'only_notice_types_with_explicit_verified_adapter_are_collected': True,
-            'rate_limit_bypass': False,
-            'minimum_request_delay_seconds': args.delay_seconds,
+        'region_is_explicitly_scoped_in_ccgp_query': True,
+        'previous_canonical_state_is_preserved': True,
+        'active_old_projects_continue_event_monitoring': True,
+        'event_watch_over_cap_fails_closed': True,
+        'discovery_only_never_becomes_verified_without_detail': True,
+        'primary_candidate_budget_excludes_result_and_event_notices': True,
+        'only_notice_types_with_explicit_verified_adapter_are_collected': True,
+        'rate_limit_bypass': False,
+        'minimum_request_delay_seconds': args.delay_seconds,
         },
     }
 

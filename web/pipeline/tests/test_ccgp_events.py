@@ -99,7 +99,7 @@ RESPONSE_CORRECTION_URL = 'https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202605/t202605
 
 
 class CcgpEventTests(unittest.TestCase):
-    def event_budget_scan_case(self, mode="success", *, elapsed=0, use_budget=True):
+    def event_budget_scan_case(self, mode="success", *, elapsed=0, use_budget=True, use_guard=False):
         import sys
         from types import SimpleNamespace
         from unittest.mock import patch
@@ -107,6 +107,7 @@ class CcgpEventTests(unittest.TestCase):
         import sync_ccgp_query as query
         from sync_regional_ccgp import CliBudget, CliBudgetExceeded
         tick, calls, failures, sleeps = [float(elapsed)], [], [], []
+        blocked_hosts = {} if use_guard else None
         def sleep(delay):
             sleeps.append(delay)
             tick[0] = 180 if mode == "sleep_late" else tick[0] + delay
@@ -115,6 +116,9 @@ class CcgpEventTests(unittest.TestCase):
                                     published_at="2026-09-01")
         def search(url, **kwargs):
             calls.append(("search", kwargs.get("timeout_seconds")))
+            if mode == "search_denied":
+                from urllib.error import HTTPError
+                raise HTTPError(url, 429, "token=secret", {}, None)
             if mode in ("search_late", "search_error_late", "search_none_late"): tick[0] = 180
             if mode == "search_error_late": raise TimeoutError("OFFLINE")
             return None if mode == "search_none_late" else "offline index"
@@ -124,6 +128,12 @@ class CcgpEventTests(unittest.TestCase):
             return [candidate] if sum(k == "search" for k, _ in calls) == 1 else []
         def detail(url, **kwargs):
             calls.append(("detail", kwargs.get("timeout_seconds")))
+            if mode in ("detail_denied", "detail_wrapped"):
+                from urllib.error import HTTPError
+                error = HTTPError(url, 403, "token=secret", {}, None)
+                if mode == "detail_wrapped": raise RuntimeError("secret") from error
+                raise error
+            if mode == "detail_marker": return "您的访问过于频繁"
             if mode in ("detail_late", "detail_error_late", "detail_none_late"): tick[0] = 180
             if mode == "detail_error_late": raise TimeoutError("OFFLINE")
             return None if mode == "detail_none_late" else CORRECTION_FIXTURE
@@ -141,10 +151,11 @@ class CcgpEventTests(unittest.TestCase):
             try:
                 events = query.scan_events("XCSD-2026-C-181", region="天津", start_date="2026:09:01",
                     end_date="2026:09:02", delay_seconds=4, observed_at="2026-09-02T00:00:00+00:00",
-                    failures=failures, **({"budget": budget} if use_budget else {}))
-            except CliBudgetExceeded as exc:
+                    failures=failures, **({"budget": budget} if use_budget else {}),
+                    **({"blocked_hosts": blocked_hosts} if use_guard else {}))
+            except (CliBudgetExceeded, RuntimeError) as exc:
                 error = exc
-        return {"events": events, "error": error, "calls": calls, "failures": failures, "sleeps": sleeps}
+        return {"events": events, "error": error, "calls": calls, "failures": failures, "sleeps": sleeps, "blocked_hosts": blocked_hosts}
 
     def test_event_budget_zero_request_at_deadline_or_margin(self):
         for elapsed in (179, 180):
@@ -203,8 +214,43 @@ class CcgpEventTests(unittest.TestCase):
                        " if event in ('socket.connect','socket.getaddrinfo'): raise RuntimeError('NETWORK_FORBIDDEN')\n"
                        "sys.addaudithook(offline)\nsys.path.insert(0," + repr(str(ROOT / "scripts")) +
                        ");sys.path.insert(0," + repr(str(ROOT)) + ");import " + order)
+            command += ("\nfrom sync_ccgp_query import discover_candidates,scan_events\n"
+                        "scope={'search.ccgp.gov.cn':'HTTP_403'}\n"
+                        "for fn,kw in [(discover_candidates,dict(keyword='医院',notice_types=['公开招标'])),"
+                        "(scan_events,dict(project_number='p',observed_at='2026-11-06T00:00:00+00:00'))]:\n"
+                        " try:fn(region='天津',start_date='2026-11-05',end_date='2026-11-06',delay_seconds=4,failures=[],blocked_hosts=scope,**kw)\n"
+                        " except RuntimeError as e:assert 'ACCESS_BLOCKED' in str(e)\n"
+                        " else:raise AssertionError('guard did not reject')\n")
             result = subprocess.run([sys.executable, "-B", "-c", command], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_guarded_event_search_denial_stops_second_type_without_fallback(self):
+        for use_budget in (True, False):
+            c = self.event_budget_scan_case("search_denied", use_budget=use_budget, use_guard=True)
+            self.assertEqual([kind for kind, _ in c["calls"]], ["search"])
+            self.assertIsNotNone(c["error"])
+            self.assertIsNone(c["events"])
+            self.assertEqual(c["blocked_hosts"], {"search.ccgp.gov.cn": "HTTP_429"})
+
+    def test_guarded_event_detail_denial_never_builds_discovery_fallback(self):
+        for mode in ("detail_denied", "detail_wrapped", "detail_marker"):
+            for use_budget in (True, False):
+                with self.subTest(mode=mode, use_budget=use_budget):
+                    c = self.event_budget_scan_case(mode, use_budget=use_budget, use_guard=True)
+                    self.assertIsNone(c["error"])
+                    self.assertEqual(c["events"], [])
+                    self.assertEqual(len(c["failures"]), 1)
+                    self.assertIn("www.ccgp.gov.cn", c["blocked_hosts"])
+                    self.assertNotIn("search.ccgp.gov.cn", c["blocked_hosts"])
+                    self.assertEqual([kind for kind, _ in c["calls"]], ["search", "detail", "search"])
+
+    def test_guard_is_opt_in_and_preserves_ordinary_discovery_fallback(self):
+        default = self.event_budget_scan_case("detail_denied")
+        self.assertEqual(len(default["events"]), 1)
+        for use_guard in (True, False):
+            ordinary = self.event_budget_scan_case("ordinary_parse_error", use_guard=use_guard)
+            self.assertEqual(len(ordinary["events"]), 1)
+            self.assertEqual(ordinary["blocked_hosts"], {} if use_guard else None)
 
     @classmethod
     def setUpClass(cls) -> None:

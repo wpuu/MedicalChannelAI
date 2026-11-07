@@ -1067,6 +1067,180 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
             self.assertEqual(c["result_count"], 3)
             if not use_budget: self.assertEqual(c["calls"], [None, None])
 
+    def ccgp_access_case(self, *, stage="ccgp", where="detail", mode="http", code=403, mixed_hosts=False, use_budget=True, retry=False):
+        """Existing runtime/query pipeline with only local transport/search fixtures."""
+        from urllib.error import HTTPError, URLError
+        from tests.test_ccgp_events import CORRECTION_FIXTURE
+        r = self.runtime
+        query = importlib.import_module("sync_ccgp_query")
+        now = datetime(2026, 11, 6, 8, tzinfo=timezone.utc)
+        fixture = WEB_ROOT / "pipeline/tests/fixtures/ccgp_tianjin_dakoutun_20261105.html"
+        metadata = json.loads(fixture.with_suffix(".manifest.json").read_text())
+        fact_html = fixture.read_bytes().decode(metadata["encoding"])
+        committed = {"cycle_as_of": "prior", "records": [], "events": []}
+        staged = {"cycle_as_of": now.isoformat(), "records": [], "events": []}
+        for key, value in ((r.CCGP_RECORDS_KEY, []), (r.CCGP_EVENTS_KEY, []),
+                           (r.CCGP_COMMITTED_STATE_KEY, committed), (r.CCGP_CYCLE_STAGING_KEY, staged)):
+            self.cache.set(key, value)
+        pending = self.incremental._pending_barrier_cache_key("ccgp")
+        sibling = self.incremental._pending_cache_key("tjzyefy")
+        self.cache.set(pending, ["unresolved"] if mode not in ("success", "empty") else [])
+        self.cache.set(sibling, [{"opportunity_id": "verified-sibling"}])
+        pending_before = self.cache.get(pending)
+        prior = (now - timedelta(days=1)).isoformat()
+        self.cache.set(r.SOURCE_HEALTH_KEY, {"schema_version": "0.1", "sources": {"ccgp": {"last_successful_scan_at": prior}}})
+        stages = {name: {"status": "COMPLETED"} for name in r.STAGE_ORDER[:r.STAGE_ORDER.index(stage)]}
+        if stage != "ccgp":
+            stages["ccgp"]["result"] = {"start_date": "2026-11-04", "end_date": "2026-11-06"}
+        self.cache.set(r.META_KEY, {"cycle_as_of": now.isoformat(), "local_date": now.date().isoformat(), "stages": stages})
+        prefix = 25 if stage == "event6" else 0
+        self.cache.set(r.CCGP_WATCH_KEY, [f"project-{i}" for i in range(prefix + 2)])
+        watch_before = self.cache.get(r.CCGP_WATCH_KEY)
+        tick, calls, parses = [0.0], [], []
+        budget = r.CliBudget(lambda: tick[0], lambda d: tick.__setitem__(0, tick[0] + d),
+                             total_seconds=270, work_seconds=150 if stage == "ccgp" else 180, started_at=0)
+        def transport(kind, url, **kwargs):
+            calls.append((kind, url, kwargs.get("timeout_seconds")))
+            first = sum(row[0] == kind for row in calls) == 1
+            if first and kind == where:
+                if mode in ("late", "error_late"): tick[0] = budget.work_seconds
+                if mode in ("http", "wrapped", "503", "error_late"):
+                    error = HTTPError(url, 503 if mode == "503" else code, "token=secret", {}, None)
+                    if mode == "wrapped": raise RuntimeError("outer token=secret") from error
+                    raise error
+                if mode == "timeout": raise TimeoutError("token=secret")
+                if mode == "network": raise URLError("token=secret")
+                if mode == "marker": return "您的访问过于频繁 token=secret"
+            return "offline index" if kind == "search" else fact_html if stage == "ccgp" else CORRECTION_FIXTURE
+        def search_parse(html, *, keyword):
+            if "访问过于频繁" in html: raise RuntimeError("CCGP_RATE_LIMITED")
+            if mode == "empty": return []
+            urls = [metadata["url"] + f"?offline={i}" for i in range(2)]
+            if stage != "ccgp": urls = [url + f"&offline-query={sum(row[0] == 'search' for row in calls)}" for url in urls]
+            if mixed_hosts: urls.append(urls[0].replace("www.ccgp.gov.cn", "ccgp.gov.cn"))
+            return [types.SimpleNamespace(title=keyword + " 医院设备", published_at="2026-11-05", detail_url=url,
+                     notice_type="公开招标", region="天津", buyer_name="医院") for url in urls]
+        original_adapter = r.VERIFIED_NOTICE_ADAPTERS["公开招标"]
+        original_event = query.parse_ccgp_event_html
+        def parse(html, **kwargs):
+            parses.append(kwargs["source_url"])
+            if mode == "parse" and len(parses) == 1: raise ValueError("token=secret")
+            return original_adapter(html, **kwargs) if stage == "ccgp" else original_event(html, **kwargs)
+        plan = {"region": "天津", "keywords": ["医院", "医疗"], "notice_types": ["公开招标", "竞争性磋商"],
+                "lookback_days": 3, "max_candidates": 12, "max_event_watch_projects": 30, "delay_seconds": 4}
+        with patch.object(r, "load_plan", return_value=plan), patch.object(r, "_now_utc", return_value=now), patch.object(
+                query, "fetch_search_page", side_effect=lambda url, **kw: transport("search", url, **kw)), patch.object(
+                query, "parse_search_html", side_effect=search_parse), patch.object(
+                r, "fetch_ccgp_detail_html", side_effect=lambda url, **kw: transport("detail", url, **kw)), patch.object(
+                query, "fetch_ccgp_detail_html", side_effect=lambda url, **kw: transport("detail", url, **kw)), patch.dict(
+                r.VERIFIED_NOTICE_ADAPTERS, {"公开招标": parse}), patch.object(query, "parse_ccgp_event_html", side_effect=parse):
+            status, result = r.run_stage(stage, now=now, **({"budget": budget} if use_budget else {}))
+            first_call_count = len(calls)
+            if retry:
+                fresh = r.CliBudget(lambda: tick[0], lambda d: tick.__setitem__(0, tick[0] + d),
+                                    total_seconds=270, work_seconds=budget.work_seconds, started_at=tick[0])
+                status, result = r.run_stage(stage, now=now, budget=fresh)
+        row = self.cache.get(r.META_KEY)["stages"][stage]
+        return {"status": status, "result": result, "row": row, "calls": calls, "parses": parses, "retry_calls": calls[first_call_count:],
+                "committed_unchanged": self.cache.get(r.CCGP_COMMITTED_STATE_KEY) == committed,
+                "staging_unchanged": self.cache.get(r.CCGP_CYCLE_STAGING_KEY) == staged,
+                "watch_unchanged": self.cache.get(r.CCGP_WATCH_KEY) == watch_before,
+                "pending_unchanged": self.cache.get(pending) == pending_before and self.cache.get(sibling) == [{"opportunity_id": "verified-sibling"}],
+                "success_clock_unchanged": self.cache.get(r.SOURCE_HEALTH_KEY)["sources"]["ccgp"]["last_successful_scan_at"] == prior}
+
+    def test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages(self):
+        for stage in ("ccgp", "event1", "event6"):
+            for code in (401, 403, 429):
+                with self.subTest(stage=stage, code=code):
+                    c = self.ccgp_access_case(stage=stage, code=code)
+                    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+                    self.assertEqual(c["status"], 503)
+                    self.assertTrue(c["committed_unchanged"] and c["staging_unchanged"] and c["pending_unchanged"] and c["success_clock_unchanged"])
+
+    def test_ccgp_search_denial_stops_types_keywords_and_event_projects(self):
+        for stage in ("ccgp", "event1", "event6"):
+            for mode, code in (("http", 401), ("http", 403), ("http", 429), ("wrapped", 403), ("marker", 403)):
+                with self.subTest(stage=stage, mode=mode, code=code):
+                    c = self.ccgp_access_case(stage=stage, where="search", mode=mode, code=code)
+                    self.assertEqual([row[0] for row in c["calls"]], ["search"])
+                    self.assertEqual(c["status"], 503)
+                    self.assertTrue(c["committed_unchanged"] and c["staging_unchanged"] and c["pending_unchanged"])
+                    self.assertNotIn("secret", json.dumps(c["row"]))
+                    self.assertTrue(c["row"]["diagnostics"]["reason_counts"])
+
+    def test_ccgp_detail_cause_and_marker_stop_before_adapter_and_keep_safe_diagnostics(self):
+        for stage in ("ccgp", "event1", "event6"):
+            for mode in ("wrapped", "marker"):
+                with self.subTest(stage=stage, mode=mode):
+                    c = self.ccgp_access_case(stage=stage, mode=mode)
+                    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+                    self.assertEqual(c["parses"], [])
+                    self.assertEqual(c["status"], 503)
+                    diagnostics = c["row"]["diagnostics"]
+                    self.assertIn("RATE_LIMITED" if mode == "marker" else "HTTP_403", diagnostics["reason_counts"])
+                    self.assertLessEqual(len(diagnostics["samples"]), 5)
+                    for row in diagnostics["samples"]:
+                        self.assertEqual(len(row["candidate_ref"]), 64)
+                    wire = json.dumps(c["row"])
+                    for raw in ("secret", "http", "project-", "医院", "outer"):
+                        self.assertNotIn(raw, wire)
+                    self.assertTrue(c["committed_unchanged"] and c["pending_unchanged"] and c["success_clock_unchanged"])
+
+    def test_ccgp_actual_hosts_are_independent_but_partial_stage_never_commits(self):
+        from urllib.parse import urlsplit
+        for stage in ("ccgp", "event1", "event6"):
+            c = self.ccgp_access_case(stage=stage, mixed_hosts=True)
+            hosts = [urlsplit(url).hostname for kind, url, timeout in c["calls"] if kind == "detail"]
+            self.assertEqual(hosts.count("www.ccgp.gov.cn"), 1)
+            self.assertGreater(hosts.count("ccgp.gov.cn"), 0)
+            self.assertTrue(any(urlsplit(url).hostname == "ccgp.gov.cn" for url in c["parses"]))
+            self.assertEqual(c["status"], 503)
+            self.assertTrue(c["committed_unchanged"] and c["staging_unchanged"] and c["pending_unchanged"])
+
+    def test_ccgp_ordinary_errors_do_not_seal_host_or_change_failure_guards(self):
+        for stage in ("ccgp", "event1", "event6"):
+            for where in ("search", "detail"):
+                for mode in ("timeout", "network", "503", "parse"):
+                    if mode == "parse" and where == "search": continue
+                    with self.subTest(stage=stage, where=where, mode=mode):
+                        c = self.ccgp_access_case(stage=stage, where=where, mode=mode)
+                        self.assertGreater(len([row for row in c["calls"] if row[0] == where]), 1)
+                        self.assertEqual(c["status"], 503)
+                        self.assertTrue(c["committed_unchanged"] and c["pending_unchanged"] and c["success_clock_unchanged"])
+                        self.assertNotIn("secret", json.dumps(c["row"]))
+
+    def test_ccgp_complete_and_empty_paths_keep_preparation_and_pair_boundaries(self):
+        for stage in ("ccgp", "event1", "event6"):
+            for mode in ("success", "empty"):
+                with self.subTest(stage=stage, mode=mode):
+                    c = self.ccgp_access_case(stage=stage, mode=mode)
+                    self.assertEqual(c["status"], 200)
+                    if stage == "ccgp":
+                        self.assertEqual(c["result"]["result"]["ccgp_prepare_receipt"]["preparation_outcome"], "PREPARED_LOCAL_READBACK")
+                    self.assertEqual(c["committed_unchanged"], stage != "event6")
+                    self.assertTrue(c["pending_unchanged"])
+                    self.assertEqual(c["success_clock_unchanged"], stage != "event6")
+
+    def test_ccgp_host_denial_is_local_to_one_retry_and_absent_from_default_path(self):
+        for stage in ("ccgp", "event1", "event6"):
+            retried = self.ccgp_access_case(stage=stage, retry=True)
+            self.assertEqual(retried["row"]["attempt_count"], 2)
+            self.assertTrue(any(row[0] == "detail" for row in retried["retry_calls"]))
+            default = self.ccgp_access_case(stage=stage, use_budget=False)
+            self.assertGreater(len([row for row in default["calls"] if row[0] == "detail"]), 1)
+            self.assertEqual(default["status"], 503)
+
+    def test_ccgp_access_handling_never_consumes_late_error_or_response_as_evidence(self):
+        for stage in ("ccgp", "event1", "event6"):
+            for where in ("search", "detail"):
+                for mode in ("late", "error_late"):
+                    c = self.ccgp_access_case(stage=stage, where=where, mode=mode)
+                    self.assertEqual(c["status"], 503)
+                    self.assertTrue(c["committed_unchanged"] and c["staging_unchanged"] and c["pending_unchanged"])
+                    self.assertEqual(len([row for row in c["calls"] if row[0] == where]), 1)
+                    self.assertIn("WORK_BUDGET_EXCEEDED", c["result"]["error"])
+                    self.assertTrue(all(0 < row[2] <= 30 for row in c["calls"]))
+
     def ccgp_stage_budget_case(self, mode="success", *, count=1, elapsed=0, use_budget=True):
         r = self.runtime
         now = datetime(2026, 11, 6, 8, tzinfo=timezone.utc)
