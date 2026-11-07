@@ -1,31 +1,23 @@
-# 下一轮：Queue CCGP单次stage明确拒绝止损R1（待明确四文件授权）
+# 下一轮：现有d Preview一次性验收变更与授权决策包（仅离线文档）
 
-收口文档6aaaa66已完成，本轮重复指令仅复核并确认无新变化；后续先核对真实HEAD和本次checkpoint，不重复同一审查。应用仍fea6fc7，1202/10/3为既有结果。本提示词在用户明确提交后才授权四文件代码，不由当前文档授权自动扩展。最新文档提交以HEAD/checkpoint核对。推荐GPT-6.1 Sol xhigh，实际设置未核实。
+R1代码3f88ff7已离线关闭，1213/10/3通过。下一轮不重复收口、修复或测试，只准备一份具体可审阅的真实验收决策包；不由该文档任务自动授权云端动作。推荐GPT-6.1 Sol xhigh，实际设置未核实。
 
 ```text
-继续 MedicalChannelAI。我明确授权仅在现有隔离分支，离线复现并最小修复Queue CCGP发现/事实及event1–event6共用路径的单次stage明确拒绝止损R1，并保持安全诊断；不实现跨进程冷却或Retry-After。
+继续 MedicalChannelAI，仅离线形成现有d Preview一次性验收变更与授权决策包，只改文档和新增静态artifact。
 
-先核对 /workspace/MedicalChannelAI-p0 最新HEAD、未提交改动及在途工作。当前应用代码fea6fc7，最新成果以真实HEAD及checkpoint为准。读取用户最新指令及 docs/project/working-protocol.md、current-state.md、checkpoint.json、next-task.md、ccgp-mainline-reliability-closeout-2026-11-07.md、ccgp-discovery-stage-budget-implementation-2026-11-07.md、ccgp-event-stage-budget-implementation-2026-11-07.md、runtime-regional-access-stop-2026-11-07.md、action-radar-acceptance-contract.md。1202/10/3是已有通过结果，不重复区域/CLI/预算/回执修复；SDK及强保证保持CLOSED NO-GO。
+先核对 /workspace/MedicalChannelAI-p0 最新HEAD、未提交改动及在途工作。当前R1代码3f88ff7，最新文档成果以真实HEAD/checkpoint为准。读取用户最新指令及 docs/project/working-protocol.md、current-state.md、checkpoint.json、next-task.md、ccgp-runtime-access-stop-2026-11-07.md、ccgp-mainline-reliability-closeout-2026-11-07.md、ccgp-discovery-stage-budget-implementation-2026-11-07.md、ccgp-event-stage-budget-implementation-2026-11-07.md、publish-budget-implementation-2026-11-07.md、ccgp-cloud-metadata-2026-11-06.md、ccgp-preview-readback-2026-11-06.md、action-radar-acceptance-contract.md。
 
-只修改四个既有文件，另更新文档和新增artifact：
-web/collector_runtime.py
-web/pipeline/scripts/sync_ccgp_query.py
-web/pipeline/tests/test_runtime_source_parity_behavior.py
-web/pipeline/tests/test_ccgp_events.py
+1213/10/3是已有结果，R1 Queue CCGP单次stage子项已复现修复关闭，不重复施工或重跑未变测试。SDK及硬取消/原子提交/崩溃持久回执强保证保持CLOSED NO-GO，不重开审计、不增加模拟层、不机械铺其他来源预算。
 
-先用既有runtime/helper入口、MemoryCache/transport桩、冻结样本、假时钟和临时目录复现明确拒绝后继续同host请求；阻断外网和真实SDK。若已修或不能复现，给证据关闭，不凑修复。
+只读最新部署入口/路由、构建与测试命令、Queue身份/epoch、运行缓存和发布调用者、权威endpoint及直接helper源码。用现有项目prj_7fk44eKUhdbfTUaXxEBMgIzZiqUM、既有mcai-p0-20261106-d周期和已有Preview的历史记录作核对起点，明确历史部署/来源SHA不等于当前云端状态，不查询云端或实际配置。
 
-仅Queue ccgp及event1–6显式启用单次stage的host拒绝集合，复用access_block_reason、RATE_LIMIT_MARKERS和failure_row/failure_summary；helper只增加可选参数，反向区域依赖必须函数内延迟取得，避免循环导入。发现跨关键词、事件同片跨项目共享stage内范围，不跨stage、重试、进程或部署共享。
+形成唯一一次性计划及go/no-go表：准确列本地拟部署来源与已验证范围、需要重新只读核实的项目/部署/消费者身份、构建和离线门禁、最小受控来源/消息/请求数量上限、退出条件、会发生的canonical/staging/pending/健康/公开快照/Queue副作用、失败/迟到/未知时的保留与恢复边界。区分部署、真实触发、读回及清理各自所需授权，不将旧授权自动扩展。
 
-HTTP401/403/429、限流HTML及包装cause明确拒绝后，同实际URL hostname后续业务请求0。搜索/www/裸域不合并；另一合法详情host可独立核验，但不完整stage不得提交。搜索拒绝可立即拒绝不完整stage；不影响其他独立来源。普通及时超时、网络错误、503和解析错误不得误封全host，原及时普通事件fallback保持；拒绝或跳过详情不得制造新核验/fallback。
+验收判据分别覆盖源配置范围完整性、未解决pending/兄弟staging/旧canonical、成功时钟、精确版本和内容读回、权威ACK与Node/Python副本、stage/bucket/lease及独立来源。合法空、部分失败、未知写和延期退出须如实判定；本地mock、读回匹配或ACK不能当当前完整采集、真实持久化或客户交付。
 
-CCGP事实失败改用固定原因、阶段计数和最多5个哈希，移除拼接原异常正文；不把URL、标题、项目号、查询或秘密写入workflow诊断。保持既有事件/区域安全诊断，不改共享分类器或HTTP helper。
+全部依据须引用最新源码行号和版本绑定。缺失身份、权限或安全执行证据标未核实并明确NO-GO，给一份完整阻断清单后结束本分支，不拆成多轮模拟补证，不猜造SDK能力或降低既有完整性合同。若无可满足路径就明确暂停，不自动部署、触发或申请权限。
 
-保留270/150/60/60发现预算、270/180/30/60事件预算及原点、seed初始化披露、committed优先、双键准备读回/部分未知、完整片/单键配对、pending、成功时钟、首次重试与最终降级、owner/lease和独立调度。无guard/CLI默认路径保持，不调整预算、Queue或健康协议，不宣称零写、回滚、硬取消或真实持久化。
+仅现有隔离分支文档和新增静态artifact。不改应用、测试、workflow、依赖锁、计划、变量、权限或保护，不导入执行应用/SDK/采集/模型/测试。不联网，不读凭据/实际环境值/运行日志，不访问云端、业务接口、真实缓存、数据库、函数或Queue。不新建环境/路由，不部署、不推送、不触发workflow，不写运行数据、原始历史数据或公开快照。apply_allowed、migration_usable始终false，前台20分钟。
 
-验收覆盖两个查询类型、两个关键词/同host详情、同片两个项目、event1/event6、401/403/429/cause/marker、不同host与普通错误反例、下一次stage重试、完整成功和合法空、无guard兼容、两种导入顺序及诊断无原文。保留旧canonical/pending/兄弟staging/成功时钟及写后未知回执，运行必要离线Python回归和10/3，按实际结果记录新增数量。需要扩四文件或修改禁止协议则给证据NO-GO，不另建模拟层。
-
-仅现有隔离分支上述离线代码/测试、文档和新增artifact。不联网、不安装执行真实SDK、不读凭据/实际环境值/运行日志，不访问云端、业务接口、真实缓存、数据库、函数、Queue或模型。不新建环境/路由，不改其他应用文件、依赖锁、workflow、计划、变量、权限或保护，不部署、不推送、不触发workflow，不写运行数据、原始历史数据或公开快照。apply_allowed、migration_usable始终false，前台20分钟。
-
-结束时更新状态、证据和下一轮完整任务，报告复现、修改、实际验证及未完成项。按钮不可用时明确说明并提供完整提示词；推荐GPT-6.1 Sol xhigh，实际设置未核实。
+结束时更新状态、证据和下一轮完整任务，报告实际完成、静态验证和未完成项。按钮不可用时明确说明并提供完整提示词；推荐GPT-6.1 Sol xhigh，实际设置未核实。
 ```

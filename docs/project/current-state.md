@@ -2,7 +2,15 @@
 
 Updated: 2026-11-07（Asia/Shanghai）
 
-## 当前CCGP主链F1/F2/F3收口（仅离线静态审查完成）
+## 当前Queue CCGP单次stage拒绝止损R1（已离线复现、修复、验收）
+
+- 起点7e65828，代码3f88ff7，恰好授权四文件变更。[实现报告](ccgp-runtime-access-stop-2026-11-07.md)、[证据](validation/ccgp-runtime-access-stop-2026-11-07/manifest.json)。先复现9个子例：401/403/429后事实共2、事件共8次详情请求，期望1；修复后同host后续0。
+- Queue ccgp/event1–6仅stage局部共享host字典，复用现有分类器/marker/安全汇总；搜索拒绝直接失败，详情另一实际host独立。普通超时/网络/503/解析不封全host，及时普通fallback和无guard/CLI默认保持。事实诊断不再拼原异常正文；原预算/双键准备/配对/pending/健康/Queue/lease协议不改。
+- 新增11项测试；最终1213项Python、10模板、3原CLI通过，78源/10helper回放；612份原输入与451份其他web/workflow文件不变。没有外网/真实SDK/项目模型/实际环境值/凭据/运行日志/云端或运行数据访问，没有部署/推送/触发/新环境/计划权限变更。apply_allowed/migration_usable=false。
+- 仅R1 Queue CCGP单次stage子项关闭；跨进程冷却/Retry-After、其他来源止损、剩余7deep/7其他增量预算及真实部署/来源恢复/持久化/召回/交付未完成。SDK及硬取消/原子提交/崩溃持久回执强保证CLOSED NO-GO。
+- [唯一下一轮](next-task.md)仅离线文档形成现有d Preview一次性验收变更/授权决策包，不重复收口或重跑未变1213/10/3，不重开SDK/强保证或机械铺预算；缺证据明确NO-GO，不拆多轮模拟。当前界面无法生成该按钮；推荐GPT-6.1 Sol xhigh，实际设置未核实。
+
+## 上轮CCGP主链收口（历史审查，R1现已离线修复）
 
 - 重复任务复核：实际HEAD已为6aaaa66，比提示中的1f40e91更新；本轮复用已完成收口，静态verify通过且应用/证据无变化，没有新缺口、测试重跑或代码授权扩展。[复核记录](validation/ccgp-mainline-closeout-recheck-2026-11-07/recheck.json)。唯一下一项仍为待明确四文件授权的R1，不再次开相同审查。
 - 起点1f40e91，应用代码fea6fc7不变，工作树初始干净，仅根代理，无相关在途工作。[收口报告](ccgp-mainline-reliability-closeout-2026-11-07.md)、[静态证据](validation/ccgp-mainline-reliability-closeout-2026-11-07/manifest.json)。CLI F3、区域止损、发现/事件/区域/增量/publish预算与回执按已有版本证据收口，不重复施工。

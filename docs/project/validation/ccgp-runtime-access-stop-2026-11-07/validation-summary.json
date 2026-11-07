@@ -1,0 +1,64 @@
+{
+  "starting_head": "7e65828f409270874a2a7fb8fea6cdd0772f5886",
+  "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
+  "scope": "OFFLINE_QUEUE_CCGP_EVENT_SINGLE_STAGE_EXPLICIT_HOST_DENIAL_STOP_AND_SAFE_DIAGNOSTICS",
+  "authorized_files": [
+    "web/collector_runtime.py",
+    "web/pipeline/scripts/sync_ccgp_query.py",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "web/pipeline/tests/test_ccgp_events.py"
+  ],
+  "source_sha256": {
+    "web/collector_runtime.py": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "web/pipeline/scripts/sync_ccgp_query.py": "c4ed68cee3d073fe144b0b2f19060f49f0e7a977afff9719abc8b701c80074c7",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py": "032675f01781914c1aab6ef2100dc670c90e208fe5e5db96b1164c012e795454",
+    "web/pipeline/tests/test_ccgp_events.py": "f2819d6f25389ac4fdfa986d6990b85d399f290bead5f7a71f2fb43c628b4b81"
+  },
+  "new_behavior_tests": 11,
+  "new_test_methods": [
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_access_handling_never_consumes_late_error_or_response_as_evidence",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_actual_hosts_are_independent_but_partial_stage_never_commits",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_complete_and_empty_paths_keep_preparation_and_pair_boundaries",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_detail_cause_and_marker_stop_before_adapter_and_keep_safe_diagnostics",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_host_denial_is_local_to_one_retry_and_absent_from_default_path",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_ordinary_errors_do_not_seal_host_or_change_failure_guards",
+    "web/pipeline/tests/test_runtime_source_parity_behavior.py:test_ccgp_search_denial_stops_types_keywords_and_event_projects",
+    "web/pipeline/tests/test_ccgp_events.py:test_guard_is_opt_in_and_preserves_ordinary_discovery_fallback",
+    "web/pipeline/tests/test_ccgp_events.py:test_guarded_event_detail_denial_never_builds_discovery_fallback",
+    "web/pipeline/tests/test_ccgp_events.py:test_guarded_event_search_denial_stops_second_type_without_fallback"
+  ],
+  "python_tests_passed": 1213,
+  "python_failures": 0,
+  "python_errors": 0,
+  "python_skipped": 0,
+  "intermediate_directed_tests": 171,
+  "directed_before_final_assertion_strengthening": true,
+  "final_full_suite_covers_strengthened_search_status_and_guard_import_checks": true,
+  "frozen_template_passed": 10,
+  "original_cli_passed": 3,
+  "protected_files": 612,
+  "unchanged_other_files": 451,
+  "changed_app_functions": {
+    "web/collector_runtime.py": [
+      "_run_ccgp",
+      "_run_event_batch"
+    ],
+    "web/pipeline/scripts/sync_ccgp_query.py": [
+      "scan_events",
+      "discover_candidates"
+    ]
+  },
+  "source_cases": 78,
+  "helper_cases": 10,
+  "source_references": 23,
+  "queue_cli_budget_http_helper_pending_health_pair_version_protocol_changed": false,
+  "no_guard_cli_defaults_preserved": true,
+  "cross_process_cooldown_or_retry_after_implemented": false,
+  "real_sdk_model_deployment_source_recovery_or_persistence_verified": false,
+  "node_or_js_tests_rerun": false,
+  "external_network_or_cloud_access": false,
+  "deployed_or_pushed": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

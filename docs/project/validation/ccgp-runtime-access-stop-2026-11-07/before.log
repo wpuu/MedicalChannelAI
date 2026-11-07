@@ -1,0 +1,87 @@
+FFFFFFFFF
+======================================================================
+FAIL: test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages) (stage='ccgp', code=401)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 1150, in test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages
+    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages) (stage='ccgp', code=403)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 1150, in test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages
+    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages) (stage='ccgp', code=429)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 1150, in test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages
+    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages) (stage='event1', code=401)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 1150, in test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages
+    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 8 != 1
+
+======================================================================
+FAIL: test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages) (stage='event1', code=403)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 1150, in test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages
+    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 8 != 1
+
+======================================================================
+FAIL: test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages) (stage='event1', code=429)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 1150, in test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages
+    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 8 != 1
+
+======================================================================
+FAIL: test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages) (stage='event6', code=401)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 1150, in test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages
+    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 8 != 1
+
+======================================================================
+FAIL: test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages) (stage='event6', code=403)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 1150, in test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages
+    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 8 != 1
+
+======================================================================
+FAIL: test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages (tests.test_runtime_source_parity_behavior.RuntimeSourceParityBehaviorTests.test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages) (stage='event6', code=429)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/MedicalChannelAI-p0/web/pipeline/tests/test_runtime_source_parity_behavior.py", line 1150, in test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages
+    self.assertEqual(len([row for row in c["calls"] if row[0] == "detail"]), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 8 != 1
+
+----------------------------------------------------------------------
+Ran 1 test in 0.186s
+
+FAILED (failures=9)
+{"tests_run": 1, "failures": 9, "errors": 0, "skipped": 0, "successful": false, "external_network_blocked": true, "real_sdk_import_blocked": true, "repository_test_output_blocked": true}

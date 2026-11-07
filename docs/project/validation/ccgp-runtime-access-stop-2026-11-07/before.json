@@ -1,0 +1,25 @@
+{
+  "application_base": "7e65828f409270874a2a7fb8fea6cdd0772f5886",
+  "application_code_before": "fea6fc7",
+  "new_unittest_methods_run": 1,
+  "failing_subcases": 9,
+  "errors": 0,
+  "facts_detail_requests": 2,
+  "events_detail_requests": 8,
+  "expected_detail_requests": 1,
+  "stages": [
+    "ccgp",
+    "event1",
+    "event6"
+  ],
+  "http_statuses": [
+    401,
+    403,
+    429
+  ],
+  "assertion_stopped_before_state_protection_checks": true,
+  "application_source_unchanged_at_reproduction": true,
+  "sdk_and_external_network_blocked": true,
+  "apply_allowed": false,
+  "migration_usable": false
+}

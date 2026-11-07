@@ -2,18 +2,18 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "OFFLINE_CCGP_MAINLINE_F1_F2_F3_STATIC_CLOSEOUT_DOCUMENTATION_ONLY",
+  "state_scope": "OFFLINE_QUEUE_CCGP_EVENT_SINGLE_STAGE_DENIAL_STOP_IMPLEMENTATION_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
   "starting_head_short": "3216fd9",
   "runtime_implementation_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
-  "latest_code_validated_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "latest_code_validated_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "EXISTING_CCGP_MAINLINE_CLOSEOUT_RECHECKED_NO_NEW_FINDINGS",
-  "latest_changes_validation_status": "STATIC_RECHECK_PASS:EXISTING110_REFERENCES/8_AST_BINDINGS/595_INPUTS/455_SOURCE_CONFIG;NO_APP_CHANGES_OR_TEST_RERUN",
+  "milestone": "CCGP_RUNTIME_R1_REPRODUCED_FIXED_AND_VERIFIED_OFFLINE",
+  "latest_changes_validation_status": "1213_PYTHON_AND10/3_PASS;11_NEW_TESTS;ONLY4AUTHORIZED_FILES;612_INPUTS_AND451_OTHER_FILES_UNCHANGED",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -144,7 +144,7 @@
     "commercial_validation": "NOT_STARTED"
   },
   "known_incomplete_invariants": {
-    "current_head_runtime_acceptance": "HISTORICAL_LOCAL_FEA6FC7:1202Python/10/3 pass; this round static only, no test rerun or current cloud/runtime/source/persistence/recall/customer delivery verification.",
+    "current_head_runtime_acceptance": "LOCAL3F88FF7:1213Python/10/3 pass;11new methods,78source/10helper replay. No actual deployment/source recovery/persistence/recall or customer delivery verified.",
     "relevance_qualification_and_delivery": "OUT_OF_SCOPE: engineering checks and publication evidence do not establish customer product relevance, qualification, delivery or commercial acceptance.",
     "source_freshness_runtime_acceptance": "CARRIED_PRIOR_C_REAL_SCAN_CLOCKS_UNCHANGED:8/14 healthy; no new source scan or recovery in d.",
     "teda_official_access": "UNRESOLVED: normal official requests returned HTTP 403 in the runtime and read-only diagnostic; bounded retries degraded the source. No access-control bypass was attempted.",
@@ -176,11 +176,11 @@
     "ccgp_event_stage_time_budget": "5D2FE85_OFFLINE_COOPERATIVE_SUBITEM_PASS:Queue event1-6 total270/work180/batch-save30/tail60, local write receipt. No full default completion/hard cancel/atomicity/real persistence guarantee.",
     "ccgp_discovery_stage_time_budget": "FEA6FC7_OFFLINE_SCOPED_PASS:Queue ccgp270/150/dual-prepare60/tail60;known overflow failclosed,per-key receipt and local readback gate. No cross-key atomicity/hard deadline/real durability guarantee;shared access cooldown remains.",
     "historical_state_interpretation": "Older CURRENT/CURRENT_CLOUD/NATIVE strings elsewhere in this checkpoint describe only their originally bound historical versions; none reverified by this offline review.",
-    "ccgp_single_stage_access_denial": "STATIC_GAP_R1: discovery/facts/events generic catch may continue same hostname after explicit denial; facts raw message concatenation also requires bounded diagnostics. Not behavior reproduced in this round; next four-file authorization required.",
-    "remaining_runtime_budget_coverage": "STATIC_18_OF25_DEEP_AND1_OF8_INCREMENTAL: seven deep and seven other incremental sources have no new cooperative budget; shared-host cross-process cooldown/Retry-After unimplemented. No mechanical rollout authorized."
+    "ccgp_single_stage_access_denial": "R1_LOCAL_CLOSED3F88FF7:9pre-fix failed subcases (facts2/events8 calls vs expected1); now stage-local explicit host denial stops further same-host requests, ordinary errors not sealed, raw facts diagnostics replaced by bounded fixed-code summary. No shared cooldown/Retry-After or real recovery claim.",
+    "remaining_runtime_budget_coverage": "STATIC18_OF25_DEEP_AND1_OF8_INCREMENTAL:seven deep and seven other incremental sources without new budget; shared cooldown/Retry-After not implemented. No mechanical rollout authorized."
   },
-  "final_code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
-  "code_validation_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "final_code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
+  "code_validation_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
   "documentation_followup": "CCGP discovery budget and dual-key preparation complete offline; next docs-only updated main-chain closeout,max3 evidence-backed remaining gaps and one priority. No mechanical source budget rollout or SDK reopening.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
@@ -2331,7 +2331,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "6aaaa667aed0da8d79dbfbd836cedfb62e6e0853",
+  "latest_reviewed_repository_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2429,7 +2429,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "6aaaa667aed0da8d79dbfbd836cedfb62e6e0853",
+  "current_phase_starting_head": "7e65828f409270874a2a7fb8fea6cdd0772f5886",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2479,7 +2479,7 @@
     "production_modified": false,
     "historical": true
   },
-  "latest_offline_tool_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "latest_offline_tool_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
   "code_validation_scope": "LOCAL_MEMORY_CACHE_FROZEN_FIXTURES_AND_FAKE_CLOCK_CCGP_DISCOVERY_DUAL_PREPARATION_ONLY;NOT_REAL_DEPLOYMENT_OR_DURABILITY",
   "product_dry_run_acceptance": {
     "code_commit": "9f6ac310fee4b0c68e92a6233e23bdc03cfa9ce3",
@@ -2839,10 +2839,9 @@
     "historical": true
   },
   "current_authorization_scope": {
-    "source": "Latest repeated user documentation-only closeout request; existing completed result6aaaa66 rechecked, no next code authorization inferred",
-    "current_round": "EXISTING_BRANCH_DOCS_AND_NEW_STATIC_ARTIFACTS_ONLY",
-    "code_or_test_changes_this_round": false,
-    "application_or_sdk_or_tests_executed": false,
+    "source": "Latest explicit user four-file offline Queue CCGP/event single-stage denial-stop R1 authorization 2026-11-07",
+    "current_round": "ONLY4EXISTING_CODE_TEST_FILES_PLUS_DOCS_ARTIFACTS",
+    "four_file_r1_code_authorized_this_round": true,
     "network_this_round": false,
     "cloud_metadata_this_round": false,
     "runtime_cache_read": false,
@@ -2851,7 +2850,7 @@
     "workflow_change_this_round": false,
     "workflow_executed_this_round": false,
     "real_sdk_executed": false,
-    "synthetic_local_tests_executed": false,
+    "synthetic_local_tests_executed": true,
     "next_code_change_authorized": false
   },
   "cloud_metadata_acceptance": {
@@ -3700,7 +3699,8 @@
     "apply_allowed": false,
     "migration_usable": false,
     "completed_at_utc": "2026-11-07T09:25:39.354193+00:00",
-    "completion": "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/completion.json"
+    "completion": "docs/project/validation/ccgp-mainline-reliability-closeout-2026-11-07/completion.json",
+    "r1_followup": "docs/project/ccgp-runtime-access-stop-2026-11-07.md"
   },
   "ccgp_mainline_closeout_recheck": {
     "starting_head": "6aaaa667aed0da8d79dbfbd836cedfb62e6e0853",
@@ -3717,5 +3717,28 @@
     "completed_at_utc": "2026-11-07T09:29:48.013440+00:00",
     "apply_allowed": false,
     "migration_usable": false
+  },
+  "ccgp_runtime_r1_access_stop": {
+    "starting_head": "7e65828f409270874a2a7fb8fea6cdd0772f5886",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
+    "new_behavior_tests": 11,
+    "python_tests_passed": 1213,
+    "frozen_template_passed": 10,
+    "original_cli_passed": 3,
+    "source_cases": 78,
+    "helper_cases": 10,
+    "protected_files": 612,
+    "unchanged_other_files": 451,
+    "status": "R1_QUEUE_CCGP_EVENT_SINGLE_STAGE_SUBITEM_REPRODUCED_FIXED_AND_VERIFIED_OFFLINE",
+    "report": "docs/project/ccgp-runtime-access-stop-2026-11-07.md",
+    "manifest": "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/manifest.json",
+    "before_failed_subcases": 9,
+    "real_cloud_runtime_or_source_recovery_verified": false,
+    "deployed_or_pushed": false,
+    "queue_health_lease_pending_version_pair_protocol_changed": false,
+    "sdk_strong_guarantees": "CLOSED_NO_GO",
+    "apply_allowed": false,
+    "migration_usable": false,
+    "completed_at_utc": "2026-11-07T09:52:16.885082+00:00"
   }
 }

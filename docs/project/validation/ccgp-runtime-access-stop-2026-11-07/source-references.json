@@ -1,0 +1,163 @@
+[
+  {
+    "path": "web/collector_runtime.py",
+    "line": 660,
+    "text": "def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget | None = None) -> dict[str, Any]:",
+    "sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 663,
+    "text": "    def safe_failures():",
+    "sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 661,
+    "text": "    blocked_hosts = {} if budget else None",
+    "sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 782,
+    "text": "            if blocked_hosts is not None and detail_host in blocked_hosts:",
+    "sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 783,
+    "text": "                diagnostic = failure_row('verified_detail', None, candidate.detail_url)",
+    "sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 890,
+    "text": "def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str, *, budget: CliBudget | None = None) -> dict[str, Any]:",
+    "sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 663,
+    "text": "    def safe_failures():",
+    "sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/collector_runtime.py",
+    "line": 821,
+    "text": "            raise CollectorStageBlocked(f\"CCGP_PUBLISH_GATE:{reason}\", diagnostics=safe_failures())",
+    "sha256": "90f210c60ad7807535e2fb81ba584ee2a418c8970e8140372cc7ba3a8e6a40b5",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 87,
+    "text": "def scan_events(",
+    "sha256": "c4ed68cee3d073fe144b0b2f19060f49f0e7a977afff9719abc8b701c80074c7",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 221,
+    "text": "def discover_candidates(",
+    "sha256": "c4ed68cee3d073fe144b0b2f19060f49f0e7a977afff9719abc8b701c80074c7",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 100,
+    "text": "        from sync_regional_ccgp import access_block_reason",
+    "sha256": "c4ed68cee3d073fe144b0b2f19060f49f0e7a977afff9719abc8b701c80074c7",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 129,
+    "text": "            raise RuntimeError('CCGP_EVENT_SEARCH_ACCESS_BLOCKED')",
+    "sha256": "c4ed68cee3d073fe144b0b2f19060f49f0e7a977afff9719abc8b701c80074c7",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 204,
+    "text": "                if candidate.published_at and not reason:",
+    "sha256": "c4ed68cee3d073fe144b0b2f19060f49f0e7a977afff9719abc8b701c80074c7",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/scripts/sync_ccgp_query.py",
+    "line": 260,
+    "text": "            raise RuntimeError('CCGP_DISCOVERY_ACCESS_BLOCKED')",
+    "sha256": "c4ed68cee3d073fe144b0b2f19060f49f0e7a977afff9719abc8b701c80074c7",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1151,
+    "text": "    def test_ccgp_explicit_denial_stops_same_host_in_facts_and_event_stages(self):",
+    "sha256": "032675f01781914c1aab6ef2100dc670c90e208fe5e5db96b1164c012e795454",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1160,
+    "text": "    def test_ccgp_search_denial_stops_types_keywords_and_event_projects(self):",
+    "sha256": "032675f01781914c1aab6ef2100dc670c90e208fe5e5db96b1164c012e795454",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1189,
+    "text": "    def test_ccgp_actual_hosts_are_independent_but_partial_stage_never_commits(self):",
+    "sha256": "032675f01781914c1aab6ef2100dc670c90e208fe5e5db96b1164c012e795454",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1224,
+    "text": "    def test_ccgp_host_denial_is_local_to_one_retry_and_absent_from_default_path(self):",
+    "sha256": "032675f01781914c1aab6ef2100dc670c90e208fe5e5db96b1164c012e795454",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/tests/test_runtime_source_parity_behavior.py",
+    "line": 1233,
+    "text": "    def test_ccgp_access_handling_never_consumes_late_error_or_response_as_evidence(self):",
+    "sha256": "032675f01781914c1aab6ef2100dc670c90e208fe5e5db96b1164c012e795454",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/tests/test_ccgp_events.py",
+    "line": 227,
+    "text": "    def test_guarded_event_search_denial_stops_second_type_without_fallback(self):",
+    "sha256": "f2819d6f25389ac4fdfa986d6990b85d399f290bead5f7a71f2fb43c628b4b81",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/tests/test_ccgp_events.py",
+    "line": 235,
+    "text": "    def test_guarded_event_detail_denial_never_builds_discovery_fallback(self):",
+    "sha256": "f2819d6f25389ac4fdfa986d6990b85d399f290bead5f7a71f2fb43c628b4b81",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/tests/test_ccgp_events.py",
+    "line": 247,
+    "text": "    def test_guard_is_opt_in_and_preserves_ordinary_discovery_fallback(self):",
+    "sha256": "f2819d6f25389ac4fdfa986d6990b85d399f290bead5f7a71f2fb43c628b4b81",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  },
+  {
+    "path": "web/pipeline/tests/test_ccgp_events.py",
+    "line": 208,
+    "text": "    def test_event_budget_does_not_break_query_regional_import_orders(self):",
+    "sha256": "f2819d6f25389ac4fdfa986d6990b85d399f290bead5f7a71f2fb43c628b4b81",
+    "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
+  }
+]

@@ -1,0 +1,7059 @@
+{
+  "mode": "REPLAY_OF_EXISTING_UNITTEST_HELPERS_LOCAL_SYNTHETIC_TRANSPORT_ONLY",
+  "source_cases": [
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "search",
+        "code": 401
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_401": 1
+        },
+        "phase_counts": {
+          "index_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "index_discovery",
+            "reason": "HTTP_401",
+            "candidate_ref": "aef3754beca60832d1723591e379bd6b4033d708c381e6d7eee85525781941d2"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "search",
+        "code": 403
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_403": 1
+        },
+        "phase_counts": {
+          "index_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "index_discovery",
+            "reason": "HTTP_403",
+            "candidate_ref": "aef3754beca60832d1723591e379bd6b4033d708c381e6d7eee85525781941d2"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "search",
+        "code": 429
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_429": 1
+        },
+        "phase_counts": {
+          "index_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "index_discovery",
+            "reason": "HTTP_429",
+            "candidate_ref": "aef3754beca60832d1723591e379bd6b4033d708c381e6d7eee85525781941d2"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "search",
+        "mode": "wrapped"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_403": 1
+        },
+        "phase_counts": {
+          "index_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "index_discovery",
+            "reason": "HTTP_403",
+            "candidate_ref": "aef3754beca60832d1723591e379bd6b4033d708c381e6d7eee85525781941d2"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "search",
+        "mode": "marker"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "RATE_LIMITED": 1
+        },
+        "phase_counts": {
+          "index_discovery": 1
+        },
+        "samples": [
+          {
+            "phase": "index_discovery",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "aef3754beca60832d1723591e379bd6b4033d708c381e6d7eee85525781941d2"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "search",
+        "mode": "timeout"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 3,
+        "reason_counts": {
+          "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION": 2,
+          "NETWORK_TIMEOUT": 1
+        },
+        "phase_counts": {
+          "index_discovery": 1,
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "index_discovery",
+            "reason": "NETWORK_TIMEOUT",
+            "candidate_ref": "aef3754beca60832d1723591e379bd6b4033d708c381e6d7eee85525781941d2"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION",
+            "candidate_ref": "a29eacb12cb9c8c81b6073d2563ac6ddc3d30cbb284a3360a275981015710f00"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "search",
+        "mode": "network"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 3,
+        "reason_counts": {
+          "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION": 2,
+          "NETWORK_ERROR": 1
+        },
+        "phase_counts": {
+          "index_discovery": 1,
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "index_discovery",
+            "reason": "NETWORK_ERROR",
+            "candidate_ref": "aef3754beca60832d1723591e379bd6b4033d708c381e6d7eee85525781941d2"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION",
+            "candidate_ref": "a29eacb12cb9c8c81b6073d2563ac6ddc3d30cbb284a3360a275981015710f00"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "search",
+        "mode": "503"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 3,
+        "reason_counts": {
+          "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION": 2,
+          "HTTP_503": 1
+        },
+        "phase_counts": {
+          "index_discovery": 1,
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "index_discovery",
+            "reason": "HTTP_503",
+            "candidate_ref": "aef3754beca60832d1723591e379bd6b4033d708c381e6d7eee85525781941d2"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION",
+            "candidate_ref": "a29eacb12cb9c8c81b6073d2563ac6ddc3d30cbb284a3360a275981015710f00"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "CCGP_NOTICE_TYPE_NOT_COMPETITIVE_CONSULTATION",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "search",
+        "mode": "late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 0,
+        "reason_counts": {},
+        "phase_counts": {},
+        "samples": [],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 150,
+          "exhausted_phase": "CCGP_SEARCH_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "search",
+        "mode": "error_late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 0,
+        "reason_counts": {},
+        "phase_counts": {},
+        "samples": [],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 150,
+          "exhausted_phase": "CCGP_SEARCH_ERROR_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "detail",
+        "code": 401
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_401": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "a29eacb12cb9c8c81b6073d2563ac6ddc3d30cbb284a3360a275981015710f00"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 16.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "detail",
+        "code": 403
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_403": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "a29eacb12cb9c8c81b6073d2563ac6ddc3d30cbb284a3360a275981015710f00"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 16.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "detail",
+        "code": 429
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_429": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "a29eacb12cb9c8c81b6073d2563ac6ddc3d30cbb284a3360a275981015710f00"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 16.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "detail",
+        "mode": "wrapped"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_403": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "a29eacb12cb9c8c81b6073d2563ac6ddc3d30cbb284a3360a275981015710f00"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 16.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "detail",
+        "mode": "marker"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "RATE_LIMITED": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "a29eacb12cb9c8c81b6073d2563ac6ddc3d30cbb284a3360a275981015710f00"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 16.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "detail",
+        "mode": "timeout"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_TIMEOUT": 1
+        },
+        "phase_counts": {
+          "verified_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "NETWORK_TIMEOUT",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "detail",
+        "mode": "network"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_ERROR": 1
+        },
+        "phase_counts": {
+          "verified_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "NETWORK_ERROR",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "detail",
+        "mode": "503"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_503": 1
+        },
+        "phase_counts": {
+          "verified_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_503",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "detail",
+        "mode": "late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 0,
+        "reason_counts": {},
+        "phase_counts": {},
+        "samples": [],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 150,
+          "exhausted_phase": "CCGP_DETAIL_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "where": "detail",
+        "mode": "error_late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 0,
+        "reason_counts": {},
+        "phase_counts": {},
+        "samples": [],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 150,
+          "exhausted_phase": "CCGP_DETAIL_ERROR_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "mode": "parse"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "DETAIL_VALIDATION_FAILED": 1
+        },
+        "phase_counts": {
+          "verified_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "DETAIL_VALIDATION_FAILED",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "mode": "success"
+      },
+      "status": 200,
+      "action": "COMPLETED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": null,
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "watch_unchanged": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "mode": "empty"
+      },
+      "status": 200,
+      "action": "COMPLETED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": null,
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "mixed_hosts": true
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_403": 2
+        },
+        "phase_counts": {
+          "verified_detail": 2
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "a29eacb12cb9c8c81b6073d2563ac6ddc3d30cbb284a3360a275981015710f00"
+          },
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ],
+        "ccgp_prepare_receipt": {
+          "preparation_outcome": "NOT_STARTED",
+          "source_transaction_committed": false,
+          "bootstrap": {
+            "records": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            },
+            "events": {
+              "call_started": true,
+              "call_returned": true,
+              "mutation_possible": false,
+              "bootstrapped": false
+            }
+          },
+          "targets": {
+            "STAGING": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            },
+            "WATCH": {
+              "write_attempted": false,
+              "write_call_returned": false,
+              "mutation_possible": false,
+              "write_outcome": "NOT_ATTEMPTED",
+              "readback": "NOT_ATTEMPTED"
+            }
+          }
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 150,
+          "finalize_reserve_seconds": 120,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "retry": true
+      },
+      "status": 200,
+      "action": "COMPLETED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 6,
+      "diagnostics": null,
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "watch_unchanged": false,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "ccgp",
+        "use_budget": false
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_403": 1
+        },
+        "phase_counts": {
+          "verified_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "verified_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "a6c4873b362780f181807f5a9d73289f575b4ae84384493af464e48da8602daa"
+          }
+        ]
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "search",
+        "code": 401
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_401": 1,
+          "SOURCE_VERIFICATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_scan": 1,
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_scan",
+            "reason": "SOURCE_VERIFICATION_FAILED",
+            "candidate_ref": "fa430adde4fa96c74018f2543a383c3b747c47579e996c4321a5320922642cb8"
+          },
+          {
+            "phase": "event_search",
+            "reason": "HTTP_401",
+            "candidate_ref": "77cd3dca5d442fd0a8d196a5f5265dea53aad84f1bc5612652abeed23d4deb29"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "search",
+        "code": 403
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_403": 1,
+          "SOURCE_VERIFICATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_scan": 1,
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_scan",
+            "reason": "SOURCE_VERIFICATION_FAILED",
+            "candidate_ref": "fa430adde4fa96c74018f2543a383c3b747c47579e996c4321a5320922642cb8"
+          },
+          {
+            "phase": "event_search",
+            "reason": "HTTP_403",
+            "candidate_ref": "77cd3dca5d442fd0a8d196a5f5265dea53aad84f1bc5612652abeed23d4deb29"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "search",
+        "code": 429
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_429": 1,
+          "SOURCE_VERIFICATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_scan": 1,
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_scan",
+            "reason": "SOURCE_VERIFICATION_FAILED",
+            "candidate_ref": "fa430adde4fa96c74018f2543a383c3b747c47579e996c4321a5320922642cb8"
+          },
+          {
+            "phase": "event_search",
+            "reason": "HTTP_429",
+            "candidate_ref": "77cd3dca5d442fd0a8d196a5f5265dea53aad84f1bc5612652abeed23d4deb29"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "search",
+        "mode": "wrapped"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_403": 1,
+          "SOURCE_VERIFICATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_scan": 1,
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_scan",
+            "reason": "SOURCE_VERIFICATION_FAILED",
+            "candidate_ref": "fa430adde4fa96c74018f2543a383c3b747c47579e996c4321a5320922642cb8"
+          },
+          {
+            "phase": "event_search",
+            "reason": "HTTP_403",
+            "candidate_ref": "77cd3dca5d442fd0a8d196a5f5265dea53aad84f1bc5612652abeed23d4deb29"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "search",
+        "mode": "marker"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "RATE_LIMITED": 1,
+          "SOURCE_VERIFICATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_scan": 1,
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_scan",
+            "reason": "SOURCE_VERIFICATION_FAILED",
+            "candidate_ref": "fa430adde4fa96c74018f2543a383c3b747c47579e996c4321a5320922642cb8"
+          },
+          {
+            "phase": "event_search",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "77cd3dca5d442fd0a8d196a5f5265dea53aad84f1bc5612652abeed23d4deb29"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "search",
+        "mode": "timeout"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_TIMEOUT": 1
+        },
+        "phase_counts": {
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_search",
+            "reason": "NETWORK_TIMEOUT",
+            "candidate_ref": "77cd3dca5d442fd0a8d196a5f5265dea53aad84f1bc5612652abeed23d4deb29"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 36.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "search",
+        "mode": "network"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_ERROR": 1
+        },
+        "phase_counts": {
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_search",
+            "reason": "NETWORK_ERROR",
+            "candidate_ref": "77cd3dca5d442fd0a8d196a5f5265dea53aad84f1bc5612652abeed23d4deb29"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 36.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "search",
+        "mode": "503"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_503": 1
+        },
+        "phase_counts": {
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_search",
+            "reason": "HTTP_503",
+            "candidate_ref": "77cd3dca5d442fd0a8d196a5f5265dea53aad84f1bc5612652abeed23d4deb29"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 36.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "search",
+        "mode": "late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_SEARCH_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "search",
+        "mode": "error_late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_SEARCH_ERROR_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "detail",
+        "code": 401
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "HTTP_401": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "detail",
+        "code": 403
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "HTTP_403": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "detail",
+        "code": 429
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "HTTP_429": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "detail",
+        "mode": "wrapped"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "HTTP_403": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "detail",
+        "mode": "marker"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "RATE_LIMITED": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "detail",
+        "mode": "timeout"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_TIMEOUT": 1
+        },
+        "phase_counts": {
+          "event_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "NETWORK_TIMEOUT",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 48.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "detail",
+        "mode": "network"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_ERROR": 1
+        },
+        "phase_counts": {
+          "event_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "NETWORK_ERROR",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 48.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "detail",
+        "mode": "503"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_503": 1
+        },
+        "phase_counts": {
+          "event_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_503",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 48.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "detail",
+        "mode": "late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_DETAIL_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "where": "detail",
+        "mode": "error_late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_DETAIL_ERROR_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "mode": "parse"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "DETAIL_VALIDATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "DETAIL_VALIDATION_FAILED",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 48.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "mode": "success"
+      },
+      "status": 200,
+      "action": "COMPLETED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": null,
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "mode": "empty"
+      },
+      "status": 200,
+      "action": "COMPLETED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": null,
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "mixed_hosts": true
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "ccgp.gov.cn",
+        "ccgp.gov.cn",
+        "ccgp.gov.cn",
+        "ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "HTTP_403": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "STAGING",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 36.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "retry": true
+      },
+      "status": 200,
+      "action": "COMPLETED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 12,
+      "diagnostics": null,
+      "committed_unchanged": true,
+      "staging_unchanged": false,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event1",
+        "use_budget": false
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_403": 1
+        },
+        "phase_counts": {
+          "event_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          }
+        ]
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "search",
+        "code": 401
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_401": 1,
+          "SOURCE_VERIFICATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_scan": 1,
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_scan",
+            "reason": "SOURCE_VERIFICATION_FAILED",
+            "candidate_ref": "4ca017ef2efd63f79a247ae9525496904cc639e6ac6f17681ed879fd3626b2dd"
+          },
+          {
+            "phase": "event_search",
+            "reason": "HTTP_401",
+            "candidate_ref": "4c3e36ed050d99820b7d03a86f01af6af76c0c8679c28e628f062ee4414cdd25"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "search",
+        "code": 403
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_403": 1,
+          "SOURCE_VERIFICATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_scan": 1,
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_scan",
+            "reason": "SOURCE_VERIFICATION_FAILED",
+            "candidate_ref": "4ca017ef2efd63f79a247ae9525496904cc639e6ac6f17681ed879fd3626b2dd"
+          },
+          {
+            "phase": "event_search",
+            "reason": "HTTP_403",
+            "candidate_ref": "4c3e36ed050d99820b7d03a86f01af6af76c0c8679c28e628f062ee4414cdd25"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "search",
+        "code": 429
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_429": 1,
+          "SOURCE_VERIFICATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_scan": 1,
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_scan",
+            "reason": "SOURCE_VERIFICATION_FAILED",
+            "candidate_ref": "4ca017ef2efd63f79a247ae9525496904cc639e6ac6f17681ed879fd3626b2dd"
+          },
+          {
+            "phase": "event_search",
+            "reason": "HTTP_429",
+            "candidate_ref": "4c3e36ed050d99820b7d03a86f01af6af76c0c8679c28e628f062ee4414cdd25"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "search",
+        "mode": "wrapped"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "HTTP_403": 1,
+          "SOURCE_VERIFICATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_scan": 1,
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_scan",
+            "reason": "SOURCE_VERIFICATION_FAILED",
+            "candidate_ref": "4ca017ef2efd63f79a247ae9525496904cc639e6ac6f17681ed879fd3626b2dd"
+          },
+          {
+            "phase": "event_search",
+            "reason": "HTTP_403",
+            "candidate_ref": "4c3e36ed050d99820b7d03a86f01af6af76c0c8679c28e628f062ee4414cdd25"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "search",
+        "mode": "marker"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 2,
+        "reason_counts": {
+          "RATE_LIMITED": 1,
+          "SOURCE_VERIFICATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_scan": 1,
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_scan",
+            "reason": "SOURCE_VERIFICATION_FAILED",
+            "candidate_ref": "4ca017ef2efd63f79a247ae9525496904cc639e6ac6f17681ed879fd3626b2dd"
+          },
+          {
+            "phase": "event_search",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "4c3e36ed050d99820b7d03a86f01af6af76c0c8679c28e628f062ee4414cdd25"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "search",
+        "mode": "timeout"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_TIMEOUT": 1
+        },
+        "phase_counts": {
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_search",
+            "reason": "NETWORK_TIMEOUT",
+            "candidate_ref": "4c3e36ed050d99820b7d03a86f01af6af76c0c8679c28e628f062ee4414cdd25"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 36.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "search",
+        "mode": "network"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_ERROR": 1
+        },
+        "phase_counts": {
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_search",
+            "reason": "NETWORK_ERROR",
+            "candidate_ref": "4c3e36ed050d99820b7d03a86f01af6af76c0c8679c28e628f062ee4414cdd25"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 36.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "search",
+        "mode": "503"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_503": 1
+        },
+        "phase_counts": {
+          "event_search": 1
+        },
+        "samples": [
+          {
+            "phase": "event_search",
+            "reason": "HTTP_503",
+            "candidate_ref": "4c3e36ed050d99820b7d03a86f01af6af76c0c8679c28e628f062ee4414cdd25"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 36.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "search",
+        "mode": "late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_SEARCH_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "search",
+        "mode": "error_late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_SEARCH_ERROR_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "detail",
+        "code": 401
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "HTTP_401": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_401",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "detail",
+        "code": 403
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "HTTP_403": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "detail",
+        "code": 429
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "HTTP_429": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_429",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "detail",
+        "mode": "wrapped"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "HTTP_403": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "detail",
+        "mode": "marker"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "RATE_LIMITED": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "RATE_LIMITED",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 20.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "detail",
+        "mode": "timeout"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_TIMEOUT": 1
+        },
+        "phase_counts": {
+          "event_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "NETWORK_TIMEOUT",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 48.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "detail",
+        "mode": "network"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "NETWORK_ERROR": 1
+        },
+        "phase_counts": {
+          "event_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "NETWORK_ERROR",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 48.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "detail",
+        "mode": "503"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_503": 1
+        },
+        "phase_counts": {
+          "event_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_503",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 48.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "detail",
+        "mode": "late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_DETAIL_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "where": "detail",
+        "mode": "error_late"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 180,
+          "exhausted_phase": "EVENT_DETAIL_ERROR_RETURN",
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "mode": "parse"
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "DETAIL_VALIDATION_FAILED": 1
+        },
+        "phase_counts": {
+          "event_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "DETAIL_VALIDATION_FAILED",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 48.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "mode": "success"
+      },
+      "status": 200,
+      "action": "COMPLETED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": null,
+      "committed_unchanged": false,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": false
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "mode": "empty"
+      },
+      "status": 200,
+      "action": "COMPLETED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [],
+      "retry_request_count": 0,
+      "diagnostics": null,
+      "committed_unchanged": false,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": false
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "mixed_hosts": true
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "ccgp.gov.cn",
+        "ccgp.gov.cn",
+        "ccgp.gov.cn",
+        "ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 8,
+        "reason_counts": {
+          "HTTP_403": 8
+        },
+        "phase_counts": {
+          "event_detail": 8
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "25ad16baa6e77b4344e2f478c309b8e3311cf0ec3c1477605a602605fbba1a46"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "53859fbe7b09a1ad1465066d3411eafe0d37e918334e5fcf65ad7e4b06efb4b3"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "7ae14001c40b90c0db1683971a5b233a235c1c58acc943dff52f20a0b9ba4945"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          },
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "92c81ae1aee37a7fb03ad0b3fae1641e30e9fc95bfc4d9a353eed9c5f965fcc1"
+          }
+        ],
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 36.0,
+          "exhausted_phase": null,
+          "work_complete": false,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "retry": true
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": 30
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 12,
+      "diagnostics": {
+        "event_write_receipt": {
+          "target": "COMMITTED_PAIR",
+          "write_attempted": false,
+          "write_call_returned": false,
+          "mutation_possible": false,
+          "outcome": "NOT_ATTEMPTED"
+        },
+        "budget": {
+          "total_seconds": 270,
+          "work_seconds": 180,
+          "finalize_reserve_seconds": 90,
+          "elapsed_seconds": 48.0,
+          "exhausted_phase": null,
+          "work_complete": true,
+          "hard_exit_guaranteed": false
+        }
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    },
+    {
+      "config": {
+        "stage": "event6",
+        "use_budget": false
+      },
+      "status": 503,
+      "action": "FAILED",
+      "calls": [
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "search",
+          "host": "search.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        },
+        {
+          "kind": "detail",
+          "host": "www.ccgp.gov.cn",
+          "timeout": null
+        }
+      ],
+      "parse_hosts": [
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn",
+        "www.ccgp.gov.cn"
+      ],
+      "retry_request_count": 0,
+      "diagnostics": {
+        "failure_count": 1,
+        "reason_counts": {
+          "HTTP_403": 1
+        },
+        "phase_counts": {
+          "event_detail": 1
+        },
+        "samples": [
+          {
+            "phase": "event_detail",
+            "reason": "HTTP_403",
+            "candidate_ref": "8165c9bd61311921bc1828812f16e7ed21ed5e639e0b1fe07b0accbd3a515fb7"
+          }
+        ]
+      },
+      "committed_unchanged": true,
+      "staging_unchanged": true,
+      "watch_unchanged": true,
+      "pending_unchanged": true,
+      "success_clock_unchanged": true
+    }
+  ],
+  "helper_cases": [
+    {
+      "mode": "search_denied",
+      "guard": true,
+      "events": null,
+      "error": "CCGP_EVENT_SEARCH_ACCESS_BLOCKED",
+      "calls": [
+        [
+          "search",
+          30
+        ]
+      ],
+      "blocked_hosts": {
+        "search.ccgp.gov.cn": "HTTP_429"
+      }
+    },
+    {
+      "mode": "search_denied",
+      "guard": false,
+      "events": 0,
+      "error": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "blocked_hosts": null
+    },
+    {
+      "mode": "detail_denied",
+      "guard": true,
+      "events": 0,
+      "error": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "blocked_hosts": {
+        "www.ccgp.gov.cn": "HTTP_403"
+      }
+    },
+    {
+      "mode": "detail_denied",
+      "guard": false,
+      "events": 1,
+      "error": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "blocked_hosts": null
+    },
+    {
+      "mode": "detail_wrapped",
+      "guard": true,
+      "events": 0,
+      "error": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "blocked_hosts": {
+        "www.ccgp.gov.cn": "HTTP_403"
+      }
+    },
+    {
+      "mode": "detail_wrapped",
+      "guard": false,
+      "events": 1,
+      "error": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "blocked_hosts": null
+    },
+    {
+      "mode": "detail_marker",
+      "guard": true,
+      "events": 0,
+      "error": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "blocked_hosts": {
+        "www.ccgp.gov.cn": "RATE_LIMITED"
+      }
+    },
+    {
+      "mode": "detail_marker",
+      "guard": false,
+      "events": 1,
+      "error": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "blocked_hosts": null
+    },
+    {
+      "mode": "ordinary_parse_error",
+      "guard": true,
+      "events": 1,
+      "error": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "blocked_hosts": {}
+    },
+    {
+      "mode": "ordinary_parse_error",
+      "guard": false,
+      "events": 1,
+      "error": null,
+      "calls": [
+        [
+          "search",
+          30
+        ],
+        [
+          "detail",
+          30
+        ],
+        [
+          "search",
+          30
+        ]
+      ],
+      "blocked_hosts": null
+    }
+  ],
+  "apply_allowed": false,
+  "migration_usable": false
+}

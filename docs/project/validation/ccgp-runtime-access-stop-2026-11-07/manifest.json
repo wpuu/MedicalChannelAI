@@ -1,0 +1,28 @@
+{
+  "starting_head": "7e65828",
+  "code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
+  "files": {
+    "docs/project/ccgp-runtime-access-stop-2026-11-07.md": "5799668a3961c56b29961e275b10b21e3a4213ec87bdcac2842f5a61d3b6d7a5",
+    "docs/project/checkpoint.json": "facc46ea539f4c0a0be0b20391a68b3cbb8ac2ffaef747bf78368121a0a57205",
+    "docs/project/current-state.md": "da767b02bcbf9e03ccbc3edd97b0536cb9e000143fc46907f126c0045366d532",
+    "docs/project/next-task.md": "89ce37a5107128d7b28c2c20ca94a972fe1ffe3bd231ddbc42b98fa3f8cfce67",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/before-test-fragment.txt": "b0bb70ce7737b84e6d8694cc08d32ee59fc7b5b000035ed94e34a1c023b5f417",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/before.json": "0ebfdbdfcf59c9ce044cf811d32bfb73f218f5e615995d38ba731bfa7362db8b",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/before.log": "0802b018793a2939a660ffbf397af098e8bbec80379c27a76de8e8b7d489aed0",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/cases.json": "bee90daf5a0d7c7d3563aa70cefd9a61f48dee784e606e1db5354451f95bd98b",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/completion.json": "de528a1b32829fea99f8cb1b7ff78b58c0379751b0d51e99b8f01cefceb23848",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/directed-intermediate.log": "8dc48400da2e31fd561cffce1a86b78a7419bba38d2fbb5cfb61715dec029645",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/frozen-template-audit.json": "ed6a488df7614b7578b4459680d82640dc3da3ba25d995b4bf7a14b524cbfea2",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/input-integrity.json": "466258f5151611976ed09d5f6b8a69d37eec147a93033f2e194d39ff46e92384",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/offline-tests.py": "014f3ec7d1c6a185ca83b08d2e9b3167f8683547fd533210b7e9645e09959b69",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/original-cli-gate.json": "23f6ccdf361c1007dd5ef6d07d704fdfe095e770072fbabf2bd3df132f42e5a2",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/regression.log": "6f5e86fed00bb8e43e9e974d24c9c5cc79639f245401950a0e46431f2c2bda89",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/replay-cases.py": "c054948748ca9fb8953f81681532a272ad28e925836e32de0290bdcee32a17b5",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/source-references.json": "3c3255367d3067b4b8c1246b791be49fc0b155777171a817b4c0c2dc8ad7d489",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/unchanged-boundaries.json": "af02da59c7e552c8b882b76ab3de015e1bb2e009b713d0b403ee3c911cecf397",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/validation-summary.json": "dec0f91ea5e0a89c81e39fa5eb05121ec28a675ef6fafe3204454e51732a6766",
+    "docs/project/validation/ccgp-runtime-access-stop-2026-11-07/verify.py": "6b2dd07891330990040d5c24cf32497803a68fd05a9015f78ae4fe7bfecaaa96"
+  },
+  "apply_allowed": false,
+  "migration_usable": false
+}
