@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "PROJECT_HANDOFF_AND_GITHUB_ARCHIVE_ONLY",
+  "state_scope": "PRODUCT_REVIEW_READY_DOCS_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "CURRENT_BRANCH_HANDOFF_AND_CHAT_CONTINUATION_PREPARED",
-  "latest_changes_validation_status": "DOCS_ONLY:HANDOFF_AND_GITHUB_FAST_FORWARD_ARCHIVE;NO_NEW_APP_TEST_BUILD_OR_RUNTIME_ACTION",
+  "milestone": "PRODUCT_SCOPE_USER_DECISIONS_PENDING",
+  "latest_changes_validation_status": "DOCS_ONLY:PRODUCT_REVIEW_DECISION_MATRIX_AND_BUSINESS_EVIDENCE_GATES;NO_NEW_TEST_BUILD_DEPLOYMENT_OR_COLLECTION",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -754,7 +754,7 @@
         "build_command": "npm run build",
         "build_exit_code": 0,
         "serverless_entrypoints": "11/12",
-        "main_js_gzip_kb": 116.0,
+        "main_js_gzip_kb": 116,
         "local_build_log": "/tmp/mcai-live-20261106/final-ui-build.log",
         "final_code_review": "PASS_NO_REMAINING_BLOCKERS_IN_IMPLEMENTED_SCOPE",
         "authority_market_regression": {
@@ -1051,7 +1051,7 @@
         "javascript_contract_checks": "PASS",
         "typescript_typecheck": "PASS",
         "vite_production_build": "PASS",
-        "main_js_gzip_kb": 116.0,
+        "main_js_gzip_kb": 116,
         "validation_scope": "LOCAL_BEHAVIORAL_AND_REAL_SOURCE_DIAGNOSTICS; CLOUD_EXISTING_SNAPSHOT_REPLAY_AND_6_BROWSER_SMOKE_CHECKS",
         "new_full_cloud_queue_cycle": "NOT_TRIGGERED",
         "external_source_access_recovered": false
@@ -2332,7 +2332,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "a9d180ba5527dc42249d2d5e56cc72222cf294ea",
+  "latest_reviewed_repository_head": "f0e535caf6da46322bb56e913c71185505422a26",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -3766,7 +3766,7 @@
   "product_mvp_one_page_review": {
     "starting_head": "965b0d8fad3bdd92b56a1cf69a1796403b84b4ff",
     "report": "docs/project/product-mvp-one-page-2026-11-07.md",
-    "status": "DRAFT_PENDING_PRODUCT_SCOPE_APPROVAL",
+    "status": "REVIEW_READY_PENDING_EXPLICIT_USER_DECISIONS",
     "proposed_region": "天津",
     "proposed_product_segment": "检验科血细胞分析仪（血球仪）",
     "proposed_pilot_customers": 3,
@@ -3782,7 +3782,21 @@
     "application_code_unchanged": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
     "real_acceptance_pause_preserved": true,
     "apply_allowed": false,
-    "migration_usable": false
+    "migration_usable": false,
+    "previous_product_document": "docs/project/product-mvp-one-page-2026-11-07.md",
+    "reviewed_remote_baseline_head": "f0e535caf6da46322bb56e913c71185505422a26",
+    "approved_by_user": false,
+    "target_customer_approved": false,
+    "region_approved": false,
+    "refresh_and_collection_split_approved": false,
+    "business_value_chain_approved": false,
+    "recommended_target_customer": "在天津经营医院检验设备的经销／代理商销售负责人及一线销售",
+    "recommended_product_boundary": "天津公开采购机会；血细胞分析仪整机；试剂／质控／耗材／维保不自动纳入",
+    "evidence_requirements_documented": true,
+    "real_new_notice_validation_executed": false,
+    "real_reminder_customer_validation_executed": false,
+    "no_new_user_review_comments_this_round": true,
+    "original_app_code_unchanged": "3f88ff7211200e314dcb6bafa894ec127c1b29bf"
   },
   "handoff_document": "docs/project/HANDOFF.md",
   "github_archive_policy": {
@@ -3806,6 +3820,10 @@
       "deployment",
       "domain/schedule/permission changes",
       "collection/model execution"
-    ]
+    ],
+    "product_review_base_observed": "f0e535caf6da46322bb56e913c71185505422a26",
+    "docs_scope_only": true,
+    "forced_update": false,
+    "user_product_approval_asserted": false
   }
 }
