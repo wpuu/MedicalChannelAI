@@ -99,6 +99,113 @@ RESPONSE_CORRECTION_URL = 'https://www.ccgp.gov.cn/cggg/dfgg/gzgg/202605/t202605
 
 
 class CcgpEventTests(unittest.TestCase):
+    def event_budget_scan_case(self, mode="success", *, elapsed=0, use_budget=True):
+        import sys
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        sys.path.insert(0, str(ROOT / "scripts"))
+        import sync_ccgp_query as query
+        from sync_regional_ccgp import CliBudget, CliBudgetExceeded
+        tick, calls, failures, sleeps = [float(elapsed)], [], [], []
+        def sleep(delay):
+            sleeps.append(delay)
+            tick[0] = 180 if mode == "sleep_late" else tick[0] + delay
+        budget = CliBudget(lambda: tick[0], sleep, total_seconds=270, work_seconds=180, started_at=0)
+        candidate = SimpleNamespace(title="XCSD-2026-C-181 更正公告", detail_url=CORRECTION_URL,
+                                    published_at="2026-09-01")
+        def search(url, **kwargs):
+            calls.append(("search", kwargs.get("timeout_seconds")))
+            if mode in ("search_late", "search_error_late", "search_none_late"): tick[0] = 180
+            if mode == "search_error_late": raise TimeoutError("OFFLINE")
+            return None if mode == "search_none_late" else "offline index"
+        def discover(html, **kwargs):
+            if mode == "search_parse_late": tick[0] = 180
+            if mode == "sleep_admission": tick[0] = 177
+            return [candidate] if sum(k == "search" for k, _ in calls) == 1 else []
+        def detail(url, **kwargs):
+            calls.append(("detail", kwargs.get("timeout_seconds")))
+            if mode in ("detail_late", "detail_error_late", "detail_none_late"): tick[0] = 180
+            if mode == "detail_error_late": raise TimeoutError("OFFLINE")
+            return None if mode == "detail_none_late" else CORRECTION_FIXTURE
+        original = query.parse_ccgp_event_html
+        def parse(*args, **kwargs):
+            if mode == "ordinary_parse_error": raise ValueError("OFFLINE_PARSE")
+            value = original(*args, **kwargs)
+            if mode in ("parse_late", "parse_none_late"): tick[0] = 180
+            return None if mode == "parse_none_late" else value
+        events, error = None, None
+        with patch.object(query, "fetch_search_page", side_effect=search), patch.object(
+                query, "parse_search_html", side_effect=discover), patch.object(
+                query, "fetch_ccgp_detail_html", side_effect=detail), patch.object(
+                query, "parse_ccgp_event_html", side_effect=parse), patch.object(query.time, "sleep", side_effect=sleep):
+            try:
+                events = query.scan_events("XCSD-2026-C-181", region="天津", start_date="2026:09:01",
+                    end_date="2026:09:02", delay_seconds=4, observed_at="2026-09-02T00:00:00+00:00",
+                    failures=failures, **({"budget": budget} if use_budget else {}))
+            except CliBudgetExceeded as exc:
+                error = exc
+        return {"events": events, "error": error, "calls": calls, "failures": failures, "sleeps": sleeps}
+
+    def test_event_budget_zero_request_at_deadline_or_margin(self):
+        for elapsed in (179, 180):
+            with self.subTest(elapsed=elapsed):
+                c = self.event_budget_scan_case(elapsed=elapsed)
+                self.assertIsNotNone(c["error"])
+                self.assertEqual(c["calls"], [])
+
+    def test_event_budget_search_return_parse_and_exception_lateness(self):
+        for mode in ("search_late", "search_none_late", "search_error_late", "search_parse_late"):
+            with self.subTest(mode=mode):
+                c = self.event_budget_scan_case(mode)
+                self.assertIsNotNone(c["error"])
+                self.assertEqual([kind for kind, _ in c["calls"]], ["search"])
+                self.assertEqual(c["failures"], [])
+                self.assertIsNone(c["events"])
+
+    def test_event_budget_late_detail_parse_or_none_never_falls_back(self):
+        for mode in ("detail_late", "detail_none_late", "detail_error_late", "parse_late", "parse_none_late"):
+            with self.subTest(mode=mode):
+                c = self.event_budget_scan_case(mode)
+                self.assertIsNotNone(c["error"])
+                self.assertEqual([kind for kind, _ in c["calls"]], ["search", "detail"])
+                self.assertEqual(c["failures"], [])
+                self.assertIsNone(c["events"])
+
+    def test_event_budget_sleep_admission_and_wake_stop_before_detail(self):
+        for mode in ("sleep_admission", "sleep_late"):
+            c = self.event_budget_scan_case(mode)
+            self.assertIsNotNone(c["error"])
+            self.assertEqual([kind for kind, _ in c["calls"]], ["search"])
+            self.assertEqual(c["sleeps"], [] if mode == "sleep_admission" else [4])
+
+    def test_event_budget_timeout_uses_cap_and_remaining_minus_one(self):
+        c = self.event_budget_scan_case()
+        self.assertIsNone(c["error"])
+        self.assertTrue(all(0 < timeout <= 30 for _, timeout in c["calls"]))
+        near = self.event_budget_scan_case(elapsed=166)
+        self.assertEqual(near["calls"][0], ("search", 13))
+
+    def test_event_budget_and_default_ordinary_fallback_remain_compatible(self):
+        for use_budget in (True, False):
+            c = self.event_budget_scan_case("ordinary_parse_error", use_budget=use_budget)
+            self.assertIsNone(c["error"])
+            self.assertEqual(len(c["events"]), 1)
+            self.assertEqual(len(c["failures"]), 1)
+            self.assertTrue(c["events"][0]["requires_reconciliation"])
+            if not use_budget: self.assertTrue(all(timeout is None for _, timeout in c["calls"]))
+
+    def test_event_budget_does_not_break_query_regional_import_orders(self):
+        import subprocess, sys
+        for order in ("sync_ccgp_query;import sync_regional_ccgp", "sync_regional_ccgp;import sync_ccgp_query"):
+            command = ("import sys\nsys.dont_write_bytecode=True\n"
+                       "def offline(event,args):\n"
+                       " if event=='import' and (args[0]=='vercel' or args[0].startswith('vercel.')): raise ImportError('REAL_SDK_FORBIDDEN')\n"
+                       " if event in ('socket.connect','socket.getaddrinfo'): raise RuntimeError('NETWORK_FORBIDDEN')\n"
+                       "sys.addaudithook(offline)\nsys.path.insert(0," + repr(str(ROOT / "scripts")) +
+                       ");sys.path.insert(0," + repr(str(ROOT)) + ");import " + order)
+            result = subprocess.run([sys.executable, "-B", "-c", command], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.records = json.loads((ROOT / 'data' / 'tianjin_verified_seed.json').read_text(encoding='utf-8'))

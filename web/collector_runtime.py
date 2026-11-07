@@ -780,76 +780,133 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> dict[str, Any]:
-    batch_index = int(stage.removeprefix("event")) - 1
-    watch_projects = cache.get(CCGP_WATCH_KEY)
-    if not isinstance(watch_projects, list):
-        raise CollectorPrecondition("COLLECTOR_WATCH_PROJECTS_MISSING")
-    projects = [str(item) for item in watch_projects][
-        batch_index * EVENT_BATCH_SIZE : (batch_index + 1) * EVENT_BATCH_SIZE
-    ]
-    staged = cache.get(CCGP_CYCLE_STAGING_KEY)
-    if (not isinstance(staged, dict) or staged.get("cycle_as_of") != state.get("cycle_as_of")
-            or not isinstance(staged.get("records"), list) or not isinstance(staged.get("events"), list)):
-        raise CollectorPrecondition("COLLECTOR_CCGP_CYCLE_STAGING_MISSING")
-    existing_events = staged["events"]
-    ccgp_result = state.get("stages", {}).get("ccgp", {}).get("result") or {}
-    start_text = str(ccgp_result.get("start_date") or "")
-    end_text = str(ccgp_result.get("end_date") or "")
-    if not start_text or not end_text:
-        raise CollectorPrecondition("COLLECTOR_CCGP_WINDOW_MISSING")
-
-    plan = load_plan(DATA_ROOT / "tianjin_query_plan.json")
-    observed_at = _cycle_as_of(state).astimezone(timezone.utc).isoformat()
-    failures: list[dict[str, Any]] = []
-    new_events: list[dict[str, Any]] = []
-
-    for project_number in projects:
-        before = len(failures)
-        try:
-            new_events.extend(scan_events(
-                project_number,
-                region=plan["region"],
-                start_date=start_text,
-                end_date=end_text,
-                delay_seconds=plan["delay_seconds"],
-                observed_at=observed_at,
-                failures=failures,
-            ))
-        except Exception as exc:
-            diagnostics = [reported_event_failure_row(row) for row in failures]
-            diagnostics.append(failure_row("event_scan", exc, project_number))
-            raise CollectorStageBlocked("EVENT_WATCH_SCAN_FAILED", diagnostics=failure_summary(diagnostics)) from exc
-        project_search_failures = [
-            item
-            for item in failures[before:]
-            if item.get("stage") == "event_search" and item.get("project_number") == project_number
+def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str, *, budget: CliBudget | None = None) -> dict[str, Any]:
+    receipt = {'target': 'COMMITTED_PAIR' if stage == 'event6' else 'STAGING',
+               'write_attempted': False, 'write_call_returned': False,
+               'mutation_possible': False, 'outcome': 'NOT_ATTEMPTED'}
+    save_deadline = None
+    def check(phase):
+        if budget:
+            budget.check(phase)
+    def save_check():
+        if budget and (budget.clock() >= save_deadline or
+                       budget.clock() >= budget.started + budget.total_seconds):
+            budget.fail('EVENT_DATA_SAVE')
+    try:
+        batch_index = int(stage.removeprefix("event")) - 1
+        check('EVENT_PREPARE')
+        watch_projects = cache.get(CCGP_WATCH_KEY)
+        check('EVENT_WATCH_RETURN')
+        if not isinstance(watch_projects, list):
+            raise CollectorPrecondition("COLLECTOR_WATCH_PROJECTS_MISSING")
+        if budget and len(watch_projects) > 6 * EVENT_BATCH_SIZE:
+            raise CollectorStageBlocked('EVENT_WATCH_COVERAGE_EXCEEDED')
+        projects = [str(item) for item in watch_projects][
+            batch_index * EVENT_BATCH_SIZE : (batch_index + 1) * EVENT_BATCH_SIZE
         ]
-        if len(project_search_failures) >= 2:
-            raise CollectorStageBlocked("EVENT_WATCH_ALL_SEARCHES_FAILED",
-                diagnostics=failure_summary([reported_event_failure_row(row) for row in failures]))
+        staged = cache.get(CCGP_CYCLE_STAGING_KEY)
+        check('EVENT_STAGING_RETURN')
+        if (not isinstance(staged, dict) or staged.get("cycle_as_of") != state.get("cycle_as_of")
+                or not isinstance(staged.get("records"), list) or not isinstance(staged.get("events"), list)):
+            raise CollectorPrecondition("COLLECTOR_CCGP_CYCLE_STAGING_MISSING")
+        existing_events = staged["events"]
+        ccgp_result = state.get("stages", {}).get("ccgp", {}).get("result") or {}
+        start_text = str(ccgp_result.get("start_date") or "")
+        end_text = str(ccgp_result.get("end_date") or "")
+        if not start_text or not end_text:
+            raise CollectorPrecondition("COLLECTOR_CCGP_WINDOW_MISSING")
 
-    if failures:
-        raise CollectorStageBlocked("EVENT_WATCH_VERIFICATION_INCOMPLETE",
-            diagnostics=failure_summary([reported_event_failure_row(row) for row in failures]))
-    merged_events = merge_notice_events(existing_events, new_events)
-    staged["events"] = merged_events
-    if stage == "event6":
-        if not all(((state.get("stages") or {}).get(required) or {}).get("status") == "COMPLETED"
-                   for required in ("ccgp", "event1", "event2", "event3", "event4", "event5")):
-            raise CollectorStageBlocked("CCGP_SOURCE_TRANSACTION_INCOMPLETE")
-        _assert_pending_canonical_commit(cache, CCGP_RECORDS_KEY, staged["records"])
-        _cache_set(cache, CCGP_COMMITTED_STATE_KEY, staged, tag="medicalchannelai-collector-ccgp-committed")
-    else:
-        _cache_set(cache, CCGP_CYCLE_STAGING_KEY, staged, tag="medicalchannelai-collector-ccgp-staging")
-    return {
-        "batch_index": batch_index + 1,
-        "project_count": len(projects),
-        "projects": projects,
-        "new_notice_event_count": len(new_events),
-        "merged_event_count": len(merged_events),
-        "failure_count": len(failures),
-    }
+        plan = load_plan(DATA_ROOT / "tianjin_query_plan.json")
+        check('EVENT_PLAN_RETURN')
+        observed_at = _cycle_as_of(state).astimezone(timezone.utc).isoformat()
+        failures: list[dict[str, Any]] = []
+        new_events: list[dict[str, Any]] = []
+
+        for project_number in projects:
+            check('EVENT_PROJECT_ADMISSION')
+            before = len(failures)
+            try:
+                project_events = scan_events(
+                    project_number,
+                    region=plan["region"],
+                    start_date=start_text,
+                    end_date=end_text,
+                    delay_seconds=plan["delay_seconds"],
+                    observed_at=observed_at,
+                    failures=failures,
+                    **({"budget": budget} if budget else {}),
+                )
+                check('EVENT_PROJECT_RETURN')
+                new_events.extend(project_events)
+            except CliBudgetExceeded:
+                raise
+            except Exception as exc:
+                check('EVENT_PROJECT_ERROR_RETURN')
+                diagnostics = [reported_event_failure_row(row) for row in failures]
+                diagnostics.append(failure_row("event_scan", exc, project_number))
+                raise CollectorStageBlocked("EVENT_WATCH_SCAN_FAILED", diagnostics=failure_summary(diagnostics)) from exc
+            project_search_failures = [
+                item
+                for item in failures[before:]
+                if item.get("stage") == "event_search" and item.get("project_number") == project_number
+            ]
+            if len(project_search_failures) >= 2:
+                raise CollectorStageBlocked("EVENT_WATCH_ALL_SEARCHES_FAILED",
+                    diagnostics=failure_summary([reported_event_failure_row(row) for row in failures]))
+
+        if failures:
+            raise CollectorStageBlocked("EVENT_WATCH_VERIFICATION_INCOMPLETE",
+                diagnostics=failure_summary([reported_event_failure_row(row) for row in failures]))
+        check('EVENT_MERGE')
+        merged_events = merge_notice_events(existing_events, new_events)
+        check('EVENT_MERGE_RETURN')
+        staged = {**staged, 'events': merged_events}
+        if budget:
+            budget.work_complete = True
+            save_deadline = min(budget.clock() + 30, budget.started + 210)
+        save_check()
+        if stage == "event6":
+            if not all(((state.get("stages") or {}).get(required) or {}).get("status") == "COMPLETED"
+                       for required in ("ccgp", "event1", "event2", "event3", "event4", "event5")):
+                raise CollectorStageBlocked("CCGP_SOURCE_TRANSACTION_INCOMPLETE")
+            if budget:
+                save_check()
+                raw_records = cache.get(CCGP_RECORDS_KEY)
+                save_check()
+                if not isinstance(raw_records, list):
+                    raise CollectorStageBlocked('EVENT_COMMIT_CANONICAL_BASE_MISSING_OR_CORRUPT')
+            save_check()
+            _assert_pending_canonical_commit(cache, CCGP_RECORDS_KEY, staged["records"])
+            save_check()
+            target_key, tag = CCGP_COMMITTED_STATE_KEY, "medicalchannelai-collector-ccgp-committed"
+        else:
+            target_key, tag = CCGP_CYCLE_STAGING_KEY, "medicalchannelai-collector-ccgp-staging"
+        save_check()
+        receipt.update(write_attempted=True, mutation_possible=True, outcome='UNKNOWN', write_call_returned=None)
+        _cache_set(cache, target_key, staged, tag=tag)
+        receipt.update(write_call_returned=True, outcome='CALL_RETURNED_UNVERIFIED')
+        if budget:
+            receipt['save_window_overrun'] = budget.clock() >= save_deadline
+            receipt['total_overrun'] = budget.clock() >= budget.started + budget.total_seconds
+        return {
+            **({"event_write_receipt": dict(receipt), "budget": budget.snapshot()} if budget else {}),
+            "batch_index": batch_index + 1,
+            "project_count": len(projects),
+            "projects": projects,
+            "new_notice_event_count": len(new_events),
+            "merged_event_count": len(merged_events),
+            "failure_count": len(failures),
+        }
+    except Exception as exc:
+        if not budget:
+            raise
+        diagnostics = {**(getattr(exc, 'diagnostics', None) or {}),
+                       'event_write_receipt': dict(receipt), 'budget': budget.snapshot()}
+        if isinstance(exc, (CliBudgetExceeded, CollectorStageBlocked)):
+            exc.diagnostics = diagnostics
+            raise
+        raise CollectorStageBlocked('EVENT_DATA_WRITE_RESULT_UNKNOWN' if receipt['write_attempted']
+                                    else 'EVENT_WORK_FAILED', diagnostics=diagnostics) from exc
 
 
 def _run_tjmugh(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
@@ -1916,7 +1973,8 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any], *, budget=None) -> 
 
 
 def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:
-    if stage != "publish" and stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+    event_budget = budget is not None and stage in ('event1', 'event2', 'event3', 'event4', 'event5', 'event6')
+    if not event_budget and stage != "publish" and stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
         budget = None
     now = now or _now_utc()
     cache = RuntimeCache()
@@ -1938,7 +1996,7 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
         if stage == "ccgp":
             result = _run_ccgp(cache, state)
         elif stage.startswith("event"):
-            result = _run_event_batch(cache, state, stage)
+            result = _run_event_batch(cache, state, stage, budget=budget) if event_budget else _run_event_batch(cache, state, stage)
         elif stage == "tjmugh":
             result = _run_tjmugh(cache, state)
         elif stage == "tjnothop":
@@ -1958,6 +2016,9 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
     except Exception as exc:
         if stage == "publish" and isinstance(exc, CliBudgetExceeded):
             exc = CollectorStageBlocked("PUBLISH_WORK_BUDGET_EXCEEDED", diagnostics=getattr(exc, "diagnostics", {}))
+        elif event_budget and isinstance(exc, CliBudgetExceeded):
+            exc = CollectorStageBlocked('EVENT_DATA_SAVE_BUDGET_EXCEEDED' if exc.phase == 'EVENT_DATA_SAVE'
+                                        else 'EVENT_WORK_BUDGET_EXCEEDED', diagnostics=getattr(exc, 'diagnostics', {}))
         elif budget and isinstance(exc, CliBudgetExceeded):
             exc = CollectorStageBlocked("REGIONAL_WORK_BUDGET_EXCEEDED", diagnostics={
                 "budget": budget.snapshot(), "canonical_mutation_possible": False,
@@ -1979,6 +2040,11 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
                     **getattr(exc, "diagnostics", {}), "workflow_state_mutation_possible": True,
                     "original_error_type": type(exc).__name__, "persistence_error_type": type(persistence_error).__name__,
                 }) from persistence_error
+            if event_budget:
+                raise CollectorStageBlocked('EVENT_FAILURE_STATE_RESULT_UNKNOWN', diagnostics={
+                    **getattr(exc, 'diagnostics', {}), 'workflow_state_mutation_possible': True,
+                    'persistence_error_type': type(persistence_error).__name__,
+                }) from persistence_error
             if budget:
                 raise CollectorStageBlocked("REGIONAL_FAILURE_STATE_RESULT_UNKNOWN", diagnostics={
                     "budget": budget.snapshot(),
@@ -1996,9 +2062,11 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
             "attempt_count": failed.get("attempt_count"),
             "retry_exhausted": _stage_retry_limit_reached(stage, failed, failed_stages),
             **({"publish_receipt": getattr(exc, "diagnostics", {}).get("publish_receipt")} if stage == "publish" else {}),
+            **({'budget': budget.snapshot(), 'event_write_receipt': getattr(exc, 'diagnostics', {}).get('event_write_receipt'),
+                'diagnostics': getattr(exc, 'diagnostics', {})} if event_budget else {}),
             **({"budget": budget.snapshot(),
                 "canonical_mutation_possible": bool(getattr(exc, "diagnostics", {}).get("canonical_mutation_possible")),
-                "diagnostics": getattr(exc, "diagnostics", {})} if budget and stage != "publish" else {}),
+                "diagnostics": getattr(exc, "diagnostics", {})} if budget and stage != "publish" and not event_budget else {}),
         }
 
     try:
@@ -2026,6 +2094,11 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
             raise CollectorStageBlocked("PUBLISH_FINALIZATION_RESULT_UNKNOWN", diagnostics={
                 "publish_receipt": result.get("publish_receipt"), "workflow_state_mutation_possible": True,
                 "persistence_error_type": type(exc).__name__,
+            }) from exc
+        if event_budget:
+            raise CollectorStageBlocked('EVENT_FINALIZATION_RESULT_UNKNOWN', diagnostics={
+                'event_write_receipt': result.get('event_write_receipt'),
+                'workflow_state_mutation_possible': True, 'persistence_error_type': type(exc).__name__,
             }) from exc
         if budget:
             raise CollectorStageBlocked("REGIONAL_FINALIZATION_RESULT_UNKNOWN", diagnostics={

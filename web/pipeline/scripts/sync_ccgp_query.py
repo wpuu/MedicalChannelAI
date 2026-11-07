@@ -91,9 +91,25 @@ def scan_events(
     delay_seconds: float,
     observed_at: str,
     failures: list[dict],
+    budget=None,
 ) -> list[dict]:
+    budget_errors = ()
+    if budget:
+        # The regional script imports this module: keep the reverse edge lazy.
+        from sync_regional_ccgp import CliBudgetExceeded
+        budget_errors = (CliBudgetExceeded,)
+    def check(phase):
+        if budget:
+            budget.check(phase)
+    def pause(phase):
+        if budget:
+            budget.sleep_checked(delay_seconds, phase)
+        else:
+            time.sleep(delay_seconds)
+    check('EVENT_SCAN_ENTRY')
     events: list[dict] = []
     for notice_type, event_type in (('更正公告', 'CORRECTION'), ('终止公告', 'TERMINATION')):
+        check('EVENT_QUERY_ADMISSION')
         search_url = build_search_url(
             keyword=project_number,
             notice_type=notice_type,
@@ -103,9 +119,15 @@ def scan_events(
             region=region,
         )
         try:
-            html = fetch_search_page(search_url)
+            html = (fetch_search_page(search_url, timeout_seconds=budget.request_timeout(30, 'EVENT_SEARCH'))
+                    if budget else fetch_search_page(search_url))
+            check('EVENT_SEARCH_RETURN')
             candidates = parse_search_html(html, keyword=project_number)
+            check('EVENT_SEARCH_PARSE_RETURN')
+        except budget_errors:
+            raise
         except Exception as exc:  # explicit report; no bypass/retry storm
+            check('EVENT_SEARCH_ERROR_RETURN')
             failures.append(
                 {
                     'stage': 'event_search',
@@ -119,19 +141,27 @@ def scan_events(
             continue
 
         for candidate in candidates:
+            check('EVENT_CANDIDATE_ADMISSION')
             if project_number.lower() not in candidate.title.lower():
                 continue
             event = None
             try:
-                time.sleep(delay_seconds)
-                detail_html = fetch_ccgp_detail_html(candidate.detail_url)
+                pause('EVENT_DETAIL_SLEEP')
+                detail_html = (fetch_ccgp_detail_html(candidate.detail_url,
+                               timeout_seconds=budget.request_timeout(30, 'EVENT_DETAIL'))
+                               if budget else fetch_ccgp_detail_html(candidate.detail_url))
+                check('EVENT_DETAIL_RETURN')
                 event = parse_ccgp_event_html(
                     detail_html,
                     source_url=candidate.detail_url,
                     observed_at=observed_at,
                     event_id=stable_id(event_type.lower(), candidate.detail_url),
                 )
+                check('EVENT_PARSE_RETURN')
+            except budget_errors:
+                raise
             except Exception as exc:
+                check('EVENT_DETAIL_ERROR_RETURN')
                 failures.append(
                     {
                         'stage': 'event_detail',
@@ -151,9 +181,11 @@ def scan_events(
                         event_type=event_type,
                         observed_at=observed_at,
                     )
+            check('EVENT_APPEND')
             if event:
                 events.append(event)
-        time.sleep(delay_seconds)
+        pause('EVENT_QUERY_SLEEP')
+    check('EVENT_SCAN_RETURN')
     return events
 
 

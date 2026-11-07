@@ -378,8 +378,97 @@ class CollectorOrchestrationBehaviorTests(unittest.TestCase):
             self.assertEqual(self.sent[-1]['payload']['stage'],'regional_ln')
         self.assertEqual(self.cache.get(key),[])
 
+    def test_event_budget_entry_origin_includes_preflight_and_ignores_payload_deadline(self):
+        payload = self.seed_retry("event1", 0)
+        payload["deadline"] = 999999
+        tick, seen = [0.0], []
+        def active(*args, **kwargs):
+            tick[0] = 175
+            return True
+        def run(stage, **kwargs):
+            b = kwargs["budget"]
+            seen.append((b.started, b.request_timeout(30, "EVENT_TEST"), b.total_seconds, b.work_seconds))
+            return 503, {"error": "OFFLINE", "retryable": True, "retry_exhausted": False}
+        with patch.object(self.worker, "_active_cycle_matches", side_effect=active), patch.object(
+                self.worker, "_heartbeat_deep_cycle", return_value=True), patch.object(self.runtime, "run_stage", side_effect=run):
+            with self.assertRaises(RuntimeError):
+                asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0], sleep=lambda d: None))
+        self.assertEqual(seen, [(0, 4, 270, 180)])
+
+    def test_event_budget_first_retry_final_degrade_and_redelivery_keep_attempt_limit(self):
+        payload = self.seed_retry("event1", 0)
+        tick = [0.0]
+        def active(*args, **kwargs):
+            tick[0] = 180
+            return True
+        def work(cache, state, stage, *, budget):
+            budget.check("EVENT_TEST")
+        with patch.object(self.worker, "_active_cycle_matches", side_effect=active), patch.object(
+                self.worker, "_heartbeat_deep_cycle", return_value=True), patch.object(self.runtime, "_run_event_batch", side_effect=work) as scan:
+            with self.assertRaises(RuntimeError):
+                asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+            first = self.cache.get(self.worker.META_KEY)["stages"]["event1"]
+            self.assertEqual((first["status"], first["attempt_count"]), ("FAILED", 1))
+            self.assertEqual(self.sent, [])
+            tick[0] = 0
+            asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+            final = self.cache.get(self.worker.META_KEY)["stages"]["event1"]
+            self.assertEqual((final["status"], final["attempt_count"]), ("DEGRADED", 2))
+            self.assertEqual(self.sent[-1]["payload"]["stage"], "event2")
+            tick[0] = 0
+            asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+            self.assertEqual(scan.call_count, 2)
+
+    def test_event_foreign_and_owner_rejection_do_not_run_stage(self):
+        for foreign in (True, False):
+            payload = self.cycle_payload("event1")
+            with patch.object(self.worker, "accepts_payload", return_value=not foreign), patch.object(
+                    self.worker, "_active_cycle_matches", return_value=False), patch.object(self.runtime, "run_stage") as run:
+                asyncio.run(self.worker.process_collector_payload(payload))
+            run.assert_not_called()
+
+    def event_tail_case(self, mode):
+        payload = self.seed_retry("event1", 0)
+        receipt = {"target": "STAGING", "outcome": "CALL_RETURNED_UNVERIFIED", "mutation_possible": True}
+        events, tick = [], [0.0]
+        def heartbeat(*args, **kwargs):
+            events.append("heartbeat")
+            if mode == "heartbeat" and len(events) > 1: raise OSError("OFFLINE_HEARTBEAT")
+            return not (mode == "replaced" and len(events) > 1)
+        async def enqueue(**kwargs):
+            events.append("enqueue")
+            if mode == "enqueue": raise OSError("OFFLINE_ENQUEUE")
+        def run(*args, **kwargs):
+            tick[0] = 280
+            return 200, {"action": "COMPLETED", "result": {"event_write_receipt": receipt}}
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+                self.worker, "_heartbeat_deep_cycle", side_effect=heartbeat), patch.object(self.runtime, "run_stage",
+                side_effect=run), patch.object(
+                self.worker, "_enqueue_stage", side_effect=enqueue):
+            error = None
+            try:
+                asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+            except OSError as exc:
+                error = exc
+        return events, error
+
+    def test_event_queue_tail_errors_keep_write_receipt_and_original_error(self):
+        for mode in ("heartbeat", "enqueue"):
+            events, error = self.event_tail_case(mode)
+            self.assertIsInstance(error, OSError)
+            self.assertEqual(error.diagnostics["event_write_receipt"]["outcome"], "CALL_RETURNED_UNVERIFIED")
+            self.assertTrue(error.diagnostics["workflow_state_mutation_possible"])
+
+    def test_event_queue_lateness_does_not_skip_original_tail_or_fence(self):
+        events, error = self.event_tail_case("late")
+        self.assertIsNone(error)
+        self.assertEqual(events, ["heartbeat", "heartbeat", "enqueue"])
+        events, error = self.event_tail_case("replaced")
+        self.assertIsNone(error)
+        self.assertEqual(events, ["heartbeat", "heartbeat"])
+
     def test_nonregional_stages_keep_original_run_stage_arguments(self):
-        for stage in ('tjmugh','event1'):
+        for stage in ('tjmugh','ccgp'):
             with self.subTest(stage=stage):
                 payload=self.seed_retry(stage,0)
                 with patch.object(self.worker,'_active_cycle_matches',return_value=True), patch.object(

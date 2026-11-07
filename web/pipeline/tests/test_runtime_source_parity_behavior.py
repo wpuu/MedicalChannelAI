@@ -1003,6 +1003,209 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
         self.state = self.cache.get(self.runtime.META_KEY)
         return response
 
+    def event_stage_budget_case(self, mode="success", *, stage="event1", count=5, elapsed=0):
+        r = self.runtime
+        tick, scans, writes = [float(elapsed)], [], []
+        budget = None
+        def clock():
+            if mode == "save_expired" and budget and budget.work_complete: tick[0] = 210
+            return tick[0]
+        budget = r.CliBudget(clock, lambda d: tick.__setitem__(0, tick[0] + d),
+                            total_seconds=270, work_seconds=180, started_at=0)
+        prefix = (int(stage.removeprefix("event")) - 1) * 5
+        watch = [f"project-{i}" for i in range(prefix + count)]
+        self.cache.set(r.CCGP_WATCH_KEY, watch)
+        self.cache.set(r.CCGP_RECORDS_KEY, [])
+        if mode == "raw_missing": self.cache.delete(r.CCGP_RECORDS_KEY)
+        if mode == "raw_corrupt": self.cache.set(r.CCGP_RECORDS_KEY, {})
+        def event(identity):
+            return {"schema_version": "0.1", "event_id": identity, "event_type": "TERMINATION",
+                "project_number": identity, "project_name": "医院设备", "published_at": "2026-09-01",
+                "source_url": "https://www.ccgp.gov.cn/example", "observed_at": self.now.isoformat(),
+                "summary": "terminated", "changed_fact_paths": [], "fact_overrides": {},
+                "unresolved_fact_paths": [], "requires_reconciliation": False, "terminal": True}
+        staged = {"cycle_as_of": self.now.isoformat(), "records": [], "events": [event("verified-sibling")]}
+        committed = {"cycle_as_of": "previous", "records": [], "events": []}
+        self.cache.set(r.CCGP_CYCLE_STAGING_KEY, staged)
+        self.cache.set(r.CCGP_COMMITTED_STATE_KEY, committed)
+        pending = self.incremental._pending_barrier_cache_key("ccgp")
+        sibling = self.incremental._pending_barrier_cache_key("tjzyefy")
+        self.cache.set(pending, ["unresolved"] if mode == "pending" else [])
+        self.cache.set(sibling, ["independent-pending"])
+        pending_before = self.cache.get(pending)
+        prior = (self.now - timedelta(days=1)).isoformat()
+        self.cache.set(r.SOURCE_HEALTH_KEY, {"schema_version": "0.1", "sources": {
+            "ccgp": {"last_successful_scan_at": prior}}})
+        stages = {name: {"status": "COMPLETED"} for name in r.STAGE_ORDER[:r.STAGE_ORDER.index(stage)]}
+        stages["ccgp"]["result"] = {"start_date": "2026:09:01", "end_date": "2026:10:01"}
+        self.cache.set(r.META_KEY, {**self.state, "stages": stages})
+        def scan(project, **kwargs):
+            b = kwargs["budget"]
+            scans.append((project, b.started, b.request_timeout(30, "EVENT_TEST_READ")))
+            if mode == "slow": tick[0] += 40
+            if mode in ("scan_late", "none_late", "failure_state_error"): tick[0] = 180
+            if mode == "none_late": return None
+            if mode == "partial": kwargs["failures"].append({"stage": "event_detail", "error": "TimeoutError"})
+            return [event(project)]
+        original_get = self.cache.get
+        def cache_get(key):
+            value = original_get(key)
+            if (mode == "watch_late" and key == r.CCGP_WATCH_KEY) or (mode == "staging_late" and key == r.CCGP_CYCLE_STAGING_KEY):
+                tick[0] = 180
+            if mode == "raw_late" and key == r.CCGP_RECORDS_KEY: tick[0] += 31
+            return value
+        original_set = self.cache.set
+        data_key = r.CCGP_COMMITTED_STATE_KEY if stage == "event6" else r.CCGP_CYCLE_STAGING_KEY
+        def cache_set(key, value, options=None):
+            if key == r.META_KEY and value["stages"][stage]["status"] == "RUNNING" and mode == "admission_late":
+                tick[0] = 180
+            if key == data_key:
+                writes.append(key)
+                if mode == "write_before": raise OSError("OFFLINE_DATA_WRITE")
+            if key == r.META_KEY and value["stages"][stage]["status"] == "COMPLETED" and mode == "stage_error":
+                raise OSError("OFFLINE_STAGE_WRITE")
+            if key == r.META_KEY and value["stages"][stage]["status"] == "FAILED" and mode == "failure_state_error":
+                raise OSError("OFFLINE_FAILED_WRITE")
+            if key == r.SOURCE_HEALTH_KEY and mode == "health_error": raise OSError("OFFLINE_HEALTH_WRITE")
+            original_set(key, value, options)
+            if key == data_key:
+                if mode == "write_after": raise OSError("OFFLINE_WRITE_RETURN_UNKNOWN")
+                if mode == "write_late": tick[0] = 270
+                if mode == "local_save_late": tick[0] += 31
+        original_merge = r.merge_notice_events
+        def merge(*args):
+            result = original_merge(*args)
+            if mode == "merge_late": tick[0] = 180
+            return result
+        original_pending = r._assert_pending_canonical_commit
+        def assert_pending(*args, **kwargs):
+            result = original_pending(*args, **kwargs)
+            if mode == "pending_late": tick[0] += 31
+            return result
+        with patch.object(r, "scan_events", side_effect=scan), patch.object(self.cache, "get", side_effect=cache_get), patch.object(self.cache, "set", side_effect=cache_set), patch.object(
+                r, "merge_notice_events", side_effect=merge), patch.object(r, "_assert_pending_canonical_commit", side_effect=assert_pending), patch.object(
+                r, "_now_utc", return_value=self.now):
+            error, result, status, repeated = None, {}, None, None
+            try:
+                status, result = r.run_stage(stage, now=self.now, budget=budget)
+                if mode == "replay": repeated = r.run_stage(stage, now=self.now, budget=budget)[1]["action"]
+            except r.CollectorStageBlocked as exc:
+                error, result = str(exc), {"diagnostics": exc.diagnostics}
+        diagnostics = result.get("diagnostics", {})
+        receipt = (result.get("result") or result).get("event_write_receipt") or diagnostics.get("event_write_receipt")
+        return {"status": status, "error": error, "result": result, "receipt": receipt, "scans": scans, "writes": writes,
+            "committed_unchanged": self.cache.get(r.CCGP_COMMITTED_STATE_KEY) == committed,
+            "staging_unchanged": self.cache.get(r.CCGP_CYCLE_STAGING_KEY) == staged,
+            "sibling_preserved": any(e["event_id"] == "verified-sibling" for e in self.cache.get(data_key)["events"]),
+            "pending_unchanged": self.cache.get(pending) == pending_before and self.cache.get(sibling) == ["independent-pending"],
+            "success_clock_unchanged": self.cache.get(r.SOURCE_HEALTH_KEY)["sources"]["ccgp"]["last_successful_scan_at"] == prior,
+            "stage_status": self.cache.get(r.META_KEY)["stages"][stage]["status"], "repeated": repeated,
+            "data_has_receipt": "event_write_receipt" in self.cache.get(data_key)}
+
+    def test_event_stage_budget_expired_and_watch_overflow_have_zero_business_requests(self):
+        for kwargs in ({"elapsed": 180}, {"count": 31}):
+            c = self.event_stage_budget_case(**kwargs)
+            self.assertEqual(c["status"], 503)
+            self.assertEqual(c["scans"], [])
+            self.assertEqual(c["writes"], [])
+            self.assertFalse(c["receipt"]["mutation_possible"])
+
+    def test_event_stage_late_scan_none_merge_or_partial_keeps_all_old_data(self):
+        for mode in ("scan_late", "none_late", "merge_late", "partial", "slow"):
+            with self.subTest(mode=mode):
+                c = self.event_stage_budget_case(mode)
+                self.assertEqual(c["status"], 503)
+                self.assertTrue(c["committed_unchanged"] and c["staging_unchanged"])
+                self.assertTrue(c["pending_unchanged"] and c["success_clock_unchanged"])
+                self.assertEqual(c["writes"], [])
+
+    def test_event_stage_five_fast_projects_and_complete_empty_preserve_pair_boundary(self):
+        for stage in ("event1", "event6"):
+            for count in (0, 5):
+                with self.subTest(stage=stage, count=count):
+                    c = self.event_stage_budget_case(stage=stage, count=count)
+                    self.assertEqual(c["status"], 200)
+                    self.assertEqual(len(c["scans"]), count)
+                    self.assertEqual(c["receipt"]["outcome"], "CALL_RETURNED_UNVERIFIED")
+                    self.assertEqual(c["receipt"]["target"], "COMMITTED_PAIR" if stage == "event6" else "STAGING")
+                    self.assertEqual(c["committed_unchanged"], stage != "event6")
+                    self.assertEqual(c["success_clock_unchanged"], stage != "event6")
+                    self.assertTrue(c["sibling_preserved"] and c["pending_unchanged"])
+                    self.assertEqual(len(c["writes"]), 1)
+                    self.assertFalse(c["data_has_receipt"])
+
+    def test_event_stage_save_admission_and_pending_lateness_reject_before_write(self):
+        for mode in ("save_expired", "pending_late", "raw_late"):
+            c = self.event_stage_budget_case(mode, stage="event6")
+            self.assertEqual(c["status"], 503)
+            self.assertEqual(c["writes"], [])
+            self.assertTrue(c["committed_unchanged"] and c["staging_unchanged"])
+            self.assertEqual(c["receipt"]["outcome"], "NOT_ATTEMPTED")
+
+    def test_event_stage_pending_and_raw_record_guards_keep_original_bundle(self):
+        for mode in ("pending", "raw_missing", "raw_corrupt"):
+            c = self.event_stage_budget_case(mode, stage="event6")
+            self.assertEqual(c["status"], 503)
+            self.assertEqual(c["writes"], [])
+            self.assertTrue(c["committed_unchanged"] and c["pending_unchanged"])
+
+    def test_event_stage_data_write_error_before_or_after_remains_unknown(self):
+        for stage in ("event1", "event6"):
+            for mode in ("write_before", "write_after"):
+                with self.subTest(stage=stage, mode=mode):
+                    c = self.event_stage_budget_case(mode, stage=stage)
+                    self.assertEqual(c["status"], 503)
+                    self.assertEqual(c["receipt"]["outcome"], "UNKNOWN")
+                    self.assertIsNone(c["receipt"]["write_call_returned"])
+                    self.assertTrue(c["receipt"]["mutation_possible"])
+                    self.assertEqual(c["staging_unchanged"] if stage == "event1" else c["committed_unchanged"], mode == "write_before")
+
+    def test_event_stage_late_return_keeps_known_call_and_original_completion(self):
+        for mode in ("write_late", "local_save_late"):
+            c = self.event_stage_budget_case(mode, stage="event6")
+            self.assertEqual(c["status"], 200)
+            self.assertEqual(c["receipt"]["outcome"], "CALL_RETURNED_UNVERIFIED")
+            self.assertTrue(c["receipt"]["save_window_overrun"])
+            self.assertEqual(c["stage_status"], "COMPLETED")
+            self.assertFalse(c["committed_unchanged"])
+
+    def test_event_stage_finalization_errors_keep_data_receipt(self):
+        for mode in ("stage_error", "health_error"):
+            c = self.event_stage_budget_case(mode, stage="event6")
+            self.assertEqual(c["error"], "EVENT_FINALIZATION_RESULT_UNKNOWN")
+            self.assertEqual(c["receipt"]["outcome"], "CALL_RETURNED_UNVERIFIED")
+            self.assertTrue(c["result"]["diagnostics"]["workflow_state_mutation_possible"])
+            self.assertFalse(c["committed_unchanged"])
+
+    def test_event_stage_failure_status_error_preserves_not_attempted(self):
+        c = self.event_stage_budget_case("failure_state_error")
+        self.assertEqual(c["error"], "EVENT_FAILURE_STATE_RESULT_UNKNOWN")
+        self.assertEqual(c["receipt"]["outcome"], "NOT_ATTEMPTED")
+        self.assertEqual(c["stage_status"], "RUNNING")
+
+    def test_event_stage_all_registered_shards_keep_same_parent_origin(self):
+        for index in range(1, 7):
+            with self.subTest(stage=index):
+                c = self.event_stage_budget_case(stage=f"event{index}", elapsed=10)
+                self.assertEqual(c["status"], 200)
+                self.assertEqual(len(c["scans"]), 5)
+                self.assertTrue(all(origin == 0 and timeout == 30 for _, origin, timeout in c["scans"]))
+
+    def test_event_stage_admission_and_cache_reads_do_not_reset_budget(self):
+        for mode in ("admission_late", "watch_late", "staging_late"):
+            with self.subTest(mode=mode):
+                c = self.event_stage_budget_case(mode)
+                self.assertEqual(c["status"], 503)
+                self.assertEqual(c["scans"], [])
+                self.assertEqual(c["writes"], [])
+                self.assertTrue(c["committed_unchanged"] and c["staging_unchanged"])
+
+    def test_event_stage_redelivery_reuses_original_completed_result(self):
+        c = self.event_stage_budget_case("replay")
+        self.assertEqual(c["repeated"], "ALREADY_COMPLETED_TODAY")
+        self.assertEqual(len(c["scans"]), 5)
+        self.assertEqual(len(c["writes"]), 1)
+
     def test_ccgp_event_failure_cannot_be_masked_by_later_batch_success(self):
         self.run_stub_stage("ccgp")
         self.assertIsNone(self.runtime.snapshot_source_health(self.cache)["sources"]["ccgp"]["last_successful_scan_at"])
