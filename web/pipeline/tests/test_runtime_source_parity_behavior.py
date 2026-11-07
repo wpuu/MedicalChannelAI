@@ -1003,6 +1003,324 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
         self.state = self.cache.get(self.runtime.META_KEY)
         return response
 
+    def ccgp_discovery_budget_case(self, mode="success", *, elapsed=0, use_budget=True):
+        import sync_ccgp_query as query
+        from tests.test_ccgp_discovery import FIXTURE
+        tick, calls, failures = [float(elapsed)], [], []
+        def sleep(delay): tick[0] = 150 if mode == "sleep_late" else tick[0] + delay
+        budget = self.runtime.CliBudget(lambda: tick[0], sleep, total_seconds=270, work_seconds=150, started_at=0)
+        def fetch(url, **kwargs):
+            calls.append(kwargs.get("timeout_seconds"))
+            if mode in ("late", "none_late", "error_late"): tick[0] = 150
+            if mode == "error_late" or (mode == "ordinary_error" and len(calls) == 1): raise TimeoutError("OFFLINE")
+            return None if mode == "none_late" else FIXTURE
+        original = query.parse_search_html
+        class Probe:
+            def __init__(self, value): self.value = value
+            def __getattr__(self, name):
+                if name == "published_at": tick[0] = 150
+                return getattr(self.value, name)
+        def parse(*args, **kwargs):
+            value = original(*args, **kwargs)
+            if mode in ("parse_late", "parse_none_late"): tick[0] = 150
+            if mode == "sleep_admission": tick[0] = 147
+            if mode == "sort_late": return [Probe(row) for row in value]
+            return None if mode == "parse_none_late" else value
+        result, error = None, None
+        with patch.object(query, "fetch_search_page", side_effect=fetch), patch.object(
+                query, "parse_search_html", side_effect=parse), patch.object(query.time, "sleep", side_effect=sleep):
+            try:
+                result = query.discover_candidates(keyword="医院", region="天津", notice_types=["公开招标", "竞争性磋商"],
+                    start_date="2026:08:25", end_date="2026:08:28", delay_seconds=4, failures=failures,
+                    **({"budget": budget} if use_budget else {}))
+            except self.runtime.CliBudgetExceeded as exc: error = exc
+        return {"result_count": len(result) if result is not None else None, "error_phase": getattr(error, "phase", None),
+                "calls": calls, "failure_count": len(failures)}
+
+    def test_ccgp_discovery_budget_margin_and_timeout_parameters(self):
+        for elapsed in (149, 150):
+            c = self.ccgp_discovery_budget_case(elapsed=elapsed)
+            self.assertEqual(c["calls"], [])
+            self.assertIsNotNone(c["error_phase"])
+        c = self.ccgp_discovery_budget_case(elapsed=140)
+        self.assertEqual(c["calls"], [9, 5])
+        self.assertEqual(c["result_count"], 3)
+
+    def test_ccgp_discovery_budget_late_return_none_error_parse_and_sort_are_rejected(self):
+        for mode in ("late", "none_late", "error_late", "parse_late", "parse_none_late", "sort_late"):
+            with self.subTest(mode=mode):
+                c = self.ccgp_discovery_budget_case(mode)
+                self.assertIsNotNone(c["error_phase"])
+                self.assertIsNone(c["result_count"])
+                self.assertEqual(c["failure_count"], 0)
+        self.assertEqual(self.ccgp_discovery_budget_case("sort_late")["error_phase"], "CCGP_DISCOVERY_SORT_RETURN")
+
+    def test_ccgp_discovery_budget_sleep_stops_second_type_and_default_keeps_ordinary_errors(self):
+        for mode in ("sleep_late", "sleep_admission"):
+            c = self.ccgp_discovery_budget_case(mode)
+            self.assertEqual(len(c["calls"]), 1)
+            self.assertIsNotNone(c["error_phase"])
+        for use_budget in (True, False):
+            c = self.ccgp_discovery_budget_case("ordinary_error", use_budget=use_budget)
+            self.assertEqual(c["failure_count"], 1)
+            self.assertEqual(len(c["calls"]), 2)
+            self.assertEqual(c["result_count"], 3)
+            if not use_budget: self.assertEqual(c["calls"], [None, None])
+
+    def ccgp_stage_budget_case(self, mode="success", *, count=1, elapsed=0, use_budget=True):
+        r = self.runtime
+        now = datetime(2026, 11, 6, 8, tzinfo=timezone.utc)
+        fixture = WEB_ROOT / "pipeline/tests/fixtures/ccgp_tianjin_dakoutun_20261105.html"
+        metadata = json.loads(fixture.with_suffix(".manifest.json").read_text())
+        html = fixture.read_bytes().decode(metadata["encoding"])
+        old = json.loads((r.DATA_ROOT / "tianjin_live_ccgp_records.json").read_text())[0]
+        committed = {"cycle_as_of": "prior-cycle", "records": [old], "events": []}
+        self.cache.set(r.CCGP_RECORDS_KEY, [{**old, "opportunity_id": "raw-only-marker"}] if mode == "committed_precedence" else [old])
+        self.cache.set(r.CCGP_EVENTS_KEY, [])
+        self.cache.set(r.CCGP_COMMITTED_STATE_KEY, {} if mode == "corrupt_committed" else committed)
+        old_staging = {"cycle_as_of": "prior-staging", "records": [old], "events": []}
+        old_watch = ["prior-watch"]
+        self.cache.set(r.CCGP_CYCLE_STAGING_KEY, old_staging)
+        self.cache.set(r.CCGP_WATCH_KEY, old_watch)
+        pending = self.incremental._pending_barrier_cache_key("ccgp")
+        sibling = self.incremental._pending_cache_key("tjzyefy")
+        self.cache.set(pending, ["unresolved"])
+        self.cache.set(sibling, [{"opportunity_id": "verified-sibling-staging"}])
+        prior = (now - timedelta(days=1)).isoformat()
+        self.cache.set(r.SOURCE_HEALTH_KEY, {"schema_version": "0.1", "sources": {
+            "ccgp": {"last_successful_scan_at": prior}}})
+        self.cache.set(r.META_KEY, {"cycle_as_of": now.isoformat(), "local_date": now.date().isoformat(), "stages": {}})
+        if mode.startswith("cold"):
+            self.cache.delete(r.CCGP_RECORDS_KEY)
+            self.cache.delete(r.CCGP_EVENTS_KEY)
+        candidates = [("公开招标", types.SimpleNamespace(title="医院设备", published_at="2026-11-05",
+                      detail_url=metadata["url"] + f"?offline={i}", notice_type="公开招标",
+                      region="天津", buyer_name="医院")) for i in range(count)]
+        tick, writes, reads, queries, details, hashes, sleeps = [float(elapsed)], [], [], [], [], [], []
+        budget = None
+        def clock():
+            if mode == "prepare_expired" and budget and budget.work_complete: tick[0] = 210
+            return tick[0]
+        def sleep(delay):
+            sleeps.append(delay)
+            tick[0] = 150 if mode == "sleep_late" else tick[0] + delay
+        budget = r.CliBudget(clock, sleep, total_seconds=270, work_seconds=150, started_at=0)
+        original_get, original_set = self.cache.get, self.cache.set
+        keys = {r.CCGP_CYCLE_STAGING_KEY: "s", r.CCGP_WATCH_KEY: "w"}
+        def get(key):
+            value = original_get(key)
+            if key in keys and key in writes:
+                part = keys[key]
+                reads.append(key)
+                if mode == part + "_get_error": raise OSError("OFFLINE_READBACK")
+                if mode == part + "_get_late": tick[0] += 61
+                if mode == part + "_none": return None
+                if mode == "s_wrong_cycle" and part == "s": return {**value, "cycle_as_of": "foreign"}
+                if mode == "w_old" and part == "w": return old_watch
+            return value
+        def put(key, value, options=None):
+            if key in keys:
+                writes.append(key)
+                if mode == keys[key] + "_put_before": raise OSError("OFFLINE_WRITE")
+            if key == r.META_KEY:
+                status = value["stages"]["ccgp"]["status"]
+                if mode == "admission_late" and status == "RUNNING": tick[0] = 150
+                if mode == "stage_error" and status == "COMPLETED": raise OSError("OFFLINE_STAGE")
+                if mode == "failure_save_error" and status == "FAILED": raise OSError("OFFLINE_FAILED_STATE")
+            if mode == "health_error" and key == r.SOURCE_HEALTH_KEY: raise OSError("OFFLINE_HEALTH")
+            original_set(key, value, options)
+            if key in keys:
+                if mode == keys[key] + "_put_after": raise OSError("OFFLINE_WRITE_RETURN_UNKNOWN")
+                if mode == keys[key] + "_put_late": tick[0] += 61
+            if key == r.CCGP_RECORDS_KEY and mode == "cold_late": tick[0] = 150
+            if key == r.CCGP_RECORDS_KEY and mode == "cold_error": raise OSError("OFFLINE_SEED_RETURN_UNKNOWN")
+            if key == r.META_KEY and mode == "tail_late" and value["stages"]["ccgp"]["status"] == "COMPLETED": tick[0] = 280
+        def discover(**kwargs):
+            queries.append(kwargs)
+            if mode in ("query_late", "query_none_late", "query_error_late", "failure_save_error"): tick[0] = 150
+            if mode == "query_error_late": raise TimeoutError("OFFLINE")
+            if mode == "query_none_late": return None
+            if mode == "partial": kwargs["failures"].append({"stage": "discovery_search", "error": "TimeoutError"})
+            if mode == "sleep_admission": tick[0] = 147
+            return candidates
+        def fetch(url, **kwargs):
+            details.append(kwargs.get("timeout_seconds"))
+            if mode in ("detail_late", "detail_none_late", "detail_error_late"): tick[0] = 150
+            if mode == "detail_error_late": raise TimeoutError("OFFLINE")
+            return None if mode == "detail_none_late" else html
+        original_adapter = r.VERIFIED_NOTICE_ADAPTERS["公开招标"]
+        def parse(*args, **kwargs):
+            value = original_adapter(*args, **kwargs)
+            if mode == "parse_late": tick[0] = 150
+            return value
+        original_merge, original_watch, original_digest = r.merge_canonical_records, r.active_ccgp_project_numbers, r._digest
+        def merge(*args):
+            value = original_merge(*args)
+            if mode == "merge_late": tick[0] = 150
+            return value
+        def watch(*args):
+            value = original_watch(*args)
+            if mode == "watch_late": tick[0] = 150
+            return [f"watch-{i}" for i in range(31)] if mode in ("watch_overflow", "watch_capacity") else value
+        def digest(value):
+            hashes.append(value)
+            result = original_digest(value)
+            if mode == "digest_late" and len(hashes) == 1: tick[0] = 150
+            if mode == "read_digest_late" and len(hashes) == 3: tick[0] += 61
+            return result
+        original_plan = r.load_plan
+        def load_plan(*args):
+            plan = original_plan(*args)
+            if mode == "watch_capacity": plan["max_event_watch_projects"] = 100
+            return plan
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(r, "load_plan", side_effect=load_plan))
+            stack.enter_context(patch.object(self.cache, "get", side_effect=get))
+            stack.enter_context(patch.object(self.cache, "set", side_effect=put))
+            stack.enter_context(patch.object(r, "discover_candidates", side_effect=discover))
+            stack.enter_context(patch.object(r, "fetch_ccgp_detail_html", side_effect=fetch))
+            stack.enter_context(patch.dict(r.VERIFIED_NOTICE_ADAPTERS, {"公开招标": parse}))
+            stack.enter_context(patch.object(r, "merge_canonical_records", side_effect=merge))
+            stack.enter_context(patch.object(r, "active_ccgp_project_numbers", side_effect=watch))
+            stack.enter_context(patch.object(r, "_digest", side_effect=digest))
+            stack.enter_context(patch.object(r, "_bootstrap_ccgp_records", return_value=[old]))
+            stack.enter_context(patch.object(r, "_bootstrap_ccgp_events", return_value=[]))
+            stack.enter_context(patch.object(r, "_now_utc", return_value=now))
+            status, result, error, replay = None, {}, None, None
+            try:
+                status, result = r.run_stage("ccgp", now=now, **({"budget": budget} if use_budget else {}))
+                if mode == "replay": replay = r.run_stage("ccgp", now=now, budget=budget)[1]["action"]
+            except r.CollectorStageBlocked as exc:
+                error, result = str(exc), {"diagnostics": exc.diagnostics}
+        receipt = (result.get("result") or result).get("ccgp_prepare_receipt") or (result.get("diagnostics") or {}).get("ccgp_prepare_receipt")
+        return {"status": status, "error": error, "result": result, "receipt": receipt,
+                "queries": len(queries), "details": len(details), "timeouts": details,
+                "writes": [keys[k] for k in writes], "reads": [keys[k] for k in reads], "hashes": len(hashes),
+                "staging_unchanged": self.cache.get(r.CCGP_CYCLE_STAGING_KEY) == old_staging,
+                "watch_unchanged": self.cache.get(r.CCGP_WATCH_KEY) == old_watch,
+                "committed_unchanged": self.cache.get(r.CCGP_COMMITTED_STATE_KEY) == ({} if mode == "corrupt_committed" else committed),
+                "pending_unchanged": self.cache.get(pending) == ["unresolved"] and self.cache.get(sibling) == [{"opportunity_id": "verified-sibling-staging"}],
+                "success_clock_unchanged": self.cache.get(r.SOURCE_HEALTH_KEY)["sources"]["ccgp"]["last_successful_scan_at"] == prior,
+                "stage_status": self.cache.get(r.META_KEY)["stages"]["ccgp"]["status"],
+                "seed_records_present": isinstance(self.cache.get(r.CCGP_RECORDS_KEY), list),
+                "data_has_receipt": "ccgp_prepare_receipt" in self.cache.get(r.CCGP_CYCLE_STAGING_KEY),
+                "prepared_uses_committed": self.cache.get(r.CCGP_CYCLE_STAGING_KEY)["records"] == [old], "replay": replay}
+
+    def test_ccgp_budget_expired_preflight_or_stage_admission_has_zero_requests(self):
+        for kwargs in ({"elapsed": 150}, {"mode": "admission_late"}):
+            c = self.ccgp_stage_budget_case(**kwargs)
+            self.assertEqual(c["status"], 503)
+            self.assertEqual((c["queries"], c["details"], c["writes"]), (0, 0, []))
+
+    def test_ccgp_budget_late_work_and_partial_discovery_never_prepare(self):
+        for mode in ("query_late", "query_none_late", "query_error_late", "partial", "detail_late",
+                     "detail_none_late", "detail_error_late", "parse_late", "merge_late", "watch_late", "digest_late"):
+            with self.subTest(mode=mode):
+                c = self.ccgp_stage_budget_case(mode)
+                self.assertEqual(c["status"], 503)
+                self.assertEqual(c["writes"], [])
+                self.assertTrue(c["staging_unchanged"] and c["watch_unchanged"])
+                self.assertTrue(c["committed_unchanged"] and c["pending_unchanged"] and c["success_clock_unchanged"])
+
+    def test_ccgp_budget_sleep_admission_and_wake_lateness_stop_fanout(self):
+        for mode in ("sleep_admission", "sleep_late"):
+            c = self.ccgp_stage_budget_case(mode)
+            self.assertEqual(c["status"], 503)
+            self.assertEqual(c["queries"], 1)
+            self.assertEqual(c["details"], 0)
+            self.assertEqual(c["writes"], [])
+
+    def test_ccgp_budget_candidate_and_watch_overflow_reject_without_truncation(self):
+        c = self.ccgp_stage_budget_case(count=13)
+        self.assertEqual(c["status"], 503)
+        self.assertEqual(c["details"], 0)
+        self.assertEqual(c["writes"], [])
+        for mode in ("watch_overflow", "watch_capacity"):
+            c = self.ccgp_stage_budget_case(mode)
+            self.assertEqual(c["status"], 503)
+            self.assertEqual(c["writes"], [])
+
+    def test_ccgp_budget_complete_empty_twelve_candidates_and_no_budget_keep_boundaries(self):
+        for count, use_budget in ((0, True), (12, True), (1, False)):
+            with self.subTest(count=count, use_budget=use_budget):
+                c = self.ccgp_stage_budget_case(count=count, use_budget=use_budget)
+                self.assertEqual(c["status"], 200)
+                self.assertEqual(c["writes"], ["s", "w"])
+                self.assertEqual(c["details"], count)
+                if use_budget:
+                    self.assertEqual(c["reads"], ["s", "w"])
+                    self.assertEqual(c["receipt"]["preparation_outcome"], "PREPARED_LOCAL_READBACK")
+                    self.assertFalse(c["receipt"]["source_transaction_committed"])
+                    self.assertTrue(all(0 < t <= 30 for t in c["timeouts"]))
+                else:
+                    self.assertIsNone(c["receipt"])
+                    self.assertEqual(c["reads"], [])
+                self.assertFalse(c["data_has_receipt"])
+                self.assertTrue(c["committed_unchanged"] and c["pending_unchanged"] and c["success_clock_unchanged"])
+
+    def test_ccgp_budget_committed_priority_and_corrupt_bundle_do_not_use_raw_fallback(self):
+        c = self.ccgp_stage_budget_case("committed_precedence", count=0)
+        self.assertEqual(c["status"], 200)
+        self.assertTrue(c["prepared_uses_committed"])
+        c = self.ccgp_stage_budget_case("corrupt_committed", count=0)
+        self.assertEqual(c["status"], 503)
+        self.assertEqual((c["queries"], c["writes"]), (0, []))
+        self.assertTrue(c["committed_unchanged"])
+
+    def test_ccgp_budget_cold_seed_lateness_or_error_discloses_possible_mutation(self):
+        for mode in ("cold", "cold_late", "cold_error"):
+            c = self.ccgp_stage_budget_case(mode)
+            self.assertTrue(c["receipt"]["bootstrap"]["records"]["mutation_possible"])
+            self.assertTrue(c["seed_records_present"] and c["committed_unchanged"] and c["pending_unchanged"])
+            self.assertEqual(c["status"], 200 if mode == "cold" else 503)
+            if mode != "cold": self.assertEqual((c["queries"], c["writes"]), (0, []))
+
+    def test_ccgp_budget_missing_or_mismatched_readback_never_advances(self):
+        for mode in ("s_none", "w_none", "s_wrong_cycle", "w_old"):
+            c = self.ccgp_stage_budget_case(mode)
+            self.assertEqual(c["status"], 503)
+            self.assertEqual(c["receipt"]["preparation_outcome"], "INCOMPLETE")
+            target = "STAGING" if mode.startswith("s_") else "WATCH"
+            self.assertEqual(c["receipt"]["targets"][target]["readback"], "MISMATCH")
+            self.assertEqual(c["writes"], ["s"] if target == "STAGING" else ["s", "w"])
+
+    def test_ccgp_budget_each_key_write_before_after_or_late_preserves_truth(self):
+        for part in ("s", "w"):
+            for kind in ("put_before", "put_after", "put_late"):
+                with self.subTest(part=part, kind=kind):
+                    c = self.ccgp_stage_budget_case(part + "_" + kind)
+                    self.assertEqual(c["status"], 503)
+                    row = c["receipt"]["targets"]["STAGING" if part == "s" else "WATCH"]
+                    self.assertTrue(row["write_attempted"] and row["mutation_possible"])
+                    self.assertEqual(row["write_outcome"], "CALL_RETURNED_UNVERIFIED" if kind == "put_late" else "UNKNOWN")
+                    if part == "s": self.assertEqual(c["writes"], ["s"])
+                    self.assertTrue(c["committed_unchanged"] and c["pending_unchanged"])
+
+    def test_ccgp_budget_read_or_digest_error_and_late_return_preserve_first_key(self):
+        for mode in ("s_get_error", "w_get_error", "s_get_late", "w_get_late", "read_digest_late", "prepare_expired"):
+            with self.subTest(mode=mode):
+                c = self.ccgp_stage_budget_case(mode)
+                self.assertEqual(c["status"], 503)
+                self.assertNotEqual(c["receipt"]["preparation_outcome"], "PREPARED_LOCAL_READBACK")
+                self.assertTrue(c["committed_unchanged"] and c["pending_unchanged"])
+                if mode.startswith("s_") or mode == "read_digest_late": self.assertEqual(c["writes"], ["s"])
+
+    def test_ccgp_budget_tail_errors_keep_prepared_receipt_and_failure_state_unknown(self):
+        for mode in ("stage_error", "health_error", "failure_save_error"):
+            c = self.ccgp_stage_budget_case(mode)
+            self.assertEqual(c["error"], "CCGP_FAILURE_STATE_RESULT_UNKNOWN" if mode == "failure_save_error" else "CCGP_FINALIZATION_RESULT_UNKNOWN")
+            self.assertEqual(c["receipt"]["preparation_outcome"], "NOT_STARTED" if mode == "failure_save_error" else "PREPARED_LOCAL_READBACK")
+            self.assertTrue(c["result"]["diagnostics"]["workflow_state_mutation_possible"])
+
+    def test_ccgp_budget_late_tail_or_completed_redelivery_does_not_repeat_preparation(self):
+        for mode in ("tail_late", "replay"):
+            c = self.ccgp_stage_budget_case(mode)
+            self.assertEqual(c["status"], 200)
+            self.assertEqual(c["receipt"]["preparation_outcome"], "PREPARED_LOCAL_READBACK")
+            self.assertEqual(c["writes"], ["s", "w"])
+            if mode == "replay": self.assertEqual(c["replay"], "ALREADY_COMPLETED_TODAY")
+            else: self.assertTrue(c["result"]["budget_finalization_overrun"])
+
     def event_stage_budget_case(self, mode="success", *, stage="event1", count=5, elapsed=0):
         r = self.runtime
         tick, scans, writes = [float(elapsed)], [], []

@@ -467,8 +467,104 @@ class CollectorOrchestrationBehaviorTests(unittest.TestCase):
         self.assertIsNone(error)
         self.assertEqual(events, ["heartbeat", "heartbeat"])
 
+    def test_ccgp_budget_keeps_queue_preflight_origin_and_rejects_payload_deadline(self):
+        payload = self.seed_retry("ccgp", 0)
+        payload["deadline"] = 999999
+        tick, seen = [0.0], []
+        def active(*args, **kwargs):
+            tick[0] = 145
+            return True
+        def run(stage, **kwargs):
+            b = kwargs["budget"]
+            seen.append((b.started, b.request_timeout(30, "CCGP_TEST"), b.total_seconds, b.work_seconds))
+            return 503, {"error": "OFFLINE", "retryable": True, "retry_exhausted": False}
+        with patch.object(self.worker, "_active_cycle_matches", side_effect=active), patch.object(
+                self.worker, "_heartbeat_deep_cycle", return_value=True), patch.object(self.runtime, "run_stage", side_effect=run):
+            with self.assertRaises(RuntimeError):
+                asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+        self.assertEqual(seen, [(0, 4, 270, 150)])
+
+    def test_ccgp_budget_failure_retries_then_degrades_and_never_scans_third_time(self):
+        payload = self.seed_retry("ccgp", 0)
+        tick = [0.0]
+        def active(*args, **kwargs):
+            tick[0] = 150
+            return True
+        def work(cache, state, *, budget): budget.check("CCGP_TEST")
+        with patch.object(self.worker, "_active_cycle_matches", side_effect=active), patch.object(
+                self.worker, "_heartbeat_deep_cycle", return_value=True), patch.object(self.runtime, "_run_ccgp", side_effect=work) as scan:
+            with self.assertRaises(RuntimeError):
+                asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+            first = self.cache.get(self.worker.META_KEY)["stages"]["ccgp"]
+            self.assertEqual((first["status"], first["attempt_count"]), ("FAILED", 1))
+            self.assertEqual(self.sent, [])
+            tick[0] = 0
+            asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+            final = self.cache.get(self.worker.META_KEY)["stages"]["ccgp"]
+            self.assertEqual((final["status"], final["attempt_count"]), ("DEGRADED", 2))
+            self.assertEqual(self.sent[-1]["payload"]["stage"], "event1")
+            tick[0] = 0
+            asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+            self.assertEqual(scan.call_count, 2)
+
+    def test_ccgp_incomplete_preparation_keeps_receipt_and_does_not_enqueue_events(self):
+        payload = self.seed_retry("ccgp", 0)
+        receipt = {"preparation_outcome": "INCOMPLETE", "source_transaction_committed": False}
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+                self.worker, "_heartbeat_deep_cycle", return_value=True), patch.object(self.runtime, "run_stage",
+                return_value=(503, {"error": "CCGP_PREPARATION_READBACK_MISMATCH", "ccgp_prepare_receipt": receipt})):
+            with self.assertRaises(RuntimeError) as caught:
+                asyncio.run(self.worker.process_collector_payload(payload))
+        self.assertEqual(caught.exception.diagnostics["ccgp_prepare_receipt"], receipt)
+        self.assertEqual(self.sent, [])
+
+    def test_ccgp_foreign_or_owner_rejection_has_no_stage_execution(self):
+        for foreign in (True, False):
+            payload = self.cycle_payload("ccgp")
+            with patch.object(self.worker, "accepts_payload", return_value=not foreign), patch.object(
+                    self.worker, "_active_cycle_matches", return_value=False), patch.object(self.runtime, "run_stage") as run:
+                asyncio.run(self.worker.process_collector_payload(payload))
+            run.assert_not_called()
+
+    def ccgp_tail_case(self, mode):
+        payload = self.seed_retry("ccgp", 0)
+        receipt = {"preparation_outcome": "PREPARED_LOCAL_READBACK", "source_transaction_committed": False}
+        tick, events = [0.0], []
+        def heartbeat(*args, **kwargs):
+            events.append("heartbeat")
+            if mode == "heartbeat" and len(events) > 1: raise OSError("OFFLINE_HEARTBEAT")
+            return not (mode == "replaced" and len(events) > 1)
+        async def enqueue(**kwargs):
+            events.append("enqueue")
+            if mode == "enqueue": raise OSError("OFFLINE_ENQUEUE")
+        def run(*args, **kwargs):
+            tick[0] = 280
+            return 200, {"action": "COMPLETED", "result": {"ccgp_prepare_receipt": receipt}}
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+                self.worker, "_heartbeat_deep_cycle", side_effect=heartbeat), patch.object(self.runtime, "run_stage", side_effect=run), patch.object(
+                self.worker, "_enqueue_stage", side_effect=enqueue):
+            error = None
+            try: asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+            except OSError as exc: error = exc
+        return events, error
+
+    def test_ccgp_tail_failure_keeps_prepared_receipt_and_original_exception(self):
+        for mode in ("heartbeat", "enqueue"):
+            events, error = self.ccgp_tail_case(mode)
+            self.assertIsInstance(error, OSError)
+            self.assertEqual(error.diagnostics["ccgp_prepare_receipt"]["preparation_outcome"], "PREPARED_LOCAL_READBACK")
+            self.assertTrue(error.diagnostics["workflow_state_mutation_possible"])
+
+    def test_ccgp_late_tail_runs_original_order_and_replacement_still_fences(self):
+        events, error = self.ccgp_tail_case("late")
+        self.assertIsNone(error)
+        self.assertEqual(events, ["heartbeat", "heartbeat", "enqueue"])
+        events, error = self.ccgp_tail_case("replaced")
+        self.assertIsNone(error)
+        self.assertEqual(events, ["heartbeat", "heartbeat"])
+
     def test_nonregional_stages_keep_original_run_stage_arguments(self):
-        for stage in ('tjmugh','ccgp'):
+        for stage in ('tjmugh','tjnothop'):
             with self.subTest(stage=stage):
                 payload=self.seed_retry(stage,0)
                 with patch.object(self.worker,'_active_cycle_matches',return_value=True), patch.object(

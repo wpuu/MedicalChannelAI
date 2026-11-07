@@ -492,7 +492,11 @@ async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, 
                     return
 
     event_stage = stage in ('event1', 'event2', 'event3', 'event4', 'event5', 'event6')
-    if event_stage:
+    ccgp_stage = stage == 'ccgp'
+    if ccgp_stage:
+        budget = runtime.CliBudget(clock, sleep or time.sleep, total_seconds=270, work_seconds=150, started_at=entered_at)
+        status, result = runtime.run_stage(stage, now=cycle_as_of, budget=budget)
+    elif event_stage:
         budget = runtime.CliBudget(clock, sleep or time.sleep, total_seconds=270, work_seconds=180, started_at=entered_at)
         status, result = runtime.run_stage(stage, now=cycle_as_of, budget=budget)
     elif stage == "publish" or stage in runtime.REGIONAL_STAGE_MARKET_CODES or stage in runtime.REGIONAL_FALLBACK_STAGE_MARKET_CODES:
@@ -565,6 +569,10 @@ async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, 
         raise failure
 
     except Exception as exc:
+        if ccgp_stage:
+            exc.diagnostics = {**(getattr(exc, 'diagnostics', None) or {}),
+                'ccgp_prepare_receipt': (result.get('result') or result).get('ccgp_prepare_receipt'),
+                'workflow_state_mutation_possible': True, 'queue_error_type': type(exc).__name__}
         if event_stage:
             exc.diagnostics = {**(getattr(exc, 'diagnostics', None) or {}),
                 'event_write_receipt': (result.get('result') or result).get('event_write_receipt'),

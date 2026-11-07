@@ -198,10 +198,20 @@ def discover_candidates(
     end_date: str,
     delay_seconds: float,
     failures: list[dict],
+    budget=None,
 ) -> list[tuple[str, object]]:
+    budget_errors = ()
+    if budget:
+        from sync_regional_ccgp import CliBudgetExceeded
+        budget_errors = (CliBudgetExceeded,)
+    def check(phase):
+        if budget:
+            budget.check(phase)
+    check('CCGP_DISCOVERY_ENTRY')
     discovered: list[tuple[str, object]] = []
     seen_urls: set[str] = set()
     for index, notice_type in enumerate(notice_types):
+        check('CCGP_QUERY_ADMISSION')
         if notice_type not in VERIFIED_NOTICE_ADAPTERS:
             raise ValueError(f'notice type has no VERIFIED adapter: {notice_type}')
         search_url = build_search_url(
@@ -213,9 +223,15 @@ def discover_candidates(
             region=region,
         )
         try:
-            html = fetch_search_page(search_url)
+            html = (fetch_search_page(search_url, timeout_seconds=budget.request_timeout(30, 'CCGP_SEARCH'))
+                    if budget else fetch_search_page(search_url))
+            check('CCGP_SEARCH_RETURN')
             candidates = parse_search_html(html, keyword=keyword)
+            check('CCGP_SEARCH_PARSE_RETURN')
+        except budget_errors:
+            raise
         except Exception as exc:
+            check('CCGP_SEARCH_ERROR_RETURN')
             failures.append(
                 {
                     'stage': 'discovery_search',
@@ -227,6 +243,7 @@ def discover_candidates(
             )
             candidates = []
         for candidate in candidates:
+            check('CCGP_DISCOVERY_CANDIDATE')
             if not is_primary_opportunity_candidate(candidate):
                 continue
             if candidate.detail_url in seen_urls:
@@ -234,12 +251,17 @@ def discover_candidates(
             seen_urls.add(candidate.detail_url)
             discovered.append((notice_type, candidate))
         if index + 1 < len(notice_types):
-            time.sleep(delay_seconds)
+            if budget:
+                budget.sleep_checked(delay_seconds, 'CCGP_TYPE_SLEEP')
+            else:
+                time.sleep(delay_seconds)
 
+    check('CCGP_DISCOVERY_SORT')
     discovered.sort(
         key=lambda item: (item[1].published_at or '', item[1].detail_url),
         reverse=True,
     )
+    check('CCGP_DISCOVERY_SORT_RETURN')
     return discovered
 
 

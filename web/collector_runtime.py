@@ -657,127 +657,226 @@ def _cycle_as_of(state: dict[str, Any]) -> datetime:
     return parsed
 
 
-def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
-    plan = load_plan(DATA_ROOT / "tianjin_query_plan.json")
-    as_of = _cycle_as_of(state)
-    start_text, end_text = plan_date_window(as_of, plan["lookback_days"])
-    observed_at = as_of.astimezone(timezone.utc).isoformat()
-    existing_records, bootstrapped_records = _cached_list(cache, CCGP_RECORDS_KEY, _bootstrap_ccgp_records)
-    existing_events, bootstrapped_events = _cached_list(cache, CCGP_EVENTS_KEY, _bootstrap_ccgp_events)
-    committed = cache.get(CCGP_COMMITTED_STATE_KEY)
-    if committed is not None:
-        if not isinstance(committed, dict) or not isinstance(committed.get("records"), list) or not isinstance(committed.get("events"), list):
-            raise CollectorPrecondition("COLLECTOR_CCGP_COMMITTED_STATE_CORRUPT")
-        existing_records, existing_events = committed["records"], committed["events"]
+def _run_ccgp(cache: RuntimeCache, state: dict[str, Any], *, budget: CliBudget | None = None) -> dict[str, Any]:
+    receipt = {'preparation_outcome': 'NOT_STARTED', 'source_transaction_committed': False,
+               'bootstrap': {name: {'call_started': False, 'call_returned': False, 'mutation_possible': False}
+                             for name in ('records', 'events')},
+               'targets': {name: {'write_attempted': False, 'write_call_returned': False,
+                                 'mutation_possible': False, 'write_outcome': 'NOT_ATTEMPTED',
+                                 'readback': 'NOT_ATTEMPTED'} for name in ('STAGING', 'WATCH')}}
+    prepare_deadline, expected = None, {}
+    def check(phase):
+        if budget:
+            budget.check(phase)
+    def pause(delay, phase):
+        if budget:
+            budget.sleep_checked(delay, phase)
+        else:
+            time.sleep(delay)
+    def baseline(key, bootstrap, name):
+        check('CCGP_BASELINE')
+        row = receipt['bootstrap'][name]
+        row.update(call_started=True, mutation_possible=True)
+        records, bootstrapped = _cached_list(cache, key, bootstrap)
+        row.update(call_returned=True, mutation_possible=bootstrapped, bootstrapped=bootstrapped)
+        check('CCGP_BASELINE_RETURN')
+        return records, bootstrapped
+    def prepare_check():
+        if budget.clock() >= prepare_deadline or budget.clock() >= budget.started + budget.total_seconds:
+            budget.fail('CCGP_DUAL_PREPARE')
+    def prepare(target, key, candidate, tag):
+        prepare_check()
+        row = receipt['targets'][target]
+        row.update(write_attempted=True, write_call_returned=None, mutation_possible=True, write_outcome='UNKNOWN')
+        _cache_set(cache, key, candidate, tag=tag)
+        row.update(write_call_returned=True, write_outcome='CALL_RETURNED_UNVERIFIED')
+        prepare_check()
+        row['readback'] = 'UNKNOWN'
+        observed = cache.get(key)
+        if budget.clock() >= prepare_deadline:
+            row['readback'] = 'LATE'
+        prepare_check()
+        observed_digest = _digest(observed)
+        if budget.clock() >= prepare_deadline:
+            row['readback'] = 'LATE'
+        prepare_check()
+        if not isinstance(observed, type(candidate)) or observed_digest != expected[target]:
+            row['readback'] = 'MISMATCH'
+            raise CollectorStageBlocked('CCGP_PREPARATION_READBACK_MISMATCH')
+        row['readback'] = 'MATCHED'
+    try:
+        check('CCGP_PREPARE')
+        plan = load_plan(DATA_ROOT / "tianjin_query_plan.json")
+        check('CCGP_PLAN_RETURN')
+        as_of = _cycle_as_of(state)
+        start_text, end_text = plan_date_window(as_of, plan["lookback_days"])
+        observed_at = as_of.astimezone(timezone.utc).isoformat()
+        existing_records, bootstrapped_records = baseline(CCGP_RECORDS_KEY, _bootstrap_ccgp_records, 'records')
+        existing_events, bootstrapped_events = baseline(CCGP_EVENTS_KEY, _bootstrap_ccgp_events, 'events')
+        check('CCGP_COMMITTED_READ')
+        committed = cache.get(CCGP_COMMITTED_STATE_KEY)
+        check('CCGP_COMMITTED_RETURN')
+        if committed is not None:
+            if not isinstance(committed, dict) or not isinstance(committed.get("records"), list) or not isinstance(committed.get("events"), list):
+                raise CollectorPrecondition("COLLECTOR_CCGP_COMMITTED_STATE_CORRUPT")
+            existing_records, existing_events = committed["records"], committed["events"]
 
-    failures: list[dict[str, Any]] = []
-    discovered_by_url: dict[str, tuple[str, object]] = {}
-    discovered_keywords: dict[str, set[str]] = {}
-    planned_queries = len(plan["keywords"]) * len(plan["notice_types"])
+        failures: list[dict[str, Any]] = []
+        discovered_by_url: dict[str, tuple[str, object]] = {}
+        discovered_keywords: dict[str, set[str]] = {}
+        planned_queries = len(plan["keywords"]) * len(plan["notice_types"])
 
-    for keyword_index, keyword in enumerate(plan["keywords"]):
-        candidates = discover_candidates(
-            keyword=keyword,
-            region=plan["region"],
-            notice_types=plan["notice_types"],
-            start_date=start_text,
-            end_date=end_text,
-            delay_seconds=plan["delay_seconds"],
-            failures=failures,
+        for keyword_index, keyword in enumerate(plan["keywords"]):
+            check('CCGP_KEYWORD_ADMISSION')
+            candidates = discover_candidates(
+                keyword=keyword,
+                region=plan["region"],
+                notice_types=plan["notice_types"],
+                start_date=start_text,
+                end_date=end_text,
+                delay_seconds=plan["delay_seconds"],
+                failures=failures,
+                **({"budget": budget} if budget else {}),
+            )
+            check('CCGP_DISCOVERY_RETURN')
+            for notice_type, candidate in candidates:
+                check('CCGP_DISCOVERY_DEDUP')
+                detail_url = str(getattr(candidate, "detail_url", "") or "").strip()
+                if not detail_url:
+                    continue
+                discovered_by_url.setdefault(detail_url, (notice_type, candidate))
+                discovered_keywords.setdefault(detail_url, set()).add(keyword)
+            if keyword_index + 1 < len(plan["keywords"]):
+                pause(plan['delay_seconds'], 'CCGP_KEYWORD_SLEEP')
+
+        discovery_failures = [item for item in failures if item.get("stage") == "discovery_search"]
+        discovery_success_count = max(0, planned_queries - len(discovery_failures))
+        discovered = list(discovered_by_url.values())
+        check('CCGP_SORT')
+        discovered.sort(
+            key=lambda item: (
+                getattr(item[1], "published_at", None) or "",
+                getattr(item[1], "detail_url", ""),
+            ),
+            reverse=True,
         )
-        for notice_type, candidate in candidates:
-            detail_url = str(getattr(candidate, "detail_url", "") or "").strip()
-            if not detail_url:
-                continue
-            discovered_by_url.setdefault(detail_url, (notice_type, candidate))
-            discovered_keywords.setdefault(detail_url, set()).add(keyword)
-        if keyword_index + 1 < len(plan["keywords"]):
-            time.sleep(plan["delay_seconds"])
+        check('CCGP_SORT_RETURN')
+        if budget and len(discovered) > plan['max_candidates']:
+            raise CollectorStageBlocked('CCGP_DISCOVERY_CANDIDATE_CAP_EXCEEDED')
+        selected = discovered[: plan["max_candidates"]]
 
-    discovery_failures = [item for item in failures if item.get("stage") == "discovery_search"]
-    discovery_success_count = max(0, planned_queries - len(discovery_failures))
-    discovered = list(discovered_by_url.values())
-    discovered.sort(
-        key=lambda item: (
-            getattr(item[1], "published_at", None) or "",
-            getattr(item[1], "detail_url", ""),
-        ),
-        reverse=True,
-    )
-    selected = discovered[: plan["max_candidates"]]
-
-    new_records: list[dict[str, Any]] = []
-    for notice_type, candidate in selected:
-        adapter = VERIFIED_NOTICE_ADAPTERS[notice_type]
-        try:
-            time.sleep(plan["delay_seconds"])
-            detail_html = fetch_ccgp_detail_html(candidate.detail_url)
-            new_records.append(
-                adapter(
-                    detail_html,
-                    source_url=candidate.detail_url,
-                    observed_at=observed_at,
-                    opportunity_id=stable_id("ccgp", candidate.detail_url),
+        new_records: list[dict[str, Any]] = []
+        for notice_type, candidate in selected:
+            adapter = VERIFIED_NOTICE_ADAPTERS[notice_type]
+            try:
+                pause(plan['delay_seconds'], 'CCGP_DETAIL_SLEEP')
+                detail_html = (fetch_ccgp_detail_html(candidate.detail_url,
+                               timeout_seconds=budget.request_timeout(30, 'CCGP_DETAIL'))
+                               if budget else fetch_ccgp_detail_html(candidate.detail_url))
+                check('CCGP_DETAIL_RETURN')
+                record = adapter(
+                        detail_html,
+                        source_url=candidate.detail_url,
+                        observed_at=observed_at,
+                        opportunity_id=stable_id("ccgp", candidate.detail_url),
+                    )
+                check('CCGP_DETAIL_PARSE_RETURN')
+                new_records.append(record)
+            except CliBudgetExceeded:
+                raise
+            except Exception as exc:
+                check('CCGP_DETAIL_ERROR_RETURN')
+                failures.append(
+                    {
+                        "stage": "verified_detail",
+                        "notice_type": notice_type,
+                        "keywords": sorted(discovered_keywords.get(candidate.detail_url, set())),
+                        "title": candidate.title,
+                        "url": candidate.detail_url,
+                        "error": type(exc).__name__,
+                        "message": str(exc)[:300],
+                    }
                 )
-            )
-        except Exception as exc:
-            failures.append(
-                {
-                    "stage": "verified_detail",
-                    "notice_type": notice_type,
-                    "keywords": sorted(discovered_keywords.get(candidate.detail_url, set())),
-                    "title": candidate.title,
-                    "url": candidate.detail_url,
-                    "error": type(exc).__name__,
-                    "message": str(exc)[:300],
-                }
-            )
 
-    allowed, reason = ccgp_publish_gate(
-        discovery_success_count=discovery_success_count,
-        selected_candidate_count=len(selected),
-        new_verified_record_count=len(new_records),
-    )
-    if not allowed:
-        detail_failures = [item for item in failures if item.get("stage") == "verified_detail"]
-        diagnostic = ";".join(
-            f"{item.get('error')}:{item.get('message')}"
-            for item in detail_failures[:3]
+        allowed, reason = ccgp_publish_gate(
+            discovery_success_count=discovery_success_count,
+            selected_candidate_count=len(selected),
+            new_verified_record_count=len(new_records),
         )
-        suffix = f";DETAIL_FAILURES:{diagnostic}" if diagnostic else ""
-        raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}{suffix}")
+        if not allowed:
+            detail_failures = [item for item in failures if item.get("stage") == "verified_detail"]
+            diagnostic = ";".join(
+                f"{item.get('error')}:{item.get('message')}"
+                for item in detail_failures[:3]
+            )
+            suffix = f";DETAIL_FAILURES:{diagnostic}" if diagnostic else ""
+            raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}{suffix}")
 
-    if failures:
-        raise CollectorStageBlocked("CCGP_CANDIDATE_VERIFICATION_INCOMPLETE")
-    merged_records = merge_canonical_records(existing_records, new_records)
-    watch_projects = active_ccgp_project_numbers(merged_records, as_of)
-    if len(watch_projects) > plan["max_event_watch_projects"]:
-        raise CollectorStageBlocked(
-            f"ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>{plan['max_event_watch_projects']}"
-        )
+        if failures:
+            raise CollectorStageBlocked("CCGP_CANDIDATE_VERIFICATION_INCOMPLETE")
+        check('CCGP_MERGE')
+        merged_records = merge_canonical_records(existing_records, new_records)
+        check('CCGP_MERGE_RETURN')
+        watch_projects = active_ccgp_project_numbers(merged_records, as_of)
+        check('CCGP_WATCH_RETURN')
+        watch_cap = min(plan['max_event_watch_projects'], 6 * EVENT_BATCH_SIZE) if budget else plan['max_event_watch_projects']
+        if len(watch_projects) > watch_cap:
+            raise CollectorStageBlocked(
+                f"ACTIVE_EVENT_WATCH_CAP_EXCEEDED:{len(watch_projects)}>{plan['max_event_watch_projects']}"
+            )
 
-    # Notices and all event-watch batches form one source transaction. No
-    # current-cycle fact becomes canonical until every batch has passed.
-    _cache_set(cache, CCGP_CYCLE_STAGING_KEY, {
-        "cycle_as_of": state["cycle_as_of"], "records": merged_records, "events": existing_events,
-    }, tag="medicalchannelai-collector-ccgp-staging")
-    _cache_set(cache, CCGP_WATCH_KEY, watch_projects, tag="medicalchannelai-collector-watch")
+        # Notices and all event-watch batches form one source transaction. No
+        # current-cycle fact becomes canonical until every batch has passed.
+        staging = {"cycle_as_of": state["cycle_as_of"], "records": merged_records, "events": existing_events}
+        if budget:
+            check('CCGP_DIGEST')
+            expected = {'STAGING': _digest(staging)}
+            check('CCGP_STAGING_DIGEST_RETURN')
+            expected['WATCH'] = _digest(watch_projects)
+            check('CCGP_DIGEST_RETURN')
+            budget.work_complete = True
+            prepare_deadline = min(budget.clock() + 60, budget.started + 210)
+            receipt['preparation_outcome'] = 'INCOMPLETE'
+            prepare('STAGING', CCGP_CYCLE_STAGING_KEY, staging, 'medicalchannelai-collector-ccgp-staging')
+            prepare('WATCH', CCGP_WATCH_KEY, watch_projects, 'medicalchannelai-collector-watch')
+            prepare_check()
+            receipt['preparation_outcome'] = 'PREPARED_LOCAL_READBACK'
+        else:
+            _cache_set(cache, CCGP_CYCLE_STAGING_KEY, staging, tag="medicalchannelai-collector-ccgp-staging")
+            _cache_set(cache, CCGP_WATCH_KEY, watch_projects, tag="medicalchannelai-collector-watch")
 
-    return {
-        "start_date": start_text,
-        "end_date": end_text,
-        "planned_discovery_query_count": planned_queries,
-        "discovery_success_count": discovery_success_count,
-        "unique_discovered_candidate_count": len(discovered),
-        "selected_candidate_count": len(selected),
-        "new_verified_record_count": len(new_records),
-        "merged_record_count": len(merged_records),
-        "event_watch_project_count": len(watch_projects),
-        "failure_count": len(failures),
-        "publish_gate_reason": reason,
-        "bootstrapped_records": bootstrapped_records,
-        "bootstrapped_events": bootstrapped_events,
-    }
+        return {
+            **({"ccgp_prepare_receipt": receipt, "budget": budget.snapshot()} if budget else {}),
+            "start_date": start_text,
+            "end_date": end_text,
+            "planned_discovery_query_count": planned_queries,
+            "discovery_success_count": discovery_success_count,
+            "unique_discovered_candidate_count": len(discovered),
+            "selected_candidate_count": len(selected),
+            "new_verified_record_count": len(new_records),
+            "merged_record_count": len(merged_records),
+            "event_watch_project_count": len(watch_projects),
+            "failure_count": len(failures),
+            "publish_gate_reason": reason,
+            "bootstrapped_records": bootstrapped_records,
+            "bootstrapped_events": bootstrapped_events,
+        }
+    except Exception as exc:
+        if not budget:
+            raise
+        diagnostics = {**(getattr(exc, 'diagnostics', None) or {}),
+                       'ccgp_prepare_receipt': receipt, 'budget': budget.snapshot()}
+        if receipt['preparation_outcome'] == 'NOT_STARTED' and not isinstance(exc, CliBudgetExceeded):
+            try:
+                budget.check('CCGP_WORK_ERROR_RETURN')
+            except CliBudgetExceeded as expired:
+                expired.diagnostics = {**diagnostics, 'budget': budget.snapshot()}
+                raise expired from exc
+        if isinstance(exc, (CliBudgetExceeded, CollectorStageBlocked)):
+            exc.diagnostics = diagnostics
+            raise
+        raise CollectorStageBlocked('CCGP_PREPARATION_RESULT_UNKNOWN' if receipt['preparation_outcome'] == 'INCOMPLETE'
+                                    else 'CCGP_WORK_FAILED', diagnostics=diagnostics) from exc
 
 
 def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str, *, budget: CliBudget | None = None) -> dict[str, Any]:
@@ -1973,8 +2072,9 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any], *, budget=None) -> 
 
 
 def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:
+    ccgp_budget = budget is not None and stage == "ccgp"
     event_budget = budget is not None and stage in ('event1', 'event2', 'event3', 'event4', 'event5', 'event6')
-    if not event_budget and stage != "publish" and stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+    if not ccgp_budget and not event_budget and stage != "publish" and stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
         budget = None
     now = now or _now_utc()
     cache = RuntimeCache()
@@ -1994,7 +2094,7 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
 
     try:
         if stage == "ccgp":
-            result = _run_ccgp(cache, state)
+            result = _run_ccgp(cache, state, budget=budget) if ccgp_budget else _run_ccgp(cache, state)
         elif stage.startswith("event"):
             result = _run_event_batch(cache, state, stage, budget=budget) if event_budget else _run_event_batch(cache, state, stage)
         elif stage == "tjmugh":
@@ -2016,6 +2116,9 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
     except Exception as exc:
         if stage == "publish" and isinstance(exc, CliBudgetExceeded):
             exc = CollectorStageBlocked("PUBLISH_WORK_BUDGET_EXCEEDED", diagnostics=getattr(exc, "diagnostics", {}))
+        elif ccgp_budget and isinstance(exc, CliBudgetExceeded):
+            exc = CollectorStageBlocked('CCGP_PREPARATION_BUDGET_EXCEEDED' if exc.phase == 'CCGP_DUAL_PREPARE'
+                                        else 'CCGP_WORK_BUDGET_EXCEEDED', diagnostics=getattr(exc, 'diagnostics', {}))
         elif event_budget and isinstance(exc, CliBudgetExceeded):
             exc = CollectorStageBlocked('EVENT_DATA_SAVE_BUDGET_EXCEEDED' if exc.phase == 'EVENT_DATA_SAVE'
                                         else 'EVENT_WORK_BUDGET_EXCEEDED', diagnostics=getattr(exc, 'diagnostics', {}))
@@ -2040,6 +2143,11 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
                     **getattr(exc, "diagnostics", {}), "workflow_state_mutation_possible": True,
                     "original_error_type": type(exc).__name__, "persistence_error_type": type(persistence_error).__name__,
                 }) from persistence_error
+            if ccgp_budget:
+                raise CollectorStageBlocked('CCGP_FAILURE_STATE_RESULT_UNKNOWN', diagnostics={
+                    **(getattr(exc, 'diagnostics', None) or {}), 'workflow_state_mutation_possible': True,
+                    'persistence_error_type': type(persistence_error).__name__,
+                }) from persistence_error
             if event_budget:
                 raise CollectorStageBlocked('EVENT_FAILURE_STATE_RESULT_UNKNOWN', diagnostics={
                     **getattr(exc, 'diagnostics', {}), 'workflow_state_mutation_possible': True,
@@ -2062,11 +2170,13 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
             "attempt_count": failed.get("attempt_count"),
             "retry_exhausted": _stage_retry_limit_reached(stage, failed, failed_stages),
             **({"publish_receipt": getattr(exc, "diagnostics", {}).get("publish_receipt")} if stage == "publish" else {}),
+            **({'budget': budget.snapshot(), 'ccgp_prepare_receipt': (getattr(exc, 'diagnostics', None) or {}).get('ccgp_prepare_receipt'),
+                'diagnostics': getattr(exc, 'diagnostics', {})} if ccgp_budget else {}),
             **({'budget': budget.snapshot(), 'event_write_receipt': getattr(exc, 'diagnostics', {}).get('event_write_receipt'),
                 'diagnostics': getattr(exc, 'diagnostics', {})} if event_budget else {}),
             **({"budget": budget.snapshot(),
                 "canonical_mutation_possible": bool(getattr(exc, "diagnostics", {}).get("canonical_mutation_possible")),
-                "diagnostics": getattr(exc, "diagnostics", {})} if budget and stage != "publish" and not event_budget else {}),
+                "diagnostics": getattr(exc, "diagnostics", {})} if budget and stage != "publish" and not event_budget and not ccgp_budget else {}),
         }
 
     try:
@@ -2094,6 +2204,11 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
             raise CollectorStageBlocked("PUBLISH_FINALIZATION_RESULT_UNKNOWN", diagnostics={
                 "publish_receipt": result.get("publish_receipt"), "workflow_state_mutation_possible": True,
                 "persistence_error_type": type(exc).__name__,
+            }) from exc
+        if ccgp_budget:
+            raise CollectorStageBlocked('CCGP_FINALIZATION_RESULT_UNKNOWN', diagnostics={
+                'ccgp_prepare_receipt': result.get('ccgp_prepare_receipt'), 'workflow_state_mutation_possible': True,
+                'persistence_error_type': type(exc).__name__,
             }) from exc
         if event_budget:
             raise CollectorStageBlocked('EVENT_FINALIZATION_RESULT_UNKNOWN', diagnostics={
