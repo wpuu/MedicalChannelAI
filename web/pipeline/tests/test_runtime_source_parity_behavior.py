@@ -634,6 +634,238 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
         self.assertEqual(result['status'],200)
         self.assertEqual(result['timeouts'],[1])
 
+    def regional_access_case(self, *, stage="regional_he", error=None, marker=False,
+                             warmup_error=None, warmup_marker=False, hosts=None,
+                             empty=False, parse_error=False, use_budget=True):
+        """Real stage/session warmup and frozen parser; only local I/O boundaries."""
+        r = self.runtime
+        corpus = WEB_ROOT / "pipeline/tests/fixtures/ccgp_template_audit_20261106"
+        case = next(c for c in json.loads((corpus / "manifest.json").read_text())["cases"]
+                    if c["label"] == "ccgp_he_2a9ca892bf9d0b6a")
+        html = (corpus / case["file"]).read_bytes().decode(case["encoding"])
+        hosts = hosts or ("www.ccgp.gov.cn", "www.ccgp.gov.cn")
+        urls = [case["url"].replace("www.ccgp.gov.cn", host) + f"?offline={i}"
+                for i, host in enumerate(hosts)]
+        candidates = [("公开招标", types.SimpleNamespace(
+            title="医院医疗设备", region="河北", notice_type="公开招标", buyer_name="医院",
+            published_at=f"2026-09-{28-i:02d}", detail_url=url)) for i, url in enumerate(urls)]
+        plan = r.load_regional_plan(r.DATA_ROOT / "multi_region_query_plan.json")
+        plan.update(keywords=["first", "second"], notice_types=["公开招标"], delay_seconds=4)
+        old = next(row for row in json.loads((r.DATA_ROOT / "regional_live_ccgp_records.json").read_text())
+                   if row["source"]["url"] != case["url"] and row["facts"].get("market_code") == "HE")
+        key = r._regional_records_key("HE")
+        self.cache.set(key, [old])
+        other_key = r._regional_records_key("LN")
+        self.cache.set(other_key, [{"opportunity_id": "independent-source"}])
+        pending_key = self.incremental._pending_barrier_cache_key("tjzyefy")
+        ledger_key = "medicalchannelai:collector-incremental-ledger:tjzyefy:v2"
+        self.cache.set(pending_key, ["unresolved"])
+        self.cache.set(ledger_key, {"entries": {"retained": {"verification_status": "UNVERIFIED"}}})
+        prior = (self.now - timedelta(days=1)).isoformat()
+        self.cache.set(r.SOURCE_HEALTH_KEY, {"schema_version": "0.1", "sources": {
+            "regional_he": {"last_successful_scan_at": prior}}})
+        stages = {name: {"status": "COMPLETED"} for name in r.STAGE_ORDER[:r.STAGE_ORDER.index(stage)]}
+        if stage.endswith("_fallback"):
+            stages["regional_he"]["result"] = {"fallback_required": True}
+        self.cache.set(r.META_KEY, {**self.state, "stages": stages})
+        before = {name: self.cache.get(name) for name in (key, other_key, pending_key, ledger_key)}
+        tick, sleeps, warmup_calls, detail_calls, parsed_urls = [0.0], [], [], [], []
+        def sleep(delay):
+            sleeps.append(delay)
+            tick[0] += delay
+        budget = r.CliBudget(lambda: tick[0], sleep, total_seconds=270, work_seconds=210, started_at=0)
+        session_class = r.RegionalCcgpSearchSession
+        def session_factory(**kwargs):
+            # Exercise the existing warmup method, without constructing an opener.
+            session = object.__new__(session_class)
+            session.warmed = False
+            session.on_access_blocked = kwargs.get("on_access_blocked")
+            session.budget = kwargs.get("budget")
+            def read(url, *, timeout):
+                warmup_calls.append(url)
+                if warmup_error is not None:
+                    raise warmup_error
+                return "您的访问过于频繁" if warmup_marker else "offline warmup"
+            session._read = read
+            return session
+        def discover(session, **kwargs):
+            session.warmup()
+            return [] if empty or kwargs["page_index"] > 1 else candidates
+        def fetch(url, **kwargs):
+            detail_calls.append(url)
+            if url == urls[0]:
+                if error is not None:
+                    raise error
+                if marker:
+                    return "您的访问过于频繁"
+            return html
+        adapter = r.VERIFIED_NOTICE_ADAPTERS["公开招标"]
+        def parse(*args, **kwargs):
+            parsed_urls.append(kwargs["source_url"])
+            if parse_error and kwargs["source_url"] == urls[0]:
+                raise ValueError("OFFLINE_PARSE_FAILURE")
+            return adapter(*args, **kwargs)
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(r, "load_regional_plan", return_value=plan))
+            stack.enter_context(patch.object(r, "RegionalCcgpSearchSession", side_effect=session_factory))
+            search = stack.enter_context(patch.object(r, "fetch_regional_candidates_page", side_effect=discover))
+            stack.enter_context(patch.object(r, "fetch_ccgp_detail_html", side_effect=fetch))
+            stack.enter_context(patch.dict(r.VERIFIED_NOTICE_ADAPTERS, {"公开招标": parse}))
+            stack.enter_context(patch.object(r, "_now_utc", return_value=self.now))
+            status, result = r.run_stage(stage, now=self.now, **({"budget": budget} if use_budget else {}))
+        return {"status": status, "result": result, "urls": urls, "detail_calls": detail_calls,
+                "parsed_urls": parsed_urls, "warmup_calls": warmup_calls, "search_calls": search.call_count,
+                "canonical_unchanged": self.cache.get(key) == before[key],
+                "other_unchanged": all(self.cache.get(name) == before[name]
+                                       for name in (other_key, pending_key, ledger_key)),
+                "health": self.cache.get(r.SOURCE_HEALTH_KEY)["sources"]["regional_he"],
+                "prior": prior, "stage": self.cache.get(r.META_KEY)["stages"][stage],
+                "sleeps": sleeps, "budget": budget.snapshot()}
+
+    def test_regional_detail_explicit_denial_stops_same_host_after_first_request(self):
+        from urllib.error import HTTPError
+        for stage in ("regional_he", "regional_he_fallback"):
+            for code in (401, 403, 429):
+                with self.subTest(stage=stage, code=code):
+                    c = self.regional_access_case(stage=stage, error=HTTPError(
+                        "https://www.ccgp.gov.cn/private", code, "PRIVATE_BODY", None, None))
+                    self.assertEqual(c["detail_calls"], c["urls"][:1])
+                    self.assertEqual(c["status"], 503)
+                    self.assertTrue(c["canonical_unchanged"] and c["other_unchanged"])
+                    self.assertEqual(c["health"]["last_successful_scan_at"], c["prior"])
+                    self.assertEqual(c["stage"]["status"], "FAILED")
+                    self.assertTrue(c["result"]["retryable"])
+                    self.assertIsNone(c["budget"]["exhausted_phase"])
+
+    def test_regional_detail_wrapped_denials_reuse_existing_classifier(self):
+        from urllib.error import HTTPError
+        for code in (401, 403, 429):
+            for shape in ("helper_code", "nested_cause"):
+                with self.subTest(code=code, shape=shape):
+                    error = RuntimeError(f"CCGP_DETAIL_HTTP_{code}")
+                    if shape == "nested_cause":
+                        error = RuntimeError("PRIVATE_WRAPPER")
+                        error.__cause__ = HTTPError("https://www.ccgp.gov.cn/private", code,
+                                                   "PRIVATE_MESSAGE", None, None)
+                    c = self.regional_access_case(error=error)
+                    self.assertEqual(c["detail_calls"], c["urls"][:1])
+                    self.assertEqual(c["status"], 503)
+                    reasons = c["stage"]["diagnostics"]["reason_counts"]
+                    self.assertEqual(reasons, {(f"HTTP_{code}" if shape == "nested_cause"
+                                                 else f"CCGP_DETAIL_HTTP_{code}"): 2})
+
+    def test_regional_detail_rate_limit_html_stops_before_adapter(self):
+        for stage in ("regional_he", "regional_he_fallback"):
+            with self.subTest(stage=stage):
+                c = self.regional_access_case(stage=stage, marker=True)
+                self.assertEqual(c["status"], 503)
+                self.assertEqual(c["detail_calls"], c["urls"][:1])
+                self.assertEqual(c["parsed_urls"], [])
+                self.assertTrue(c["canonical_unchanged"])
+                self.assertEqual(c["stage"]["diagnostics"]["reason_counts"], {"RATE_LIMITED": 2})
+
+    def test_regional_warmup_explicit_denial_blocks_www_details_but_not_search(self):
+        from urllib.error import HTTPError
+        for stage in ("regional_he", "regional_he_fallback"):
+            for code in (401, 403, 429, "marker"):
+                with self.subTest(stage=stage, code=code):
+                    kwargs = {"warmup_marker": True} if code == "marker" else {
+                        "warmup_error": HTTPError("https://www.ccgp.gov.cn/", code,
+                                                   "PRIVATE_WARMUP", None, None)}
+                    c = self.regional_access_case(stage=stage, **kwargs)
+                    self.assertEqual(c["status"], 503)
+                    self.assertEqual(c["detail_calls"], [])
+                    self.assertEqual(c["parsed_urls"], [])
+                    self.assertGreaterEqual(c["search_calls"], 2)
+                    self.assertEqual(c["warmup_calls"], ["https://www.ccgp.gov.cn/"])
+                    self.assertTrue(c["canonical_unchanged"] and c["other_unchanged"])
+                    self.assertEqual(c["health"]["last_successful_scan_at"], c["prior"])
+
+    def test_regional_warmup_transient_failure_does_not_block_details(self):
+        from urllib.error import HTTPError
+        for error in (TimeoutError("OFFLINE"), HTTPError(
+                "https://www.ccgp.gov.cn/", 503, "OFFLINE", None, None)):
+            with self.subTest(error=type(error).__name__):
+                c = self.regional_access_case(warmup_error=error)
+                self.assertEqual(c["status"], 200)
+                self.assertEqual(c["detail_calls"], c["urls"])
+                self.assertEqual(c["parsed_urls"], c["urls"])
+
+    def test_regional_detail_denial_does_not_merge_www_and_bare_host(self):
+        from urllib.error import HTTPError
+        for hosts in (("www.ccgp.gov.cn", "ccgp.gov.cn", "www.ccgp.gov.cn"),
+                      ("ccgp.gov.cn", "www.ccgp.gov.cn", "ccgp.gov.cn")):
+            with self.subTest(hosts=hosts):
+                c = self.regional_access_case(hosts=hosts, error=HTTPError(
+                    "https://" + hosts[0] + "/", 429, "OFFLINE", None, None))
+                self.assertEqual(c["status"], 503)
+                self.assertEqual(c["detail_calls"], c["urls"][:2])
+                self.assertEqual(c["parsed_urls"], c["urls"][1:2])
+                self.assertTrue(c["canonical_unchanged"] and c["other_unchanged"])
+
+    def test_regional_warmup_denial_does_not_block_bare_detail_host(self):
+        c = self.regional_access_case(warmup_marker=True, hosts=(
+            "www.ccgp.gov.cn", "ccgp.gov.cn", "www.ccgp.gov.cn"))
+        self.assertEqual(c["detail_calls"], c["urls"][1:2])
+        self.assertEqual(c["parsed_urls"], c["urls"][1:2])
+        self.assertEqual(c["status"], 503)
+        self.assertTrue(c["canonical_unchanged"] and c["other_unchanged"])
+
+    def test_regional_detail_ordinary_errors_do_not_disable_same_host(self):
+        from urllib.error import HTTPError, URLError
+        errors = (TimeoutError("OFFLINE"), URLError("OFFLINE"),
+                  RuntimeError("CCGP_DETAIL_NETWORK_ERROR"),
+                  HTTPError("https://www.ccgp.gov.cn/", 503, "OFFLINE", None, None))
+        for kwargs in [dict(error=error) for error in errors] + [{"parse_error": True}]:
+            with self.subTest(kind=type(kwargs.get("error")).__name__, parse=kwargs.get("parse_error")):
+                c = self.regional_access_case(**kwargs)
+                self.assertEqual(c["detail_calls"], c["urls"])
+                self.assertEqual(c["status"], 503)
+                self.assertTrue(c["canonical_unchanged"] and c["other_unchanged"])
+                self.assertIsNone(c["budget"]["exhausted_phase"])
+
+    def test_regional_access_guard_preserves_complete_and_legal_empty(self):
+        for stage in ("regional_he", "regional_he_fallback"):
+            for empty in (False, True):
+                with self.subTest(stage=stage, empty=empty):
+                    c = self.regional_access_case(stage=stage, empty=empty)
+                    self.assertEqual(c["status"], 200)
+                    self.assertEqual(c["stage"]["status"], "COMPLETED")
+                    self.assertEqual(c["detail_calls"], [] if empty else c["urls"])
+                    self.assertTrue(c["other_unchanged"])
+                    self.assertEqual(c["result"]["result"]["new_verified_record_count"], 0 if empty else 2)
+
+    def test_regional_detail_denial_state_does_not_escape_invocation(self):
+        from urllib.error import HTTPError
+        blocked = self.regional_access_case(error=HTTPError(
+            "https://www.ccgp.gov.cn/", 403, "OFFLINE", None, None))
+        next_call = self.regional_access_case()
+        self.assertEqual(blocked["status"], 503)
+        self.assertEqual(next_call["status"], 200)
+        self.assertEqual(next_call["detail_calls"], next_call["urls"])
+
+    def test_regional_detail_denial_diagnostics_are_fixed_and_hashed(self):
+        from urllib.error import HTTPError
+        c = self.regional_access_case(error=HTTPError(
+            "https://www.ccgp.gov.cn/private?credential=SECRET", 429, "SECRET_BODY", None, None))
+        diagnostic = c["stage"]["diagnostics"]
+        self.assertEqual(diagnostic["failure_count"], 2)
+        self.assertEqual(diagnostic["reason_counts"], {"HTTP_429": 2})
+        self.assertLessEqual(len(diagnostic["samples"]), 5)
+        for sample in diagnostic["samples"]:
+            self.assertEqual(len(sample["candidate_ref"]), 64)
+        encoded = json.dumps(diagnostic)
+        self.assertNotIn("SECRET", encoded)
+        self.assertNotIn("http", encoded)
+
+    def test_regional_access_guard_also_protects_existing_unbudgeted_caller(self):
+        from urllib.error import HTTPError
+        c = self.regional_access_case(use_budget=False, error=HTTPError(
+            "https://www.ccgp.gov.cn/", 429, "OFFLINE", None, None))
+        self.assertEqual(c["detail_calls"], c["urls"][:1])
+        self.assertEqual(c["status"], 503)
+        self.assertTrue(c["canonical_unchanged"] and c["other_unchanged"])
+
     def test_regional_partial_discovery_or_detail_failure_never_changes_canonical(self):
         candidate, record = self.parse_fixture("tjzyefy")
         plan = self.runtime.load_regional_plan(self.runtime.DATA_ROOT / "multi_region_query_plan.json")

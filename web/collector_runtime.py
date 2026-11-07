@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
@@ -115,6 +116,8 @@ from sync_regional_ccgp import (  # noqa: E402
     CliBudgetExceeded,
     CcgpSearchSession as RegionalCcgpSearchSession,
     NATIONAL_FALLBACK_MAX_PAGES as REGIONAL_FALLBACK_MAX_PAGES,
+    RATE_LIMIT_MARKERS,
+    access_block_reason,
     annotate_market as annotate_regional_market,
     candidate_market_code,
     date_window as regional_date_window,
@@ -1375,7 +1378,8 @@ def _run_regional_market(
 
     if budget:
         budget.request_timeout(90, "REGIONAL_PREPARE")
-    session = RegionalCcgpSearchSession(budget=budget) if budget else RegionalCcgpSearchSession()
+    blocked_hosts: dict[str, str] = {}
+    session = RegionalCcgpSearchSession(on_access_blocked=blocked_hosts.setdefault, budget=budget)
 
     def pause(delay: float, phase: str) -> None:
         if budget:
@@ -1537,11 +1541,19 @@ def _run_regional_market(
         if candidate_market_code(getattr(candidate, "region", None), plan["markets"]) != market_code:
             failures.append(failure_row("pre_detail_market_guard", None, str(candidate.detail_url)))
             continue
+        detail_host = urlsplit(candidate.detail_url).hostname
+        if detail_host in blocked_hosts:
+            skipped = failure_row("verified_detail", None, str(candidate.detail_url))
+            skipped["reason"] = blocked_hosts[detail_host]
+            failures.append(skipped)
+            continue
         try:
             pause(plan["delay_seconds"], "REGIONAL_DETAIL_SLEEP")
             html = (fetch_ccgp_detail_html(candidate.detail_url, timeout_seconds=budget.request_timeout(30, "REGIONAL_DETAIL"))
                     if budget else fetch_ccgp_detail_html(candidate.detail_url))
             check("REGIONAL_DETAIL")
+            if any(marker in html for marker in RATE_LIMIT_MARKERS):
+                raise RuntimeError("CCGP_RATE_LIMITED")
             record = VERIFIED_NOTICE_ADAPTERS[notice_type](
                 html,
                 source_url=candidate.detail_url,
@@ -1557,6 +1569,10 @@ def _run_regional_market(
             raise
         except Exception as exc:
             failures.append(failure_row("verified_detail", exc, str(candidate.detail_url)))
+            reason = access_block_reason("verified_detail", exc, str(candidate.detail_url))
+            if reason:
+                failures[-1]["reason"] = reason
+                blocked_hosts.setdefault(detail_host, reason)
 
     if selected and not new_records:
         raise CollectorStageBlocked(
