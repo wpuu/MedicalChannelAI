@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-07",
   "timezone": "Asia/Shanghai",
-  "state_scope": "PRODUCT_ONE_PAGE_PROPOSAL_DOCUMENTATION_ONLY",
+  "state_scope": "PROJECT_HANDOFF_AND_GITHUB_ARCHIVE_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "PRODUCT_SCOPE_AND_USABLE_MVP_ACCEPTANCE_DRAFT_PENDING_USER_REVIEW",
-  "latest_changes_validation_status": "DOCS_ONLY:PRODUCT_ONE_PAGE_AND6_BUSINESS_ACCEPTANCE_ITEMS;NO_APP_OR_TEST_EXECUTION",
+  "milestone": "CURRENT_BRANCH_HANDOFF_AND_CHAT_CONTINUATION_PREPARED",
+  "latest_changes_validation_status": "DOCS_ONLY:HANDOFF_AND_GITHUB_FAST_FORWARD_ARCHIVE;NO_NEW_APP_TEST_BUILD_OR_RUNTIME_ACTION",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -2332,7 +2332,7 @@
     "production_modified": false
   },
   "latest_audit_tool_head": "443b5cdcf673ccc17a82278091a8dbe4343becab",
-  "latest_reviewed_repository_head": "965b0d8fad3bdd92b56a1cf69a1796403b84b4ff",
+  "latest_reviewed_repository_head": "a9d180ba5527dc42249d2d5e56cc72222cf294ea",
   "ccgp_template_audit_acceptance": {
     "report": "docs/project/ccgp-template-audit-backfill-plan-2026-11-06.md",
     "evidence_manifest": "docs/project/validation/ccgp-template-audit-2026-11-06/manifest.json",
@@ -2430,7 +2430,7 @@
     "apply_allowed": false,
     "production_modified": false
   },
-  "current_phase_starting_head": "965b0d8fad3bdd92b56a1cf69a1796403b84b4ff",
+  "current_phase_starting_head": "a9d180ba5527dc42249d2d5e56cc72222cf294ea",
   "latest_deployed_source_head": "82cc43f06c774969eab0fe44f0afc012f37cadac",
   "next_task_document": "docs/project/next-task.md",
   "working_protocol": "docs/project/working-protocol.md",
@@ -2840,14 +2840,13 @@
     "historical": true
   },
   "current_authorization_scope": {
-    "source": "Latest explicit user one-page product proposal and usable-MVP checklist documentation-only request",
-    "current_round": "PROJECT_DOCUMENTATION_ONLY",
-    "application_domain_schedule_or_permissions_changed": false,
-    "application_sdk_tests_build_or_model_executed": false,
-    "network_this_round": false,
-    "deployment_or_collection_triggered": false,
-    "real_acceptance_pause_preserved": true,
-    "next_code_or_cloud_action_authorized": false
+    "source": "Latest user request to preserve latest project progress and handoff on GitHub and continue in chat",
+    "current_round": "HANDOFF_DOCS_AND_FAST_FORWARD_ARCHIVE_OF_EXISTING_AUTHORIZED_COMMITS",
+    "github_archive_push_authorized": true,
+    "force_push_merge_main_or_create_pr_authorized": false,
+    "new_application_code_authorized": false,
+    "deployment_workflow_collection_or_model_authorized": false,
+    "real_preview_acceptance_pause_preserved": true
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -3784,5 +3783,29 @@
     "real_acceptance_pause_preserved": true,
     "apply_allowed": false,
     "migration_usable": false
+  },
+  "handoff_document": "docs/project/HANDOFF.md",
+  "github_archive_policy": {
+    "repository": "wpuu/MedicalChannelAI",
+    "branch": "codex/p0-reliability-contracts",
+    "remote_observed_before_archive": "246c139b3f42b738300ecaebac6bec42e6709119",
+    "local_commits_ahead_before_handoff": 44,
+    "remote_is_ancestor": true,
+    "method": "NON_FORCE_FAST_FORWARD_WITH_HISTORY_PRESERVED",
+    "persistent_user_archive_authorization": true,
+    "archive_commit_skip_ci": true,
+    "branch_autodeploy_disabled_in_source": true,
+    "reviewed_push_workflows_main_only": true,
+    "provider_actual_deployment_claimed_verified": false,
+    "completion_requires": "successful push and remote branch SHA equals local HEAD; report outcome after check",
+    "scope_excludes": [
+      "main merge",
+      "PR/release creation",
+      "force push",
+      "workflow execution",
+      "deployment",
+      "domain/schedule/permission changes",
+      "collection/model execution"
+    ]
   }
 }
