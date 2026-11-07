@@ -491,29 +491,37 @@ async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, 
                         await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
                     return
 
-    if stage in runtime.REGIONAL_STAGE_MARKET_CODES or stage in runtime.REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+    if stage == "publish" or stage in runtime.REGIONAL_STAGE_MARKET_CODES or stage in runtime.REGIONAL_FALLBACK_STAGE_MARKET_CODES:
         budget = runtime.CliBudget(clock, sleep or time.sleep, total_seconds=270, work_seconds=210, started_at=entered_at)
         status, result = runtime.run_stage(stage, now=cycle_as_of, budget=budget)
     else:
         status, result = runtime.run_stage(stage, now=cycle_as_of)
-    if not _heartbeat_deep_cycle(cycle_id, now=datetime.now(timezone.utc)):
-        return
-    action = str(result.get("action") or "")
-    if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY", "ALREADY_DEGRADED_TODAY"}:
-        next_stage = _next_stage(stage)
-        if next_stage is not None:
-            if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
-                return
-            await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
-        else:
-            # A bounded deep scan need not cover every unresolved URL. Only
-            # canonical evidence at or after this cycle can supersede staging.
-            incremental_runtime.reconcile_incremental_pending_from_canonical(
-                RuntimeCache(), verified_after=cycle_as_of,
-            )
-            await ensure_intraday_chain()
-            _release_active_cycle_if_owned(cycle_id)
-        return
+    try:
+        if not _heartbeat_deep_cycle(cycle_id, now=datetime.now(timezone.utc)):
+            return
+        action = str(result.get("action") or "")
+        if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY", "ALREADY_DEGRADED_TODAY"}:
+            next_stage = _next_stage(stage)
+            if next_stage is not None:
+                if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
+                    return
+                await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+            else:
+                # A bounded deep scan need not cover every unresolved URL. Only
+                # canonical evidence at or after this cycle can supersede staging.
+                incremental_runtime.reconcile_incremental_pending_from_canonical(
+                    RuntimeCache(), verified_after=cycle_as_of,
+                )
+                await ensure_intraday_chain()
+                _release_active_cycle_if_owned(cycle_id)
+            return
+    except Exception as exc:
+        if stage == "publish":
+            raise runtime.CollectorStageBlocked("PUBLISH_QUEUE_FINALIZATION_RESULT_UNKNOWN", diagnostics={
+                "publish_receipt": (result.get("result") or result).get("publish_receipt"),
+                "workflow_state_mutation_possible": True, "finalization_error_type": type(exc).__name__,
+            }) from exc
+        raise
 
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
     if status == 503 and result.get("retryable") is False and stage != "publish":
@@ -532,7 +540,13 @@ async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, 
         if stage == "publish":
             # Failure to commit remains a failed publish; the independently
             # seeded intraday chain can continue after this owner is released.
-            _release_active_cycle_if_owned(cycle_id)
+            try:
+                _release_active_cycle_if_owned(cycle_id)
+            except Exception as exc:
+                raise runtime.CollectorStageBlocked("PUBLISH_QUEUE_FINALIZATION_RESULT_UNKNOWN", diagnostics={
+                    "publish_receipt": result.get("publish_receipt"), "workflow_state_mutation_possible": True,
+                    "finalization_error_type": type(exc).__name__,
+                }) from exc
             return
         runtime.mark_stage_degraded(stage, now=datetime.now(timezone.utc), error=f"COLLECTOR_STAGE_RETRY_LIMIT:{stage}")
         next_stage = _next_stage(stage)
@@ -540,4 +554,7 @@ async def process_collector_payload(payload: dict[str, Any], *, monotonic=None, 
             await _enqueue_stage(stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id)
         return
 
-    raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")
+    failure = RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")
+    if stage == "publish":
+        failure.diagnostics = {"publish_receipt": result.get("publish_receipt")}
+    raise failure

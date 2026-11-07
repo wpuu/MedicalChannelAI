@@ -1605,186 +1605,302 @@ def _durable_publish_url() -> str:
     return f"https://{host}/api/public-snapshot"
 
 
-def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, Any]:
-    publish_url = _durable_publish_url()
-    token = str(os.environ.get("VERIFIED_SNAPSHOT_PUBLISH_TOKEN") or "").strip()
-    if len(token) < 24:
-        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_TOKEN_MISSING")
+def _new_publish_receipt() -> dict[str, Any]:
+    return {"publication_outcome": "NOT_ATTEMPTED", "phase": "PREPARE",
+            "latest_candidate_mutation_possible": False, "python_cache_mutation_possible": False,
+            "node_cache_status": "UNKNOWN", "python_cache_status": "NOT_ATTEMPTED"}
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json; charset=utf-8",
-        "Accept": "application/json",
-        "User-Agent": "MedicalChannelAI-VercelCollector/0.1",
-    }
-    if str(os.environ.get("VERCEL_ENV") or "").strip().lower() == "preview":
-        # URL validation above pins this credential to the exact deployment.
-        oidc_token = preview_oidc_token()
-        if oidc_token:
-            headers["x-vercel-trusted-oidc-idp-token"] = oidc_token
-    payload = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    request = Request(
-        publish_url,
-        data=payload,
-        headers=headers,
-        method="PUT",
-    )
-    try:
-        with urlopen(request, timeout=DURABLE_PUBLISH_TIMEOUT_SECONDS) as response:
-            status = int(getattr(response, "status", 0) or 0)
-            body = response.read()
-    except HTTPError as exc:
-        detail = ""
-        if str(os.environ.get("VERCEL_ENV") or "").strip().lower() != "preview":
-            try:
-                detail = exc.read().decode("utf-8", errors="replace")[:180]
-            except Exception:
-                pass
-        raise CollectorStageBlocked(
-            f"DURABLE_SNAPSHOT_PUBLISH_HTTP_{exc.code}:{detail}"
-        ) from exc
-    except URLError as exc:
-        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_NETWORK_FAILED") from exc
 
-    if status != 200:
-        raise CollectorStageBlocked(f"DURABLE_SNAPSHOT_PUBLISH_HTTP_{status}")
+def _publish_work_deadline(budget) -> float:
+    return min(budget.started + 210, budget.started + budget.total_seconds - 60)
+
+
+def _publish_work_check(budget, receipt, phase: str) -> None:
+    receipt["phase"] = phase
+    if budget and (budget.exhausted_phase or budget.clock() >= _publish_work_deadline(budget)):
+        budget.fail(phase)
+
+
+def _annotate_publish_error(exc, receipt, budget=None) -> None:
+    diagnostics = dict(getattr(exc, "diagnostics", {}) or {})
+    inner = diagnostics.get("publish_receipt")
+    if isinstance(inner, dict):
+        sticky = {key: bool(receipt.get(key) or inner.get(key)) for key in
+                  ("latest_candidate_mutation_possible", "python_cache_mutation_possible")}
+        confirmed = receipt.get("publication_outcome") == "CONFIRMED"
+        receipt.update(inner)
+        receipt.update(sticky)
+        if confirmed:
+            receipt["publication_outcome"] = "CONFIRMED"
+    if budget:
+        receipt["budget"] = budget.snapshot()
+        receipt["budget_finalization_overrun"] = budget.clock() >= budget.started + budget.total_seconds
+    diagnostics["publish_receipt"] = dict(receipt)
+    exc.diagnostics = diagnostics
+
+
+def _persist_verified_snapshot_durably(snapshot: dict[str, Any], *, budget=None, receipt=None) -> dict[str, Any]:
+    receipt = receipt if receipt is not None else _new_publish_receipt()
     try:
-        result = json.loads(body.decode("utf-8"))
+        _publish_work_check(budget, receipt, "PUT_PREPARE")
+        publish_url = _durable_publish_url()
+        token = str(os.environ.get("VERIFIED_SNAPSHOT_PUBLISH_TOKEN") or "").strip()
+        if len(token) < 24:
+            raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_TOKEN_MISSING")
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json; charset=utf-8",
+            "Accept": "application/json",
+            "User-Agent": "MedicalChannelAI-VercelCollector/0.1",
+        }
+        if str(os.environ.get("VERCEL_ENV") or "").strip().lower() == "preview":
+            # URL validation above pins this credential to the exact deployment.
+            oidc_token = preview_oidc_token()
+            if oidc_token:
+                headers["x-vercel-trusted-oidc-idp-token"] = oidc_token
+        _publish_work_check(budget, receipt, "PUT_SERIALIZE")
+        payload = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        _publish_work_check(budget, receipt, "PUT_SERIALIZE_RETURN")
+        request = Request(
+            publish_url,
+            data=payload,
+            headers=headers,
+            method="PUT",
+        )
+        _publish_work_check(budget, receipt, "PUT_ADMISSION")
+        timeout = DURABLE_PUBLISH_TIMEOUT_SECONDS
+        if budget:
+            remaining = _publish_work_deadline(budget) - budget.clock()
+            if remaining <= 1:
+                budget.fail("PUT_ADMISSION")
+            timeout = min(timeout, remaining - 1)
+        receipt["publication_outcome"] = "UNKNOWN"
+        receipt["phase"] = "PUT"
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                status = int(getattr(response, "status", 0) or 0)
+                body = response.read()
+        except HTTPError as exc:
+            detail = ""
+            if str(os.environ.get("VERCEL_ENV") or "").strip().lower() != "preview":
+                try:
+                    detail = exc.read().decode("utf-8", errors="replace")[:180]
+                except Exception:
+                    pass
+            raise CollectorStageBlocked(
+                f"DURABLE_SNAPSHOT_PUBLISH_HTTP_{exc.code}:{detail}"
+            ) from exc
+        except URLError as exc:
+            raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_NETWORK_FAILED") from exc
+
+        if status != 200:
+            raise CollectorStageBlocked(f"DURABLE_SNAPSHOT_PUBLISH_HTTP_{status}")
+        try:
+            result = json.loads(body.decode("utf-8"))
+        except Exception as exc:
+            raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_RESPONSE_INVALID") from exc
+        if not isinstance(result, dict):
+            raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_RESPONSE_INVALID")
+        if result.get("ok") is not True:
+            raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_NOT_ACKNOWLEDGED")
+        if result.get("durable_committed") is not True:
+            raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_NOT_COMMITTED")
+        if (not isinstance(result.get("snapshot_as_of"), str) or not result["snapshot_as_of"]
+                or result["snapshot_as_of"] != snapshot.get("snapshot_as_of")):
+            raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_AS_OF_MISMATCH")
+        expected_pool = snapshot.get("opportunity_pool")
+        expected_count = len(expected_pool) if isinstance(expected_pool, list) else len(snapshot.get("cards") or [])
+        acknowledged_count = result.get("opportunity_pool_count")
+        if type(acknowledged_count) is not int or acknowledged_count != expected_count:
+            raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_POOL_MISMATCH")
+        receipt.update(publication_outcome="CONFIRMED", snapshot_as_of=result["snapshot_as_of"],
+                       node_cache_status=result.get("cache_status") if result.get("cache_status") in ("UPDATED", "RETRY_REQUIRED") else "UNKNOWN")
+        if budget:
+            receipt["ack_after_work_deadline"] = budget.clock() >= _publish_work_deadline(budget)
+            if budget.work_seconds == 210:
+                budget.work_complete = True
+        return result
     except Exception as exc:
-        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_RESPONSE_INVALID") from exc
-    if result.get("ok") is not True:
-        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_NOT_ACKNOWLEDGED")
-    if result.get("snapshot_as_of") != snapshot.get("snapshot_as_of"):
-        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_AS_OF_MISMATCH")
-    expected_pool = snapshot.get("opportunity_pool")
-    expected_count = len(expected_pool) if isinstance(expected_pool, list) else len(snapshot.get("cards") or [])
-    acknowledged_count = result.get("opportunity_pool_count")
-    if type(acknowledged_count) is not int or acknowledged_count != expected_count:
-        raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_POOL_MISMATCH")
-    return result
+        _annotate_publish_error(exc, receipt, budget)
+        raise
 
 
-def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
-    ccgp_records = cache.get(CCGP_RECORDS_KEY)
-    events = cache.get(CCGP_EVENTS_KEY)
-    committed = cache.get(CCGP_COMMITTED_STATE_KEY)
-    if committed is not None:
-        if not isinstance(committed, dict) or not isinstance(committed.get("records"), list) or not isinstance(committed.get("events"), list):
-            raise CollectorPrecondition("COLLECTOR_CCGP_COMMITTED_STATE_CORRUPT")
-        ccgp_records, events = committed["records"], committed["events"]
-    tjmugh_records = cache.get(TJMUGH_RECORDS_KEY)
-    tjnothop_records = cache.get(TJNOTHOP_RECORDS_KEY)
-    teda_records = cache.get(TEDA_RECORDS_KEY)
-    tjfch_records = cache.get(TJFCH_RECORDS_KEY)
-    tjzyefy_records = cache.get(TJZYEFY_RECORDS_KEY)
-    tjzyefy_intent_records = cache.get(TJZYEFY_INTENT_RECORDS_KEY)
-    tjzxfc_records = cache.get(TJZXFC_RECORDS_KEY)
-    regional_records_by_market = {
-        market_code: cache.get(_regional_records_key(market_code))
-        for market_code in REGIONAL_STAGE_MARKET_CODES.values()
-    }
-    canonical_by_name = {
-        "ccgp": ccgp_records,
-        "events": events,
-        "tjmugh": tjmugh_records,
-        "tjnothop": tjnothop_records,
-        "teda": teda_records,
-        "tjfch": tjfch_records,
-        "tjzyefy": tjzyefy_records,
-        "tjzyefy_intent": tjzyefy_intent_records,
-        "tjzxfc": tjzxfc_records,
-        **{
-            f"regional_{market_code.lower()}": value
-            for market_code, value in regional_records_by_market.items()
-        },
-    }
-    missing_canonical = [
-        name
-        for name, value in canonical_by_name.items()
-        if not isinstance(value, list)
-    ]
-    if missing_canonical:
-        raise CollectorPrecondition(
-            "COLLECTOR_CANONICAL_STATE_INCOMPLETE:" + ",".join(sorted(missing_canonical))
-        )
-
-    regional_records = [
-        record
-        for market_code in REGIONAL_STAGE_MARKET_CODES.values()
-        for record in regional_records_by_market[market_code]
-    ]
-    records = (
-        list(ccgp_records)
-        + list(tjmugh_records)
-        + list(tjnothop_records)
-        + list(teda_records)
-        + list(tjfch_records)
-        + list(tjzyefy_records)
-        + list(tjzyefy_intent_records)
-        + list(tjzxfc_records)
-        + regional_records
-    )
-    as_of = _cycle_as_of(state)
-    # Canonical identity conflicts still use the same deterministic reconciler.
-    records = merge_canonical_records([], records)
-    snapshot = build_public_snapshot(records, as_of, list(events))
-    snapshot["source_health"] = snapshot_source_health(cache)
-    source_by_opportunity = {
-        str(record.get("opportunity_id")): (
-            "tjfch_test" if source_id == "tjfch" and
-            str((record.get("source") or {}).get("source_id") or "").startswith("tjfch-test:")
-            else source_id
-        )
-        for source_id, rows in canonical_by_name.items()
-        if source_id != "events"
-        for record in rows
-    }
-    for card in [*(snapshot.get("cards") or []), *(snapshot.get("opportunity_pool") or [])]:
-        card["source_id"] = source_by_opportunity.get(str(card.get("opportunity_id")))
-    digest = _digest(snapshot)
-    _cache_set(
-        cache,
-        LATEST_RUNTIME_SNAPSHOT_KEY,
-        snapshot,
-        tag="medicalchannelai-verified-snapshot",
-        ttl=SNAPSHOT_TTL_SECONDS,
-    )
-    read_back = cache.get(LATEST_RUNTIME_SNAPSHOT_KEY)
-    if not isinstance(read_back, dict) or _digest(read_back) != digest:
-        raise CollectorStageBlocked("RUNTIME_SNAPSHOT_READBACK_MISMATCH")
-
-    # Node public serving reads this exact stable key. It is intentionally written
-    # without TTL/tags so the collector cannot expire the serving snapshot merely
-    # because the short-lived collector state ages out.
-    durable_result = _persist_verified_snapshot_durably(snapshot)
-
-    cache_status = "READY"
+def _run_publish(cache: RuntimeCache, state: dict[str, Any], *, budget=None) -> dict[str, Any]:
+    receipt = _new_publish_receipt()
+    def read(key):
+        _publish_work_check(budget, receipt, "CANONICAL_READ")
+        value = cache.get(key)
+        _publish_work_check(budget, receipt, "CANONICAL_READ_RETURN")
+        return value
     try:
-        cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})
-        serving_read_back = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
-        if not isinstance(serving_read_back, dict) or _digest(serving_read_back) != digest:
-            cache_status = "RETRY_REQUIRED"
-    except Exception:
-        # The durable endpoint has already committed and read back this version.
-        # A fallback-copy failure cannot turn that committed publish into FAILED.
-        cache_status = "RETRY_REQUIRED"
+        ccgp_records = read(CCGP_RECORDS_KEY)
+        events = read(CCGP_EVENTS_KEY)
+        committed = read(CCGP_COMMITTED_STATE_KEY)
+        if committed is not None:
+            if not isinstance(committed, dict) or not isinstance(committed.get("records"), list) or not isinstance(committed.get("events"), list):
+                raise CollectorPrecondition("COLLECTOR_CCGP_COMMITTED_STATE_CORRUPT")
+            ccgp_records, events = committed["records"], committed["events"]
+        tjmugh_records = read(TJMUGH_RECORDS_KEY)
+        tjnothop_records = read(TJNOTHOP_RECORDS_KEY)
+        _publish_work_check(budget, receipt, "CANONICAL_READ")
+        teda_records = cache.get(TEDA_RECORDS_KEY)
+        _publish_work_check(budget, receipt, "CANONICAL_READ_RETURN")
+        _publish_work_check(budget, receipt, "CANONICAL_READ")
+        tjfch_records = cache.get(TJFCH_RECORDS_KEY)
+        _publish_work_check(budget, receipt, "CANONICAL_READ_RETURN")
+        tjzyefy_records = read(TJZYEFY_RECORDS_KEY)
+        tjzyefy_intent_records = read(TJZYEFY_INTENT_RECORDS_KEY)
+        tjzxfc_records = read(TJZXFC_RECORDS_KEY)
+        regional_records_by_market = {
+            market_code: read(_regional_records_key(market_code))
+            for market_code in REGIONAL_STAGE_MARKET_CODES.values()
+        }
+        canonical_by_name = {
+            "ccgp": ccgp_records,
+            "events": events,
+            "tjmugh": tjmugh_records,
+            "tjnothop": tjnothop_records,
+            "teda": teda_records,
+            "tjfch": tjfch_records,
+            "tjzyefy": tjzyefy_records,
+            "tjzyefy_intent": tjzyefy_intent_records,
+            "tjzxfc": tjzxfc_records,
+            **{
+                f"regional_{market_code.lower()}": value
+                for market_code, value in regional_records_by_market.items()
+            },
+        }
+        missing_canonical = [
+            name
+            for name, value in canonical_by_name.items()
+            if not isinstance(value, list)
+        ]
+        if missing_canonical:
+            raise CollectorPrecondition(
+                "COLLECTOR_CANONICAL_STATE_INCOMPLETE:" + ",".join(sorted(missing_canonical))
+            )
 
-    pool = read_back.get("opportunity_pool")
-    return {
-        "snapshot_as_of": read_back.get("snapshot_as_of"),
-        "today_card_count": len(read_back.get("cards") or []),
-        "opportunity_pool_count": len(pool) if isinstance(pool, list) else len(read_back.get("cards") or []),
-        "canonical_record_count": len(records),
-        "notice_event_count": len(events),
-        "sha256": digest,
-        "durable_snapshot_persisted": True,
-        "durable_snapshot_as_of": durable_result.get("snapshot_as_of"),
-        "cache_status": cache_status,
-    }
+        regional_records = [
+            record
+            for market_code in REGIONAL_STAGE_MARKET_CODES.values()
+            for record in regional_records_by_market[market_code]
+        ]
+        records = (
+            list(ccgp_records)
+            + list(tjmugh_records)
+            + list(tjnothop_records)
+            + list(teda_records)
+            + list(tjfch_records)
+            + list(tjzyefy_records)
+            + list(tjzyefy_intent_records)
+            + list(tjzxfc_records)
+            + regional_records
+        )
+        as_of = _cycle_as_of(state)
+        # Canonical identity conflicts still use the same deterministic reconciler.
+        _publish_work_check(budget, receipt, "BUILD")
+        records = merge_canonical_records([], records)
+        _publish_work_check(budget, receipt, "MERGE_RETURN")
+        snapshot = build_public_snapshot(records, as_of, list(events))
+        _publish_work_check(budget, receipt, "BUILD_RETURN")
+        snapshot["source_health"] = snapshot_source_health(cache)
+        _publish_work_check(budget, receipt, "HEALTH_RETURN")
+        source_by_opportunity = {
+            str(record.get("opportunity_id")): (
+                "tjfch_test" if source_id == "tjfch" and
+                str((record.get("source") or {}).get("source_id") or "").startswith("tjfch-test:")
+                else source_id
+            )
+            for source_id, rows in canonical_by_name.items()
+            if source_id != "events"
+            for record in rows
+        }
+        for card in [*(snapshot.get("cards") or []), *(snapshot.get("opportunity_pool") or [])]:
+            card["source_id"] = source_by_opportunity.get(str(card.get("opportunity_id")))
+        _publish_work_check(budget, receipt, "DIGEST")
+        digest = _digest(snapshot)
+        _publish_work_check(budget, receipt, "DIGEST_RETURN")
+        receipt.update(candidate_digest_local=digest, snapshot_as_of=snapshot.get("snapshot_as_of"))
+        _publish_work_check(budget, receipt, "LATEST_SET")
+        receipt["latest_candidate_mutation_possible"] = True
+        _cache_set(
+            cache,
+            LATEST_RUNTIME_SNAPSHOT_KEY,
+            snapshot,
+            tag="medicalchannelai-verified-snapshot",
+            ttl=SNAPSHOT_TTL_SECONDS,
+        )
+        _publish_work_check(budget, receipt, "LATEST_SET_RETURN")
+        read_back = read(LATEST_RUNTIME_SNAPSHOT_KEY)
+        if not isinstance(read_back, dict) or _digest(read_back) != digest:
+            raise CollectorStageBlocked("RUNTIME_SNAPSHOT_READBACK_MISMATCH")
+
+        # Node public serving reads this exact stable key. It is intentionally written
+        # without TTL/tags so the collector cannot expire the serving snapshot merely
+        # because the short-lived collector state ages out.
+        _publish_work_check(budget, receipt, "LATEST_DIGEST_RETURN")
+        durable_result = (_persist_verified_snapshot_durably(snapshot, budget=budget, receipt=receipt)
+                          if budget else _persist_verified_snapshot_durably(snapshot))
+        if durable_result.get("durable_committed") is not True:
+            receipt["publication_outcome"] = "UNKNOWN"
+            raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_NOT_COMMITTED")
+        receipt.update(publication_outcome="CONFIRMED", node_cache_status=durable_result.get("cache_status")
+                       if durable_result.get("cache_status") in ("UPDATED", "RETRY_REQUIRED") else "UNKNOWN")
+
+        cache_status = "READY"
+        try:
+            receipt["phase"] = "PYTHON_COPY_SET"
+            if budget and budget.clock() >= budget.started + budget.total_seconds:
+                receipt["python_cache_status"] = "SKIPPED_BUDGET"
+                cache_status = "RETRY_REQUIRED"
+            else:
+                receipt["python_cache_mutation_possible"] = True
+                cache.set(PUBLISHED_RUNTIME_SNAPSHOT_KEY, snapshot, {})
+                if budget and budget.clock() >= budget.started + budget.total_seconds:
+                    receipt["python_cache_status"] = "UNKNOWN"
+                    cache_status = "RETRY_REQUIRED"
+                else:
+                    receipt["phase"] = "PYTHON_COPY_READ"
+                    serving_read_back = cache.get(PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+                    if (not isinstance(serving_read_back, dict) or _digest(serving_read_back) != digest
+                            or (budget and budget.clock() >= budget.started + budget.total_seconds)):
+                        cache_status = "RETRY_REQUIRED"
+                        receipt["python_cache_status"] = "UNKNOWN"
+                    else:
+                        receipt["python_cache_status"] = "READY"
+        except Exception:
+            # The durable endpoint has already committed and read back this version.
+            # A fallback-copy failure cannot turn that committed publish into FAILED.
+            cache_status = "RETRY_REQUIRED"
+            receipt["python_cache_status"] = "UNKNOWN"
+        if receipt["node_cache_status"] != "UPDATED":
+            cache_status = "RETRY_REQUIRED"
+        if budget:
+            receipt["budget"] = budget.snapshot()
+            receipt["budget_finalization_overrun"] = budget.clock() >= budget.started + budget.total_seconds
+        receipt["phase"] = "PUBLISH_RETURN"
+
+        pool = read_back.get("opportunity_pool")
+        return {
+            "snapshot_as_of": read_back.get("snapshot_as_of"),
+            "today_card_count": len(read_back.get("cards") or []),
+            "opportunity_pool_count": len(pool) if isinstance(pool, list) else len(read_back.get("cards") or []),
+            "canonical_record_count": len(records),
+            "notice_event_count": len(events),
+            "sha256": digest,
+            "durable_snapshot_persisted": True,
+            "durable_snapshot_as_of": durable_result.get("snapshot_as_of"),
+            "cache_status": cache_status,
+            "publish_receipt": dict(receipt),
+        }
+    except Exception as exc:
+        _annotate_publish_error(exc, receipt, budget)
+        raise
 
 
 def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | None = None) -> tuple[int, dict[str, Any]]:
-    if stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+    if stage != "publish" and stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
         budget = None
     now = now or _now_utc()
     cache = RuntimeCache()
@@ -1820,11 +1936,13 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
         elif stage in REGIONAL_STAGE_MARKET_CODES or stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
             result = _run_regional_market(cache, state, stage, budget=budget) if budget else _run_regional_market(cache, state, stage)
         elif stage == "publish":
-            result = _run_publish(cache, state)
+            result = _run_publish(cache, state, budget=budget) if budget else _run_publish(cache, state)
         else:
             raise CollectorPrecondition(f"COLLECTOR_STAGE_INVALID:{stage}")
     except Exception as exc:
-        if budget and isinstance(exc, CliBudgetExceeded):
+        if stage == "publish" and isinstance(exc, CliBudgetExceeded):
+            exc = CollectorStageBlocked("PUBLISH_WORK_BUDGET_EXCEEDED", diagnostics=getattr(exc, "diagnostics", {}))
+        elif budget and isinstance(exc, CliBudgetExceeded):
             exc = CollectorStageBlocked("REGIONAL_WORK_BUDGET_EXCEEDED", diagnostics={
                 "budget": budget.snapshot(), "canonical_mutation_possible": False,
                 "new_canonical_write_attempted": False,
@@ -1840,6 +1958,11 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
             failed_stages = load_status(cache).get("stages") or {}
             failed = failed_stages.get(stage) or {}
         except Exception as persistence_error:
+            if stage == "publish":
+                raise CollectorStageBlocked("PUBLISH_FAILURE_STATE_RESULT_UNKNOWN", diagnostics={
+                    **getattr(exc, "diagnostics", {}), "workflow_state_mutation_possible": True,
+                    "original_error_type": type(exc).__name__, "persistence_error_type": type(persistence_error).__name__,
+                }) from persistence_error
             if budget:
                 raise CollectorStageBlocked("REGIONAL_FAILURE_STATE_RESULT_UNKNOWN", diagnostics={
                     "budget": budget.snapshot(),
@@ -1856,9 +1979,10 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
             "retryable": getattr(exc, "retryable", True),
             "attempt_count": failed.get("attempt_count"),
             "retry_exhausted": _stage_retry_limit_reached(stage, failed, failed_stages),
+            **({"publish_receipt": getattr(exc, "diagnostics", {}).get("publish_receipt")} if stage == "publish" else {}),
             **({"budget": budget.snapshot(),
                 "canonical_mutation_possible": bool(getattr(exc, "diagnostics", {}).get("canonical_mutation_possible")),
-                "diagnostics": getattr(exc, "diagnostics", {})} if budget else {}),
+                "diagnostics": getattr(exc, "diagnostics", {})} if budget and stage != "publish" else {}),
         }
 
     try:
@@ -1882,6 +2006,11 @@ def run_stage(stage: str, *, now: datetime | None = None, budget: CliBudget | No
                                attempted_at=_now_utc(),
                                failure_reason=None if complete_scan else "DETAIL_VERIFICATION_PENDING")
     except Exception as exc:
+        if stage == "publish":
+            raise CollectorStageBlocked("PUBLISH_FINALIZATION_RESULT_UNKNOWN", diagnostics={
+                "publish_receipt": result.get("publish_receipt"), "workflow_state_mutation_possible": True,
+                "persistence_error_type": type(exc).__name__,
+            }) from exc
         if budget:
             raise CollectorStageBlocked("REGIONAL_FINALIZATION_RESULT_UNKNOWN", diagnostics={
                 "budget": budget.snapshot(), "canonical_mutation_possible": bool(result.get("canonical_write_completed")),

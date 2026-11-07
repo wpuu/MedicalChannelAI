@@ -196,7 +196,7 @@ class CollectorDeferredBudgetTests(unittest.TestCase):
                 fired.add("finalize")
                 tick[0] = 210
             return original_get(cache_key)
-        def publish(cache, now):
+        def publish(cache, now, **kwargs):
             called.append("publish")
             if mode == "publish_error":
                 raise OSError("SYNTHETIC_PUBLISH_UNKNOWN")
@@ -400,6 +400,56 @@ class CollectorDeferredBudgetTests(unittest.TestCase):
         self.assertTrue(c["result"]["pending_or_ledger_mutation_possible"])
         self.assertEqual(c["canonical"], c["baseline"])
         self.assertEqual(len(c["staged"]), 1)
+
+    def test_incremental_publish_bridge_forwards_exact_parent_budget(self):
+        tick = [195.0]
+        budget = self.runtime.CliBudget(lambda: tick[0], lambda d: None, total_seconds=270, work_seconds=180, started_at=0)
+        def publish(cache, state, **kwargs):
+            self.assertIs(kwargs["budget"], budget)
+            self.runtime._publish_work_check(budget, {}, "PUBLISH_TEST")
+            return {"snapshot_as_of": self.now.isoformat(), "publish_receipt": {"publication_outcome": "CONFIRMED"}}
+        with patch.object(self.runtime, "_run_publish", side_effect=publish):
+            success, result = self.incremental._publish_snapshot_if_ready(self.cache, self.now, budget=budget)
+        self.assertTrue(success)
+        self.assertEqual(budget.started, 0)
+        self.assertEqual(budget.work_seconds, 180)
+
+    def test_incremental_publisher_failure_uses_precise_attempt_receipt(self):
+        for outcome in ("NOT_ATTEMPTED", "UNKNOWN"):
+            with self.subTest(outcome=outcome):
+                key, baseline, prior = self.seed_source("tjzyefy")
+                b = self.runtime.CliBudget(lambda: 0, lambda d: None, total_seconds=270, work_seconds=180)
+                error = self.runtime.CliBudgetExceeded("PUBLISH_WORK") if outcome == "NOT_ATTEMPTED" else OSError("SYNTHETIC_PUT")
+                error.diagnostics = {"publish_receipt": {"publication_outcome": outcome}}
+                with patch.dict(self.incremental._DISCOVERY, {"tjzyefy": lambda *args, **kwargs: []}), patch.object(self.runtime, "_run_publish", side_effect=error):
+                    status, result = self.incremental.run_incremental_source("tjzyefy", now=self.now, cache=self.cache, budget=b)
+                self.assertEqual(status, 503)
+                self.assertEqual(result["publication_outcome"], outcome)
+                self.assertEqual(result["publish_receipt"]["publication_outcome"], outcome)
+                self.assertEqual(self.cache.get(key), baseline)
+                self.assertIsNone(self.cache.get(self.incremental._bucket_cache_key("tjzyefy")))
+
+    def test_incremental_real_bridge_confirmed_then_bucket_failure_keeps_receipt(self):
+        self.seed_source("tjzyefy")
+        b = self.runtime.CliBudget(lambda: 0, lambda d: None, total_seconds=270, work_seconds=180)
+        result = {"snapshot_as_of": self.now.isoformat(), "publish_receipt": {"publication_outcome": "CONFIRMED"}}
+        with patch.dict(self.incremental._DISCOVERY, {"tjzyefy": lambda *args, **kwargs: []}), patch.object(
+            self.runtime, "_run_publish", return_value=result), patch.object(self.incremental, "_mark_bucket_completed", side_effect=OSError("SYNTHETIC_BUCKET")):
+            status, response = self.incremental.run_incremental_source("tjzyefy", now=self.now, cache=self.cache, budget=b)
+        self.assertEqual(status, 503)
+        self.assertTrue(response["snapshot_refreshed"])
+        self.assertEqual(response["publish_receipt"]["publication_outcome"], "CONFIRMED")
+        self.assertTrue(response["bucket_mutation_possible"])
+
+    def test_other_incremental_source_does_not_receive_publisher_budget(self):
+        self.seed_source("tjzyefy_intent")
+        b = self.runtime.CliBudget(lambda: 210, lambda d: None, total_seconds=270, work_seconds=180, started_at=0)
+        with patch.dict(self.incremental._DISCOVERY, {"tjzyefy_intent": lambda *args, **kwargs: []}), patch.object(
+            self.runtime, "_run_publish", return_value={"snapshot_as_of": self.now.isoformat()}) as publish:
+            status, result = self.incremental.run_incremental_source("tjzyefy_intent", now=self.now, cache=self.cache, budget=b)
+        self.assertEqual(status, 200)
+        self.assertNotIn("budget", publish.call_args.kwargs)
+        self.assertNotIn("budget", result)
 
     def test_exactly_twelve_incremental_details_commit_normally_for_all_three_sources(self):
         for source in ("tjzyefy", "tjzyefy_intent", "tjzxfc"):

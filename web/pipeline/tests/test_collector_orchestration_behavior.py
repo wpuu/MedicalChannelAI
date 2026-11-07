@@ -157,6 +157,94 @@ class CollectorOrchestrationBehaviorTests(unittest.TestCase):
         self.assertTrue(caught.exception.diagnostics["lease_mutation_possible"])
         run.assert_not_called()
 
+    def test_publish_queue_budget_includes_precheck_and_ignores_payload_deadline(self):
+        payload = self.seed_retry("publish", 0)
+        payload["deadline"] = 999999999
+        tick, seen = [0.0], []
+        def active(*args, **kwargs): tick[0] = 200; return True
+        def run(stage, **kwargs):
+            b = kwargs["budget"]
+            seen.append((b.started, b.work_seconds, b.request_timeout(30, "PUT")))
+            return 503, {"retryable": True, "retry_exhausted": False, "error": "UNKNOWN",
+                         "publish_receipt": {"publication_outcome": "UNKNOWN"}}
+        with patch.object(self.worker, "_active_cycle_matches", side_effect=active), patch.object(
+            self.worker, "_heartbeat_deep_cycle", return_value=True), patch.object(self.runtime, "run_stage", side_effect=run):
+            with self.assertRaisesRegex(RuntimeError, "COLLECTOR_QUEUE_STAGE_FAILED") as caught:
+                asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+        self.assertEqual(seen, [(0, 210, 9)])
+        self.assertEqual(caught.exception.diagnostics["publish_receipt"]["publication_outcome"], "UNKNOWN")
+
+    def publish_tail_case(self, failure=None, *, replaced=False):
+        payload = self.seed_retry("publish", 0)
+        tick, events = [0.0], []
+        count = [0]
+        receipt = {"publication_outcome": "CONFIRMED", "snapshot_as_of": self.now.isoformat()}
+        def run(*args, **kwargs):
+            tick[0] = 270
+            return 200, {"action": "COMPLETED", "result": {"publish_receipt": receipt}}
+        def heartbeat(*args, **kwargs):
+            count[0] += 1
+            if count[0] > 1:
+                events.append("heartbeat")
+                if failure == "heartbeat": raise OSError("SYNTHETIC_HEARTBEAT")
+                return not replaced
+            return True
+        def reconcile(*args, **kwargs):
+            events.append("reconcile")
+            if failure == "reconcile": raise OSError("SYNTHETIC_RECONCILE")
+        async def tick_chain(*args, **kwargs):
+            events.append("tick")
+            if failure == "tick": raise OSError("SYNTHETIC_TICK")
+        def release(*args, **kwargs):
+            events.append("release")
+            if failure == "release": raise OSError("SYNTHETIC_RELEASE")
+        error = None
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(self.worker, "_heartbeat_deep_cycle", side_effect=heartbeat), patch.object(
+            self.runtime, "run_stage", side_effect=run), patch.object(self.worker.incremental_runtime, "reconcile_incremental_pending_from_canonical", side_effect=reconcile), patch.object(
+            self.worker, "ensure_intraday_chain", side_effect=tick_chain), patch.object(self.worker, "_release_active_cycle_if_owned", side_effect=release):
+            try:
+                asyncio.run(self.worker.process_collector_payload(payload, monotonic=lambda: tick[0]))
+            except Exception as exc:
+                error = exc
+        return events, error
+
+    def test_publish_confirmed_tail_io_failures_retain_confirmation_and_original_order(self):
+        order = ["heartbeat", "reconcile", "tick", "release"]
+        for phase in order:
+            with self.subTest(phase=phase):
+                events, error = self.publish_tail_case(phase)
+                self.assertEqual(events, order[:order.index(phase) + 1])
+                self.assertEqual(error.diagnostics["publish_receipt"]["publication_outcome"], "CONFIRMED")
+                self.assertTrue(error.diagnostics["workflow_state_mutation_possible"])
+
+    def test_publish_confirmed_overrun_does_not_add_budget_abort_to_tail(self):
+        events, error = self.publish_tail_case()
+        self.assertIsNone(error)
+        self.assertEqual(events, ["heartbeat", "reconcile", "tick", "release"])
+
+    def test_publish_replaced_owner_keeps_original_no_cleanup_guard(self):
+        events, error = self.publish_tail_case(replaced=True)
+        self.assertIsNone(error)
+        self.assertEqual(events, ["heartbeat"])
+
+    def test_foreign_publish_rejected_before_cache_or_stage(self):
+        payload = self.cycle_payload("publish")
+        with patch.object(self.worker, "accepts_payload", return_value=False), patch.object(
+            self.worker, "RuntimeCache", side_effect=AssertionError("CACHE_FORBIDDEN")), patch.object(self.runtime, "run_stage") as run:
+            asyncio.run(self.worker.process_collector_payload(payload))
+        run.assert_not_called()
+
+    def test_publish_unknown_terminal_release_failure_retains_receipt(self):
+        payload = self.seed_retry("publish", 1)
+        result = {"action": "FAILED", "error": "UNKNOWN", "retry_exhausted": True,
+                  "publish_receipt": {"publication_outcome": "UNKNOWN"}}
+        with patch.object(self.worker, "_active_cycle_matches", return_value=True), patch.object(
+            self.worker, "_heartbeat_deep_cycle", return_value=True), patch.object(self.runtime, "run_stage", return_value=(503, result)), patch.object(
+            self.worker, "_release_active_cycle_if_owned", side_effect=OSError("SYNTHETIC_RELEASE")):
+            with self.assertRaises(self.runtime.CollectorStageBlocked) as caught:
+                asyncio.run(self.worker.process_collector_payload(payload))
+        self.assertEqual(caught.exception.diagnostics["publish_receipt"]["publication_outcome"], "UNKNOWN")
+
     def test_cron_seeds_intraday_before_deep_can_fail(self) -> None:
         class Clock(datetime):
             @classmethod
@@ -291,7 +379,7 @@ class CollectorOrchestrationBehaviorTests(unittest.TestCase):
         self.assertEqual(self.cache.get(key),[])
 
     def test_nonregional_stages_keep_original_run_stage_arguments(self):
-        for stage in ('tjmugh','event1','publish'):
+        for stage in ('tjmugh','event1'):
             with self.subTest(stage=stage):
                 payload=self.seed_retry(stage,0)
                 with patch.object(self.worker,'_active_cycle_matches',return_value=True), patch.object(

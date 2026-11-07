@@ -512,9 +512,10 @@ def _candidate_from_decision(decision: VerificationDecision, discovered_by_url: 
     raise RuntimeError("INCREMENTAL_SELECTED_CANDIDATE_MISSING")
 
 
-def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime) -> tuple[bool, dict[str, Any] | None]:
+def _publish_snapshot_if_ready(cache: RuntimeCache, now: datetime, *, budget=None) -> tuple[bool, dict[str, Any] | None]:
     try:
-        result = runtime._run_publish(cache, {"cycle_as_of": now.isoformat()})
+        result = (runtime._run_publish(cache, {"cycle_as_of": now.isoformat()}, budget=budget)
+                  if budget else runtime._run_publish(cache, {"cycle_as_of": now.isoformat()}))
     except runtime.CollectorPrecondition:
         return False, None
     return True, result
@@ -576,7 +577,7 @@ def run_incremental_source(
     receipt = {key: context[key] for key in ("canonical_mutation_possible", "canonical_write_completed",
                 "pending_or_ledger_mutation_possible", "health_mutation_possible",
                 "bucket_mutation_possible", "publication_outcome")}
-    return status, {**result, **receipt, "budget": budget.snapshot(),
+    return status, {**result, **receipt, "publish_receipt": context.get("publish_receipt"), "budget": budget.snapshot(),
                     "budget_observation_phase": "SOURCE_RETURN",
                     "budget_finalization_overrun": budget.clock() >= budget.started + budget.total_seconds}
 
@@ -897,15 +898,21 @@ def _run_incremental_source(
         if budget:
             if budget.started + budget.total_seconds - budget.clock() < 31:
                 budget.fail("PUBLISH_ADMISSION")
-            context.update(phase="PUBLISH", publication_outcome="UNKNOWN")
-        snapshot_refreshed, publish_result = _publish_snapshot_if_ready(cache, observed)
+            context.update(phase="PUBLISH", publication_outcome="NOT_ATTEMPTED")
+        snapshot_refreshed, publish_result = (_publish_snapshot_if_ready(cache, observed, budget=budget)
+                                             if budget else _publish_snapshot_if_ready(cache, observed))
         if budget:
             context["publication_outcome"] = "CONFIRMED" if snapshot_refreshed else "NO_REFRESH"
+            context["publish_receipt"] = publish_result.get("publish_receipt") if publish_result else None
             context.update(snapshot_refreshed=snapshot_refreshed,
                            snapshot_as_of=publish_result.get("snapshot_as_of") if publish_result else None)
-    except runtime.CliBudgetExceeded:
-        raise
     except Exception as exc:
+        if budget:
+            receipt = getattr(exc, "diagnostics", {}).get("publish_receipt")
+            context["publish_receipt"] = receipt
+            context["publication_outcome"] = receipt.get("publication_outcome", "UNKNOWN") if receipt else "UNKNOWN"
+        if isinstance(exc, runtime.CliBudgetExceeded):
+            raise
         return 503, {
             "action": "FAILED",
             **completed_result,

@@ -4,6 +4,9 @@ import importlib
 import io
 import json
 import os
+import socket
+import urllib.request
+from urllib.error import URLError
 import sys
 import types
 import unittest
@@ -27,6 +30,10 @@ class CollectorPublishEnvironmentTests(unittest.TestCase):
         sys.modules.pop("collector_runtime", None)
         self.runtime = importlib.import_module("collector_runtime")
         self.snapshot = {"snapshot_as_of": "2026-11-05T00:00:00Z", "cards": [], "opportunity_pool": []}
+        for owner, name in ((socket.socket, "connect"), (socket, "getaddrinfo"), (urllib.request, "build_opener")):
+            blocker = patch.object(owner, name, side_effect=AssertionError("NETWORK_FORBIDDEN"))
+            blocker.start()
+            self.addCleanup(blocker.stop)
         self.environment = {
             "VERCEL_ENV": "preview", "VERCEL_URL": PREVIEW_HOST,
             "VERIFIED_SNAPSHOT_PUBLISH_TOKEN": "preview-test-publisher-token-0001",
@@ -45,13 +52,106 @@ class CollectorPublishEnvironmentTests(unittest.TestCase):
                 return None
 
             def read(self):
-                return json.dumps({"ok": True, "snapshot_as_of": snapshot["snapshot_as_of"], "opportunity_pool_count": 0}).encode()
+                return json.dumps({"ok": True, "durable_committed": True, "cache_status": "UPDATED", "snapshot_as_of": snapshot["snapshot_as_of"], "opportunity_pool_count": 0}).encode()
 
         with patch.dict(os.environ, environment, clear=True), patch.object(self.runtime, "urlopen", return_value=Response()) as send:
             result = self.runtime._persist_verified_snapshot_durably(snapshot)
         self.assertEqual(result["opportunity_pool_count"], 0)
         send.assert_called_once()
         return send.call_args.args[0]
+
+    def budget_put_case(self, mode="success", *, elapsed=0, parent_work=210, changes=None):
+        tick, calls = [float(elapsed)], []
+        budget = self.runtime.CliBudget(lambda: tick[0], lambda d: None, total_seconds=270, work_seconds=parent_work, started_at=0)
+        receipt = self.runtime._new_publish_receipt()
+        ack = {"ok": True, "durable_committed": True, "cache_status": "UPDATED",
+               "snapshot_as_of": self.snapshot["snapshot_as_of"], "opportunity_pool_count": 0}
+        ack.update(changes or {})
+        if mode == "missing_commit": ack.pop("durable_committed")
+        body = json.dumps(ack).encode() if mode != "bad_json" else b"not-json"
+        class Response(io.BytesIO):
+            status = 500 if mode == "http_error" else 200
+            def read(self):
+                if mode == "late_work": tick[0] = 210
+                if mode == "late_total": tick[0] = 270
+                return super().read()
+        def send(request, **kwargs):
+            calls.append((request, kwargs))
+            if mode == "transport_error": raise URLError("SYNTHETIC_DISCONNECT")
+            return Response(body)
+        original_json = self.runtime.json.dumps
+        def dump(*args, **kwargs):
+            value = original_json(*args, **kwargs)
+            if mode == "serialize_late": tick[0] = 210
+            return value
+        result, error = None, None
+        with patch.dict(os.environ, self.environment, clear=True), patch.object(self.runtime, "preview_oidc_token", return_value=None), patch.object(
+            self.runtime, "urlopen", side_effect=send), patch.object(self.runtime.json, "dumps", side_effect=dump):
+            try:
+                result = self.runtime._persist_verified_snapshot_durably(self.snapshot, budget=budget, receipt=receipt)
+            except Exception as exc:
+                error = type(exc).__name__
+                receipt = exc.diagnostics["publish_receipt"]
+        return {"result": result, "error": error, "receipt": receipt, "calls": calls, "budget": budget}
+
+    def test_publish_budget_expired_or_serialization_late_never_sends_put(self):
+        for mode, elapsed in (("success", 210), ("success", 209), ("serialize_late", 0)):
+            with self.subTest(mode=mode, elapsed=elapsed):
+                c = self.budget_put_case(mode, elapsed=elapsed)
+                self.assertFalse(c["calls"])
+                self.assertEqual(c["receipt"]["publication_outcome"], "NOT_ATTEMPTED")
+
+    def test_publish_budget_ack_requires_strict_existing_fields(self):
+        for changes in ({"durable_committed": False}, {"durable_committed": 1}, {"durable_committed": "true"},
+                        {"ok": 1}, {"snapshot_as_of": "wrong"}, {"snapshot_as_of": None},
+                        {"opportunity_pool_count": False}, {"opportunity_pool_count": "0"}):
+            with self.subTest(changes=changes):
+                c = self.budget_put_case(changes=changes)
+                self.assertIsNotNone(c["error"])
+                self.assertEqual(len(c["calls"]), 1)
+                self.assertEqual(c["receipt"]["publication_outcome"], "UNKNOWN")
+        c = self.budget_put_case("missing_commit")
+        self.assertEqual(c["receipt"]["publication_outcome"], "UNKNOWN")
+
+    def test_publish_budget_late_valid_ack_stays_confirmed(self):
+        for mode in ("late_work", "late_total"):
+            with self.subTest(mode=mode):
+                c = self.budget_put_case(mode)
+                self.assertIsNone(c["error"])
+                self.assertEqual(c["receipt"]["publication_outcome"], "CONFIRMED")
+                self.assertTrue(c["receipt"]["ack_after_work_deadline"])
+                self.assertTrue(c["budget"].work_complete)
+
+    def test_publish_budget_parent180_uses210_and_does_not_reset_clock(self):
+        c = self.budget_put_case(elapsed=195, parent_work=180)
+        self.assertIsNone(c["error"])
+        self.assertEqual(c["calls"][0][1]["timeout"], 14)
+        self.assertEqual(c["budget"].started, 0)
+        self.assertEqual(c["budget"].work_seconds, 180)
+        self.assertFalse(c["budget"].work_complete)
+        c = self.budget_put_case()
+        self.assertEqual(c["calls"][0][1]["timeout"], 30)
+
+    def test_publish_budget_transport_http_and_json_failures_remain_unknown(self):
+        for mode in ("transport_error", "http_error", "bad_json"):
+            with self.subTest(mode=mode):
+                c = self.budget_put_case(mode)
+                self.assertEqual(len(c["calls"]), 1)
+                self.assertEqual(c["receipt"]["publication_outcome"], "UNKNOWN")
+
+    def test_publish_budget_malformed_copy_status_does_not_erase_durable_ack(self):
+        for status in ({"invalid": True}, None, False):
+            with self.subTest(status=status):
+                c = self.budget_put_case(changes={"cache_status": status})
+                self.assertIsNone(c["error"])
+                self.assertEqual(c["receipt"]["publication_outcome"], "CONFIRMED")
+                self.assertEqual(c["receipt"]["node_cache_status"], "UNKNOWN")
+
+    def test_publish_receipt_is_never_added_to_http_snapshot(self):
+        c = self.budget_put_case()
+        self.assertEqual(json.loads(c["calls"][0][0].data), self.snapshot)
+        self.assertNotIn("publish_receipt", self.snapshot)
+        self.assertNotIn("budget", self.snapshot)
 
     def test_preview_put_uses_only_exact_current_deployment_even_with_production_override(self) -> None:
         request = self.publish_request({

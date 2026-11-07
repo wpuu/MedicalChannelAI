@@ -100,9 +100,159 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
             self.cache.set(r._regional_records_key(market), [])
 
     def publish(self):
-        with patch.object(self.runtime, "_persist_verified_snapshot_durably", return_value={"snapshot_as_of": self.now.isoformat()}):
+        with patch.object(self.runtime, "_persist_verified_snapshot_durably", return_value={"durable_committed": True, "cache_status": "UPDATED", "snapshot_as_of": self.now.isoformat()}):
             result = self.runtime._run_publish(self.cache, self.state)
         return result, self.cache.get(self.runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY)
+
+    def publisher_budget_case(self, mode="success", *, parent_work=210, use_budget=True):
+        self.seed_all_canonical()
+        r = self.runtime
+        tick = [210.0 if mode == "expired" else 0.0]
+        budget = r.CliBudget(lambda: tick[0], lambda d: None, total_seconds=270, work_seconds=parent_work, started_at=0)
+        calls, reads, copy_reads, writes = [], [], [], []
+        pending_key = self.incremental._pending_barrier_cache_key("tjzyefy_intent")
+        self.cache.set(pending_key, ["unresolved-source"])
+        if mode == "missing": self.cache.delete(r.TJMUGH_RECORDS_KEY)
+        if mode == "committed_pair":
+            self.cache.set(r.CCGP_RECORDS_KEY, [{"uncommitted": True}])
+            self.cache.set(r.CCGP_EVENTS_KEY, [{"uncommitted_event": True}])
+            self.cache.set(r.CCGP_COMMITTED_STATE_KEY, {"records": [], "events": []})
+        original_get, original_set = self.cache.get, self.cache.set
+        def get(key):
+            reads.append(key)
+            value = original_get(key)
+            if mode == "read_late": tick[0] = 210
+            if mode == "latest_read_late" and key == r.LATEST_RUNTIME_SNAPSHOT_KEY: tick[0] = 210
+            if key == r.PUBLISHED_RUNTIME_SNAPSHOT_KEY:
+                copy_reads.append(key)
+                if mode == "copy_read_late": tick[0] = 270
+            return value
+        def put(key, value, options=None):
+            writes.append(key)
+            if key == r.PUBLISHED_RUNTIME_SNAPSHOT_KEY and mode == "copy_error": raise OSError("SYNTHETIC_COPY")
+            original_set(key, value, options)
+            if key == r.LATEST_RUNTIME_SNAPSHOT_KEY and mode == "latest_set_late": tick[0] = 210
+            if key == r.PUBLISHED_RUNTIME_SNAPSHOT_KEY and mode == "copy_set_late": tick[0] = 270
+        original_build, original_merge, original_digest, original_health = r.build_public_snapshot, r.merge_canonical_records, r._digest, r.snapshot_source_health
+        def build(*args, **kwargs):
+            value = original_build(*args, **kwargs)
+            if mode == "build_late": tick[0] = 210
+            return value
+        def merge(*args, **kwargs):
+            value = original_merge(*args, **kwargs)
+            if mode == "merge_late": tick[0] = 210
+            return value
+        def digest(*args, **kwargs):
+            value = original_digest(*args, **kwargs)
+            if mode == "digest_late": tick[0] = 210
+            return value
+        def health(*args, **kwargs):
+            value = original_health(*args, **kwargs)
+            if mode == "health_late": tick[0] = 210
+            return value
+        def send(request, **kwargs):
+            calls.append((request, kwargs))
+            snapshot = json.loads(request.data)
+            ack = {"ok": True, "durable_committed": mode != "bad_ack", "snapshot_as_of": snapshot["snapshot_as_of"],
+                   "opportunity_pool_count": snapshot["opportunity_pool_count"],
+                   "cache_status": "RETRY_REQUIRED" if mode == "node_retry" else {"invalid": 1} if mode == "node_unknown" else "UPDATED"}
+            class Response(io.BytesIO):
+                status = 200
+                def read(self):
+                    if mode == "ack_late_work": tick[0] = 210
+                    if mode == "ack_late_total": tick[0] = 270
+                    return super().read()
+            return Response(json.dumps(ack).encode())
+        result, error, diagnostics = None, None, {}
+        with ExitStack() as stack:
+            for owner, attr, effect in ((self.cache, "get", get), (self.cache, "set", put),
+                                       (r, "build_public_snapshot", build), (r, "merge_canonical_records", merge),
+                                       (r, "_digest", digest), (r, "snapshot_source_health", health), (r, "urlopen", send)):
+                stack.enter_context(patch.object(owner, attr, side_effect=effect))
+            stack.enter_context(patch.dict(r.os.environ, {"VERCEL_ENV": "preview", "VERCEL_URL": "budget-test.vercel.app", "VERIFIED_SNAPSHOT_PUBLISH_TOKEN": "x" * 24}, clear=True))
+            stack.enter_context(patch.object(r, "preview_oidc_token", return_value=None))
+            if mode in {"stage_error", "failure_state_error"}:
+                stack.enter_context(patch.object(r, "_prepare_stage", return_value=(self.state, None)))
+                stack.enter_context(patch.object(r, "_mark_completed" if mode == "stage_error" else "_mark_failed", side_effect=OSError("SYNTHETIC_STATE")))
+                if mode == "failure_state_error":
+                    stack.enter_context(patch.object(r, "urlopen", side_effect=OSError("SYNTHETIC_PUT_UNKNOWN")))
+            try:
+                result = (r.run_stage("publish", now=self.now, budget=budget) if mode in {"stage_error", "failure_state_error"}
+                          else r._run_publish(self.cache, self.state, budget=budget if use_budget else None))
+            except Exception as exc:
+                error, diagnostics = type(exc).__name__, getattr(exc, "diagnostics", {})
+        receipt = result.get("publish_receipt") if isinstance(result, dict) else diagnostics.get("publish_receipt")
+        return {"result": result, "error": error, "receipt": receipt, "diagnostics": diagnostics, "calls": calls,
+                "reads": reads, "writes": writes, "copy_reads": copy_reads, "budget": budget,
+                "latest": original_get(r.LATEST_RUNTIME_SNAPSHOT_KEY), "published": original_get(r.PUBLISHED_RUNTIME_SNAPSHOT_KEY),
+                "pending": original_get(pending_key), "health": original_get(r.SOURCE_HEALTH_KEY)}
+
+    def test_publish_budget_each_work_boundary_refuses_new_put(self):
+        for mode in ("expired", "read_late", "merge_late", "build_late", "health_late", "digest_late", "latest_set_late", "latest_read_late"):
+            with self.subTest(mode=mode):
+                c = self.publisher_budget_case(mode)
+                self.assertIsNotNone(c["error"])
+                self.assertFalse(c["calls"])
+                self.assertEqual(c["receipt"]["publication_outcome"], "NOT_ATTEMPTED")
+                self.assertIsNone(c["published"])
+                self.assertEqual(c["pending"], ["unresolved-source"])
+                self.assertIsNone(c["health"])
+        self.assertTrue(self.publisher_budget_case("latest_set_late")["receipt"]["latest_candidate_mutation_possible"])
+
+    def test_publish_budget_late_ack_or_copy_never_erases_confirmation(self):
+        for mode in ("ack_late_work", "ack_late_total", "copy_set_late", "copy_read_late", "copy_error"):
+            with self.subTest(mode=mode):
+                c = self.publisher_budget_case(mode)
+                self.assertIsNone(c["error"])
+                self.assertTrue(c["result"]["durable_snapshot_persisted"])
+                self.assertEqual(c["receipt"]["publication_outcome"], "CONFIRMED")
+                self.assertEqual(c["result"]["cache_status"], "READY" if mode == "ack_late_work" else "RETRY_REQUIRED")
+                if mode in {"ack_late_total", "copy_set_late"}: self.assertFalse(c["copy_reads"])
+
+    def test_publish_budget_preserves_node_and_python_copy_receipts(self):
+        for mode in ("node_retry", "node_unknown"):
+            with self.subTest(mode=mode):
+                c = self.publisher_budget_case(mode)
+                self.assertEqual(c["result"]["cache_status"], "RETRY_REQUIRED")
+                self.assertEqual(c["receipt"]["python_cache_status"], "READY")
+                self.assertEqual(c["receipt"]["node_cache_status"], "RETRY_REQUIRED" if mode == "node_retry" else "UNKNOWN")
+
+    def test_publish_budget_snapshot_bytes_have_no_receipt_or_clock_mutation(self):
+        c = self.publisher_budget_case()
+        wire = json.loads(c["calls"][0][0].data)
+        self.assertEqual(wire, c["latest"])
+        self.assertEqual(wire, c["published"])
+        self.assertNotIn("publish_receipt", wire)
+        self.assertNotIn("budget", wire)
+        self.assertEqual(wire["snapshot_as_of"], self.now.isoformat())
+        self.assertEqual(c["pending"], ["unresolved-source"])
+        self.assertIsNone(c["health"])
+
+    def test_publish_budget_legal_empty_missing_canonical_and_committed_pair(self):
+        for mode in ("success", "committed_pair"):
+            c = self.publisher_budget_case(mode)
+            self.assertIsNone(c["error"])
+            self.assertEqual(c["result"]["canonical_record_count"], 0)
+            self.assertEqual(c["result"]["notice_event_count"], 0)
+            self.assertEqual(c["published"]["opportunity_pool"], [])
+        c = self.publisher_budget_case("missing")
+        self.assertEqual(c["error"], "CollectorPrecondition")
+        self.assertFalse(c["calls"])
+
+    def test_publish_budget_stage_save_failure_keeps_confirmed_and_failure_save_unknown(self):
+        c = self.publisher_budget_case("stage_error")
+        self.assertEqual(c["receipt"]["publication_outcome"], "CONFIRMED")
+        self.assertTrue(c["diagnostics"]["workflow_state_mutation_possible"])
+        c = self.publisher_budget_case("failure_state_error")
+        self.assertEqual(c["receipt"]["publication_outcome"], "UNKNOWN")
+        self.assertTrue(c["diagnostics"]["workflow_state_mutation_possible"])
+
+    def test_publish_without_budget_bad_ack_keeps_latest_write_possibility(self):
+        c = self.publisher_budget_case("bad_ack", use_budget=False)
+        self.assertEqual(c["receipt"]["publication_outcome"], "UNKNOWN")
+        self.assertTrue(c["receipt"]["latest_candidate_mutation_possible"])
+        self.assertIsNotNone(c["latest"])
+        self.assertIsNone(c["published"])
 
     def test_real_three_adapters_publish_positive_and_intent_with_distinct_identity(self):
         self.seed_all_canonical()
@@ -129,7 +279,7 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
         self.assertEqual(visible, {key: value for key, value in expected.items() if value != "tjzxfc"})
         # Historical hospital fixture has already closed by October. Its July
         # publish proves parity while preserving the real deadline boundary.
-        with patch.object(self.runtime, "_persist_verified_snapshot_durably", return_value={}):
+        with patch.object(self.runtime, "_persist_verified_snapshot_durably", return_value={"durable_committed": True, "cache_status": "UPDATED"}):
             self.runtime._run_publish(self.cache, {**self.state, "cycle_as_of": "2026-07-10T00:00:00+00:00"})
         historical = self.cache.get(self.runtime.PUBLISHED_RUNTIME_SNAPSHOT_KEY)
         self.assertIn("tjzxfc", {row["source_id"] for row in historical["opportunity_pool"]})
@@ -583,7 +733,7 @@ class RuntimeSourceParityBehaviorTests(unittest.TestCase):
             status = 200
         with patch.dict(self.runtime.os.environ, {"VERIFIED_SNAPSHOT_PUBLISH_TOKEN": "x" * 24}):
             for count in (0, None, False, "0"):
-                response = Response(json.dumps({"ok": True, "snapshot_as_of": self.now.isoformat(), "opportunity_pool_count": count}).encode())
+                response = Response(json.dumps({"ok": True, "durable_committed": True, "cache_status": "UPDATED", "snapshot_as_of": self.now.isoformat(), "opportunity_pool_count": count}).encode())
                 with patch.object(self.runtime, "urlopen", return_value=response):
                     if type(count) is int:
                         self.assertEqual(self.runtime._persist_verified_snapshot_durably(snapshot)["opportunity_pool_count"], 0)
