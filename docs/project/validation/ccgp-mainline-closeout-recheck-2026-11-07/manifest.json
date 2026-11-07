@@ -1,0 +1,12 @@
+{
+  "starting_head": "6aaaa667aed0da8d79dbfbd836cedfb62e6e0853",
+  "unchanged_code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "files": {
+    "docs/project/validation/ccgp-mainline-closeout-recheck-2026-11-07/recheck.json": "f8c2065ab9ae8812f1b4280ec25a6f03ff07694cf691d18ec0e41063265ece7f",
+    "docs/project/current-state.md": "e988a2eb7791554ae44548b75ccd3417cb48bee0fa4487746198e7a67a1e544d",
+    "docs/project/next-task.md": "c30f2bf8a6502f8b1baf819d6b53674a4cf28c13dd9cf4661594cb881f28e956",
+    "docs/project/checkpoint.json": "b46fa376b7a79bd90633657242a77354ecf55497fe69719a8bac9e19048200e8"
+  },
+  "apply_allowed": false,
+  "migration_usable": false
+}

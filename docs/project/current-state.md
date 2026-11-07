@@ -4,6 +4,7 @@ Updated: 2026-11-07（Asia/Shanghai）
 
 ## 当前CCGP主链F1/F2/F3收口（仅离线静态审查完成）
 
+- 重复任务复核：实际HEAD已为6aaaa66，比提示中的1f40e91更新；本轮复用已完成收口，静态verify通过且应用/证据无变化，没有新缺口、测试重跑或代码授权扩展。[复核记录](validation/ccgp-mainline-closeout-recheck-2026-11-07/recheck.json)。唯一下一项仍为待明确四文件授权的R1，不再次开相同审查。
 - 起点1f40e91，应用代码fea6fc7不变，工作树初始干净，仅根代理，无相关在途工作。[收口报告](ccgp-mainline-reliability-closeout-2026-11-07.md)、[静态证据](validation/ccgp-mainline-reliability-closeout-2026-11-07/manifest.json)。CLI F3、区域止损、发现/事件/区域/增量/publish预算与回执按已有版本证据收口，不重复施工。
 - 最新覆盖：25 deep中18个接预算，剩余7个医院/早期deep；8增量中仅tjzyefy接预算，其余7个未接。只读回匹配、单键配对写、权威ACK、bucket完成各有边界，不能代替真实部署/完整采集/持久化/客户交付。
 - 只列三项：R1/P1 CCGP发现/事实/事件明确拒绝后仍可能继续同host请求，事实异常正文进入失败状态的同一失败链也需安全汇总（仅静态，未行为复现）；R2/P2其余来源F2覆盖与共享冷却/Retry-After未完成；R3/P1真实运行证据缺失，发布放行NO-GO。区域旧R1已修，不再报修。

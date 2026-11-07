@@ -1,0 +1,60 @@
+{
+  "starting_head": "6aaaa667aed0da8d79dbfbd836cedfb62e6e0853",
+  "user_stated_prior_head": "1f40e91",
+  "code_head": "fea6fc70350b17366f20a86eac9ec02396a36fa9",
+  "status": "EXISTING_CLOSEOUT_RECHECKED_NO_CHANGED_INPUTS_NO_DUPLICATE_REVIEW",
+  "started_at_utc": "2026-11-07T09:28:36+00:00",
+  "completed_at_utc": "2026-11-07T09:29:48.013440+00:00",
+  "deadline_utc": "2026-11-07T09:48:36+00:00",
+  "within_frontend_20_minutes": true,
+  "initial_worktree_clean": true,
+  "in_flight_agents": [
+    "/root"
+  ],
+  "prior_static_verify_executed_before_state_update": true,
+  "prior_static_verification_result": "PASS",
+  "references_checked": 110,
+  "function_version_bindings": 8,
+  "protected_inputs_checked": 595,
+  "source_config_files_unchanged": 455,
+  "reviewed_reports_sha256": {
+    "docs/project/ccgp-mainline-reliability-closeout-2026-11-07.md": "87d94bc95ac4331bd27b29f89a8164480e8d3a1dbb988fbf3cdd2c4040993d0e",
+    "docs/project/ccgp-discovery-stage-budget-implementation-2026-11-07.md": "e48a23cbc3599cbf00fb8bfdc9fab1510d9a7792f2503effaf1631749327d960",
+    "docs/project/ccgp-event-stage-budget-implementation-2026-11-07.md": "35eeaf40e881328cf2596060eead25f2d869f600efe84066138b9d7232029034",
+    "docs/project/runtime-regional-access-stop-2026-11-07.md": "f249a4cf6d6161bcf80eb1d71e85971a4cb88ffac6dc5c604649fc068dede4d5",
+    "docs/project/runtime-f2-implementation-2026-11-07.md": "c574ab188c3e04eff7a3295ecd2f09f239550be00ce4bb5cde04f297b0dfc332",
+    "docs/project/tjzyefy-incremental-implementation-2026-11-07.md": "ccb1618d5f9fe26763e64af6ea457558bc7b0e63bdbde8fc21865376ca24d086",
+    "docs/project/publish-budget-implementation-2026-11-07.md": "c3883ef3db1509ba1163bb69d7453131fb9c67e2b72c960969a95257809c4d96",
+    "docs/project/runtime-reliability-closeout-2026-11-07.md": "3d3d13a935f2da402d22af500711c3cf95dfdb9a0e3659a4b8719fdc239490f8",
+    "docs/project/action-radar-acceptance-contract.md": "8f66d57f754905f9bc5055cc2671979f624252b6596e04c671744bdb2ea8c4fe"
+  },
+  "coverage_deep": [
+    18,
+    25
+  ],
+  "coverage_incremental": [
+    1,
+    8
+  ],
+  "findings_unchanged": [
+    "R1_CCGP_STAGE_DENIAL_STOP_AND_SAFE_DIAGNOSTICS",
+    "R2_UNCOVERED_BUDGET_AND_SHARED_COOLDOWN",
+    "R3_REAL_RELEASE_EVIDENCE_UNVERIFIED"
+  ],
+  "new_findings": 0,
+  "unique_next_priority": "R1",
+  "next_code_authorization_received": false,
+  "historical_gates": [
+    1202,
+    10,
+    3
+  ],
+  "tests_reexecuted": false,
+  "application_sdk_model_executed": false,
+  "new_simulation_or_audit_engine": false,
+  "network_cloud_or_runtime_access": false,
+  "actual_environment_values_credentials_or_runtime_logs_read": false,
+  "deploy_push_workflow_trigger": false,
+  "apply_allowed": false,
+  "migration_usable": false
+}

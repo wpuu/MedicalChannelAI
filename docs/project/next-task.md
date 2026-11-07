@@ -1,6 +1,6 @@
 # 下一轮：Queue CCGP单次stage明确拒绝止损R1（待明确四文件授权）
 
-本轮仅文档收口已完成；应用仍fea6fc7，1202/10/3为既有结果。本提示词在用户明确提交后才授权四文件代码，不由当前文档授权自动扩展。最新文档提交以HEAD/checkpoint核对。推荐GPT-6.1 Sol xhigh，实际设置未核实。
+收口文档6aaaa66已完成，本轮重复指令仅复核并确认无新变化；后续先核对真实HEAD和本次checkpoint，不重复同一审查。应用仍fea6fc7，1202/10/3为既有结果。本提示词在用户明确提交后才授权四文件代码，不由当前文档授权自动扩展。最新文档提交以HEAD/checkpoint核对。推荐GPT-6.1 Sol xhigh，实际设置未核实。
 
 ```text
 继续 MedicalChannelAI。我明确授权仅在现有隔离分支，离线复现并最小修复Queue CCGP发现/事实及event1–event6共用路径的单次stage明确拒绝止损R1，并保持安全诊断；不实现跨进程冷却或Retry-After。
