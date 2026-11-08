@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-08",
   "timezone": "Asia/Shanghai",
-  "state_scope": "A03_QUALIFICATION_TRISTATE_EVIDENCE_CONTRACT_DOCS_ONLY",
+  "state_scope": "A04_QUALIFICATION_PRECHECK_OFFLINE_CODE_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "A03_CONTRACT_DONE_A04_SEPARATE_AUTHORIZATION_REQUIRED",
-  "latest_changes_validation_status": "DOCS_ONLY:A03_GITHUB_STATIC_QUALIFICATION_EVIDENCE_AUDIT;NO_APP_CHANGES_OR_TEST_RUNS_OR_CLOUD_ACTIONS",
+  "milestone": "A04_OFFLINE_EQUIVALENT_NODE_36_PASS_STANDALONE_SCRIPT_AND_TYPES_PENDING",
+  "latest_changes_validation_status": "A04_FOUR_FILES: NODE22_MEMORY_DATA_MODULE_36_OF_36_PASS_BYTE_IDENTICAL_GITHUB_SOURCE; STANDALONE_MJS_AND_TYPECHECK_NOT_RUN; NO_CLOUD_ACTION",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -2840,8 +2840,8 @@
     "historical": true
   },
   "current_authorization_scope": {
-    "source": "User 2026-11-07T17:30:32Z A03 read-only qualification evidence audit and docs-only archive",
-    "current_round": "A03_READONLY_EVIDENCE_CONTRACT_AND_GITHUB_DOCS_ARCHIVE",
+    "source": "User 2026-11-08T01:58:03Z explicitly approved A04 only 4 offline app files and necessary docs",
+    "current_round": "A04_FOUR_FILE_OFFLINE_AND_GITHUB_FAST_FORWARD",
     "github_archive_push_authorized": true,
     "force_push_merge_main_or_create_pr_authorized": false,
     "new_application_code_authorized": false,
@@ -2854,7 +2854,10 @@
     "a02_offline_code_authorized_this_round": true,
     "future_code_changes_authorized": false,
     "a03_docs_only_authorized": true,
-    "a04_app_code_authorized": false
+    "a04_app_code_authorized": false,
+    "a04_only_authorized": true,
+    "a04_completed_offline": true,
+    "future_app_code_changes_authorized": false
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -4018,7 +4021,7 @@
     "default_without_authoritative_requirements": "UNKNOWN",
     "no_qualification_guarantee": true,
     "next_scope": "A04_QUALIFICATION_EVIDENCE_GATE_READONLY_DETAIL_AND_OFFLINE_SYNTHETIC_CONTRACT",
-    "a04_status": "PROPOSED_NOT_AUTHORIZED_NOT_IMPLEMENTED",
+    "a04_status": "OFFLINE_IMPLEMENTED_EQUIVALENT_NODE_36_PASS_STANDALONE_MJS_AND_TYPES_PENDING",
     "a04_exact_proposed_app_files": [
       "web/src/utils/qualificationEvidenceGate.js",
       "web/src/utils/qualificationEvidenceGate.d.ts",
@@ -4049,6 +4052,45 @@
     "sdk_and_strong_guarantees": "CLOSED_NO_GO",
     "pilot_customers_recruited_verified": false,
     "apply_allowed": false,
-    "migration_usable": false
+    "migration_usable": false,
+    "a04_authorized_at_utc": "2026-11-08T01:58:03Z"
+  },
+  "a04_offline_implementation_2026_11_08": {
+    "authorized_utc": "2026-11-08T01:58:03Z",
+    "base_remote_head": "0dfa11e7c6d7f99e6038f0259fc6d7bc04550626",
+    "application_paths": [
+      "web/src/utils/qualificationEvidenceGate.js",
+      "web/src/utils/qualificationEvidenceGate.d.ts",
+      "web/scripts/check-qualification-evidence-gate.mjs",
+      "web/src/pages/OpportunityDetailPage.tsx"
+    ],
+    "exact_application_file_count": 4,
+    "status": "OFFLINE_IMPLEMENTED_SAFE_UNKNOWN_CURRENT_UI",
+    "default_real_card_qualification": "UNKNOWN_MISSING_OFFICIAL_AND_PRIVATE_EVIDENCE",
+    "synthetic_offline_node_cases_passed": 36,
+    "synthetic_offline_node_cases_total": 36,
+    "synthetic_node_execution": "EXISTING_NODE_V22_16_0_MEMORY_DATA_MODULE_WITH_EXACT_SOURCE_GIT_BLOB_SHA",
+    "tested_js_blob_sha": "c5f2bb6ef434640e600e7870bad7cc527b20078e",
+    "authored_test_script": "web/scripts/check-qualification-evidence-gate.mjs",
+    "standalone_test_file_direct_node_execution": "NOT_RUN_ORIGINAL_PROJECT_WORKTREE_ABSENT",
+    "project_typescript_check": "NOT_RUN_ORIGINAL_PROJECT_WORKTREE_AND_DEPENDENCIES_ABSENT",
+    "browser_and_real_customer_runtime": "NOT_RUN",
+    "extra_app_changes": 0,
+    "backend_db_profile_model_collection_workflow_deployment_changes": 0,
+    "full_business_acceptance_B1_B6": {
+      "B1": "NOT_VERIFIED",
+      "B2": "NOT_VERIFIED",
+      "B3": "NOT_VERIFIED",
+      "B4": "NOT_VERIFIED",
+      "B5": "NOT_VERIFIED",
+      "B6": "NOT_VERIFIED"
+    },
+    "trial_customer_recruited": false,
+    "real_d_preview": "NO_GO_PAUSED",
+    "sdk_strong_guarantees": "CLOSED_NO_GO",
+    "production_ready": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "next_task": "A05_CCGP_OFFICIAL_QUALIFICATION_TEXT_BOUNDED_OFFLINE_EXTRACTION_SEPARATE_AUTH_REQUIRED"
   }
 }

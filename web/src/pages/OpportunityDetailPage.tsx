@@ -41,6 +41,7 @@ import {
 } from '@/services/runtimeStatusApi'
 import type { FollowupStatus, LostReason, NotFitReason, TodayActionCard, WonReason } from '@/types'
 import { classifyHematologyWholeDeviceScope } from '@/utils/hematologyWholeDeviceScope'
+import { evaluateQualificationEvidence } from '@/utils/qualificationEvidenceGate'
 
 const AI_UNCONFIGURED_REASON = '已有核验AI建议会直接复用；尚未生成过AI建议的商机暂不实时调用模型。'
 
@@ -238,6 +239,9 @@ export function OpportunityDetailPage() {
   }
 
   const buyerDisplay = card.facts.hospital ?? card.facts.buyer_name ?? null
+  // A04: PublicFacts/private profile have no verified eligibility contract.
+  // Never pass self-reported ability, product scope, or AI score as proof.
+  const qualificationPrecheck = evaluateQualificationEvidence()
   // A02: presentation-only; reuse the exact A01 classifier and status labels.
   const deviceScope = classifyHematologyWholeDeviceScope(card)
   const deviceScopeLabel = deviceScope.status === 'IN_SCOPE'
@@ -367,6 +371,32 @@ export function OpportunityDetailPage() {
               ) : null}
             </div>
       </section>
+
+      {!historical ? (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4" aria-label="投标资格预核缺口">
+          <h3 className="text-[14px] font-semibold text-amber-950">
+            资格资料预核：{qualificationPrecheck.label}
+          </h3>
+          <p className="mt-2 text-[12px] leading-6 text-amber-950">
+            当前已发布数据不含逐项核验的官方资格条款全集；客户资料也没有经过核验的证照、厂家授权或有效期证明。当前只能标记未知，不能替采购单位认定投标资格。
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-4 text-[12px] leading-5 text-amber-900">
+            {qualificationPrecheck.missing.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+          {card.evidence_source_urls.length > 0 ? (
+            <a href="#official-evidence" className="mt-3 inline-block text-[12px] font-medium text-amber-950 underline underline-offset-2">
+              查看已有官方依据，人工核对资格条款与附件
+            </a>
+          ) : (
+            <p className="mt-3 text-[12px] leading-5 text-amber-950">
+              暂无可用的官方依据入口；不能补造资格条件。
+            </p>
+          )}
+          <p className="mt-2 text-[11px] leading-5 text-amber-900">
+            血细胞分析仪整机相关性、客户自报授权及AI评分均不是投标资格证据；此处不上传、存储或展示证书号码。本预核不代表采购单位最终资格审核。
+          </p>
+        </section>
+      ) : null}
 
       {!historical ? (
         <>

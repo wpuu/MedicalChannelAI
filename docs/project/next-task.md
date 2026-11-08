@@ -1,33 +1,21 @@
-# 下一任务（唯一）：A04资格证据门禁，只在用户另行批准后离线开发
+# 唯一下一任务：A05 CCGP资格要求原文有界离线提取（尚待单独授权）
 
-**A03已完成，不再重复方案分析。** 已核实名为`qualification-tristate-evidence-contract-2026-11-08.md`的资格三态证据合同、现有字段缺口和下一授权卡。三项业务范围此前已批准：天津检验设备经销／代理销售用户、天津血细胞分析仪整机（试剂／质控／耗材／维保排除）、真实商机更新→可信匹配/资格→站内跟进；3家试用客户**仍未招募**。
+**A04已完成其获批离线四文件范围，不重做：** `web/src/utils/qualificationEvidenceGate.js`及`.d.ts`增加纯函数严格三态；`web/src/pages/OpportunityDetailPage.tsx`只对当前真实公开商机展示`UNKNOWN`资格待核和证据缺口；`web/scripts/check-qualification-evidence-gate.mjs`新增Q01–Q15及边界合成检查。现有Node v22.16.0对与GitHub新JS blob **字节相同的纯函数**以内存执行36/36项PASS（git SHA: `c5f2bb6ef434640e600e7870bad7cc527b20078e`）；**新增独立.mjs文件未在原工作树直接执行，完整TypeScript typecheck也未运行**，原项目工作树/就绪依赖不可用，不能把这两项称通过。
 
-## A04唯一提议（当前未授权）
+B1–B6真实业务验收仍NOT_VERIFIED；d Preview NO-GO，SDK/强保证CLOSED NO-GO，`production_ready=false`、`apply_allowed=false`、`migration_usable=false`；3家试用客户仍未招募。首期天津、血细胞分析仪整机（排除试剂/质控/耗材/维保）及客户定位已经批准，不必重复确认。
 
-**目标**：在商机详情建立“资格待核”的可信证据缺口提示。原公开快照**没有已核验的资格条款全集**、客户Profile没有证书／厂家授权证明，故现有真实卡片只能`UNKNOWN`，不能因`IN_SCOPE`、`DIRECT_AUTHORIZED`或AI高分转成`SATISFIED`。仅在离线完整合成“官方要求＋客户有效证明”时断言`SATISFIED`，有明确无合规替代的反证时`NOT_SATISFIED`，其余`UNKNOWN`；这些不能伪装为线上客户资格通过。
+**A05唯一候选（需用户单独批准才能修改代码）**：只在`web/pipeline/medical_channel_pipeline/ccgp_detail.py`添加一个可离线调用的、边界明确的“申请人/供应商资格要求”原文片段定位器，在`web/pipeline/tests/test_ccgp_detail.py`添加定向合成案例。对“略”、“详见附件”、缺分包或公告正文不完整返回`INCOMPLETE`，不编造硬资格，不将该辅助片段写入旧`validate_record`或`PublicFacts`，不修改正式采集运行、HTTP、数据库/模型/Profile/AI、前端和定时计划。离线原文提取**不等于资格已核实，也不代表B3通过**。
 
-**用户如明确批准**，仅授权以下4个应用文件：
-1. 新增`web/src/utils/qualificationEvidenceGate.js`（无网络/无存储的纯判定器）。
-2. 新增`web/src/utils/qualificationEvidenceGate.d.ts`（明确三态输入/来源与输出类型）。
-3. 仅修改`web/src/pages/OpportunityDetailPage.tsx`（展示默认UNKNOWN、官方链接及缺失证据说明，不上传/保存客户证件，不修改AI/跟进）。
-4. 新增`web/scripts/check-qualification-evidence-gate.mjs`（离线合成正/负/未知与版本、包件、时效、安全回归）。
+A05开始前核远端最新HEAD、六份交接文件和已有 parser 代码、原工作树/在途变更；已有功能则复用。若两文件不够，停止并说明所缺新授权。只运行新增定向离线案例，既有依赖可用再做必要门禁，不安装或新建环境。有效成果只以`[skip ci]`正常提交、非强推快进归档当前GitHub分支并独立回读远端HEAD；无变更不空提交，不合并main，不建PR，不部署、不采集/模型或操作真实数据。
 
-**仅实施条件**：再次核GitHub远端HEAD，读本分支最新HANDOFF/working-protocol/current-state/checkpoint/next-task/产品稿和A03合同，若已有原工作树先查未提交变更/在途并复用；没有环境不新建、不安装依赖。只运行新增定向Node测试，原依赖已经可用才运行TypeScript typecheck。任何要求改Profile、服务器、公开Schema、DB、附件采集或扩大文件范围的情形必须停止并申请新授权。
+推荐GPT-6.1 Sol / High，实际档位未核实。
 
-**保留限制**：A01离线34/34历史PASS；A02 GitHub blob 35/35静态PASS，但`--a02-only`真实Node脚本和完整TypeScript检查未运行；B1–B6全部NOT_VERIFIED；d Preview NO-GO，SDK/强保证CLOSED NO-GO；`production_ready=false`/`apply_allowed=false`/`migration_usable=false`；无部署、模型、采集、生产数据和真实客户试用。没有新的明确批准，不写任何应用代码；也不重复生成同类A03文档。
-
-推荐 GPT-6.1 Sol / High，实际运行档未核实。
-
-## 完整可复制提示词（用户单独批准 A04 时使用）
+## 完整可复制提示词（单独批准A05后使用）
 
 ```text
-我单独批准 MedicalChannelAI 的 A04 资格证据门禁最小离线开发切片，只允许本消息列出的4个应用文件及必要交接文档修改，不授权真实运行和线上资格判定。
+我单独批准 MedicalChannelAI A05 两文件离线资格条款有界提取切片。先核实 GitHub wpuu/MedicalChannelAI 的 codex/p0-reliability-contracts 最新 HEAD，按 docs/project/HANDOFF.md、working-protocol.md、current-state.md、checkpoint.json、next-task.md、product-mvp-one-page-2026-11-07.md 及 qualification-tristate-evidence-contract-2026-11-08.md 接手。核查已有工作树、未提交改动和在途任务，不覆盖。
 
-唯一仓库 https://github.com/wpuu/MedicalChannelAI ，分支 codex/p0-reliability-contracts。先核远端最新HEAD，再依次读取 docs/project/HANDOFF.md、working-protocol.md、current-state.md、checkpoint.json、next-task.md、product-mvp-one-page-2026-11-07.md、qualification-tristate-evidence-contract-2026-11-08.md；核对可用本地原工作树的未提交改动和在途工作，不覆盖他人。复用A01/A02已有的产品相关性三态，不重做。
+严格仅允许修改 web/pipeline/medical_channel_pipeline/ccgp_detail.py 与 web/pipeline/tests/test_ccgp_detail.py。对已有CCGP离线公告文本“二、申请人的资格要求/供应商资格要求”做明确起止边界的原文片段/位置提取；缺少全文、附件、分包归属或只有“略/详见招标文件”时返回INCOMPLETE，不把提取段落等同经完整核验的资格清单，也不触及canonical record、公有快照、Profile或DB。新增本地合成正反缺失案例并只跑定向离线检查。
 
-按A03资格证据合同，只新增 web/src/utils/qualificationEvidenceGate.js、qualificationEvidenceGate.d.ts、web/scripts/check-qualification-evidence-gate.mjs，并仅局部修改 web/src/pages/OpportunityDetailPage.tsx。建无网络纯函数的资格三态判定：同一项目/包件/官方版本和完整官方硬资格、客户许可的真实有效证据逐项一致时仅可给“资料预核匹配”SATISFIED；有明确无有效替代的反证才NOT_SATISFIED；官方条款/附件/客户证书/厂家授权/有效期缺证一律UNKNOWN。所有当前没有资格输入的真实卡片只能UNKNOWN，展示缺哪些官方/客户证据及官方来源入口，不允许填写/上传/存储证照号码，不改后端/公开快照/客户Profile/数据库/AI/跟进/评分。
-
-只以合成正负未知、公告更正、包件错位、资料过期与客户间隔离案例执行新增离线Node断言；仅在现有项目依赖可用时执行TypeScript typecheck，不安装依赖、不运行无变化的旧1213/10/3全套。若仅4文件无法安全达成，停止并报告，不扩范围。A01/A02的历史门禁事实保持，不能把合成通过或静态测试当线上业务通过。
-
-不得部署、触发采集/模型/工作流、修改运行数据库、缓存、域名、权限、计划、配置或读取实际凭据/客户证书。真实d Preview NO-GO、SDK及强保证CLOSED NO-GO，apply_allowed=false、migration_usable=false，B1–B6仍NOT_VERIFIED。将真实有效改动和交接文档以[skip ci]正常提交并非强推快进同步当前GitHub分支，核对远端HEAD；不建PR、不合并main。结束列实际完成、验证、未完成和唯一下一任务。推荐GPT-6.1 Sol High，实际设置未核实。
+不能修改其它应用、配置、权限、定时计划、工作流、域名或运行数据，不创建环境、安装依赖、上线、调用模型、采集或实际官方站点，不触发d Preview；B1–B6继续NOT_VERIFIED，d Preview NO-GO、SDK强保证CLOSED NO-GO，apply_allowed=false、migration_usable=false。若两文件无法实现停止并报告，不扩范围。更新必要交接，GitHub [skip ci] 非强推快进同步当前分支并回查远端HEAD，不合并main/建PR。最后列完成、验证、未完成、唯一下一任务。推荐GPT-6.1 Sol High，实际模型与档位未核实。
 ```

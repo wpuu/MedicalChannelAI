@@ -2,7 +2,16 @@
 
 Updated: 2026-11-08（Asia/Shanghai）
 
-## 2026-11-08 A03资格三态证据合同（最新；仅只读与文档）
+## A04 最新｜资格预核离线门禁已实现，真实业务仍NO-GO
+
+- 用户2026-11-08T01:58:03Z独立批准A04四文件离线施工；GitHub起点`0dfa11e7c6d7f99e6038f0259fc6d7bc04550626`。本环境未发现原`/workspace/MedicalChannelAI-p0`工作树，其他环境未提交/在途工作UNKNOWN；未创建环境或安装依赖。
+- 新增`web/src/utils/qualificationEvidenceGate.js`、`.d.ts`、`web/scripts/check-qualification-evidence-gate.mjs`；仅局部修改`web/src/pages/OpportunityDetailPage.tsx`。当前发布数据缺少完整官方资格条款和客户真实证明，详情页面**固定UNKNOWN**并显示缺口及原有官方链接；不采集、上传、存储、显示客户证书资料，不改变A01/A02范围识别、评分、跟进或AI。
+- 离线纯函数对**完整合成输入**区分SATISFIED（仅资料预核匹配，非采购方认定）、NOT_SATISFIED（强制要求明确反证且无有效替代）、UNKNOWN（其他缺证/矛盾/过期/版本变化）；严格同项目、包件、版本、用户/组织、范围、许可、验证时间。不会把自报`DIRECT_AUTHORIZED`或产品相关性当资格。
+- **验证口径**：现有Node.js v22.16.0以内存`data:`模块执行**36/36合成断言PASS**，执行源字节Git blob SHA=`c5f2bb6ef434640e600e7870bad7cc527b20078e`与GitHub待提交纯函数完全一致。GitHub新增`.mjs`脚本本身没有在原项目目录直接运行，完整TypeScript typecheck/浏览器也未运行（原工作树及就绪依赖不存在）；不称这些已通过。
+- 仅4个获批应用文件及必要交接文档可提交`[skip ci]`且只快进本分支。未部署/采集/模型/修改数据库、权限、定时、配置或域名。B1–B6仍NOT_VERIFIED，d Preview NO-GO暂停，SDK/强保证CLOSED NO-GO，`production_ready=false`、`apply_allowed=false`、`migration_usable=false`，3客户试用未招募。
+- **唯一下一任务A05待新授权**：只对现有`ccgp_detail.py`和`test_ccgp_detail.py`做官方“资格要求”原文范围的有界**离线提取**及附件缺失标记，不修改公开快照/Profile，不能视为资格已核实。
+
+## 2026-11-08 A03资格三态证据合同（历史只读记录）
 
 - GitHub分支接手基线`a85d6c9faa8dab1e6bd63dc7691facb13726f5b7`；已按交接读取六份文件并只读检查`ccgp_detail.py`、`validation.py`、`public_snapshot.py`、`PublicFacts`、`profile.js`/私有资料表、AI决策合同和Gold Set等。原`/workspace/MedicalChannelAI-p0`、`/workspace/MedicalChannelAI`、`/mnt/data/MedicalChannelAI`本容器不存在，其他在途修改**UNKNOWN**；未新建环境/工作树。
 - [A03完整合同](qualification-tristate-evidence-contract-2026-11-08.md)：当前CCGP只以“资格要求”为采购段落结束分界，没有将资格正文/附件及包件要求作为证据字段发布；客户存储只有产品能力关键词/自报类型、医院关系/偏好，缺证照与厂家授权证据及有效期。已存在AI安全提示和Gold Set`UNKNOWN`原则，但不能据此声称资格三态已实现。
