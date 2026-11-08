@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from medical_channel_pipeline.ccgp_detail import (
+    extract_ccgp_qualification_section,
     CcgpDetailParseError,
     parse_ccgp_competitive_consultation_text,
     parse_ccgp_public_tender_html,
@@ -251,6 +252,138 @@ class CcgpDetailTests(unittest.TestCase):
                 observed_at="2026-08-31T18:15:00+08:00",
                 opportunity_id="bad_host",
             )
+
+
+
+class CcgpQualificationSectionTests(unittest.TestCase):
+    """A05 only: synthetic text section boundaries, no HTTP or collector."""
+
+    def test_a05_bounded_section_preserves_source_offsets(self) -> None:
+        text = (
+            "一、采购需求\n血细胞分析仪整机1台\n"
+            "二、申请人的资格要求：\n"
+            "1. 具备营业执照。\n2. 具备原文所列条件。\n"
+            "三、获取招标文件\n获取时间另见公告。"
+        )
+        got = extract_ccgp_qualification_section(text)
+        self.assertEqual((got["status"], got["reason"]), ("EXTRACTED", "RAW_SECTION_ONLY_NOT_VERIFIED"))
+        self.assertEqual(got["line"], 3)
+        self.assertEqual(got["heading"], "二、申请人的资格要求")
+        self.assertEqual(got["raw_text"], text[got["start"]:got["end"]])
+        self.assertIn("2. 具备原文所列条件。", got["raw_text"])
+        self.assertNotIn("获取招标文件", got["raw_text"])
+        self.assertFalse(got["requirements_complete"])
+        self.assertFalse(got["qualification_verified"])
+
+    def test_a05_supported_official_heading_variants(self) -> None:
+        cases = [
+            "二、供应商资格要求：\n应有经营资质\n三、获取采购文件",
+            "投标人资格要求：\n须符合公告条件\n三、获取招标文件",
+            "二．申请人的资格要求：\n经营许可\n三．获取采购文件",
+            "二、申请人的资格要求\n1.营业执照\n三、获取文件",
+        ]
+        for text in cases:
+            with self.subTest(text=text[:26]):
+                got = extract_ccgp_qualification_section(text)
+                self.assertEqual(got["status"], "EXTRACTED")
+                self.assertTrue(got["raw_text"].startswith(got["heading"]))
+                self.assertIn("三", text[got["end"]:])
+
+    def test_a05_placeholder_and_missing_data_fail_closed(self) -> None:
+        cases = [
+            ("二、申请人的资格要求：略\n三、获取招标文件", "PLACEHOLDER_ONLY"),
+            ("二、申请人的资格要求：\n三、获取采购文件", "PLACEHOLDER_ONLY"),
+            ("二、申请人的资格要求：\n无\n三、获取采购文件", "PLACEHOLDER_ONLY"),
+            ("", "EMPTY_INPUT"),
+            ("仅有采购需求，不含资格标题\n三、获取招标文件", "HEADING_NOT_FOUND"),
+            ("申请人的资格要求可能变化。\n三、获取招标文件", "HEADING_NOT_FOUND"),
+        ]
+        for text, reason in cases:
+            with self.subTest(reason=reason, text=text[:18]):
+                got = extract_ccgp_qualification_section(text)
+                self.assertEqual((got["status"], got["reason"]), ("INCOMPLETE", reason))
+                self.assertFalse(got["requirements_complete"])
+
+    def test_a05_attachment_reference_never_claims_complete(self) -> None:
+        cases = [
+            "二、申请人的资格要求：\n资格文件详见招标文件\n三、获取文件",
+            "二、供应商资格要求：\n详见附件\n三、获取招标文件",
+            "二、申请人的资格要求：\n材料见附件，另外需盖章\n三、获取文件",
+        ]
+        for text in cases:
+            with self.subTest(text=text[:28]):
+                got = extract_ccgp_qualification_section(text)
+                self.assertEqual((got["status"], got["reason"]), ("INCOMPLETE", "ATTACHMENT_NOT_AVAILABLE"))
+                self.assertTrue(got["attachment_referenced"])
+                self.assertFalse(got["qualification_verified"])
+
+    def test_a05_multi_package_needs_independent_mapping(self) -> None:
+        cases = [
+            "第1包：血球仪\n第2包：耗材\n二、申请人的资格要求：\n生产资质\n三、获取文件",
+            "合同包1：血球仪\n合同包2：其他设备\n二、供应商资格要求：\n资质材料\n三、获取文件",
+            "分包采购公告\n二、供应商资格要求：\n执照要求\n三、获取文件",
+        ]
+        for text in cases:
+            with self.subTest(text=text[:32]):
+                got = extract_ccgp_qualification_section(text)
+                self.assertEqual((got["status"], got["reason"]), ("INCOMPLETE", "PACKAGE_SCOPE_UNRESOLVED"))
+                self.assertTrue(got["package_ambiguous"])
+        one = extract_ccgp_qualification_section(
+            "第1包：血细胞分析仪\n二、申请人的资格要求：\n经营许可\n三、获取文件"
+        )
+        self.assertEqual(one["status"], "EXTRACTED")
+        self.assertFalse(one["package_ambiguous"])
+
+    def test_a05_boundary_missing_or_multiple_titles(self) -> None:
+        missing_end = extract_ccgp_qualification_section("二、申请人的资格要求：\n具备资质\n")
+        self.assertEqual((missing_end["status"], missing_end["reason"]), ("INCOMPLETE", "SECTION_END_NOT_FOUND"))
+        self.assertIsNone(missing_end["raw_text"])
+        duplicated = extract_ccgp_qualification_section(
+            "二、申请人的资格要求：\n资质A\n三、获取文件\n"
+            "二、申请人的资格要求：\n资质B\n四、响应文件提交"
+        )
+        self.assertEqual((duplicated["status"], duplicated["reason"]), ("INCOMPLETE", "AMBIGUOUS_MULTIPLE_HEADINGS"))
+
+    def test_a05_chapter_and_arabic_subheadings_remain_separate(self) -> None:
+        text = (
+            "采购人联系人：甲\n二、申请人的资格要求：\n"
+            "1. 工商资质\n2. 产品证件\n3. 厂家授权\n"
+            "三、获取招标文件\n电话：12345"
+        )
+        got = extract_ccgp_qualification_section(text)
+        self.assertEqual(got["status"], "EXTRACTED")
+        self.assertIn("3. 厂家授权", got["raw_text"])
+        self.assertNotIn("电话：12345", got["raw_text"])
+
+    def test_a05_oversized_input_is_incomplete_without_leaking(self) -> None:
+        text = "二、申请人的资格要求：\n" + "x" * 200_100 + "\n三、获取采购文件"
+        got = extract_ccgp_qualification_section(text)
+        self.assertEqual((got["status"], got["reason"]), ("INCOMPLETE", "INPUT_TOO_LARGE"))
+        self.assertIsNone(got["raw_text"])
+
+    def test_a05_bounded_raw_output_not_a_verified_qualification_list(self) -> None:
+        text = (
+            "二、申请人的资格要求：\n1. 具备某资质（未提供官方附件）\n"
+            "三、获取采购文件\n具体时间另议"
+        )
+        got = extract_ccgp_qualification_section(text)
+        self.assertEqual(got["status"], "EXTRACTED")
+        self.assertFalse(got["requirements_complete"])
+        self.assertFalse(got["qualification_verified"])
+        self.assertNotIn("三、获取采购文件", got["raw_text"])
+
+    def test_a05_existing_fixture_is_incomplete(self) -> None:
+        # The existing fixture is multi-package and its requirements say “略”.
+        got = extract_ccgp_qualification_section(FIXTURE)
+        self.assertEqual(got["status"], "INCOMPLETE")
+        self.assertTrue(got["package_ambiguous"])
+        self.assertFalse(got["requirements_complete"])
+
+    def test_a05_inline_qualification_is_not_placeholder(self) -> None:
+        text = "二、申请人的资格要求：提供有效经营许可证\n三、获取招标文件"
+        got = extract_ccgp_qualification_section(text)
+        self.assertEqual(got["status"], "EXTRACTED")
+        self.assertIn("提供有效经营许可证", got["raw_text"])
 
 
 if __name__ == "__main__":

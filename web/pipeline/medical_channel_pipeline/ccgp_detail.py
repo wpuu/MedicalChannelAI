@@ -561,6 +561,108 @@ def _procurement_text_scope(text: str) -> str:
     return '\n'.join(text[start:end] for start, end in _procurement_text_ranges(text))
 
 
+
+def extract_ccgp_qualification_section(text: str) -> dict[str, Any]:
+    """Locate a bounded CCGP qualification section in offline visible text.
+
+    EXTRACTED means only the raw text boundary was located, NOT that official
+    requirements/attachments have been verified or are complete. This helper
+    does not feed canonical records, publication, or any collector.
+    """
+    def response(
+        status: str, reason: str, *, heading: str | None = None,
+        start: int | None = None, end: int | None = None,
+        raw_text: str | None = None, line: int | None = None,
+        attachment_referenced: bool = False, package_ambiguous: bool = False,
+    ) -> dict[str, Any]:
+        return {
+            "status": status,
+            "reason": reason,
+            "heading": heading,
+            "start": start,
+            "end": end,
+            "line": line,
+            "raw_text": raw_text,
+            "attachment_referenced": attachment_referenced,
+            "package_ambiguous": package_ambiguous,
+            "requirements_complete": False,
+            "qualification_verified": False,
+        }
+
+    if not isinstance(text, str) or not text.strip():
+        return response("INCOMPLETE", "EMPTY_INPUT")
+    if len(text) > 200_000:
+        return response("INCOMPLETE", "INPUT_TOO_LARGE")
+
+    heading_pattern = re.compile(
+        r"(?m)^[ \t]*(?P<heading>(?:[一二三四五六七八九十]{1,3}[、.．][ \t]*)?"
+        r"(?:申请人|供应商|投标人)(?:的)?资格要求)"
+        r"(?:[ \t]*[：:][ \t]*[^\r\n]*|[ \t]*(?=\r?$))"
+    )
+    matches = list(heading_pattern.finditer(text))
+    if not matches:
+        return response("INCOMPLETE", "HEADING_NOT_FOUND")
+    if len(matches) != 1:
+        return response("INCOMPLETE", "AMBIGUOUS_MULTIPLE_HEADINGS")
+    match = matches[0]
+    heading = match.group("heading").strip()
+    line = text.count("\n", 0, match.start()) + 1
+    section_start = match.start()
+
+    # Only a new top-level Chinese-numbered section is a safe boundary.
+    # Arabic-numbered requirements (1., 2., 3.) remain inside this section.
+    next_pattern = re.compile(
+        r"(?m)^[ \t]*[三四五六七八九十]{1,3}[、.．][ \t]*[^\r\n]{1,150}(?:\r?$)"
+    )
+    boundary = next_pattern.search(text, match.end())
+    if boundary is None:
+        return response(
+            "INCOMPLETE", "SECTION_END_NOT_FOUND",
+            heading=heading, start=section_start, line=line,
+        )
+    segment = text[section_start:boundary.start()].rstrip()
+    if not segment or len(segment) > 6_000:
+        return response(
+            "INCOMPLETE", "SECTION_TOO_LONG_OR_EMPTY",
+            heading=heading, start=section_start, line=line,
+        )
+    end = section_start + len(segment)
+    # Detect multiple named packages anywhere in the same notice. This helper
+    # has no official package-level lineage, so it never assigns shared text.
+    packages = {
+        label for label in re.findall(
+            r"(?:合同包[（(]?\s*[一二三四五六七八九十\d]+[)）]?|"
+            r"第[一二三四五六七八九十\d]+包)",
+            text,
+        )
+    }
+    package_ambiguous = len(packages) > 1 or (
+        "分包" in text and len(packages) == 0
+    )
+    attachment_referenced = bool(re.search(
+        r"详见(?:招标|采购|磋商|响应)?文件|详见附件|见附件|"
+        r"按附件|以(?:招标|采购|磋商|响应)文件为准|"
+        r"具体(?:条件|要求|材料)见(?:附件|文件)|另附",
+        segment,
+    ))
+    # Text such as “略” is not a verified eligibility statement.
+    heading_end = match.start("heading") + len(match.group("heading"))
+    body = segment[heading_end - section_start:].strip(" \t\n\r：:。.;；")
+    placeholder = body in {"", "略", "无", "暂无", "待发布", "另行通知", "/", "-", "—", "--"}
+    reason = (
+        "PACKAGE_SCOPE_UNRESOLVED" if package_ambiguous else
+        "ATTACHMENT_NOT_AVAILABLE" if attachment_referenced else
+        "PLACEHOLDER_ONLY" if placeholder else
+        "RAW_SECTION_ONLY_NOT_VERIFIED"
+    )
+    return response(
+        "INCOMPLETE" if reason != "RAW_SECTION_ONLY_NOT_VERIFIED" else "EXTRACTED",
+        reason, heading=heading, start=section_start, end=end, raw_text=segment,
+        line=line, attachment_referenced=attachment_referenced,
+        package_ambiguous=package_ambiguous,
+    )
+
+
 def _text_product_item(raw_name: str, quantity: str) -> dict[str, Any]:
     return {
         'raw_name': _normalize_space(raw_name).strip('，,：:；;。'),

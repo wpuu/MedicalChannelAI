@@ -2,7 +2,7 @@
   "schema_version": "0.2",
   "updated_at": "2026-11-08",
   "timezone": "Asia/Shanghai",
-  "state_scope": "A04_QUALIFICATION_PRECHECK_OFFLINE_CODE_ONLY",
+  "state_scope": "A05_CCGP_QUALIFICATION_TEXT_OFFLINE_HELPER_ONLY",
   "active_work_branch": "codex/p0-reliability-contracts",
   "worktree": "/workspace/MedicalChannelAI-p0",
   "starting_head": "3216fd940dabfa7714383b6436908f9b72ff8a9c",
@@ -12,8 +12,8 @@
   "current_runtime_candidate_head": "795ef5efa30b61dd47352c4fb888b02488f16855",
   "production_ready": false,
   "acceptance_contract": "docs/project/action-radar-acceptance-contract.md",
-  "milestone": "A04_OFFLINE_EQUIVALENT_NODE_36_PASS_STANDALONE_SCRIPT_AND_TYPES_PENDING",
-  "latest_changes_validation_status": "A04_FOUR_FILES: NODE22_MEMORY_DATA_MODULE_36_OF_36_PASS_BYTE_IDENTICAL_GITHUB_SOURCE; STANDALONE_MJS_AND_TYPECHECK_NOT_RUN; NO_CLOUD_ACTION",
+  "milestone": "A05_TWO_FILE_OFFLINE_HELPER_11_OF_11_TARGETED_PASS_FULL_PROJECT_NOT_RUN",
+  "latest_changes_validation_status": "A05_PY3_MEMORY_11_OF_11_NEW_UNITTEST_METHODS_PASS;GITHUB_PROPOSED_EXACT_HELPER_AND_TEST_CLASS_FRAGMENT_FNV_MATCH;NO_PRODUCTION_PIPELINE_CHANGE",
   "current_runtime_candidate_validation": {
     "head": "795ef5efa30b61dd47352c4fb888b02488f16855",
     "python_contract_tests": 945,
@@ -182,7 +182,7 @@
   },
   "final_code_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
   "code_validation_head": "3f88ff7211200e314dcb6bafa894ec127c1b29bf",
-  "documentation_followup": "A03 evidence-based SATISFIED/NOT_SATISFIED/UNKNOWN contract and exact A04 four-file authorization card saved. No qualification field currently in public snapshot/private proof store. No development or runtime authorization for A04.",
+  "documentation_followup": "A05 two-file local no-side-effect qualification section locator implemented: EXTRACTED only means raw text bounded not verified; INCOMPLETE for missing/ambiguous/attachment/multipackage. 11 targeted Python unittest methods passed in existing memory, exact fragment FNV matched remote blob. Full module project test NOT_RUN. A06 proposed candidate clause segmentation needs separate authorization.",
   "source_freshness_policy": {
     "hospital_source_stale_after_hours": 24,
     "ccgp_and_regional_source_stale_after_hours": 48,
@@ -2840,8 +2840,8 @@
     "historical": true
   },
   "current_authorization_scope": {
-    "source": "User 2026-11-08T01:58:03Z explicitly approved A04 only 4 offline app files and necessary docs",
-    "current_round": "A04_FOUR_FILE_OFFLINE_AND_GITHUB_FAST_FORWARD",
+    "source": "User 2026-11-08T04:04:50Z individually authorized A05 only ccgp_detail.py and test_ccgp_detail.py offline plus required handoff docs",
+    "current_round": "A05_TWO_PYTHON_FILES_OFFLINE_HELPER_AND_GITHUB_ARCHIVE",
     "github_archive_push_authorized": true,
     "force_push_merge_main_or_create_pr_authorized": false,
     "new_application_code_authorized": false,
@@ -2857,7 +2857,9 @@
     "a04_app_code_authorized": false,
     "a04_only_authorized": true,
     "a04_completed_offline": true,
-    "future_app_code_changes_authorized": false
+    "future_app_code_changes_authorized": false,
+    "a05_exact_two_files_authorized_this_round": true,
+    "a05_exact_two_files_offline_code_completed": true
   },
   "cloud_metadata_acceptance": {
     "starting_head": "1238596a93d5ff2ec56ac61ecba219ba8cce8b87",
@@ -4092,5 +4094,73 @@
     "apply_allowed": false,
     "migration_usable": false,
     "next_task": "A05_CCGP_OFFICIAL_QUALIFICATION_TEXT_BOUNDED_OFFLINE_EXTRACTION_SEPARATE_AUTH_REQUIRED"
+  },
+  "a05_qualification_section_extraction_2026_11_08": {
+    "user_authorized_at_utc": "2026-11-08T04:04:50Z",
+    "base_remote_head": "1c0a1f632521a9671efba95f428667668cd0cbb1",
+    "status": "IMPLEMENTED_EXACT_TWO_FILES_OFFLINE_TARGETED_11_PASS_NOT_FULL_TEST_SUITE",
+    "modified_application_files": [
+      "web/pipeline/medical_channel_pipeline/ccgp_detail.py",
+      "web/pipeline/tests/test_ccgp_detail.py"
+    ],
+    "changed_other_application_files": 0,
+    "new_helper": "extract_ccgp_qualification_section",
+    "statuses": [
+      "EXTRACTED",
+      "INCOMPLETE"
+    ],
+    "extracted_means": "RAW_SECTION_ONLY_NOT_VERIFIED",
+    "requirements_complete_always": false,
+    "qualification_verified_always": false,
+    "source_location_fields": [
+      "start",
+      "end",
+      "line",
+      "heading",
+      "raw_text"
+    ],
+    "incomplete_reasons": [
+      "EMPTY_INPUT",
+      "INPUT_TOO_LARGE",
+      "HEADING_NOT_FOUND",
+      "AMBIGUOUS_MULTIPLE_HEADINGS",
+      "SECTION_END_NOT_FOUND",
+      "SECTION_TOO_LONG_OR_EMPTY",
+      "PACKAGE_SCOPE_UNRESOLVED",
+      "ATTACHMENT_NOT_AVAILABLE",
+      "PLACEHOLDER_ONLY"
+    ],
+    "formal_parse_ccgp_public_tender_text_unchanged": true,
+    "formal_canonical_record_or_publication_unchanged": true,
+    "tested_source_exact_fragment_checks": {
+      "helper_chars": 4106,
+      "helper_fnv_utf16": "92bb3cb2",
+      "unittest_class_chars": 6118,
+      "unittest_class_fnv_utf16": "8358a37b"
+    },
+    "offline_test_environment": "EXISTING_PYTHON_3_13_5_IN_MEMORY_ONLY_NO_NEW_WORKTREE_OR_DEPENDENCY",
+    "targeted_new_unittest_methods_passed": 11,
+    "targeted_new_unittest_methods_total": 11,
+    "full_project_test_module_executed": false,
+    "existing_legacy_tests_rerun": false,
+    "current_round_network_model_collector_deployment_ops": 0,
+    "current_round_cloud_business_or_customer_data_calls": 0,
+    "originals_worktree_present_in_current_container": false,
+    "other_worktree_inflight_or_uncommitted": "UNKNOWN",
+    "real_business_acceptance_B1_B6": {
+      "B1": "NOT_VERIFIED",
+      "B2": "NOT_VERIFIED",
+      "B3": "NOT_VERIFIED",
+      "B4": "NOT_VERIFIED",
+      "B5": "NOT_VERIFIED",
+      "B6": "NOT_VERIFIED"
+    },
+    "real_d_preview": "NO_GO_PAUSED",
+    "sdk_strong_guarantees": "CLOSED_NO_GO",
+    "pilot_customer_trial": "PROPOSAL_ONLY_NOT_RECRUITED",
+    "production_ready": false,
+    "apply_allowed": false,
+    "migration_usable": false,
+    "next_task": "A06_OFFLINE_CANDIDATE_REQUIREMENT_ITEM_BOUNDARY_EXTRACT_SEPARATE_AUTH_REQUIRED"
   }
 }

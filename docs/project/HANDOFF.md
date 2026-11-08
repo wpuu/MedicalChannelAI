@@ -11,7 +11,17 @@
 
 先核对实际HEAD、分支、未提交修改和在途任务。不要覆盖他人改动或创建重复环境；若本地工作树不存在，先用已有GitHub能力读取指定分支，不擅自创建环境。参考工作树为/workspace/MedicalChannelAI-p0。
 
-## A04 最新｜资格预核离线门禁已实现，真实业务仍NO-GO
+## A05 最新：CCGP资格要求段落安全定位（离线小切片）
+
+- 用户于2026-11-08T04:04:50Z单独批准**只改`web/pipeline/medical_channel_pipeline/ccgp_detail.py`和`web/pipeline/tests/test_ccgp_detail.py`**。从GitHub远端`1c0a1f632521a9671efba95f428667668cd0cbb1`接手。当前执行环境中原项目工作树`/workspace/MedicalChannelAI-p0`及其它候选路径不存在，其他环境未提交改动/在途工作UNKNOWN；未新建Git工作树或安装依赖。
+- 新增独立纯文本辅助函数`extract_ccgp_qualification_section(text)`：匹配单一明确“申请人／投标人／供应商资格要求”章节，以**下一个中文编号顶层章节**截断，返回原文精确字符偏移、起始行、章节标题和原文。只返回`EXTRACTED`（仅原文截取成功，**不代表官方资格条件完整或有效**）或`INCOMPLETE`（缺标题／结束边界、多个资格标题、超长或占位正文、引用未取得附件、多包件无法确定归属等）。每次`requirements_complete=false`、`qualification_verified=false`。
+- 仅测试文件增加11个`CcgpQualificationSectionTests`离线单元方法，包含多组子例，**现有Python 3.13标准库在内存执行11/11 PASS**，没有读网、抓取、数据库或模型。已通过GitHub blob核对**待提交代码中新函数与测试类的长度/FNV校验值和已执行源码完全一致**；原有源码行顺序完整保留。**没有在原项目根目录导入执行完整`test_ccgp_detail.py`文件或重跑旧测试**，不冒充全模块验收。
+- 新函数未接入`parse_ccgp_public_tender_text`、`_build_verified_record`、`validate_record`或快照发布，原业务结果结构不变。公开资格条款全集、附件/包件对齐、客户资质及A04的`UNKNOWN`仍不产生真实完成证据。
+- 仅上述两个应用文件及必要交接文档允许`[skip ci]`、非强推快进归档；分支配置`deploymentEnabled=false`，检查的GitHub workflows普通push不面向本分支，提供商后台未核实。**未修改采集、数据、Profile、AI、权限、域名或计划；未部署/模型/工作流触发。**
+- **保持**：B1–B6全部`NOT_VERIFIED`，d Preview真实验收`NO_GO_PAUSED`，SDK及强保证`CLOSED_NO_GO`，`production_ready=false`、`apply_allowed=false`、`migration_usable=false`；3家试用客户未招募。已批准的天津血细胞分析仪整机产品边界不变。
+- **唯一下一任务A06待单独授权**：只在`ccgp_detail.py`和`test_ccgp_detail.py`离线新增对A05有界原文的**候选资格条目分段及局部定位**，所有条目标`UNVERIFIED_CANDIDATE`，对于A05`INCOMPLETE`必须阻止升级，不修改正式记录/公开快照、后端资格三态、客户证据或自动采集。
+
+## A04 历史｜资格预核离线门禁已实现（真实业务仍NO-GO）
 
 - 用户2026-11-08T01:58:03Z独立批准A04四文件离线施工；GitHub起点`0dfa11e7c6d7f99e6038f0259fc6d7bc04550626`。本环境未发现原`/workspace/MedicalChannelAI-p0`工作树，其他环境未提交/在途工作UNKNOWN；未创建环境或安装依赖。
 - 新增`web/src/utils/qualificationEvidenceGate.js`、`.d.ts`、`web/scripts/check-qualification-evidence-gate.mjs`；仅局部修改`web/src/pages/OpportunityDetailPage.tsx`。当前发布数据缺少完整官方资格条款和客户真实证明，详情页面**固定UNKNOWN**并显示缺口及原有官方链接；不采集、上传、存储、显示客户证书资料，不改变A01/A02范围识别、评分、跟进或AI。
