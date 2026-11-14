@@ -1,6 +1,6 @@
 # MedicalChannelAI 最新交接入口
 
-更新：2026-11-08（北京时间）。后续对话以GitHub **wpuu/MedicalChannelAI → codex/p0-reliability-contracts**分支的最新HEAD和下列文件为准，不从旧聊天提示词猜进度。GitHub保存源码/进展不等于网站部署或数据更新。
+更新：2026-11-14（北京时间）。后续对话以GitHub **wpuu/MedicalChannelAI → codex/p0-reliability-contracts**分支的最新HEAD和下列文件为准，不从旧聊天提示词猜进度。GitHub保存源码/进展不等于网站部署或数据更新。
 
 ## 接手读取顺序
 
@@ -11,7 +11,19 @@
 
 先核对实际HEAD、分支、未提交修改和在途任务。不要覆盖他人改动或创建重复环境；若本地工作树不存在，先用已有GitHub能力读取指定分支，不擅自创建环境。参考工作树为/workspace/MedicalChannelAI-p0。
 
-## A05 最新：CCGP资格要求段落安全定位（离线小切片）
+## 本轮接手：产品范围复核待用户决定（2026-11-14）
+
+- GitHub接手基线 **`b0fb2388331ff122a3a19296ce3a32d14d414ac9`**，已依次读取六份交接文件。该版本已包含A01–A05，不能按旧提示词从`f0e535c`或`3f88ff7`重复施工；A06仅是先前候选，**本轮不实施**。
+- **最新指令优先**：用户本条明确天津、血细胞分析仪、3客户试用仍是待审建议。仓库历史记录曾于2026-11-07T16:21:30Z批准部分产品范围；保留该历史，不把它当作本轮重新批准。当前范围状态为`REVIEW_PENDING_PER_LATEST_USER_INSTRUCTION`，不宣称用户已经确认本轮范围，也不抹除已有代码成果。
+- 本轮只整理[产品方案](product-mvp-one-page-2026-11-07.md)与四份交接文件。待决定：目标客户；首期地区/整机与排除项；真实更新→可信判断→私有跟进及前后台刷新分工；3客户试用建议是否保留（不等于招募或执行授权）。没有新增具体审核意见，不自行扩大范围。
+- A01/A02范围标签、A04缺证保持UNKNOWN、A05原文定位均只有历史离线证据；A03是证据合同。**完整匹配、真实更新、提醒闭环和当前上线版本未验收**。B1–B6全`NOT_VERIFIED`；d Preview `NO_GO_PAUSED`；SDK/强保证`CLOSED_NO_GO`；`production_ready=false`、`apply_allowed=false`、`migration_usable=false`。
+- 本地执行环境启动失败，无法读取原工作树未提交修改或其他环境在途工作，均标**未核实/UNKNOWN**；未新建环境。本轮只使用GitHub文件/提交能力，无应用、测试、构建、云端业务或部署执行。
+- 归档只允许本分支`[skip ci]`且expected-HEAD保护的非强推快进更新。源码`web/vercel.json`该分支自动部署关闭；五份workflow定义均无本分支push触发。提供商后台未查询，不能由源码条件声称运行事实。最终同步是否成功须以分支回读结果为准。
+- **唯一下一任务**：接收用户对本页产品决策的具体意见，仅修订方案及必要交接；没有意见就停在待审，不重新收口、不执行A06。完整提示词见[next-task.md](next-task.md)。推荐GPT-6.1 Sol high，实际设置未核实。
+
+以下是历史记录；历史段落的“最新／唯一下一任务”均以本段及当前next-task.md为准。
+
+## A05 历史成果：CCGP资格要求段落安全定位（离线小切片）
 
 - 用户于2026-11-08T04:04:50Z单独批准**只改`web/pipeline/medical_channel_pipeline/ccgp_detail.py`和`web/pipeline/tests/test_ccgp_detail.py`**。从GitHub远端`1c0a1f632521a9671efba95f428667668cd0cbb1`接手。当前执行环境中原项目工作树`/workspace/MedicalChannelAI-p0`及其它候选路径不存在，其他环境未提交改动/在途工作UNKNOWN；未新建Git工作树或安装依赖。
 - 新增独立纯文本辅助函数`extract_ccgp_qualification_section(text)`：匹配单一明确“申请人／投标人／供应商资格要求”章节，以**下一个中文编号顶层章节**截断，返回原文精确字符偏移、起始行、章节标题和原文。只返回`EXTRACTED`（仅原文截取成功，**不代表官方资格条件完整或有效**）或`INCOMPLETE`（缺标题／结束边界、多个资格标题、超长或占位正文、引用未取得附件、多包件无法确定归属等）。每次`requirements_complete=false`、`qualification_verified=false`。
