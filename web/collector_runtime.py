@@ -436,6 +436,142 @@ def _mark_failed(cache: RuntimeCache, state: dict[str, Any], stage: str, exc: Ex
     _write_status(cache, latest)
 
 
+
+# Per-source unavailable is never equivalent to a verified scan. Isolating a
+# failed source only permits other independently verified sources to proceed.
+UNAVAILABLE_SOURCE_PREFIXES = {
+    "ccgp": ("CCGP_UPSTREAM_ACCESS_RESTRICTED:", "CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED"),
+    "event": ("CCGP_UPSTREAM_ACCESS_RESTRICTED:", "EVENT_WATCH_SEARCH_INCOMPLETE:", "EVENT_WATCH_ALL_SEARCHES_FAILED:"),
+    "tjmugh": ("TJMUGH_INDEX_DISCOVERY_FAILED:",),
+    "tjnothop": ("TJNOTHOP_INDEX_DISCOVERY_FAILED:",),
+    "teda": ("TEDA_INDEX_DISCOVERY_FAILED:",),
+    "tjfch": ("TJFCH_INDEX_DISCOVERY_FAILED:",),
+    "regional": ("REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:",),
+}
+
+
+def _unavailable_group(stage: str) -> str | None:
+    if stage == "ccgp":
+        return "ccgp"
+    if stage in {"event1", "event2", "event3", "event4", "event5", "event6"}:
+        return "event"
+    if stage in {"tjmugh", "tjnothop", "teda", "tjfch"}:
+        return stage
+    if stage in REGIONAL_STAGE_MARKET_CODES or stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+        return "regional"
+    return None
+
+
+def _carry_forward_verified(cache: RuntimeCache, stage: str) -> int:
+    if stage == "ccgp":
+        records, _ = _cached_list(cache, CCGP_RECORDS_KEY, _bootstrap_ccgp_records)
+        _cached_list(cache, CCGP_EVENTS_KEY, _bootstrap_ccgp_events)
+        return len(records)
+    if stage.startswith("event"):
+        events, _ = _cached_list(cache, CCGP_EVENTS_KEY, _bootstrap_ccgp_events)
+        return len(events)
+    independent = {
+        "tjmugh": (TJMUGH_RECORDS_KEY, _bootstrap_tjmugh_records),
+        "tjnothop": (TJNOTHOP_RECORDS_KEY, _bootstrap_tjnothop_records),
+        "teda": (TEDA_RECORDS_KEY, _bootstrap_teda_records),
+        "tjfch": (TJFCH_RECORDS_KEY, _bootstrap_tjfch_records),
+    }
+    if stage in independent:
+        key, bootstrap = independent[stage]
+        records, _ = _cached_list(cache, key, bootstrap)
+        return len(records)
+    market = (REGIONAL_STAGE_MARKET_CODES.get(stage)
+              or REGIONAL_FALLBACK_STAGE_MARKET_CODES.get(stage))
+    if market:
+        records, _ = _cached_list(cache, _regional_records_key(market),
+                                  lambda: _bootstrap_regional_records(market))
+        return len(records)
+    raise CollectorPrecondition(f"COLLECTOR_SOURCE_UNKNOWN:{stage}")
+
+
+def _record_skipped_stage(state: dict[str, Any], stage: str, reason: str,
+                          carryover: int) -> None:
+    stages = state.setdefault("stages", {})
+    previous = stages.get(stage)
+    attempts = int(previous.get("attempt_count") or 0) if isinstance(previous, dict) else 0
+    stages[stage] = {
+        "status": "SKIPPED",
+        "attempt_count": attempts,
+        "started_at": previous.get("started_at") if isinstance(previous, dict) else None,
+        "completed_at": _now_utc().isoformat(),
+        "error_code": "SOURCE_UNAVAILABLE",
+        "error_message": reason[:220],
+        "result": {
+            "source_status": "UNAVAILABLE",
+            "new_verified_record_count": 0,
+            "verified_carryover_count": carryover,
+        },
+    }
+
+
+def quarantine_unavailable_source(*, stage: str, local_date: str, error: str) -> bool:
+    group = _unavailable_group(stage)
+    if not group or not any(error.startswith(prefix) for prefix in UNAVAILABLE_SOURCE_PREFIXES[group]):
+        return False
+    cache = RuntimeCache()
+    state = load_status(cache)
+    if state.get("local_date") != local_date:
+        return False
+    current = state.get("stages", {}).get(stage)
+    if not isinstance(current, dict) or current.get("status") != "FAILED":
+        return False
+    # Never suppress an unrelated exception or a stale Queue message.
+    if not str(current.get("error_message") or "").startswith(error[:180]):
+        return False
+    carryover = _carry_forward_verified(cache, stage)
+    _record_skipped_stage(state, stage, error, carryover)
+
+    # If primary CCGP discovery is unavailable, do not probe the same upstream
+    # repeatedly for event and regional scans during this daily cycle.
+    if group in {"ccgp", "event"}:
+        start = "event1" if group == "ccgp" else stage
+        for related in STAGE_ORDER[STAGE_ORDER.index(start):STAGE_ORDER.index("tjmugh")]:
+            if related == stage:
+                continue
+            existing = state["stages"].get(related)
+            if isinstance(existing, dict) and existing.get("status") == "COMPLETED":
+                continue
+            _record_skipped_stage(state, related, "CCGP_EVENT_DISCOVERY_UNAVAILABLE_TODAY",
+                                  _carry_forward_verified(cache, related))
+    if stage in REGIONAL_STAGE_MARKET_CODES:
+        fallback_stage = f"{stage}_fallback"
+        if fallback_stage in STAGE_ORDER:
+            _record_skipped_stage(state, fallback_stage, "REGIONAL_DISCOVERY_UNAVAILABLE_TODAY",
+                                  carryover)
+    _write_status(cache, state)
+    return True
+
+
+def _regional_unavailable_carryover(cache: RuntimeCache, state: dict[str, Any],
+                                     stage: str) -> dict[str, Any] | None:
+    ccgp = state.get("stages", {}).get("ccgp")
+    if not isinstance(ccgp, dict) or ccgp.get("status") != "SKIPPED":
+        return None
+    if stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+        return None
+    count = _carry_forward_verified(cache, stage)
+    return {
+        "source_status": "UNAVAILABLE",
+        "reason": "CCGP_DISCOVERY_UNAVAILABLE_TODAY",
+        "new_verified_record_count": 0,
+        "verified_carryover_count": count,
+    }
+
+
+def _skip_after_prepare(cache: RuntimeCache, state: dict[str, Any],
+                        stage: str, result: dict[str, Any]) -> None:
+    latest, _ = _latest_stage_state_for_update(cache, state, stage)
+    _record_skipped_stage(latest, stage,
+                          str(result.get("reason") or "SOURCE_UNAVAILABLE"),
+                          int(result.get("verified_carryover_count") or 0))
+    _write_status(cache, latest)
+
+
 def _cycle_as_of(state: dict[str, Any]) -> datetime:
     raw = str(state.get("cycle_as_of") or "")
     parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
