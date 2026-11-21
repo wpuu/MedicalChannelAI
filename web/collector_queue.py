@@ -419,10 +419,9 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
         _release_active_cycle_if_owned(cycle_id)
         return
 
-    if (status == 503 and (stage == "ccgp" or stage.startswith("event"))
-            and error.startswith("CCGP_UPSTREAM_ACCESS_RESTRICTED:")):
-        # Leave the last verified snapshot intact. The next scheduled day can try again.
-        _release_active_cycle_if_owned(cycle_id)
-        return
+    # A failed-source delivery is safe to acknowledge only if quarantine has
+    # durably marked that stage SKIPPED and scheduled the independent next stage.
+    # If that write/readback was refused, let Queue retry rather than silently
+    # releasing the cycle lease and abandoning the remaining daily sources.
 
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")
