@@ -441,7 +441,7 @@ def _mark_failed(cache: RuntimeCache, state: dict[str, Any], stage: str, exc: Ex
 # failed source only permits other independently verified sources to proceed.
 UNAVAILABLE_SOURCE_PREFIXES = {
     "ccgp": ("CCGP_UPSTREAM_ACCESS_RESTRICTED:", "CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED"),
-    "event": ("CCGP_UPSTREAM_ACCESS_RESTRICTED:", "EVENT_WATCH_SEARCH_INCOMPLETE:", "EVENT_WATCH_ALL_SEARCHES_FAILED:"),
+    "event": ("CCGP_UPSTREAM_ACCESS_RESTRICTED:",),
     "tjmugh": ("TJMUGH_INDEX_DISCOVERY_FAILED:",),
     "tjnothop": ("TJNOTHOP_INDEX_DISCOVERY_FAILED:",),
     "teda": ("TEDA_INDEX_DISCOVERY_FAILED:",),
