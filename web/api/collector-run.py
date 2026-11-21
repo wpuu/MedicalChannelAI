@@ -202,12 +202,45 @@ def _activate_cycle(
         raise RuntimeError("COLLECTOR_ACTIVE_CYCLE_READBACK_FAILED")
 
 
+HOSPITAL_RECOVERY_SUFFIX = ":hospital-recovery-v1"
+RECOVERABLE_CCGP_ERRORS = (
+    "CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED",
+    "CCGP_UPSTREAM_ACCESS_RESTRICTED:",
+)
+
+
+def _eligible_hospital_resume(cache: RuntimeCache, local_date: str) -> bool:
+    """Allow only exhausted CCGP unavailability to resume independent sources."""
+    state = cache.get(META_KEY)
+    if not isinstance(state, dict) or state.get("local_date") != local_date:
+        return False
+    stages = state.get("stages")
+    if not isinstance(stages, dict) or set(stages) != {"ccgp"}:
+        return False
+    ccgp = stages["ccgp"]
+    if not isinstance(ccgp, dict) or ccgp.get("status") != "FAILED":
+        return False
+    if int(ccgp.get("attempt_count") or 0) < 2:
+        return False
+    reason = str(ccgp.get("error_message") or "")
+    return any(reason.startswith(prefix) for prefix in RECOVERABLE_CCGP_ERRORS)
+
+
 async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
     now = datetime.now(timezone.utc)
     local_date = now.astimezone(SHANGHAI).date().isoformat()
 
     cache = RuntimeCache()
-    cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"
+    current_lease = cache.get(ACTIVE_CYCLE_KEY)
+    if (
+        active_cycle_id(current_lease) is not None
+        and isinstance(current_lease, dict)
+        and current_lease.get("local_date") == local_date
+    ):
+        raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
+    resume_hospitals = _eligible_hospital_resume(cache, local_date)
+    cycle_id = (f"prod:{local_date}{HOSPITAL_RECOVERY_SUFFIX}" if resume_hospitals
+                else (_recovery_cycle_id(cache, local_date) or f"prod:{local_date}"))
     _activate_cycle(
         cache,
         cycle_id=cycle_id,
@@ -225,14 +258,15 @@ async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
         if active_incremental_id(cache.get(INCREMENTAL_ACTIVE_KEY)) is not None
         else 0
     )
+    message = {
+        "schema_version": "0.1", "stage": "ccgp",
+        "cycle_as_of": now.isoformat(), "cycle_id": cycle_id,
+    }
+    if resume_hospitals:
+        message["recovery_mode"] = "CCGP_UNAVAILABLE_HOSPITAL_CONTINUATION"
     message_id = await send(
         QUEUE_TOPIC_NAME,
-        {
-            "schema_version": "0.1",
-            "stage": "ccgp",
-            "cycle_as_of": now.isoformat(),
-            "cycle_id": cycle_id,
-        },
+        message,
         retention=MESSAGE_RETENTION,
         delay=delay_seconds,
         idempotency_key=f"{QUEUE_TOPIC_NAME}:{cycle_id}:ccgp",
@@ -402,7 +436,8 @@ class handler(BaseHTTPRequestHandler):
                 "collector": {
                     "action": "QUEUED",
                     "execution_plane": "VERCEL_QUEUE_V2",
-                    "mode": "DEEP_DAILY",
+                    "mode": ("DEEP_DAILY_HOSPITAL_RECOVERY"
+                             if cycle_id.endswith(HOSPITAL_RECOVERY_SUFFIX) else "DEEP_DAILY"),
                     "local_date": local_date,
                     "cycle_id": cycle_id,
                     "stage": "ccgp",

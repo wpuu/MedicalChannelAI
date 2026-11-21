@@ -357,6 +357,46 @@ async def _start_intraday_chain_after_deep() -> None:
     )
 
 
+async def _continue_failed_ccgp_at_hospitals(*, stage: str, cycle_id: str,
+                                            cycle_as_of: datetime) -> None:
+    # Signed Queue message from CRON_SECRET-authenticated trigger; no upstream
+    # CCGP request is performed in this recovery branch.
+    local_date = cycle_as_of.astimezone(TICK_SHANGHAI).date().isoformat()
+    if stage != "ccgp" or cycle_id != f"prod:{local_date}:hospital-recovery-v1":
+        raise RuntimeError("COLLECTOR_HOSPITAL_RECOVERY_PAYLOAD_REJECTED")
+    cache = RuntimeCache()
+    state = cache.get(META_KEY)
+    if not isinstance(state, dict) or state.get("local_date") != local_date:
+        raise RuntimeError("COLLECTOR_HOSPITAL_RECOVERY_STATE_MISSING")
+    ccgp = (state.get("stages") or {}).get("ccgp")
+    if not isinstance(ccgp, dict):
+        raise RuntimeError("COLLECTOR_HOSPITAL_RECOVERY_CCGP_MISSING")
+    reason = str(ccgp.get("error_message") or "")
+    permitted = (ccgp.get("status") == "FAILED"
+                 and int(ccgp.get("attempt_count") or 0) >= 2
+                 and (reason.startswith("CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED")
+                      or reason.startswith("CCGP_UPSTREAM_ACCESS_RESTRICTED:")))
+    already_skipped = (ccgp.get("status") == "SKIPPED"
+                       and (ccgp.get("result") or {}).get("source_status") == "UNAVAILABLE")
+    if permitted:
+        if not runtime.quarantine_unavailable_source(
+            stage="ccgp", local_date=local_date, error=reason
+        ):
+            raise RuntimeError("COLLECTOR_HOSPITAL_RECOVERY_QUARANTINE_UNCONFIRMED")
+    elif not already_skipped:
+        raise RuntimeError("COLLECTOR_HOSPITAL_RECOVERY_UNSAFE_CCGP_STATE")
+    checked = cache.get(META_KEY)
+    if not isinstance(checked, dict) or checked.get("local_date") != local_date:
+        raise RuntimeError("COLLECTOR_HOSPITAL_RECOVERY_READBACK_MISSING")
+    stages = checked.get("stages") or {}
+    if any((stages.get(n) or {}).get("status") != "SKIPPED"
+           for n in ("ccgp", "event1", "event2", "event3", "event4", "event5", "event6")):
+        raise RuntimeError("COLLECTOR_HOSPITAL_RECOVERY_READBACK_INCOMPLETE")
+    if "tjmugh" not in stages:
+        if _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
+            await _enqueue_stage(stage="tjmugh", cycle_as_of=cycle_as_of, cycle_id=cycle_id)
+
+
 async def process_collector_payload(payload: dict[str, Any]) -> None:
     if not isinstance(payload, dict) or payload.get("schema_version") != "0.1":
         return
@@ -376,6 +416,12 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
         return
 
     if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
+        return
+
+    if payload.get("recovery_mode") == "CCGP_UNAVAILABLE_HOSPITAL_CONTINUATION":
+        await _continue_failed_ccgp_at_hospitals(
+            stage=stage, cycle_id=cycle_id, cycle_as_of=cycle_as_of
+        )
         return
 
     status, result = runtime.run_stage(stage, now=cycle_as_of)
