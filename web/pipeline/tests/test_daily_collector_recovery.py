@@ -113,7 +113,7 @@ class DailyCollectorRecoveryTests(unittest.IsolatedAsyncioTestCase):
                         "opportunity_pool": []}
             for actual in (0, None, False, "0", 1):
                 with self.subTest(actual=actual), patch.dict(
-                    "os.environ", {"VERIFIED_SNAPSHOT_PUBLISH_TOKEN": "test-only-token-" * 3}
+                    "os.environ", {"VERIFIED_SNAPSHOT_PUBLISH_TOKEN": "test-only-token-" * 3, "VERCEL_ENV": "production"}
                 ), patch.object(runtime, "urlopen") as open_url:
                     response = open_url.return_value.__enter__.return_value
                     response.status = 200
@@ -286,7 +286,7 @@ class DailyCollectorRecoveryTests(unittest.IsolatedAsyncioTestCase):
                 for meth in ("_run_tjmugh", "_run_tjnothop", "_run_teda", "_run_tjfch", "_run_regional_market"):
                     st.enter_context(patch.object(rt, meth, side_effect=seed_other_sources))
                 st.enter_context(patch.object(rt.time, "sleep"))
-                st.enter_context(patch.dict("os.environ", {"VERIFIED_SNAPSHOT_PUBLISH_TOKEN": "isolated-test-only-" * 3}))
+                st.enter_context(patch.dict("os.environ", {"VERIFIED_SNAPSHOT_PUBLISH_TOKEN": "isolated-test-only-" * 3, "VERCEL_ENV": "production"}))
                 st.enter_context(patch.object(queue.incremental_runtime, "clear_incremental_pending"))
                 st.enter_context(patch.object(queue, "_start_intraday_chain_after_deep", new_callable=AsyncMock))
                 push = st.enter_context(patch.object(queue, "_enqueue_stage", new_callable=AsyncMock))
