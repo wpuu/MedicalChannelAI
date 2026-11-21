@@ -61,7 +61,11 @@ class CollectorRunSecurityTests(unittest.TestCase):
         self.assertNotIn('x-vercel-cron-schedule', source)
         self.assertLess(source.index("if not cron_secret:"), source.index('return True, "VERCEL_CRON"'))
         self.assertLess(source.index("hmac.compare_digest"), source.index('return True, "VERCEL_CRON"'))
-        self.assertIn('cycle_id = _recovery_cycle_id(cache, local_date) or f"prod:{local_date}"', source)
+        self.assertIn('_recovery_cycle_id(cache, local_date) or f"prod:{local_date}"', source)
+        self.assertIn('resume_hospitals = _eligible_hospital_resume(cache, local_date)', source)
+        self.assertIn('if int(ccgp.get("attempt_count") or 0) < 2:', source)
+        self.assertIn('if not hmac.compare_digest(authorization, f"Bearer {cron_secret}"):', source)
+        self.assertIn('message["recovery_mode"] = "CCGP_UNAVAILABLE_HOSPITAL_CONTINUATION"', source)
 
 
 if __name__ == "__main__":
