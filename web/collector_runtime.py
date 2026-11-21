@@ -1561,6 +1561,12 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
                 completed_sources.append(name)
         else:
             completed_sources.append(name)
+    for name in ("event1", "event2", "event3", "event4", "event5", "event6",
+                 "regional_bj_fallback", "regional_he_fallback",
+                 "regional_ln_fallback", "regional_jl_fallback",
+                 "regional_hl_fallback"):
+        if (state.get("stages", {}).get(name) or {}).get("status") == "SKIPPED":
+            unavailable_sources.append(name)
     if not completed_sources:
         raise CollectorStageBlocked("COLLECTOR_NO_SUCCESSFUL_OFFICIAL_SOURCE_TODAY")
 
