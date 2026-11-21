@@ -47,10 +47,12 @@ export default async function handler(request, response) {
     const pool = Array.isArray(snapshot.opportunity_pool) ? snapshot.opportunity_pool : snapshot.cards
     const freshness = snapshotFreshness(snapshot.snapshot_as_of)
     const fallbackDegraded = sourceMode === 'BUNDLED_FALLBACK'
+    const collectionHealth = snapshot.collection_health || null
+    const incompleteSources = collectionHealth?.mode === 'DEGRADED'
     return sendJson(response, freshness.freshness === 'INVALID' ? 503 : 200, {
       ...base,
       ready: freshness.freshness !== 'INVALID',
-      degraded: freshness.degraded || fallbackDegraded,
+      degraded: freshness.degraded || fallbackDegraded || incompleteSources,
       snapshot: {
         available: true, source_mode: sourceMode,
         runtime_origin: sourceMode === 'RUNTIME_CACHE' ? runtimeOrigin : null,
@@ -59,6 +61,7 @@ export default async function handler(request, response) {
         stale_after_minutes: SNAPSHOT_STALE_AFTER_MINUTES,
         today_card_count: Array.isArray(snapshot.cards) ? snapshot.cards.length : 0,
         opportunity_pool_count: Array.isArray(pool) ? pool.length : 0,
+        collection_health: collectionHealth,
       },
     })
   } catch {
