@@ -142,6 +142,31 @@ def _migration_recovery_running_stages_are_stale(
     return True
 
 
+def _prior_day_cycle_is_stale(state: object, active: object, *, local_date: str, now: datetime) -> bool:
+    if not isinstance(state, dict):
+        return False
+    state_date = str(state.get("local_date") or "")
+    if not state_date or state_date >= local_date:
+        return False
+    if active_cycle_id(active) is not None and (
+        not isinstance(active, dict) or active.get("local_date") != state_date
+    ):
+        return False
+    running = [item for item in state.get("stages", {}).values()
+               if isinstance(item, dict) and item.get("status") == "RUNNING"]
+    if not running:
+        return False
+    for item in running:
+        try:
+            started = datetime.fromisoformat(str(item.get("started_at") or "").replace("Z", "+00:00"))
+        except ValueError:
+            return False
+        # Wait longer than the 300s worker budget even across midnight.
+        if started.tzinfo is None or now - started < timedelta(minutes=30):
+            return False
+    return True
+
+
 def _activate_cycle(
     cache: RuntimeCache,
     *,
@@ -151,11 +176,13 @@ def _activate_cycle(
     source: str,
 ) -> None:
     current_state = cache.get(META_KEY)
-    if cycle_has_running_stage(current_state) and not _migration_recovery_running_stages_are_stale(
+    if (cycle_has_running_stage(current_state) and not _migration_recovery_running_stages_are_stale(
         current_state,
         local_date=local_date,
         now=now,
-    ):
+    ) and not _prior_day_cycle_is_stale(
+        current_state, cache.get(ACTIVE_CYCLE_KEY), local_date=local_date, now=now
+    )):
         raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
 
     active = {
@@ -268,6 +295,12 @@ class handler(BaseHTTPRequestHandler):
         allowed, trigger_source = _authorized(self)
         if not allowed:
             return self._send_json(403, {"error": "COLLECTOR_TRIGGER_FORBIDDEN"})
+
+        if os.environ.get("VERCEL_ENV") == "preview" or (
+            os.environ.get("VERCEL") == "1" and os.environ.get("VERCEL_ENV") != "production"
+        ):
+            self._send_json(409, {"error": "COLLECTOR_TRIGGER_DISABLED_OUTSIDE_PRODUCTION"})
+            return
 
         query = _request_query(self)
         mode = _first_query(query, "mode")

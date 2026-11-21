@@ -93,6 +93,19 @@ for (const [command, prefixArgs] of candidates) {
     throw new Error(`BUNDLED_SNAPSHOT_REFRESH_FAILED:${command}:exit_${refresh.status}`)
   }
 
+  if (process.env.VERCEL_ENV === 'preview' &&
+      process.env.VERCEL_GIT_COMMIT_REF === 'candidate/daily-refresh-preview-20261121') {
+    const probe = spawnSync(command, [...prefixArgs, 'scripts/preview_ccgp_read_probe.py'], {
+      cwd: pipelineDir,
+      stdio: 'inherit',
+      timeout: 18_000,
+      env: process.env,
+    })
+    if (probe.error || probe.status !== 0) {
+      console.log('CCGP_PREVIEW_BUILD_PROBE={"outcome":"RUNNER_ERROR","read_only":true}')
+    }
+  }
+
   const result = spawnSync(command, [...prefixArgs, ...unittestArgs], {
     cwd: pipelineDir,
     stdio: 'inherit',

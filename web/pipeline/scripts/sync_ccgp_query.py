@@ -8,6 +8,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Callable
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -18,6 +19,8 @@ from medical_channel_pipeline.ccgp_detail import (  # noqa: E402
     parse_ccgp_public_tender_html,
 )
 from medical_channel_pipeline.ccgp_discovery import (  # noqa: E402
+    classify_search_failure,
+    RATE_LIMIT_MARKERS,
     REGION_ZONE_IDS,
     build_search_url,
     fetch_search_page,
@@ -37,6 +40,7 @@ VERIFIED_NOTICE_ADAPTERS = {
 }
 DEFAULT_NOTICE_TYPES = ['公开招标', '竞争性磋商']
 DEFAULT_REGION = '天津'
+UPSTREAM_ACCESS_RESTRICTIONS = frozenset({'SOURCE_RATE_LIMIT', 'HTTP_403', 'HTTP_429'})
 
 
 def stable_id(prefix: str, value: str) -> str:
@@ -91,9 +95,17 @@ def scan_events(
     delay_seconds: float,
     observed_at: str,
     failures: list[dict],
+    daily_refresh: bool = False,
+    completed_searches: dict[str, list[dict]] | None = None,
+    on_completed_search: Callable[[str, list[dict]], None] | None = None,
 ) -> list[dict]:
     events: list[dict] = []
     for notice_type, event_type in (('更正公告', 'CORRECTION'), ('终止公告', 'TERMINATION')):
+        if completed_searches is not None and notice_type in completed_searches:
+            events.extend(completed_searches[notice_type])
+            continue
+        prior_failures = len(failures)
+        search_events: list[dict] = []
         search_url = build_search_url(
             keyword=project_number,
             notice_type=notice_type,
@@ -102,13 +114,18 @@ def scan_events(
             end_date=end_date,
             region=region,
         )
+        phase = "fetch"
         try:
-            html = fetch_search_page(search_url)
-            candidates = parse_search_html(html, keyword=project_number)
+            html = (fetch_search_page(search_url, timeout_seconds=12)
+                    if daily_refresh else fetch_search_page(search_url))
+            phase = "parse"
+            candidates = parse_search_html(html, keyword=project_number, require_result_list=daily_refresh)
         except Exception as exc:  # explicit report; no bypass/retry storm
+            code = classify_search_failure(exc, phase=phase)
             failures.append(
                 {
                     'stage': 'event_search',
+                    'diagnostic_code': code,
                     'region': region,
                     'project_number': project_number,
                     'notice_type': notice_type,
@@ -116,6 +133,8 @@ def scan_events(
                     'message': str(exc)[:300],
                 }
             )
+            if daily_refresh and code in UPSTREAM_ACCESS_RESTRICTIONS:
+                return events
             continue
 
         for candidate in candidates:
@@ -124,7 +143,10 @@ def scan_events(
             event = None
             try:
                 time.sleep(delay_seconds)
-                detail_html = fetch_ccgp_detail_html(candidate.detail_url)
+                detail_html = (fetch_ccgp_detail_html(candidate.detail_url, timeout_seconds=8)
+                               if daily_refresh else fetch_ccgp_detail_html(candidate.detail_url))
+                if daily_refresh and any(marker in detail_html for marker in RATE_LIMIT_MARKERS):
+                    raise RuntimeError("CCGP_RATE_LIMITED")
                 event = parse_ccgp_event_html(
                     detail_html,
                     source_url=candidate.detail_url,
@@ -132,9 +154,13 @@ def scan_events(
                     event_id=stable_id(event_type.lower(), candidate.detail_url),
                 )
             except Exception as exc:
+                code = (str(exc).removeprefix("CCGP_DETAIL_")
+                        if str(exc) in {"CCGP_DETAIL_HTTP_403", "CCGP_DETAIL_HTTP_429"}
+                        else classify_search_failure(exc, phase="fetch"))
                 failures.append(
                     {
                         'stage': 'event_detail',
+                        'diagnostic_code': code,
                         'region': region,
                         'project_number': project_number,
                         'url': candidate.detail_url,
@@ -142,6 +168,8 @@ def scan_events(
                         'message': str(exc)[:300],
                     }
                 )
+                if daily_refresh and code in UPSTREAM_ACCESS_RESTRICTIONS:
+                    return events + search_events
                 if candidate.published_at:
                     # Conservative fallback: official discovery of a correction/termination
                     # is enough to suppress the stale card, but never enough to rewrite facts.
@@ -152,7 +180,10 @@ def scan_events(
                         observed_at=observed_at,
                     )
             if event:
-                events.append(event)
+                search_events.append(event)
+        if on_completed_search is not None and len(failures) == prior_failures:
+            on_completed_search(notice_type, search_events)
+        events.extend(search_events)
         time.sleep(delay_seconds)
     return events
 
@@ -166,6 +197,7 @@ def discover_candidates(
     end_date: str,
     delay_seconds: float,
     failures: list[dict],
+    daily_refresh: bool = False,
 ) -> list[tuple[str, object]]:
     discovered: list[tuple[str, object]] = []
     seen_urls: set[str] = set()
@@ -180,19 +212,26 @@ def discover_candidates(
             end_date=end_date,
             region=region,
         )
+        phase = "fetch"
         try:
-            html = fetch_search_page(search_url)
-            candidates = parse_search_html(html, keyword=keyword)
+            html = (fetch_search_page(search_url, timeout_seconds=8)
+                    if daily_refresh else fetch_search_page(search_url))
+            phase = "parse"
+            candidates = parse_search_html(html, keyword=keyword, require_result_list=daily_refresh)
         except Exception as exc:
+            code = classify_search_failure(exc, phase=phase)
             failures.append(
                 {
                     'stage': 'discovery_search',
+                    'diagnostic_code': code,
                     'region': region,
                     'notice_type': notice_type,
                     'error': type(exc).__name__,
                     'message': str(exc)[:300],
                 }
             )
+            if daily_refresh and code in UPSTREAM_ACCESS_RESTRICTIONS:
+                break  # Do not send more queries after an explicit upstream restriction.
             candidates = []
         for candidate in candidates:
             if not is_primary_opportunity_candidate(candidate):

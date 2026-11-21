@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import asdict, dataclass
 from html.parser import HTMLParser
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urljoin, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
@@ -96,6 +97,7 @@ def build_search_url(*, keyword: str, notice_type: str = "全部", page_index: i
 class _SearchListParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
+        self.found_result_list = False
         self._list_depth = 0
         self._li_depth = 0
         self._capture_anchor = False
@@ -112,6 +114,7 @@ class _SearchListParser(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         classes = self._class_tokens(attrs)
         if tag in {"ul", "div"} and "vT-srch-result-list-bid" in classes:
+            self.found_result_list = True
             self._list_depth += 1
             return
         if self._list_depth and tag == "li":
@@ -221,11 +224,13 @@ def _canonical_detail_url(href: str) -> str:
     return detail_url
 
 
-def parse_search_html(html: str, *, keyword: str) -> list[DiscoveryCandidate]:
+def parse_search_html(html: str, *, keyword: str, require_result_list: bool = False) -> list[DiscoveryCandidate]:
     if any(marker in html for marker in RATE_LIMIT_MARKERS):
         raise RuntimeError("CCGP_RATE_LIMITED")
     parser = _SearchListParser()
     parser.feed(html)
+    if require_result_list and not parser.found_result_list:
+        raise ValueError("CCGP_RESULT_LIST_MISSING")
     candidates: list[DiscoveryCandidate] = []
     seen_urls: set[str] = set()
     for title, href, meta in parser.rows:
@@ -239,6 +244,21 @@ def parse_search_html(html: str, *, keyword: str) -> list[DiscoveryCandidate]:
             region=region, notice_type=notice_type, search_keyword=keyword,
         ))
     return candidates
+
+
+def classify_search_failure(exc: Exception, *, phase: str) -> str:
+    """Return bounded non-secret diagnostics, not arbitrary upstream text."""
+    if str(exc) == "CCGP_RATE_LIMITED":
+        return "SOURCE_RATE_LIMIT"
+    if isinstance(exc, HTTPError):
+        code = exc.code
+        return f"HTTP_{code}" if isinstance(code, int) and 100 <= code <= 599 else "HTTP_ERROR"
+    reason = exc.reason if isinstance(exc, URLError) else exc
+    if isinstance(reason, TimeoutError):
+        return "FETCH_TIMEOUT"
+    if isinstance(exc, URLError):
+        return "FETCH_NETWORK_ERROR"
+    return "PARSE_ERROR" if phase == "parse" else "FETCH_ERROR"
 
 
 def fetch_search_page(search_url: str, *, timeout_seconds: int = 30) -> str:
