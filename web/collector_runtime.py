@@ -1540,8 +1540,41 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         + list(tjfch_records)
         + regional_records
     )
+    # A new timestamp may be published only after at least one successful
+    # real, independently verified source scan. Carryover alone is never fresh.
+    completed_sources = []
+    unavailable_sources = []
+    for name in ("ccgp", "tjmugh", "tjnothop", "teda", "tjfch",
+                 "regional_bj", "regional_he", "regional_ln", "regional_jl", "regional_hl"):
+        step = state.get("stages", {}).get(name) or {}
+        if step.get("status") == "SKIPPED":
+            unavailable_sources.append(name)
+            continue
+        if step.get("status") != "COMPLETED":
+            continue
+        r = step.get("result") or {}
+        if name == "ccgp":
+            if int(r.get("discovery_success_count") or 0) > 0:
+                completed_sources.append(name)
+        elif name.startswith("regional_"):
+            if int(r.get("scoped_query_success_count") or 0) > 0:
+                completed_sources.append(name)
+        else:
+            completed_sources.append(name)
+    if not completed_sources:
+        raise CollectorStageBlocked("COLLECTOR_NO_SUCCESSFUL_OFFICIAL_SOURCE_TODAY")
+
     as_of = _cycle_as_of(state)
     snapshot = build_public_snapshot(records, as_of, list(events))
+    snapshot["collection_health"] = {
+        "mode": "DEGRADED" if unavailable_sources else "COMPLETE",
+        "completed_sources": completed_sources,
+        "unavailable_sources": unavailable_sources,
+        "new_verified_record_count": sum(
+            int((state.get("stages", {}).get(name) or {}).get("result", {}).get("new_verified_record_count") or 0)
+            for name in completed_sources
+        ),
+    }
     digest = _digest(snapshot)
     _cache_set(
         cache,
@@ -1608,6 +1641,15 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
         elif stage == "tjfch":
             result = _run_tjfch(cache, state)
         elif stage in REGIONAL_STAGE_MARKET_CODES or stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+            unavailable = _regional_unavailable_carryover(cache, state, stage)
+            if unavailable is not None:
+                _skip_after_prepare(cache, state, stage, unavailable)
+                return 200, {
+                    "action": "SKIPPED_SOURCE_UNAVAILABLE",
+                    "stage": stage,
+                    "local_date": state.get("local_date"),
+                    "result": unavailable,
+                }
             result = _run_regional_market(cache, state, stage)
         elif stage == "publish":
             result = _run_publish(cache, state)
