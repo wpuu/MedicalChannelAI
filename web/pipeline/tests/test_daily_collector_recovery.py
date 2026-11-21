@@ -401,6 +401,58 @@ class DailyCollectorRecoveryTests(unittest.IsolatedAsyncioTestCase):
             })
             self.assertEqual(enqueue.await_args.kwargs["stage"], "regional_bj_fallback")
 
+    async def test_source_restriction_retries_only_local_quarantine_not_upstream(self):
+        with collector_modules() as queue, patch.object(
+            queue, "_active_cycle_matches", return_value=True
+        ), patch.object(queue, "_release_active_cycle_if_owned") as release, patch.object(
+            queue, "_enqueue_stage", new_callable=AsyncMock
+        ) as enqueue, patch.object(
+            queue.runtime, "quarantine_unavailable_source", side_effect=[False, True]
+        ) as quarantine, patch.object(
+            queue.runtime, "run_stage", return_value=(
+                503, {"error": "CCGP_UPSTREAM_ACCESS_RESTRICTED:HTTP_429"}
+            )
+        ) as run_stage:
+            await queue.process_collector_payload({
+                "schema_version": "0.1", "stage": "ccgp",
+                "cycle_id": "test-cycle",
+                "cycle_as_of": "2026-11-21T00:20:00+00:00",
+            })
+            self.assertEqual(quarantine.call_count, 2)
+            run_stage.assert_called_once()
+            release.assert_not_called()
+            enqueue.assert_awaited_once()
+            self.assertEqual(enqueue.await_args.kwargs["stage"], "tjmugh")
+
+    async def test_unconfirmed_rate_limit_never_reprobes_and_records_failure(self):
+        for stage in ("ccgp", "event2"):
+            with self.subTest(stage=stage):
+                with collector_modules() as queue, patch.object(
+                    queue, "_active_cycle_matches", return_value=True
+                ), patch.object(
+                    queue, "_release_active_cycle_if_owned"
+                ) as release, patch.object(
+                    queue, "_enqueue_stage", new_callable=AsyncMock
+                ) as enqueue, patch.object(
+                    queue.runtime, "quarantine_unavailable_source", return_value=False
+                ) as quarantine, patch.object(
+                    queue.runtime, "run_stage", return_value=(
+                        503, {"error": "CCGP_UPSTREAM_ACCESS_RESTRICTED:SOURCE_RATE_LIMIT"}
+                    )
+                ) as run_stage, patch("builtins.print") as log:
+                    await queue.process_collector_payload({
+                        "schema_version": "0.1", "stage": stage,
+                        "cycle_id": "test-cycle",
+                        "cycle_as_of": "2026-11-21T00:20:00+00:00",
+                    })
+                    self.assertEqual(quarantine.call_count, 2)
+                    run_stage.assert_called_once()
+                    release.assert_called_once_with("test-cycle")
+                    enqueue.assert_not_awaited()
+                    log.assert_called_once_with(
+                        f"COLLECTOR_QUARANTINE_UNCONFIRMED:{stage}", flush=True
+                    )
+
     def test_preview_cannot_use_production_snapshot_publisher(self):
         with collector_modules() as queue, patch.dict("os.environ", {"VERCEL_ENV": "preview"}), patch.object(
             queue.runtime, "urlopen"
