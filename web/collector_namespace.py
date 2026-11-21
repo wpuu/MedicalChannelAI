@@ -83,14 +83,15 @@ def deep_message_lease_disposition(
     Missing lease during an unfinished same-day cycle remains unsafe and must be
     retried/fail closed instead of being silently acknowledged.
     """
-    current = active_cycle_id(active_value)
-    if current is not None:
-        return "MATCH" if current == cycle_id else "SUPERSEDED"
-
     local_date = str(cycle_local_date or "").strip()
     today = str(current_local_date or "").strip()
+    current = active_cycle_id(active_value)
+    if current is not None and current != cycle_id:
+        return "SUPERSEDED"
     if local_date and today and local_date < today:
         return "EXPIRED_STALE"
+    if current == cycle_id:
+        return "MATCH"
 
     if isinstance(runtime_state, dict):
         state_date = str(runtime_state.get("local_date") or "").strip()

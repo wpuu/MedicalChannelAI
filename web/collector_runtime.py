@@ -23,6 +23,7 @@ sys.path.insert(0, str(PIPELINE_ROOT))
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from medical_channel_pipeline import build_public_snapshot  # noqa: E402
+from medical_channel_pipeline.ccgp_discovery import RATE_LIMIT_MARKERS  # noqa: E402
 from medical_channel_pipeline.ccgp_detail import fetch_ccgp_detail_html  # noqa: E402
 from medical_channel_pipeline.state import (  # noqa: E402
     active_ccgp_project_numbers,
@@ -69,7 +70,9 @@ from medical_channel_pipeline.tjnothop_discovery import (  # noqa: E402
     stable_opportunity_id as tjnothop_opportunity_id,
 )
 from medical_channel_pipeline.tjnothop_market_research import parse_tjnothop_market_research  # noqa: E402
-from sync_ccgp_query import VERIFIED_NOTICE_ADAPTERS, discover_candidates, scan_events, stable_id  # noqa: E402
+from sync_ccgp_query import (  # noqa: E402
+    UPSTREAM_ACCESS_RESTRICTIONS, VERIFIED_NOTICE_ADAPTERS, discover_candidates, scan_events, stable_id,
+)
 from sync_teda_market_research import (  # noqa: E402
     UNSUPPORTED_DETAIL_CODES as TEDA_UNSUPPORTED_DETAIL_CODES,
     discover_candidates as discover_teda_candidates,
@@ -311,7 +314,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     previous = stages.get(stage)
     regional_cache_replay = False
     regional_stale_migration_replay = False
-    if isinstance(previous, dict) and previous.get("status") == "COMPLETED":
+    if isinstance(previous, dict) and previous.get("status") in {"COMPLETED", "SKIPPED"}:
         if stage in REGIONAL_STAGE_MARKET_CODES:
             market_code = REGIONAL_STAGE_MARKET_CODES[stage]
             regional_cache_replay = not isinstance(
@@ -345,7 +348,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     if index > 0:
         required = STAGE_ORDER[index - 1]
         required_state = stages.get(required)
-        if not isinstance(required_state, dict) or required_state.get("status") != "COMPLETED":
+        if not isinstance(required_state, dict) or required_state.get("status") not in {"COMPLETED", "SKIPPED"}:
             raise CollectorPrecondition(f"COLLECTOR_PREVIOUS_STAGE_INCOMPLETE:{required}")
 
     attempts = int(previous.get("attempt_count", 0)) if isinstance(previous, dict) else 0
@@ -433,6 +436,143 @@ def _mark_failed(cache: RuntimeCache, state: dict[str, Any], stage: str, exc: Ex
     _write_status(cache, latest)
 
 
+
+# Per-source unavailable is never equivalent to a verified scan. Isolating a
+# failed source only permits other independently verified sources to proceed.
+UNAVAILABLE_SOURCE_PREFIXES = {
+    "ccgp": ("CCGP_UPSTREAM_ACCESS_RESTRICTED:", "CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED"),
+    "event": ("CCGP_UPSTREAM_ACCESS_RESTRICTED:",),
+    "tjmugh": ("TJMUGH_INDEX_DISCOVERY_FAILED:", "TJMUGH_ALL_SELECTED_DETAILS_FAILED_VERIFICATION"),
+    "tjnothop": ("TJNOTHOP_INDEX_DISCOVERY_FAILED:", "TJNOTHOP_ALL_SELECTED_DETAILS_FAILED_VERIFICATION"),
+    "teda": ("TEDA_INDEX_DISCOVERY_FAILED:", "TEDA_CANDIDATE_VERIFICATION_INCOMPLETE"),
+    "tjfch": ("TJFCH_INDEX_DISCOVERY_FAILED:", "TJFCH_TEST_INDEX_DISCOVERY_FAILED:",
+               "TJFCH_CANDIDATE_VERIFICATION_INCOMPLETE"),
+    "regional": ("REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:",),
+}
+
+
+def _unavailable_group(stage: str) -> str | None:
+    if stage == "ccgp":
+        return "ccgp"
+    if stage in {"event1", "event2", "event3", "event4", "event5", "event6"}:
+        return "event"
+    if stage in {"tjmugh", "tjnothop", "teda", "tjfch"}:
+        return stage
+    if stage in REGIONAL_STAGE_MARKET_CODES or stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+        return "regional"
+    return None
+
+
+def _carry_forward_verified(cache: RuntimeCache, stage: str) -> int:
+    if stage == "ccgp":
+        records, _ = _cached_list(cache, CCGP_RECORDS_KEY, _bootstrap_ccgp_records)
+        _cached_list(cache, CCGP_EVENTS_KEY, _bootstrap_ccgp_events)
+        return len(records)
+    if stage.startswith("event"):
+        events, _ = _cached_list(cache, CCGP_EVENTS_KEY, _bootstrap_ccgp_events)
+        return len(events)
+    independent = {
+        "tjmugh": (TJMUGH_RECORDS_KEY, _bootstrap_tjmugh_records),
+        "tjnothop": (TJNOTHOP_RECORDS_KEY, _bootstrap_tjnothop_records),
+        "teda": (TEDA_RECORDS_KEY, _bootstrap_teda_records),
+        "tjfch": (TJFCH_RECORDS_KEY, _bootstrap_tjfch_records),
+    }
+    if stage in independent:
+        key, bootstrap = independent[stage]
+        records, _ = _cached_list(cache, key, bootstrap)
+        return len(records)
+    market = (REGIONAL_STAGE_MARKET_CODES.get(stage)
+              or REGIONAL_FALLBACK_STAGE_MARKET_CODES.get(stage))
+    if market:
+        records, _ = _cached_list(cache, _regional_records_key(market),
+                                  lambda: _bootstrap_regional_records(market))
+        return len(records)
+    raise CollectorPrecondition(f"COLLECTOR_SOURCE_UNKNOWN:{stage}")
+
+
+def _record_skipped_stage(state: dict[str, Any], stage: str, reason: str,
+                          carryover: int) -> None:
+    stages = state.setdefault("stages", {})
+    previous = stages.get(stage)
+    attempts = int(previous.get("attempt_count") or 0) if isinstance(previous, dict) else 0
+    stages[stage] = {
+        "status": "SKIPPED",
+        "attempt_count": attempts,
+        "started_at": previous.get("started_at") if isinstance(previous, dict) else None,
+        "completed_at": _now_utc().isoformat(),
+        "error_code": "SOURCE_UNAVAILABLE",
+        "error_message": reason[:220],
+        "result": {
+            "source_status": "UNAVAILABLE",
+            "new_verified_record_count": 0,
+            "verified_carryover_count": carryover,
+        },
+    }
+
+
+def quarantine_unavailable_source(*, stage: str, local_date: str, error: str) -> bool:
+    group = _unavailable_group(stage)
+    if not group or not any(error.startswith(prefix) for prefix in UNAVAILABLE_SOURCE_PREFIXES[group]):
+        return False
+    cache = RuntimeCache()
+    state = load_status(cache)
+    if state.get("local_date") != local_date:
+        return False
+    current = state.get("stages", {}).get(stage)
+    if not isinstance(current, dict) or current.get("status") != "FAILED":
+        return False
+    # Never suppress an unrelated exception or a stale Queue message.
+    if not str(current.get("error_message") or "").startswith(error[:180]):
+        return False
+    carryover = _carry_forward_verified(cache, stage)
+    _record_skipped_stage(state, stage, error, carryover)
+
+    # If primary CCGP discovery is unavailable, do not probe the same upstream
+    # repeatedly for event and regional scans during this daily cycle.
+    if group in {"ccgp", "event"}:
+        start = "event1" if group == "ccgp" else stage
+        for related in STAGE_ORDER[STAGE_ORDER.index(start):STAGE_ORDER.index("tjmugh")]:
+            if related == stage:
+                continue
+            existing = state["stages"].get(related)
+            if isinstance(existing, dict) and existing.get("status") == "COMPLETED":
+                continue
+            _record_skipped_stage(state, related, "CCGP_EVENT_DISCOVERY_UNAVAILABLE_TODAY",
+                                  _carry_forward_verified(cache, related))
+    if stage in REGIONAL_STAGE_MARKET_CODES:
+        fallback_stage = f"{stage}_fallback"
+        if fallback_stage in STAGE_ORDER:
+            _record_skipped_stage(state, fallback_stage, "REGIONAL_DISCOVERY_UNAVAILABLE_TODAY",
+                                  carryover)
+    _write_status(cache, state)
+    return True
+
+
+def _regional_unavailable_carryover(cache: RuntimeCache, state: dict[str, Any],
+                                     stage: str) -> dict[str, Any] | None:
+    ccgp = state.get("stages", {}).get("ccgp")
+    if not isinstance(ccgp, dict) or ccgp.get("status") != "SKIPPED":
+        return None
+    if stage not in REGIONAL_STAGE_MARKET_CODES and stage not in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+        return None
+    count = _carry_forward_verified(cache, stage)
+    return {
+        "source_status": "UNAVAILABLE",
+        "reason": "CCGP_DISCOVERY_UNAVAILABLE_TODAY",
+        "new_verified_record_count": 0,
+        "verified_carryover_count": count,
+    }
+
+
+def _skip_after_prepare(cache: RuntimeCache, state: dict[str, Any],
+                        stage: str, result: dict[str, Any]) -> None:
+    latest, _ = _latest_stage_state_for_update(cache, state, stage)
+    _record_skipped_stage(latest, stage,
+                          str(result.get("reason") or "SOURCE_UNAVAILABLE"),
+                          int(result.get("verified_carryover_count") or 0))
+    _write_status(cache, latest)
+
+
 def _cycle_as_of(state: dict[str, Any]) -> datetime:
     raw = str(state.get("cycle_as_of") or "")
     parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
@@ -463,7 +603,12 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             end_date=end_text,
             delay_seconds=plan["delay_seconds"],
             failures=failures,
+            daily_refresh=True,
         )
+        if failures:
+            restriction = failures[-1].get("diagnostic_code")
+            if restriction in UPSTREAM_ACCESS_RESTRICTIONS:
+                raise CollectorStageBlocked(f"CCGP_UPSTREAM_ACCESS_RESTRICTED:{restriction}")
         for notice_type, candidate in candidates:
             detail_url = str(getattr(candidate, "detail_url", "") or "").strip()
             if not detail_url:
@@ -490,7 +635,9 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         adapter = VERIFIED_NOTICE_ADAPTERS[notice_type]
         try:
             time.sleep(plan["delay_seconds"])
-            detail_html = fetch_ccgp_detail_html(candidate.detail_url)
+            detail_html = fetch_ccgp_detail_html(candidate.detail_url, timeout_seconds=8)
+            if any(marker in detail_html for marker in RATE_LIMIT_MARKERS):
+                raise CollectorStageBlocked("CCGP_UPSTREAM_ACCESS_RESTRICTED:SOURCE_RATE_LIMIT")
             new_records.append(
                 adapter(
                     detail_html,
@@ -499,7 +646,13 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
                     opportunity_id=stable_id("ccgp", candidate.detail_url),
                 )
             )
+        except CollectorStageBlocked:
+            raise
         except Exception as exc:
+            if str(exc) in {"CCGP_DETAIL_HTTP_403", "CCGP_DETAIL_HTTP_429"}:
+                raise CollectorStageBlocked(
+                    f"CCGP_UPSTREAM_ACCESS_RESTRICTED:{str(exc).removeprefix('CCGP_DETAIL_')}"
+                ) from exc
             failures.append(
                 {
                     "stage": "verified_detail",
@@ -524,6 +677,12 @@ def _run_ccgp(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
             for item in detail_failures[:3]
         )
         suffix = f";DETAIL_FAILURES:{diagnostic}" if diagnostic else ""
+        if reason == "ALL_DISCOVERY_QUERIES_FAILED":
+            counts = Counter(
+                str(item.get("diagnostic_code") or "UNKNOWN") for item in discovery_failures
+            )
+            safe_counts = ",".join(f"{code}={count}" for code, count in sorted(counts.items()))
+            suffix = f";DISCOVERY:{safe_counts}" if safe_counts else ""
         raise CollectorStageBlocked(f"CCGP_PUBLISH_GATE:{reason}{suffix}")
 
     merged_records = merge_canonical_records(existing_records, new_records)
@@ -574,7 +733,30 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> 
     failures: list[dict[str, Any]] = []
     new_events: list[dict[str, Any]] = []
 
+    checkpoint_key = f"{META_KEY}:event-progress:{stage}"
+    checkpoint_identity = _digest([observed_at, start_text, end_text, plan["region"], projects])
+    prior = cache.get(checkpoint_key)
+    checkpoints: dict[str, Any] = {}
+    if isinstance(prior, dict) and prior.get("scope") == checkpoint_identity:
+        saved = prior.get("searches")
+        if isinstance(saved, dict):
+            checkpoints = saved
+    blocked_searches: list[tuple[str, str]] = []
+
     for project_number in projects:
+        completed = checkpoints.get(project_number)
+        if not isinstance(completed, dict):
+            completed = {}
+        completed = {k: v for k, v in completed.items()
+                     if k in {"更正公告", "终止公告"} and isinstance(v, list)
+                     and all(isinstance(e, dict) for e in v)}
+
+        def save_search(notice_type: str, events: list[dict[str, Any]]) -> None:
+            completed[notice_type] = events
+            checkpoints[project_number] = completed
+            _cache_set(cache, checkpoint_key, {"scope": checkpoint_identity, "searches": checkpoints},
+                       tag="medicalchannelai-collector-event-progress", ttl=2 * 24 * 60 * 60)
+
         before = len(failures)
         new_events.extend(
             scan_events(
@@ -585,15 +767,26 @@ def _run_event_batch(cache: RuntimeCache, state: dict[str, Any], stage: str) -> 
                 delay_seconds=plan["delay_seconds"],
                 observed_at=observed_at,
                 failures=failures,
+                daily_refresh=True,
+                completed_searches=completed,
+                on_completed_search=save_search,
             )
         )
+        for failure in failures[before:]:
+            restriction = failure.get("diagnostic_code")
+            if restriction in UPSTREAM_ACCESS_RESTRICTIONS:
+                raise CollectorStageBlocked(f"CCGP_UPSTREAM_ACCESS_RESTRICTED:{restriction}")
         project_search_failures = [
             item
             for item in failures[before:]
             if item.get("stage") == "event_search" and item.get("project_number") == project_number
         ]
-        if len(project_search_failures) >= 2:
-            raise CollectorStageBlocked(f"EVENT_WATCH_ALL_SEARCHES_FAILED:{project_number}")
+        if project_search_failures:
+            label = "ALL_SEARCHES_FAILED" if len(project_search_failures) == 2 else "SEARCH_INCOMPLETE"
+            blocked_searches.append((label, project_number))
+    if blocked_searches:
+        label, project = blocked_searches[0]
+        raise CollectorStageBlocked(f"EVENT_WATCH_{label}:{project};INCOMPLETE_PROJECTS={len(blocked_searches)}")
 
     merged_events = merge_notice_events(existing_events, new_events)
     _cache_set(cache, CCGP_EVENTS_KEY, merged_events, tag="medicalchannelai-collector-events")
@@ -1249,6 +1442,10 @@ def _run_regional_market(
 
 
 def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, Any]:
+    if os.environ.get("VERCEL_ENV") == "preview" or (
+        os.environ.get("VERCEL") == "1" and os.environ.get("VERCEL_ENV") != "production"
+    ):
+        raise CollectorStageBlocked("DURABLE_PRODUCTION_PUBLISH_DISABLED_OUTSIDE_PRODUCTION")
     token = str(os.environ.get("VERIFIED_SNAPSHOT_PUBLISH_TOKEN") or "").strip()
     if len(token) < 24:
         raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_TOKEN_MISSING")
@@ -1292,7 +1489,8 @@ def _persist_verified_snapshot_durably(snapshot: dict[str, Any]) -> dict[str, An
         raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_AS_OF_MISMATCH")
     expected_pool = snapshot.get("opportunity_pool")
     expected_count = len(expected_pool) if isinstance(expected_pool, list) else len(snapshot.get("cards") or [])
-    if int(result.get("opportunity_pool_count") or -1) != expected_count:
+    reported_count = result.get("opportunity_pool_count")
+    if type(reported_count) is not int or reported_count != expected_count:
         raise CollectorStageBlocked("DURABLE_SNAPSHOT_PUBLISH_POOL_MISMATCH")
     return result
 
@@ -1343,8 +1541,47 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         + list(tjfch_records)
         + regional_records
     )
+    # A new timestamp may be published only after at least one successful
+    # real, independently verified source scan. Carryover alone is never fresh.
+    completed_sources = []
+    unavailable_sources = []
+    for name in ("ccgp", "tjmugh", "tjnothop", "teda", "tjfch",
+                 "regional_bj", "regional_he", "regional_ln", "regional_jl", "regional_hl"):
+        step = state.get("stages", {}).get(name) or {}
+        if step.get("status") == "SKIPPED":
+            unavailable_sources.append(name)
+            continue
+        if step.get("status") != "COMPLETED":
+            continue
+        r = step.get("result") or {}
+        if name == "ccgp":
+            if int(r.get("discovery_success_count") or 0) > 0:
+                completed_sources.append(name)
+        elif name.startswith("regional_"):
+            if int(r.get("scoped_query_success_count") or 0) > 0:
+                completed_sources.append(name)
+        else:
+            completed_sources.append(name)
+    for name in ("event1", "event2", "event3", "event4", "event5", "event6",
+                 "regional_bj_fallback", "regional_he_fallback",
+                 "regional_ln_fallback", "regional_jl_fallback",
+                 "regional_hl_fallback"):
+        if (state.get("stages", {}).get(name) or {}).get("status") == "SKIPPED":
+            unavailable_sources.append(name)
+    if not completed_sources:
+        raise CollectorStageBlocked("COLLECTOR_NO_SUCCESSFUL_OFFICIAL_SOURCE_TODAY")
+
     as_of = _cycle_as_of(state)
     snapshot = build_public_snapshot(records, as_of, list(events))
+    snapshot["collection_health"] = {
+        "mode": "DEGRADED" if unavailable_sources else "COMPLETE",
+        "completed_sources": completed_sources,
+        "unavailable_sources": unavailable_sources,
+        "new_verified_record_count": sum(
+            int((state.get("stages", {}).get(name) or {}).get("result", {}).get("new_verified_record_count") or 0)
+            for name in completed_sources
+        ),
+    }
     digest = _digest(snapshot)
     _cache_set(
         cache,
@@ -1390,7 +1627,7 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
 
     if previous is not None:
         return 200, {
-            "action": "ALREADY_COMPLETED_TODAY",
+            "action": ("ALREADY_SKIPPED_TODAY" if previous.get("status") == "SKIPPED" else "ALREADY_COMPLETED_TODAY"),
             "stage": stage,
             "local_date": state.get("local_date"),
             "completed_at": previous.get("completed_at"),
@@ -1411,6 +1648,15 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
         elif stage == "tjfch":
             result = _run_tjfch(cache, state)
         elif stage in REGIONAL_STAGE_MARKET_CODES or stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
+            unavailable = _regional_unavailable_carryover(cache, state, stage)
+            if unavailable is not None:
+                _skip_after_prepare(cache, state, stage, unavailable)
+                return 200, {
+                    "action": "SKIPPED_SOURCE_UNAVAILABLE",
+                    "stage": stage,
+                    "local_date": state.get("local_date"),
+                    "result": unavailable,
+                }
             result = _run_regional_market(cache, state, stage)
         elif stage == "publish":
             result = _run_publish(cache, state)

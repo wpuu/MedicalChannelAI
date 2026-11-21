@@ -50,6 +50,12 @@ jobs:
           }, ensure_ascii=False))
           if payload.get('ready') is not True:
               raise SystemExit('api/status ready != true')
+          snapshot = payload.get('snapshot') or {}
+          if snapshot.get('freshness') != 'FRESH':
+              raise SystemExit('Daily verified snapshot is stale: not a passing website refresh')
+          health = snapshot.get('collection_health') or {}
+          if health.get('mode') == 'DEGRADED':
+              print('::warning::Daily source coverage degraded; inspect collector-status before business use')
           PY
 
       - name: Warn while qd.je still uses retired VPS address
