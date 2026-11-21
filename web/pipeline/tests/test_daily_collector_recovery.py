@@ -453,6 +453,94 @@ class DailyCollectorRecoveryTests(unittest.IsolatedAsyncioTestCase):
                         f"COLLECTOR_QUARANTINE_UNCONFIRMED:{stage}", flush=True
                     )
 
+    async def test_exhausted_ccgp_recovery_schedules_hospital_without_refetch(self):
+        with collector_modules() as queue:
+            day = "2026-11-21"
+            data = {queue.META_KEY: {"local_date": day, "stages": {
+                "ccgp": {"status": "FAILED", "attempt_count": 2,
+                         "error_message": "CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED"}
+            }}}
+            cache = MagicMock()
+            cache.get.side_effect = data.get
+            def quarantine(**kwargs):
+                st = data[queue.META_KEY]["stages"]
+                st["ccgp"] = {"status": "SKIPPED", "result": {"source_status": "UNAVAILABLE"}}
+                for i in range(1, 7):
+                    st[f"event{i}"] = {"status": "SKIPPED"}
+                return True
+            with patch.object(queue, "RuntimeCache", return_value=cache), patch.object(
+                queue, "_active_cycle_matches", return_value=True
+            ), patch.object(queue.runtime, "quarantine_unavailable_source",
+                           side_effect=quarantine) as approved, patch.object(
+                queue.runtime, "run_stage"
+            ) as fetch, patch.object(
+                queue, "_enqueue_stage", new_callable=AsyncMock
+            ) as enqueue:
+                payload = {"schema_version": "0.1", "stage": "ccgp",
+                           "cycle_id": "prod:2026-11-21:hospital-recovery-v1",
+                           "cycle_as_of": "2026-11-21T12:30:00+00:00",
+                           "recovery_mode": "CCGP_UNAVAILABLE_HOSPITAL_CONTINUATION"}
+                await queue.process_collector_payload(payload)
+                self.assertEqual(enqueue.await_args.kwargs["stage"], "tjmugh")
+                approved.assert_called_once()
+                fetch.assert_not_called()
+                data[queue.META_KEY]["stages"]["tjmugh"] = {"status": "RUNNING"}
+                await queue.process_collector_payload(payload)
+                self.assertEqual(enqueue.await_count, 1)
+
+    async def test_hospital_resume_rejects_non_source_failure(self):
+        with collector_modules() as queue:
+            data = {"local_date": "2026-11-21", "stages": {
+                "ccgp": {"status": "FAILED", "attempt_count": 2,
+                         "error_message": "CCGP_DETAIL_PARSE_INVALID"}
+            }}
+            cache = MagicMock()
+            cache.get.return_value = data
+            with patch.object(queue, "RuntimeCache", return_value=cache), patch.object(
+                queue, "_active_cycle_matches", return_value=True
+            ), patch.object(queue.runtime, "quarantine_unavailable_source") as quarantine, patch.object(
+                queue.runtime, "run_stage"
+            ) as fetch, patch.object(queue, "_enqueue_stage", new_callable=AsyncMock) as enqueue:
+                with self.assertRaisesRegex(RuntimeError, "COLLECTOR_HOSPITAL_RECOVERY_UNSAFE_CCGP_STATE"):
+                    await queue.process_collector_payload({
+                        "schema_version": "0.1", "stage": "ccgp",
+                        "cycle_id": "prod:2026-11-21:hospital-recovery-v1",
+                        "cycle_as_of": "2026-11-21T12:30:00+00:00",
+                        "recovery_mode": "CCGP_UNAVAILABLE_HOSPITAL_CONTINUATION",
+                    })
+                quarantine.assert_not_called()
+                fetch.assert_not_called()
+                enqueue.assert_not_awaited()
+
+    async def test_authenticated_trigger_selects_unique_same_day_resume_id(self):
+        from datetime import datetime, timezone
+        from importlib.util import module_from_spec, spec_from_file_location
+        with collector_modules():
+            spec = spec_from_file_location("hospital_resume_trigger", WEB_ROOT / "api" / "collector-run.py")
+            trigger = module_from_spec(spec)
+            spec.loader.exec_module(trigger)
+            class Clock(datetime):
+                @classmethod
+                def now(cls, tz=None):
+                    fixed = datetime(2026, 11, 21, 12, 30, tzinfo=timezone.utc)
+                    return fixed if tz is None else fixed.astimezone(tz)
+            data = {trigger.META_KEY: {"local_date": "2026-11-21", "stages": {
+                "ccgp": {"status": "FAILED", "attempt_count": 2,
+                         "error_message": "CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED"}
+            }}}
+            cache = MagicMock()
+            cache.get.side_effect = data.get
+            cache.set.side_effect = lambda k, v, opts: data.__setitem__(k, v)
+            with patch.object(trigger, "RuntimeCache", return_value=cache), patch.object(
+                trigger, "datetime", Clock
+            ), patch.object(trigger, "send", new_callable=AsyncMock) as send:
+                send.return_value = "synthetic-recovery-message"
+                result = await trigger._enqueue_start("VERCEL_CRON")
+                self.assertEqual(result[2], "prod:2026-11-21:hospital-recovery-v1")
+                self.assertEqual(send.await_args.args[1]["recovery_mode"],
+                                 "CCGP_UNAVAILABLE_HOSPITAL_CONTINUATION")
+                self.assertEqual(data[trigger.ACTIVE_CYCLE_KEY]["cycle_id"], result[2])
+
     def test_preview_cannot_use_production_snapshot_publisher(self):
         with collector_modules() as queue, patch.dict("os.environ", {"VERCEL_ENV": "preview"}), patch.object(
             queue.runtime, "urlopen"
