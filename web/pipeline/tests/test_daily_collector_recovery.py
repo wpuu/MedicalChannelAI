@@ -313,6 +313,94 @@ class DailyCollectorRecoveryTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(fetch.call_count, 5)
                 self.assertEqual(push.await_count, 2 * (len(queue.STAGE_ORDER) - 1))
 
+    async def test_unavailable_ccgp_moves_to_independent_official_hospital(self):
+        with collector_modules() as queue, patch.object(
+            queue, "_active_cycle_matches", return_value=True
+        ), patch.object(queue, "_release_active_cycle_if_owned") as release, patch.object(
+            queue, "_enqueue_stage", new_callable=AsyncMock
+        ) as enqueue, patch.object(
+            queue.runtime, "quarantine_unavailable_source", return_value=True
+        ) as quarantined, patch.object(
+            queue.runtime, "run_stage",
+            return_value=(503, {"error": "CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED"})
+        ):
+            await queue.process_collector_payload({
+                "schema_version": "0.1", "stage": "ccgp", "cycle_id": "test-cycle",
+                "cycle_as_of": "2026-11-21T00:20:00+00:00",
+            })
+            quarantined.assert_called_once_with(
+                stage="ccgp", local_date="2026-11-21",
+                error="CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED",
+            )
+            enqueue.assert_awaited_once()
+            self.assertEqual(enqueue.await_args.kwargs["stage"], "tjmugh")
+            release.assert_not_called()
+
+    def test_unavailable_source_quarantine_preserves_failure_provenance(self):
+        with collector_modules() as queue:
+            rt = queue.runtime
+            state = {"local_date": "2026-11-21", "stages": {
+                "ccgp": {"status": "FAILED", "attempt_count": 2,
+                         "error_message": "CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED"},
+            }}
+            cache = MagicMock()
+            with patch.object(rt, "RuntimeCache", return_value=cache), patch.object(
+                rt, "load_status", return_value=state
+            ), patch.object(rt, "_carry_forward_verified", return_value=65), patch.object(
+                rt, "_write_status"
+            ) as saved:
+                self.assertFalse(rt.quarantine_unavailable_source(
+                    stage="ccgp", local_date="2026-11-21",
+                    error="CCGP_DETAIL_PARSE_INVALID",
+                ))
+                saved.assert_not_called()
+                self.assertTrue(rt.quarantine_unavailable_source(
+                    stage="ccgp", local_date="2026-11-21",
+                    error="CCGP_PUBLISH_GATE:ALL_DISCOVERY_QUERIES_FAILED",
+                ))
+                saved.assert_called_once()
+                self.assertEqual(state["stages"]["ccgp"]["status"], "SKIPPED")
+                self.assertEqual(state["stages"]["ccgp"]["error_code"], "SOURCE_UNAVAILABLE")
+                self.assertEqual(state["stages"]["ccgp"]["result"]["new_verified_record_count"], 0)
+                self.assertEqual(state["stages"]["ccgp"]["result"]["verified_carryover_count"], 65)
+                for stage in ("event1", "event2", "event3", "event4", "event5", "event6"):
+                    self.assertEqual(state["stages"][stage]["status"], "SKIPPED")
+
+    def test_publish_never_relabels_carryover_only_as_fresh_scan(self):
+        with collector_modules() as queue:
+            rt = queue.runtime
+            cache = MagicMock()
+            cache.get.return_value = []
+            state = {"cycle_as_of": "2026-11-21T08:20:00+08:00",
+                     "stages": {"ccgp": {"status": "SKIPPED", "result": {}},
+                                "tjmugh": {"status": "SKIPPED", "result": {}},
+                                "tjnothop": {"status": "SKIPPED", "result": {}},
+                                "teda": {"status": "SKIPPED", "result": {}},
+                                "tjfch": {"status": "SKIPPED", "result": {}}}}
+            with patch.object(rt, "build_public_snapshot") as build, patch.object(
+                rt, "_persist_verified_snapshot_durably"
+            ) as durable:
+                with self.assertRaisesRegex(rt.CollectorStageBlocked,
+                                            "COLLECTOR_NO_SUCCESSFUL_OFFICIAL_SOURCE_TODAY"):
+                    rt._run_publish(cache, state)
+                build.assert_not_called()
+                durable.assert_not_called()
+
+    async def test_synthetic_skipped_regional_stages_keep_queue_moving(self):
+        with collector_modules() as queue, patch.object(
+            queue, "_active_cycle_matches", return_value=True
+        ), patch.object(queue, "_enqueue_stage", new_callable=AsyncMock) as enqueue, patch.object(
+            queue.runtime, "run_stage", return_value=(
+                200, {"action": "SKIPPED_SOURCE_UNAVAILABLE", "stage": "regional_bj"}
+            )
+        ):
+            await queue.process_collector_payload({
+                "schema_version": "0.1", "stage": "regional_bj",
+                "cycle_id": "test-cycle",
+                "cycle_as_of": "2026-11-21T00:20:00+00:00",
+            })
+            self.assertEqual(enqueue.await_args.kwargs["stage"], "regional_bj_fallback")
+
     def test_preview_cannot_use_production_snapshot_publisher(self):
         with collector_modules() as queue, patch.dict("os.environ", {"VERCEL_ENV": "preview"}), patch.object(
             queue.runtime, "urlopen"
