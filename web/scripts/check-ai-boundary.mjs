@@ -60,6 +60,9 @@ const savedRemote = process.env.VERIFIED_SNAPSHOT_URL
 const savedPublicRemote = process.env.VITE_VERIFIED_SNAPSHOT_URL
 const savedPilot = process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED
 const savedFetch = globalThis.fetch
+const NativeDate = globalThis.Date
+const snapshotNow = Date.parse(snapshot.snapshot_as_of)
+if (!Number.isFinite(snapshotNow)) throw new Error('AI_BOUNDARY_TEST_INVALID_FIXTURE_TIME')
 process.env.AGNES_API_KEYS = ''
 process.env.AGNES_API_KEY = ''
 process.env.VERIFIED_SNAPSHOT_URL = ''
@@ -67,6 +70,12 @@ process.env.VITE_VERIFIED_SNAPSHOT_URL = ''
 clearVerifiedSnapshotCacheForTests()
 
 try {
+  // Fixtures age independently from the build machine's wall clock.
+  let testNow = snapshotNow
+  globalThis.Date = class FixtureDate extends NativeDate {
+    constructor(...args) { super(...(args.length ? args : [testNow])) }
+    static now() { return testNow }
+  }
   process.env.PILOT_PRIVATE_ACCOUNTS_ENABLED = '1'
   let response = await invoke({ body: { opportunity_id: knownOpportunityId } })
   expectStatus(response, 403, 'AI_PILOT_BOUNDARY_ORIGIN_REQUIRED')
@@ -118,6 +127,17 @@ try {
   })
   expectStatus(response, 404, 'AI_BOUNDARY_UNKNOWN_ID')
   if (response.body?.error !== 'VERIFIED_OPPORTUNITY_NOT_FOUND') throw new Error('AI_BOUNDARY_UNKNOWN_ID_CODE')
+
+  testNow = snapshotNow + 40 * 24 * 60 * 60 * 1000
+  response = await invoke({
+    origin: 'https://trial.example',
+    body: { opportunity_id: knownOpportunityId },
+    ip: '198.51.100.40',
+  })
+  expectStatus(response, 409, 'AI_BOUNDARY_CLOSED_WINDOW')
+  if (response.body?.error !== 'OPPORTUNITY_WINDOW_CLOSED') throw new Error(`AI_BOUNDARY_CLOSED_WINDOW_CODE:${response.body?.error}`)
+  testNow = snapshotNow
+  clearVerifiedSnapshotCacheForTests()
 
   response = await invoke({
     origin: 'https://trial.example',
@@ -310,6 +330,7 @@ try {
 
   console.log('AI boundary checks: PASS')
 } finally {
+  globalThis.Date = NativeDate
   clearVerifiedSnapshotCacheForTests()
   globalThis.fetch = savedFetch
   if (savedKeys === undefined) delete process.env.AGNES_API_KEYS
