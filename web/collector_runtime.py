@@ -314,7 +314,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     previous = stages.get(stage)
     regional_cache_replay = False
     regional_stale_migration_replay = False
-    if isinstance(previous, dict) and previous.get("status") == "COMPLETED":
+    if isinstance(previous, dict) and previous.get("status") in {"COMPLETED", "SKIPPED"}:
         if stage in REGIONAL_STAGE_MARKET_CODES:
             market_code = REGIONAL_STAGE_MARKET_CODES[stage]
             regional_cache_replay = not isinstance(
@@ -348,7 +348,7 @@ def _prepare_stage(cache: RuntimeCache, stage: str, now: datetime) -> tuple[dict
     if index > 0:
         required = STAGE_ORDER[index - 1]
         required_state = stages.get(required)
-        if not isinstance(required_state, dict) or required_state.get("status") != "COMPLETED":
+        if not isinstance(required_state, dict) or required_state.get("status") not in {"COMPLETED", "SKIPPED"}:
             raise CollectorPrecondition(f"COLLECTOR_PREVIOUS_STAGE_INCOMPLETE:{required}")
 
     attempts = int(previous.get("attempt_count", 0)) if isinstance(previous, dict) else 0
@@ -1451,7 +1451,7 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
 
     if previous is not None:
         return 200, {
-            "action": "ALREADY_COMPLETED_TODAY",
+            "action": ("ALREADY_SKIPPED_TODAY" if previous.get("status") == "SKIPPED" else "ALREADY_COMPLETED_TODAY"),
             "stage": stage,
             "local_date": state.get("local_date"),
             "completed_at": previous.get("completed_at"),
