@@ -380,7 +380,7 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
 
     status, result = runtime.run_stage(stage, now=cycle_as_of)
     action = str(result.get("action") or "")
-    if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY"}:
+    if status == 200 and action in {"COMPLETED", "ALREADY_COMPLETED_TODAY", "SKIPPED_SOURCE_UNAVAILABLE", "ALREADY_SKIPPED_TODAY"}:
         next_stage = _next_stage(stage)
         if next_stage is not None:
             if not _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
@@ -396,6 +396,25 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
         return
 
     error = str(result.get("error") or result.get("error_code") or "UNKNOWN")
+
+    # Preserve the failed-source evidence, but allow independent official
+    # sources to run when the error is explicitly whitelisted as a source
+    # availability failure. Never mask parser, integrity or publish errors.
+    if status == 503:
+        local_date = cycle_as_of.astimezone(TICK_SHANGHAI).date().isoformat()
+        if runtime.quarantine_unavailable_source(
+            stage=stage, local_date=local_date, error=error
+        ):
+            next_stage = (
+                "tjmugh" if stage == "ccgp" or stage.startswith("event")
+                else _next_stage(stage)
+            )
+            if next_stage and _active_cycle_matches(cycle_id, cycle_as_of=cycle_as_of):
+                await _enqueue_stage(
+                    stage=next_stage, cycle_as_of=cycle_as_of, cycle_id=cycle_id
+                )
+            return
+
     if status == 409 and "COLLECTOR_STAGE_RETRY_LIMIT" in error:
         _release_active_cycle_if_owned(cycle_id)
         return
