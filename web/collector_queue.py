@@ -400,11 +400,24 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
     # Preserve the failed-source evidence, but allow independent official
     # sources to run when the error is explicitly whitelisted as a source
     # availability failure. Never mask parser, integrity or publish errors.
+    # A rate-limited CCGP upstream must not be fetched twice just because
+    # Runtime Cache did not immediately confirm the failed-stage transition.
+    restricted_ccgp = (
+        status == 503
+        and (stage == "ccgp" or stage.startswith("event"))
+        and error.startswith("CCGP_UPSTREAM_ACCESS_RESTRICTED:")
+    )
     if status == 503:
         local_date = cycle_as_of.astimezone(TICK_SHANGHAI).date().isoformat()
-        if runtime.quarantine_unavailable_source(
+        quarantined = runtime.quarantine_unavailable_source(
             stage=stage, local_date=local_date, error=error
-        ):
+        )
+        if restricted_ccgp and not quarantined:
+            # Bounded local state recheck only. No extra upstream HTTP request.
+            quarantined = runtime.quarantine_unavailable_source(
+                stage=stage, local_date=local_date, error=error
+            )
+        if quarantined:
             next_stage = (
                 "tjmugh" if stage == "ccgp" or stage.startswith("event")
                 else _next_stage(stage)
@@ -419,9 +432,13 @@ async def process_collector_payload(payload: dict[str, Any]) -> None:
         _release_active_cycle_if_owned(cycle_id)
         return
 
-    # A failed-source delivery is safe to acknowledge only if quarantine has
-    # durably marked that stage SKIPPED and scheduled the independent next stage.
-    # If that write/readback was refused, let Queue retry rather than silently
-    # releasing the cycle lease and abandoning the remaining daily sources.
+    if restricted_ccgp:
+        # Fail closed without re-fetching an upstream that explicitly rate-limited
+        # us. The failed stage remains in collector-status, and the new local
+        # date gets a new cycle. Emit a bounded operational error instead of a
+        # silent success that falsely implies independent sources were scanned.
+        print(f"COLLECTOR_QUARANTINE_UNCONFIRMED:{stage}", flush=True)
+        _release_active_cycle_if_owned(cycle_id)
+        return
 
     raise RuntimeError(f"COLLECTOR_QUEUE_STAGE_FAILED:{stage}:{status}:{error[:180]}")
