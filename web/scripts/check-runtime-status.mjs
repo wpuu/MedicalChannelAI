@@ -108,6 +108,49 @@ try {
   expect(response.body?.snapshot?.source_mode === 'UNAVAILABLE', 'STATUS_INVALID_REMOTE_MODE')
   expect(response.body?.snapshot?.freshness === 'UNAVAILABLE', 'STATUS_INVALID_REMOTE_FRESHNESS')
 
+
+  // A fresh database snapshot can still have severely incomplete source
+  // coverage. Never present an empty market as if every source was searched.
+  const { runtimeSnapshotWarning, runtimeAutomationUnavailableReason } =
+    await import('../src/services/runtimeStatusApi.ts')
+  const freshStatus = {
+    schema_version: '0.1', service: 'MedicalChannelAI',
+    ready: true, degraded: false, production_ready: false,
+    ai: { configured: true },
+    snapshot: {
+      available: true, source_mode: 'DATABASE', runtime_origin: null,
+      snapshot_as_of: '2026-11-27T08:27:29+08:00',
+      freshness: 'FRESH', age_minutes: 10, stale_after_minutes: 1800,
+      today_card_count: 0, opportunity_pool_count: 0,
+      collection_health: {
+        mode: 'COMPLETE', completed_sources: ['tjmugh'],
+        unavailable_sources: [], new_verified_record_count: 0,
+      },
+    },
+  }
+  expect(runtimeSnapshotWarning(freshStatus) === null, 'STATUS_COMPLETE_SOURCE_WARNING_ABSENT')
+  const degradedStatus = {
+    ...freshStatus, degraded: true,
+    snapshot: {
+      ...freshStatus.snapshot,
+      collection_health: {
+        mode: 'DEGRADED', completed_sources: ['tjmugh', 'tjnothop', 'tjfch'],
+        unavailable_sources: ['ccgp', 'event1', 'regional_bj', 'regional_bj_fallback', 'teda'],
+        new_verified_record_count: 0,
+      },
+    },
+  }
+  const coverageWarning = runtimeSnapshotWarning(degradedStatus)
+  expect(typeof coverageWarning === 'string' &&
+    coverageWarning.includes('政府采购网及区域公告') &&
+    coverageWarning.includes('泰达医院') &&
+    coverageWarning.includes('显示0条不代表全市场没有新采购公告'),
+    'STATUS_FRESH_DEGRADED_SOURCE_WARNING')
+  expect(runtimeAutomationUnavailableReason(degradedStatus) === null,
+    'STATUS_FRESH_DEGRADED_DOES_NOT_BLOCK_VERIFIED_RECORD_ANALYSIS')
+  expect(runtimeSnapshotWarning(null) !== null,
+    'STATUS_UNAVAILABLE_FAILS_CLOSED')
+  
   console.log('Runtime status checks: PASS')
 } finally {
   clearVerifiedSnapshotCacheForTests()

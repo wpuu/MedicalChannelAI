@@ -574,7 +574,12 @@ export function OpportunityPoolPage() {
           ))}
         </div>
       ) : (
-        <EmptyState title="没有符合条件的机会" hint="可以清空搜索词、在顶部切换业务地区或调整窗口筛选。" />
+        <EmptyState
+          title="没有符合条件的机会"
+          hint={cards.length === 0 && runtimeStatus?.snapshot.collection_health?.mode === 'DEGRADED'
+            ? '本轮来源覆盖不完整，当前没有仍在公开窗口内的已核验机会；请勿将0条解读为全市场没有公告。'
+            : '可以清空搜索词、在顶部切换业务地区或调整窗口筛选。'}
+        />
       )}
     </div>
   )
