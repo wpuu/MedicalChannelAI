@@ -12,6 +12,8 @@ from zoneinfo import ZoneInfo
 from vercel.functions import RuntimeCache
 from vercel.queue import send
 
+from collector_audit import emit_collector_audit
+
 from collector_incremental import scan_bucket_id
 from collector_incremental_scheduler import (
     SCHEDULED_INCREMENTAL_SOURCES,
@@ -232,22 +234,46 @@ async def _enqueue_start(source: str) -> tuple[str, str, str, int]:
 
     cache = RuntimeCache()
     current_lease = cache.get(ACTIVE_CYCLE_KEY)
-    if (
-        active_cycle_id(current_lease) is not None
+    existing_id = active_cycle_id(current_lease)
+    same_day_lease = (
+        existing_id is not None
         and isinstance(current_lease, dict)
         and current_lease.get("local_date") == local_date
-    ):
-        raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
-    resume_hospitals = _eligible_hospital_resume(cache, local_date)
-    cycle_id = (f"prod:{local_date}{HOSPITAL_RECOVERY_SUFFIX}" if resume_hospitals
-                else (_recovery_cycle_id(cache, local_date) or f"prod:{local_date}"))
-    _activate_cycle(
-        cache,
-        cycle_id=cycle_id,
-        now=now,
-        local_date=local_date,
-        source=source,
     )
+    # The prior enqueue may have timed out after writing the daily lease but
+    # before receiving a Queue message ID. Re-sending the SAME idempotency key
+    # is safe only when not a single stage has begun; never reset state or
+    # retry a rate-limited source that has already started.
+    resume_unstarted = False
+    if same_day_lease:
+        state = cache.get(META_KEY)
+        stages = (
+            state.get("stages") if isinstance(state, dict)
+            and state.get("local_date") == local_date else {}
+        )
+        if (
+            existing_id != f"prod:{local_date}"
+            or cycle_has_running_stage(state)
+            or not isinstance(stages, dict)
+            or len(stages) > 0
+        ):
+            raise CollectorStartConflict("COLLECTOR_CYCLE_ALREADY_RUNNING")
+        resume_unstarted = True
+
+    resume_hospitals = False if resume_unstarted else _eligible_hospital_resume(cache, local_date)
+    cycle_id = (
+        f"prod:{local_date}" if resume_unstarted
+        else (f"prod:{local_date}{HOSPITAL_RECOVERY_SUFFIX}" if resume_hospitals
+              else (_recovery_cycle_id(cache, local_date) or f"prod:{local_date}"))
+    )
+    if not resume_unstarted:
+        _activate_cycle(
+            cache,
+            cycle_id=cycle_id,
+            now=now,
+            local_date=local_date,
+            source=source,
+        )
 
     # Deep collection owns the authoritative mutation lease from this point.
     # If an incremental invocation was already in flight, delay the first deep
@@ -418,6 +444,13 @@ class handler(BaseHTTPRequestHandler):
         except CollectorStartConflict:
             return self._send_json(409, {"error": "COLLECTOR_CYCLE_ALREADY_RUNNING"})
         except Exception as exc:
+            now = datetime.now(timezone.utc)
+            local_date = now.astimezone(SHANGHAI).date().isoformat()
+            emit_collector_audit(
+                cycle_id=f"prod:{local_date}", cycle_as_of=now.isoformat(),
+                stage="trigger", status="FAILED", outcome="QUEUE_START_FAILED",
+                error_code="QUEUE_START_FAILED",
+            )
             return self._send_json(
                 503,
                 {
@@ -427,6 +460,10 @@ class handler(BaseHTTPRequestHandler):
                 },
             )
 
+        emit_collector_audit(
+            cycle_id=cycle_id, cycle_as_of=datetime.now(timezone.utc).isoformat(),
+            stage="trigger", status="COMPLETED", outcome="QUEUED",
+        )
         self._send_json(
             202,
             {

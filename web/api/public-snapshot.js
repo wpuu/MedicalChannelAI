@@ -6,6 +6,7 @@ import {
   verifiedSnapshotSourceMode,
 } from './_verifiedSnapshot.js'
 import { persistPublicVerifiedSnapshot } from './_publicIntelligenceDb.js'
+import { validateCollectorAuditEvent, persistCollectorAuditEvent } from './_collectorAudit.js'
 
 // Visitors read through the Vercel CDN (the CDN strips s-maxage/SWR before the
 // browser, which then revalidates with the ETag). Publisher readback must see
@@ -122,12 +123,48 @@ async function publishSnapshot(request, response) {
   }
 }
 
+async function recordCollectorAudit(request, response) {
+  // Same existing constant-time publisher auth. Preview may never write to
+  // production's durable execution ledger.
+  if (process.env.VERCEL_ENV !== 'production') {
+    return sendJson(response, 403, { error: 'COLLECTOR_AUDIT_PRODUCTION_ONLY' })
+  }
+  const token = configuredPublishToken()
+  if (token.length < 24) {
+    return sendJson(response, 503, { error: 'COLLECTOR_AUDIT_NOT_CONFIGURED' })
+  }
+  if (!authorizedPublisher(request, token)) {
+    response.setHeader('WWW-Authenticate', 'Bearer')
+    return sendJson(response, 401, { error: 'UNAUTHORIZED' })
+  }
+  try {
+    const declaredSize = Number(headerValue(request, 'content-length') || '0')
+    if (declaredSize > 2000) {
+      return sendJson(response, 413, { error: 'COLLECTOR_AUDIT_TOO_LARGE' })
+    }
+    const event = validateCollectorAuditEvent(await requestBodyValue(request))
+    const result = await persistCollectorAuditEvent(event)
+    return sendJson(response, 200, { ok: true, ...result })
+  } catch (error) {
+    const code = String(error?.message || '')
+    const invalid = code.startsWith('COLLECTOR_AUDIT_') &&
+      code !== 'COLLECTOR_AUDIT_DATABASE_UNAVAILABLE' &&
+      code !== 'COLLECTOR_AUDIT_WRITE_UNCONFIRMED'
+    return sendJson(response, invalid ? 400 : 503, {
+      error: invalid ? code : 'COLLECTOR_AUDIT_PERSIST_FAILED',
+    })
+  }
+}
+
 export default async function handler(request, response) {
   if (request.method === 'PUT' || request.method === 'POST') {
     return publishSnapshot(request, response)
   }
+  if (request.method === 'PATCH') {
+    return recordCollectorAudit(request, response)
+  }
   if (request.method !== 'GET') {
-    response.setHeader('Allow', 'GET, PUT, POST')
+    response.setHeader('Allow', 'GET, PUT, POST, PATCH')
     return sendJson(response, 405, { error: 'METHOD_NOT_ALLOWED' })
   }
 

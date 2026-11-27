@@ -13,6 +13,50 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Persist stage-level collector evidence in existing Actions logs
+        shell: bash
+        run: |
+          set -uo pipefail
+          code="$(curl --connect-timeout 10 --max-time 30 -sS -o /tmp/collector-status.json -w '%{http_code}' 'https://medicalchannelai.vercel.app/api/collector-status?fresh=1' || true)"
+          if [[ "$code" != "200" ]]; then
+            echo "::warning::COLLECTOR_STATUS_READ_FAILED:HTTP_$code"
+            exit 0
+          fi
+          python3 - <<'PY'
+          import json
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          payload = json.loads(Path('/tmp/collector-status.json').read_text(encoding='utf-8'))
+          collector = payload.get('collector') or {}
+          stages = collector.get('stages') or {}
+          summary = {
+              'local_date': collector.get('local_date'),
+              'cycle_as_of': collector.get('cycle_as_of'),
+              'active_cycle': bool(collector.get('active_cycle_id')),
+              'completed_stages': collector.get('completed_stage_count'),
+              'total_stages': collector.get('total_stage_count'),
+              'stages': {
+                  name: {
+                      'status': row.get('status'),
+                      'error_code': row.get('error_code'),
+                      'attempts': row.get('attempt_count'),
+                      'new_verified_record_count': (row.get('result') or {}).get('new_verified_record_count'),
+                  }
+                  for name, row in stages.items() if isinstance(row, dict)
+              },
+          }
+          print('MCAI_COLLECTOR_DIAGNOSTIC=' + json.dumps(summary, ensure_ascii=False, sort_keys=True))
+          now = datetime.now(ZoneInfo('Asia/Shanghai'))
+          publish = stages.get('publish') or {}
+          if now.hour >= 12 and (
+              collector.get('local_date') != now.date().isoformat()
+              or publish.get('status') != 'COMPLETED'
+          ):
+              print('::warning::COLLECTOR_DAILY_CYCLE_NOT_PUBLISHED_AFTER_NOON')
+          PY
+
       - name: Check public demo URLs
         shell: bash
         run: |
