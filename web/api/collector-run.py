@@ -12,6 +12,8 @@ from zoneinfo import ZoneInfo
 from vercel.functions import RuntimeCache
 from vercel.queue import send
 
+from collector_audit import emit_collector_audit
+
 from collector_incremental import scan_bucket_id
 from collector_incremental_scheduler import (
     SCHEDULED_INCREMENTAL_SOURCES,
@@ -418,6 +420,13 @@ class handler(BaseHTTPRequestHandler):
         except CollectorStartConflict:
             return self._send_json(409, {"error": "COLLECTOR_CYCLE_ALREADY_RUNNING"})
         except Exception as exc:
+            now = datetime.now(timezone.utc)
+            local_date = now.astimezone(SHANGHAI).date().isoformat()
+            emit_collector_audit(
+                cycle_id=f"prod:{local_date}", cycle_as_of=now.isoformat(),
+                stage="trigger", status="FAILED", outcome="QUEUE_START_FAILED",
+                error_code="QUEUE_START_FAILED",
+            )
             return self._send_json(
                 503,
                 {
@@ -427,6 +436,10 @@ class handler(BaseHTTPRequestHandler):
                 },
             )
 
+        emit_collector_audit(
+            cycle_id=cycle_id, cycle_as_of=datetime.now(timezone.utc).isoformat(),
+            stage="trigger", status="COMPLETED", outcome="QUEUED",
+        )
         self._send_json(
             202,
             {
