@@ -542,6 +542,69 @@ class DailyCollectorRecoveryTests(unittest.IsolatedAsyncioTestCase):
                                  "CCGP_UNAVAILABLE_HOSPITAL_CONTINUATION")
                 self.assertEqual(data[trigger.ACTIVE_CYCLE_KEY]["cycle_id"], result[2])
 
+    async def test_unstarted_same_day_lease_requeues_only_existing_idempotency_key(self):
+        # If the initial Queue send errored after a lease write, a later
+        # authenticated invocation must recover without creating a new cycle.
+        from datetime import datetime, timezone
+        from importlib.util import module_from_spec, spec_from_file_location
+        with collector_modules():
+            spec = spec_from_file_location("collector_requeue_test", WEB_ROOT / "api" / "collector-run.py")
+            trigger = module_from_spec(spec)
+            spec.loader.exec_module(trigger)
+            class Clock(datetime):
+                @classmethod
+                def now(cls, tz=None):
+                    fixed = datetime(2026, 11, 27, 0, 55, tzinfo=timezone.utc)
+                    return fixed if tz is None else fixed.astimezone(tz)
+            date = "2026-11-27"
+            lease = {"cycle_id": f"prod:{date}", "local_date": date}
+            cache = MagicMock()
+            cache.get.side_effect = lambda key: (
+                lease if key == trigger.ACTIVE_CYCLE_KEY else None
+            )
+            with patch.object(trigger, "RuntimeCache", return_value=cache), patch.object(
+                trigger, "datetime", Clock
+            ), patch.object(trigger, "_activate_cycle") as activate, patch.object(
+                trigger, "send", new_callable=AsyncMock
+            ) as send:
+                send.return_value = "existing-or-new-idempotent-message"
+                message_id, local_date, cycle_id, _delay = await trigger._enqueue_start("VERCEL_CRON")
+                self.assertEqual(message_id, "existing-or-new-idempotent-message")
+                self.assertEqual(local_date, date)
+                self.assertEqual(cycle_id, f"prod:{date}")
+                self.assertEqual(
+                    send.await_args.kwargs["idempotency_key"],
+                    f"{trigger.QUEUE_TOPIC_NAME}:prod:{date}:ccgp",
+                )
+                activate.assert_not_called()
+
+    async def test_same_day_lease_with_started_source_blocks_requeue(self):
+        from datetime import datetime, timezone
+        from importlib.util import module_from_spec, spec_from_file_location
+        with collector_modules():
+            spec = spec_from_file_location("collector_requeue_block_test", WEB_ROOT / "api" / "collector-run.py")
+            trigger = module_from_spec(spec)
+            spec.loader.exec_module(trigger)
+            class Clock(datetime):
+                @classmethod
+                def now(cls, tz=None):
+                    fixed = datetime(2026, 11, 27, 0, 55, tzinfo=timezone.utc)
+                    return fixed if tz is None else fixed.astimezone(tz)
+            date = "2026-11-27"
+            state = {"local_date": date, "stages": {"ccgp": {
+                "status": "FAILED", "attempt_count": 1,
+            }}}
+            data = {trigger.ACTIVE_CYCLE_KEY: {"cycle_id": f"prod:{date}", "local_date": date},
+                    trigger.META_KEY: state}
+            cache = MagicMock()
+            cache.get.side_effect = data.get
+            with patch.object(trigger, "RuntimeCache", return_value=cache), patch.object(
+                trigger, "datetime", Clock
+            ), patch.object(trigger, "send", new_callable=AsyncMock) as send:
+                with self.assertRaisesRegex(trigger.CollectorStartConflict, "COLLECTOR_CYCLE_ALREADY_RUNNING"):
+                    await trigger._enqueue_start("VERCEL_CRON")
+                send.assert_not_awaited()
+
     def test_preview_cannot_use_production_snapshot_publisher(self):
         with collector_modules() as queue, patch.dict("os.environ", {"VERCEL_ENV": "preview"}), patch.object(
             queue.runtime, "urlopen"
