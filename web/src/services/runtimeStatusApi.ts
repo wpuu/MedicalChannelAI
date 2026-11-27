@@ -6,6 +6,13 @@ export type RuntimeSnapshotSourceMode =
   | 'BUNDLED_FALLBACK'
   | 'UNAVAILABLE'
 
+export interface RuntimeCollectionHealth {
+  mode: 'COMPLETE' | 'DEGRADED'
+  completed_sources: string[]
+  unavailable_sources: string[]
+  new_verified_record_count: number
+}
+
 export interface RuntimeStatus {
   schema_version: '0.1'
   service: 'MedicalChannelAI'
@@ -25,6 +32,7 @@ export interface RuntimeStatus {
     stale_after_minutes: number
     today_card_count: number
     opportunity_pool_count: number
+    collection_health?: RuntimeCollectionHealth | null
   }
 }
 
@@ -107,6 +115,24 @@ export function runtimeSnapshotWarning(
   }
   if (status.snapshot.freshness === 'UNAVAILABLE' || !status.snapshot.available) {
     return '当前无法确认公开商机快照状态。联系或报价前请先核对官方依据。'
+  }
+  if (status.snapshot.collection_health?.mode === 'DEGRADED') {
+    // A fresh snapshot clock records that a cycle published; it does NOT
+    // prove every official source was available or searched successfully.
+    const unavailable = status.snapshot.collection_health.unavailable_sources
+    const sources = Array.isArray(unavailable)
+      ? unavailable.filter((item): item is string => typeof item === 'string')
+      : []
+    const blocked: string[] = []
+    if (sources.some((item) => item === 'ccgp' || item.startsWith('event') || item.startsWith('regional_'))) {
+      blocked.push('政府采购网及区域公告')
+    }
+    if (sources.includes('teda')) blocked.push('泰达医院')
+    if (sources.some((item) => ['tjmugh', 'tjnothop', 'tjfch'].includes(item))) {
+      blocked.push('部分医院官网')
+    }
+    const sourceText = blocked.length > 0 ? blocked.join('、') : '部分官方来源'
+    return `本次自动刷新已完成，但${sourceText}未成功扫描；当前商机仅来自已成功扫描的来源。显示0条不代表全市场没有新采购公告，请核对官方依据。`
   }
   return null
 }

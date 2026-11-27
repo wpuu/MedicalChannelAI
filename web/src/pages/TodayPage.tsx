@@ -441,7 +441,12 @@ export function TodayPage() {
       <MetricCards data={visibleData} />
 
       {visibleCards.length === 0 ? (
-        <EmptyState title="今日暂无重点行动" hint="当前重点已处理，或暂无需要今天采取行动的项目。" />
+        <EmptyState
+          title="今日暂无重点行动"
+          hint={runtimeStatus?.snapshot.collection_health?.mode === 'DEGRADED'
+            ? '本轮来源覆盖不完整，目前没有可展示的已核验行动商机；受限官网仍可能存在新公告。'
+            : '当前重点已处理，或暂无需要今天采取行动的项目。'}
+        />
       ) : (
         <div className="space-y-3">
           {visibleCards.map((card) => (
