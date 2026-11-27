@@ -70,6 +70,22 @@ from medical_channel_pipeline.tjnothop_discovery import (  # noqa: E402
     stable_opportunity_id as tjnothop_opportunity_id,
 )
 from medical_channel_pipeline.tjnothop_market_research import parse_tjnothop_market_research  # noqa: E402
+from medical_channel_pipeline.tjzyefy_intent_discovery import (  # noqa: E402
+    INDEX_URL as TJZYEFY_INTENT_INDEX_URL,
+    parse_tjzyefy_intent_index_html,
+    select_intent_candidates_since,
+    stable_intent_opportunity_id,
+)
+from medical_channel_pipeline.tjzyefy_procurement_intent import (  # noqa: E402
+    TjzyefyIntentParseError,
+    parse_tjzyefy_procurement_intent,
+)
+from sync_tjzyefy_procurement_intent import (  # noqa: E402
+    UNSUPPORTED_DETAIL_CODES as TJZYEFY_INTENT_UNSUPPORTED_DETAIL_CODES,
+    effective_lookback_days as tjzyefy_intent_effective_lookback_days,
+    fetch_page_with_retry as fetch_tjzyefy_intent_page_with_retry,
+    publish_gate as tjzyefy_intent_publish_gate,
+)
 from sync_ccgp_query import (  # noqa: E402
     UPSTREAM_ACCESS_RESTRICTIONS, VERIFIED_NOTICE_ADAPTERS, discover_candidates, scan_events, stable_id,
 )
@@ -108,6 +124,9 @@ TJFCH_MAX_CANDIDATES = 20
 TJFCH_TEST_LOOKBACK_DAYS = 14
 TJFCH_TEST_MAX_CANDIDATES = 30
 TJFCH_REQUEST_DELAY_SECONDS = 3.0
+TJZYEFY_INTENT_LOOKBACK_DAYS = 30
+TJZYEFY_INTENT_MAX_CANDIDATES = 20
+TJZYEFY_INTENT_REQUEST_DELAY_SECONDS = 3.0
 
 META_KEY = "medicalchannelai:collector-runtime-state:v1"
 CCGP_RECORDS_KEY = "medicalchannelai:collector-ccgp-records:v1"
@@ -117,6 +136,7 @@ TJMUGH_RECORDS_KEY = "medicalchannelai:collector-tjmugh-records:v1"
 TJNOTHOP_RECORDS_KEY = "medicalchannelai:collector-tjnothop-records:v1"
 TEDA_RECORDS_KEY = "medicalchannelai:collector-teda-records:v1"
 TJFCH_RECORDS_KEY = "medicalchannelai:collector-tjfch-records:v1"
+TJZYEFY_INTENT_RECORDS_KEY = "medicalchannelai:collector-tjzyefy-intent-records:v1"
 REGIONAL_RECORDS_KEY_PREFIX = "medicalchannelai:collector-regional-records:v3"
 LATEST_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:latest:v1"
 PUBLISHED_RUNTIME_SNAPSHOT_KEY = "medicalchannelai:verified-snapshot:published:v2"
@@ -150,6 +170,7 @@ STAGE_ORDER = (
     "tjnothop",
     "teda",
     "tjfch",
+    "tjzyefy_intent",
     "regional_bj",
     "regional_bj_fallback",
     "regional_he",
@@ -233,6 +254,12 @@ def _bootstrap_teda_records() -> list[dict[str, Any]]:
 
 def _bootstrap_tjfch_records() -> list[dict[str, Any]]:
     return merge_canonical_records([], _load_array(DATA_ROOT / "tianjin_live_tjfch_records.json"))
+
+
+def _bootstrap_tjzyefy_intent_records() -> list[dict[str, Any]]:
+    return merge_canonical_records([], _load_array(
+        DATA_ROOT / "tianjin_live_tjzyefy_intent_records.json"
+    ))
 
 
 def _regional_records_key(market_code: str) -> str:
@@ -448,6 +475,8 @@ UNAVAILABLE_SOURCE_PREFIXES = {
     "tjfch": ("TJFCH_INDEX_DISCOVERY_FAILED:", "TJFCH_TEST_INDEX_DISCOVERY_FAILED:",
                "TJFCH_CANDIDATE_VERIFICATION_INCOMPLETE"),
     "regional": ("REGIONAL_ALL_DISCOVERY_QUERIES_FAILED:",),
+    "tjzyefy_intent": ("TJZYEFY_INTENT_INDEX_DISCOVERY_FAILED:",
+                       "TJZYEFY_INTENT_VERIFICATION_INCOMPLETE:"),
 }
 
 
@@ -456,7 +485,7 @@ def _unavailable_group(stage: str) -> str | None:
         return "ccgp"
     if stage in {"event1", "event2", "event3", "event4", "event5", "event6"}:
         return "event"
-    if stage in {"tjmugh", "tjnothop", "teda", "tjfch"}:
+    if stage in {"tjmugh", "tjnothop", "teda", "tjfch", "tjzyefy_intent"}:
         return stage
     if stage in REGIONAL_STAGE_MARKET_CODES or stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
         return "regional"
@@ -476,6 +505,7 @@ def _carry_forward_verified(cache: RuntimeCache, stage: str) -> int:
         "tjnothop": (TJNOTHOP_RECORDS_KEY, _bootstrap_tjnothop_records),
         "teda": (TEDA_RECORDS_KEY, _bootstrap_teda_records),
         "tjfch": (TJFCH_RECORDS_KEY, _bootstrap_tjfch_records),
+        "tjzyefy_intent": (TJZYEFY_INTENT_RECORDS_KEY, _bootstrap_tjzyefy_intent_records),
     }
     if stage in independent:
         key, bootstrap = independent[stage]
@@ -1190,6 +1220,84 @@ def _run_tjfch(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _run_tjzyefy_intent(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
+    """Run one official verified pre-market procurement-intent scan."""
+    as_of = _cycle_as_of(state)
+    local_date = as_of.astimezone(SHANGHAI).date()
+    observed_at = as_of.astimezone(timezone.utc).isoformat()
+    existing, bootstrapped = _cached_list(
+        cache, TJZYEFY_INTENT_RECORDS_KEY, _bootstrap_tjzyefy_intent_records
+    )
+    lookback_days = tjzyefy_intent_effective_lookback_days(
+        TJZYEFY_INTENT_LOOKBACK_DAYS, existing
+    )
+    start_date = local_date - timedelta(days=lookback_days - 1)
+    try:
+        index_html = fetch_tjzyefy_intent_page_with_retry(
+            TJZYEFY_INTENT_INDEX_URL, delay_seconds=TJZYEFY_INTENT_REQUEST_DELAY_SECONDS
+        )
+        discovered = parse_tjzyefy_intent_index_html(index_html)
+    except Exception as exc:
+        raise CollectorStageBlocked(
+            f"TJZYEFY_INTENT_INDEX_DISCOVERY_FAILED:{type(exc).__name__}"
+        ) from exc
+    selected = select_intent_candidates_since(
+        discovered, start_date=start_date, end_date=local_date,
+        max_candidates=TJZYEFY_INTENT_MAX_CANDIDATES,
+    )
+    new_records: list[dict[str, Any]] = []
+    failed_ids: list[str] = []
+    unsupported_count = 0
+    for candidate in selected:
+        opportunity_id = stable_intent_opportunity_id(candidate.detail_url)
+        time.sleep(TJZYEFY_INTENT_REQUEST_DELAY_SECONDS)
+        try:
+            detail_html = fetch_tjzyefy_intent_page_with_retry(
+                candidate.detail_url, delay_seconds=TJZYEFY_INTENT_REQUEST_DELAY_SECONDS
+            )
+            record = parse_tjzyefy_procurement_intent(
+                detail_html, source_url=candidate.detail_url,
+                index_url=TJZYEFY_INTENT_INDEX_URL,
+                index_published_at=candidate.published_at,
+                expected_title=candidate.title, observed_at=observed_at,
+                opportunity_id=opportunity_id,
+            )
+            new_records.append(record)
+        except TjzyefyIntentParseError as exc:
+            if str(exc) in TJZYEFY_INTENT_UNSUPPORTED_DETAIL_CODES:
+                unsupported_count += 1
+                continue
+            failed_ids.append(opportunity_id)
+        except Exception:
+            failed_ids.append(opportunity_id)
+    merged = merge_canonical_records(existing, new_records)
+    previously_verified = {
+        str(rec.get("opportunity_id") or "")
+        for rec in merged if isinstance(rec, dict)
+    }
+    unresolved = [item for item in failed_ids if item not in previously_verified]
+    allowed, reason = tjzyefy_intent_publish_gate(
+        index_discovery_succeeded=True, unresolved_failure_count=len(unresolved)
+    )
+    if not allowed:
+        raise CollectorStageBlocked(
+            f"TJZYEFY_INTENT_VERIFICATION_INCOMPLETE:{len(unresolved)}"
+        )
+    _cache_set(cache, TJZYEFY_INTENT_RECORDS_KEY, merged,
+               tag="medicalchannelai-collector-canonical")
+    return {
+        "discovered_intent_count": len(discovered),
+        "selected_candidate_count": len(selected),
+        "new_verified_record_count": len(new_records),
+        "unsupported_non_medical_count": unsupported_count,
+        "unresolved_failure_count": 0,
+        "merged_record_count": len(merged),
+        "bootstrapped_records": bootstrapped,
+        "publish_gate_reason": reason,
+        "lifecycle": "PROCUREMENT_INTENT",
+    }
+
+
 def _digest(value: Any) -> str:
     encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
@@ -1502,6 +1610,7 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
     tjnothop_records = cache.get(TJNOTHOP_RECORDS_KEY)
     teda_records = cache.get(TEDA_RECORDS_KEY)
     tjfch_records = cache.get(TJFCH_RECORDS_KEY)
+    tjzyefy_intent_records = cache.get(TJZYEFY_INTENT_RECORDS_KEY)
     regional_records_by_market = {
         market_code: cache.get(_regional_records_key(market_code))
         for market_code in REGIONAL_STAGE_MARKET_CODES.values()
@@ -1513,6 +1622,7 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         "tjnothop": tjnothop_records,
         "teda": teda_records,
         "tjfch": tjfch_records,
+        "tjzyefy_intent": tjzyefy_intent_records,
         **{
             f"regional_{market_code.lower()}": value
             for market_code, value in regional_records_by_market.items()
@@ -1539,13 +1649,14 @@ def _run_publish(cache: RuntimeCache, state: dict[str, Any]) -> dict[str, Any]:
         + list(tjnothop_records)
         + list(teda_records)
         + list(tjfch_records)
+        + list(tjzyefy_intent_records)
         + regional_records
     )
     # A new timestamp may be published only after at least one successful
     # real, independently verified source scan. Carryover alone is never fresh.
     completed_sources = []
     unavailable_sources = []
-    for name in ("ccgp", "tjmugh", "tjnothop", "teda", "tjfch",
+    for name in ("ccgp", "tjmugh", "tjnothop", "teda", "tjfch", "tjzyefy_intent",
                  "regional_bj", "regional_he", "regional_ln", "regional_jl", "regional_hl"):
         step = state.get("stages", {}).get(name) or {}
         if step.get("status") == "SKIPPED":
@@ -1647,6 +1758,8 @@ def run_stage(stage: str, *, now: datetime | None = None) -> tuple[int, dict[str
             result = _run_teda(cache, state)
         elif stage == "tjfch":
             result = _run_tjfch(cache, state)
+        elif stage == "tjzyefy_intent":
+            result = _run_tjzyefy_intent(cache, state)
         elif stage in REGIONAL_STAGE_MARKET_CODES or stage in REGIONAL_FALLBACK_STAGE_MARKET_CODES:
             unavailable = _regional_unavailable_carryover(cache, state, stage)
             if unavailable is not None:

@@ -243,6 +243,7 @@ class DailyCollectorRecoveryTests(unittest.IsolatedAsyncioTestCase):
             def seed_other_sources(_cache, _state, *_extra):
                 for key in (rt.TJMUGH_RECORDS_KEY, rt.TJNOTHOP_RECORDS_KEY,
                             rt.TEDA_RECORDS_KEY, rt.TJFCH_RECORDS_KEY,
+                            rt.TJZYEFY_INTENT_RECORDS_KEY,
                             *(rt._regional_records_key(m) for m in rt.REGIONAL_STAGE_MARKET_CODES.values())):
                     data[key] = []
                 return {}
@@ -283,7 +284,7 @@ class DailyCollectorRecoveryTests(unittest.IsolatedAsyncioTestCase):
                     st.enter_context(patch.object(m, "RuntimeCache", return_value=cache))
                 st.enter_context(patch.object(queue, "datetime", FixedDate))
                 st.enter_context(patch.object(rt, "_run_ccgp", side_effect=seed_ccgp))
-                for meth in ("_run_tjmugh", "_run_tjnothop", "_run_teda", "_run_tjfch", "_run_regional_market"):
+                for meth in ("_run_tjmugh", "_run_tjnothop", "_run_teda", "_run_tjfch", "_run_tjzyefy_intent", "_run_regional_market"):
                     st.enter_context(patch.object(rt, meth, side_effect=seed_other_sources))
                 st.enter_context(patch.object(rt.time, "sleep"))
                 st.enter_context(patch.dict("os.environ", {"VERIFIED_SNAPSHOT_PUBLISH_TOKEN": "isolated-test-only-" * 3, "VERCEL_ENV": "production"}))

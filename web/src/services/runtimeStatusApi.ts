@@ -128,7 +128,7 @@ export function runtimeSnapshotWarning(
       blocked.push('政府采购网及区域公告')
     }
     if (sources.includes('teda')) blocked.push('泰达医院')
-    if (sources.some((item) => ['tjmugh', 'tjnothop', 'tjfch'].includes(item))) {
+    if (sources.some((item) => ['tjmugh', 'tjnothop', 'tjfch', 'tjzyefy_intent'].includes(item))) {
       blocked.push('部分医院官网')
     }
     const sourceText = blocked.length > 0 ? blocked.join('、') : '部分官方来源'
